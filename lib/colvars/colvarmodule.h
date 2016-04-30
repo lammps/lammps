@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2016-04-27"
+#define COLVARS_VERSION "2016-04-28"
 #endif
 
 #ifndef COLVARS_DEBUG

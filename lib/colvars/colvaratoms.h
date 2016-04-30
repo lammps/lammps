@@ -453,18 +453,6 @@ public:
   /// micromanage the force.
   void apply_force(cvm::rvector const &force);
 
-  /// \brief Apply an array of forces directly on the individual
-  /// atoms; the length of the specified vector must be the same of
-  /// this \link atom_group \endlink.
-  ///
-  /// If the group is being rotated to a reference frame (e.g. to
-  /// express the colvar independently from the solute rotation), the
-  /// forces are rotated back to the original frame.  Colvar gradients
-  /// are not used, either because they were not defined (e.g because
-  /// the colvar has not a scalar value) or the biases require to
-  /// micromanage the forces.
-  void apply_forces(std::vector<cvm::rvector> const &forces);
-
 };
 
 

@@ -171,44 +171,47 @@ fix 1 all phonon 10 5000 500000 GAMMA EAM0D nasr 100
 <h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
 <p>Calculate the dynamical matrix from molecular dynamics simulations
 based on fluctuation-dissipation theory for a group of atoms.</p>
-<p>Consider a crystal with <em>N</em> unit cells in three dimensions labelled <em>l
-= (l&lt;sub&gt;1&lt;/sub&gt;,l&lt;sub&gt;2&lt;/sub&gt;,l&lt;sub&gt;3&lt;/sub&gt;)</em> where <em>l&lt;sub&gt;i&lt;/sub&gt;</em>
+<p>Consider a crystal with <span class="math">\(N\)</span> unit cells in three dimensions labelled <span class="math">\(l = (l_1, l_2, l_3)\)</span> where <span class="math">\(l_i\)</span>
 are integers.  Each unit cell is defined by three linearly independent
-vectors <a href="#id1"><span class="problematic" id="id2">**</span></a>a**&lt;sub&gt;1&lt;/sub&gt;, <a href="#id3"><span class="problematic" id="id4">**</span></a>a**&lt;sub&gt;2&lt;/sub&gt;, <a href="#id5"><span class="problematic" id="id6">**</span></a>a**&lt;sub&gt;3&lt;/sub&gt; forming a
-parallelipiped, containing <em>K</em> basis atoms labelled <em>k</em>.</p>
+vectors <span class="math">\(\mathbf{a}_1\)</span>, <span class="math">\(\mathbf{a}_2\)</span>, <span class="math">\(\mathbf{a}_3\)</span> forming a
+parallelipiped, containing <span class="math">\(K\)</span> basis atoms labeled <span class="math">\(k\)</span>.</p>
 <p>Based on fluctuation-dissipation theory, the force constant
 coefficients of the system in reciprocal space are given by
-(<a class="reference internal" href="#campana"><span>Campa&amp;ntilde;&amp;aacute;</span></a> , <a class="reference internal" href="#kong"><span>Kong</span></a>)
-&lt;center&gt;&lt;b&gt;&amp;Phi;&lt;/b&gt;&lt;sub&gt;k&amp;alpha;,k&#8217;&amp;beta;&lt;/sub&gt;(&lt;b&gt;q&lt;/b&gt;) =
-k&lt;sub&gt;B&lt;/sub&gt;T
-&lt;b&gt;G&lt;/b&gt;&lt;sup&gt;-1&lt;/sup&gt;&lt;sub&gt;k&amp;alpha;,k&#8217;&amp;beta;&lt;/sub&gt;(&lt;b&gt;q&lt;/b&gt;),&lt;/center&gt;</p>
-<p>where <strong>G</strong> is the Green&#8217;s functions coefficients given by</p>
-<center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
-<<b>u</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>u</b><sub>k'&beta;</sub><sup>*</sup>(<b>q</b>)>,</center><p>where &lt;...&gt; denotes the ensemble average, and
-&lt;center&gt;**u**&lt;sub&gt;k&amp;alpha;&lt;/sub&gt;(&lt;b&gt;q&lt;/b&gt;) = &amp;sum;&lt;sub&gt;l&lt;/sub&gt;
-&lt;b&gt;u&lt;/b&gt;&lt;sub&gt;lk&amp;alpha;&lt;/sub&gt; exp(i**qr**&lt;sub&gt;l&lt;/sub&gt;)&lt;/center&gt;</p>
-<p>is the &amp;alpha; component of the atomic displacement for the <em>k*th atom
-in the unit cell in reciprocal space at **q*</em>. In practice, the Green&#8217;s
+(<a class="reference internal" href="#campana"><span>Campana</span></a> , <a class="reference internal" href="#kong"><span>Kong</span></a>)</p>
+<div class="math">
+\[\begin{equation}\mathbf{\Phi}_{k\alpha,k^\prime \beta}(\mathbf{q}) = k_B T \mathbf{G}^{-1}_{k\alpha,k^\prime \beta}(\mathbf{q})\end{equation}\]</div>
+<p>where <span class="math">\(\mathbf{G}\)</span> is the Green&#8217;s functions coefficients given by</p>
+<div class="math">
+\[\begin{split}\begin{equation}\mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) = \left&lt; \mathbf{u}_{k\alpha}(\mathbf{q}) \bullet \mathbf{u}_{k^\prime \beta}^*(\mathbf{q}) \right&gt;\end{equation}\end{split}\]</div>
+<p>where <span class="math">\(\left&lt; \ldots \right&gt;\)</span> denotes the ensemble average, and</p>
+<div class="math">
+\[\begin{equation}\mathbf{u}_{k\alpha}(\mathbf{q}) = \sum_l \mathbf{u}_{l k \alpha} \exp{(i\mathbf{qr}_l)}\end{equation}\]</div>
+<p>is the <span class="math">\(\alpha\)</span> component of the atomic displacement for the <span class="math">\(k\)</span> th atom
+in the unit cell in reciprocal space at <span class="math">\(\mathbf{q}\)</span>. In practice, the Green&#8217;s
 functions coefficients can also be measured according to the following
 formula,</p>
-<center><b>G</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>) =
-<<b>R</b><sub>k&alpha;</sub>(<b>q</b>)&#149;<b>R</b><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>)>
-- <<b>R</b>><sub>k&alpha;</sub>(<b>q</b>)&#149;<<b>R</b>><sup>*</sup><sub>k'&beta;</sub>(<b>q</b>),
-</center><p>where <strong>R</strong> is the instantaneous positions of atoms, and &lt;<strong>R</strong>&gt; is the
+<div class="math">
+\[\begin{split}\begin{equation}\mathbf{G}_{k\alpha,k^\prime \beta}(\mathbf{q}) =
+\left&lt; \mathbf{R}_{k \alpha}(\mathbf{q}) \bullet \mathbf{R}^*_{k^\prime \beta}(\mathbf{q}) \right&gt;
+- \left&lt;\mathbf{R}\right&gt;_{k \alpha}(\mathbf{q}) \bullet \left&lt;\mathbf{R}\right&gt;^*_{k^\prime \beta}(\mathbf{q})\end{equation}\end{split}\]</div>
+<p>where <span class="math">\(\mathbf{R}\)</span> is the instantaneous positions of atoms, and <span class="math">\(\left&lt;\mathbf{R}\right&gt;\)</span> is the
 averaged atomic positions. It gives essentially the same results as
 the displacement method and is easier to implement in an MD code.</p>
-<p>Once the force constant matrix is known, the dynamical matrix <strong>D</strong> can
+<p>Once the force constant matrix is known, the dynamical matrix <span class="math">\(\mathbf{D}\)</span> can
 then be obtained by</p>
-<center><b>D</b><sub>k&alpha;, k'&beta;</sub>(<b>q</b>) = (m<sub>k</sub>m<sub>k'</sub>)<sup>-1/2</sup> <b>&Phi;</b><sub>k&alpha;,k'&beta;</sub>(<b>q</b>)</center><p>whose eigenvalues are exactly the phonon frequencies at <strong>q</strong>.</p>
+<div class="math">
+\[\begin{equation}\mathbf{D}_{k\alpha, k^\prime\beta}(\mathbf{q}) =
+(m_k m_{k^\prime})^{-\frac{1}{2}} \mathbf{\Phi}_{k \alpha, k^\prime \beta}(\mathbf{q})\end{equation}\]</div>
+<p>whose eigenvalues are exactly the phonon frequencies at <span class="math">\(\mathbf{q}\)</span>.</p>
 <p>This fix uses positions of atoms in the specified group and calculates
 two-point correlations.  To achieve this. the positions of the atoms
 are examined every <em>Nevery</em> steps and are Fourier-transformed into
 reciprocal space, where the averaging process and correlation
 computation is then done.  After every <em>Noutput</em> measurements, the
-matrix <strong>G**(**q</strong>) is calculated and inverted to obtain the elastic
+matrix <span class="math">\(\mathbf{G}(\mathbf{q})\)</span> is calculated and inverted to obtain the elastic
 stiffness coefficients.  The dynamical matrices are then constructed
 and written to <em>prefix</em>.bin.timestep files in binary format and to the
-file <em>prefix</em>.log for each wavevector <strong>q</strong>.</p>
+file <em>prefix</em>.log for each wavevector <span class="math">\(\mathbf{q}\)</span>.</p>
 <p>A detailed description of this method can be found in
 (<a class="reference internal" href="#kong2011"><span>Kong2011</span></a>).</p>
 <p>The <em>sysdim</em> keyword is optional.  If specified with a value smaller
@@ -217,7 +220,7 @@ for the dynamical matrix calculation.  For example, using LAMMPS ot
 model a 2D or 3D system, the phonon dispersion of a 1D atomic chain
 can be computed using <em>sysdim</em> = 1.</p>
 <p>The <em>nasr</em> keyword is optional.  An iterative procedure is employed to
-enforce the acoustic sum rule on &amp;Phi; at &amp;Gamma;, and the number
+enforce the acoustic sum rule on <span class="math">\(\Phi\)</span> at <span class="math">\(\Gamma\)</span>, and the number
 provided by keyword <em>nasr</em> gives the total number of iterations. For a
 system whose unit cell has only one atom, <em>nasr</em> = 1 is sufficient;
 for other systems, <em>nasr</em> = 10 is typically sufficient.</p>
@@ -274,13 +277,13 @@ LAMMPS was built with that package.  See the <a class="reference internal" href=
 <p>The option defaults are sysdim = the same dimemsion as specified by
 the <a class="reference external" href="dimension">dimension</a> command, and nasr = 20.</p>
 <hr class="docutils" />
-<p id="campana"><strong>(Campa&amp;ntilde;&amp;aacute;)</strong> C. Campa&amp;ntilde;&amp;aacute; and
-M. H. M&amp;uuml;ser, <em>Practical Green&#8217;s function approach to the
+<p id="campana"><strong>(Campana)</strong> C. Campana and
+M. H. Muser, <em>Practical Green&#8217;s function approach to the
 simulation of elastic semi-infinite solids</em>, <a class="reference external" href="http://dx.doi.org/10.1103/PhysRevB.74.075420">Phys. Rev. B [74], 075420 (2006)</a></p>
-<p id="kong"><strong>(Kong)</strong> L.T. Kong, G. Bartels, C. Campa&amp;ntilde;&amp;aacute;,
-C. Denniston, and Martin H. M&amp;uuml;ser, <em>Implementation of Green&#8217;s
+<p id="kong"><strong>(Kong)</strong> L.T. Kong, G. Bartels, C. Campana,
+C. Denniston, and Martin H. Muser, <em>Implementation of Green&#8217;s
 function molecular dynamics: An extension to LAMMPS</em>, <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2008.12.035">Computer Physics Communications [180](6):1004-1010 (2009).</a></p>
-<p>L.T. Kong, C. Denniston, and Martin H. M&amp;uuml;ser,
+<p>L.T. Kong, C. Denniston, and Martin H. Muser,
 <em>An improved version of the Green&#8217;s function molecular dynamics
 method</em>, <a class="reference external" href="http://dx.doi.org/10.1016/j.cpc.2010.10.006">Computer Physics Communications [182](2):540-541 (2011).</a></p>
 <p id="kong2011"><strong>(Kong2011)</strong> L.T. Kong, <em>Phonon dispersion measured directly from

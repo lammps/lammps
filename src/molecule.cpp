@@ -303,7 +303,7 @@ void Molecule::compute_inertia()
     for (int i = 0; i < 6; i++) itensor[i] = 0.0;
     for (int i = 0; i < natoms; i++) {
       if (rmassflag) onemass = rmass[i];
-      else onemass = atom->type[type[i]];
+      else onemass = atom->mass[type[i]];
       dx = dxcom[i][0];
       dy = dxcom[i][1];
       dz = dxcom[i][2];
@@ -318,7 +318,7 @@ void Molecule::compute_inertia()
     if (radiusflag) {
       for (int i = 0; i < natoms; i++) {
         if (rmassflag) onemass = rmass[i];
-        else onemass = atom->type[type[i]];
+        else onemass = atom->mass[type[i]];
         itensor[0] += SINERTIA*onemass * radius[i]*radius[i];
         itensor[1] += SINERTIA*onemass * radius[i]*radius[i];
         itensor[2] += SINERTIA*onemass * radius[i]*radius[i];

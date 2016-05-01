@@ -134,11 +134,12 @@
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><em>fix</em></a> command</li>
 <li>property/atom = style name of this fix command</li>
-<li>vec1,vec2,... = <em>mol</em> or <em>q</em> or <em>i_name</em> or <em>d_name</em></li>
+<li>vec1,vec2,... = <em>mol</em> or <em>q</em> or <em>rmass</em> or <em>i_name</em> or <em>d_name</em></li>
 </ul>
 <pre class="literal-block">
 <em>mol</em> = molecule IDs
 <em>q</em> = charge
+<em>rmass</em> = per-atom mass
 <em>i_name</em> = new integer vector referenced by name
 <em>d_name</em> = new floating-point vector referenced by name
 </pre>
@@ -168,22 +169,32 @@ properties, as explained on the <a class="reference internal" href="atom_style.h
 <a class="reference internal" href="read_data.html"><em>read_data</em></a> doc pages.  The latter command allows these
 properties to be defined for each atom in the system when a data file
 is read.  This fix will augment the set of properties with new custom
-ones.</p>
-<p>This can be useful in at least two scenarios.</p>
-<p>If the atom style does not define molecule IDs or per-atom charge,
-they can be added using the <em>mol</em> or <em>q</em> keywords.  This can be
-useful, e.g, to define &#8220;molecules&#8221; to use as rigid bodies with the
-<a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command, or just to carry around an extra
-flag with the atoms (stored as a molecule ID).  An alternative is to
-use an atom style that does define molecule IDs or charge or to use a
-hybrid atom style that combines two styles to allow for molecule IDs
-or charge, but that has 2 practical drawbacks.  First it typically
-necessitates changing the format of the data file.  And it may define
-additional properties that aren&#8217;t needed such as bond lists, which has
-some overhead when there are no bonds.</p>
+ones. This can be useful in several scenarios.</p>
+<p>If the atom style does not define molecule IDs, per-atom charge,
+or per-atom mass, they can be added using the <em>mol</em>, <em>q</em> or <em>rmass</em>
+keywords.  This can be useful, e.g, to define &#8220;molecules&#8221; to use as
+rigid bodies with the <a class="reference internal" href="fix_rigid.html"><em>fix rigid</em></a> command, or just to
+carry around an extra flag with the atoms (stored as a molecule ID)
+that can be used to group atoms without having to use the group
+command (which is limited to a total of 32 groups including <em>all</em>).</p>
+<p>Another application would be to use the <em>rmass</em> flag in order to have
+per-atom masses instead of per-type masses, for example this can be
+useful to study isotope effects with partial isotope substitution.
+Please <a class="reference internal" href="#isotopes"><span>see below</span></a> for an example of simulating a mixture
+of light and heavy water with the TIP4P water potential.</p>
+<p>An alternative to using fix <em>property/atom</em> in these ways is to
+use an atom style that does define molecule IDs or charge or per-atom
+mass (indirectly via diameter and density) or to use a hybrid atom
+style that combines two or more atom styles
+to provide the union of all atom properties. However, this has two
+practical drawbacks:  first, it typically necessitates changing the
+format of the data file, which can be tedious for large systems;
+and second, it may define additional properties that are not needed
+such as bond lists, which has some overhead when there are no bonds.</p>
 <p>In the future, we may add additional per-atom properties similar to
-<em>mol</em> or <em>q</em>, which &#8220;turn-on&#8221; specific properties defined by some atom
-styles, so they can be used by atom styles that don&#8217;t define them.</p>
+<em>mol</em>, <em>q</em> or <em>rmass</em>, which &#8220;turn-on&#8221; specific properties defined
+by some atom styles, so they can be used by atom styles that do not
+define them.</p>
 <p>More generally, the <em>i_name</em> and <em>d_name</em> vectors allow one or more
 new custom per-atom properties to be defined.  Each name must be
 unique and can use alphanumeric or underscore characters.  These
@@ -204,9 +215,9 @@ when ghost atoms are created (at every re-neighboring) to insure the
 new properties are also defined for the ghost atoms.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If you use this command with the <em>mol</em> or <em>charge</em> vectors than
-you most likely want to set <em>ghost</em> yes, since these properties are
-stored with ghost atoms if you use an <a class="reference internal" href="atom_style.html"><em>atom_style</em></a>
+<p class="last">If you use this command with the <em>mol</em>, <em>q</em> or <em>rmass</em> vectors,
+then you most likely want to set <em>ghost</em> yes, since these properties
+are stored with ghost atoms if you use an <a class="reference internal" href="atom_style.html"><em>atom_style</em></a>
 that defines them, and many LAMMPS operations that use molecule IDs or
 charge, such as neighbor lists and pair styles, will expect ghost
 atoms to have these valuse.  LAMMPS will issue a warning it you define
@@ -291,6 +302,41 @@ dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2]
 <a class="reference internal" href="fix.html"><em>fixes</em></a>, or <a class="reference internal" href="compute.html"><em>computes</em></a> that use the per-atom
 properties defined by this fix, see <a class="reference internal" href="Section_modify.html#mod-1"><span>Section modify</span></a> of the manual which has some details
 on how the properties can be accessed from added classes.</p>
+<hr class="docutils" />
+<p id="isotopes">Example for using per-atom masses with TIP4P water to study isotope
+effects. When setting up simulations with the <a class="reference internal" href="Section_howto.html#howto-8"><span>TIP4P pair styles</span></a> for water, you have to provide
+exactly one atom type each to identify the water oxygen and hydrogen
+atoms. Since the atom mass is normally tied to the atom type, this
+makes it impossible to study multiple isotopes in the same simulation.
+With <em>fix property/atom rmass</em> however, the per-type masses are
+replaced by per-atom masses. Asumming you have a working input deck
+for regular TIP4P water, where water oxygen is atom type 1 and
+water hydrogen is atom type 2, the following lines of input script
+convert this to using per-atom masses:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix Isotopes all property/atom rmass ghost yes
+set type 1 mass 15.9994
+set type 2 mass 1.008
+</pre></div>
+</div>
+<p>When writing out the system data with the <a class="reference internal" href="write_data.html"><em>write_data</em></a>
+command, there will be a new section named with the fix-ID
+(i.e. <em>Isotopes</em> in this case). Alternatively, you can take an
+existing data file and just add this <em>Isotopes</em> section with
+one line per atom containing atom-ID and mass. Either way, the
+extended data file can be read back with:</p>
+<div class="highlight-python"><div class="highlight"><pre>fix Isotopes all property/atom rmass ghost yes
+read_data tip4p-isotopes.data fix Isotopes NULL Isotopes
+</pre></div>
+</div>
+<p>Please note that the first <em>Isotopes</em> refers to the fix-ID
+and the second to the name of the section. The following input
+script code will now change the first 100 water molecules in this
+example to heavy water:</p>
+<div class="highlight-python"><div class="highlight"><pre>group hwat id 2:300:3
+group hwat id 3:300:3
+set group hwat mass 2.0141018
+</pre></div>
+</div>
 </div>
 <hr class="docutils" />
 <div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">

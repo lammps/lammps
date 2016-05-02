@@ -77,6 +77,8 @@ action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
+action fix_qeq_reax_kokkos.cpp fix_qeq_reax.cpp
+action fix_qeq_reax_kokkos.h fix_qeq_reax.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
 action fix_wall_reflect_kokkos.cpp
@@ -149,6 +151,8 @@ action pair_lj_gromacs_kokkos.cpp
 action pair_lj_gromacs_kokkos.h
 action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
 action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_reax_kokkos.cpp pair_reax.cpp
+action pair_reax_kokkos.h pair_reax.h
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
 action pair_table_kokkos.cpp

@@ -88,10 +88,12 @@ void PairZero::settings(int narg, char **arg)
 
   // reset cutoffs that have been explicitly set
 
-  int i,j;
-  for (i = 1; i <= atom->ntypes; i++)
-    for (j = i+1; j <= atom->ntypes; j++)
-         cut[i][j] = cut_global;
+  if (allocated) {
+    int i,j;
+    for (i = 1; i <= atom->ntypes; i++)
+      for (j = i+1; j <= atom->ntypes; j++)
+        cut[i][j] = cut_global;
+  }
 }
 
 /* ----------------------------------------------------------------------

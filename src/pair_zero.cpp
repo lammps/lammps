@@ -68,7 +68,7 @@ void PairZero::allocate()
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
-      setflag[i][j] = 1;
+      setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cut,n+1,n+1,"pair:cut");
@@ -121,6 +121,7 @@ void PairZero::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       cut[i][j] = cut_one;
+      setflag[i][j] = 1;
       count++;
     }
   }

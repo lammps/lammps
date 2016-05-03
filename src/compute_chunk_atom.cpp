@@ -319,7 +319,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       (delta[0] <= 0.0 || delta[1] <= 0.0 || delta[2] <= 0.0))
       error->all(FLERR,"Illegal compute chunk/atom command");
   if (which == BIN3D &&
-      (dim[0] == dim[1] || dm[1] == dim[2] || dim[0] == dim[2]))
+      (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2]))
       error->all(FLERR,"Illegal compute chunk/atom command");
   if (which == BINSPHERE) {
     if (domain->dimension == 2 && sorigin_user[2] != 0.0) 

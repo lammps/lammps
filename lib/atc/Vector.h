@@ -115,11 +115,11 @@ DenseVector<T> operator*(const T s, const Vector<T> &v)
 ///////////////////////////////////////////////////////////////////////////////
 //* inverse scaling operator - must always create memory
 template<typename T>
-DenseMatrix<T> operator/(const Vector<T> &v, const T s)
+DenseVector<T> operator/(const Vector<T> &v, const T s)
 {
   DenseVector<T> r(v);
   r*=(1.0/s); // for integer types this may be worthless
-  return ;
+  return r;
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* Operator for Vector-Vector sum

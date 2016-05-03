@@ -76,10 +76,9 @@ args = arguments specific to the style :l
   {kokkos} args = keyword value ...
     zero or more keyword/value pairs may be appended
     keywords = {neigh} or {newton} or {binsize} or {comm} or {comm/exchange} or {comm/forward}
-      {neigh} value = {full} or {half/thread} or {half} or {n2} or {full/cluster}
+      {neigh} value = {full} or {half} or {n2} or {full/cluster}
         full = full neighbor list
-        half/thread = half neighbor list built in thread-safe manner
-        half = half neighbor list, not thread-safe, only use when 1 thread/MPI task
+        half = half neighbor list built in thread-safe manner
         n2 = non-binning neighbor list build, O(N^2) algorithm
         full/cluster = full neighbor list with clustered groups of atoms
       {newton} = {off} or {on}
@@ -110,7 +109,7 @@ package gpu 1 split 0.75
 package gpu 2 split -1.0
 package cuda 2 gpuID 0 2
 package cuda 1 test 3948
-package kokkos neigh half/thread comm device
+package kokkos neigh half comm device
 package omp 0 neigh no
 package omp 4
 package intel 1
@@ -447,10 +446,8 @@ All of the settings are optional keyword/value pairs.  Each has a
 default value as listed below.
 
 The {neigh} keyword determines how neighbor lists are built.  A value
-of {half} uses half-neighbor lists, the same as used by most pair
-styles in LAMMPS.  A value of {half/thread} uses a thread-safe variant
-of the half-neighbor list.  It should be used instead of {half} when
-running with more than 1 threads per MPI task on a CPU.  A value of
+of {half} uses a thread-safe variant of half-neighbor lists,
+the same as used by most pair styles in LAMMPS.  A value of
 {n2} uses an O(N^2) algorithm to build the neighbor list without
 binning, where N = # of atoms on a processor.  It is typically slower
 than the other methods, which use binning.

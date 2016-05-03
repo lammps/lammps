@@ -43,7 +43,7 @@
 
 #include <Kokkos_Core_fwd.hpp>
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST )
 
@@ -844,5 +844,5 @@ void * create_singleton(  size_t size
 
 #endif /* #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST ) */
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 

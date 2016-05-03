@@ -45,7 +45,7 @@
 #define KOKKOS_OPENMP_PARALLEL_HPP
 
 #include <omp.h>
-
+#include <iostream>
 #include <Kokkos_Parallel.hpp>
 #include <OpenMP/Kokkos_OpenMPexec.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
@@ -56,14 +56,15 @@
 namespace Kokkos {
 namespace Impl {
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelFor< FunctorType
-                 , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::OpenMP >
+                 , Kokkos::RangePolicy< Traits ... >
+                 , Kokkos::OpenMP 
                  >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::OpenMP > Policy ;
+  typedef Kokkos::RangePolicy< Traits ...  > Policy ;
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::WorkRange    WorkRange ;
   typedef typename Policy::member_type  Member ;
@@ -106,8 +107,14 @@ private:
 
 public:
 
+  inline void execute() const {
+    this->template execute_schedule<typename Policy::schedule_type::type>();
+  }
+
+  template<class Schedule>
   inline
-  void execute() const
+  typename std::enable_if< std::is_same<Schedule,Kokkos::Static>::value >::type
+    execute_schedule() const
     {
       OpenMPexec::verify_is_process("Kokkos::OpenMP parallel_for");
       OpenMPexec::verify_initialized("Kokkos::OpenMP parallel_for");
@@ -123,9 +130,40 @@ public:
 /* END #pragma omp parallel */
     }
 
+  template<class Schedule>
+  inline
+  typename std::enable_if< std::is_same<Schedule,Kokkos::Dynamic>::value >::type
+    execute_schedule() const
+    {
+      OpenMPexec::verify_is_process("Kokkos::OpenMP parallel_for");
+      OpenMPexec::verify_initialized("Kokkos::OpenMP parallel_for");
+
+#pragma omp parallel
+      {
+        OpenMPexec & exec = * OpenMPexec::get_thread_omp();
+
+        const WorkRange range( m_policy, exec.pool_rank(), exec.pool_size() );
+
+        exec.set_work_range(range.begin(),range.end(),m_policy.chunk_size());
+        exec.reset_steal_target();
+        #pragma omp barrier
+        
+        long work_index = exec.get_work_index();
+
+        while(work_index != -1) {
+          const Member begin = static_cast<Member>(work_index) * m_policy.chunk_size();
+          const Member end = begin + m_policy.chunk_size() < m_policy.end()?begin+m_policy.chunk_size():m_policy.end();
+          ParallelFor::template exec_range< WorkTag >( m_functor , begin, end );
+          work_index = exec.get_work_index();
+        }
+
+      }
+/* END #pragma omp parallel */
+    }
+
   inline
   ParallelFor( const FunctorType & arg_functor
-             , const Policy      & arg_policy )
+             , Policy arg_policy )
     : m_functor( arg_functor )
     , m_policy(  arg_policy )
     {}
@@ -140,14 +178,15 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelReduce< FunctorType
-                    , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::OpenMP >
+                    , Kokkos::RangePolicy< Traits ...>
+                    , Kokkos::OpenMP
                     >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::OpenMP > Policy ;
+  typedef Kokkos::RangePolicy< Traits ... > Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::WorkRange    WorkRange ;
@@ -201,8 +240,14 @@ private:
 
 public:
 
+  inline void execute() const {
+    this->template execute_schedule<typename Policy::schedule_type::type>();
+  }
+
+  template<class Schedule>
   inline
-  void execute() const
+  typename std::enable_if< std::is_same<Schedule,Kokkos::Static>::value >::type
+    execute_schedule() const
     {
       OpenMPexec::verify_is_process("Kokkos::OpenMP parallel_reduce");
       OpenMPexec::verify_initialized("Kokkos::OpenMP parallel_reduce");
@@ -236,12 +281,62 @@ public:
       }
     }
 
+  template<class Schedule>
+  inline
+  typename std::enable_if< std::is_same<Schedule,Kokkos::Dynamic>::value >::type
+    execute_schedule() const
+    {
+      OpenMPexec::verify_is_process("Kokkos::OpenMP parallel_reduce");
+      OpenMPexec::verify_initialized("Kokkos::OpenMP parallel_reduce");
+
+      OpenMPexec::resize_scratch( ValueTraits::value_size( m_functor ) , 0 );
+
+#pragma omp parallel
+      {
+        OpenMPexec & exec = * OpenMPexec::get_thread_omp();
+        const WorkRange range( m_policy, exec.pool_rank(), exec.pool_size() );
+
+        exec.set_work_range(range.begin(),range.end(),m_policy.chunk_size());
+        exec.reset_steal_target();
+        #pragma omp barrier
+
+        long work_index = exec.get_work_index();
+
+        reference_type update = ValueInit::init( m_functor , exec.scratch_reduce() );
+        while(work_index != -1) {
+          const Member begin = static_cast<Member>(work_index) * m_policy.chunk_size();
+          const Member end = begin + m_policy.chunk_size() < m_policy.end()?begin+m_policy.chunk_size():m_policy.end();
+          ParallelReduce::template exec_range< WorkTag >
+            ( m_functor , begin,end
+            , update );
+          work_index = exec.get_work_index();
+        }
+      }
+/* END #pragma omp parallel */
+
+      // Reduction:
+
+      const pointer_type ptr = pointer_type( OpenMPexec::pool_rev(0)->scratch_reduce() );
+
+      for ( int i = 1 ; i < OpenMPexec::pool_size() ; ++i ) {
+        ValueJoin::join( m_functor , ptr , OpenMPexec::pool_rev(i)->scratch_reduce() );
+      }
+
+      Kokkos::Impl::FunctorFinal<  FunctorType , WorkTag >::final( m_functor , ptr );
+
+      if ( m_result_ptr ) {
+        const int n = ValueTraits::value_count( m_functor );
+
+        for ( int j = 0 ; j < n ; ++j ) { m_result_ptr[j] = ptr[j] ; }
+      }
+    }
+
   //----------------------------------------
 
   template< class ViewType >
   inline
   ParallelReduce( const FunctorType & arg_functor
-                , const Policy      & arg_policy
+                , Policy       arg_policy
                 , const ViewType    & arg_result_view )
     : m_functor( arg_functor )
     , m_policy(  arg_policy )
@@ -265,14 +360,15 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelScan< FunctorType
-                  , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::OpenMP >
+                  , Kokkos::RangePolicy< Traits ... >
+                  , Kokkos::OpenMP
                   >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::OpenMP > Policy ;
+  typedef Kokkos::RangePolicy< Traits ... > Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::WorkRange    WorkRange ;
@@ -402,14 +498,15 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template< class FunctorType , class Arg0 , class Arg1 >
+template< class FunctorType , class ... Properties >
 class ParallelFor< FunctorType
-                 , Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::OpenMP >
+                 , Kokkos::TeamPolicy< Properties ... >
+                 , Kokkos::OpenMP
                  >
 {
 private:
 
-  typedef Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::OpenMP > Policy ;
+  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::OpenMP, Properties ... > Policy ;
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;
 
@@ -417,23 +514,46 @@ private:
   const Policy       m_policy ;
   const int          m_shmem_size ;
 
-  template< class TagType >
+  template< class TagType, class Schedule >
   inline static
-  typename std::enable_if< std::is_same< TagType , void >::value >::type
+  typename std::enable_if< std::is_same< TagType , void >::value && std::is_same<Schedule,Kokkos::Static>::value>::type
   exec_team( const FunctorType & functor , Member member )
     {
-      for ( ; member.valid() ; member.next() ) {
+      for ( ; member.valid_static() ; member.next_static() ) {
         functor( member );
       }
     }
 
-  template< class TagType >
+  template< class TagType, class Schedule >
   inline static
-  typename std::enable_if< ! std::is_same< TagType , void >::value >::type
+  typename std::enable_if< (! std::is_same< TagType , void >::value) && std::is_same<Schedule,Kokkos::Static>::value >::type
   exec_team( const FunctorType & functor , Member member )
     {
       const TagType t{} ;
-      for ( ; member.valid() ; member.next() ) {
+      for ( ; member.valid_static() ; member.next_static() ) {
+        functor( t , member );
+      }
+    }
+
+  template< class TagType, class Schedule >
+  inline static
+  typename std::enable_if< std::is_same< TagType , void >::value && std::is_same<Schedule,Kokkos::Dynamic>::value>::type
+  exec_team( const FunctorType & functor , Member member )
+    {
+      #pragma omp barrier
+      for ( ; member.valid_dynamic() ; member.next_dynamic() ) {
+        functor( member );
+      }
+    }
+
+  template< class TagType, class Schedule >
+  inline static
+  typename std::enable_if< (! std::is_same< TagType , void >::value) && std::is_same<Schedule,Kokkos::Dynamic>::value >::type
+  exec_team( const FunctorType & functor , Member member )
+    {
+      #pragma omp barrier
+      const TagType t{} ;
+      for ( ; member.valid_dynamic() ; member.next_dynamic() ) {
         functor( t , member );
       }
     }
@@ -452,7 +572,7 @@ public:
 
 #pragma omp parallel
       {
-        ParallelFor::template exec_team< WorkTag >
+        ParallelFor::template exec_team< WorkTag, typename Policy::schedule_type::type>
           ( m_functor
           , Member( * OpenMPexec::get_thread_omp(), m_policy, m_shmem_size) );
       }
@@ -469,14 +589,15 @@ public:
 };
 
 
-template< class FunctorType , class Arg0 , class Arg1 >
+template< class FunctorType , class ... Properties >
 class ParallelReduce< FunctorType
-                    , Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::OpenMP >
+                    , Kokkos::TeamPolicy< Properties ... >
+                    , Kokkos::OpenMP
                     >
 {
 private:
 
-  typedef Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::OpenMP >         Policy ;
+  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::OpenMP, Properties ... >         Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;
@@ -498,7 +619,7 @@ private:
   typename std::enable_if< std::is_same< TagType , void >::value >::type
   exec_team( const FunctorType & functor , Member member , reference_type update )
     {
-      for ( ; member.valid() ; member.next() ) {
+      for ( ; member.valid_static() ; member.next_static() ) {
         functor( member , update );
       }
     }
@@ -509,7 +630,7 @@ private:
   exec_team( const FunctorType & functor , Member member , reference_type update )
     {
       const TagType t{} ;
-      for ( ; member.valid() ; member.next() ) {
+      for ( ; member.valid_static() ; member.next_static() ) {
         functor( t , member , update );
       }
     }

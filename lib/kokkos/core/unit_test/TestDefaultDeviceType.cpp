@@ -199,12 +199,6 @@ TEST_F( defaultdevicetype , scan )
 }
 
 
-TEST_F( defaultdevicetype , team_scan )
-{
-  TestScanTeam< Kokkos::DefaultExecutionSpace >( 10 );
-  TestScanTeam< Kokkos::DefaultExecutionSpace >( 10000 );
-}
-
 //----------------------------------------------------------------------------
 
 TEST_F( defaultdevicetype , compiler_macros )

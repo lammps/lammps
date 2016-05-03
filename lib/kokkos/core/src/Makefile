@@ -5,7 +5,6 @@ PREFIX ?= /usr/local/lib/kokkos
 default: messages build-lib
 	echo "End Build"
 
-
 include $(KOKKOS_PATH)/Makefile.kokkos
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
@@ -121,11 +120,5 @@ install: mkdir $(CONDITIONAL_COPIES) build-lib
 	cp libkokkos.a $(PREFIX)/lib
 	cp KokkosCore_config.h $(PREFIX)/include
 
-
-
 clean: kokkos-clean
-	rm Makefile.kokkos
-
-
-
-
+	rm -f Makefile.kokkos

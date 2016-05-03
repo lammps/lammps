@@ -60,14 +60,15 @@ namespace Impl {
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelFor< FunctorType
-                 , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >
+                 , Kokkos::RangePolicy< Traits ... >
+                 , Kokkos::Qthread
                  >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >  Policy ;
+  typedef Kokkos::RangePolicy< Traits ... >  Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;
@@ -129,14 +130,15 @@ public:
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelReduce< FunctorType
-                    , Kokkos::RangePolicy< Arg0, Arg1, Arg2, Kokkos::Qthread >
+                    , Kokkos::RangePolicy< Traits ... >
+                    , Kokkos::Qthread
                     >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >  Policy ;
+  typedef Kokkos::RangePolicy< Traits ... >  Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;
@@ -220,12 +222,14 @@ public:
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , class Arg0 , class Arg1 >
-class ParallelFor< FunctorType , TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread > >
+template< class FunctorType , class ... Properties >
+class ParallelFor< FunctorType
+                 , TeamPolicy< Properties ... >
+                 , Kokkos::Qthread >
 {
 private:
 
-  typedef TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread >  Policy ;
+  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::Qthread , Properties ... > Policy ;
   typedef typename Policy::member_type  Member ;
   typedef typename Policy::work_tag     WorkTag ;
 
@@ -287,12 +291,14 @@ public:
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , class Arg0 , class Arg1 >
-class ParallelReduce< FunctorType , TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread > >
+template< class FunctorType , class ... Properties >
+class ParallelReduce< FunctorType
+                    , TeamPolicy< Properties... >
+                    , Kokkos::Qthread >
 {
 private:
 
-  typedef TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread >  Policy ;
+  typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::Qthread , Properties ... > Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;
@@ -378,14 +384,15 @@ public:
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelScan< FunctorType
-                  , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >
+                  , Kokkos::RangePolicy< Traits ... >
+                  , Kokkos::Qthread
                   >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Qthread >  Policy ;
+  typedef Kokkos::RangePolicy< Traits ... >  Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;

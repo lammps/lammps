@@ -44,13 +44,14 @@ Primary tested compilers are:
   GCC 5.1.0
   Intel 14.0.4
   Intel 15.0.2
+  Intel 16.0.1
   Clang 3.5.2
   Clang 3.6.1
 
 Secondary tested compilers are:
   CUDA 6.5 (with gcc 4.7.2)
   CUDA 7.0 (with gcc 4.7.2)
-  CUDA 7.5 (with gcc 4.7.2)
+  CUDA 7.5 (with gcc 4.8.4)
 
 Other compilers working:
   PGI 15.4

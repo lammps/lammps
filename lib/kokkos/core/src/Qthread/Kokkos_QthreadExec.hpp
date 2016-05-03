@@ -518,8 +518,9 @@ public:
   // Private for the driver ( for ( member_type i(exec,team); i ; i.next_team() ) { ... }
 
   // Initialize
-  template< class Arg0 , class Arg1 >
-  QthreadTeamPolicyMember( Impl::QthreadExec & exec , const TeamPolicy<Arg0,Arg1,Qthread> & team )
+  template< class ... Properties >
+  QthreadTeamPolicyMember( Impl::QthreadExec & exec
+                         , const Kokkos::Impl::TeamPolicyInternal<Qthread,Properties...> & team )
     : m_exec( exec )
     , m_team_shared(0,0)
     , m_team_size(   team.m_team_size )
@@ -538,10 +539,10 @@ public:
   void next_team() { ++m_league_rank ; m_exec.shared_reset( m_team_shared ); }
 };
 
-} // namespace Impl
 
-template< class Arg0 , class Arg1 >
-class TeamPolicy< Arg0 , Arg1 , Kokkos::Qthread >
+template< class ... Properties >
+class TeamPolicyInternal< Kokkos::Qthread , Properties ... >
+  : public PolicyTraits< Properties... >
 {
 private:
 
@@ -552,12 +553,9 @@ private:
 public:
 
   //! Tag this class as a kokkos execution policy
-  typedef TeamPolicy  execution_policy ;
-  typedef Qthread     execution_space ;
-
-  typedef typename
-    Impl::if_c< ! Impl::is_same< Kokkos::Qthread , Arg0 >::value , Arg0 , Arg1 >::type
-      work_tag ;
+  typedef TeamPolicyInternal  execution_policy ;
+  typedef Qthread             execution_space ;
+  typedef PolicyTraits< Properties ... >  traits ;
 
   //----------------------------------------
 
@@ -581,10 +579,11 @@ public:
   inline int league_size() const { return m_league_size ; }
 
   // One active team per shepherd
-  TeamPolicy( Kokkos::Qthread & q
-            , const int league_size
-            , const int team_size
-            )
+  TeamPolicyInternal( Kokkos::Qthread & q
+                    , const int league_size
+                    , const int team_size
+                    , const int /* vector_length */ = 0
+                    )
     : m_league_size( league_size )
     , m_team_size( team_size < q.shepherd_worker_size()
                  ? team_size : q.shepherd_worker_size() )
@@ -593,9 +592,10 @@ public:
     }
 
   // One active team per shepherd
-  TeamPolicy( const int league_size
-            , const int team_size
-            )
+  TeamPolicyInternal( const int league_size
+                    , const int team_size
+                    , const int /* vector_length */ = 0
+                    )
     : m_league_size( league_size )
     , m_team_size( team_size < Qthread::instance().shepherd_worker_size()
                  ? team_size : Qthread::instance().shepherd_worker_size() )
@@ -608,6 +608,7 @@ public:
   friend class Impl::QthreadTeamPolicyMember ;
 };
 
+} /* namespace Impl */
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------

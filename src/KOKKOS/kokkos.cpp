@@ -15,6 +15,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <signal.h>
+#include <unistd.h>
 #include "kokkos.h"
 #include "lammps.h"
 #include "force.h"
@@ -119,6 +121,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   forward_comm_classic = 0;
   exchange_comm_on_host = 0;
   forward_comm_on_host = 0;
+
+#ifdef KILL_KOKKOS_ON_SIGSEGV
+  signal(SIGSEGV, my_signal_handler);
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -275,3 +281,9 @@ int KokkosLMP::neigh_count(int m)
   return nneigh;
 }
 
+void KokkosLMP::my_signal_handler(int sig)
+{
+  if (sig == SIGSEGV) {
+    kill(getpid(),SIGABRT);
+  }
+}

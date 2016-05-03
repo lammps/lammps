@@ -37,14 +37,20 @@
 #cmakedefine KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 #cmakedefine KOKKOS_HAVE_CXX11
 #cmakedefine KOKKOS_HAVE_CUSPARSE
-#cmakedefine KOKKOS_ENABLE_PROFILING_COLLECT_KERNEL_DATA
-#cmakedefine KOKKOS_ENABLE_PROFILING_AGGREGATE_MPI
+#cmakedefine KOKKOS_ENABLE_PROFILING_INTERNAL
+#ifdef KOKKOS_ENABLE_PROFILING_INTERNAL
+#define KOKKOS_ENABLE_PROFILING 1
+#else
+#define KOKKOS_ENABLE_PROFILING 0
+#endif
 
 // Don't forbid users from defining this macro on the command line,
 // but still make sure that CMake logic can control its definition.
 #if ! defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
 #cmakedefine KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA 1
 #endif // KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA
+
+#cmakedefine KOKKOS_USING_DEPRECATED_VIEW
 
 #endif // KOKKOS_FOR_SIERRA
 #endif // KOKKOS_CORE_CONFIG_H

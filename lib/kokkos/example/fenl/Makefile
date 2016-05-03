@@ -15,7 +15,7 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 # KOKKOS_INTERNAL_USE_CUDA is not exported to installed Makefile.kokkos
 # use KOKKOS_DEVICE here
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-	CXX = nvcc_wrapper
+	CXX = $(NVCC_WRAPPER)
 	CXXFLAGS ?= -O3
 	LINK = $(CXX)
 	LDFLAGS ?= -lpthread
@@ -31,7 +31,6 @@ KOKKOS_CXXFLAGS +=	\
 	-I${SRC_DIR}/../fixture	\
 	-I${SRC_DIR}
 
-
 EXE_EXAMPLE_FENL = KokkosExample_Fenl
 OBJ_EXAMPLE_FENL = BoxElemPart.o main.o fenl.o
 
@@ -44,14 +43,12 @@ $(EXE_EXAMPLE_FENL) : $(OBJ_EXAMPLE_FENL) $(KOKKOS_LINK_DEPENDS)
 
 build_all : $(TARGETS)
 
-
 test : build_all
 
-clean:
-	rm -f *.o $(EXE_EXAMPLE_FENL) KokkosCore_config.*
+clean: kokkos-clean
+	rm -f *.o $(TARGETS)
 
 # Compilation rules
 
 %.o:%.cpp $(KOKKOS_CPP_DEPENDS) $(EXAMPLE_HEADERS)
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_INC) -c $<
-

@@ -312,7 +312,7 @@ T ExchLoop(int loop) {
 }
 
 template<class T>
-T ExchLoopSerial(int loop) {
+T ExchLoopSerial(typename std::conditional<!std::is_same<T,Kokkos::complex<double> >::value,int,void>::type loop) {
   T* data = new T[1];
   T* data2 = new T[1];
   data[0] = 0;
@@ -321,6 +321,25 @@ T ExchLoopSerial(int loop) {
 	T old = *data;
 	*data=(T) i;
 	*data2+=old;
+  }
+
+  T val = *data2 + *data;
+  delete [] data;
+  delete [] data2;
+  return val;
+}
+
+template<class T>
+T ExchLoopSerial(typename std::conditional<std::is_same<T,Kokkos::complex<double> >::value,int,void>::type loop) {
+  T* data = new T[1];
+  T* data2 = new T[1];
+  data[0] = 0;
+  data2[0] = 0;
+  for(int i=0;i<loop;i++) {
+  T old = *data;
+  data->real() = (static_cast<double>(i));
+  data->imag() = 0;
+  *data2+=old;
   }
 
   T val = *data2 + *data;

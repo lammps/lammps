@@ -117,6 +117,13 @@ public:
 
   /*------------------------------------------------------------------------*/
 
+  static int in_parallel();
+
+  static int is_initialized();
+
+  /** \brief  Return maximum amount of concurrency */
+  static int concurrency();
+
   static void initialize( int thread_count );
   static void finalize();
 

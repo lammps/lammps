@@ -140,12 +140,14 @@ T atomic_fetch_add( volatile T * const dest ,
 {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
-  bool done = false;
-  while (! done ) {
+  int done = 1;
+  while ( done>0 ) {
+    done++;
     if( Impl::lock_address_cuda_space( (void*) dest ) ) {
       return_val = *dest;
       *dest = return_val + val;
       Impl::unlock_address_cuda_space( (void*) dest );
+      done = 0;
     }
   }
   return return_val;
@@ -233,7 +235,7 @@ T atomic_fetch_add( volatile T * const dest ,
   return oldval.t ;
 }
 
-#ifdef KOKKOS_ENABLE_ASM
+#if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_USE_ISA_X86_64 )
 template < typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_add( volatile T * const dest ,
@@ -267,7 +269,7 @@ T atomic_fetch_add( volatile T * const dest ,
     typename ::Kokkos::Impl::enable_if<
                   ( sizeof(T) != 4 )
                && ( sizeof(T) != 8 )
-              #if defined(KOKKOS_ENABLE_ASM)
+              #if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
                && ( sizeof(T) != 16 )
               #endif
                  , const T >::type& val )
@@ -275,9 +277,7 @@ T atomic_fetch_add( volatile T * const dest ,
   while( !Impl::lock_address_host_space( (void*) dest ) );
   T return_val = *dest;
   const T tmp = *dest = return_val + val;
-  #ifndef KOKKOS_COMPILER_CLANG
   (void) tmp;
-  #endif
   Impl::unlock_address_host_space( (void*) dest );
   return return_val;
 }
@@ -306,19 +306,6 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION
 void atomic_add(volatile T * const dest, const T src) {
   atomic_fetch_add(dest,src);
-}
-
-// Atomic increment
-template<typename T>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment(volatile T* a) {
-  Kokkos::atomic_fetch_add(a,1);
-}
-
-template<typename T>
-KOKKOS_INLINE_FUNCTION
-void atomic_decrement(volatile T* a) {
-  Kokkos::atomic_fetch_add(a,-1);
 }
 
 }

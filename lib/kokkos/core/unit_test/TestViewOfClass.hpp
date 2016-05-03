@@ -122,7 +122,7 @@ void view_nested_view()
   }
   Kokkos::deep_copy( host_tracking , tracking );
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
   ASSERT_EQ( 0 , host_tracking(0) );
 #endif
 
@@ -130,7 +130,7 @@ void view_nested_view()
 
 }
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 namespace Kokkos {
 namespace Impl {

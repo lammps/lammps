@@ -59,9 +59,13 @@
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
 #include <TestSegmentedView.hpp>
+#include <TestDynamicView.hpp>
 #include <TestComplex.hpp>
 
 #include <iomanip>
+
+#include <Kokkos_DynRankView.hpp>
+#include <TestDynViewAPI.hpp>
 
 namespace Test {
 
@@ -77,6 +81,9 @@ protected:
   }
 };
 
+TEST_F( serial, dyn_view_api) {
+  TestDynViewAPI< double , Kokkos::Serial >();
+}
 
 TEST_F( serial , staticcrsgraph )
 {
@@ -151,7 +158,17 @@ SERIAL_SEGMENTEDVIEW_TEST( 10000 )
 #undef SERIAL_DUALVIEW_COMBINE_TEST
 #undef SERIAL_SEGMENTEDVIEW_TEST
 
-} // namespace test
+TEST_F( serial , dynamic_view )
+{
+  typedef TestDynamicView< double , Kokkos::Serial >
+    TestDynView ;
+
+  for ( int i = 0 ; i < 10 ; ++i ) {
+    TestDynView::run( 100000 + 100 * i );
+  }
+}
+
+} // namespace Test
 
 #endif // KOKKOS_HAVE_SERIAL
 

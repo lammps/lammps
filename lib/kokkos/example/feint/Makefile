@@ -10,7 +10,7 @@ default: build_all
 include $(KOKKOS_PATH)/Makefile.kokkos
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	CXX = nvcc_wrapper
+	CXX = $(NVCC_WRAPPER)
 	CXXFLAGS ?= -O3
 	LINK = $(CXX)
 	LDFLAGS ?= -lpthread
@@ -25,7 +25,6 @@ KOKKOS_CXXFLAGS +=	\
 	-I${KOKKOS_PATH}/example/common	\
 	-I${KOKKOS_PATH}/example/fixture	\
 	-I${KOKKOS_PATH}/example/feint
-
 
 EXE_EXAMPLE_FEINT = KokkosExample_Feint
 OBJ_EXAMPLE_FEINT = BoxElemPart.o main.o
@@ -51,12 +50,12 @@ $(EXE_EXAMPLE_FEINT) : $(OBJ_EXAMPLE_FEINT) $(KOKKOS_LINK_DEPENDS)
 
 build_all : $(TARGETS)
 
-
 test : build_all
 
+clean: kokkos-clean
+	rm -f *.o $(TARGETS)
 
 # Compilation rules
 
 %.o:%.cpp $(KOKKOS_CPP_DEPENDS) $(EXAMPLE_HEADERS)
 	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_INC) -c $<
-

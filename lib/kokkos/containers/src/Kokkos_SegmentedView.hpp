@@ -48,7 +48,7 @@
 #include <impl/Kokkos_Error.hpp>
 #include <cstdio>
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 namespace Kokkos {
 namespace Experimental {

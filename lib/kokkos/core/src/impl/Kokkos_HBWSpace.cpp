@@ -126,7 +126,7 @@ int HBWSpace::in_parallel()
 
 /*--------------------------------------------------------------------------*/
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 namespace Kokkos {
 namespace Experimental {
@@ -139,7 +139,7 @@ Kokkos::Impl::AllocationTracker HBWSpace::allocate_and_track( const std::string 
 } // namespace Experimental
 } // namespace Kokkos
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 /*--------------------------------------------------------------------------*/
 

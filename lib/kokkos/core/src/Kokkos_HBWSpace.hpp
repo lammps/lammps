@@ -121,7 +121,7 @@ public:
   typedef Kokkos::Device<execution_space,memory_space> device_type;
 
   /*--------------------------------*/
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   typedef Impl::HBWMallocAllocator allocator ;
 
@@ -133,7 +133,7 @@ public:
    */
   static Kokkos::Impl::AllocationTracker allocate_and_track( const std::string & label, const size_t size );
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
   /*--------------------------------*/
   /* Functions unique to the HBWSpace */

@@ -50,7 +50,7 @@
 #include <cstdio>
 #include <Kokkos_Core.hpp>
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 #include <Kokkos_SegmentedView.hpp>
 #include <impl/Kokkos_Timer.hpp>

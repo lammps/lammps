@@ -52,6 +52,7 @@
 #include <sstream>
 #include <Kokkos_Core.hpp>
 #include <impl/Kokkos_Error.hpp>
+#include <impl/Kokkos_CPUDiscovery.hpp>
 
 
 //----------------------------------------------------------------------------
@@ -133,7 +134,7 @@ void ThreadsExec::driver(void)
 
 ThreadsExec::ThreadsExec()
   : m_pool_base(0)
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
   , m_scratch()
 #else
   , m_scratch(0)
@@ -168,6 +169,7 @@ ThreadsExec::ThreadsExec()
       m_numa_core_rank  = coord.second ;
       m_pool_base       = s_threads_exec ;
       m_pool_rank       = s_thread_pool_size[0] - ( entry + 1 );
+      m_pool_rank_rev   = s_thread_pool_size[0] - ( pool_rank() + 1 );
       m_pool_size       = s_thread_pool_size[0] ;
       m_pool_fan_size   = fan_size( m_pool_rank , m_pool_size );
       m_pool_state      = ThreadsExec::Active ;
@@ -196,7 +198,7 @@ ThreadsExec::~ThreadsExec()
 {
   const unsigned entry = m_pool_size - ( m_pool_rank + 1 );
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
 
   typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
 
@@ -437,7 +439,7 @@ void * ThreadsExec::root_reduce_scratch()
 
 void ThreadsExec::execute_resize_scratch( ThreadsExec & exec , const void * )
 {
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
 
   typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
 
@@ -460,7 +462,7 @@ void ThreadsExec::execute_resize_scratch( ThreadsExec & exec , const void * )
 
   if ( s_threads_process.m_scratch_thread_end ) {
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
 
     // Allocate tracked memory:
     {
@@ -518,7 +520,7 @@ void * ThreadsExec::resize_scratch( size_t reduce_size , size_t thread_size )
     s_threads_process.m_scratch = s_threads_exec[0]->m_scratch ;
   }
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
   return s_threads_process.m_scratch ;
 #else
   return s_threads_process.m_scratch.alloc_ptr() ;
@@ -745,6 +747,14 @@ void ThreadsExec::initialize( unsigned thread_count ,
     Kokkos::Impl::throw_runtime_exception( msg.str() );
   }
 
+  // Check for over-subscription
+  if( Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node() ) {
+    std::cout << "Kokkos::Threads::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
+    std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
+    std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
+    std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
+  }
+
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
 
@@ -808,6 +818,10 @@ void ThreadsExec::finalize()
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+
+int Threads::concurrency() {
+  return thread_pool_size(0);
+}
 
 Threads & Threads::instance(int)
 {

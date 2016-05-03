@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -261,7 +261,7 @@ public:
     modified_device (View<unsigned int,LayoutLeft,typename t_host::execution_space> ("DualView::modified_device")),
     modified_host (View<unsigned int,LayoutLeft,typename t_host::execution_space> ("DualView::modified_host"))
   {
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
     Impl::assert_shapes_are_equal (d_view.shape (), h_view.shape ());
 #else
     if ( int(d_view.rank)     != int(h_view.rank) ||
@@ -401,7 +401,7 @@ public:
   }
 
   template<class Device>
-  bool need_sync()
+  bool need_sync() const
   {
     const unsigned int dev =
       Impl::if_c<
@@ -514,7 +514,7 @@ public:
 
   //! The allocation size (same as Kokkos::View::capacity).
   size_t capacity() const {
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
     return d_view.span();
 #else
     return d_view.capacity();
@@ -555,7 +555,7 @@ public:
 // Partial specializations of Kokkos::subview() for DualView objects.
 //
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
 
 namespace Kokkos {
 namespace Impl {
@@ -570,7 +570,7 @@ struct DualViewSubview {
     >::traits_type dst_traits ;
 
   typedef Kokkos::DualView
-    < typename dst_traits::data_type 
+    < typename dst_traits::data_type
     , typename dst_traits::array_layout
     , typename dst_traits::device_type
     , typename dst_traits::memory_traits
@@ -934,7 +934,7 @@ subview( const DualView<D,A1,A2,A3> & src ,
 
 } // namespace Kokkos
 
-#endif /* defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* KOKKOS_USING_EXP_VIEW */
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

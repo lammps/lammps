@@ -43,7 +43,7 @@
 
 #include <Kokkos_Macros.hpp>
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 /* only compile this file if CUDA is enabled for Kokkos */
 #ifdef KOKKOS_HAVE_CUDA
@@ -194,5 +194,5 @@ void * CudaHostAllocator::reallocate(void * old_ptr, size_t old_size, size_t new
 
 #endif //KOKKOS_HAVE_CUDA
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 

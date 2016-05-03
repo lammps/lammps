@@ -52,7 +52,7 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 namespace Test {
 
@@ -709,7 +709,7 @@ int TestViewAggregate()
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 
-#else /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#else /* #if ! KOKKOS_USING_EXP_VIEW */
 
 #include <impl/KokkosExp_ViewArray.hpp>
 
@@ -728,7 +728,7 @@ void TestViewAggregate()
 
 
   typedef Kokkos::ViewTraits< value_type ** , DeviceType > a32_traits ;
-  typedef Kokkos::ViewTraits< typename a32_traits::array_scalar_type , DeviceType > flat_traits ;
+  typedef Kokkos::ViewTraits< typename a32_traits::scalar_array_type , DeviceType > flat_traits ;
 
   static_assert( std::is_same< typename a32_traits::specialize , Kokkos::Array<> >::value , "" );
   static_assert( std::is_same< typename a32_traits::value_type , value_type >::value , "" );
@@ -762,7 +762,7 @@ void TestViewAggregate()
 
 }
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/

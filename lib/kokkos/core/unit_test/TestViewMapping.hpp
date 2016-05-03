@@ -53,9 +53,11 @@
 
 namespace Test {
 
-template< class ExecSpace >
+template< class Space >
 void test_view_mapping()
 {
+  typedef typename Space::execution_space ExecSpace ;
+
   typedef Kokkos::Experimental::Impl::ViewDimension<>  dim_0 ;
   typedef Kokkos::Experimental::Impl::ViewDimension<2> dim_s2 ;
   typedef Kokkos::Experimental::Impl::ViewDimension<2,3> dim_s2_s3 ;
@@ -204,7 +206,8 @@ void test_view_mapping()
   {
     typedef Kokkos::Experimental::Impl::ViewOffset< dim_s0_s0_s4 , Kokkos::LayoutLeft > left_s0_s0_s4 ;
 
-    left_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>(), 2, 3, 0, 0, 0, 0, 0, 0 );
+    left_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>()
+                          , Kokkos::LayoutLeft( 2, 3, 0, 0, 0, 0, 0, 0 ) );
 
     stride_s0_s0_s0  stride3( dyn_off3 );
 
@@ -214,6 +217,17 @@ void test_view_mapping()
     ASSERT_EQ( dyn_off3.m_dim.N2 , 4 );
     ASSERT_EQ( dyn_off3.m_dim.N3 , 1 );
     ASSERT_EQ( dyn_off3.size() , 2 * 3 * 4 );
+
+    const Kokkos::LayoutLeft layout = dyn_off3.layout();
+
+    ASSERT_EQ( layout.dimension[0] , 2 );
+    ASSERT_EQ( layout.dimension[1] , 3 );
+    ASSERT_EQ( layout.dimension[2] , 4 );
+    ASSERT_EQ( layout.dimension[3] , 1 );
+    ASSERT_EQ( layout.dimension[4] , 1 );
+    ASSERT_EQ( layout.dimension[5] , 1 );
+    ASSERT_EQ( layout.dimension[6] , 1 );
+    ASSERT_EQ( layout.dimension[7] , 1 );
 
     ASSERT_EQ( stride3.m_dim.rank , 3 );
     ASSERT_EQ( stride3.m_dim.N0 , 2 );
@@ -242,7 +256,8 @@ void test_view_mapping()
 
     typedef Kokkos::Experimental::Impl::ViewOffset< dim_s0_s0_s4 , Kokkos::LayoutLeft > left_s0_s0_s4 ;
 
-    left_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>(), N0, N1, 0, 0, 0, 0, 0, 0 );
+    left_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>()
+                          , Kokkos::LayoutLeft( N0, N1, 0, 0, 0, 0, 0, 0 ) );
 
     stride_s0_s0_s0  stride3( dyn_off3 );
 
@@ -314,7 +329,8 @@ void test_view_mapping()
   {
     typedef Kokkos::Experimental::Impl::ViewOffset< dim_s0_s0_s4 , Kokkos::LayoutRight > right_s0_s0_s4 ;
 
-    right_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>(), 2, 3, 0, 0, 0, 0, 0, 0 );
+    right_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>()
+                           , Kokkos::LayoutRight( 2, 3, 0, 0, 0, 0, 0, 0 ) );
 
     stride_s0_s0_s0  stride3( dyn_off3 );
 
@@ -352,7 +368,8 @@ void test_view_mapping()
 
     typedef Kokkos::Experimental::Impl::ViewOffset< dim_s0_s0_s4 , Kokkos::LayoutRight > right_s0_s0_s4 ;
 
-    right_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>(), N0, N1, 0, 0, 0, 0, 0, 0 );
+    right_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>()
+                           , Kokkos::LayoutRight( N0, N1, 0, 0, 0, 0, 0, 0 ) );
 
     stride_s0_s0_s0  stride3( dyn_off3 );
 
@@ -428,7 +445,8 @@ void test_view_mapping()
 
     typedef Kokkos::Experimental::Impl::ViewOffset< dim_s0_s0_s4 , Kokkos::LayoutLeft > left_s0_s0_s4 ;
 
-    left_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>(), N0, N1, 0, 0, 0, 0, 0, 0 );
+    left_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>()
+                          , Kokkos::LayoutLeft( N0, N1, 0, 0, 0, 0, 0, 0 ) );
 
     Kokkos::Experimental::Impl::SubviewExtents< 3 , 3 >
       sub( dyn_off3.m_dim
@@ -466,7 +484,8 @@ void test_view_mapping()
 
     typedef Kokkos::Experimental::Impl::ViewOffset< dim_s0_s0_s4 , Kokkos::LayoutRight > right_s0_s0_s4 ;
 
-    right_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>(), N0, N1, 0, 0, 0, 0, 0, 0 );
+    right_s0_s0_s4 dyn_off3( std::integral_constant<unsigned,sizeof(int)>()
+                           , Kokkos::LayoutRight( N0, N1, 0, 0, 0, 0, 0, 0 ) );
 
     Kokkos::Experimental::Impl::SubviewExtents< 3 , 3 >
       sub( dyn_off3.m_dim
@@ -565,10 +584,10 @@ void test_view_mapping()
     static_assert( std::is_same< typename a_const_int_r1::type , const int * >::value , "" );
     static_assert( std::is_same< typename a_const_int_r1::value_type , const int >::value , "" );
 
-    static_assert( std::is_same< typename a_const_int_r1::array_scalar_type , const int * >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::scalar_array_type , const int * >::value , "" );
     static_assert( std::is_same< typename a_const_int_r1::const_type , const int * >::value , "" );
     static_assert( std::is_same< typename a_const_int_r1::const_value_type , const int >::value , "" );
-    static_assert( std::is_same< typename a_const_int_r1::const_array_scalar_type , const int * >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r1::const_scalar_array_type , const int * >::value , "" );
     static_assert( std::is_same< typename a_const_int_r1::non_const_type , int * >::value , "" );
     static_assert( std::is_same< typename a_const_int_r1::non_const_value_type , int >::value , "" );
 
@@ -580,13 +599,13 @@ void test_view_mapping()
 
     static_assert( std::is_same< typename a_const_int_r3::type , const int**[4] >::value , "" );
     static_assert( std::is_same< typename a_const_int_r3::value_type , const int >::value , "" );
-    static_assert( std::is_same< typename a_const_int_r3::array_scalar_type , const int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::scalar_array_type , const int**[4] >::value , "" );
     static_assert( std::is_same< typename a_const_int_r3::const_type , const int**[4] >::value , "" );
     static_assert( std::is_same< typename a_const_int_r3::const_value_type , const int >::value , "" );
-    static_assert( std::is_same< typename a_const_int_r3::const_array_scalar_type , const int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::const_scalar_array_type , const int**[4] >::value , "" );
     static_assert( std::is_same< typename a_const_int_r3::non_const_type , int**[4] >::value , "" );
     static_assert( std::is_same< typename a_const_int_r3::non_const_value_type , int >::value , "" );
-    static_assert( std::is_same< typename a_const_int_r3::non_const_array_scalar_type , int**[4] >::value , "" );
+    static_assert( std::is_same< typename a_const_int_r3::non_const_scalar_array_type , int**[4] >::value , "" );
 
 
     // std::cout << "typeid(const int**[4]).name() = " << typeid(const int**[4]).name() << std::endl ;
@@ -597,8 +616,8 @@ void test_view_mapping()
   {
     constexpr int N = 10 ;
 
-    typedef Kokkos::Experimental::View<int*,ExecSpace>        T ;
-    typedef Kokkos::Experimental::View<const int*,ExecSpace>  C ;
+    typedef Kokkos::Experimental::View<int*,Space>        T ;
+    typedef Kokkos::Experimental::View<const int*,Space>  C ;
 
     int data[N] ;
 
@@ -618,15 +637,15 @@ void test_view_mapping()
     ASSERT_TRUE( ( std::is_same< typename T::const_data_type     , const int* >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::non_const_data_type , int* >::value ) );
 
-    ASSERT_TRUE( ( std::is_same< typename T::array_scalar_type           , int* >::value ) );
-    ASSERT_TRUE( ( std::is_same< typename T::const_array_scalar_type     , const int* >::value ) );
-    ASSERT_TRUE( ( std::is_same< typename T::non_const_array_scalar_type , int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::scalar_array_type           , int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::const_scalar_array_type     , const int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::non_const_scalar_array_type , int* >::value ) );
 
     ASSERT_TRUE( ( std::is_same< typename T::value_type           , int >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::const_value_type     , const int >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::non_const_value_type , int >::value ) );
 
-    ASSERT_TRUE( ( std::is_same< typename T::memory_space , typename ExecSpace::memory_space >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::memory_space , typename Space::memory_space >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::reference_type , int & >::value ) );
 
     ASSERT_EQ( T::Rank , 1 );
@@ -635,22 +654,22 @@ void test_view_mapping()
     ASSERT_TRUE( ( std::is_same< typename C::const_data_type     , const int* >::value ) );
     ASSERT_TRUE( ( std::is_same< typename C::non_const_data_type , int* >::value ) );
 
-    ASSERT_TRUE( ( std::is_same< typename C::array_scalar_type           , const int* >::value ) );
-    ASSERT_TRUE( ( std::is_same< typename C::const_array_scalar_type     , const int* >::value ) );
-    ASSERT_TRUE( ( std::is_same< typename C::non_const_array_scalar_type , int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename C::scalar_array_type           , const int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename C::const_scalar_array_type     , const int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename C::non_const_scalar_array_type , int* >::value ) );
 
     ASSERT_TRUE( ( std::is_same< typename C::value_type           , const int >::value ) );
     ASSERT_TRUE( ( std::is_same< typename C::const_value_type     , const int >::value ) );
     ASSERT_TRUE( ( std::is_same< typename C::non_const_value_type , int >::value ) );
 
-    ASSERT_TRUE( ( std::is_same< typename C::memory_space , typename ExecSpace::memory_space >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename C::memory_space , typename Space::memory_space >::value ) );
     ASSERT_TRUE( ( std::is_same< typename C::reference_type , const int & >::value ) );
 
     ASSERT_EQ( C::Rank , 1 );
 
     ASSERT_EQ( vr1.dimension_0() , N );
 
-    if ( Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename ExecSpace::memory_space , Kokkos::HostSpace >::value ) {
+    if ( Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename Space::memory_space , Kokkos::HostSpace >::value ) {
       for ( int i = 0 ; i < N ; ++i ) data[i] = i + 1 ;
       for ( int i = 0 ; i < N ; ++i ) ASSERT_EQ( vr1[i] , i + 1 );
       for ( int i = 0 ; i < N ; ++i ) ASSERT_EQ( cr1[i] , i + 1 );
@@ -666,10 +685,11 @@ void test_view_mapping()
     }
   }
 
+
   {
     constexpr int N = 10 ;
-    typedef Kokkos::Experimental::View<int*,ExecSpace>        T ;
-    typedef Kokkos::Experimental::View<const int*,ExecSpace>  C ;
+    typedef Kokkos::Experimental::View<int*,Space>        T ;
+    typedef Kokkos::Experimental::View<const int*,Space>  C ;
 
     T vr1("vr1",N);
     C cr1(vr1);
@@ -678,21 +698,21 @@ void test_view_mapping()
     ASSERT_TRUE( ( std::is_same< typename T::const_data_type     , const int* >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::non_const_data_type , int* >::value ) );
 
-    ASSERT_TRUE( ( std::is_same< typename T::array_scalar_type           , int* >::value ) );
-    ASSERT_TRUE( ( std::is_same< typename T::const_array_scalar_type     , const int* >::value ) );
-    ASSERT_TRUE( ( std::is_same< typename T::non_const_array_scalar_type , int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::scalar_array_type           , int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::const_scalar_array_type     , const int* >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::non_const_scalar_array_type , int* >::value ) );
 
     ASSERT_TRUE( ( std::is_same< typename T::value_type           , int >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::const_value_type     , const int >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::non_const_value_type , int >::value ) );
 
-    ASSERT_TRUE( ( std::is_same< typename T::memory_space , typename ExecSpace::memory_space >::value ) );
+    ASSERT_TRUE( ( std::is_same< typename T::memory_space , typename Space::memory_space >::value ) );
     ASSERT_TRUE( ( std::is_same< typename T::reference_type , int & >::value ) );
     ASSERT_EQ( T::Rank , 1 );
  
     ASSERT_EQ( vr1.dimension_0() , N );
 
-    if ( Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename ExecSpace::memory_space , Kokkos::HostSpace >::value ) {
+    if ( Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename Space::memory_space , Kokkos::HostSpace >::value ) {
       for ( int i = 0 ; i < N ; ++i ) vr1(i) = i + 1 ;
       for ( int i = 0 ; i < N ; ++i ) ASSERT_EQ( vr1[i] , i + 1 );
       for ( int i = 0 ; i < N ; ++i ) ASSERT_EQ( cr1[i] , i + 1 );
@@ -707,6 +727,20 @@ void test_view_mapping()
       for ( int i = 0 ; i < N ; ++i ) ASSERT_EQ( vr1[i] , i + 2 );
     }
   }
+
+  // Testing proper handling of zero-length allocations
+  {
+    constexpr int N = 0 ;
+    typedef Kokkos::Experimental::View<int*,Space>        T ;
+    typedef Kokkos::Experimental::View<const int*,Space>  C ;
+
+    T vr1("vr1",N);
+    C cr1(vr1);
+
+    ASSERT_EQ( vr1.dimension_0() , 0 );
+    ASSERT_EQ( cr1.dimension_0() , 0 );
+  }
+
 
   // Testing using space instance for allocation.
   // The execution space of the memory space must be available for view data initialization
@@ -750,7 +784,7 @@ void test_view_mapping()
     stride.stride[1] = 1 ;
     stride.stride[2] = 12 ;
 
-    const offset_t offset( stride );
+    const offset_t offset( std::integral_constant<unsigned,0>() , stride );
 
     ASSERT_EQ( offset.dimension_0() , 3 );
     ASSERT_EQ( offset.dimension_1() , 4 );
@@ -763,11 +797,12 @@ void test_view_mapping()
     ASSERT_EQ( offset.span() , 60 );
     ASSERT_TRUE( offset.span_is_contiguous() );
 
-    Kokkos::Experimental::Impl::ViewMapping< traits_t , void >  v( (int*) 0 , std::false_type() , stride );
+    Kokkos::Experimental::Impl::ViewMapping< traits_t , void >
+      v( Kokkos::Experimental::Impl::ViewCtorProp<int*>((int*)0), stride );
   }
 
   {
-    typedef Kokkos::Experimental::View<int**,ExecSpace>  V ;
+    typedef Kokkos::Experimental::View<int**,Space>  V ;
     typedef typename V::HostMirror  M ;
 
     constexpr int N0 = 10 ;
@@ -801,11 +836,9 @@ void test_view_mapping()
     ASSERT_EQ( d.dimension_1() , 6 );
   }
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
-  /* Only works when experimental view is activated */
   {
-    typedef Kokkos::Experimental::View<int*,ExecSpace> V ;
-    typedef Kokkos::Experimental::View<int*,ExecSpace,Kokkos::MemoryUnmanaged> U ;
+    typedef Kokkos::Experimental::View<int*,Space> V ;
+    typedef Kokkos::Experimental::View<int*,Space,Kokkos::MemoryUnmanaged> U ;
 
 
     V a("a",10);
@@ -840,9 +873,15 @@ void test_view_mapping()
     ASSERT_EQ( a.use_count() , 1 );
     ASSERT_EQ( b.use_count() , 0 );
 
+#if KOKKOS_USING_EXP_VIEW && ! defined ( KOKKOS_CUDA_USE_LAMBDA )
+    /* Cannot launch host lambda when CUDA lambda is enabled */
+
+    typedef typename Kokkos::Impl::is_space< Space >::host_execution_space
+      host_exec_space ;
+
     Kokkos::parallel_for(
-      Kokkos::RangePolicy< Kokkos::DefaultHostExecutionSpace >(0,10) ,
-      [=]( int i ){
+      Kokkos::RangePolicy< host_exec_space >(0,10) ,
+      KOKKOS_LAMBDA( int i ){
         // 'a' is captured by copy and the capture mechanism
         // converts 'a' to an unmanaged copy.
         // When the parallel dispatch accepts a move for the lambda
@@ -852,12 +891,15 @@ void test_view_mapping()
         ASSERT_EQ( a.use_count() , 2 );
         ASSERT_EQ( x.use_count() , 2 );
       });
+#endif /* #if ! defined ( KOKKOS_CUDA_USE_LAMBDA ) */
   }
-#endif /* #if defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
 }
 
-template< class ExecSpace >
-struct TestViewMappingSubview {
+template< class Space >
+struct TestViewMappingSubview
+{
+  typedef typename Space::execution_space ExecSpace ;
+  typedef typename Space::memory_space    MemSpace ;
 
   typedef Kokkos::pair<int,int> range ;
 
@@ -1003,9 +1045,11 @@ struct TestViewMappingSubview {
 
 };
 
-template< class ExecSpace >
+template< class Space >
 void test_view_mapping_subview()
 {
+  typedef typename Space::execution_space ExecSpace ;
+
   TestViewMappingSubview< ExecSpace >::run();
 }
 
@@ -1130,9 +1174,11 @@ struct TestViewMapOperator {
 };
 
 
-template< class ExecSpace >
+template< class Space >
 void test_view_mapping_operator()
 {
+  typedef typename Space::execution_space ExecSpace ;
+
   TestViewMapOperator< Kokkos::Experimental::View<int,Kokkos::LayoutLeft,ExecSpace> >::run();
   TestViewMapOperator< Kokkos::Experimental::View<int*,Kokkos::LayoutLeft,ExecSpace> >::run();
   TestViewMapOperator< Kokkos::Experimental::View<int**,Kokkos::LayoutLeft,ExecSpace> >::run();
@@ -1154,8 +1200,11 @@ void test_view_mapping_operator()
 
 /*--------------------------------------------------------------------------*/
 
-template< class ExecSpace >
+template< class Space >
 struct TestViewMappingAtomic {
+  typedef typename Space::execution_space ExecSpace ;
+  typedef typename Space::memory_space    MemSpace ;
+
   typedef Kokkos::MemoryTraits< Kokkos::Atomic >  mem_trait ;
 
   typedef Kokkos::Experimental::View< int * , ExecSpace > T ;
@@ -1206,8 +1255,10 @@ struct TestViewMappingAtomic {
 
 /*--------------------------------------------------------------------------*/
 
-template< class ExecSpace >
+template< class Space >
 struct TestViewMappingClassValue {
+  typedef typename Space::execution_space ExecSpace ;
+  typedef typename Space::memory_space    MemSpace ;
 
   struct ValueType {
     KOKKOS_INLINE_FUNCTION

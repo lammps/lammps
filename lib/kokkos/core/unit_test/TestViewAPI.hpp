@@ -50,23 +50,23 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
-
-namespace Test {
-
-template< typename T, class DeviceType >
-class TestViewAPI {
-public:
-  TestViewAPI() {}
-};
-
-}
-
-#else
 
 /*--------------------------------------------------------------------------*/
 
 namespace Test {
+
+#if KOKKOS_USING_EXP_VIEW
+
+template< class T , class ... P >
+size_t allocation_count( const Kokkos::View<T,P...> & view )
+{
+  const size_t card  = view.size();
+  const size_t alloc = view.span();
+
+  return card <= alloc ? alloc : 0 ;
+}
+
+#else
 
 template< class T , class L , class D , class M , class S >
 size_t allocation_count( const Kokkos::View<T,L,D,M,S> & view )
@@ -77,12 +77,14 @@ size_t allocation_count( const Kokkos::View<T,L,D,M,S> & view )
   return card <= alloc ? alloc : 0 ;
 }
 
+#endif
+
 /*--------------------------------------------------------------------------*/
 
 template< typename T, class DeviceType>
 struct TestViewOperator
 {
-  typedef DeviceType  execution_space ;
+  typedef typename DeviceType::execution_space  execution_space ;
 
   static const unsigned N = 100 ;
   static const unsigned D = 3 ;
@@ -117,24 +119,16 @@ struct TestViewOperator
 
 /*--------------------------------------------------------------------------*/
 
-template< class DataType >
-struct rank {
-private:
-  typedef typename Kokkos::Impl::AnalyzeShape<DataType>::shape shape ;
-public:
-  static const unsigned value = shape::rank ;
-};
-
 template< class DataType ,
           class DeviceType ,
-          unsigned Rank = rank< DataType >::value >
+          unsigned Rank = Kokkos::ViewTraits< DataType >::rank >
 struct TestViewOperator_LeftAndRight ;
 
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 8 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
+  typedef typename DeviceType::execution_space    execution_space ;
+  typedef typename DeviceType::memory_space       memory_space ;
   typedef typename execution_space::size_type     size_type ;
 
   typedef int value_type ;
@@ -158,11 +152,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 8 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   stride_view  left_stride ;
@@ -171,9 +160,7 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 8 >
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  "left" )
+    : left(  "left" )
     , right( "right" )
     , left_stride( left )
     , right_stride( right )
@@ -184,9 +171,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 8 >
   static void testit()
   {
     TestViewOperator_LeftAndRight driver ;
-
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
 
     int error_flag = 0 ;
 
@@ -201,14 +185,14 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 8 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i7 = 0 ; i7 < unsigned(lsh.N7) ; ++i7 )
-    for ( unsigned i6 = 0 ; i6 < unsigned(lsh.N6) ; ++i6 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(lsh.N5) ; ++i5 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(lsh.N4) ; ++i4 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(lsh.N3) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(lsh.N2) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i7 = 0 ; i7 < unsigned(left.dimension_7()) ; ++i7 )
+    for ( unsigned i6 = 0 ; i6 < unsigned(left.dimension_6()) ; ++i6 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(left.dimension_5()) ; ++i5 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(left.dimension_4()) ; ++i4 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5, i6, i7 ) -
                      & left(  0,  0,  0,  0,  0,  0,  0,  0 );
@@ -222,14 +206,14 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 8 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(rsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(rsh.N1) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(rsh.N2) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(rsh.N3) ; ++i3 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(rsh.N4) ; ++i4 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(rsh.N5) ; ++i5 )
-    for ( unsigned i6 = 0 ; i6 < unsigned(rsh.N6) ; ++i6 )
-    for ( unsigned i7 = 0 ; i7 < unsigned(rsh.N7) ; ++i7 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(right.dimension_4()) ; ++i4 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(right.dimension_5()) ; ++i5 )
+    for ( unsigned i6 = 0 ; i6 < unsigned(right.dimension_6()) ; ++i6 )
+    for ( unsigned i7 = 0 ; i7 < unsigned(right.dimension_7()) ; ++i7 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5, i6, i7 ) -
                      & right(  0,  0,  0,  0,  0,  0,  0,  0 );
@@ -247,9 +231,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 8 >
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
-  typedef typename execution_space::size_type     size_type ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename execution_space::size_type   size_type ;
 
   typedef int value_type ;
 
@@ -269,20 +253,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   long         left_alloc ;
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  "left" )
+    : left(  "left" )
     , right( "right" )
     , left_alloc( allocation_count( left ) )
     , right_alloc( allocation_count( right ) )
@@ -291,9 +268,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
   static void testit()
   {
     TestViewOperator_LeftAndRight driver ;
-
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
 
     int error_flag = 0 ;
 
@@ -308,13 +282,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i6 = 0 ; i6 < unsigned(lsh.N6) ; ++i6 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(lsh.N5) ; ++i5 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(lsh.N4) ; ++i4 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(lsh.N3) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(lsh.N2) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i6 = 0 ; i6 < unsigned(left.dimension_6()) ; ++i6 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(left.dimension_5()) ; ++i5 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(left.dimension_4()) ; ++i4 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5, i6 ) -
                      & left(  0,  0,  0,  0,  0,  0,  0 );
@@ -323,13 +297,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(rsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(rsh.N1) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(rsh.N2) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(rsh.N3) ; ++i3 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(rsh.N4) ; ++i4 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(rsh.N5) ; ++i5 )
-    for ( unsigned i6 = 0 ; i6 < unsigned(rsh.N6) ; ++i6 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(right.dimension_4()) ; ++i4 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(right.dimension_5()) ; ++i5 )
+    for ( unsigned i6 = 0 ; i6 < unsigned(right.dimension_6()) ; ++i6 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5, i6 ) -
                      & right(  0,  0,  0,  0,  0,  0,  0 );
@@ -342,9 +316,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 7 >
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
-  typedef typename execution_space::size_type     size_type ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename execution_space::size_type   size_type ;
 
   typedef int value_type ;
 
@@ -364,20 +338,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   long         left_alloc ;
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  "left" )
+    : left(  "left" )
     , right( "right" )
     , left_alloc( allocation_count( left ) )
     , right_alloc( allocation_count( right ) )
@@ -386,9 +353,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
   static void testit()
   {
     TestViewOperator_LeftAndRight driver ;
-
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
 
     int error_flag = 0 ;
 
@@ -403,12 +367,12 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i5 = 0 ; i5 < unsigned(lsh.N5) ; ++i5 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(lsh.N4) ; ++i4 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(lsh.N3) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(lsh.N2) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(left.dimension_5()) ; ++i5 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(left.dimension_4()) ; ++i4 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4, i5 ) -
                      & left(  0,  0,  0,  0,  0,  0 );
@@ -417,12 +381,12 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(rsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(rsh.N1) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(rsh.N2) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(rsh.N3) ; ++i3 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(rsh.N4) ; ++i4 )
-    for ( unsigned i5 = 0 ; i5 < unsigned(rsh.N5) ; ++i5 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(right.dimension_4()) ; ++i4 )
+    for ( unsigned i5 = 0 ; i5 < unsigned(right.dimension_5()) ; ++i5 )
     {
       const long j = & right( i0, i1, i2, i3, i4, i5 ) -
                      & right(  0,  0,  0,  0,  0,  0 );
@@ -435,9 +399,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 6 >
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
-  typedef typename execution_space::size_type     size_type ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename execution_space::size_type   size_type ;
 
   typedef int value_type ;
 
@@ -460,11 +424,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   stride_view  left_stride ;
@@ -473,9 +432,7 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  "left" )
+    : left(  "left" )
     , right( "right" )
     , left_stride( left )
     , right_stride( right )
@@ -486,9 +443,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
   static void testit()
   {
     TestViewOperator_LeftAndRight driver ;
-
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
 
     int error_flag = 0 ;
 
@@ -503,11 +457,11 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i4 = 0 ; i4 < unsigned(lsh.N4) ; ++i4 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(lsh.N3) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(lsh.N2) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(left.dimension_4()) ; ++i4 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3, i4 ) -
                      & left(  0,  0,  0,  0,  0 );
@@ -519,11 +473,11 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(rsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(rsh.N1) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(rsh.N2) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(rsh.N3) ; ++i3 )
-    for ( unsigned i4 = 0 ; i4 < unsigned(rsh.N4) ; ++i4 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
+    for ( unsigned i4 = 0 ; i4 < unsigned(right.dimension_4()) ; ++i4 )
     {
       const long j = & right( i0, i1, i2, i3, i4 ) -
                      & right(  0,  0,  0,  0,  0 );
@@ -539,9 +493,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 5 >
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
-  typedef typename execution_space::size_type     size_type ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename execution_space::size_type   size_type ;
 
   typedef int value_type ;
 
@@ -561,20 +515,13 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   long         left_alloc ;
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  "left" )
+    : left(  "left" )
     , right( "right" )
     , left_alloc( allocation_count( left ) )
     , right_alloc( allocation_count( right ) )
@@ -583,9 +530,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
   static void testit()
   {
     TestViewOperator_LeftAndRight driver ;
-
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
 
     int error_flag = 0 ;
 
@@ -600,10 +544,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i3 = 0 ; i3 < unsigned(lsh.N3) ; ++i3 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(lsh.N2) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(left.dimension_3()) ; ++i3 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
       const long j = & left( i0, i1, i2, i3 ) -
                      & left(  0,  0,  0,  0 );
@@ -612,10 +556,10 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(rsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(rsh.N1) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(rsh.N2) ; ++i2 )
-    for ( unsigned i3 = 0 ; i3 < unsigned(rsh.N3) ; ++i3 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
+    for ( unsigned i3 = 0 ; i3 < unsigned(right.dimension_3()) ; ++i3 )
     {
       const long j = & right( i0, i1, i2, i3 ) -
                      & right(  0,  0,  0,  0 );
@@ -628,9 +572,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 4 >
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
-  typedef typename execution_space::size_type     size_type ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename execution_space::size_type   size_type ;
 
   typedef int value_type ;
 
@@ -653,11 +597,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   stride_view  left_stride ;
@@ -666,9 +605,7 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  std::string("left") )
+    : left(  std::string("left") )
     , right( std::string("right") )
     , left_stride( left )
     , right_stride( right )
@@ -680,9 +617,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
   {
     TestViewOperator_LeftAndRight driver ;
 
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
-
     int error_flag = 0 ;
 
     Kokkos::parallel_reduce( 1 , driver , error_flag );
@@ -696,9 +630,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i2 = 0 ; i2 < unsigned(lsh.N2) ; ++i2 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
       const long j = & left( i0, i1, i2 ) -
                      & left(  0,  0,  0 );
@@ -709,9 +643,9 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(rsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(rsh.N1) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(rsh.N2) ; ++i2 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(right.dimension_2()) ; ++i2 )
     {
       const long j = & right( i0, i1, i2 ) -
                      & right(  0,  0,  0 );
@@ -721,22 +655,24 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 3 >
       if ( & right(i0,i1,i2) != & right_stride(i0,i1,i2) ) { update |= 8 ; }
     }
 
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i2 = 0 ; i2 < unsigned(lsh.N2) ; ++i2 )
+#if KOKKOS_USING_EXP_VIEW
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i2 = 0 ; i2 < unsigned(left.dimension_2()) ; ++i2 )
     {
-      if ( & left(i0,i1,i2)  != & left.at(i0,i1,i2,0,0,0,0,0) )  { update |= 3 ; }
-      if ( & right(i0,i1,i2) != & right.at(i0,i1,i2,0,0,0,0,0) ) { update |= 3 ; }
+      if ( & left(i0,i1,i2)  != & left(i0,i1,i2,0,0,0,0,0) )  { update |= 3 ; }
+      if ( & right(i0,i1,i2) != & right(i0,i1,i2,0,0,0,0,0) ) { update |= 3 ; }
     }
+#endif
   }
 };
 
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
-  typedef typename execution_space::size_type     size_type ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename execution_space::size_type   size_type ;
 
   typedef int value_type ;
 
@@ -756,21 +692,14 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutRight, execution_space > right_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   long         left_alloc ;
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  Kokkos::ViewAllocate("left") )
-    , right( Kokkos::ViewAllocate("right") )
+    : left(  "left" )
+    , right( "right" )
     , left_alloc( allocation_count( left ) )
     , right_alloc( allocation_count( right ) )
     {}
@@ -778,9 +707,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
   static void testit()
   {
     TestViewOperator_LeftAndRight driver ;
-
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
 
     int error_flag = 0 ;
 
@@ -795,8 +721,8 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
     long offset ;
 
     offset = -1 ;
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
       const long j = & left( i0, i1 ) -
                      & left(  0,  0 );
@@ -805,8 +731,8 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
     }
 
     offset = -1 ;
-    for ( unsigned i0 = 0 ; i0 < unsigned(rsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(rsh.N1) ; ++i1 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(right.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(right.dimension_1()) ; ++i1 )
     {
       const long j = & right( i0, i1 ) -
                      & right(  0,  0 );
@@ -814,21 +740,23 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 2 >
       offset = j ;
     }
 
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
-    for ( unsigned i1 = 0 ; i1 < unsigned(lsh.N1) ; ++i1 )
+#if KOKKOS_USING_EXP_VIEW
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
+    for ( unsigned i1 = 0 ; i1 < unsigned(left.dimension_1()) ; ++i1 )
     {
-      if ( & left(i0,i1)  != & left.at(i0,i1,0,0,0,0,0,0) )  { update |= 3 ; }
-      if ( & right(i0,i1) != & right.at(i0,i1,0,0,0,0,0,0) ) { update |= 3 ; }
+      if ( & left(i0,i1)  != & left(i0,i1,0,0,0,0,0,0) )  { update |= 3 ; }
+      if ( & right(i0,i1) != & right(i0,i1,0,0,0,0,0,0) ) { update |= 3 ; }
     }
+#endif
   }
 };
 
 template< class DataType , class DeviceType >
 struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
 {
-  typedef DeviceType                          execution_space ;
-  typedef typename execution_space::memory_space  memory_space ;
-  typedef typename execution_space::size_type     size_type ;
+  typedef typename DeviceType::execution_space  execution_space ;
+  typedef typename DeviceType::memory_space     memory_space ;
+  typedef typename execution_space::size_type   size_type ;
 
   typedef int value_type ;
 
@@ -851,11 +779,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
   typedef Kokkos::
     View< DataType, Kokkos::LayoutStride, execution_space > stride_view ;
 
-  typedef typename left_view ::shape_type  left_shape ;
-  typedef typename right_view::shape_type  right_shape ;
-
-  left_shape   lsh ;
-  right_shape  rsh ;
   left_view    left ;
   right_view   right ;
   stride_view  left_stride ;
@@ -864,10 +787,8 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
   long         right_alloc ;
 
   TestViewOperator_LeftAndRight()
-    : lsh()
-    , rsh()
-    , left(  Kokkos::ViewAllocate() )
-    , right( Kokkos::ViewAllocate() )
+    : left(  "left" )
+    , right( "right" )
     , left_stride( left )
     , right_stride( right )
     , left_alloc( allocation_count( left ) )
@@ -877,9 +798,6 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
   static void testit()
   {
     TestViewOperator_LeftAndRight driver ;
-
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.lsh ) <= driver.left_alloc );
-    ASSERT_TRUE( (long) Kokkos::Impl::cardinality_count( driver.rsh ) <= driver.right_alloc );
 
     int error_flag = 0 ;
 
@@ -891,13 +809,68 @@ struct TestViewOperator_LeftAndRight< DataType , DeviceType , 1 >
   KOKKOS_INLINE_FUNCTION
   void operator()( const size_type , value_type & update ) const
   {
-    for ( unsigned i0 = 0 ; i0 < unsigned(lsh.N0) ; ++i0 )
+    for ( unsigned i0 = 0 ; i0 < unsigned(left.dimension_0()) ; ++i0 )
     {
-      if ( & left(i0)  != & left.at(i0,0,0,0,0,0,0,0) )  { update |= 3 ; }
-      if ( & right(i0) != & right.at(i0,0,0,0,0,0,0,0) ) { update |= 3 ; }
+#if KOKKOS_USING_EXP_VIEW
+      if ( & left(i0)  != & left(i0,0,0,0,0,0,0,0) )  { update |= 3 ; }
+      if ( & right(i0) != & right(i0,0,0,0,0,0,0,0) ) { update |= 3 ; }
+#endif
       if ( & left(i0)  != & left_stride(i0) ) { update |= 4 ; }
       if ( & right(i0) != & right_stride(i0) ) { update |= 8 ; }
     }
+  }
+};
+
+template<class Layout, class DeviceType>
+struct TestViewMirror {
+
+  template<class MemoryTraits>
+  void static test_mirror() {
+    Kokkos::View<double*, Layout, Kokkos::HostSpace> a_org("A",1000);
+    Kokkos::View<double*, Layout, Kokkos::HostSpace, MemoryTraits> a_h = a_org;
+    auto a_h2 = Kokkos::create_mirror(Kokkos::HostSpace(),a_h);
+    auto a_d = Kokkos::create_mirror(DeviceType(),a_h);
+
+    int equal_ptr_h_h2  = (a_h.data() ==a_h2.data())?1:0;
+    int equal_ptr_h_d   = (a_h.data() ==a_d. data())?1:0;
+    int equal_ptr_h2_d  = (a_h2.data()==a_d. data())?1:0;
+
+    ASSERT_EQ(equal_ptr_h_h2,0);
+    ASSERT_EQ(equal_ptr_h_d ,0);
+    ASSERT_EQ(equal_ptr_h2_d,0);
+    
+
+    ASSERT_EQ(a_h.dimension_0(),a_h2.dimension_0());
+    ASSERT_EQ(a_h.dimension_0(),a_d .dimension_0());
+  }
+
+
+  template<class MemoryTraits>
+  void static test_mirror_view() {
+    Kokkos::View<double*, Layout, Kokkos::HostSpace> a_org("A",1000);
+    Kokkos::View<double*, Layout, Kokkos::HostSpace, MemoryTraits> a_h = a_org;
+    auto a_h2 = Kokkos::create_mirror_view(Kokkos::HostSpace(),a_h);
+    auto a_d = Kokkos::create_mirror_view(DeviceType(),a_h);
+
+    int equal_ptr_h_h2  = a_h.data() ==a_h2.data()?1:0;
+    int equal_ptr_h_d   = a_h.data() ==a_d. data()?1:0;
+    int equal_ptr_h2_d  = a_h2.data()==a_d. data()?1:0;
+
+    int is_same_memspace = std::is_same<Kokkos::HostSpace,typename DeviceType::memory_space>::value?1:0; 
+    ASSERT_EQ(equal_ptr_h_h2,1);
+    ASSERT_EQ(equal_ptr_h_d ,is_same_memspace);
+    ASSERT_EQ(equal_ptr_h2_d ,is_same_memspace);
+
+
+    ASSERT_EQ(a_h.dimension_0(),a_h2.dimension_0());
+    ASSERT_EQ(a_h.dimension_0(),a_d .dimension_0());
+  } 
+
+  void static testit() {
+    test_mirror<Kokkos::MemoryTraits<0>>();
+    test_mirror<Kokkos::MemoryTraits<Kokkos::Unmanaged>>();
+    test_mirror_view<Kokkos::MemoryTraits<0>>();
+    test_mirror_view<Kokkos::MemoryTraits<Kokkos::Unmanaged>>();
   }
 };
 
@@ -944,12 +917,20 @@ public:
     TestViewOperator_LeftAndRight< int[2][3][4] , device >::testit();
     TestViewOperator_LeftAndRight< int[2][3] , device >::testit();
     TestViewOperator_LeftAndRight< int[2] , device >::testit();
+    TestViewMirror<Kokkos::LayoutLeft, device >::testit(); 
+    TestViewMirror<Kokkos::LayoutRight, device >::testit(); 
+
   }
 
   static void run_test_mirror()
   {
     typedef Kokkos::View< int , host > view_type ;
     typedef typename view_type::HostMirror mirror_type ;
+
+    static_assert( std::is_same< typename view_type::memory_space
+                               , typename mirror_type::memory_space
+                               >::value , "" );
+
     view_type a("a");
     mirror_type am = Kokkos::create_mirror_view(a);
     mirror_type ax = Kokkos::create_mirror(a);
@@ -969,7 +950,7 @@ public:
     hx = Kokkos::create_mirror( dx );
     hy = Kokkos::create_mirror( dy );
 
-    hx = 1 ;
+    hx() = 1 ;
 
     Kokkos::deep_copy( dx , hx );
     Kokkos::deep_copy( dy , dx );
@@ -1016,12 +997,12 @@ public:
     dView4 dx , dy , dz ;
     hView4 hx , hy , hz ;
 
-    ASSERT_TRUE( dx.is_null() );
-    ASSERT_TRUE( dy.is_null() );
-    ASSERT_TRUE( dz.is_null() );
-    ASSERT_TRUE( hx.is_null() );
-    ASSERT_TRUE( hy.is_null() );
-    ASSERT_TRUE( hz.is_null() );
+    ASSERT_TRUE( dx.ptr_on_device() == 0 );
+    ASSERT_TRUE( dy.ptr_on_device() == 0 );
+    ASSERT_TRUE( dz.ptr_on_device() == 0 );
+    ASSERT_TRUE( hx.ptr_on_device() == 0 );
+    ASSERT_TRUE( hy.ptr_on_device() == 0 );
+    ASSERT_TRUE( hz.ptr_on_device() == 0 );
     ASSERT_EQ( dx.dimension_0() , 0u );
     ASSERT_EQ( dy.dimension_0() , 0u );
     ASSERT_EQ( dz.dimension_0() , 0u );
@@ -1038,12 +1019,16 @@ public:
     dx = dView4( "dx" , N0 );
     dy = dView4( "dy" , N0 );
 
-    #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+    #if KOKKOS_USING_EXP_VIEW
+    ASSERT_EQ( dx.use_count() , size_t(1) );
+    #else
     ASSERT_EQ( dx.tracker().ref_count() , size_t(1) );
     #endif
 
     dView4_unmanaged unmanaged_dx = dx;
-    #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+    #if KOKKOS_USING_EXP_VIEW
+    ASSERT_EQ( dx.use_count() , size_t(1) );
+    #else
     ASSERT_EQ( dx.tracker().ref_count() , size_t(1) );
     #endif
 
@@ -1063,43 +1048,55 @@ public:
     }
 
     const_dView4 const_dx = dx ;
-    #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+    #if KOKKOS_USING_EXP_VIEW
+    ASSERT_EQ( dx.use_count() , size_t(2) );
+    #else
     ASSERT_EQ( dx.tracker().ref_count() , size_t(2) );
     #endif
 
     {
       const_dView4 const_dx2;
       const_dx2 = const_dx;
-      #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+      #if KOKKOS_USING_EXP_VIEW
+      ASSERT_EQ( dx.use_count() , size_t(3) );
+      #else
       ASSERT_EQ( dx.tracker().ref_count() , size_t(3) );
       #endif
 
       const_dx2 = dy;
-      #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+      #if KOKKOS_USING_EXP_VIEW
+      ASSERT_EQ( dx.use_count() , size_t(2) );
+      #else
       ASSERT_EQ( dx.tracker().ref_count() , size_t(2) );
       #endif
 
       const_dView4 const_dx3(dx);
-      #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+      #if KOKKOS_USING_EXP_VIEW
+      ASSERT_EQ( dx.use_count() , size_t(3) );
+      #else
       ASSERT_EQ( dx.tracker().ref_count() , size_t(3) );
       #endif
       
       dView4_unmanaged dx4_unmanaged(dx);
-      #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+      #if KOKKOS_USING_EXP_VIEW
+      ASSERT_EQ( dx.use_count() , size_t(3) );
+      #else
       ASSERT_EQ( dx.tracker().ref_count() , size_t(3) );
       #endif
     }
 
-    #ifndef KOKKOS_USING_EXPERIMENTAL_VIEW
+    #if KOKKOS_USING_EXP_VIEW
+    ASSERT_EQ( dx.use_count() , size_t(2) );
+    #else
     ASSERT_EQ( dx.tracker().ref_count() , size_t(2) );
     #endif
 
 
-    ASSERT_FALSE( dx.is_null() );
-    ASSERT_FALSE( const_dx.is_null() );
-    ASSERT_FALSE( unmanaged_dx.is_null() );
-    ASSERT_FALSE( unmanaged_from_ptr_dx.is_null() );
-    ASSERT_FALSE( dy.is_null() );
+    ASSERT_FALSE( dx.ptr_on_device() == 0 );
+    ASSERT_FALSE( const_dx.ptr_on_device() == 0 );
+    ASSERT_FALSE( unmanaged_dx.ptr_on_device() == 0 );
+    ASSERT_FALSE( unmanaged_from_ptr_dx.ptr_on_device() == 0 );
+    ASSERT_FALSE( dy.ptr_on_device() == 0 );
     ASSERT_NE( dx , dy );
 
     ASSERT_EQ( dx.dimension_0() , unsigned(N0) );
@@ -1121,6 +1118,7 @@ public:
     // T v2 = hx(0,0) ; // Generates compile error as intended
     // hx(0,0) = v2 ;   // Generates compile error as intended
 
+#if ! KOKKOS_USING_EXP_VIEW
     // Testing with asynchronous deep copy with respect to device
     {
       size_t count = 0 ;
@@ -1130,6 +1128,7 @@ public:
       for ( size_t i3 = 0 ; i3 < hx.dimension_3() ; ++i3 ) {
         hx(ip,i1,i2,i3) = ++count ;
       }}}}
+
 
       Kokkos::deep_copy(typename hView4::execution_space(), dx , hx );
       Kokkos::deep_copy(typename hView4::execution_space(), dy , dx );
@@ -1152,6 +1151,7 @@ public:
         { ASSERT_EQ( hx(ip,i1,i2,i3) , T(0) ); }
       }}}}
     }
+
     // Testing with asynchronous deep copy with respect to host
     {
       size_t count = 0 ;
@@ -1183,6 +1183,7 @@ public:
         { ASSERT_EQ( hx(ip,i1,i2,i3) , T(0) ); }
       }}}}
     }
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
     // Testing with synchronous deep copy
     {
@@ -1219,17 +1220,17 @@ public:
     dz = dy ; ASSERT_EQ( dy, dz); ASSERT_NE( dx, dz);
 
     dx = dView4();
-    ASSERT_TRUE( dx.is_null() );
-    ASSERT_FALSE( dy.is_null() );
-    ASSERT_FALSE( dz.is_null() );
+    ASSERT_TRUE( dx.ptr_on_device() == 0 );
+    ASSERT_FALSE( dy.ptr_on_device() == 0 );
+    ASSERT_FALSE( dz.ptr_on_device() == 0 );
     dy = dView4();
-    ASSERT_TRUE( dx.is_null() );
-    ASSERT_TRUE( dy.is_null() );
-    ASSERT_FALSE( dz.is_null() );
+    ASSERT_TRUE( dx.ptr_on_device() == 0 );
+    ASSERT_TRUE( dy.ptr_on_device() == 0 );
+    ASSERT_FALSE( dz.ptr_on_device() == 0 );
     dz = dView4();
-    ASSERT_TRUE( dx.is_null() );
-    ASSERT_TRUE( dy.is_null() );
-    ASSERT_TRUE( dz.is_null() );
+    ASSERT_TRUE( dx.ptr_on_device() == 0 );
+    ASSERT_TRUE( dy.ptr_on_device() == 0 );
+    ASSERT_TRUE( dz.ptr_on_device() == 0 );
   }
 
   typedef T DataType[2] ;
@@ -1253,7 +1254,16 @@ public:
 
     ASSERT_TRUE( xc == x );
     ASSERT_TRUE( x == xc );
-    ASSERT_TRUE( x.ptr_on_device() == xr.ptr_on_device() );
+
+    // For CUDA the constant random access View does not return
+    // an lvalue reference due to retrieving through texture cache
+    // therefore not allowed to query the underlying pointer.
+#if defined( KOKKOS_HAVE_CUDA )
+    if ( ! std::is_same< typename device::execution_space , Kokkos::Cuda >::value )
+#endif
+    {
+      ASSERT_TRUE( x.ptr_on_device() == xr.ptr_on_device() );
+    }
 
     // typeX xf = xc ; // setting non-const from const must not compile
 
@@ -1399,8 +1409,6 @@ public:
 };
 
 } // namespace Test
-
-#endif
 
 /*--------------------------------------------------------------------------*/
 

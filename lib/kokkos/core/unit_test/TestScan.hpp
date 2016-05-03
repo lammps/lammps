@@ -85,6 +85,12 @@ struct TestScan {
   TestScan( const WorkSpec & N )
     { parallel_scan( N , *this ); }
 
+  TestScan( const WorkSpec & Start , const WorkSpec & N )
+    {
+      typedef Kokkos::RangePolicy<execution_space> exec_policy ;
+      parallel_scan( exec_policy( Start , N ) , *this );
+    }
+
   static void test_range( const WorkSpec & begin , const WorkSpec & end )
     {
       for ( WorkSpec i = begin ; i < end ; ++i ) {

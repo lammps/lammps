@@ -47,6 +47,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <Kokkos_Macros.hpp>
+#include <type_traits>
 
 namespace Kokkos {
 namespace Impl {
@@ -54,16 +55,87 @@ namespace Impl {
 //----------------------------------------------------------------------------
 // Help with C++11 variadic argument packs
 
-template< unsigned I , class ... Args >
-struct variadic_type { typedef void type ; };
+template< unsigned I , typename ... Pack >
+struct get_type { typedef void type ; };
 
-template< class T , class ... Args >
-struct variadic_type< 0 , T , Args ... >
-  { typedef T type ; };
+template< typename T , typename ... Pack >
+struct get_type< 0 , T , Pack ... >
+{ typedef T type ; };
 
-template< unsigned I , class T , class ... Args >
-struct variadic_type< I , T , Args ... >
-  { typedef typename variadic_type< I - 1 , Args ... >::type type ; };
+template< unsigned I , typename T , typename ... Pack >
+struct get_type< I , T , Pack ... >
+{ typedef typename get_type< I - 1 , Pack ... >::type type ; };
+
+
+template< typename T , typename ... Pack >
+struct has_type { enum { value = false }; };
+
+template< typename T , typename S , typename ... Pack >
+struct has_type<T,S,Pack...>
+{
+private:
+
+  enum { self_value = std::is_same<T,S>::value };
+
+  typedef has_type<T,Pack...> next ;
+
+  static_assert( ! ( self_value && next::value )
+               , "Error: more than one member of the argument pack matches the type" );
+
+public:
+
+  enum { value = self_value || next::value };
+
+};
+
+
+template< typename DefaultType
+        , template< typename > class Condition
+        , typename ... Pack >
+struct has_condition 
+{
+  enum { value = false };
+  typedef DefaultType type ;
+};
+
+template< typename DefaultType
+        , template< typename > class Condition
+        , typename S
+        , typename ... Pack >
+struct has_condition< DefaultType , Condition , S , Pack... >
+{
+private:
+
+  enum { self_value = Condition<S>::value };
+
+  typedef has_condition< DefaultType , Condition , Pack... > next ;
+
+  static_assert( ! ( self_value && next::value )
+               , "Error: more than one member of the argument pack satisfies condition" );
+
+public:
+
+  enum { value = self_value || next::value };
+
+  typedef typename
+    std::conditional< self_value , S , typename next::type >::type
+      type ;
+};
+
+
+template< class ... Args >
+struct are_integral { enum { value = true }; };
+
+template< typename T , class ... Args >
+struct are_integral<T,Args...> {
+  enum { value =
+    // Accept std::is_integral OR std::is_enum as an integral value
+    // since a simple enum value is automically convertable to an
+    // integral value.
+    ( std::is_integral<T>::value || std::is_enum<T>::value )
+    &&
+    are_integral<Args...>::value };
+};
 
 //----------------------------------------------------------------------------
 /* C++11 conformal compile-time type traits utilities.

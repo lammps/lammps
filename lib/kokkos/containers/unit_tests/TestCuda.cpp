@@ -58,7 +58,11 @@
 #include <TestStaticCrsGraph.hpp>
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
+#include <TestDynamicView.hpp>
 #include <TestSegmentedView.hpp>
+
+#include <Kokkos_DynRankView.hpp>
+#include <TestDynViewAPI.hpp>
 
 //----------------------------------------------------------------------------
 
@@ -81,6 +85,10 @@ protected:
     Kokkos::HostSpace::execution_space::finalize();
   }
 };
+
+TEST_F( cuda , dyn_view_api) {
+  TestDynViewAPI< double , Kokkos::Cuda >();
+}
 
 TEST_F( cuda , staticcrsgraph )
 {
@@ -200,6 +208,19 @@ CUDA_SEGMENTEDVIEW_TEST( 200 )
 #undef CUDA_VECTOR_COMBINE_TEST
 #undef CUDA_DUALVIEW_COMBINE_TEST
 #undef CUDA_SEGMENTEDVIEW_TEST
+
+
+TEST_F( cuda , dynamic_view )
+{
+  typedef TestDynamicView< double , Kokkos::CudaUVMSpace >
+    TestDynView ;
+
+  for ( int i = 0 ; i < 10 ; ++i ) {
+    TestDynView::run( 100000 + 100 * i );
+  }
+}
+
+
 }
 
 #endif  /* #ifdef KOKKOS_HAVE_CUDA */

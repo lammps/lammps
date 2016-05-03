@@ -48,7 +48,7 @@
 #include <string>
 #include <Kokkos_Core_fwd.hpp>
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 #include <Kokkos_HostSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>
@@ -2099,7 +2099,7 @@ struct ALL { KOKKOS_INLINE_FUNCTION ALL(){} };
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 #include <KokkosExp_View.hpp>
 

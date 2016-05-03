@@ -449,10 +449,14 @@ namespace Kokkos {
 namespace Experimental {
 
 TaskPolicy< Kokkos::Qthread >::
-  TaskPolicy( const unsigned arg_default_dependence_capacity
-            , const unsigned arg_team_size )
-  : m_default_dependence_capacity( arg_default_dependence_capacity )
-  , m_team_size( arg_team_size != 0 ? arg_team_size : unsigned(qthread_num_workers_local(NO_SHEPHERD)) )
+TaskPolicy
+  ( const unsigned /* arg_task_max_count */
+  , const unsigned /* arg_task_max_size */
+  , const unsigned arg_task_default_dependence_capacity 
+  , const unsigned arg_task_team_size
+  )
+  : m_default_dependence_capacity( arg_task_default_dependence_capacity )
+  , m_team_size( arg_task_team_size != 0 ? arg_task_team_size : unsigned(qthread_num_workers_local(NO_SHEPHERD)) )
   , m_active_count_root(0)
   , m_active_count( m_active_count_root )
 {
@@ -461,8 +465,8 @@ TaskPolicy< Kokkos::Qthread >::
   if ( m_team_size != 1 && m_team_size != num_worker_per_shepherd ) {
     std::ostringstream msg ;
     msg << "Kokkos::Experimental::TaskPolicy< Kokkos::Qthread >( "
-        << "default_depedence = " << arg_default_dependence_capacity
-        << " , team_size = " << arg_team_size
+        << "default_depedence = " << arg_task_default_dependence_capacity
+        << " , team_size = " << arg_task_team_size
         << " ) ERROR, valid team_size arguments are { (omitted) , 1 , " << num_worker_per_shepherd << " }" ;
     Kokkos::Impl::throw_runtime_exception(msg.str());
   }

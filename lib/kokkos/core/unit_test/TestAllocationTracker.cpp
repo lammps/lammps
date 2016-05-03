@@ -69,7 +69,7 @@ protected:
 TEST_F( alocation_tracker, simple)
 {
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   using namespace Kokkos::Impl;
 
@@ -115,7 +115,7 @@ TEST_F( alocation_tracker, simple)
     }
   }
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 }
 
@@ -132,7 +132,7 @@ TEST_F( alocation_tracker, force_leaks)
 TEST_F( alocation_tracker, disable_reference_counting)
 {
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   using namespace Kokkos::Impl;
   // test ref count and label
@@ -152,7 +152,7 @@ TEST_F( alocation_tracker, disable_reference_counting)
     EXPECT_EQ(std::string("Test"), std::string(trackers[0].label()));
   }
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 }
 

@@ -147,6 +147,9 @@ public:
 
   static int is_initialized() { return 1 ; }
 
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency() {return 1;};
+
   //! Free any resources being consumed by the device.
   static void finalize() {}
 
@@ -228,6 +231,15 @@ public:
   KOKKOS_INLINE_FUNCTION
   const scratch_memory_space & team_shmem() const { return m_space ; }
 
+  KOKKOS_INLINE_FUNCTION
+  const scratch_memory_space & team_scratch(int) const
+    { return m_space ; }
+
+  KOKKOS_INLINE_FUNCTION
+  const scratch_memory_space & thread_scratch(int) const
+    { return m_space ; }
+
+
   KOKKOS_INLINE_FUNCTION int league_rank() const { return m_league_rank ; }
   KOKKOS_INLINE_FUNCTION int league_size() const { return m_league_size ; }
   KOKKOS_INLINE_FUNCTION int team_rank() const { return 0 ; }
@@ -289,25 +301,34 @@ public:
  * < WorkArgTag , Impl::enable_if< Impl::is_same< Kokkos::Serial , Kokkos::DefaultExecutionSpace >::value >::type >
  *
  */
-template< class Arg0 , class Arg1 >
-class TeamPolicy< Arg0 , Arg1 , Kokkos::Serial >
+namespace Impl {
+template< class ... Properties >
+class TeamPolicyInternal< Kokkos::Serial , Properties ... >:public PolicyTraits<Properties...>
 {
 private:
 
-  const int m_league_size ;
-  const int m_scratch_size ;
+  size_t m_team_scratch_size ;
+  size_t m_thread_scratch_size ;
+  int    m_league_size ;
+  int    m_chunk_size;
 
 public:
 
   //! Tag this class as a kokkos execution policy
-  typedef TeamPolicy      execution_policy ;
+  typedef TeamPolicyInternal      execution_policy ;
+
+  typedef PolicyTraits<Properties ... > traits;
 
   //! Execution space of this execution policy:
   typedef Kokkos::Serial  execution_space ;
 
-  typedef typename
-    Impl::if_c< ! Impl::is_same< Kokkos::Serial , Arg0 >::value , Arg0 , Arg1 >::type
-      work_tag ;
+  TeamPolicyInternal& operator = (const TeamPolicyInternal& p) {
+    m_league_size = p.m_league_size;
+    m_team_scratch_size = p.m_team_scratch_size;
+    m_thread_scratch_size = p.m_thread_scratch_size;
+    m_chunk_size = p.m_chunk_size;
+    return *this;
+  }
 
   //----------------------------------------
 
@@ -327,59 +348,85 @@ public:
 
   inline int team_size() const { return 1 ; }
   inline int league_size() const { return m_league_size ; }
-  inline size_t scratch_size() const { return m_scratch_size ; }
+  inline size_t scratch_size() const { return m_team_scratch_size + m_thread_scratch_size; }
 
   /** \brief  Specify league size, request team size */
-  TeamPolicy( execution_space &
+  TeamPolicyInternal( execution_space &
             , int league_size_request
             , int /* team_size_request */
             , int /* vector_length_request */ = 1 )
-    : m_league_size( league_size_request )
-    , m_scratch_size ( 0 )
+    : m_team_scratch_size ( 0 )
+    , m_thread_scratch_size ( 0 )
+    , m_league_size( league_size_request )
+    , m_chunk_size ( 32 )
     {}
 
-  TeamPolicy( execution_space &
+  TeamPolicyInternal( execution_space &
             , int league_size_request
             , const Kokkos::AUTO_t & /* team_size_request */
             , int /* vector_length_request */ = 1 )
-    : m_league_size( league_size_request )
-    , m_scratch_size ( 0 )
+    : m_team_scratch_size ( 0 )
+    , m_thread_scratch_size ( 0 )
+    , m_league_size( league_size_request )
+    , m_chunk_size ( 32 )
     {}
 
-  TeamPolicy( int league_size_request
+  TeamPolicyInternal( int league_size_request
             , int /* team_size_request */
             , int /* vector_length_request */ = 1 )
-    : m_league_size( league_size_request )
-    , m_scratch_size ( 0 )
+    : m_team_scratch_size ( 0 )
+    , m_thread_scratch_size ( 0 )
+    , m_league_size( league_size_request )
+    , m_chunk_size ( 32 )
     {}
 
-  TeamPolicy( int league_size_request
+  TeamPolicyInternal( int league_size_request
             , const Kokkos::AUTO_t & /* team_size_request */
             , int /* vector_length_request */ = 1 )
-    : m_league_size( league_size_request )
-    , m_scratch_size ( 0 )
-    {}
-
-  template<class MemorySpace>
-  TeamPolicy( int league_size_request
-            , int /* team_size_request */
-            , const Experimental::TeamScratchRequest<MemorySpace> & scratch_request )
-    : m_league_size(league_size_request)
-    , m_scratch_size(scratch_request.total(1))
+    : m_team_scratch_size ( 0 )
+    , m_thread_scratch_size ( 0 )
+    , m_league_size( league_size_request )
+    , m_chunk_size ( 32 )
     {}
 
 
-  template<class MemorySpace>
-  TeamPolicy( int league_size_request
-            , const Kokkos::AUTO_t & /* team_size_request */
-            , const Experimental::TeamScratchRequest<MemorySpace> & scratch_request )
-    : m_league_size(league_size_request)
-    , m_scratch_size(scratch_request.total(1))
-    {}
+  inline int chunk_size() const { return m_chunk_size ; }
+
+  /** \brief set chunk_size to a discrete value*/
+  inline TeamPolicyInternal set_chunk_size(typename traits::index_type chunk_size_) const {
+    TeamPolicyInternal p = *this;
+    p.m_chunk_size = chunk_size_;
+    return p;
+  }
+
+  /** \brief set per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal set_scratch_size(const int& level, const PerTeamValue& per_team) const {
+    (void) level;
+    TeamPolicyInternal p = *this;
+    p.m_team_scratch_size = per_team.value;
+    return p;
+  };
+
+  /** \brief set per thread scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal set_scratch_size(const int& level, const PerThreadValue& per_thread) const {
+    (void) level;
+    TeamPolicyInternal p = *this;
+    p.m_thread_scratch_size = per_thread.value;
+    return p;
+  };
+
+  /** \brief set per thread and per team scratch size for a specific level of the scratch hierarchy */
+  inline TeamPolicyInternal set_scratch_size(const int& level, const PerTeamValue& per_team, const PerThreadValue& per_thread) const {
+    (void) level;
+    TeamPolicyInternal p = *this;
+    p.m_team_scratch_size = per_team.value;
+    p.m_thread_scratch_size = per_thread.value;
+    return p;
+  };
 
   typedef Impl::SerialTeamMember  member_type ;
 };
-
+} /* namespace Impl */
 } /* namespace Kokkos */
 
 /*--------------------------------------------------------------------------*/
@@ -392,20 +439,20 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
-class ParallelFor< FunctorType
-                 , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Serial >
+template< class FunctorType , class ... Traits >
+class ParallelFor< FunctorType , 
+                   Kokkos::RangePolicy< Traits ... > ,
+                   Kokkos::Serial
                  >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Serial > Policy ;
+  typedef Kokkos::RangePolicy< Traits ... > Policy ;
 
   const FunctorType m_functor ;
   const Policy      m_policy ;
 
   template< class TagType >
-  KOKKOS_INLINE_FUNCTION
   typename std::enable_if< std::is_same< TagType , void >::value >::type
   exec() const
     {
@@ -416,7 +463,6 @@ private:
     }
 
   template< class TagType >
-  KOKKOS_INLINE_FUNCTION
   typename std::enable_if< ! std::is_same< TagType , void >::value >::type
   exec() const
     {
@@ -443,14 +489,15 @@ public:
 
 /*--------------------------------------------------------------------------*/
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelReduce< FunctorType
-                    , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Serial >
+                    , Kokkos::RangePolicy< Traits ... >
+                    , Kokkos::Serial
                     >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Serial > Policy ;
+  typedef Kokkos::RangePolicy< Traits ... > Policy ;
   typedef typename Policy::work_tag                                  WorkTag ;
   typedef Kokkos::Impl::FunctorValueTraits< FunctorType , WorkTag >  ValueTraits ;
   typedef Kokkos::Impl::FunctorValueInit<   FunctorType , WorkTag >  ValueInit ;
@@ -526,14 +573,15 @@ public:
 
 /*--------------------------------------------------------------------------*/
 
-template< class FunctorType , class Arg0 , class Arg1 , class Arg2 >
+template< class FunctorType , class ... Traits >
 class ParallelScan< FunctorType
-                  , Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Serial >
+                  , Kokkos::RangePolicy< Traits ... >
+                  , Kokkos::Serial
                   >
 {
 private:
 
-  typedef Kokkos::RangePolicy< Arg0 , Arg1 , Arg2 , Kokkos::Serial > Policy ;
+  typedef Kokkos::RangePolicy< Traits ... > Policy ;
   typedef typename Policy::work_tag                                  WorkTag ;
   typedef Kokkos::Impl::FunctorValueTraits< FunctorType , WorkTag >  ValueTraits ;
   typedef Kokkos::Impl::FunctorValueInit<   FunctorType , WorkTag >  ValueInit ;
@@ -600,14 +648,15 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-template< class FunctorType , class Arg0 , class Arg1 >
+template< class FunctorType , class ... Properties >
 class ParallelFor< FunctorType
-                 , Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::Serial >
+                 , Kokkos::TeamPolicy< Properties ... >
+                 , Kokkos::Serial
                  >
 {
 private:
 
-  typedef Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::Serial > Policy ;
+  typedef TeamPolicyInternal< Kokkos::Serial , Properties ...> Policy ;
   typedef typename Policy::member_type                       Member ;
 
   const FunctorType  m_functor ;
@@ -654,14 +703,15 @@ public:
 
 /*--------------------------------------------------------------------------*/
 
-template< class FunctorType , class Arg0 , class Arg1 >
+template< class FunctorType , class ... Properties >
 class ParallelReduce< FunctorType
-                    , Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::Serial >
+                    , Kokkos::TeamPolicy< Properties ... >
+                    , Kokkos::Serial
                     >
 {
 private:
 
-  typedef Kokkos::TeamPolicy< Arg0 , Arg1 , Kokkos::Serial > Policy ;
+  typedef TeamPolicyInternal< Kokkos::Serial, Properties ... > Policy ;
   typedef typename Policy::member_type                       Member ;
   typedef typename Policy::work_tag                          WorkTag ;
   typedef Kokkos::Impl::FunctorValueTraits< FunctorType , WorkTag > ValueTraits ;

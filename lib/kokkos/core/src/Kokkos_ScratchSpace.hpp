@@ -57,6 +57,7 @@ namespace Kokkos {
  */
 template< class ExecSpace >
 class ScratchMemorySpace {
+  static_assert (Impl::is_execution_space<ExecSpace>::value,"Instantiating ScratchMemorySpace on non-execution-space type.");
 public:
 
   // Alignment of memory chunks returned by 'get'
@@ -67,6 +68,9 @@ private:
 
   mutable char * m_iter ;
   char *         m_end ;
+
+  mutable int m_multiplier;
+  mutable int m_offset;
 
   ScratchMemorySpace();
   ScratchMemorySpace & operator = ( const ScratchMemorySpace & );
@@ -92,9 +96,9 @@ public:
   template< typename IntType >
   KOKKOS_INLINE_FUNCTION
   void* get_shmem (const IntType& size) const {
-    void* tmp = m_iter ;
-    if (m_end < (m_iter += align (size))) {
-      m_iter -= align (size); // put it back like it was
+    void* tmp = m_iter + m_offset * align (size);
+    if (m_end < (m_iter += align (size) * m_multiplier)) {
+      m_iter -= align (size) * m_multiplier; // put it back like it was
   #ifdef KOKKOS_HAVE_DEBUG
       // mfh 23 Jun 2015: printf call consumes 25 registers
       // in a CUDA build, so only print in debug mode.  The
@@ -113,7 +117,16 @@ public:
   ScratchMemorySpace( void * ptr , const IntType & size )
     : m_iter( (char *) ptr )
     , m_end(  m_iter + size )
+    , m_multiplier( 1 )
+    , m_offset( 0 )
     {}
+
+  KOKKOS_INLINE_FUNCTION
+  const ScratchMemorySpace& set_team_thread_mode(const int& multiplier, const int& offset) const {
+    m_multiplier = multiplier;
+    m_offset = offset;
+    return *this;
+  }
 };
 
 } // namespace Kokkos

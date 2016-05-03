@@ -90,7 +90,7 @@ public:
 
   //@}
   //------------------------------------
-  //! \name Functions that all Kokkos devices must implement.
+  //! \name Functions that all Kokkos execution spaces must implement.
   //@{
 
   inline static bool in_parallel() { return omp_in_parallel(); }
@@ -124,6 +124,10 @@ public:
                           unsigned use_cores_per_numa = 0 );
 
   static int is_initialized();
+
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency();
+
   //@}
   //------------------------------------
   /** \brief  This execution space has a topological thread pool which can be queried.

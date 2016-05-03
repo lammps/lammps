@@ -102,6 +102,16 @@ struct pair
     : first(p.first), second(p.second)
   {}
 
+  /// \brief Copy constructor.
+  ///
+  /// This calls the copy constructors of T1 and T2.  It won't compile
+  /// if those copy constructors are not defined and public.
+  template <class U, class V>
+  KOKKOS_FORCEINLINE_FUNCTION
+  pair( const volatile pair<U,V> &p)
+    : first(p.first), second(p.second)
+  {}
+
   /// \brief Assignment operator.
   ///
   /// This calls the assignment operators of T1 and T2.  It won't
@@ -109,6 +119,19 @@ struct pair
   template <class U, class V>
   KOKKOS_FORCEINLINE_FUNCTION
   pair<T1, T2> & operator=(const pair<U,V> &p)
+  {
+    first = p.first;
+    second = p.second;
+    return *this;
+  }
+
+  /// \brief Assignment operator.
+  ///
+  /// This calls the assignment operators of T1 and T2.  It won't
+  /// compile if the assignment operators are not defined and public.
+  template <class U, class V>
+  KOKKOS_FORCEINLINE_FUNCTION
+  volatile pair<T1, T2> & operator=(const volatile pair<U,V> &p) volatile
   {
     first = p.first;
     second = p.second;

@@ -46,7 +46,7 @@
 
 #include <Kokkos_Macros.hpp>
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 /* only compile this file if CUDA is enabled for Kokkos */
 #ifdef KOKKOS_HAVE_CUDA
@@ -185,6 +185,6 @@ public:
 
 #endif //KOKKOS_HAVE_CUDA
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 #endif //KOKKOS_CUDA_BASIC_ALLOCATORS_HPP

@@ -65,6 +65,7 @@
 #include <Kokkos_Cuda.hpp>
 #endif
 
+#include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Pair.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
@@ -157,7 +158,8 @@ void * kokkos_realloc( void * arg_alloc , const size_t arg_alloc_size )
 } // namespace Experimental
 } // namespace Kokkos
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+
+#if KOKKOS_USING_EXP_VIEW
 
 namespace Kokkos {
 

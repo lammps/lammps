@@ -160,6 +160,9 @@ public:
   //! Has been initialized
   static int is_initialized();
 
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency();
+
   //! Print configuration information to the given output stream.
   static void print_configuration( std::ostream & , const bool detail = false );
 
@@ -171,10 +174,10 @@ public:
   Cuda();
   explicit Cuda( const int instance_id );
 
-  Cuda( const Cuda & ) = default ;
   Cuda( Cuda && ) = default ;
-  Cuda & operator = ( const Cuda & ) = default ;
+  Cuda( const Cuda & ) = default ;
   Cuda & operator = ( Cuda && ) = default ;
+  Cuda & operator = ( const Cuda & ) = default ;
 
   //--------------------------------------------------------------------------
   //! \name Device-specific functions

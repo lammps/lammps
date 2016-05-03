@@ -447,7 +447,7 @@ struct min_max_functor {
 template<class ViewType>
 bool try_std_sort(ViewType view) {
   bool possible = true;
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
   size_t stride[8];
   view.stride(stride);
 #else

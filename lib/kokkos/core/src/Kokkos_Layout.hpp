@@ -53,6 +53,8 @@
 
 namespace Kokkos {
 
+enum { ARRAY_LAYOUT_MAX_RANK = 8 };
+
 //----------------------------------------------------------------------------
 /// \struct LayoutLeft
 /// \brief Memory layout tag indicating left-to-right (Fortran scheme)
@@ -71,6 +73,19 @@ namespace Kokkos {
 struct LayoutLeft {
   //! Tag this class as a kokkos array layout
   typedef LayoutLeft array_layout ;
+
+  size_t dimension[ ARRAY_LAYOUT_MAX_RANK ];
+
+  LayoutLeft( LayoutLeft const & ) = default ;
+  LayoutLeft( LayoutLeft && ) = default ;
+  LayoutLeft & operator = ( LayoutLeft const & ) = default ;
+  LayoutLeft & operator = ( LayoutLeft && ) = default ;
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr
+  LayoutLeft( size_t N0 = 0 , size_t N1 = 0 , size_t N2 = 0 , size_t N3 = 0
+            , size_t N4 = 0 , size_t N5 = 0 , size_t N6 = 0 , size_t N7 = 0 )
+    : dimension { N0 , N1 , N2 , N3 , N4 , N5 , N6 , N7 } {}
 };
 
 //----------------------------------------------------------------------------
@@ -90,6 +105,19 @@ struct LayoutLeft {
 struct LayoutRight {
   //! Tag this class as a kokkos array layout
   typedef LayoutRight array_layout ;
+
+  size_t dimension[ ARRAY_LAYOUT_MAX_RANK ];
+
+  LayoutRight( LayoutRight const & ) = default ;
+  LayoutRight( LayoutRight && ) = default ;
+  LayoutRight & operator = ( LayoutRight const & ) = default ;
+  LayoutRight & operator = ( LayoutRight && ) = default ;
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr
+  LayoutRight( size_t N0 = 0 , size_t N1 = 0 , size_t N2 = 0 , size_t N3 = 0
+             , size_t N4 = 0 , size_t N5 = 0 , size_t N6 = 0 , size_t N7 = 0 )
+    : dimension { N0 , N1 , N2 , N3 , N4 , N5 , N6 , N7 } {}
 };
 
 //----------------------------------------------------------------------------
@@ -101,10 +129,8 @@ struct LayoutStride {
   //! Tag this class as a kokkos array layout
   typedef LayoutStride array_layout ;
 
-  enum { MAX_RANK = 8 };
-
-  size_t dimension[ MAX_RANK ] ;
-  size_t stride[ MAX_RANK ] ; 
+  size_t dimension[ ARRAY_LAYOUT_MAX_RANK ] ;
+  size_t stride[ ARRAY_LAYOUT_MAX_RANK ] ; 
 
   /** \brief  Compute strides from ordered dimensions.
    *
@@ -121,8 +147,8 @@ struct LayoutStride {
     {
       LayoutStride tmp ;
       // Verify valid rank order:
-      int check_input = MAX_RANK < rank ? 0 : int( 1 << rank ) - 1 ;
-      for ( int r = 0 ; r < MAX_RANK ; ++r ) {
+      int check_input = ARRAY_LAYOUT_MAX_RANK < rank ? 0 : int( 1 << rank ) - 1 ;
+      for ( int r = 0 ; r < ARRAY_LAYOUT_MAX_RANK ; ++r ) {
         tmp.dimension[r] = 0 ;
         tmp.stride[r]    = 0 ;
         check_input &= ~int( 1 << order[r] );
@@ -137,6 +163,20 @@ struct LayoutStride {
       }
       return tmp ;
     }
+
+  KOKKOS_INLINE_FUNCTION constexpr
+  LayoutStride( size_t N0 = 0 , size_t S0 = 0
+              , size_t N1 = 0 , size_t S1 = 0
+              , size_t N2 = 0 , size_t S2 = 0
+              , size_t N3 = 0 , size_t S3 = 0
+              , size_t N4 = 0 , size_t S4 = 0
+              , size_t N5 = 0 , size_t S5 = 0
+              , size_t N6 = 0 , size_t S6 = 0
+              , size_t N7 = 0 , size_t S7 = 0
+              )
+    : dimension { N0 , N1 , N2 , N3 , N4 , N5 , N6 , N7 }
+    , stride    { S0 , S1 , S2 , S3 , S4 , S5 , S6 , S7 }
+    {}
 };
 
 //----------------------------------------------------------------------------
@@ -171,6 +211,20 @@ struct LayoutTileLeft {
 
   enum { N0 = ArgN0 };
   enum { N1 = ArgN1 };
+
+  size_t dimension[ ARRAY_LAYOUT_MAX_RANK ] ;
+
+  LayoutTileLeft( LayoutTileLeft const & ) = default ;
+  LayoutTileLeft( LayoutTileLeft && ) = default ;
+  LayoutTileLeft & operator = ( LayoutTileLeft const & ) = default ;
+  LayoutTileLeft & operator = ( LayoutTileLeft && ) = default ;
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr
+  LayoutTileLeft( size_t argN0 = 0 , size_t argN1 = 0 , size_t argN2 = 0 , size_t argN3 = 0
+                , size_t argN4 = 0 , size_t argN5 = 0 , size_t argN6 = 0 , size_t argN7 = 0
+                )
+    : dimension { argN0 , argN1 , argN2 , argN3 , argN4 , argN5 , argN6 , argN7 } {}
 };
 
 } // namespace Kokkos

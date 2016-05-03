@@ -44,6 +44,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+#include <limits>
 
 #include <Kokkos_Core.hpp>
 
@@ -137,13 +138,11 @@ public:
     : value_count( arg_count )
     , nwork( arg_nwork ) {}
 
-/*
   KOKKOS_INLINE_FUNCTION
-  void init( value_type dst ) const
+  void init( ScalarType dst[] ) const
   {
     for ( unsigned i = 0 ; i < value_count ; ++i ) dst[i] = 0 ;
   }
-*/
 
   KOKKOS_INLINE_FUNCTION
   void join( volatile ScalarType dst[] ,
@@ -159,6 +158,62 @@ public:
 
     for ( size_type i = 0 ; i < value_count ; ++i ) {
       dst[i] += tmp[ i % 3 ];
+    }
+  }
+};
+
+template< typename ScalarType , class DeviceType >
+class RuntimeReduceMinMax
+{
+public:
+  // Required for functor:
+  typedef DeviceType  execution_space ;
+  typedef ScalarType  value_type[] ;
+  const unsigned      value_count ;
+
+  // Unit test details:
+
+  typedef typename execution_space::size_type  size_type ;
+
+  const size_type     nwork ;
+  const ScalarType    amin ;
+  const ScalarType    amax ;
+
+  RuntimeReduceMinMax( const size_type arg_nwork ,
+                       const size_type arg_count )
+    : value_count( arg_count )
+    , nwork( arg_nwork )
+    , amin( std::numeric_limits<ScalarType>::min() )
+    , amax( std::numeric_limits<ScalarType>::max() )
+    {}
+
+  KOKKOS_INLINE_FUNCTION
+  void init( ScalarType dst[] ) const
+  {
+    for ( unsigned i = 0 ; i < value_count ; ++i ) {
+      dst[i] = i % 2 ? amax : amin ;
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void join( volatile ScalarType dst[] ,
+             const volatile ScalarType src[] ) const
+  {
+    for ( unsigned i = 0 ; i < value_count ; ++i ) {
+      dst[i] = i % 2 ? ( dst[i] < src[i] ? dst[i] : src[i] )  // min
+                     : ( dst[i] > src[i] ? dst[i] : src[i] ); // max
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()( size_type iwork , ScalarType dst[] ) const
+  {
+    const ScalarType tmp[2] = { ScalarType(iwork + 1)
+                              , ScalarType(nwork - iwork) };
+
+    for ( size_type i = 0 ; i < value_count ; ++i ) {
+      dst[i] = i % 2 ? ( dst[i] < tmp[i%2] ? dst[i] : tmp[i%2] )
+                     : ( dst[i] > tmp[i%2] ? dst[i] : tmp[i%2] );
     }
   }
 };
@@ -268,6 +323,7 @@ public:
   TestReduceDynamic( const size_type nwork )
   {
     run_test_dynamic(nwork);
+    run_test_dynamic_minmax(nwork);
     run_test_dynamic_final(nwork);
   }
 
@@ -294,6 +350,30 @@ public:
     for ( unsigned i = 0 ; i < Repeat ; ++i ) {
       for ( unsigned j = 0 ; j < Count ; ++j ) {
         const unsigned long correct = 0 == j % 3 ? nw : nsum ;
+        ASSERT_EQ( (ScalarType) correct , result[i][j] );
+      }
+    }
+  }
+
+  void run_test_dynamic_minmax( const size_type nwork )
+  {
+    typedef Test::RuntimeReduceMinMax< ScalarType , execution_space > functor_type ;
+
+    enum { Count = 2 };
+    enum { Repeat = 100 };
+
+    ScalarType result[ Repeat ][ Count ] ;
+
+    for ( unsigned i = 0 ; i < Repeat ; ++i ) {
+      if(i%2==0)
+        Kokkos::parallel_reduce( nwork , functor_type(nwork,Count) , result[i] );
+      else
+        Kokkos::parallel_reduce( "Reduce", nwork , functor_type(nwork,Count) , result[i] );
+    }
+
+    for ( unsigned i = 0 ; i < Repeat ; ++i ) {
+      for ( unsigned j = 0 ; j < Count ; ++j ) {
+        const unsigned long correct = j % 2 ? 1 : nwork ;
         ASSERT_EQ( (ScalarType) correct , result[i][j] );
       }
     }

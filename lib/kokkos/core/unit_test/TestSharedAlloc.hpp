@@ -95,6 +95,7 @@ void test_shared_alloc()
   
   //----------------------------------------
   {
+  // Since always executed on host space, leave [=]
     Kokkos::parallel_for( range , [=]( size_t i ){
       char name[64] ;
       sprintf(name,"test_%.2d",int(i));

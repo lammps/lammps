@@ -156,7 +156,7 @@ template< class Space >
 void TestViewAggregateReduction()
 {
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   const int count = 2 ;
   const long result = count % 2 ? ( count * ( ( count + 1 ) / 2 ) )

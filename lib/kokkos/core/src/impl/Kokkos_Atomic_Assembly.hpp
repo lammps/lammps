@@ -40,101 +40,9 @@
 // ************************************************************************
 //@HEADER
 */
-#if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_ASSEMBLY_X86_HPP )
-#define KOKKOS_ATOMIC_ASSEMBLY_X86_HPP
+#if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_ATOMIC_ASSEMBLY_HPP )
+#define KOKKOS_ATOMIC_ASSEMBLY_HPP
 namespace Kokkos {
-
-#ifdef KOKKOS_ENABLE_ASM
-#ifndef __CUDA_ARCH__
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<char>(volatile char* a) {
-  __asm__ __volatile__(
-    "lock incb %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<short>(volatile short* a) {
-  __asm__ __volatile__(
-    "lock incw %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<int>(volatile int* a) {
-  __asm__ __volatile__(
-    "lock incl %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<long long int>(volatile long long int* a) {
-  __asm__ __volatile__(
-    "lock incq %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_decrement<char>(volatile char* a) {
-  __asm__ __volatile__(
-    "lock decb %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_decrement<short>(volatile short* a) {
-  __asm__ __volatile__(
-    "lock decw %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_decrement<int>(volatile int* a) {
-  __asm__ __volatile__(
-    "lock decl %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_decrement<long long int>(volatile long long int* a) {
-  __asm__ __volatile__(
-    "lock decq %0"
-    : /* no output registers */
-    : "m" (a[0])
-    : "memory"
-  );
-}
-#endif
-#endif
 
 namespace Impl {
   struct cas128_t
@@ -178,35 +86,25 @@ namespace Impl {
   __attribute__ (( __aligned__( 16 ) ));
 
 
-
-
+  #if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_USE_ISA_X86_64 )
   inline cas128_t cas128( volatile cas128_t * ptr, cas128_t cmp,  cas128_t swap )
   {
-    #ifdef KOKKOS_ENABLE_ASM
-    bool swapped = false;
-    __asm__ __volatile__
-    (
-     "lock cmpxchg16b %1\n\t"
-     "setz %0"
-     : "=q" ( swapped )
-     , "+m" ( *ptr )
-     , "+d" ( cmp.upper )
-     , "+a" ( cmp.lower )
-     : "c" ( swap.upper )
-     , "b" ( swap.lower )
-     , "q" ( swapped )
-    );
-    return cmp;
-    #else
-      cas128_t tmp(ptr);
-      if(tmp !=  cmp) {
-        return tmp;
-      } else {
-        *ptr = swap;
-        return swap;
-      }
-    #endif
+      bool swapped = false;
+      __asm__ __volatile__
+      (
+       "lock cmpxchg16b %1\n\t"
+       "setz %0"
+       : "=q" ( swapped )
+       , "+m" ( *ptr )
+       , "+d" ( cmp.upper )
+       , "+a" ( cmp.lower )
+       : "c" ( swap.upper )
+       , "b" ( swap.lower )
+       , "q" ( swapped )
+     );
+      return cmp;
   }
+  #endif
 
 }
 }

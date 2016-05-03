@@ -48,6 +48,7 @@
 #include <Kokkos_Core.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <iostream>
+#include <impl/Kokkos_CPUDiscovery.hpp>
 
 #ifdef KOKKOS_HAVE_OPENMP
 
@@ -84,7 +85,7 @@ int OpenMPexec::m_map_rank[ OpenMPexec::MAX_THREAD_COUNT ] = { 0 };
 
 int OpenMPexec::m_pool_topo[ 4 ] = { 0 };
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 OpenMPexec::Pool OpenMPexec::m_pool;
 
@@ -124,7 +125,7 @@ void OpenMPexec::clear_scratch()
 #pragma omp parallel
   {
     const int rank_rev = m_map_rank[ omp_get_thread_num() ];
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
     typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
     if ( m_pool[ rank_rev ] ) {
       Record * const r = Record::get_record( m_pool[ rank_rev ] );
@@ -171,7 +172,7 @@ void OpenMPexec::resize_scratch( size_t reduce_size , size_t thread_size )
       const int rank_rev = m_map_rank[ omp_get_thread_num() ];
       const int rank     = pool_size - ( rank_rev + 1 );
 
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if KOKKOS_USING_EXP_VIEW
 
       typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
 
@@ -320,6 +321,13 @@ void OpenMP::initialize( unsigned thread_count ,
     Kokkos::Impl::throw_runtime_exception(msg);
   }
 
+  // Check for over-subscription
+  if( Impl::mpi_ranks_per_node() * long(thread_count) > Impl::processors_per_node() ) {
+    std::cout << "Kokkos::OpenMP::initialize WARNING: You are likely oversubscribing your CPU cores." << std::endl;
+    std::cout << "                                    Detected: " << Impl::processors_per_node() << " cores per node." << std::endl;
+    std::cout << "                                    Detected: " << Impl::mpi_ranks_per_node() << " MPI_ranks per node." << std::endl;
+    std::cout << "                                    Requested: " << thread_count << " threads per process." << std::endl;
+  }
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
 }
@@ -403,6 +411,10 @@ void OpenMP::print_configuration( std::ostream & s , const bool detail )
   else {
     s << " not initialized" << std::endl ;
   }
+}
+
+int OpenMP::concurrency() {
+  return thread_pool_size(0);
 }
 
 } // namespace Kokkos

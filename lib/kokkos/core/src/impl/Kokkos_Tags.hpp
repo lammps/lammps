@@ -57,46 +57,87 @@ namespace Kokkos {
 namespace Impl {
 
 template< class C , class Enable = void >
-struct is_memory_space : public bool_< false > {};
+struct is_memory_space_enable
+{ typedef std::false_type type ; };
+
+template< class C >
+struct is_memory_space_enable< C ,
+  typename std::enable_if<
+    std::is_same< C , typename C::memory_space >::value
+  >::type >
+{ typedef std::true_type type ; };
+
 
 template< class C , class Enable = void >
-struct is_execution_space : public bool_< false > {};
+struct is_execution_space_enable
+{ typedef std::false_type type ; };
+
+template< class C >
+struct is_execution_space_enable< C ,
+  typename std::enable_if<
+    std::is_same< C , typename C::execution_space >::value
+  >::type >
+{ typedef std::true_type type ; };
+
 
 template< class C , class Enable = void >
-struct is_execution_policy : public bool_< false > {};
+struct is_execution_policy_enable
+{ typedef std::false_type type ; };
+
+template< class C >
+struct is_execution_policy_enable< C ,
+  typename std::enable_if<
+    std::is_same< C , typename C::execution_policy >::value
+  >::type >
+{ typedef std::true_type type ; };
+
 
 template< class C , class Enable = void >
-struct is_array_layout : public Impl::false_type {};
+struct is_array_layout_enable
+{ typedef std::false_type type ; };
+
+template< class C >
+struct is_array_layout_enable< C ,
+  typename std::enable_if<
+    std::is_same< C , typename C::array_layout >::value
+  >::type >
+{ typedef std::true_type type ; };
+
 
 template< class C , class Enable = void >
-struct is_memory_traits : public Impl::false_type {};
+struct is_memory_traits_enable
+{ typedef std::false_type type ; };
+
+template< class C >
+struct is_memory_traits_enable< C ,
+  typename std::enable_if<
+    std::is_same< C , typename C::memory_traits >::value
+  >::type >
+{ typedef std::true_type type ; };
 
 
 template< class C >
-struct is_memory_space< C , typename Impl::enable_if_type< typename C::memory_space >::type >
-  : public bool_< Impl::is_same< C , typename C::memory_space >::value > {};
+using is_memory_space = typename is_memory_space_enable<C>::type ;
 
 template< class C >
-struct is_execution_space< C , typename Impl::enable_if_type< typename C::execution_space >::type >
-  : public bool_< Impl::is_same< C , typename C::execution_space >::value > {};
+using is_execution_space = typename is_execution_space_enable<C>::type ;
 
 template< class C >
-struct is_execution_policy< C , typename Impl::enable_if_type< typename C::execution_policy >::type >
-  : public bool_< Impl::is_same< C , typename C::execution_policy >::value > {};
+using is_execution_policy = typename is_execution_policy_enable<C>::type ;
 
 template< class C >
-struct is_array_layout< C , typename Impl::enable_if_type< typename C::array_layout >::type >
-  : public bool_< Impl::is_same< C , typename C::array_layout >::value > {};
+using is_array_layout = typename is_array_layout_enable<C>::type ;
 
 template< class C >
-struct is_memory_traits< C , typename Impl::enable_if_type< typename C::memory_traits >::type >
-  : public bool_< Impl::is_same< C , typename C::memory_traits >::value > {};
+using is_memory_traits = typename is_memory_traits_enable<C>::type ;
 
 }
 }
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 namespace Kokkos {
-//----------------------------------------------------------------------------
 
 template< class ExecutionSpace , class MemorySpace >
 struct Device {
@@ -110,9 +151,11 @@ struct Device {
 };
 }
 
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
 namespace Kokkos {
 namespace Impl {
-//----------------------------------------------------------------------------
 
 template< class C , class Enable = void >
 struct is_space : public Impl::false_type {};

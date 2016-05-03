@@ -129,7 +129,7 @@ public:
   typedef Kokkos::Device<execution_space,memory_space> device_type;
 
   /*--------------------------------*/
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 #if defined( KOKKOS_USE_PAGE_ALIGNED_HOST_MEMORY )
   typedef Impl::PageAlignedAllocator allocator ;
@@ -145,7 +145,7 @@ public:
    */
   static Impl::AllocationTracker allocate_and_track( const std::string & label, const size_t size );
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
   /*--------------------------------*/
   /* Functions unique to the HostSpace */
@@ -157,7 +157,9 @@ public:
 
   /**\brief  Default memory space instance */
   HostSpace();
+  HostSpace( HostSpace && rhs ) = default ;
   HostSpace( const HostSpace & rhs ) = default ;
+  HostSpace & operator = ( HostSpace && ) = default ;
   HostSpace & operator = ( const HostSpace & ) = default ;
   ~HostSpace() = default ;
 

@@ -161,6 +161,9 @@ public:
 
   static int is_initialized();
 
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency();
+
   static Threads & instance( int = 0 );
 
   //----------------------------------------

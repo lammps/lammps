@@ -28,7 +28,7 @@ TEST_TARGETS =
 TARGETS =
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
-	OBJ_CUDA = TestCuda.o UnitTestMain.o gtest-all.o
+	OBJ_CUDA = TestCuda_c.o TestCuda_b.o TestCuda_a.o TestCuda.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosCore_UnitTest_Cuda
 	TEST_TARGETS += test-cuda
 endif
@@ -40,7 +40,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
-	OBJ_OPENMP = TestOpenMP.o UnitTestMain.o gtest-all.o
+	OBJ_OPENMP = TestOpenMP_c.o TestOpenMP_b.o TestOpenMP_a.o TestOpenMP.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosCore_UnitTest_OpenMP
 	TEST_TARGETS += test-openmp
 endif

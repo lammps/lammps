@@ -96,13 +96,15 @@ T atomic_compare_exchange( volatile T * const dest , const T & compare ,
 {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
-  bool done = false;
-  while (! done ) {
+  int done = 1;
+  while ( done>0 ) {
+    done++;
     if( Impl::lock_address_cuda_space( (void*) dest ) ) {
       return_val = *dest;
       if( return_val == compare )
         *dest = val;
       Impl::unlock_address_cuda_space( (void*) dest );
+      done = 0;
     }
   }
   return return_val;
@@ -183,7 +185,7 @@ T atomic_compare_exchange( volatile T * const dest, const T & compare,
   return tmp.t ;
 }
 
-#ifdef KOKKOS_ENABLE_ASM
+#if defined( KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
 template < typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_compare_exchange( volatile T * const dest, const T & compare,
@@ -208,7 +210,7 @@ T atomic_compare_exchange( volatile T * const dest , const T compare ,
     typename ::Kokkos::Impl::enable_if<
                   ( sizeof(T) != 4 )
                && ( sizeof(T) != 8 )
-            #if defined(KOKKOS_ENABLE_ASM)
+            #if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
                && ( sizeof(T) != 16 )
             #endif
              , const T >::type& val )

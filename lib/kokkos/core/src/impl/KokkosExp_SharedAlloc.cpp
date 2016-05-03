@@ -76,7 +76,7 @@ is_sane( SharedAllocationRecord< void , void > * arg_record )
 
   SharedAllocationRecord * const root = arg_record ? arg_record->m_root : 0 ;
 
-  bool ok = root != 0 && root->m_count == 0 ;
+  bool ok = root != 0 && root->use_count() == 0 ;
 
   if ( ok ) {
     SharedAllocationRecord * root_next = 0 ;
@@ -89,7 +89,7 @@ is_sane( SharedAllocationRecord< void , void > * arg_record )
       const bool ok_root      = ok_non_null && rec->m_root == root ;
       const bool ok_prev_next = ok_non_null && ( rec->m_prev != root ? rec->m_prev->m_next == rec : root_next == rec );
       const bool ok_next_prev = ok_non_null && rec->m_next->m_prev == rec ;
-      const bool ok_count     = ok_non_null && 0 <= rec->m_count ;
+      const bool ok_count     = ok_non_null && 0 <= rec->use_count() ;
 
       ok = ok_root && ok_prev_next && ok_next_prev && ok_count ;
 
@@ -107,11 +107,11 @@ if ( ! ok ) {
   fprintf(stderr
         , format_string 
         , reinterpret_cast< uintptr_t >( rec )
-        , rec->m_count
+        , rec->use_count()
         , reinterpret_cast< uintptr_t >( rec->m_root )
         , reinterpret_cast< uintptr_t >( rec->m_next )
         , reinterpret_cast< uintptr_t >( rec->m_prev )
-        , reinterpret_cast< uintptr_t >( rec->m_next->m_prev )
+        , reinterpret_cast< uintptr_t >( rec->m_next != NULL ? rec->m_next->m_prev : NULL )
         , reinterpret_cast< uintptr_t >( rec->m_prev != rec->m_root ? rec->m_prev->m_next : root_next )
         );
 }
@@ -171,21 +171,30 @@ SharedAllocationRecord( SharedAllocationRecord<void,void> * arg_root
 {
   constexpr static SharedAllocationRecord * zero = 0 ;
 
-  // Insert into the root double-linked list for tracking
-  //
-  // before:  arg_root->m_next == next ; next->m_prev == arg_root
-  // after:   arg_root->m_next == this ; this->m_prev == arg_root ;
-  //              this->m_next == next ; next->m_prev == this
+  if ( 0 != arg_alloc_ptr ) {
 
-  m_prev = m_root ;
+    // Insert into the root double-linked list for tracking
+    //
+    // before:  arg_root->m_next == next ; next->m_prev == arg_root
+    // after:   arg_root->m_next == this ; this->m_prev == arg_root ;
+    //              this->m_next == next ; next->m_prev == this
 
-  // Read root->m_next and lock by setting to zero
-  while ( ( m_next = Kokkos::atomic_exchange( & m_root->m_next , zero ) ) == zero );
+    m_prev = m_root ;
 
-  m_next->m_prev = this ;
+    // Read root->m_next and lock by setting to zero
+    while ( ( m_next = Kokkos::atomic_exchange( & m_root->m_next , zero ) ) == zero );
 
-  if ( zero != Kokkos::atomic_exchange( & m_root->m_next , this ) ) {
-    Kokkos::Impl::throw_runtime_exception("Kokkos::Experimental::Impl::SharedAllocationRecord failed locking/unlocking");
+    m_next->m_prev = this ;
+
+    // memory fence before completing insertion into linked list
+    Kokkos::memory_fence();
+
+    if ( zero != Kokkos::atomic_exchange( & m_root->m_next , this ) ) {
+      Kokkos::Impl::throw_runtime_exception("Kokkos::Experimental::Impl::SharedAllocationRecord failed locking/unlocking");
+    }
+  }
+  else {
+    Kokkos::Impl::throw_runtime_exception("Kokkos::Experimental::Impl::SharedAllocationRecord given NULL allocation");
   }
 }
 
@@ -207,6 +216,14 @@ decrement( SharedAllocationRecord< void , void > * arg_record )
   constexpr static SharedAllocationRecord * zero = 0 ;
 
   const int old_count = Kokkos::atomic_fetch_add( & arg_record->m_count , -1 );
+
+#if 0
+  if ( old_count <= 1 ) {
+    fprintf(stderr,"Kokkos::Experimental::Impl::SharedAllocationRecord '%s' at 0x%lx delete count = %d\n", arg_record->m_alloc_ptr->m_label , (unsigned long) arg_record , old_count );
+    fflush(stderr);
+  }
+#endif
+
 
   if ( old_count == 1 ) {
 
@@ -245,6 +262,8 @@ decrement( SharedAllocationRecord< void , void > * arg_record )
     arg_record = 0 ;
   }
   else if ( old_count < 1 ) { // Error
+    fprintf(stderr,"Kokkos::Experimental::Impl::SharedAllocationRecord '%s' failed decrement count = %d\n", arg_record->m_alloc_ptr->m_label , old_count );
+    fflush(stderr);
     Kokkos::Impl::throw_runtime_exception("Kokkos::Experimental::Impl::SharedAllocationRecord failed decrement count");
   }
 
@@ -282,7 +301,7 @@ print_host_accessible_records( std::ostream & s
               , reinterpret_cast<uintptr_t>( r->m_next )
               , reinterpret_cast<uintptr_t>( r->m_alloc_ptr )
               , r->m_alloc_size
-              , r->m_count
+              , r->use_count()
               , reinterpret_cast<uintptr_t>( r->m_dealloc )
               , r->m_alloc_ptr->m_label
               );

@@ -61,7 +61,11 @@
 
 #include <TestVector.hpp>
 #include <TestDualView.hpp>
+#include <TestDynamicView.hpp>
 #include <TestSegmentedView.hpp>
+
+#include <Kokkos_DynRankView.hpp>
+#include <TestDynViewAPI.hpp>
 
 namespace Test {
 
@@ -91,6 +95,10 @@ protected:
     Kokkos::Threads::finalize();
   }
 };
+
+TEST_F( threads , dyn_view_api) {
+  TestDynViewAPI< double , Kokkos::Threads >();
+}
 
 TEST_F( threads , staticcrsgraph )
 {
@@ -160,6 +168,18 @@ THREADS_SEGMENTEDVIEW_TEST( 10000 )
 #undef THREADS_VECTOR_COMBINE_TEST
 #undef THREADS_DUALVIEW_COMBINE_TEST
 #undef THREADS_SEGMENTEDVIEW_TEST
+
+
+
+TEST_F( threads , dynamic_view )
+{
+  typedef TestDynamicView< double , Kokkos::Threads >
+    TestDynView ;
+
+  for ( int i = 0 ; i < 10 ; ++i ) {
+    TestDynView::run( 100000 + 100 * i );
+  }
+}
 
 } // namespace Test
 

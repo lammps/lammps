@@ -44,7 +44,7 @@
 #ifndef KOKKOS_BASIC_ALLOCATORS_HPP
 #define KOKKOS_BASIC_ALLOCATORS_HPP
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 namespace Kokkos { namespace Impl {
 
@@ -114,7 +114,7 @@ public:
 
 }} // namespace Kokkos::Impl
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 #endif //KOKKOS_BASIC_ALLOCATORS_HPP
 

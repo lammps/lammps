@@ -424,7 +424,7 @@ struct ViewOffset< ShapeType , LayoutLeft
       if ( 4 < shape_type::rank ) { s[5] = s[4] * shape_type::N4 ; }
       if ( 5 < shape_type::rank ) { s[6] = s[5] * shape_type::N5 ; }
       if ( 6 < shape_type::rank ) { s[7] = s[6] * shape_type::N6 ; }
-      if ( 7 < shape_type::rank ) { s[8] = s[7] * shape_type::N6 ; }
+      if ( 7 < shape_type::rank ) { s[8] = s[7] * shape_type::N7 ; }
     }
 
   KOKKOS_INLINE_FUNCTION size_type stride_0() const { return 1 ; }

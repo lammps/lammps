@@ -65,9 +65,13 @@
 #include <string>
 
 #ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+
 __device__ __constant__
-Kokkos::Impl::CudaTraits::ConstantGlobalBufferType
-kokkos_impl_cuda_constant_memory_buffer ;
+unsigned long kokkos_impl_cuda_constant_memory_buffer[ Kokkos::Impl::CudaTraits::ConstantMemoryUsage / sizeof(unsigned long) ] ;
+
+__device__ __constant__
+int* kokkos_impl_cuda_atomic_lock_array ;
+
 #endif
 
 /*--------------------------------------------------------------------------*/
@@ -222,7 +226,7 @@ private:
   CudaInternal( const CudaInternal & );
   CudaInternal & operator = ( const CudaInternal & );
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   AllocationTracker m_scratchFlagsTracker;
   AllocationTracker m_scratchSpaceTracker;
@@ -237,6 +241,7 @@ public:
 
   int         m_cudaDev ;
   int         m_cudaArch ;
+  unsigned    m_multiProcCount ;
   unsigned    m_maxWarpCount ;
   unsigned    m_maxBlock ;
   unsigned    m_maxSharedWords ;
@@ -268,6 +273,7 @@ public:
   CudaInternal()
     : m_cudaDev( -1 )
     , m_cudaArch( -1 )
+    , m_multiProcCount( 0 )
     , m_maxWarpCount( 0 )
     , m_maxBlock( 0 )
     , m_maxSharedWords( 0 )
@@ -330,6 +336,7 @@ CudaInternal::~CudaInternal()
 
   m_cudaDev                 = -1 ;
   m_cudaArch                = -1 ;
+  m_multiProcCount          = 0 ;
   m_maxWarpCount            = 0 ;
   m_maxBlock                = 0 ;
   m_maxSharedWords          = 0 ;
@@ -402,6 +409,10 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
                 << " , this will likely reduce potential performance."
                 << std::endl ;
     }
+
+    // number of multiprocessors
+
+    m_multiProcCount = cudaProp.multiProcessorCount ;
 
     //----------------------------------
     // Maximum number of warps,
@@ -512,9 +523,15 @@ void CudaInternal::initialize( int cuda_device_id , int stream_count )
     }
   #endif
 
+  cudaThreadSetCacheConfig(cudaFuncCachePreferShared);
+
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_cuda_space();
 
+  #ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
+  int* lock_array_ptr = lock_array_cuda_space_ptr();
+  cudaMemcpyToSymbol( kokkos_impl_cuda_atomic_lock_array , & lock_array_ptr , sizeof(int*) );
+  #endif
 }
 
 //----------------------------------------------------------------------------
@@ -531,7 +548,7 @@ CudaInternal::scratch_flags( const Cuda::size_type size )
 
     m_scratchFlagsCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
     m_scratchFlagsTracker = CudaSpace::allocate_and_track( std::string("InternalScratchFlags") , sizeof( ScratchGrain ) * m_scratchFlagsCount );
 
@@ -565,7 +582,7 @@ CudaInternal::scratch_space( const Cuda::size_type size )
 
     m_scratchSpaceCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
     m_scratchSpaceTracker = CudaSpace::allocate_and_track( std::string("InternalScratchSpace") , sizeof( ScratchGrain ) * m_scratchSpaceCount );
 
@@ -598,7 +615,7 @@ CudaInternal::scratch_unified( const Cuda::size_type size )
 
     m_scratchUnifiedCount = ( size + sizeScratchGrain - 1 ) / sizeScratchGrain ;
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
     m_scratchUnifiedTracker = CudaHostPinnedSpace::allocate_and_track( std::string("InternalScratchUnified") , sizeof( ScratchGrain ) * m_scratchUnifiedCount );
 
@@ -638,7 +655,7 @@ void CudaInternal::finalize()
       ::free( m_stream );
     }
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
     m_scratchSpaceTracker.clear();
     m_scratchFlagsTracker.clear();
@@ -656,6 +673,7 @@ void CudaInternal::finalize()
 #endif
 
     m_cudaDev             = -1 ;
+    m_multiProcCount      = 0 ;
     m_maxWarpCount        = 0 ;
     m_maxBlock            = 0 ;
     m_maxSharedWords      = 0 ;
@@ -671,6 +689,9 @@ void CudaInternal::finalize()
 }
 
 //----------------------------------------------------------------------------
+
+Cuda::size_type cuda_internal_multiprocessor_count()
+{ return CudaInternal::singleton().m_multiProcCount ; }
 
 Cuda::size_type cuda_internal_maximum_warp_count()
 { return CudaInternal::singleton().m_maxWarpCount ; }
@@ -700,6 +721,10 @@ namespace Kokkos {
 
 Cuda::size_type Cuda::detect_device_count()
 { return Impl::CudaInternalDevices::singleton().m_cudaDevCount ; }
+
+int Cuda::concurrency() {
+  return 131072;
+}
 
 int Cuda::is_initialized()
 { return Impl::CudaInternal::singleton().is_initialized(); }

@@ -102,6 +102,21 @@ const void               * volatile s_active_function_arg = 0 ;
 
 namespace Kokkos {
 
+int Qthread::is_initialized()
+{
+  Impl::s_number_workers != 0 ;
+}
+
+int Qthread::concurrency()
+{
+  return Impl::s_number_workers_per_shepherd ;
+}
+
+int Qthread::in_parallel()
+{
+  return Impl::s_active_function != 0 ;
+}
+
 void Qthread::initialize( int thread_count )
 {
   // Environment variable: QTHREAD_NUM_SHEPHERDS

@@ -115,7 +115,7 @@ template< class ExecSpace , class Type , bool Initialize >
 struct ViewDefaultConstruct
 { ViewDefaultConstruct( Type * , size_t ) {} };
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 /** \brief  ViewDataHandle provides the type of the 'data handle' which the view
  *          uses to access data with the [] operator. It also provides
@@ -242,7 +242,7 @@ public:
     }
 };
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 } // namespace Impl
 } // namespace Kokkos
@@ -395,8 +395,8 @@ struct ViewAllocateWithoutInitializing {
   const std::string label ;
 
   ViewAllocateWithoutInitializing() : label() {}
-  ViewAllocateWithoutInitializing( const std::string & arg_label ) : label( arg_label ) {}
-  ViewAllocateWithoutInitializing( const char * const  arg_label ) : label( arg_label ) {}
+  explicit ViewAllocateWithoutInitializing( const std::string & arg_label ) : label( arg_label ) {}
+  explicit ViewAllocateWithoutInitializing( const char * const  arg_label ) : label( arg_label ) {}
 };
 
 struct ViewAllocate {

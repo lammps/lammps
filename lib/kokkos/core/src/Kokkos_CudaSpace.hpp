@@ -77,7 +77,7 @@ public:
 
   /*--------------------------------*/
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   typedef Impl::CudaMallocAllocator allocator;
 
@@ -100,12 +100,14 @@ public:
                                    );
 #endif
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
   /*--------------------------------*/
 
   CudaSpace();
+  CudaSpace( CudaSpace && rhs ) = default ;
   CudaSpace( const CudaSpace & rhs ) = default ;
+  CudaSpace & operator = ( CudaSpace && rhs ) = default ;
   CudaSpace & operator = ( const CudaSpace & rhs ) = default ;
   ~CudaSpace() = default ;
 
@@ -170,7 +172,7 @@ public:
 
   /*--------------------------------*/
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   typedef Impl::CudaUVMAllocator allocator;
 
@@ -193,12 +195,14 @@ public:
                                    );
 #endif
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
   /*--------------------------------*/
 
   CudaUVMSpace();
+  CudaUVMSpace( CudaUVMSpace && rhs ) = default ;
   CudaUVMSpace( const CudaUVMSpace & rhs ) = default ;
+  CudaUVMSpace & operator = ( CudaUVMSpace && rhs ) = default ;
   CudaUVMSpace & operator = ( const CudaUVMSpace & rhs ) = default ;
   ~CudaUVMSpace() = default ;
 
@@ -238,7 +242,7 @@ public:
 
   /*--------------------------------*/
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
   typedef Impl::CudaHostAllocator allocator ;
 
@@ -250,12 +254,14 @@ public:
    */
   static Impl::AllocationTracker allocate_and_track( const std::string & label, const size_t size );
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
   /*--------------------------------*/
 
   CudaHostPinnedSpace();
+  CudaHostPinnedSpace( CudaHostPinnedSpace && rhs ) = default ;
   CudaHostPinnedSpace( const CudaHostPinnedSpace & rhs ) = default ;
+  CudaHostPinnedSpace & operator = ( CudaHostPinnedSpace && rhs ) = default ;
   CudaHostPinnedSpace & operator = ( const CudaHostPinnedSpace & rhs ) = default ;
   ~CudaHostPinnedSpace() = default ;
 

@@ -157,10 +157,6 @@ KOKKOS_INLINE_FUNCTION
 void atomic_decrement(volatile T* a);
 }
 
-#if ! defined(_WIN32)
-#include<impl/Kokkos_Atomic_Assembly_X86.hpp>
-#endif
-
 namespace Kokkos {
 
 
@@ -185,7 +181,13 @@ const char * atomic_query_version()
 #ifdef _WIN32
 #include "impl/Kokkos_Atomic_Windows.hpp"
 #else
-//#include "impl/Kokkos_Atomic_Assembly_X86.hpp"
+
+//----------------------------------------------------------------------------
+// Atomic Assembly
+//
+// Implements CAS128-bit in assembly
+
+#include "impl/Kokkos_Atomic_Assembly.hpp"
 
 //----------------------------------------------------------------------------
 // Atomic exchange
@@ -213,6 +215,24 @@ const char * atomic_query_version()
 // { T tmp = *dest ; *dest += val ; return tmp ; }
 
 #include "impl/Kokkos_Atomic_Fetch_Add.hpp"
+
+//----------------------------------------------------------------------------
+// Atomic increment
+//
+// template<class T>
+// T atomic_increment(volatile T* const dest)
+// { dest++; }
+
+#include "impl/Kokkos_Atomic_Increment.hpp"
+
+//----------------------------------------------------------------------------
+// Atomic Decrement
+//
+// template<class T>
+// T atomic_decrement(volatile T* const dest)
+// { dest--; }
+
+#include "impl/Kokkos_Atomic_Decrement.hpp"
 
 //----------------------------------------------------------------------------
 // Atomic fetch and sub

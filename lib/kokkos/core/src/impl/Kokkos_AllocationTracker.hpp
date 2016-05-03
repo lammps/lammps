@@ -46,7 +46,7 @@
 
 #include <Kokkos_Macros.hpp>
 
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#if ! KOKKOS_USING_EXP_VIEW
 
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
@@ -568,7 +568,7 @@ private:
 
 }} // namespace Kokkos::Impl
 
-#endif /* #if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW ) */
+#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 #endif //KOKKOS_ALLOCATION_TRACKER_HPP
 

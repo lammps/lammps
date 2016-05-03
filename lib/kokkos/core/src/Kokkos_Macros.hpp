@@ -444,10 +444,6 @@
  * default to use new View.
  */
 
-#undef KOKKOS_USING_EXP_VIEW
-#undef KOKKOS_USING_EXPERIMENTAL_VIEW
-#define KOKKOS_USING_DEPRECATED_VIEW
-
 #if ! defined( KOKKOS_USING_EXP_VIEW )
 #if defined( KOKKOS_USING_DEPRECATED_VIEW )
 #define KOKKOS_USING_EXP_VIEW 0

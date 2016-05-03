@@ -30,7 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairZero::PairZero(LAMMPS *lmp) : Pair(lmp), coeffflag(1) {}
+PairZero::PairZero(LAMMPS *lmp) : Pair(lmp) {
+  coeffflag=1;
+  writedata=1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,7 +68,7 @@ void PairZero::allocate()
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
-      setflag[i][j] = 1;
+      setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cut,n+1,n+1,"pair:cut");
@@ -88,10 +91,12 @@ void PairZero::settings(int narg, char **arg)
 
   // reset cutoffs that have been explicitly set
 
-  int i,j;
-  for (i = 1; i <= atom->ntypes; i++)
-    for (j = i+1; j <= atom->ntypes; j++)
-         cut[i][j] = cut_global;
+  if (allocated) {
+    int i,j;
+    for (i = 1; i <= atom->ntypes; i++)
+      for (j = i+1; j <= atom->ntypes; j++)
+        cut[i][j] = cut_global;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -116,6 +121,7 @@ void PairZero::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       cut[i][j] = cut_one;
+      setflag[i][j] = 1;
       count++;
     }
   }
@@ -202,4 +208,26 @@ void PairZero::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&coeffflag,1,MPI_INT,0,world);
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairZero::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d\n",i);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairZero::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
+}
+
 

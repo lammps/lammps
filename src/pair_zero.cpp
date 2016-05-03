@@ -30,7 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairZero::PairZero(LAMMPS *lmp) : Pair(lmp), coeffflag(1) {}
+PairZero::PairZero(LAMMPS *lmp) : Pair(lmp) {
+  coeffflag=1;
+  writedata=1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -204,4 +207,26 @@ void PairZero::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&coeffflag,1,MPI_INT,0,world);
 }
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairZero::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d\n",i);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairZero::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
+}
+
 

@@ -493,7 +493,7 @@ name links to a sub-section below with more details.</p>
 <td>python</td>
 <td>lib/python</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="Section_tools.html#reax"><span>REAX</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#reax"><span>REAX</span></a></td>
 <td>ReaxFF potential</td>
 <td>Aidan Thompson (Sandia)</td>
 <td><a class="reference internal" href="pair_reax.html"><em>pair_style reax</em></a></td>
@@ -2006,22 +2006,6 @@ Dynamics.  This package implements an atom, pair, and fix style which
 allows electrons to be treated as explicit particles in an MD
 calculation.  See src/USER-AWPMD/README for more details.</p>
 <p>To build LAMMPS with this package ...</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: src/USER-AWPMD/README, <code class="xref doc docutils literal"><span class="pre">fix</span> <span class="pre">awpmd/cut</span></code>, examples/USER/awpmd</p>
 <p>Author: Ilya Valuev at the JIHT in Russia (valuev at
 physik.hu-berlin.de).  Contact him directly if you have questions.</p>
@@ -2035,22 +2019,6 @@ grained parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27
 (2007) (SDK), with extensions to simulate ionic liquids, electrolytes,
 lipids and charged amino acids.  See src/USER-CG-CMM/README for more
 details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: src/USER-CG-CMM/README, <a class="reference internal" href="pair_sdk.html"><em>pair lj/sdk</em></a>,
 <a class="reference internal" href="pair_sdk.html"><em>pair lj/sdk/coul/long</em></a>, <a class="reference internal" href="angle_sdk.html"><em>angle sdk</em></a>,
 examples/USER/cg-cmm</p>
@@ -2065,23 +2033,6 @@ implement Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
 Sampling and Restraints.  This package implements a <a class="reference internal" href="fix_colvars.html"><em>fix colvars</em></a> command which wraps a COLVARS library which
 can perform those kinds of simulations.  See src/USER-COLVARS/README
 for more details.</p>
-<p>To build LAMMPS with this package ...</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info:
 <a class="reference external" href="PDF/colvars-refman-lammps.pdf">doc/PDF/colvars-refman-lammps.pdf</a>,
 src/USER-COLVARS/README, lib/colvars/README, <a class="reference internal" href="fix_colvars.html"><em>fix colvars</em></a>, examples/USER/colvars</p>
@@ -2094,28 +2045,6 @@ have questions.</p>
 </div>
 <div class="section" id="user-cuda-package">
 <span id="user-cuda"></span><h3>4.2.5. USER-CUDA package<a class="headerlink" href="#user-cuda-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To build LAMMPS with this package ...</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>This package provides acceleration of various LAMMPS pair styles, fix
 styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
 GPUs.</p>
@@ -2139,22 +2068,6 @@ tu-ilmenau.de).  Contact him directly if you have questions.</p>
 calculating x-ray and electron diffraction intensities based on
 kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
 more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: <a class="reference internal" href="compute_saed.html"><em>compute saed</em></a>, <a class="reference internal" href="compute_xrd.html"><em>compute xrd</em></a>, <a class="reference internal" href="fix_saed_vtk.html"><em>fix saed.vtk</em></a>,
 examples/USER/diffraction</p>
 <p>Author: Shawn P. Coleman (shawn.p.coleman8.ctr at mail.mil) while at
@@ -2169,22 +2082,6 @@ implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
 conditions.  The DPD equations of motion are integrated efficiently
 through the Shardlow splitting algorithm.  See src/USER-DPD/README for
 more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: /src/USER-DPD/README, <a class="reference internal" href="compute_dpd.html"><em>compute dpd</em></a>
 <a class="reference internal" href="compute_dpd_atom.html"><em>compute dpd/atom</em></a>
 <a class="reference internal" href="fix_eos_table.html"><em>fix eos/cv</em></a> <a class="reference internal" href="fix_eos_table.html"><em>fix eos/table</em></a>
@@ -2205,22 +2102,6 @@ systems using thermalized Drude oscillators.  It has computes, fixes,
 and pair styles for this purpose.  See <a class="reference internal" href="Section_howto.html#howto-27"><span>Section howto 6.27</span></a> for an overview of how to use the
 package.  See src/USER-DRUDE/README for additional details.  There are
 auxiliary tools for using this package in tools/drude.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-27"><span>Section howto 6.27</span></a>,
 src/USER-DRUDE/README, <a class="reference internal" href="fix_drude.html"><em>fix drude</em></a>, <a class="reference internal" href="fix_drude_transform.html"><em>fix drude/transform/*</em></a>, <a class="reference internal" href="compute_temp_drude.html"><em>compute temp/drude</em></a>, <a class="reference internal" href="pair_thole.html"><em>pair thole</em></a>,
 <a class="reference internal" href="pair_thole.html"><em>pair lj/cut/thole/long</em></a>, examples/USER/drude,
@@ -2239,24 +2120,6 @@ JCC, 2010. The eFF potential was first introduced by Su and Goddard,
 in 2007.  See src/USER-EFF/README for more details.  There are
 auxiliary tools for using this package in tools/eff; see its README
 file.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="atom_style.html"><em>atom_style electron</em></a>, <a class="reference internal" href="compute_temp_eff.html"><em>compute temp/eff</em></a>, <a class="reference internal" href="fix_langevin_eff.html"><em>fix langevin/eff</em></a>, <a class="reference internal" href="fix_nve_eff.html"><em>fix nve/eff</em></a>,
-<a class="reference internal" href="pair_eff.html"><em>pair eff/cut</em></a>, examples/USER/eff, tools/eff</p>
 <p>Supporting info:</p>
 <p>Author: Andres Jaramillo-Botero at CalTech (ajaramil at
 wag.caltech.edu).  Contact him directly if you have questions.</p>
@@ -2269,22 +2132,6 @@ provides methods for performing FEP simulations by using a <a class="reference i
 which have a &#8220;soft&#8221; in their style name.  See src/USER-FEP/README for
 more details.  There are auxiliary tools for using this package in
 tools/fep; see its README file.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: src/USER-FEP/README, <a class="reference internal" href="fix_adapt_fep.html"><em>fix adapt/fep</em></a>, <a class="reference internal" href="compute_fep.html"><em>compute fep</em></a>,
 <a class="reference internal" href="pair_lj_soft.html"><em>pair_style */soft</em></a>, examples/USER/fep</p>
 <p>Author: Agilio Padua at Universite Blaise Pascal Clermont-Ferrand
@@ -2300,23 +2147,6 @@ simulations.  H5MD is a format for molecular simulations, built on top
 of HDF5.  This package implements a <a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a> command
 to output LAMMPS snapshots in this format.  See src/USER-H5MD/README
 for more details.</p>
-<p>To build LAMMPS with this package ...</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: src/USER-H5MD/README, lib/h5md/README, <a class="reference internal" href="dump_h5md.html"><em>dump h5md</em></a></p>
 <p>Author: Pierre de Buyl at KU Leuven (see <a class="reference external" href="http://pdebuyl.be">http://pdebuyl.be</a>) created
 this package as well as the H5MD format and library.  Contact him
@@ -2332,22 +2162,6 @@ and compilers are required on your system, and how to build and use
 this package.  Also see src/USER-INTEL/README for more details. See
 the KOKKOS, OPT, and USER-OMP packages, which also have CPU and
 Phi-enabled styles.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
 <p>Supporting info: examples/accelerate, src/USER-INTEL/TEST</p>
 <p><span class="xref std std-ref">Section_accelerate</span></p>
 <p>Author: Mike Brown at Intel (michael.w.brown at intel.com).  Contact
@@ -2375,27 +2189,6 @@ your Makefile.machine for CCFLAGS and LINKFLAGS.</p>
 </div>
 <div class="section" id="user-lb-package">
 <span id="user-lb"></span><h3>4.2.13. USER-LB package<a class="headerlink" href="#user-lb-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package contains a LAMMPS implementation of a background
 Lattice-Boltzmann fluid, which can be used to model MD particles
@@ -2410,27 +2203,6 @@ Western Ontario.  Contact them directly if you have questions.</p>
 </div>
 <div class="section" id="user-mgpt-package">
 <span id="user-mgpt"></span><h3>4.2.14. USER-MGPT package<a class="headerlink" href="#user-mgpt-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package contains a fast implementation for LAMMPS of
 quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
@@ -2456,27 +2228,6 @@ Contact them directly if you have any questions.</p>
 </div>
 <div class="section" id="user-misc-package">
 <span id="user-misc"></span><h3>4.2.15. USER-MISC package<a class="headerlink" href="#user-misc-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
@@ -2496,27 +2247,6 @@ about the feature or its coding.</p>
 </div>
 <div class="section" id="user-molfile-package">
 <span id="user-molfile"></span><h3>4.2.16. USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
@@ -2537,27 +2267,6 @@ application itself.</p>
 </div>
 <div class="section" id="user-omp-package">
 <span id="user-omp"></span><h3>4.2.17. USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package provides OpenMP multi-threading support and
 other optimizations of various LAMMPS pair styles, dihedral
@@ -2577,27 +2286,6 @@ settings for CCFLAGS and LINKFLAGS.</p>
 </div>
 <div class="section" id="user-phonon-package">
 <span id="user-phonon"></span><h3>4.2.18. USER-PHONON package<a class="headerlink" href="#user-phonon-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.</p>
@@ -2611,27 +2299,6 @@ if you have questions.</p>
 </div>
 <div class="section" id="user-qmmm-package">
 <span id="user-qmmm"></span><h3>4.2.19. USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package provides a fix qmmm command which allows LAMMPS to be
 used in a QM/MM simulation, currently only in combination with pw.x
@@ -2650,27 +2317,6 @@ without changes to LAMMPS itself.</p>
 </div>
 <div class="section" id="user-qtb-package">
 <span id="user-qtb"></span><h3>4.2.20. USER-QTB package<a class="headerlink" href="#user-qtb-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package provides a self-consistent quantum treatment of the
 vibrational modes in a classical molecular dynamics simulation.  By
@@ -2695,54 +2341,12 @@ have questions.</p>
 </div>
 <div class="section" id="user-quip-package">
 <span id="user-quip"></span><h3>4.2.21. USER-QUIP package<a class="headerlink" href="#user-quip-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>Examples: examples/USER/quip</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-reaxc-package">
 <span id="user-reaxc"></span><h3>4.2.22. USER-REAXC package<a class="headerlink" href="#user-reaxc-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package contains a implementation for LAMMPS of the ReaxFF force
 field.  ReaxFF uses distance-dependent bond-order functions to
@@ -2773,27 +2377,6 @@ questions.</p>
 </div>
 <div class="section" id="user-smd-package">
 <span id="user-smd"></span><h3>4.2.23. USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
@@ -2820,27 +2403,6 @@ you have questions.</p>
 </div>
 <div class="section" id="user-smtbq-package">
 <span id="user-smtbq"></span><h3>4.2.24. USER-SMTBQ package<a class="headerlink" href="#user-smtbq-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
 potential for the description of ionocovalent bonds in oxides.</p>
@@ -2857,27 +2419,6 @@ them directly if you have any questions.</p>
 </div>
 <div class="section" id="user-sph-package">
 <span id="user-sph"></span><h3>4.2.25. USER-SPH package<a class="headerlink" href="#user-sph-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
@@ -2902,55 +2443,12 @@ you have questions.</p>
 </div>
 <div class="section" id="user-tally-package">
 <span id="user-tally"></span><h3>4.2.26. USER-TALLY package<a class="headerlink" href="#user-tally-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
 <p>Supporting info:</p>
 <p>Examples: examples/USER/tally</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-vtk-package">
 <span id="user-vtk"></span><h3>4.2.27. USER-VTK package<a class="headerlink" href="#user-vtk-package" title="Permalink to this headline">¶</a></h3>
-<p>Contents: A <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a> command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.</p>
-<p>To install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make yes-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p atc -a machine
-</pre></div>
-</div>
-<p>To un-install via make or Make.py:</p>
-<div class="highlight-python"><div class="highlight"><pre>make no-user-atc
-make machine
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre>Make.py -p ^atc -a machine
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="fix_atc.html"><em>fix atc</em></a>, examples/USER/atc</p>
-<p>Examples: examples/USER/tally</p>
 </div>
 </div>
 </div>

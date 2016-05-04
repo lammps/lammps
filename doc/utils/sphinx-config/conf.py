@@ -196,6 +196,7 @@ html_show_sourcelink = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'LAMMPSdoc'
 
+html_add_permalinks = ''
 
 # -- Options for LaTeX output ---------------------------------------------
 

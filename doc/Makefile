@@ -23,6 +23,8 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make HTML version of documentation using Sphinx"
 	@echo "  pdf        to make Manual.pdf"
+	@echo "  clean      to remove all generated RST files"
+	@echo "  clean-all  to reset the entire build environment"
 
 clean-all:
 	rm -rf $(BUILDDIR)/*

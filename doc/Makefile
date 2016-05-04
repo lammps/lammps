@@ -39,6 +39,8 @@ html: $(OBJECTS)
 	)	
 	@echo "Build finished. The HTML pages are in doc/html."
 
+pdf: html
+	htmldoc --title --toctitle "Table of Contents" --tocfooter ..i --toclevels 4 --header ... --footer ..1 --size letter --linkstyle plain --linkcolor blue -f Manual.pdf html/Manual.html html/Section_intro.html html/Section_start.html html/Section_commands.html html/Section_packages.html html/Section_accelerate.html html/Section_howto.html html/Section_example.html html/Section_perf.html html/Section_tools.html html/Section_modify.html html/Section_python.html html/Section_errors.html html/Section_history.html html/[a-z]*.html
 
 $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\

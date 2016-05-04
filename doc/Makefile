@@ -17,15 +17,18 @@ endif
 SOURCES=$(wildcard src/*.txt)
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean html pdf venv
+.PHONY: help clean-all clean html pdf venv
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make HTML version of documentation using Sphinx"
 	@echo "  pdf        to make Manual.pdf"
 
-clean:
+clean-all:
 	rm -rf $(BUILDDIR)/*
+
+clean:
+	rm -rf $(RSTDIR)
 
 html: $(OBJECTS)
 	@(\

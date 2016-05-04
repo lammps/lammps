@@ -160,13 +160,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
     if (strcmp(arg[iarg],"neigh") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"full") == 0) neighflag = FULL;
-      else if (strcmp(arg[iarg+1],"half/thread") == 0) neighflag = HALFTHREAD;
-      else if (strcmp(arg[iarg+1],"half") == 0) neighflag = HALF;
-      else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
+      else if (strcmp(arg[iarg+1],"half") == 0) {
+        if (num_threads > 1 || ngpu > 0)
+          neighflag = HALFTHREAD;
+        else 
+          neighflag = HALF;
+      } else if (strcmp(arg[iarg+1],"n2") == 0) neighflag = N2;
       else if (strcmp(arg[iarg+1],"full/cluster") == 0) neighflag = FULLCLUSTER;
       else error->all(FLERR,"Illegal package kokkos command");
-      if (neighflag == HALF && (num_threads > 1 || ngpu > 0))
-        error->all(FLERR,"Must use Kokkos half/thread or full neighbor list with threads or GPUs");
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");

@@ -209,66 +209,6 @@ struct s_EV_FLOAT {
 };
 typedef struct s_EV_FLOAT EV_FLOAT;
 
-struct s_EV_FLOAT_REAX {
-  E_FLOAT evdwl;
-  E_FLOAT ecoul;
-  E_FLOAT v[6];
-  E_FLOAT ereax[10];
-  KOKKOS_INLINE_FUNCTION
-  s_EV_FLOAT_REAX() {
-	  evdwl = 0;
-	  ecoul = 0;
-	  v[0] = 0; v[1] = 0; v[2] = 0;
-	  v[3] = 0; v[4] = 0; v[5] = 0;
-	  ereax[0] = 0; ereax[1] = 0; ereax[2] = 0;
-	  ereax[3] = 0; ereax[4] = 0; ereax[5] = 0;
-	  ereax[6] = 0; ereax[7] = 0; ereax[8] = 0;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const s_EV_FLOAT_REAX &rhs) {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
-    ereax[0] += rhs.ereax[0];
-    ereax[1] += rhs.ereax[1];
-    ereax[2] += rhs.ereax[2];
-    ereax[3] += rhs.ereax[3];
-    ereax[4] += rhs.ereax[4];
-    ereax[5] += rhs.ereax[5];
-    ereax[6] += rhs.ereax[6];
-    ereax[7] += rhs.ereax[7];
-    ereax[8] += rhs.ereax[8];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_EV_FLOAT_REAX &rhs) volatile {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
-    ereax[0] += rhs.ereax[0];
-    ereax[1] += rhs.ereax[1];
-    ereax[2] += rhs.ereax[2];
-    ereax[3] += rhs.ereax[3];
-    ereax[4] += rhs.ereax[4];
-    ereax[5] += rhs.ereax[5];
-    ereax[6] += rhs.ereax[6];
-    ereax[7] += rhs.ereax[7];
-    ereax[8] += rhs.ereax[8];
-  }
-};
-typedef struct s_EV_FLOAT_REAX EV_FLOAT_REAX;
-
 #ifndef PREC_POS
 #define PREC_POS PRECISION
 #endif
@@ -805,8 +745,8 @@ template<class ViewType>
 void memset_kokkos (ViewType &view) {
   static MemsetZeroFunctor<typename ViewType::execution_space> f;
   f.ptr = view.ptr_on_device();
-  #ifdef KOKKOS_USING_EXPERIMENTAL_VIEW
-  Kokkos::parallel_for(view.memory_span()/4, f);
+  #ifndef KOKKOS_USING_DEPRECATED_VIEW
+  Kokkos::parallel_for(view.span()*sizeof(typename ViewType::value_type)/4, f);
   #else
   Kokkos::parallel_for(view.capacity()*sizeof(typename ViewType::value_type)/4, f);
   #endif

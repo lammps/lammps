@@ -198,10 +198,9 @@
 <em>kokkos</em> args = keyword value ...
   zero or more keyword/value pairs may be appended
   keywords = <em>neigh</em> or <em>newton</em> or <em>binsize</em> or <em>comm</em> or <em>comm/exchange</em> or <em>comm/forward</em>
-    <em>neigh</em> value = <em>full</em> or <em>half/thread</em> or <em>half</em> or <em>n2</em> or <em>full/cluster</em>
+    <em>neigh</em> value = <em>full</em> or <em>half</em> or <em>n2</em> or <em>full/cluster</em>
       full = full neighbor list
-      half/thread = half neighbor list built in thread-safe manner
-      half = half neighbor list, not thread-safe, only use when 1 thread/MPI task
+      half = half neighbor list built in thread-safe manner
       n2 = non-binning neighbor list build, O(N^2) algorithm
       full/cluster = full neighbor list with clustered groups of atoms
     <em>newton</em> = <em>off</em> or <em>on</em>
@@ -232,7 +231,7 @@ package gpu 1 split 0.75
 package gpu 2 split -1.0
 package cuda 2 gpuID 0 2
 package cuda 1 test 3948
-package kokkos neigh half/thread comm device
+package kokkos neigh half comm device
 package omp 0 neigh no
 package omp 4
 package intel 1
@@ -527,10 +526,8 @@ KOKKOS package.</p>
 <p>All of the settings are optional keyword/value pairs.  Each has a
 default value as listed below.</p>
 <p>The <em>neigh</em> keyword determines how neighbor lists are built.  A value
-of <em>half</em> uses half-neighbor lists, the same as used by most pair
-styles in LAMMPS.  A value of <em>half/thread</em> uses a thread-safe variant
-of the half-neighbor list.  It should be used instead of <em>half</em> when
-running with more than 1 threads per MPI task on a CPU.  A value of
+of <em>half</em> uses a thread-safe variant of half-neighbor lists,
+the same as used by most pair styles in LAMMPS.  A value of
 <em>n2</em> uses an O(N^2) algorithm to build the neighbor list without
 binning, where N = # of atoms on a processor.  It is typically slower
 than the other methods, which use binning.</p>

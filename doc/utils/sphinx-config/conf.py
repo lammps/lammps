@@ -56,7 +56,9 @@ project = 'LAMMPS'
 copyright = '2013 Sandia Corporation'
 
 def get_lammps_version():
-    with open('../src/version.h', 'r') as f:
+    import os
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(script_dir, '../../../src/version.h'), 'r') as f:
         line = f.readline()
         start_pos = line.find('"')+1
         end_pos = line.find('"', start_pos)

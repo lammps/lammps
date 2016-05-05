@@ -1,6 +1,7 @@
 # Makefile for LAMMPS documentation
-BUILDDIR      = /tmp/lammps-docs
-RSTDIR        = /tmp/lammps-docs/rst
+SHA1          = $(shell echo $USER-$PWD | sha1sum | cut -f1 -d" ")
+BUILDDIR      = /tmp/lammps-docs-$(SHA1)
+RSTDIR        = $(BUILDDIR)/rst
 VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
 

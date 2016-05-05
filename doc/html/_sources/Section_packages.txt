@@ -1692,28 +1692,6 @@ calculation.  See src/USER-AWPMD/README for more details.
 
 To build LAMMPS with this package ...
 
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
 Supporting info: src/USER-AWPMD/README, :doc:`fix awpmd/cut <pair_awpmd_cut>`, examples/USER/awpmd
 
 Author: Ilya Valuev at the JIHT in Russia (valuev at
@@ -1734,28 +1712,6 @@ grained parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27
 (2007) (SDK), with extensions to simulate ionic liquids, electrolytes,
 lipids and charged amino acids.  See src/USER-CG-CMM/README for more
 details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
 
 Supporting info: src/USER-CG-CMM/README, :doc:`pair lj/sdk <pair_sdk>`,
 :doc:`pair lj/sdk/coul/long <pair_sdk>`, :doc:`angle sdk <angle_sdk>`,
@@ -1779,30 +1735,6 @@ Sampling and Restraints.  This package implements a :doc:`fix colvars <fix_colva
 can perform those kinds of simulations.  See src/USER-COLVARS/README
 for more details.
 
-To build LAMMPS with this package ...
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
 Supporting info:
 `doc/PDF/colvars-refman-lammps.pdf <PDF/colvars-refman-lammps.pdf>`_,
 src/USER-COLVARS/README, lib/colvars/README, :doc:`fix colvars <fix_colvars>`, examples/USER/colvars
@@ -1821,37 +1753,6 @@ have questions.
 
 USER-CUDA package
 ^^^^^^^^^^^^^^^^^
-
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To build LAMMPS with this package ...
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
 
 This package provides acceleration of various LAMMPS pair styles, fix
 styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
@@ -1889,28 +1790,6 @@ calculating x-ray and electron diffraction intensities based on
 kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
 more details.
 
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
 Supporting info: :doc:`compute saed <compute_saed>`, :doc:`compute xrd <compute_xrd>`, :doc:`fix saed.vtk <fix_saed_vtk>`,
 examples/USER/diffraction
 
@@ -1932,28 +1811,6 @@ implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
 conditions.  The DPD equations of motion are integrated efficiently
 through the Shardlow splitting algorithm.  See src/USER-DPD/README for
 more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
 
 Supporting info: /src/USER-DPD/README, :doc:`compute dpd <compute_dpd>`
 :doc:`compute dpd/atom <compute_dpd_atom>`
@@ -1983,28 +1840,6 @@ and pair styles for this purpose.  See :ref:`Section howto 6.27 <howto_27>` for 
 package.  See src/USER-DRUDE/README for additional details.  There are
 auxiliary tools for using this package in tools/drude.
 
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
 Supporting info: :ref:`Section howto 6.27 <howto_27>`,
 src/USER-DRUDE/README, :doc:`fix drude <fix_drude>`, :doc:`fix drude/transform/* <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`, :doc:`pair thole <pair_thole>`,
 :doc:`pair lj/cut/thole/long <pair_thole>`, examples/USER/drude,
@@ -2031,31 +1866,6 @@ in 2007.  See src/USER-EFF/README for more details.  There are
 auxiliary tools for using this package in tools/eff; see its README
 file.
 
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`atom_style electron <atom_style>`, :doc:`compute temp/eff <compute_temp_eff>`, :doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nve/eff <fix_nve_eff>`,
-:doc:`pair eff/cut <pair_eff>`, examples/USER/eff, tools/eff
-
 Supporting info:
 
 Author: Andres Jaramillo-Botero at CalTech (ajaramil at
@@ -2075,28 +1885,6 @@ provides methods for performing FEP simulations by using a :doc:`fix adapt/fep <
 which have a "soft" in their style name.  See src/USER-FEP/README for
 more details.  There are auxiliary tools for using this package in
 tools/fep; see its README file.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
 
 Supporting info: src/USER-FEP/README, :doc:`fix adapt/fep <fix_adapt_fep>`, :doc:`compute fep <compute_fep>`,
 :doc:`pair_style */soft <pair_lj_soft>`, examples/USER/fep
@@ -2125,30 +1913,6 @@ for more details.
 
 
 
-To build LAMMPS with this package ...
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
 Supporting info: src/USER-H5MD/README, lib/h5md/README, :doc:`dump h5md <dump_h5md>`
 
 Author: Pierre de Buyl at KU Leuven (see http://pdebuyl.be) created
@@ -2171,28 +1935,6 @@ and compilers are required on your system, and how to build and use
 this package.  Also see src/USER-INTEL/README for more details. See
 the KOKKOS, OPT, and USER-OMP packages, which also have CPU and
 Phi-enabled styles.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
 
 Supporting info: examples/accelerate, src/USER-INTEL/TEST
 
@@ -2233,35 +1975,6 @@ Examples:
 USER-LB package
 ^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 This package contains a LAMMPS implementation of a background
@@ -2286,35 +1999,6 @@ Examples: examples/USER/lb
 
 USER-MGPT package
 ^^^^^^^^^^^^^^^^^
-
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
 
 Supporting info:
 
@@ -2353,35 +2037,6 @@ Examples: examples/USER/mgpt
 USER-MISC package
 ^^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 The files in this package are a potpourri of (mostly) unrelated
@@ -2414,35 +2069,6 @@ Examples: examples/USER/misc
 USER-MOLFILE package
 ^^^^^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 This package contains a dump molfile command which uses molfile
@@ -2474,35 +2100,6 @@ The person who created this package is Axel Kohlmeyer at Temple U
 USER-OMP package
 ^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 This package provides OpenMP multi-threading support and
@@ -2533,35 +2130,6 @@ Examples: examples/accelerate, bench/KEPLER
 USER-PHONON package
 ^^^^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.
@@ -2584,35 +2152,6 @@ Examples: examples/USER/phonon
 
 USER-QMMM package
 ^^^^^^^^^^^^^^^^^
-
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
 
 Supporting info:
 
@@ -2647,35 +2186,6 @@ The person who created this package is Axel Kohlmeyer at Temple U
 
 USER-QTB package
 ^^^^^^^^^^^^^^^^
-
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
 
 Supporting info:
 
@@ -2713,35 +2223,6 @@ Examples: examples/USER/qtb
 USER-QUIP package
 ^^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 Examples: examples/USER/quip
@@ -2754,35 +2235,6 @@ Examples: examples/USER/quip
 
 USER-REAXC package
 ^^^^^^^^^^^^^^^^^^
-
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
 
 Supporting info:
 
@@ -2828,35 +2280,6 @@ Examples: examples/reax
 USER-SMD package
 ^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 This package implements smoothed Mach dynamics (SMD) in
@@ -2897,35 +2320,6 @@ Examples: examples/USER/smd
 USER-SMTBQ package
 ^^^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
@@ -2953,35 +2347,6 @@ Examples: examples/USER/smtbq
 
 USER-SPH package
 ^^^^^^^^^^^^^^^^
-
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
 
 Supporting info:
 
@@ -3021,35 +2386,6 @@ Examples: examples/USER/sph
 USER-TALLY package
 ^^^^^^^^^^^^^^^^^^
 
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
 Supporting info:
 
 Examples: examples/USER/tally
@@ -3062,37 +2398,6 @@ Examples: examples/USER/tally
 
 USER-VTK package
 ^^^^^^^^^^^^^^^^
-
-Contents: A :doc:`fix atc <fix_atc>` command (atoms to continuum) to
-either couple of MD with FE-based physics surrogates or on-the-fly
-post-processing of atomic information to continuum fields.  See
-src/USER-ATC/README for more details.
-
-To install via make or Make.py:
-
-.. parsed-literal::
-
-   make yes-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p atc -a machine
-
-To un-install via make or Make.py:
-
-.. parsed-literal::
-
-   make no-user-atc
-   make machine
-
-.. parsed-literal::
-
-   Make.py -p ^atc -a machine
-
-Supporting info: :doc:`fix atc <fix_atc>`, examples/USER/atc
-
-Examples: examples/USER/tally
 
 
 .. _lws: http://lammps.sandia.gov

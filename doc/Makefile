@@ -8,11 +8,11 @@ TXT2RST       = $(VENV)/bin/txt2rst
 PYTHON        = $(shell which python3)
 
 ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 1)
-$(error Python3 was not found)
+$(error Python3 was not found! Please check README.md for further instructions)
 endif
 
 ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 1)
-$(error virtualenv was not found)
+$(error virtualenv was not found! Please check README.md for further instructions)
 endif
 
 SOURCES=$(wildcard src/*.txt)

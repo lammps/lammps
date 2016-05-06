@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Aidan Thompson (SNL)
+   Contributing author: German Samolyuk (ORNL)
+   based on PairTersoff by Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include "math.h"

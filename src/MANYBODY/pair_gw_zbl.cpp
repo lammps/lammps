@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Aidan Thompson (SNL) - original GW implementation
-                        David Farrell (NWU) - ZBL addition
+   Contributing author: German Samolyuk (ORNL)
+   Based on PairTersoffZBL by Aidan Thompson (SNL) and David Farrell (NWU)
 ------------------------------------------------------------------------- */
 
 #include <math.h>

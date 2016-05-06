@@ -12,7 +12,9 @@ colvar::cvc::cvc()
     sup_np(1),
     b_periodic(false),
     b_try_scalable(true)
-{}
+{
+  init_cvc_requires();
+}
 
 
 colvar::cvc::cvc(std::string const &conf)

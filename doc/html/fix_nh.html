@@ -257,7 +257,7 @@ ramped value during the run from <em>Tstart</em> to <em>Tstop</em>.  The <em>Tda
 parameter is specified in time units and determines how rapidly the
 temperature is relaxed.  For example, a value of 10.0 means to relax
 the temperature in a timespan of (roughly) 10 time units (e.g. tau or
-fmsec or psec - see the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).  The atoms in the
+fmsec or psec - see the <span class="xref doc">units</span> command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.</p>
 <div class="admonition note">
@@ -267,7 +267,7 @@ of <em>Tdamp</em>.  If <em>Tdamp</em> is too small, the temperature can fluctuat
 wildly; if it is too large, the temperature will take a very long time
 to equilibrate.  A good choice for many models is a <em>Tdamp</em> of around
 100 timesteps.  Note that this is NOT the same as 100 time units for
-most <a class="reference internal" href="units.html"><span class="doc">units</span></a> settings.</p>
+most <span class="xref doc">units</span> settings.</p>
 </div>
 <hr class="docutils" />
 <p>The barostat parameters for fix styles <em>npt</em> and <em>nph</em> is specified
@@ -302,7 +302,7 @@ simulation box must be triclinic, even if its initial tilt factors are
 <em>Tdamp</em> parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
 a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).</p>
+the <span class="xref doc">units</span> command).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">A Nose-Hoover barostat will not work well for arbitrary values
@@ -311,7 +311,7 @@ fluctuate wildly; if it is too large, the pressure will take a very
 long time to equilibrate.  A good choice for many models is a <em>Pdamp</em>
 of around 1000 timesteps.  However, note that <em>Pdamp</em> is specified in
 time units, and that timesteps are NOT the same as time units for most
-<a class="reference internal" href="units.html"><span class="doc">units</span></a> settings.</p>
+<span class="xref doc">units</span> settings.</p>
 </div>
 <p>Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed

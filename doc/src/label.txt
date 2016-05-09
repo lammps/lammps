@@ -1,0 +1,36 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+label command :h3
+
+[Syntax:]
+
+label ID :pre
+
+ID = string used as label name :ul
+
+[Examples:]
+
+label xyz
+label loop :pre
+
+[Description:]
+
+Label this line of the input script with the chosen ID.  Unless a jump
+command was used previously, this does nothing.  But if a
+"jump"_jump.html command was used with a label argument to begin
+invoking this script file, then all command lines in the script prior
+to this line will be ignored.  I.e. execution of the script will begin
+at this line.  This is useful for looping over a section of the input
+script as discussed in the "jump"_jump.html command.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

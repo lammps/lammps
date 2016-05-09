@@ -1,0 +1,72 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix_modify command :h3
+
+[Syntax:]
+
+fix_modify fix-ID keyword value ... :pre
+
+fix-ID = ID of the fix to modify :ulb,l
+one or more keyword/value pairs may be appended :l
+keyword = {temp} or {press} or {energy} :l
+  {temp} value = compute ID that calculates a temperature
+  {press} value = compute ID that calculates a pressure
+  {energy} value = {yes} or {no} :pre
+:ule
+
+[Examples:]
+
+fix_modify 3 temp myTemp press myPress
+fix_modify 1 energy yes :pre
+
+[Description:]
+
+Modify one or more parameters of a previously defined fix.  Only
+specific fix styles support specific parameters.  See the doc pages
+for individual fix commands for info on which ones support which
+fix_modify parameters.
+
+The {temp} keyword is used to determine how a fix computes
+temperature.  The specified compute ID must have been previously
+defined by the user via the "compute"_compute.html command and it must
+be a style of compute that calculates a temperature.  All fixes that
+compute temperatures define their own compute by default, as described
+in their documentation.  Thus this option allows the user to override
+the default method for computing T.
+
+The {press} keyword is used to determine how a fix computes pressure.
+The specified compute ID must have been previously defined by the user
+via the "compute"_compute.html command and it must be a style of
+compute that calculates a pressure.  All fixes that compute pressures
+define their own compute by default, as described in their
+documentation.  Thus this option allows the user to override the
+default method for computing P.
+
+For fixes that calculate a contribution to the potential energy of the
+system, the {energy} keyword will include that contribution in
+thermodynamic output of potential energy.  See the
+"thermo_style"_thermo_style.html command for info on how potential
+energy is output.  The contribution by itself can be printed by using
+the keyword f_ID in the thermo_style custom command, where ID is the
+fix-ID of the appropriate fix.  Note that you must use this setting
+for a fix if you are using it when performing an "energy
+minimization"_minimize.html and if you want the energy and forces it
+produces to be part of the optimization criteria.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix"_fix.html, "compute temp"_compute_temp.html, "compute
+pressure"_compute_pressure.html, "thermo_style"_thermo_style.html
+
+[Default:]
+
+The option defaults are temp = ID defined by fix, press = ID defined
+by fix, energy = no.

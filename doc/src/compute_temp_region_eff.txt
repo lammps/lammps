@@ -1,0 +1,64 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute temp/region/eff command :h3
+
+[Syntax:]
+
+compute ID group-ID temp/region/eff region-ID :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+temp/region/eff = style name of this compute command
+region-ID = ID of region to use for choosing atoms :ul
+
+[Examples:]
+
+compute mine flow temp/region/eff boundary :pre
+
+[Description:]
+
+Define a computation that calculates the temperature of a group of
+nuclei and electrons in the "electron force field"_pair_eff.html
+model, within a geometric region using the electron force field.  A
+compute of this style can be used by commands that compute a
+temperature, e.g. "thermo_modify"_thermo_modify.html.
+
+The operation of this compute is exactly like that described by the
+"compute temp/region"_compute_temp_region.html command, except that
+the formula for the temperature itself includes the radial electron
+velocity contributions, as discussed by the "compute
+temp/eff"_compute_temp_eff.html command.
+
+[Output info:]
+
+This compute calculates a global scalar (the temperature) and a global
+vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+These values can be used by any command that uses global scalar or
+vector values from a compute as input.  See "this
+section"_Section_howto.html#howto_15 for an overview of LAMMPS output
+options.
+
+The scalar value calculated by this compute is "intensive".  The
+vector values are "extensive".
+
+The scalar value will be in temperature "units"_units.html.  The
+vector values will be in energy "units"_units.html.
+
+[Restrictions:]
+
+This compute is part of the USER-EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"compute temp/region"_compute_temp_region.html, "compute
+temp/eff"_compute_temp_eff.html, "compute
+pressure"_compute_pressure.html
+
+[Default:] none

@@ -1,0 +1,115 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dihedral_style charmm command :h3
+dihedral_style charmm/intel command :h3
+dihedral_style charmm/kk command :h3
+dihedral_style charmm/omp command :h3
+
+[Syntax:]
+
+dihedral_style charmm :pre
+
+[Examples:]
+
+dihedral_style charmm
+dihedral_coeff 1 120.0 1 60 0.5 :pre
+
+[Description:]
+
+The {charmm} dihedral style uses the potential
+
+:c,image(Eqs/dihedral_charmm.jpg)
+
+See "(MacKerell)"_#MacKerell for a description of the CHARMM force
+field.  This dihedral style can also be used for the AMBER force field
+(see comment on weighting factors below).  See "(Cornell)"_#Cornell
+for a description of the AMBER force field.
+
+The following coefficients must be defined for each dihedral type via the
+"dihedral_coeff"_dihedral_coeff.html command as in the example above, or in
+the data file or restart files read by the "read_data"_read_data.html
+or "read_restart"_read_restart.html commands:
+
+K (energy)
+n (integer >= 0)
+d (integer value of degrees)
+weighting factor (0.0 to 1.0) :ul
+
+The weighting factor is applied to pairwise interaction between the
+1st and 4th atoms in the dihedral, which are computed by a CHARMM
+"pair_style"_pair_charmm.html with epsilon and sigma values specified
+with a "pair_coeff"_pair_charmm.html command.  Note that this
+weighting factor is unrelated to the weighting factor specified by the
+"special bonds"_special_bonds.html command which applies to all 1-4
+interactions in the system.
+
+For CHARMM force fields, the special_bonds 1-4 weighting factor should
+be set to 0.0.  This is because the pair styles that contain "charmm"
+(e.g. "pair_style lj/charmm/coul/long"_pair_charmm.html) define extra
+1-4 interaction coefficients that are used by this dihedral style to
+compute those interactions explicitly.  This means that if any of the
+weighting factors defined as dihedral coefficients (4th coeff above)
+are non-zero, then you must use a charmm pair style.  Note that if you
+do not set the special_bonds 1-4 weighting factor to 0.0 (which is the
+default) then 1-4 interactions in dihedrals will be computed twice,
+once by the pair routine and once by the dihedral routine, which is
+probably not what you want.
+
+For AMBER force fields, the special_bonds 1-4 weighting factor should
+be set to the AMBER defaults (1/2 and 5/6) and all the dihedral
+weighting factors (4th coeff above) should be set to 0.0.  In this
+case, you can use any pair style you wish, since the dihedral does not
+need any 1-4 information.
+
+:line
+
+Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+
+These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
+
+:line
+
+[Restrictions:]
+
+This dihedral style can only be used if LAMMPS was built with the
+MOLECULE package (which it is by default).  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info on packages.
+
+[Related commands:]
+
+"dihedral_coeff"_dihedral_coeff.html
+
+[Default:] none
+
+:line
+
+:link(Cornell)
+[(Cornell)] Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
+
+:link(MacKerell)
+[(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem B, 102, 3586 (1998).

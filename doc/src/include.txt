@@ -1,0 +1,40 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+include command :h3
+
+[Syntax:]
+
+include file :pre
+
+file = filename of new input script to switch to :ul
+
+[Examples:]
+
+include newfile
+include in.run2 :pre
+
+[Description:]
+
+This command opens a new input script file and begins reading LAMMPS
+commands from that file.  When the new file is finished, the original
+file is returned to.  Include files can be nested as deeply as
+desired.  If input script A includes script B, and B includes A, then
+LAMMPS could run for a long time.
+
+If the filename is a variable (see the "variable"_variable.html
+command), different processor partitions can run different input
+scripts.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html, "jump"_jump.html
+
+[Default:] none

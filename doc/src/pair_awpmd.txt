@@ -1,0 +1,123 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style awpmd/cut command :h3
+
+[Syntax:]
+
+pair_style awpmd/cut Rc keyword value ... :pre
+
+Rc = global cutoff, -1 means cutoff of half the shortest box length :ulb,l
+zero or more keyword/value pairs may be appended :l
+keyword = {hartree} or {dproduct} or {uhf} or {free} or {pbc} or {fix} or {harm} or {ermscale} or {flex_press} :l
+  {hartree} value = none
+  {dproduct} value = none
+  {uhf} value = none
+  {free} value = none
+  {pbc} value = Plen
+    Plen = periodic width of electron = -1 or positive value (distance units)
+  {fix} value = Flen
+    Flen = fixed width of electron = -1 or positive value (distance units)
+  {harm} value = width
+    width = harmonic width constraint
+  {ermscale} value = factor
+    factor = scaling between electron mass and width variable mass
+  {flex_press} value = none :pre
+:ule
+
+
+[Examples:]
+
+pair_style awpmd/cut -1
+pair_style awpmd/cut 40.0 uhf free
+pair_coeff * *
+pair_coeff 2 2 20.0 :pre
+
+[Description:]
+
+This pair style contains an implementation of the Antisymmetrized Wave
+Packet Molecular Dynamics (AWPMD) method.  Need citation here.  Need
+basic formulas here.  Could be links to other documents.
+
+Rc is the cutoff.
+
+The pair_style command allows for several optional keywords
+to be specified.
+
+The {hartree}, {dproduct}, and {uhf} keywords specify the form of the
+initial trial wave function for the system.  If the {hartree} keyword
+is used, then a Hartree multielectron trial wave function is used.  If
+the {dproduct} keyword is used, then a trial function which is a
+product of two determinants for each spin type is used.  If the {uhf}
+keyword is used, then an unrestricted Hartree-Fock trial wave function
+is used.
+
+The {free}, {pbc}, and {fix} keywords specify a width constraint on
+the electron wavepackets.  If the {free} keyword is specified, then there is no
+constraint.  If the {pbc} keyword is used and {Plen} is specified as
+-1, then the maximum width is half the shortest box length.  If {Plen}
+is a positive value, then the value is the maximum width.  If the
+{fix} keyword is used and {Flen} is specified as -1, then electrons
+have a constant width that is read from the data file.  If {Flen} is a
+positive value, then the constant width for all electrons is set to
+{Flen}.
+
+The {harm} keyword allow oscillations in the width of the
+electron wavepackets.  More details are needed.
+
+The {ermscale} keyword specifies a unitless scaling factor
+between the electron masses and the width variable mass.  More
+details needed.
+
+If the {flex_press} keyword is used, then a contribution from the
+electrons is added to the total virial and pressure of the system.
+
+This potential is designed to be used with "atom_style
+wavepacket"_atom_style.html definitions, in order to handle the
+description of systems with interacting nuclei and explicit electrons.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above, or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands, or by mixing as described below:
+
+cutoff (distance units) :ul
+
+For {awpmd/cut}, the cutoff coefficient is optional.  If it is not
+used (as in some of the examples above), the default global value
+specified in the pair_style command is used.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+The "pair_modify"_pair_modify.html mix, shift, table, and tail options
+are not relevant for this pair style.
+
+This pair style writes its information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+This pair style can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  It does not support the
+{inner}, {middle}, {outer} keywords.
+
+:line
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html
+
+[Default:]
+
+These are the defaults for the pair_style keywords: {hartree} for the
+initial wavefunction, {free} for the wavepacket width.
+

@@ -1,0 +1,33 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+undump command :h3
+
+[Syntax:]
+
+undump dump-ID :pre
+
+dump-ID = ID of previously defined dump :ul
+
+[Examples:]
+
+undump mine
+undump 2 :pre
+
+[Description:]
+
+Turn off a previously defined dump so that it is no longer active.
+This closes the file associated with the dump.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"dump"_dump.html
+
+[Default:] none

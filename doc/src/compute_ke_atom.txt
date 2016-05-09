@@ -1,0 +1,48 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute ke/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID ke/atom :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+ke/atom = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all ke/atom :pre
+
+[Description:]
+
+Define a computation that calculates the per-atom translational
+kinetic energy for each atom in a group.
+
+The kinetic energy is simply 1/2 m v^2, where m is the mass and v is
+the velocity of each atom.
+
+The value of the kinetic energy will be 0.0 for atoms not in the
+specified compute group.
+
+[Output info:]
+
+This compute calculates a per-atom vector, which can be accessed by
+any command that uses per-atom values from a compute as input.  See
+"Section_howto 15"_Section_howto.html#howto_15 for an overview of
+LAMMPS output options.
+
+The per-atom vector values will be in energy "units"_units.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"dump custom"_dump.html
+
+[Default:] none

@@ -1,0 +1,79 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style sph/taitwater/morris command :h3
+
+[Syntax:]
+
+pair_style sph/taitwater/morris :pre
+
+[Examples:]
+
+pair_style sph/taitwater/morris
+pair_coeff * * 1000.0 1430.0 1.0 2.4 :pre
+
+[Description:]
+
+The sph/taitwater/morris style computes pressure forces between SPH
+particles according to Tait's equation of state:
+
+:c,image(Eqs/pair_sph_tait.jpg)
+
+where gamma = 7 and B = c_0^2 rho_0 / gamma, with rho_0 being the
+reference density and c_0 the reference speed of sound.
+
+This pair style also computes laminar viscosity "(Morris)"_#Morris.
+
+See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
+LAMMPS.
+
+The following coefficients must be defined for each pair of atoms
+types via the "pair_coeff"_pair_coeff.html command as in the examples
+above.
+
+rho0 reference density (mass/volume units)
+c0 reference soundspeed (distance/time units)
+nu dynamic viscosity (mass*distance/time units)
+h kernel function cutoff (distance units) :ul
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+This style does not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+This style does not support the "pair_modify"_pair_modify.html
+shift, table, and tail options.
+
+This style does not write information to "binary restart
+files"_restart.html.  Thus, you need to re-specify the pair_style and
+pair_coeff commands in an input script that reads a restart file.
+
+This style can only be used via the {pair} keyword of the "run_style
+respa"_run_style.html command.  It does not support the {inner},
+{middle}, {outer} keywords.
+
+[Restrictions:]
+
+This pair style is part of the USER-SPH package.  It is only enabled
+if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, pair_sph/rhosum
+
+[Default:] none
+
+:line
+
+:link(Morris)
+[(Morris)] Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
+
+

@@ -1,0 +1,103 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute pe command :h3
+compute pe/cuda command :h3
+
+[Syntax:]
+
+compute ID group-ID pe keyword ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+pe = style name of this compute command
+zero or more keywords may be appended
+keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} :ul
+
+[Examples:]
+
+compute 1 all pe
+compute molPE all pe bond angle dihedral improper :pre
+
+[Description:]
+
+Define a computation that calculates the potential energy of the
+entire system of atoms.  The specified group must be "all".  See the
+"compute pe/atom"_compute_pe_atom.html command if you want per-atom
+energies.  These per-atom values could be summed for a group of atoms
+via the "compute reduce"_compute_reduce.html command.
+
+The energy is calculated by the various pair, bond, etc potentials
+defined for the simulation.  If no extra keywords are listed, then the
+potential energy is the sum of pair, bond, angle, dihedral, improper,
+and kspace (long-range) energy.  If any extra keywords are listed,
+then only those components are summed to compute the potential energy.
+
+The Kspace contribution requires 1 extra FFT each timestep the energy
+is calculated, if using the PPPM solver via the "kspace_style
+pppm"_kspace_style.html command.  Thus it can increase the cost of the
+PPPM calculation if it is needed on a large fraction of the simulation
+timesteps.
+
+Various fixes can contribute to the total potential energy of the
+system.  See the doc pages for "individual fixes"_fix.html for
+details.  The {thermo} option of the
+"compute_modify"_compute_modify.html command determines whether these
+contributions are added into the computed potential energy.  If no
+keywords are specified the default is {yes}.  If any keywords are
+specified, the default is {no}.
+
+A compute of this style with the ID of "thermo_pe" is created when
+LAMMPS starts up, as if this command were in the input script:
+
+compute thermo_pe all pe :pre
+
+See the "thermo_style" command for more details.
+
+:line
+
+Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+
+These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
+
+:line
+
+[Output info:]
+
+This compute calculates a global scalar (the potential energy).  This
+value can be used by any command that uses a global scalar value from
+a compute as input.  See "Section_howto
+15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+options.
+
+The scalar value calculated by this compute is "extensive".  The
+scalar value will be in energy "units"_units.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute pe/atom"_compute_pe_atom.html
+
+[Default:] none

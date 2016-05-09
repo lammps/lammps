@@ -1,0 +1,321 @@
+"Previous Section"_Section_packages.html - "LAMMPS WWW Site"_lws -
+"LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+"Return to Section accelerate overview"_Section_accelerate.html
+
+5.3.3 USER-INTEL package :h4
+
+The USER-INTEL package was developed by Mike Brown at Intel
+Corporation.  It provides two methods for accelerating simulations,
+depending on the hardware you have.  The first is acceleration on
+Intel(R) CPUs by running in single, mixed, or double precision with
+vectorization.  The second is acceleration on Intel(R) Xeon Phi(TM)
+coprocessors via offloading neighbor list and non-bonded force
+calculations to the Phi.  The same C++ code is used in both cases.
+When offloading to a coprocessor from a CPU, the same routine is run
+twice, once on the CPU and once with an offload flag.
+
+Note that the USER-INTEL package supports use of the Phi in "offload"
+mode, not "native" mode like the "KOKKOS
+package"_accelerate_kokkos.html.
+
+Also note that the USER-INTEL package can be used in tandem with the
+"USER-OMP package"_accelerate_omp.html.  This is useful when
+offloading pair style computations to the Phi, so that other styles
+not supported by the USER-INTEL package, e.g. bond, angle, dihedral,
+improper, and long-range electrostatics, can run simultaneously in
+threaded mode on the CPU cores.  Since less MPI tasks than CPU cores
+will typically be invoked when running with coprocessors, this enables
+the extra CPU cores to be used for useful computation.
+
+As illustrated below, if LAMMPS is built with both the USER-INTEL and
+USER-OMP packages, this dual mode of operation is made easier to use,
+via the "-suffix hybrid intel omp" "command-line
+switch"_Section_start.html#start_7 or the "suffix hybrid intel
+omp"_suffix.html command.  Both set a second-choice suffix to "omp" so
+that styles from the USER-INTEL package will be used if available,
+with styles from the USER-OMP package as a second choice.
+
+Here is a quick overview of how to use the USER-INTEL package for CPU
+acceleration, assuming one or more 16-core nodes.  More details
+follow.
+
+use an Intel compiler
+use these CCFLAGS settings in Makefile.machine: -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost, -fno-alias, -ansi-alias, -override-limits
+use these LINKFLAGS settings in Makefile.machine: -fopenmp, -xHost
+make yes-user-intel yes-user-omp     # including user-omp is optional
+make mpi                             # build with the USER-INTEL package, if settings (including compiler) added to Makefile.mpi
+make intel_cpu                       # or Makefile.intel_cpu already has settings, uses Intel MPI wrapper
+Make.py -v -p intel omp -intel cpu -a file mpich_icc   # or one-line build via Make.py for MPICH
+Make.py -v -p intel omp -intel cpu -a file ompi_icc    # or for OpenMPI
+Make.py -v -p intel omp -intel cpu -a file intel_cpu   # or for Intel MPI wrapper :pre
+
+lmp_machine -sf intel -pk intel 0 omp 16 -in in.script    # 1 node, 1 MPI task/node, 16 threads/task, no USER-OMP
+mpirun -np 32 lmp_machine -sf intel -in in.script         # 2 nodess, 16 MPI tasks/node, no threads, no USER-OMP
+lmp_machine -sf hybrid intel omp -pk intel 0 omp 16 -pk omp 16 -in in.script         # 1 node, 1 MPI task/node, 16 threads/task, with USER-OMP
+mpirun -np 32 -ppn 4 lmp_machine -sf hybrid intel omp -pk omp 4 -pk omp 4 -in in.script      # 8 nodes, 4 MPI tasks/node, 4 threads/task, with USER-OMP :pre
+
+Here is a quick overview of how to use the USER-INTEL package for the
+same CPUs as above (16 cores/node), with an additional Xeon Phi(TM)
+coprocessor per node.  More details follow.
+
+Same as above for building, with these additions/changes:
+add the flag -DLMP_INTEL_OFFLOAD to CCFLAGS in Makefile.machine
+add the flag -offload to LINKFLAGS in Makefile.machine
+for Make.py change "-intel cpu" to "-intel phi", and "file intel_cpu" to "file intel_phi" :pre
+
+mpirun -np 32 lmp_machine -sf intel -pk intel 1 -in in.script                 # 2 nodes, 16 MPI tasks/node, 240 total threads on coprocessor, no USER-OMP
+mpirun -np 16 -ppn 8 lmp_machine -sf intel -pk intel 1 omp 2 -in in.script            # 2 nodes, 8 MPI tasks/node, 2 threads/task, 240 total threads on coprocessor, no USER-OMP
+mpirun -np 32 -ppn 8 lmp_machine -sf hybrid intel omp -pk intel 1 omp 2 -pk omp 2 -in in.script # 4 nodes, 8 MPI tasks/node, 2 threads/task, 240 total threads on coprocessor, with USER-OMP :pre
+
+[Required hardware/software:]
+
+Your compiler must support the OpenMP interface.  Use of an Intel(R)
+C++ compiler is recommended, but not required.  However, g++ will not
+recognize some of the settings listed above, so they cannot be used.
+Optimizations for vectorization have only been tested with the
+Intel(R) compiler.  Use of other compilers may not result in
+vectorization, or give poor performance.
+
+The recommended version of the Intel(R) compiler is 14.0.1.106. 
+Versions 15.0.1.133 and later are also supported.  If using Intel(R) 
+MPI, versions 15.0.2.044 and later are recommended.
+
+To use the offload option, you must have one or more Intel(R) Xeon
+Phi(TM) coprocessors and use an Intel(R) C++ compiler.  
+
+[Building LAMMPS with the USER-INTEL package:]
+
+The lines above illustrate how to include/build with the USER-INTEL
+package, for either CPU or Phi support, in two steps, using the "make"
+command.  Or how to do it with one command via the src/Make.py script,
+described in "Section 2.4"_Section_start.html#start_4 of the manual.
+Type "Make.py -h" for help.  Because the mechanism for specifing what
+compiler to use (Intel in this case) is different for different MPI
+wrappers, 3 versions of the Make.py command are shown.
+
+Note that if you build with support for a Phi coprocessor, the same
+binary can be used on nodes with or without coprocessors installed.
+However, if you do not have coprocessors on your system, building
+without offload support will produce a smaller binary.
+
+If you also build with the USER-OMP package, you can use styles from
+both packages, as described below.
+
+Note that the CCFLAGS and LINKFLAGS settings in Makefile.machine must
+include "-fopenmp".  Likewise, if you use an Intel compiler, the
+CCFLAGS setting must include "-restrict".  For Phi support, the
+"-DLMP_INTEL_OFFLOAD" (CCFLAGS) and "-offload" (LINKFLAGS) settings
+are required.  The other settings listed above are optional, but will
+typically improve performance.  The Make.py command will add all of
+these automatically.
+
+If you are compiling on the same architecture that will be used for
+the runs, adding the flag {-xHost} to CCFLAGS enables vectorization
+with the Intel(R) compiler.  Otherwise, you must provide the correct
+compute node architecture to the -x option (e.g. -xAVX).
+
+Example machines makefiles Makefile.intel_cpu and Makefile.intel_phi
+are included in the src/MAKE/OPTIONS directory with settings that
+perform well with the Intel(R) compiler. The latter has support for
+offload to Phi coprocessors; the former does not.
+
+[Run with the USER-INTEL package from the command line:]
+
+The mpirun or mpiexec command sets the total number of MPI tasks used
+by LAMMPS (one or multiple per compute node) and the number of MPI
+tasks used per node.  E.g. the mpirun command in MPICH does this via
+its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.
+
+If you compute (any portion of) pairwise interactions using USER-INTEL
+pair styles on the CPU, or use USER-OMP styles on the CPU, you need to
+choose how many OpenMP threads per MPI task to use.  If both packages
+are used, it must be done for both packages, and the same thread count
+value should be used for both.  Note that the product of MPI tasks *
+threads/task should not exceed the physical number of cores (on a
+node), otherwise performance will suffer.
+
+When using the USER-INTEL package for the Phi, you also need to
+specify the number of coprocessor/node and optionally the number of
+coprocessor threads per MPI task to use.  Note that coprocessor
+threads (which run on the coprocessor) are totally independent from
+OpenMP threads (which run on the CPU).  The default values for the
+settings that affect coprocessor threads are typically fine, as
+discussed below.
+
+As in the lines above, use the "-sf intel" or "-sf hybrid intel omp"
+"command-line switch"_Section_start.html#start_7, which will
+automatically append "intel" to styles that support it.  In the second
+case, "omp" will be appended if an "intel" style does not exist.
+
+Note that if either switch is used, it also invokes a default command:
+"package intel 1"_package.html.  If the "-sf hybrid intel omp" switch
+is used, the default USER-OMP command "package omp 0"_package.html is
+also invoked (if LAMMPS was built with USER-OMP).  Both set the number
+of OpenMP threads per MPI task via the OMP_NUM_THREADS environment
+variable.  The first command sets the number of Xeon Phi(TM)
+coprocessors/node to 1 (ignored if USER-INTEL is built for CPU-only),
+and the precision mode to "mixed" (default value).
+
+You can also use the "-pk intel Nphi" "command-line
+switch"_Section_start.html#start_7 to explicitly set Nphi = # of Xeon
+Phi(TM) coprocessors/node, as well as additional options.  Nphi should
+be >= 1 if LAMMPS was built with coprocessor support, otherswise Nphi
+= 0 for a CPU-only build.  All the available coprocessor threads on
+each Phi will be divided among MPI tasks, unless the {tptask} option
+of the "-pk intel" "command-line switch"_Section_start.html#start_7 is
+used to limit the coprocessor threads per MPI task.  See the "package
+intel"_package.html command for details, including the default values
+used for all its options if not specified, and how to set the number
+of OpenMP threads via the OMP_NUM_THREADS environment variable if
+desired.
+
+If LAMMPS was built with the USER-OMP package, you can also use the
+"-pk omp Nt" "command-line switch"_Section_start.html#start_7 to
+explicitly set Nt = # of OpenMP threads per MPI task to use, as well
+as additional options.  Nt should be the same threads per MPI task as
+set for the USER-INTEL package, e.g. via the "-pk intel Nphi omp Nt"
+command.  Again, see the "package omp"_package.html command for
+details, including the default values used for all its options if not
+specified, and how to set the number of OpenMP threads via the
+OMP_NUM_THREADS environment variable if desired.
+
+[Or run with the USER-INTEL package by editing an input script:]
+
+The discussion above for the mpirun/mpiexec command, MPI tasks/node,
+OpenMP threads per MPI task, and coprocessor threads per MPI task is
+the same.
+
+Use the "suffix intel"_suffix.html or "suffix hybrid intel
+omp"_suffix.html commands, or you can explicitly add an "intel" or
+"omp" suffix to individual styles in your input script, e.g.
+
+pair_style lj/cut/intel 2.5 :pre
+
+You must also use the "package intel"_package.html command, unless the
+"-sf intel" or "-pk intel" "command-line
+switches"_Section_start.html#start_7 were used.  It specifies how many
+coprocessors/node to use, as well as other OpenMP threading and
+coprocessor options.  The "package"_package.html doc page explains how
+to set the number of OpenMP threads via an environment variable if
+desired.
+
+If LAMMPS was also built with the USER-OMP package, you must also use
+the "package omp"_package.html command to enable that package, unless
+the "-sf hybrid intel omp" or "-pk omp" "command-line
+switches"_Section_start.html#start_7 were used.  It specifies how many
+OpenMP threads per MPI task to use (should be same as the setting for
+the USER-INTEL package), as well as other options.  Its doc page
+explains how to set the number of OpenMP threads via an environment
+variable if desired.
+
+[Speed-ups to expect:]
+
+If LAMMPS was not built with coprocessor support (CPU only) when
+including the USER-INTEL package, then acclerated styles will run on
+the CPU using vectorization optimizations and the specified precision.
+This may give a substantial speed-up for a pair style, particularly if
+mixed or single precision is used.
+
+If LAMMPS was built with coproccesor support, the pair styles will run
+on one or more Intel(R) Xeon Phi(TM) coprocessors (per node).  The
+performance of a Xeon Phi versus a multi-core CPU is a function of
+your hardware, which pair style is used, the number of
+atoms/coprocessor, and the precision used on the coprocessor (double,
+single, mixed).
+
+See the "Benchmark page"_http://lammps.sandia.gov/bench.html of the
+LAMMPS web site for performance of the USER-INTEL package on different
+hardware.
+
+NOTE: Setting core affinity is often used to pin MPI tasks and OpenMP
+threads to a core or group of cores so that memory access can be
+uniform. Unless disabled at build time, affinity for MPI tasks and
+OpenMP threads on the host (CPU) will be set by default on the host
+when using offload to a coprocessor. In this case, it is unnecessary
+to use other methods to control affinity (e.g. taskset, numactl,
+I_MPI_PIN_DOMAIN, etc.). This can be disabled in an input script with
+the {no_affinity} option to the "package intel"_package.html command
+or by disabling the option at build time (by adding
+-DINTEL_OFFLOAD_NOAFFINITY to the CCFLAGS line of your Makefile).
+Disabling this option is not recommended, especially when running on a
+machine with hyperthreading disabled.
+
+[Guidelines for best performance on an Intel(R) Xeon Phi(TM)
+coprocessor:]
+
+The default for the "package intel"_package.html command is to have
+all the MPI tasks on a given compute node use a single Xeon Phi(TM)
+coprocessor.  In general, running with a large number of MPI tasks on
+each node will perform best with offload.  Each MPI task will
+automatically get affinity to a subset of the hardware threads
+available on the coprocessor.  For example, if your card has 61 cores,
+with 60 cores available for offload and 4 hardware threads per core
+(240 total threads), running with 24 MPI tasks per node will cause
+each MPI task to use a subset of 10 threads on the coprocessor.  Fine
+tuning of the number of threads to use per MPI task or the number of
+threads to use per core can be accomplished with keyword settings of
+the "package intel"_package.html command. :ulb,l
+
+If desired, only a fraction of the pair style computation can be
+offloaded to the coprocessors.  This is accomplished by using the
+{balance} keyword in the "package intel"_package.html command.  A
+balance of 0 runs all calculations on the CPU.  A balance of 1 runs
+all calculations on the coprocessor.  A balance of 0.5 runs half of
+the calculations on the coprocessor.  Setting the balance to -1 (the
+default) will enable dynamic load balancing that continously adjusts
+the fraction of offloaded work throughout the simulation.  This option
+typically produces results within 5 to 10 percent of the optimal fixed
+balance. :l
+
+When using offload with CPU hyperthreading disabled, it may help
+performance to use fewer MPI tasks and OpenMP threads than available
+cores.  This is due to the fact that additional threads are generated
+internally to handle the asynchronous offload tasks. :l
+
+If running short benchmark runs with dynamic load balancing, adding a
+short warm-up run (10-20 steps) will allow the load-balancer to find a
+near-optimal setting that will carry over to additional runs. :l
+
+If pair computations are being offloaded to an Intel(R) Xeon Phi(TM)
+coprocessor, a diagnostic line is printed to the screen (not to the
+log file), during the setup phase of a run, indicating that offload
+mode is being used and indicating the number of coprocessor threads
+per MPI task.  Additionally, an offload timing summary is printed at
+the end of each run.  When offloading, the frequency for "atom
+sorting"_atom_modify.html is changed to 1 so that the per-atom data is
+effectively sorted at every rebuild of the neighbor lists. :l
+
+For simulations with long-range electrostatics or bond, angle,
+dihedral, improper calculations, computation and data transfer to the
+coprocessor will run concurrently with computations and MPI
+communications for these calculations on the host CPU.  The USER-INTEL
+package has two modes for deciding which atoms will be handled by the
+coprocessor.  This choice is controlled with the {ghost} keyword of
+the "package intel"_package.html command.  When set to 0, ghost atoms
+(atoms at the borders between MPI tasks) are not offloaded to the
+card.  This allows for overlap of MPI communication of forces with
+computation on the coprocessor when the "newton"_newton.html setting
+is "on".  The default is dependent on the style being used, however,
+better performance may be achieved by setting this option
+explictly. :l,ule
+
+[Restrictions:]
+
+When offloading to a coprocessor, "hybrid"_pair_hybrid.html styles
+that require skip lists for neighbor builds cannot be offloaded.
+Using "hybrid/overlay"_pair_hybrid.html is allowed.  Only one intel
+accelerated style may be used with hybrid styles.
+"Special_bonds"_special_bonds.html exclusion lists are not currently
+supported with offload, however, the same effect can often be
+accomplished by setting cutoffs for excluded atom types to 0.  None of
+the pair styles in the USER-INTEL package currently support the
+"inner", "middle", "outer" options for rRESPA integration via the
+"run_style respa"_run_style.html command; only the "pair" option is
+supported.

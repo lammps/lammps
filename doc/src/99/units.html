@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+LAMMPS Units</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level LAMMPS documentation.</P>
+<P>
+This file describes the units associated with many of the key variables 
+and equations used inside the LAMMPS code. Units used for input command 
+parameters are described in the input_commands file. The input command 
+&quot;units&quot; selects between conventional and Lennard-Jones units. 
+See the force_fields file for more information on units for the force 
+field parameters that are input from data files. </P>
+<P>
+Conventional units: </P>
+<UL>
+    <LI>
+    distance = Angstroms 
+    <LI>
+    time = femtoseconds 
+    <LI>
+    mass = grams/mole 
+    <LI>
+    temperature = degrees K 
+    <LI>
+    pressure = atmospheres 
+    <LI>
+    energy = Kcal/mole 
+    <LI>
+    velocity = Angstroms/femtosecond 
+    <LI>
+    force = grams/mole * Angstroms/femtosecond^2 
+    <LI>
+    charge = +/- 1.0 is proton/electron
+</UL>
+<P>
+LJ reduced units: </P>
+<UL>
+    <LI>
+    distance = sigmas 
+    <LI>
+    time = reduced LJ tau 
+    <LI>
+    mass = ratio to unitless 1.0
+    <LI>
+    temperature = reduced LJ temp 
+    <LI>
+    pressure = reduced LJ pressure 
+    <LI>
+    energy = epsilons 
+    <LI>
+    velocity = sigmas/tau 
+    <LI>
+    force = reduced LJ force (sigmas/tau^2) 
+    <LI>
+    charge = ratio to unitless 1.0
+</UL>
+<HR>
+<P>
+This listing of variables assumes conventional units; to convert to LJ 
+reduced units, simply substitute the appropriate term from the list 
+above. E.g. x is in sigmas in LJ units. Per-mole in any of the units 
+simply means for 6.023 x 10^23 atoms.</P>
+<P>
+</P>
+<PRE>
+Meaning        Variable        Units
+
+positions      x               Angstroms
+velocities     v               Angstroms / click (see below)
+forces         f               Kcal / (mole - Angstrom)                
+masses         mass            gram / mole
+charges        q               electron units (-1 for an electron)
+                                 (1 e.u. = 1.602 x 10^-19 coul)
+
+time           ---             clicks (1 click = 48.88821 fmsec)
+timestep       dt              clicks
+input timestep dt_in           fmsec
+time convert   dtfactor        48.88821 fmsec / click
+
+temperature     t_current       degrees K
+                t_start
+                t_stop
+input damping   t_freq_in       inverse fmsec
+internal temp   t_freq          inverse clicks
+  damping
+
+dielec const    dielectric      1.0 (unitless)
+Boltmann const  boltz           0.001987191 Kcal / (mole - degree K)
+
+virial          virial[xyz]     Kcal/mole = r dot F
+pressure factor pfactor         68589.796 (convert internal to atmospheres)
+internal        p_current       Kcal / (mole - Angs^3)
+  pressure      p_start
+                p_stop
+input press     p_start_in      atmospheres
+                p_stop_in
+output press    log file        atmospheres
+input damping   p_freq_in       inverse time
+internal press  p_freq          inverse clicks
+  damping
+
+pot eng         e_potential     Kcal/mole
+kin eng         e_kinetic       Kcal/mole
+eng convert     efactor         332.0636 (Kcal - Ang) / (q^2 - mole)
+                                (convert Coulomb eng to Kcal/mole)
+
+LJ coeffs       lja,ljb         Kcal-Angs^(6,12)/mole
+
+bond            various         see force_fields file
+  parameters    2,3,4-body
+                terms
+</PRE>
+</BODY>
+</HTML>

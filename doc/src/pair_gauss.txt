@@ -1,0 +1,163 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+pair_style gauss command :h3
+pair_style gauss/gpu command :h3
+pair_style gauss/omp command :h3
+pair_style gauss/cut command :h3
+pair_style gauss/cut/omp command :h3
+
+[Syntax:] 
+
+pair_style gauss cutoff
+pair_style gauss/cut cutoff :pre
+
+cutoff = global cutoff for Gauss interactions (distance units) :ul
+
+[Examples:] 
+
+pair_style gauss 12.0 
+pair_coeff * * 1.0 0.9
+pair_coeff 1 4 1.0 0.9 10.0 :pre
+
+pair_style gauss/cut 3.5
+pair_coeff 1 4 0.2805 1.45 0.112 :pre
+
+
+[Description:] 
+
+Style {gauss} computes a tethering potential of the form
+
+:c,image(Eqs/pair_gauss.jpg)
+
+between an atom and its corresponding tether site which will typically
+be a frozen atom in the simulation.  Rc is the cutoff.
+
+The following coefficients must be defined for each pair of atom types
+via the "pair_coeff"_pair_coeff.html command as in the examples above,
+or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+A (energy units)
+B (1/distance^2 units) 
+cutoff (distance units) :ul 
+
+The last coefficient is optional. If not specified, the global cutoff
+is used.
+
+Style {gauss/cut} computes a generalized Gaussian interaction potential 
+between pairs of particles:
+
+:c,image(Eqs/pair_gauss_cut.jpg)
+
+where H determines together with the standard deviation sigma_h the
+peak height of the Gaussian function, and r_mh the peak position.
+Examples of the use of the Gaussian potentials include implicit
+solvent simulations of salt ions "(Lenart)"_#Lenart and of surfactants
+"(Jusufi)"_#Jusufi.  In these instances the Gaussian potential mimics
+the hydration barrier between a pair of particles. The hydration
+barrier is located at r_mh and has a width of sigma_h. The prefactor
+determines the hight of the potential barrier.
+
+The following coefficients must be defined for each pair of atom types
+via the "pair_coeff"_pair_coeff.html command as in the example above,
+or in the data file or restart files read by the
+"read_data"_read_data.html or "read_restart"_read_restart.html
+commands:
+
+H (energy * distance units)
+r_mh (distance units)
+sigma_h (distance units) :ul
+
+The global cutoff (r_c) specified in the pair_style command is used.
+
+:line
+
+Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+
+These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch7_Section_start.html#start_6 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
+
+:line
+
+[Mixing, shift, table, tail correction, restart, rRESPA info]:
+
+These pair styles do not support mixing. Thus, coefficients for all
+I,J pairs must be specified explicitly.
+
+The {gauss} style does not support the "pair_modify"_pair_modify.html
+shift option. There is no effect due to the Gaussian well beyond the
+cutoff; hence reasonable cutoffs need to be specified.
+
+The {gauss/cut} style supports the "pair_modify"_pair_modify.html shift
+option for the energy of the Gauss-potential portion of the pair
+interaction.
+
+The "pair_modify"_pair_modify.html table and tail options are not
+relevant for these pair styles.
+
+These pair styles write their information to "binary restart
+files"_restart.html, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.
+
+These pair styles can only be used via the {pair} keyword of the
+"run_style respa"_run_style.html command.  They do not support the
+{inner}, {middle}, {outer} keywords.
+
+The {gauss} pair style tallies an "occupancy" count of how many Gaussian-well
+sites have an atom within the distance at which the force is a maximum
+= sqrt(0.5/b).  This quantity can be accessed via the "compute
+pair"_compute_pair.html command as a vector of values of length 1.
+
+To print this quantity to the log file (with a descriptive column
+heading) the following commands could be included in an input script:
+
+compute gauss all pair gauss
+variable occ equal c_gauss\[1\]
+thermo_style custom step temp epair v_occ :pre
+
+:line
+
+[Restrictions:]
+
+The {gauss/cut} style is part of the "user-misc" package. It is only
+enabled if LAMMPS is build with that package. See the "Making of
+LAMMPS"_Section_start.html#3 section for more info.
+
+[Related commands:]
+
+"pair_coeff"_pair_coeff.html, 
+"pair_style coul/diel"_pair_coul_diel.html
+
+[Default:] none
+
+:link(Lenart)
+[(Lenart)] Lenart , Jusufi, and Panagiotopoulos, J Chem Phys, 126,
+044509 (2007).
+
+:link(Jusufi)
+[(Jusufi)] Jusufi, Hynninen, and Panagiotopoulos, J Phys Chem B, 112,
+13783 (2008).
+

@@ -1,0 +1,68 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix enforce2d command :h3
+fix enforce2d/cuda command :h3
+
+[Syntax:]
+
+fix ID group-ID enforce2d :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+enforce2d = style name of this fix command :ul
+
+[Examples:]
+
+fix 5 all enforce2d :pre
+
+[Description:]
+
+Zero out the z-dimension velocity and force on each atom in the group.
+This is useful when running a 2d simulation to insure that atoms do
+not move from their initial z coordinate.
+
+:line
+
+Styles with a {cuda} suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+"Section_accelerate"_Section_accelerate.html of the manual.  The
+accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.
+
+These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output
+commands"_Section_howto.html#howto_15.  No parameter of this fix can
+be used with the {start/stop} keywords of the "run"_run.html command.
+
+The forces due to this fix are imposed during an energy minimization,
+invoked by the "minimize"_minimize.html command.
+
+[Restrictions:] none
+
+[Related commands:] none
+
+[Default:] none

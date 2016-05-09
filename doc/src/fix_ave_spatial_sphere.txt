@@ -1,0 +1,324 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix ave/spatial/sphere command :h3
+
+[Syntax:]
+
+fix ID group-ID ave/spatial/sphere Nevery Nrepeat Nfreq origin_x origin_y origin_z r_min r_max nbins value1 value2 ... keyword args ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+ave/spatial = style name of this fix command :l
+Nevery = use input values every this many timesteps :l
+Nrepeat = # of times to use input values for calculating averages :l
+Nfreq = calculate averages every this many timesteps :l
+origin_x, origin_y, origin_z = center of the sphere. can be the result of variables or computes (see below) :l
+r_min = radial distance at which binning begins :l
+r_max = radial distance at which binning ends :l
+nbins = number of spherical shells to create between r_min and r_max :l
+one or more input values can be listed :l
+value = vx, vy, vz, fx, fy, fz, density/mass, density/number, c_ID, c_ID\[I\], f_ID, f_ID\[I\], v_name :l
+  vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
+  density/number, density/mass = number or mass density
+  c_ID = per-atom vector calculated by a compute with ID
+  c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
+  f_ID = per-atom vector calculated by a fix with ID
+  f_ID\[I\] = Ith column of per-atom array calculated by a fix with ID
+  v_name = per-atom vector calculated by an atom-style variable with name :pre
+
+zero or more keyword/arg pairs may be appended :l
+keyword = {region} or {norm} or {units} or {ave} or {file} or {overwrite} or {title1} or {title2} or {title3} :l
+  {region} arg = region-ID
+    region-ID = ID of region atoms must be in to contribute to spatial averaging
+  {norm} arg = {all} or {sample}
+  {units} arg = {box} or {lattice} or {reduced}
+  {ave} args = {one} or {running} or {window M}
+    one = output new average value every Nfreq steps
+    running = output cumulative average of all previous Nfreq steps
+    window M = output average of M most recent Nfreq steps
+  {file} arg = filename
+    filename = file to write results to
+  {overwrite} arg = none = overwrite output file with only latest output
+  {title1} arg = string
+    string = text to print as 1st line of output file
+  {title2} arg = string
+    string = text to print as 2nd line of output file
+  {title3} arg = string
+    string = text to print as 3rd line of output file :pre
+:ule
+
+[Examples:]
+
+fix 1 all ave/spatial/sphere 10000 1 10000 0.5 0.5 0.5 0.1 0.5 5 density/number vx vy vz units reduced title1 "My output values"
+fix 1 flow ave/spatial/sphere 100 10 1000 20.0 20.0 20.0 0.0 20.0 20 vx vz norm sample file vel.profile :pre
+
+[Description:]
+
+Use one or more per-atom vectors as inputs every few timesteps, bin
+their values spatially into spherical shells based on current atom
+coordinates, and average the bin values over longer timescales.  The
+resulting bin averages can be used by other "output
+commands"_Section_howto.html#howto_15 such as "thermo_style
+custom"_thermo_style.html, and can also be written to a file.
+
+The group specified with the command means only atoms within the group
+contribute to bin averages.  If the {region} keyword is used, the atom
+must be in both the group and the specified geometric
+"region"_region.html in order to contribute to bin averages.
+
+Each listed value can be an atom attribute (position, velocity, force
+component), a mass or number density, or the result of a
+"compute"_compute.html or "fix"_fix.html or the evaluation of an
+atom-style "variable"_variable.html.  In the latter cases, the
+compute, fix, or variable must produce a per-atom quantity, not a
+global quantity.  If you wish to time-average global quantities from a
+compute, fix, or variable, then see the "fix
+ave/time"_fix_ave_time.html command.
+
+"Computes"_compute.html that produce per-atom quantities are those
+which have the word {atom} in their style name.  See the doc pages for
+individual "fixes"_fix.html to determine which ones produce per-atom
+quantities.  "Variables"_variable.html of style {atom} are the only
+ones that can be used with this fix since all other styles of variable
+produce global quantities.
+
+The per-atom values of each input vector are binned and averaged
+independently of the per-atom values in other input vectors.
+
+{Nbins} specifies the number of spherical shells which will be created
+between r_min and r_max centered at (origin_x, origin_y, origin_z).
+
+NOTE: This fix works by creating an array of size Nbins by Nvalues on
+each processor.  Nbins is the total number of bins; Nvalues is the
+number of input values specified.  Each processor loops over its
+atoms, tallying its values to the appropriate bin.  Then the entire
+array is summed across all processors.  This means that using a large
+number of bins will incur an overhead in memory and computational cost
+(summing across processors), so be careful to use reasonable numbers
+of bins.
+
+:line
+
+The {Nevery}, {Nrepeat}, and {Nfreq} arguments specify on what
+timesteps the input values will be used to bin them and contribute to
+the average.  The final averaged quantities are generated on timesteps
+that are a multiples of {Nfreq}.  The average is over {Nrepeat}
+quantities, computed in the preceding portion of the simulation every
+{Nevery} timesteps.  {Nfreq} must be a multiple of {Nevery} and
+{Nevery} must be non-zero even if {Nrepeat} is 1.  
+Also, the timesteps
+contributing to the average value cannot overlap, 
+i.e. Nrepeat*Nevery can not exceed Nfreq. 
+
+For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
+timesteps 90,92,94,96,98,100 will be used to compute the final average
+on timestep 100.  Similarly for timesteps 190,192,194,196,198,200 on
+timestep 200, etc.  If Nrepeat=1 and Nfreq = 100, then no time
+averaging is done; values are simply generated on timesteps
+100,200,etc.
+
+:line
+
+The {origin_x}, {origin_y}, and {origin_z} parameters may be specified
+by either a compute or a variable. This allows, for example, the
+center of the spherical bins to be attached to the center of mass of a
+group of atoms. If a variable origin is used and periodic boundary
+conditions are in effect, then the origin will be wrapped across
+periodic boundaries whenever it changes so that it is always inside
+the simulation box.
+
+:line
+
+The atom attribute values (vx,vy,vz,fx,fy,fz) are self-explanatory.
+Note that other atom attributes (including atom postitions x,y,z) can
+be used as inputs to this fix by using the "compute
+property/atom"_compute_property_atom.html command and then specifying
+an input value from that compute.
+
+The {density/number} value means the number density is computed in
+each bin, i.e. a weighting of 1 for each atom.  The {density/mass}
+value means the mass density is computed in each bin, i.e. each atom
+is weighted by its mass.  The resulting density is normalized by the
+volume of the bin so that units of number/volume or density are
+output.  See the "units"_units.html command doc page for the
+definition of density for each choice of units, e.g. gram/cm^3.
+The bin volume will always be calculated in box units, independent 
+of the use of the {units} keyword in this command.
+
+If a value begins with "c_", a compute ID must follow which has been
+previously defined in the input script.  If no bracketed integer is
+appended, the per-atom vector calculated by the compute is used.  If a
+bracketed integer is appended, the Ith column of the per-atom array
+calculated by the compute is used.  Users can also write code for
+their own compute styles and "add them to LAMMPS"_Section_modify.html.
+
+If a value begins with "f_", a fix ID must follow which has been
+previously defined in the input script.  If no bracketed integer is
+appended, the per-atom vector calculated by the fix is used.  If a
+bracketed integer is appended, the Ith column of the per-atom array
+calculated by the fix is used.  Note that some fixes only produce
+their values on certain timesteps, which must be compatible with
+{Nevery}, else an error results.  Users can also write code for their
+own fix styles and "add them to LAMMPS"_Section_modify.html.
+
+If a value begins with "v_", a variable name must follow which has
+been previously defined in the input script.  Variables of style
+{atom} can reference thermodynamic keywords and various per-atom
+attributes, or invoke other computes, fixes, or variables when they
+are evaluated, so this is a very general means of generating per-atom
+quantities to spatially average.
+
+:line
+
+Additional optional keywords also affect the operation of this fix.
+The {region} keyword was discussed above.
+
+The {norm} keyword affects how averaging is done for the output
+produced every {Nfreq} timesteps.  For an {all} setting, a bin
+quantity is summed over all atoms in all {Nrepeat} samples, as is the
+count of atoms in the bin.  The printed value for the bin is
+Total-quantity / Total-count.  In other words it is an average over
+the entire {Nfreq} timescale.
+
+For a {sample} setting, the bin quantity is summed over atoms for only
+a single sample, as is the count, and a "average sample value" is
+computed, i.e. Sample-quantity / Sample-count.  The printed value for
+the bin is the average of the {Nrepeat} "average sample values", In
+other words it is an average of an average.
+
+The {ave} keyword determines how the bin values produced every {Nfreq}
+steps are averaged with bin values produced on previous steps that
+were multiples of {Nfreq}, before they are accessed by another output
+command or written to a file.
+
+If the {ave} setting is {one}, then the bin values produced on
+timesteps that are multiples of {Nfreq} are independent of each other;
+they are output as-is without further averaging.
+
+If the {ave} setting is {running}, then the bin values produced on
+timesteps that are multiples of {Nfreq} are summed and averaged in a
+cumulative sense before being output.  Each output bin value is thus
+the average of the bin value produced on that timestep with all
+preceding values for the same bin.  This running average begins when
+the fix is defined; it can only be restarted by deleting the fix via
+the "unfix"_unfix.html command, or re-defining the fix by
+re-specifying it.
+
+If the {ave} setting is {window}, then the bin values produced on
+timesteps that are multiples of {Nfreq} are summed and averaged within
+a moving "window" of time, so that the last M values for the same bin
+are used to produce the output.  E.g. if M = 3 and Nfreq = 1000, then
+the output on step 10000 will be the average of the individual bin
+values on steps 8000,9000,10000.  Outputs on early steps will average
+over less than M values if they are not available.
+
+The {units} keyword determines the meaning of the distance units used
+for the sphere origin and the two radial lengths.  For orthogonal
+simulation boxes, any of the 3 options may be used.  For
+non-orthogonal (triclinic) simulation boxes, only the {reduced} option
+may be used.
+
+A {box} value selects standard distance units as defined by the
+"units"_units.html command, e.g. Angstroms for units = real or metal.
+A {lattice} value means the distance units are in lattice spacings.
+The "lattice"_lattice.html command must have been previously used to
+define the lattice spacing.
+
+NOTE: The {lattice} style may only be used if the lattice spacing is
+the same in each direction.
+
+A {reduced} value means normalized unitless values between 0 and 1,
+which represent the lower and upper faces of the simulation box
+respectively.  Thus an {origin} value of 0.5 means the center of the
+box in any dimension.
+
+The {file} keyword allows a filename to be specified.  Every {Nfreq}
+timesteps, a section of bin info will be written to a text file in the
+following format.  A line with the timestep and number of bin is
+written.  Then one line per bin is written, containing the bin ID
+(1-N), the coordinate of the center of the bin, the number of atoms in
+the bin, and one or more calculated values.  The number of values in
+each line corresponds to the number of values specified in the fix
+ave/spatial command.  The number of atoms and the value(s) are average
+quantities.  If the value of the {units} keyword is {box} or
+{lattice}, the "coord" is printed in box units.  If the value of the
+{units} keyword is {reduced}, the "coord" is printed in reduced units
+(0-1).
+
+The {overwrite} keyword will continuously overwrite the output file
+with the latest output, so that it only contains one timestep worth of
+output.  This option can only be used with the {ave running} setting.
+
+The {title1} and {title2} and {title3} keywords allow specification of
+the strings that will be printed as the first 3 lines of the output
+file, assuming the {file} keyword was used.  LAMMPS uses default
+values for each of these, so they do not need to be specified.
+
+By default, these header lines are as follows:
+
+# Spatial-averaged data for fix ID and group name
+# Timestep Number-of-bins
+# Bin r Count value1 value2 ... :pre
+
+In the first line, ID and name are replaced with the fix-ID and group
+name.  The second line describes the two values that are printed at
+the first of each section of output.  In the third line the values are
+replaced with the appropriate fields from the fix ave/spatial command.
+The Coord2 and Coord3 entries in the third line only appear for 2d and
+3d bins respectively.  For 1d bins, the word Coord1 is replaced by
+just Coord.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.
+
+This fix computes a global array of values which can be accessed by
+various "output commands"_Section_howto.html#howto_15.  The values can
+only be accessed on timesteps that are multiples of {Nfreq} since that
+is when averaging is performed.  The global array has # of rows =
+Nbins and # of columns = 2+Nvalues.  The first column contains the
+radius at the center of the shell. For units {reduced}, this is in
+reduced units, while for units {box} and {lattice} this is in box
+units. The next column has the count of atoms in that bin, and the
+remaining columns are the Nvalue quantities.  When the array is
+accessed with an I that exceeds the current number of bins, than a 0.0
+is returned by the fix instead of an error.  The array values
+calculated by this fix are "intensive", since they are already
+normalized by the count of atoms in each bin.
+
+No parameter of this fix can be used with the {start/stop} keywords of
+the "run"_run.html command.  This fix is not invoked during "energy
+minimization"_minimize.html.
+
+[Restrictions:]
+
+When the {ave} keyword is set to {running} or {window} then the number
+of bins must remain the same during the simulation, so that the
+appropriate averaging can be done.  This will be the case if the
+simulation box size doesn't change or if the {units} keyword is set to
+{reduced}.
+
+This style is part of the USER-MISC package. It is only enabled if
+LAMMPS is build with that package. See the "Making of
+LAMMPS"_Section_start.html#3 section for more info.
+
+[Related commands:]
+
+"compute"_compute.html, "fix ave/atom"_fix_ave_atom.html, "fix
+ave/histo"_fix_ave_histo.html, "fix ave/time"_fix_ave_time.html,
+"variable"_variable.html, "fix ave/correlate"_fix_ave_correlate.html,
+"fix ave/spatial"_fix_ave_spatial.html,
+
+[Default:]
+
+The option defaults are norm = all, ave = one, units = lattice, no
+file output, and title 1,2,3 = strings as described above.

@@ -1,0 +1,73 @@
+.. index:: compute dpd/atom
+
+compute dpd/atom command
+========================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   compute ID group-ID dpd/atom
+
+* ID, group-ID are documented in :doc:`compute <compute>` command
+* dpd/atom = style name of this compute command
+
+Examples
+""""""""
+
+compute 1 all dpd/atom
+
+Description
+"""""""""""
+
+Define a computation that accesses the per-particle internal
+conductive energy (u_cond), internal mechanical energy (u_mech) and
+internal temperatures (dpdTheta) for each particle in a group.  See
+the :doc:`compute dpd <compute_dpd>` command if you want the total
+internal conductive energy, the total internal mechanical energy, and
+average internal temperature of the entire system or group of dpd
+particles.
+
+**Output info:**
+
+This compute calculates a per-particle array with 3 columns (u_cond,
+u_mech, dpdTheta), which can be accessed by indices 1-3 by any command
+that uses per-particle values from a compute as input.  See
+:ref:`Section_howto15 <howto_15>` for an overview of
+LAMMPS output options.
+
+The per-particle array values will be in energy (u_cond, u_mech) and
+temperature (dpdTheta) :doc:`units <units>`.
+
+Restrictions
+""""""""""""
+
+
+The compute *dpd/atom* is only available if LAMMPS is built with the
+USER-DPD package.
+
+Related commands
+""""""""""""""""
+
+:doc:`dump custom <dump>`, :doc:`compute dpd <compute_dpd>`
+
+**Default:** none
+
+
+----------
+
+
+.. _Larentzos:
+
+
+
+**(Larentzos)** J.P. Larentzos, J.K. Brennan, J.D. Moore, and
+W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
+Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
+Laboratory, Aberdeen Proving Ground, MD (2014).
+
+
+.. _lws: http://lammps.sandia.gov
+.. _ld: Manual.html
+.. _lc: Section_commands.html#comm

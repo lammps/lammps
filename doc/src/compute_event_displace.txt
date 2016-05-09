@@ -1,0 +1,62 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute event/displace command :h3
+
+[Syntax:]
+
+compute ID group-ID event/displace threshold :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+event/displace = style name of this compute command
+threshold = minimum distance anyparticle must move to trigger an event (distance units) :ul
+
+[Examples:]
+
+compute 1 all event/displace 0.5 :pre
+
+[Description:]
+
+Define a computation that flags an "event" if any particle in the
+group has moved a distance greater than the specified threshold
+distance when compared to a previously stored reference state
+(i.e. the previous event).  This compute is typically used in
+conjunction with the "prd"_prd.html and "tad"_tad.html commands, 
+to detect if a transition
+to a new minimum energy basin has occurred.
+
+This value calculated by the compute is equal to 0 if no particle has
+moved far enough, and equal to 1 if one or more particles have moved
+further than the threshold distance.
+
+NOTE: If the system is undergoing significant center-of-mass motion, 
+due to thermal motion, an external force, or an initial net momentum, 
+then this compute will not be able to distinguish that motion from
+local atom displacements and may generate "false postives."
+
+[Output info:]
+
+This compute calculates a global scalar (the flag).  This value can be
+used by any command that uses a global scalar value from a compute as
+input.  See "Section_howto 15"_Section_howto.html#howto_15 for an
+overview of LAMMPS output options.
+
+The scalar value calculated by this compute is "intensive".  The
+scalar value will be a 0 or 1 as explained above.
+
+[Restrictions:]
+
+This command can only be used if LAMMPS was built with the REPLICA
+package.  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info on packages.
+
+[Related commands:]
+
+"prd"_prd.html, "tad"_tad.html
+
+[Default:] none

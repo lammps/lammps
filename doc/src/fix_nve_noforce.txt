@@ -1,0 +1,54 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix nve/noforce command :h3
+
+[Syntax:]
+
+fix ID group-ID nve :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+nve/noforce = style name of this fix command :ul
+
+[Examples:]
+
+fix 3 wall nve/noforce :pre
+
+[Description:]
+
+Perform updates of position, but not velocity for atoms in the group
+each timestep.  In other words, the force on the atoms is ignored and
+their velocity is not updated.  The atom velocities are used to update
+their positions.
+
+This can be useful for wall atoms, when you set their velocities, and
+want the wall to move (or stay stationary) in a prescribed fashion.
+
+This can also be accomplished via the "fix setforce"_fix_setforce.html
+command, but with fix nve/noforce, the forces on the wall atoms are
+unchanged, and can thus be printed by the "dump"_dump.html command or
+queried with an equal-style "variable"_variable.html that uses the
+fcm() group function to compute the total force on the group of atoms.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output
+commands"_Section_howto.html#howto_15.  No parameter of this fix can
+be used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"fix nve"_fix_nve.html
+
+[Default:] none

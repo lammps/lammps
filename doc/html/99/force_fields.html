@@ -1,0 +1,550 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+LAMMPS Force Fields</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation</P>
+<P>
+This file outlines the force-field formulas used in LAMMPS. Read this 
+file in conjunction with the <A HREF="data_format.html">data_format</A>
+ and <A HREF="units.html">units</A> file.</P>
+<P>
+The sections of this page are as follows:</P>
+<UL>
+    <LI>
+    <A HREF="#_cch3_930957465">Nonbond Coulomb</A> 
+    <LI>
+    <A HREF="#_cch3_930957471">Nonbond Lennard-Jones</A> 
+    <LI>
+    <A HREF="#_cch3_930957478">Mixing Rules for Lennard-Jones</A> 
+    <LI>
+    <A HREF="#_cch3_930957482">Bonds</A> 
+    <LI>
+    <A HREF="#_cch3_930957488">Angles</A> 
+    <LI>
+    <A HREF="#_cch3_930957509">Dihedrals</A> 
+    <LI>
+    <A HREF="#_cch3_930957513">Impropers</A> 
+    <LI>
+    <A HREF="#_cch3_930957527">Class II Force Field</A> 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930957465">Nonbond Coulomb</A></H3>
+<P>
+Whatever Coulomb style is specified in the input command file, the 
+short-range Coulombic interactions are computed by this formula, 
+modified by an appropriate smoother for the smooth, Ewald, and PPPM 
+styles.</P>
+<PRE>
+  E = C q1 q2 / (epsilon * r)
+
+  r = distance (computed by LAMMPS)
+  C = hardwired constant to convert to energy units
+  q1,q2 = charge of each atom in electron units (proton = +1),
+    specified in &quot;Atoms&quot; entry in data file
+  epsilon = dielectric constant (vacuum = 1.0),
+    set by user in input command file
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930957471">Nonbond Lennard-Jones </A></H3>
+<P>
+The style of nonbond potential is specified in the input command file. </P>
+<H4>
+(1) lj/cutoff </H4>
+<PRE>
+
+  E = 4 epsilon [ (sigma/r)^12 - (sigma/r)^6 ]
+
+  standard Lennard Jones potential
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = epsilon (energy)
+  coeff2 = sigma (distance)
+
+  2 coeffs are listed in data file or set in input script
+  1 cutoff is set in input script
+
+</PRE>
+<H4>
+(2) lj/switch </H4>
+<PRE>
+
+  E = 4 epsilon [ (sigma/r)^12 - (sigma/r)^6 ]  for  r &lt; r_inner
+    = spline fit    for  r_inner &lt; r &lt; cutoff
+    = 0             for r &gt; cutoff
+
+  switching function (spline fit) is applied to standard LJ
+    within a switching region (from r_inner to cutoff) so that
+    energy and force go smoothly to zero
+  spline coefficients are computed by LAMMPS
+    so that at inner cutoff (r_inner) the potential, force, 
+    and 1st-derivative of force are all continuous, 
+    and at outer cutoff (cutoff) the potential and force
+    both go to zero
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = epsilon (energy)
+  coeff2 = sigma (distance)
+  
+  2 coeffs are listed in data file or set in input script
+  2 cutoffs (r_inner and cutoff) are set in input script
+
+</PRE>
+<H4>
+(3) lj/shift </H4>
+<PRE>
+
+  E = 4 epsilon [ (sigma/(r - delta))^12 - (sigma/(r - delta))^6 ]
+
+  same as lj/cutoff except that r is shifted by delta
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = epsilon (energy)
+  coeff2 = sigma (distance)
+  coeff3 = delta (distance)
+
+  3 coeffs are listed in data file or set in input script
+  1 cutoff is set in input script
+
+</PRE>
+<H4>
+(4) soft </H4>
+<PRE>
+
+  E = A * [ 1 + cos( pi * r / cutoff ) ]
+
+  useful for pushing apart overlapping atoms by ramping A over time
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = prefactor A at start of run (energy)
+  coeff2 = prefactor A at end of run (energy)
+
+  2 coeffs are listed in data file or set in input script
+  1 cutoff is set in input script
+
+</PRE>
+<H4>
+(5) class2/cutoff </H4>
+<PRE>
+
+  E = epsilon [ 2 (sigma/r)^9 - 3 (sigma/r)^6 ]
+
+  used with class2 bonded force field
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = epsilon (energy)
+  coeff2 = sigma (distance)
+
+  2 coeffs are listed in data file or set in input script
+  1 cutoff is set in input script
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930957478">Mixing Rules for Lennard-Jones</A></H3>
+<P>
+The coefficients for each nonbond style are input in either the data 
+file by the &quot;read data&quot; command or in the input script using 
+the &quot;nonbond coeff&quot; command. In the former case, only one set 
+of coefficients is input for each atom type. The cross-type coeffs are 
+computed using one of three possible mixing rules: </P>
+<PRE>
+
+ geometric:  epsilon_ij = sqrt(epsilon_i * epsilon_j)
+             sigma_ij = sqrt(sigma_i * sigma_j)
+
+ arithmetic: epsilon_ij = sqrt(epsilon_i * epsilon_j)
+             sigma_ij = (sigma_i + sigma_j) / 2
+
+ sixthpower: epsilon_ij =
+               (2 * sqrt(epsilon_i*epsilon_j) * sigma_i^3 * sigma_j^3) /
+               (sigma_i^6 + sigma_j^6)
+             sigma_ij=  ((sigma_i**6 + sigma_j**6) / 2) ^ (1/6)
+
+</PRE>
+<P>
+The default mixing rule for nonbond styles lj/cutoff, lj/switch, 
+lj/shift, and soft is &quot;geometric&quot;. The default for nonbond 
+style class2/cutoff is &quot;sixthpower&quot;. </P>
+<P>
+The default can be overridden using the &quot;mixing style&quot; 
+command. The one exception to this is for the nonbond style soft, for 
+which only an epsilon prefactor is input. This is always mixed 
+geometrically. </P>
+<P>
+Also, for nonbond style lj/shift, the delta coefficient is always mixed 
+using the rule </P>
+<UL>
+    <LI>
+    delta_ij = (delta_i + delta_j) / 2 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930957482">Bonds</A></H3>
+<P>
+The style of bond potential is specified in the input command file.</P>
+<H4>
+(1) harmonic </H4>
+<PRE>
+
+  E = K (r - r0)^2
+
+  standard harmonic spring
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = K (energy/distance^2)  (the usual 1/2 is included in the K)
+  coeff2 = r0 (distance)
+
+  2 coeffs are listed in data file or set in input script
+
+</PRE>
+<H4>
+(2) FENE/standard </H4>
+<PRE>
+
+  E = -0.5 K R0^2 * ln[1 - (r/R0)^2] +
+    4 epsilon [(sigma/r)^12 - (sigma/r)^6] + epsilon
+
+  finite extensible nonlinear elastic (FENE) potential for
+    polymer bead-spring models
+  see Kremer, Grest, J Chem Phys, 92, p 5057 (1990)
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = K (energy/distance^2)
+  coeff2 = R0 (distance)
+  coeff3 = epsilon (energy)
+  coeff4 = sigma (distance)
+
+  1st term is attraction, 2nd term is repulsion (shifted LJ)
+  1st term extends to R0
+  2nd term only extends to the minimum of the LJ potential,
+    a cutoff distance computed by LAMMPS (2^(1/6) * sigma)
+
+  4 coeffs are listed in data file or set in input script
+
+</PRE>
+<H4>
+(3) FENE/shift </H4>
+<PRE>
+
+  E = -0.5 K R0^2 * ln[1 - ((r - delta)/R0)^2] +
+    4 epsilon [(sigma/(r - delta))^12 - (sigma/(r - delta))^6] + epsilon
+
+  same as FENE/standard expect that r is shifted by delta
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = K (energy/distance^2)
+  coeff2 = R0 (distance)
+  coeff3 = epsilon (energy)
+  coeff4 = sigma (distance)
+  coeff5 = delta (distance)
+
+  1st term is attraction, 2nd term is repulsion (shifted LJ)
+  1st term extends to R0
+  2nd term only extends to the minimum of the LJ potential,
+    a cutoff distance computed by LAMMPS (2^(1/6) * sigma + delta)
+
+  5 coeffs are listed in data file or set in input script
+
+</PRE>
+<H4>
+(4) nonlinear </H4>
+<PRE>
+
+  E = epsilon (r - r0)^2 / [ lamda^2 - (r - r0)^2 ]
+
+  non-harmonic spring of equilibrium length r0
+    with finite extension of lamda
+  see Rector, Van Swol, Henderson, Molecular Physics, 82, p 1009 (1994)
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = epsilon (energy)
+  coeff2 = r0 (distance)
+  coeff3 = lamda (distance)
+
+  3 coeffs are listed in data file or set in input script
+
+</PRE>
+<H4>
+(5) class2 </H4>
+<PRE>
+
+  E = K2 (r - r0)^2  +  K3 (r - r0)^3  +  K4 (r - r0)^4
+
+  r = distance (computed by LAMMPS)
+
+  coeff1 = r0 (distance)
+  coeff2 = K2 (energy/distance^2)
+  coeff3 = K3 (energy/distance^3)
+  coeff4 = K4 (energy/distance^4)
+
+  4 coeffs are listed in data file - cannot be set in input script
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930957488">Angles </A></H3>
+<P>
+The style of angle potential is specified in the input command file. </P>
+<H4>
+(1) harmonic </H4>
+<PRE>
+
+  E = K (theta - theta0)^2
+
+  theta = radians (computed by LAMMPS)
+
+  coeff1 = K (energy/radian^2) (the usual 1/2 is included in the K)
+  coeff2 = theta0 (degrees) (converted to radians within LAMMPS)
+
+  2 coeffs are listed in data file
+
+</PRE>
+<H4>
+(2) class2 </H4>
+<PRE>
+
+  E = K2 (theta - theta0)^2 +  K3 (theta - theta0)^3 + 
+       K4 (theta - theta0)^4
+
+  theta = radians (computed by LAMMPS)
+
+  coeff1 = theta0 (degrees) (converted to radians within LAMMPS)
+  coeff2 = K2 (energy/radian^2)
+  coeff3 = K3 (energy/radian^3)
+  coeff4 = K4 (energy/radian^4)
+
+  4 coeffs are listed in data file
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930957509">Dihedrals </A></H3>
+<P>
+The style of dihedral potential is specified in the input command file. </P>
+<H4>
+(1) harmonic </H4>
+<PRE>
+
+  E = K [1 + d * cos (n * phi) ]
+
+  phi = radians (computed by LAMMPS)
+
+  coeff1 = K (energy)
+  coeff2 = d (always +1 or -1)
+  coeff3 = n (1,2,3,4,6)
+
+  Cautions when comparing to other force fields:
+
+  some force fields reverse the sign convention on d so that
+    E = K [1 - d * cos(n*phi)]
+  some force fields divide/multiply K by the number of multiple
+    torsions that contain the j-k bond in an i-j-k-l torsion
+  some force fields let n be positive or negative which 
+    corresponds to d = 1,-1
+  in the LAMMPS force field, the trans position = 180 degrees, while
+    in some force fields trans = 0 degrees
+ 
+  3 coeffs are listed in data file
+</PRE>
+<H4>
+(2) class2 </H4>
+<PRE>
+
+  E = SUM(n=1,3) { K_n [ 1 - cos( n*Phi - Phi0_n ) ] }
+
+  phi = radians (computed by LAMMPS)
+
+  coeff1 = K_1 (energy)
+  coeff2 = Phi0_1 (degrees) (converted to radians within LAMMPS)
+  coeff3 = K_2 (energy)
+  coeff4 = Phi0_2 (degrees) (converted to radians within LAMMPS)
+  coeff5 = K_3 (energy)
+  coeff6 = Phi0_3 (degrees) (converted to radians within LAMMPS)
+
+  6 coeffs are listed in data file
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930957513">Impropers</A></H3>
+<P>
+The style of improper potential is specified in the input command file. </P>
+<H4>
+(1) harmonic </H4>
+<PRE>
+
+  E = K (chi - chi0)^2
+
+  chi = radians (computed by LAMMPS)
+
+  coeff1 = K (energy/radian^2) (the usual 1/2 is included in the K)
+  coeff2 = chi0 (degrees) (converted to radians within LAMMPS)
+
+  in data file, listing of 4 atoms requires atom-1 as central atom
+  some force fields (AMBER,Discover) have atom-2 as central atom - it is really
+    an out-of-plane torsion, may need to treat as dihedral in LAMMPS
+
+  2 coeffs are listed in data file
+</PRE>
+<H4>
+(2) class2 </H4>
+<PRE>
+
+  same formula, coeffs, and meaning as &quot;harmonic&quot; except that LAMMPS
+    averages all 3 angle-contributions to chi
+  in class II this is called a Wilson out-of-plane interaction
+
+  2 coeffs are listed in data file
+</PRE>
+<HR>
+<H3>
+<A NAME="_cch3_930957527">Class II Force Field</A></H3>
+<P>
+If class II force fields are selected in the input command file, 
+additional cross terms are computed as part of the force field.</P>
+<H4>
+Bond-Bond (computed within class II angles) </H4>
+<PRE>
+
+  E = K (r - r0) * (r' - r0')
+
+  r,r' = distance (computed by LAMMPS)
+
+  coeff1 = K (energy/distance^2)
+  coeff2 = r0 (distance)
+  coeff3 = r0' (distance)
+
+  3 coeffs are input in data file
+</PRE>
+<H4>
+Bond-Angle (computed within class II angles for each of 2 bonds) </H4>
+<PRE>
+
+  E = K_n (r - r0_n) * (theta - theta0)
+
+  r = distance (computed by LAMMPS)
+  theta = radians (computed by LAMMPS)
+
+  coeff1 = K_1 (energy/distance-radians)
+  coeff2 = K_2 (energy/distance-radians)
+  coeff3 = r0_1 (distance)
+  coeff4 = r0_2 (distance)
+
+  Note: theta0 is known from angle coeffs so don't need it specified here
+
+  4 coeffs are listed in data file
+</PRE>
+<H4>
+Middle-Bond-Torsion (computed within class II dihedral) </H4>
+<PRE>
+
+  E = (r - r0) * [ F1*cos(phi) + F2*cos(2*phi) + F3*cos(3*phi) ]
+
+  r = distance (computed by LAMMPS)
+  phi = radians (computed by LAMMPS)
+
+  coeff1 = F1 (energy/distance)
+  coeff2 = F2 (energy/distance)
+  coeff3 = F3 (energy/distance)
+  coeff4 = r0 (distance)
+
+  4 coeffs are listed in data file
+</PRE>
+<H4>
+End-Bond-Torsion (computed within class II dihedral for each of 2 
+bonds) </H4>
+<PRE>
+
+  E = (r - r0_n) * [ F1_n*cos(phi) + F2_n*cos(2*phi) + F3_n*cos(3*phi) ]
+
+  r = distance (computed by LAMMPS)
+  phi = radians (computed by LAMMPS)
+
+  coeff1 = F1_1 (energy/distance)
+  coeff2 = F2_1 (energy/distance)
+  coeff3 = F3_1 (energy/distance)
+  coeff4 = F1_2 (energy/distance)
+  coeff5 = F2_3 (energy/distance)
+  coeff6 = F3_3 (energy/distance)
+  coeff7 = r0_1 (distance)
+  coeff8 = r0_2 (distance)
+
+  8 coeffs are listed in data file
+</PRE>
+<H4>
+Angle-Torsion (computed within class II dihedral for each of 2 angles) </H4>
+<PRE>
+
+  E = (theta - theta0) * [ F1_n*cos(phi) + F2_n*cos(2*phi) + F3_n*cos(3*phi) ]
+
+  theta = radians (computed by LAMMPS)
+  phi = radians (computed by LAMMPS)
+
+  coeff1 = F1_1 (energy/radians)
+  coeff2 = F2_1 (energy/radians)
+  coeff3 = F3_1 (energy/radians)
+  coeff4 = F1_2 (energy/radians)
+  coeff5 = F2_3 (energy/radians)
+  coeff6 = F3_3 (energy/radians)
+  coeff7 = theta0_1 (degrees) (converted to radians within LAMMPS)
+  coeff8 = theta0_2 (degrees) (converted to radians within LAMMPS)
+
+  8 coeffs are listed in data file
+</PRE>
+<H4>
+Angle-Angle-Torsion (computed within class II dihedral) </H4>
+<PRE>
+
+  E = K (theta - theta0) * (theta' - theta0') * (phi - phi0)
+
+  theta,theta' = radians (computed by LAMMPS)
+  phi = radians (computed by LAMMPS)
+
+  coeff1 = K (energy/radians^3)
+  coeff2 = theta0 (degrees) (converted to radians within LAMMPS)
+  coeff3 = theta0' (degrees) (converted to radians within LAMMPS)
+
+  Note: phi0 is known from dihedral coeffs so don't need it specified here
+
+  3 coeffs are listed in data file
+
+</PRE>
+<H4>
+Bond-Bond-13-Torsion (computed within class II dihedral) </H4>
+<PRE>
+
+  (undocumented)
+
+</PRE>
+<H4>
+Angle-Angle (computed within class II improper for each of 3 pairs of 
+angles) </H4>
+<PRE>
+
+  E = K_n (theta - theta0_n) * (theta' - theta0_n')
+
+  theta,theta' = radians (computed by LAMMPS)
+
+  coeff1 = K_1 (energy/radians^2)
+  coeff2 = K_2 (energy/radians^2)
+  coeff3 = K_3 (energy/radians^2)
+  coeff4 = theta0_1 (degrees) (converted to radians within LAMMPS)
+  coeff5 = theta0_2 (degrees) (converted to radians within LAMMPS)
+  coeff6 = theta0_3 (degrees) (converted to radians within LAMMPS)
+
+  6 coeffs are listed in data file
+</PRE>
+</BODY>
+</HTML>

@@ -1,0 +1,39 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+dielectric command :h3 
+
+[Syntax:]
+
+dielectric value :pre
+
+value = dielectric constant :ul
+
+[Examples:]
+
+dielectric 2.0 :pre
+
+[Description:]
+
+Set the dielectric constant for Coulombic interactions (pairwise and
+long-range) to this value.  The constant is unitless, since it is used
+to reduce the strength of the interactions.  The value is used in the
+denominator of the formulas for Coulombic interactions - e.g. a value
+of 4.0 reduces the Coulombic interactions to 25% of their default
+strength.  See the "pair_style"_pair_style.html command for more
+details.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"pair_style"_pair_style.html
+
+[Default:]
+
+dielectric 1.0 :pre

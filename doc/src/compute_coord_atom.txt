@@ -1,0 +1,92 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute coord/atom command :h3
+
+[Syntax:]
+
+compute ID group-ID coord/atom cutoff type1 type2 ... :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+coord/atom = style name of this compute command
+cutoff = distance within which to count coordination neighbors (distance units)
+typeN = atom type for Nth coordination count (see asterisk form below) :ul
+
+[Examples:]
+
+compute 1 all coord/atom 2.0
+compute 1 all coord/atom 6.0 1 2
+compute 1 all coord/atom 6.0 2*4 5*8 * :pre
+
+[Description:]
+
+Define a computation that calculates one or more coordination numbers
+for each atom in a group.
+
+A coordination number is defined as the number of neighbor atoms with
+specified atom type(s) that are within the specified cutoff distance
+from the central atom.  Atoms not in the group are included in a
+coordination number of atoms in the group.
+
+The {typeN} keywords allow you to specify which atom types contribute
+to each coordination number.  One coordination number is computed for
+each of the {typeN} keywords listed.  If no {typeN} keywords are
+listed, a single coordination number is calculated, which includes
+atoms of all types (same as the "*" format, see below).
+
+The {typeN} keywords can be specified in one of two ways.  An explicit
+numeric value can be used, as in the 2nd example above.  Or a
+wild-card asterisk can be used to specify a range of atom types.  This
+takes the form "*" or "*n" or "n*" or "m*n".  If N = the number of
+atom types, then an asterisk with no numeric values means all types
+from 1 to N.  A leading asterisk means all types from 1 to n
+(inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).
+
+The value of all coordination numbers will be 0.0 for atoms not in the
+specified compute group.
+
+The neighbor list needed to compute this quantity is constructed each
+time the calculation is performed (i.e. each time a snapshot of atoms
+is dumped).  Thus it can be inefficient to compute/dump this quantity
+too frequently.
+
+NOTE: If you have a bonded system, then the settings of
+"special_bonds"_special_bonds.html command can remove pairwise
+interactions between atoms in the same bond, angle, or dihedral.  This
+is the default setting for the "special_bonds"_special_bonds.html
+command, and means those pairwise interactions do not appear in the
+neighbor list.  Because this fix uses the neighbor list, it also means
+those pairs will not be included in the coordination count.  One way
+to get around this, is to write a dump file, and use the
+"rerun"_rerun.html command to compute the coordination for snapshots
+in the dump file.  The rerun script can use a
+"special_bonds"_special_bonds.html command that includes all pairs in
+the neighbor list.
+
+[Output info:]
+
+If single {type1} keyword is specified (or if none are specified),
+this compute calculates a per-atom vector.  If multiple {typeN}
+keywords are specified, this compute calculates a per-atom array, with
+N columns.  These values can be accessed by any command that uses
+per-atom values from a compute as input.  See "Section_howto
+15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+options.
+
+The per-atom vector or array values will be a number >= 0.0, as
+explained above.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"compute cluster/atom"_compute_cluster_atom.html
+
+[Default:] none

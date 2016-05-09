@@ -240,11 +240,11 @@ particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.</p>
 <p>The equations of motion used are those of Shinoda et al in
 <a class="reference internal" href="pair_sdk.html#shinoda"><span class="std std-ref">(Shinoda)</span></a>, which combine the hydrostatic equations of
-Martyna, Tobias and Klein in <a class="reference internal" href="fix_rigid.html#martyna"><span class="std std-ref">(Martyna)</span></a> with the strain
+Martyna, Tobias and Klein in <a class="reference internal" href="#martyna"><span class="std std-ref">(Martyna)</span></a> with the strain
 energy proposed by Parrinello and Rahman in
-<a class="reference internal" href="fix_nh_eff.html#parrinello"><span class="std std-ref">(Parrinello)</span></a>.  The time integration schemes closely
+<a class="reference internal" href="#parrinello"><span class="std std-ref">(Parrinello)</span></a>.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al in <a class="reference internal" href="run_style.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.</p>
+integrators derived by Tuckerman et al in <a class="reference internal" href="fix_pimd.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.</p>
 <hr class="docutils" />
 <p>The thermostat parameters for fix styles <em>nvt</em> and <em>npt</em> is specified
 using the <em>temp</em> keyword.  Other thermostat-related keywords are
@@ -257,7 +257,7 @@ ramped value during the run from <em>Tstart</em> to <em>Tstop</em>.  The <em>Tda
 parameter is specified in time units and determines how rapidly the
 temperature is relaxed.  For example, a value of 10.0 means to relax
 the temperature in a timespan of (roughly) 10 time units (e.g. tau or
-fmsec or psec - see the <span class="xref doc">units</span> command).  The atoms in the
+fmsec or psec - see the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).  The atoms in the
 fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.</p>
 <div class="admonition note">
@@ -267,7 +267,7 @@ of <em>Tdamp</em>.  If <em>Tdamp</em> is too small, the temperature can fluctuat
 wildly; if it is too large, the temperature will take a very long time
 to equilibrate.  A good choice for many models is a <em>Tdamp</em> of around
 100 timesteps.  Note that this is NOT the same as 100 time units for
-most <span class="xref doc">units</span> settings.</p>
+most <a class="reference internal" href="units.html"><span class="doc">units</span></a> settings.</p>
 </div>
 <hr class="docutils" />
 <p>The barostat parameters for fix styles <em>npt</em> and <em>nph</em> is specified
@@ -302,7 +302,7 @@ simulation box must be triclinic, even if its initial tilt factors are
 <em>Tdamp</em> parameter, determining the time scale on which pressure is
 relaxed.  For example, a value of 10.0 means to relax the pressure in
 a timespan of (roughly) 10 time units (e.g. tau or fmsec or psec - see
-the <span class="xref doc">units</span> command).</p>
+the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">A Nose-Hoover barostat will not work well for arbitrary values
@@ -311,7 +311,7 @@ fluctuate wildly; if it is too large, the pressure will take a very
 long time to equilibrate.  A good choice for many models is a <em>Pdamp</em>
 of around 1000 timesteps.  However, note that <em>Pdamp</em> is specified in
 time units, and that timesteps are NOT the same as time units for most
-<span class="xref doc">units</span> settings.</p>
+<a class="reference internal" href="units.html"><span class="doc">units</span></a> settings.</p>
 </div>
 <p>Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -402,7 +402,7 @@ freedom. A value of 0 corresponds to no thermostatting of the
 barostat variables.</p>
 <p>The <em>mtk</em> keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-<a class="reference internal" href="fix_rigid.html#martyna"><span class="std std-ref">(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
+<a class="reference internal" href="#martyna"><span class="std std-ref">(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using <em>yes</em> is more correct, but in many cases the difference is
@@ -411,7 +411,7 @@ negligible.</p>
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into <em>tloop</em> substeps, each of
 length <em>dt</em>/<em>tloop</em>. This corresponds to using a first-order
-Suzuki-Yoshida scheme <a class="reference internal" href="run_style.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.  The keyword <em>ploop</em>
+Suzuki-Yoshida scheme <a class="reference internal" href="fix_pimd.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.  The keyword <em>ploop</em>
 does the same thing for the barostat thermostat.</p>
 <p>The keyword <em>nreset</em> controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,

@@ -231,7 +231,7 @@ in a DYNAMO-style format which is described below.  DYNAMO was the
 original serial EAM MD code, written by the EAM originators.  Several
 DYNAMO potential files for different metals are included in the
 &#8220;potentials&#8221; directory of the LAMMPS distribution.  All of these files
-are parameterized in terms of LAMMPS <span class="xref doc">metal units</span>.</p>
+are parameterized in terms of LAMMPS <a class="reference internal" href="units.html"><span class="doc">metal units</span></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The <em>eam</em> style reads single-element EAM potentials in the
@@ -301,7 +301,7 @@ file is formatted as follows:</p>
 <li>line 3: Nrho, drho, Nr, dr, cutoff</li>
 </ul>
 <p>On line 2, all values but the mass are ignored by LAMMPS.  The mass is
-in mass <span class="xref doc">units</span>, e.g. mass number or grams/mole for metal
+in mass <a class="reference internal" href="units.html"><span class="doc">units</span></a>, e.g. mass number or grams/mole for metal
 units.  The cubic lattice constant is in Angstroms.  On line 3, Nrho
 and Nr are the number of tabulated values in the subsequent arrays,
 drho and dr are the spacing in density and distance space for the
@@ -395,7 +395,7 @@ element, each with the following format:</p>
 <li>embedding function F(rho) (Nrho values)</li>
 <li>density function rho(r) (Nr values)</li>
 </ul>
-<p>As with the <em>funcfl</em> files, only the mass (in mass <span class="xref doc">units</span>,
+<p>As with the <em>funcfl</em> files, only the mass (in mass <a class="reference internal" href="units.html"><span class="doc">units</span></a>,
 e.g. mass number or grams/mole for metal units) is used by LAMMPS from
 the 1st line.  The cubic lattice constant is in Angstroms.  The F and
 rho arrays are unique to a single element and have the same format and

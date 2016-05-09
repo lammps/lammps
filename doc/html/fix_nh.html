@@ -240,11 +240,11 @@ particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.</p>
 <p>The equations of motion used are those of Shinoda et al in
 <a class="reference internal" href="pair_sdk.html#shinoda"><span class="std std-ref">(Shinoda)</span></a>, which combine the hydrostatic equations of
-Martyna, Tobias and Klein in <a class="reference internal" href="#martyna"><span class="std std-ref">(Martyna)</span></a> with the strain
+Martyna, Tobias and Klein in <a class="reference internal" href="fix_rigid.html#martyna"><span class="std std-ref">(Martyna)</span></a> with the strain
 energy proposed by Parrinello and Rahman in
-<a class="reference internal" href="#parrinello"><span class="std std-ref">(Parrinello)</span></a>.  The time integration schemes closely
+<a class="reference internal" href="fix_nh_eff.html#parrinello"><span class="std std-ref">(Parrinello)</span></a>.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al in <a class="reference internal" href="fix_pimd.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.</p>
+integrators derived by Tuckerman et al in <a class="reference internal" href="run_style.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.</p>
 <hr class="docutils" />
 <p>The thermostat parameters for fix styles <em>nvt</em> and <em>npt</em> is specified
 using the <em>temp</em> keyword.  Other thermostat-related keywords are
@@ -325,7 +325,7 @@ be used with care, since it can be unphysical to dilate some atoms and
 not others, because it can introduce large, instantaneous
 displacements between a pair of atoms (one dilated, one not) that are
 far from the dilation origin.  Also note that for atoms not in the fix
-group, a separate time integration fix like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or
+group, a separate time integration fix like <span class="xref doc">fix nve</span> or
 <a class="reference internal" href="#"><span class="doc">fix nvt</span></a> can be used on them, independent of whether they
 are dilated or not.</p>
 <hr class="docutils" />
@@ -402,7 +402,7 @@ freedom. A value of 0 corresponds to no thermostatting of the
 barostat variables.</p>
 <p>The <em>mtk</em> keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-<a class="reference internal" href="#martyna"><span class="std std-ref">(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
+<a class="reference internal" href="fix_rigid.html#martyna"><span class="std std-ref">(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using <em>yes</em> is more correct, but in many cases the difference is
@@ -411,7 +411,7 @@ negligible.</p>
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into <em>tloop</em> substeps, each of
 length <em>dt</em>/<em>tloop</em>. This corresponds to using a first-order
-Suzuki-Yoshida scheme <a class="reference internal" href="fix_pimd.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.  The keyword <em>ploop</em>
+Suzuki-Yoshida scheme <a class="reference internal" href="run_style.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.  The keyword <em>ploop</em>
 does the same thing for the barostat thermostat.</p>
 <p>The keyword <em>nreset</em> controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
@@ -494,7 +494,7 @@ become inefficient due to the highly skewed simulation box.</p>
 <p class="last">Unlike the <a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">fix temp/berendsen</span></a> command
 which performs thermostatting but NO time integration, these fixes
 perform thermostatting/barostatting AND time integration.  Thus you
-should not use any other time integration fix, such as <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> on atoms to which this fix is applied.  Likewise,
+should not use any other time integration fix, such as <span class="xref doc">fix nve</span> on atoms to which this fix is applied.  Likewise,
 fix nvt and fix npt should not normally be used on atoms that also
 have their temperature controlled by another fix - e.g. by <a class="reference internal" href="#"><span class="doc">fix langevin</span></a> or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a>
 commands.</p>
@@ -706,7 +706,7 @@ over time or the atom count becomes very small.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a>,
+<p><span class="xref doc">fix nve</span>, <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a>,
 <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a></p>
 </div>
 <div class="section" id="default">

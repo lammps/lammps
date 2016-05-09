@@ -210,7 +210,7 @@ over the smaller set of atoms.  Otherwise the reordering required by
 this option will be a net slow-down.  The <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify include</span></a> and <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify group</span></a>
 commands are two examples of commands that require this setting to
 work efficiently.  Several <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a>, most notably time
-integration fixes like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, also take advantage of
+integration fixes like <span class="xref doc">fix nve</span>, also take advantage of
 this setting if the group they operate on is the group specified by
 this command.  Note that specifying &#8220;all&#8221; as the group-ID effectively
 turns off the <em>first</em> option.</p>

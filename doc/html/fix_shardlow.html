@@ -148,7 +148,7 @@
 integrate the DPD equations of motion.  The SSA splits the integration
 into a stochastic and deterministic integration step.  The fix
 <em>shardlow</em> performs the stochastic integration step and must be used
-in conjunction with a deterministic integrator (e.g. <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <span class="xref doc">fix nph</span>).  The stochastic
+in conjunction with a deterministic integrator (e.g. <span class="xref doc">fix nve</span> or <span class="xref doc">fix nph</span>).  The stochastic
 integration of the dissipative and random forces is performed prior to
 the deterministic integration of the conservative force. Further
 details regarding the method are provided in <a class="reference internal" href="pair_dpd_fdt.html#lisal"><span class="std std-ref">(Lisal)</span></a> and
@@ -176,7 +176,7 @@ for more info.</p>
 <p>This fix is currently limited to orthogonal simulation cell
 geometries.</p>
 <p>This fix must be used with an additional fix that specifies time
-integration, e.g. <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
+integration, e.g. <span class="xref doc">fix nve</span> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
 <p>The Shardlow splitting algorithm requires the sizes of the sub-domain
 lengths to be larger than twice the cutoff+skin.  Generally, the
 domain decomposition is dependant on the number of processors

@@ -363,8 +363,8 @@ commands like <a class="reference internal" href="pair_coeff.html"><span class="
 <a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>.  See <a class="reference internal" href="Section_tools.html"><span class="doc">Section_tools</span></a>
 for additional tools that can use CHARMM or AMBER to assign force
 field coefficients and convert their output into LAMMPS input.</p>
-<p>See <a class="reference internal" href="pair_charmm.html#mackerell"><span class="std std-ref">(MacKerell)</span></a> for a description of the CHARMM force
-field.  See <a class="reference internal" href="dihedral_charmm.html#cornell"><span class="std std-ref">(Cornell)</span></a> for a description of the AMBER force
+<p>See <a class="reference internal" href="special_bonds.html#mackerell"><span class="std std-ref">(MacKerell)</span></a> for a description of the CHARMM force
+field.  See <a class="reference internal" href="special_bonds.html#cornell"><span class="std std-ref">(Cornell)</span></a> for a description of the AMBER force
 field.</p>
 <p>These style choices compute force field formulas that are consistent
 with common options in CHARMM or AMBER.  See each command&#8217;s
@@ -389,7 +389,7 @@ atoms involved in the bond, angle, or torsion terms. DREIDING has an
 <a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">explicit hydrogen bond term</span></a> to describe
 interactions involving a hydrogen atom on very electronegative atoms
 (N, O, F).</p>
-<p>See <a class="reference internal" href="pair_hbond_dreiding.html#mayo"><span class="std std-ref">(Mayo)</span></a> for a description of the DREIDING force field</p>
+<p>See <a class="reference internal" href="special_bonds.html#mayo"><span class="std std-ref">(Mayo)</span></a> for a description of the DREIDING force field</p>
 <p>These style choices compute force field formulas that are consistent
 with the DREIDING force field.  See each command&#8217;s
 documentation for the formula it computes.</p>
@@ -587,7 +587,7 @@ computations between frozen atoms by using this command:</p>
 <div class="section" id="tip3p-water-model">
 <span id="howto-7"></span><h2>6.7. TIP3P water model</h2>
 <p>The TIP3P water model as implemented in CHARMM
-<a class="reference internal" href="pair_charmm.html#mackerell"><span class="std std-ref">(MacKerell)</span></a> specifies a 3-site rigid water molecule with
+<a class="reference internal" href="special_bonds.html#mackerell"><span class="std std-ref">(MacKerell)</span></a> specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
 In LAMMPS the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> command can be used to hold
 the two O-H bonds and the H-O-H angle rigid.  A bond style of
@@ -766,7 +766,7 @@ the partial charge assignemnts change:</p>
 <div class="line">H charge = 0.4238</div>
 <div class="line"><br /></div>
 </div>
-<p>See the <a class="reference internal" href="#berendsen"><span class="std std-ref">(Berendsen)</span></a> reference for more details on both
+<p>See the <a class="reference internal" href="fix_temp_berendsen.html#berendsen"><span class="std std-ref">(Berendsen)</span></a> reference for more details on both
 the SPC and SPC/E models.</p>
 <p>Wikipedia also has a nice article on <a class="reference external" href="http://en.wikipedia.org/wiki/Water_model">water models</a>.</p>
 <hr class="docutils" />
@@ -1749,7 +1749,7 @@ do NOT perform time integration updates.  Thus they should be used in
 conjunction with a constant NVE integration fix such as these:</p>
 </div>
 <ul class="simple">
-<li><a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a></li>
+<li><span class="xref doc">fix nve</span></li>
 <li><a class="reference internal" href="fix_nve_sphere.html"><span class="doc">fix nve/sphere</span></a></li>
 <li><a class="reference internal" href="fix_nve_asphere.html"><span class="doc">fix nve/asphere</span></a></li>
 </ul>
@@ -1816,7 +1816,7 @@ or read in via the <a class="reference internal" href="read_data.html"><span cla
 they do not move at all, move together as a group at constant velocity
 or in response to a net force acting on them, move in a prescribed
 fashion (e.g. rotate around a point), etc.  Note that if a time
-integration fix like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>
+integration fix like <span class="xref doc">fix nve</span> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>
 is not used with the group that contains wall particles, their
 positions and velocities will not be updated.</p>
 <ul class="simple">
@@ -2731,7 +2731,7 @@ pairs as chunks.</p>
 model, representes induced dipoles by a pair of charges (the core atom
 and the Drude particle) connected by a harmonic spring. The Drude
 model has a number of features aimed at its use in molecular systems
-(<a class="reference internal" href="#lamoureux"><span class="std std-ref">Lamoureux and Roux</span></a>):</p>
+(<a class="reference internal" href="tutorial_drude.html#lamoureux"><span class="std std-ref">Lamoureux and Roux</span></a>):</p>
 <ul class="simple">
 <li>Thermostating of the additional degrees of freedom associated with the
 induced dipoles at very low temperature, in terms of the reduced

@@ -288,10 +288,10 @@ differences may accumulate to produce divergent trajectories.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">You should not update the atoms in rigid bodies via other
-time-integration fixes (e.g. <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>), or you will be integrating
+time-integration fixes (e.g. <span class="xref doc">fix nve</span>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>), or you will be integrating
 their motion more than once each timestep.  When performing a hybrid
 simulation with some atoms in rigid bodies, and some not, a separate
-time integration fix like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> should be used for the non-rigid particles.</p>
+time integration fix like <span class="xref doc">fix nve</span> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> should be used for the non-rigid particles.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -303,7 +303,7 @@ your time integration fix.  E.g. use &#8220;fix 1 mobile nve&#8221; instead of
 move.  You can move atoms with a constant velocity by assigning them
 an initial velocity (via the <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> command),
 setting the force on them to 0.0 (via the <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a> command), and integrating them as usual
-(e.g. via the <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> command).</p>
+(e.g. via the <span class="xref doc">fix nve</span> command).</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -685,10 +685,10 @@ also accounted for by this fix.</p>
 <hr class="docutils" />
 <p>If your simlulation is a hybrid model with a mixture of rigid bodies
 and non-rigid particles (e.g. solvent) there are several ways these
-rigid fixes can be used in tandem with <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>, and <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
+rigid fixes can be used in tandem with <span class="xref doc">fix nve</span>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>, and <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
 <p>If you wish to perform NVE dynamics (no thermostatting or
 barostatting), use fix rigid or fix rigid/nve to integrate the rigid
-bodies, and <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> to integrate the non-rigid
+bodies, and <span class="xref doc">fix nve</span> to integrate the non-rigid
 particles.</p>
 <p>If you wish to perform NVT dynamics (thermostatting, but no
 barostatting), you can use fix rigid/nvt for the rigid bodies, and any

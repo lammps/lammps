@@ -177,7 +177,7 @@
 <h2>Description</h2>
 <p>Apply a Langevin thermostat as described in <a class="reference internal" href="fix_langevin_eff.html#schneider"><span class="std std-ref">(Schneider)</span></a>
 to a group of atoms which models an interaction with a background
-implicit solvent.  Used with <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, this command
+implicit solvent.  Used with <span class="xref doc">fix nve</span>, this command
 performs Brownian dynamics (BD), since the total force on each atom
 will have the form:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">F</span> <span class="o">=</span> <span class="n">Fc</span> <span class="o">+</span> <span class="n">Ff</span> <span class="o">+</span> <span class="n">Fr</span>
@@ -218,7 +218,7 @@ thermostatting takes place; see the description below.</p>
 Nose/Hoover thermostatting AND time integration, this fix does NOT
 perform time integration.  It only modifies forces to effect
 thermostatting.  Thus you must use a separate time integration fix,
-like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> to actually update the velocities and
+like <span class="xref doc">fix nve</span> to actually update the velocities and
 positions of atoms using the modified forces.  Likewise, this fix
 should not normally be used on atoms that also have their temperature
 controlled by another fix - e.g. by <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> commands.</p>

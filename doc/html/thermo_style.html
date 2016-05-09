@@ -325,8 +325,8 @@ keywords for the <a class="reference internal" href="run.html"><span class="doc"
 runs that keep track of an initial starting time.  If these keywords
 are not used, then <em>elapsed</em> and <em>elaplong</em> are the same value.</p>
 <p>The <em>dt</em> keyword is the current timestep size in time
-<span class="xref doc">units</span>.  The <em>time</em> keyword is the current elapsed
-simulation time, also in time <span class="xref doc">units</span>, which is simply
+<a class="reference internal" href="units.html"><span class="doc">units</span></a>.  The <em>time</em> keyword is the current elapsed
+simulation time, also in time <a class="reference internal" href="units.html"><span class="doc">units</span></a>, which is simply
 (step*dt) if the timestep size has not changed and the timestep has
 not been reset.  If the timestep has changed (e.g. via <a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix dt/reset</span></a>) or the timestep has been reset (e.g. via
 the &#8220;reset_timestep&#8221; command), then the simulation time is effectively
@@ -335,7 +335,7 @@ a cummulative value up to the current point.</p>
 run.  The <em>tpcpu</em> and <em>spcpu</em> keywords are measures of how fast your
 simulation is currently running.  The <em>tpcpu</em> keyword is simulation
 time per CPU second, where simulation time is in time
-<span class="xref doc">units</span>.  E.g. for metal units, the <em>tpcpu</em> value would be
+<a class="reference internal" href="units.html"><span class="doc">units</span></a>.  E.g. for metal units, the <em>tpcpu</em> value would be
 picoseconds per CPU second.  The <em>spcpu</em> keyword is the number of
 timesteps per CPU second.  Both quantities are on-the-fly metrics,
 measured relative to the last time they were invoked.  Thus if you are

@@ -214,7 +214,7 @@ be used by other commands as distance units.  No additional
 keyword/value pairs can be specified for the <em>none</em> style.  By
 default, a &#8220;lattice none 1.0&#8221; is defined, which means the lattice
 spacing is the same as one distance unit, as defined by the
-<span class="xref doc">units</span> command.</p>
+<a class="reference internal" href="units.html"><span class="doc">units</span></a> command.</p>
 <p>Lattices of style <em>sc</em>, <em>fcc</em>, <em>bcc</em>, and <em>diamond</em> are 3d lattices
 that define a cubic unit cell with edge length = 1.0.  This means a1 =
 1 0 0, a2 = 0 1 0, and a3 = 0 0 1.  Style <em>hcp</em> has a1 = 1 0 0, a2 = 0
@@ -252,7 +252,7 @@ simulation box.</p>
 scaled when mapping it into the simulation box.  I.e. it determines a
 multiplicative factor to apply to the unit cell, to convert it to a
 lattice of the desired size and distance units in the simulation box.
-The meaning of the <em>scale</em> argument depends on the <span class="xref doc">units</span>
+The meaning of the <em>scale</em> argument depends on the <a class="reference internal" href="units.html"><span class="doc">units</span></a>
 being used in your simulation.</p>
 <p>For all unit styles except <em>lj</em>, the scale argument is specified in
 the distance units defined by the unit style.  For example, in <em>real</em>
@@ -303,7 +303,7 @@ E.g. the <a class="reference internal" href="region.html"><span class="doc">regi
 <p class="first admonition-title">Note</p>
 <p class="last">Though they are called lattice spacings, all the commands that
 have a &#8220;units lattice&#8221; option, simply use the 3 values as scale
-factors on the distance units defined by the <span class="xref doc">units</span>
+factors on the distance units defined by the <a class="reference internal" href="units.html"><span class="doc">units</span></a>
 command.  Thus if you do not like the lattice spacings computed by
 LAMMPS (e.g. for a non-orthogonal or rotated unit cell), you can
 define the 3 values to be whatever you wish, via the <em>spacing</em> option.</p>

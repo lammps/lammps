@@ -158,7 +158,7 @@
 <h2>Description</h2>
 <p>This command performs the quantum thermal bath scheme proposed by
 <a class="reference internal" href="#dammak"><span class="std std-ref">(Dammak)</span></a> to include self-consistent quantum nuclear effects,
-when used in conjunction with the <span class="xref doc">fix nve</span> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a> commands.</p>
+when used in conjunction with the <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a> commands.</p>
 <p>Classical molecular dynamics simulation does not include any quantum
 nuclear effect. Quantum treatment of the vibrational modes will
 introduce zero point energy into the system, alter the energy power
@@ -241,7 +241,7 @@ Mbytes.</p>
 Nose/Hoover thermostatting AND time integration, this fix does NOT
 perform time integration. It only modifies forces to a colored
 thermostat. Thus you must use a separate time integration fix, like
-<span class="xref doc">fix nve</span> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a> to actually update the
+<a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a> to actually update the
 velocities and positions of atoms (as shown in the
 examples). Likewise, this fix should not normally be used with other
 fixes or commands that also specify system temperatures , e.g. <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> and <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a>.</p>
@@ -263,7 +263,7 @@ LAMMPS was built with that package. See the <a class="reference internal" href="
 <hr class="docutils" />
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><span class="xref doc">fix nve</span>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, <a class="reference internal" href="fix_qbmsst.html"><span class="doc">fix qbmsst</span></a></p>
+<p><a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, <a class="reference internal" href="fix_qbmsst.html"><span class="doc">fix qbmsst</span></a></p>
 </div>
 <hr class="docutils" />
 <div class="section" id="default">

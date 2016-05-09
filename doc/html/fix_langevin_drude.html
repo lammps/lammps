@@ -209,7 +209,7 @@ from them before thermostating takes place; see the description below.</p>
 <p class="last">Like the <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> command, this fix does
 NOT perform time integration. It only modifies forces to effect
 thermostating. Thus you must use a separate time integration fix, like
-<span class="xref doc">fix nve</span> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a> to actually update the
+<a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a> to actually update the
 velocities and positions of atoms using the modified forces.
 Likewise, this fix should not normally be used on atoms that also have
 their temperature controlled by another fix - e.g. by <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> commands.</p>

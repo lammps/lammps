@@ -173,10 +173,10 @@
 <p>Bound the simulation with one or more walls which reflect particles
 in the specified group when they attempt to move thru them.</p>
 <p>Reflection means that if an atom moves outside the wall on a timestep
-by a distance delta (e.g. due to <span class="xref doc">fix nve</span>), then it is
+by a distance delta (e.g. due to <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>), then it is
 put back inside the face by the same delta, and the sign of the
 corresponding component of its velocity is flipped.</p>
-<p>When used in conjunction with <span class="xref doc">fix nve</span> and <a class="reference internal" href="run_style.html"><span class="doc">run_style verlet</span></a>, the resultant time-integration algorithm is
+<p>When used in conjunction with <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> and <a class="reference internal" href="run_style.html"><span class="doc">run_style verlet</span></a>, the resultant time-integration algorithm is
 equivalent to the primitive splitting algorithm (PSA) described by
 <a class="reference internal" href="#bond"><span class="std std-ref">Bond</span></a>.  Because each reflection event divides
 the corresponding timestep asymmetrically, energy conservation is only

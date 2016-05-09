@@ -325,7 +325,7 @@ be used with care, since it can be unphysical to dilate some atoms and
 not others, because it can introduce large, instantaneous
 displacements between a pair of atoms (one dilated, one not) that are
 far from the dilation origin.  Also note that for atoms not in the fix
-group, a separate time integration fix like <span class="xref doc">fix nve</span> or
+group, a separate time integration fix like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or
 <a class="reference internal" href="#"><span class="doc">fix nvt</span></a> can be used on them, independent of whether they
 are dilated or not.</p>
 <hr class="docutils" />
@@ -494,7 +494,7 @@ become inefficient due to the highly skewed simulation box.</p>
 <p class="last">Unlike the <a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">fix temp/berendsen</span></a> command
 which performs thermostatting but NO time integration, these fixes
 perform thermostatting/barostatting AND time integration.  Thus you
-should not use any other time integration fix, such as <span class="xref doc">fix nve</span> on atoms to which this fix is applied.  Likewise,
+should not use any other time integration fix, such as <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> on atoms to which this fix is applied.  Likewise,
 fix nvt and fix npt should not normally be used on atoms that also
 have their temperature controlled by another fix - e.g. by <a class="reference internal" href="#"><span class="doc">fix langevin</span></a> or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a>
 commands.</p>
@@ -706,7 +706,7 @@ over time or the atom count becomes very small.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><span class="xref doc">fix nve</span>, <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a>,
+<p><a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a>,
 <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a></p>
 </div>
 <div class="section" id="default">

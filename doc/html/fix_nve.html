@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>fix nve/asphere command &mdash; LAMMPS documentation</title>
+  <title>fix nve command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>fix nve/asphere command</li>
+    <li>fix nve command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,43 +124,42 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="fix-nve-asphere-command">
-<span id="index-0"></span><h1>fix nve/asphere command</h1>
+  <div class="section" id="fix-nve-command">
+<span id="index-0"></span><h1>fix nve command</h1>
 </div>
-<div class="section" id="fix-nve-asphere-intel-command">
-<h1>fix nve/asphere/intel command</h1>
+<div class="section" id="fix-nve-cuda-command">
+<h1>fix nve/cuda command</h1>
+</div>
+<div class="section" id="fix-nve-intel-command">
+<h1>fix nve/intel command</h1>
+</div>
+<div class="section" id="fix-nve-kk-command">
+<h1>fix nve/kk command</h1>
+</div>
+<div class="section" id="fix-nve-omp-command">
+<h1>fix nve/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">nve</span><span class="o">/</span><span class="n">asphere</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">nve</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
-<li>nve/asphere = style name of this fix command</li>
+<li>nve = style name of this fix command</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">nve</span><span class="o">/</span><span class="n">asphere</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">nve</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>Perform constant NVE integration to update position, velocity,
-orientation, and angular velocity for aspherical particles in the
-group each timestep.  V is volume; E is energy.  This creates a system
-trajectory consistent with the microcanonical ensemble.</p>
-<p>This fix differs from the <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> command, which
-assumes point particles and only updates their position and velocity.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
-<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can
-be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.
-This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+<p>Perform constant NVE integration to update position and velocity for
+atoms in the group each timestep.  V is volume; E is energy.  This
+creates a system trajectory consistent with the microcanonical
+ensemble.</p>
 <hr class="docutils" />
 <p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
@@ -179,20 +178,22 @@ use the <a class="reference internal" href="suffix.html"><span class="doc">suffi
 more instructions on how to use the accelerated styles effectively.</p>
 </div>
 <hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can
+be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.
+This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
-<p>This fix requires that atoms store torque and angular momementum and a
-quaternion as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style ellipsoid</span></a>
-command.</p>
-<p>All particles in the group must be finite-size.  They cannot be point
-particles, but they can be aspherical or spherical as defined by their
-shape attribute.</p>
+<blockquote>
+<div>none</div></blockquote>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nve_sphere.html"><span class="doc">fix nve/sphere</span></a></p>
+<p><a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>

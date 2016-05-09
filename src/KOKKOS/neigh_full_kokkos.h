@@ -293,14 +293,18 @@ void NeighborKokkosExecute<Device>::
             /* else which = 0; */
         if (which == 0){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }else if (minimum_image_check(delx,dely,delz)){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }
         else if (which > 0) {
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+          else n++;
         }
       } else {
         if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+        else n++;
       }
     }
   }
@@ -334,14 +338,18 @@ void NeighborKokkosExecute<Device>::
             /* else which = 0; */
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }
             else if (which > 0) {
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+              else n++;
             }
           } else {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
         }
 
@@ -444,14 +452,18 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
           /* else which = 0; */
           if (which == 0){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }else if (minimum_image_check(delx,dely,delz)){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
           else if (which > 0) {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+            else n++;
           }
         } else {
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }
       }
 
@@ -509,14 +521,18 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
             /* else which = 0; */
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }
             else if (which > 0) {
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+              else n++;
             }
           } else {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
         }
 
@@ -597,14 +613,18 @@ void NeighborKokkosExecute<Device>::
             /* else which = 0; */
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }
             else if (which > 0) {
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+              else n++;
             }
           } else {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
         }
       }
@@ -638,6 +658,7 @@ void NeighborKokkosExecute<Device>::
 
         if (rsq <= cutneighsq(itype,jtype)) {
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }
       }
     }

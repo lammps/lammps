@@ -1,0 +1,344 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute property/atom command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute property/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-property-atom-command">
+<span id="index-0"></span><h1>compute property/atom command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">input1</span> <span class="n">input2</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</li>
+<li>property/atom = style name of this compute command</li>
+<li>input = one or more atom attributes</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">possible</span> <span class="n">attributes</span> <span class="o">=</span> <span class="nb">id</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="n">proc</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span>
+                   <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> <span class="n">xu</span><span class="p">,</span> <span class="n">yu</span><span class="p">,</span> <span class="n">zu</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">,</span>
+                   <span class="n">vx</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">,</span> <span class="n">fz</span><span class="p">,</span>
+                      <span class="n">q</span><span class="p">,</span> <span class="n">mux</span><span class="p">,</span> <span class="n">muy</span><span class="p">,</span> <span class="n">muz</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span>
+                      <span class="n">radius</span><span class="p">,</span> <span class="n">diameter</span><span class="p">,</span> <span class="n">omegax</span><span class="p">,</span> <span class="n">omegay</span><span class="p">,</span> <span class="n">omegaz</span><span class="p">,</span>
+                   <span class="n">angmomx</span><span class="p">,</span> <span class="n">angmomy</span><span class="p">,</span> <span class="n">angmomz</span><span class="p">,</span>
+                   <span class="n">shapex</span><span class="p">,</span><span class="n">shapey</span><span class="p">,</span> <span class="n">shapez</span><span class="p">,</span>
+                   <span class="n">quatw</span><span class="p">,</span> <span class="n">quati</span><span class="p">,</span> <span class="n">quatj</span><span class="p">,</span> <span class="n">quatk</span><span class="p">,</span> <span class="n">tqx</span><span class="p">,</span> <span class="n">tqy</span><span class="p">,</span> <span class="n">tqz</span><span class="p">,</span>
+                   <span class="n">end1x</span><span class="p">,</span> <span class="n">end1y</span><span class="p">,</span> <span class="n">end1z</span><span class="p">,</span> <span class="n">end2x</span><span class="p">,</span> <span class="n">end2y</span><span class="p">,</span> <span class="n">end2z</span><span class="p">,</span>
+                   <span class="n">corner1x</span><span class="p">,</span> <span class="n">corner1y</span><span class="p">,</span> <span class="n">corner1z</span><span class="p">,</span>
+                   <span class="n">corner2x</span><span class="p">,</span> <span class="n">corner2y</span><span class="p">,</span> <span class="n">corner2z</span><span class="p">,</span>
+                   <span class="n">corner3x</span><span class="p">,</span> <span class="n">corner3y</span><span class="p">,</span> <span class="n">corner3z</span><span class="p">,</span>
+                   <span class="n">nbonds</span><span class="p">,</span>
+                      <span class="n">vfrac</span><span class="p">,</span> <span class="n">s0</span><span class="p">,</span>
+                   <span class="n">spin</span><span class="p">,</span> <span class="n">eradius</span><span class="p">,</span> <span class="n">ervel</span><span class="p">,</span> <span class="n">erforce</span><span class="p">,</span>
+                      <span class="n">rho</span><span class="p">,</span> <span class="n">drho</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">de</span><span class="p">,</span> <span class="n">cv</span><span class="p">,</span>
+                      <span class="n">i_name</span><span class="p">,</span> <span class="n">d_name</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">id</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">ID</span>
+<span class="n">mol</span> <span class="o">=</span> <span class="n">molecule</span> <span class="n">ID</span>
+<span class="n">proc</span> <span class="o">=</span> <span class="n">ID</span> <span class="n">of</span> <span class="n">processor</span> <span class="n">that</span> <span class="n">owns</span> <span class="n">atom</span>
+<span class="nb">type</span> <span class="o">=</span> <span class="n">atom</span> <span class="nb">type</span>
+<span class="n">mass</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">mass</span>
+<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unscaled</span> <span class="n">atom</span> <span class="n">coordinates</span>
+<span class="n">xs</span><span class="p">,</span><span class="n">ys</span><span class="p">,</span><span class="n">zs</span> <span class="o">=</span> <span class="n">scaled</span> <span class="n">atom</span> <span class="n">coordinates</span>
+<span class="n">xu</span><span class="p">,</span><span class="n">yu</span><span class="p">,</span><span class="n">zu</span> <span class="o">=</span> <span class="n">unwrapped</span> <span class="n">atom</span> <span class="n">coordinates</span>
+<span class="n">ix</span><span class="p">,</span><span class="n">iy</span><span class="p">,</span><span class="n">iz</span> <span class="o">=</span> <span class="n">box</span> <span class="n">image</span> <span class="n">that</span> <span class="n">the</span> <span class="n">atom</span> <span class="ow">is</span> <span class="ow">in</span>
+<span class="n">vx</span><span class="p">,</span><span class="n">vy</span><span class="p">,</span><span class="n">vz</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">velocities</span>
+<span class="n">fx</span><span class="p">,</span><span class="n">fy</span><span class="p">,</span><span class="n">fz</span> <span class="o">=</span> <span class="n">forces</span> <span class="n">on</span> <span class="n">atoms</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">charge</span>
+<span class="n">mux</span><span class="p">,</span><span class="n">muy</span><span class="p">,</span><span class="n">muz</span> <span class="o">=</span> <span class="n">orientation</span> <span class="n">of</span> <span class="n">dipole</span> <span class="n">moment</span> <span class="n">of</span> <span class="n">atom</span>
+<span class="n">mu</span> <span class="o">=</span> <span class="n">magnitude</span> <span class="n">of</span> <span class="n">dipole</span> <span class="n">moment</span> <span class="n">of</span> <span class="n">atom</span>
+<span class="n">radius</span><span class="p">,</span><span class="n">diameter</span> <span class="o">=</span> <span class="n">radius</span><span class="p">,</span><span class="n">diameter</span> <span class="n">of</span> <span class="n">spherical</span> <span class="n">particle</span>
+<span class="n">omegax</span><span class="p">,</span><span class="n">omegay</span><span class="p">,</span><span class="n">omegaz</span> <span class="o">=</span> <span class="n">angular</span> <span class="n">velocity</span> <span class="n">of</span> <span class="n">spherical</span> <span class="n">particle</span>
+<span class="n">angmomx</span><span class="p">,</span><span class="n">angmomy</span><span class="p">,</span><span class="n">angmomz</span> <span class="o">=</span> <span class="n">angular</span> <span class="n">momentum</span> <span class="n">of</span> <span class="n">aspherical</span> <span class="n">particle</span>
+<span class="n">shapex</span><span class="p">,</span><span class="n">shapey</span><span class="p">,</span><span class="n">shapez</span> <span class="o">=</span> <span class="mi">3</span> <span class="n">diameters</span> <span class="n">of</span> <span class="n">aspherical</span> <span class="n">particle</span>
+<span class="n">quatw</span><span class="p">,</span><span class="n">quati</span><span class="p">,</span><span class="n">quatj</span><span class="p">,</span><span class="n">quatk</span> <span class="o">=</span> <span class="n">quaternion</span> <span class="n">components</span> <span class="k">for</span> <span class="n">aspherical</span> <span class="ow">or</span> <span class="n">body</span> <span class="n">particles</span>
+<span class="n">tqx</span><span class="p">,</span><span class="n">tqy</span><span class="p">,</span><span class="n">tqz</span> <span class="o">=</span> <span class="n">torque</span> <span class="n">on</span> <span class="n">finite</span><span class="o">-</span><span class="n">size</span> <span class="n">particles</span>
+<span class="n">end12x</span><span class="p">,</span> <span class="n">end12y</span><span class="p">,</span> <span class="n">end12z</span> <span class="o">=</span> <span class="n">end</span> <span class="n">points</span> <span class="n">of</span> <span class="n">line</span> <span class="n">segment</span>
+<span class="n">corner123x</span><span class="p">,</span> <span class="n">corner123y</span><span class="p">,</span> <span class="n">corner123z</span> <span class="o">=</span> <span class="n">corner</span> <span class="n">points</span> <span class="n">of</span> <span class="n">triangle</span>
+<span class="n">nbonds</span> <span class="o">=</span> <span class="n">number</span> <span class="n">of</span> <span class="n">bonds</span> <span class="n">assigned</span> <span class="n">to</span> <span class="n">an</span> <span class="n">atom</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>PERI package per-atom properties:
+vfrac = ???
+s0 = ???
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">USER</span><span class="o">-</span><span class="n">EFF</span> <span class="ow">and</span> <span class="n">USER</span><span class="o">-</span><span class="n">AWPMD</span> <span class="n">package</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">properties</span><span class="p">:</span>
+<span class="n">spin</span> <span class="o">=</span> <span class="n">electron</span> <span class="n">spin</span>
+<span class="n">eradius</span> <span class="o">=</span> <span class="n">electron</span> <span class="n">radius</span>
+<span class="n">ervel</span> <span class="o">=</span> <span class="n">electron</span> <span class="n">radial</span> <span class="n">velocity</span>
+<span class="n">erforce</span> <span class="o">=</span> <span class="n">electron</span> <span class="n">radial</span> <span class="n">force</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>USER-SPH package per-atom properties:
+rho = ???
+drho = ???
+e = ???
+de = ???
+cv = ???
+</pre></div>
+</div>
+<pre class="literal-block">
+<a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> per-atom properties:
+i_name = custom integer vector with name
+d_name = custom integer vector with name
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">xs</span> <span class="n">vx</span> <span class="n">fx</span> <span class="n">mux</span>
+<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="nb">type</span>
+<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">ix</span> <span class="n">iy</span> <span class="n">iz</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Define a computation that simply stores atom attributes for each atom
+in the group.  This is useful so that the values can be used by other
+<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a> that take computes as
+inputs.  See for example, the <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a>,
+<a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a>, <a class="reference internal" href="fix_ave_histo.html"><span class="doc">fix ave/histo</span></a>,
+<a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>, and <a class="reference internal" href="variable.html"><span class="doc">atom-style variable</span></a> commands.</p>
+<p>The list of possible attributes is the same as that used by the <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command, which describes their meaning, with some
+additional quantities that are only defined for certain <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a>.  Basically, this augmented list gives an
+input script access to any per-atom quantity stored by LAMMPS.</p>
+<p>The values are stored in a per-atom vector or array as discussed
+below.  Zeroes are stored for atoms not in the specified group or for
+quantities that are not defined for a particular particle in the group
+(e.g. <em>shapex</em> if the particle is not an ellipsoid).</p>
+<p>The additional quantities only accessible via this command, and not
+directly via the <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command, are as follows.</p>
+<p><em>Shapex</em>, <em>shapey</em>, and <em>shapez</em> are defined for ellipsoidal particles
+and define the 3d shape of each particle.</p>
+<p><em>Quatw</em>, <em>quati</em>, <em>quatj</em>, and <em>quatk</em> are defined for ellipsoidal
+particles and body particles and store the 4-vector quaternion
+representing the orientation of each particle.  See the <a class="reference internal" href="set.html"><span class="doc">set</span></a>
+command for an explanation of the quaternion vector.</p>
+<p><em>End1x</em>, <em>end1y</em>, <em>end1z</em>, <em>end2x</em>, <em>end2y</em>, <em>end2z</em>, are defined for
+line segment particles and define the end points of each line segment.</p>
+<p><em>Corner1x</em>, <em>corner1y</em>, <em>corner1z</em>, <em>corner2x</em>, <em>corner2y</em>,
+<em>corner2z</em>, <em>corner3x</em>, <em>corner3y</em>, <em>corner3z</em>, are defined for
+triangular particles and define the corner points of each triangle.</p>
+<p><em>Nbonds</em> is available for all molecular atom styles and refers to the
+number of explicit bonds assigned to an atom.  Note that if the
+<a class="reference internal" href="newton.html"><span class="doc">newton bond</span></a> command is set to <em>on</em>, which is the
+default, then every bond in the system is assigned to only one of the
+two atoms in the bond.  Thus a bond between atoms I,J may be tallied
+for either atom I or atom J.  If <a class="reference internal" href="newton.html"><span class="doc">newton bond off</span></a> is set,
+it will be tallied with both atom I and atom J.</p>
+<p>The <em>i_name</em> and <em>d_name</em> attributes refer to custom integer and
+floating-point properties that have been added to each atom via the
+<a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> command.  When that command
+is used specific names are given to each attribute which are what is
+specified as the &#8220;name&#8221; portion of <em>i_name</em> or <em>d_name</em>.</p>
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a per-atom vector or per-atom array depending
+on the number of input values.  If a single input is specified, a
+per-atom vector is produced.  If two or more inputs are specified, a
+per-atom array is produced where the number of columns = the number of
+inputs.  The vector or array can be accessed by any command that uses
+per-atom values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">this section</span></a> for an overview of LAMMPS output
+options.</p>
+<p>The vector or array values will be in whatever <a class="reference internal" href="units.html"><span class="doc">units</span></a> the
+corresponding attribute is in, e.g. velocity units for vx, charge
+units for q, etc.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a>, <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a>, <a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a>, <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>,
+<a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

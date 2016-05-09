@@ -1,0 +1,1571 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3. Commands &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
+        <link rel="next" title="4. Packages" href="Section_packages.html"/>
+        <link rel="prev" title="2. Getting Started" href="Section_start.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. Commands</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#lammps-input-script">3.1. LAMMPS input script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parsing-rules">3.2. Parsing rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#input-script-structure">3.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#commands-listed-by-category">3.4. Commands listed by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#individual-commands">3.5. Individual commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-styles">3.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-styles">3.7. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-potentials">3.8. Pair_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bond-style-potentials">3.9. Bond_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#angle-style-potentials">3.10. Angle_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dihedral-style-potentials">3.11. Dihedral_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#improper-style-potentials">3.12. Improper_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kspace-solvers">3.13. Kspace solvers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>3. Commands</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_packages.html" class="btn btn-neutral float-right" title="4. Packages" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_start.html" class="btn btn-neutral" title="2. Getting Started" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="commands">
+<h1>3. Commands</h1>
+<p>This section describes how a LAMMPS input script is formatted and the
+input script commands used to define a LAMMPS simulation.</p>
+<div class="line-block">
+<div class="line">3.1 <a class="reference internal" href="#cmd-1"><span class="std std-ref">LAMMPS input script</span></a></div>
+<div class="line">3.2 <a class="reference internal" href="#cmd-2"><span class="std std-ref">Parsing rules</span></a></div>
+<div class="line">3.3 <a class="reference internal" href="#cmd-3"><span class="std std-ref">Input script structure</span></a></div>
+<div class="line">3.4 <a class="reference internal" href="#cmd-4"><span class="std std-ref">Commands listed by category</span></a></div>
+<div class="line">3.5 <a class="reference internal" href="#cmd-5"><span class="std std-ref">Commands listed alphabetically</span></a></div>
+<div class="line"><br /></div>
+</div>
+<div class="section" id="lammps-input-script">
+<span id="cmd-1"></span><h2>3.1. LAMMPS input script</h2>
+<p>LAMMPS executes by reading commands from a input script (text file),
+one line at a time.  When the input script ends, LAMMPS exits.  Each
+command causes LAMMPS to take some action.  It may set an internal
+variable, read in a file, or run a simulation.  Most commands have
+default settings, which means you only need to use the command if you
+wish to change the default.</p>
+<p>In many cases, the ordering of commands in an input script is not
+important.  However the following rules apply:</p>
+<p>(1) LAMMPS does not read your entire input script and then perform a
+simulation with all the settings.  Rather, the input script is read
+one line at a time and each command takes effect when it is read.
+Thus this sequence of commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">timestep</span> <span class="mf">0.5</span>
+<span class="n">run</span>      <span class="mi">100</span>
+<span class="n">run</span>      <span class="mi">100</span>
+</pre></div>
+</div>
+<p>does something different than this sequence:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run</span>      <span class="mi">100</span>
+<span class="n">timestep</span> <span class="mf">0.5</span>
+<span class="n">run</span>      <span class="mi">100</span>
+</pre></div>
+</div>
+<p>In the first case, the specified timestep (0.5 fmsec) is used for two
+simulations of 100 timesteps each.  In the 2nd case, the default
+timestep (1.0 fmsec) is used for the 1st 100 step simulation and a 0.5
+fmsec timestep is used for the 2nd one.</p>
+<p>(2) Some commands are only valid when they follow other commands.  For
+example you cannot set the temperature of a group of atoms until atoms
+have been defined and a group command is used to define which atoms
+belong to the group.</p>
+<p>(3) Sometimes command B will use values that can be set by command A.
+This means command A must precede command B in the input script if it
+is to have the desired effect.  For example, the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command initializes the system by setting
+up the simulation box and assigning atoms to processors.  If default
+values are not desired, the <a class="reference internal" href="processors.html"><span class="doc">processors</span></a> and
+<a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> commands need to be used before read_data to
+tell LAMMPS how to map processors to the simulation box.</p>
+<p>Many input script errors are detected by LAMMPS and an ERROR or
+WARNING message is printed.  <a class="reference internal" href="Section_errors.html"><span class="doc">This section</span></a> gives
+more information on what errors mean.  The documentation for each
+command lists restrictions on how the command can be used.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="parsing-rules">
+<span id="cmd-2"></span><h2>3.2. Parsing rules</h2>
+<p>Each non-blank line in the input script is treated as a command.
+LAMMPS commands are case sensitive.  Command names are lower-case, as
+are specified command arguments.  Upper case letters may be used in
+file names or user-chosen ID strings.</p>
+<p>Here is how each line in the input script is parsed by LAMMPS:</p>
+<p>(1) If the last printable character on the line is a &#8220;&amp;&#8221; character,
+the command is assumed to continue on the next line.  The next line is
+concatenated to the previous line by removing the &#8220;&amp;&#8221; character and
+line break.  This allows long commands to be continued across two or
+more lines.  See the discussion of triple quotes in (6) for how to
+continue a command across multiple line without using &#8220;&amp;&#8221; characters.</p>
+<p>(2) All characters from the first &#8220;#&#8221; character onward are treated as
+comment and discarded.  See an exception in (6).  Note that a
+comment after a trailing &#8220;&amp;&#8221; character will prevent the command from
+continuing on the next line.  Also note that for multi-line commands a
+single leading &#8220;#&#8221; will comment out the entire command.</p>
+<p>(3) The line is searched repeatedly for $ characters, which indicate
+variables that are replaced with a text string.  See an exception in
+(6).</p>
+<p>If the $ is followed by curly brackets, then the variable name is the
+text inside the curly brackets.  If no curly brackets follow the $,
+then the variable name is the single character immediately following
+the $.  Thus ${myTemp} and $x refer to variable names &#8220;myTemp&#8221; and
+&#8220;x&#8221;.</p>
+<p>How the variable is converted to a text string depends on what style
+of variable it is; see the <a class="reference external" href="variable">variable</a> doc page for details.
+It can be a variable that stores multiple text strings, and return one
+of them.  The returned text string can be multiple &#8220;words&#8221; (space
+separated) which will then be interpreted as multiple arguments in the
+input command.  The variable can also store a numeric formula which
+will be evaluated and its numeric result returned as a string.</p>
+<p>As a special case, if the $ is followed by parenthesis, then the text
+inside the parenthesis is treated as an &#8220;immediate&#8221; variable and
+evaluated as an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>.  This is a way
+to use numeric formulas in an input script without having to assign
+them to variable names.  For example, these 3 input script lines:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable X equal (xlo+xhi)/2+sqrt(v_area)
+region 1 block $X 2 INF INF EDGE EDGE
+variable X delete
+</pre></div>
+</div>
+<p>can be replaced by</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE
+</pre></div>
+</div>
+<p>so that you do not have to define (or discard) a temporary variable X.</p>
+<p>Note that neither the curly-bracket or immediate form of variables can
+contain nested $ characters for other variables to substitute for.
+Thus you cannot do this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>        <span class="n">a</span> <span class="n">equal</span> <span class="mi">2</span>
+<span class="n">variable</span>        <span class="n">b2</span> <span class="n">equal</span> <span class="mi">4</span>
+<span class="nb">print</span>           <span class="s2">&quot;B2 = ${b$a}&quot;</span>
+</pre></div>
+</div>
+<p>Nor can you specify this $($x-1.0) for an immediate variable, but
+you could use $(v_x-1.0), since the latter is valid syntax for an
+<a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>.</p>
+<p>See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command for more details of how
+strings are assigned to variables and evaluated, and how they can be
+used in input script commands.</p>
+<p>(4) The line is broken into &#8220;words&#8221; separated by whitespace (tabs,
+spaces).  Note that words can thus contain letters, digits,
+underscores, or punctuation characters.</p>
+<p>(5) The first word is the command name.  All successive words in the
+line are arguments.</p>
+<p>(6) If you want text with spaces to be treated as a single argument,
+it can be enclosed in either single or double or triple quotes.  A
+long single argument enclosed in single or double quotes can span
+multiple lines if the &#8220;&amp;&#8221; character is used, as described above.  When
+the lines are concatenated together (and the &#8220;&amp;&#8221; characters and line
+breaks removed), the text will become a single line.  If you want
+multiple lines of an argument to retain their line breaks, the text
+can be enclosed in triple quotes, in which case &#8220;&amp;&#8221; characters are not
+needed.  For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="s2">&quot;Volume = $v&quot;</span>
+<span class="nb">print</span> <span class="s1">&#39;Volume = $v&#39;</span>
+<span class="k">if</span> <span class="s2">&quot;$</span><span class="si">{steps}</span><span class="s2"> &gt; 1000&quot;</span> <span class="n">then</span> <span class="n">quit</span>
+<span class="n">variable</span> <span class="n">a</span> <span class="n">string</span> <span class="s2">&quot;red green blue &amp;</span>
+                   <span class="n">purple</span> <span class="n">orange</span> <span class="n">cyan</span><span class="s2">&quot;</span>
+<span class="nb">print</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">System volume = $v</span>
+<span class="s2">System temperature = $t</span>
+<span class="s2">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>In each case, the single, double, or triple quotes are removed when
+the single argument they enclose is stored internally.</p>
+<p>See the <a class="reference internal" href="dump_modify.html"><span class="doc">dump modify format</span></a>, <a class="reference internal" href="print.html"><span class="doc">print</span></a>,
+<a class="reference internal" href="if.html"><span class="doc">if</span></a>, and <a class="reference internal" href="python.html"><span class="doc">python</span></a> commands for examples.</p>
+<p>A &#8220;#&#8221; or &#8220;$&#8221; character that is between quotes will not be treated as a
+comment indicator in (2) or substituted for as a variable in (3).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the argument is itself a command that requires a quoted
+argument (e.g. using a <a class="reference internal" href="print.html"><span class="doc">print</span></a> command as part of an
+<a class="reference internal" href="if.html"><span class="doc">if</span></a> or <a class="reference internal" href="run.html"><span class="doc">run every</span></a> command), then single, double, or
+triple quotes can be nested in the usual manner.  See the doc pages
+for those commands for examples.  Only one of level of nesting is
+allowed, but that should be sufficient for most use cases.</p>
+</div>
+<hr class="docutils" />
+</div>
+<div class="section" id="input-script-structure">
+<span id="cmd-3"></span><h2>3.3. Input script structure</h2>
+<p>This section describes the structure of a typical LAMMPS input script.
+The &#8220;examples&#8221; directory in the LAMMPS distribution contains many
+sample input scripts; the corresponding problems are discussed in
+<a class="reference internal" href="Section_example.html"><span class="doc">Section_example</span></a>, and animated on the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a>.</p>
+<p>A LAMMPS input script typically has 4 parts:</p>
+<ol class="arabic simple">
+<li>Initialization</li>
+<li>Atom definition</li>
+<li>Settings</li>
+<li>Run a simulation</li>
+</ol>
+<p>The last 2 parts can be repeated as many times as desired.  I.e. run a
+simulation, change some settings, run some more, etc.  Each of the 4
+parts is now described in more detail.  Remember that almost all the
+commands need only be used if a non-default value is desired.</p>
+<ol class="arabic simple">
+<li>Initialization</li>
+</ol>
+<p>Set parameters that need to be defined before atoms are created or
+read-in from a file.</p>
+<p>The relevant commands are <a class="reference internal" href="units.html"><span class="doc">units</span></a>,
+<a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a>, <a class="reference internal" href="newton.html"><span class="doc">newton</span></a>,
+<a class="reference internal" href="processors.html"><span class="doc">processors</span></a>, <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a>,
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>, <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a>.</p>
+<p>If force-field parameters appear in the files that will be read, these
+commands tell LAMMPS what kinds of force fields are being used:
+<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a>, <a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a>,
+<a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a>, <a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a>,
+<a class="reference internal" href="improper_style.html"><span class="doc">improper_style</span></a>.</p>
+<ol class="arabic simple" start="2">
+<li>Atom definition</li>
+</ol>
+<p>There are 3 ways to define atoms in LAMMPS.  Read them in from a data
+or restart file via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands.  These files can contain
+molecular topology information.  Or create atoms on a lattice (with no
+molecular topology), using these commands: <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a>,
+<a class="reference internal" href="region.html"><span class="doc">region</span></a>, <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>,
+<a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a>.  The entire set of atoms can be
+duplicated to make a larger simulation using the
+<a class="reference internal" href="replicate.html"><span class="doc">replicate</span></a> command.</p>
+<ol class="arabic simple" start="3">
+<li>Settings</li>
+</ol>
+<p>Once atoms and molecular topology are defined, a variety of settings
+can be specified: force field coefficients, simulation parameters,
+output options, etc.</p>
+<p>Force field coefficients are set by these commands (they can also be
+set in the read-in files): <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>,
+<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>, <a class="reference internal" href="angle_coeff.html"><span class="doc">angle_coeff</span></a>,
+<a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a>,
+<a class="reference internal" href="improper_coeff.html"><span class="doc">improper_coeff</span></a>,
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>, <a class="reference internal" href="dielectric.html"><span class="doc">dielectric</span></a>,
+<a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a>.</p>
+<p>Various simulation parameters are set by these commands:
+<a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a>, <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a>,
+<a class="reference internal" href="group.html"><span class="doc">group</span></a>, <a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a>,
+<a class="reference internal" href="reset_timestep.html"><span class="doc">reset_timestep</span></a>, <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a>,
+<a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a>, <a class="reference internal" href="min_modify.html"><span class="doc">min_modify</span></a>.</p>
+<p>Fixes impose a variety of boundary conditions, time integration, and
+diagnostic options.  The <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command comes in many flavors.</p>
+<p>Various computations can be specified for execution during a
+simulation using the <a class="reference internal" href="compute.html"><span class="doc">compute</span></a>,
+<a class="reference internal" href="compute_modify.html"><span class="doc">compute_modify</span></a>, and <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>
+commands.</p>
+<p>Output options are set by the <a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump</span></a>,
+and <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> commands.</p>
+<ol class="arabic simple" start="4">
+<li>Run a simulation</li>
+</ol>
+<p>A molecular dynamics simulation is run using the <a class="reference internal" href="run.html"><span class="doc">run</span></a>
+command.  Energy minimization (molecular statics) is performed using
+the <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> command.  A parallel tempering
+(replica-exchange) simulation can be run using the
+<a class="reference internal" href="temper.html"><span class="doc">temper</span></a> command.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="commands-listed-by-category">
+<span id="cmd-4"></span><h2>3.4. Commands listed by category</h2>
+<p>This section lists all LAMMPS commands, grouped by category.  The
+<a class="reference internal" href="#cmd-5"><span class="std std-ref">next section</span></a> lists the same commands alphabetically.  Note
+that some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command&#8217;s documentation.</p>
+<p>Initialization:</p>
+<p><a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a>, <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>,
+<a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a>, <a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a>,
+<a class="reference internal" href="newton.html"><span class="doc">newton</span></a>, <a class="reference internal" href="processors.html"><span class="doc">processors</span></a>, <a class="reference internal" href="units.html"><span class="doc">units</span></a></p>
+<p>Atom definition:</p>
+<p><a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a>, <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>,
+<a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a>, <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>,
+<a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a>, <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>,
+<a class="reference internal" href="region.html"><span class="doc">region</span></a>, <a class="reference internal" href="replicate.html"><span class="doc">replicate</span></a></p>
+<p>Force fields:</p>
+<p><a class="reference internal" href="angle_coeff.html"><span class="doc">angle_coeff</span></a>, <a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a>,
+<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>, <a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a>,
+<a class="reference internal" href="dielectric.html"><span class="doc">dielectric</span></a>, <a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a>,
+<a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a>,
+<a class="reference internal" href="improper_coeff.html"><span class="doc">improper_coeff</span></a>,
+<a class="reference internal" href="improper_style.html"><span class="doc">improper_style</span></a>,
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify</span></a>, <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>,
+<a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>, <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>,
+<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a>, <a class="reference internal" href="pair_write.html"><span class="doc">pair_write</span></a>,
+<a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a></p>
+<p>Settings:</p>
+<p><a class="reference internal" href="comm_style.html"><span class="doc">comm_style</span></a>, <a class="reference internal" href="group.html"><span class="doc">group</span></a>, <a class="reference internal" href="mass.html"><span class="doc">mass</span></a>,
+<a class="reference internal" href="min_modify.html"><span class="doc">min_modify</span></a>, <a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a>,
+<a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a>, <a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a>,
+<a class="reference internal" href="reset_timestep.html"><span class="doc">reset_timestep</span></a>, <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a>,
+<a class="reference internal" href="set.html"><span class="doc">set</span></a>, <a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a>, <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a></p>
+<p>Fixes:</p>
+<p><a class="reference internal" href="fix.html"><span class="doc">fix</span></a>, <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a>, <a class="reference internal" href="unfix.html"><span class="doc">unfix</span></a></p>
+<p>Computes:</p>
+<p><a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, <a class="reference internal" href="compute_modify.html"><span class="doc">compute_modify</span></a>,
+<a class="reference internal" href="uncompute.html"><span class="doc">uncompute</span></a></p>
+<p>Output:</p>
+<p><a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>,
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a>, <a class="reference internal" href="dump_image.html"><span class="doc">dump movie</span></a>,
+<a class="reference internal" href="restart.html"><span class="doc">restart</span></a>, <a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a>,
+<a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a>, <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>,
+<a class="reference internal" href="undump.html"><span class="doc">undump</span></a>, <a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a>,
+<a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a>, <a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a></p>
+<p>Actions:</p>
+<p><a class="reference internal" href="delete_atoms.html"><span class="doc">delete_atoms</span></a>, <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a>,
+<a class="reference internal" href="displace_atoms.html"><span class="doc">displace_atoms</span></a>, <a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a>,
+<a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a>, <a class="reference internal" href="neb.html"><span class="doc">neb</span></a> <a class="reference internal" href="prd.html"><span class="doc">prd</span></a>,
+<a class="reference internal" href="rerun.html"><span class="doc">rerun</span></a>, <a class="reference internal" href="run.html"><span class="doc">run</span></a>, <a class="reference internal" href="temper.html"><span class="doc">temper</span></a></p>
+<p>Miscellaneous:</p>
+<p><a class="reference internal" href="clear.html"><span class="doc">clear</span></a>, <a class="reference internal" href="echo.html"><span class="doc">echo</span></a>, <a class="reference internal" href="if.html"><span class="doc">if</span></a>,
+<a class="reference internal" href="include.html"><span class="doc">include</span></a>, <a class="reference internal" href="jump.html"><span class="doc">jump</span></a>, <a class="reference internal" href="label.html"><span class="doc">label</span></a>,
+<a class="reference internal" href="log.html"><span class="doc">log</span></a>, <a class="reference internal" href="next.html"><span class="doc">next</span></a>, <a class="reference internal" href="print.html"><span class="doc">print</span></a>,
+<a class="reference internal" href="shell.html"><span class="doc">shell</span></a>, <a class="reference internal" href="variable.html"><span class="doc">variable</span></a></p>
+<hr class="docutils" />
+</div>
+<div class="section" id="individual-commands">
+<span id="comm"></span><span id="cmd-5"></span><h2>3.5. Individual commands</h2>
+<p>This section lists all LAMMPS commands alphabetically, with a separate
+listing below of styles within certain commands.  The <a class="reference internal" href="#cmd-4"><span class="std std-ref">previous section</span></a> lists the same commands, grouped by category.  Note
+that some style options for some commands are part of specific LAMMPS
+packages, which means they cannot be used unless the package was
+included when LAMMPS was built.  Not all packages are included in a
+default LAMMPS build.  These dependencies are listed as Restrictions
+in the command&#8217;s documentation.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="15%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="angle_coeff.html"><span class="doc">angle_coeff</span></a></td>
+<td><a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a></td>
+<td><a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a></td>
+<td><a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a></td>
+<td><a class="reference internal" href="balance.html"><span class="doc">balance</span></a></td>
+<td><a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a></td>
+<td><a class="reference internal" href="bond_write.html"><span class="doc">bond_write</span></a></td>
+<td><a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a></td>
+<td><a class="reference internal" href="box.html"><span class="doc">box</span></a></td>
+<td><a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a></td>
+<td><a class="reference internal" href="clear.html"><span class="doc">clear</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify</span></a></td>
+<td><a class="reference internal" href="comm_style.html"><span class="doc">comm_style</span></a></td>
+<td><a class="reference internal" href="compute.html"><span class="doc">compute</span></a></td>
+<td><a class="reference internal" href="compute_modify.html"><span class="doc">compute_modify</span></a></td>
+<td><a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a></td>
+<td><a class="reference internal" href="create_bonds.html"><span class="doc">create_bonds</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a></td>
+<td><a class="reference internal" href="delete_atoms.html"><span class="doc">delete_atoms</span></a></td>
+<td><a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a></td>
+<td><a class="reference internal" href="dielectric.html"><span class="doc">dielectric</span></a></td>
+<td><a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a></td>
+<td><a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a></td>
+<td><a class="reference internal" href="displace_atoms.html"><span class="doc">displace_atoms</span></a></td>
+<td><a class="reference internal" href="dump.html"><span class="doc">dump</span></a></td>
+<td><a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a></td>
+<td><a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a></td>
+<td><a class="reference internal" href="dump_image.html"><span class="doc">dump movie</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="echo.html"><span class="doc">echo</span></a></td>
+<td><a class="reference internal" href="fix.html"><span class="doc">fix</span></a></td>
+<td><a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a></td>
+<td><a class="reference internal" href="group.html"><span class="doc">group</span></a></td>
+<td><a class="reference internal" href="if.html"><span class="doc">if</span></a></td>
+<td><a class="reference internal" href="info.html"><span class="doc">info</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="improper_coeff.html"><span class="doc">improper_coeff</span></a></td>
+<td><a class="reference internal" href="improper_style.html"><span class="doc">improper_style</span></a></td>
+<td><a class="reference internal" href="include.html"><span class="doc">include</span></a></td>
+<td><a class="reference internal" href="jump.html"><span class="doc">jump</span></a></td>
+<td><a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="label.html"><span class="doc">label</span></a></td>
+<td><a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a></td>
+<td><a class="reference internal" href="log.html"><span class="doc">log</span></a></td>
+<td><a class="reference internal" href="mass.html"><span class="doc">mass</span></a></td>
+<td><a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a></td>
+<td><a class="reference internal" href="min_modify.html"><span class="doc">min_modify</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a></td>
+<td><a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a></td>
+<td><a class="reference internal" href="neb.html"><span class="doc">neb</span></a></td>
+<td><a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a></td>
+<td><a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a></td>
+<td><a class="reference internal" href="newton.html"><span class="doc">newton</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="next.html"><span class="doc">next</span></a></td>
+<td><a class="reference internal" href="package.html"><span class="doc">package</span></a></td>
+<td><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a></td>
+<td><a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a></td>
+<td><a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a></td>
+<td><a class="reference internal" href="pair_write.html"><span class="doc">pair_write</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="partition.html"><span class="doc">partition</span></a></td>
+<td><a class="reference internal" href="prd.html"><span class="doc">prd</span></a></td>
+<td><a class="reference internal" href="print.html"><span class="doc">print</span></a></td>
+<td><a class="reference internal" href="processors.html"><span class="doc">processors</span></a></td>
+<td><a class="reference internal" href="python.html"><span class="doc">python</span></a></td>
+<td><a class="reference internal" href="quit.html"><span class="doc">quit</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a></td>
+<td><a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a></td>
+<td><a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a></td>
+<td><a class="reference internal" href="region.html"><span class="doc">region</span></a></td>
+<td><a class="reference internal" href="replicate.html"><span class="doc">replicate</span></a></td>
+<td><a class="reference internal" href="rerun.html"><span class="doc">rerun</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="reset_timestep.html"><span class="doc">reset_timestep</span></a></td>
+<td><a class="reference internal" href="restart.html"><span class="doc">restart</span></a></td>
+<td><a class="reference internal" href="run.html"><span class="doc">run</span></a></td>
+<td><a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a></td>
+<td><a class="reference internal" href="set.html"><span class="doc">set</span></a></td>
+<td><a class="reference internal" href="shell.html"><span class="doc">shell</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a></td>
+<td><a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a></td>
+<td><a class="reference internal" href="tad.html"><span class="doc">tad</span></a></td>
+<td><a class="reference internal" href="temper.html"><span class="doc">temper</span></a></td>
+<td><a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a></td>
+<td><a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a></td>
+<td><a class="reference internal" href="timer.html"><span class="doc">timer</span></a></td>
+<td><a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a></td>
+<td><a class="reference internal" href="uncompute.html"><span class="doc">uncompute</span></a></td>
+<td><a class="reference internal" href="undump.html"><span class="doc">undump</span></a></td>
+<td><a class="reference internal" href="unfix.html"><span class="doc">unfix</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="units.html"><span class="doc">units</span></a></td>
+<td><a class="reference internal" href="variable.html"><span class="doc">variable</span></a></td>
+<td><a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a></td>
+<td><a class="reference internal" href="write_coeff.html"><span class="doc">write_coeff</span></a></td>
+<td><a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a></td>
+<td><a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>These are additional commands in USER packages, which can be used if
+<a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="41%" />
+<col width="29%" />
+<col width="29%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="dump_custom_vtk.html"><span class="doc">dump custom/vtk</span></a></td>
+<td><a class="reference internal" href="group2ndx.html"><span class="doc">group2ndx</span></a></td>
+<td><a class="reference internal" href="group2ndx.html"><span class="doc">ndx2group</span></a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="fix-styles">
+<h2>3.6. Fix styles</h2>
+<p>See the <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command for one-line descriptions of each style
+or click on the style itself for a full description.  Some of the
+styles have accelerated versions, which can be used if LAMMPS is built
+with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.
+This is indicated by additional letters in parenthesis: c = USER-CUDA,
+g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="13%" />
+<col width="11%" />
+<col width="12%" />
+<col width="11%" />
+<col width="16%" />
+<col width="11%" />
+<col width="12%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="fix_adapt.html"><span class="doc">adapt</span></a></td>
+<td><a class="reference internal" href="fix_addforce.html"><span class="doc">addforce (c)</span></a></td>
+<td><a class="reference internal" href="fix_append_atoms.html"><span class="doc">append/atoms</span></a></td>
+<td><a class="reference internal" href="fix_atom_swap.html"><span class="doc">atom/swap</span></a></td>
+<td><a class="reference internal" href="fix_aveforce.html"><span class="doc">aveforce (c)</span></a></td>
+<td><a class="reference internal" href="fix_ave_atom.html"><span class="doc">ave/atom</span></a></td>
+<td><a class="reference internal" href="fix_ave_chunk.html"><span class="doc">ave/chunk</span></a></td>
+<td><a class="reference internal" href="fix_ave_correlate.html"><span class="doc">ave/correlate</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_ave_histo.html"><span class="doc">ave/histo</span></a></td>
+<td><a class="reference internal" href="fix_ave_histo.html"><span class="doc">ave/histo/weight</span></a></td>
+<td><a class="reference internal" href="fix_ave_spatial.html"><span class="doc">ave/spatial</span></a></td>
+<td><a class="reference internal" href="fix_ave_time.html"><span class="doc">ave/time</span></a></td>
+<td><a class="reference internal" href="fix_balance.html"><span class="doc">balance</span></a></td>
+<td><a class="reference internal" href="fix_bond_break.html"><span class="doc">bond/break</span></a></td>
+<td><a class="reference internal" href="fix_bond_create.html"><span class="doc">bond/create</span></a></td>
+<td><a class="reference internal" href="fix_bond_swap.html"><span class="doc">bond/swap</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_box_relax.html"><span class="doc">box/relax</span></a></td>
+<td><a class="reference internal" href="fix_deform.html"><span class="doc">deform (k)</span></a></td>
+<td><a class="reference internal" href="fix_deposit.html"><span class="doc">deposit</span></a></td>
+<td><a class="reference internal" href="fix_drag.html"><span class="doc">drag</span></a></td>
+<td><a class="reference internal" href="fix_dt_reset.html"><span class="doc">dt/reset</span></a></td>
+<td><a class="reference internal" href="fix_efield.html"><span class="doc">efield</span></a></td>
+<td><a class="reference internal" href="fix_enforce2d.html"><span class="doc">enforce2d (c)</span></a></td>
+<td><a class="reference internal" href="fix_evaporate.html"><span class="doc">evaporate</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_external.html"><span class="doc">external</span></a></td>
+<td><a class="reference internal" href="fix_freeze.html"><span class="doc">freeze (c)</span></a></td>
+<td><a class="reference internal" href="fix_gcmc.html"><span class="doc">gcmc</span></a></td>
+<td><a class="reference internal" href="fix_gld.html"><span class="doc">gld</span></a></td>
+<td><a class="reference internal" href="fix_gravity.html"><span class="doc">gravity (co)</span></a></td>
+<td><a class="reference internal" href="fix_heat.html"><span class="doc">heat</span></a></td>
+<td><a class="reference internal" href="fix_indent.html"><span class="doc">indent</span></a></td>
+<td><a class="reference internal" href="fix_langevin.html"><span class="doc">langevin (k)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_lineforce.html"><span class="doc">lineforce</span></a></td>
+<td><a class="reference internal" href="fix_momentum.html"><span class="doc">momentum</span></a></td>
+<td><a class="reference internal" href="fix_move.html"><span class="doc">move</span></a></td>
+<td><a class="reference internal" href="fix_msst.html"><span class="doc">msst</span></a></td>
+<td><a class="reference internal" href="fix_neb.html"><span class="doc">neb</span></a></td>
+<td><a class="reference internal" href="fix_nh.html"><span class="doc">nph (ko)</span></a></td>
+<td><a class="reference internal" href="fix_nphug.html"><span class="doc">nphug (o)</span></a></td>
+<td><a class="reference internal" href="fix_nph_asphere.html"><span class="doc">nph/asphere (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_nph_body.html"><span class="doc">nph/body</span></a></td>
+<td><a class="reference internal" href="fix_nph_sphere.html"><span class="doc">nph/sphere (o)</span></a></td>
+<td><a class="reference internal" href="fix_nh.html"><span class="doc">npt (ckio)</span></a></td>
+<td><a class="reference internal" href="fix_npt_asphere.html"><span class="doc">npt/asphere (o)</span></a></td>
+<td><a class="reference internal" href="fix_npt_body.html"><span class="doc">npt/body</span></a></td>
+<td><a class="reference internal" href="fix_npt_sphere.html"><span class="doc">npt/sphere (o)</span></a></td>
+<td><a class="reference internal" href="fix_nve.html"><span class="doc">nve (ckio)</span></a></td>
+<td><a class="reference internal" href="fix_nve_asphere.html"><span class="doc">nve/asphere (i)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_nve_asphere_noforce.html"><span class="doc">nve/asphere/noforce</span></a></td>
+<td><a class="reference internal" href="fix_nve_body.html"><span class="doc">nve/body</span></a></td>
+<td><a class="reference internal" href="fix_nve_limit.html"><span class="doc">nve/limit</span></a></td>
+<td><a class="reference internal" href="fix_nve_line.html"><span class="doc">nve/line</span></a></td>
+<td><a class="reference internal" href="fix_nve_noforce.html"><span class="doc">nve/noforce</span></a></td>
+<td><a class="reference internal" href="fix_nve_sphere.html"><span class="doc">nve/sphere (o)</span></a></td>
+<td><a class="reference internal" href="fix_nve_tri.html"><span class="doc">nve/tri</span></a></td>
+<td><a class="reference internal" href="fix_nh.html"><span class="doc">nvt (ciko)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_nvt_asphere.html"><span class="doc">nvt/asphere (o)</span></a></td>
+<td><a class="reference internal" href="fix_nvt_body.html"><span class="doc">nvt/body</span></a></td>
+<td><a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">nvt/sllod (io)</span></a></td>
+<td><a class="reference internal" href="fix_nvt_sphere.html"><span class="doc">nvt/sphere (o)</span></a></td>
+<td><a class="reference internal" href="fix_oneway.html"><span class="doc">oneway</span></a></td>
+<td><a class="reference internal" href="fix_orient_fcc.html"><span class="doc">orient/fcc</span></a></td>
+<td><a class="reference internal" href="fix_planeforce.html"><span class="doc">planeforce</span></a></td>
+<td><a class="reference internal" href="fix_poems.html"><span class="doc">poems</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_pour.html"><span class="doc">pour</span></a></td>
+<td><a class="reference internal" href="fix_press_berendsen.html"><span class="doc">press/berendsen</span></a></td>
+<td><a class="reference internal" href="fix_print.html"><span class="doc">print</span></a></td>
+<td><a class="reference internal" href="fix_property_atom.html"><span class="doc">property/atom</span></a></td>
+<td><a class="reference internal" href="fix_qeq_comb.html"><span class="doc">qeq/comb (o)</span></a></td>
+<td><a class="reference internal" href="fix_qeq.html"><span class="doc">qeq/dynamic</span></a></td>
+<td><a class="reference internal" href="fix_qeq.html"><span class="doc">qeq/fire</span></a></td>
+<td><a class="reference internal" href="fix_qeq.html"><span class="doc">qeq/point</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_qeq.html"><span class="doc">qeq/shielded</span></a></td>
+<td><a class="reference internal" href="fix_qeq.html"><span class="doc">qeq/slater</span></a></td>
+<td><a class="reference internal" href="fix_shake.html"><span class="doc">rattle</span></a></td>
+<td><a class="reference internal" href="fix_reax_bonds.html"><span class="doc">reax/bonds</span></a></td>
+<td><a class="reference internal" href="fix_recenter.html"><span class="doc">recenter</span></a></td>
+<td><a class="reference internal" href="fix_restrain.html"><span class="doc">restrain</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid (o)</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/nph (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/npt (o)</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/nve (o)</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/nvt (o)</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/small (o)</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/small/nph</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/small/npt</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/small/nve</span></a></td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">rigid/small/nvt</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_setforce.html"><span class="doc">setforce (ck)</span></a></td>
+<td><a class="reference internal" href="fix_shake.html"><span class="doc">shake (c)</span></a></td>
+<td><a class="reference internal" href="fix_spring.html"><span class="doc">spring</span></a></td>
+<td><a class="reference internal" href="fix_spring_rg.html"><span class="doc">spring/rg</span></a></td>
+<td><a class="reference internal" href="fix_spring_self.html"><span class="doc">spring/self</span></a></td>
+<td><a class="reference internal" href="fix_srd.html"><span class="doc">srd</span></a></td>
+<td><a class="reference internal" href="fix_store_force.html"><span class="doc">store/force</span></a></td>
+<td><a class="reference internal" href="fix_store_state.html"><span class="doc">store/state</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">temp/berendsen (c)</span></a></td>
+<td><a class="reference internal" href="fix_temp_csvr.html"><span class="doc">temp/csld</span></a></td>
+<td><a class="reference internal" href="fix_temp_csvr.html"><span class="doc">temp/csvr</span></a></td>
+<td><a class="reference internal" href="fix_temp_rescale.html"><span class="doc">temp/rescale (c)</span></a></td>
+<td><a class="reference internal" href="fix_tfmc.html"><span class="doc">tfmc</span></a></td>
+<td><a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">thermal/conductivity</span></a></td>
+<td><a class="reference internal" href="fix_tmd.html"><span class="doc">tmd</span></a></td>
+<td><a class="reference internal" href="fix_ttm.html"><span class="doc">ttm</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_tune_kspace.html"><span class="doc">tune/kspace</span></a></td>
+<td><a class="reference internal" href="fix_vector.html"><span class="doc">vector</span></a></td>
+<td><a class="reference internal" href="fix_viscosity.html"><span class="doc">viscosity</span></a></td>
+<td><a class="reference internal" href="fix_viscous.html"><span class="doc">viscous (c)</span></a></td>
+<td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/colloid</span></a></td>
+<td><a class="reference internal" href="fix_wall_gran.html"><span class="doc">wall/gran</span></a></td>
+<td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/harmonic</span></a></td>
+<td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj1043</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj126</span></a></td>
+<td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj93</span></a></td>
+<td><a class="reference internal" href="fix_wall_piston.html"><span class="doc">wall/piston</span></a></td>
+<td><a class="reference internal" href="fix_wall_reflect.html"><span class="doc">wall/reflect (k)</span></a></td>
+<td><a class="reference internal" href="fix_wall_region.html"><span class="doc">wall/region</span></a></td>
+<td><a class="reference internal" href="fix_wall_srd.html"><span class="doc">wall/srd</span></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>These are additional fix styles in USER packages, which can be used if
+<a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="14%" />
+<col width="22%" />
+<col width="14%" />
+<col width="15%" />
+<col width="15%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="fix_adapt_fep.html"><span class="doc">adapt/fep</span></a></td>
+<td><a class="reference internal" href="fix_addtorque.html"><span class="doc">addtorque</span></a></td>
+<td><a class="reference internal" href="fix_atc.html"><span class="doc">atc</span></a></td>
+<td><a class="reference internal" href="fix_ave_correlate_long.html"><span class="doc">ave/correlate/long</span></a></td>
+<td><a class="reference internal" href="fix_ave_spatial_sphere.html"><span class="doc">ave/spatial/sphere</span></a></td>
+<td><a class="reference internal" href="fix_colvars.html"><span class="doc">colvars</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_drude.html"><span class="doc">drude</span></a></td>
+<td><a class="reference internal" href="fix_drude_transform.html"><span class="doc">drude/transform/direct</span></a></td>
+<td><a class="reference internal" href="fix_drude_transform.html"><span class="doc">drude/transform/reverse</span></a></td>
+<td><a class="reference internal" href="fix_eos_cv.html"><span class="doc">eos/cv</span></a></td>
+<td><a class="reference internal" href="fix_eos_table.html"><span class="doc">eos/table</span></a></td>
+<td><a class="reference internal" href="fix_gle.html"><span class="doc">gle</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_imd.html"><span class="doc">imd</span></a></td>
+<td><a class="reference internal" href="fix_ipi.html"><span class="doc">ipi</span></a></td>
+<td><a class="reference internal" href="fix_langevin_drude.html"><span class="doc">langevin/drude</span></a></td>
+<td><a class="reference internal" href="fix_langevin_eff.html"><span class="doc">langevin/eff</span></a></td>
+<td><a class="reference internal" href="fix_lb_fluid.html"><span class="doc">lb/fluid</span></a></td>
+<td><a class="reference internal" href="fix_lb_momentum.html"><span class="doc">lb/momentum</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_lb_pc.html"><span class="doc">lb/pc</span></a></td>
+<td><a class="reference internal" href="fix_lb_rigid_pc_sphere.html"><span class="doc">lb/rigid/pc/sphere</span></a></td>
+<td><a class="reference internal" href="fix_lb_viscous.html"><span class="doc">lb/viscous</span></a></td>
+<td><a class="reference internal" href="fix_meso.html"><span class="doc">meso</span></a></td>
+<td><a class="reference internal" href="fix_meso_stationary.html"><span class="doc">meso/stationary</span></a></td>
+<td><a class="reference internal" href="fix_nh_eff.html"><span class="doc">nph/eff</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_nh_eff.html"><span class="doc">npt/eff</span></a></td>
+<td><a class="reference internal" href="fix_nve_eff.html"><span class="doc">nve/eff</span></a></td>
+<td><a class="reference internal" href="fix_nh_eff.html"><span class="doc">nvt/eff</span></a></td>
+<td><a class="reference internal" href="fix_nvt_sllod_eff.html"><span class="doc">nvt/sllod/eff</span></a></td>
+<td><a class="reference internal" href="fix_phonon.html"><span class="doc">phonon</span></a></td>
+<td><a class="reference internal" href="fix_pimd.html"><span class="doc">pimd</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_qbmsst.html"><span class="doc">qbmsst</span></a></td>
+<td><a class="reference internal" href="fix_qeq_reax.html"><span class="doc">qeq/reax</span></a></td>
+<td><a class="reference internal" href="fix_qmmm.html"><span class="doc">qmmm</span></a></td>
+<td><a class="reference internal" href="fix_qtb.html"><span class="doc">qtb</span></a></td>
+<td><a class="reference internal" href="fix_reax_bonds.html"><span class="doc">reax/c/bonds</span></a></td>
+<td><a class="reference internal" href="fix_reaxc_species.html"><span class="doc">reax/c/species</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_saed_vtk.html"><span class="doc">saed/vtk</span></a></td>
+<td><a class="reference internal" href="fix_shardlow.html"><span class="doc">shardlow</span></a></td>
+<td><a class="reference internal" href="fix_smd.html"><span class="doc">smd</span></a></td>
+<td><a class="reference internal" href="fix_smd_adjust_dt.html"><span class="doc">smd/adjust/dt</span></a></td>
+<td><a class="reference internal" href="fix_smd_integrate_tlsph.html"><span class="doc">smd/integrate/tlsph</span></a></td>
+<td><a class="reference internal" href="fix_smd_integrate_ulsph.html"><span class="doc">smd/integrate/ulsph</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="fix_smd_move_triangulated_surface.html"><span class="doc">smd/move/triangulated/surface</span></a></td>
+<td><a class="reference internal" href="fix_smd_setvel.html"><span class="doc">smd/setvel</span></a></td>
+<td><a class="reference internal" href="fix_smd_tlsph_reference_configuration.html"><span class="doc">smd/tlsph/reference/configuration</span></a></td>
+<td><a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">smd/wall/surface</span></a></td>
+<td><a class="reference internal" href="fix_temp_rescale_eff.html"><span class="doc">temp/rescale/eff</span></a></td>
+<td><a class="reference internal" href="fix_ti_rs.html"><span class="doc">ti/rs</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="fix_ti_spring.html"><span class="doc">ti/spring</span></a></td>
+<td><a class="reference internal" href="fix_ttm.html"><span class="doc">ttm/mod</span></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="compute-styles">
+<h2>3.7. Compute styles</h2>
+<p>See the <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command for one-line descriptions of
+each style or click on the style itself for a full description.  Some
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="16%" />
+<col width="16%" />
+<col width="16%" />
+<col width="17%" />
+<col width="19%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="compute_angle.html"><span class="doc">angle</span></a></td>
+<td><a class="reference internal" href="compute_angle_local.html"><span class="doc">angle/local</span></a></td>
+<td><a class="reference internal" href="compute_angmom_chunk.html"><span class="doc">angmom/chunk</span></a></td>
+<td><a class="reference internal" href="compute_body_local.html"><span class="doc">body/local</span></a></td>
+<td><a class="reference internal" href="compute_bond.html"><span class="doc">bond</span></a></td>
+<td><a class="reference internal" href="compute_bond_local.html"><span class="doc">bond/local</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_centro_atom.html"><span class="doc">centro/atom</span></a></td>
+<td><a class="reference internal" href="compute_chunk_atom.html"><span class="doc">chunk/atom</span></a></td>
+<td><a class="reference internal" href="compute_cluster_atom.html"><span class="doc">cluster/atom</span></a></td>
+<td><a class="reference internal" href="compute_cna_atom.html"><span class="doc">cna/atom</span></a></td>
+<td><a class="reference internal" href="compute_com.html"><span class="doc">com</span></a></td>
+<td><a class="reference internal" href="compute_com_chunk.html"><span class="doc">com/chunk</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_contact_atom.html"><span class="doc">contact/atom</span></a></td>
+<td><a class="reference internal" href="compute_coord_atom.html"><span class="doc">coord/atom</span></a></td>
+<td><a class="reference internal" href="compute_damage_atom.html"><span class="doc">damage/atom</span></a></td>
+<td><a class="reference internal" href="compute_dihedral.html"><span class="doc">dihedral</span></a></td>
+<td><a class="reference internal" href="compute_dihedral_local.html"><span class="doc">dihedral/local</span></a></td>
+<td><a class="reference internal" href="compute_dilatation_atom.html"><span class="doc">dilatation/atom</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_dipole_chunk.html"><span class="doc">dipole/chunk</span></a></td>
+<td><a class="reference internal" href="compute_displace_atom.html"><span class="doc">displace/atom</span></a></td>
+<td><a class="reference internal" href="compute_erotate_asphere.html"><span class="doc">erotate/asphere</span></a></td>
+<td><a class="reference internal" href="compute_erotate_rigid.html"><span class="doc">erotate/rigid</span></a></td>
+<td><a class="reference internal" href="compute_erotate_sphere.html"><span class="doc">erotate/sphere</span></a></td>
+<td><a class="reference internal" href="compute_erotate_sphere_atom.html"><span class="doc">erotate/sphere/atom</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_event_displace.html"><span class="doc">event/displace</span></a></td>
+<td><a class="reference internal" href="compute_group_group.html"><span class="doc">group/group</span></a></td>
+<td><a class="reference internal" href="compute_gyration.html"><span class="doc">gyration</span></a></td>
+<td><a class="reference internal" href="compute_gyration_chunk.html"><span class="doc">gyration/chunk</span></a></td>
+<td><a class="reference internal" href="compute_heat_flux.html"><span class="doc">heat/flux</span></a></td>
+<td><a class="reference internal" href="compute_hexorder_atom.html"><span class="doc">hexorder/atom</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_improper.html"><span class="doc">improper</span></a></td>
+<td><a class="reference internal" href="compute_improper_local.html"><span class="doc">improper/local</span></a></td>
+<td><a class="reference internal" href="compute_inertia_chunk.html"><span class="doc">inertia/chunk</span></a></td>
+<td><a class="reference internal" href="compute_ke.html"><span class="doc">ke</span></a></td>
+<td><a class="reference internal" href="compute_ke_atom.html"><span class="doc">ke/atom</span></a></td>
+<td><a class="reference internal" href="compute_ke_rigid.html"><span class="doc">ke/rigid</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_msd.html"><span class="doc">msd</span></a></td>
+<td><a class="reference internal" href="compute_msd_chunk.html"><span class="doc">msd/chunk</span></a></td>
+<td><a class="reference internal" href="compute_msd_nongauss.html"><span class="doc">msd/nongauss</span></a></td>
+<td><a class="reference internal" href="compute_omega_chunk.html"><span class="doc">omega/chunk</span></a></td>
+<td><a class="reference internal" href="compute_orientorder_atom.html"><span class="doc">orientorder/atom</span></a></td>
+<td><a class="reference internal" href="compute_pair.html"><span class="doc">pair</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_pair_local.html"><span class="doc">pair/local</span></a></td>
+<td><a class="reference internal" href="compute_pe.html"><span class="doc">pe (c)</span></a></td>
+<td><a class="reference internal" href="compute_pe_atom.html"><span class="doc">pe/atom</span></a></td>
+<td><a class="reference internal" href="compute_plasticity_atom.html"><span class="doc">plasticity/atom</span></a></td>
+<td><a class="reference internal" href="compute_pressure.html"><span class="doc">pressure (c)</span></a></td>
+<td><a class="reference internal" href="compute_property_atom.html"><span class="doc">property/atom</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_property_local.html"><span class="doc">property/local</span></a></td>
+<td><a class="reference internal" href="compute_property_chunk.html"><span class="doc">property/chunk</span></a></td>
+<td><a class="reference internal" href="compute_rdf.html"><span class="doc">rdf</span></a></td>
+<td><a class="reference internal" href="compute_reduce.html"><span class="doc">reduce</span></a></td>
+<td><a class="reference internal" href="compute_reduce.html"><span class="doc">reduce/region</span></a></td>
+<td><a class="reference internal" href="compute_slice.html"><span class="doc">slice</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_sna_atom.html"><span class="doc">sna/atom</span></a></td>
+<td><a class="reference internal" href="compute_sna_atom.html"><span class="doc">snad/atom</span></a></td>
+<td><a class="reference internal" href="compute_sna_atom.html"><span class="doc">snav/atom</span></a></td>
+<td><a class="reference internal" href="compute_stress_atom.html"><span class="doc">stress/atom</span></a></td>
+<td><a class="reference internal" href="compute_temp.html"><span class="doc">temp (ck)</span></a></td>
+<td><a class="reference internal" href="compute_temp_asphere.html"><span class="doc">temp/asphere</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_temp_body.html"><span class="doc">temp/body</span></a></td>
+<td><a class="reference internal" href="compute_temp_chunk.html"><span class="doc">temp/chunk</span></a></td>
+<td><a class="reference internal" href="compute_temp_com.html"><span class="doc">temp/com</span></a></td>
+<td><a class="reference internal" href="compute_temp_deform.html"><span class="doc">temp/deform</span></a></td>
+<td><a class="reference internal" href="compute_temp_partial.html"><span class="doc">temp/partial (c)</span></a></td>
+<td><a class="reference internal" href="compute_temp_profile.html"><span class="doc">temp/profile</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_temp_ramp.html"><span class="doc">temp/ramp</span></a></td>
+<td><a class="reference internal" href="compute_temp_region.html"><span class="doc">temp/region</span></a></td>
+<td><a class="reference internal" href="compute_temp_sphere.html"><span class="doc">temp/sphere</span></a></td>
+<td><a class="reference internal" href="compute_ti.html"><span class="doc">ti</span></a></td>
+<td><a class="reference internal" href="compute_torque_chunk.html"><span class="doc">torque/chunk</span></a></td>
+<td><a class="reference internal" href="compute_vacf.html"><span class="doc">vacf</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_vcm_chunk.html"><span class="doc">vcm/chunk</span></a></td>
+<td><a class="reference internal" href="compute_voronoi_atom.html"><span class="doc">voronoi/atom</span></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>These are additional compute styles in USER packages, which can be
+used if <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="15%" />
+<col width="18%" />
+<col width="17%" />
+<col width="15%" />
+<col width="19%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="compute_ackland_atom.html"><span class="doc">ackland/atom</span></a></td>
+<td><a class="reference internal" href="compute_basal_atom.html"><span class="doc">basal/atom</span></a></td>
+<td><a class="reference internal" href="compute_dpd.html"><span class="doc">dpd</span></a></td>
+<td><a class="reference internal" href="compute_dpd_atom.html"><span class="doc">dpd/atom</span></a></td>
+<td><a class="reference internal" href="compute_fep.html"><span class="doc">fep</span></a></td>
+<td><a class="reference internal" href="compute_tally.html"><span class="doc">force/tally</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_tally.html"><span class="doc">heat/flux/tally</span></a></td>
+<td><a class="reference internal" href="compute_ke_eff.html"><span class="doc">ke/eff</span></a></td>
+<td><a class="reference internal" href="compute_ke_atom_eff.html"><span class="doc">ke/atom/eff</span></a></td>
+<td><a class="reference internal" href="compute_meso_e_atom.html"><span class="doc">meso/e/atom</span></a></td>
+<td><a class="reference internal" href="compute_meso_rho_atom.html"><span class="doc">meso/rho/atom</span></a></td>
+<td><a class="reference internal" href="compute_meso_t_atom.html"><span class="doc">meso/t/atom</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_tally.html"><span class="doc">pe/tally</span></a></td>
+<td><a class="reference internal" href="compute_tally.html"><span class="doc">pe/mol/tally</span></a></td>
+<td><a class="reference internal" href="compute_saed.html"><span class="doc">saed</span></a></td>
+<td><a class="reference internal" href="compute_smd_contact_radius.html"><span class="doc">smd/contact/radius</span></a></td>
+<td><a class="reference internal" href="compute_smd_damage.html"><span class="doc">smd/damage</span></a></td>
+<td><a class="reference internal" href="compute_smd_hourglass_error.html"><span class="doc">smd/hourglass/error</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_smd_internal_energy.html"><span class="doc">smd/internal/energy</span></a></td>
+<td><a class="reference internal" href="compute_smd_plastic_strain.html"><span class="doc">smd/plastic/strain</span></a></td>
+<td><a class="reference internal" href="compute_smd_plastic_strain_rate.html"><span class="doc">smd/plastic/strain/rate</span></a></td>
+<td><a class="reference internal" href="compute_smd_rho.html"><span class="doc">smd/rho</span></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_defgrad.html"><span class="doc">smd/tlsph/defgrad</span></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_dt.html"><span class="doc">smd/tlsph/dt</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_smd_tlsph_num_neighs.html"><span class="doc">smd/tlsph/num/neighs</span></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_shape.html"><span class="doc">smd/tlsph/shape</span></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_strain.html"><span class="doc">smd/tlsph/strain</span></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_strain_rate.html"><span class="doc">smd/tlsph/strain/rate</span></a></td>
+<td><a class="reference internal" href="compute_smd_tlsph_stress.html"><span class="doc">smd/tlsph/stress</span></a></td>
+<td><a class="reference internal" href="compute_smd_triangle_mesh_vertices.html"><span class="doc">smd/triangle/mesh/vertices</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="compute_smd_ulsph_num_neighs.html"><span class="doc">smd/ulsph/num/neighs</span></a></td>
+<td><a class="reference internal" href="compute_smd_ulsph_strain.html"><span class="doc">smd/ulsph/strain</span></a></td>
+<td><a class="reference internal" href="compute_smd_ulsph_strain_rate.html"><span class="doc">smd/ulsph/strain/rate</span></a></td>
+<td><a class="reference internal" href="compute_smd_ulsph_stress.html"><span class="doc">smd/ulsph/stress</span></a></td>
+<td><a class="reference internal" href="compute_smd_vol.html"><span class="doc">smd/vol</span></a></td>
+<td><a class="reference internal" href="compute_tally.html"><span class="doc">stress/tally</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="compute_temp_drude.html"><span class="doc">temp/drude</span></a></td>
+<td><a class="reference internal" href="compute_temp_eff.html"><span class="doc">temp/eff</span></a></td>
+<td><a class="reference internal" href="compute_temp_deform_eff.html"><span class="doc">temp/deform/eff</span></a></td>
+<td><a class="reference internal" href="compute_temp_region_eff.html"><span class="doc">temp/region/eff</span></a></td>
+<td><a class="reference internal" href="compute_temp_rotate.html"><span class="doc">temp/rotate</span></a></td>
+<td><a class="reference internal" href="compute_xrd.html"><span class="doc">xrd</span></a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="pair-style-potentials">
+<h2>3.8. Pair_style potentials</h2>
+<p>See the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> command for an overview of pair
+potentials.  Click on the style itself for a full description.  Many
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="27%" />
+<col width="24%" />
+<col width="24%" />
+<col width="25%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="pair_none.html"><span class="doc">none</span></a></td>
+<td><a class="reference internal" href="pair_zero.html"><span class="doc">zero</span></a></td>
+<td><a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid</span></a></td>
+<td><a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid/overlay</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_adp.html"><span class="doc">adp (o)</span></a></td>
+<td><a class="reference internal" href="pair_airebo.html"><span class="doc">airebo (o)</span></a></td>
+<td><a class="reference internal" href="pair_airebo.html"><span class="doc">airebo/morse (o)</span></a></td>
+<td><a class="reference internal" href="pair_beck.html"><span class="doc">beck (go)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_body.html"><span class="doc">body</span></a></td>
+<td><a class="reference internal" href="pair_bop.html"><span class="doc">bop</span></a></td>
+<td><a class="reference internal" href="pair_born.html"><span class="doc">born (go)</span></a></td>
+<td><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/long (cgo)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/long/cs</span></a></td>
+<td><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/msm (o)</span></a></td>
+<td><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/wolf (go)</span></a></td>
+<td><a class="reference internal" href="pair_brownian.html"><span class="doc">brownian (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_brownian.html"><span class="doc">brownian/poly (o)</span></a></td>
+<td><a class="reference internal" href="pair_buck.html"><span class="doc">buck (cgkio)</span></a></td>
+<td><a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/cut (cgkio)</span></a></td>
+<td><a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/long (cgkio)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/long/cs</span></a></td>
+<td><a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/msm (o)</span></a></td>
+<td><a class="reference internal" href="pair_buck_long.html"><span class="doc">buck/long/coul/long (o)</span></a></td>
+<td><a class="reference internal" href="pair_colloid.html"><span class="doc">colloid (go)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_comb.html"><span class="doc">comb (o)</span></a></td>
+<td><a class="reference internal" href="pair_comb.html"><span class="doc">comb3</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/cut (gko)</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/debye (gko)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/dsf (gko)</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/long (gko)</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/long/cs</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/msm</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/streitz</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">coul/wolf (ko)</span></a></td>
+<td><a class="reference internal" href="pair_dpd.html"><span class="doc">dpd (o)</span></a></td>
+<td><a class="reference internal" href="pair_dpd.html"><span class="doc">dpd/tstat (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_dsmc.html"><span class="doc">dsmc</span></a></td>
+<td><a class="reference internal" href="pair_eam.html"><span class="doc">eam (cgkot)</span></a></td>
+<td><a class="reference internal" href="pair_eam.html"><span class="doc">eam/alloy (cgkot)</span></a></td>
+<td><a class="reference internal" href="pair_eam.html"><span class="doc">eam/fs (cgkot)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_eim.html"><span class="doc">eim (o)</span></a></td>
+<td><a class="reference internal" href="pair_gauss.html"><span class="doc">gauss (go)</span></a></td>
+<td><a class="reference internal" href="pair_gayberne.html"><span class="doc">gayberne (gio)</span></a></td>
+<td><a class="reference internal" href="pair_gran.html"><span class="doc">gran/hertz/history (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_gran.html"><span class="doc">gran/hooke (co)</span></a></td>
+<td><a class="reference internal" href="pair_gran.html"><span class="doc">gran/hooke/history (o)</span></a></td>
+<td><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">hbond/dreiding/lj (o)</span></a></td>
+<td><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">hbond/dreiding/morse (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_kim.html"><span class="doc">kim</span></a></td>
+<td><a class="reference internal" href="pair_lcbop.html"><span class="doc">lcbop</span></a></td>
+<td><a class="reference internal" href="pair_line_lj.html"><span class="doc">line/lj</span></a></td>
+<td><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/charmm (cko)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/charmm/implicit (cko)</span></a></td>
+<td><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/long (cgiko)</span></a></td>
+<td><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/msm</span></a></td>
+<td><a class="reference internal" href="pair_class2.html"><span class="doc">lj/class2 (cgko)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_class2.html"><span class="doc">lj/class2/coul/cut (cko)</span></a></td>
+<td><a class="reference internal" href="pair_class2.html"><span class="doc">lj/class2/coul/long (cgko)</span></a></td>
+<td><a class="reference internal" href="pair_lj_cubic.html"><span class="doc">lj/cubic (go)</span></a></td>
+<td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut (cgikot)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/cut (cgko)</span></a></td>
+<td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/debye (cgko)</span></a></td>
+<td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/dsf (gko)</span></a></td>
+<td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/long (cgikot)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/long/cs</span></a></td>
+<td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/msm (go)</span></a></td>
+<td><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/cut/dipole/cut (go)</span></a></td>
+<td><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/cut/dipole/long</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/tip4p/cut (o)</span></a></td>
+<td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/tip4p/long (ot)</span></a></td>
+<td><a class="reference internal" href="pair_lj_expand.html"><span class="doc">lj/expand (cgko)</span></a></td>
+<td><a class="reference internal" href="pair_gromacs.html"><span class="doc">lj/gromacs (cgko)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_gromacs.html"><span class="doc">lj/gromacs/coul/gromacs (cko)</span></a></td>
+<td><a class="reference internal" href="pair_lj_long.html"><span class="doc">lj/long/coul/long (o)</span></a></td>
+<td><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/long/dipole/long</span></a></td>
+<td><a class="reference internal" href="pair_lj_long.html"><span class="doc">lj/long/tip4p/long</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_smooth.html"><span class="doc">lj/smooth (co)</span></a></td>
+<td><a class="reference internal" href="pair_lj_smooth_linear.html"><span class="doc">lj/smooth/linear (o)</span></a></td>
+<td><a class="reference internal" href="pair_lj96.html"><span class="doc">lj96/cut (cgo)</span></a></td>
+<td><a class="reference internal" href="pair_lubricate.html"><span class="doc">lubricate (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lubricate.html"><span class="doc">lubricate/poly (o)</span></a></td>
+<td><a class="reference internal" href="pair_lubricateU.html"><span class="doc">lubricateU</span></a></td>
+<td><a class="reference internal" href="pair_lubricateU.html"><span class="doc">lubricateU/poly</span></a></td>
+<td><a class="reference internal" href="pair_meam.html"><span class="doc">meam (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_mie.html"><span class="doc">mie/cut (o)</span></a></td>
+<td><a class="reference internal" href="pair_morse.html"><span class="doc">morse (cgot)</span></a></td>
+<td><a class="reference internal" href="pair_nb3b_harmonic.html"><span class="doc">nb3b/harmonic (o)</span></a></td>
+<td><a class="reference internal" href="pair_nm.html"><span class="doc">nm/cut (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_nm.html"><span class="doc">nm/cut/coul/cut (o)</span></a></td>
+<td><a class="reference internal" href="pair_nm.html"><span class="doc">nm/cut/coul/long (o)</span></a></td>
+<td><a class="reference internal" href="pair_peri.html"><span class="doc">peri/eps</span></a></td>
+<td><a class="reference internal" href="pair_peri.html"><span class="doc">peri/lps (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_peri.html"><span class="doc">peri/pmb (o)</span></a></td>
+<td><a class="reference internal" href="pair_peri.html"><span class="doc">peri/ves</span></a></td>
+<td><a class="reference internal" href="pair_polymorphic.html"><span class="doc">polymorphic</span></a></td>
+<td><a class="reference internal" href="pair_reax.html"><span class="doc">reax</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_airebo.html"><span class="doc">rebo (o)</span></a></td>
+<td><a class="reference internal" href="pair_resquared.html"><span class="doc">resquared (go)</span></a></td>
+<td><a class="reference internal" href="pair_snap.html"><span class="doc">snap</span></a></td>
+<td><a class="reference internal" href="pair_soft.html"><span class="doc">soft (go)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_sw.html"><span class="doc">sw (cgkio)</span></a></td>
+<td><a class="reference internal" href="pair_table.html"><span class="doc">table (gko)</span></a></td>
+<td><a class="reference internal" href="pair_tersoff.html"><span class="doc">tersoff (cgkio)</span></a></td>
+<td><a class="reference internal" href="pair_tersoff_mod.html"><span class="doc">tersoff/mod (gko)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_tersoff_zbl.html"><span class="doc">tersoff/zbl (gko)</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">tip4p/cut (o)</span></a></td>
+<td><a class="reference internal" href="pair_coul.html"><span class="doc">tip4p/long (o)</span></a></td>
+<td><a class="reference internal" href="pair_tri_lj.html"><span class="doc">tri/lj</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_vashishta.html"><span class="doc">vashishta (o)</span></a></td>
+<td><a class="reference internal" href="pair_yukawa.html"><span class="doc">yukawa (go)</span></a></td>
+<td><a class="reference internal" href="pair_yukawa_colloid.html"><span class="doc">yukawa/colloid (go)</span></a></td>
+<td><a class="reference internal" href="pair_zbl.html"><span class="doc">zbl (go)</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>These are additional pair styles in USER packages, which can be used
+if <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="23%" />
+<col width="24%" />
+<col width="30%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="pair_awpmd.html"><span class="doc">awpmd/cut</span></a></td>
+<td><a class="reference internal" href="pair_mdf.html"><span class="doc">buck/mdf</span></a></td>
+<td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">coul/cut/soft (o)</span></a></td>
+<td><a class="reference internal" href="pair_coul_diel.html"><span class="doc">coul/diel (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">coul/long/soft (o)</span></a></td>
+<td><a class="reference internal" href="pair_dpd_conservative.html"><span class="doc">dpd/conservative</span></a></td>
+<td><a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">dpd/fdt</span></a></td>
+<td><a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">dpd/fdt/energy</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_eam.html"><span class="doc">eam/cd (o)</span></a></td>
+<td><a class="reference internal" href="pair_edip.html"><span class="doc">edip (o)</span></a></td>
+<td><a class="reference internal" href="pair_eff.html"><span class="doc">eff/cut</span></a></td>
+<td><a class="reference internal" href="pair_gauss.html"><span class="doc">gauss/cut</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_mdf.html"><span class="doc">lennard/mdf</span></a></td>
+<td><a class="reference internal" href="pair_list.html"><span class="doc">list</span></a></td>
+<td><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/long/soft (o)</span></a></td>
+<td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/coul/cut/soft (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/coul/long/soft (o)</span></a></td>
+<td><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/cut/dipole/sf (go)</span></a></td>
+<td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/soft (o)</span></a></td>
+<td><a class="reference internal" href="pair_thole.html"><span class="doc">lj/cut/thole/long (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/tip4p/long/soft (o)</span></a></td>
+<td><a class="reference internal" href="pair_mdf.html"><span class="doc">lj/mdf</span></a></td>
+<td><a class="reference internal" href="pair_sdk.html"><span class="doc">lj/sdk (gko)</span></a></td>
+<td><a class="reference internal" href="pair_sdk.html"><span class="doc">lj/sdk/coul/long (go)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_sdk.html"><span class="doc">lj/sdk/coul/msm (o)</span></a></td>
+<td><a class="reference internal" href="pair_lj_sf.html"><span class="doc">lj/sf (o)</span></a></td>
+<td><a class="reference internal" href="pair_meam_spline.html"><span class="doc">meam/spline</span></a></td>
+<td><a class="reference internal" href="pair_meam_sw_spline.html"><span class="doc">meam/sw/spline</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_mgpt.html"><span class="doc">mgpt</span></a></td>
+<td><a class="reference internal" href="pair_morse.html"><span class="doc">morse/smooth/linear</span></a></td>
+<td><a class="reference internal" href="pair_morse.html"><span class="doc">morse/soft</span></a></td>
+<td><a class="reference internal" href="pair_quip.html"><span class="doc">quip</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_reax_c.html"><span class="doc">reax/c</span></a></td>
+<td><a class="reference internal" href="pair_smd_hertz.html"><span class="doc">smd/hertz</span></a></td>
+<td><a class="reference internal" href="pair_smd_tlsph.html"><span class="doc">smd/tlsph</span></a></td>
+<td><a class="reference internal" href="pair_smd_triangulated_surface.html"><span class="doc">smd/triangulated/surface</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_smd_ulsph.html"><span class="doc">smd/ulsph</span></a></td>
+<td><a class="reference internal" href="pair_smtbq.html"><span class="doc">smtbq</span></a></td>
+<td><a class="reference internal" href="pair_sph_heatconduction.html"><span class="doc">sph/heatconduction</span></a></td>
+<td><a class="reference internal" href="pair_sph_idealgas.html"><span class="doc">sph/idealgas</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_sph_lj.html"><span class="doc">sph/lj</span></a></td>
+<td><a class="reference internal" href="pair_sph_rhosum.html"><span class="doc">sph/rhosum</span></a></td>
+<td><a class="reference internal" href="pair_sph_taitwater.html"><span class="doc">sph/taitwater</span></a></td>
+<td><a class="reference internal" href="pair_sph_taitwater_morris.html"><span class="doc">sph/taitwater/morris</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_srp.html"><span class="doc">srp</span></a></td>
+<td><a class="reference internal" href="pair_tersoff.html"><span class="doc">tersoff/table (o)</span></a></td>
+<td><a class="reference internal" href="pair_thole.html"><span class="doc">thole</span></a></td>
+<td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">tip4p/long/soft (o)</span></a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="bond-style-potentials">
+<h2>3.9. Bond_style potentials</h2>
+<p>See the <a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a> command for an overview of bond
+potentials.  Click on the style itself for a full description.  Some
+of the styles have accelerated versions, which can be used if LAMMPS
+is built with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="28%" />
+<col width="25%" />
+<col width="22%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="bond_none.html"><span class="doc">none</span></a></td>
+<td><a class="reference internal" href="bond_zero.html"><span class="doc">zero</span></a></td>
+<td><a class="reference internal" href="bond_hybrid.html"><span class="doc">hybrid</span></a></td>
+<td><a class="reference internal" href="bond_class2.html"><span class="doc">class2 (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="bond_fene.html"><span class="doc">fene (ko)</span></a></td>
+<td><a class="reference internal" href="bond_fene_expand.html"><span class="doc">fene/expand (o)</span></a></td>
+<td><a class="reference internal" href="bond_harmonic.html"><span class="doc">harmonic (ko)</span></a></td>
+<td><a class="reference internal" href="bond_morse.html"><span class="doc">morse (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="bond_nonlinear.html"><span class="doc">nonlinear (o)</span></a></td>
+<td><a class="reference internal" href="bond_quartic.html"><span class="doc">quartic (o)</span></a></td>
+<td><a class="reference internal" href="bond_table.html"><span class="doc">table (o)</span></a></td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>These are additional bond styles in USER packages, which can be used
+if <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="46%" />
+<col width="54%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="bond_harmonic_shift.html"><span class="doc">harmonic/shift (o)</span></a></td>
+<td><a class="reference internal" href="bond_harmonic_shift_cut.html"><span class="doc">harmonic/shift/cut (o)</span></a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="angle-style-potentials">
+<h2>3.10. Angle_style potentials</h2>
+<p>See the <a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a> command for an overview of
+angle potentials.  Click on the style itself for a full description.
+Some of the styles have accelerated versions, which can be used if
+LAMMPS is built with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="27%" />
+<col width="21%" />
+<col width="24%" />
+<col width="28%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="angle_none.html"><span class="doc">none</span></a></td>
+<td><a class="reference internal" href="angle_zero.html"><span class="doc">zero</span></a></td>
+<td><a class="reference internal" href="angle_hybrid.html"><span class="doc">hybrid</span></a></td>
+<td><a class="reference internal" href="angle_charmm.html"><span class="doc">charmm (ko)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="angle_class2.html"><span class="doc">class2 (o)</span></a></td>
+<td><a class="reference internal" href="angle_cosine.html"><span class="doc">cosine (o)</span></a></td>
+<td><a class="reference internal" href="angle_cosine_delta.html"><span class="doc">cosine/delta (o)</span></a></td>
+<td><a class="reference internal" href="angle_cosine_periodic.html"><span class="doc">cosine/periodic (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="angle_cosine_squared.html"><span class="doc">cosine/squared (o)</span></a></td>
+<td><a class="reference internal" href="angle_harmonic.html"><span class="doc">harmonic (iko)</span></a></td>
+<td><a class="reference internal" href="angle_table.html"><span class="doc">table (o)</span></a></td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>These are additional angle styles in USER packages, which can be used
+if <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="31%" />
+<col width="20%" />
+<col width="21%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="angle_cosine_shift.html"><span class="doc">cosine/shift (o)</span></a></td>
+<td><a class="reference internal" href="angle_cosine_shift_exp.html"><span class="doc">cosine/shift/exp (o)</span></a></td>
+<td><a class="reference internal" href="angle_dipole.html"><span class="doc">dipole (o)</span></a></td>
+<td><a class="reference internal" href="angle_fourier.html"><span class="doc">fourier (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="angle_fourier_simple.html"><span class="doc">fourier/simple (o)</span></a></td>
+<td><a class="reference internal" href="angle_quartic.html"><span class="doc">quartic (o)</span></a></td>
+<td><a class="reference internal" href="angle_sdk.html"><span class="doc">sdk</span></a></td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="dihedral-style-potentials">
+<h2>3.11. Dihedral_style potentials</h2>
+<p>See the <a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a> command for an overview
+of dihedral potentials.  Click on the style itself for a full
+description.  Some of the styles have accelerated versions, which can
+be used if LAMMPS is built with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="25%" />
+<col width="21%" />
+<col width="32%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="dihedral_none.html"><span class="doc">none</span></a></td>
+<td><a class="reference internal" href="dihedral_zero.html"><span class="doc">zero</span></a></td>
+<td><a class="reference internal" href="dihedral_hybrid.html"><span class="doc">hybrid</span></a></td>
+<td><a class="reference internal" href="dihedral_charmm.html"><span class="doc">charmm (ko)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="dihedral_class2.html"><span class="doc">class2 (o)</span></a></td>
+<td><a class="reference internal" href="dihedral_harmonic.html"><span class="doc">harmonic (io)</span></a></td>
+<td><a class="reference internal" href="dihedral_helix.html"><span class="doc">helix (o)</span></a></td>
+<td><a class="reference internal" href="dihedral_multi_harmonic.html"><span class="doc">multi/harmonic (o)</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="dihedral_opls.html"><span class="doc">opls (iko)</span></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>These are additional dihedral styles in USER packages, which can be
+used if <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%" />
+<col width="21%" />
+<col width="24%" />
+<col width="24%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="dihedral_cosine_shift_exp.html"><span class="doc">cosine/shift/exp (o)</span></a></td>
+<td><a class="reference internal" href="dihedral_fourier.html"><span class="doc">fourier (o)</span></a></td>
+<td><a class="reference internal" href="dihedral_nharmonic.html"><span class="doc">nharmonic (o)</span></a></td>
+<td><a class="reference internal" href="dihedral_quadratic.html"><span class="doc">quadratic (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="dihedral_table.html"><span class="doc">table (o)</span></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="improper-style-potentials">
+<h2>3.12. Improper_style potentials</h2>
+<p>See the <a class="reference internal" href="improper_style.html"><span class="doc">improper_style</span></a> command for an overview
+of improper potentials.  Click on the style itself for a full
+description.  Some of the styles have accelerated versions, which can
+be used if LAMMPS is built with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="22%" />
+<col width="27%" />
+<col width="27%" />
+<col width="24%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="improper_none.html"><span class="doc">none</span></a></td>
+<td><a class="reference internal" href="improper_zero.html"><span class="doc">zero</span></a></td>
+<td><a class="reference internal" href="improper_hybrid.html"><span class="doc">hybrid</span></a></td>
+<td><a class="reference internal" href="improper_class2.html"><span class="doc">class2 (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="improper_cvff.html"><span class="doc">cvff (io)</span></a></td>
+<td><a class="reference internal" href="improper_harmonic.html"><span class="doc">harmonic (ko)</span></a></td>
+<td><a class="reference internal" href="improper_umbrella.html"><span class="doc">umbrella (o)</span></a></td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>These are additional improper styles in USER packages, which can be
+used if <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="26%" />
+<col width="27%" />
+<col width="23%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="improper_cossq.html"><span class="doc">cossq (o)</span></a></td>
+<td><a class="reference internal" href="improper_distance.html"><span class="doc">distance</span></a></td>
+<td><a class="reference internal" href="improper_fourier.html"><span class="doc">fourier (o)</span></a></td>
+<td><a class="reference internal" href="improper_ring.html"><span class="doc">ring (o)</span></a></td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr class="docutils" />
+<div class="section" id="kspace-solvers">
+<h2>3.13. Kspace solvers</h2>
+<p>See the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command for an overview of
+Kspace solvers.  Click on the style itself for a full description.
+Some of the styles have accelerated versions, which can be used if
+LAMMPS is built with the <a class="reference internal" href="Section_accelerate.html"><span class="doc">appropriate accelerated package</span></a>.  This is indicated by additional
+letters in parenthesis: c = USER-CUDA, g = GPU, i = USER-INTEL, k =
+KOKKOS, o = USER-OMP, t = OPT.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="25%" />
+<col width="26%" />
+<col width="23%" />
+<col width="27%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="kspace_style.html"><span class="doc">ewald (o)</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">ewald/disp</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">msm (o)</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">msm/cg (o)</span></a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="kspace_style.html"><span class="doc">pppm (cgo)</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">pppm/cg (o)</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">pppm/disp</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">pppm/disp/tip4p</span></a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="kspace_style.html"><span class="doc">pppm/stagger</span></a></td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">pppm/tip4p (o)</span></a></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_packages.html" class="btn btn-neutral float-right" title="4. Packages" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_start.html" class="btn btn-neutral" title="2. Getting Started" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dump molfile command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>dump molfile command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="dump-molfile-command">
+<span id="index-0"></span><h1>dump molfile command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">molfile</span> <span class="n">N</span> <span class="n">file</span> <span class="nb">format</span> <span class="n">path</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID = user-assigned name for the dump</li>
+<li>group-ID = ID of the group of atoms to be imaged</li>
+<li>molfile = style of dump command (other styles <em>atom</em> or <em>cfg</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>local</em> or <em>custom</em> are discussed on the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> doc page)</li>
+<li>N = dump every this many timesteps</li>
+<li>file = name of file to write to</li>
+<li>format = file format to be used</li>
+<li>path = file path with plugins (optional)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump</span> <span class="n">mf1</span> <span class="nb">all</span> <span class="n">molfile</span> <span class="mi">10</span> <span class="n">melt1</span><span class="o">.</span><span class="n">xml</span> <span class="n">hoomd</span>
+<span class="n">dump</span> <span class="n">mf2</span> <span class="nb">all</span> <span class="n">molfile</span> <span class="mi">10</span> <span class="n">melt2</span><span class="o">-*.</span><span class="n">pdb</span> <span class="n">pdb</span> <span class="o">.</span>
+<span class="n">dump</span> <span class="n">mf3</span> <span class="nb">all</span> <span class="n">molfile</span> <span class="mi">50</span> <span class="n">melt3</span><span class="o">.</span><span class="n">xyz</span> <span class="n">xyz</span> <span class="o">.</span><span class="p">:</span><span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">akohlmey</span><span class="o">/</span><span class="n">vmd</span><span class="o">/</span><span class="n">plugins</span><span class="o">/</span><span class="n">LINUX</span><span class="o">/</span><span class="n">molfile</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Dump a snapshot of atom coordinates and selected additional quantities
+to one or more files every N timesteps in one of several formats.
+Only information for atoms in the specified group is dumped.  This
+specific dump style uses molfile plugins that are bundled with the
+<a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molecular visualization and
+analysis program.  See <a class="reference internal" href="Section_tools.html#vmd"><span class="std std-ref">Section tools</span></a> of the
+manual and the tools/lmp2vmd/README.txt file for more information
+about support in VMD for reading and visualizing native LAMMPS dump
+files.</p>
+<p>Unless the filename contains a * character, the output will be written
+to one single file with the specified format. Otherwise there will be
+one file per snapshot and the * will be replaced by the time step number
+when the snapshot is written.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Because periodic boundary conditions are enforced only on
+timesteps when neighbor lists are rebuilt, the coordinates of an atom
+written to a dump file may be slightly outside the simulation box.</p>
+</div>
+<p>The molfile plugin API has a few restrictions that have to be honored
+by this dump style: the number of atoms must not change, the atoms
+must be sorted, outside of the coordinates no change in atom properties
+(like type, mass, charge) will be recorded.</p>
+<hr class="docutils" />
+<p>The <em>format</em> keyword determines what format is used to write out the
+dump. For this to work, LAMMPS must be able to find and load a
+compatible molfile plugin that supports this format.  Settings made via
+the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command can alter per atom properties
+like element names.</p>
+<p>The <em>path</em> keyword determines which in directories. This is a &#8220;path&#8221;
+like other search paths, i.e. it can contain multiple directories
+separated by a colon (or semi-colon on windows). This keyword is
+optional and default to &#8221;.&#8221;, the current directory.</p>
+<p>The <em>unwrap</em> option of the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command allows
+coordinates to be written &#8220;unwrapped&#8221; by the image flags for each atom.
+Unwrapped means that if the atom has passed through a periodic boundary
+one or more times, the value is printed for what the coordinate would be
+if it had not been wrapped back into the periodic box.  Note that these
+coordinates may thus be far outside the box size stored with the
+snapshot.</p>
+<hr class="docutils" />
+<p>Dumps are performed on timesteps that are a multiple of N (including
+timestep 0) and on the last timestep of a minimization if the
+minimization converges.  Note that this means a dump will not be
+performed on the initial timestep after the dump command is invoked,
+if the current timestep is not a multiple of N.  This behavior can be
+changed via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify first</span></a> command, which can
+be useful if the dump command is invoked after a minimization ended on
+an arbitrary timestep.  N can be changed between runs by using the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command. The <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command also allows a variable to be used to
+determine the sequence of timesteps on which dump files are written.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>The <em>molfile</em> dump style is part of the USER-MOLFILE package.  It is
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>Molfile plugins provide a consistent programming interface to read and
+write file formats commonly used in molecular simulations. The
+USER-MOLFILE package only provides the interface code, not the plugins.
+These can be obtained from a VMD installation which has to match the
+platform that you are using to compile LAMMPS for. By adding plugins
+to VMD, support for new file formats can be added to LAMMPS (or VMD
+or other programs that use them) without having to recompile the
+application itself.  The plugins are installed in the directory:
+&lt;VMDHOME&gt;/plugins/&lt;VMDARCH&gt;/molfile</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">while the programming interface (API) to the plugins is backward
+compatible, the binary interface (ABI) has been changing over time, so
+it is necessary to compile this package with the plugin header files
+from VMD that match the binary plugins.  These header files in the
+directory: &lt;VMDHOME&gt;/plugins/include For convenience, the package ships
+with a set of header files that are compatible with VMD 1.9 and 1.9.1
+(June 2012)</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a>, <a class="reference internal" href="undump.html"><span class="doc">undump</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The default path is &#8221;.&#8221;. All other properties have to be specified.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

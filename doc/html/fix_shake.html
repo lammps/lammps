@@ -1,0 +1,388 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix shake command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix shake command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-shake-command">
+<span id="index-0"></span><h1>fix shake command</h1>
+</div>
+<div class="section" id="fix-shake-cuda-command">
+<h1>fix shake/cuda command</h1>
+</div>
+<div class="section" id="fix-rattle-command">
+<h1>fix rattle command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">style</span> <span class="n">tol</span> <span class="nb">iter</span> <span class="n">N</span> <span class="n">constraint</span> <span class="n">values</span> <span class="o">...</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>style = shake or rattle = style name of this fix command</li>
+<li>tol = accuracy tolerance of SHAKE solution</li>
+<li>iter = max # of iterations in each SHAKE solution</li>
+<li>N = print SHAKE statistics every this many timesteps (0 = never)</li>
+<li>one or more constraint/value pairs are appended</li>
+<li>constraint = <em>b</em> or <em>a</em> or <em>t</em> or <em>m</em></li>
+</ul>
+<pre class="literal-block">
+<em>b</em> values = one or more bond types
+<em>a</em> values = one or more angle types
+<em>t</em> values = one or more atom types
+<em>m</em> value = one or more mass values
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>mol</em></li>
+</ul>
+<pre class="literal-block">
+<em>mol</em> value = template-ID
+  template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="n">sub</span> <span class="n">shake</span> <span class="mf">0.0001</span> <span class="mi">20</span> <span class="mi">10</span> <span class="n">b</span> <span class="mi">4</span> <span class="mi">19</span> <span class="n">a</span> <span class="mi">3</span> <span class="mi">5</span> <span class="mi">2</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="n">sub</span> <span class="n">shake</span> <span class="mf">0.0001</span> <span class="mi">20</span> <span class="mi">10</span> <span class="n">t</span> <span class="mi">5</span> <span class="mi">6</span> <span class="n">m</span> <span class="mf">1.0</span> <span class="n">a</span> <span class="mi">31</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="n">sub</span> <span class="n">shake</span> <span class="mf">0.0001</span> <span class="mi">20</span> <span class="mi">10</span> <span class="n">t</span> <span class="mi">5</span> <span class="mi">6</span> <span class="n">m</span> <span class="mf">1.0</span> <span class="n">a</span> <span class="mi">31</span> <span class="n">mol</span> <span class="n">myMol</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="n">sub</span> <span class="n">rattle</span> <span class="mf">0.0001</span> <span class="mi">20</span> <span class="mi">10</span> <span class="n">t</span> <span class="mi">5</span> <span class="mi">6</span> <span class="n">m</span> <span class="mf">1.0</span> <span class="n">a</span> <span class="mi">31</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="n">sub</span> <span class="n">rattle</span> <span class="mf">0.0001</span> <span class="mi">20</span> <span class="mi">10</span> <span class="n">t</span> <span class="mi">5</span> <span class="mi">6</span> <span class="n">m</span> <span class="mf">1.0</span> <span class="n">a</span> <span class="mi">31</span> <span class="n">mol</span> <span class="n">myMol</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Apply bond and angle constraints to specified bonds and angles in the
+simulation by either the SHAKE or RATTLE algorithms.  This typically
+enables a longer timestep.</p>
+<p><strong>SHAKE vs RATTLE:</strong></p>
+<p>The SHAKE algorithm was invented for schemes such as standard Verlet
+timesteppnig, where only the coordinates are integrated and the
+velocities are approximated as finite differences to the trajectories
+(<a class="reference internal" href="#ryckaert"><span class="std std-ref">Ryckaert et al. (1977)</span></a>).  If the velocities are
+integrated explicitly, as with velocity Verlet which is what LAMMPS
+uses as an integration method, a second set of constraining forces is
+required in order to eliminate velocity components along the bonds
+(<a class="reference internal" href="#andersen"><span class="std std-ref">Andersen (1983)</span></a>).</p>
+<p>In order to formulate individual constraints for SHAKE and RATTLE,
+focus on a single molecule whose bonds are constrained.  Let Ri and Vi
+be the position and velocity of atom <em>i</em> at time <em>n</em>, for
+<em>i</em>=1,...,<em>N</em>, where <em>N</em> is the number of sites of our reference
+molecule. The distance vector between sites <em>i</em> and <em>j</em> is given by</p>
+<img alt="_images/fix_rattle_rij.jpg" class="align-center" src="_images/fix_rattle_rij.jpg" />
+<p>The constraints can then be formulated as</p>
+<img alt="_images/fix_rattle_constraints.jpg" class="align-center" src="_images/fix_rattle_constraints.jpg" />
+<p>The SHAKE algorithm satisfies the first condition, i.e. the sites at
+time <em>n+1</em> will have the desired separations Dij immediately after the
+coordinates are integrated.  If we also enforce the second condition,
+the velocity components along the bonds will vanish.  RATTLE satisfies
+both conditions.  As implemented in LAMMPS, fix rattle uses fix shake
+for satisfying the coordinate constraints. Therefore the settings and
+optional keywords are the same for both fixes, and all the information
+below about SHAKE is also relevant for RATTLE.</p>
+<p><strong>SHAKE:</strong></p>
+<p>Each timestep the specified bonds and angles are reset to their
+equilibrium lengths and angular values via the SHAKE algorithm
+(<a class="reference internal" href="#ryckaert"><span class="std std-ref">Ryckaert et al. (1977)</span></a>).  This is done by applying an
+additional constraint force so that the new positions preserve the
+desired atom separations.  The equations for the additional force are
+solved via an iterative method that typically converges to an accurate
+solution in a few iterations.  The desired tolerance (e.g. 1.0e-4 = 1
+part in 10000) and maximum # of iterations are specified as arguments.
+Setting the N argument will print statistics to the screen and log
+file about regarding the lengths of bonds and angles that are being
+constrained.  Small delta values mean SHAKE is doing a good job.</p>
+<p>In LAMMPS, only small clusters of atoms can be constrained.  This is
+so the constraint calculation for a cluster can be performed by a
+single processor, to enable good parallel performance.  A cluster is
+defined as a central atom connected to others in the cluster by
+constrained bonds.  LAMMPS allows for the following kinds of clusters
+to be constrained: one central atom bonded to 1 or 2 or 3 atoms, or
+one central atom bonded to 2 others and the angle between the 3 atoms
+also constrained.  This means water molecules or CH2 or CH3 groups may
+be constrained, but not all the C-C backbone bonds of a long polymer
+chain.</p>
+<p>The <em>b</em> constraint lists bond types that will be constrained.  The <em>t</em>
+constraint lists atom types.  All bonds connected to an atom of the
+specified type will be constrained.  The <em>m</em> constraint lists atom
+masses.  All bonds connected to atoms of the specified masses will be
+constrained (within a fudge factor of MASSDELTA specified in
+fix_shake.cpp).  The <em>a</em> constraint lists angle types.  If both bonds
+in the angle are constrained then the angle will also be constrained
+if its type is in the list.</p>
+<p>For all constraints, a particular bond is only constrained if both
+atoms in the bond are in the group specified with the SHAKE fix.</p>
+<p>The degrees-of-freedom removed by SHAKE bonds and angles are accounted
+for in temperature and pressure computations.  Similarly, the SHAKE
+contribution to the pressure of the system (virial) is also accounted
+for.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This command works by using the current forces on atoms to
+caculate an additional constraint force which when added will leave
+the atoms in positions that satisfy the SHAKE constraints (e.g. bond
+length) after the next time integration step.  If you define fixes
+(e.g. <a class="reference internal" href="fix_efield.html"><span class="doc">fix efield</span></a>) that add additional force to the
+atoms after fix shake operates, then this fix will not take them into
+account and the time integration will typically not satisfy the SHAKE
+constraints.  The solution for this is to make sure that fix shake is
+defined in your input script after any other fixes which add or change
+forces (to atoms that fix shake operates on).</p>
+</div>
+<hr class="docutils" />
+<p>The <em>mol</em> keyword should be used when other commands, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, add molecules
+on-the-fly during a simulation, and you wish to contrain the new
+molecules via SHAKE.  You specify a <em>template-ID</em> previously defined
+using the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command, which reads a file that
+defines the molecule.  You must use the same <em>template-ID</em> that the
+command adding molecules uses.  The coordinates, atom types, special
+bond restrictions, and SHAKE info can be specified in the molecule
+file.  See the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command for details.  The only
+settings required to be in this file (by this command) are the SHAKE
+info of atoms in the molecule.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em> suffix are functionally the same as the
+corresponding style without the suffix.  They have been optimized to
+run faster, depending on your available hardware, as discussed in
+<a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual.  The
+accelerated styles take the same arguments and should produce the same
+results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the USER-CUDA package.  They are
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>RATTLE:</strong></p>
+<p>The velocity constraints lead to a linear system of equations which
+can be solved analytically.  The implementation of the algorithm in
+LAMMPS closely follows (<a class="reference internal" href="#andersen"><span class="std std-ref">Andersen (1983)</span></a>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The fix rattle command modifies forces and velocities and thus
+should be defined after all other integration fixes in your input
+script.  If you define other fixes that modify velocities or forces
+after fix rattle operates, then fix rattle will not take them into
+account and the overall time integration will typically not satisfy
+the RATTLE constraints.  You can check whether the constraints work
+correctly by setting the value of RATTLE_DEBUG in src/fix_rattle.cpp
+to 1 and recompiling LAMMPS.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about these fixes is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
+are relevant to these fixes.  No global or per-atom quantities are
+stored by these fixes for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of these fixes
+can be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a>
+command.  These fixes are not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>These fixes are part of the RIGID package.  They are only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>For computational efficiency, there can only be one shake or rattle
+fix defined in a simulation.</p>
+<p>If you use a tolerance that is too large or a max-iteration count that
+is too small, the constraints will not be enforced very strongly,
+which can lead to poor energy conservation.  You can test for this in
+your system by running a constant NVE simulation with a particular set
+of SHAKE parameters and monitoring the energy versus time.</p>
+<p>SHAKE or RATTLE should not be used to contrain an angle at 180 degrees
+(e.g. linear CO2 molecule).  This causes numeric difficulties.</p>
+<p><strong>Related commands:</strong> none</p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="ryckaert"><strong>(Ryckaert)</strong> J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen,
+J of Comp Phys, 23, 327-341 (1977).</p>
+<p id="andersen"><strong>(Andersen)</strong> H. Andersen, J of Comp Phys, 52, 24-34 (1983).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

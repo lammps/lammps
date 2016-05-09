@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix vector command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix vector command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-vector-command">
+<span id="index-0"></span><h1>fix vector command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">vector</span> <span class="n">Nevery</span> <span class="n">value1</span> <span class="n">value2</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>vector = style name of this fix command</li>
+<li>Nevery = use input values every this many timesteps</li>
+<li>one or more input values can be listed</li>
+<li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">v_name</span> <span class="o">=</span> <span class="n">value</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">equal</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
+<span class="n">v_name</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">vector</span> <span class="mi">100</span> <span class="n">c_myTemp</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">vector</span> <span class="mi">5</span> <span class="n">c_myTemp</span> <span class="n">v_integral</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Use one or more global values as inputs every few timesteps, and
+simply store them.  For a single specified value, the values are
+stored as a global vector of growing length.  For multiple specified
+values, they are stored as rows in a global array, whose number of
+rows is growing.  The resulting vector or array can be used by other
+<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.</p>
+<p>One way to to use this command is to accumulate a vector that is
+time-integrated using the <a class="reference internal" href="variable.html"><span class="doc">variable trap()</span></a> function.
+For example the velocity auto-correlation function (VACF) can be
+time-integrated, to yield a diffusion coefficient, as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>         <span class="mi">2</span> <span class="nb">all</span> <span class="n">vacf</span>
+<span class="n">fix</span>             <span class="mi">5</span> <span class="nb">all</span> <span class="n">vector</span> <span class="mi">1</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="n">variable</span>        <span class="n">diff</span> <span class="n">equal</span> <span class="n">dt</span><span class="o">*</span><span class="n">trap</span><span class="p">(</span><span class="n">f_5</span><span class="p">)</span>
+<span class="n">thermo_style</span>    <span class="n">custom</span> <span class="n">step</span> <span class="n">v_diff</span>
+</pre></div>
+</div>
+<p>The group specified with this command is ignored.  However, note that
+specified values may represent calculations performed by computes and
+fixes which store their own &#8220;group&#8221; definitions.</p>
+<p>Each listed value can be the result of a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> or
+<a class="reference internal" href="fix.html"><span class="doc">fix</span></a> or the evaluation of an equal-style or vector-style
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a>.  In each case, the compute, fix, or variable
+must produce a global quantity, not a per-atom or local quantity.  And
+the global quantity must be a scalar, not a vector or array.</p>
+<p><a class="reference internal" href="compute.html"><span class="doc">Computes</span></a> that produce global quantities are those which
+do not have the word <em>atom</em> in their style name.  Only a few
+<a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> produce global quantities.  See the doc pages for
+individual fixes for info on which ones produce such values.
+<a class="reference internal" href="variable.html"><span class="doc">Variables</span></a> of style <em>equal</em> or <em>vector</em> are the only
+ones that can be used with this fix.  Variables of style <em>atom</em> cannot
+be used, since they produce per-atom values.</p>
+<p>The <em>Nevery</em> argument specifies on what timesteps the input values
+will be used in order to be stored.  Only timesteps that are a
+multiple of <em>Nevery</em>, including timestep 0, will contribute values.</p>
+<p>Note that if you perform multiple runs, using the &#8220;pre no&#8221; option of
+the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command to avoid initialization on subsequent runs,
+then you need to use the <em>stop</em> keyword with the first <a class="reference internal" href="run.html"><span class="doc">run</span></a>
+command with a timestep value that encompasses all the runs.  This is
+so that the vector or array stored by this fix can be allocated to a
+sufficient size.</p>
+<hr class="docutils" />
+<p>If a value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the global scalar calculated by the compute is used.  If a
+bracketed term is appended, the Ith element of the global vector
+calculated by the compute is used.</p>
+<p>Note that there is a <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> command
+which can sum per-atom quantities into a global scalar or vector which
+can thus be accessed by fix vector.  Or it can be a compute defined
+not in your input script, but by <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a> or other fixes such as <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>
+or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a>.  See the doc pages for
+these commands which give the IDs of these computes.  Users can also
+write code for their own compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
+<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
+previously defined in the input script.  If no bracketed term is
+appended, the global scalar calculated by the fix is used.  If a
+bracketed term is appended, the Ith element of the global vector
+calculated by the fix is used.</p>
+<p>Note that some fixes only produce their values on certain timesteps,
+which must be compatible with <em>Nevery</em>, else an error will result.
+Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
+<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
+been previously defined in the input script.  An equal-style or
+vector-style variable can be referenced; the latter requires a
+bracketed term to specify the Ith element of the vector calculated by
+the variable.  See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command for details.
+Note that variables of style <em>equal</em> and <em>vector</em> define a formula
+which can reference individual atom properties or thermodynamic
+keywords, or they can invoke other computes, fixes, or variables when
+they are evaluated, so this is a very general means of specifying
+quantities to be stored by fix vector.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
+are relevant to this fix.</p>
+<p>This fix produces a global vector or global array which can be
+accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.
+The values can only be accessed on timesteps that are multiples of
+<em>Nevery</em>.</p>
+<p>A vector is produced if only a single input value is specified.
+An array is produced if multiple input values are specified.
+The length of the vector or the number of rows in the array grows
+by 1 every <em>Nevery</em> timesteps.</p>
+<p>If the fix prouduces a vector, then the entire vector will be either
+&#8220;intensive&#8221; or &#8220;extensive&#8221;, depending on whether the values stored in
+the vector are &#8220;intensive&#8221; or &#8220;extensive&#8221;.  If the fix produces an
+array, then all elements in the array must be the same, either
+&#8220;intensive&#8221; or &#8220;extensive&#8221;.  If a compute or fix provides the value
+stored, then the compute or fix determines whether the value is
+intensive or extensive; see the doc page for that compute or fix for
+further info.  Values produced by a variable are treated as intensive.</p>
+<p>This fix can allocate storage for stored values accumulated over
+multiple runs, using the <em>start</em> and <em>stop</em> keywords of the
+<a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command for details of
+how to do this.  If using the <a class="reference internal" href="run.html"><span class="doc">run pre no</span></a> command option,
+this is required to allow the fix to allocate sufficient storage for
+stored values.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, <a class="reference internal" href="variable.html"><span class="doc">variable</span></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

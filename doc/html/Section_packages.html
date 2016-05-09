@@ -1,0 +1,2527 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4. Packages &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
+        <link rel="next" title="5. Accelerating LAMMPS performance" href="Section_accelerate.html"/>
+        <link rel="prev" title="3. Commands" href="Section_commands.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Packages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#standard-packages">4.1. Standard packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#asphere-package">4.1.1. ASPHERE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#body-package">4.1.2. BODY package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#class2-package">4.1.3. CLASS2 package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#colloid-package">4.1.4. COLLOID package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compress-package">4.1.5. COMPRESS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#coreshell-package">4.1.6. CORESHELL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dipole-package">4.1.7. DIPOLE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gpu-package">4.1.8. GPU package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#granular-package">4.1.9. GRANULAR package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kim-package">4.1.10. KIM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kokkos-package">4.1.11. KOKKOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kspace-package">4.1.12. KSPACE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#manybody-package">4.1.13. MANYBODY package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mc-package">4.1.14. MC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#meam-package">4.1.15. MEAM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#misc-package">4.1.16. MISC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#molecule-package">4.1.17. MOLECULE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpiio-package">4.1.18. MPIIO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#opt-package">4.1.19. OPT package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#peri-package">4.1.20. PERI package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#poems-package">4.1.21. POEMS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-package">4.1.22. PYTHON package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qeq-package">4.1.23. QEQ package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reax-package">4.1.24. REAX package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#replica-package">4.1.25. REPLICA package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rigid-package">4.1.26. RIGID package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shock-package">4.1.27. SHOCK package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#snap-package">4.1.28. SNAP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#srd-package">4.1.29. SRD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#voronoi-package">4.1.30. VORONOI package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#user-packages">4.2. User packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#user-atc-package">4.2.1. USER-ATC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-awpmd-package">4.2.2. USER-AWPMD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-cg-cmm-package">4.2.3. USER-CG-CMM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-colvars-package">4.2.4. USER-COLVARS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-cuda-package">4.2.5. USER-CUDA package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-diffraction-package">4.2.6. USER-DIFFRACTION package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-dpd-package">4.2.7. USER-DPD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-drude-package">4.2.8. USER-DRUDE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-eff-package">4.2.9. USER-EFF package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-fep-package">4.2.10. USER-FEP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-h5md-package">4.2.11. USER-H5MD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-intel-package">4.2.12. USER-INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-lb-package">4.2.13. USER-LB package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-mgpt-package">4.2.14. USER-MGPT package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-misc-package">4.2.15. USER-MISC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-molfile-package">4.2.16. USER-MOLFILE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-omp-package">4.2.17. USER-OMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-phonon-package">4.2.18. USER-PHONON package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-qmmm-package">4.2.19. USER-QMMM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-qtb-package">4.2.20. USER-QTB package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-quip-package">4.2.21. USER-QUIP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-reaxc-package">4.2.22. USER-REAXC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-smd-package">4.2.23. USER-SMD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-smtbq-package">4.2.24. USER-SMTBQ package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-sph-package">4.2.25. USER-SPH package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-tally-package">4.2.26. USER-TALLY package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-vtk-package">4.2.27. USER-VTK package</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>4. Packages</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_accelerate.html" class="btn btn-neutral float-right" title="5. Accelerating LAMMPS performance" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_commands.html" class="btn btn-neutral" title="3. Commands" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="packages">
+<h1>4. Packages</h1>
+<p>This section gives an overview of the add-on optional packages that
+extend LAMMPS functionality.  Packages are groups of files that enable
+a specific set of features.  For example, force fields for molecular
+systems or granular systems are in packages.  You can see the list of
+all packages by typing &#8220;make package&#8221; from within the src directory of
+the LAMMPS distribution.</p>
+<p>Here are links for two tables below, which list standard and user
+packages.</p>
+<div class="line-block">
+<div class="line">4.1 <a class="reference internal" href="#pkg-1"><span class="std std-ref">Standard packages</span></a></div>
+<div class="line">4.2 <a class="reference internal" href="#pkg-2"><span class="std std-ref">User packages</span></a></div>
+<div class="line"><br /></div>
+</div>
+<p><a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Section_start 3</span></a> of the manual describes
+the difference between standard packages and user packages.  It also
+has general details on how to include/exclude specific packages as
+part of the LAMMPS build process, and on how to build auxiliary
+libraries or modify a machine Makefile if a package requires it.</p>
+<p>Following the two tables below, is a sub-section for each package.  It
+has a summary of what the package contains.  It has specific
+instructions on how to install it, build or obtain any auxiliary
+library it requires, and any Makefile.machine changes it requires.  It
+also lists pointers to examples of its use or documentation provided
+in the LAMMPS distribution.  If you want to know the complete list of
+commands that a package adds to LAMMPS, simply list the files in its
+directory, e.g. &#8220;ls src/GRANULAR&#8221;.  Source files with names that start
+with compute, fix, pair, bond, etc correspond to command styles with
+the same names.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The USER package sub-sections below are still being filled in,
+as of March 2016.</p>
+</div>
+<p>Unless otherwise noted below, every package is independent of all the
+others.  I.e. any package can be included or excluded in a LAMMPS
+build, independent of all other packages.  However, note that some
+packages include commands derived from commands in other packages.  If
+the other package is not installed, the derived command from the new
+package will also not be installed when you include the new one.
+E.g. the pair lj/cut/coul/long/omp command from the USER-OMP package
+will not be installed as part of the USER-OMP package if the KSPACE
+package is not also installed, since it contains the pair
+lj/cut/coul/long command.  If you later install the KSPACE package and
+the USER-OMP package is already installed, both the pair
+lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.</p>
+<hr class="docutils" />
+<div class="section" id="standard-packages">
+<span id="pkg-1"></span><h2>4.1. Standard packages</h2>
+<p>The current list of standard packages is as follows.  Each package
+name links to a sub-section below with more details.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="21%" />
+<col width="22%" />
+<col width="28%" />
+<col width="6%" />
+<col width="7%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Package</td>
+<td>Description</td>
+<td>Author(s)</td>
+<td>Doc page</td>
+<td>Example</td>
+<td>Library</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#asphere"><span class="std std-ref">ASPHERE</span></a></td>
+<td>aspherical particles</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="Section_howto.html#howto-14"><span class="std std-ref">Section_howto 6.14</span></a></td>
+<td>ellipse</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#body"><span class="std std-ref">BODY</span></a></td>
+<td>body-style particles</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="body.html"><span class="doc">body</span></a></td>
+<td>body</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#class2"><span class="std std-ref">CLASS2</span></a></td>
+<td>class 2 force fields</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#colloid"><span class="std std-ref">COLLOID</span></a></td>
+<td>colloidal particles</td>
+<td>Kumar (1)</td>
+<td><a class="reference internal" href="atom_style.html"><span class="doc">atom_style colloid</span></a></td>
+<td>colloid</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#compress"><span class="std std-ref">COMPRESS</span></a></td>
+<td>I/O compression</td>
+<td>Axel Kohlmeyer (Temple U)</td>
+<td><a class="reference internal" href="dump.html"><span class="doc">dump */gz</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#coreshell"><span class="std std-ref">CORESHELL</span></a></td>
+<td>adiabatic core/shell model</td>
+<td>Hendrik Heenen (Technical U of Munich)</td>
+<td><a class="reference internal" href="Section_howto.html#howto-25"><span class="std std-ref">Section_howto 6.25</span></a></td>
+<td>coreshell</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#dipole"><span class="std std-ref">DIPOLE</span></a></td>
+<td>point dipole particles</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style dipole/cut</span></a></td>
+<td>dipole</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#gpu"><span class="std std-ref">GPU</span></a></td>
+<td>GPU-enabled styles</td>
+<td>Mike Brown (ORNL)</td>
+<td><a class="reference internal" href="accelerate_gpu.html"><span class="doc">Section accelerate</span></a></td>
+<td>gpu</td>
+<td>lib/gpu</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#granular"><span class="std std-ref">GRANULAR</span></a></td>
+<td>granular systems</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="Section_howto.html#howto-6"><span class="std std-ref">Section_howto 6.6</span></a></td>
+<td>pour</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kim"><span class="std std-ref">KIM</span></a></td>
+<td>openKIM potentials</td>
+<td>Smirichinski &amp; Elliot &amp; Tadmor (3)</td>
+<td><a class="reference internal" href="pair_kim.html"><span class="doc">pair_style kim</span></a></td>
+<td>kim</td>
+<td>KIM</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#kokkos"><span class="std std-ref">KOKKOS</span></a></td>
+<td>Kokkos-enabled styles</td>
+<td>Trott &amp; Moore (4)</td>
+<td><a class="reference internal" href="accelerate_kokkos.html"><span class="doc">Section_accelerate</span></a></td>
+<td>kokkos</td>
+<td>lib/kokkos</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#kspace"><span class="std std-ref">KSPACE</span></a></td>
+<td>long-range Coulombic solvers</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a></td>
+<td>peptide</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#manybody"><span class="std std-ref">MANYBODY</span></a></td>
+<td>many-body potentials</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="pair_tersoff.html"><span class="doc">pair_style tersoff</span></a></td>
+<td>shear</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#meam"><span class="std std-ref">MEAM</span></a></td>
+<td>modified EAM potential</td>
+<td>Greg Wagner (Sandia)</td>
+<td><a class="reference internal" href="pair_meam.html"><span class="doc">pair_style meam</span></a></td>
+<td>meam</td>
+<td>lib/meam</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#mc"><span class="std std-ref">MC</span></a></td>
+<td>Monte Carlo options</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="fix_gcmc.html"><span class="doc">fix gcmc</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#molecule"><span class="std std-ref">MOLECULE</span></a></td>
+<td>molecular system force fields</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="Section_howto.html#howto-3"><span class="std std-ref">Section_howto 6.3</span></a></td>
+<td>peptide</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#opt"><span class="std std-ref">OPT</span></a></td>
+<td>optimized pair styles</td>
+<td>Fischer &amp; Richie &amp; Natoli (2)</td>
+<td><a class="reference internal" href="accelerate_opt.html"><span class="doc">Section accelerate</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#peri"><span class="std std-ref">PERI</span></a></td>
+<td>Peridynamics models</td>
+<td>Mike Parks (Sandia)</td>
+<td><a class="reference internal" href="pair_peri.html"><span class="doc">pair_style peri</span></a></td>
+<td>peri</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#poems"><span class="std std-ref">POEMS</span></a></td>
+<td>coupled rigid body motion</td>
+<td>Rudra Mukherjee (JPL)</td>
+<td><a class="reference internal" href="fix_poems.html"><span class="doc">fix poems</span></a></td>
+<td>rigid</td>
+<td>lib/poems</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#python"><span class="std std-ref">PYTHON</span></a></td>
+<td>embed Python code in an input script</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="python.html"><span class="doc">python</span></a></td>
+<td>python</td>
+<td>lib/python</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="Section_tools.html#reax"><span class="std std-ref">REAX</span></a></td>
+<td>ReaxFF potential</td>
+<td>Aidan Thompson (Sandia)</td>
+<td><a class="reference internal" href="pair_reax.html"><span class="doc">pair_style reax</span></a></td>
+<td>reax</td>
+<td>lib/reax</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#replica"><span class="std std-ref">REPLICA</span></a></td>
+<td>multi-replica methods</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="Section_howto.html#howto-5"><span class="std std-ref">Section_howto 6.5</span></a></td>
+<td>tad</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#rigid"><span class="std std-ref">RIGID</span></a></td>
+<td>rigid bodies</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a></td>
+<td>rigid</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#shock"><span class="std std-ref">SHOCK</span></a></td>
+<td>shock loading methods</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="fix_msst.html"><span class="doc">fix msst</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#snap"><span class="std std-ref">SNAP</span></a></td>
+<td>quantum-fit potential</td>
+<td>Aidan Thompson (Sandia)</td>
+<td><a class="reference internal" href="pair_snap.html"><span class="doc">pair snap</span></a></td>
+<td>snap</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#srd"><span class="std std-ref">SRD</span></a></td>
+<td>stochastic rotation dynamics</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference internal" href="fix_srd.html"><span class="doc">fix srd</span></a></td>
+<td>srd</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#voronoi"><span class="std std-ref">VORONOI</span></a></td>
+<td>Voronoi tesselations</td>
+<td>Daniel Schwen (LANL)</td>
+<td><a class="reference internal" href="compute_voronoi_atom.html"><span class="doc">compute voronoi/atom</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>Voro++</td>
+</tr>
+<tr class="row-odd"><td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>The &#8220;Authors&#8221; column lists a name(s) if a specific person is
+responible for creating and maintaining the package.</p>
+<p>(1) The COLLOID package includes Fast Lubrication Dynamics pair styles
+which were created by Amit Kumar and Michael Bybee from Jonathan
+Higdon&#8217;s group at UIUC.</p>
+<p>(2) The OPT package was created by James Fischer (High Performance
+Technologies), David Richie, and Vincent Natoli (Stone Ridge
+Technolgy).</p>
+<p>(3) The KIM package was created by Valeriu Smirichinski, Ryan Elliott,
+and Ellad Tadmor (U Minn).</p>
+<p>(4) The KOKKOS package was created primarily by Christian Trott and
+Stan Moore (Sandia).  It uses the Kokkos library which was developed
+by Carter Edwards, Christian Trott, and others at Sandia.</p>
+<p>The &#8220;Doc page&#8221; column links to either a sub-section of the
+<a class="reference internal" href="Section_howto.html"><span class="doc">Section_howto</span></a> of the manual, or an input script
+command implemented as part of the package, or to additional
+documentation provided within the package.</p>
+<p>The &#8220;Example&#8221; column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. &#8220;peptide&#8221; refers to the examples/peptide directory.</p>
+<p>The &#8220;Library&#8221; column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See details on all of this below for individual packages.
+p.s.: are we ever going to get commit messages from you? ;-)</p>
+<hr class="docutils" />
+<div class="section" id="asphere-package">
+<span id="asphere"></span><h3>4.1.1. ASPHERE package</h3>
+<p>Contents: Several computes, time-integration fixes, and pair styles
+for aspherical particle models: ellipsoids, 2d lines, 3d triangles.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">asphere</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">asphere</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">asphere</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">asphere</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-14"><span class="std std-ref">Section howto 6.14</span></a>,
+<a class="reference internal" href="pair_gayberne.html"><span class="doc">pair_style gayberne</span></a>, <a class="reference internal" href="pair_resquared.html"><span class="doc">pair_style resquared</span></a>,
+<a class="reference external" href="PDF/pair_gayberne_extra.pdf">doc/PDF/pair_gayberne_extra.pdf</a>,
+<a class="reference external" href="PDF/pair_resquared_extra.pdf">doc/PDF/pair_resquared_extra.pdf</a>,
+examples/ASPHERE, examples/ellipse</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="body-package">
+<span id="body"></span><h3>4.1.2. BODY package</h3>
+<p>Contents: Support for body-style particles.  Computes,
+time-integration fixes, pair styles, as well as the body styles
+themselves.  See the <a class="reference internal" href="body.html"><span class="doc">body</span></a> doc page for an overview.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">body</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">body</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">body</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">body</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="atom_style.html"><span class="doc">atom_style body</span></a>, <a class="reference internal" href="body.html"><span class="doc">body</span></a>,
+<a class="reference internal" href="pair_body.html"><span class="doc">pair_style body</span></a>, examples/body</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="class2-package">
+<span id="class2"></span><h3>4.1.3. CLASS2 package</h3>
+<p>Contents: Bond, angle, dihedral, improper, and pair styles for the
+COMPASS CLASS2 molecular force field.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">class2</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">class2</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">class2</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">class2</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="bond_class2.html"><span class="doc">bond_style class2</span></a>, <a class="reference internal" href="angle_class2.html"><span class="doc">angle_style class2</span></a>, <a class="reference internal" href="dihedral_class2.html"><span class="doc">dihedral_style class2</span></a>, <a class="reference internal" href="improper_class2.html"><span class="doc">improper_style class2</span></a>, <a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2</span></a></p>
+<hr class="docutils" />
+</div>
+<div class="section" id="colloid-package">
+<span id="colloid"></span><h3>4.1.4. COLLOID package</h3>
+<p>Contents: Support for coarse-grained colloidal particles.  Wall fix
+and pair styles that implement colloidal interaction models for
+finite-size particles.  This includes the Fast Lubrication Dynamics
+method for hydrodynamic interactions, which is a simplified
+approximation to Stokesian dynamics.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">colloid</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">colloid</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">colloid</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">colloid</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/colloid</span></a>, <a class="reference internal" href="pair_colloid.html"><span class="doc">pair_style colloid</span></a>, <a class="reference internal" href="pair_yukawa_colloid.html"><span class="doc">pair_style yukawa/colloid</span></a>, <a class="reference internal" href="pair_brownian.html"><span class="doc">pair_style brownian</span></a>, <a class="reference internal" href="pair_lubricate.html"><span class="doc">pair_style lubricate</span></a>, <a class="reference internal" href="pair_lubricateU.html"><span class="doc">pair_style lubricateU</span></a>, examples/colloid, examples/srd</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="compress-package">
+<span id="compress"></span><h3>4.1.5. COMPRESS package</h3>
+<p>Contents: Support for compressed output of dump files via the zlib
+compression library, using dump styles with a &#8220;gz&#8221; in their style
+name.</p>
+<p>Building with the COMPRESS package assumes you have the zlib
+compression library available on your system.  The build uses the
+lib/compress/Makefile.lammps file in the compile/link process.  You
+should only need to edit this file if the LAMMPS build cannot find the
+zlib info it specifies.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">compress</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">compress</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">compress</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">compress</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: src/COMPRESS/README, lib/compress/README, <a class="reference internal" href="dump.html"><span class="doc">dump atom/gz</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump cfg/gz</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump custom/gz</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump xyz/gz</span></a></p>
+<hr class="docutils" />
+</div>
+<div class="section" id="coreshell-package">
+<span id="coreshell"></span><h3>4.1.6. CORESHELL package</h3>
+<p>Contents: Compute and pair styles that implement the adiabatic
+core/shell model for polarizability.  The compute temp/cs command
+measures the temperature of a system with core/shell particles.  The
+pair styles augment Born, Buckingham, and Lennard-Jones styles with
+core/shell capabilities.  See <a class="reference internal" href="Section_howto.html#howto-26"><span class="std std-ref">Section howto 6.26</span></a> for an overview of how to use the
+package.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">coreshell</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">coreshell</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">coreshell</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">coreshell</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-26"><span class="std std-ref">Section howto 6.26</span></a>, <a class="reference internal" href="compute_temp_cs.html"><span class="doc">compute temp/cs</span></a>,
+<a class="reference internal" href="pair_cs.html"><span class="doc">pair_style born/coul/long/cs</span></a>, <a class="reference internal" href="pair_cs.html"><span class="doc">pair_style buck/coul/long/cs</span></a>, pair_style
+lj/cut/coul/long/cs&#8221;_pair_lj.html, examples/coreshell</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="dipole-package">
+<span id="dipole"></span><h3>4.1.7. DIPOLE package</h3>
+<p>Contents: An atom style and several pair styles to support point
+dipole models with short-range or long-range interactions.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">dipole</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">dipole</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">dipole</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">dipole</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dipole</span></a>, <a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style lj/cut/dipole/cut</span></a>, <a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style lj/cut/dipole/long</span></a>, <a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style lj/long/dipole/long</span></a>, examples/dipole</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="gpu-package">
+<span id="gpu"></span><h3>4.1.8. GPU package</h3>
+<p>Contents: Dozens of pair styles and a version of the PPPM long-range
+Coulombic solver for NVIDIA GPUs.  All of them have a &#8220;gpu&#8221; in their
+style name.  <a class="reference internal" href="accelerate_gpu.html"><span class="doc">Section accelerate gpu</span></a> gives
+details of what hardware and Cuda software is required on your system,
+and how to build and use this package.  See the KOKKOS and USER-CUDA
+packages, which also have GPU-enabled styles.</p>
+<p>Building LAMMPS with the GPU package requires first building the GPU
+library itself, which is a set of C and Cuda files in lib/gpu.
+Details of how to do this are in lib/gpu/README.  As illustrated
+below, perform a &#8220;make&#8221; using one of the Makefile.machine files in
+lib/gpu which should create a lib/reax/libgpu.a file.
+Makefile.linux.* and Makefile.xk7 are examples for different
+platforms.  There are 3 important settings in the Makefile.machine you
+use:</p>
+<ul class="simple">
+<li>CUDA_HOME = where NVIDIA Cuda software is installed on your system</li>
+<li>CUDA_ARCH = appropriate to your GPU hardware</li>
+<li>CUDA_PREC = precision (double, mixed, single) you desire</li>
+</ul>
+<p>See example Makefile.machine files in lib/gpu for the syntax of these
+settings.  See lib/gpu/Makefile.linux.double for ARCH settings for
+various NVIDIA GPUs.  The &#8220;make&#8221; also creates a
+lib/gpu/Makefile.lammps file.  This file has settings that enable
+LAMMPS to link with Cuda libraries.  If the settings in
+Makefile.lammps for your machine are not correct, the LAMMPS link will
+fail.  Note that the Make.py script has a &#8220;-gpu&#8221; option to allow the
+GPU library (with several of its options) and LAMMPS to be built in
+one step, with Type &#8220;python src/Make.py -h -gpu&#8221; to see the details.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">gpu</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">f</span> <span class="n">Makefile</span><span class="o">.</span><span class="n">linux</span><span class="o">.</span><span class="n">mixed</span>     <span class="c1"># for example</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
+<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">gpu</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">gpu</span> <span class="o">-</span><span class="n">gpu</span> <span class="n">mode</span><span class="o">=</span><span class="n">mixed</span> <span class="n">arch</span><span class="o">=</span><span class="mi">35</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">gpu</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">gpu</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: src/GPU/README, lib/gpu/README, <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section acclerate</span></a>, <a class="reference internal" href="accelerate_gpu.html"><span class="doc">Section accelerate gpu</span></a>, Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a> for any pair style listed with a (g),
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>, <a class="reference internal" href="package.html"><span class="doc">package gpu</span></a>,
+examples/accelerate, bench/FERMI, bench/KEPLER</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="granular-package">
+<span id="granular"></span><h3>4.1.9. GRANULAR package</h3>
+<p>Contents: Fixes and pair styles that support models of finite-size
+granular particles, which interact with each other and boundaries via
+frictional and dissipative potentials.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">granular</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">granular</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">granular</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">granular</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-6"><span class="std std-ref">Section howto 6.6</span></a>, <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, <a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a>, <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hooke</span></a>, <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hertz/history</span></a>, examples/pour, bench/in.chute</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="kim-package">
+<span id="kim"></span><h3>4.1.10. KIM package</h3>
+<p>Contents: A pair style that interfaces to the Knowledge Base for
+Interatomic Models (KIM) repository of interatomic potentials, so that
+KIM potentials can be used in a LAMMPS simulation.</p>
+<p>To build LAMMPS with the KIM package you must have previously
+installed the KIM API (library) on your system.  The lib/kim/README
+file explains how to download and install KIM.  Building with the KIM
+package also uses the lib/kim/Makefile.lammps file in the compile/link
+process.  You should not need to edit this file.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kim</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">kim</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">kim</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">kim</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: src/KIM/README, lib/kim/README, <a class="reference internal" href="pair_kim.html"><span class="doc">pair_style kim</span></a>, examples/kim</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="kokkos-package">
+<span id="kokkos"></span><h3>4.1.11. KOKKOS package</h3>
+<p>Contents: Dozens of atom, pair, bond, angle, dihedral, improper styles
+which run with the Kokkos library to provide optimization for
+multicore CPUs (via OpenMP), NVIDIA GPUs, or the Intel Xeon Phi (in
+native mode).  All of them have a &#8220;kk&#8221; in their style name.  <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">Section accelerate kokkos</span></a> gives details of what
+hardware and software is required on your system, and how to build and
+use this package.  See the GPU, OPT, USER-CUDA, USER-INTEL, USER-OMP
+packages, which also provide optimizations for the same range of
+hardware.</p>
+<p>Building with the KOKKOS package requires choosing which of 3 hardware
+options you are optimizing for: CPU acceleration via OpenMP, GPU
+acceleration, or Intel Xeon Phi.  (You can build multiple times to
+create LAMMPS executables for different hardware.)  It also requires a
+C++11 compatible compiler.  For GPUs, the NVIDIA &#8220;nvcc&#8221; compiler is
+used, and an appopriate KOKKOS_ARCH setting should be made in your
+Makefile.machine for your GPU hardware and NVIDIA software.</p>
+<p>The simplest way to do this is to use Makefile.kokkos_cuda or
+Makefile.kokkos_omp or Makefile.kokkos_phi in src/MAKE/OPTIONS, via
+&#8220;make kokkos_cuda&#8221; or &#8220;make kokkos_omp&#8221; or &#8220;make kokkos_phi&#8221;.  (Check
+the KOKKOS_ARCH setting in Makefile.kokkos_cuda), Or, as illustrated
+below, you can use the Make.py script with its &#8220;-kokkos&#8221; option to
+choose which hardware to build for.  Type &#8220;python src/Make.py -h
+-kokkos&#8221; to see the details.  If these methods do not work on your
+system, you will need to read the <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">Section accelerate kokkos</span></a> doc page for details of what
+Makefile.machine settings are needed.</p>
+<p>To install via make or Make.py for each of 3 hardware options:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
+<span class="n">make</span> <span class="n">kokkos_omp</span>    <span class="c1"># for CPUs with OpenMP</span>
+<span class="n">make</span> <span class="n">kokkos_cuda</span>   <span class="c1"># for GPUs, check the KOKKOS_ARCH setting in Makefile.kokkos_cuda</span>
+<span class="n">make</span> <span class="n">kokkos_phi</span>    <span class="c1"># for Xeon Phis</span>
+</pre></div>
+</div>
+<p>Make.py -p kokkos -kokkos omp -a machine           # for CPUs with OpenMP
+Make.py -p kokkos -kokkos cuda arch=35 -a machine  # for GPUs of style arch
+Make.py -p kokkos -kokkos phi -a machine           # for Xeon Phis</p>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">kokkos</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">kokkos</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: src/KOKKOS/README, lib/kokkos/README, <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section acclerate</span></a>, <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">Section accelerate kokkos</span></a>, Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a> for any pair style listed
+with a (k), <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a>,
+examples/accelerate, bench/FERMI, bench/KEPLER</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="kspace-package">
+<span id="kspace"></span><h3>4.1.12. KSPACE package</h3>
+<p>Contents: A variety of long-range Coulombic solvers, and pair styles
+which compute the corresponding short-range portion of the pairwise
+Coulombic interactions.  These include Ewald, particle-particle
+particle-mesh (PPPM), and multilevel summation method (MSM) solvers.</p>
+<p>Building with the KSPACE package requires a 1d FFT library be present
+on your system for use by the PPPM solvers.  This can be the KISS FFT
+library provided with LAMMPS, or 3rd party libraries like FFTW or a
+vendor-supplied FFT library.  See step 6 of <a class="reference internal" href="Section_start.html#start-2-2"><span class="std std-ref">Section start 2.2.2</span></a> of the manual for details of how
+to select different FFT options in your machine Makefile.  The Make.py
+tool has an &#8220;-fft&#8221; option which can insert these settings into your
+machine Makefile automatically.  Type &#8220;python src/Make.py -h -fft&#8221; to
+see the details.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kspace</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">kspace</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">kspace</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">kspace</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>,
+<a class="reference external" href="PDF/kspace.pdf">doc/PDF/kspace.pdf</a>, <a class="reference internal" href="Section_howto.html#howto-7"><span class="std std-ref">Section howto 6.7</span></a>, <a class="reference internal" href="Section_howto.html#howto-8"><span class="std std-ref">Section howto 6.8</span></a>, <a class="reference internal" href="Section_howto.html#howto-9"><span class="std std-ref">Section howto 6.9</span></a>, <a class="reference internal" href="pair_coul.html"><span class="doc">pair_style coul</span></a>,
+other pair style command doc pages which have &#8220;long&#8221; or &#8220;msm&#8221; in their
+style name, examples/peptide, bench/in.rhodo</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="manybody-package">
+<span id="manybody"></span><h3>4.1.13. MANYBODY package</h3>
+<p>Contents: A variety of many-body and bond-order potentials.  These
+include (AI)REBO, EAM, EIM, BOP, Stillinger-Weber, and Tersoff
+potentials.  Do a directory listing, &#8220;ls src/MANYBODY&#8221;, to see
+the full list.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">manybody</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">manybody</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">manybody</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">manybody</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info:</p>
+<p>Examples: Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a>, examples/comb, examples/eim,
+examples/nb3d, examples/vashishta</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="mc-package">
+<span id="mc"></span><h3>4.1.14. MC package</h3>
+<p>Contents: Several fixes and a pair style that have Monte Carlo (MC) or
+MC-like attributes.  These include fixes for creating, breaking, and
+swapping bonds, and for performing atomic swaps and grand-canonical MC
+in conjuction with dynamics.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">mc</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">mc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">mc</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">mc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="fix_atom_swap.html"><span class="doc">fix atom/swap</span></a>, <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a>, <a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create</span></a>, <a class="reference internal" href="fix_bond_swap.html"><span class="doc">fix bond/swap</span></a>,
+<a class="reference internal" href="fix_gcmc.html"><span class="doc">fix gcmc</span></a>, <a class="reference internal" href="pair_dsmc.html"><span class="doc">pair_style dsmc</span></a></p>
+<hr class="docutils" />
+</div>
+<div class="section" id="meam-package">
+<span id="meam"></span><h3>4.1.15. MEAM package</h3>
+<p>Contents: A pair style for the modified embedded atom (MEAM)
+potential.</p>
+<p>Building LAMMPS with the MEAM package requires first building the MEAM
+library itself, which is a set of Fortran 95 files in lib/meam.
+Details of how to do this are in lib/meam/README.  As illustrated
+below, perform a &#8220;make&#8221; using one of the Makefile.machine files in
+lib/meam which should create a lib/meam/libmeam.a file.
+Makefile.gfortran and Makefile.ifort are examples for the GNU Fortran
+and Intel Fortran compilers.  The &#8220;make&#8221; also copies a
+lib/meam/Makefile.lammps.machine file to lib/meam/Makefile.lammps.
+This file has settings that enable the C++ compiler used to build
+LAMMPS to link with a Fortran library (typically the 2 compilers to be
+consistent e.g. both Intel compilers, or both GNU compilers).  If the
+settings in Makefile.lammps for your compilers and machine are not
+correct, the LAMMPS link will fail.  Note that the Make.py script has
+a &#8220;-meam&#8221; option to allow the MEAM library and LAMMPS to be built in
+one step.  Type &#8220;python src/Make.py -h -meam&#8221; to see the details.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The MEAM potential can run dramatically faster if built with the
+Intel Fortran compiler, rather than the GNU Fortran compiler.</p>
+</div>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">meam</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">f</span> <span class="n">Makefile</span><span class="o">.</span><span class="n">gfortran</span>    <span class="c1"># for example</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
+<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">meam</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">meam</span> <span class="o">-</span><span class="n">meam</span> <span class="n">make</span><span class="o">=</span><span class="n">gfortran</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">meam</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">meam</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: lib/meam/README, <a class="reference internal" href="pair_meam.html"><span class="doc">pair_style meam</span></a>,
+examples/meam</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="misc-package">
+<span id="misc"></span><h3>4.1.16. MISC package</h3>
+<p>Contents: A variety of computes, fixes, and pair styles that are not
+commonly used, but don&#8217;t align with other packages.  Do a directory
+listing, &#8220;ls src/MISC&#8221;, to see the list of commands.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">misc</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">misc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">misc</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">misc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="compute_ti.html"><span class="doc">compute ti</span></a>, <a class="reference internal" href="fix_evaporate.html"><span class="doc">fix evaporate</span></a>, <a class="reference internal" href="fix_ttm.html"><span class="doc">fix tmm</span></a>, <a class="reference internal" href="fix_viscosity.html"><span class="doc">fix viscosity</span></a>, examples/misc</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="molecule-package">
+<span id="molecule"></span><h3>4.1.17. MOLECULE package</h3>
+<p>Contents: A large number of atom, pair, bond, angle, dihedral,
+improper styles that are used to model molecular systems with fixed
+covalent bonds.  The pair styles include terms for the Dreiding
+(hydrogen-bonding) and CHARMM force fields, and TIP4P water model.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">molecule</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">molecule</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">molecule</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">molecule</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info:<a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>,
+<a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a>, <a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a>,
+<a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a>,
+<a class="reference internal" href="improper_style.html"><span class="doc">improper_style</span></a>, <a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">pair_style hbond/dreiding/lj</span></a>, <a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmm/coul/charmm</span></a>, <a class="reference internal" href="Section_howto.html#howto-3"><span class="std std-ref">Section howto 6.3</span></a>, examples/micelle, examples/peptide,
+bench/in.chain, bench/in.rhodo</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="mpiio-package">
+<span id="mpiio"></span><h3>4.1.18. MPIIO package</h3>
+<p>Contents: Support for parallel output/input of dump and restart files
+via the MPIIO library, which is part of the standard message-passing
+interface (MPI) library.  It adds <a class="reference internal" href="dump.html"><span class="doc">dump styles</span></a> with a
+&#8220;mpiio&#8221; in their style name.  Restart files with an &#8221;.mpiio&#8221; suffix
+are also written and read in parallel.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">mpiio</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">mpiio</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">mpiio</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">mpiio</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, <a class="reference internal" href="restart.html"><span class="doc">restart</span></a>,
+<a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a>, <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a></p>
+<hr class="docutils" />
+</div>
+<div class="section" id="opt-package">
+<span id="opt"></span><h3>4.1.19. OPT package</h3>
+<p>Contents: A handful of pair styles with an &#8220;opt&#8221; in their style name
+which are optimized for improved CPU performance on single or multiple
+cores.  These include EAM, LJ, CHARMM, and Morse potentials.  <a class="reference internal" href="accelerate_opt.html"><span class="doc">Section accelerate opt</span></a> gives details of how to build and
+use this package.  See the KOKKOS, USER-INTEL, and USER-OMP packages,
+which also have styles optimized for CPU performance.</p>
+<p>Some C++ compilers, like the Intel compiler, require the compile flag
+&#8220;-restrict&#8221; to build LAMMPS with the OPT package.  It should be added
+to the CCFLAGS line of your Makefile.machine.  Or use Makefile.opt in
+src/MAKE/OPTIONS, via &#8220;make opt&#8221;.  For compilers that use the flag,
+the Make.py command adds it automatically to the Makefile.auto file it
+creates and uses.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">opt</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">opt</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">opt</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">opt</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section acclerate</span></a>, <a class="reference internal" href="accelerate_opt.html"><span class="doc">Section accelerate opt</span></a>, Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a> for any pair style listed
+with an (o), examples/accelerate, bench/KEPLER</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="peri-package">
+<span id="peri"></span><h3>4.1.20. PERI package</h3>
+<p>Contents: Support for the Peridynamics method, a particle-based
+meshless continuum model.  The package includes an atom style, several
+computes which calculate diagnostics, and several Peridynamic pair
+styles which implement different materials models.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">peri</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">peri</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">peri</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">peri</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info:
+<a class="reference external" href="PDF/PDLammps_overview.pdf">doc/PDF/PDLammps_overview.pdf</a>,
+<a class="reference external" href="PDF/PDLammps_EPS.pdf">doc/PDF/PDLammps_EPS.pdf</a>,
+<a class="reference external" href="PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</a>, <a class="reference internal" href="atom_style.html"><span class="doc">atom_style peri</span></a>, <span class="xref doc">compute damage</span>,
+<a class="reference internal" href="pair_peri.html"><span class="doc">pair_style peri/pmb</span></a>, examples/peri</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="poems-package">
+<span id="poems"></span><h3>4.1.21. POEMS package</h3>
+<p>Contents: A fix that wraps the Parallelizable Open source Efficient
+Multibody Software (POEMS) librar, which is able to simulate the
+dynamics of articulated body systems.  These are systems with multiple
+rigid bodies (collections of atoms or particles) whose motion is
+coupled by connections at hinge points.</p>
+<p>Building LAMMPS with the POEMS package requires first building the
+POEMS library itself, which is a set of C++ files in lib/poems.
+Details of how to do this are in lib/poems/README.  As illustrated
+below, perform a &#8220;make&#8221; using one of the Makefile.machine files in
+lib/poems which should create a lib/meam/libpoems.a file.
+Makefile.g++ and Makefile.icc are examples for the GNU and Intel C++
+compilers.  The &#8220;make&#8221; also creates a lib/poems/Makefile.lammps file
+which you should not need to change.  Note the Make.py script has a
+&#8220;-poems&#8221; option to allow the POEMS library and LAMMPS to be built in
+one step.  Type &#8220;python src/Make.py -h -poems&#8221; to see the details.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">poems</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">f</span> <span class="n">Makefile</span><span class="o">.</span><span class="n">g</span><span class="o">++</span>    <span class="c1"># for example</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
+<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">poems</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">poems</span> <span class="o">-</span><span class="n">poems</span> <span class="n">make</span><span class="o">=</span><span class="n">g</span><span class="o">++</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">meam</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">meam</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: src/POEMS/README, lib/poems/README,
+<a class="reference internal" href="fix_poems.html"><span class="doc">fix poems</span></a>, examples/rigid</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="python-package">
+<span id="python"></span><h3>4.1.22. PYTHON package</h3>
+<p>Contents: A <a class="reference internal" href="python.html"><span class="doc">python</span></a> command which allow you to execute
+Python code from a LAMMPS input script.  The code can be in a separate
+file or embedded in the input script itself.  See <span class="xref std std-ref">Section python 11.2</span> for an overview of using Python from
+LAMMPS and <a class="reference external" href="Section_python.html&quot;">Section python</a> for other ways to use
+LAMMPS and Python together.</p>
+<p>Building with the PYTHON package assumes you have a Python shared
+library available on your system, which needs to be a Python 2
+version, 2.6 or later.  Python 3 is not supported.  The build uses the
+contents of the lib/python/Makefile.lammps file to find all the Python
+files required in the build/link process.  See the lib/python/README
+file if the settings in that file do not work on your system.  Note
+that the Make.py script has a &#8220;-python&#8221; option to allow an alternate
+lib/python/Makefile.lammps file to be specified and LAMMPS to be built
+in one step.  Type &#8220;python src/Make.py -h -python&#8221; to see the details.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">python</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">python</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">python</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">python</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: examples/python</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="qeq-package">
+<span id="qeq"></span><h3>4.1.23. QEQ package</h3>
+<p>Contents: Several fixes for performing charge equilibration (QEq) via
+severeal different algorithms.  These can be used with pair styles
+that use QEq as part of their formulation.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">qeq</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">qeq</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">qeq</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">qeq</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="fix_qeq.html"><span class="doc">fix qeq/*</span></a>, examples/qeq</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="reax-package">
+<span id="reax"></span><h3>4.1.24. REAX package</h3>
+<p>Contents: A pair style for the ReaxFF potential, a universal reactive
+force field, as well as a <a class="reference internal" href="fix_reax_bonds.html"><span class="doc">fix reax/bonds</span></a> command
+for monitoring molecules as bonds are created and destroyed.</p>
+<p>Building LAMMPS with the REAX package requires first building the REAX
+library itself, which is a set of Fortran 95 files in lib/reax.
+Details of how to do this are in lib/reax/README.  As illustrated
+below, perform a &#8220;make&#8221; using one of the Makefile.machine files in
+lib/reax which should create a lib/reax/libreax.a file.
+Makefile.gfortran and Makefile.ifort are examples for the GNU Fortran
+and Intel Fortran compilers.  The &#8220;make&#8221; also copies a
+lib/reax/Makefile.lammps.machine file to lib/reax/Makefile.lammps.
+This file has settings that enable the C++ compiler used to build
+LAMMPS to link with a Fortran library (typically the 2 compilers to be
+consistent e.g. both Intel compilers, or both GNU compilers).  If the
+settings in Makefile.lammps for your compilers and machine are not
+correct, the LAMMPS link will fail.  Note that the Make.py script has
+a &#8220;-reax&#8221; option to allow the REAX library and LAMMPS to be built in
+one step.  Type &#8220;python src/Make.py -h -reax&#8221; to see the details.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">reax</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">f</span> <span class="n">Makefile</span><span class="o">.</span><span class="n">gfortran</span>    <span class="c1"># for example</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
+<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">reax</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">reax</span> <span class="o">-</span><span class="n">reax</span> <span class="n">make</span><span class="o">=</span><span class="n">gfortran</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">reax</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">reax</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: lib/reax/README, <a class="reference internal" href="pair_reax.html"><span class="doc">pair_style reax</span></a>,
+<a class="reference internal" href="fix_reax_bonds.html"><span class="doc">fix reax/bonds</span></a>, examples/reax</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="replica-package">
+<span id="replica"></span><h3>4.1.25. REPLICA package</h3>
+<p>Contents: A collection of multi-replica methods that are used by
+invoking multiple instances (replicas) of LAMMPS
+simulations. Communication between individual replicas is performed in
+different ways by the different methods.  See <a class="reference internal" href="Section_howto.html#howto-5"><span class="std std-ref">Section howto 6.5</span></a> for an overview of how to run
+multi-replica simulations in LAMMPS.  Multi-replica methods included
+in the package are nudged elastic band (NEB), parallel replica
+dynamics (PRD), temperature accelerated dynamics (TAD), parallel
+tempering, and a verlet/split algorithm for performing long-range
+Coulombics on one set of processors, and the remainded of the force
+field calcalation on another set.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">replica</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">replica</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">replica</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">replica</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-5"><span class="std std-ref">Section howto 6.5</span></a>,
+<a class="reference internal" href="neb.html"><span class="doc">neb</span></a>, <a class="reference internal" href="prd.html"><span class="doc">prd</span></a>, <a class="reference internal" href="tad.html"><span class="doc">tad</span></a>, <a class="reference internal" href="temper.html"><span class="doc">temper</span></a>,
+<a class="reference internal" href="run_style.html"><span class="doc">run_style verlet/split</span></a>, examples/neb, examples/prd,
+examples/tad</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="rigid-package">
+<span id="rigid"></span><h3>4.1.26. RIGID package</h3>
+<p>Contents: A collection of computes and fixes which enforce rigid
+constraints on collections of atoms or particles.  This includes SHAKE
+and RATTLE, as well as variants of rigid-body time integrators for a
+few large bodies or many small bodies.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">rigid</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">rigid</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">rigid</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">rigid</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="compute_erotate_rigid.html"><span class="doc">compute erotate/rigid</span></a>,
+<a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>, <span class="xref doc">fix rattle</span>, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/*</span></a>, examples/ASPHERE, examples/rigid</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="shock-package">
+<span id="shock"></span><h3>4.1.27. SHOCK package</h3>
+<p>Contents: A small number of fixes useful for running impact
+simulations where a shock-wave passes through a material.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">shock</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">shock</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">shock</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">shock</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="fix_append_atoms.html"><span class="doc">fix append/atoms</span></a>, <a class="reference internal" href="fix_msst.html"><span class="doc">fix msst</span></a>, <a class="reference internal" href="fix_nphug.html"><span class="doc">fix nphug</span></a>, <a class="reference internal" href="fix_wall_piston.html"><span class="doc">fix wall/piston</span></a>, examples/hugoniostat, examples/msst</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="snap-package">
+<span id="snap"></span><h3>4.1.28. SNAP package</h3>
+<p>Contents: A pair style for the spectral neighbor analysis potential
+(SNAP), which is an empirical potential which can be quantum accurate
+when fit to an archive of DFT data.  Computes useful for analyzing
+properties of the potential are also included.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">snap</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">snap</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">snap</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">snap</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="pair_snap.html"><span class="doc">pair snap</span></a>, <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>, <span class="xref doc">compute snad/atom</span>,
+<span class="xref doc">compute snav/atom</span>, examples/snap</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="srd-package">
+<span id="srd"></span><h3>4.1.29. SRD package</h3>
+<p>Contents: Two fixes which implement the Stochastic Rotation Dynamics
+(SRD) method for coarse-graining of a solvent, typically around large
+colloidal-scale particles.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">srd</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">srd</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">srd</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">srd</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: <a class="reference internal" href="fix_srd.html"><span class="doc">fix srd</span></a>, <a class="reference internal" href="fix_wall_srd.html"><span class="doc">fix wall/srd</span></a>, examples/srd, examples/ASPHERE</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="voronoi-package">
+<span id="voronoi"></span><h3>4.1.30. VORONOI package</h3>
+<p>Contents: A <a class="reference internal" href="compute_voronoi_atom.html"><span class="doc">compute voronoi/atom</span></a> command
+which computes the Voronoi tesselation of a collection of atoms or
+particles by wrapping the Voro++ lib</p>
+<p>To build LAMMPS with the KIM package you must have previously
+installed the KIM API (library) on your system.  The lib/kim/README
+file explains how to download and install KIM.  Building with the KIM
+package also uses the lib/kim/Makefile.lammps file in the compile/link
+process.  You should not need to edit this file.</p>
+<p>To build LAMMPS with the VORONOI package you must have previously
+installed the Voro++ library on your system.  The lib/voronoi/README
+file explains how to download and install Voro++.  There is a
+lib/voronoi/install.py script which automates the process.  Type
+&#8220;python install.py&#8221; to see instructions.  The final step is to create
+soft links in the lib/voronoi directory for &#8220;includelink&#8221; and
+&#8220;liblink&#8221; which point to installed Voro++ directories.  Building with
+the VORONOI package uses the contents of the
+lib/voronoi/Makefile.lammps file in the compile/link process.  You
+should not need to edit this file.  Note that the Make.py script has a
+&#8220;-voronoi&#8221; option to allow the Voro++ library to be downloaded and/or
+installed and LAMMPS to be built in one step.  Type &#8220;python
+src/Make.py -h -voronoi&#8221; to see the details.</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">voronoi</span>
+<span class="n">python</span> <span class="n">install</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">g</span> <span class="o">-</span><span class="n">b</span> <span class="o">-</span><span class="n">l</span>    <span class="c1"># download Voro++, build in lib/voronoi, create links</span>
+<span class="n">cd</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
+<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">voronoi</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">voronoi</span> <span class="o">-</span><span class="n">voronoi</span> <span class="n">install</span><span class="o">=</span><span class="s2">&quot;-g -b -l&quot;</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">voronoi</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">voronoi</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting info: src/VORONOI/README, lib/voronoi/README, <a class="reference internal" href="compute_voronoi_atom.html"><span class="doc">compute voronoi/atom</span></a>, examples/voronoi</p>
+<hr class="docutils" />
+</div>
+</div>
+<div class="section" id="user-packages">
+<span id="pkg-2"></span><h2>4.2. User packages</h2>
+<p>The current list of user-contributed packages is as follows:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="19%" />
+<col width="20%" />
+<col width="23%" />
+<col width="7%" />
+<col width="9%" />
+<col width="5%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Package</td>
+<td>Description</td>
+<td>Author(s)</td>
+<td>Doc page</td>
+<td>Example</td>
+<td>Pic/movie</td>
+<td>Library</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-atc"><span class="std std-ref">USER-ATC</span></a></td>
+<td>atom-to-continuum coupling</td>
+<td>Jones &amp; Templeton &amp; Zimmerman (1)</td>
+<td><a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a></td>
+<td>USER/atc</td>
+<td><a class="reference external" href="http://lammps.sandia.gov/pictures.html#atc">atc</a></td>
+<td>lib/atc</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-awpmd"><span class="std std-ref">USER-AWPMD</span></a></td>
+<td>wave-packet MD</td>
+<td>Ilya Valuev (JIHT)</td>
+<td><a class="reference internal" href="pair_awpmd.html"><span class="doc">pair_style awpmd/cut</span></a></td>
+<td>USER/awpmd</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>lib/awpmd</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-cg-cmm"><span class="std std-ref">USER-CG-CMM</span></a></td>
+<td>coarse-graining model</td>
+<td>Axel Kohlmeyer (Temple U)</td>
+<td><a class="reference internal" href="pair_sdk.html"><span class="doc">pair_style lj/sdk</span></a></td>
+<td>USER/cg-cmm</td>
+<td><a class="reference external" href="http://lammps.sandia.gov/pictures.html#cg">cg</a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-colvars"><span class="std std-ref">USER-COLVARS</span></a></td>
+<td>collective variables</td>
+<td>Fiorin &amp; Henin &amp; Kohlmeyer (2)</td>
+<td><a class="reference internal" href="fix_colvars.html"><span class="doc">fix colvars</span></a></td>
+<td>USER/colvars</td>
+<td><a class="reference external" href="colvars">colvars</a></td>
+<td>lib/colvars</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-cuda"><span class="std std-ref">USER-CUDA</span></a></td>
+<td>NVIDIA GPU styles</td>
+<td>Christian Trott (U Tech Ilmenau)</td>
+<td><a class="reference internal" href="accelerate_cuda.html"><span class="doc">Section accelerate</span></a></td>
+<td>USER/cuda</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>lib/cuda</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-diffraction"><span class="std std-ref">USER-DIFFRACTION</span></a></td>
+<td>virutal x-ray and electron diffraction</td>
+<td>Shawn Coleman (ARL)</td>
+<td><a class="reference internal" href="compute_xrd.html"><span class="doc">compute xrd</span></a></td>
+<td>USER/diffraction</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-dpd"><span class="std std-ref">USER-DPD</span></a></td>
+<td>dissipative particle dynamics (DPD)</td>
+<td>Larentzos &amp; Mattox &amp; Brennan (5)</td>
+<td>src/USER-DPD/README</td>
+<td>USER/dpd</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-drude"><span class="std std-ref">USER-DRUDE</span></a></td>
+<td>Drude oscillators</td>
+<td>Dequidt &amp; Devemy &amp; Padua (3)</td>
+<td><a class="reference internal" href="tutorial_drude.html"><span class="doc">tutorial</span></a></td>
+<td>USER/drude</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-eff"><span class="std std-ref">USER-EFF</span></a></td>
+<td>electron force field</td>
+<td>Andres Jaramillo-Botero (Caltech)</td>
+<td><a class="reference internal" href="pair_eff.html"><span class="doc">pair_style eff/cut</span></a></td>
+<td>USER/eff</td>
+<td><a class="reference external" href="http://lammps.sandia.gov/movies.html#eff">eff</a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-fep"><span class="std std-ref">USER-FEP</span></a></td>
+<td>free energy perturbation</td>
+<td>Agilio Padua (U Blaise Pascal Clermont-Ferrand)</td>
+<td><a class="reference internal" href="compute_fep.html"><span class="doc">compute fep</span></a></td>
+<td>USER/fep</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-h5md"><span class="std std-ref">USER-H5MD</span></a></td>
+<td>dump output via HDF5</td>
+<td>Pierre de Buyl (KU Leuven)</td>
+<td><a class="reference internal" href="dump_h5md.html"><span class="doc">dump h5md</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>lib/h5md</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-intel"><span class="std std-ref">USER-INTEL</span></a></td>
+<td>Vectorized CPU and Intel(R) coprocessor styles</td>
+<td><ol class="first last upperalpha simple" start="23">
+<li>Michael Brown (Intel)</li>
+</ol>
+</td>
+<td><a class="reference internal" href="accelerate_intel.html"><span class="doc">Section accelerate</span></a></td>
+<td>examples/intel</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-lb"><span class="std std-ref">USER-LB</span></a></td>
+<td>Lattice Boltzmann fluid</td>
+<td>Colin Denniston (U Western Ontario)</td>
+<td><a class="reference internal" href="fix_lb_fluid.html"><span class="doc">fix lb/fluid</span></a></td>
+<td>USER/lb</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-mgpt"><span class="std std-ref">USER-MGPT</span></a></td>
+<td>fast MGPT multi-ion potentials</td>
+<td>Tomas Oppelstrup &amp; John Moriarty (LLNL)</td>
+<td><a class="reference internal" href="pair_mgpt.html"><span class="doc">pair_style mgpt</span></a></td>
+<td>USER/mgpt</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-misc"><span class="std std-ref">USER-MISC</span></a></td>
+<td>single-file contributions</td>
+<td>USER-MISC/README</td>
+<td>USER-MISC/README</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-molfile"><span class="std std-ref">USER-MOLFILE</span></a></td>
+<td><a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molfile plug-ins</td>
+<td>Axel Kohlmeyer (Temple U)</td>
+<td><a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>VMD-MOLFILE</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-omp"><span class="std std-ref">USER-OMP</span></a></td>
+<td>OpenMP threaded styles</td>
+<td>Axel Kohlmeyer (Temple U)</td>
+<td><a class="reference internal" href="accelerate_omp.html"><span class="doc">Section accelerate</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-phonon"><span class="std std-ref">USER-PHONON</span></a></td>
+<td>phonon dynamical matrix</td>
+<td>Ling-Ti Kong (Shanghai Jiao Tong U)</td>
+<td><a class="reference internal" href="fix_phonon.html"><span class="doc">fix phonon</span></a></td>
+<td>USER/phonon</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-qmmm"><span class="std std-ref">USER-QMMM</span></a></td>
+<td>QM/MM coupling</td>
+<td>Axel Kohlmeyer (Temple U)</td>
+<td><a class="reference internal" href="fix_qmmm.html"><span class="doc">fix qmmm</span></a></td>
+<td>USER/qmmm</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>lib/qmmm</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-qtb"><span class="std std-ref">USER-QTB</span></a></td>
+<td>quantum nuclear effects</td>
+<td>Yuan Shen (Stanford)</td>
+<td><a class="reference internal" href="fix_qtb.html"><span class="doc">fix qtb</span></a> <a class="reference internal" href="fix_qbmsst.html"><span class="doc">fix qbmsst</span></a></td>
+<td>qtb</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-quip"><span class="std std-ref">USER-QUIP</span></a></td>
+<td>QUIP/libatoms interface</td>
+<td>Albert Bartok-Partay (U Cambridge)</td>
+<td><a class="reference internal" href="pair_quip.html"><span class="doc">pair_style quip</span></a></td>
+<td>USER/quip</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>lib/quip</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-reaxc"><span class="std std-ref">USER-REAXC</span></a></td>
+<td>C version of ReaxFF</td>
+<td>Metin Aktulga (LBNL)</td>
+<td><a class="reference internal" href="pair_reax_c.html"><span class="doc">pair_style reaxc</span></a></td>
+<td>reax</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-smd"><span class="std std-ref">USER-SMD</span></a></td>
+<td>smoothed Mach dynamics</td>
+<td>Georg Ganzenmuller (EMI)</td>
+<td><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">userguide.pdf</a></td>
+<td>USER/smd</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-smtbq"><span class="std std-ref">USER-SMTBQ</span></a></td>
+<td>Second Moment Tight Binding - QEq potential</td>
+<td>Salles &amp; Maras &amp; Politano &amp; Tetot (4)</td>
+<td><a class="reference internal" href="pair_smtbq.html"><span class="doc">pair_style smtbq</span></a></td>
+<td>USER/smtbq</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-sph"><span class="std std-ref">USER-SPH</span></a></td>
+<td>smoothed particle hydrodynamics</td>
+<td>Georg Ganzenmuller (EMI)</td>
+<td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
+<td>USER/sph</td>
+<td><a class="reference external" href="http://lammps.sandia.gov/movies.html#sph">sph</a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#user-tally"><span class="std std-ref">USER-TALLY</span></a></td>
+<td>Pairwise tallied computes</td>
+<td>Axel Kohlmeyer (Temple U)</td>
+<td><span class="xref doc">compute</span></td>
+<td>USER/tally</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-vtk"><span class="std std-ref">USER-VTK</span></a></td>
+<td>VTK-style dumps</td>
+<td>Berger and Queteschiner (6)</td>
+<td><span class="xref doc">compute custom/vtk</span></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>lib/vtk</td>
+</tr>
+<tr class="row-odd"><td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p>The &#8220;Authors&#8221; column lists a name(s) if a specific person is
+responible for creating and maintaining the package.</p>
+<p>(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
+Jon Zimmerman (Sandia).</p>
+<p>(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+the colvars module library written by Giacomo Fiorin (Temple U) and
+Jerome Henin (LISM, Marseille, France).</p>
+<p>(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
+Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
+(U Blaise Pascal).</p>
+<p>(4) The SMTBQ package was created by Nicolas Salles, Emile Maras,
+Olivier Politano, and Robert Tetot (LAAS-CNRS, France).</p>
+<p>(5) The USER-DPD package was created by James Larentzos (ARL), Timothy
+Mattox (Engility), and John Brennan (ARL).</p>
+<p>(6) The USER-VTK package was created by Richard Berger (JKU) and
+Daniel Queteschiner (DCS Computing).</p>
+<p>The &#8220;Doc page&#8221; column links to either a sub-section of the
+<a class="reference internal" href="Section_howto.html"><span class="doc">Section_howto</span></a> of the manual, or an input script
+command implemented as part of the package, or to additional
+documentation provided within the package.</p>
+<p>The &#8220;Example&#8221; column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. &#8220;peptide&#8221; refers to the examples/peptide directory.  USER/cuda
+refers to the examples/USER/cuda directory.</p>
+<p>The &#8220;Library&#8221; column lists an external library which must be built
+first and which LAMMPS links to when it is built.  If it is listed as
+lib/package, then the code for the library is under the lib directory
+of the LAMMPS distribution.  See the lib/package/README file for info
+on how to build the library.  If it is not listed as lib/package, then
+it is a third-party library not included in the LAMMPS distribution.
+See details on all of this below for individual packages.</p>
+<hr class="docutils" />
+<div class="section" id="user-atc-package">
+<span id="user-atc"></span><h3>4.2.1. USER-ATC package</h3>
+<p>Contents: ATC stands for atoms-to-continuum.  This package implements
+a <a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a> command to either couple MD with continuum
+finite element equations or perform on-the-fly post-processing of
+atomic information to continuum fields.  See src/USER-ATC/README for
+more details.</p>
+<p>To build LAMMPS with this package ...</p>
+<p>To install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">atc</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">atc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>To un-install via make or Make.py:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">no</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">atc</span>
+<span class="n">make</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">atc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
+</pre></div>
+</div>
+<p>Supporting <a class="reference external" href="info:src/USER-ATC/README">info:src/USER-ATC/README</a>, <a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a>,
+examples/USER/atc</p>
+<p>Authors: Reese Jones (rjones at sandia.gov), Jeremy Templeton (jatempl
+at sandia.gov) and Jon Zimmerman (jzimmer at sandia.gov) at Sandia.
+Contact them directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-awpmd-package">
+<span id="user-awpmd"></span><h3>4.2.2. USER-AWPMD package</h3>
+<p>Contents: AWPMD stands for Antisymmetrized Wave Packet Molecular
+Dynamics.  This package implements an atom, pair, and fix style which
+allows electrons to be treated as explicit particles in an MD
+calculation.  See src/USER-AWPMD/README for more details.</p>
+<p>To build LAMMPS with this package ...</p>
+<p>Supporting info: src/USER-AWPMD/README, <span class="xref doc">fix awpmd/cut</span>, examples/USER/awpmd</p>
+<p>Author: Ilya Valuev at the JIHT in Russia (valuev at
+physik.hu-berlin.de).  Contact him directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-cg-cmm-package">
+<span id="user-cg-cmm"></span><h3>4.2.3. USER-CG-CMM package</h3>
+<p>Contents: CG-CMM stands for coarse-grained ??.  This package
+implements several pair styles and an angle style using the coarse
+grained parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27
+(2007) (SDK), with extensions to simulate ionic liquids, electrolytes,
+lipids and charged amino acids.  See src/USER-CG-CMM/README for more
+details.</p>
+<p>Supporting info: src/USER-CG-CMM/README, <a class="reference internal" href="pair_sdk.html"><span class="doc">pair lj/sdk</span></a>,
+<a class="reference internal" href="pair_sdk.html"><span class="doc">pair lj/sdk/coul/long</span></a>, <a class="reference internal" href="angle_sdk.html"><span class="doc">angle sdk</span></a>,
+examples/USER/cg-cmm</p>
+<p>Author: Axel Kohlmeyer at Temple U (akohlmey at gmail.com).  Contact
+him directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-colvars-package">
+<span id="user-colvars"></span><h3>4.2.4. USER-COLVARS package</h3>
+<p>Contents: COLVARS stands for collective variables which can be used to
+implement Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
+Sampling and Restraints.  This package implements a <a class="reference internal" href="fix_colvars.html"><span class="doc">fix colvars</span></a> command which wraps a COLVARS library which
+can perform those kinds of simulations.  See src/USER-COLVARS/README
+for more details.</p>
+<p>Supporting info:
+<a class="reference external" href="PDF/colvars-refman-lammps.pdf">doc/PDF/colvars-refman-lammps.pdf</a>,
+src/USER-COLVARS/README, lib/colvars/README, <a class="reference internal" href="fix_colvars.html"><span class="doc">fix colvars</span></a>, examples/USER/colvars</p>
+<p>Authors: Axel Kohlmeyer at Temple U (akohlmey at gmail.com) wrote the
+fix.  The COLVARS library itself is written and maintained by Giacomo
+Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome
+Henin (LISM, CNRS, Marseille, France).  Contact them directly if you
+have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-cuda-package">
+<span id="user-cuda"></span><h3>4.2.5. USER-CUDA package</h3>
+<p>This package provides acceleration of various LAMMPS pair styles, fix
+styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
+GPUs.</p>
+<p>See this section of the manual to get started:</p>
+<p><span class="xref std std-ref">Section_accelerate</span></p>
+<p>There are example scripts for using this package in
+examples/USER/cuda.</p>
+<p>This package uses an external library in lib/cuda which must be
+compiled before making LAMMPS.  See the lib/cuda/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.</p>
+<p>The person who created this package is Christian Trott at the
+University of Technology Ilmenau, Germany (christian.trott at
+tu-ilmenau.de).  Contact him directly if you have questions.</p>
+<p>Examples: examples/accelerate, bench/FERMI, bench/KEPLER</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-diffraction-package">
+<span id="user-diffraction"></span><h3>4.2.6. USER-DIFFRACTION package</h3>
+<p>Contents: This packages implements two computes and a fix for
+calculating x-ray and electron diffraction intensities based on
+kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
+more details.</p>
+<p>Supporting info: <a class="reference internal" href="compute_saed.html"><span class="doc">compute saed</span></a>, <a class="reference internal" href="compute_xrd.html"><span class="doc">compute xrd</span></a>, <a class="reference internal" href="fix_saed_vtk.html"><span class="doc">fix saed.vtk</span></a>,
+examples/USER/diffraction</p>
+<p>Author: Shawn P. Coleman (shawn.p.coleman8.ctr at mail.mil) while at
+the University of Arkansas.  Contact him directly if you have
+questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-dpd-package">
+<span id="user-dpd"></span><h3>4.2.7. USER-DPD package</h3>
+<p>Contents: DPD stands for dissipative particle dynamics, This package
+implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
+conditions.  The DPD equations of motion are integrated efficiently
+through the Shardlow splitting algorithm.  See src/USER-DPD/README for
+more details.</p>
+<p>Supporting info: /src/USER-DPD/README, <a class="reference internal" href="compute_dpd.html"><span class="doc">compute dpd</span></a>
+<a class="reference internal" href="compute_dpd_atom.html"><span class="doc">compute dpd/atom</span></a>
+<a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/cv</span></a> <a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/table</span></a>
+<a class="reference internal" href="fix_shardlow.html"><span class="doc">fix shardlow</span></a>
+<a class="reference internal" href="pair_dpd_conservative.html"><span class="doc">pair_dpd/conservative</span></a>
+<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair_dpd/fdt</span></a>
+<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair_dpd/fdt/energy</span></a>, examples/USER/dpd</p>
+<p>Authors: James Larentzos (ARL) (james.p.larentzos.civ at mail.mil),
+Timothy Mattox (Engility Corp) (Timothy.Mattox at engilitycorp.com)
+and John Brennan (ARL) (john.k.brennan.civ at mail.mil).  Contact them
+directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-drude-package">
+<span id="user-drude"></span><h3>4.2.8. USER-DRUDE package</h3>
+<p>Contents: This package contains methods for simulating polarizable
+systems using thermalized Drude oscillators.  It has computes, fixes,
+and pair styles for this purpose.  See <a class="reference internal" href="Section_howto.html#howto-27"><span class="std std-ref">Section howto 6.27</span></a> for an overview of how to use the
+package.  See src/USER-DRUDE/README for additional details.  There are
+auxiliary tools for using this package in tools/drude.</p>
+<p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-27"><span class="std std-ref">Section howto 6.27</span></a>,
+src/USER-DRUDE/README, <a class="reference internal" href="fix_drude.html"><span class="doc">fix drude</span></a>, <a class="reference internal" href="fix_drude_transform.html"><span class="doc">fix drude/transform/*</span></a>, <a class="reference internal" href="compute_temp_drude.html"><span class="doc">compute temp/drude</span></a>, <a class="reference internal" href="pair_thole.html"><span class="doc">pair thole</span></a>,
+<a class="reference internal" href="pair_thole.html"><span class="doc">pair lj/cut/thole/long</span></a>, examples/USER/drude,
+tools/drude</p>
+<p>Authors: Alain Dequidt at Universite Blaise Pascal Clermont-Ferrand
+(alain.dequidt at univ-bpclermont.fr); co-authors: Julien Devemy,
+Agilio Padua.  Contact them directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-eff-package">
+<span id="user-eff"></span><h3>4.2.9. USER-EFF package</h3>
+<p>Contents: EFF stands for electron force field.  This package contains
+atom, pair, fix and compute styles which implement the eFF as
+described in A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III,
+JCC, 2010. The eFF potential was first introduced by Su and Goddard,
+in 2007.  See src/USER-EFF/README for more details.  There are
+auxiliary tools for using this package in tools/eff; see its README
+file.</p>
+<p>Supporting info:</p>
+<p>Author: Andres Jaramillo-Botero at CalTech (ajaramil at
+wag.caltech.edu).  Contact him directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-fep-package">
+<span id="user-fep"></span><h3>4.2.10. USER-FEP package</h3>
+<p>Contents: FEP stands for free energy perturbation.  This package
+provides methods for performing FEP simulations by using a <a class="reference internal" href="fix_adapt_fep.html"><span class="doc">fix adapt/fep</span></a> command with soft-core pair potentials,
+which have a &#8220;soft&#8221; in their style name.  See src/USER-FEP/README for
+more details.  There are auxiliary tools for using this package in
+tools/fep; see its README file.</p>
+<p>Supporting info: src/USER-FEP/README, <a class="reference internal" href="fix_adapt_fep.html"><span class="doc">fix adapt/fep</span></a>, <a class="reference internal" href="compute_fep.html"><span class="doc">compute fep</span></a>,
+<a class="reference internal" href="pair_lj_soft.html"><span class="doc">pair_style */soft</span></a>, examples/USER/fep</p>
+<p>Author: Agilio Padua at Universite Blaise Pascal Clermont-Ferrand
+(agilio.padua at univ-bpclermont.fr). Contact him directly if you have
+questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-h5md-package">
+<span id="user-h5md"></span><h3>4.2.11. USER-H5MD package</h3>
+<p>Contents: H5MD stands for HDF5 for MD.  <a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5</a> is a binary,
+portable, self-describing file format, used by many scientific
+simulations.  H5MD is a format for molecular simulations, built on top
+of HDF5.  This package implements a <a class="reference internal" href="dump_h5md.html"><span class="doc">dump h5md</span></a> command
+to output LAMMPS snapshots in this format.  See src/USER-H5MD/README
+for more details.</p>
+<p>Supporting info: src/USER-H5MD/README, lib/h5md/README, <a class="reference internal" href="dump_h5md.html"><span class="doc">dump h5md</span></a></p>
+<p>Author: Pierre de Buyl at KU Leuven (see <a class="reference external" href="http://pdebuyl.be">http://pdebuyl.be</a>) created
+this package as well as the H5MD format and library.  Contact him
+directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-intel-package">
+<span id="user-intel"></span><h3>4.2.12. USER-INTEL package</h3>
+<p>Contents: Dozens of pair, bond, angle, dihedral, and improper styles
+that are optimized for Intel CPUs and the Intel Xeon Phi (in offload
+mode).  All of them have an &#8220;intel&#8221; in their style name.  <a class="reference internal" href="accelerate_intel.html"><span class="doc">Section accelerate intel</span></a> gives details of what hardware
+and compilers are required on your system, and how to build and use
+this package.  Also see src/USER-INTEL/README for more details. See
+the KOKKOS, OPT, and USER-OMP packages, which also have CPU and
+Phi-enabled styles.</p>
+<p>Supporting info: examples/accelerate, src/USER-INTEL/TEST</p>
+<p><span class="xref std std-ref">Section_accelerate</span></p>
+<p>Author: Mike Brown at Intel (michael.w.brown at intel.com).  Contact
+him directly if you have questions.</p>
+<p>For the USER-INTEL package, you have 2 choices when building.  You can
+build with CPU or Phi support.  The latter uses Xeon Phi chips in
+&#8220;offload&#8221; mode.  Each of these modes requires additional settings in
+your Makefile.machine for CCFLAGS and LINKFLAGS.</p>
+<p>For CPU mode (if using an Intel compiler):</p>
+<ul class="simple">
+<li>CCFLAGS: add -fopenmp, -DLAMMPS_MEMALIGN=64, -restrict, -xHost, -fno-alias, -ansi-alias, -override-limits</li>
+<li>LINKFLAGS: add -fopenmp</li>
+</ul>
+<p>For Phi mode add the following in addition to the CPU mode flags:</p>
+<ul class="simple">
+<li>CCFLAGS: add -DLMP_INTEL_OFFLOAD and</li>
+<li>LINKFLAGS: add -offload</li>
+</ul>
+<p>And also add this to CCFLAGS:</p>
+<pre class="literal-block">
+-offload-option,mic,compiler,&quot;-fp-model fast=2 -mGLOB_default_function_attrs=&quot;gather_scatter_loop_unroll=4&quot;&quot;
+</pre>
+<p>Examples:</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-lb-package">
+<span id="user-lb"></span><h3>4.2.13. USER-LB package</h3>
+<p>Supporting info:</p>
+<p>This package contains a LAMMPS implementation of a background
+Lattice-Boltzmann fluid, which can be used to model MD particles
+influenced by hydrodynamic forces.</p>
+<p>See this doc page and its related commands to get started:</p>
+<p><a class="reference internal" href="fix_lb_fluid.html"><span class="doc">fix lb/fluid</span></a></p>
+<p>The people who created this package are Frances Mackay (fmackay at
+uwo.ca) and Colin (cdennist at uwo.ca) Denniston, University of
+Western Ontario.  Contact them directly if you have questions.</p>
+<p>Examples: examples/USER/lb</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-mgpt-package">
+<span id="user-mgpt"></span><h3>4.2.14. USER-MGPT package</h3>
+<p>Supporting info:</p>
+<p>This package contains a fast implementation for LAMMPS of
+quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
+derives from first-principles DFT-based generalized pseudopotential
+theory (GPT) through a series of systematic approximations valid for
+mid-period transition metals with nearly half-filled d bands.  The
+MGPT method was originally developed by John Moriarty at Lawrence
+Livermore National Lab (LLNL).</p>
+<p>In the general matrix representation of MGPT, which can also be
+applied to f-band actinide metals, the multi-ion potentials are
+evaluated on the fly during a simulation through d- or f-state matrix
+multiplication, and the forces that move the ions are determined
+analytically.  The <em>mgpt</em> pair style in this package calculates forces
+and energies using an optimized matrix-MGPT algorithm due to Tomas
+Oppelstrup at LLNL.</p>
+<p>See this doc page to get started:</p>
+<p><a class="reference internal" href="pair_mgpt.html"><span class="doc">pair_style mgpt</span></a></p>
+<p>The persons who created the USER-MGPT package are Tomas Oppelstrup
+(<a class="reference external" href="mailto:oppelstrup2&#37;&#52;&#48;llnl&#46;gov">oppelstrup2<span>&#64;</span>llnl<span>&#46;</span>gov</a>) and John Moriarty (<a class="reference external" href="mailto:moriarty2&#37;&#52;&#48;llnl&#46;gov">moriarty2<span>&#64;</span>llnl<span>&#46;</span>gov</a>)
+Contact them directly if you have any questions.</p>
+<p>Examples: examples/USER/mgpt</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-misc-package">
+<span id="user-misc"></span><h3>4.2.15. USER-MISC package</h3>
+<p>Supporting info:</p>
+<p>The files in this package are a potpourri of (mostly) unrelated
+features contributed to LAMMPS by users.  Each feature is a single
+pair of files (<a href="#id2"><span class="problematic" id="id3">*</span></a>.cpp and <a href="#id4"><span class="problematic" id="id5">*</span></a>.h).</p>
+<p>More information about each feature can be found by reading its doc
+page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
+input script commands is as follows:</p>
+<p><a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section_commands</span></a></p>
+<p>User-contributed features are listed at the bottom of the fix,
+compute, pair, etc sections.</p>
+<p>The list of features and author of each is given in the
+src/USER-MISC/README file.</p>
+<p>You should contact the author directly if you have specific questions
+about the feature or its coding.</p>
+<p>Examples: examples/USER/misc</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-molfile-package">
+<span id="user-molfile"></span><h3>4.2.16. USER-MOLFILE package</h3>
+<p>Supporting info:</p>
+<p>This package contains a dump molfile command which uses molfile
+plugins that are bundled with the
+<a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molecular visualization and
+analysis program, to enable LAMMPS to dump its information in formats
+compatible with various molecular simulation tools.</p>
+<p>The package only provides the interface code, not the plugins.  These
+can be obtained from a VMD installation which has to match the
+platform that you are using to compile LAMMPS for. By adding plugins
+to VMD, support for new file formats can be added to LAMMPS (or VMD or
+other programs that use them) without having to recompile the
+application itself.</p>
+<p>See this doc page to get started:</p>
+<p><span class="xref std std-ref">dump molfile</span></p>
+<p>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-omp-package">
+<span id="user-omp"></span><h3>4.2.17. USER-OMP package</h3>
+<p>Supporting info:</p>
+<p>This package provides OpenMP multi-threading support and
+other optimizations of various LAMMPS pair styles, dihedral
+styles, and fix styles.</p>
+<p>See this section of the manual to get started:</p>
+<p><span class="xref std std-ref">Section_accelerate</span></p>
+<p>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.</p>
+<p>For the USER-OMP package, your Makefile.machine needs additional
+settings for CCFLAGS and LINKFLAGS.</p>
+<ul class="simple">
+<li>CCFLAGS: add -fopenmp and -restrict</li>
+<li>LINKFLAGS: add -fopenmp</li>
+</ul>
+<p>Examples: examples/accelerate, bench/KEPLER</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-phonon-package">
+<span id="user-phonon"></span><h3>4.2.18. USER-PHONON package</h3>
+<p>This package contains a fix phonon command that calculates dynamical
+matrices, which can then be used to compute phonon dispersion
+relations, directly from molecular dynamics simulations.</p>
+<p>See this doc page to get started:</p>
+<p><a class="reference internal" href="fix_phonon.html"><span class="doc">fix phonon</span></a></p>
+<p>The person who created this package is Ling-Ti Kong (konglt at
+sjtu.edu.cn) at Shanghai Jiao Tong University.  Contact him directly
+if you have questions.</p>
+<p>Examples: examples/USER/phonon</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-qmmm-package">
+<span id="user-qmmm"></span><h3>4.2.19. USER-QMMM package</h3>
+<p>Supporting info:</p>
+<p>This package provides a fix qmmm command which allows LAMMPS to be
+used in a QM/MM simulation, currently only in combination with pw.x
+code from the <a class="reference external" href="http://www.quantum-espresso.org">Quantum ESPRESSO</a> package.</p>
+<p>The current implementation only supports an ONIOM style mechanical
+coupling to the Quantum ESPRESSO plane wave DFT package.
+Electrostatic coupling is in preparation and the interface has been
+written in a manner that coupling to other QM codes should be possible
+without changes to LAMMPS itself.</p>
+<p>See this doc page to get started:</p>
+<p><a class="reference internal" href="fix_qmmm.html"><span class="doc">fix qmmm</span></a></p>
+<p>as well as the lib/qmmm/README file.</p>
+<p>The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-qtb-package">
+<span id="user-qtb"></span><h3>4.2.20. USER-QTB package</h3>
+<p>Supporting info:</p>
+<p>This package provides a self-consistent quantum treatment of the
+vibrational modes in a classical molecular dynamics simulation.  By
+coupling the MD simulation to a colored thermostat, it introduces zero
+point energy into the system, alter the energy power spectrum and the
+heat capacity towards their quantum nature. This package could be of
+interest if one wants to model systems at temperatures lower than
+their classical limits or when temperatures ramp up across the
+classical limits in the simulation.</p>
+<p>See these two doc pages to get started:</p>
+<p><a class="reference internal" href="fix_qtb.html"><span class="doc">fix qtb</span></a> provides quantum nulcear correction through a
+colored thermostat and can be used with other time integration schemes
+like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
+<p><a class="reference internal" href="fix_qbmsst.html"><span class="doc">fix qbmsst</span></a> enables quantum nuclear correction of a
+multi-scale shock technique simulation by coupling the quantum thermal
+bath with the shocked system.</p>
+<p>The person who created this package is Yuan Shen (sy0302 at
+stanford.edu) at Stanford University.  Contact him directly if you
+have questions.</p>
+<p>Examples: examples/USER/qtb</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-quip-package">
+<span id="user-quip"></span><h3>4.2.21. USER-QUIP package</h3>
+<p>Supporting info:</p>
+<p>Examples: examples/USER/quip</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-reaxc-package">
+<span id="user-reaxc"></span><h3>4.2.22. USER-REAXC package</h3>
+<p>Supporting info:</p>
+<p>This package contains a implementation for LAMMPS of the ReaxFF force
+field.  ReaxFF uses distance-dependent bond-order functions to
+represent the contributions of chemical bonding to the potential
+energy.  It was originally developed by Adri van Duin and the Goddard
+group at CalTech.</p>
+<p>The USER-REAXC version of ReaxFF (pair_style reax/c), implemented in
+C, should give identical or very similar results to pair_style reax,
+which is a ReaxFF implementation on top of a Fortran library, a
+version of which library was originally authored by Adri van Duin.</p>
+<p>The reax/c version should be somewhat faster and more scalable,
+particularly with respect to the charge equilibration calculation.  It
+should also be easier to build and use since there are no complicating
+issues with Fortran memory allocation or linking to a Fortran library.</p>
+<p>For technical details about this implemention of ReaxFF, see
+this paper:</p>
+<p>Parallel and Scalable Reactive Molecular Dynamics: Numerical Methods
+and Algorithmic Techniques, H. M. Aktulga, J. C. Fogarty,
+S. A. Pandit, A. Y. Grama, Parallel Computing, in press (2011).</p>
+<p>See the doc page for the pair_style reax/c command for details
+of how to use it in LAMMPS.</p>
+<p>The person who created this package is Hasan Metin Aktulga (hmaktulga
+at lbl.gov), while at Purdue University.  Contact him directly, or
+Aidan Thompson at Sandia (athomps at sandia.gov), if you have
+questions.</p>
+<p>Examples: examples/reax</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-smd-package">
+<span id="user-smd"></span><h3>4.2.23. USER-SMD package</h3>
+<p>Supporting info:</p>
+<p>This package implements smoothed Mach dynamics (SMD) in
+LAMMPS.  Currently, the package has the following features:</p>
+<ul class="simple">
+<li>Does liquids via traditional Smooth Particle Hydrodynamics (SPH)</li>
+<li>Also solves solids mechanics problems via a state of the art
+stabilized meshless method with hourglass control.</li>
+<li>Can specify hydrostatic interactions independently from material
+strength models, i.e. pressure and deviatoric stresses are separated.</li>
+<li>Many material models available (Johnson-Cook, plasticity with
+hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new
+material models.</li>
+<li>Rigid boundary conditions (walls) can be loaded as surface geometries
+from <a href="#id7"><span class="problematic" id="id8">*</span></a>.STL files.</li>
+</ul>
+<p>See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.</p>
+<p>There are example scripts for using this package in examples/USER/smd.</p>
+<p>The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.</p>
+<p>Examples: examples/USER/smd</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-smtbq-package">
+<span id="user-smtbq"></span><h3>4.2.24. USER-SMTBQ package</h3>
+<p>Supporting info:</p>
+<p>This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
+potential for the description of ionocovalent bonds in oxides.</p>
+<p>There are example scripts for using this package in
+examples/USER/smtbq.</p>
+<p>See this doc page to get started:</p>
+<p><a class="reference internal" href="pair_smtbq.html"><span class="doc">pair_style smtbq</span></a></p>
+<p>The persons who created the USER-SMTBQ package are Nicolas Salles,
+Emile Maras, Olivier Politano, Robert Tetot, who can be contacted at
+these email addreses: <a class="reference external" href="mailto:lammps&#37;&#52;&#48;u-bourgogne&#46;fr">lammps<span>&#64;</span>u-bourgogne<span>&#46;</span>fr</a>, <a class="reference external" href="mailto:nsalles&#37;&#52;&#48;laas&#46;fr">nsalles<span>&#64;</span>laas<span>&#46;</span>fr</a>.  Contact
+them directly if you have any questions.</p>
+<p>Examples: examples/USER/smtbq</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-sph-package">
+<span id="user-sph"></span><h3>4.2.25. USER-SPH package</h3>
+<p>Supporting info:</p>
+<p>This package implements smoothed particle hydrodynamics (SPH) in
+LAMMPS.  Currently, the package has the following features:</p>
+<ul class="simple">
+<li>Tait, ideal gas, Lennard-Jones equation of states, full support for
+complete (i.e. internal-energy dependent) equations of state</li>
+<li>Plain or Monaghans XSPH integration of the equations of motion</li>
+<li>Density continuity or density summation to propagate the density field</li>
+<li>Commands to set internal energy and density of particles from the
+input script</li>
+<li>Output commands to access internal energy and density for dumping and
+thermo output</li>
+</ul>
+<p>See the file doc/PDF/SPH_LAMMPS_userguide.pdf to get started.</p>
+<p>There are example scripts for using this package in examples/USER/sph.</p>
+<p>The person who created this package is Georg Ganzenmuller at the
+Fraunhofer-Institute for High-Speed Dynamics, Ernst Mach Institute in
+Germany (georg.ganzenmueller at emi.fhg.de).  Contact him directly if
+you have questions.</p>
+<p>Examples: examples/USER/sph</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-tally-package">
+<span id="user-tally"></span><h3>4.2.26. USER-TALLY package</h3>
+<p>Supporting info:</p>
+<p>Examples: examples/USER/tally</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-vtk-package">
+<span id="user-vtk"></span><h3>4.2.27. USER-VTK package</h3>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Section_accelerate.html" class="btn btn-neutral float-right" title="5. Accelerating LAMMPS performance" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_commands.html" class="btn btn-neutral" title="3. Commands" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

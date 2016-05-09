@@ -1,0 +1,360 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style colloid command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style colloid command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-colloid-command">
+<span id="index-0"></span><h1>pair_style colloid command</h1>
+</div>
+<div class="section" id="pair-style-colloid-gpu-command">
+<h1>pair_style colloid/gpu command</h1>
+</div>
+<div class="section" id="pair-style-colloid-omp-command">
+<h1>pair_style colloid/omp command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">colloid</span> <span class="n">cutoff</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>cutoff = global cutoff for colloidal interactions (distance units)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">colloid</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>  <span class="mi">25</span> <span class="mf">1.0</span> <span class="mf">10.0</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">144</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span>  <span class="mf">75.398</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">10.0</span> <span class="mf">9.0</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span>  <span class="mf">39.478</span> <span class="mf">1.0</span> <span class="mf">10.0</span> <span class="mf">10.0</span> <span class="mf">25.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Style <em>colloid</em> computes pairwise interactions between large colloidal
+particles and small solvent particles using 3 formulas.  A colloidal
+particle has a size &gt; sigma; a solvent particle is the usual
+Lennard-Jones particle of size sigma.</p>
+<p>The colloid-colloid interaction energy is given by</p>
+<img alt="_images/pair_colloid_cc.jpg" class="align-center" src="_images/pair_colloid_cc.jpg" />
+<p>where A_cc is the Hamaker constant, a1 and a2 are the radii of the two
+colloidal particles, and Rc is the cutoff.  This equation results from
+describing each colloidal particle as an integrated collection of
+Lennard-Jones particles of size sigma and is derived in
+<a class="reference internal" href="pair_resquared.html#everaers"><span class="std std-ref">(Everaers)</span></a>.</p>
+<p>The colloid-solvent interaction energy is given by</p>
+<img alt="_images/pair_colloid_cs.jpg" class="align-center" src="_images/pair_colloid_cs.jpg" />
+<p>where A_cs is the Hamaker constant, a is the radius of the colloidal
+particle, and Rc is the cutoff.  This formula is derived from the
+colloid-colloid interaction, letting one of the particle sizes go to
+zero.</p>
+<p>The solvent-solvent interaction energy is given by the usual
+Lennard-Jones formula</p>
+<img alt="_images/pair_colloid_ss.jpg" class="align-center" src="_images/pair_colloid_ss.jpg" />
+<p>with A_ss set appropriately, which results from letting both particle
+sizes go to zero.</p>
+<p>When used in combination with <a class="reference internal" href="#"><span class="doc">pair_style yukawa/colloid</span></a>, the two terms become the so-called
+DLVO potential, which combines electrostatic repulsion and van der
+Waals attraction.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples
+above, or in the data file or restart files read by the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+commands, or by mixing as described below:</p>
+<ul class="simple">
+<li>A (energy units)</li>
+<li>sigma (distance units)</li>
+<li>d1 (distance units)</li>
+<li>d2 (distance units)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>A is the Hamaker energy prefactor and should typically be set as
+follows:</p>
+<ul class="simple">
+<li>A_cc = colloid/colloid = 4 pi^2 = 39.5</li>
+<li>A_cs = colloid/solvent = sqrt(A_cc*A_ss)</li>
+<li>A_ss = solvent/solvent = 144 (assuming epsilon = 1, so that 144/36 = 4)</li>
+</ul>
+<p>Sigma is the size of the solvent particle or the constituent particles
+integrated over in the colloidal particle and should typically be set
+as follows:</p>
+<ul class="simple">
+<li>Sigma_cc = colloid/colloid = 1.0</li>
+<li>Sigma_cs = colloid/solvent = arithmetic mixing between colloid sigma and solvent sigma</li>
+<li>Sigma_ss = solvent/solvent = 1.0 or whatever size the solvent particle is</li>
+</ul>
+<p>Thus typically Sigma_cs = 1.0, unless the solvent particle&#8217;s size !=
+1.0.</p>
+<p>D1 and d2 are particle diameters, so that d1 = 2*a1 and d2 = 2*a2 in
+the formulas above.  Both d1 and d2 must be values &gt;= 0.  If d1 &gt; 0
+and d2 &gt; 0, then the pair interacts via the colloid-colloid formula
+above.  If d1 = 0 and d2 = 0, then the pair interacts via the
+solvent-solvent formula.  I.e. a d value of 0 is a Lennard-Jones
+particle of size sigma.  If either d1 = 0 or d2 = 0 and the other is
+larger, then the pair interacts via the colloid-solvent formula.</p>
+<p>Note that the diameter of a particular particle type may appear in
+multiple pair_coeff commands, as it interacts with other particle
+types.  You should insure the particle diameter is specified
+consistently each time it appears.</p>
+<p>The last coefficient is optional.  If not specified, the global cutoff
+specified in the pair_style command is used.  However, you typically
+want different cutoffs for interactions between different particle
+sizes.  E.g. if colloidal particles of diameter 10 are used with
+solvent particles of diameter 1, then a solvent-solvent cutoff of 2.5
+would correspond to a colloid-colloid cutoff of 25.  A good
+rule-of-thumb is to use a colloid-solvent cutoff that is half the big
+diameter + 4 times the small diameter.  I.e. 9 = 5 + 4 for the
+colloid-solvent cutoff in this case.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using pair_style colloid for a mixture with 2 (or more)
+widely different particles sizes (e.g. sigma=10 colloids in a
+background sigma=1 LJ fluid), you will likely want to use these
+commands for efficiency: <a class="reference internal" href="neighbor.html"><span class="doc">neighbor multi</span></a> and
+<a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify multi</span></a>.</p>
+</div>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, the A, sigma, d1, and d2
+coefficients and cutoff distance for this pair style can be mixed.  A
+is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
+values and are mixed like sigma.  The default mix value is
+<em>geometric</em>.  See the &#8220;pair_modify&#8221; command for details.</p>
+<p>This pair style supports the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> shift
+option for the energy of the pair interaction.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> table option is not relevant
+for this pair style.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>
+tail option for adding long-range tail corrections to energy and
+pressure.</p>
+<p>This pair style writes its information to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This style is part of the COLLOID package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>Normally, this pair style should be used with finite-size particles
+which have a diameter, e.g. see the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style sphere</span></a> command.  However, this is not a requirement,
+since the only definition of particle size is via the pair_coeff
+parameters for each type.  In other words, the physical radius of the
+particle is ignored.  Thus you should insure that the d1,d2 parameters
+you specify are consistent with the physical size of the particles of
+that type.</p>
+<p>Per-particle polydispersity is not yet supported by this pair style;
+only per-type polydispersity is enabled via the pair_coeff parameters.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="everaers"><strong>(Everaers)</strong> Everaers, Ejtehadi, Phys Rev E, 67, 041710 (2003).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

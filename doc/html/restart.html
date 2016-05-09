@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>restart command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>restart command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="restart-command">
+<span id="index-0"></span><h1>restart command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">restart</span> <span class="mi">0</span>
+<span class="n">restart</span> <span class="n">N</span> <span class="n">root</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
+<span class="n">restart</span> <span class="n">N</span> <span class="n">file1</span> <span class="n">file2</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>N = write a restart file every this many timesteps</li>
+<li>N can be a variable (see below)</li>
+<li>root = filename to which timestep # is appended</li>
+<li>file1,file2 = two full filenames, toggle between them when writing file</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>fileper</em> or <em>nfile</em></li>
+</ul>
+<pre class="literal-block">
+<em>fileper</em> arg = Np
+  Np = write one file for every this many processors
+<em>nfile</em> arg = Nf
+  Nf = write this many files, one from each of Nf processors
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">restart</span> <span class="mi">0</span>
+<span class="n">restart</span> <span class="mi">1000</span> <span class="n">poly</span><span class="o">.</span><span class="n">restart</span>
+<span class="n">restart</span> <span class="mi">1000</span> <span class="n">poly</span><span class="o">.</span><span class="n">restart</span><span class="o">.</span><span class="n">mpiio</span>
+<span class="n">restart</span> <span class="mi">1000</span> <span class="n">restart</span><span class="o">.*.</span><span class="n">equil</span>
+<span class="n">restart</span> <span class="mi">10000</span> <span class="n">poly</span><span class="o">.%.</span><span class="mi">1</span> <span class="n">poly</span><span class="o">.%.</span><span class="mi">2</span> <span class="n">nfile</span> <span class="mi">10</span>
+<span class="n">restart</span> <span class="n">v_mystep</span> <span class="n">poly</span><span class="o">.</span><span class="n">restart</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Write out a binary restart file with the current state of the
+simulation every so many timesteps, in either or both of two modes, as
+a run proceeds.  A value of 0 means do not write out any restart
+files.  The two modes are as follows.  If one filename is specified, a
+series of filenames will be created which include the timestep in the
+filename.  If two filenames are specified, only 2 restart files will
+be created, with those names.  LAMMPS will toggle between the 2 names
+as it writes successive restart files.</p>
+<p>Note that you can specify the restart command twice, once with a
+single filename and once with two filenames.  This would allow you,
+for example, to write out archival restart files every 100000 steps
+using a single filenname, and more frequent temporary restart files
+every 1000 steps, using two filenames.  Using restart 0 will turn off
+both modes of output.</p>
+<p>Similar to <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> files, the restart filename(s) can contain
+two wild-card characters.</p>
+<p>If a &#8220;*&#8221; appears in the single filename, it is replaced with the
+current timestep value.  This is only recognized when a single
+filename is used (not when toggling back and forth).  Thus, the 3rd
+example above creates restart files as follows: restart.1000.equil,
+restart.2000.equil, etc.  If a single filename is used with no &#8220;*&#8221;,
+then the timestep value is appended.  E.g. the 2nd example above
+creates restart files as follows: poly.restart.1000,
+poly.restart.2000, etc.</p>
+<p>If a &#8220;%&#8221; character appears in the restart filename(s), then one file
+is written for each processor and the &#8220;%&#8221; character is replaced with
+the processor ID from 0 to P-1.  An additional file with the &#8220;%&#8221;
+replaced by &#8220;base&#8221; is also written, which contains global information.
+For example, the files written on step 1000 for filename restart.%
+would be restart.base.1000, restart.0.1000, restart.1.1000, ...,
+restart.P-1.1000.  This creates smaller files and can be a fast mode
+of output and subsequent input on parallel machines that support
+parallel I/O.  The optional <em>fileper</em> and <em>nfile</em> keywords discussed
+below can alter the number of files written.</p>
+<p>The restart file can also be written in parallel as one large binary
+file via the MPI-IO library, which is part of the MPI standard for
+versions 2.0 and above.  Using MPI-IO requires two steps.  First,
+build LAMMPS with its MPIIO package installed, e.g.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">mpiio</span>    <span class="c1"># installs the MPIIO package</span>
+<span class="n">make</span> <span class="n">g</span><span class="o">++</span>          <span class="c1"># build LAMMPS for your platform</span>
+</pre></div>
+</div>
+<p>Second, use a restart filename which contains &#8221;.mpiio&#8221;.  Note that it
+does not have to end in &#8221;.mpiio&#8221;, just contain those characters.
+Unlike MPI-IO dump files, a particular restart file must be both
+written and read using MPI-IO.</p>
+<p>Restart files are written on timesteps that are a multiple of N but
+not on the first timestep of a run or minimization.  You can use the
+<a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a> command to write a restart file
+before a run begins.  A restart file is not written on the last
+timestep of a run unless it is a multiple of N.  A restart file is
+written on the last timestep of a minimization if N &gt; 0 and the
+minimization converges.</p>
+<p>Instead of a numeric value, N can be specifed as an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>, which should be specified as v_name, where
+name is the variable name.  In this case, the variable is evaluated at
+the beginning of a run to determine the next timestep at which a
+restart file will be written out.  On that timestep, the variable will
+be evaluated again to determine the next timestep, etc.  Thus the
+variable should return timestep values.  See the stagger() and
+logfreq() and stride() math functions for <a class="reference internal" href="variable.html"><span class="doc">equal-style variables</span></a>, as examples of useful functions to use in
+this context.  Other similar math functions could easily be added as
+options for <a class="reference internal" href="variable.html"><span class="doc">equal-style variables</span></a>.</p>
+<p>For example, the following commands will write restart files
+every step from 1100 to 1200, and could be useful for debugging
+a simulation where something goes wrong at step 1163:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>     <span class="n">s</span> <span class="n">equal</span> <span class="n">stride</span><span class="p">(</span><span class="mi">1100</span><span class="p">,</span><span class="mi">1200</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">restart</span>              <span class="n">v_s</span> <span class="n">tmp</span><span class="o">.</span><span class="n">restart</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for information about
+what is stored in a restart file.</p>
+<p>Restart files can be read by a <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+command to restart a simulation from a particular state.  Because the
+file is binary (to enable exact restarts), it may not be readable on
+another machine.  In this case, you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-r command-line switch</span></a> to convert a restart file to a data
+file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Although the purpose of restart files is to enable restarting a
+simulation from where it left off, not all information about a
+simulation is stored in the file.  For example, the list of fixes that
+were specified during the initial run is not stored, which means the
+new input script must specify any fixes you want to use.  Even when
+restart information is stored in the file, as it is for some fixes,
+commands may need to be re-specified in the new input script, in order
+to re-use that information.  See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+command for information about what is stored in a restart file.</p>
+</div>
+<hr class="docutils" />
+<p>The optional <em>nfile</em> or <em>fileper</em> keywords can be used in conjunction
+with the &#8220;%&#8221; wildcard character in the specified restart file name(s).
+As explained above, the &#8220;%&#8221; character causes the restart file to be
+written in pieces, one piece for each of P processors.  By default P =
+the number of processors the simulation is running on.  The <em>nfile</em> or
+<em>fileper</em> keyword can be used to set P to a smaller value, which can
+be more efficient when running on a large number of processors.</p>
+<p>The <em>nfile</em> keyword sets P to the specified Nf value.  For example, if
+Nf = 4, and the simulation is running on 100 processors, 4 files will
+be written, by processors 0,25,50,75.  Each will collect information
+from itself and the next 24 processors and write it to a restart file.</p>
+<p>For the <em>fileper</em> keyword, the specified value of Np means write one
+file for every Np processors.  For example, if Np = 4, every 4th
+processor (0,4,8,12,etc) will collect information from itself and the
+next 3 processors and write it to a restart file.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>To write and read restart files in parallel with MPI-IO, the MPIIO
+package must be installed.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a>, <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">restart</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

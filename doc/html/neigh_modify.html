@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>neigh_modify command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>neigh_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="neigh-modify-command">
+<span id="index-0"></span><h1>neigh_modify command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">neigh_modify</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>one or more keyword/value pairs may be listed</li>
+</ul>
+<pre class="literal-block">
+keyword = <em>delay</em> or <em>every</em> or <em>check</em> or <em>once</em> or <em>cluster</em> or <em>include</em> or <em>exclude</em> or <em>page</em> or <em>one</em> or <em>binsize</em>
+  <em>delay</em> value = N
+    N = delay building until this many steps since last build
+  <em>every</em> value = M
+    M = build neighbor list every this many steps
+  <em>check</em> value = <em>yes</em> or <em>no</em>
+    <em>yes</em> = only build if some atom has moved half the skin distance or more
+    <em>no</em> = always build on 1st step that <em>every</em> and <em>delay</em> are satisfied
+  <em>once</em>
+    <em>yes</em> = only build neighbor list once at start of run and never rebuild
+    <em>no</em> = rebuild neighbor list according to other settings
+  <em>cluster</em>
+    <em>yes</em> = check bond,angle,etc neighbor list for nearby clusters
+    <em>no</em> = do not check bond,angle,etc neighbor list for nearby clusters
+  <em>include</em> value = group-ID
+    group-ID = only build pair neighbor lists for atoms in this group
+  <em>exclude</em> values:
+    type M N
+      M,N = exclude if one atom in pair is type M, other is type N
+    group group1-ID group2-ID
+      group1-ID,group2-ID = exclude if one atom is in 1st group, other in 2nd
+    molecule group-ID
+      groupname = exclude if both atoms are in the same molecule and in the same group
+    none
+      delete all exclude settings
+  <em>page</em> value = N
+    N = number of pairs stored in a single neighbor page
+  <em>one</em> value = N
+    N = max number of neighbors of one atom
+  <em>binsize</em> value = size
+    size = bin size for neighbor list construction (distance units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">neigh_modify</span> <span class="n">every</span> <span class="mi">2</span> <span class="n">delay</span> <span class="mi">10</span> <span class="n">check</span> <span class="n">yes</span> <span class="n">page</span> <span class="mi">100000</span>
+<span class="n">neigh_modify</span> <span class="n">exclude</span> <span class="nb">type</span> <span class="mi">2</span> <span class="mi">3</span>
+<span class="n">neigh_modify</span> <span class="n">exclude</span> <span class="n">group</span> <span class="n">frozen</span> <span class="n">frozen</span> <span class="n">check</span> <span class="n">no</span>
+<span class="n">neigh_modify</span> <span class="n">exclude</span> <span class="n">group</span> <span class="n">residue1</span> <span class="n">chain3</span>
+<span class="n">neigh_modify</span> <span class="n">exclude</span> <span class="n">molecule</span> <span class="n">rigid</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>This command sets parameters that affect the building and use of
+pairwise neighbor lists.  Depending on what pair interactions and
+other commands are defined, a simulation may require one or more
+neighbor lists.</p>
+<p>The <em>every</em>, <em>delay</em>, <em>check</em>, and <em>once</em> options affect how often
+lists are built as a simulation runs.  The <em>delay</em> setting means never
+build new lists until at least N steps after the previous build.  The
+<em>every</em> setting means build lists every M steps (after the delay has
+passed).  If the <em>check</em> setting is <em>no</em>, the lists are built on the
+first step that satisfies the <em>delay</em> and <em>every</em> settings.  If the
+<em>check</em> setting is <em>yes</em>, then the <em>every</em> and <em>delay</em> settings
+determine when a build may possibly be performed, but an actual build
+only occurs if some atom has moved more than half the skin distance
+(specified in the <a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a> command) since the last
+build.</p>
+<p>If the <em>once</em> setting is yes, then the neighbor list is only built
+once at the beginning of each run, and never rebuilt, except on steps
+when a restart file is written, or steps when a fix forces a rebuild
+to occur (e.g. fixes that create or delete atoms, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_evaporate.html"><span class="doc">fix evaporate</span></a>).
+This setting should only be made if you are certain atoms will not
+move far enough that the neighbor list should be rebuilt, e.g. running
+a simulation of a cold crystal.  Note that it is not that expensive to
+check if neighbor lists should be rebuilt.</p>
+<p>When the rRESPA integrator is used (see the <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a>
+command), the <em>every</em> and <em>delay</em> parameters refer to the longest
+(outermost) timestep.</p>
+<p>The <em>cluster</em> option does a sanity test every time neighbor lists are
+built for bond, angle, dihedral, and improper interactions, to check
+that each set of 2, 3, or 4 atoms is a cluster of nearby atoms.  It
+does this by computing the distance between pairs of atoms in the
+interaction and insuring they are not further apart than half the
+periodic box length.  If they are, an error is generated, since the
+interaction would be computed between far-away atoms instead of their
+nearby periodic images.  The only way this should happen is if the
+pairwise cutoff is so short that atoms that are part of the same
+interaction are not communicated as ghost atoms.  This is an unusual
+model (e.g. no pair interactions at all) and the problem can be fixed
+by use of the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a> command.  Note
+that to save time, the default <em>cluster</em> setting is <em>no</em>, so that this
+check is not performed.</p>
+<p>The <em>include</em> option limits the building of pairwise neighbor lists to
+atoms in the specified group.  This can be useful for models where a
+large portion of the simulation is particles that do not interact with
+other particles or with each other via pairwise interactions.  The
+group specified with this option must also be specified via the
+<a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify first</span></a> command.</p>
+<p>The <em>exclude</em> option turns off pairwise interactions between certain
+pairs of atoms, by not including them in the neighbor list.  These are
+sample scenarios where this is useful:</p>
+<ul class="simple">
+<li>In crack simulations, pairwise interactions can be shut off between 2
+slabs of atoms to effectively create a crack.</li>
+<li>When a large collection of atoms is treated as frozen, interactions
+between those atoms can be turned off to save needless
+computation. E.g. Using the <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a> command
+to freeze a wall or portion of a bio-molecule.</li>
+<li>When one or more rigid bodies are specified, interactions within each
+body can be turned off to save needless computation.  See the <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command for more details.</li>
+</ul>
+<p>The <em>exclude type</em> option turns off the pairwise interaction if one
+atom is of type M and the other of type N.  M can equal N.  The
+<em>exclude group</em> option turns off the interaction if one atom is in the
+first group and the other is the second.  Group1-ID can equal
+group2-ID.  The <em>exclude molecule</em> option turns off the interaction if
+both atoms are in the specified group and in the same molecule, as
+determined by their molecule ID.</p>
+<p>Each of the exclude options can be specified multiple times.  The
+<em>exclude type</em> option is the most efficient option to use; it requires
+only a single check, no matter how many times it has been specified.
+The other exclude options are more expensive if specified multiple
+times; they require one check for each time they have been specified.</p>
+<p>Note that the exclude options only affect pairwise interactions; see
+the <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a> command for information on
+turning off bond interactions.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Excluding pairwise interactions will not work correctly when
+also using a long-range solver via the
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command.  LAMMPS will give a warning
+to this effect.  This is because the short-range pairwise interaction
+needs to subtract off a term from the total energy for pairs whose
+short-range interaction is excluded, to compensate for how the
+long-range solver treats the interaction.  This is done correctly for
+pairwise interactions that are excluded (or weighted) via the
+<a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command.  But it is not done for
+interactions that are excluded via these neigh_modify exclude options.</p>
+</div>
+<p>The <em>page</em> and <em>one</em> options affect how memory is allocated for the
+neighbor lists.  For most simulations the default settings for these
+options are fine, but if a very large problem is being run or a very
+long cutoff is being used, these parameters can be tuned.  The indices
+of neighboring atoms are stored in &#8220;pages&#8221;, which are allocated one
+after another as they fill up.  The size of each page is set by the
+<em>page</em> value.  A new page is allocated when the next atom&#8217;s neighbors
+could potentially overflow the list.  This threshold is set by the
+<em>one</em> value which tells LAMMPS the maximum number of neighbor&#8217;s one
+atom can have.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">LAMMPS can crash without an error message if the number of
+neighbors for a single particle is larger than the <em>page</em> setting,
+which means it is much, much larger than the <em>one</em> setting.  This is
+because LAMMPS doesn&#8217;t error check these limits for every pairwise
+interaction (too costly), but only after all the particle&#8217;s neighbors
+have been found.  This problem usually means something is very wrong
+with the way you&#8217;ve setup your problem (particle spacing, cutoff
+length, neighbor skin distance, etc).  If you really expect that many
+neighbors per particle, then boost the <em>one</em> and <em>page</em> settings
+accordingly.</p>
+</div>
+<p>The <em>binsize</em> option allows you to specify what size of bins will be
+used in neighbor list construction to sort and find neighboring atoms.
+By default, for <a class="reference internal" href="neighbor.html"><span class="doc">neighbor style bin</span></a>, LAMMPS uses bins
+that are 1/2 the size of the maximum pair cutoff.  For <a class="reference internal" href="neighbor.html"><span class="doc">neighbor style multi</span></a>, the bins are 1/2 the size of the minimum pair
+cutoff.  Typically these are good values values for minimizing the
+time for neighbor list construction.  This setting overrides the
+default.  If you make it too big, there is little overhead due to
+looping over bins, but more atoms are checked.  If you make it too
+small, the optimal number of atoms is checked, but bin overhead goes
+up.  If you set the binsize to 0.0, LAMMPS will use the default
+binsize of 1/2 the cutoff.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>If the &#8220;delay&#8221; setting is non-zero, then it must be a multiple of the
+&#8220;every&#8221; setting.</p>
+<p>The exclude molecule option can only be used with atom styles that
+define molecule IDs.</p>
+<p>The value of the <em>page</em> setting must be at least 10x larger than the
+<em>one</em> setting.  This insures neighbor pages are not mostly empty
+space.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a>, <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The option defaults are delay = 10, every = 1, check = yes, once = no,
+cluster = no, include = all, exclude = none, page = 100000, one =
+2000, and binsize = 0.0.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

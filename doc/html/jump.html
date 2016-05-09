@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>jump command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>jump command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="jump-command">
+<span id="index-0"></span><h1>jump command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">jump</span> <span class="n">file</span> <span class="n">label</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>file = filename of new input script to switch to</li>
+<li>label = optional label within file to jump to</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">jump</span> <span class="n">newfile</span>
+<span class="n">jump</span> <span class="ow">in</span><span class="o">.</span><span class="n">run2</span> <span class="n">runloop</span>
+<span class="n">jump</span> <span class="n">SELF</span> <span class="n">runloop</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>This command closes the current input script file, opens the file with
+the specified name, and begins reading LAMMPS commands from that file.
+Unlike the <a class="reference internal" href="include.html"><span class="doc">include</span></a> command, the original file is not
+returned to, although by using multiple jump commands it is possible
+to chain from file to file or back to the original file.</p>
+<p>If the word &#8220;SELF&#8221; is used for the filename, then the current input
+script is re-opened and read again.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The SELF option is not guaranteed to work when the current input
+script is being read through stdin (standard input), e.g.</p>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_g</span><span class="o">++</span> <span class="o">&lt;</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
+</pre></div>
+</div>
+<p>since the SELF option invokes the C-library rewind() call, which may
+not be supported for stdin on some systems or by some MPI
+implementations.  This can be worked around by using the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-in command-line argument</span></a>, e.g.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
+</pre></div>
+</div>
+<p>or by using the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-var command-line argument</span></a> to pass the script name as a
+variable to the input script.  In the latter case, a
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> called &#8220;fname&#8221; could be used in place of
+SELF, e.g.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="n">var</span> <span class="n">fname</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span> <span class="o">&lt;</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
+</pre></div>
+</div>
+<p>The 2nd argument to the jump command is optional.  If specified, it is
+treated as a label and the new file is scanned (without executing
+commands) until the label is found, and commands are executed from
+that point forward.  This can be used to loop over a portion of the
+input script, as in this example.  These commands perform 10 runs,
+each of 10000 steps, and create 10 dump files named file.1, file.2,
+etc.  The <a class="reference internal" href="next.html"><span class="doc">next</span></a> command is used to exit the loop after 10
+iterations.  When the &#8220;a&#8221; variable has been incremented for the tenth
+time, it will cause the next jump command to be skipped.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable a loop 10
+label loop
+dump 1 all atom 100 file.$a
+run 10000
+undump 1
+next a
+jump in.lj loop
+</pre></div>
+</div>
+<p>If the jump <em>file</em> argument is a variable, the jump command can be
+used to cause different processor partitions to run different input
+scripts.  In this example, LAMMPS is run on 40 processors, with 4
+partitions of 10 procs each.  An in.file containing the example
+variable and jump command will cause each partition to run a different
+simulation.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">40</span> <span class="n">lmp_ibm</span> <span class="o">-</span><span class="n">partition</span> <span class="mi">4</span><span class="n">x10</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">file</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable f world script.1 script.2 script.3 script.4
+jump $f
+</pre></div>
+</div>
+<p>Here is an example of a loop which checks every 1000 steps if the
+system temperature has reached a certain value, and if so, breaks out
+of the loop to finish the run.  Note that any variable could be
+checked, so long as it is current on the timestep when the run
+completes.  As explained on the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> doc page,
+this can be insured by includig the variable in thermodynamic output.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">myTemp</span> <span class="n">equal</span> <span class="n">temp</span>
+<span class="n">label</span> <span class="n">loop</span>
+<span class="n">variable</span> <span class="n">a</span> <span class="n">loop</span> <span class="mi">1000</span>
+<span class="n">run</span> <span class="mi">1000</span>
+<span class="k">if</span> <span class="s2">&quot;$</span><span class="si">{myTemp}</span><span class="s2"> &lt; 300.0&quot;</span> <span class="n">then</span> <span class="s2">&quot;jump SELF break&quot;</span>
+<span class="nb">next</span> <span class="n">a</span>
+<span class="n">jump</span> <span class="n">SELF</span> <span class="n">loop</span>
+<span class="n">label</span> <span class="k">break</span>
+<span class="nb">print</span> <span class="s2">&quot;ALL DONE&quot;</span>
+</pre></div>
+</div>
+<p>Here is an example of a double loop which uses the if and
+<a class="reference internal" href="#"><span class="doc">jump</span></a> commands to break out of the inner loop when a
+condition is met, then continues iterating thru the outer loop.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">label</span>            <span class="n">loopa</span>
+<span class="n">variable</span>    <span class="n">a</span> <span class="n">loop</span> <span class="mi">5</span>
+  <span class="n">label</span>          <span class="n">loopb</span>
+  <span class="n">variable</span>  <span class="n">b</span> <span class="n">loop</span> <span class="mi">5</span>
+  <span class="nb">print</span>          <span class="s2">&quot;A,B = $a,$b&quot;</span>
+  <span class="n">run</span>       <span class="mi">10000</span>
+  <span class="k">if</span>     <span class="s2">&quot;$b &gt; 2&quot;</span> <span class="n">then</span> <span class="s2">&quot;jump SELF break&quot;</span>
+  <span class="nb">next</span>           <span class="n">b</span>
+  <span class="n">jump</span>           <span class="ow">in</span><span class="o">.</span><span class="n">script</span> <span class="n">loopb</span>
+<span class="n">label</span>            <span class="k">break</span>
+<span class="n">variable</span>    <span class="n">b</span> <span class="n">delete</span>
+<span class="nb">next</span>     <span class="n">a</span>
+<span class="n">jump</span>     <span class="n">SELF</span> <span class="n">loopa</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>If you jump to a file and it does not contain the specified label,
+LAMMPS will come to the end of the file and exit.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="variable.html"><span class="doc">variable</span></a>, <a class="reference internal" href="include.html"><span class="doc">include</span></a>, <a class="reference internal" href="label.html"><span class="doc">label</span></a>,
+<a class="reference internal" href="next.html"><span class="doc">next</span></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

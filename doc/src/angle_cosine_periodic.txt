@@ -30,7 +30,7 @@ trigonal center:
 
 where C, B and n are coefficients defined for each angle type.
 
-See "(Mayo)"_#Mayo for a description of the DREIDING force field
+See "(Mayo)"_#cosine-Mayo for a description of the DREIDING force field
 
 The following coefficients must be defined for each angle type via the
 "angle_coeff"_angle_coeff.html command as in the example above, or in
@@ -85,6 +85,6 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 :line
 
-:link(Mayo)
+:link(cosine-Mayo)
 [(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).

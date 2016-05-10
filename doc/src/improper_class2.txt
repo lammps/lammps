@@ -47,7 +47,7 @@ Since atom J is the atom of symmetry, normally the bonds J-I, J-K, J-L
 would exist for an improper to be defined between the 4 atoms, but
 this is not required.
 
-See "(Sun)"_#Sun for a description of the COMPASS class2 force field.
+See "(Sun)"_#improper-Sun for a description of the COMPASS class2 force field.
 
 Coefficients for the Ei and Eaa formulas must be defined for each
 improper type via the "improper_coeff"_improper_coeff.html command as
@@ -120,5 +120,5 @@ section for more info on packages.
 
 :line
 
-:link(Sun)
+:link(improper-Sun)
 [(Sun)] Sun, J Phys Chem B 102, 7338-7364 (1998).

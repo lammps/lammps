@@ -30,7 +30,7 @@ with an additional Urey_Bradley term based on the distance {r} between
 the 1st and 3rd atoms in the angle.  K, theta0, Kub, and Rub are
 coefficients defined for each angle type.
 
-See "(MacKerell)"_#MacKerell for a description of the CHARMM force
+See "(MacKerell)"_#angle-MacKerell for a description of the CHARMM force
 field.
 
 The following coefficients must be defined for each angle type via the
@@ -85,6 +85,6 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 :line
 
-:link(MacKerell)
+:link(angle-MacKerell)
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).

@@ -68,7 +68,7 @@ The {lj/charmm} styles compute LJ and Coulombic interactions with an
 additional switching function S(r) that ramps the energy and force
 smoothly to zero between an inner and outer cutoff.  It is a widely
 used potential in the "CHARMM"_http://www.scripps.edu/brooks MD code.
-See "(MacKerell)"_#MacKerell for a description of the CHARMM force
+See "(MacKerell)"_#pair-MacKerell for a description of the CHARMM force
 field.
 
 :c,image(Eqs/pair_charmm.jpg)
@@ -194,6 +194,6 @@ the MOLECULE and KSPACE packages are installed by default.
 
 :line
 
-:link(MacKerell)
+:link(pair-MacKerell)
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).

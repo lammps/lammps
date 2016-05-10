@@ -49,7 +49,7 @@ index (the second term in the effective potential above).  The
 quasi-beads also interact with the two neighboring quasi-beads through
 the spring potential in imaginary-time space (first term in effective
 potential).  To sample the canonical ensemble, a Nose-Hoover massive
-chain thermostat is applied "(Tuckerman)"_#Tuckerman.  With the
+chain thermostat is applied "(Tuckerman)"_#pimd-Tuckerman.  With the
 massive chain algorithm, a chain of NH thermostats is coupled to each
 degree of freedom for each quasi-bead.  The keyword {temp} sets the
 target temperature for the system and the keyword {nhc} sets the
@@ -161,7 +161,7 @@ and nhc = 2.
 [(Feynman)] R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
 Path Integrals, McGraw-Hill, New York (1965).
 
-:link(Tuckerman) 
+:link(pimd-Tuckerman) 
 [(Tuckerman)] M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
 
 :link(Cao1) 

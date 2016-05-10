@@ -26,7 +26,7 @@ The {charmm} dihedral style uses the potential
 
 :c,image(Eqs/dihedral_charmm.jpg)
 
-See "(MacKerell)"_#MacKerell for a description of the CHARMM force
+See "(MacKerell)"_#dihedral-MacKerell for a description of the CHARMM force
 field.  This dihedral style can also be used for the AMBER force field
 (see comment on weighting factors below).  See "(Cornell)"_#Cornell
 for a description of the AMBER force field.
@@ -110,6 +110,6 @@ LAMMPS"_Section_start.html#start_3 section for more info on packages.
 [(Cornell)] Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
-:link(MacKerell)
+:link(dihedral-MacKerell)
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem B, 102, 3586 (1998).

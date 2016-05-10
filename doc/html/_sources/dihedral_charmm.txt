@@ -35,10 +35,11 @@ The *charmm* dihedral style uses the potential
 .. image:: Eqs/dihedral_charmm.jpg
    :align: center
 
-See :ref:`(MacKerell) <dihedral-MacKerell>` for a description of the CHARMM force
-field.  This dihedral style can also be used for the AMBER force field
-(see comment on weighting factors below).  See :ref:`(Cornell) <Cornell>`
-for a description of the AMBER force field.
+See :ref:`(MacKerell) <dihedral-MacKerell>` for a description of the CHARMM
+force field.  This dihedral style can also be used for the AMBER force
+field (see comment on weighting factors below).  See
+:ref:`(Cornell) <dihedral-Cornell>` for a description of the AMBER force
+field.
 
 The following coefficients must be defined for each dihedral type via the
 :doc:`dihedral_coeff <dihedral_coeff>` command as in the example above, or in
@@ -121,7 +122,7 @@ Related commands
 ----------
 
 
-.. _Cornell:
+.. _dihedral-Cornell:
 
 
 

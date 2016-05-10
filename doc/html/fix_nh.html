@@ -239,12 +239,12 @@ correctly, the time-averaged temperature and stress tensor of the
 particles will match the target values specified by Tstart/Tstop and
 Pstart/Pstop.</p>
 <p>The equations of motion used are those of Shinoda et al in
-<a class="reference internal" href="pair_sdk.html#shinoda"><span class="std std-ref">(Shinoda)</span></a>, which combine the hydrostatic equations of
-Martyna, Tobias and Klein in <a class="reference internal" href="fix_rigid.html#martyna"><span class="std std-ref">(Martyna)</span></a> with the strain
+<a class="reference internal" href="#nh-shinoda"><span class="std std-ref">(Shinoda)</span></a>, which combine the hydrostatic equations of
+Martyna, Tobias and Klein in <a class="reference internal" href="#nh-martyna"><span class="std std-ref">(Martyna)</span></a> with the strain
 energy proposed by Parrinello and Rahman in
-<a class="reference internal" href="fix_nh_eff.html#parrinello"><span class="std std-ref">(Parrinello)</span></a>.  The time integration schemes closely
+<a class="reference internal" href="#nh-parrinello"><span class="std std-ref">(Parrinello)</span></a>.  The time integration schemes closely
 follow the time-reversible measure-preserving Verlet and rRESPA
-integrators derived by Tuckerman et al in <a class="reference internal" href="run_style.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.</p>
+integrators derived by Tuckerman et al in <a class="reference internal" href="#nh-tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.</p>
 <hr class="docutils" />
 <p>The thermostat parameters for fix styles <em>nvt</em> and <em>npt</em> is specified
 using the <em>temp</em> keyword.  Other thermostat-related keywords are
@@ -402,7 +402,7 @@ freedom. A value of 0 corresponds to no thermostatting of the
 barostat variables.</p>
 <p>The <em>mtk</em> keyword controls whether or not the correction terms due to
 Martyna, Tuckerman, and Klein are included in the equations of motion
-<a class="reference internal" href="fix_rigid.html#martyna"><span class="std std-ref">(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
+<a class="reference internal" href="#nh-martyna"><span class="std std-ref">(Martyna)</span></a>.  Specifying <em>no</em> reproduces the original
 Hoover barostat, whose volume probability distribution function
 differs from the true NPT and NPH ensembles by a factor of 1/V.  Hence
 using <em>yes</em> is more correct, but in many cases the difference is
@@ -411,7 +411,7 @@ negligible.</p>
 scheme at little extra cost.  The initial and final updates of the
 thermostat variables are broken up into <em>tloop</em> substeps, each of
 length <em>dt</em>/<em>tloop</em>. This corresponds to using a first-order
-Suzuki-Yoshida scheme <a class="reference internal" href="run_style.html#tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.  The keyword <em>ploop</em>
+Suzuki-Yoshida scheme <a class="reference internal" href="#nh-tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.  The keyword <em>ploop</em>
 does the same thing for the barostat thermostat.</p>
 <p>The keyword <em>nreset</em> controls how often the reference dimensions used
 to define the strain energy are reset.  If this keyword is not used,
@@ -716,11 +716,11 @@ ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
 scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.</p>
 <hr class="docutils" />
-<p id="martyna"><strong>(Martyna)</strong> Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).</p>
-<p id="parrinello"><strong>(Parrinello)</strong> Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).</p>
-<p id="tuckerman"><strong>(Tuckerman)</strong> Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
+<p id="nh-martyna"><strong>(Martyna)</strong> Martyna, Tobias and Klein, J Chem Phys, 101, 4177 (1994).</p>
+<p id="nh-parrinello"><strong>(Parrinello)</strong> Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).</p>
+<p id="nh-tuckerman"><strong>(Tuckerman)</strong> Tuckerman, Alejandre, Lopez-Rendon, Jochim, and
 Martyna, J Phys A: Math Gen, 39, 5629 (2006).</p>
-<p id="shinoda"><strong>(Shinoda)</strong> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).</p>
+<p id="nh-shinoda"><strong>(Shinoda)</strong> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).</p>
 </div>
 </div>
 

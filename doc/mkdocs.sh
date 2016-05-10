@@ -18,11 +18,11 @@ make html
 
 # check if we have any new html files,
 # that are not yet in the book file.
-for s in `echo src/*.txt | sed -e 's,src/,html/,g' -e 's,\.txt,\.html,g'`
+for s in `echo src/*.txt | sed -e 's,src/,,g' -e 's,\.txt,\.html,g'`
 do \
   grep -q $s lammps.book || echo doc file $s missing in lammps.book
 done
-htmldoc --batch lammps.book
+( cd html; htmldoc --batch ../lammps.book )
 
 git co -- html src
 

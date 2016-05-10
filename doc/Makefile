@@ -24,6 +24,7 @@ help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make HTML version of documentation using Sphinx"
 	@echo "  pdf        to make Manual.pdf"
+	@echo "  txt2html   to build txt2html tool"
 	@echo "  clean      to remove all generated RST files"
 	@echo "  clean-all  to reset the entire build environment"
 
@@ -42,8 +43,14 @@ html: $(OBJECTS)
 	)	
 	@echo "Build finished. The HTML pages are in doc/html."
 
-pdf: html
-	htmldoc --title --toctitle "Table of Contents" --tocfooter ..i --toclevels 4 --header ... --footer ..1 --size letter --linkstyle plain --linkcolor blue -f Manual.pdf html/Manual.html html/Section_intro.html html/Section_start.html html/Section_commands.html html/Section_packages.html html/Section_accelerate.html html/Section_howto.html html/Section_example.html html/Section_perf.html html/Section_tools.html html/Section_modify.html html/Section_python.html html/Section_errors.html html/Section_history.html html/[a-z]*.html
+pdf:
+	cd src; ../utils/txt2html/txt2html -b *.txt
+	cd src; htmldoc --title --toctitle "Table of Contents" --tocfooter ..i --toclevels 4 --header ... --footer ..1 --size letter --linkstyle plain --linkcolor blue -f Manual.pdf Manual.html Section_intro.html Section_start.html Section_commands.html Section_packages.html Section_accelerate.html Section_howto.html Section_example.html Section_perf.html Section_tools.html Section_modify.html Section_python.html Section_errors.html Section_history.html [a-z]*.html
+	cd src; mv Manual.pdf ..
+	cd src; rm *.html
+
+txt2html:
+	cd utils/txt2html; g++ -O txt2html.cpp -o txt2html
 
 $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\

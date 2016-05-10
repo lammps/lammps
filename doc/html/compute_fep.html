@@ -1,0 +1,447 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute fep command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>compute fep command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="compute-fep-command">
+<span id="index-0"></span><h1>compute fep command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">fep</span> <span class="n">temp</span> <span class="n">attribute</span> <span class="n">args</span> <span class="o">...</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in the <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</li>
+<li>fep = name of this compute command</li>
+<li>temp = external temperature (as specified for constant-temperature run)</li>
+<li>one or more attributes with args may be appended</li>
+<li>attribute = <em>pair</em> or <em>atom</em></li>
+</ul>
+<pre class="literal-block">
+<em>pair</em> args = pstyle pparam I J v_delta
+  pstyle = pair style name, e.g. lj/cut
+  pparam = parameter to perturb
+  I,J = type pair(s) to set parameter for
+  v_delta = variable with perturbation to apply (in the units of the parameter)
+<em>atom</em> args = aparam I v_delta
+  aparam = parameter to perturb
+  I = type to set parameter for
+  v_delta = variable with perturbation to apply (in the units of the parameter)
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>tail</em> or <em>volume</em></li>
+</ul>
+<pre class="literal-block">
+<em>tail</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = ignore tail correction to pair energies (usually small in fep)
+  <em>yes</em> = include tail correction to pair energies
+<em>volume</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = ignore volume changes (e.g. in <em>NVE</em> or <em>NVT</em> trajectories)
+  <em>yes</em> = include volume changes (e.g. in <em>NpT</em> trajectories)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">fep</span> <span class="mi">298</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="n">epsilon</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">v_delta</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="n">sigma</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">v_delta</span> <span class="n">volume</span> <span class="n">yes</span>
+<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">fep</span> <span class="mi">300</span> <span class="n">atom</span> <span class="n">charge</span> <span class="mi">2</span> <span class="n">v_delta</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Apply a perturbation to parameters of the interaction potential and
+recalculate the pair potential energy without changing the atomic
+coordinates from those of the reference, unperturbed system. This
+compute can be used to calculate free energy differences using several
+methods, such as free-energy perturbation (FEP), finite-difference
+thermodynamic integration (FDTI) or Bennet&#8217;s acceptance ratio method
+(BAR).</p>
+<p>The potential energy of the system is decomposed in three terms: a
+background term corresponding to interaction sites whose parameters
+remain constant, a reference term <em>U</em>&lt;sub&gt;0&lt;/sub&gt; corresponding to the
+initial interactions of the atoms that will undergo perturbation, and
+a term <em>U</em>&lt;sub&gt;1&lt;/sub&gt; corresponding to the final interactions of
+these atoms:</p>
+<img alt="_images/compute_fep_u.jpg" class="align-center" src="_images/compute_fep_u.jpg" />
+<p>A coupling parameter &amp;lambda; varying from 0 to 1 connects the
+reference and perturbed systems:</p>
+<img alt="_images/compute_fep_lambda.jpg" class="align-center" src="_images/compute_fep_lambda.jpg" />
+<p>It is possible but not necessary that the coupling parameter (or a
+function thereof) appears as a multiplication factor of the potential
+energy. Therefore, this compute can apply perturbations to interaction
+parameters that are not directly proportional to the potential energy
+(e.g. &amp;sigma; in Lennard-Jones potentials).</p>
+<p>This command can be combined with <a class="reference internal" href="fix_adapt.html"><span class="doc">fix adapt</span></a> to
+perform multistage free-energy perturbation calculations along
+stepwise alchemical transformations during a simulation run:</p>
+<img alt="_images/compute_fep_fep.jpg" class="align-center" src="_images/compute_fep_fep.jpg" />
+<p>This compute is suitable for the finite-difference thermodynamic
+integration (FDTI) method <a class="reference internal" href="#mezei"><span class="std std-ref">(Mezei)</span></a>, which is based on an
+evaluation of the numerical derivative of the free energy by a
+perturbation method using a very small &amp;delta;:</p>
+<img alt="_images/compute_fep_fdti.jpg" class="align-center" src="_images/compute_fep_fdti.jpg" />
+<p>where <em>w</em>&lt;sub&gt;i&lt;/sub&gt; are weights of a numerical quadrature. The <a class="reference internal" href="fix_adapt.html"><span class="doc">fix adapt</span></a> command can be used to define the stages of
+&amp;lambda; at which the derivative is calculated and averaged.</p>
+<p>The compute fep calculates the exponential Boltzmann term and also the
+potential energy difference <em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;. By
+choosing a very small perturbation &amp;delta; the thermodynamic
+integration method can be implemented using a numerical evaluation of
+the derivative of the potential energy with respect to &amp;lambda;:</p>
+<img alt="_images/compute_fep_ti.jpg" class="align-center" src="_images/compute_fep_ti.jpg" />
+<p>Another technique to calculate free energy differences is the
+acceptance ratio method <a class="reference internal" href="#bennet"><span class="std std-ref">(Bennet)</span></a>, which can be implemented
+by calculating the potential energy differences with &amp;delta; = 1.0 on
+both the forward and reverse routes:</p>
+<img alt="_images/compute_fep_bar.jpg" class="align-center" src="_images/compute_fep_bar.jpg" />
+<p>The value of the free energy difference is determined by numerical
+root finding to establish the equality.</p>
+<p>Concerning the choice of how the atomic parameters are perturbed in
+order to setup an alchemical transformation route, several strategies
+are available, such as single-topology or double-topology strategies
+<a class="reference internal" href="#pearlman"><span class="std std-ref">(Pearlman)</span></a>. The latter does not require modification of
+bond lengths, angles or other internal coordinates.</p>
+<p>NOTES: This compute command does not take kinetic energy into account,
+therefore the masses of the particles should not be modified between
+the reference and perturbed states, or along the alchemical
+transformation route.  This compute command does not change bond
+lengths or other internal coordinates <a class="reference internal" href="#boreschkarplus"><span class="std std-ref">(Boresch, Karplus)</span></a>.</p>
+<hr class="docutils" />
+<p>The <em>pair</em> attribute enables various parameters of potentials defined
+by the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> and <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>
+commands to be changed, if the pair style supports it.</p>
+<p>The <em>pstyle</em> argument is the name of the pair style. For example,
+<em>pstyle</em> could be specified as &#8220;lj/cut&#8221;.  The <em>pparam</em> argument is the
+name of the parameter to change.  This is a (non-exclusive) list of
+pair styles and parameters that can be used with this compute.  See
+the doc pages for individual pair styles and their energy formulas for
+the meaning of these parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="59%" />
+<col width="27%" />
+<col width="15%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut</span></a></td>
+<td>epsilon,sigma</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/cut</span></a></td>
+<td>epsilon,sigma</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/coul/long</span></a></td>
+<td>epsilon,sigma</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/soft</span></a></td>
+<td>epsilon,sigma,lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">coul/cut/soft</span></a></td>
+<td>lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">coul/long/soft</span></a></td>
+<td>lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/coul/cut/soft</span></a></td>
+<td>epsilon,sigma,lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/coul/long/soft</span></a></td>
+<td>epsilon,sigma,lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/cut/tip4p/long/soft</span></a></td>
+<td>epsilon,sigma,lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">tip4p/long/soft</span></a></td>
+<td>lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_lj_soft.html"><span class="doc">lj/charmm/coul/long/soft</span></a></td>
+<td>epsilon,sigma,lambda</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="pair_born.html"><span class="doc">born</span></a></td>
+<td>a,b,c</td>
+<td>type pairs</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="pair_buck.html"><span class="doc">buck</span></a></td>
+<td>a,c</td>
+<td>type pairs</td>
+</tr>
+</tbody>
+</table>
+<p>Note that it is easy to add new potentials and their parameters to
+this list.  All it typically takes is adding an extract() method to
+the pair_*.cpp file associated with the potential.</p>
+<p>Similar to the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command, I and J can be
+specified in one of two ways.  Explicit numeric values can be used for
+each, as in the 1st example above.  I &lt;= J is required.  LAMMPS sets
+the coefficients for the symmetric J,I interaction to the same
+values. A wild-card asterisk can be used in place of or in conjunction
+with the I,J arguments to set the coefficients for multiple pairs of
+atom types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N =
+the number of atom types, then an asterisk with no numeric values
+means all types from 1 to N.  A leading asterisk means all types from
+1 to n (inclusive).  A trailing asterisk means all types from n to N
+(inclusive).  A middle asterisk means all types from m to n
+(inclusive).  Note that only type pairs with I &lt;= J are considered; if
+asterisks imply type pairs where J &lt; I, they are ignored.</p>
+<p>If <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid or hybrid/overlay</span></a> is being
+used, then the <em>pstyle</em> will be a sub-style name.  You must specify
+I,J arguments that correspond to type pair values defined (via the
+<a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command) for that sub-style.</p>
+<p>The <em>v_name</em> argument for keyword <em>pair</em> is the name of an
+<a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> which will be evaluated each time
+this compute is invoked.  It should be specified as v_name, where name
+is the variable name.</p>
+<hr class="docutils" />
+<p>The <em>atom</em> attribute enables atom properties to be changed.  The
+<em>aparam</em> argument is the name of the parameter to change.  This is the
+current list of atom parameters that can be used with this compute:</p>
+<ul class="simple">
+<li>charge = charge on particle</li>
+</ul>
+<p>The <em>v_name</em> argument for keyword <em>pair</em> is the name of an
+<a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> which will be evaluated each time
+this compute is invoked.  It should be specified as v_name, where name
+is the variable name.</p>
+<hr class="docutils" />
+<p>The <em>tail</em> keyword controls the calculation of the tail correction to
+&#8220;van der Waals&#8221; pair energies beyond the cutoff, if this has been
+activated via the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> command. If the
+perturbation is small, the tail contribution to the energy difference
+between the reference and perturbed systems should be negligible.</p>
+<p>If the keyword <em>volume</em> = <em>yes</em>, then the Boltzmann term is multiplied
+by the volume so that correct ensemble averaging can be performed over
+trajectories during which the volume fluctuates or changes <a class="reference internal" href="#allentildesley"><span class="std std-ref">(Allen and Tildesley)</span></a>:</p>
+<img alt="_images/compute_fep_vol.jpg" class="align-center" src="_images/compute_fep_vol.jpg" />
+<hr class="docutils" />
+<p><strong>Output info:</strong></p>
+<p>This compute calculates a global vector of length 3 which contains the
+energy difference (<em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;) as c_ID[1], the
+Boltzmann factor exp(-(<em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;)/<em>kT</em>), or
+<em>V</em>exp(-(<em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;)/<em>kT</em>), as c_ID[2] and the
+volume of the simulation box <em>V</em> as c_ID[3]. <em>U</em>&lt;sub&gt;1&lt;/sub&gt; is the
+pair potential energy obtained with the perturbed parameters and
+<em>U</em>&lt;sub&gt;0&lt;/sub&gt; is the pair potential energy obtained with the
+unperturbed parameters. The energies include kspace terms if these
+are used in the simulation.</p>
+<p>These output results can be used by any command that uses a global
+scalar or vector from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section_howto 15</span></a> for an overview of LAMMPS output
+options. For example, the computed values can be averaged using <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>.</p>
+<p>The values calculated by this compute are &#8220;extensive&#8221;.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This compute is distributed as the USER-FEP package.  It is only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="fix_adapt_fep.html"><span class="doc">fix adapt/fep</span></a>, <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>,
+<a class="reference external" href="pair_lj_soft_coul_soft.txt">pair_lj_soft_coul_soft</a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The option defaults are <em>tail</em> = <em>no</em>, <em>volume</em> = <em>no</em>.</p>
+<hr class="docutils" />
+<p id="pearlman"><strong>(Pearlman)</strong> Pearlman, J Chem Phys, 98, 1487 (1994)</p>
+<p id="mezei"><strong>(Mezei)</strong> Mezei, J Chem Phys, 86, 7084 (1987)</p>
+<p id="bennet"><strong>(Bennet)</strong> Bennet, J Comput Phys, 22, 245 (1976)</p>
+<p id="boreschkarplus"><strong>(BoreschKarplus)</strong> Boresch and Karplus, J Phys Chem A, 103, 103 (1999)</p>
+<p id="allentildesley"><strong>(AllenTildesley)</strong> Allen and Tildesley, Computer Simulation of
+Liquids, Oxford University Press (1987)</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

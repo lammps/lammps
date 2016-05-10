@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style gran/hooke command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style gran/hooke command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-gran-hooke-command">
+<span id="index-0"></span><h1>pair_style gran/hooke command</h1>
+</div>
+<div class="section" id="pair-style-gran-cuda-command">
+<h1>pair_style gran/cuda command</h1>
+</div>
+<div class="section" id="pair-style-gran-omp-command">
+<h1>pair_style gran/omp command</h1>
+</div>
+<div class="section" id="pair-style-gran-hooke-history-command">
+<h1>pair_style gran/hooke/history command</h1>
+</div>
+<div class="section" id="pair-style-gran-hooke-history-omp-command">
+<h1>pair_style gran/hooke/history/omp command</h1>
+</div>
+<div class="section" id="pair-style-gran-hertz-history-command">
+<h1>pair_style gran/hertz/history command</h1>
+</div>
+<div class="section" id="pair-style-gran-hertz-history-omp-command">
+<h1>pair_style gran/hertz/history/omp command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">Kn</span> <span class="n">Kt</span> <span class="n">gamma_n</span> <span class="n">gamma_t</span> <span class="n">xmu</span> <span class="n">dampflag</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>gran/hooke</em> or <em>gran/hooke/history</em> or <em>gran/hertz/history</em></li>
+<li>Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)</li>
+<li>Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)</li>
+<li>gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)</li>
+<li>gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)</li>
+<li>xmu = static yield criterion (unitless value between 0.0 and 1.0e4)</li>
+<li>dampflag = 0 or 1 if tangential damping force is excluded or included</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Versions of LAMMPS before 9Jan09 had different style names for
+granular force fields.  This is to emphasize the fact that the
+Hertzian equation has changed to model polydispersity more accurately.
+A side effect of the change is that the Kn, Kt, gamma_n, and gamma_t
+coefficients in the pair_style command must be specified with
+different values in order to reproduce calculations made with earlier
+versions of LAMMPS, even for monodisperse systems.  See the NOTE below
+for details.</p>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">gran</span><span class="o">/</span><span class="n">hooke</span><span class="o">/</span><span class="n">history</span> <span class="mf">200000.0</span> <span class="n">NULL</span> <span class="mf">50.0</span> <span class="n">NULL</span> <span class="mf">0.5</span> <span class="mi">1</span>
+<span class="n">pair_style</span> <span class="n">gran</span><span class="o">/</span><span class="n">hooke</span> <span class="mf">200000.0</span> <span class="mf">70000.0</span> <span class="mf">50.0</span> <span class="mf">30.0</span> <span class="mf">0.5</span> <span class="mi">0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>The <em>gran</em> styles use the following formulas for the frictional force
+between two granular particles, as described in
+<a class="reference internal" href="#brilliantov"><span class="std std-ref">(Brilliantov)</span></a>, <a class="reference internal" href="#silbert"><span class="std std-ref">(Silbert)</span></a>, and
+<a class="reference internal" href="#zhang"><span class="std std-ref">(Zhang)</span></a>, when the distance r between two particles of radii
+Ri and Rj is less than their contact distance d = Ri + Rj.  There is
+no force between the particles when r &gt; d.</p>
+<p>The two Hookean styles use this formula:</p>
+<img alt="_images/pair_gran_hooke.jpg" class="align-center" src="_images/pair_gran_hooke.jpg" />
+<p>The Hertzian style uses this formula:</p>
+<img alt="_images/pair_gran_hertz.jpg" class="align-center" src="_images/pair_gran_hertz.jpg" />
+<p>In both equations the first parenthesized term is the normal force
+between the two particles and the second parenthesized term is the
+tangential force.  The normal force has 2 terms, a contact force and a
+damping force.  The tangential force also has 2 terms: a shear force
+and a damping force.  The shear force is a &#8220;history&#8221; effect that
+accounts for the tangential displacement between the particles for the
+duration of the time they are in contact.  This term is included in
+pair styles <em>hooke/history</em> and <em>hertz/history</em>, but is not included
+in pair style <em>hooke</em>.  The tangential damping force term is included
+in all three pair styles if <em>dampflag</em> is set to 1; it is not included
+if <em>dampflag</em> is set to 0.</p>
+<p>The other quantities in the equations are as follows:</p>
+<ul class="simple">
+<li>delta = d - r = overlap distance of 2 particles</li>
+<li>Kn = elastic constant for normal contact</li>
+<li>Kt = elastic constant for tangential contact</li>
+<li>gamma_n = viscoelastic damping constant for normal contact</li>
+<li>gamma_t = viscoelastic damping constant for tangential contact</li>
+<li>m_eff = Mi Mj / (Mi + Mj) = effective mass of 2 particles of mass Mi and Mj</li>
+<li>Delta St = tangential displacement vector between 2 spherical particles       which is truncated to satisfy a frictional yield criterion</li>
+<li>n_ij = unit vector along the line connecting the centers of the 2 particles</li>
+<li>Vn = normal component of the relative velocity of the 2 particles</li>
+<li>Vt = tangential component of the relative velocity of the 2 particles</li>
+</ul>
+<p>The Kn, Kt, gamma_n, and gamma_t coefficients are specified as
+parameters to the pair_style command.  If a NULL is used for Kt, then
+a default value is used where Kt = 2/7 Kn.  If a NULL is used for
+gamma_t, then a default value is used where gamma_t = 1/2 gamma_n.</p>
+<p>The interpretation and units for these 4 coefficients are different in
+the Hookean versus Hertzian equations.</p>
+<p>The Hookean model is one where the normal push-back force for two
+overlapping particles is a linear function of the overlap distance.
+Thus the specified Kn is in units of (force/distance).  Note that this
+push-back force is independent of absolute particle size (in the
+monodisperse case) and of the relative sizes of the two particles (in
+the polydisperse case).  This model also applies to the other terms in
+the force equation so that the specified gamma_n is in units of
+(1/time), Kt is in units of (force/distance), and gamma_t is in units
+of (1/time).</p>
+<p>The Hertzian model is one where the normal push-back force for two
+overlapping particles is proportional to the area of overlap of the
+two particles, and is thus a non-linear function of overlap distance.
+Thus Kn has units of force per area and is thus specified in units of
+(pressure).  The effects of absolute particle size (monodispersity)
+and relative size (polydispersity) are captured in the radii-dependent
+pre-factors.  When these pre-factors are carried through to the other
+terms in the force equation it means that the specified gamma_n is in
+units of (1/(time*distance)), Kt is in units of (pressure), and
+gamma_t is in units of (1/(time*distance)).</p>
+<p>Note that in the Hookean case, Kn can be thought of as a linear spring
+constant with units of force/distance.  In the Hertzian case, Kn is
+like a non-linear spring constant with units of force/area or
+pressure, and as shown in the <a class="reference internal" href="#zhang"><span class="std std-ref">(Zhang)</span></a> paper, Kn = 4G /
+(3(1-nu)) where nu = the Poisson ratio, G = shear modulus = E /
+(2(1+nu)), and E = Young&#8217;s modulus.  Similarly, Kt = 4G / (2-nu).
+(NOTE: in an earlier version of the manual, we incorrectly stated that
+Kt = 8G / (2-nu).)</p>
+<p>Thus in the Hertzian case Kn and Kt can be set to values that
+corresponds to properties of the material being modeled.  This is also
+true in the Hookean case, except that a spring constant must be chosen
+that is appropriate for the absolute size of particles in the model.
+Since relative particle sizes are not accounted for, the Hookean
+styles may not be a suitable model for polydisperse systems.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In versions of LAMMPS before 9Jan09, the equation for Hertzian
+interactions did not include the sqrt(RiRj/Ri+Rj) term and thus was
+not as accurate for polydisperse systems.  For monodisperse systems,
+sqrt(RiRj/Ri+Rj) is a constant factor that effectively scales all 4
+coefficients: Kn, Kt, gamma_n, gamma_t.  Thus you can set the values
+of these 4 coefficients appropriately in the current code to reproduce
+the results of a previous Hertzian monodisperse calculation.  For
+example, for the common case of a monodisperse system with particles
+of diameter 1, all 4 of these coefficients should now be set 2x larger
+than they were previously.</p>
+</div>
+<p>Xmu is also specified in the pair_style command and is the upper limit
+of the tangential force through the Coulomb criterion Ft = xmu*Fn,
+where Ft and Fn are the total tangential and normal force components
+in the formulas above.  Thus in the Hookean case, the tangential force
+between 2 particles grows according to a tangential spring and
+dash-pot model until Ft/Fn = xmu and is then held at Ft = Fn*xmu until
+the particles lose contact.  In the Hertzian case, a similar analogy
+holds, though the spring is no longer linear.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Normally, xmu should be specified as a fractional value between
+0.0 and 1.0, however LAMMPS allows large values (up to 1.0e4) to allow
+for modeling of systems which can sustain very large tangential
+forces.</p>
+</div>
+<p>For granular styles there are no additional coefficients to set for
+each pair of atom types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command.
+All settings are global and are made via the pair_style command.
+However you must still use the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> for all
+pairs of granular atom types.  For example the command</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>should be used if all atoms in the simulation interact via a granular
+potential (i.e. one of the pair styles above is used).  If a granular
+potential is used as a sub-style of <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a>, then specific atom types can be used in the
+pair_coeff command to determine which atoms interact via a granular
+potential.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>The <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> mix, shift, table, and tail options
+are not relevant for granular pair styles.</p>
+<p>These pair styles write their information to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, so a pair_style command does not need to be
+specified in an input script that reads a restart file.</p>
+<p>These pair styles can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  They do not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+<p>The single() function of these pair styles returns 0.0 for the energy
+of a pairwise interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the pairwise interaction force.  However, the single() function also
+calculates 4 extra pairwise quantities.  The first 3 are the
+components of the tangential force between particles I and J, acting
+on particle I.  <em>P4</em> is the magnitude of this tangential force.  These
+extra quantites can be accessed by the <a class="reference internal" href="compute_pair_local.html"><span class="doc">compute pair/local</span></a> command, as <em>p1</em>, <em>p2</em>, <em>p3</em>,
+<em>p4</em>.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<blockquote>
+<div>none</div></blockquote>
+<p>All the granular pair styles are part of the GRANULAR package.  It is
+only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>These pair styles require that atoms store torque and angular velocity
+(omega) as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>.  They also
+require a per-particle radius is stored.  The <em>sphere</em> atom style does
+all of this.</p>
+<p>This pair style requires you to use the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel yes</span></a> command so that velocites are stored by ghost
+atoms.</p>
+<p>These pair styles will not restart exactly when using the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command, though they should provide
+statistically similar results.  This is because the forces they
+compute depend on atom velocities.  See the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for more details.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="brilliantov"><strong>(Brilliantov)</strong> Brilliantov, Spahn, Hertzsch, Poschel, Phys Rev E, 53,
+p 5382-5392 (1996).</p>
+<p id="silbert"><strong>(Silbert)</strong> Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev
+E, 64, p 051302 (2001).</p>
+<p id="zhang"><strong>(Zhang)</strong> Zhang and Makse, Phys Rev E, 72, p 011301 (2005).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

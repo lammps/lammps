@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style srp command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style srp command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-srp-command">
+<span id="index-0"></span><h1>pair_style srp command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<p>pair_style srp cutoff btype dist keyword value ...</p>
+<ul class="simple">
+<li>cutoff = global cutoff for SRP interactions (distance units)</li>
+<li>btype = bond type to apply SRP interactions to (can be wildcard, see below)</li>
+<li>distance = <em>min</em> or <em>mid</em></li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>exclude</em></li>
+</ul>
+<pre class="literal-block">
+<em>bptype</em> value = atom type for bond particles
+<em>exclude</em> value = <em>yes</em> or <em>no</em>
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">dpd</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">12345</span> <span class="n">srp</span> <span class="mf">0.8</span> <span class="mi">1</span> <span class="n">mid</span> <span class="n">exclude</span> <span class="n">yes</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">dpd</span> <span class="mf">60.0</span> <span class="mf">4.5</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">srp</span> <span class="mf">100.0</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">dpd</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">12345</span> <span class="n">srp</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="nb">min</span> <span class="n">exclude</span> <span class="n">yes</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">dpd</span> <span class="mf">60.0</span> <span class="mi">50</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">srp</span> <span class="mf">40.0</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">srp</span> <span class="mf">0.8</span> <span class="mi">2</span> <span class="n">mid</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">srp</span> <span class="mf">100.0</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Style <em>srp</em> computes a soft segmental repulsive potential (SRP) that
+acts between pairs of bonds. This potential is useful for preventing
+bonds from passing through one another when a soft non-bonded
+potential acts between beads in, for example, DPD polymer chains.  An
+example input script that uses this command is provided in
+examples/USER/srp.</p>
+<p>Bonds of specified type <em>btype</em> interact with one another through a
+bond-pairwise potential, such that the force on bond <em>i</em> due to bond
+<em>j</em> is as follows</p>
+<img alt="_images/pair_srp1.jpg" class="align-center" src="_images/pair_srp1.jpg" />
+<p>where <em>r</em> and <em>rij</em> are the distance and unit vector between the two
+bonds.  Note that <em>btype</em> can be specified as an asterisk &#8220;*&#8221;, which
+case the interaction is applied to all bond types.  The <em>mid</em> option
+computes <em>r</em> and <em>rij</em> from the midpoint distance between bonds. The
+<em>min</em> option computes <em>r</em> and <em>rij</em> from the minimum distance between
+bonds. The force acting on a bond is mapped onto the two bond atoms
+according to the lever rule,</p>
+<img alt="_images/pair_srp2.jpg" class="align-center" src="_images/pair_srp2.jpg" />
+<p>where <em>L</em> is the normalized distance from the atom to the point of
+closest approach of bond <em>i</em> and <em>j</em>. The <em>mid</em> option takes <em>L</em> as
+0.5 for each interaction as described in <a class="reference internal" href="#sirk"><span class="std std-ref">(Sirk)</span></a>.</p>
+<p>The following coefficients must be defined via the
+<a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples above, or in
+the data file or restart file read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>
+or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands:</p>
+<ul class="simple">
+<li><em>C</em> (force units)</li>
+<li><em>rc</em> (distance units)</li>
+</ul>
+<p>The last coefficient is optional. If not specified, the global cutoff
+is used.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Pair style srp considers each bond of type <em>btype</em> to be a
+fictitious &#8220;particle&#8221; of type <em>bptype</em>, where <em>bptype</em> is either the
+largest atom type in the system, or the type set by the <em>bptype</em> flag.
+Any actual existing particles with this atom type will be deleted at
+the beginning of a run. This means you must specify the number of
+types in your system accordingly; usually to be one larger than what
+would normally be the case, e.g. via the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>
+or by changing the header in your <a class="reference internal" href="read_data.html"><span class="doc">data file</span></a>.  The
+ficitious &#8220;bond particles&#8221; are inserted at the beginning of the run,
+and serve as placeholders that define the position of the bonds.  This
+allows neighbor lists to be constructed and pairwise interactions to
+be computed in almost the same way as is done for actual particles.
+Because bonds interact only with other bonds, <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a> should be used to turn off interactions
+between atom type <em>bptype</em> and all other types of atoms.  An error
+will be flagged if <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a> is not used.</p>
+</div>
+<p>The optional <em>exclude</em> keyword determines if forces are computed
+between first neighbor (directly connected) bonds.  For a setting of
+<em>no</em>, first neighbor forces are computed; for <em>yes</em> they are not
+computed. A setting of <em>no</em> cannot be used with the <em>min</em> option for
+distance calculation because the the minimum distance between directly
+connected bonds is zero.</p>
+<p>Pair style <em>srp</em> turns off normalization of thermodynamic properties
+by particle number, as if the command <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify norm no</span></a> had been issued.</p>
+<p>The pairwise energy associated with style <em>srp</em> is shifted to be zero
+at the cutoff distance <em>rc</em>.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>This pair styles does not support mixing.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>
+shift option for the energy of the pair interaction. Note that as
+discussed above, the energy term is already shifted to be 0.0 at the
+cutoff distance <em>rc</em>.</p>
+<p>The <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> table option is not relevant for
+this pair style.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>
+tail option for adding long-range tail corrections to energy and
+pressure.</p>
+<p>This pair style writes global and per-atom information to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>. Pair srp should be used with <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a>, thus the pair_coeff commands need to be
+specified in the input script when reading a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This pair style is part of the USER-MISC package. It is only enabled
+if LAMMPS was built with that package. See the Making LAMMPS section
+for more info.</p>
+<p>This pair style must be used with <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a>.</p>
+<p>This pair style requires the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> command to be <em>on</em>
+for non-bonded interactions.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a>, <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>,
+<a class="reference internal" href="pair_dpd.html"><span class="doc">pair dpd</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The default keyword value is exclude = yes.</p>
+<hr class="docutils" />
+<p id="sirk"><strong>(Sirk)</strong> Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
+Chem Phys, 136 (13) 134903, 2012.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,257 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix smd/move_tri_surf command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix smd/move_tri_surf command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-smd-move-tri-surf-command">
+<span id="index-0"></span><h1>fix smd/move_tri_surf command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="n">keyword</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>smd/move_tri_surf keyword = style name of this fix command</li>
+<li>keyword = <a href="#id1"><span class="problematic" id="id2">**</span></a>LINEAR* or <a href="#id3"><span class="problematic" id="id4">**</span></a>WIGGLE* or <a href="#id5"><span class="problematic" id="id6">**</span></a>ROTATE*</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">**</span><span class="n">LINEAR</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="n">Vx</span> <span class="n">Vy</span> <span class="n">Vz</span>
+   <span class="n">Vx</span><span class="p">,</span><span class="n">Vy</span><span class="p">,</span><span class="n">Vz</span> <span class="o">=</span> <span class="n">components</span> <span class="n">of</span> <span class="n">velocity</span> <span class="n">vector</span> <span class="p">(</span><span class="n">velocity</span> <span class="n">units</span><span class="p">),</span> <span class="nb">any</span> <span class="n">component</span> <span class="n">can</span> <span class="n">be</span> <span class="n">specified</span> <span class="k">as</span> <span class="n">NULL</span>
+<span class="o">**</span><span class="n">WIGGLE</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="n">Vx</span> <span class="n">Vy</span> <span class="n">Vz</span> <span class="n">max_travel</span>
+   <span class="n">vx</span><span class="p">,</span><span class="n">vy</span><span class="p">,</span><span class="n">vz</span> <span class="o">=</span> <span class="n">components</span> <span class="n">of</span> <span class="n">velocity</span> <span class="n">vector</span> <span class="p">(</span><span class="n">velocity</span> <span class="n">units</span><span class="p">),</span> <span class="nb">any</span> <span class="n">component</span> <span class="n">can</span> <span class="n">be</span> <span class="n">specified</span> <span class="k">as</span> <span class="n">NULL</span>
+   <span class="n">max_travel</span> <span class="o">=</span> <span class="n">wiggle</span> <span class="n">amplitude</span>
+<span class="o">**</span><span class="n">ROTATE</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="n">Px</span> <span class="n">Py</span> <span class="n">Pz</span> <span class="n">Rx</span> <span class="n">Ry</span> <span class="n">Rz</span> <span class="n">period</span>
+   <span class="n">Px</span><span class="p">,</span><span class="n">Py</span><span class="p">,</span><span class="n">Pz</span> <span class="o">=</span> <span class="n">origin</span> <span class="n">point</span> <span class="n">of</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">rotation</span> <span class="p">(</span><span class="n">distance</span> <span class="n">units</span><span class="p">)</span>
+   <span class="n">Rx</span><span class="p">,</span><span class="n">Ry</span><span class="p">,</span><span class="n">Rz</span> <span class="o">=</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">rotation</span> <span class="n">vector</span>
+   <span class="n">period</span> <span class="o">=</span> <span class="n">period</span> <span class="n">of</span> <span class="n">rotation</span> <span class="p">(</span><span class="n">time</span> <span class="n">units</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="n">tool</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="o">*</span><span class="n">LINEAR</span> <span class="mi">20</span> <span class="mi">20</span> <span class="mi">10</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="n">tool</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="o">*</span><span class="n">WIGGLE</span> <span class="mi">20</span> <span class="mi">20</span> <span class="mi">10</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="n">tool</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="o">*</span><span class="n">ROTATE</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">5</span> <span class="mi">2</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>This fix applies only to rigid surfaces read from .STL files via fix <a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">smd/wall_surface</span></a> .
+It updates position and velocity for the particles in the group each timestep without regard to forces on the particles.
+The rigid surfaces can thus be moved along simple trajectories during the simulation.</p>
+<p>The <a href="#id19"><span class="problematic" id="id20">**</span></a>LINEAR* style moves particles with the specified constant velocity
+vector V = (Vx,Vy,Vz). This style also sets the velocity of each particle
+to V = (Vx,Vy,Vz).</p>
+<p>The <a href="#id21"><span class="problematic" id="id22">**</span></a>WIGGLE* style moves particles in an oscillatory fashion.
+Particles are moved along (vx, vy, vz) with constant velocity until a
+displacement of max_travel is reached. Then, the velocity vector is
+reversed. This process is repeated.</p>
+<p>The <a href="#id23"><span class="problematic" id="id24">**</span></a>ROTATE* style rotates particles around a rotation axis R = (Rx,Ry,Rz) that
+goes through a point P = (Px,Py,Pz). The period of the rotation is also
+specified. This style also sets the velocity of each particle to (omega cross
+Rperp) where omega is its angular velocity around the rotation axis and
+Rperp is a perpendicular vector from the rotation axis to the particle.</p>
+<p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to using Smooth Mach Dynamics in LAMMPS.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This fix is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a>
+section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="compute_smd_triangle_mesh_vertices.html"><span class="doc">smd/triangle_mesh_vertices</span></a>, <a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">smd/wall_surface</span></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

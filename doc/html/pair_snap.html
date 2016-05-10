@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style snap command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style snap command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-snap-command">
+<span id="index-0"></span><h1>pair_style snap command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">snap</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">snap</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">snap</span> <span class="n">InP</span><span class="o">.</span><span class="n">snapcoeff</span> <span class="n">In</span> <span class="n">P</span> <span class="n">InP</span><span class="o">.</span><span class="n">snapparam</span> <span class="n">In</span> <span class="n">In</span> <span class="n">P</span> <span class="n">P</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Style <em>snap</em> computes interactions
+using the spectral neighbor analysis potential (SNAP)
+<a class="reference internal" href="#thompson2014"><span class="std std-ref">(Thompson)</span></a>. Like the GAP framework of Bartok et al.
+<a class="reference internal" href="#bartok2010"><span class="std std-ref">(Bartok2010)</span></a>, <a class="reference internal" href="#bartok2013"><span class="std std-ref">(Bartok2013)</span></a>
+it uses bispectrum components
+to characterize the local neighborhood of each atom
+in a very general way. The mathematical definition of the
+bispectrum calculation used by SNAP is identical
+to that used of <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>.
+In SNAP, the total energy is decomposed into a sum over
+atom energies. The energy of atom <em>i</em> is
+expressed as a weighted sum over bispectrum components.</p>
+<img alt="_images/pair_snap.jpg" class="align-center" src="_images/pair_snap.jpg" />
+<p>where <em>B_k^i</em> is the <em>k</em>-th bispectrum component of atom <em>i</em>,
+and <em>beta_k^alpha_i</em> is the corresponding linear coefficient
+that depends on <em>alpha_i</em>, the SNAP element of atom <em>i</em>. The
+number of bispectrum components used and their definitions
+depend on the values of <em>twojmax</em> and <em>diagonalstyle</em>
+defined in the SNAP parameter file described below.
+The bispectrum calculation is described in more detail
+in <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>.</p>
+<p>Note that unlike for other potentials, cutoffs for SNAP potentials are
+not set in the pair_style or pair_coeff command; they are specified in
+the SNAP potential files themselves.</p>
+<p>Only a single pair_coeff command is used with the <em>snap</em> style which
+specifies two SNAP files and the list SNAP element(s) to be
+extracted.
+The SNAP elements are mapped to LAMMPS atom types by specifying
+N additional arguments after the 2nd filename in the pair_coeff
+command, where N is the number of LAMMPS atom types:</p>
+<ul class="simple">
+<li>SNAP element file</li>
+<li>Elem1, Elem2, ...</li>
+<li>SNAP parameter file</li>
+<li>N element names = mapping of SNAP elements to atom types</li>
+</ul>
+<p>As an example, if a LAMMPS indium phosphide simulation has 4 atoms
+types, with the first two being indium and the 3rd and 4th being
+phophorous, the pair_coeff command would look like this:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">snap</span> <span class="n">InP</span><span class="o">.</span><span class="n">snapcoeff</span> <span class="n">In</span> <span class="n">P</span> <span class="n">InP</span><span class="o">.</span><span class="n">snapparam</span> <span class="n">In</span> <span class="n">In</span> <span class="n">P</span> <span class="n">P</span>
+</pre></div>
+</div>
+<p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
+The two filenames are for the element and parameter files, respectively.
+The &#8216;In&#8217; and &#8216;P&#8217; arguments (between the file names) are the two elements
+which will be extracted from the element file. The
+two trailing &#8216;In&#8217; arguments map LAMMPS atom types 1 and 2 to the
+SNAP &#8216;In&#8217; element. The two trailing &#8216;P&#8217; arguments map LAMMPS atom types
+3 and 4 to the SNAP &#8216;P&#8217; element.</p>
+<p>If a SNAP mapping value is
+specified as NULL, the mapping is not performed.
+This can be used when a <em>snap</em> potential is used as part of the
+<em>hybrid</em> pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.</p>
+<p>The name of the SNAP element file usually ends in the
+&#8221;.snapcoeff&#8221; extension. It may contain coefficients
+for many SNAP elements.
+Only those elements listed in the pair_coeff command are extracted.
+The name of the SNAP parameter file usually ends in the &#8221;.snapparam&#8221;
+extension. It contains a small number
+of parameters that define the overall form of the SNAP potential.
+See the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> doc page for alternate ways
+to specify the path for these files.</p>
+<p>Quite commonly,
+SNAP potentials are combined with one or more other LAMMPS pair styles
+using the <em>hybrid/overlay</em> pair style. As an example, the SNAP
+tantalum potential provided in the LAMMPS potentials directory
+combines the <em>snap</em> and <em>zbl</em> pair styles. It is invoked
+by the following commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 73
+pair_style hybrid/overlay &amp;
+zbl ${zblcutinner} ${zblcutouter} snap
+pair_coeff * * zbl 0.0
+pair_coeff 1 1 zbl ${zblz}
+pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &amp;
+../potentials/Ta06A.snapparam Ta
+</pre></div>
+</div>
+<p>It is convenient to keep these commands in a separate file that can
+be inserted in any LAMMPS input script using the <a class="reference internal" href="include.html"><span class="doc">include</span></a>
+command.</p>
+<p>The top of the SNAP element file can contain any number of blank and comment
+lines (start with #), but follows a strict
+format after that. The first non-blank non-comment
+line must contain two integers:</p>
+<ul class="simple">
+<li>nelem  = Number of elements</li>
+<li>ncoeff = Number of coefficients</li>
+</ul>
+<p>This is followed by one block for each of the <em>nelem</em> elements.
+The first line of each block contains three entries:</p>
+<ul class="simple">
+<li>Element symbol (text string)</li>
+<li>R = Element radius (distance units)</li>
+<li>w = Element weight (dimensionless)</li>
+</ul>
+<p>This line is followed by <em>ncoeff</em> coefficients, one per line.</p>
+<p>The SNAP parameter file can contain blank and comment lines (start
+with #) anywhere. Each non-blank non-comment line must contain one
+keyword/value pair. The required keywords are <em>rcutfac</em> and
+<em>twojmax</em>. Optional keywords are <em>rfac0</em>, <em>rmin0</em>, <em>diagonalstyle</em>,
+and <em>switchflag</em>.</p>
+<p>The default values for these keywords are</p>
+<ul class="simple">
+<li><em>rfac0</em> = 0.99363</li>
+<li><em>rmin0</em> = 0.0</li>
+<li><em>diagonalstyle</em> = 3</li>
+<li><em>switchflag</em> = 0</li>
+</ul>
+<p>Detailed definitions of these keywords are given on the <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a> doc page.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, where types I and J correspond to
+two different element types, mixing is performed by LAMMPS with
+user-specifiable parameters as described above.  You never need to
+specify a pair_coeff command with I != J arguments for this style.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>
+shift, table, and tail options.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, since it is stored in potential files.  Thus, you
+need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This style is part of the SNAP package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>,
+<a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute snad/atom</span></a>,
+<a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute snav/atom</span></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="thompson2014"><strong>(Thompson)</strong> Thompson, Swiler, Trott, Foiles, Tucker, under review, preprint
+available at <a class="reference external" href="http://arxiv.org/abs/1409.3880">arXiv:1409.3880</a></p>
+<p id="bartok2010"><strong>(Bartok2010)</strong> Bartok, Payne, Risi, Csanyi, Phys Rev Lett, 104, 136403 (2010).</p>
+<p id="bartok2013"><strong>(Bartok2013)</strong> Bartok, Gillan, Manby, Csanyi, Phys Rev B 87, 184115 (2013).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

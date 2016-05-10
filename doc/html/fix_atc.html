@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix atc command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix atc command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-atc-command">
+<span id="index-0"></span><h1>fix atc command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="o">&lt;</span><span class="n">fixID</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">group</span><span class="o">&gt;</span> <span class="n">atc</span> <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">parameter_file</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>fixID = name of fix</li>
+<li>group = name of group fix is to be applied</li>
+<li>type = <em>thermal</em> or <em>two_temperature</em> or <em>hardy</em> or <em>field</em></li>
+</ul>
+<pre class="literal-block">
+<em>thermal</em> = thermal coupling with fields: temperature
+<em>two_temperature</em> = electron-phonon coupling with field: temperature and electron_temperature
+<em>hardy</em> = on-the-fly post-processing using kernel localization functions (see &quot;related&quot; section for possible fields)
+<em>field</em> = on-the-fly post-processing using mesh-based localization functions (see &quot;related&quot; section for possible fields)
+</pre>
+<ul class="simple">
+<li>parameter_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">thermal</span> <span class="n">Ar_thermal</span><span class="o">.</span><span class="n">dat</span>
+<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">two_temperature</span> <span class="n">Ar_ttm</span><span class="o">.</span><span class="n">mat</span>
+<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">hardy</span>
+<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">field</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>This fix is the beginning to creating a coupled FE/MD simulation and/or an on-the-fly estimation of continuum fields. The coupled versions of this fix do Verlet integration and the post-processing does not. After instantiating this fix, several other fix_modify commands will be needed to set up the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.</p>
+<img alt="_images/atc_nanotube.jpg" class="align-center" src="_images/atc_nanotube.jpg" />
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">following</span> <span class="n">coupling</span> <span class="n">example</span> <span class="ow">is</span> <span class="n">typical</span><span class="p">,</span> <span class="n">but</span> <span class="n">non</span><span class="o">-</span><span class="n">exhaustive</span><span class="p">:</span>
+ <span class="c1"># ... commands to create and initialize the MD system</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># initial fix to designate coupling type and group to apply it to</span>
+<span class="c1"># tag group physics material_file</span>
+<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">thermal</span> <span class="n">Ar_thermal</span><span class="o">.</span><span class="n">mat</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create a uniform 12 x 2 x 2 mesh that covers region contain the group</span>
+<span class="c1"># nx ny nz region periodicity</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">mesh</span> <span class="n">create</span> <span class="mi">12</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">mdRegion</span> <span class="n">f</span> <span class="n">p</span> <span class="n">p</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># specify the control method for the type of coupling</span>
+<span class="c1"># physics control_type</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">thermal</span> <span class="n">control</span> <span class="n">flux</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># specify the initial values for the empirical field &quot;temperature&quot;</span>
+<span class="c1"># field node_group value</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">initial</span> <span class="n">temperature</span> <span class="nb">all</span> <span class="mi">30</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create an output stream for nodal fields</span>
+<span class="c1"># filename output_frequency</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">output</span> <span class="n">atc_fe_output</span> <span class="mi">100</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+<p>likewise for this post-processing example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># ... commands to create and initialize the MD system</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># initial fix to designate post-processing and the group to apply it to</span>
+<span class="c1"># no material file is allowed nor required</span>
+<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">hardy</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># for hardy fix, specific kernel function (function type and range) to # be used as a localization function</span>
+<span class="n">fix</span> <span class="n">AtC</span> <span class="n">kernel</span> <span class="n">quartic_sphere</span> <span class="mf">10.0</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create a uniform 1 x 1 x 1 mesh that covers region contain the group</span>
+<span class="c1"># with periodicity this effectively creats a system average</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">mesh</span> <span class="n">create</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">box</span> <span class="n">p</span> <span class="n">p</span> <span class="n">p</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># change from default lagrangian map to eulerian</span>
+<span class="c1"># refreshed every 100 steps</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">atom_element_map</span> <span class="n">eulerian</span> <span class="mi">100</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># start with no field defined</span>
+<span class="c1"># add mass density, potential energy density, stress and temperature</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">fields</span> <span class="n">add</span> <span class="n">density</span> <span class="n">energy</span> <span class="n">stress</span> <span class="n">temperature</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create an output stream for nodal fields</span>
+<span class="c1"># filename output_frequency</span>
+<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">output</span> <span class="n">nvtFE</span> <span class="mi">100</span> <span class="n">text</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>the mesh&#8217;s linear interpolation functions can be used as the localization function</dt>
+<dd>by using the field option:</dd>
+</dl>
+<p>fix AtC internal atc field</p>
+<p>fix_modify AtC mesh create 1 1 1 box p p p</p>
+<p>...</p>
+<p>Note coupling and post-processing can be combined in the same simulations using separate fixes.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options relevant to this fix are listed below.  No global scalar or vector or per-atom quantities are stored by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>Thermal and two_temperature (coupling) types use a Verlet time-integration algorithm. The hardy type does not contain its own time-integrator and must be used with a separate fix that does contain one, e.g. nve, nvt, etc.</p>
+<ul class="simple">
+<li>Currently,</li>
+<li><ul class="first">
+<li>the coupling is restricted to thermal physics</li>
+</ul>
+</li>
+<li><ul class="first">
+<li>the FE computations are done in serial on each processor.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p>After specifying this fix in your input script, several other <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> commands are used to setup the problem, e.g. define the finite element mesh and prescribe initial and boundary conditions.</p>
+<p>fix_modify commands for setup:</p>
+<ul class="simple">
+<li><a class="reference external" href="USER/atc/man_mesh_create.html">fix_modify AtC mesh create</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_quadrature.html">fix_modify AtC mesh quadrature</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_read.html">fix_modify AtC mesh read</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_write.html">fix_modify AtC mesh write</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_create_nodeset.html">fix_modify AtC mesh create_nodeset</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_add_to_nodeset.html">fix_modify AtC mesh add_to_nodeset</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_create_faceset_box.html">fix_modify AtC mesh create_faceset box</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_create_faceset_plane.html">fix_modify AtC mesh create_faceset plane</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_create_elementset.html">fix_modify AtC mesh create_elementset</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_delete_elements.html">fix_modify AtC mesh delete_elements</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_nodeset_to_elementset.html">fix_modify AtC mesh nodeset_to_elementset</a></li>
+<li><a class="reference external" href="USER/atc/man_boundary.html">fix_modify AtC boundary</a></li>
+<li><a class="reference external" href="USER/atc/man_internal_quadrature.html">fix_modify AtC internal_quadrature</a></li>
+<li><a class="reference external" href="USER/atc/man_thermal_time_integration.html">fix_modify AtC time_integration (thermal)</a></li>
+<li><a class="reference external" href="USER/atc/man_momentum_time_integration.html">fix_modify AtC time_integration (momentum)</a></li>
+<li><a class="reference external" href="USER/atc/man_electron_integration.html">fix_modify AtC extrinsic electron_integration</a></li>
+<li><a class="reference external" href="USER/atc/man_internal_element_set.html">fix_modify AtC internal_element_set</a></li>
+<li><a class="reference external" href="USER/atc/man_decomposition.html">fix_modify AtC decomposition</a></li>
+</ul>
+<p>fix_modify commands for boundary and initial conditions:</p>
+<ul class="simple">
+<li><a class="reference external" href="USER/atc/man_initial.html">fix_modify AtC initial</a></li>
+<li><a class="reference external" href="USER/atc/man_fix_nodes.html">fix_modify AtC fix</a></li>
+<li><a class="reference external" href="USER/atc/man_unfix_nodes.html">fix_modify AtC unfix</a></li>
+<li><a class="reference external" href="USER/atc/man_fix_flux.html">fix_modify AtC fix_flux</a></li>
+<li><a class="reference external" href="USER/atc/man_unfix_flux.html">fix_modify AtC unfix_flux</a></li>
+<li><a class="reference external" href="USER/atc/man_source.html">fix_modify AtC source</a></li>
+<li><a class="reference external" href="USER/atc/man_remove_source.html">fix_modify AtC remove_source</a></li>
+</ul>
+<p>fix_modify commands for control and filtering:</p>
+<ul class="simple">
+<li><a class="reference external" href="USER/atc/man_control.html">fix_modify AtC control</a></li>
+<li><a class="reference external" href="USER/atc/man_control_thermal.html">fix_modify AtC control thermal</a></li>
+<li><a class="reference external" href="USER/atc/man_control_thermal_correction_max_iterations.html">fix_modify AtC control thermal correction_max_iterations</a></li>
+<li><a class="reference external" href="USER/atc/man_control_momentum.html">fix_modify AtC control momentum</a></li>
+<li><a class="reference external" href="USER/atc/man_localized_lambda.html">fix_modify AtC control localized_lambda</a></li>
+<li><a class="reference external" href="USER/atc/man_lumped_lambda_solve.html">fix_modify AtC control lumped_lambda_solve</a></li>
+<li><a class="reference external" href="USER/atc/man_mask_direction.html">fix_modify AtC control mask_direction</a> control</li>
+<li><a class="reference external" href="USER/atc/man_time_filter.html">fix_modify AtC filter</a></li>
+<li><a class="reference external" href="USER/atc/man_filter_scale.html">fix_modify AtC filter scale</a></li>
+<li><a class="reference external" href="USER/atc/man_filter_type.html">fix_modify AtC filter type</a></li>
+<li><a class="reference external" href="USER/atc/man_equilibrium_start.html">fix_modify AtC equilibrium_start</a></li>
+<li><a class="reference external" href="USER/atc/man_extrinsic_exchange.html">fix_modify AtC extrinsic exchange</a></li>
+<li><a class="reference external" href="USER/atc/man_poisson_solver.html">fix_modify AtC poisson_solver</a></li>
+</ul>
+<p>fix_modify commands for output:</p>
+<ul class="simple">
+<li><a class="reference external" href="USER/atc/man_output.html">fix_modify AtC output</a></li>
+<li><a class="reference external" href="USER/atc/man_output_nodeset.html">fix_modify AtC output nodeset</a></li>
+<li><a class="reference external" href="USER/atc/man_output_elementset.html">fix_modify AtC output elementset</a></li>
+<li><a class="reference external" href="USER/atc/man_boundary_integral.html">fix_modify AtC output boundary_integral</a></li>
+<li><a class="reference external" href="USER/atc/man_contour_integral.html">fix_modify AtC output contour_integral</a></li>
+<li><a class="reference external" href="USER/atc/man_mesh_output.html">fix_modify AtC mesh output</a></li>
+<li><a class="reference external" href="USER/atc/man_write_restart.html">fix_modify AtC write_restart</a></li>
+<li><a class="reference external" href="USER/atc/man_read_restart.html">fix_modify AtC read_restart</a></li>
+</ul>
+<p>fix_modify commands for post-processing:</p>
+<ul class="simple">
+<li><a class="reference external" href="USER/atc/man_hardy_kernel.html">fix_modify AtC kernel</a></li>
+<li><a class="reference external" href="USER/atc/man_hardy_fields.html">fix_modify AtC fields</a></li>
+<li><a class="reference external" href="USER/atc/man_hardy_gradients.html">fix_modify AtC grdients</a></li>
+<li><a class="reference external" href="USER/atc/man_hardy_rates.html">fix_modify AtC rates</a></li>
+<li><a class="reference external" href="USER/atc/man_hardy_computes.html">fix_modify AtC computes</a></li>
+<li><a class="reference external" href="USER/atc/man_hardy_on_the_fly.html">fix_modify AtC on_the_fly</a></li>
+<li><a class="reference external" href="USER/atc/man_pair_interactions.html">fix_modify AtC pair_interactions/bond_interactions</a></li>
+<li><a class="reference external" href="USER/atc/man_sample_frequency.html">fix_modify AtC sample_frequency</a></li>
+<li><a class="reference external" href="USER/atc/man_set.html">fix_modify AtC set</a></li>
+</ul>
+<p>miscellaneous fix_modify commands:</p>
+<ul class="simple">
+<li><a class="reference external" href="USER/atc/man_atom_element_map.html">fix_modify AtC atom_element_map</a></li>
+<li><a class="reference external" href="USER/atc/man_atom_weight.html">fix_modify AtC atom_weight</a></li>
+<li><a class="reference external" href="USER/atc/man_write_atom_weights.html">fix_modify AtC write_atom_weights</a></li>
+<li><a class="reference external" href="USER/atc/man_reset_time.html">fix_modify AtC reset_time</a></li>
+<li><a class="reference external" href="USER/atc/man_reset_atomic_reference_positions.html">fix_modify AtC reset_atomic_reference_positions</a></li>
+<li><a class="reference external" href="USER/atc/man_fe_md_boundary.html">fix_modify AtC fe_md_boundary</a></li>
+<li><a class="reference external" href="USER/atc/man_boundary_faceset.html">fix_modify AtC boundary_faceset</a></li>
+<li><a class="reference external" href="USER/atc/man_consistent_fe_initialization.html">fix_modify AtC consistent_fe_initialization</a></li>
+<li><a class="reference external" href="USER/atc/man_mass_matrix.html">fix_modify AtC mass_matrix</a></li>
+<li><a class="reference external" href="USER/atc/man_material.html">fix_modify AtC material</a></li>
+<li><a class="reference external" href="USER/atc/man_atomic_charge.html">fix_modify AtC atomic_charge</a></li>
+<li><a class="reference external" href="USER/atc/man_source_integration.html">fix_modify AtC source_integration</a></li>
+<li><a class="reference external" href="USER/atc/man_temperature_definition.html">fix_modify AtC temperature_definition</a></li>
+<li><a class="reference external" href="USER/atc/man_track_displacement.html">fix_modify AtC track_displacement</a></li>
+<li><a class="reference external" href="USER/atc/man_boundary_dynamics.html">fix_modify AtC boundary_dynamics</a></li>
+<li><a class="reference external" href="USER/atc/man_add_species.html">fix_modify AtC add_species</a></li>
+<li><a class="reference external" href="USER/atc/man_add_molecule.html">fix_modify AtC add_molecule</a></li>
+<li><a class="reference external" href="USER/atc/man_remove_species.html">fix_modify AtC remove_species</a></li>
+<li><a class="reference external" href="USER/atc/man_remove_molecule.html">fix_modify AtC remove_molecule</a></li>
+</ul>
+<p>Note: a set of example input files with the attendant material files are included with this package</p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>None</p>
+<hr class="docutils" />
+<p>For detailed exposition of the theory and algorithms please see:</p>
+<p id="wagner"><strong>(Wagner)</strong> Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, &#8220;An atomistic-to-continuum coupling method for heat transfer in solids.&#8221; Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351.</p>
+<p id="zimmeman2004"><strong>(Zimmerman2004)</strong> Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, &#8220;Calculation of stress in atomistic simulation.&#8221; Special Issue of Modelling and Simulation in Materials Science and Engineering (2004), 12:S319.</p>
+<p id="zimmerman2010"><strong>(Zimmerman2010)</strong> Zimmerman, JA; Jones, RE; Templeton, JA, &#8220;A material frame approach for evaluating continuum variables in atomistic simulations.&#8221; Journal of Computational Physics (2010), 229:2364.</p>
+<p id="templeton2010"><strong>(Templeton2010)</strong> Templeton, JA; Jones, RE; Wagner, GJ, &#8220;Application of a field-based method to spatially varying thermal transport problems in molecular dynamics.&#8221; Modelling and Simulation in Materials Science and Engineering (2010), 18:085007.</p>
+<p id="jones"><strong>(Jones)</strong> Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, &#8220;Electron transport enhanced molecular dynamics for metals and semi-metals.&#8221; International Journal for Numerical Methods in Engineering (2010), 83:940.</p>
+<p id="templeton2011"><strong>(Templeton2011)</strong> Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, &#8220;A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling.&#8221; Journal of Chemical Theory and Computation (2011), 7:1736.</p>
+<p id="mandadapu"><strong>(Mandadapu)</strong> Mandadapu, KK; Templeton, JA; Lee, JW, &#8220;Polarization as a field variable from molecular dynamics simulations.&#8221; Journal of Chemical Physics (2013), 139:054115.</p>
+<p>Please refer to the standard finite element (FE) texts, e.g. T.J.R Hughes &#8221; The finite element method &#8221;, Dover 2003, for the basics of FE simulation.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

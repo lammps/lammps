@@ -1,0 +1,490 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix langevin command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix langevin command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-langevin-command">
+<span id="index-0"></span><h1>fix langevin command</h1>
+</div>
+<div class="section" id="fix-langevin-kk-command">
+<h1>fix langevin/kk command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">langevin</span> <span class="n">Tstart</span> <span class="n">Tstop</span> <span class="n">damp</span> <span class="n">seed</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>langevin = style name of this fix command</li>
+<li>Tstart,Tstop = desired temperature at start/end of run (temperature units)</li>
+<li>Tstart can be a variable (see below)</li>
+<li>damp = damping parameter (time units)</li>
+<li>seed = random number seed to use for white noise (positive integer)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>angmom</em> or <em>omega</em> or <em>scale</em> or <em>tally</em> or <em>zero</em></li>
+</ul>
+<pre class="literal-block">
+<em>angmom</em> value = <em>no</em> or factor
+  <em>no</em> = do not thermostat rotational degrees of freedom via the angular momentum
+  factor = do thermostat rotational degrees of freedom via the angular momentum and apply numeric scale factor as discussed below
+<em>gjf</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = use standard formulation
+  <em>yes</em> = use Gronbech-Jensen/Farago formulation
+<em>omega</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = do not thermostat rotational degrees of freedom via the angular velocity
+  <em>yes</em> = do thermostat rotational degrees of freedom via the angular velocity
+<em>scale</em> values = type ratio
+  type = atom type (1-N)
+  ratio = factor by which to scale the damping coefficient
+<em>tally</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = do not tally the energy added/subtracted to atoms
+  <em>yes</em> = do tally the energy added/subtracted to atoms
+<em>zero</em> value = <em>no</em> or <em>yes</em>
+  <em>no</em> = do not set total random force to zero
+  <em>yes</em> = set total random force to zero
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">3</span> <span class="n">boundary</span> <span class="n">langevin</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1000.0</span> <span class="mi">699483</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">langevin</span> <span class="mf">1.0</span> <span class="mf">1.1</span> <span class="mf">100.0</span> <span class="mi">48279</span> <span class="n">scale</span> <span class="mi">3</span> <span class="mf">1.5</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">langevin</span> <span class="mf">1.0</span> <span class="mf">1.1</span> <span class="mf">100.0</span> <span class="mi">48279</span> <span class="n">angmom</span> <span class="mf">3.333</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Apply a Langevin thermostat as described in <a class="reference internal" href="fix_langevin_eff.html#schneider"><span class="std std-ref">(Schneider)</span></a>
+to a group of atoms which models an interaction with a background
+implicit solvent.  Used with <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, this command
+performs Brownian dynamics (BD), since the total force on each atom
+will have the form:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">F</span> <span class="o">=</span> <span class="n">Fc</span> <span class="o">+</span> <span class="n">Ff</span> <span class="o">+</span> <span class="n">Fr</span>
+<span class="n">Ff</span> <span class="o">=</span> <span class="o">-</span> <span class="p">(</span><span class="n">m</span> <span class="o">/</span> <span class="n">damp</span><span class="p">)</span> <span class="n">v</span>
+<span class="n">Fr</span> <span class="ow">is</span> <span class="n">proportional</span> <span class="n">to</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">Kb</span> <span class="n">T</span> <span class="n">m</span> <span class="o">/</span> <span class="p">(</span><span class="n">dt</span> <span class="n">damp</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Fc is the conservative force computed via the usual inter-particle
+interactions (<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a>,
+<a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a>, etc).</p>
+<p>The Ff and Fr terms are added by this fix on a per-particle basis.
+See the <a class="reference internal" href="pair_dpd.html"><span class="doc">pair_style dpd/tstat</span></a> command for a
+thermostatting option that adds similar terms on a pairwise basis to
+pairs of interacting particles.</p>
+<p>Ff is a frictional drag or viscous damping term proportional to the
+particle&#8217;s velocity.  The proportionality constant for each atom is
+computed as m/damp, where m is the mass of the particle and damp is
+the damping factor specified by the user.</p>
+<p>Fr is a force due to solvent atoms at a temperature T randomly bumping
+into the particle.  As derived from the fluctuation/dissipation
+theorem, its magnitude as shown above is proportional to sqrt(Kb T m /
+dt damp), where Kb is the Boltzmann constant, T is the desired
+temperature, m is the mass of the particle, dt is the timestep size,
+and damp is the damping factor.  Random numbers are used to randomize
+the direction and magnitude of this force as described in
+<a class="reference internal" href="fix_langevin_eff.html#dunweg"><span class="std std-ref">(Dunweg)</span></a>, where a uniform random number is used (instead of
+a Gaussian random number) for speed.</p>
+<p>Note that unless you use the <em>omega</em> or <em>angmom</em> keywords, the
+thermostat effect of this fix is applied to only the translational
+degrees of freedom for the particles, which is an important
+consideration for finite-size particles, which have rotational degrees
+of freedom, are being thermostatted.  The translational degrees of
+freedom can also have a bias velocity removed from them before
+thermostatting takes place; see the description below.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Unlike the <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> command which performs
+Nose/Hoover thermostatting AND time integration, this fix does NOT
+perform time integration.  It only modifies forces to effect
+thermostatting.  Thus you must use a separate time integration fix,
+like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> to actually update the velocities and
+positions of atoms using the modified forces.  Likewise, this fix
+should not normally be used on atoms that also have their temperature
+controlled by another fix - e.g. by <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> commands.</p>
+</div>
+<p>See <a class="reference internal" href="Section_howto.html#howto-16"><span class="std std-ref">this howto section</span></a> of the manual for
+a discussion of different ways to compute temperature and perform
+thermostatting.</p>
+<p>The desired temperature at each timestep is a ramped value during the
+run from <em>Tstart</em> to <em>Tstop</em>.</p>
+<p><em>Tstart</em> can be specified as an equal-style or atom-style
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a>.  In this case, the <em>Tstop</em> setting is
+ignored.  If the value is a variable, it should be specified as
+v_name, where name is the variable name.  In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+target temperature.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.</p>
+<p>Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent
+temperature with optional time-dependence as well.</p>
+<p>Like other fixes that perform thermostatting, this fix can be used
+with <a class="reference internal" href="compute.html"><span class="doc">compute commands</span></a> that remove a &#8220;bias&#8221; from the
+atom velocities.  E.g. removing the center-of-mass velocity from a
+group of atoms or removing the x-component of velocity from the
+calculation.  This is not done by default, but only if the
+<a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> command is used to assign a temperature
+compute to this fix that includes such a bias term.  See the doc pages
+for individual <a class="reference internal" href="compute.html"><span class="doc">compute commands</span></a> to determine which ones
+include a bias.  In this case, the thermostat works in the following
+manner: bias is removed from each atom, thermostatting is performed on
+the remaining thermal degrees of freedom, and the bias is added back
+in.</p>
+<p>The <em>damp</em> parameter is specified in time units and determines how
+rapidly the temperature is relaxed.  For example, a value of 100.0
+means to relax the temperature in a timespan of (roughly) 100 time
+units (tau or fmsec or psec - see the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).
+The damp factor can be thought of as inversely related to the
+viscosity of the solvent.  I.e. a small relaxation time implies a
+hi-viscosity solvent and vice versa.  See the discussion about gamma
+and viscosity in the documentation for the <a class="reference internal" href="fix_viscous.html"><span class="doc">fix viscous</span></a> command for more details.</p>
+<p>The random # <em>seed</em> must be a positive integer.  A Marsaglia random
+number generator is used.  Each processor uses the input seed to
+generate its own unique seed and its own stream of random numbers.
+Thus the dynamics of the system will not be identical on two runs on
+different numbers of processors.</p>
+<hr class="docutils" />
+<p>The keyword/value option pairs are used in the following ways.</p>
+<p>The keyword <em>angmom</em> and <em>omega</em> keywords enable thermostatting of
+rotational degrees of freedom in addition to the usual translational
+degrees of freedom.  This can only be done for finite-size particles.</p>
+<p>A simulation using atom_style sphere defines an omega for finite-size
+spheres.  A simulation using atom_style ellipsoid defines a finite
+size and shape for aspherical particles and an angular momentum.
+The Langevin formulas for thermostatting the rotational degrees of
+freedom are the same as those above, where force is replaced by
+torque, m is replaced by the moment of inertia I, and v is replaced by
+omega (which is derived from the angular momentum in the case of
+aspherical particles).</p>
+<p>The rotational temperature of the particles can be monitored by the
+<a class="reference internal" href="compute_temp_sphere.html"><span class="doc">compute temp/sphere</span></a> and <a class="reference internal" href="compute_temp_asphere.html"><span class="doc">compute temp/asphere</span></a> commands with their rotate
+options.</p>
+<p>For the <em>omega</em> keyword there is also a scale factor of 10.0/3.0 that
+is applied as a multiplier on the Ff (damping) term in the equation
+above and of sqrt(10.0/3.0) as a multiplier on the Fr term.  This does
+not affect the thermostatting behaviour of the Langevin formalism but
+insures that the randomized rotational diffusivity of spherical
+particles is correct.</p>
+<p>For the <em>angmom</em> keyword a similar scale factor is needed which is
+10.0/3.0 for spherical particles, but is anisotropic for aspherical
+particles (e.g. ellipsoids).  Currently LAMMPS only applies an
+isotropic scale factor, and you can choose its magnitude as the
+specified value of the <em>angmom</em> keyword.  If your aspherical particles
+are (nearly) spherical than a value of 10.0/3.0 = 3.333 is a good
+choice.  If they are highly aspherical, a value of 1.0 is as good a
+choice as any, since the effects on rotational diffusivity of the
+particles will be incorrect regardless.  Note that for any reasonable
+scale factor, the thermostatting effect of the <em>angmom</em> keyword on the
+rotational temperature of the aspherical particles should still be
+valid.</p>
+<p>The keyword <em>scale</em> allows the damp factor to be scaled up or down by
+the specified factor for atoms of that type.  This can be useful when
+different atom types have different sizes or masses.  It can be used
+multiple times to adjust damp for several atom types.  Note that
+specifying a ratio of 2 increases the relaxation time which is
+equivalent to the solvent&#8217;s viscosity acting on particles with 1/2 the
+diameter.  This is the opposite effect of scale factors used by the
+<a class="reference internal" href="fix_viscous.html"><span class="doc">fix viscous</span></a> command, since the damp factor in fix
+<em>langevin</em> is inversely related to the gamma factor in fix <em>viscous</em>.
+Also note that the damping factor in fix <em>langevin</em> includes the
+particle mass in Ff, unlike fix <em>viscous</em>.  Thus the mass and size of
+different atom types should be accounted for in the choice of ratio
+values.</p>
+<p>The keyword <em>tally</em> enables the calculation of the cumulative energy
+added/subtracted to the atoms as they are thermostatted.  Effectively
+it is the energy exchanged between the infinite thermal reservoir and
+the particles.  As described below, this energy can then be printed
+out or added to the potential energy of the system to monitor energy
+conservation.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">this accumulated energy does NOT include kinetic energy removed
+by the <em>zero</em> flag. LAMMPS will print a warning when both options are
+active.</p>
+</div>
+<p>The keyword <em>zero</em> can be used to eliminate drift due to the
+thermostat. Because the random forces on different atoms are
+independent, they do not sum exactly to zero.  As a result, this fix
+applies a small random force to the entire system, and the
+center-of-mass of the system undergoes a slow random walk.  If the
+keyword <em>zero</em> is set to <em>yes</em>, the total random force is set exactly
+to zero by subtracting off an equal part of it from each atom in the
+group.  As a result, the center-of-mass of a system with zero initial
+momentum will not drift over time.</p>
+<p>The keyword <em>gjf</em> can be used to run the <a class="reference internal" href="#gronbech-jensen"><span class="std std-ref">Gronbech-Jensen/Farago</span></a> time-discretization of the Langevin model.  As
+described in the papers cited below, the purpose of this method is to
+enable longer timesteps to be used (up to the numerical stability
+limit of the integrator), while still producing the correct Boltzmann
+distribution of atom positions.  It is implemented within LAMMPS, by
+changing how the the random force is applied so that it is composed of
+the average of two random forces representing half-contributions from
+the previous and current time intervals.</p>
+<p>In common with all methods based on Verlet integration, the
+discretized velocities generated by this method in conjunction with
+velocity-Verlet time integration are not exactly conjugate to the
+positions.  As a result the temperature (computed from the discretized
+velocities) will be systematically lower than the target temperature,
+by a small amount which grows with the timestep.  Nonetheless, the
+distribution of atom positions will still be consistent with the
+target temperature.</p>
+<p>As an example of using the <em>gjf</em> keyword, for molecules containing C-H
+bonds, configurational properties generated with dt = 2.5 fs and tdamp
+= 100 fs are indistinguishable from dt = 0.5 fs.  Because the velocity
+distribution systematically decreases with increasing timestep, the
+method should not be used to generate properties that depend on the
+velocity distribution, such as the velocity autocorrelation function
+(VACF). In this example, the velocity distribution at dt = 2.5fs
+generates an average temperature of 220 K, instead of 300 K.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do &#8220;exact&#8221;
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>temp</em> option is supported by this
+fix.  You can use it to assign a temperature <a class="reference internal" href="compute.html"><span class="doc">compute</span></a>
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
+fix to add the energy change induced by Langevin thermostatting to the
+system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.  Note that use of this option requires
+setting the <em>tally</em> keyword to <em>yes</em>.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar is the
+cummulative energy change due to this fix.  The scalar value
+calculated by this fix is &#8220;extensive&#8221;.  Note that calculation of this
+quantity requires setting the <em>tally</em> keyword to <em>yes</em>.</p>
+<p>This fix can ramp its target temperature over multiple runs, using the
+<em>start</em> and <em>stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the
+<a class="reference internal" href="run.html"><span class="doc">run</span></a> command for details of how to do this.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<blockquote>
+<div>none</div></blockquote>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a>, <a class="reference internal" href="fix_viscous.html"><span class="doc">fix viscous</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="pair_dpd.html"><span class="doc">pair_style dpd/tstat</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The option defaults are angmom = no, omega = no, scale = 1.0 for all
+types, tally = no, zero = no, gjf = no.</p>
+<hr class="docutils" />
+<p id="dunweg"><strong>(Dunweg)</strong> Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).</p>
+<p id="schneider"><strong>(Schneider)</strong> Schneider and Stoll, Phys Rev B, 17, 1302 (1978).</p>
+<p id="gronbech-jensen"><strong>(Gronbech-Jensen)</strong> Gronbech-Jensen and Farago, Mol Phys, 111, 983
+(2013); Gronbech-Jensen, Hayre, and Farago, Comp Phys Comm,
+185, 524 (2014)</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

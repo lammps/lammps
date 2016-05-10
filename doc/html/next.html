@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>next command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>next command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="next-command">
+<span id="index-0"></span><h1>next command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">next</span> <span class="n">variables</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>variables = one or more variable names</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">next</span> <span class="n">x</span>
+<span class="nb">next</span> <span class="n">a</span> <span class="n">t</span> <span class="n">x</span> <span class="n">myTemp</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>This command is used with variables defined by the
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command.  It assigns the next value to the
+variable from the list of values defined for that variable by the
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command.  Thus when that variable is
+subsequently substituted for in an input script command, the new value
+is used.</p>
+<p>See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command for info on how to define and
+use different kinds of variables in LAMMPS input scripts.  If a
+variable name is a single lower-case character from &#8220;a&#8221; to &#8220;z&#8221;, it can
+be used in an input script command as $a or $z.  If it is multiple
+letters, it can be used as ${myTemp}.</p>
+<p>If multiple variables are used as arguments to the <em>next</em> command,
+then all must be of the same variable style: <em>index</em>, <em>loop</em>, <em>file</em>,
+<em>universe</em>, or <em>uloop</em>.  An exception is that <em>universe</em>- and
+<em>uloop</em>-style variables can be mixed in the same <em>next</em> command.</p>
+<p>All the variables specified with the next command are incremented by
+one value from their respective list of values.  A <em>file</em>-style
+variable reads the next line from its associated file.  An
+<em>atomfile</em>-style variable reads the next set of lines (one per atom)
+from its associated file.  <em>String-</em> or <em>atom</em>- or <em>equal</em>- or
+<em>world</em>-style variables cannot be used with the the next command,
+since they only store a single value.</p>
+<p>When any of the variables in the next command has no more values, a
+flag is set that causes the input script to skip the next
+<a class="reference internal" href="jump.html"><span class="doc">jump</span></a> command encountered.  This enables a loop containing
+a next command to exit.  As explained in the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>
+command, the variable that has exhausted its values is also deleted.
+This allows it to be used and re-defined later in the input script.
+<em>File</em>-style and <em>atomfile</em>-style variables are exhausted when the
+end-of-file is reached.</p>
+<p>When the next command is used with <em>index</em>- or <em>loop</em>-style variables,
+the next value is assigned to the variable for all processors.  When
+the next command is used with <em>file</em>-style variables, the next line is
+read from its file and the string assigned to the variable.  When the
+next command is used with <em>atomfile</em>-style variables, the next set of
+per-atom values is read from its file and assigned to the variable.</p>
+<p>When the next command is used with <em>universe</em>- or <em>uloop</em>-style
+variables, all <em>universe</em>- or <em>uloop</em>-style variables must be listed
+in the next command.  This is because of the manner in which the
+incrementing is done, using a single lock file for all variables.  The
+next value (for each variable) is assigned to whichever processor
+partition executes the command first.  All processors in the partition
+are assigned the same value(s).  Running LAMMPS on multiple partitions
+of processors via the &#8220;-partition&#8221; command-line switch is described in
+<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">this section</span></a> of the manual.  <em>Universe</em>-
+and <em>uloop</em>-style variables are incremented using the files
+&#8220;tmp.lammps.variable&#8221; and &#8220;tmp.lammps.variable.lock&#8221; which you will
+see in your directory during and after such a LAMMPS run.</p>
+<p>Here is an example of running a series of simulations using the next
+command with an <em>index</em>-style variable.  If this input script is named
+in.polymer, 8 simulations would be run using data files from
+directories run1 thru run8.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable d index run1 run2 run3 run4 run5 run6 run7 run8
+shell cd $d
+read_data data.polymer
+run 10000
+shell cd ..
+clear
+next d
+jump in.polymer
+</pre></div>
+</div>
+<p>If the variable &#8220;d&#8221; were of style <em>universe</em>, and the same in.polymer
+input script were run on 3 partitions of processors, then the first 3
+simulations would begin, one on each set of processors.  Whichever
+partition finished first, it would assign variable &#8220;d&#8221; the 4th value
+and run another simulation, and so forth until all 8 simulations were
+finished.</p>
+<p>Jump and next commands can also be nested to enable multi-level loops.
+For example, this script will run 15 simulations in a double loop.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable i loop 3
+  variable j loop 5
+  clear
+  ...
+  read_data data.polymer.$i$j
+  print Running simulation $i.$j
+  run 10000
+  next j
+  jump in.script
+next i
+jump in.script
+</pre></div>
+</div>
+<p>Here is an example of a double loop which uses the <a class="reference internal" href="if.html"><span class="doc">if</span></a> and
+<a class="reference internal" href="jump.html"><span class="doc">jump</span></a> commands to break out of the inner loop when a
+condition is met, then continues iterating thru the outer loop.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>label            loopa
+variable    a loop 5
+  label          loopb
+  variable  b loop 5
+  print          &quot;A,B = $a,$b&quot;
+  run       10000
+  if     $b &gt; 2 then &quot;jump in.script break&quot;
+  next           b
+  jump           in.script loopb
+label            break
+variable    b delete
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">next</span>     <span class="n">a</span>
+<span class="n">jump</span>     <span class="ow">in</span><span class="o">.</span><span class="n">script</span> <span class="n">loopa</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>As described above.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="jump.html"><span class="doc">jump</span></a>, <a class="reference internal" href="include.html"><span class="doc">include</span></a>, <a class="reference internal" href="shell.html"><span class="doc">shell</span></a>,
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a>,</p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

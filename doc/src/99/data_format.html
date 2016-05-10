@@ -1,0 +1,239 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+LAMMPS Data Format</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation</P>
+<P>
+This file describes the format of the data file read into LAMMPS with 
+the &quot;read data&quot; command. The data file contains basic 
+information about the size of the problem to be run, the initial atomic 
+coordinates, molecular topology, and (optionally) force-field 
+coefficients. It will be easiest to understand this file if you read it 
+while looking at a sample data file from the examples.</P>
+<P>
+This page has 2 sections:</P>
+<UL>
+    <LI>
+    <A HREF="#_cch3_930958962">Rules for formatting the Data File</A> 
+    <LI>
+    <A HREF="#_cch3_930958969">Sample file with Annotations</A> 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930958962">Rules for formatting the Data File: </A></H3>
+<P>
+Blank lines are important. After the header section, new entries are 
+separated by blank lines. </P>
+<P>
+Indentation and space between words/numbers on one line is not 
+important except that entry keywords (e.g. Masses, Bond Coeffs) must be 
+left-justified and capitalized as shown. </P>
+<P>
+The header section (thru box bounds) must appear first in the file, the 
+remaining entries (Masses, various Coeffs, Atoms, Bonds, etc) can come 
+in any order. </P>
+<P>
+These entries must be in the file: header section, Masses, Atoms. </P>
+<P>
+These entries must be in the file if there are a non-zero number of 
+them: Bonds, Angles, Dihedrals, Impropers, Bond Coeffs, Angle Coeffs, 
+Dihedral Coeffs, Improper Coeffs. Cross-term coefficients for a 
+particular kind of interaction (e.g. BondAngle Coeffs for bonds) must 
+appear if class II force fields have been turned on in the input 
+command file via a &quot;style&quot; command. </P>
+<P>
+The Nonbond Coeffs entry contains one line for each atom type. These 
+are the coefficients for an interaction between 2 atoms of the same 
+type. The cross-type coeffs are computed by the appropriate class I or 
+class II mixing rules, or can be specified explicitly using the 
+&quot;nonbond coeff&quot; command in the input command script. See the <A
+ HREF="force_fields.html">force_fields</A> page for more information. </P>
+<P>
+The Nonbond Coeffs and Bond Coeffs entries are optional since they can 
+be specified from the input command script. This is not true if bond 
+style is set to class II since those coeffs can only be specified in 
+this data file. </P>
+<P>
+In the Atoms entry, the atoms can be in any order so long as there are 
+N entries. The 1st number on the line is the atom-tag (number from 1 to 
+N) which is used to identify the atom throughout the simulation. The 
+molecule-tag is a second identifier which is attached to the atom; it 
+can be 0, or a counter for the molecule the atom is part of, or any 
+other number you wish. The q value is the charge of the atom in 
+electron units (e.g. +1 for a proton). The xyz values are the initial 
+position of the atom. For 2-d simulations specify z as 0.0.</P>
+<P>
+The final 3 nx,ny,nz values on a line of the Atoms entry are optional. 
+LAMMPS only reads them if the &quot;true flag&quot; command is 
+specified in the input command script. Otherwise they are initialized 
+to 0 by LAMMPS. Their meaning, for each dimension, is that 
+&quot;n&quot; box-lengths are added to xyz to get the atom's 
+&quot;true&quot; un-remapped position. This can be useful in pre- or 
+post-processing to enable the unwrapping of long-chained molecules 
+which wrap thru the periodic box one or more times. The value of 
+&quot;n&quot; can be positive, negative, or zero. For 2-d simulations 
+specify nz as 0. </P>
+<P>
+For simulations with periodic boundary conditions, xyz are remapped 
+into the periodic box (from as far away as needed), so the initial 
+coordinates need not be inside the box. The nx,ny,nz values (as read in 
+or as set to zero by LAMMPS) are appropriately adjusted by this 
+remapping. </P>
+<P>
+The number of coefficients specified on each line of coefficient 
+entries (Nonbond Coeffs, Bond Coeffs, etc) depends on the 
+&quot;style&quot; of interaction. This is specified in the input 
+command script, unless the default is used. See the <A
+ HREF="input_commands.html">input_commands</A> page for a description 
+of the various style options. The <A HREF="input_commands.html">input_commands</A>
+ and <A HREF="force_fields.html">force_fields</A> pages explain the 
+meaning and valid ranges for each of the coefficients. </P>
+<HR>
+<H3>
+<A NAME="_cch3_930958969">Sample file with Annotations</A></H3>
+<P>
+Here is a sample file with annotations in parenthesis and lengthy 
+sections replaced by dots (...). Note that the blank lines are 
+important in this example.</P>
+<PRE>
+
+LAMMPS Description           (1st line of file)
+
+100 atoms         (this must be the 3rd line, 1st 2 lines are ignored)
+95 bonds                (# of bonds to be simulated)
+50 angles               (include these lines even if number = 0)
+30 dihedrals
+20 impropers
+
+5 atom types           (# of nonbond atom types)
+10 bond types          (# of bond types = sets of bond coefficients)
+18 angle types         
+20 dihedral types      (do not include a bond,angle,dihedral,improper type
+2 improper types             line if number of bonds,angles,etc is 0)
+
+-0.5 0.5 xlo xhi       (for periodic systems this is box size,
+-0.5 0.5 ylo yhi        for non-periodic it is min/max extent of atoms)
+-0.5 0.5 zlo zhi       (do not include this line for 2-d simulations)
+
+Masses
+
+  1 mass
+  ...
+  N mass                           (N = # of atom types)
+
+Nonbond Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of atom types)
+
+Bond Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of bond types)
+
+Angle Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of angle types)
+
+Dihedral Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of dihedral types)
+
+Improper Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of improper types)
+
+BondBond Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of angle types)
+
+BondAngle Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of angle types)
+
+MiddleBondTorsion Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of dihedral types)
+
+EndBondTorsion Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of dihedral types)
+
+AngleTorsion Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of dihedral types)
+
+AngleAngleTorsion Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of dihedral types)
+
+BondBond13 Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of dihedral types)
+
+AngleAngle Coeffs
+
+  1 coeff1 coeff2 ...
+  ...
+  N coeff1 coeff2 ...              (N = # of improper types)
+
+Atoms
+
+  1 molecule-tag atom-type q x y z nx ny nz  (nx,ny,nz are optional -
+  ...                                    see &quot;true flag&quot; input command)
+  ...                
+  N molecule-tag atom-type q x y z nx ny nz  (N = # of atoms)
+
+Bonds
+
+  1 bond-type atom-1 atom-2
+  ...
+  N bond-type atom-1 atom-2             (N = # of bonds)
+
+Angles
+
+  1 angle-type atom-1 atom-2 atom-3  (atom-2 is the center atom in angle)
+  ...
+  N angle-type atom-1 atom-2 atom-3  (N = # of angles)
+
+Dihedrals
+
+  1 dihedral-type atom-1 atom-2 atom-3 atom-4  (atoms 2-3 form central bond)
+  ...
+  N dihedral-type atom-1 atom-2 atom-3 atom-4  (N = # of dihedrals)
+
+Impropers
+
+  1 improper-type atom-1 atom-2 atom-3 atom-4  (atom-1 is central atom)
+  ...
+  N improper-type atom-1 atom-2 atom-3 atom-4  (N = # of impropers)
+</PRE>
+</BODY>
+</HTML>

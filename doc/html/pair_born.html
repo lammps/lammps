@@ -1,0 +1,377 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style born command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style born command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-born-command">
+<span id="index-0"></span><h1>pair_style born command</h1>
+</div>
+<div class="section" id="pair-style-born-omp-command">
+<h1>pair_style born/omp command</h1>
+</div>
+<div class="section" id="pair-style-born-gpu-command">
+<h1>pair_style born/gpu command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-long-command">
+<h1>pair_style born/coul/long command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-long-cs-command">
+<h1>pair_style born/coul/long/cs command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-long-cuda-command">
+<h1>pair_style born/coul/long/cuda command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-long-gpu-command">
+<h1>pair_style born/coul/long/gpu command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-long-omp-command">
+<h1>pair_style born/coul/long/omp command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-msm-command">
+<h1>pair_style born/coul/msm command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-msm-omp-command">
+<h1>pair_style born/coul/msm/omp command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-wolf-command">
+<h1>pair_style born/coul/wolf command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-wolf-gpu-command">
+<h1>pair_style born/coul/wolf/gpu command</h1>
+</div>
+<div class="section" id="pair-style-born-coul-wolf-omp-command">
+<h1>pair_style born/coul/wolf/omp command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>born</em> or <em>born/coul/long</em> or <em>born/coul/long/cs</em> or <em>born/coul/msm</em> or <em>born/coul/wolf</em></li>
+<li>args = list of arguments for a particular style</li>
+</ul>
+<pre class="literal-block">
+<em>born</em> args = cutoff
+  cutoff = global cutoff for non-Coulombic interactions (distance units)
+<em>born/coul/long</em> or <em>born/coul/long/cs</em> args = cutoff (cutoff2)
+  cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
+<em>born/coul/msm</em> args = cutoff (cutoff2)
+  cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
+<em>born/coul/wolf</em> args = alpha cutoff (cutoff2)
+  alpha = damping parameter (inverse distance units)
+  cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">born</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span>
+<span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">cs</span> <span class="mf">10.0</span>
+<span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span> <span class="mf">8.0</span>
+<span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">cs</span> <span class="mf">10.0</span> <span class="mf">8.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">msm</span> <span class="mf">10.0</span>
+<span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">msm</span> <span class="mf">10.0</span> <span class="mf">8.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">wolf</span> <span class="mf">0.25</span> <span class="mf">10.0</span>
+<span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">wolf</span> <span class="mf">0.25</span> <span class="mf">10.0</span> <span class="mf">9.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>The <em>born</em> style computes the Born-Mayer-Huggins or Tosi/Fumi
+potential described in <a class="reference internal" href="#fumitosi"><span class="std std-ref">(Fumi and Tosi)</span></a>, given by</p>
+<img alt="_images/pair_born.jpg" class="align-center" src="_images/pair_born.jpg" />
+<p>where sigma is an interaction-dependent length parameter, rho is an
+ionic-pair dependent length parameter, and Rc is the cutoff.</p>
+<p>The styles with <em>coul/long</em> or <em>coul/msm</em> add a Coulombic term as
+described for the <a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut</span></a> pair styles.  An additional
+damping factor is applied to the Coulombic term so it can be used in
+conjunction with the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command and its
+<em>ewald</em> or <em>pppm</em> of <em>msm</em> option.  The Coulombic cutoff specified for
+this style means that pairwise interactions within this distance are
+computed directly; interactions outside that distance are computed in
+reciprocal space.</p>
+<p>If one cutoff is specified for the <em>born/coul/long</em> and
+<em>born/coul/msm</em> style, it is used for both the A,C,D and Coulombic
+terms.  If two cutoffs are specified, the first is used as the cutoff
+for the A,C,D terms, and the second is the cutoff for the Coulombic
+term.</p>
+<p>The <em>born/coul/wolf</em> style adds a Coulombic term as described for the
+Wolf potential in the <a class="reference internal" href="pair_coul.html"><span class="doc">coul/wolf</span></a> pair style.</p>
+<p>Style <em>born/coul/long/cs</em> is identical to <em>born/coul/long</em> except that
+a term is added for the <a class="reference internal" href="Section_howto.html#howto-25"><span class="std std-ref">core/shell model</span></a>
+to allow charges on core and shell particles to be separated by r =
+0.0.</p>
+<p>Note that these potentials are related to the <a class="reference internal" href="pair_buck.html"><span class="doc">Buckingham potential</span></a>.</p>
+<p>The following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples
+above, or in the data file or restart files read by the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+commands, or by mixing as described below:</p>
+<ul class="simple">
+<li>A (energy units)</li>
+<li>rho (distance units)</li>
+<li>sigma (distance units)</li>
+<li>C (energy units * distance units^6)</li>
+<li>D (energy units * distance units^8)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The second coefficient, rho, must be greater than zero.</p>
+<p>The last coefficient is optional.  If not specified, the global A,C,D
+cutoff specified in the pair_style command is used.</p>
+<p>For <em>born/coul/long</em> and <em>born/coul/wolf</em> no Coulombic cutoff can be
+specified for an individual I,J type pair.  All type pairs use the
+same global Coulombic cutoff specified in the pair_style command.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>These pair styles do not support mixing.  Thus, coefficients for all
+I,J pairs must be specified explicitly.</p>
+<p>These styles support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> shift option
+for the energy of the exp(), 1/r^6, and 1/r^8 portion of the pair
+interaction.</p>
+<p>The <em>born/coul/long</em> pair style supports the
+<a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> table option ti tabulate the
+short-range portion of the long-range Coulombic interaction.</p>
+<p>These styles support the pair_modify tail option for adding long-range
+tail corrections to energy and pressure.</p>
+<p>Thess styles writes thei information to binary <a class="reference internal" href="restart.html"><span class="doc">restart</span></a>
+files, so pair_style and pair_coeff commands do not need to be
+specified in an input script that reads a restart file.</p>
+<p>These styles can only be used via the <em>pair</em> keyword of the <a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  They do not support the <em>inner</em>,
+<em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>The <em>born/coul/long</em> style is part of the KSPACE package.  It is only
+enabled if LAMMPS was built with that package (which it is by
+default).  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
+for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>, <a class="reference internal" href="pair_buck.html"><span class="doc">pair_style buck</span></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="fumitosi">Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
+Fumi and Tosi, J Phys Chem Solids, 25, 45 (1964).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

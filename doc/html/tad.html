@@ -1,0 +1,463 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tad command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>tad command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tad-command">
+<span id="index-0"></span><h1>tad command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tad</span> <span class="n">N</span> <span class="n">t_event</span> <span class="n">T_lo</span> <span class="n">T_hi</span> <span class="n">delta</span> <span class="n">tmax</span> <span class="n">compute</span><span class="o">-</span><span class="n">ID</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>N = # of timesteps to run (not including dephasing/quenching)</li>
+<li>t_event = timestep interval between event checks</li>
+<li>T_lo = temperature at which event times are desired</li>
+<li>T_hi = temperature at which MD simulation is performed</li>
+<li>delta = desired confidence level for stopping criterion</li>
+<li>tmax = reciprocal of lowest expected preexponential factor (time units)</li>
+<li>compute-ID = ID of the compute used for event detection</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>min</em> or <em>neb</em> or <em>min_style</em> or <em>neb_style</em> or <em>neb_log</em></li>
+</ul>
+<pre class="literal-block">
+<em>min</em> values = etol ftol maxiter maxeval
+  etol = stopping tolerance for energy (energy units)
+  ftol = stopping tolerance for force (force units)
+  maxiter = max iterations of minimize
+  maxeval = max number of force/energy evaluations
+<em>neb</em> values = ftol N1 N2 Nevery
+  etol = stopping tolerance for energy (energy units)
+  ftol = stopping tolerance for force (force units)
+  N1 = max # of iterations (timesteps) to run initial NEB
+  N2 = max # of iterations (timesteps) to run barrier-climbing NEB
+  Nevery = print NEB statistics every this many timesteps
+<em>neb_style</em> value = <em>quickmin</em> or <em>fire</em>
+<em>neb_step</em> value = dtneb
+  dtneb = timestep for NEB damped dynamics minimization
+<em>neb_log</em> value = file where NEB statistics are printed
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tad</span> <span class="mi">2000</span> <span class="mi">50</span> <span class="mi">1800</span> <span class="mi">2300</span> <span class="mf">0.01</span> <span class="mf">0.01</span> <span class="n">event</span>
+<span class="n">tad</span> <span class="mi">2000</span> <span class="mi">50</span> <span class="mi">1800</span> <span class="mi">2300</span> <span class="mf">0.01</span> <span class="mf">0.01</span> <span class="n">event</span> <span class="o">&amp;</span>
+    <span class="nb">min</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span> <span class="mi">100</span> <span class="mi">100</span> <span class="o">&amp;</span>
+    <span class="n">neb</span> <span class="mf">0.0</span> <span class="mf">0.01</span> <span class="mi">200</span> <span class="mi">200</span> <span class="mi">20</span> <span class="o">&amp;</span>
+    <span class="n">min_style</span> <span class="n">cg</span> <span class="o">&amp;</span>
+    <span class="n">neb_style</span> <span class="n">fire</span> <span class="o">&amp;</span>
+    <span class="n">neb_log</span> <span class="n">log</span><span class="o">.</span><span class="n">neb</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Run a temperature accelerated dynamics (TAD) simulation. This method
+requires two or more partitions to perform NEB transition state
+searches.</p>
+<p>TAD is described in <a class="reference internal" href="#voter"><span class="std std-ref">this paper</span></a> by Art Voter.  It is a method
+that uses accelerated dynamics at an elevated temperature to generate
+results at a specified lower temperature.  A good overview of
+accelerated dynamics methods for such systems is given in <a class="reference internal" href="#voter2"><span class="std std-ref">this review paper</span></a> from the same group. In general, these methods assume
+that the long-time dynamics is dominated by infrequent events i.e. the
+system is is confined to low energy basins for long periods,
+punctuated by brief, randomly-occurring transitions to adjacent
+basins.  TAD is suitable for infrequent-event systems, where in
+addition, the transition kinetics are well-approximated by harmonic
+transition state theory (hTST). In hTST, the temperature dependence of
+transition rates follows the Arrhenius relation.  As a consequence a
+set of event times generated in a high-temperature simulation can be
+mapped to a set of much longer estimated times in the low-temperature
+system. However, because this mapping involves the energy barrier of
+the transition event, which is different for each event, the first
+event at the high temperature may not be the earliest event at the low
+temperature. TAD handles this by first generating a set of possible
+events from the current basin. After each event, the simulation is
+reflected backwards into the current basin.  This is repeated until
+the stopping criterion is satisfied, at which point the event with the
+earliest low-temperature occurrence time is selected.  The stopping
+criterion is that the confidence measure be greater than
+1-<em>delta</em>. The confidence measure is the probability that no earlier
+low-temperature event will occur at some later time in the
+high-temperature simulation.  hTST provides an lower bound for this
+probability, based on the user-specified minimum pre-exponential
+factor (reciprocal of <em>tmax</em>).</p>
+<p>In order to estimate the energy barrier for each event, the TAD method
+invokes the <a class="reference internal" href="neb.html"><span class="doc">NEB</span></a> method. Each NEB replica runs on a
+partition of processors. The current NEB implementation in LAMMPS
+restricts you to having exactly one processor per replica. For more
+information, see the documentation for the <a class="reference internal" href="neb.html"><span class="doc">neb</span></a> command.  In
+the current LAMMPS implementation of TAD, all the non-NEB TAD
+operations are performed on the first partition, while the other
+partitions remain idle. See <a class="reference internal" href="Section_howto.html#howto-5"><span class="std std-ref">Section_howto 5</span></a> of the manual for further discussion of
+multi-replica simulations.</p>
+<p>A TAD run has several stages, which are repeated each time an event is
+performed.  The logic for a TAD run is as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="p">(</span><span class="n">time</span> <span class="n">remains</span><span class="p">):</span>
+  <span class="k">while</span> <span class="p">(</span><span class="n">time</span> <span class="o">&lt;</span> <span class="n">tstop</span><span class="p">):</span>
+    <span class="n">until</span> <span class="p">(</span><span class="n">event</span> <span class="n">occurs</span><span class="p">):</span>
+      <span class="n">run</span> <span class="n">dynamics</span> <span class="k">for</span> <span class="n">t_event</span> <span class="n">steps</span>
+      <span class="n">quench</span>
+    <span class="n">run</span> <span class="n">neb</span> <span class="n">calculation</span> <span class="n">using</span> <span class="nb">all</span> <span class="n">replicas</span>
+    <span class="n">compute</span> <span class="n">tlo</span> <span class="kn">from</span> <span class="nn">energy</span> <span class="n">barrier</span>
+    <span class="n">update</span> <span class="n">earliest</span> <span class="n">event</span>
+    <span class="n">update</span> <span class="n">tstop</span>
+    <span class="n">reflect</span> <span class="n">back</span> <span class="n">into</span> <span class="n">current</span> <span class="n">basin</span>
+  <span class="n">execute</span> <span class="n">earliest</span> <span class="n">event</span>
+</pre></div>
+</div>
+<p>Before this outer loop begins, the initial potential energy basin is
+identified by quenching (an energy minimization, see below) the
+initial state and storing the resulting coordinates for reference.</p>
+<p>Inside the inner loop, dynamics is run continuously according to
+whatever integrator has been specified by the user, stopping every
+<em>t_event</em> steps to check if a transition event has occurred.  This
+check is performed by quenching the system and comparing the resulting
+atom coordinates to the coordinates from the previous basin.</p>
+<p>A quench is an energy minimization and is performed by whichever
+algorithm has been defined by the <a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a> command;
+its default is the CG minimizer.  The tolerances and limits for each
+quench can be set by the <em>min</em> keyword.  Note that typically, you do
+not need to perform a highly-converged minimization to detect a
+transition event.</p>
+<p>The event check is performed by a compute with the specified
+<em>compute-ID</em>.  Currently there is only one compute that works with the
+TAD commmand, which is the <a class="reference internal" href="compute_event_displace.html"><span class="doc">compute event/displace</span></a> command.  Other
+event-checking computes may be added.  <a class="reference internal" href="compute_event_displace.html"><span class="doc">Compute event/displace</span></a> checks whether any atom in
+the compute group has moved further than a specified threshold
+distance.  If so, an &#8220;event&#8221; has occurred.</p>
+<p>The NEB calculation is similar to that invoked by the <a class="reference internal" href="neb.html"><span class="doc">neb</span></a>
+command, except that the final state is generated internally, instead
+of being read in from a file.  The style of minimization performed by
+NEB is determined by the <em>neb_style</em> keyword and must be a damped
+dynamics minimizer.  The tolerances and limits for each NEB
+calculation can be set by the <em>neb</em> keyword.  As discussed on the
+<a class="reference internal" href="neb.html"><span class="doc">neb</span></a>, it is often advantageous to use a larger timestep for
+NEB than for normal dyanmics.  Since the size of the timestep set by
+the <a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a> command is used by TAD for performing
+dynamics, there is a <em>neb_step</em> keyword which can be used to set a
+larger timestep for each NEB calculation if desired.</p>
+<hr class="docutils" />
+<p>A key aspect of the TAD method is setting the stopping criterion
+appropriately.  If this criterion is too conservative, then many
+events must be generated before one is finally executed.  Conversely,
+if this criterion is too aggressive, high-entropy high-barrier events
+will be over-sampled, while low-entropy low-barrier events will be
+under-sampled. If the lowest pre-exponential factor is known fairly
+accurately, then it can be used to estimate <em>tmax</em>, and the value of
+<em>delta</em> can be set to the desired confidence level e.g. <em>delta</em> = 0.05
+corresponds to 95% confidence. However, for systems where the dynamics
+are not well characterized (the most common case), it will be
+necessary to experiment with the values of <em>delta</em> and <em>tmax</em> to get a
+good trade-off between accuracy and performance.</p>
+<p>A second key aspect is the choice of <em>t_hi</em>. A larger value greatly
+increases the rate at which new events are generated.  However, too
+large a value introduces errors due to anharmonicity (not accounted
+for within hTST). Once again, for any given system, experimentation is
+necessary to determine the best value of <em>t_hi</em>.</p>
+<hr class="docutils" />
+<p>Five kinds of output can be generated during a TAD run: event
+statistics, NEB statistics, thermodynamic output by each replica, dump
+files, and restart files.</p>
+<p>Event statistics are printed to the screen and master log.lammps file
+each time an event is executed. The quantities are the timestep, CPU
+time, global event number <em>N</em>, local event number <em>M</em>, event status,
+energy barrier, time margin, <em>t_lo</em> and <em>delt_lo</em>.  The timestep is
+the usual LAMMPS timestep, which corresponds to the high-temperature
+time at which the event was detected, in units of timestep.  The CPU
+time is the total processor time since the start of the TAD run.  The
+global event number <em>N</em> is a counter that increments with each
+executed event. The local event number <em>M</em> is a counter that resets to
+zero upon entering each new basin.  The event status is <em>E</em> when an
+event is executed, and is <em>D</em> for an event that is detected, while
+<em>DF</em> is for a detected event that is also the earliest (first) event
+at the low temperature.</p>
+<p>The time margin is the ratio of the high temperature time in the
+current basin to the stopping time. This last number can be used to
+judge whether the stopping time is too short or too long (see above).</p>
+<p><em>t_lo</em> is the low-temperature event time when the current basin was
+entered, in units of timestep.  del<em>t_lo</em> is the time of each detected
+event, measured relative to <em>t_lo</em>.  <em>delt_lo</em> is equal to the
+high-temperature time since entering the current basin, scaled by an
+exponential factor that depends on the hi/lo temperature ratio and the
+energy barrier for that event.</p>
+<p>On lines for executed events, with status <em>E</em>, the global event number
+is incremented by one,
+the local event number and time margin are reset to zero,
+while the global event number, energy barrier, and
+<em>delt_lo</em> match the last event with status <em>DF</em>
+in the immediately preceding block of detected events.
+The low-temperature event time <em>t_lo</em> is incremented by <em>delt_lo</em>.</p>
+<p>NEB statistics are written to the file specified by the <em>neb_log</em>
+keyword. If the keyword value is &#8220;none&#8221;, then no NEB statistics are
+printed out. The statistics are written every <em>Nevery</em> timesteps.  See
+the <a class="reference internal" href="neb.html"><span class="doc">neb</span></a> command for a full description of the NEB
+statistics. When invoked from TAD, NEB statistics are never printed to
+the screen.</p>
+<p>Because the NEB calculation must run on multiple partitions, LAMMPS
+produces additional screen and log files for each partition,
+e.g. log.lammps.0, log.lammps.1, etc. For the TAD command, these
+contain the thermodynamic output of each NEB replica. In addition, the
+log file for the first partition, log.lammps.0, will contain
+thermodynamic output from short runs and minimizations corresponding
+to the dynamics and quench operations, as well as a line for each new
+detected event, as described above.</p>
+<p>After the TAD command completes, timing statistics for the TAD run are
+printed in each replica&#8217;s log file, giving a breakdown of how much CPU
+time was spent in each stage (NEB, dynamics, quenching, etc).</p>
+<p>Any <a class="reference internal" href="dump.html"><span class="doc">dump files</span></a> defined in the input script will be written
+to during a TAD run at timesteps when an event is executed.  This
+means the the requested dump frequency in the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command
+is ignored.  There will be one dump file (per dump command) created
+for all partitions.  The atom coordinates of the dump snapshot are
+those of the minimum energy configuration resulting from quenching
+following the executed event.  The timesteps written into the dump
+files correspond to the timestep at which the event occurred and NOT
+the clock.  A dump snapshot corresponding to the initial minimum state
+used for event detection is written to the dump file at the beginning
+of each TAD run.</p>
+<p>If the <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> command is used, a single restart file
+for all the partitions is generated, which allows a TAD run to be
+continued by a new input script in the usual manner.  The restart file
+is generated after an event is executed. The restart file contains a
+snapshot of the system in the new quenched state, including the event
+number and the low-temperature time.  The restart frequency specified
+in the <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> command is interpreted differently when
+performing a TAD run.  It does not mean the timestep interval between
+restart files.  Instead it means an event interval for executed
+events.  Thus a frequency of 1 means write a restart file every time
+an event is executed.  A frequency of 10 means write a restart file
+every 10th executed event.  When an input script reads a restart file
+from a previous TAD run, the new script can be run on a different
+number of replicas or processors.</p>
+<p>Note that within a single state, the dynamics will typically
+temporarily continue beyond the event that is ultimately chosen, until
+the stopping criterionis satisfied.  When the event is eventually
+executed, the timestep counter is reset to the value when the event
+was detected. Similarly, after each quench and NEB minimization, the
+timestep counter is reset to the value at the start of the
+minimization. This means that the timesteps listed in the replica log
+files do not always increase monotonically. However, the timestep
+values printed to the master log file, dump files, and restart files
+are always monotonically increasing.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
+for more info on packages.</p>
+<p><em>N</em> setting must be integer multiple of <em>t_event</em>.</p>
+<p>Runs restarted from restart files written during a TAD run will only
+produce identical results if the user-specified integrator supports
+exact restarts. So <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> will produce an exact
+restart, but <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> will not.</p>
+<p>This command cannot be used when any fixes are defined that keep track
+of elapsed time to perform time-dependent operations.  Examples
+include the &#8220;ave&#8221; fixes such as <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>.  Also <a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix dt/reset</span></a> and <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a>.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="compute_event_displace.html"><span class="doc">compute event/displace</span></a>,
+<a class="reference internal" href="min_modify.html"><span class="doc">min_modify</span></a>, <a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a>,
+<a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a>, <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a>,
+<a class="reference internal" href="temper.html"><span class="doc">temper</span></a>, <a class="reference internal" href="neb.html"><span class="doc">neb</span></a>,
+<a class="reference internal" href="prd.html"><span class="doc">prd</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The option defaults are <em>min</em> = 0.1 0.1 40 50, <em>neb</em> = 0.01 100 100
+10, <em>neb_style</em> = <em>quickmin</em>, <em>neb_step</em> = the same timestep set by
+the <a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a> command, and <em>neb_log</em> = &#8220;none&#8221;.</p>
+<hr class="docutils" />
+<p id="voter"><strong>(Voter)</strong> Sorensen and Voter, J Chem Phys, 112, 9599 (2000)</p>
+<p id="voter2"><strong>(Voter2)</strong> Voter, Montalenti, Germann, Annual Review of Materials
+Research 32, 321 (2002).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

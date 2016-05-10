@@ -1,0 +1,465 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>prd command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>prd command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="prd-command">
+<span id="index-0"></span><h1>prd command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">prd</span> <span class="n">N</span> <span class="n">t_event</span> <span class="n">n_dephase</span> <span class="n">t_dephase</span> <span class="n">t_correlate</span> <span class="n">compute</span><span class="o">-</span><span class="n">ID</span> <span class="n">seed</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>N = # of timesteps to run (not including dephasing/quenching)</li>
+<li>t_event = timestep interval between event checks</li>
+<li>n_dephase = number of velocity randomizations to perform in each dephase run</li>
+<li>t_dephase = number of timesteps to run dynamics after each velocity randomization during dephase</li>
+<li>t_correlate = number of timesteps within which 2 consecutive events are considered to be correlated</li>
+<li>compute-ID = ID of the compute used for event detection</li>
+<li>random_seed = random # seed (positive integer)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>min</em> or <em>temp</em> or <em>vel</em></li>
+</ul>
+<pre class="literal-block">
+<em>min</em> values = etol ftol maxiter maxeval
+  etol = stopping tolerance for energy, used in quenching
+  ftol = stopping tolerance for force, used in quenching
+  maxiter = max iterations of minimize, used in quenching
+  maxeval = max number of force/energy evaluations, used in quenching
+<em>temp</em> value = Tdephase
+  Tdephase = target temperature for velocity randomization, used in dephasing
+<em>vel</em> values = loop dist
+  loop = <em>all</em> or <em>local</em> or <em>geom</em>, used in dephasing
+  dist = <em>uniform</em> or <em>gaussian</em>, used in dephasing
+<em>time</em> value = <em>steps</em> or <em>clock</em>
+  <em>steps</em> = simulation runs for N timesteps on each replica (default)
+  <em>clock</em> = simulation runs for N timesteps across all replicas
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">prd</span> <span class="mi">5000</span> <span class="mi">100</span> <span class="mi">10</span> <span class="mi">10</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">54982</span>
+<span class="n">prd</span> <span class="mi">5000</span> <span class="mi">100</span> <span class="mi">10</span> <span class="mi">10</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">54982</span> <span class="nb">min</span> <span class="mf">0.1</span> <span class="mf">0.1</span> <span class="mi">100</span> <span class="mi">200</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Run a parallel replica dynamics (PRD) simulation using multiple
+replicas of a system.  One or more replicas can be used.  The total
+number of steps <em>N</em> to run can be interpreted in one of two ways; see
+discussion of the <em>time</em> keyword below.</p>
+<p>PRD is described in <a class="reference internal" href="tad.html#voter"><span class="std std-ref">this paper</span></a> by Art Voter.  It is a method
+for performing accelerated dynamics that is suitable for
+infrequent-event systems that obey first-order kinetics.  A good
+overview of accelerated dynamics methods for such systems in given in
+<a class="reference internal" href="tad.html#voter2"><span class="std std-ref">this review paper</span></a> from the same group.  To quote from the
+paper: &#8220;The dynamical evolution is characterized by vibrational
+excursions within a potential basin, punctuated by occasional
+transitions between basins.&#8221;  The transition probability is
+characterized by p(t) = k*exp(-kt) where k is the rate constant.
+Running multiple replicas gives an effective enhancement in the
+timescale spanned by the multiple simulations, while waiting for an
+event to occur.</p>
+<p>Each replica runs on a partition of one or more processors.  Processor
+partitions are defined at run-time using the -partition command-line
+switch; see <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">Section_start 6</span></a> of the
+manual.  Note that if you have MPI installed, you can run a
+multi-replica simulation with more replicas (partitions) than you have
+physical processors, e.g you can run a 10-replica simulation on one or
+two processors.  For PRD, this makes little sense, since this offers
+no effective parallel speed-up in searching for infrequent events. See
+<a class="reference internal" href="Section_howto.html#howto-5"><span class="std std-ref">Section_howto 5</span></a> of the manual for further
+discussion.</p>
+<p>When a PRD simulation is performed, it is assumed that each replica is
+running the same model, though LAMMPS does not check for this.
+I.e. the simulation domain, the number of atoms, the interaction
+potentials, etc should be the same for every replica.</p>
+<p>A PRD run has several stages, which are repeated each time an &#8220;event&#8221;
+occurs in one of the replicas, as defined below.  The logic for a PRD
+run is as follows:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">while</span> <span class="p">(</span><span class="n">time</span> <span class="n">remains</span><span class="p">):</span>
+  <span class="n">dephase</span> <span class="k">for</span> <span class="n">n_dephase</span><span class="o">*</span><span class="n">t_dephase</span> <span class="n">steps</span>
+  <span class="n">until</span> <span class="p">(</span><span class="n">event</span> <span class="n">occurs</span> <span class="n">on</span> <span class="n">some</span> <span class="n">replica</span><span class="p">):</span>
+    <span class="n">run</span> <span class="n">dynamics</span> <span class="k">for</span> <span class="n">t_event</span> <span class="n">steps</span>
+    <span class="n">quench</span>
+    <span class="n">check</span> <span class="k">for</span> <span class="n">uncorrelated</span> <span class="n">event</span> <span class="n">on</span> <span class="nb">any</span> <span class="n">replica</span>
+  <span class="n">until</span> <span class="p">(</span><span class="n">no</span> <span class="n">correlated</span> <span class="n">event</span> <span class="n">occurs</span><span class="p">):</span>
+    <span class="n">run</span> <span class="n">dynamics</span> <span class="k">for</span> <span class="n">t_correlate</span> <span class="n">steps</span>
+    <span class="n">quench</span>
+    <span class="n">check</span> <span class="k">for</span> <span class="n">correlated</span> <span class="n">event</span> <span class="n">on</span> <span class="n">this</span> <span class="n">replica</span>
+  <span class="n">event</span> <span class="n">replica</span> <span class="n">shares</span> <span class="n">state</span> <span class="k">with</span> <span class="nb">all</span> <span class="n">replicas</span>
+</pre></div>
+</div>
+<p>Before this loop begins, the state of the system on replica 0 is
+shared with all replicas, so that all replicas begin from the same
+initial state. The first potential energy basin is identified by
+quenching (an energy minimization, see below) the initial state and
+storing the resulting coordinates for reference.</p>
+<p>In the first stage, dephasing is performed by each replica
+independently to eliminate correlations between replicas.  This is
+done by choosing a random set of velocities, based on the
+<em>random_seed</em> that is specified, and running <em>t_dephase</em> timesteps of
+dynamics.  This is repeated <em>n_dephase</em> times.  At each of the
+<em>n_dephase</em> stages, if an event occurs during the <em>t_dephase</em> steps of
+dynamics for a particular replica, the replica repeats the stage until
+no event occurs.</p>
+<p>If the <em>temp</em> keyword is not specified, the target temperature for
+velocity randomization for each replica is the current temperature of
+that replica.  Otherwise, it is the specified <em>Tdephase</em> temperature.
+The style of velocity randomization is controlled using the keyword
+<em>vel</em> with arguments that have the same meaning as their counterparts
+in the <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> command.</p>
+<p>In the second stage, each replica runs dynamics continuously, stopping
+every <em>t_event</em> steps to check if a transition event has occurred.
+This check is performed by quenching the system and comparing the
+resulting atom coordinates to the coordinates from the previous basin.
+The first time through the PRD loop, the &#8220;previous basin&#8221; is the set
+of quenched coordinates from the initial state of the system.</p>
+<p>A quench is an energy minimization and is performed by whichever
+algorithm has been defined by the <a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a> command.
+Minimization parameters may be set via the
+<a class="reference internal" href="min_modify.html"><span class="doc">min_modify</span></a> command and by the <em>min</em> keyword of the
+PRD command.  The latter are the settings that would be used with the
+<a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> command.  Note that typically, you do not
+need to perform a highly-converged minimization to detect a transition
+event.</p>
+<p>The event check is performed by a compute with the specified
+<em>compute-ID</em>.  Currently there is only one compute that works with the
+PRD commmand, which is the <a class="reference internal" href="compute_event_displace.html"><span class="doc">compute event/displace</span></a> command.  Other
+event-checking computes may be added.  <a class="reference internal" href="compute_event_displace.html"><span class="doc">Compute event/displace</span></a> checks whether any atom in
+the compute group has moved further than a specified threshold
+distance.  If so, an &#8220;event&#8221; has occurred.</p>
+<p>In the third stage, the replica on which the event occurred (event
+replica) continues to run dynamics to search for correlated events.
+This is done by running dynamics for <em>t_correlate</em> steps, quenching
+every <em>t_event</em> steps, and checking if another event has occurred.</p>
+<p>The first time no correlated event occurs, the final state of the
+event replica is shared with all replicas, the new basin reference
+coordinates are updated with the quenched state, and the outer loop
+begins again. While the replica event is searching for correlated
+events, all the other replicas also run dynamics and event checking
+with the same schedule, but the final states are always overwritten by
+the state of the event replica.</p>
+<p>The outer loop of the pseudo-code above continues until <em>N</em> steps of
+dynamics have been performed.  Note that <em>N</em> only includes the
+dynamics of stages 2 and 3, not the steps taken during dephasing or
+the minimization iterations of quenching.  The specified <em>N</em> is
+interpreted in one of two ways, depending on the <em>time</em> keyword.  If
+the <em>time</em> value is <em>steps</em>, which is the default, then each replica
+runs for <em>N</em> timesteps.  If the <em>time</em> value is <em>clock</em>, then the
+simulation runs until <em>N</em> aggregate timesteps across all replicas have
+elapsed.  This aggregate time is the &#8220;clock&#8221; time defined below, which
+typically advances nearly M times faster than the timestepping on a
+single replica.</p>
+<hr class="docutils" />
+<p>Four kinds of output can be generated during a PRD run: event
+statistics, thermodynamic output by each replica, dump files, and
+restart files.</p>
+<p>When running with multiple partitions (each of which is a replica in
+this case), the print-out to the screen and master log.lammps file is
+limited to event statistics.  Note that if a PRD run is performed on
+only a single replica then the event statistics will be intermixed
+with the usual thermodynamic output discussed below.</p>
+<p>The quantities printed each time an event occurs are the timestep, CPU
+time, clock, event number, a correlation flag, the number of
+coincident events, and the replica number of the chosen event.</p>
+<p>The timestep is the usual LAMMPS timestep, except that time does not
+advance during dephasing or quenches, but only during dynamics.  Note
+that are two kinds of dynamics in the PRD loop listed above.  The
+first is when all replicas are performing independent dynamics,
+waiting for an event to occur.  The second is when correlated events
+are being searched for and only one replica is running dynamics.</p>
+<p>The CPU time is the total processor time since the start of the PRD
+run.</p>
+<p>The clock is the same as the timestep except that it advances by M
+steps every timestep during the first kind of dynamics when the M
+replicas are running independently.  The clock advances by only 1 step
+per timestep during the second kind of dynamics, since only a single
+replica is checking for a correlated event.  Thus &#8220;clock&#8221; time
+represents the aggregate time (in steps) that effectively elapses
+during a PRD simulation on M replicas.  If most of the PRD run is
+spent in the second stage of the loop above, searching for infrequent
+events, then the clock will advance nearly M times faster than it
+would if a single replica was running.  Note the clock time between
+events will be drawn from p(t).</p>
+<p>The event number is a counter that increments with each event, whether
+it is uncorrelated or correlated.</p>
+<p>The correlation flag will be 0 when an uncorrelated event occurs
+during the second stage of the loop listed above, i.e. when all
+replicas are running independently.  The correlation flag will be 1
+when a correlated event occurs during the third stage of the loop
+listed above, i.e. when only one replica is running dynamics.</p>
+<p>When more than one replica detects an event at the end of the second
+stage, then one of them is chosen at random. The number of coincident
+events is the number of replicas that detected an event. Normally, we
+expect this value to be 1. If it is often greater than 1, then either
+the number of replicas is too large, or <em>t_event</em> is too large.</p>
+<p>The replica number is the ID of the replica (from 0 to M-1) that
+found the event.</p>
+<hr class="docutils" />
+<p>When running on multiple partitions, LAMMPS produces additional log
+files for each partition, e.g. log.lammps.0, log.lammps.1, etc.  For
+the PRD command, these contain the thermodynamic output for each
+replica.  You will see short runs and minimizations corresponding to
+the dynamics and quench operations of the loop listed above.  The
+timestep will be reset aprpopriately depending on whether the
+operation advances time or not.</p>
+<p>After the PRD command completes, timing statistics for the PRD run are
+printed in each replica&#8217;s log file, giving a breakdown of how much CPU
+time was spent in each stage (dephasing, dynamics, quenching, etc).</p>
+<hr class="docutils" />
+<p>Any <a class="reference internal" href="dump.html"><span class="doc">dump files</span></a> defined in the input script, will be
+written to during a PRD run at timesteps corresponding to both
+uncorrelated and correlated events.  This means the the requested dump
+frequency in the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command is ignored.  There will be
+one dump file (per dump command) created for all partitions.</p>
+<p>The atom coordinates of the dump snapshot are those of the minimum
+energy configuration resulting from quenching following a transition
+event.  The timesteps written into the dump files correspond to the
+timestep at which the event occurred and NOT the clock.  A dump
+snapshot corresponding to the initial minimum state used for event
+detection is written to the dump file at the beginning of each PRD
+run.</p>
+<hr class="docutils" />
+<p>If the <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> command is used, a single restart file
+for all the partitions is generated, which allows a PRD run to be
+continued by a new input script in the usual manner.</p>
+<p>The restart file is generated at the end of the loop listed above.  If
+no correlated events are found, this means it contains a snapshot of
+the system at time T + <em>t_correlate</em>, where T is the time at which the
+uncorrelated event occurred.  If correlated events were found, then it
+contains a snapshot of the system at time T + <em>t_correlate</em>, where T
+is the time of the last correlated event.</p>
+<p>The restart frequency specified in the <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> command
+is interpreted differently when performing a PRD run.  It does not
+mean the timestep interval between restart files.  Instead it means an
+event interval for uncorrelated events.  Thus a frequency of 1 means
+write a restart file every time an uncorrelated event occurs.  A
+frequency of 10 means write a restart file every 10th uncorrelated
+event.</p>
+<p>When an input script reads a restart file from a previous PRD run, the
+new script can be run on a different number of replicas or processors.
+However, it is assumed that <em>t_correlate</em> in the new PRD command is
+the same as it was previously.  If not, the calculation of the &#8220;clock&#8221;
+value for the first event in the new run will be slightly off.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
+for more info on packages.</p>
+<p><em>N</em> and <em>t_correlate</em> settings must be integer multiples of
+<em>t_event</em>.</p>
+<p>Runs restarted from restart file written during a PRD run will not
+produce identical results due to changes in the random numbers used
+for dephasing.</p>
+<p>This command cannot be used when any fixes are defined that keep track
+of elapsed time to perform time-dependent operations.  Examples
+include the &#8220;ave&#8221; fixes such as <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>.  Also <a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix dt/reset</span></a> and <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a>.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="compute_event_displace.html"><span class="doc">compute event/displace</span></a>,
+<a class="reference internal" href="min_modify.html"><span class="doc">min_modify</span></a>, <a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a>,
+<a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a>, <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a>,
+<a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a>, <a class="reference internal" href="temper.html"><span class="doc">temper</span></a>, <a class="reference internal" href="neb.html"><span class="doc">neb</span></a>,
+<a class="reference internal" href="tad.html"><span class="doc">tad</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
+geom gaussian, and time = steps.</p>
+<hr class="docutils" />
+<p id="voter"><strong>(Voter)</strong> Voter, Phys Rev B, 57, 13985 (1998).</p>
+<p id="voter2"><strong>(Voter2)</strong> Voter, Montalenti, Germann, Annual Review of Materials
+Research 32, 321 (2002).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

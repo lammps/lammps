@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>temper command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>temper command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="temper-command">
+<span id="index-0"></span><h1>temper command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">temper</span> <span class="n">N</span> <span class="n">M</span> <span class="n">temp</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID</span> <span class="n">seed1</span> <span class="n">seed2</span> <span class="n">index</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>N = total # of timesteps to run</li>
+<li>M = attempt a tempering swap every this many steps</li>
+<li>temp = initial temperature for this ensemble</li>
+<li>fix-ID = ID of the fix that will control temperature during the run</li>
+<li>seed1 = random # seed used to decide on adjacent temperature to partner with</li>
+<li>seed2 = random # seed for Boltzmann factor in Metropolis swap</li>
+<li>index = which temperature (0 to N-1) I am simulating (optional)</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span>temper 100000 100 $t tempfix 0 58728
+temper 40000 100 $t tempfix 0 32285 $w
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Run a parallel tempering or replica exchange simulation using multiple
+replicas (ensembles) of a system.  Two or more replicas must be used.</p>
+<p>Each replica runs on a partition of one or more processors.  Processor
+partitions are defined at run-time using the -partition command-line
+switch; see <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">Section_start 6</span></a> of the
+manual.  Note that if you have MPI installed, you can run a
+multi-replica simulation with more replicas (partitions) than you have
+physical processors, e.g you can run a 10-replica simulation on one or
+two processors.  You will simply not get the performance speed-up you
+would see with one or more physical processors per replica.  See <a class="reference internal" href="Section_howto.html#howto-5"><span class="std std-ref">this section</span></a> of the manual for further
+discussion.</p>
+<p>Each replica&#8217;s temperature is controlled at a different value by a fix
+with <em>fix-ID</em> that controls temperature. Most thermostat fix styles
+(with and without included time integration) are supported. The command
+will print an error message and abort, if the chosen fix is unsupported.
+The desired temperature is specified by <em>temp</em>, which is typically a
+variable previously set in the input script, so that each partition is
+assigned a different temperature.  See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>
+command for more details.  For example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable t world 300.0 310.0 320.0 330.0
+fix myfix all nvt temp $t $t 100.0
+temper 100000 100 $t myfix 3847 58382
+</pre></div>
+</div>
+<p>would define 4 temperatures, and assign one of them to the thermostat
+used by each replica, and to the temper command.</p>
+<p>As the tempering simulation runs for <em>N</em> timesteps, a temperature swap
+between adjacent ensembles will be attempted every <em>M</em> timesteps.  If
+<em>seed1</em> is 0, then the swap attempts will alternate between odd and
+even pairings.  If <em>seed1</em> is non-zero then it is used as a seed in a
+random number generator to randomly choose an odd or even pairing each
+time.  Each attempted swap of temperatures is either accepted or
+rejected based on a Boltzmann-weighted Metropolis criterion which uses
+<em>seed2</em> in the random number generator.</p>
+<p>As a tempering run proceeds, multiple log files and screen output
+files are created, one per replica.  By default these files are named
+log.lammps.M and screen.M where M is the replica number from 0 to N-1,
+with N = # of replicas.  See the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">section on command-line switches</span></a> for info on how to change these
+names.</p>
+<p>The main screen and log file (log.lammps) will list information about
+which temperature is assigned to each replica at each thermodynamic
+output timestep.  E.g. for a simulation with 16 replicas:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Running</span> <span class="n">on</span> <span class="mi">16</span> <span class="n">partitions</span> <span class="n">of</span> <span class="n">processors</span>
+<span class="n">Step</span> <span class="n">T0</span> <span class="n">T1</span> <span class="n">T2</span> <span class="n">T3</span> <span class="n">T4</span> <span class="n">T5</span> <span class="n">T6</span> <span class="n">T7</span> <span class="n">T8</span> <span class="n">T9</span> <span class="n">T10</span> <span class="n">T11</span> <span class="n">T12</span> <span class="n">T13</span> <span class="n">T14</span> <span class="n">T15</span>
+<span class="mi">0</span>    <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">10</span> <span class="mi">11</span> <span class="mi">12</span> <span class="mi">13</span> <span class="mi">14</span> <span class="mi">15</span>
+<span class="mi">500</span>  <span class="mi">1</span> <span class="mi">0</span> <span class="mi">3</span> <span class="mi">2</span> <span class="mi">5</span> <span class="mi">4</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">10</span> <span class="mi">11</span> <span class="mi">12</span> <span class="mi">13</span> <span class="mi">14</span> <span class="mi">15</span>
+<span class="mi">1000</span> <span class="mi">2</span> <span class="mi">0</span> <span class="mi">4</span> <span class="mi">1</span> <span class="mi">5</span> <span class="mi">3</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">10</span> <span class="mi">11</span> <span class="mi">12</span> <span class="mi">14</span> <span class="mi">13</span> <span class="mi">15</span>
+<span class="mi">1500</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mi">0</span> <span class="mi">5</span> <span class="mi">3</span> <span class="mi">6</span> <span class="mi">7</span> <span class="mi">9</span> <span class="mi">8</span> <span class="mi">10</span> <span class="mi">11</span> <span class="mi">12</span> <span class="mi">14</span> <span class="mi">13</span> <span class="mi">15</span>
+<span class="mi">2000</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">3</span> <span class="mi">0</span> <span class="mi">6</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">7</span> <span class="mi">10</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">11</span> <span class="mi">12</span> <span class="mi">14</span> <span class="mi">13</span> <span class="mi">15</span>
+<span class="mi">2500</span> <span class="mi">2</span> <span class="mi">1</span> <span class="mi">3</span> <span class="mi">0</span> <span class="mi">6</span> <span class="mi">4</span> <span class="mi">5</span> <span class="mi">7</span> <span class="mi">11</span> <span class="mi">8</span> <span class="mi">9</span> <span class="mi">10</span> <span class="mi">12</span> <span class="mi">14</span> <span class="mi">13</span> <span class="mi">15</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>The column headings T0 to TN-1 mean which temperature is currently
+assigned to the replica 0 to N-1.  Thus the columns represent replicas
+and the value in each column is its temperature (also numbered 0 to
+N-1).  For example, a 0 in the 4th column (column T3, step 2500) means
+that the 4th replica is assigned temperature 0, i.e. the lowest
+temperature.  You can verify this time sequence of temperature
+assignments for the Nth replica by comparing the Nth column of screen
+output to the thermodynamic data in the corresponding log.lammps.N or
+screen.N files as time proceeds.</p>
+<p>You can have each replica create its own dump file in the following
+manner:</p>
+<pre class="literal-block">
+variable rep world 0 1 2 3 4 5 6 7
+dump 1 all atom 1000 dump.temper.$<em>rep</em>
+</pre>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Each replica&#8217;s dump file will contain a continuous trajectory
+for its atoms where the temperature varies over time as swaps take
+place involving that replica.  If you want a series of dump files,
+each with snapshots (from all replicas) that are all at a single
+temperature, then you will need to post-process the dump files using
+the information from the log.lammps file.  E.g. you could produce one
+dump file with snapshots at 300K (from all replicas), another with
+snapshots at 310K, etc.  Note that these new dump files will not
+contain &#8220;continuous trajectories&#8221; for individual atoms, because two
+successive snapshots (in time) may be from different replicas.</p>
+</div>
+<p>The last argument <em>index</em> in the temper command is optional and is
+used when restarting a tempering run from a set of restart files (one
+for each replica) which had previously swapped to new temperatures.
+The <em>index</em> value (from 0 to N-1, where N is the # of replicas)
+identifies which temperature the replica was simulating on the
+timestep the restart files were written.  Obviously, this argument
+must be a variable so that each partition has the correct value.  Set
+the variable to the <em>N</em> values listed in the log file for the previous
+run for the replica temperatures at that timestep.  For example if the
+log file listed the following for a simulation with 5 replicas:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">500000</span> <span class="mi">2</span> <span class="mi">4</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p>then a setting of</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">w</span> <span class="n">world</span> <span class="mi">2</span> <span class="mi">4</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p>would be used to restart the run with a tempering command like the
+example above with $w as the last argument.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This command can only be used if LAMMPS was built with the REPLICA
+package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
+for more info on packages.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="variable.html"><span class="doc">variable</span></a>, <a class="reference internal" href="prd.html"><span class="doc">prd</span></a>, <a class="reference internal" href="neb.html"><span class="doc">neb</span></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

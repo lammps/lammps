@@ -1,0 +1,471 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style lj/cut/soft command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style lj/cut/soft command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-lj-cut-soft-command">
+<span id="index-0"></span><h1>pair_style lj/cut/soft command</h1>
+</div>
+<div class="section" id="pair-style-lj-cut-soft-omp-command">
+<h1>pair_style lj/cut/soft/omp command</h1>
+</div>
+<div class="section" id="pair-style-lj-cut-coul-cut-soft-command">
+<h1>pair_style lj/cut/coul/cut/soft command</h1>
+</div>
+<div class="section" id="pair-style-lj-cut-coul-cut-soft-omp-command">
+<h1>pair_style lj/cut/coul/cut/soft/omp command</h1>
+</div>
+<div class="section" id="pair-style-lj-cut-coul-long-soft-command">
+<h1>pair_style lj/cut/coul/long/soft command</h1>
+</div>
+<div class="section" id="pair-style-lj-cut-coul-long-soft-omp-command">
+<h1>pair_style lj/cut/coul/long/soft/omp command</h1>
+</div>
+<div class="section" id="pair-style-lj-cut-tip4p-long-soft-command">
+<h1>pair_style lj/cut/tip4p/long/soft command</h1>
+</div>
+<div class="section" id="pair-style-lj-cut-tip4p-long-soft-omp-command">
+<h1>pair_style lj/cut/tip4p/long/soft/omp command</h1>
+</div>
+<div class="section" id="pair-style-lj-charmm-coul-long-soft-command">
+<h1>pair_style lj/charmm/coul/long/soft command</h1>
+</div>
+<div class="section" id="pair-style-lj-charmm-coul-long-soft-omp-command">
+<h1>pair_style lj/charmm/coul/long/soft/omp command</h1>
+</div>
+<div class="section" id="pair-style-coul-cut-soft-command">
+<h1>pair_style coul/cut/soft command</h1>
+</div>
+<div class="section" id="pair-style-coul-cut-soft-omp-command">
+<h1>pair_style coul/cut/soft/omp command</h1>
+</div>
+<div class="section" id="pair-style-coul-long-soft-command">
+<h1>pair_style coul/long/soft command</h1>
+</div>
+<div class="section" id="pair-style-coul-long-soft-omp-command">
+<h1>pair_style coul/long/soft/omp command</h1>
+</div>
+<div class="section" id="pair-style-tip4p-long-soft-command">
+<h1>pair_style tip4p/long/soft command</h1>
+</div>
+<div class="section" id="pair-style-tip4p-long-soft-omp-command">
+<h1>pair_style tip4p/long/soft/omp command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>style = <em>lj/cut/soft</em> or <em>lj/cut/coul/cut/soft</em> or <em>lj/cut/coul/long/soft</em> or <em>lj/cut/tip4p/long/soft</em> or <em>lj/charmm/coul/long/soft</em> or <em>coul/cut/soft</em> or <em>coul/long/soft</em> or <em>tip4p/long/soft</em></li>
+<li>args = list of arguments for a particular style</li>
+</ul>
+<pre class="literal-block">
+<em>lj/cut/soft</em> args = n alpha_lj cutoff
+  n, alpha_LJ = parameters of soft-core potential
+  cutoff = global cutoff for Lennard-Jones interactions (distance units)
+<em>lj/cut/coul/cut/soft</em> args = n alpha_LJ alpha_C cutoff (cutoff2)
+  n, alpha_LJ, alpha_C = parameters of soft-core potential
+  cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
+<em>lj/cut/coul/long/soft</em> args = n alpha_LJ alpha_C cutoff
+  n, alpha_LJ, alpha_C = parameters of the soft-core potential
+  cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
+<em>lj/cut/tip4p/long/soft</em> args = otype htype btype atype qdist n alpha_LJ alpha_C cutoff (cutoff2)
+  otype,htype = atom types for TIP4P O and H
+  btype,atype = bond and angle types for TIP4P waters
+  qdist = distance from O atom to massless charge (distance units)
+  n, alpha_LJ, alpha_C = parameters of the soft-core potential
+  cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+  cutoff2 = global cutoff for Coulombic (optional) (distance units)
+<em>lj/charmm/coul/long/soft</em> args = n alpha_LJ alpha_C inner outer (cutoff)
+  n, alpha_LJ, alpha_C = parameters of the soft-core potential
+  inner, outer = global switching cutoffs for LJ (and Coulombic if only 5 args)
+  cutoff = global cutoff for Coulombic (optional, outer is Coulombic cutoff if only 5 args)
+<em>coul/cut/soft</em> args = n alpha_C cutoff
+  n, alpha_C = parameters of the soft-core potential
+  cutoff = global cutoff for Coulomb interactions (distance units)
+<em>coul/long/soft</em> args = n alpha_C cutoff
+  n, alpha_C = parameters of the soft-core potential
+  cutoff = global cutoff for Coulomb interactions (distance units)
+<em>tip4p/long/soft</em> args = otype htype btype atype qdist n alpha_C cutoff
+  otype,htype = atom types for TIP4P O and H
+  btype,atype = bond and angle types for TIP4P waters
+  qdist = distance from O atom to massless charge (distance units)
+  n, alpha_C = parameters of the soft-core potential
+  cutoff = global cutoff for Coulomb interactions (distance units)
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">9.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
+<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span> <span class="mf">9.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.5</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
+<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span> <span class="mf">9.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.0</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.0</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.8</span>
+<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.8</span> <span class="mf">9.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.155</span> <span class="mf">3.1536</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.155</span> <span class="mf">3.1536</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">8.0</span> <span class="mf">10.0</span>
+<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="mf">9.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span> <span class="mf">0.14</span> <span class="mf">3.1</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mf">1.0</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tip4p</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.8</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>The <em>lj/cut/soft</em> style and substyles compute the 12/6 Lennard-Jones
+and Coulomb potential modified by a soft core, in order to avoid
+singularities during free energy calculations when sites are created
+or anihilated <a class="reference internal" href="#beutler"><span class="std std-ref">(Beutler)</span></a>,</p>
+<img alt="_images/pair_lj_soft.jpg" class="align-center" src="_images/pair_lj_soft.jpg" />
+<p>Coulomb interactions are also damped with a soft core at short
+distance,</p>
+<img alt="_images/pair_coul_soft.jpg" class="align-center" src="_images/pair_coul_soft.jpg" />
+<p>In the Coulomb part C is an energy-conversion constant, q_i and q_j
+are the charges on the 2 atoms, and epsilon is the dielectric constant
+which can be set by the <a class="reference internal" href="dielectric.html"><span class="doc">dielectric</span></a> command.</p>
+<p>The coefficient lambda is an activation parameter. When lambda = 1 the
+pair potentiel is identical to a Lennard-Jones term or a Coulomb term
+or a combination of both. When lambda = 0 the interactions are
+deactivated. The transition between these two extrema is smoothed by a
+soft repulsive core in order to avoid singularities in potential
+energy and forces when sites are created or anihilated and can overlap
+<a class="reference internal" href="#beutler"><span class="std std-ref">(Beutler)</span></a>.</p>
+<p>The paratemers n, alpha_LJ and alpha_C are set in the
+<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> command, before the cutoffs.  Usual
+choices for the exponent are n = 2 or n = 1. For the remaining
+coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
+appropriate choices. Plots of the LJ and Coulomb terms are shown
+below, for lambda ranging from 1 to 0 every 0.1.</p>
+<img alt="_images/lj_soft.jpg" class="align-center" src="_images/lj_soft.jpg" />
+<img alt="_images/coul_soft.jpg" class="align-center" src="_images/coul_soft.jpg" />
+<p>For the <em>lj/cut/coul/cut/soft</em> or <em>lj/cut/coul/long/soft</em> pair styles,
+the following coefficients must be defined for each pair of atoms
+types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples
+above, or in the data file or restart files read by the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+commands, or by mixing as described below:</p>
+<ul class="simple">
+<li>epsilon (energy units)</li>
+<li>sigma (distance units)</li>
+<li>lambda (activation parameter between 0 and 1)</li>
+<li>cutoff1 (distance units)</li>
+<li>cutoff2 (distance units)</li>
+</ul>
+<p>The latter two coefficients are optional.  If not specified, the global
+LJ and Coulombic cutoffs specified in the pair_style command are used.
+If only one cutoff is specified, it is used as the cutoff for both LJ
+and Coulombic interactions for this type pair.  If both coefficients
+are specified, they are used as the LJ and Coulombic cutoffs for this
+type pair.  You cannot specify 2 cutoffs for style <em>lj/cut/soft</em>,
+since it has no Coulombic terms. For the <em>coul/cut/soft</em> and
+<em>coul/long/soft</em> only lambda and the optional cutoff2 are to be
+specified.</p>
+<p>Style <em>lj/cut/tip4p/long/soft</em> implements a soft-core version of the
+TIP4P water model. The usage of this pair style is documented in the
+<a class="reference internal" href="pair_lj.html"><span class="doc">pair_lj</span></a> styles. The soft-core version introduces the
+lambda parameter to the list of arguments, after epsilon and sigma in
+the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command. The paratemers n, alpha_LJ
+and alpha_C are set in the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> command,
+before the cutoffs.</p>
+<p>Style <em>lj/charmm/coul/long/soft</em> implements a soft-core version of the
+CHARMM version of LJ interactions with an additional switching
+function S(r) that ramps the energy and force smoothly to zero between
+an inner and outer cutoff. The usage of this pair style is documented
+in the <a class="reference internal" href="pair_charmm.html"><span class="doc">pair_charmm</span></a> styles. The soft-core version
+introduces the lambda parameter to the list of arguments, after
+epsilon and sigma in the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command (and
+before the optional eps14 and sigma14). The paratemers n,
+alpha_LJ and alpha_C are set in the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a>
+command, before the cutoffs.</p>
+<p>The <em>coul/cut/soft</em>, <em>coul/long/soft</em> and <em>tip4p/long/soft</em> substyles
+are designed to be combined with other pair potentials via the
+<a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid/overlay</span></a> command.  This is because
+they have no repulsive core.  Hence, if used by themselves, there will
+be no repulsion to keep two oppositely charged particles from
+overlapping each other. In this case, if lambda = 1, a singularity may
+occur.  These substyles are suitable to represent charges embedded in
+the Lennard-Jones radius of another site (for example hydrogen atoms
+in several water models).</p>
+<p>NOTES: When using the core-softed Coulomb potentials with long-range
+solvers (<em>coul/long/soft</em>, <em>lj/cut/coul/long/soft</em>, etc.)  in a free
+energy calculation in which sites holding electrostatic charges are
+being created or anihilated (using <a class="reference internal" href="fix_adapt_fep.html"><span class="doc">fix adapt/fep</span></a>
+and <a class="reference internal" href="compute_fep.html"><span class="doc">compute fep</span></a>) it is important to adapt both the
+lambda activation parameter (from 0 to 1, or the reverse) and the
+value of the charge (from 0 to its final value, or the reverse). This
+ensures that long-range electrostatic terms (kspace) are correct. It
+is not necessary to use core-softed Coulomb potentials if the van der
+Waals site is present during the free-energy route, thus avoiding
+overlap of the charges. Examples are provided in the LAMMPS source
+directory tree, under examples/USER/fep.</p>
+<hr class="docutils" />
+<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+KOKKOS, USER-OMP and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, tail correction, restart info</strong>:</p>
+<p>For atom type pairs I,J and I != J, the epsilon and sigma coefficients
+and cutoff distance for this pair style can be mixed.
+The default mix value is <em>geometric</em>.  See the &#8220;pair_modify&#8221; command
+for details.</p>
+<p>These pair styles support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> shift
+option for the energy of the Lennard-Jones portion of the pair
+interaction.</p>
+<p>These pair styles support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> tail
+option for adding a long-range tail correction to the energy and
+pressure for the Lennard-Jones portion of the pair interaction.</p>
+<p>These pair styles write information to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, so pair_style and pair_coeff commands do not need
+to be specified in an input script that reads a restart file.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>To avoid division by zero do not set sigma = 0; use the lambda
+parameter instead to activate/deactivate interactions, or use
+epsilon = 0 and sigma = 1. Alternatively, when sites do not
+interact though the Lennard-Jones term the <em>coul/long/soft</em> or
+similar substyle can be used via the
+<a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid/overlay</span></a> command.</p>
+<hr class="docutils" />
+<p>All of the plain <em>soft</em> pair styles are part of the USER-FEP package.
+The <em>long</em> styles also requires the KSPACE package to be installed.
+They are only enabled if LAMMPS was built with those packages.  See
+the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>, <a class="reference internal" href="fix_adapt.html"><span class="doc">fix adapt</span></a>,
+<a class="reference internal" href="fix_adapt_fep.html"><span class="doc">fix adapt/fep</span></a>, <a class="reference internal" href="compute_fep.html"><span class="doc">compute fep</span></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="beutler"><strong>(Beutler)</strong> Beutler, Mark, van Schaik, Gerber, van Gunsteren, Chem
+Phys Lett, 222, 529 (1994).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

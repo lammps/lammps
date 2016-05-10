@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pair_style line/lj command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>pair_style line/lj command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pair-style-line-lj-command">
+<span id="index-0"></span><h1>pair_style line/lj command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">line</span><span class="o">/</span><span class="n">lj</span> <span class="n">cutoff</span>
+</pre></div>
+</div>
+<p>cutoff = global cutoff for interactions (distance units)</p>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">line</span><span class="o">/</span><span class="n">lj</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">0.8</span> <span class="mf">1.12</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mf">1.0</span> <span class="mf">2.0</span> <span class="mf">1.0</span> <span class="mf">1.5</span> <span class="mf">1.12</span> <span class="mf">5.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Style <em>line/lj</em> treats particles which are line segments as a set of
+small spherical particles that tile the line segment length as
+explained below.  Interactions between two line segments, each with N1
+and N2 spherical particles, are calculated as the pairwise sum of
+N1*N2 Lennard-Jones interactions.  Interactions between a line segment
+with N spherical particles and a point particle are treated as the
+pairwise sum of N Lennard-Jones interactions.  See the <a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut</span></a> doc page for the definition of Lennard-Jones
+interactions.</p>
+<p>The set of non-overlapping spherical sub-particles that represent a
+line segment are generated in the following manner.  Their size is a
+function of the line segment length and the specified sub-particle
+size for that particle type.  If a line segment has a length L and is
+of type I, then the number of spheres N that represent the segment is
+calculated as N = L/sizeI, rounded up to an integer value.  Thus if L
+is not evenly divisibly by sizeI, N is incremented to include one
+extra sphere.  The centers of the spheres are spaced equally along the
+line segment.  Imagine N+1 equally-space points, which include the 2
+end points of the segment.  The sphere centers are halfway between
+each pair of points.</p>
+<p>The LJ interaction between 2 spheres on different line segments (or a
+sphere on a line segment and a point particles) is computed with
+sub-particle epsilon, sigma, and cutoff values that are set by the
+pair_coeff command, as described below.  If the distance bewteen the 2
+spheres is greater than the sub-particle cutoff, there is no
+interaction.  This means that some pairs of sub-particles on 2 line
+segments may interact, but others may not.</p>
+<p>For purposes of creating the neighbor list for pairs of interacting
+line segments or lines/point particles, a regular particle-particle
+cutoff is used, as defined by the <em>cutoff</em> setting above in the
+pair_style command or overridden with an optional argument in the
+pair_coeff command for a type pair as discussed below.  The distance
+between the centers of 2 line segments, or the center of a line
+segment and a point particle, must be less than this distance (plus
+the neighbor skin; see the <a class="reference external" href="neighbor">neighbor</a> command), for the pair
+of particles to be included in the neighbor list.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This means that a too-short value for the <em>cutoff</em> setting can
+exclude a pair of particles from the neighbor list even if pairs of
+their sub-particle spheres would interact, based on the sub-particle
+cutoff specified in the pair_coeff command.  E.g. sub-particles at the
+ends of the line segments that are close to each other.  Which may not
+be what you want, since it means the ends of 2 line segments could
+pass through each other.  It is up to you to specify a <em>cutoff</em>
+setting that is consistent with the length of the line segments you
+are using and the sub-particle cutoff settings.</p>
+</div>
+<p>For style <em>line/lj</em>, the following coefficients must be defined for
+each pair of atom types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command
+as in the examples above, or in the data file or restart files read by
+the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+commands:</p>
+<ul class="simple">
+<li>sizeI (distance units)</li>
+<li>sizeJ (distance units)</li>
+<li>epsilon (energy units)</li>
+<li>sigma (distance units)</li>
+<li>subcutoff (distance units)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The <em>sizeI</em> and <em>sizeJ</em> coefficients are the sub-particle sizes for
+line particles of type I and type J.  They are used to define the N
+sub-particles per segment as described above.  These coefficients are
+actually stored on a per-type basis.  Thus if there are multiple
+pair_coeff commmands that involve type I, as either the first or
+second atom type, you should use consistent values for sizeI or sizeJ
+in all of them.  If you do not do this, the last value specified for
+sizeI will apply to all segments of type I.  If typeI or typeJ refers
+to point particles, the corresponding sizeI or sizeJ is ignored; it
+can be set to 0.0.</p>
+<p>The <em>epsilon</em>, <em>sigma</em>, and <em>subcutoff</em> coefficients are used to
+compute an LJ interactions between a pair of sub-particles on 2 line
+segments (of type I and J), or between a sub particle/point particle
+pair.  As discussed above, the <em>subcutoff</em> and <em>cutoff</em> params are
+different.  The latter is only used for building the neighbor list
+when the distance between centers of two line segments or one segment
+and a point particle is calculated.</p>
+<p>The <em>cutoff</em> coefficient is optional.  If not specified, the global
+cutoff is used.</p>
+<hr class="docutils" />
+<p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
+<p>For atom type pairs I,J and I != J, coeffiecients must be specified.
+No default mixing rules are used.</p>
+<p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>
+shift, table, and tail options.</p>
+<p>This pair style does not write its information to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This style is part of the ASPHERE package.  It is only enabled if
+LAMMPS was built with that package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
+<p>Defining particles to be line segments so they participate in
+line/line or line/particle interactions requires the use the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style line</span></a> command.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>, <a class="reference internal" href="pair_tri_lj.html"><span class="doc">pair_style tri/lj</span></a></p>
+<p><strong>Default:</strong> none</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

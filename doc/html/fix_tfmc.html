@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix tfmc command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix tfmc command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-tfmc-command">
+<span id="index-0"></span><h1>fix tfmc command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">tfmc</span> <span class="n">Delta</span> <span class="n">Temp</span> <span class="n">seed</span> <span class="n">keyword</span> <span class="n">value</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>tfmc = style name of this fix command</li>
+<li>Delta = maximal displacement length (distance units)</li>
+<li>Temp = imposed temperature of the system</li>
+<li>seed = random number seed (positive integer)</li>
+<li>zero or more keyword/arg pairs may be appended</li>
+<li>keyword = <em>com</em> or <em>rot</em></li>
+</ul>
+<pre class="literal-block">
+<em>com</em> args = xflag yflag zflag
+  xflag,yflag,zflag = 0/1 to exclude/include each dimension
+<em>rot</em> args = none
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">tfmc</span> <span class="mf">0.1</span> <span class="mf">1000.0</span> <span class="mi">159345</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">tfmc</span> <span class="mf">0.05</span> <span class="mf">600.0</span> <span class="mi">658943</span> <span class="n">com</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">tfmc</span> <span class="mf">0.1</span> <span class="mf">750.0</span> <span class="mi">387068</span> <span class="n">com</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">rot</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>Perform uniform-acceptance force-bias Monte Carlo (fbMC) simulations,
+using the time-stamped force-bias Monte Carlo (tfMC) algorithm
+described in <a class="reference internal" href="#mees"><span class="std std-ref">(Mees)</span></a> and <a class="reference internal" href="#bal"><span class="std std-ref">(Bal)</span></a>.</p>
+<p>One successful use case of force-bias Monte Carlo methods is that they
+can be used to extend the time scale of atomistic simulations, in
+particular when long time scale relaxation effects must be considered;
+some interesting examples are given in the review by <a class="reference internal" href="#neyts"><span class="std std-ref">(Neyts)</span></a>.
+An example of a typical use case would be the modelling of chemical
+vapour deposition (CVD) processes on a surface, in which impacts by
+gas-phase species can be performed using MD, but subsequent relaxation
+of the surface is too slow to be done using MD only. Using tfMC can
+allow for a much faster relaxation of the surface, so that higher
+fluxes can be used, effectively extending the time scale of the
+simulation. (Such an alternating simulation approach could be set up
+using a <a class="reference internal" href="jump.html"><span class="doc">loop</span></a>.)</p>
+<p>The initial version of tfMC algorithm in <a class="reference internal" href="#mees"><span class="std std-ref">(Mees)</span></a> contained an
+estimation of the effective time scale of such a simulation, but it
+was later shown that the speed-up one can gain from a tfMC simulation
+is system- and process-dependent, ranging from none to several orders
+of magnitude. In general, solid-state processes such as
+(re)crystallisation or growth can be accelerated by up to two or three
+orders of magnitude, whereas diffusion in the liquid phase is not
+accelerated at all. The observed pseudodynamics when using the tfMC
+method is not the actual dynamics one would obtain using MD, but the
+relative importance of processes can match the actual relative
+dynamics of the system quite well, provided <em>Delta</em> is chosen with
+care. Thus, the system&#8217;s equilibrium is reached faster than in MD,
+along a path that is generally roughly similar to a typical MD
+simulation (but not necessarily so). See <a class="reference internal" href="#bal"><span class="std std-ref">(Bal)</span></a> for details.</p>
+<p>Each step, all atoms in the selected group are displaced using the
+stochastic tfMC algorithm, which is designed to sample the canonical
+(NVT) ensemble at the temperature <em>Temp</em>. Although tfMC is a Monte
+Carlo algorithm and thus strictly speaking does not perform time
+integration, it is similar in the sense that it uses the forces on all
+atoms in order to update their positions. Therefore, it is implemented
+as a time integration fix, and no other fixes of this type (such as
+<a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>) should be used at the same time. Because
+velocities do not play a role in this kind of Monte Carlo simulations,
+instantaneous temperatures as calculated by <a class="reference internal" href="compute_temp.html"><span class="doc">temperature computes</span></a> or <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a> have no meaning: the only relevant
+temperature is the sampling temperature <em>Temp</em>.  Similarly, performing
+tfMC simulations does not require setting a <a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a>
+and the <a class="reference internal" href="thermo_style.html"><span class="doc">simulated time</span></a> as calculated by LAMMPS is
+meaningless.</p>
+<p>The critical parameter determining the success of a tfMC simulation is
+<em>Delta</em>, the maximal displacement length of the lightest element in
+the system: the larger it is, the longer the effective time scale of
+the simulation will be (there is an approximately quadratic
+dependence). However, <em>Delta</em> must also be chosen sufficiently small
+in order to comply with detailed balance; in general values between 5
+and 10 % of the nearest neighbor distance are found to be a good
+choice. For a more extensive discussion with specific examples, please
+refer to <a class="reference internal" href="#bal"><span class="std std-ref">(Bal)</span></a>, which also describes how the code calculates
+element-specific maximal displacements from <em>Delta</em>, based on the
+fourth root of their mass.</p>
+<p>Because of the uncorrelated movements of the atoms, the center-of-mass
+of the fix group will not necessarily be stationary, just like its
+orientation. When the <em>com</em> keyword is used, all atom positions will
+be shifted (after every tfMC iteration) in order to fix the position
+of the center-of-mass along the included directions, by setting the
+corresponding flag to 1. The <em>rot</em> keyword does the same for the
+rotational component of the tfMC displacements after every iteration.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">the <em>com</em> and <em>rot</em> keywords should not be used if an external
+force is acting on the specified fix group, along the included
+directions. This can be either a true external force (e.g.  through
+<a class="reference internal" href="fix_wall.html"><span class="doc">fix wall</span></a>) or forces due to the interaction with atoms
+not included in the fix group. This is because in such cases,
+translations or rotations of the fix group could be induced by these
+external forces, and removing them will lead to a violation of
+detailed balance.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options are relevant to this
+fix.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This fix is part of the MC package.  It is only enabled if LAMMPS was
+built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>This fix is not compatible with <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="fix_gcmc.html"><span class="doc">fix gcmc</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default</h2>
+<p>The option default is com = 0 0 0</p>
+<hr class="docutils" />
+<p id="bal"><strong>(Bal)</strong> K. M Bal and E. C. Neyts, J. Chem. Phys. 141, 204104 (2014).</p>
+<p id="mees"><strong>(Mees)</strong> M. J. Mees, G. Pourtois, E. C. Neyts, B. J. Thijsse, and
+A. Stesmans, Phys. Rev. B 85, 134301 (2012).</p>
+<p id="neyts"><strong>(Neyts)</strong> E. C. Neyts and A. Bogaerts, Theor. Chem. Acc. 132, 1320
+(2013).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

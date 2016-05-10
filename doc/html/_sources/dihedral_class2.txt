@@ -41,7 +41,7 @@ is an angle-angle-torsion term, and Ebb13 is a bond-bond-13 term.
 Theta1 and theta2 are equilibrium angles and r1 r2 r3 are equilibrium
 bond lengths.
 
-See :ref:`(Sun) <Sun>` for a description of the COMPASS class2 force field.
+See :ref:`(Sun) <dihedral-Sun>` for a description of the COMPASS class2 force field.
 
 Coefficients for the Ed, Embt, Eebt, Eat, Eaat, and Ebb13 formulas
 must be defined for each dihedral type via the
@@ -186,7 +186,7 @@ Related commands
 ----------
 
 
-.. _Sun:
+.. _dihedral-Sun:
 
 
 

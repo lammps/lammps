@@ -35,7 +35,7 @@ where Ea is the angle term, Ebb is a bond-bond term, and Eba is a
 bond-angle term.  Theta0 is the equilibrium angle and r1 and r2 are
 the equilibrium bond lengths.
 
-See :ref:`(Sun) <Sun>` for a description of the COMPASS class2 force field.
+See :ref:`(Sun) <angle-Sun>` for a description of the COMPASS class2 force field.
 
 Coefficients for the Ea, Ebb, and Eba formulas must be defined for
 each angle type via the :doc:`angle_coeff <angle_coeff>` command as in
@@ -127,7 +127,7 @@ Related commands
 ----------
 
 
-.. _Sun:
+.. _angle-Sun:
 
 
 

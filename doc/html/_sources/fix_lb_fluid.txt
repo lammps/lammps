@@ -109,7 +109,7 @@ functions,
    :align: center
 
 Full details of the lattice-Boltzmann algorithm used can be found in
-:ref:`Mackay et al. <Mackay>`.
+:ref:`Mackay et al. <fluid-Mackay>`.
 
 The fluid is coupled to the MD particles described by *group-ID*
 through a velocity dependent force.  The contribution to the fluid
@@ -150,7 +150,7 @@ using the *setArea* keyword.
 The user also has the option of specifying their own value for the
 force coupling constant, for all the MD particles associated with the
 fix, through the use of the *setGamma* keyword.  This may be useful
-when modelling porous particles.  See :ref:`Mackay et al. <Mackay>` for a
+when modelling porous particles.  See :ref:`Mackay et al. <fluid-Mackay>` for a
 detailed description of the method by which the user can choose an
 appropriate gamma value.
 
@@ -165,7 +165,7 @@ appropriate gamma value.
    particles, after which any of the built-in LAMMPS integrators can be
    used to integrate the particle motion.  However, if the user specifies
    their own value for the force coupling constant, as mentioned in
-   :ref:`Mackay et al. <Mackay>`, the built-in LAMMPS integrators may prove to
+   :ref:`Mackay et al. <fluid-Mackay>`, the built-in LAMMPS integrators may prove to
    be unstable.  Therefore, we have included our own integrators :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`, and :doc:`fix lb/pc <fix_lb_pc>`, to solve for the particle motion in these
    cases.  These integrators should not be used with the
    :doc:`lb/viscous <fix_lb_viscous>` fix, as they add hydrodynamic forces
@@ -266,7 +266,7 @@ N timesteps.
 If the keyword *trilinear* is used, the trilinear stencil is used to
 interpolate the particle nodes onto the fluid mesh.  By default, the
 immersed boundary method, Peskin stencil is used.  Both of these
-interpolation methods are described in :ref:`Mackay et al. <Mackay>`.
+interpolation methods are described in :ref:`Mackay et al. <Mfluid-ackay>`.
 
 If the keyword *D3Q19* is used, the 19 velocity (D3Q19) lattice is
 used by the lattice-Boltzmann algorithm.  By default, the 15 velocity
@@ -306,7 +306,7 @@ screen every N timesteps.
 
 
 For further details, as well as descriptions and results of several
-test runs, see :ref:`Mackay et al. <Mackay>`.  Please include a citation to
+test runs, see :ref:`Mackay et al. <fluid-Mackay>`.  Please include a citation to
 this paper if the lb_fluid fix is used in work contributing to
 published research.
 
@@ -386,7 +386,7 @@ If walls are present, they are assumed to be stationary.
 
 **(Ollila et al.)** Ollila, S.T.T., Denniston, C., Karttunen, M., and Ala-Nissila, T., Fluctuating lattice-Boltzmann model for complex fluids, J. Chem. Phys. 134 (2011) 064902.
 
-.. _Mackay:
+.. _fluid-Mackay:
 
 
 

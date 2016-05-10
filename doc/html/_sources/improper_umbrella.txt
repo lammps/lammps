@@ -41,7 +41,7 @@ If omega0 = 0 the potential term has a minimum for the planar
 structure.  Otherwise it has two minima at +/- omega0, with a barrier
 in between.
 
-See :ref:`(Mayo) <Mayo>` for a description of the DREIDING force field.
+See :ref:`(Mayo) <umbrella-Mayo>` for a description of the DREIDING force field.
 
 The following coefficients must be defined for each improper type via
 the :doc:`improper_coeff <improper_coeff>` command as in the example
@@ -97,7 +97,7 @@ Related commands
 ----------
 
 
-.. _Mayo:
+.. _umbrella-Mayo:
 
 
 

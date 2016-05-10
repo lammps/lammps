@@ -210,7 +210,7 @@ finite difference LB integrator is used.  If <em>LBtype</em> is set equal to
 functions,</p>
 <img alt="_images/fix_lb_fluid_properties.jpg" class="align-center" src="_images/fix_lb_fluid_properties.jpg" />
 <p>Full details of the lattice-Boltzmann algorithm used can be found in
-<a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a>.</p>
+<a class="reference internal" href="#fluid-mackay"><span class="std std-ref">Mackay et al.</span></a>.</p>
 <p>The fluid is coupled to the MD particles described by <em>group-ID</em>
 through a velocity dependent force.  The contribution to the fluid
 force on a given lattice mesh site j due to MD particle alpha is
@@ -242,7 +242,7 @@ using the <em>setArea</em> keyword.</p>
 <p>The user also has the option of specifying their own value for the
 force coupling constant, for all the MD particles associated with the
 fix, through the use of the <em>setGamma</em> keyword.  This may be useful
-when modelling porous particles.  See <a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a> for a
+when modelling porous particles.  See <a class="reference internal" href="#fluid-mackay"><span class="std std-ref">Mackay et al.</span></a> for a
 detailed description of the method by which the user can choose an
 appropriate gamma value.</p>
 <div class="admonition note">
@@ -256,7 +256,7 @@ This fix adds the hydrodynamic force to the total force acting on the
 particles, after which any of the built-in LAMMPS integrators can be
 used to integrate the particle motion.  However, if the user specifies
 their own value for the force coupling constant, as mentioned in
-<a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a>, the built-in LAMMPS integrators may prove to
+<a class="reference internal" href="#fluid-mackay"><span class="std std-ref">Mackay et al.</span></a>, the built-in LAMMPS integrators may prove to
 be unstable.  Therefore, we have included our own integrators <a class="reference internal" href="fix_lb_rigid_pc_sphere.html"><span class="doc">fix lb/rigid/pc/sphere</span></a>, and <a class="reference internal" href="fix_lb_pc.html"><span class="doc">fix lb/pc</span></a>, to solve for the particle motion in these
 cases.  These integrators should not be used with the
 <a class="reference internal" href="fix_lb_viscous.html"><span class="doc">lb/viscous</span></a> fix, as they add hydrodynamic forces
@@ -341,7 +341,7 @@ N timesteps.</p>
 <p>If the keyword <em>trilinear</em> is used, the trilinear stencil is used to
 interpolate the particle nodes onto the fluid mesh.  By default, the
 immersed boundary method, Peskin stencil is used.  Both of these
-interpolation methods are described in <a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a>.</p>
+interpolation methods are described in <span class="xref std std-ref">Mackay et al.</span>.</p>
 <p>If the keyword <em>D3Q19</em> is used, the 19 velocity (D3Q19) lattice is
 used by the lattice-Boltzmann algorithm.  By default, the 15 velocity
 (D3Q15) lattice is used.</p>
@@ -371,7 +371,7 @@ the fluid densities and velocities at each lattice site are printed to the
 screen every N timesteps.</p>
 <hr class="docutils" />
 <p>For further details, as well as descriptions and results of several
-test runs, see <a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a>.  Please include a citation to
+test runs, see <a class="reference internal" href="#fluid-mackay"><span class="std std-ref">Mackay et al.</span></a>.  Please include a citation to
 this paper if the lb_fluid fix is used in work contributing to
 published research.</p>
 </div>
@@ -426,7 +426,7 @@ The D3Q15 lattice is used for the lattice-Boltzmann algorithm.
 If walls are present, they are assumed to be stationary.</p>
 <hr class="docutils" />
 <p id="ollila"><strong>(Ollila et al.)</strong> Ollila, S.T.T., Denniston, C., Karttunen, M., and Ala-Nissila, T., Fluctuating lattice-Boltzmann model for complex fluids, J. Chem. Phys. 134 (2011) 064902.</p>
-<p id="mackay"><strong>(Mackay et al.)</strong> Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.</p>
+<p id="fluid-mackay"><strong>(Mackay et al.)</strong> Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.</p>
 <p id="mackay2"><strong>(Mackay and Denniston)</strong> Mackay, F. E., and Denniston, C., Coupling MD particles to a lattice-Boltzmann fluid through the use of conservative forces, J. Comput. Phys. 237 (2013) 289-298.</p>
 <p id="adhikari"><strong>(Adhikari et al.)</strong> Adhikari, R., Stratford, K.,  Cates, M. E., and Wagner, A. J., Fluctuating lattice Boltzmann, Europhys. Lett. 71 (2005) 473-479.</p>
 </div>

@@ -69,7 +69,7 @@ hydrogen atoms for each donor/acceptor type pair are specified by the
 :doc:`pair_coeff <pair_coeff>` command (see below).
 
 Style *hbond/dreiding/lj* is the original DREIDING potential of
-:ref:`(Mayo) <Mayo>`.  It uses a LJ 12/10 functional for the Donor-Acceptor
+:ref:`(Mayo) <pair-Mayo>`.  It uses a LJ 12/10 functional for the Donor-Acceptor
 interactions. To match the results in the original paper, use n = 4.
 
 Style *hbond/dreiding/morse* is an improved version using a Morse
@@ -266,7 +266,7 @@ Related commands
 ----------
 
 
-.. _Mayo:
+.. _pair-Mayo:
 
 
 

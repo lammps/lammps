@@ -298,6 +298,7 @@ html/compute_rdf.html
 html/compute_reduce.html
 html/compute_slice.html
 html/compute_saed.html
+html/compute_property_atom.html
 html/compute_ackland_atom.html
 html/compute_basal_atom.html
 html/compute_bond_local.html

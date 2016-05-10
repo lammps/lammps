@@ -2139,16 +2139,18 @@ periodic box.  By holding the two regions at different temperatures
 with a :ref:`thermostatting fix <howto_13>`, the energy
 added to the hot region should equal the energy subtracted from the
 cold region and be proportional to the heat flux moving between the
-regions.  See the paper by :ref:`Ikeshoji and Hafskjold <Ikeshoji>` for
-details of this idea.  Note that thermostatting fixes such as :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, and :doc:`fix temp/rescale <fix_temp_rescale>` store the cumulative energy they
+regions.  See the papers by :ref:`Ikeshoji and Hafskjold <howto-Ikeshoji>`
+and :ref:`Wirnsberger et al <howto-Wirnsberger>` for details of this idea.
+Note that thermostatting fixes such as :doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, and :doc:`fix temp/rescale <fix_temp_rescale>` store the cumulative energy they
 add/subtract.
 
-Alternatively, as a second method, the :doc:`fix heat <fix_heat>`
-command can used in place of thermostats on each of two regions to
-add/subtract specified amounts of energy to both regions.  In both
-cases, the resulting temperatures of the two regions can be monitored
-with the "compute temp/region" command and the temperature profile of
-the intermediate region can be monitored with the :doc:`fix ave/spatial <fix_ave_spatial>` and :doc:`compute ke/atom <compute_ke_atom>` commands.
+Alternatively, as a second method, the :doc:`fix heat <fix_heat>` or
+:doc:`fix ehex <fix_ehex>` commands can be used in place of thermostats
+on each of two regions to add/subtract specified amounts of energy to
+both regions.  In both cases, the resulting temperatures of the two
+regions can be monitored with the "compute temp/region" command and
+the temperature profile of the intermediate region can be monitored
+with the :doc:`fix ave/spatial <fix_ave_spatial>` and :doc:`compute ke/atom <compute_ke_atom>` commands.
 
 The third method is to perform a reverse non-equilibrium MD simulation
 using the :doc:`fix thermal/conductivity <fix_thermal_conductivity>`
@@ -3051,12 +3053,19 @@ Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 **(Horn)** Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,
 J Chem Phys, 120, 9665 (2004).
 
-.. _Ikeshoji:
+.. _howto-Ikeshoji:
 
 
 
 **(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
 (1994).
+
+.. _howto-Wirnsberger:
+
+
+
+**(Wirnsberger)** Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104
+(2015).
 
 .. _howto-MacKerell:
 

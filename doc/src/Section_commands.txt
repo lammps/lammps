@@ -507,6 +507,7 @@ g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "drag"_fix_drag.html,
 "dt/reset"_fix_dt_reset.html,
 "efield"_fix_efield.html,
+"ehex"_fix_ehex.html,
 "enforce2d (c)"_fix_enforce2d.html,
 "evaporate"_fix_evaporate.html,
 "external"_fix_external.html,

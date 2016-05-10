@@ -2001,15 +2001,17 @@ periodic box.  By holding the two regions at different temperatures
 with a <a class="reference internal" href="#howto-13"><span class="std std-ref">thermostatting fix</span></a>, the energy
 added to the hot region should equal the energy subtracted from the
 cold region and be proportional to the heat flux moving between the
-regions.  See the paper by <a class="reference internal" href="#ikeshoji"><span class="std std-ref">Ikeshoji and Hafskjold</span></a> for
-details of this idea.  Note that thermostatting fixes such as <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, and <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> store the cumulative energy they
+regions.  See the papers by <a class="reference internal" href="#howto-ikeshoji"><span class="std std-ref">Ikeshoji and Hafskjold</span></a>
+and <a class="reference internal" href="#howto-wirnsberger"><span class="std std-ref">Wirnsberger et al</span></a> for details of this idea.
+Note that thermostatting fixes such as <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, and <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> store the cumulative energy they
 add/subtract.</p>
-<p>Alternatively, as a second method, the <a class="reference internal" href="fix_heat.html"><span class="doc">fix heat</span></a>
-command can used in place of thermostats on each of two regions to
-add/subtract specified amounts of energy to both regions.  In both
-cases, the resulting temperatures of the two regions can be monitored
-with the &#8220;compute temp/region&#8221; command and the temperature profile of
-the intermediate region can be monitored with the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.</p>
+<p>Alternatively, as a second method, the <a class="reference internal" href="fix_heat.html"><span class="doc">fix heat</span></a> or
+<a class="reference internal" href="fix_ehex.html"><span class="doc">fix ehex</span></a> commands can be used in place of thermostats
+on each of two regions to add/subtract specified amounts of energy to
+both regions.  In both cases, the resulting temperatures of the two
+regions can be monitored with the &#8220;compute temp/region&#8221; command and
+the temperature profile of the intermediate region can be monitored
+with the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.</p>
 <p>The third method is to perform a reverse non-equilibrium MD simulation
 using the <a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">fix thermal/conductivity</span></a>
 command which implements the rNEMD algorithm of Muller-Plathe.
@@ -2782,8 +2784,10 @@ too close, which can cause numerical issues.</p>
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).</p>
 <p id="horn"><strong>(Horn)</strong> Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,
 J Chem Phys, 120, 9665 (2004).</p>
-<p id="ikeshoji"><strong>(Ikeshoji)</strong> Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
+<p id="howto-ikeshoji"><strong>(Ikeshoji)</strong> Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
 (1994).</p>
+<p id="howto-wirnsberger"><strong>(Wirnsberger)</strong> Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104
+(2015).</p>
 <p id="howto-mackerell"><strong>(MacKerell)</strong> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).</p>
 <p id="howto-mayo"><strong>(Mayo)</strong> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909

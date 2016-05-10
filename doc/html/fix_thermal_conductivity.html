@@ -153,7 +153,7 @@
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>Use the Muller-Plathe algorithm described in <a class="reference internal" href="fix_viscosity.html#muller-plathe"><span class="std std-ref">this paper</span></a> to exchange kinetic energy between two particles
+<p>Use the Muller-Plathe algorithm described in <a class="reference internal" href="#muller-plathe"><span class="std std-ref">this paper</span></a> to exchange kinetic energy between two particles
 in different regions of the simulation box every N steps.  This
 induces a temperature gradient in the system.  As described below this
 enables the thermal conductivity of a material to be calculated.  This
@@ -202,7 +202,7 @@ swaps is computed by the fix and can be output.  Dividing this
 quantity by time and the cross-sectional area of the simulation box
 yields a heat flux.  The ratio of heat flux to the slope of the
 temperature profile is proportional to the thermal conductivity of the
-fluid, in appropriate units.  See the <a class="reference internal" href="fix_viscosity.html#muller-plathe"><span class="std std-ref">Muller-Plathe paper</span></a> for details.</p>
+fluid, in appropriate units.  See the <a class="reference internal" href="#muller-plathe"><span class="std std-ref">Muller-Plathe paper</span></a> for details.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If your system is periodic in the direction of the heat flux,
@@ -258,7 +258,8 @@ bewteen solvent particles.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>, <a class="reference internal" href="fix_viscosity.html"><span class="doc">fix viscosity</span></a>, <a class="reference internal" href="compute_heat_flux.html"><span class="doc">compute heat/flux</span></a></p>
+<p><a class="reference internal" href="fix_ehex.html"><span class="doc">fix ehex</span></a>, <a class="reference internal" href="fix_heat.html"><span class="doc">fix heat</span></a>,
+<a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>, <a class="reference internal" href="fix_viscosity.html"><span class="doc">fix viscosity</span></a>, <a class="reference internal" href="compute_heat_flux.html"><span class="doc">compute heat/flux</span></a></p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>

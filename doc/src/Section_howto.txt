@@ -1957,19 +1957,20 @@ periodic box.  By holding the two regions at different temperatures
 with a "thermostatting fix"_Section_howto.html#howto_13, the energy
 added to the hot region should equal the energy subtracted from the
 cold region and be proportional to the heat flux moving between the
-regions.  See the paper by "Ikeshoji and Hafskjold"_#Ikeshoji for
-details of this idea.  Note that thermostatting fixes such as "fix
-nvt"_fix_nh.html, "fix langevin"_fix_langevin.html, and "fix
+regions.  See the papers by "Ikeshoji and Hafskjold"_#howto-Ikeshoji
+and "Wirnsberger et al"_#howto-Wirnsberger for details of this idea.
+Note that thermostatting fixes such as "fix nvt"_fix_nh.html, "fix
+langevin"_fix_langevin.html, and "fix
 temp/rescale"_fix_temp_rescale.html store the cumulative energy they
 add/subtract.
 
-Alternatively, as a second method, the "fix heat"_fix_heat.html
-command can used in place of thermostats on each of two regions to
-add/subtract specified amounts of energy to both regions.  In both
-cases, the resulting temperatures of the two regions can be monitored
-with the "compute temp/region" command and the temperature profile of
-the intermediate region can be monitored with the "fix
-ave/spatial"_fix_ave_spatial.html and "compute
+Alternatively, as a second method, the "fix heat"_fix_heat.html or
+"fix ehex"_fix_ehex.html commands can be used in place of thermostats
+on each of two regions to add/subtract specified amounts of energy to
+both regions.  In both cases, the resulting temperatures of the two
+regions can be monitored with the "compute temp/region" command and
+the temperature profile of the intermediate region can be monitored
+with the "fix ave/spatial"_fix_ave_spatial.html and "compute
 ke/atom"_compute_ke_atom.html commands.
 
 The third method is to perform a reverse non-equilibrium MD simulation
@@ -2786,9 +2787,13 @@ Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 [(Horn)] Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,
 J Chem Phys, 120, 9665 (2004).
 
-:link(Ikeshoji)
+:link(howto-Ikeshoji)
 [(Ikeshoji)] Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
 (1994).
+
+:link(howto-Wirnsberger)
+[(Wirnsberger)] Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104
+(2015).
 
 :link(howto-MacKerell)
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,

@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix ehex command &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>fix ehex command</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-ehex-command">
+<span id="index-0"></span><h1>fix ehex command</h1>
+<div class="section" id="syntax">
+<h2>Syntax</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">ehex</span> <span class="n">nevery</span> <span class="n">F</span> <span class="n">keyword</span> <span class="n">value</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>ehex  = style name of this fix command</li>
+<li>nevery = add/subtract heat every this many timesteps</li>
+<li>F = energy flux into the reservoir (energy/time units)</li>
+<li>zero or more keyword/value pairs may be appended to args</li>
+<li>keyword = <em>region</em> or <em>constrain</em> or <em>com</em> or <em>hex</em></li>
+</ul>
+<pre class="literal-block">
+<em>region</em> value = region-ID
+  region-ID = ID of region (reservoir) atoms must be in for added thermostatting force
+<em>constrain</em> value = none
+  apply the constraint algorithm (SHAKE or RATTLE) again at the end of the timestep
+<em>com</em> value = none
+  rescale all sites of a constrained cluster of atom if its COM is in the reservoir
+<em>hex</em> value = none
+  omit the coordinate correction to recover the HEX algorithm
+</pre>
+</div>
+<div class="section" id="examples">
+<h2>Examples</h2>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Lennard-Jones, from examples/in.ehex.lj</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">fnve</span> <span class="nb">all</span> <span class="n">nve</span>
+<span class="c1"># specify regions rhot and rcold</span>
+<span class="o">...</span>
+<span class="n">fix</span> <span class="n">fhot</span> <span class="nb">all</span> <span class="n">ehex</span> <span class="mi">1</span> <span class="mf">0.15</span> <span class="n">region</span> <span class="n">rhot</span>
+<span class="n">fix</span> <span class="n">fcold</span> <span class="nb">all</span> <span class="n">ehex</span> <span class="mi">1</span> <span class="o">-</span><span class="mf">0.15</span> <span class="n">region</span> <span class="n">rcold</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># SPC/E water, from examples/in.ehex.spce</span>
+<span class="n">fix</span> <span class="n">fnve</span> <span class="nb">all</span> <span class="n">nve</span>
+<span class="c1"># specify regions rhot and rcold</span>
+<span class="o">...</span>
+<span class="n">fix</span> <span class="n">fhot</span> <span class="nb">all</span> <span class="n">ehex</span> <span class="mi">1</span> <span class="mf">0.075</span> <span class="n">region</span> <span class="n">rhot</span> <span class="n">constrain</span> <span class="n">com</span>
+<span class="n">fix</span> <span class="n">fcold</span> <span class="nb">all</span> <span class="n">ehex</span> <span class="mi">1</span> <span class="o">-</span><span class="mf">0.075</span> <span class="n">region</span> <span class="n">rcold</span> <span class="n">constrain</span> <span class="n">com</span>
+<span class="n">fix</span> <span class="n">frattle</span> <span class="nb">all</span> <span class="n">rattle</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span> <span class="mi">400</span> <span class="mi">0</span> <span class="n">b</span> <span class="mi">1</span> <span class="n">a</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description</h2>
+<p>This fix implements the asymmetric version of the enhanced heat
+exchange algorithm <a class="reference internal" href="#wirnsberger"><span class="std std-ref">(Wirnsberger)</span></a>. The eHEX algorithm is
+an extension of the heat exchange algorithm <a class="reference internal" href="#ikeshoji"><span class="std std-ref">(Ikeshoji)</span></a> and
+adds an additional coordinate integration to account for higher-order
+truncation terms in the operator splitting.  The original HEX
+algorithm (implemented as <a class="reference internal" href="fix_heat.html"><span class="doc">fix heat</span></a>) is known to
+exhibit a slight energy drift limiting the accessible simulation times
+to a few nanoseconds.  This issue is greatly improved by the new
+algorithm decreasing the energy drift by at least a factor of a
+hundred (LJ and SPC/E water) with little computational overhead.</p>
+<p>In both algorithms (non-translational) kinetic energy is constantly
+swapped between regions (reservoirs) to impose a heat flux onto the
+system.  The equations of motion are therefore modified if a particle
+<em>i</em> is located inside a reservoir</p>
+<img alt="Eqs/fix_ehex01.jpg" class="align-center" src="Eqs/fix_ehex01.jpg" />
+<p>where</p>
+<img alt="Eqs/fix_ehex02.jpg" class="align-center" src="Eqs/fix_ehex02.jpg" />
+<p>We use</p>
+<img alt="Eqs/fix_ehex03.jpg" class="align-center" src="Eqs/fix_ehex03.jpg" />
+<p>to label those parts of the simulation box which are not
+thermostatted.)  The input parameter <em>region-ID</em> of this fix
+corresponds to <em>k</em>.  The energy swap is modelled by introducing an
+additional thermostatting force to the equations of motion, such that
+the time evolution of coordinates and momenta of particle <em>i</em> becomes
+<a class="reference internal" href="#wirnsberger"><span class="std std-ref">(Wirnsberger)</span></a></p>
+<img alt="Eqs/fix_ehex04.jpg" class="align-center" src="Eqs/fix_ehex04.jpg" />
+<p>The thermostatting force is given by</p>
+<img alt="Eqs/fix_ehex05.jpg" class="align-center" src="Eqs/fix_ehex05.jpg" />
+<p>where</p>
+<img alt="Eqs/fix_ehex06.jpg" class="align-center" src="Eqs/fix_ehex06.jpg" />
+<p>is the mass and</p>
+<img alt="Eqs/fix_ehex07.jpg" class="align-center" src="Eqs/fix_ehex07.jpg" />
+<p>maps the particle position to the respective reservoir. The quantity</p>
+<img alt="Eqs/fix_ehex08.jpg" class="align-center" src="Eqs/fix_ehex08.jpg" />
+<p>corresponds to the input parameter <em>F</em>, which is the energy flux into
+the reservoir. Furthermore,</p>
+<img alt="Eqs/fix_ehex09.jpg" class="align-center" src="Eqs/fix_ehex09.jpg" />
+<p>and</p>
+<img alt="Eqs/fix_ehex10.jpg" class="align-center" src="Eqs/fix_ehex10.jpg" />
+<p>denote the non-translational kinetic
+energy and the centre of mass velocity of that reservoir. The
+thermostatting force does not affect the centre of mass velocities of
+the individual reservoirs and the entire simulation box. A derivation
+of the equations and details on the numerical implementation with
+velocity Verlet in LAMMPS can be found in reference
+&#8220;(Wirnsberger)&#8221;#_Wirnsberger.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This fix only integrates the thermostatting force and must be
+combined with another integrator, such as <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, to
+solve the full equations of motion.</p>
+</div>
+<p>This fix is different from a thermostat such as <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>
+or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> in that energy is
+added/subtracted continually.  Thus if there isn&#8217;t another mechanism
+in place to counterbalance this effect, the entire system will heat or
+cool continuously.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If heat is subtracted from the system too aggressively so that
+the group&#8217;s kinetic energy would go to zero, then LAMMPS will halt
+with an error message. Increasing the value of <em>nevery</em> means that
+heat is added/subtracted less frequently but in larger portions.  The
+resulting temperature profile will therefore be the same.</p>
+</div>
+<p>This fix will default to <a class="reference internal" href="fix_heat.html"><span class="doc">fix_heat</span></a> (HEX algorithm) if
+the keyword <em>hex</em> is specified.</p>
+<hr class="docutils" />
+<p><strong>Compatibility with SHAKE and RATTLE (rigid molecules)</strong>:</p>
+<p>This fix is compatible with <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> and <span class="xref doc">fix rattle</span>. If either of these constraining algorithms is
+specified in the input script and the keyword <em>constrain</em> is set, the
+bond distances will be corrected a second time at the end of the
+integration step.  It is recommended to specify the keyword <em>com</em> in
+addition to the keyword <em>constrain</em>. With this option all sites of a
+constrained cluster are rescaled, if its centre of mass is located
+inside the region. Rescaling all sites of a cluster by the same factor
+does not introduce any velocity components along fixed bonds. No
+rescaling takes place if the centre of mass lies outside the region.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You can only use the keyword <em>com</em> along with <em>constrain</em>.</p>
+</div>
+<p>To achieve the highest accuracy it is recommended to use <span class="xref doc">fix rattle</span> with the keywords <em>constrain</em> and <em>com</em> as
+shown in the second example. Only if RATTLE is employed, the velocity
+constraints will be satisfied.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Even if RATTLE is used and the keywords <em>com</em> and <em>constrain</em>
+are both set, the coordinate constraints will not necessarily be
+satisfied up to the target precision. The velocity constraints are
+satisfied as long as all sites of a cluster are rescaled (keyyword
+<em>com</em>) and the cluster does not span adjacent reservoirs. The current
+implementation of the eHEX algorithm introduces a small error in the
+bond distances, which goes to zero with order three in the
+timestep. For example, in a simulation of SPC/E water with a timestep
+of 2 fs the maximum relative error in the bond distances was found to
+be on the order of :c,image(Eqs/fix_ehex07.jpg) for relatively large
+temperature gradients.  A higher precision can be achieved by
+decreasing the timestep.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
+are relevant to this fix.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions</h2>
+<p>This fix is part of the RIGID package.  It is only enabled if LAMMPS
+was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands</h2>
+<p><a class="reference internal" href="fix_heat.html"><span class="doc">fix heat</span></a>, <a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">fix thermal/conductivity</span></a>,
+<a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a>, <a class="reference internal" href="compute_temp_region.html"><span class="doc">compute temp/region</span></a></p>
+<p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="ikeshoji"><strong>(Ikeshoji)</strong> Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).</p>
+<p id="wirnsberger"><strong>(Wirnsberger)</strong> Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143,
+124104 (2015).</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

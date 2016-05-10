@@ -154,6 +154,7 @@ bewteen solvent particles.
 Related commands
 """"""""""""""""
 
+:doc:`fix ehex <fix_ehex>`, :doc:`fix heat <fix_heat>`, 
 :doc:`fix ave/spatial <fix_ave_spatial>`, :doc:`fix viscosity <fix_viscosity>`, :doc:`compute heat/flux <compute_heat_flux>`
 
 Default

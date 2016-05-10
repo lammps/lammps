@@ -185,7 +185,7 @@ for additional tools that can use CHARMM or AMBER to assign force
 field coefficients and convert their output into LAMMPS input.
 
 See "(MacKerell)"_#howto-MacKerell for a description of the CHARMM force
-field.  See "(Cornell)"_#Cornell for a description of the AMBER force
+field.  See "(Cornell)"_#howto-Cornell for a description of the AMBER force
 field.
 
 :link(charmm,http://www.scripps.edu/brooks)
@@ -217,7 +217,7 @@ atoms involved in the bond, angle, or torsion terms. DREIDING has an
 interactions involving a hydrogen atom on very electronegative atoms
 (N, O, F).
 
-See "(Mayo)"_#Mayo for a description of the DREIDING force field
+See "(Mayo)"_#howto-Mayo for a description of the DREIDING force field
 
 These style choices compute force field formulas that are consistent
 with the DREIDING force field.  See each command's
@@ -2778,7 +2778,7 @@ too close, which can cause numerical issues.
 [(Berendsen)] Berendsen, Grigera, Straatsma, J Phys Chem, 91,
 6269-6271 (1987).
 
-:link(Cornell)
+:link(howto-Cornell)
 [(Cornell)] Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).
 
@@ -2794,7 +2794,7 @@ J Chem Phys, 120, 9665 (2004).
 [(MacKerell)] MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
-:link(Mayo)
+:link(howto-Mayo)
 [(Mayo)] Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).
 

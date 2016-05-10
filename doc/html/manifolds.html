@@ -1,0 +1,286 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Description &mdash; LAMMPS documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="stylesheet" href="_static/sphinxcontrib-images/LightBox2/lightbox2/css/lightbox.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="Manual.html" class="icon icon-home"> LAMMPS
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="Manual.html">Docs</a> &raquo;</li>
+      
+    <li>Description</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="http://lammps.sandia.gov">Website</a>
+            <a href="Section_commands.html#comm">Commands</a>
+        
+      </li>
+  </ul>
+  <hr/>
+  
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="description">
+<h1>Description</h1>
+<p>Below is a list of currently supported manifolds, their parameters and a short description of them.
+The parameters listed here are in the same order as they should be passed to the relevant fixes.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="5%" />
+<col width="6%" />
+<col width="43%" />
+<col width="46%" />
+<col width="1%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><em>manifold</em></td>
+<td><em>parameters</em></td>
+<td><em>equation</em></td>
+<td><em>description</em></td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>cylinder</td>
+<td>R</td>
+<td>x^2 + y^2 - R^2 = 0</td>
+<td>Cylinder along z-axis, axis going through (0,0,0)</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>cylinder_dent</td>
+<td>R l a</td>
+<td>x^2 + y^2 - r(z)^2 = 0, r(x) = R if <a href="#id7"><span class="problematic" id="id8">|z|</span></a> &gt; l, r(z) = R - a*(1 + cos(z/l))/2 otherwise</td>
+<td>A cylinder with a dent around z = 0</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>dumbbell</td>
+<td>a A B c</td>
+<td>-( x^2 + y^2 ) * (a^2 - z^2/c^2) * ( 1 + (A*sin(B*z^2))^4) = 0</td>
+<td>A dumbbell</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>ellipsoid</td>
+<td>a  b c</td>
+<td>(x/a)^2 + (y/b)^2 + (z/c)^2 = 0</td>
+<td>An ellipsoid</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>plane</td>
+<td>a b c x0 y0 z0</td>
+<td>a*(x-x0) + b*(y-y0) + c*(z-z0) = 0</td>
+<td>A plane with normal (a,b,c) going through point (x0,y0,z0)</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>plane_wiggle</td>
+<td>a w</td>
+<td>z - a*sin(w*x) = 0</td>
+<td>A plane with a sinusoidal modulation on z along x.</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>sphere</td>
+<td>R</td>
+<td>x^2 + y^2 + z^2 - R^2 = 0</td>
+<td>A sphere of radius R</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>supersphere</td>
+<td>R q</td>
+<td><a href="#id1"><span class="problematic" id="id2">|</span></a>x|^q + <a href="#id3"><span class="problematic" id="id4">|</span></a>y|^q + <a href="#id5"><span class="problematic" id="id6">|</span></a>z|^q - R^q = 0</td>
+<td>A supersphere of hyperradius R</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>spine</td>
+<td>a, A, B, B2, c</td>
+<td>-(x^2 + y^2)*(a^2 - z^2/f(z)^2)*(1 + (A*sin(g(z)*z^2))^4), f(z) = c if z &gt; 0, 1 otherwise; g(z) = B if z &gt; 0, B2 otherwise</td>
+<td>An approximation to a dendtritic spine</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>spine_two</td>
+<td>a, A, B, B2, c</td>
+<td>-(x^2 + y^2)*(a^2 - z^2/f(z)^2)*(1 + (A*sin(g(z)*z^2))^2), f(z) = c if z &gt; 0, 1 otherwise; g(z) = B if z &gt; 0, B2 otherwise</td>
+<td>Another approximation to a dendtritic spine</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>thylakoid</td>
+<td>wB LB lB</td>
+<td>Various, see <a class="reference internal" href="#paquay"><span class="std std-ref">(Paquay)</span></a></td>
+<td>A model grana thylakoid consisting of two block-like compartments connected by a bridge of width wB, length LB and taper length lB</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>torus</td>
+<td>R r</td>
+<td>(R - sqrt( x^2 + y^2 ) )^2 + z^2 - r^2</td>
+<td>A torus with large radius R and small radius r, centered on (0,0,0)</td>
+<td>&nbsp;</td>
+</tr>
+</tbody>
+</table>
+<p id="paquay"><strong>(Paquay)</strong> Paquay and Kusters, Biophys. J., 110, ???, (2016), to be published,
+preprint available at <a class="reference external" href="http://arxiv.org/abs/1411.3019/">arXiv:1411.3019</a>.</p>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013 Sandia Corporation.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/jquery-1.11.0.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2/js/lightbox.min.js"></script>
+      <script type="text/javascript" src="_static/sphinxcontrib-images/LightBox2/lightbox2-customize/jquery-noconflict.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

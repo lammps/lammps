@@ -30,27 +30,22 @@ class FixRattle : public FixShake {
   double **vp;                // array for unconstrained velocities
   double dtfv;                // timestep for velocity update
   int comm_mode;              // mode for communication pack/unpack
-  double derr_max;            // distance error
-  double verr_max;            // velocity error
 
   FixRattle(class LAMMPS *, int, char **);
   ~FixRattle();
   int setmask();
-  virtual void init();
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  virtual void final_integrate();
-  virtual void final_integrate_respa(int,int);
+  void init();
+  void post_force(int);
+  void post_force_respa(int, int, int);
+  void final_integrate();
+  void final_integrate_respa(int,int);
+  void coordinate_constraints_end_of_step();
 
-  virtual void correct_coordinates(int vflag);
-  virtual void correct_velocities();
-  virtual void shake_end_of_step(int vflag);
-
-  virtual double memory_usage();
-  virtual void grow_arrays(int);
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual void reset_dt();
+  double memory_usage();
+  void grow_arrays(int);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
+  void reset_dt();
 
  private:
   void update_v_half_nocons();
@@ -63,7 +58,7 @@ class FixRattle : public FixShake {
   void solve3x3exactly(const double a[][3], const double c[], double l[]);
   void solve2x2exactly(const double a[][2], const double c[], double l[]);
 
-  // debugging methods
+  // debugging methosd
 
   bool check3angle(double ** v, int m, bool checkr, bool checkv);
   bool check2(double **v, int m, bool checkr, bool checkv);
@@ -78,7 +73,6 @@ class FixRattle : public FixShake {
 #endif
 #endif
 
-
 /* ERROR/WARNING messages:
 
 W: Fix rattle should come after all other integration fixes
@@ -88,20 +82,20 @@ atom positions.  Thus it should be the last integration fix specified.
 If not, it will not satisfy the desired constraints as well as it
 otherwise would.
 
-E: Rattle determinant = 0.0
+E: RATTLE determinant = 0.0
 
 The determinant of the matrix being solved for a single cluster
 specified by the fix rattle command is numerically invalid.
 
-E: Rattle failed
+E: RATTLE failed
 
 Certain constraints were not satisfied.
 
-E: Coordinate constraints are not satisfied up to desired tolerance
+E: RATTLE coordinate constraints are not satisfied up to desired tolerance
 
 Self-explanatory.
 
-E: Rattle velocity constraints are not satisfied up to desired tolerance
+E: RATTLE velocity constraints are not satisfied up to desired tolerance
 
 Self-explanatory.
 

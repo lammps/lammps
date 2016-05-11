@@ -35,6 +35,10 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   cvm::log("Please cite Fiorin et al, Mol Phys 2013 in any publication "
            "based on this calculation.\n");
 
+  if (proxy->smp_enabled() == COLVARS_OK) {
+    cvm::log("SMP parallelism is available.\n");
+  }
+
   // set initial default values
 
   // "it_restart" will be set by the input state file, if any;

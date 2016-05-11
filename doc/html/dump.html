@@ -590,17 +590,20 @@ atom velocity and force and atomic charge.</p>
 appropriate distance <a class="reference internal" href="units.html"><span class="doc">units</span></a> (Angstroms, sigma, etc).  Use
 <em>xs</em>, <em>ys</em>, <em>zs</em> if you want the coordinates &#8220;scaled&#8221; to the box size,
 so that each value is 0.0 to 1.0.  If the simulation box is triclinic
-(tilted), then all atom coords will still be between 0.0 and 1.0.  Use
-<em>xu</em>, <em>yu</em>, <em>zu</em> if you want the coordinates &#8220;unwrapped&#8221; by the image
-flags for each atom.  Unwrapped means that if the atom has passed thru
-a periodic boundary one or more times, the value is printed for what
-the coordinate would be if it had not been wrapped back into the
-periodic box.  Note that using <em>xu</em>, <em>yu</em>, <em>zu</em> means that the
-coordinate values may be far outside the box bounds printed with the
-snapshot.  Using <em>xsu</em>, <em>ysu</em>, <em>zsu</em> is similar to using <em>xu</em>, <em>yu</em>, <em>zu</em>,
-except that the unwrapped coordinates are scaled by the box size. Atoms
-that have passed through a periodic boundary will have the corresponding
-cooordinate increased or decreased by 1.0.</p>
+(tilted), then all atom coords will still be between 0.0 and 1.0.
+I.e. actual unscaled (x,y,z) = xs*A + ys*B + zs*C, where (A,B,C) are
+the non-orthogonal vectors of the simulation box edges, as discussed
+in <a class="reference internal" href="Section_howto.html#howto-12"><span class="std std-ref">Section howto 6.12</span></a>.</p>
+<p>Use <em>xu</em>, <em>yu</em>, <em>zu</em> if you want the coordinates &#8220;unwrapped&#8221; by the
+image flags for each atom.  Unwrapped means that if the atom has
+passed thru a periodic boundary one or more times, the value is
+printed for what the coordinate would be if it had not been wrapped
+back into the periodic box.  Note that using <em>xu</em>, <em>yu</em>, <em>zu</em> means
+that the coordinate values may be far outside the box bounds printed
+with the snapshot.  Using <em>xsu</em>, <em>ysu</em>, <em>zsu</em> is similar to using
+<em>xu</em>, <em>yu</em>, <em>zu</em>, except that the unwrapped coordinates are scaled by
+the box size. Atoms that have passed through a periodic boundary will
+have the corresponding cooordinate increased or decreased by 1.0.</p>
 <p>The image flags can be printed directly using the <em>ix</em>, <em>iy</em>, <em>iz</em>
 attributes.  For periodic dimensions, they specify which image of the
 simulation box the atom is considered to be in.  An image of 0 means

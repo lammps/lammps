@@ -319,15 +319,15 @@ void PairTersoff::coeff(int narg, char **arg)
   // clear setflag since coeff() called once with I,J = * *
 
   n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++)
       setflag[i][j] = 0;
 
   // set setflag i,j for type pairs where both are mapped to elements
 
   int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
         count++;

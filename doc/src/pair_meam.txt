@@ -296,7 +296,7 @@ a3 = attrac, astar >= 0 :pre
 
 Most published MEAM parameter sets use the default values attrac=repulse=0. 
 Setting repuls=attrac=delta corresponds to the form used in several 
-recent published MEAM parameter sets, such as "(Vallone)"_#Vallone
+recent published MEAM parameter sets, such as "(Valone)"_#Valone
 
 NOTE: The default form of the erose expression in LAMMPS was corrected
 in March 2009.  The current version is correct, but may show different

@@ -1309,7 +1309,7 @@ to output and the kind of data they operate on and produce:
 "Dump file output"_#dump
 "Fixes that write output files"_#fixoutput
 "Computes that process output quantities"_#computeoutput
-"Fixes that process output quantities"_#fixoutput
+"Fixes that process output quantities"_#fixprocoutput
 "Computes that generate values to output"_#compute
 "Fixes that generate values to output"_#fix
 "Variables that generate values to output"_#variable
@@ -1477,7 +1477,7 @@ info, etc) and stores the values in a local vector or array.  These
 are produced as output values which can be used as input to other
 output commands.
 
-Fixes that process output quantities :h5,link(fixoutput)
+Fixes that process output quantities :h5,link(fixprocoutput)
 
 The "fix vector"_fix_vector.html command can create global vectors as
 output from global scalars as input, accumulating them one element at

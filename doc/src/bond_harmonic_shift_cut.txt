@@ -73,6 +73,6 @@ section for more info on packages.
 
 "bond_coeff"_bond_coeff.html, "delete_bonds"_delete_bonds.html,
 "bond_harmonic"_bond_harmonic.html,
-"bond_harmonicshift"_bond_harmonicshift.html
+"bond_harmonic_shift"_bond_harmonic_shift.html
 
 [Default:] none

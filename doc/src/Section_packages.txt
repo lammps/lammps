@@ -1154,6 +1154,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-LB"_#USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, Tomas Oppelstrup & John Moriarty (LLNL), "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
+"USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surface, Stefan Paquay (Eindhoven U of Technology), "fix manifoldforce"_fix_manifoldforce.html, -, "manifold"_manifold, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
 "USER-OMP"_#USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
 "USER-PHONON"_#USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
@@ -1171,6 +1172,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 :link(atc,http://lammps.sandia.gov/pictures.html#atc)
 :link(cg,http://lammps.sandia.gov/pictures.html#cg)
 :link(eff,http://lammps.sandia.gov/movies.html#eff)
+:link(manifold,http://lammps.sandia.gov/movies.html#manifold)
 :link(sph,http://lammps.sandia.gov/movies.html#sph)
 :link(VMD,http://www.ks.uiuc.edu/Research/vmd)
 
@@ -1568,6 +1570,32 @@ You should contact the author directly if you have specific questions
 about the feature or its coding.
 
 Examples: examples/USER/misc
+
+:line
+
+USER-MANIFOLD package :link(USER-MANIFOLD),h5
+
+Supporting info: 
+ 
+This package contains a dump molfile command which uses molfile
+plugins that are bundled with the
+"VMD"_http://www.ks.uiuc.edu/Research/vmd molecular visualization and
+analysis program, to enable LAMMPS to dump its information in formats
+compatible with various molecular simulation tools.
+
+This package allows LAMMPS to perform MD simulations of particles
+constrained on a manifold (i.e., a 2D subspace of the 3D simulation
+box). It achieves this using the RATTLE constraint algorithm applied
+to single-particle constraint functions g(xi,yi,zi) = 0 and their
+derivative (i.e. the normal of the manifold) n = grad(g).
+
+See this doc page to get started:
+
+"fix manifoldforce"_fix_manifoldforce.html
+
+The person who created this package is Stefan Paquay, at the Eindhoven
+University of Technology (TU/e), The Netherlands (s.paquay at tue.nl).
+Contact him directly if you have questions.
 
 :line
 

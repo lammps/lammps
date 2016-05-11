@@ -52,7 +52,7 @@ Description
 """""""""""
 
 Define a computation that calculates x-ray diffraction intensity as described
-in :ref:`(Coleman) <Coleman>` on a mesh of reciprocal lattice nodes defined 
+in :ref:`(Coleman) <xrd-Coleman>` on a mesh of reciprocal lattice nodes defined 
 by the entire simulation domain (or manually) using a simulated radiation
 of wavelength lambda.
 
@@ -209,7 +209,7 @@ no manual flag, no echo flag.
 ----------
 
 
-.. _Coleman:
+.. _xrd-Coleman:
 
 
 

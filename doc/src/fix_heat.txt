@@ -54,6 +54,11 @@ number of atoms in the group.  Note that since {eflux} has per-time
 units (i.e. it is a flux), this means that a larger value of N will
 add/subtract a larger amount of energy each time the fix is invoked.
 
+NOTE: The heat-exchange (HEX) algorithm implemented by this fix is
+known to exhibit a pronounced energy drift. An improved algorithm
+(eHEX) is available as a "fix ehex"_fix_ehex.html command and might be
+preferable if energy conservation is important.
+
 If {eflux} is specified as an atom-style variable (see below), then
 the variable computes one value per atom.  In this case, each value is
 the energy flux for a single atom, again in units of energy per unit
@@ -118,7 +123,7 @@ minimization"_minimize.html.
 
 [Related commands:]
 
-"compute temp"_compute_temp.html, "compute
+"fix ehex"_fix_ehex.html, "compute temp"_compute_temp.html, "compute
 temp/region"_compute_temp_region.html
 
 [Default:] none

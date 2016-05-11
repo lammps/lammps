@@ -30,7 +30,7 @@ The *fene/expand* bond style uses the potential
    :align: center
 
 to define a finite extensible nonlinear elastic (FENE) potential
-:ref:`(Kremer) <Kremer>`, used for bead-spring polymer models.  The first
+:ref:`(Kremer) <feneexpand-Kremer>`, used for bead-spring polymer models.  The first
 term is attractive, the 2nd Lennard-Jones term is repulsive.
 
 The *fene/expand* bond style is similar to *fene* except that an extra
@@ -99,7 +99,7 @@ Related commands
 ----------
 
 
-.. _Kremer:
+.. _feneexpand-Kremer:
 
 
 

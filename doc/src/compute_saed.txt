@@ -45,7 +45,7 @@ fix saed/vtk 1 1 1 c_2 file Ni_000.saed :pre
 [Description:]
 
 Define a computation that calculates electron diffraction intensity as 
-described in "(Coleman)"_#Coleman on a mesh of reciprocal lattice nodes 
+described in "(Coleman)"_#saed-Coleman on a mesh of reciprocal lattice nodes 
 defined by the entire simulation domain (or manually) using simulated 
 radiation of wavelength lambda. 
 
@@ -169,7 +169,7 @@ The option defaults are Kmax = 1.70, Zone 1 0 0, c 1 1 1, dR_Ewald =
 
 :line
 
-:link(Coleman)
+:link(saed-Coleman)
 [(Coleman)] Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 

@@ -100,7 +100,7 @@ Rc is the cutoff.
 The *lj/class2/coul/cut* and *lj/class2/coul/long* styles add a
 Coulombic term as described for the :doc:`lj/cut <pair_lj>` pair styles.
 
-See :ref:`(Sun) <Sun>` for a description of the COMPASS class2 force field.
+See :ref:`(Sun) <pair-Sun>` for a description of the COMPASS class2 force field.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -211,7 +211,7 @@ Related commands
 ----------
 
 
-.. _Sun:
+.. _pair-Sun:
 
 
 

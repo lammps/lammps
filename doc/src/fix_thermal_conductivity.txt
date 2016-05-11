@@ -145,6 +145,7 @@ bewteen solvent particles.
 
 [Related commands:]
 
+"fix ehex"_fix_ehex.html, "fix heat"_fix_heat.html, 
 "fix ave/spatial"_fix_ave_spatial.html, "fix
 viscosity"_fix_viscosity.html, "compute
 heat/flux"_compute_heat_flux.html

@@ -152,6 +152,10 @@ The ELASTIC_T directory has an example script for computing elastic
 constants at finite temperature, using an Si example.  See the
 ELASTIC_T/in.elastic file for more info.
 
+The HEAT directory has example scripts for heat exchange algorithms
+(e.g. used for establishing a thermal gradient), using two different
+methods.  See the HEAT/README file for more info.
+
 The KAPPA directory has example scripts for computing the thermal
 conductivity (kappa) of a LJ liquid using 4 different methods.  See
 the KAPPA/README file for more info.

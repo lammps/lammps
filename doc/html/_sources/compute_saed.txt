@@ -51,7 +51,7 @@ Description
 """""""""""
 
 Define a computation that calculates electron diffraction intensity as 
-described in :ref:`(Coleman) <Coleman>` on a mesh of reciprocal lattice nodes 
+described in :ref:`(Coleman) <saed-Coleman>` on a mesh of reciprocal lattice nodes 
 defined by the entire simulation domain (or manually) using simulated 
 radiation of wavelength lambda.
 
@@ -184,7 +184,7 @@ The option defaults are Kmax = 1.70, Zone 1 0 0, c 1 1 1, dR_Ewald =
 ----------
 
 
-.. _Coleman:
+.. _saed-Coleman:
 
 
 

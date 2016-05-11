@@ -25,7 +25,7 @@ The {fene/expand} bond style uses the potential
 :c,image(Eqs/bond_fene_expand.jpg)
 
 to define a finite extensible nonlinear elastic (FENE) potential
-"(Kremer)"_#Kremer, used for bead-spring polymer models.  The first
+"(Kremer)"_#feneexpand-Kremer, used for bead-spring polymer models.  The first
 term is attractive, the 2nd Lennard-Jones term is repulsive.
 
 The {fene/expand} bond style is similar to {fene} except that an extra
@@ -88,5 +88,5 @@ style.  LAMMPS will issue a warning it that's not the case.
 
 :line
 
-:link(Kremer)
+:link(feneexpand-Kremer)
 [(Kremer)] Kremer, Grest, J Chem Phys, 92, 5057 (1990).

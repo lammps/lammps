@@ -45,7 +45,7 @@ fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2\[1\] c_2\[2\] mode vector file D
 [Description:]
 
 Define a computation that calculates x-ray diffraction intensity as described
-in "(Coleman)"_#Coleman on a mesh of reciprocal lattice nodes defined 
+in "(Coleman)"_#xrd-Coleman on a mesh of reciprocal lattice nodes defined 
 by the entire simulation domain (or manually) using a simulated radiation
 of wavelength lambda. 
 
@@ -189,7 +189,7 @@ no manual flag, no echo flag.
 
 :line
 
-:link(Coleman)
+:link(xrd-Coleman)
 [(Coleman)] Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
@@ -200,5 +200,3 @@ Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 :link(Peng)
 [(Peng)] Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
 (1996).
-
-

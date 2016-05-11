@@ -31,7 +31,7 @@ The *class2* bond style uses the potential
 
 where r0 is the equilibrium bond distance.
 
-See :ref:`(Sun) <Sun>` for a description of the COMPASS class2 force field.
+See :ref:`(Sun) <bond-Sun>` for a description of the COMPASS class2 force field.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
@@ -89,7 +89,7 @@ Related commands
 ----------
 
 
-.. _Sun:
+.. _bond-Sun:
 
 
 

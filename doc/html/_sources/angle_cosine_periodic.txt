@@ -35,7 +35,7 @@ trigonal center:
 
 where C, B and n are coefficients defined for each angle type.
 
-See :ref:`(Mayo) <Mayo>` for a description of the DREIDING force field
+See :ref:`(Mayo) <cosine-Mayo>` for a description of the DREIDING force field
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above, or in
@@ -96,7 +96,7 @@ Related commands
 ----------
 
 
-.. _Mayo:
+.. _cosine-Mayo:
 
 
 

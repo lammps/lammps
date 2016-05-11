@@ -363,8 +363,8 @@ commands like <a class="reference internal" href="pair_coeff.html"><span class="
 <a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>.  See <a class="reference internal" href="Section_tools.html"><span class="doc">Section_tools</span></a>
 for additional tools that can use CHARMM or AMBER to assign force
 field coefficients and convert their output into LAMMPS input.</p>
-<p>See <a class="reference internal" href="special_bonds.html#mackerell"><span class="std std-ref">(MacKerell)</span></a> for a description of the CHARMM force
-field.  See <a class="reference internal" href="special_bonds.html#cornell"><span class="std std-ref">(Cornell)</span></a> for a description of the AMBER force
+<p>See <a class="reference internal" href="#howto-mackerell"><span class="std std-ref">(MacKerell)</span></a> for a description of the CHARMM force
+field.  See <a class="reference internal" href="#howto-cornell"><span class="std std-ref">(Cornell)</span></a> for a description of the AMBER force
 field.</p>
 <p>These style choices compute force field formulas that are consistent
 with common options in CHARMM or AMBER.  See each command&#8217;s
@@ -389,7 +389,7 @@ atoms involved in the bond, angle, or torsion terms. DREIDING has an
 <a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">explicit hydrogen bond term</span></a> to describe
 interactions involving a hydrogen atom on very electronegative atoms
 (N, O, F).</p>
-<p>See <a class="reference internal" href="special_bonds.html#mayo"><span class="std std-ref">(Mayo)</span></a> for a description of the DREIDING force field</p>
+<p>See <a class="reference internal" href="#howto-mayo"><span class="std std-ref">(Mayo)</span></a> for a description of the DREIDING force field</p>
 <p>These style choices compute force field formulas that are consistent
 with the DREIDING force field.  See each command&#8217;s
 documentation for the formula it computes.</p>
@@ -587,7 +587,7 @@ computations between frozen atoms by using this command:</p>
 <div class="section" id="tip3p-water-model">
 <span id="howto-7"></span><h2>6.7. TIP3P water model</h2>
 <p>The TIP3P water model as implemented in CHARMM
-<a class="reference internal" href="special_bonds.html#mackerell"><span class="std std-ref">(MacKerell)</span></a> specifies a 3-site rigid water molecule with
+<a class="reference internal" href="#howto-mackerell"><span class="std std-ref">(MacKerell)</span></a> specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
 In LAMMPS the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> command can be used to hold
 the two O-H bonds and the H-O-H angle rigid.  A bond style of
@@ -766,7 +766,7 @@ the partial charge assignemnts change:</p>
 <div class="line">H charge = 0.4238</div>
 <div class="line"><br /></div>
 </div>
-<p>See the <a class="reference internal" href="fix_temp_berendsen.html#berendsen"><span class="std std-ref">(Berendsen)</span></a> reference for more details on both
+<p>See the <a class="reference internal" href="#howto-berendsen"><span class="std std-ref">(Berendsen)</span></a> reference for more details on both
 the SPC and SPC/E models.</p>
 <p>Wikipedia also has a nice article on <a class="reference external" href="http://en.wikipedia.org/wiki/Water_model">water models</a>.</p>
 <hr class="docutils" />
@@ -2001,15 +2001,17 @@ periodic box.  By holding the two regions at different temperatures
 with a <a class="reference internal" href="#howto-13"><span class="std std-ref">thermostatting fix</span></a>, the energy
 added to the hot region should equal the energy subtracted from the
 cold region and be proportional to the heat flux moving between the
-regions.  See the paper by <a class="reference internal" href="#ikeshoji"><span class="std std-ref">Ikeshoji and Hafskjold</span></a> for
-details of this idea.  Note that thermostatting fixes such as <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, and <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> store the cumulative energy they
+regions.  See the papers by <a class="reference internal" href="#howto-ikeshoji"><span class="std std-ref">Ikeshoji and Hafskjold</span></a>
+and <a class="reference internal" href="#howto-wirnsberger"><span class="std std-ref">Wirnsberger et al</span></a> for details of this idea.
+Note that thermostatting fixes such as <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, and <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a> store the cumulative energy they
 add/subtract.</p>
-<p>Alternatively, as a second method, the <a class="reference internal" href="fix_heat.html"><span class="doc">fix heat</span></a>
-command can used in place of thermostats on each of two regions to
-add/subtract specified amounts of energy to both regions.  In both
-cases, the resulting temperatures of the two regions can be monitored
-with the &#8220;compute temp/region&#8221; command and the temperature profile of
-the intermediate region can be monitored with the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.</p>
+<p>Alternatively, as a second method, the <a class="reference internal" href="fix_heat.html"><span class="doc">fix heat</span></a> or
+<a class="reference internal" href="fix_ehex.html"><span class="doc">fix ehex</span></a> commands can be used in place of thermostats
+on each of two regions to add/subtract specified amounts of energy to
+both regions.  In both cases, the resulting temperatures of the two
+regions can be monitored with the &#8220;compute temp/region&#8221; command and
+the temperature profile of the intermediate region can be monitored
+with the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.</p>
 <p>The third method is to perform a reverse non-equilibrium MD simulation
 using the <a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">fix thermal/conductivity</span></a>
 command which implements the rNEMD algorithm of Muller-Plathe.
@@ -2731,7 +2733,7 @@ pairs as chunks.</p>
 model, representes induced dipoles by a pair of charges (the core atom
 and the Drude particle) connected by a harmonic spring. The Drude
 model has a number of features aimed at its use in molecular systems
-(<a class="reference internal" href="tutorial_drude.html#lamoureux"><span class="std std-ref">Lamoureux and Roux</span></a>):</p>
+(<a class="reference internal" href="#howto-lamoureux"><span class="std std-ref">Lamoureux and Roux</span></a>):</p>
 <ul class="simple">
 <li>Thermostating of the additional degrees of freedom associated with the
 induced dipoles at very low temperature, in terms of the reduced
@@ -2776,17 +2778,19 @@ using Thole functions through the the <a class="reference internal" href="pair_t
 with a Coulomb pair style. It may be useful to use <em>coul/long/cs</em> or
 similar from the CORESHELL package if the core and Drude particle come
 too close, which can cause numerical issues.</p>
-<p id="berendsen"><strong>(Berendsen)</strong> Berendsen, Grigera, Straatsma, J Phys Chem, 91,
+<p id="howto-berendsen"><strong>(Berendsen)</strong> Berendsen, Grigera, Straatsma, J Phys Chem, 91,
 6269-6271 (1987).</p>
-<p id="cornell"><strong>(Cornell)</strong> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+<p id="howto-cornell"><strong>(Cornell)</strong> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
 Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).</p>
 <p id="horn"><strong>(Horn)</strong> Horn, Swope, Pitera, Madura, Dick, Hura, and Head-Gordon,
 J Chem Phys, 120, 9665 (2004).</p>
-<p id="ikeshoji"><strong>(Ikeshoji)</strong> Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
+<p id="howto-ikeshoji"><strong>(Ikeshoji)</strong> Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
 (1994).</p>
-<p id="mackerell"><strong>(MacKerell)</strong> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+<p id="howto-wirnsberger"><strong>(Wirnsberger)</strong> Wirnsberger, Frenkel, and Dellago, J Chem Phys, 143, 124104
+(2015).</p>
+<p id="howto-mackerell"><strong>(MacKerell)</strong> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).</p>
-<p id="mayo"><strong>(Mayo)</strong> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+<p id="howto-mayo"><strong>(Mayo)</strong> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
 (1990).</p>
 <p id="jorgensen"><strong>(Jorgensen)</strong> Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).</p>
@@ -2794,7 +2798,7 @@ Phys, 79, 926 (1983).</p>
 <p id="shinoda"><strong>(Shinoda)</strong> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).</p>
 <p id="mitchellfinchham"><strong>(Mitchell and Finchham)</strong> Mitchell, Finchham, J Phys Condensed Matter,
 5, 1031-1038 (1993).</p>
-<p id="lamoureux"><strong>(Lamoureux and Roux)</strong> G. Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)</p>
+<p id="howto-lamoureux"><strong>(Lamoureux and Roux)</strong> G. Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)</p>
 </div>
 </div>
 

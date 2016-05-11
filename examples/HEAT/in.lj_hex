@@ -1,0 +1,132 @@
+###############################################################################
+#
+#
+#  This input script is a modified version of the example script lj_hex.lmp
+#  which is part of the supplementary (open access) material of the paper
+# 
+#  P. Wirnsberger, D. Frenkel and C. Dellago, 
+#  "An enhanced version of the heat exchange algorithm with excellent energy 
+#  conservation properties", J. Chem. Phys. 143, 124104 (2015).
+#
+#  The full article is available on arXiv: http://arxiv.org/pdf/1507.07081.
+#
+#
+#  Description: 
+#  ------------
+# 
+#  This file is a LAMMPS input script for carrying out a NEMD simulation of
+#  Lennard-Jones using the HEX/a algorithm. The run produces two files:
+#  "out.Tlj_hex" contains the temperature profile and "out.Elj_hex" the time
+#  evolution of the total energy.
+#
+###############################################################################
+
+log                 log.lj_hex
+
+# heat flux
+variable J          equal 0.15 	        		
+
+# timestep
+variable dt         equal 0.007				
+
+# cutoff radius for shifted LJ-potential
+variable rc         equal 3.0
+
+# simulation time for the production run
+variable tprod      equal 5000
+
+# total number of timesteps
+variable Nprod      equal floor(${tprod}/${dt})
+
+# equilibrated steady state configuration 
+read_data           "data.lj"   
+
+# use LJ shifted force pair style
+pair_style      lj/sf ${rc}
+
+# with coefficients eps = 1, sigma = 1, and rc = 3.0
+pair_coeff      1 1 1.0 1.0 ${rc}
+
+# increase neigbor skin because of the large timestep
+neighbor  0.8 bin
+
+# options used for fix ave/time; sample the quantities every 10 steps
+variable    Nsamp    equal 10
+variable    Nrepeat  equal floor(${Nprod}/${Nsamp})
+variable    Nevery   equal ${Nsamp}*${Nrepeat}
+
+# box dimensions
+variable Lz  equal zhi-zlo
+variable Lx  equal xhi-xlo
+variable Ly  equal yhi-ylo
+
+# reservoir width in z-direction
+variable delta     equal 2.
+
+# specify z-extents of both reservoirs
+variable zlo_Thi   equal -${Lz}/4.-${delta}/2.
+variable zhi_Thi   equal ${zlo_Thi}+${delta}
+variable zlo_Tlo   equal ${zlo_Thi}+${Lz}/2.
+variable zhi_Tlo   equal ${zlo_Tlo}+${delta}
+
+# resolution for fix ave/spatial
+variable dz        equal ${Lz}/60
+
+# compute per-atom kinetic energy and temperature, respectively
+# NOTE: In this example we ignored the centre of mass (com) velocities
+#       of the individual bins for simplicity. However, we took that 
+#       into account for the publication.
+compute        ke        all   ke/atom
+variable       T         atom  c_ke/1.5
+
+# specify the reservoirs 
+region         Thi_region     block  INF INF INF INF  ${zlo_Thi} ${zhi_Thi}
+region         Tlo_region     block  INF INF INF INF  ${zlo_Tlo} ${zhi_Tlo}
+
+# compute the temperature of the individual region
+compute        cTlo  all temp/region Tlo_region
+compute        cThi  all temp/region Thi_region
+
+# calculate the energy flux from the specified heat flux
+variable       F  equal  ${J}*${Lx}*${Ly}*2.
+
+# use fix ehex to create the gradient
+# hot reservoir
+fix            fHi all ehex 1 +${F} region Thi_region  hex
+
+# cold reservoir
+fix            fLo all ehex 1 -${F} region Tlo_region  hex
+
+# use velocity Verlet for integration
+fix            fNVEGrad  all   nve
+
+# calculate the centre of mass velocity of the entire box (vcmx, vcmy, vcmz)
+variable vcmx equal "vcm(all,x)"
+variable vcmy equal "vcm(all,y)"
+variable vcmz equal "vcm(all,z)"
+variable vcm2 equal v_vcmx*v_vcmx+v_vcmy*v_vcmy+v_vcmz*v_vcmz
+
+# specify the timestep
+timestep  ${dt}
+
+# frequency for console output
+thermo    10000
+
+# print timestep, temperature, total energy and v_com^2 to console
+thermo_style   custom step temp etotal v_vcm2
+
+# calculate spatial average of temperature
+compute	       cchT  all  chunk/atom bin/1d z lower ${dz}
+fix            fchT  all  ave/chunk  ${Nsamp} ${Nrepeat} ${Nevery} cchT v_T file out.Tlj_hex
+
+# compute the total energy
+compute   cKe all ke
+compute   cPe all pe
+variable  E   equal c_cKe+c_cPe
+
+# track the time evolution of the total energy
+fix       fE  all ave/time ${Nsamp} 1000 10000 v_E file out.Elj_hex
+
+# production run
+run            ${Nprod}
+

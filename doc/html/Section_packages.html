@@ -127,18 +127,19 @@
 <li class="toctree-l3"><a class="reference internal" href="#user-lb-package">4.2.13. USER-LB package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#user-mgpt-package">4.2.14. USER-MGPT package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#user-misc-package">4.2.15. USER-MISC package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-molfile-package">4.2.16. USER-MOLFILE package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-omp-package">4.2.17. USER-OMP package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-phonon-package">4.2.18. USER-PHONON package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-qmmm-package">4.2.19. USER-QMMM package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-qtb-package">4.2.20. USER-QTB package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-quip-package">4.2.21. USER-QUIP package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-reaxc-package">4.2.22. USER-REAXC package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-smd-package">4.2.23. USER-SMD package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-smtbq-package">4.2.24. USER-SMTBQ package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-sph-package">4.2.25. USER-SPH package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-tally-package">4.2.26. USER-TALLY package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-vtk-package">4.2.27. USER-VTK package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-manifold-package">4.2.16. USER-MANIFOLD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-molfile-package">4.2.17. USER-MOLFILE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-omp-package">4.2.18. USER-OMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-phonon-package">4.2.19. USER-PHONON package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-qmmm-package">4.2.20. USER-QMMM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-qtb-package">4.2.21. USER-QTB package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-quip-package">4.2.22. USER-QUIP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-reaxc-package">4.2.23. USER-REAXC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-smd-package">4.2.24. USER-SMD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-smtbq-package">4.2.25. USER-SMTBQ package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-sph-package">4.2.26. USER-SPH package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-tally-package">4.2.27. USER-TALLY package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-vtk-package">4.2.28. USER-VTK package</a></li>
 </ul>
 </li>
 </ul>
@@ -1555,12 +1556,12 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <p>The current list of user-contributed packages is as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="18%" />
+<col width="17%" />
 <col width="19%" />
-<col width="20%" />
-<col width="23%" />
+<col width="19%" />
+<col width="22%" />
 <col width="7%" />
-<col width="9%" />
+<col width="10%" />
 <col width="5%" />
 </colgroup>
 <tbody valign="top">
@@ -1764,7 +1765,21 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#user-molfile"><span class="std std-ref">USER-MOLFILE</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#user-manifold"><span class="std std-ref">USER-MANIFOLD</span></a></td>
+<td>motion on 2d surface</td>
+<td>Stefan Paquay (Eindhoven U of Technology)</td>
+<td><a class="reference internal" href="fix_manifoldforce.html"><span class="doc">fix manifoldforce</span></a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td><a class="reference external" href="http://lammps.sandia.gov/movies.html#manifold">manifold</a></td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#user-molfile"><span class="std std-ref">USER-MOLFILE</span></a></td>
 <td><a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molfile plug-ins</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a></td>
@@ -1778,7 +1793,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </td>
 <td>VMD-MOLFILE</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#user-omp"><span class="std std-ref">USER-OMP</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#user-omp"><span class="std std-ref">USER-OMP</span></a></td>
 <td>OpenMP threaded styles</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="accelerate_omp.html"><span class="doc">Section accelerate</span></a></td>
@@ -1795,7 +1810,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#user-phonon"><span class="std std-ref">USER-PHONON</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#user-phonon"><span class="std std-ref">USER-PHONON</span></a></td>
 <td>phonon dynamical matrix</td>
 <td>Ling-Ti Kong (Shanghai Jiao Tong U)</td>
 <td><a class="reference internal" href="fix_phonon.html"><span class="doc">fix phonon</span></a></td>
@@ -1809,7 +1824,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#user-qmmm"><span class="std std-ref">USER-QMMM</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#user-qmmm"><span class="std std-ref">USER-QMMM</span></a></td>
 <td>QM/MM coupling</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><a class="reference internal" href="fix_qmmm.html"><span class="doc">fix qmmm</span></a></td>
@@ -1820,7 +1835,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </td>
 <td>lib/qmmm</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#user-qtb"><span class="std std-ref">USER-QTB</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#user-qtb"><span class="std std-ref">USER-QTB</span></a></td>
 <td>quantum nuclear effects</td>
 <td>Yuan Shen (Stanford)</td>
 <td><a class="reference internal" href="fix_qtb.html"><span class="doc">fix qtb</span></a> <a class="reference internal" href="fix_qbmsst.html"><span class="doc">fix qbmsst</span></a></td>
@@ -1834,7 +1849,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#user-quip"><span class="std std-ref">USER-QUIP</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#user-quip"><span class="std std-ref">USER-QUIP</span></a></td>
 <td>QUIP/libatoms interface</td>
 <td>Albert Bartok-Partay (U Cambridge)</td>
 <td><a class="reference internal" href="pair_quip.html"><span class="doc">pair_style quip</span></a></td>
@@ -1845,7 +1860,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </td>
 <td>lib/quip</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#user-reaxc"><span class="std std-ref">USER-REAXC</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#user-reaxc"><span class="std std-ref">USER-REAXC</span></a></td>
 <td>C version of ReaxFF</td>
 <td>Metin Aktulga (LBNL)</td>
 <td><a class="reference internal" href="pair_reax_c.html"><span class="doc">pair_style reaxc</span></a></td>
@@ -1859,7 +1874,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#user-smd"><span class="std std-ref">USER-SMD</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#user-smd"><span class="std std-ref">USER-SMD</span></a></td>
 <td>smoothed Mach dynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -1873,7 +1888,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#user-smtbq"><span class="std std-ref">USER-SMTBQ</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#user-smtbq"><span class="std std-ref">USER-SMTBQ</span></a></td>
 <td>Second Moment Tight Binding - QEq potential</td>
 <td>Salles &amp; Maras &amp; Politano &amp; Tetot (4)</td>
 <td><a class="reference internal" href="pair_smtbq.html"><span class="doc">pair_style smtbq</span></a></td>
@@ -1887,7 +1902,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#user-sph"><span class="std std-ref">USER-SPH</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#user-sph"><span class="std std-ref">USER-SPH</span></a></td>
 <td>smoothed particle hydrodynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
 <td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
@@ -1898,7 +1913,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="#user-tally"><span class="std std-ref">USER-TALLY</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#user-tally"><span class="std std-ref">USER-TALLY</span></a></td>
 <td>Pairwise tallied computes</td>
 <td>Axel Kohlmeyer (Temple U)</td>
 <td><span class="xref doc">compute</span></td>
@@ -1912,7 +1927,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="#user-vtk"><span class="std std-ref">USER-VTK</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="#user-vtk"><span class="std std-ref">USER-VTK</span></a></td>
 <td>VTK-style dumps</td>
 <td>Berger and Queteschiner (6)</td>
 <td><span class="xref doc">compute custom/vtk</span></td>
@@ -1926,7 +1941,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </td>
 <td>lib/vtk</td>
 </tr>
-<tr class="row-odd"><td>&nbsp;</td>
+<tr class="row-even"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
@@ -2245,8 +2260,28 @@ about the feature or its coding.</p>
 <p>Examples: examples/USER/misc</p>
 <hr class="docutils" />
 </div>
+<div class="section" id="user-manifold-package">
+<span id="user-manifold"></span><h3>4.2.16. USER-MANIFOLD package</h3>
+<p>Supporting info:</p>
+<p>This package contains a dump molfile command which uses molfile
+plugins that are bundled with the
+<a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a> molecular visualization and
+analysis program, to enable LAMMPS to dump its information in formats
+compatible with various molecular simulation tools.</p>
+<p>This package allows LAMMPS to perform MD simulations of particles
+constrained on a manifold (i.e., a 2D subspace of the 3D simulation
+box). It achieves this using the RATTLE constraint algorithm applied
+to single-particle constraint functions g(xi,yi,zi) = 0 and their
+derivative (i.e. the normal of the manifold) n = grad(g).</p>
+<p>See this doc page to get started:</p>
+<p><a class="reference internal" href="fix_manifoldforce.html"><span class="doc">fix manifoldforce</span></a></p>
+<p>The person who created this package is Stefan Paquay, at the Eindhoven
+University of Technology (TU/e), The Netherlands (s.paquay at tue.nl).
+Contact him directly if you have questions.</p>
+<hr class="docutils" />
+</div>
 <div class="section" id="user-molfile-package">
-<span id="user-molfile"></span><h3>4.2.16. USER-MOLFILE package</h3>
+<span id="user-molfile"></span><h3>4.2.17. USER-MOLFILE package</h3>
 <p>Supporting info:</p>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
@@ -2266,7 +2301,7 @@ application itself.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-omp-package">
-<span id="user-omp"></span><h3>4.2.17. USER-OMP package</h3>
+<span id="user-omp"></span><h3>4.2.18. USER-OMP package</h3>
 <p>Supporting info:</p>
 <p>This package provides OpenMP multi-threading support and
 other optimizations of various LAMMPS pair styles, dihedral
@@ -2285,7 +2320,7 @@ settings for CCFLAGS and LINKFLAGS.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-phonon-package">
-<span id="user-phonon"></span><h3>4.2.18. USER-PHONON package</h3>
+<span id="user-phonon"></span><h3>4.2.19. USER-PHONON package</h3>
 <p>This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.</p>
@@ -2298,7 +2333,7 @@ if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-qmmm-package">
-<span id="user-qmmm"></span><h3>4.2.19. USER-QMMM package</h3>
+<span id="user-qmmm"></span><h3>4.2.20. USER-QMMM package</h3>
 <p>Supporting info:</p>
 <p>This package provides a fix qmmm command which allows LAMMPS to be
 used in a QM/MM simulation, currently only in combination with pw.x
@@ -2316,7 +2351,7 @@ without changes to LAMMPS itself.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-qtb-package">
-<span id="user-qtb"></span><h3>4.2.20. USER-QTB package</h3>
+<span id="user-qtb"></span><h3>4.2.21. USER-QTB package</h3>
 <p>Supporting info:</p>
 <p>This package provides a self-consistent quantum treatment of the
 vibrational modes in a classical molecular dynamics simulation.  By
@@ -2340,13 +2375,13 @@ have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-quip-package">
-<span id="user-quip"></span><h3>4.2.21. USER-QUIP package</h3>
+<span id="user-quip"></span><h3>4.2.22. USER-QUIP package</h3>
 <p>Supporting info:</p>
 <p>Examples: examples/USER/quip</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-reaxc-package">
-<span id="user-reaxc"></span><h3>4.2.22. USER-REAXC package</h3>
+<span id="user-reaxc"></span><h3>4.2.23. USER-REAXC package</h3>
 <p>Supporting info:</p>
 <p>This package contains a implementation for LAMMPS of the ReaxFF force
 field.  ReaxFF uses distance-dependent bond-order functions to
@@ -2376,7 +2411,7 @@ questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-smd-package">
-<span id="user-smd"></span><h3>4.2.23. USER-SMD package</h3>
+<span id="user-smd"></span><h3>4.2.24. USER-SMD package</h3>
 <p>Supporting info:</p>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
@@ -2390,7 +2425,7 @@ strength models, i.e. pressure and deviatoric stresses are separated.</li>
 hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new
 material models.</li>
 <li>Rigid boundary conditions (walls) can be loaded as surface geometries
-from <a href="#id7"><span class="problematic" id="id8">*</span></a>.STL files.</li>
+from <a href="#id8"><span class="problematic" id="id9">*</span></a>.STL files.</li>
 </ul>
 <p>See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.</p>
 <p>There are example scripts for using this package in examples/USER/smd.</p>
@@ -2402,7 +2437,7 @@ you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-smtbq-package">
-<span id="user-smtbq"></span><h3>4.2.24. USER-SMTBQ package</h3>
+<span id="user-smtbq"></span><h3>4.2.25. USER-SMTBQ package</h3>
 <p>Supporting info:</p>
 <p>This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
 potential for the description of ionocovalent bonds in oxides.</p>
@@ -2418,7 +2453,7 @@ them directly if you have any questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-sph-package">
-<span id="user-sph"></span><h3>4.2.25. USER-SPH package</h3>
+<span id="user-sph"></span><h3>4.2.26. USER-SPH package</h3>
 <p>Supporting info:</p>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
@@ -2442,13 +2477,13 @@ you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-tally-package">
-<span id="user-tally"></span><h3>4.2.26. USER-TALLY package</h3>
+<span id="user-tally"></span><h3>4.2.27. USER-TALLY package</h3>
 <p>Supporting info:</p>
 <p>Examples: examples/USER/tally</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-vtk-package">
-<span id="user-vtk"></span><h3>4.2.27. USER-VTK package</h3>
+<span id="user-vtk"></span><h3>4.2.28. USER-VTK package</h3>
 </div>
 </div>
 </div>

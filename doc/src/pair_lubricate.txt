@@ -192,7 +192,7 @@ This pair style can only be used via the {pair} keyword of the
 
 These styles are part of the COLLOID package.  They are only enabled
 if LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_2_3 section for more info.
 
 Only spherical monodisperse particles are allowed for pair_style
 lubricate.

@@ -81,6 +81,6 @@ section for more info on packages.
 [Related commands:]
 
 "dihedral_coeff"_dihedral_coeff.html,
-"angle_cosineshiftexp"_angle_cosineshiftexp.html
+"angle_cosine_shift_exp"_angle_cosine_shift_exp.html
 
 [Default:] none

@@ -144,7 +144,7 @@ thermo_style custom step temp epair v_occ :pre
 
 The {gauss/cut} style is part of the "user-misc" package. It is only
 enabled if LAMMPS is build with that package. See the "Making of
-LAMMPS"_Section_start.html#3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

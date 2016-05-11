@@ -94,7 +94,7 @@ the "mass"_mass.html command to specify them.  Note that for BOP
 potentials with hydrogen, you will likely want to set the mass of H
 atoms to be 10x or 20x larger to avoid having to use a tiny timestep.
 You can do this by using the "mass"_mass.html command after using the
-"pair_coeff"_doc/pair_coeff.html command to read the BOP potential
+"pair_coeff"_pair_coeff.html command to read the BOP potential
 file.
 
 One option can be specified as a keyword with the pair_style command.
@@ -392,15 +392,15 @@ non-tabulated potential file, a_0 is non-zero.
 
 :line
 
-:link(Pettofor_1)
+:link(Pettifor_1)
 [(Pettifor_1)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487 
 (1999).
 
-:link(Pettofor_2)
+:link(Pettifor_2)
 [(Pettifor_2)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84, 
 4124 (2000).
 
-:link(Pettofor_3)
+:link(Pettifor_3)
 [(Pettifor_3)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103 
 (2002).
 

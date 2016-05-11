@@ -70,6 +70,6 @@ section for more info on packages.
 [Related commands:]
 
 "angle_coeff"_angle_coeff.html,
-"angle_cosineshiftexp"_angle_cosineshiftexp.html
+"angle_cosine_shift_exp"_angle_cosine_shift_exp.html
 
 [Default:] none

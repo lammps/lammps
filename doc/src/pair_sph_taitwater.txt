@@ -74,6 +74,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Monoghan)
+:link(Monaghan)
 [(Monaghan)] Monaghan and Gingold, Journal of Computational Physics,
 52, 374-389 (1983).

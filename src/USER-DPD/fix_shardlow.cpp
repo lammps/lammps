@@ -105,10 +105,6 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
 
   if(pairDPD == NULL && pairDPDE == NULL)
     error->all(FLERR,"Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow");
-  
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"nve") == 0 || strcmp(modify->fix[i]->style,"nph") == 0)
-      error->all(FLERR,"A deterministic integrator must be specified after fix shardlow in input file (e.g. fix nve or fix nph).");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,9 +128,20 @@ void FixShardlow::init_list(int id, NeighList *ptr)
 
 void FixShardlow::setup(int vflag)
 {
+  bool fixShardlow = false;
+
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"nvt") == 0 || strcmp(modify->fix[i]->style,"npt") == 0)
       error->all(FLERR,"Cannot use constant temperature integration routines with DPD.");
+
+  for (int i = 0; i < modify->nfix; i++){
+    if (strcmp(modify->fix[i]->style,"shardlow") == 0) fixShardlow = true;
+    if (strcmp(modify->fix[i]->style,"nve") == 0 || (strcmp(modify->fix[i]->style,"nph") == 0)){
+      if(fixShardlow) break;
+      else error->all(FLERR,"The deterministic integrator must follow fix shardlow in the input file.");
+    }
+    if (i == modify->nfix-1) error->all(FLERR,"A deterministic integrator (e.g. fix nve or fix nph) is required when using fix shardlow.");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

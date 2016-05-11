@@ -116,6 +116,8 @@ void FixEOStable::init()
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
+	if(dpdTheta[i] <= double(0.0)) 
+	  error->one(FLERR,"Internal temperature <= zero");
 	energy_lookup(dpdTheta[i],tmp);
 	uCond[i] = tmp / double(2.0);
 	uMech[i] = tmp / double(2.0);
@@ -137,7 +139,7 @@ void FixEOStable::post_integrate()
     if (mask[i] & groupbit){
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
       if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature < zero");
+	error->one(FLERR,"Internal temperature <= zero");
     }
 }
 
@@ -155,7 +157,7 @@ void FixEOStable::end_of_step()
     if (mask[i] & groupbit){
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
       if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature < zero");
+	error->one(FLERR,"Internal temperature <= zero");
     }
 }
 

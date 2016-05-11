@@ -31,7 +31,7 @@ done
 pushd "${LAMMPS_PATH}"
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
-    README LICENSE doc src lib python txt2html lammps.book \
+    README LICENSE doc src lib python \
     examples/{README,ASPHERE,KAPPA,MC,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,deposit,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,balance,snap,USER/{atc,awpmd,misc,phonon,cg-cmm,sph,fep}} \
     bench potentials tools/*.cpp tools/*.f tools/mingw-cross tools/msi2lmp tools/createatoms tools/colvars \
     | tar -C ${MINGW_BUILD_DIR} -xvf -

@@ -36,7 +36,7 @@ clean:
 
 html: $(OBJECTS)
 	@(\
-		source $(VENV)/bin/activate ;\
+		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build -j 8 -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		deactivate ;\
@@ -55,7 +55,7 @@ txt2html:
 $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
-		source $(VENV)/bin/activate ;\
+		. $(VENV)/bin/activate ;\
 		txt2rst $< > $@ ;\
 		deactivate ;\
 	)
@@ -63,7 +63,7 @@ $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 $(VENV):
 	@( \
 		virtualenv -p $(PYTHON) $(VENV); \
-		source $(VENV)/bin/activate; \
+		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
 		pip install sphinxcontrib-images; \
 		deactivate;\
@@ -71,9 +71,8 @@ $(VENV):
 
 $(TXT2RST): $(VENV)
 	@( \
-		source $(VENV)/bin/activate; \
-		pushd utils/converters;\
-		python setup.py develop;\
-		popd;\
+		. $(VENV)/bin/activate; \
+		(cd utils/converters;\
+		python setup.py develop);\
 		deactivate;\
 	)

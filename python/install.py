@@ -2,16 +2,18 @@
 
 # copy LAMMPS src/liblammps.so and lammps.py to system dirs
 
+from __future__ import print_function
+
 instructions = """
 Syntax: python install.py [-h] [pydir]
         pydir = target dir for lammps.py and liblammps.so
                 default = Python site-packages dir
 """
 
-import sys,os,commands
+import sys,os,shutil
 
 if (len(sys.argv) > 1 and sys.argv[1] == "-h") or len(sys.argv) > 2:
-  print instructions
+  print(instructions)
   sys.exit()
 
 if len(sys.argv) == 2: pydir = sys.argv[1]
@@ -22,18 +24,24 @@ else: pydir = ""
 
 if pydir:
   if not os.path.isdir(pydir):
-    print "ERROR: pydir %s does not exist" % pydir
+    print( "ERROR: pydir %s does not exist" % pydir)
     sys.exit()
   str = "cp ../python/lammps.py %s" % pydir
-  print str
-  outstr = commands.getoutput(str)
-  if len(outstr.strip()): print outstr
+  print(str)
+  try:
+    shutil.copyfile("../python/lammps.py", os.path.join(pydir,'lammps.py') )
+  except shutil.Error:
+    pass # source and destination are identical
+
   str = "cp ../src/liblammps.so %s" % pydir
-  print str
-  outstr = commands.getoutput(str)
+  print(str)
+  try:
+     shutil.copyfile("../src/liblammps.so", os.path.join(pydir,"liblammps.so") )
+  except shutil.Error:
+    pass # source and destination are identical
   sys.exit()
   
-print "installing lammps.py in Python site-packages dir"
+print("installing lammps.py in Python site-packages dir")
 
 os.chdir('../python')                # in case invoked via make in src dir
 
@@ -60,7 +68,7 @@ try:
         data_files = [(get_python_lib(), ["../src/liblammps.so"])])
 except:
   tryuser=True
-  print "Installation into global site-packages dir failed.\nTrying user site dir %s now." % site.USER_SITE
+  print ("Installation into global site-packages dir failed.\nTrying user site dir %s now." % site.USER_SITE)
 
 
 if tryuser:
@@ -75,7 +83,7 @@ if tryuser:
     py_modules = ["lammps"],
     data_files = [(site.USER_SITE, ["../src/liblammps.so"])])
   except: 
-    print "Installation into user site package dir failed.\nGo to ../python and install manually."
+    print("Installation into user site package dir failed.\nGo to ../python and install manually.")
 
 
 

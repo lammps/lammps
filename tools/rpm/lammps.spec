@@ -1,17 +1,20 @@
-# verified on Fedora 19     / x86_64 / 2015-10-16
-# verified on Fedora 19     / i386   / 2015-10-16
-# verified on Fedora 20     / x86_64 / 2015-10-16
-# verified on Fedora 20     / i386   / 2015-10-16
-# verified on Fedora 21     / x86_64 / 2015-10-16
-# verified on Fedora 22     / x86_64 / 2015-10-16
-# verified on Fedora 23     / x86_64 / 2015-10-16
-# verified on CentOS 6.6    / x86_64 / 2015-10-16
-# verified on CentOS 6.6    / i386   / 2015-10-16
-# verified on CentOS 7.0    / x86_64 / 2015-10-16
-# verified on OpenSuSE 12.3 / x86_64 / 2015-10-16
-# verified on OpenSuSE 12.3 / i586   / 2015-10-16
-# verified on OpenSuSE 13.1 / x86_64 / 2015-10-16
-# verified on OpenSuSE 13.1 / i586   / 2015-10-16
+# verified on Fedora 19     / x86_64 / 2016-05-11
+# verified on Fedora 19     / i386   / 2016-05-11
+# verified on Fedora 20     / x86_64 / 2016-05-11
+# verified on Fedora 20     / i386   / 2016-05-11
+# verified on Fedora 21     / x86_64 / 2016-05-11
+# verified on Fedora 22     / x86_64 / 2016-05-11
+# verified on Fedora 23     / x86_64 / 2016-05-11
+# verified on Fedora 24     / x86_64 / 2016-05-11
+# verified on CentOS 6.6    / x86_64 / 2016-05-11
+# verified on CentOS 6.6    / i386   / 2016-05-11
+# verified on CentOS 7.0    / x86_64 / 2016-05-11
+# verified on OpenSuSE 12.3 / x86_64 / 2016-05-11
+# verified on OpenSuSE 12.3 / i586   / 2016-05-11
+# verified on OpenSuSE 13.1 / x86_64 / 2016-05-11
+# verified on OpenSuSE 13.1 / i586   / 2016-05-11
+# verified on OpenSuSE 13.2 / x86_64 / 2016-05-11
+# verified on OpenSuSE 42.1 / x86_64 / 2016-05-11
 
 %ifnarch s390 s390x
 %global with_openmpi 1
@@ -43,8 +46,8 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 Name:           lammps
-Version:        20151016
-Release:        12%{?dist}
+Version:        20160511
+Release:        14%{?dist}
 Summary:        LAMMPS Molecular Dynamics Simulator
 Group:          Applications/Engineering
 
@@ -368,7 +371,7 @@ rm -rf %{buildroot}
 %{_datadir}/lammps/bench
 %{_datadir}/lammps/examples
 %doc doc/Manual.pdf
-%doc doc/PDF/*.pdf
+%doc doc/src/PDF/*.pdf
 
 %if %{with_openmpi}
 %files openmpi
@@ -402,6 +405,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Wed May 11 2016 Axel Kohlmeyer <akohlmey@gmail.com> - 20160511-14
+- Update for new documentation tree. addition of Fedora 24
+
 * Fri Oct 16 2015 Axel Kohlmeyer <akohlmey@gmail.com> - 20151016-12
 - Update for removal of Fedora 17/18 and addition of Fedora 23
 

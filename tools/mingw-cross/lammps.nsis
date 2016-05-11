@@ -99,7 +99,7 @@ Section "${LAMMPS}"
 
   SetOutPath "$INSTDIR\Doc"
   File /oname=LAMMPS-Manual.pdf  lammps-current/doc/Manual.pdf
-  File /oname=Colvars-Manual.pdf lammps-current/doc/PDF/colvars-refman-lammps.pdf
+  File /oname=Colvars-Manual.pdf lammps-current/doc/src/PDF/colvars-refman-lammps.pdf
   File /oname=CreateAtoms-Manual.pdf  lammps-current/tools/createatoms/Manual.pdf
 
   SetOutPath "$INSTDIR\Potentials"

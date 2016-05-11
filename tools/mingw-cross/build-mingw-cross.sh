@@ -145,10 +145,7 @@ do  mv -v $f $f.txt; done
 
 # create up-to-date version of the manual
 pushd lammps-current
-make -C txt2html
-./txt2html/txt2html -b doc/*.txt
-htmldoc --batch lammps.book
-mv lammps.pdf doc/Manual.pdf || exit 5
+make -C src pdf
 popd
 
 # build installers

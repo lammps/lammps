@@ -43,7 +43,7 @@ cp -pv tools/rpm/lammps.sh ${MYRPM_BUILD_DIR}/SOURCES/
 cp -pv tools/rpm/lammps.csh ${MYRPM_BUILD_DIR}/SOURCES/
 
 git archive -v --format=tar --prefix=lammps-current/ HEAD \
-    README LICENSE doc/Manual.pdf doc/PDF src lib python  \
+    README LICENSE doc/Manual.pdf doc/src/PDF src lib python  \
     examples/{README,ASPHERE,KAPPA,MC,VISCOSITY,dipole,peri,hugoniostat,colloid,crack,friction,msst,obstacle,body,sputter,pour,ELASTIC,neb,ellipse,flow,meam,min,indent,deposit,micelle,shear,srd,dreiding,eim,prd,rigid,COUPLE,peptide,melt,comb,tad,reax,balance,snap,USER/{awpmd,misc,phonon,cg-cmm,fep}} \
     bench potentials tools/*.cpp tools/*.f tools/msi2lmp tools/xmgrace tools/createatoms tools/colvars \
     | gzip -9c - > "${MYRPM_BUILD_DIR}/SOURCES/lammps-current.tar.gz"

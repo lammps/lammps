@@ -586,9 +586,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
         cos321 = MAX(cos321,-1.0);
         Sp2(cos321,thmin,thmax,dcut321);
         sin321 = sqrt(1.0 - cos321*cos321);
-        sink2i = 1.0/(sin321*sin321);
-        rik2i = 1.0/(r21mag*r21mag);
-        if (sin321 != 0.0) {
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          sink2i = 1.0/(sin321*sin321);
+          rik2i = 1.0/(r21mag*r21mag);
           rr = (r23mag*r23mag)-(r21mag*r21mag);
           rjk[0] = r21[0]-r23[0];
           rjk[1] = r21[1]-r23[1];
@@ -623,10 +623,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
               cos234 = MIN(cos234,1.0);
               cos234 = MAX(cos234,-1.0);
               sin234 = sqrt(1.0 - cos234*cos234);
-              sinl2i = 1.0/(sin234*sin234);
-              rjl2i = 1.0/(r34mag*r34mag);
 
-              if (sin234 != 0.0) {
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                sinl2i = 1.0/(sin234*sin234);
+                rjl2i = 1.0/(r34mag*r34mag);
                 w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
                 rr = (r23mag*r23mag)-(r34mag*r34mag);
                 ril[0] = r23[0]+r34[0];
@@ -657,7 +657,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
                 cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
                 om1234 = cwnum/cwnom;
                 cw = om1234;
-                Etmp += ((1.0-(om1234*om1234))*w21*w34) *
+                Etmp += ((1.0-square(om1234))*w21*w34) *
                   (1.0-tspjik)*(1.0-tspijl);
 
                 dt1dik = (rik2i)-(dctik*sink2i*cos321);
@@ -684,7 +684,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
                 aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                   (1.0-tspjik)*(1.0-tspijl);
-                aaa1 = -prefactor*(1.0-(om1234*om1234)) *
+                aaa1 = -prefactor*(1.0-square(om1234)) *
                   (1.0-tspjik)*(1.0-tspijl);
                 aaa2 = aaa1*w21*w34;
                 at2 = aa*cwnum;
@@ -1027,8 +1027,8 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-      Etmp = Etmp+(wjl*g*exp(lamdaijl));
-      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl));
+      Etmp += (wjl*g*exp(lamdaijl));
+      tmp3 += (wjl*dgdN*exp(lamdaijl));
       NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
     }
   }
@@ -1119,7 +1119,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
                                 (crosskij[1]*crossijl[1]) +
                                 (crosskij[2]*crossijl[2])) /
                                (crosskijmag*crossijlmag));
-                Etmp += ((1.0-(omkijl*omkijl))*wik*wjl) *
+                Etmp += ((1.0-square(omkijl))*wik*wjl) *
                   (1.0-tspjik)*(1.0-tspijl);
               }
             }
@@ -1514,10 +1514,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
           cos321 = MIN(cos321,1.0);
           cos321 = MAX(cos321,-1.0);
           sin321 = sqrt(1.0 - cos321*cos321);
-          sink2i = 1.0/(sin321*sin321);
-          rik2i = 1.0/(r21mag*r21mag);
 
-          if (sin321 != 0.0) {
+          if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+            sink2i = 1.0/(sin321*sin321);
+            rik2i = 1.0/(r21mag*r21mag);
             rr = (rijmag*rijmag)-(r21mag*r21mag);
             rjk[0] = r21[0]-rij[0];
             rjk[1] = r21[1]-rij[1];
@@ -1551,10 +1551,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
                 cos234 = MIN(cos234,1.0);
                 cos234 = MAX(cos234,-1.0);
                 sin234 = sqrt(1.0 - cos234*cos234);
-                sinl2i = 1.0/(sin234*sin234);
-                rjl2i = 1.0/(r34mag*r34mag);
 
-                if (sin234 != 0.0) {
+                if ((sin234 > TOL) && (r34mag > TOL)) { // XXX was sin234 != 0.0
+                  sinl2i = 1.0/(sin234*sin234);
+                  rjl2i = 1.0/(r34mag*r34mag);
                   w34 = Sp(r34mag,rcmin[jtype][ltype],
                            rcmaxp[jtype][ltype],dw34);
                   rr = (r23mag*r23mag)-(r34mag*r34mag);
@@ -1586,7 +1586,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
                   cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
                   om1234 = cwnum/cwnom;
                   cw = om1234;
-                  Etmp += ((1.0-(om1234*om1234))*w21*w34) *
+                  Etmp += ((1.0-square(om1234))*w21*w34) *
                     (1.0-tspjik)*(1.0-tspijl);
 
                   dt1dik = (rik2i)-(dctik*sink2i*cos321);
@@ -1616,7 +1616,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 
                   aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                     (1.0-tspjik)*(1.0-tspijl);
-                  aaa1 = -prefactor*(1.0-(om1234*om1234)) *
+                  aaa1 = -prefactor*(1.0-square(om1234)) *
                     (1.0-tspjik)*(1.0-tspijl);
                   aaa2 = aaa1*w21*w34;
                   at2 = aa*cwnum;

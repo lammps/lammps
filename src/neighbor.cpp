@@ -108,6 +108,11 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   len_ssa_airnum = 0;
   ssa_airnum = NULL;
+  maxbin_ssa = 0;
+  bins_ssa = NULL;
+  binhead_ssa = NULL;
+  gbinhead_ssa = NULL;
+  maxhead_ssa = 0;
 
   // pair exclusion list info
 

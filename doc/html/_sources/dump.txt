@@ -542,17 +542,21 @@ There are several options for outputting atom coordinates.  The *x*\ ,
 appropriate distance :doc:`units <units>` (Angstroms, sigma, etc).  Use
 *xs*\ , *ys*\ , *zs* if you want the coordinates "scaled" to the box size,
 so that each value is 0.0 to 1.0.  If the simulation box is triclinic
-(tilted), then all atom coords will still be between 0.0 and 1.0.  Use
-*xu*\ , *yu*\ , *zu* if you want the coordinates "unwrapped" by the image
-flags for each atom.  Unwrapped means that if the atom has passed thru
-a periodic boundary one or more times, the value is printed for what
-the coordinate would be if it had not been wrapped back into the
-periodic box.  Note that using *xu*\ , *yu*\ , *zu* means that the
-coordinate values may be far outside the box bounds printed with the
-snapshot.  Using *xsu*\ , *ysu*\ , *zsu* is similar to using *xu*\ , *yu*\ , *zu*\ ,
-except that the unwrapped coordinates are scaled by the box size. Atoms
-that have passed through a periodic boundary will have the corresponding
-cooordinate increased or decreased by 1.0.
+(tilted), then all atom coords will still be between 0.0 and 1.0.
+I.e. actual unscaled (x,y,z) = xs*A + ys*B + zs*C, where (A,B,C) are
+the non-orthogonal vectors of the simulation box edges, as discussed
+in :ref:`Section howto 6.12 <howto_12>`.
+
+Use *xu*\ , *yu*\ , *zu* if you want the coordinates "unwrapped" by the
+image flags for each atom.  Unwrapped means that if the atom has
+passed thru a periodic boundary one or more times, the value is
+printed for what the coordinate would be if it had not been wrapped
+back into the periodic box.  Note that using *xu*\ , *yu*\ , *zu* means
+that the coordinate values may be far outside the box bounds printed
+with the snapshot.  Using *xsu*\ , *ysu*\ , *zsu* is similar to using
+*xu*\ , *yu*\ , *zu*\ , except that the unwrapped coordinates are scaled by
+the box size. Atoms that have passed through a periodic boundary will
+have the corresponding cooordinate increased or decreased by 1.0.
 
 The image flags can be printed directly using the *ix*\ , *iy*\ , *iz*
 attributes.  For periodic dimensions, they specify which image of the

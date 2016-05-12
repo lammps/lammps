@@ -255,6 +255,11 @@ void PairDPDfdtEnergy::init_style()
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"shardlow") == 0)
       neighbor->requests[irequest]->ssa = 1;
+
+  bool eos_flag = false;
+  for (int i = 0; i < modify->nfix; i++)
+    if (strncmp(modify->fix[i]->style,"eos",3) == 0) eos_flag = true;
+  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS to be specified");  
 }
 
 /* ----------------------------------------------------------------------

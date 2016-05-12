@@ -92,7 +92,7 @@ more instructions on how to use the accelerated styles effectively.
 [Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the
-USER-MISC package.  See the "Making LAMMPS"_Section_start.html#2_3
+USER-MISC package.  See the "Making LAMMPS"_Section_start.html#start_2_3
 section for more info on packages.
 
 NOTE: In the "Angles" section of the data file, the atom ID 'j'

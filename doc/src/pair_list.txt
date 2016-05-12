@@ -131,7 +131,7 @@ with the nearest image.
 
 This style is part of the USER-MISC package. It is only enabled if
 LAMMPS is build with that package. See the "Making of
-LAMMPS"_Section_start.html#3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

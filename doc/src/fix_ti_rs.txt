@@ -31,7 +31,7 @@ fix vf vacancy ti/rs 10.0 70000 50000 function 2 :pre
 This fix allows you to compute the free energy temperature dependence
 by performing a thermodynamic integration procedure known as
 Reversible Scaling "(de Koning99,"_#deKoning99 "de
-Koning00a)"_#deKoning00a". The thermodynamic integration is performed
+Koning00a)"_#deKoning00a. The thermodynamic integration is performed
 using the nonequilibrium method of Adiabatic Switching
 "(Watanabe,"_#Watanabe "de Koning96)"_#deKoning96.
 

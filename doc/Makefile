@@ -29,33 +29,40 @@ help:
 	@echo "  clean-all  to reset the entire build environment"
 
 clean-all:
-	rm -rf $(BUILDDIR)/*
+	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
 	rm -rf $(RSTDIR)
 
+txt2html: utils/txt2html/txt2html.exe
+
 html: $(OBJECTS)
 	@(\
-		source $(VENV)/bin/activate ;\
+		. $(VENV)/bin/activate ;\
 		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build -j 8 -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		deactivate ;\
 	)	
 	@echo "Build finished. The HTML pages are in doc/html."
 
-pdf:
-	cd src; ../utils/txt2html/txt2html -b *.txt
-	cd src; htmldoc --title --toctitle "Table of Contents" --tocfooter ..i --toclevels 4 --header ... --footer ..1 --size letter --linkstyle plain --linkcolor blue -f Manual.pdf Manual.html Section_intro.html Section_start.html Section_commands.html Section_packages.html Section_accelerate.html Section_howto.html Section_example.html Section_perf.html Section_tools.html Section_modify.html Section_python.html Section_errors.html Section_history.html [a-z]*.html
-	cd src; mv Manual.pdf ..
-	cd src; rm *.html
+pdf: utils/txt2html/txt2html.exe
+	@(\
+		cd src; \
+		../utils/txt2html/txt2html.exe -b *.txt; \
+		htmldoc --batch ../lammps.book;          \
+		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
+			do grep -q $$s ../lammps.book || \
+			echo doc file $$s missing in lammps.book; done; \
+		rm *.html; \
+	)
 
-txt2html:
-	cd utils/txt2html; g++ -O txt2html.cpp -o txt2html
+utils/txt2html/txt2html.exe: utils/txt2html/txt2html.cpp
+	g++ -O -Wall -o $@ $<
 
 $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	@(\
 		mkdir -p $(RSTDIR) ; \
-		source $(VENV)/bin/activate ;\
+		. $(VENV)/bin/activate ;\
 		txt2rst $< > $@ ;\
 		deactivate ;\
 	)
@@ -63,7 +70,7 @@ $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 $(VENV):
 	@( \
 		virtualenv -p $(PYTHON) $(VENV); \
-		source $(VENV)/bin/activate; \
+		. $(VENV)/bin/activate; \
 		pip install Sphinx; \
 		pip install sphinxcontrib-images; \
 		deactivate;\
@@ -71,9 +78,8 @@ $(VENV):
 
 $(TXT2RST): $(VENV)
 	@( \
-		source $(VENV)/bin/activate; \
-		pushd utils/converters;\
-		python setup.py develop;\
-		popd;\
+		. $(VENV)/bin/activate; \
+		(cd utils/converters;\
+		python setup.py develop);\
 		deactivate;\
 	)

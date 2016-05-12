@@ -34,7 +34,7 @@ Description
 
 This fix allows you to compute the free energy temperature dependence
 by performing a thermodynamic integration procedure known as
-Reversible Scaling :ref:`(de Koning99, <deKoning99>` :ref:`de Koning00a) <deKoning00a">`. The thermodynamic integration is performed
+Reversible Scaling :ref:`(de Koning99, <deKoning99>` :ref:`de Koning00a) <deKoning00a>`. The thermodynamic integration is performed
 using the nonequilibrium method of Adiabatic Switching
 :ref:`(Watanabe, <Watanabe>` :ref:`de Koning96) <deKoning96>`.
 

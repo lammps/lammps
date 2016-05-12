@@ -188,7 +188,7 @@ For each cations (metal):
 
 7) Charge initialization mode:
 
-* Keyword (\ *QInitMode*\ ) and initial oxygen charge (\ *Q<sub>init</sub>*\ ). If keyword = 'true', all oxygen charges are initially set equal to *Q<sub>init</sub>*\ . The charges on the cations are initially set in order to respect the neutrality of the box. If keyword = 'false', all atom charges are initially set equal to 0 if you use "create_atom"#create_atom command or the charge specified in the file structure using :ref:`read_data <read_data.html>` command.
+* Keyword (\ *QInitMode*\ ) and initial oxygen charge (\ *Q<sub>init</sub>*\ ). If keyword = 'true', all oxygen charges are initially set equal to *Q<sub>init</sub>*\ . The charges on the cations are initially set in order to respect the neutrality of the box. If keyword = 'false', all atom charges are initially set equal to 0 if you use "create_atom"#create_atom command or the charge specified in the file structure using :doc:`read_data <read_data>` command.
 * Divided line
 
 8) Mode for the electronegativity equalization (Qeq) 
@@ -241,7 +241,7 @@ This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 The SMTB-Q potential files provided with LAMMPS (see the potentials
-directory) are parameterized for metal :doc:`units <unit>`.
+directory) are parameterized for metal :doc:`units <units>`.
 
 
 ----------

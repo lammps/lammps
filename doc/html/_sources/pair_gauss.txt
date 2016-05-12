@@ -163,7 +163,7 @@ Restrictions
 
 
 The *gauss/cut* style is part of the "user-misc" package. It is only
-enabled if LAMMPS is build with that package. See the :ref:`Making of LAMMPS <3>` section for more info.
+enabled if LAMMPS is build with that package. See the :ref:`Making of LAMMPS <start_3>` section for more info.
 
 Related commands
 """"""""""""""""

@@ -92,8 +92,8 @@ Related commands
 """"""""""""""""
 
 :doc:`angle_coeff <angle_coeff>`,
-:doc:`angle_cosineshift <angle_cosineshift>`,
-:doc:`dihedral_cosineshift <dihedral_cosineshift>`
+:doc:`angle_cosine_shift <angle_cosine_shift>`,
+:doc:`dihedral_cosine_shift_exp <dihedral_cosine_shift_exp>`
 
 **Default:** none
 

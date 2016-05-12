@@ -189,7 +189,7 @@ Restrictions
 
 
 These styles are part of the COLLOID package.  They are only enabled
-if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <2_3>` section for more info.
+if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_2_3>` section for more info.
 
 Currently, these pair styles assume that all other types of
 forces/torques on the particles have been already been computed when

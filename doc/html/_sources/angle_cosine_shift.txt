@@ -80,7 +80,7 @@ Related commands
 """"""""""""""""
 
 :doc:`angle_coeff <angle_coeff>`,
-:doc:`angle_cosineshiftexp <angle_cosineshiftexp>`
+:doc:`angle_cosine_shift_exp <angle_cosine_shift_exp>`
 
 **Default:** none
 

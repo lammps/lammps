@@ -44,7 +44,6 @@ using namespace MathSpecial;
 
 #define MAXLINE 1024
 #define TOL 1.0e-9
-#define SQRTTOL 1.0e-5
 #define PGDELTA 1
 
 /* ---------------------------------------------------------------------- */
@@ -56,6 +55,9 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 1;
   ljflag = torflag = 1;
   morseflag = 0;
+
+  nextra = 3;
+  pvector = new double[nextra];
 
   maxlocal = 0;
   REBO_numneigh = NULL;
@@ -79,6 +81,7 @@ PairAIREBO::~PairAIREBO()
   delete [] ipage;
   memory->destroy(nC);
   memory->destroy(nH);
+  delete [] pvector;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -100,6 +103,7 @@ void PairAIREBO::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = vflag_atom = 0;
+  pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   REBO_neigh();
   FREBO(eflag,vflag);
@@ -491,7 +495,7 @@ void PairAIREBO::FREBO(int eflag, int vflag)
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (eflag) evdwl = VR + bij*VA;
+      if (eflag) pvector[0] += evdwl = VR + bij*VA;
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delx,dely,delz);
     }
@@ -790,7 +794,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       f[j][1] -= delij[1]*fpair;
       f[j][2] -= delij[2]*fpair;
 
-      if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
+      if (eflag) pvector[1] += evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delij[0],delij[1],delij[2]);
 
@@ -1033,7 +1037,7 @@ void PairAIREBO::TORSION(int eflag, int vflag)
           Ec = 256.0*ekijl/405.0;
           Vtors = (Ec*(powint(cw2,5)))-(ekijl/10.0);
 
-          if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
+          if (eflag) pvector[2] += evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 
           dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
           dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);

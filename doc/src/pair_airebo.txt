@@ -143,6 +143,24 @@ it was fit, so modifying the file should be done cautiously. The
 AIREBO-M Morse potentials were parameterized using a cutoff of
 3.0 (sigma). Modifying this cutoff may impact simulation accuracy.
 
+This pair style tallies a breakdown of the total AIREBO potential
+energy into sub-categories, which can be accessed via the "compute
+pair"_compute_pair.html command as a vector of values of length 3.
+The 3 values correspond to the following sub-categories:
+
+{E_REBO} = REBO energy
+{E_LJ} = Lennard-Jones energy
+{E_TORSION} = Torsion energy :ol
+
+To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:
+
+compute 0 all pair airebo
+variable REBO     equal c_0\[1\]
+variable LJ       equal c_0\[2\]
+variable TORSION  equal c_0\[3\]
+thermo_style custom step temp epair v_REBO v_LJ v_TORSION :pre
+
 :line
 
 Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are

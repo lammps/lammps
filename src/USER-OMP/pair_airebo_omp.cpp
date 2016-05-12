@@ -47,6 +47,8 @@ PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) :
 
 void PairAIREBOOMP::compute(int eflag, int vflag)
 {
+  double pv0=0.0,pv1=0.0,pv2=0.0;
+
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = vflag_atom = 0;
@@ -58,7 +60,7 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel default(none) shared(eflag,vflag) reduction(+:pv0,pv1,pv2)
 #endif
   {
     int ifrom, ito, tid;
@@ -68,13 +70,17 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
     thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
-    FREBO_thr(ifrom,ito,evflag,eflag,vflag_atom,thr);
-    if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,thr);
-    if (torflag) TORSION_thr(ifrom,ito,evflag,eflag,thr);
+    FREBO_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv0,thr);
+    if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv1,thr);
+    if (torflag) TORSION_thr(ifrom,ito,evflag,eflag,&pv2,thr);
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  pvector[0] = pv0;
+  pvector[1] = pv1;
+  pvector[2] = pv2;
 }
 
 /* ----------------------------------------------------------------------
@@ -1836,7 +1842,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 ------------------------------------------------------------------------- */
 
 void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
-                              int vflag_atom, ThrData * const thr)
+                              int vflag_atom, double *pv0, ThrData * const thr)
 {
   int i,j,k,m,ii,itype,jtype;
   tagint itag,jtag;
@@ -1921,7 +1927,7 @@ void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (eflag) evdwl = VR + bij*VA;
+      if (eflag) *pv0 += evdwl = VR + bij*VA;
       if (evflag) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
                                evdwl,0.0,fpair,delx,dely,delz,thr);
     }
@@ -1934,7 +1940,7 @@ void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
 ------------------------------------------------------------------------- */
 
 void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
-                            int vflag_atom, ThrData * const thr)
+                            int vflag_atom, double *pv1, ThrData * const thr)
 {
   int i,j,k,m,ii,jj,kk,mm,jnum,itype,jtype,ktype,mtype;
   tagint itag,jtag;
@@ -2218,7 +2224,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
       f[j][1] -= delij[1]*fpair;
       f[j][2] -= delij[2]*fpair;
 
-      if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
+      if (eflag) *pv1 += evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
       if (evflag) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
                                evdwl,0.0,fpair,delij[0],delij[1],delij[2],thr);
 
@@ -2307,8 +2313,8 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
    torsional forces and energy
 ------------------------------------------------------------------------- */
 
-void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
-                                int evflag, int eflag, ThrData * const thr)
+void PairAIREBOOMP::TORSION_thr(int ifrom, int ito, int evflag, int eflag,
+                                double *pv2, ThrData * const thr)
 {
   int i,j,k,l,ii;
   tagint itag,jtag;
@@ -2461,7 +2467,7 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
           Ec = 256.0*ekijl/405.0;
           Vtors = (Ec*(powint(cw2,5)))-(ekijl/10.0);
 
-          if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
+          if (eflag) *pv2 += evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 
           dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
           dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);

@@ -13,6 +13,15 @@
 // alpha component
 //////////////////////////////////////////////////////////////////////
 
+    // FIXME: this will not make collect_gradients work
+    // because gradients in individual atom groups
+    // are those of the sub-cvcs (angle, hb), not those
+    // of this cvc (alpha)
+    // This is true of all cvcs with sub-cvcs, and those
+    // that do not calculate explicit gradients
+    // SO: we need a flag giving the availability of
+    // atomic gradients
+
 colvar::alpha_angles::alpha_angles(std::string const &conf)
   : cvc(conf)
 {
@@ -219,12 +228,13 @@ void colvar::alpha_angles::apply_force(colvarvalue const &force)
 
     // FIXME: this will not make collect_gradients work
     // because gradients in individual atom groups
-    // are those of the sub-cvcs (angle, hb), not those
-    // of this cvc (alpha)
+    // are those of the sub-cvcs (dihedral), not those
+    // of this cvc
     // This is true of all cvcs with sub-cvcs, and those
     // that do not calculate explicit gradients
     // SO: we need a flag giving the availability of
     // atomic gradients
+
 colvar::dihedPC::dihedPC(std::string const &conf)
   : cvc(conf)
 {

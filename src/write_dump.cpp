@@ -51,7 +51,7 @@ void WriteDump::command(int narg, char **arg)
   dumpargs[0] = (char *) "WRITE_DUMP"; // dump id
   dumpargs[1] = arg[0];                // group
   dumpargs[2] = arg[1];                // dump style
-  dumpargs[3] = (char *) "0";          // dump frequency
+  dumpargs[3] = (char *) "1";          // dump frequency
 
   for (int i = 2; i < modindex; ++i)
     dumpargs[i+2] = arg[i];

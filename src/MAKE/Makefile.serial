@@ -28,7 +28,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 2.2 (step 4) of manual
 
-LMP_INC =	-DLAMMPS_GZIP
+LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
 
 # MPI library
 # see discussion in Section 2.2 (step 5) of manual
@@ -44,7 +44,7 @@ MPI_PATH =      -L../STUBS
 MPI_LIB =	-lmpi_stubs
 
 # FFT library
-# see discussion in Section 2.2 (step 6) of manaul
+# see discussion in Section 2.2 (step 6) of manual
 # can be left blank to use provided KISS FFT library
 # INC = -DFFT setting, e.g. -DFFT_FFTW, FFT compiler settings
 # PATH = path for FFT library
@@ -100,13 +100,7 @@ shlib:	$(OBJ) $(EXTRA_LINK_DEPENDS)
 
 # Compilation rules
 
-%.o:%.cpp $(EXTRA_CPP_DEPENDS)
-	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
-
-%.d:%.cpp $(EXTRA_CPP_DEPENDS)
-	$(CC) $(CCFLAGS) $(EXTRA_INC) $(DEPFLAGS) $< > $@
-
-%.o:%.cu $(EXTRA_CPP_DEPENDS)
+%.o:%.cpp
 	$(CC) $(CCFLAGS) $(SHFLAGS) $(EXTRA_INC) -c $<
 
 # Individual dependencies

@@ -2075,6 +2075,9 @@ int Neighbor::coord2bin(double *x)
 {
   int ix,iy,iz;
 
+  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+    error->one(FLERR,"Non-numeric positions - simulation unstable");
+
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
   else if (x[0] >= bboxlo[0]) {
@@ -2108,6 +2111,9 @@ int Neighbor::coord2bin(double *x)
 
 int Neighbor::coord2bin(double *x, int &ix, int &iy, int &iz)
 {
+  if (!ISFINITE(x[0]) || !ISFINITE(x[1]) || !ISFINITE(x[2]))
+    error->one(FLERR,"Non-numeric positions - simulation unstable");
+
   if (x[0] >= bboxhi[0])
     ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx) + nbinx;
   else if (x[0] >= bboxlo[0]) {

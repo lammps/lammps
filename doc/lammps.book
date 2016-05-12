@@ -391,7 +391,6 @@ pair_coul_diel.html
 pair_cs.html
 pair_dipole.html
 pair_dpd.html
-pair_dpd_conservative.html
 pair_dpd_fdt.html
 pair_dsmc.html
 pair_eam.html
@@ -427,6 +426,7 @@ pair_meam_sw_spline.html
 pair_mgpt.html
 pair_mie.html
 pair_morse.html
+pair_multi_lucy.html
 pair_nm.html
 pair_peri.html
 pair_polymorphic.html

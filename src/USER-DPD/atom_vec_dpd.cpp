@@ -43,6 +43,7 @@ AtomVecDPD::AtomVecDPD(LAMMPS *lmp) : AtomVec(lmp)
   size_data_vel = 4;
   xcol_data = 4; // 1=id 2=type 3=dpdTheta 4=x
 
+  atom->rho_flag = 1;
   atom->dpd_flag = 1;
 }
 
@@ -68,6 +69,7 @@ void AtomVecDPD::grow(int n)
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
+  rho = memory->grow(atom->rho, nmax, "atom:rho");
   dpdTheta = memory->grow(atom->dpdTheta, nmax, "atom:dpdTheta");
   uCond = memory->grow(atom->uCond,nmax,"atom:uCond");
   uMech = memory->grow(atom->uMech,nmax,"atom:uMech");
@@ -88,6 +90,7 @@ void AtomVecDPD::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
+  rho = atom->rho;
   dpdTheta = atom->dpdTheta;
   uCond = atom->uCond;
   uMech = atom->uMech;
@@ -735,6 +738,7 @@ void AtomVecDPD::create_atom(int itype, double *coord)
   v[nlocal][0] = 0.0;
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
+  rho[nlocal] = 0.0;
   dpdTheta[nlocal] = 0.0;
   uCond[nlocal] = 0.0;
   uMech[nlocal] = 0.0;
@@ -774,6 +778,7 @@ void AtomVecDPD::data_atom(double *coord, tagint imagetmp, char **values)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
+  rho[nlocal] = 0.0;
   uCond[nlocal] = 0.0;
   uMech[nlocal] = 0.0;
 
@@ -861,6 +866,7 @@ bigint AtomVecDPD::memory_usage()
   if (atom->memcheck("x")) bytes += memory->usage(x,nmax,3);
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
+  if (atom->memcheck("rho")) bytes += memory->usage(rho,nmax);
   if (atom->memcheck("dpdTheta")) bytes += memory->usage(dpdTheta,nmax);
   if (atom->memcheck("uCond")) bytes += memory->usage(uCond,nmax);
   if (atom->memcheck("uMech")) bytes += memory->usage(uMech,nmax);

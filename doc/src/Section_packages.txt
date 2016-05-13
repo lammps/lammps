@@ -1154,7 +1154,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-LB"_#USER-LB, Lattice Boltzmann fluid, Colin Denniston (U Western Ontario), "fix lb/fluid"_fix_lb_fluid.html, USER/lb, -, -
 "USER-MGPT"_#USER-MGPT, fast MGPT multi-ion potentials, Tomas Oppelstrup & John Moriarty (LLNL), "pair_style mgpt"_pair_mgpt.html, USER/mgpt, -, -
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
-"USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surface, Stefan Paquay (Eindhoven U of Technology), "fix manifoldforce"_fix_manifoldforce.html, -, "manifold"_manifold, -
+"USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surface, Stefan Paquay (Eindhoven U of Technology), "fix manifoldforce"_fix_manifoldforce.html, USER/manifold, "manifold"_manifold, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
 "USER-OMP"_#USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
 "USER-PHONON"_#USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -

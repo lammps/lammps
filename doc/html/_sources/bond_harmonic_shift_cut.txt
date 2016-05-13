@@ -83,7 +83,7 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`,
 :doc:`bond_harmonic <bond_harmonic>`,
-:doc:`bond_harmonicshift <bond_harmonicshift>`
+:doc:`bond_harmonic_shift <bond_harmonic_shift>`
 
 **Default:** none
 

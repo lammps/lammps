@@ -1429,7 +1429,7 @@ to output and the kind of data they operate on and produce:
 * :ref:`Dump file output <dump>`
 * :ref:`Fixes that write output files <fixoutput>`
 * :ref:`Computes that process output quantities <computeoutput>`
-* :ref:`Fixes that process output quantities <fixoutput>`
+* :ref:`Fixes that process output quantities <fixprocoutput>`
 * :ref:`Computes that generate values to output <compute>`
 * :ref:`Fixes that generate values to output <fix>`
 * :ref:`Variables that generate values to output <variable>`
@@ -1613,10 +1613,10 @@ info, etc) and stores the values in a local vector or array.  These
 are produced as output values which can be used as input to other
 output commands.
 
-.. _fixoutput:
+.. _fixprocoutput:
 
 Fixes that process output quantities
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :doc:`fix vector <fix_vector>` command can create global vectors as
 output from global scalars as input, accumulating them one element at

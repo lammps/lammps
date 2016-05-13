@@ -114,7 +114,7 @@ Restrictions
 
 
 This style is part of the BODY package.  It is only enabled if LAMMPS
-was built with that package.  See the :ref:`Making LAMMPS <2_3>` section for more info.
+was built with that package.  See the :ref:`Making LAMMPS <start_2_3>` section for more info.
 
 Defining particles to be bodies so they participate in body/body or
 body/particle interactions requires the use of the :doc:`atom_style body <atom_style>` command.

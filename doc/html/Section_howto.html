@@ -1344,9 +1344,9 @@ to output and the kind of data they operate on and produce:</p>
 <li><a class="reference internal" href="#scalar"><span class="std std-ref">Scalar/vector/array data</span></a></li>
 <li><a class="reference internal" href="#thermo"><span class="std std-ref">Thermodynamic output</span></a></li>
 <li><a class="reference internal" href="#dump"><span class="std std-ref">Dump file output</span></a></li>
-<li><span class="xref std std-ref">Fixes that write output files</span></li>
+<li><a class="reference internal" href="#fixoutput"><span class="std std-ref">Fixes that write output files</span></a></li>
 <li><a class="reference internal" href="#computeoutput"><span class="std std-ref">Computes that process output quantities</span></a></li>
-<li><span class="xref std std-ref">Fixes that process output quantities</span></li>
+<li><a class="reference internal" href="#fixprocoutput"><span class="std std-ref">Fixes that process output quantities</span></a></li>
 <li><a class="reference internal" href="#compute"><span class="std std-ref">Computes that generate values to output</span></a></li>
 <li><a class="reference internal" href="#fix"><span class="std std-ref">Fixes that generate values to output</span></a></li>
 <li><a class="reference internal" href="#variable"><span class="std std-ref">Variables that generate values to output</span></a></li>
@@ -1372,7 +1372,7 @@ per-atom vector.</p>
 <p>When a quantity is accessed, as in many of the output commands
 discussed below, it can be referenced via the following bracket
 notation, where ID in this case is the ID of a compute.  The leading
-&#8220;<a href="#id75"><span class="problematic" id="id76">c_</span></a>&#8221; would be replaced by &#8220;<a href="#id77"><span class="problematic" id="id78">f_</span></a>&#8221; for a fix, or &#8220;<a href="#id79"><span class="problematic" id="id80">v_</span></a>&#8221; for a variable:</p>
+&#8220;<a href="#id74"><span class="problematic" id="id75">c_</span></a>&#8221; would be replaced by &#8220;<a href="#id76"><span class="problematic" id="id77">f_</span></a>&#8221; for a fix, or &#8220;<a href="#id78"><span class="problematic" id="id79">v_</span></a>&#8221; for a variable:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="21%" />
@@ -1509,7 +1509,7 @@ are produced as output values which can be used as input to other
 output commands.</p>
 </div>
 <div class="section" id="fixes-that-process-output-quantities">
-<span id="id5"></span><h3>6.15.7. Fixes that process output quantities</h3>
+<span id="fixprocoutput"></span><h3>6.15.7. Fixes that process output quantities</h3>
 <p>The <a class="reference internal" href="fix_vector.html"><span class="doc">fix vector</span></a> command can create global vectors as
 output from global scalars as input, accumulating them one element at
 a time.</p>
@@ -2274,7 +2274,7 @@ fix produces a global array as output with one row of values per
 chunk.</p>
 </div>
 <div class="section" id="compute-chunk-commands">
-<h3>6.23.3. Compute <a href="#id72"><span class="problematic" id="id73">*</span></a>/chunk commands:</h3>
+<h3>6.23.3. Compute <a href="#id71"><span class="problematic" id="id72">*</span></a>/chunk commands:</h3>
 <p>Currently the following computes operate on chunks of atoms to produce
 per-chunk values.</p>
 <ul class="simple">

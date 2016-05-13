@@ -253,7 +253,7 @@ In the second stage of NEB, the replica with the highest energy
 is selected and the inter-replica forces on it are converted to a
 force that drives its atom coordinates to the top or saddle point of
 the barrier, via the barrier-climbing calculation described in
-:ref:`(Henkelman2) <Hinkelman2>`.  As before, the other replicas rearrange
+:ref:`(Henkelman2) <Henkelman2>`.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
 When both stages are complete, if the NEB calculation was successful,

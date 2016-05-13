@@ -27,7 +27,7 @@ according to the ideal gas equation of state:
 where gamma = 1.4 is the heat capacity ratio, rho is the local
 density, and e is the internal energy per unit mass.  This pair style
 also computes Monaghan's artificial viscosity to prevent particles
-from interpentrating "(Monaghan)"_#Monoghan.
+from interpentrating "(Monaghan)"_#ideal-Monoghan.
 
 See "this PDF guide"_USER/sph/SPH_LAMMPS_userguide.pdf to using SPH in
 LAMMPS.
@@ -71,7 +71,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Monoghan)
+:link(ideal-Monoghan)
 [(Monaghan)] Monaghan and Gingold, Journal of Computational Physics,
 52, 374-389 (1983).
 

@@ -102,7 +102,7 @@ incorporation of dihedral angles effects.
    potentials with hydrogen, you will likely want to set the mass of H
    atoms to be 10x or 20x larger to avoid having to use a tiny timestep.
    You can do this by using the :doc:`mass <mass>` command after using the
-   :doc:`pair_coeff <doc/pair_coeff>` command to read the BOP potential
+   :doc:`pair_coeff <pair_coeff>` command to read the BOP potential
    file.
 
 One option can be specified as a keyword with the pair_style command.
@@ -405,21 +405,21 @@ non-tabulated potential file, a_0 is non-zero.
 ----------
 
 
-.. _Pettofor_1:
+.. _Pettifor_1:
 
 
 
 **(Pettifor_1)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487 
 (1999).
 
-.. _Pettofor_2:
+.. _Pettifor_2:
 
 
 
 **(Pettifor_2)** D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84, 
 4124 (2000).
 
-.. _Pettofor_3:
+.. _Pettifor_3:
 
 
 

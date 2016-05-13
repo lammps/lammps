@@ -77,7 +77,7 @@ void ComputeDamageAtom::compute_peratom()
 
   // grow damage array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(damage);
     nmax = atom->nmax;
     memory->create(damage,nmax,"damage/atom:damage");

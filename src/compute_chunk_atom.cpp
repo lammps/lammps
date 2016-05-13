@@ -627,7 +627,7 @@ void ComputeChunkAtom::compute_peratom()
 
   // grow floating point chunk vector if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(chunk);
     nmax = atom->nmax;
     memory->create(chunk,nmax,"chunk/atom:chunk");

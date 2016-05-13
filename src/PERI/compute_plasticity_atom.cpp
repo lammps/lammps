@@ -82,7 +82,7 @@ void ComputePlasticityAtom::compute_peratom()
 
   // grow damage array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(plasticity);
     nmax = atom->nmax;
     memory->create(plasticity,nmax,"plasticity/atom:plasticity");

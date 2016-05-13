@@ -231,7 +231,7 @@ void FixSetForce::post_force(int vflag)
 
   // reallocate sforce array if necessary
 
-  if (varflag == ATOM && nlocal > maxatom) {
+  if (varflag == ATOM && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(sforce);
     memory->create(sforce,maxatom,3,"setforce:sforce");

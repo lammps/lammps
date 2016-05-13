@@ -112,7 +112,7 @@ double ComputeTempRotate::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
+  if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/rotate:vbiasall");
@@ -175,7 +175,7 @@ void ComputeTempRotate::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
+  if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/rotate:vbiasall");

@@ -319,7 +319,7 @@ void ComputeVoronoi::buildCells()
     if (!input->variable->atomstyle(radvar))
       error->all(FLERR,"Variable for voronoi radius is not atom style");
     // prepare destination buffer for variable evaluation
-    if (nlocal > rmax) {
+    if (atom->nmax > rmax) {
       memory->destroy(rfield);
       rmax = atom->nmax;
       memory->create(rfield,rmax,"voronoi/atom:rfield");
@@ -378,7 +378,7 @@ void ComputeVoronoi::checkOccupation()
          **x = atom->x;
 
   // prepare destination buffer for variable evaluation
-  if (nall > lmax) {
+  if (atom->nmax > lmax) {
     memory->destroy(lnext);
     lmax = atom->nmax;
     memory->create(lnext,lmax,"voronoi/atom:lnext");

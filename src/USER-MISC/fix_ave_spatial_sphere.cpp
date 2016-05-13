@@ -605,7 +605,7 @@ void FixAveSpatialSphere::end_of_step()
   int *mask= atom->mask;
   int nlocal= atom->nlocal;
 
-  if (nlocal > maxatom) {
+  if (atom->nmax > maxatom) {
     maxatom= atom->nmax;
     memory->destroy(bin);
     memory->create(bin,maxatom,"ave/spatial/sphere:bin");
@@ -684,7 +684,7 @@ void FixAveSpatialSphere::end_of_step()
           else values_one[bin[i]][m] += array[i][jm1];
         }
     } else if(which[m] == VARIABLE) {
-      if (nlocal > maxvar) {
+      if (atom->nmax > maxvar) {
         maxvar = atom->nmax;
         memory->destroy(varatom);
         memory->create(varatom,maxvar,"ave/spatial:varatom");

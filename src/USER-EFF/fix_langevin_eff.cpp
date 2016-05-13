@@ -104,7 +104,7 @@ void FixLangevinEff::post_force_no_tally()
         error->one(FLERR,"Fix langevin/eff variable returned negative temperature");
       tsqrt = sqrt(t_target);
     } else {
-      if (nlocal > maxatom2) {
+      if (atom->nmax > maxatom2) {
         maxatom2 = atom->nmax;
         memory->destroy(tforce);
         memory->create(tforce,maxatom2,"langevin/eff:tforce");
@@ -241,7 +241,7 @@ void FixLangevinEff::post_force_tally()
 
   // reallocate flangevin and erforcelangevin if necessary
 
-  if (atom->nlocal > maxatom1) {
+  if (atom->nmax > maxatom1) {
     memory->destroy(flangevin);
     memory->destroy(erforcelangevin);
     maxatom1 = atom->nmax;
@@ -279,7 +279,7 @@ void FixLangevinEff::post_force_tally()
         error->one(FLERR,"Fix langevin/eff variable returned negative temperature");
       tsqrt = sqrt(t_target);
     } else {
-      if (nlocal > maxatom2) {
+      if (atom->nmax > maxatom2) {
         maxatom2 = atom->nmax;
         memory->destroy(tforce);
         memory->create(tforce,maxatom2,"langevin/eff:tforce");

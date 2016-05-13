@@ -2190,7 +2190,7 @@ void FixGCMC::update_gas_atoms_list()
   tagint *molecule = atom->molecule;
   double **x = atom->x;
 
-  if (nlocal > gcmc_nmax) {
+  if (atom->nmax > gcmc_nmax) {
     memory->sfree(local_gas_list);
     gcmc_nmax = atom->nmax;
     local_gas_list = (int *) memory->smalloc(gcmc_nmax*sizeof(int),

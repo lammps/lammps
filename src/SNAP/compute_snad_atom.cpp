@@ -179,7 +179,7 @@ void ComputeSNADAtom::compute_peratom()
 
   // grow snad array if necessary
 
-  if (ntotal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(snad);
     nmax = atom->nmax;
     memory->create(snad,nmax,size_peratom_cols,

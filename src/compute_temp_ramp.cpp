@@ -257,7 +257,7 @@ void ComputeTempRamp::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
+  if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/ramp:vbiasall");

@@ -516,7 +516,7 @@ void ComputeTempProfile::bin_assign()
 {
   // reallocate bin array if necessary
 
-  if (atom->nlocal > maxatom) {
+  if (atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(bin);
     memory->create(bin,maxatom,"temp/profile:bin");

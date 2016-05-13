@@ -309,7 +309,7 @@ void ComputeTempCS::vcm_pairs()
 
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxatom) {
+  if (atom->nmax > maxatom) {
     memory->destroy(vint);
     maxatom = atom->nmax;
     memory->create(vint,maxatom,3,"temp/cs:vint");

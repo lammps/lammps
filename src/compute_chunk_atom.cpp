@@ -988,7 +988,7 @@ void ComputeChunkAtom::assign_chunk_ids()
     }
 
   } else if (which == VARIABLE) {
-    if (nlocal > maxvar) {
+    if (atom->nmax > maxvar) {
       maxvar = atom->nmax;
       memory->destroy(varatom);
       memory->create(varatom,maxvar,"chunk/atom:varatom");

@@ -18,7 +18,9 @@ dihedral_style charmm :pre
 [Examples:]
 
 dihedral_style charmm
-dihedral_coeff 1 120.0 1 60 0.5 :pre
+dihedral_coeff  1 0.2 1 180 1.0
+dihedral_coeff  2 1.8 1   0 1.0
+dihedral_coeff  1 3.1 2 180 0.5 :pre
 
 [Description:]
 
@@ -40,33 +42,45 @@ or "read_restart"_read_restart.html commands:
 K (energy)
 n (integer >= 0)
 d (integer value of degrees)
-weighting factor (0.0 to 1.0) :ul
+weighting factor (1.0, 0.5, or 0.0) :ul
 
-The weighting factor is applied to pairwise interaction between the
-1st and 4th atoms in the dihedral, which are computed by a CHARMM
-"pair_style"_pair_charmm.html with epsilon and sigma values specified
-with a "pair_coeff"_pair_charmm.html command.  Note that this
-weighting factor is unrelated to the weighting factor specified by the
-"special bonds"_special_bonds.html command which applies to all 1-4
-interactions in the system.
+The weighting factor is required to correct for double counting
+pairwise non-bonded Lennard-Jones interactions in cyclic systems
+or when using the CHARMM dihedral style with non-CHARMM force fields.
+With the CHARMM dihedral style, interactions between the 1st and
+4th atoms in a dihedral are skipped during the normal non-bonded
+force computation and instead evaluated as part of the dihedral
+using special epsilon and sigma values specified with the
+"pair_coeff"_pair_charmm.html command of pair styles that
+contain "lj/charmm" (e.g. "pair_style lj/charmm/coul/long"_pair_charmm.html)
+In 6-membered rings, the same 1-4 interaction would be computed
+twice (once for the clockwise 1-4 pair in dihedral 1-2-3-4 and
+once in the counterclockwise dihedral 1-6-5-4) and thus the
+weighting factor has to be 0.5 in this case.
+In 4-membered or 5-membered rings, the 1-4 dihedral also is
+counted as a 1-2 or 1-3 interaction when going around the
+ring in the opposite direction and thus the weighting factor
+is 0.0, as the 1-2 and 1-3 exclusions take precedence.
 
-For CHARMM force fields, the special_bonds 1-4 weighting factor should
-be set to 0.0.  This is because the pair styles that contain "charmm"
-(e.g. "pair_style lj/charmm/coul/long"_pair_charmm.html) define extra
-1-4 interaction coefficients that are used by this dihedral style to
-compute those interactions explicitly.  This means that if any of the
-weighting factors defined as dihedral coefficients (4th coeff above)
-are non-zero, then you must use a charmm pair style.  Note that if you
-do not set the special_bonds 1-4 weighting factor to 0.0 (which is the
-default) then 1-4 interactions in dihedrals will be computed twice,
-once by the pair routine and once by the dihedral routine, which is
-probably not what you want.
+Note that this dihedral weighting factor is unrelated to the
+scaling factor specified by the "special bonds"_special_bonds.html
+command which applies to all 1-4 interactions in the system.
+For CHARMM force fields, the special_bonds 1-4 interaction scaling
+factor should be set to 0.0. Since the corresponding 1-4 non-bonded
+interactions are computed with the dihedral.
+This means that if any of the weighting factors defined as dihedral
+coefficients (4th coeff above) are non-zero, then you must use a
+pair style with "lj/charmm" and set the special_bonds 1-4 scaling
+factor to 0.0 (which is the default). Otherwise 1-4 non-bonded
+interactions in dihedrals will be computed twice.
 
-For AMBER force fields, the special_bonds 1-4 weighting factor should
-be set to the AMBER defaults (1/2 and 5/6) and all the dihedral
-weighting factors (4th coeff above) should be set to 0.0.  In this
-case, you can use any pair style you wish, since the dihedral does not
-need any 1-4 information.
+For AMBER force fields, which use pair styles with "lj/cut",
+the special_bonds 1-4 scaling factor should be set to the AMBER
+defaults (1/2 and 5/6) and all the dihedral weighting factors
+(4th coeff above) must be set to 0.0. In this case, you can use
+any pair style you wish, since the dihedral does not need any
+Lennard-Jones parameter information and will not compute any
+1-4 non-bonded interactions.
 
 :line
 

@@ -77,7 +77,7 @@ void ComputeSMDContactRadius::compute_peratom()
 
   // grow rhoVector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(contact_radius_vector);
     nmax = atom->nmax;
     contact_radius_vector = (double *) memory->smalloc(nmax*sizeof(double),"atom:contact_radius_vector");

@@ -85,7 +85,7 @@ void ComputeSMDTriangleVertices::compute_peratom() {
 
     // grow vector array if necessary
 
-    if (atom->nlocal > nmax) {
+    if (atom->nmax > nmax) {
         memory->destroy(outputVector);
         nmax = atom->nmax;
         memory->create(outputVector, nmax, size_peratom_cols, "defgradVector");

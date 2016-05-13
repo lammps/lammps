@@ -72,7 +72,7 @@ void ComputeSMDTLSPHNumNeighs::init() {
 void ComputeSMDTLSPHNumNeighs::compute_peratom() {
     invoked_peratom = update->ntimestep;
 
-    if (atom->nlocal > nmax) {
+    if (atom->nmax > nmax) {
         memory->destroy(numNeighsRefConfigOutput);
         nmax = atom->nmax;
         memory->create(numNeighsRefConfigOutput, nmax, "tlsph/num_neighs:numNeighsRefConfigOutput");

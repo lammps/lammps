@@ -148,7 +148,7 @@ void ComputeHexOrderAtom::compute_peratom()
 
   // grow order parameter array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(qnarray);
     nmax = atom->nmax;
     memory->create(qnarray,nmax,ncol,"hexorder/atom:qnarray");

@@ -96,7 +96,7 @@ void FixStoreForce::min_setup(int vflag)
 
 void FixStoreForce::post_force(int vflag)
 {
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memory->destroy(foriginal);
     memory->create(foriginal,nmax,3,"store/force:foriginal");

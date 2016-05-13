@@ -94,7 +94,7 @@ void ComputeDilatationAtom::compute_peratom()
 
   // grow dilatation array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(dilatation);
     nmax = atom->nmax;
     memory->create(dilatation,nmax,"dilatation/atom:dilatation");

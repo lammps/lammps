@@ -75,7 +75,7 @@ void ComputeKEAtomEff::compute_peratom()
 
   // grow ke array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(ke);
     nmax = atom->nmax;
     memory->create(ke,nmax,"compute/ke/atom/eff:ke");

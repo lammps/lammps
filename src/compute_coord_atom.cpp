@@ -125,7 +125,7 @@ void ComputeCoordAtom::compute_peratom()
 
   // grow coordination array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     if (ncol == 1) {
       memory->destroy(cvec);
       nmax = atom->nmax;

@@ -66,7 +66,7 @@ void ComputeMesoTAtom::compute_peratom()
 
   // grow tvector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(tvector);
     nmax = atom->nmax;
     tvector = (double *) memory->smalloc(nmax*sizeof(double),"tvector/atom:tvector");

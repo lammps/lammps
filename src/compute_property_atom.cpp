@@ -384,7 +384,7 @@ void ComputePropertyAtom::compute_peratom()
 
   // grow vector or array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     nmax = atom->nmax;
     if (nvalues == 1) {
       memory->destroy(vector);

@@ -900,7 +900,7 @@ void PPPMDisp::compute(int eflag, int vflag)
   }
   // extend size of per-atom arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
 
     if (function[0]) memory->destroy(part2grid);
     if (function[1] + function[2] + function[3]) memory->destroy(part2grid_6);

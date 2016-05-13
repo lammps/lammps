@@ -471,7 +471,7 @@ void FixSRD::pre_neighbor()
 
   // grow SRD per-atom bin arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memory->destroy(binsrd);
     memory->destroy(binnext);

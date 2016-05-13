@@ -77,7 +77,7 @@ void ComputeSMD_Ulsph_Effm::compute_peratom() {
 
 	// grow rhoVector array if necessary
 
-	if (atom->nlocal > nmax) {
+	if (atom->nmax > nmax) {
 		memory->sfree(dt_vector);
 		nmax = atom->nmax;
 		dt_vector = (double *) memory->smalloc(nmax * sizeof(double),

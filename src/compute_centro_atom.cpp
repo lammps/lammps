@@ -107,7 +107,7 @@ void ComputeCentroAtom::compute_peratom()
 
   // grow centro array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(centro);
     nmax = atom->nmax;
     memory->create(centro,nmax,"centro/atom:centro");

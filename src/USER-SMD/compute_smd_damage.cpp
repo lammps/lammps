@@ -77,7 +77,7 @@ void ComputeSMDDamage::compute_peratom()
 
   // grow rhoVector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(damage_vector);
     nmax = atom->nmax;
     damage_vector = (double *) memory->smalloc(nmax*sizeof(double),"atom:damage_vector");

@@ -101,7 +101,7 @@ void MSMCG::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     memory->destroy(is_charged);
     nmax = atom->nmax;

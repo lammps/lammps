@@ -77,7 +77,7 @@ void ComputeSMDPlasticStrainRate::compute_peratom()
 
   // grow rhoVector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(plastic_strain_rate_vector);
     nmax = atom->nmax;
     plastic_strain_rate_vector = (double *) memory->smalloc(nmax*sizeof(double),"atom:plastic_strain_rate_vector");

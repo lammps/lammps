@@ -65,7 +65,7 @@ void ComputeMesoEAtom::compute_peratom()
 
   // grow evector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(evector);
     nmax = atom->nmax;
     evector = (double *) memory->smalloc(nmax*sizeof(double),"evector/atom:evector");

@@ -188,8 +188,7 @@ void ComputeVoronoi::compute_peratom()
   invoked_peratom = update->ntimestep;
 
   // grow per atom array if necessary
-  int nlocal = atom->nlocal;
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(voro);
     nmax = atom->nmax;
     memory->create(voro,nmax,size_peratom_cols,"voronoi/atom:voro");
@@ -199,7 +198,7 @@ void ComputeVoronoi::compute_peratom()
   // decide between occupation or per-frame tesselation modes
   if (occupation) {
     // build cells only once
-    int i, nall = nlocal + atom->nghost;
+    int i, nall = atom->nlocal + atom->nghost;
     if (con_mono==NULL && con_poly==NULL) {
       // generate the voronoi cell network for the initial structure
       buildCells();

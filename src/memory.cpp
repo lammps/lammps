@@ -17,6 +17,11 @@
 #include "memory.h"
 #include "error.h"
 
+#if defined(LMP_USER_INTEL) && defined(__INTEL_COMPILER)
+#define LMP_USE_TBB_ALLOCATOR
+#include "tbb/scalable_allocator.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -33,8 +38,14 @@ void *Memory::smalloc(bigint nbytes, const char *name)
 
 #if defined(LAMMPS_MEMALIGN)
   void *ptr;
+
+#if defined(LMP_USE_TBB_ALLOCATOR)
+  ptr = scalable_aligned_malloc(nbytes, LAMMPS_MEMALIGN);
+#else
   int retval = posix_memalign(&ptr, LAMMPS_MEMALIGN, nbytes);
   if (retval) ptr = NULL;
+#endif
+
 #else
   void *ptr = malloc(nbytes);
 #endif
@@ -58,7 +69,11 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
     return NULL;
   }
 
+#if defined(LMP_USE_TBB_ALLOCATOR)
+  ptr = scalable_aligned_realloc(ptr, nbytes, LAMMPS_MEMALIGN);
+#else
   ptr = realloc(ptr,nbytes);
+#endif
   if (ptr == NULL) {
     char str[128];
     sprintf(str,"Failed to reallocate " BIGINT_FORMAT " bytes for array %s",
@@ -75,7 +90,11 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 void Memory::sfree(void *ptr)
 {
   if (ptr == NULL) return;
+  #if defined(LMP_USE_TBB_ALLOCATOR)
+  scalable_aligned_free(ptr);
+  #else
   free(ptr);
+  #endif
 }
 
 /* ----------------------------------------------------------------------

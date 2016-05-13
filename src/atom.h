@@ -87,9 +87,10 @@ class Atom : protected Pointers {
 
   // USER-DPD package
 
-  double *uCond, *uMech, *uChem, *uCGnew, *uCG;
-  double *duCond, *duMech, *duChem;
+  double *uCond,*uMech,*uChem,*uCGnew,*uCG;
+  double *duCond,*duMech,*duChem;
   double *dpdTheta;
+  int nspecies_dpd;
 
   // molecular info
 

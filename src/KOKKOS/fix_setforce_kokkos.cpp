@@ -94,7 +94,7 @@ void FixSetForceKokkos<DeviceType>::post_force(int vflag)
 
   // reallocate sforce array if necessary
 
-  if (varflag == ATOM && nlocal > maxatom) {
+  if (varflag == ATOM && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy_kokkos(k_sforce,sforce);
     memory->create_kokkos(k_sforce,sforce,maxatom,3,"setforce:sforce");

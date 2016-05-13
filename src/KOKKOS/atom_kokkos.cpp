@@ -122,7 +122,7 @@ void AtomKokkos::sort()
 
   // reallocate per-atom vectors if needed
 
-  if (nlocal > maxnext) {
+  if (atom->nmax > maxnext) {
     memory->destroy(next);
     memory->destroy(permute);
     maxnext = atom->nmax;

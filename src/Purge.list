@@ -13,7 +13,7 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
-# deleted on 11 Mar 2016
+# deleted on 11 May 2016
 pair_dpd_conservative.cpp
 pair_dpd_conservative.h
 # deleted on 21 Mar 2016

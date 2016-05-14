@@ -826,7 +826,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   // increment nfix (if new)
   // set fix mask values
-  // post_construct() allows new fix to create other fixes
+  // post_constructor() allows new fix to create other fixes
   // nfix increment comes first so that recursive call to add_fix within
   //   post_constructor() will see updated nfix
 

@@ -1,7 +1,7 @@
 #ifndef SEND2ONE_H
 #define SEND2ONE_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Send2One {
  public:

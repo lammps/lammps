@@ -1,5 +1,6 @@
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "lammps_data_write.h"
 #include "memory.h"
 #include "error.h"

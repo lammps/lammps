@@ -2059,7 +2059,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
           if (rsq < rcmaxsq[itype][ktype]) {
             rik = sqrt(rsq);
             wik = Sp(rik,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-          } else wik = 0.0;
+          } else { dwik = wik = 0.0; rikS = rik = 1.0; }
 
           if (wik > best) {
             deljk[0] = x[j][0] - x[k][0];
@@ -2109,7 +2109,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
               if (rsq < rcmaxsq[ktype][mtype]) {
                 rkm = sqrt(rsq);
                 wkm = Sp(rkm,rcmin[ktype][mtype],rcmax[ktype][mtype],dwkm);
-              } else wkm = 0.0;
+              } else { dwkm = wkm = 0.0; rkmS = rkm = 1.0; }
 
               if (wik*wkm > best) {
                 deljm[0] = x[j][0] - x[m][0];

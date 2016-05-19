@@ -247,7 +247,7 @@ void PairReaxC::settings(int narg, char **arg)
       system->safezone = force->numeric(FLERR,arg[iarg+1]);
       if (system->safezone < 0.0)
 	error->all(FLERR,"Illegal pair_style reax/c safezone command");
-      system->saferzone = system->safezone + 0.2;
+      system->saferzone = system->safezone*1.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");

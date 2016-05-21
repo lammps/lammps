@@ -592,6 +592,8 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       // if outside of 2-path cutoff but inside 4-path cutoff,
       //   best = 0.0, test 3-,4-paths
       // if inside 2-path cutoff, best = wij, only test 3-,4-paths if best < 1
+      npath = testpath = done = 0;
+      best = 0.0;
 
       if (rijsq >= cutljsq[itype][jtype]) continue;
       rij = sqrt(rijsq);
@@ -608,7 +610,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
         else testpath = 0;
       }
 
-      done = 0;
       if (testpath) {
 
         // test all 3-body paths = I-K-J

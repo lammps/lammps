@@ -46,9 +46,10 @@ void PairMorseSoft::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,dr,dexp,factor_lj;
-  double dp,la,Vp,Vp2,Vpp;
-  
+  double rsq,r,dr,dexp,dexp2,dexp3,dexp4,factor_lj;
+  double ea,ea2,ea3,phi,V0,iea,iea2,iea3;
+  double D, a, x0, y0, l, B, s1, llf;
+
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -92,24 +93,59 @@ void PairMorseSoft::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
         dr = r - r0[itype][jtype];
-        dexp = exp(alpha[itype][jtype] * dr); // Careful, 1/(original thing)!
 
-        la = 1.0 - lambda[itype][jtype];
-        la *= la;
-        la *= alpha[itype][jtype];
+        D  = d0[itype][jtype];
+        a  = alpha[itype][jtype];
+        x0 = r0[itype][jtype];
+        dexp = exp( -a * dr );
+        dexp2 = dexp*dexp;
+        dexp3 = dexp2*dexp;
+        dexp4 = dexp2*dexp2;
 
-        Vp  = 1.0 / ( la + dexp );
-        Vpp = alpha[itype][jtype]*dexp;
-        Vp2 = Vp*Vp;
 
-        dp = d0[itype][jtype]*powint(lambda[itype][jtype],nlambda);
-        
-        fpair = dp*2.0*Vp2*( Vp - 1.0 );
-        fpair *= factor_lj*Vpp/r;
+        l = lambda[itype][jtype];
+
+        ea  = exp( a * x0 );
+        ea2 = ea*ea;
+        ea3 = ea2*ea;
+
+        iea  = exp( -a*x0 );
+        iea2 = exp( -2.*a*x0 );
+        iea3 = exp( -3.*a*x0 );
+
+        V0 = D * dexp * ( dexp - 2.0 );
+        y0 = alpham * D * ea * ( ea - 2.0 );
+
+        B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
+
+        if (l >= shift_range){
+          s1  = (l - 1.0) / (shift_range - 1.0);
+          phi = V0 + B*dexp3 * s1;
+
+          // Force computation:
+          fpair = 3.0*a*B*dexp3*s1 + 2.0*a*D*(dexp2 - dexp);
+          fpair /= r;
+        }else{
+          llf = MathSpecial::powint( l / shift_range, nlambda );
+          phi = V0 + B*dexp3;
+          phi *= llf;
+
+          // Force computation:
+          if (r == 0.0){
+            fpair = 0.0;
+          }else{
+            fpair = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);
+            fpair *= llf / r;
+          }
+        }
+
+        fpair *= factor_lj;
+
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
         f[i][2] += delz*fpair;
+
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -117,8 +153,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = dp*Vp*(Vp - 2.0);
-          evdwl *= factor_lj;
+          evdwl = phi*factor_lj;
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -139,7 +174,7 @@ void PairMorseSoft::allocate()
   PairMorse::allocate();
   int n = atom->ntypes;
   memory->create(lambda,n+1,n+1,"pair:lambda");
-  
+
 }
 
 /* ----------------------------------------------------------------------
@@ -150,7 +185,7 @@ void PairMorseSoft::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 7) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
- 
+
   int ilo,ihi,jlo,jhi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
@@ -185,10 +220,12 @@ void PairMorseSoft::coeff(int narg, char **arg)
 
 void PairMorseSoft::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  nlambda = force->inumeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  nlambda     = force->inumeric(FLERR,arg[0]);
+  alpham      = force->numeric(FLERR,arg[1]);
+  shift_range = force->numeric(FLERR,arg[2]);
+  cut_global  = force->numeric(FLERR,arg[3]);
 
   // reset cutoffs that have been explicitly set
 
@@ -212,8 +249,39 @@ double PairMorseSoft::init_one(int i, int j)
   morse1[i][j] = 2.0*d0[i][j]*alpha[i][j];
 
   if (offset_flag) {
+    double l, s1, V0, B, llf;
     double alpha_dr = -alpha[i][j] * (cut[i][j] - r0[i][j]);
-    offset[i][j] = d0[i][j] * (exp(2.0*alpha_dr) - 2.0*exp(alpha_dr));
+    double D  = d0[i][j];
+    double a  = alpha[i][j];
+    double x0 = r0[i][j];
+    double dexp  = exp( alpha_dr );
+    double dexp2 = dexp*dexp;
+    double dexp3 = dexp2*dexp;
+    double dexp4 = dexp2*dexp2;
+
+    l = lambda[i][j];
+
+    double ea  = exp( a*x0 );
+    double ea2 = ea*ea;
+    double ea3 = ea2*ea;
+
+    double iea  = exp( -a*x0 );
+    double iea2 = exp( -2.*a*x0 );
+    double iea3 = exp( -3.*a*x0 );
+
+    V0 = D * dexp * ( dexp - 2.0 );
+
+    B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
+
+    if (l >= shift_range){
+      s1  = (l - 1.0) / (shift_range - 1.0);
+      offset[i][j] = V0 + B*dexp3 * s1;
+
+    }else{
+      llf = MathSpecial::powint( l / shift_range, nlambda );
+      offset[i][j] = V0 + B*dexp3;
+      offset[i][j] *= llf;
+    }
   } else offset[i][j] = 0.0;
 
   d0[j][i]     = d0[i][j];
@@ -313,28 +381,60 @@ double PairMorseSoft::single(int i, int j, int itype, int jtype, double rsq,
                              double factor_coul, double factor_lj,
                              double &fforce)
 {
-  double r,dr,dexp,phi;
-  double dp,la,Vp,Vp2,Vpp;
-  
+  double r, dr, dexp, dexp2, dexp3, dexp4, phi;
+  double A, B, D, a, ea, ea2, ea3, iea, iea2, iea3;
+  double y0, x0, V0, s1, l, llf;
+
+  D  = d0[itype][jtype];
+  a  = alpha[itype][jtype];
+  x0 = r0[itype][jtype];
   r = sqrt(rsq);
   dr = r - r0[itype][jtype];
-  dexp = exp(alpha[itype][jtype] * dr); // Careful, 1/(the original thing)!
+  dexp = exp( -a * dr );
+  dexp2 = dexp*dexp;
+  dexp3 = dexp2*dexp;
+  dexp4 = dexp2*dexp2;
 
-  la = 1.0 - lambda[itype][jtype];
-  la *= la;
-  la *= alpha[itype][jtype];
 
-  Vp  = 1.0 / ( la + dexp );
-  Vpp = alpha[itype][jtype]*dexp;
-  Vp2 = Vp*Vp;
+  l = lambda[itype][jtype];
 
-  dp = d0[itype][jtype]*powint(lambda[itype][jtype],nlambda);
+  ea  = exp( a * x0 );
+  ea2 = ea*ea;
+  ea3 = ea2*ea;
 
-  fforce = dp*2.0*Vp2*( Vp - 1.0 );
-  fforce *= factor_lj*Vpp;
+  iea  = exp( -a*x0 );
+  iea2 = exp( -2.*a*x0 );
+  iea3 = exp( -3.*a*x0 );
 
-  phi = dp*Vp*(Vp - 2.0);
-  
+
+  V0 = D * dexp * ( dexp - 2.0 );
+  y0 = alpham * D * ea * ( ea - 2.0 );
+
+  B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
+
+  if (l >= shift_range){
+    s1  = (l - 1.0) / (shift_range - 1.0);
+    phi = V0 + B*dexp3 * s1;
+
+    // Force computation:
+    fforce = 3.0*a*B*dexp3*s1 + 2.0*a*D*(dexp2 - dexp);
+    fforce /= r;
+  }else{
+    llf = MathSpecial::powint( l / shift_range, nlambda );
+    phi = V0 + B*dexp3;
+    phi *= llf;
+
+    // Force computation:
+    if (r == 0.0){
+      fforce = 0.0;
+    }else{
+      fforce = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);
+      fforce *= llf / r;
+    }
+  }
+
+  fforce *= factor_lj;
+  phi -= offset[itype][jtype];
   return factor_lj*phi;
 }
 

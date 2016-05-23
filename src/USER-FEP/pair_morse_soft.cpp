@@ -46,9 +46,9 @@ void PairMorseSoft::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,dr,dexp,dexp2,dexp3,dexp4,factor_lj;
-  double ea,ea2,ea3,phi,V0,iea,iea2,iea3;
-  double D, a, x0, y0, l, B, s1, llf;
+  double rsq,r,dr,dexp,dexp2,dexp3,factor_lj;
+  double ea,phi,V0,iea2;
+  double D, a, x0, l, B, s1, llf;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -100,22 +100,13 @@ void PairMorseSoft::compute(int eflag, int vflag)
         dexp = exp( -a * dr );
         dexp2 = dexp*dexp;
         dexp3 = dexp2*dexp;
-        dexp4 = dexp2*dexp2;
-
 
         l = lambda[itype][jtype];
 
         ea  = exp( a * x0 );
-        ea2 = ea*ea;
-        ea3 = ea2*ea;
-
-        iea  = exp( -a*x0 );
         iea2 = exp( -2.*a*x0 );
-        iea3 = exp( -3.*a*x0 );
 
         V0 = D * dexp * ( dexp - 2.0 );
-        y0 = alpham * D * ea * ( ea - 2.0 );
-
         B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
         if (l >= shift_range){
@@ -257,20 +248,13 @@ double PairMorseSoft::init_one(int i, int j)
     double dexp  = exp( alpha_dr );
     double dexp2 = dexp*dexp;
     double dexp3 = dexp2*dexp;
-    double dexp4 = dexp2*dexp2;
 
     l = lambda[i][j];
 
     double ea  = exp( a*x0 );
-    double ea2 = ea*ea;
-    double ea3 = ea2*ea;
-
-    double iea  = exp( -a*x0 );
     double iea2 = exp( -2.*a*x0 );
-    double iea3 = exp( -3.*a*x0 );
 
     V0 = D * dexp * ( dexp - 2.0 );
-
     B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
     if (l >= shift_range){
@@ -381,9 +365,9 @@ double PairMorseSoft::single(int i, int j, int itype, int jtype, double rsq,
                              double factor_coul, double factor_lj,
                              double &fforce)
 {
-  double r, dr, dexp, dexp2, dexp3, dexp4, phi;
-  double A, B, D, a, ea, ea2, ea3, iea, iea2, iea3;
-  double y0, x0, V0, s1, l, llf;
+  double r, dr, dexp, dexp2, dexp3, phi;
+  double B, D, a, ea, iea2;
+  double x0, V0, s1, l, llf;
 
   D  = d0[itype][jtype];
   a  = alpha[itype][jtype];
@@ -393,23 +377,13 @@ double PairMorseSoft::single(int i, int j, int itype, int jtype, double rsq,
   dexp = exp( -a * dr );
   dexp2 = dexp*dexp;
   dexp3 = dexp2*dexp;
-  dexp4 = dexp2*dexp2;
-
 
   l = lambda[itype][jtype];
 
   ea  = exp( a * x0 );
-  ea2 = ea*ea;
-  ea3 = ea2*ea;
-
-  iea  = exp( -a*x0 );
   iea2 = exp( -2.*a*x0 );
-  iea3 = exp( -3.*a*x0 );
-
 
   V0 = D * dexp * ( dexp - 2.0 );
-  y0 = alpham * D * ea * ( ea - 2.0 );
-
   B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
   if (l >= shift_range){

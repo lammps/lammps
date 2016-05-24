@@ -186,6 +186,9 @@ Neighbor::~Neighbor()
   memory->destroy(binhead);
   memory->destroy(bins);
 
+  memory->destroy(gbinhead_ssa);
+  memory->destroy(binhead_ssa);
+  memory->destroy(bins_ssa);
   memory->destroy(ssa_airnum);
 
   memory->destroy(ex1_type);

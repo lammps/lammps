@@ -57,6 +57,7 @@ double ComputeGyration::compute_scalar()
   invoked_scalar = update->ntimestep;
 
   double xcm[3];
+  if (group->dynamic[igroup]) masstotal = group->mass(igroup);
   group->xcm(igroup,masstotal,xcm);
   scalar = group->gyration(igroup,masstotal,xcm);
   return scalar;

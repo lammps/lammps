@@ -17,6 +17,8 @@ import sys, traceback, types
 from ctypes import *
 from os.path import dirname, abspath, join
 from inspect import getsourcefile
+import os
+import select
 
 
 class lammps:
@@ -222,7 +224,7 @@ class lammps:
             result = (c_double * nlocal)()
             self.lib.lammps_extract_variable.restype = POINTER(c_double)
             ptr = self.lib.lammps_extract_variable(self.lmp, name, group)
-            for i in xrange(nlocal): result[i] = ptr[i]
+            for i in range(nlocal): result[i] = ptr[i]
             self.lib.lammps_free(ptr)
             return result
         return None
@@ -262,3 +264,138 @@ class lammps:
     def scatter_atoms(self, name, type, count, data):
         name = name.encode()
         self.lib.lammps_scatter_atoms(self.lmp, name, type, count, data)
+
+
+class OutputCapture(object):
+    def __init__(self):
+        self.stdout_pipe_read, self.stdout_pipe_write = os.pipe()
+        self.stdout_fd = 1
+
+    def __enter__(self):
+        self.stdout = os.dup(self.stdout_fd)
+        os.dup2(self.stdout_pipe_write, self.stdout_fd)
+        return self
+
+    def __exit__(self, type, value, tracebac):
+        os.dup2(self.stdout, self.stdout_fd)
+
+    # check if we have more to read from the pipe
+    def more_data(self, pipe):
+        r, _, _ = select.select([pipe], [], [], 0)
+        return bool(r)
+
+    # read the whole pipe
+    def read_pipe(self, pipe):
+        out = ""
+        while self.more_data(pipe):
+            out += str(os.read(pipe, 1024), 'utf-8')
+        return out
+
+    @property
+    def output(self):
+        return self.read_pipe(self.stdout_pipe_read)
+
+
+class LammpsWrapper(object):
+    def __init__(self, lmp):
+        self.lmp = lmp
+
+    def system(self):
+        output = self.info("system")
+        return self._parse_info_system(output)
+
+    def _split_values(self, line):
+        return [x.strip() for x in line.split(',')]
+
+    def _get_pair(self, value):
+        return [x.strip() for x in value.split('=')]
+
+    def _parse_info_system(self, output):
+        lines = output.splitlines()[6:-2]
+        system = {}
+
+        for line in lines:
+            if line.startswith("Units"):
+                system['units'] = self._get_pair(line)[1]
+            elif line.startswith("Atom style"):
+                system['atom_style'] = self._get_pair(line)[1]
+            elif line.startswith("Atom map"):
+                system['atom_map'] = self._get_pair(line)[1]
+            elif line.startswith("Atoms"):
+                parts = self._split_values(line)
+                system['natoms'] = self._get_pair(parts[0])[1]
+                system['ntypes'] = self._get_pair(parts[1])[1]
+                system['style'] = self._get_pair(parts[2])[1]
+            elif line.startswith("Kspace style"):
+                system['kspace_style'] = self._get_pair(line)[1]
+            elif line.startswith("Dimensions"):
+                system['dimensions'] = self._get_pair(line)[1]
+            elif line.startswith("Orthogonal box"):
+                system['orthogonal_box'] = [float(x) for x in self._get_pair(line)[1].split('x')]
+            elif line.startswith("Boundaries"):
+                system['boundaries'] = self._get_pair(line)[1]
+            elif line.startswith("xlo"):
+                keys, values = [self._split_values(x) for x in self._get_pair(line)]
+                for key, value in zip(keys, values):
+                    system[key] = float(value)
+            elif line.startswith("ylo"):
+                keys, values = [self._split_values(x) for x in self._get_pair(line)]
+                for key, value in zip(keys, values):
+                    system[key] = float(value)
+            elif line.startswith("zlo"):
+                keys, values = [self._split_values(x) for x in self._get_pair(line)]
+                for key, value in zip(keys, values):
+                    system[key] = float(value)
+        return system
+
+    def __getattr__(self, name):
+        def handler(*args, **kwargs):
+            cmd_args = [name] + [str(x) for x in args]
+
+            with OutputCapture() as capture:
+                self.lmp.command(' '.join(cmd_args))
+                output = capture.output
+            return output
+
+        return handler
+
+
+class LammpsIPythonWrapper(LammpsWrapper):
+    def __init__(self, lmp):
+        super(LammpsIPythonWrapper, self).__init__(lmp)
+
+    def image(self, filename="snapshot.png", group="all", color="type", diameter="type",
+              size=None, view=None, center=None, up=None, zoom=1.0):
+        cmd_args = [group, "image", filename, color, diameter]
+
+        if size:
+            width = size[0]
+            height = size[1]
+            cmd_args += ["size", width, height]
+
+        if view:
+            theta = view[0]
+            phi = view[1]
+            cmd_args += ["view", theta, phi]
+
+        if center:
+            flag = center[0]
+            Cx = center[1]
+            Cy = center[2]
+            Cz = center[3]
+            cmd_args += ["center", flag, Cx, Cy, Cz]
+
+        if up:
+            Ux = up[0]
+            Uy = up[1]
+            Uz = up[2]
+            cmd_args += ["up", Ux, Uy, Uz]
+
+        if zoom:
+            cmd_args += ["zoom", zoom]
+
+        cmd_args.append("modify backcolor white")
+
+        self.write_dump(*cmd_args)
+        from IPython.core.display import Image
+        return Image('snapshot.png')

@@ -470,6 +470,15 @@ void FixGCMC::init()
                  "same molecule template ID");
   }
 
+  // check for fix rigid
+
+  int irigid;
+  for (irigid = 0; irigid < modify->nfix; irigid++) {
+    if (strcmp(modify->fix[irigid]->style,"rigid") == 0) break;
+    else if (strcmp(modify->fix[irigid]->style,"rigid/small") == 0) break;
+  }
+  if (irigid < modify->nfix) error->all(FLERR,"Fix gcmc can not currently be used with fix rigid or fix rigid/small");
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix gcmc in a 2d simulation");
 

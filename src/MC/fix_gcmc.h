@@ -247,6 +247,10 @@ E: Fix gcmc and fix shake not using same molecule template ID
 
 Self-explanatory.
 
+E: Fix gcmc can not currently be used with fix rigid or fix rigid/small
+
+Self-explanatory.
+
 E: Cannot use fix gcmc in a 2d simulation
 
 Fix gcmc is set up to run in 3d only. No 2d simulations with fix gcmc

@@ -61,6 +61,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   con_mono = NULL;
   con_poly = NULL;
   tags = NULL;
+  oldmaxtag = 0;
   occvec = sendocc = lroot = lnext = NULL;
   faces = NULL;
 
@@ -204,6 +205,7 @@ void ComputeVoronoi::compute_peratom()
       buildCells();
 
       // save tags of atoms (i.e. of each voronoi cell)
+      oldmaxtag = atom->map_tag_max;
       memory->create(tags,nall,"voronoi/atom:tags");
       for (i=0; i<nall; i++) tags[i] = atom->tag[i];
 
@@ -440,7 +442,14 @@ void ComputeVoronoi::checkOccupation()
   // cherry pick currently owned atoms
   for (i=0; i<nlocal; i++) {
     // set the new atom count in the atom's first frame voronoi cell
-    voro[i][0] = occvec[atom->tag[i]-1];
+    // but take into account that new atoms might have been added to
+    // the system, so we can only look up occupancy for tags that are
+    // smaller or equal to the recorded largest tag.
+    tagint mytag = atom->tag[i];
+    if (mytag > oldmaxtag)
+      voro[i][0] = 0;
+    else
+      voro[i][0] = occvec[mytag-1];
   }
 }
 

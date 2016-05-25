@@ -263,7 +263,7 @@ void Info::command(int narg, char **arg)
         fprintf(out,"Communication cutoff for type %d = %g\n", i, cut);
       }
     }
-    fprintf(out,"Nprocs = %d    Nthreads = %d\n",
+    fprintf(out,"Nprocs = %d,   Nthreads = %d\n",
             comm->nprocs, comm->nthreads);
     fprintf(out,"Processor grid = %d x %d x %d\n",comm->procgrid[0],
             comm->procgrid[1], comm->procgrid[2]);

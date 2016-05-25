@@ -178,6 +178,8 @@ ComputeVoronoi::~ComputeVoronoi()
 
 void ComputeVoronoi::init()
 {
+  if (occupation && (atom->tag_enable == 0))
+    error->all(FLERR,"Compute voronoi/atom occupation requires atom IDs");
 }
 
 /* ----------------------------------------------------------------------
@@ -205,7 +207,6 @@ void ComputeVoronoi::compute_peratom()
       buildCells();
 
       // save tags of atoms (i.e. of each voronoi cell)
-      oldmaxtag = atom->map_tag_max;
       memory->create(tags,nall,"voronoi/atom:tags");
       for (i=0; i<nall; i++) tags[i] = atom->tag[i];
 
@@ -215,11 +216,14 @@ void ComputeVoronoi::compute_peratom()
       lnext = NULL;
       lmax = 0;
 
-      // build the occupation buffer
+      // build the occupation buffer.
+      // NOTE: we cannot make it of length oldnatoms, as tags may not be
+      // consecutive at this point, e.g. due to deleted or lost atoms.
       oldnatoms = atom->natoms;
-      memory->create(occvec,oldnatoms,"voronoi/atom:occvec");
+      oldmaxtag = atom->map_tag_max;
+      memory->create(occvec,oldmaxtag,"voronoi/atom:occvec");
 #ifdef NOTINPLACE
-      memory->create(sendocc,oldnatoms,"voronoi/atom:sendocc");
+      memory->create(sendocc,oldmaxtag,"voronoi/atom:sendocc");
 #endif
     }
 

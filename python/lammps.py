@@ -351,6 +351,9 @@ class LammpsWrapper(object):
             vars[v['name']] = LammpsVariable(self, v['name'], v['style'], v['def'])
         return vars
 
+    def eval(self, expr):
+        return float(self.print('"$(%s)"' % expr))
+
     def _split_values(self, line):
         return [x.strip() for x in line.split(',')]
 

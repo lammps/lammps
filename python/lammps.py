@@ -19,6 +19,7 @@ from os.path import dirname, abspath, join
 from inspect import getsourcefile
 import os
 import select
+import re
 
 
 class lammps:
@@ -300,9 +301,40 @@ class LammpsWrapper(object):
     def __init__(self, lmp):
         self.lmp = lmp
 
+    @property
     def system(self):
         output = self.info("system")
         return self._parse_info_system(output)
+
+    @property
+    def communication(self):
+        output = self.info("communication")
+        return self._parse_info_communication(output)
+
+    @property
+    def computes(self):
+        output = self.info("computes")
+        return self._parse_element_list(output)
+
+    @property
+    def dumps(self):
+        output = self.info("dumps")
+        return self._parse_element_list(output)
+
+    @property
+    def fixes(self):
+        output = self.info("fixes")
+        return self._parse_element_list(output)
+
+    @property
+    def groups(self):
+        output = self.info("groups")
+        return self._parse_groups(output)
+
+    @property
+    def variables(self):
+        output = self.info("variables")
+        return self._parse_element_list(output)
 
     def _split_values(self, line):
         return [x.strip() for x in line.split(',')]
@@ -347,6 +379,50 @@ class LammpsWrapper(object):
                 for key, value in zip(keys, values):
                     system[key] = float(value)
         return system
+
+    def _parse_info_communication(self, output):
+        lines = output.splitlines()[6:-3]
+        comm = {}
+
+        for line in lines:
+            if line.startswith("MPI library"):
+                comm['mpi_version'] = line.split(':')[1].strip()
+            elif line.startswith("Comm style"):
+                parts = self._split_values(line)
+                comm['comm_style'] = self._get_pair(parts[0])[1]
+                comm['comm_layout'] = self._get_pair(parts[1])[1]
+            elif line.startswith("Processor grid"):
+                comm['proc_grid'] = [int(x) for x in self._get_pair(line)[1].split('x')]
+            elif line.startswith("Communicate velocities for ghost atoms"):
+                comm['ghost_velocity'] = (self._get_pair(line)[1] == "yes")
+            elif line.startswith("Nprocs"):
+                parts = self._split_values(line)
+                comm['nprocs'] = int(self._get_pair(parts[0])[1])
+                comm['nthreads'] = int(self._get_pair(parts[1])[1])
+        return comm
+
+    def _parse_element_list(self, output):
+        lines = output.splitlines()[6:-3]
+        elements = []
+
+        for line in lines:
+            element_info = self._split_values(line.split(':')[1].strip())
+            element = {'name': element_info[0]}
+            for key, value in [self._get_pair(x) for x in element_info[1:]]:
+                element[key] = value
+            elements.append(element)
+        return elements
+
+    def _parse_groups(self, output):
+        lines = output.splitlines()[6:-3]
+        groups = []
+        group_pattern = re.compile(r"(?P<name>.+) \((?P<type>.+)\)")
+
+        for line in lines:
+            m = group_pattern.match(line.split(':')[1].strip())
+            group = {'name': m.group('name'), 'type': m.group('type')}
+            groups.append(group)
+        return groups
 
     def __getattr__(self, name):
         def handler(*args, **kwargs):

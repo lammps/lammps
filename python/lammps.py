@@ -297,6 +297,18 @@ class OutputCapture(object):
         return self.read_pipe(self.stdout_pipe_read)
 
 
+class LammpsVariable(object):
+    def __init__(self, lammps_wrapper_instance, name, style, definition):
+        self.lmp = lammps_wrapper_instance
+        self.name = name
+        self.style = style
+        self.definition = definition
+
+    @property
+    def value(self):
+        return float(self.lmp.print('"${%s}"' % self.name))
+
+
 class LammpsWrapper(object):
     def __init__(self, lmp):
         self.lmp = lmp
@@ -334,7 +346,10 @@ class LammpsWrapper(object):
     @property
     def variables(self):
         output = self.info("variables")
-        return self._parse_element_list(output)
+        vars = {}
+        for v in self._parse_element_list(output):
+            vars[v['name']] = LammpsVariable(self, v['name'], v['style'], v['def'])
+        return vars
 
     def _split_values(self, line):
         return [x.strip() for x in line.split(',')]

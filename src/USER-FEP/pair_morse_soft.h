@@ -48,7 +48,7 @@ class PairMorseSoft : public PairMorse {
   double **lambda;
 
   int nlambda;
-  double alpham, shift_range;
+  double shift_range;
 
   void allocate();
 };

@@ -213,7 +213,7 @@ void PairMorseSoft::coeff(int narg, char **arg)
 
 void PairMorseSoft::settings(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
   nlambda     = force->inumeric(FLERR,arg[0]);
   shift_range = force->numeric(FLERR,arg[1]);

@@ -37,7 +37,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperUmbrella::ImproperUmbrella(LAMMPS *lmp) : Improper(lmp) {}
+ImproperUmbrella::ImproperUmbrella(LAMMPS *lmp) : Improper(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -101,14 +101,12 @@ void PairMorseSoft::compute(int eflag, int vflag)
         dexp2 = dexp*dexp;
         dexp3 = dexp2*dexp;
 
-
         l = lambda[itype][jtype];
 
         ea  = exp( a * x0 );
         iea2 = exp( -2.*a*x0 );
 
         V0 = D * dexp * ( dexp - 2.0 );
-
         B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
         if (l >= shift_range){
@@ -256,7 +254,6 @@ double PairMorseSoft::init_one(int i, int j)
     double iea2 = exp( -2.*a*x0 );
 
     V0 = D * dexp * ( dexp - 2.0 );
-
     B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
     if (l >= shift_range){
@@ -380,14 +377,12 @@ double PairMorseSoft::single(int i, int j, int itype, int jtype, double rsq,
   dexp2 = dexp*dexp;
   dexp3 = dexp2*dexp;
 
-
   l = lambda[itype][jtype];
 
   ea  = exp( a * x0 );
   iea2 = exp( -2.*a*x0 );
 
   V0 = D * dexp * ( dexp - 2.0 );
-
   B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
   if (l >= shift_range){

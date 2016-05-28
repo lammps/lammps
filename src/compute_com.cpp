@@ -51,6 +51,7 @@ void ComputeCOM::init()
 void ComputeCOM::compute_vector()
 {
   invoked_vector = update->ntimestep;
+  if (group->dynamic[igroup]) masstotal = group->mass(igroup);
 
   group->xcm(igroup,masstotal,vector);
 }

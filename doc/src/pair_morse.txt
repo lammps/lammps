@@ -25,9 +25,8 @@ args = list of arguments for a particular style :ul
    cutoff = global cutoff for Morse interactions (distance units)
  {morse/smooth/linear} args = cutoff
    cutoff = global cutoff for Morse interactions (distance units)
- {morse/soft} args = n alpha_m lf cutoff
+ {morse/soft} args = n lf cutoff
    n = soft-core parameter
-   alpha_m = potential fraction at r=0 after transformation
    lf      = transformation range is lf < lambda < 1
    cutoff  = global cutoff for Morse interactions (distance units)
 :pre

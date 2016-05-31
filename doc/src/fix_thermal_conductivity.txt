@@ -63,8 +63,8 @@ temperature profile (assuming z = edim) to the file tmp.profile:
 
 compute   ke all ke/atom
 variable  temp atom c_ke/1.5
-fix       3 all ave/spatial 10 100 1000 z lower 0.05 v_temp &
-            file tmp.profile units reduced :pre
+compute   layers all chunk/atom bin/1d z lower 0.05 units reduced
+fix       3 all ave/chunk 10 100 1000 layers v_temp file tmp.profile :pre
 
 Note that by default, Nswap = 1, though this can be changed by the
 optional {swap} keyword.  Setting this parameter appropriately, in
@@ -145,10 +145,9 @@ bewteen solvent particles.
 
 [Related commands:]
 
-"fix ehex"_fix_ehex.html, "fix heat"_fix_heat.html, 
-"fix ave/spatial"_fix_ave_spatial.html, "fix
-viscosity"_fix_viscosity.html, "compute
-heat/flux"_compute_heat_flux.html
+"fix ehex"_fix_ehex.html, "fix heat"_fix_heat.html, "fix
+ave/chunk"_fix_ave_chunk.html, "fix viscosity"_fix_viscosity.html,
+"compute heat/flux"_compute_heat_flux.html
 
 [Default:]
 

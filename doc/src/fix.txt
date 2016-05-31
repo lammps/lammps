@@ -122,11 +122,10 @@ custom"_thermo_style.html or "fix ave/time"_fix_ave_time.html command.
 Or the values can be referenced in a "variable equal"_variable.html or
 "variable atom"_variable.html command. :ulb,l
 
-Per-atom values can be output via the "dump custom"_dump.html command
-or the "fix ave/spatial"_fix_ave_spatial.html command.  Or they can be
-time-averaged via the "fix ave/atom"_fix_ave_atom.html command or
-reduced by the "compute reduce"_compute_reduce.html command.  Or the
-per-atom values can be referenced in an "atom-style
+Per-atom values can be output via the "dump custom"_dump.html command.
+Or they can be time-averaged via the "fix ave/atom"_fix_ave_atom.html
+command or reduced by the "compute reduce"_compute_reduce.html
+command.  Or the per-atom values can be referenced in an "atom-style
 variable"_variable.html. :l
 
 Local values can be reduced by the "compute
@@ -171,7 +170,6 @@ of "this page"_Section_commands.html#cmd_5.
 "ave/chunk"_fix_ave_chunk.html - compute per-chunk time-averaged quantities
 "ave/correlate"_fix_ave_correlate.html - compute/output time correlations
 "ave/histo"_fix_ave_histo.html - compute/output time-averaged histograms
-"ave/spatial"_fix_ave_spatial.html - compute/output time-averaged per-atom quantities by layer
 "ave/time"_fix_ave_time.html - compute/output global time-averaged quantities
 "balance"_fix_balance.html - perform dynamic load-balancing
 "bond/break"_fix_bond_break.html - break bonds on the fly

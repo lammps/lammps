@@ -496,7 +496,7 @@ box.  E.g. for a shearing system the box deformation velocity may vary
 from 0 at the bottom to 10 at the top of the box.  But the stream
 velocity profile of the atoms may vary from -5 at the bottom to +5 at
 the top.  You can monitor these effects using the "fix
-ave/spatial"_fix_ave_spatial.html, "compute
+ave/chunk"_fix_ave_chunk.html, "compute
 temp/deform"_compute_temp_deform.html, and "compute
 temp/profile"_compute_temp_profile.html commands.  One way to induce
 atoms to stream consistent with the box deformation is to give them an

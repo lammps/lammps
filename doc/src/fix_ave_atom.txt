@@ -38,7 +38,7 @@ Use one or more per-atom vectors as inputs every few timesteps, and
 average them atom by atom over longer timescales.  The resulting
 per-atom averages can be used by other "output
 commands"_Section_howto.html#howto_15 such as the "fix
-ave/spatial"_fix_ave_spatial.html or "dump custom"_dump.html commands.
+ave/chunk"_fix_ave_chunk.html or "dump custom"_dump.html commands.
 
 The group specified with the command means only atoms within the group
 have their averages computed.  Results are set to 0.0 for atoms not in
@@ -147,7 +147,7 @@ minimization"_minimize.html.
 [Related commands:]
 
 "compute"_compute.html, "fix ave/histo"_fix_ave_histo.html, "fix
-ave/spatial"_fix_ave_spatial.html, "fix ave/time"_fix_ave_time.html,
+ave/chunk"_fix_ave_chunk.html, "fix ave/time"_fix_ave_time.html,
 "variable"_variable.html,
 
 [Default:] none

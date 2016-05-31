@@ -67,8 +67,8 @@ fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running :pre
 
 [NOTE:]
 
-If you are trying to replace an older fix ave/spatial command with the
-newer, more flexible fix ave/chunk and "compute
+If you are trying to replace a deprectated fix ave/spatial command
+with the newer, more flexible fix ave/chunk and "compute
 chunk/atom"_compute_chunk_atom.html commands, you simply need to split
 the fix ave/spatial arguments across the two new commands.  For
 example, this command:

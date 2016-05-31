@@ -42,7 +42,6 @@
 #include "group.h"
 #include "output.h"
 #include "citeme.h"
-#include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "accelerator_intel.h"
@@ -80,7 +79,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
   int logflag = 0;
   int partscreenflag = 0;
   int partlogflag = 0;
-  int cudaflag = 0;
   int kokkosflag = 0;
   int restartflag = 0;
   int restartremapflag = 0;
@@ -152,14 +150,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       if (iarg+2 > narg)
        error->universe_all(FLERR,"Invalid command-line argument");
       partlogflag = iarg + 1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"-cuda") == 0 ||
-               strcmp(arg[iarg],"-c") == 0) {
-      if (iarg+2 > narg)
-        error->universe_all(FLERR,"Invalid command-line argument");
-      if (strcmp(arg[iarg+1],"on") == 0) cudaflag = 1;
-      else if (strcmp(arg[iarg+1],"off") == 0) cudaflag = 0;
-      else error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
     } else if (strcmp(arg[iarg],"-kokkos") == 0 ||
                strcmp(arg[iarg],"-k") == 0) {
@@ -469,25 +459,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
       sizeof(tagint) != 4 || sizeof(bigint) != 4)
     error->all(FLERR,"Small to big integers are not sized correctly");
 #endif
-
-  // error check on accelerator packages
-
-  if (cudaflag == 1 && kokkosflag == 1)
-    error->all(FLERR,"Cannot use -cuda on and -kokkos on together");
-
-  // create Cuda class if USER-CUDA installed, unless explicitly switched off
-  // instantiation creates dummy Cuda class if USER-CUDA is not installed
-
-  cuda = NULL;
-  if (cudaflag == 1) {
-    cuda = new Cuda(this);
-    if (!cuda->cuda_exists)
-      error->all(FLERR,"Cannot use -cuda on without USER-CUDA installed");
-  }
-
-  int me;
-  MPI_Comm_rank(world,&me);
-  if (cuda && me == 0) error->message(FLERR,"USER-CUDA mode is enabled");
 
   // create Kokkos class if KOKKOS installed, unless explicitly switched off
   // instantiation creates dummy Kokkos class if KOKKOS is not installed

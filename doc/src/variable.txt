@@ -46,7 +46,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     constants = PI, version, on, off, true, false, yes, no
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
-                     x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
+                     x == y, x != y, x &lt; y, x &lt;= y, x &gt; y, x &gt;= y, x && y, x || y, !x
     math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
@@ -430,7 +430,7 @@ Constant: PI, version, on, off, true, false, yes, no
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, 
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, \
-     x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
+     x == y, x != y, x &lt; y, x &lt;= y, x &gt; y, x &gt;= y, x && y, x || y, !x
 Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), \
      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), \
      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), \

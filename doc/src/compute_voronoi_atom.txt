@@ -39,9 +39,9 @@ or {face_threshold} or {neighbors} or {peratom} :l
 compute 1 all voronoi/atom
 compute 2 precipitate voronoi/atom surface matrix
 compute 3b precipitate voronoi/atom radius v_r 
-compute 4 solute voronoi/atom only_group :pre
-compute 5 defects voronoi/atom occupation :pre
-compute 6 all voronoi/atom neighbors yes
+compute 4 solute voronoi/atom only_group
+compute 5 defects voronoi/atom occupation
+compute 6 all voronoi/atom neighbors yes :pre
 
 [Description:]
 

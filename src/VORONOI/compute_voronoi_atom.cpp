@@ -61,6 +61,7 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   con_mono = NULL;
   con_poly = NULL;
   tags = NULL;
+  oldmaxtag = 0;
   occvec = sendocc = lroot = lnext = NULL;
   faces = NULL;
 
@@ -177,6 +178,8 @@ ComputeVoronoi::~ComputeVoronoi()
 
 void ComputeVoronoi::init()
 {
+  if (occupation && (atom->tag_enable == 0))
+    error->all(FLERR,"Compute voronoi/atom occupation requires atom IDs");
 }
 
 /* ----------------------------------------------------------------------
@@ -213,11 +216,14 @@ void ComputeVoronoi::compute_peratom()
       lnext = NULL;
       lmax = 0;
 
-      // build the occupation buffer
+      // build the occupation buffer.
+      // NOTE: we cannot make it of length oldnatoms, as tags may not be
+      // consecutive at this point, e.g. due to deleted or lost atoms.
       oldnatoms = atom->natoms;
-      memory->create(occvec,oldnatoms,"voronoi/atom:occvec");
+      oldmaxtag = atom->map_tag_max;
+      memory->create(occvec,oldmaxtag,"voronoi/atom:occvec");
 #ifdef NOTINPLACE
-      memory->create(sendocc,oldnatoms,"voronoi/atom:sendocc");
+      memory->create(sendocc,oldmaxtag,"voronoi/atom:sendocc");
 #endif
     }
 
@@ -440,7 +446,14 @@ void ComputeVoronoi::checkOccupation()
   // cherry pick currently owned atoms
   for (i=0; i<nlocal; i++) {
     // set the new atom count in the atom's first frame voronoi cell
-    voro[i][0] = occvec[atom->tag[i]-1];
+    // but take into account that new atoms might have been added to
+    // the system, so we can only look up occupancy for tags that are
+    // smaller or equal to the recorded largest tag.
+    tagint mytag = atom->tag[i];
+    if (mytag > oldmaxtag)
+      voro[i][0] = 0;
+    else
+      voro[i][0] = occvec[mytag-1];
   }
 }
 

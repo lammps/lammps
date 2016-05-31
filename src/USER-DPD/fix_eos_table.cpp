@@ -248,6 +248,10 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 void FixEOStable::spline_table(Table *tb)
 {
   memory->create(tb->e2file,tb->ninput,"eos:e2file");
+
+  double ep0 = 0.0;
+  double epn = 0.0;
+  spline(tb->rfile,tb->efile,tb->ninput,ep0,epn,tb->e2file);
 }
 
 /* ----------------------------------------------------------------------

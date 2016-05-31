@@ -118,8 +118,6 @@ fix_ave_correlate.html
 fix_ave_correlate_long.html
 fix_ave_chunk.html
 fix_ave_histo.html
-fix_ave_spatial.html
-fix_ave_spatial_sphere.html
 fix_ave_time.html
 fix_aveforce.html
 fix_balance.html

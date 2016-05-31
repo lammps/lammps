@@ -1620,8 +1620,8 @@ lj/cut"_pair_lj.html variant, with style names lj/cut/gpu,
 lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
 can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu.  If the -suffix switch is used the specified suffix
-(cuda,gpu,intel,kk,omp,opt) is automatically appended whenever your
-input script command creates a new "atom"_atom_style.html,
+(gpu,intel,kk,omp,opt) is automatically appended whenever your input
+script command creates a new "atom"_atom_style.html,
 "pair"_pair_style.html, "fix"_fix.html, "compute"_compute.html, or
 "run"_run_style.html style.  If the variant version does not exist,
 the standard version is created.

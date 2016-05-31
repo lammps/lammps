@@ -1809,8 +1809,8 @@ As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` 
 lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
 can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu.  If the -suffix switch is used the specified suffix
-(cuda,gpu,intel,kk,omp,opt) is automatically appended whenever your
-input script command creates a new :doc:`atom <atom_style>`,
+(gpu,intel,kk,omp,opt) is automatically appended whenever your input
+script command creates a new :doc:`atom <atom_style>`,
 :doc:`pair <pair_style>`, :doc:`fix <fix>`, :doc:`compute <compute>`, or
 :doc:`run <run_style>` style.  If the variant version does not exist,
 the standard version is created.

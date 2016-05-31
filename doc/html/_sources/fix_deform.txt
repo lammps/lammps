@@ -524,7 +524,7 @@ box without explicit remapping of their coordinates.
    box.  E.g. for a shearing system the box deformation velocity may vary
    from 0 at the bottom to 10 at the top of the box.  But the stream
    velocity profile of the atoms may vary from -5 at the bottom to +5 at
-   the top.  You can monitor these effects using the :doc:`fix ave/spatial <fix_ave_spatial>`, :doc:`compute temp/deform <compute_temp_deform>`, and :doc:`compute temp/profile <compute_temp_profile>` commands.  One way to induce
+   the top.  You can monitor these effects using the :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`compute temp/deform <compute_temp_deform>`, and :doc:`compute temp/profile <compute_temp_profile>` commands.  One way to induce
    atoms to stream consistent with the box deformation is to give them an
    initial velocity profile, via the :doc:`velocity ramp <velocity>`
    command, that matches the box deformation rate.  This also typically

@@ -577,7 +577,7 @@ pushing the atoms to flow in a manner consistent with the deforming
 box.  E.g. for a shearing system the box deformation velocity may vary
 from 0 at the bottom to 10 at the top of the box.  But the stream
 velocity profile of the atoms may vary from -5 at the bottom to +5 at
-the top.  You can monitor these effects using the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>, <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a>, and <a class="reference internal" href="compute_temp_profile.html"><span class="doc">compute temp/profile</span></a> commands.  One way to induce
+the top.  You can monitor these effects using the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a>, and <a class="reference internal" href="compute_temp_profile.html"><span class="doc">compute temp/profile</span></a> commands.  One way to induce
 atoms to stream consistent with the box deformation is to give them an
 initial velocity profile, via the <a class="reference internal" href="velocity.html"><span class="doc">velocity ramp</span></a>
 command, that matches the box deformation rate.  This also typically

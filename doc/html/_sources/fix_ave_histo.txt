@@ -346,7 +346,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/spatial <fix_ave_spatial>`, :doc:`fix ave/time <fix_ave_time>`,
+:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`,
 
 **Default:** none

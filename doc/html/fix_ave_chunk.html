@@ -192,8 +192,8 @@
 </pre></div>
 </div>
 <p><strong>NOTE:</strong></p>
-<p>If you are trying to replace an older fix ave/spatial command with the
-newer, more flexible fix ave/chunk and <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> commands, you simply need to split
+<p>If you are trying to replace a deprectated fix ave/spatial command
+with the newer, more flexible fix ave/chunk and <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> commands, you simply need to split
 the fix ave/spatial arguments across the two new commands.  For
 example, this command:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="n">flow</span> <span class="n">ave</span><span class="o">/</span><span class="n">spatial</span> <span class="mi">100</span> <span class="mi">10</span> <span class="mi">1000</span> <span class="n">y</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="n">vx</span> <span class="n">vz</span> <span class="n">norm</span> <span class="n">sample</span> <span class="n">file</span> <span class="n">vel</span><span class="o">.</span><span class="n">profile</span>

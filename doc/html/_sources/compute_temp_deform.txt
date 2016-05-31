@@ -90,7 +90,7 @@ fixes that work in this way include :doc:`fix nvt <fix_nh>`, :doc:`fix temp/resc
    off an incorrect stream velocity, yielding a bogus thermal
    temperature.  You should NOT assume that your atoms are streaming at
    the same rate the box is deforming.  Rather, you should monitor their
-   velocity profile, e.g. via the :doc:`fix ave/spatial <fix_ave_spatial>`
+   velocity profile, e.g. via the :doc:`fix ave/chunk <fix_ave_chunk>`
    command.  And you can compare the results of this compute to :doc:`compute temp/profile <compute_temp_profile>`, which actually calculates the
    stream profile before subtracting it.  If the two computes do not give
    roughly the same temperature, then your atoms are not streaming

@@ -180,7 +180,7 @@ within each pair.  This resets their velocities, typically in opposite
 directions.  Over time, this induces a shear velocity profile in the
 system which can be measured using commands such as the following,
 which writes the profile to the file tmp.profile:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">layers</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="n">z</span> <span class="n">lower</span> <span class="mf">0.05</span> <span class="n">units</span> <span class="n">reduced</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">layers</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="nb">bin</span><span class="o">/</span><span class="mi">1</span><span class="n">d</span> <span class="n">z</span> <span class="n">lower</span> <span class="mf">0.05</span> <span class="n">units</span> <span class="n">reduced</span>
 <span class="n">fix</span> <span class="n">f1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">10</span> <span class="mi">1000</span> <span class="n">layers</span> <span class="n">vx</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">profile</span>
 </pre></div>
 </div>

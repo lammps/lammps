@@ -76,7 +76,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
     for (m = 0; m < nstyles; m++) nimproperlist[m] = 0;
     for (i = 0; i < nimproperlist_orig; i++) {
       m = map[improperlist_orig[i][4]];
-      nimproperlist[m]++;
+      if (m >= 0) nimproperlist[m]++;
     }
     for (m = 0; m < nstyles; m++) {
       if (nimproperlist[m] > maximproper[m]) {

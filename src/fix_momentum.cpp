@@ -36,7 +36,7 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix momentum command");
 
-  linear = angular = rescale = 0;
+  dynamic = linear = angular = rescale = 0;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -65,12 +65,6 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Illegal fix momentum command");
 
   dynamic_group_allow = 1;
-  if (group->dynamic[igroup]) {
-    dynamic = 1;
-  } else {
-   if (group->count(igroup) == 0)
-     error->all(FLERR,"Fix momentum group has no atoms");
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,6 +80,13 @@ int FixMomentum::setmask()
 
 void FixMomentum::init()
 {
+  if (group->dynamic[igroup]) {
+    dynamic = 1;
+  } else {
+   if (group->count(igroup) == 0)
+     error->all(FLERR,"Fix momentum group has no atoms");
+  }
+
   masstotal = group->mass(igroup);
 }
 

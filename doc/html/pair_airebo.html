@@ -263,6 +263,23 @@ paper. Thus the parameters are specific to this potential and the way
 it was fit, so modifying the file should be done cautiously. The
 AIREBO-M Morse potentials were parameterized using a cutoff of
 3.0 (sigma). Modifying this cutoff may impact simulation accuracy.</p>
+<p>This pair style tallies a breakdown of the total AIREBO potential
+energy into sub-categories, which can be accessed via the <a class="reference internal" href="compute_pair.html"><span class="doc">compute pair</span></a> command as a vector of values of length 3.
+The 3 values correspond to the following sub-categories:</p>
+<ol class="arabic simple">
+<li><em>E_REBO</em> = REBO energy</li>
+<li><em>E_LJ</em> = Lennard-Jones energy</li>
+<li><em>E_TORSION</em> = Torsion energy</li>
+</ol>
+<p>To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">0</span> <span class="nb">all</span> <span class="n">pair</span> <span class="n">airebo</span>
+<span class="n">variable</span> <span class="n">REBO</span>     <span class="n">equal</span> <span class="n">c_0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">LJ</span>       <span class="n">equal</span> <span class="n">c_0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">TORSION</span>  <span class="n">equal</span> <span class="n">c_0</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">epair</span> <span class="n">v_REBO</span> <span class="n">v_LJ</span> <span class="n">v_TORSION</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.

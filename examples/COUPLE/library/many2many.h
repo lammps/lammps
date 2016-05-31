@@ -1,7 +1,7 @@
 #ifndef MANY2MANY_H
 #define MANY2MANY_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Many2Many {
  public:

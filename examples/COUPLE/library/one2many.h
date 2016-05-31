@@ -1,7 +1,7 @@
 #ifndef ONE2MANY_H
 #define ONE2MANY_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 #include <map>
 

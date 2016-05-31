@@ -33,7 +33,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   mass_type = dipole_type = 0;
   forceclearflag = 0;
   size_data_bonus = 0;
-  cudable = kokkosable = 0;
+  kokkosable = 0;
 
   nargcopy = 0;
   argcopy = NULL;
@@ -81,8 +81,6 @@ void AtomVec::init()
   deform_groupbit = domain->deform_groupbit;
   h_rate = domain->h_rate;
 
-  if (lmp->cuda != NULL && !cudable)
-    error->all(FLERR,"USER-CUDA package requires a cuda enabled atom_style");
   if (lmp->kokkos != NULL && !kokkosable)
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }

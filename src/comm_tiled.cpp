@@ -45,8 +45,6 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  if (lmp->cuda)
-    error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");
   if (lmp->kokkos)
     error->all(FLERR,"KOKKOS package does not yet support comm_style tiled");
 
@@ -65,8 +63,6 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 //
 CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
-  if (lmp->cuda)
-    error->all(FLERR,"USER-CUDA package does not yet support comm_style tiled");
   if (lmp->kokkos)
     error->all(FLERR,"KOKKOS package does not yet support comm_style tiled");
 

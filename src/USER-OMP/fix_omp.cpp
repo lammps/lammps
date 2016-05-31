@@ -45,15 +45,8 @@
 
 #include "suffix.h"
 
-#if defined(LMP_USER_CUDA)
-#include "cuda_modify_flags.h"
-#endif
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
-#if defined(LMP_USER_CUDA)
-using namespace FixConstCuda;
-#endif
 
 static int get_tid()
 {
@@ -157,18 +150,6 @@ FixOMP::~FixOMP()
 
 int FixOMP::setmask()
 {
-  // compatibility with USER-CUDA
-  // our fix doesn't need any data transfer.
-#if defined(LMP_USER_CUDA)
-  if (lmp->cuda) {
-    int mask = 0;
-    mask |= PRE_FORCE_CUDA;
-    mask |= PRE_FORCE_RESPA;
-    mask |= MIN_PRE_FORCE;
-    return mask;
-  }
-#endif
-
   int mask = 0;
   mask |= PRE_FORCE;
   mask |= PRE_FORCE_RESPA;

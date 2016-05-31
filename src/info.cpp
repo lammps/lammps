@@ -17,7 +17,6 @@
 
 #include <string.h>
 #include "info.h"
-#include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
@@ -476,9 +475,7 @@ bool Info::is_active(const char *category, const char *name)
   const int len = strlen(name);
 
   if (strcmp(category,"package") == 0) {
-    if (strcmp(name,"cuda") == 0) {
-      return (lmp->cuda && lmp->cuda->cuda_exists) ? true : false;
-    } else if (strcmp(name,"gpu") == 0) {
+    if (strcmp(name,"gpu") == 0) {
       return (modify->find_fix("package_gpu") >= 0) ? true : false;
     } else if (strcmp(name,"intel") == 0) {
       return (modify->find_fix("package_intel") >= 0) ? true : false;

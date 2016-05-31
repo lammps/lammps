@@ -50,7 +50,6 @@ class LAMMPS {
   int num_package;               // number of cmdline package commands
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
 
-  class Cuda *cuda;              // CUDA accelerator class
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
   class AtomKokkos *atomKK;      // KOKKOS version of Atom class
 

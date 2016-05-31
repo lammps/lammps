@@ -30,7 +30,6 @@
 #include "force.h"
 #include "dump.h"
 #include "write_restart.h"
-#include "accelerator_cuda.h"
 #include "memory.h"
 #include "error.h"
 
@@ -290,11 +289,8 @@ void Output::write(bigint ntimestep)
 {
   // next_dump does not force output on last step of run
   // wrap dumps that invoke computes or eval of variable with clear/add
-  // download data from GPU if necessary
 
   if (next_dump_any == ntimestep) {
-    if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();
-
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep) {
         if (dump[idump]->clearstep || every_dump[idump] == 0)
@@ -321,12 +317,9 @@ void Output::write(bigint ntimestep)
 
   // next_restart does not force output on last step of run
   // for toggle = 0, replace "*" with current timestep in restart filename
-  // download data from GPU if necessary
   // eval of variable may invoke computes so wrap with clear/add
 
   if (next_restart == ntimestep) {
-    if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();
-
     if (next_restart_single == ntimestep) {
       char *file = new char[strlen(restart1) + 16];
       char *ptr = strchr(restart1,'*');

@@ -34,7 +34,6 @@
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
-#include "accelerator_cuda.h"
 #include "suffix.h"
 #include "atom_masks.h"
 #include "memory.h"
@@ -99,7 +98,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   num_tally_compute = 0;
   list_tally_compute = NULL;
 
-  // CUDA and KOKKOS per-fix data masks
+  // KOKKOS per-fix data masks
 
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
@@ -810,8 +809,6 @@ void Pair::ev_setup(int eflag, int vflag)
     if (vflag_atom == 0) vflag_either = 0;
     if (vflag_either == 0 && eflag_either == 0) evflag = 0;
   } else vflag_fdotr = 0;
-
-  if (lmp->cuda) lmp->cuda->evsetup_eatom_vatom(eflag_atom,vflag_atom);
 }
 
 /* ----------------------------------------------------------------------

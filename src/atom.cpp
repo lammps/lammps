@@ -32,7 +32,6 @@
 #include "domain.h"
 #include "group.h"
 #include "molecule.h"
-#include "accelerator_cuda.h"
 #include "atom_masks.h"
 #include "math_const.h"
 #include "memory.h"
@@ -44,7 +43,6 @@ using namespace MathConst;
 #define DELTA 1
 #define DELTA_MEMSTR 1024
 #define EPSILON 1.0e-6
-#define CUDA_CHUNK 3000
 
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
@@ -1716,10 +1714,6 @@ void Atom::sort()
 
   nextsort = (update->ntimestep/sortfreq)*sortfreq + sortfreq;
 
-  // download data from GPU if necessary
-
-  if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->downloadAll();
-
   // re-setup sort bins if needed
 
   if (domain->box_change) setup_sort_bins();
@@ -1795,10 +1789,6 @@ void Atom::sort()
     current[empty] = permute[empty];
   }
 
-  // upload data back to GPU if necessary
-
-  if (lmp->cuda && !lmp->cuda->oncpu) lmp->cuda->uploadAll();
-
   // sanity check that current = permute
 
   //int flag = 0;
@@ -1817,25 +1807,12 @@ void Atom::setup_sort_bins()
 {
   // binsize:
   // user setting if explicitly set
-  // 1/2 of neighbor cutoff for non-CUDA
-  // CUDA_CHUNK atoms/proc for CUDA
+  // default = 1/2 of neighbor cutoff
   // check if neighbor cutoff = 0.0
 
   double binsize;
   if (userbinsize > 0.0) binsize = userbinsize;
-  else if (!lmp->cuda) binsize = 0.5 * neighbor->cutneighmax;
-  else {
-    if (domain->dimension == 3) {
-      double vol = (domain->boxhi[0]-domain->boxlo[0]) *
-        (domain->boxhi[1]-domain->boxlo[1]) *
-        (domain->boxhi[2]-domain->boxlo[2]);
-      binsize = pow(1.0*CUDA_CHUNK/natoms*vol,1.0/3.0);
-    } else {
-      double area = (domain->boxhi[0]-domain->boxlo[0]) *
-        (domain->boxhi[1]-domain->boxlo[1]);
-      binsize = pow(1.0*CUDA_CHUNK/natoms*area,1.0/2.0);
-    }
-  }
+  else binsize = 0.5 * neighbor->cutneighmax;
   if (binsize == 0.0) error->all(FLERR,"Atom sorting has bin size = 0.0");
 
   double bininv = 1.0/binsize;

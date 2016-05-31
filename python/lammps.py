@@ -448,7 +448,7 @@ class LammpsWrapper(object):
             elif line.startswith("Kspace style"):
                 system['kspace_style'] = self._get_pair(line)[1]
             elif line.startswith("Dimensions"):
-                system['dimensions'] = self._get_pair(line)[1]
+                system['dimensions'] = int(self._get_pair(line)[1])
             elif line.startswith("Orthogonal box"):
                 system['orthogonal_box'] = [float(x) for x in self._get_pair(line)[1].split('x')]
             elif line.startswith("Boundaries"):

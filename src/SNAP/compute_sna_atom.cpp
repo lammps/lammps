@@ -183,7 +183,7 @@ void ComputeSNAAtom::compute_peratom()
 
   // grow sna array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(sna);
     nmax = atom->nmax;
     memory->create(sna,nmax,size_peratom_cols,"sna/atom:sna");

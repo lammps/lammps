@@ -74,7 +74,7 @@ void ComputeErotateSphereAtom::compute_peratom()
 
   // grow erot array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(erot);
     nmax = atom->nmax;
     memory->create(erot,nmax,"erotate/sphere/atom:erot");

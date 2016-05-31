@@ -386,7 +386,7 @@ int DumpCustom::count()
   // grow choose and variable vbuf arrays if needed
 
   int nlocal = atom->nlocal;
-  if (nlocal > maxlocal) {
+  if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
 
     memory->destroy(choose);

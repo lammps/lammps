@@ -901,7 +901,7 @@ void DumpImage::create_image()
     // communicate choose flag for ghost atoms to know if they are selected
     // if bcolor/bdiam = ATOM, setup bufcopy to comm atom color/diam attributes
 
-    if (nall > maxbufcopy) {
+    if (atom->nmax > maxbufcopy) {
       maxbufcopy = atom->nmax;
       memory->destroy(chooseghost);
       memory->create(chooseghost,maxbufcopy,"dump:chooseghost");

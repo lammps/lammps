@@ -627,7 +627,7 @@ void ComputeChunkAtom::compute_peratom()
 
   // grow floating point chunk vector if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(chunk);
     nmax = atom->nmax;
     memory->create(chunk,nmax,"chunk/atom:chunk");
@@ -890,7 +890,7 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   // grow integer chunk index vector if necessary
 
-  if (atom->nlocal > nmaxint) {
+  if (atom->nmax > nmaxint) {
     memory->destroy(ichunk);
     memory->destroy(exclude);
     nmaxint = atom->nmax;
@@ -988,7 +988,7 @@ void ComputeChunkAtom::assign_chunk_ids()
     }
 
   } else if (which == VARIABLE) {
-    if (nlocal > maxvar) {
+    if (atom->nmax > maxvar) {
       maxvar = atom->nmax;
       memory->destroy(varatom);
       memory->create(varatom,maxvar,"chunk/atom:varatom");

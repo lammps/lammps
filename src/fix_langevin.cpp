@@ -511,7 +511,7 @@ void FixLangevin::post_force_untemplated
   // reallocate flangevin if necessary
 
   if (Tp_TALLY) {
-    if (atom->nlocal > maxatom1) {
+    if (atom->nmax > maxatom1) {
       memory->destroy(flangevin);
       maxatom1 = atom->nmax;
       memory->create(flangevin,maxatom1,3,"langevin:flangevin");
@@ -641,7 +641,7 @@ void FixLangevin::compute_target()
         error->one(FLERR,"Fix langevin variable returned negative temperature");
       tsqrt = sqrt(t_target);
     } else {
-      if (nlocal > maxatom2) {
+      if (atom->nmax > maxatom2) {
         maxatom2 = atom->nmax;
         memory->destroy(tforce);
         memory->create(tforce,maxatom2,"langevin:tforce");

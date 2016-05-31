@@ -68,7 +68,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(ek);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);

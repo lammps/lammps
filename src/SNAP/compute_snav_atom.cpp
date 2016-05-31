@@ -182,7 +182,7 @@ void ComputeSNAVAtom::compute_peratom()
 
   // grow snav array if necessary
 
-  if (ntotal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(snav);
     nmax = atom->nmax;
     memory->create(snav,nmax,size_peratom_cols,

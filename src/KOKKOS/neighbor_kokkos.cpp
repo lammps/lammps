@@ -430,7 +430,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
     int nlocal = atom->nlocal;
     if (includegroup) nlocal = atom->nfirst;
     int maxhold_kokkos = xhold.view<DeviceType>().dimension_0();
-    if (nlocal > maxhold || maxhold_kokkos < maxhold) {
+    if (atom->nmax > maxhold || maxhold_kokkos < maxhold) {
       maxhold = atom->nmax;
       xhold = DAT::tdual_x_array("neigh:xhold",maxhold);
     }
@@ -464,12 +464,12 @@ void NeighborKokkos::build_kokkos(int topoflag)
   // else only invoke grow() if nlocal exceeds previous list size
   // only for lists with growflag set and which are perpetual (glist)
 
-  if (anyghostlist && atom->nlocal+atom->nghost > maxatom) {
+  if (anyghostlist && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     for (i = 0; i < nglist; i++)
       if (lists[glist[i]]) lists[glist[i]]->grow(maxatom);
       else init_list_grow_kokkos(glist[i]);
-  } else if (atom->nlocal > maxatom) {
+  } else if (atom->nmax > maxatom) {
     maxatom = atom->nmax;
     for (i = 0; i < nglist; i++)
       if (lists[glist[i]]) lists[glist[i]]->grow(maxatom);

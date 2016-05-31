@@ -584,7 +584,7 @@ void FixAtomSwap::update_semi_grand_atoms_list()
   int nlocal = atom->nlocal;
   double **x = atom->x;
 
-  if (nlocal > atom_swap_nmax) {
+  if (atom->nmax > atom_swap_nmax) {
     memory->sfree(local_swap_atom_list);
     atom_swap_nmax = atom->nmax;
     local_swap_atom_list = (int *) memory->smalloc(atom_swap_nmax*sizeof(int),
@@ -639,7 +639,7 @@ void FixAtomSwap::update_swap_atoms_list()
   int *type = atom->type;
   double **x = atom->x;
 
-  if (nlocal > atom_swap_nmax) {
+  if (atom->nmax > atom_swap_nmax) {
     memory->sfree(local_swap_iatom_list);
     memory->sfree(local_swap_jatom_list);
     atom_swap_nmax = atom->nmax;

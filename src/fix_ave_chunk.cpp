@@ -721,7 +721,7 @@ void FixAveChunk::end_of_step()
     // evaluate atom-style variable
 
     } else if (which[m] == VARIABLE) {
-      if (nlocal > maxvar) {
+      if (atom->nmax > maxvar) {
         maxvar = atom->nmax;
         memory->destroy(varatom);
         memory->create(varatom,maxvar,"ave/chunk:varatom");

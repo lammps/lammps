@@ -153,7 +153,7 @@ void FixHeat::end_of_step()
 
   // reallocate per-atom arrays if necessary
 
-  if (hstyle == ATOM && atom->nlocal > maxatom) {
+  if (hstyle == ATOM && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(vheat);
     memory->destroy(vscale);

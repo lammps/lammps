@@ -77,7 +77,7 @@ void ComputeSMDHourglassError::compute_peratom() {
 
 	// grow output Vector array if necessary
 
-	if (atom->nlocal > nmax) {
+	if (atom->nmax > nmax) {
 		memory->sfree(hourglass_error_vector);
 		nmax = atom->nmax;
 		hourglass_error_vector = (double *) memory->smalloc(nmax * sizeof(double), "atom:hourglass_error_vector");

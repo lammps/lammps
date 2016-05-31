@@ -200,7 +200,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   // evaluate atom-style variable
 
   } else if (which[m] == VARIABLE) {
-    if (nlocal > maxatom) {
+    if (atom->nmax > maxatom) {
       maxatom = atom->nmax;
       memory->destroy(varatom);
       memory->create(varatom,maxatom,"reduce/region:varatom");

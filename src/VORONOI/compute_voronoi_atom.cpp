@@ -188,8 +188,7 @@ void ComputeVoronoi::compute_peratom()
   invoked_peratom = update->ntimestep;
 
   // grow per atom array if necessary
-  int nlocal = atom->nlocal;
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(voro);
     nmax = atom->nmax;
     memory->create(voro,nmax,size_peratom_cols,"voronoi/atom:voro");
@@ -199,7 +198,7 @@ void ComputeVoronoi::compute_peratom()
   // decide between occupation or per-frame tesselation modes
   if (occupation) {
     // build cells only once
-    int i, nall = nlocal + atom->nghost;
+    int i, nall = atom->nlocal + atom->nghost;
     if (con_mono==NULL && con_poly==NULL) {
       // generate the voronoi cell network for the initial structure
       buildCells();
@@ -320,7 +319,7 @@ void ComputeVoronoi::buildCells()
     if (!input->variable->atomstyle(radvar))
       error->all(FLERR,"Variable for voronoi radius is not atom style");
     // prepare destination buffer for variable evaluation
-    if (nlocal > rmax) {
+    if (atom->nmax > rmax) {
       memory->destroy(rfield);
       rmax = atom->nmax;
       memory->create(rfield,rmax,"voronoi/atom:rfield");
@@ -379,7 +378,7 @@ void ComputeVoronoi::checkOccupation()
          **x = atom->x;
 
   // prepare destination buffer for variable evaluation
-  if (nall > lmax) {
+  if (atom->nmax > lmax) {
     memory->destroy(lnext);
     lmax = atom->nmax;
     memory->create(lnext,lmax,"voronoi/atom:lnext");

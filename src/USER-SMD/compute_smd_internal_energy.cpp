@@ -77,7 +77,7 @@ void ComputeSMDInternalEnergy::compute_peratom()
 
   // grow rhoVector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(internal_energy_vector);
     nmax = atom->nmax;
     internal_energy_vector = (double *) memory->smalloc(nmax*sizeof(double),"atom:internal_energy_vector");

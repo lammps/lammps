@@ -76,7 +76,7 @@ void ComputeSMDVol::compute_peratom() {
 
 	// grow volVector array if necessary
 
-	if (atom->nlocal > nmax) {
+	if (atom->nmax > nmax) {
 		memory->sfree(volVector);
 		nmax = atom->nmax;
 		volVector = (double *) memory->smalloc(nmax * sizeof(double), "atom:volVector");

@@ -109,7 +109,7 @@ void ComputeBasalAtom::compute_peratom()
 
   // grow structure array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(BPV);
     nmax = atom->nmax;
     memory->create(BPV,nmax,3,"basal/atom:basal");

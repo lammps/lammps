@@ -77,7 +77,7 @@ void ComputeSMDTLSPHStrainRate::compute_peratom() {
 
 	// grow vector array if necessary
 
-	if (atom->nlocal > nmax) {
+	if (atom->nmax > nmax) {
 		memory->destroy(strain_rate_array);
 		nmax = atom->nmax;
 		memory->create(strain_rate_array, nmax, size_peratom_cols, "stresstensorVector");

@@ -172,7 +172,7 @@ void FixEvaporate::pre_exchange()
 
   // grow list and mark arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(list);
     memory->destroy(mark);
     nmax = atom->nmax;

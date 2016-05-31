@@ -88,7 +88,7 @@ void ComputeSMDULSPHStress::compute_peratom() {
 
 	// grow vector array if necessary
 
-	if (atom->nlocal > nmax) {
+	if (atom->nmax > nmax) {
 		memory->destroy(stress_array);
 		nmax = atom->nmax;
 		memory->create(stress_array, nmax, size_peratom_cols, "stresstensorVector");

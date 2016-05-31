@@ -240,7 +240,7 @@ void FixBondSwap::post_integrate()
   // randomize list of my owned atoms that are in fix group
   // grow atom list if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(alist);
     nmax = atom->nmax;
     memory->create(alist,nmax,"bondswap:alist");

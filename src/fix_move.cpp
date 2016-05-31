@@ -726,7 +726,7 @@ void FixMove::initial_integrate(int vflag)
 
     // reallocate displace and velocity arrays as necessary
 
-    if ((displaceflag || velocityflag) && nlocal > maxatom) {
+    if ((displaceflag || velocityflag) && atom->nmax > maxatom) {
       maxatom = atom->nmax;
       if (displaceflag) {
         memory->destroy(displace);

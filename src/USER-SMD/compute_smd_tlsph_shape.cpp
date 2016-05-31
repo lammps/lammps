@@ -82,7 +82,7 @@ void ComputeSmdTlsphShape::compute_peratom() {
 
 	// grow vector array if necessary
 
-	if (atom->nlocal > nmax) {
+	if (atom->nmax > nmax) {
 		memory->destroy(strainVector);
 		nmax = atom->nmax;
 		memory->create(strainVector, nmax, size_peratom_cols, "strainVector");

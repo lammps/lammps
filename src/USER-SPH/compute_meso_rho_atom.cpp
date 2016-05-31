@@ -65,7 +65,7 @@ void ComputeMesoRhoAtom::compute_peratom()
 
   // grow rhoVector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(rhoVector);
     nmax = atom->nmax;
     rhoVector = (double *) memory->smalloc(nmax*sizeof(double),"atom:rhoVector");

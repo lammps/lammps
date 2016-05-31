@@ -379,7 +379,7 @@ void EwaldDisp::reallocate()
 void EwaldDisp::reallocate_atoms()
 {
   if (eflag_atom || vflag_atom)
-    if (atom->nlocal > nmax) {
+    if (atom->nmax > nmax) {
       deallocate_peratom();
       allocate_peratom();
       nmax = atom->nmax;

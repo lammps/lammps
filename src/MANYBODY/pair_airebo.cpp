@@ -56,6 +56,9 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   ljflag = torflag = 1;
   morseflag = 0;
 
+  nextra = 3;
+  pvector = new double[nextra];
+
   maxlocal = 0;
   REBO_numneigh = NULL;
   REBO_firstneigh = NULL;
@@ -78,6 +81,7 @@ PairAIREBO::~PairAIREBO()
   delete [] ipage;
   memory->destroy(nC);
   memory->destroy(nH);
+  delete [] pvector;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -99,6 +103,7 @@ void PairAIREBO::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = vflag_atom = 0;
+  pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   REBO_neigh();
   FREBO(eflag,vflag);
@@ -490,7 +495,7 @@ void PairAIREBO::FREBO(int eflag, int vflag)
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (eflag) evdwl = VR + bij*VA;
+      if (eflag) pvector[0] += evdwl = VR + bij*VA;
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delx,dely,delz);
     }
@@ -789,7 +794,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       f[j][1] -= delij[1]*fpair;
       f[j][2] -= delij[2]*fpair;
 
-      if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
+      if (eflag) pvector[1] += evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delij[0],delij[1],delij[2]);
 
@@ -1032,7 +1037,7 @@ void PairAIREBO::TORSION(int eflag, int vflag)
           Ec = 256.0*ekijl/405.0;
           Vtors = (Ec*(powint(cw2,5)))-(ekijl/10.0);
 
-          if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
+          if (eflag) pvector[2] += evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 
           dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
           dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);
@@ -1739,9 +1744,9 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
         cos321 = MAX(cos321,-1.0);
         Sp2(cos321,thmin,thmax,dcut321);
         sin321 = sqrt(1.0 - cos321*cos321);
-        sink2i = 1.0/(sin321*sin321);
-        rik2i = 1.0/(r21mag*r21mag);
-        if (sin321 != 0.0) {
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          sink2i = 1.0/(sin321*sin321);
+          rik2i = 1.0/(r21mag*r21mag);
           rr = (r23mag*r23mag)-(r21mag*r21mag);
           rjk[0] = r21[0]-r23[0];
           rjk[1] = r21[1]-r23[1];
@@ -1776,10 +1781,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
               cos234 = MIN(cos234,1.0);
               cos234 = MAX(cos234,-1.0);
               sin234 = sqrt(1.0 - cos234*cos234);
-              sinl2i = 1.0/(sin234*sin234);
-              rjl2i = 1.0/(r34mag*r34mag);
 
-              if (sin234 != 0.0) {
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                sinl2i = 1.0/(sin234*sin234);
+                rjl2i = 1.0/(r34mag*r34mag);
                 w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
                 rr = (r23mag*r23mag)-(r34mag*r34mag);
                 ril[0] = r23[0]+r34[0];
@@ -2667,10 +2672,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
           cos321 = MIN(cos321,1.0);
           cos321 = MAX(cos321,-1.0);
           sin321 = sqrt(1.0 - cos321*cos321);
-          sink2i = 1.0/(sin321*sin321);
-          rik2i = 1.0/(r21mag*r21mag);
 
-          if (sin321 != 0.0) {
+          if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+            sink2i = 1.0/(sin321*sin321);
+            rik2i = 1.0/(r21mag*r21mag);
             rr = (rijmag*rijmag)-(r21mag*r21mag);
             rjk[0] = r21[0]-rij[0];
             rjk[1] = r21[1]-rij[1];
@@ -2704,10 +2709,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                 cos234 = MIN(cos234,1.0);
                 cos234 = MAX(cos234,-1.0);
                 sin234 = sqrt(1.0 - cos234*cos234);
-                sinl2i = 1.0/(sin234*sin234);
-                rjl2i = 1.0/(r34mag*r34mag);
 
-                if (sin234 != 0.0) {
+                if ((sin234 > TOL) && (r34mag > TOL)) { // XXX was sin234 != 0.0
+                  sinl2i = 1.0/(sin234*sin234);
+                  rjl2i = 1.0/(r34mag*r34mag);
                   w34 = Sp(r34mag,rcmin[jtype][ltype],
                            rcmaxp[jtype][ltype],dw34);
                   rr = (r23mag*r23mag)-(r34mag*r34mag);

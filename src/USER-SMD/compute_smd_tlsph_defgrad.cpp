@@ -81,7 +81,7 @@ void ComputeSMDTLSPHDefgrad::compute_peratom() {
 	invoked_peratom = update->ntimestep;
 
 	// grow vector array if necessary
-	if (atom->nlocal > nmax) {
+	if (atom->nmax > nmax) {
 		memory->destroy(defgradVector);
 		nmax = atom->nmax;
 		memory->create(defgradVector, nmax, size_peratom_cols, "defgradVector");

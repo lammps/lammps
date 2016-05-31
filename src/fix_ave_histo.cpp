@@ -754,7 +754,7 @@ void FixAveHisto::end_of_step()
         bin_vector(nvec,varvec,1);
 
       } else if (which[i] == VARIABLE && kind == PERATOM) {
-        if (atom->nlocal > maxatom) {
+        if (atom->nmax > maxatom) {
           memory->destroy(vector);
           maxatom = atom->nmax;
           memory->create(vector,maxatom,"ave/histo:vector");

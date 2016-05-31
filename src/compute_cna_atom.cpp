@@ -123,7 +123,7 @@ void ComputeCNAAtom::compute_peratom()
 
   // grow arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(nearest);
     memory->destroy(nnearest);
     memory->destroy(pattern);

@@ -256,7 +256,7 @@ void FixAveHistoWeight::end_of_step()
     weight = input->variable->compute_equal(m);
 
   } else if (which[i] == VARIABLE && kind == PERATOM) {
-    if (atom->nlocal > maxatom) {
+    if (atom->nmax > maxatom) {
       memory->destroy(vector);
       maxatom = atom->nmax;
       memory->create(vector,maxatom,"ave/histo/weight:vector");
@@ -385,7 +385,7 @@ void FixAveHistoWeight::end_of_step()
     bin_one_weights(input->variable->compute_equal(m),weight);
 
   } else if (which[i] == VARIABLE && kind == PERATOM) {
-    if (atom->nlocal > maxatom) {
+    if (atom->nmax > maxatom) {
       memory->destroy(vector);
       maxatom = atom->nmax;
       memory->create(vector,maxatom,"ave/histo/weight:vector");

@@ -177,7 +177,7 @@ class lammps:
   # double was allocated by library interface function
   
   def extract_fix(self,id,style,type,i=0,j=0):
-    id = ide.encode()
+    id = id.encode()
     if style == 0:
       self.lib.lammps_extract_fix.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)

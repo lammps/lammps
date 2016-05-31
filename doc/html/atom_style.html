@@ -145,7 +145,7 @@ args = none for any style except the following
 <em>hybrid</em> args = list of one or more sub-styles, each with their args
 </pre>
 <ul class="simple">
-<li>accelerated styles (with same args) = <em>angle/cuda</em> or <em>angle/kk</em> or <em>atomic/cuda</em> or <em>atomic/kk</em> or <em>bond/kk</em> or <em>charge/cuda</em> or <em>charge/kk</em> or <em>full/cuda</em> or <em>full/kk</em> or <em>molecular/kk</em></li>
+<li>accelerated styles (with same args) = <em>angle/kk</em> or <em>atomic/kk</em> or <em>bond/kk</em> or <em>charge/kk</em> or <em>full/kk</em> or <em>molecular/kk</em></li>
 </ul>
 </div>
 <div class="section" id="examples">
@@ -153,7 +153,6 @@ args = none for any style except the following
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom_style</span> <span class="n">atomic</span>
 <span class="n">atom_style</span> <span class="n">bond</span>
 <span class="n">atom_style</span> <span class="n">full</span>
-<span class="n">atom_style</span> <span class="n">full</span><span class="o">/</span><span class="n">cuda</span>
 <span class="n">atom_style</span> <span class="n">body</span> <span class="n">nparticle</span> <span class="mi">2</span> <span class="mi">10</span>
 <span class="n">atom_style</span> <span class="n">hybrid</span> <span class="n">charge</span> <span class="n">bond</span>
 <span class="n">atom_style</span> <span class="n">hybrid</span> <span class="n">charge</span> <span class="n">body</span> <span class="n">nparticle</span> <span class="mi">2</span> <span class="mi">5</span>
@@ -389,7 +388,7 @@ per-atom basis.</p>
 <p>LAMMPS can be extended with new atom styles as well as new body
 styles; see <a class="reference internal" href="Section_modify.html"><span class="doc">this section</span></a>.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em> or <em>kk</em> suffix are functionally the same as the
+<p>Styles with a <em>kk</em> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
 <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual.  The
@@ -398,10 +397,8 @@ results, except for round-off and precision issues.</p>
 <p>Note that other acceleration packages in LAMMPS, specifically the GPU,
 USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
 styles.</p>
-<p>The accelerated styles are part of the USER-CUDA and KOKKOS packages
-respectively.  They are only enabled if LAMMPS was built with those
-packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
-for more info.</p>
+<p>The accelerated styles are part of the KOKKOS package.  They are only
+enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>

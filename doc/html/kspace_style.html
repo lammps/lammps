@@ -369,7 +369,7 @@ options of the K-space solvers that can be set, including a <em>force</em>
 option for setting an absoulte RMS error in forces, as opposed to a
 relative RMS error.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
@@ -385,7 +385,7 @@ If <em>pppm/gpu</em> is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+<p>These accelerated styles are part of the GPU, USER-INTEL,
 KOKKOS, USER-OMP, and OPT packages respectively.  They are only
 enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
@@ -397,9 +397,9 @@ more instructions on how to use the accelerated styles effectively.</p>
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.</p>
 <p>The <em>ewald/disp</em>, <em>ewald</em>, <em>pppm</em>, and <em>msm</em> styles support
-non-orthogonal (triclinic symmetry) simulation boxes. However, triclinic
-simulation cells may not yet be supported by suffix versions of these
-styles (such as <em>pppm/cuda</em>).</p>
+non-orthogonal (triclinic symmetry) simulation boxes. However,
+triclinic simulation cells may not yet be supported by suffix versions
+of these styles.</p>
 <p>All of the kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.  Note that
 the KSPACE package is installed by default.</p>

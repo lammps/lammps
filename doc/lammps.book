@@ -7,7 +7,6 @@ Section_start.html
 Section_commands.html
 Section_packages.html
 Section_accelerate.html
-accelerate_cuda.html
 accelerate_gpu.html
 accelerate_intel.html
 accelerate_kokkos.html

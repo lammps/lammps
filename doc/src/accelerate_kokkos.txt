@@ -9,7 +9,7 @@
 
 "Return to Section accelerate overview"_Section_accelerate.html
 
-5.3.4 KOKKOS package :h4
+5.3.3 KOKKOS package :h4
 
 The KOKKOS package was developed primarily by Christian Trott (Sandia)
 with contributions of various styles by others, including Sikandar
@@ -118,9 +118,8 @@ multiple threads can be launched by each MPI task running on a CPU.
 
 To build with Kokkos support for NVIDIA GPUs, NVIDIA Cuda software
 version 6.5 or later must be installed on your system.  See the
-discussion for the "USER-CUDA"_accelerate_cuda.html and
-"GPU"_accelerate_gpu.html packages for details of how to check and do
-this.
+discussion for the "GPU"_accelerate_gpu.html package for details of
+how to check and do this.
 
 NOTE: For good performance of the KOKKOS package on GPUs, you must
 have Kepler generation GPUs (or later).  The Kokkos library exploits
@@ -378,8 +377,8 @@ When running on CPUs only, with multiple threads per MPI task,
 performance of a KOKKOS style is a bit slower than the USER-OMP
 package. :l
 
-When running on GPUs, KOKKOS is typically faster than the USER-CUDA
-and GPU packages. :l
+When running large number of atoms per GPU, KOKKOS is typically faster
+than the GPU package. :l
 
 When running on Intel Xeon Phi, KOKKOS is not as fast as
 the USER-INTEL package, which is optimized for that hardware. :l,ule

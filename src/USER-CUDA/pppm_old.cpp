@@ -680,7 +680,7 @@ void PPPMOld::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atom->nmax > nmax) {
+  if (atom->nlocal > nmax) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");

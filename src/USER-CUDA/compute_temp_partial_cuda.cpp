@@ -267,7 +267,7 @@ void ComputeTempPartialCuda::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (atom->nmax > maxbias) {
+  if (nlocal > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");

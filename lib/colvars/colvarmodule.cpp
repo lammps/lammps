@@ -509,6 +509,11 @@ int colvarmodule::calc_colvars()
   int error_code = COLVARS_OK;
   std::vector<colvar *>::iterator cvi;
 
+  // Determine which colvars are active at this time step
+  for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
+    (*cvi)->feature_states[cvm::deps::f_cv_active]->enabled = (step_absolute() % (*cvi)->get_time_step_factor() == 0);
+  }
+
   // if SMP support is available, split up the work
   if (proxy->smp_enabled() == COLVARS_OK) {
 
@@ -525,6 +530,7 @@ int colvarmodule::calc_colvars()
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
 
+      if (!(*cvi)->is_enabled()) continue;
       combine_errors(error_code, (*cvi)->update_cvc_flags());
 
       size_t num_items = (*cvi)->num_active_cvcs();
@@ -544,6 +550,7 @@ int colvarmodule::calc_colvars()
 
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
+      if (!(*cvi)->is_enabled()) continue;
       combine_errors(error_code, (*cvi)->collect_cvc_data());
     }
     cvm::decrease_depth();
@@ -553,6 +560,7 @@ int colvarmodule::calc_colvars()
     // calculate colvars one at a time
     cvm::increase_depth();
     for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
+      if (!(*cvi)->is_enabled()) continue;
       combine_errors(error_code, (*cvi)->calc());
       if (cvm::get_error()) {
         return COLVARS_ERROR;
@@ -645,6 +653,8 @@ int colvarmodule::update_colvar_forces()
              "of colvars (if they have any).\n");
   cvm::increase_depth();
   for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
+    // Here we call even inactive colvars, so they accumulate biasing forces
+    // as well as update their extended-system dynamics
     total_colvar_energy += (*cvi)->update_forces_energy();
     if (cvm::get_error()) {
       return COLVARS_ERROR;
@@ -660,6 +670,7 @@ int colvarmodule::update_colvar_forces()
   cvm::increase_depth();
   for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
     if ((*cvi)->is_enabled(cvm::deps::f_cv_gradient)) {
+      if (!(*cvi)->is_enabled()) continue;
       (*cvi)->communicate_forces();
       if (cvm::get_error()) {
         return COLVARS_ERROR;

@@ -421,6 +421,9 @@ user-referenced template molecule in the second fix gcmc command
 may no longer exist since it might have been deleted by the first
 fix gcmc command. An existing template molecule will need to be
 referenced by the user for each subsequent fix gcmc command.</p>
+<p>Because molecule insertion does not work in combination with
+fix rigid, simulataneous use of fix rigid or fix rigid/small
+with this fix is not allowed.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

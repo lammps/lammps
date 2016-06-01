@@ -358,10 +358,9 @@ long time (more than 2 billion atoms, more than 2 billion timesteps).
 See the :ref:`Additional build tips <start_2_4>` section below for more
 details on these settings.
 
-Note that two packages, USER-ATC and USER-CUDA are not currently
-compatible with -DLAMMPS_BIGBIG.  Also the GPU package requires the
-lib/gpu library to be compiled with the same setting, or the link will
-fail.
+Note that the USER-ATC package is not currently compatible with
+-DLAMMPS_BIGBIG.  Also the GPU package requires the lib/gpu library to
+be compiled with the same setting, or the link will fail.
 
 The -DLAMMPS_LONGLONG_TO_LONG setting may be needed if your system or
 MPI version does not recognize "long long" data types.  In this case a
@@ -1405,7 +1404,6 @@ At run time, LAMMPS recognizes several optional command-line switches
 which may be used in any order.  Either the full word or a one-or-two
 letter abbreviation can be used:
 
-* -c or -cuda
 * -e or -echo
 * -h or -help
 * -i or -in
@@ -1430,18 +1428,6 @@ For example, lmp_ibm might be launched as follows:
    mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none -in in.alloy
 
 Here are the details on the options:
-
-.. parsed-literal::
-
-   -cuda on/off
-
-Explicitly enable or disable CUDA support, as provided by the
-USER-CUDA package.  Even if LAMMPS is built with this package, as
-described above in :ref:`Section 2.3 <start_3>`, this switch must be set to
-enable running with the CUDA-enabled styles the package provides.  If
-the switch is not set (the default), LAMMPS will operate as if the
-USER-CUDA package were not installed; i.e. you can run standard LAMMPS
-or with the GPU package, for testing or benchmarking purposes.
 
 .. parsed-literal::
 
@@ -1489,8 +1475,7 @@ above in :ref:`Section 2.3 <start_3>`, this switch must be set to enable
 running with the KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
-the GPU or USER-CUDA or USER-OMP packages, for testing or benchmarking
-purposes.
+the GPU or USER-OMP packages, for testing or benchmarking purposes.
 
 Additional optional keyword/value pairs can be specified which
 determine how Kokkos will use the underlying hardware on your
@@ -1802,33 +1787,33 @@ partition screen files file.N.
    -suffix style args
 
 Use variants of various styles if they exist.  The specified style can
-be *cuda*\ , *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt*\ , or *hybrid*\ .  These refer 
-to optional packages that LAMMPS can be built with, as described above in
-:ref:`Section 2.3 <start_3>`.  The "cuda" style corresponds to the USER-CUDA
-package, the "gpu" style to the GPU package, the "intel" style to the
-USER-INTEL package, the "kk" style to the KOKKOS package, the "opt"
-style to the OPT package, and the "omp" style to the USER-OMP package. The
-hybrid style is the only style that accepts arguments. It allows for two 
-packages to be specified. The first package specified is the default and 
-will be used if it is available. If no style is available for the first 
-package, the style for the second package will be used if available. For 
-example, "-suffix hybrid intel omp" will use styles from the USER-INTEL 
-package if they are installed and available, but styles for the USER-OMP 
-package otherwise.
+be *cuda*\ , *gpu*\ , *intel*\ , *kk*\ , *omp*\ , *opt*\ , or *hybrid*\ .  These
+refer to optional packages that LAMMPS can be built with, as described
+above in :ref:`Section 2.3 <start_3>`.  The "gpu" style corresponds to the
+GPU package, the "intel" style to the USER-INTEL package, the "kk"
+style to the KOKKOS package, the "opt" style to the OPT package, and
+the "omp" style to the USER-OMP package. The hybrid style is the only
+style that accepts arguments. It allows for two packages to be
+specified. The first package specified is the default and will be used
+if it is available. If no style is available for the first package,
+the style for the second package will be used if available. For
+example, "-suffix hybrid intel omp" will use styles from the
+USER-INTEL package if they are installed and available, but styles for
+the USER-OMP package otherwise.
 
 Along with the "-package" command-line switch, this is a convenient
 mechanism for invoking accelerator packages and their options without
 having to edit an input script.
 
-As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` variant, with style names lj/cut/cuda,
-lj/cut/gpu, lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A
-variant style can be specified explicitly in your input script,
-e.g. pair_style lj/cut/gpu.  If the -suffix switch is used the
-specified suffix (cuda,gpu,intel,kk,omp,opt) is automatically appended
-whenever your input script command creates a new
-:doc:`atom <atom_style>`, :doc:`pair <pair_style>`, :doc:`fix <fix>`,
-:doc:`compute <compute>`, or :doc:`run <run_style>` style.  If the variant
-version does not exist, the standard version is created.
+As an example, all of the packages provide a :doc:`pair_style lj/cut <pair_lj>` variant, with style names lj/cut/gpu,
+lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
+can be specified explicitly in your input script, e.g. pair_style
+lj/cut/gpu.  If the -suffix switch is used the specified suffix
+(gpu,intel,kk,omp,opt) is automatically appended whenever your input
+script command creates a new :doc:`atom <atom_style>`,
+:doc:`pair <pair_style>`, :doc:`fix <fix>`, :doc:`compute <compute>`, or
+:doc:`run <run_style>` style.  If the variant version does not exist,
+the standard version is created.
 
 For the GPU package, using this command-line switch also invokes the
 default GPU settings, as if the command "package gpu 1" were used at

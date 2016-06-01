@@ -41,7 +41,7 @@ Description
 
 Use one or more per-atom vectors as inputs every few timesteps, and
 average them atom by atom over longer timescales.  The resulting
-per-atom averages can be used by other :ref:`output commands <howto_15>` such as the :doc:`fix ave/spatial <fix_ave_spatial>` or :doc:`dump custom <dump>` commands.
+per-atom averages can be used by other :ref:`output commands <howto_15>` such as the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` commands.
 
 The group specified with the command means only atoms within the group
 have their averages computed.  Results are set to 0.0 for atoms not in
@@ -152,7 +152,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute <compute>`, :doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/spatial <fix_ave_spatial>`, :doc:`fix ave/time <fix_ave_time>`,
+:doc:`compute <compute>`, :doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`,
 
 **Default:** none

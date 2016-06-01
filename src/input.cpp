@@ -46,7 +46,6 @@
 #include "special.h"
 #include "timer.h"
 #include "variable.h"
-#include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
 #include "error.h"
 #include "memory.h"
@@ -1567,13 +1566,7 @@ void Input::package()
   // same checks for packages existing as in LAMMPS::post_create()
   // since can be invoked here by package command in input script
 
-  if (strcmp(arg[0],"cuda") == 0) {
-    if (lmp->cuda == NULL || lmp->cuda->cuda_exists == 0)
-      error->all(FLERR,
-                 "Package cuda command without USER-CUDA package enabled");
-    lmp->cuda->accelerator(narg-1,&arg[1]);
-
-  } else if (strcmp(arg[0],"gpu") == 0) {
+  if (strcmp(arg[0],"gpu") == 0) {
     if (!modify->check_package("GPU"))
       error->all(FLERR,"Package gpu command without GPU package installed");
 

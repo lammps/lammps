@@ -293,7 +293,8 @@ restart, but :doc:`fix langevin <fix_langevin>` will not.
 
 This command cannot be used when any fixes are defined that keep track
 of elapsed time to perform time-dependent operations.  Examples
-include the "ave" fixes such as :doc:`fix ave/spatial <fix_ave_spatial>`.  Also :doc:`fix dt/reset <fix_dt_reset>` and :doc:`fix deposit <fix_deposit>`.
+include the "ave" fixes such as :doc:`fix ave/chunk <fix_ave_chunk>`.
+Also :doc:`fix dt/reset <fix_dt_reset>` and :doc:`fix deposit <fix_deposit>`.
 
 Related commands
 """"""""""""""""

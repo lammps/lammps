@@ -99,11 +99,10 @@ custom"_thermo_style.html or "fix ave/time"_fix_ave_time.html command.
 Or the values can be referenced in a "variable equal"_variable.html or
 "variable atom"_variable.html command. :l
 
-Per-atom values can be output via the "dump custom"_dump.html command
-or the "fix ave/spatial"_fix_ave_spatial.html command.  Or they can be
-time-averaged via the "fix ave/atom"_fix_ave_atom.html command or
-reduced by the "compute reduce"_compute_reduce.html command.  Or the
-per-atom values can be referenced in an "atom-style
+Per-atom values can be output via the "dump custom"_dump.html command.
+Or they can be time-averaged via the "fix ave/atom"_fix_ave_atom.html
+command or reduced by the "compute reduce"_compute_reduce.html
+command.  Or the per-atom values can be referenced in an "atom-style
 variable"_variable.html. :l
 
 Local values can be reduced by the "compute
@@ -255,7 +254,7 @@ section of "this page"_Section_commands.html#cmd_5.
 [Related commands:]
 
 "uncompute"_uncompute.html, "compute_modify"_compute_modify.html, "fix
-ave/atom"_fix_ave_atom.html, "fix ave/spatial"_fix_ave_spatial.html,
-"fix ave/time"_fix_ave_time.html, "fix ave/histo"_fix_ave_histo.html
+ave/atom"_fix_ave_atom.html, "fix ave/time"_fix_ave_time.html, "fix
+ave/histo"_fix_ave_histo.html
 
 [Default:] none

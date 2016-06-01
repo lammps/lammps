@@ -336,8 +336,8 @@ Contents: Dozens of pair styles and a version of the PPPM long-range
 Coulombic solver for NVIDIA GPUs.  All of them have a "gpu" in their
 style name.  "Section accelerate gpu"_accelerate_gpu.html gives
 details of what hardware and Cuda software is required on your system,
-and how to build and use this package.  See the KOKKOS and USER-CUDA
-packages, which also have GPU-enabled styles.
+and how to build and use this package.  See the KOKKOS package, which
+also has GPU-enabled styles.
 
 Building LAMMPS with the GPU package requires first building the GPU
 library itself, which is a set of C and Cuda files in lib/gpu.
@@ -454,9 +454,8 @@ multicore CPUs (via OpenMP), NVIDIA GPUs, or the Intel Xeon Phi (in
 native mode).  All of them have a "kk" in their style name.  "Section
 accelerate kokkos"_accelerate_kokkos.html gives details of what
 hardware and software is required on your system, and how to build and
-use this package.  See the GPU, OPT, USER-CUDA, USER-INTEL, USER-OMP
-packages, which also provide optimizations for the same range of
-hardware.
+use this package.  See the GPU, OPT, USER-INTEL, USER-OMP packages,
+which also provide optimizations for the same range of hardware.
 
 Building with the KOKKOS package requires choosing which of 3 hardware
 options you are optimizing for: CPU acceleration via OpenMP, GPU
@@ -1143,7 +1142,6 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-AWPMD"_#USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 "USER-CG-CMM"_#USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 "USER-COLVARS"_#USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
-"USER-CUDA"_#USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_accelerate_cuda.html, USER/cuda, -, lib/cuda
 "USER-DIFFRACTION"_#USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
 "USER-DPD"_#USER-DPD, dissipative particle dynamics (DPD), Larentzos & Mattox & Brennan (5), src/USER-DPD/README, USER/dpd, -, -
 "USER-DRUDE"_#USER-DRUDE, Drude oscillators, Dequidt & Devemy & Padua (3), "tutorial"_tutorial_drude.html, USER/drude, -, -
@@ -1206,8 +1204,7 @@ documentation provided within the package.
 
 The "Example" column is a sub-directory in the examples directory of
 the distribution which has an input script that uses the package.
-E.g. "peptide" refers to the examples/peptide directory.  USER/cuda
-refers to the examples/USER/cuda directory.
+E.g. "peptide" refers to the examples/peptide directory.
 
 The "Library" column lists an external library which must be built
 first and which LAMMPS links to when it is built.  If it is listed as
@@ -1306,32 +1303,6 @@ fix.  The COLVARS library itself is written and maintained by Giacomo
 Fiorin (ICMS, Temple University, Philadelphia, PA, USA) and Jerome
 Henin (LISM, CNRS, Marseille, France).  Contact them directly if you
 have questions.
- 
-:line
-
-USER-CUDA package :link(USER-CUDA),h5
-
-This package provides acceleration of various LAMMPS pair styles, fix
-styles, compute styles, and long-range Coulombics via PPPM for NVIDIA
-GPUs.
- 
-See this section of the manual to get started:
-
-"Section_accelerate"_Section_accelerate.html#acc_7
-
-There are example scripts for using this package in
-examples/USER/cuda.
-
-This package uses an external library in lib/cuda which must be
-compiled before making LAMMPS.  See the lib/cuda/README file and the
-LAMMPS manual for information on building LAMMPS with external
-libraries.
-
-The person who created this package is Christian Trott at the
-University of Technology Ilmenau, Germany (christian.trott at
-tu-ilmenau.de).  Contact him directly if you have questions.
-
-Examples: examples/accelerate, bench/FERMI, bench/KEPLER
  
 :line
 

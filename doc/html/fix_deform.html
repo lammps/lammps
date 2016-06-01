@@ -577,7 +577,7 @@ pushing the atoms to flow in a manner consistent with the deforming
 box.  E.g. for a shearing system the box deformation velocity may vary
 from 0 at the bottom to 10 at the top of the box.  But the stream
 velocity profile of the atoms may vary from -5 at the bottom to +5 at
-the top.  You can monitor these effects using the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>, <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a>, and <a class="reference internal" href="compute_temp_profile.html"><span class="doc">compute temp/profile</span></a> commands.  One way to induce
+the top.  You can monitor these effects using the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a>, and <a class="reference internal" href="compute_temp_profile.html"><span class="doc">compute temp/profile</span></a> commands.  One way to induce
 atoms to stream consistent with the box deformation is to give them an
 initial velocity profile, via the <a class="reference internal" href="velocity.html"><span class="doc">velocity ramp</span></a>
 command, that matches the box deformation rate.  This also typically
@@ -618,16 +618,16 @@ does not affect the <em>variable</em> style.  You should use the <em>xlat</em>,
 <em>ylat</em>, <em>zlat</em> keywords of the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>
 command if you want to include lattice spacings in a variable formula.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
-KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>

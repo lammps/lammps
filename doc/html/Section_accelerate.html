@@ -82,10 +82,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#measuring-performance">5.1. Measuring performance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#general-strategies">5.2. General strategies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#packages-with-optimized-styles">5.3. Packages with optimized styles</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#comparison-of-various-accelerator-packages">5.4. Comparison of various accelerator packages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#examples">5.4.1. Examples</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#comparison-of-various-accelerator-packages">5.4. Comparison of various accelerator packages</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
@@ -159,12 +156,11 @@ multi-core CPUs, GPUs, and Intel Xeon Phi coprocessors.</p>
 <li>5.1 <a class="reference internal" href="#acc-1"><span class="std std-ref">Measuring performance</span></a></li>
 <li>5.2 <a class="reference internal" href="#acc-2"><span class="std std-ref">Algorithms and code options to boost performace</span></a></li>
 <li>5.3 <a class="reference internal" href="#acc-3"><span class="std std-ref">Accelerator packages with optimized styles</span></a></li>
-<li>5.3.1 <a class="reference internal" href="accelerate_cuda.html"><span class="doc">USER-CUDA package</span></a></li>
-<li>5.3.2 <a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU package</span></a></li>
-<li>5.3.3 <a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL package</span></a></li>
-<li>5.3.4 <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS package</span></a></li>
-<li>5.3.5 <a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP package</span></a></li>
-<li>5.3.6 <a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT package</span></a></li>
+<li>5.3.1 <a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU package</span></a></li>
+<li>5.3.2 <a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL package</span></a></li>
+<li>5.3.3 <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS package</span></a></li>
+<li>5.3.4 <a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP package</span></a></li>
+<li>5.3.5 <a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT package</span></a></li>
 <li>5.4 <a class="reference internal" href="#acc-4"><span class="std std-ref">Comparison of various accelerator packages</span></a></li>
 </ul>
 <p>The <a class="reference external" href="http://lammps.sandia.gov/bench.html">Benchmark page</a> of the LAMMPS
@@ -284,22 +280,19 @@ currently in LAMMPS, either as standard or user packages:</p>
 <col width="56%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_cuda.html"><span class="doc">USER-CUDA</span></a></td>
-<td>for NVIDIA GPUs</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU</span></a></td>
 <td>for NVIDIA GPUs as well as OpenCL support</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL</span></a></td>
 <td>for Intel CPUs and Intel Xeon Phi</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a></td>
 <td>for GPUs, Intel Xeon Phi, and OpenMP threading</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP</span></a></td>
 <td>for OpenMP threading</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT</span></a></td>
 <td>generic CPU optimizations</td>
 </tr>
 </tbody>
@@ -316,7 +309,7 @@ three kinds of hardware, via the listed packages:</p>
 <td><a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL</span></a>, <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a>, <a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP</span></a>, <a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT</span></a> packages</td>
 </tr>
 <tr class="row-even"><td>NVIDIA GPUs</td>
-<td><a class="reference internal" href="accelerate_cuda.html"><span class="doc">USER-CUDA</span></a>, <a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU</span></a>, <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a> packages</td>
+<td><a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU</span></a>, <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a> packages</td>
 </tr>
 <tr class="row-odd"><td>Intel Phi</td>
 <td><a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL</span></a>, <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a> packages</td>
@@ -336,7 +329,6 @@ same, except for precision and round-off effects.</p>
 <p>For example, all of these styles are accelerated variants of the
 Lennard-Jones <a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut</span></a>:</p>
 <ul class="simple">
-<li><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut/cuda</span></a></li>
 <li><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut/gpu</span></a></li>
 <li><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut/intel</span></a></li>
 <li><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut/kk</span></a></li>
@@ -359,7 +351,7 @@ listed above:</p>
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>build the accelerator library</td>
-<td>only for USER-CUDA and GPU packages</td>
+<td>only for GPU package</td>
 </tr>
 <tr class="row-even"><td>install the accelerator package</td>
 <td>make yes-opt, make yes-user-intel, etc</td>
@@ -388,7 +380,7 @@ listed above:</p>
 <blockquote>
 <div>mpirun -np 32 lmp_machine -in in.script                                                          |</div></blockquote>
 <blockquote>
-<div>only for USER-CUDA and KOKKOS packages                    |</div></blockquote>
+<div>only for KOKKOS package                                   |</div></blockquote>
 <blockquote>
 <div><a class="reference internal" href="package.html"><span class="doc">package</span></a> command, &lt;br&gt;
 only if defaults need to be changed |</div></blockquote>
@@ -422,17 +414,16 @@ option for the KOKKOS package.</p>
 <p>These are the exceptions.  You cannot build a single executable with:</p>
 <ul class="simple">
 <li>both the USER-INTEL Phi and KOKKOS Phi options</li>
-<li>the USER-INTEL Phi or Kokkos Phi option, and either the USER-CUDA or GPU packages</li>
+<li>the USER-INTEL Phi or Kokkos Phi option, and the GPU package</li>
 </ul>
 <p>See the examples/accelerate/README and make.list files for sample
 Make.py commands that build LAMMPS with any or all of the accelerator
 packages.  As an example, here is a command that builds with all the
-GPU related packages installed (USER-CUDA, GPU, KOKKOS with Cuda),
-including settings to build the needed auxiliary USER-CUDA and GPU
-libraries for Kepler GPUs:</p>
-<pre class="literal-block">
-Make.py -j 16 -p omp gpu cuda kokkos -cc nvcc wrap=mpi   -cuda mode=double arch=35 -gpu mode=double arch=35  -kokkos cuda arch=35 lib-all file mpi
-</pre>
+GPU related packages installed (GPU, KOKKOS with Cuda), including
+settings to build the needed auxiliary GPU libraries for Kepler GPUs:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">j</span> <span class="mi">16</span> <span class="o">-</span><span class="n">p</span> <span class="n">omp</span> <span class="n">gpu</span> <span class="n">kokkos</span> <span class="o">-</span><span class="n">cc</span> <span class="n">nvcc</span> <span class="n">wrap</span><span class="o">=</span><span class="n">mpi</span>   <span class="o">-</span><span class="n">gpu</span> <span class="n">mode</span><span class="o">=</span><span class="n">double</span> <span class="n">arch</span><span class="o">=</span><span class="mi">35</span> <span class="o">-</span><span class="n">kokkos</span> <span class="n">cuda</span> <span class="n">arch</span><span class="o">=</span><span class="mi">35</span> <span class="n">lib</span><span class="o">-</span><span class="nb">all</span> <span class="n">file</span> <span class="n">mpi</span>
+</pre></div>
+</div>
 <p>The examples/accelerate directory also has input scripts that can be
 used with all of the accelerator packages.  See its README file for
 details.</p>
@@ -447,10 +438,9 @@ size and number of compute nodes, on different hardware platforms.</p>
 <p>Here is a brief summary of what the various packages provide.  Details
 are in the individual accelerator sections.</p>
 <ul class="simple">
-<li>Styles with a &#8220;cuda&#8221; or &#8220;gpu&#8221; suffix are part of the USER-CUDA or GPU
-packages, and can be run on NVIDIA GPUs.  The speed-up on a GPU
-depends on a variety of factors, discussed in the accelerator
-sections.</li>
+<li>Styles with a &#8220;gpu&#8221; suffix are part of the GPU package, and can be run
+on NVIDIA GPUs.  The speed-up on a GPU depends on a variety of
+factors, discussed in the accelerator sections.</li>
 <li>Styles with an &#8220;intel&#8221; suffix are part of the USER-INTEL
 package. These styles support vectorized single and mixed precision
 calculations, in addition to full double precision.  In extreme cases,
@@ -504,28 +494,25 @@ section below for examples where this has been done.</p>
 <ul class="simple">
 <li>The GPU package allows you to assign multiple CPUs (cores) to a single
 GPU (a common configuration for &#8220;hybrid&#8221; nodes that contain multicore
-CPU(s) and GPU(s)) and works effectively in this mode.  The USER-CUDA
-package does not allow this; you can only use one CPU per GPU.</li>
+CPU(s) and GPU(s)) and works effectively in this mode.</li>
 <li>The GPU package moves per-atom data (coordinates, forces)
-back-and-forth between the CPU and GPU every timestep.  The USER-CUDA
-package only does this on timesteps when a CPU calculation is required
-(e.g. to invoke a fix or compute that is non-GPU-ized).  Hence, if you
-can formulate your input script to only use GPU-ized fixes and
-computes, and avoid doing I/O too often (thermo output, dump file
-snapshots, restart files), then the data transfer cost of the
-USER-CUDA package can be very low, causing it to run faster than the
+back-and-forth between the CPU and GPU every timestep.  The
+KOKKOS/CUDA package only does this on timesteps when a CPU calculation
+is required (e.g. to invoke a fix or compute that is non-GPU-ized).
+Hence, if you can formulate your input script to only use GPU-ized
+fixes and computes, and avoid doing I/O too often (thermo output, dump
+file snapshots, restart files), then the data transfer cost of the
+KOKKOS/CUDA package can be very low, causing it to run faster than the
 GPU package.</li>
-<li>The GPU package is often faster than the USER-CUDA package, if the
+<li>The GPU package is often faster than the KOKKOS/CUDA package, if the
 number of atoms per GPU is smaller.  The crossover point, in terms of
-atoms/GPU at which the USER-CUDA package becomes faster depends
+atoms/GPU at which the KOKKOS/CUDA package becomes faster depends
 strongly on the pair style.  For example, for a simple Lennard Jones
 system the crossover (in single precision) is often about 50K-100K
 atoms per GPU.  When performing double precision calculations the
 crossover point can be significantly smaller.</li>
 <li>Both packages compute bonded interactions (bonds, angles, etc) on the
-CPU.  This means a model with bonds will force the USER-CUDA package
-to transfer per-atom data back-and-forth between the CPU and GPU every
-timestep.  If the GPU package is running with several MPI processes
+CPU.  If the GPU package is running with several MPI processes
 assigned to one GPU, the cost of computing the bonded interactions is
 spread across more CPUs and hence the GPU package can run faster.</li>
 <li>When using the GPU package with multiple CPUs assigned to one GPU, its
@@ -539,32 +526,10 @@ full 16 lanes to each of the PCIe 2.0 16x slots.</li>
 <p><strong>Differences between the two packages:</strong></p>
 <ul class="simple">
 <li>The GPU package accelerates only pair force, neighbor list, and PPPM
-calculations.  The USER-CUDA package currently supports a wider range
-of pair styles and can also accelerate many fix styles and some
-compute styles, as well as neighbor list and PPPM calculations.</li>
-<li>The USER-CUDA package does not support acceleration for minimization.</li>
-<li>The USER-CUDA package does not support hybrid pair styles.</li>
-<li>The USER-CUDA package can order atoms in the neighbor list differently
-from run to run resulting in a different order for force accumulation.</li>
-<li>The USER-CUDA package has a limit on the number of atom types that can be
-used in a simulation.</li>
+calculations.</li>
 <li>The GPU package requires neighbor lists to be built on the CPU when using
 exclusion lists or a triclinic simulation box.</li>
-<li>The GPU package uses more GPU memory than the USER-CUDA package.  This
-is generally not a problem since typical runs are computation-limited
-rather than memory-limited.</li>
 </ul>
-<div class="section" id="examples">
-<h3>5.4.1. Examples</h3>
-<p>The LAMMPS distribution has two directories with sample input scripts
-for the GPU and USER-CUDA packages.</p>
-<ul class="simple">
-<li>lammps/examples/gpu = GPU package files</li>
-<li>lammps/examples/USER/cuda = USER-CUDA package files</li>
-</ul>
-<p>These contain input scripts for identical systems, so they can be used
-to benchmark the performance of both packages on your system.</p>
-</div>
 </div>
 </div>
 

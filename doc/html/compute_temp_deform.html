@@ -205,7 +205,7 @@ matches the box deformation.  If not, then the compute will subtract
 off an incorrect stream velocity, yielding a bogus thermal
 temperature.  You should NOT assume that your atoms are streaming at
 the same rate the box is deforming.  Rather, you should monitor their
-velocity profile, e.g. via the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>
+velocity profile, e.g. via the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>
 command.  And you can compare the results of this compute to <a class="reference internal" href="compute_temp_profile.html"><span class="doc">compute temp/profile</span></a>, which actually calculates the
 stream profile before subtracting it.  If the two computes do not give
 roughly the same temperature, then your atoms are not streaming

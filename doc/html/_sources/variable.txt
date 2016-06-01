@@ -1189,7 +1189,7 @@ command evaluates the string between the parenthesis as an equal-style
 variable formula.
 
 Referencing a variable with a leading "v_" is an optional or required
-kind of argument for some commands (e.g. the :doc:`fix ave/spatial <fix_ave_spatial>` or :doc:`dump custom <dump>` or
+kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
 :doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a
 variable formula if you wish to reference a second variable.  The

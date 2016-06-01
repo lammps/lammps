@@ -315,12 +315,12 @@ been previously used to define the lattice spacing.
 
 If you use the {ortho} or {triclinic} keywords, then at the point in
 the input script when this command is issued, no "dumps"_dump.html can
-be active, nor can a "fix ave/spatial"_fix_ave_spatial.html or "fix
-deform"_fix_deform.html be active.  This is because these commands
-test whether the simulation box is orthogonal when they are first
-issued.  Note that these commands can be used in your script before a
-change_box command is issued, so long as an "undump"_undump.html or
-"unfix"_unfix.html command is also used to turn them off.
+be active, nor can a "fix deform"_fix_deform.html be active.  This is
+because these commands test whether the simulation box is orthogonal
+when they are first issued.  Note that these commands can be used in
+your script before a change_box command is issued, so long as an
+"undump"_undump.html or "unfix"_unfix.html command is also used to
+turn them off.
 
 [Related commands:]
 

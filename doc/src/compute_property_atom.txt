@@ -91,7 +91,7 @@ in the group.  This is useful so that the values can be used by other
 "output commands"_Section_howto.html#howto_15 that take computes as
 inputs.  See for example, the "compute reduce"_compute_reduce.html,
 "fix ave/atom"_fix_ave_atom.html, "fix ave/histo"_fix_ave_histo.html,
-"fix ave/spatial"_fix_ave_spatial.html, and "atom-style
+"fix ave/chunk"_fix_ave_chunk.html, and "atom-style
 variable"_variable.html commands.
 
 The list of possible attributes is the same as that used by the "dump
@@ -157,7 +157,7 @@ units for q, etc.
 [Related commands:]
 
 "dump custom"_dump.html, "compute reduce"_compute_reduce.html, "fix
-ave/atom"_fix_ave_atom.html, "fix ave/spatial"_fix_ave_spatial.html,
+ave/atom"_fix_ave_atom.html, "fix ave/chunk"_fix_ave_chunk.html,
 "fix property/atom"_fix_property_atom.html
 
 [Default:] none

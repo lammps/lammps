@@ -12,7 +12,7 @@ suffix command :h3
 
 suffix style args :pre
 
-style = {off} or {on} or {cuda} or {gpu} or {intel} or {kk} or {omp} or {opt} or {hybrid}
+style = {off} or {on} or {gpu} or {intel} or {kk} or {omp} or {opt} or {hybrid}
 args = for hybrid style, default suffix to be used and alternative suffix :ul
 
 [Examples:]
@@ -31,22 +31,18 @@ exist.  In that respect it operates the same as the "-suffix
 command-line switch"_Section_start.html#start_7.  It also has options
 to turn off or back on any suffix setting made via the command line.
 
-The specified style can be {cuda}, {gpu}, {intel}, {kk}, {omp}, {opt} 
-or {hybrid}. These refer to optional packages that LAMMPS can be built
+The specified style can be {gpu}, {intel}, {kk}, {omp}, {opt} or
+{hybrid}. These refer to optional packages that LAMMPS can be built
 with, as described in "this section of the
-manual"_Section_start.html#start_3.  The "cuda" style corresponds to
-the USER-CUDA package, the "gpu" style to the GPU package, the "intel"
-style to the USER-INTEL package, the "kk" style to the KOKKOS package,
-the "omp" style to the USER-OMP package, and the "opt" style to the
-OPT package.  
+manual"_Section_start.html#start_3.  The "gpu" style corresponds to
+the GPU package, the "intel" style to the USER-INTEL package, the "kk"
+style to the KOKKOS package, the "omp" style to the USER-OMP package,
+and the "opt" style to the OPT package.
 
 These are the variants these packages provide:
 
-USER-CUDA = a collection of atom, pair, fix, compute, and intergrate
-styles, optimized to run on one or more NVIDIA GPUs :ulb,l
-
 GPU = a handful of pair styles and the PPPM kspace_style, optimized to
-run on one or more GPUs or multicore CPU/GPU nodes :l
+run on one or more GPUs or multicore CPU/GPU nodes :ulb,l
 
 USER-INTEL = a collection of pair styles and neighbor routines
 optimized to run in single, mixed, or double precision on CPUs and
@@ -67,11 +63,11 @@ HYBRID = a combination of two packages can be specified (see below) :ule,l
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,
-lj/cut/gpu, lj/cut/intel, lj/cut/cuda, or lj/cut/kk.  A variant styles
+lj/cut/gpu, lj/cut/intel, or lj/cut/kk.  A variant styles
 can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu. If the suffix command is used with the appropriate style,
 you do not need to modify your input script.  The specified suffix
-(opt,omp,gpu,intel,cuda,kk) is automatically appended whenever your
+(opt,omp,gpu,intel,kk) is automatically appended whenever your
 input script command creates a new "atom"_atom_style.html,
 "pair"_pair_style.html, "bond"_bond_style.html,
 "angle"_angle_style.html, "dihedral"_dihedral_style.html,

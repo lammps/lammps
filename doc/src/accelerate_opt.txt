@@ -9,7 +9,7 @@
 
 "Return to Section accelerate overview"_Section_accelerate.html
 
-5.3.6 OPT package :h4
+5.3.5 OPT package :h4
 
 The OPT package was developed by James Fischer (High Performance
 Technologies), David Richie, and Vincent Natoli (Stone Ridge

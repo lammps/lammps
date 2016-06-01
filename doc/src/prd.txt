@@ -295,9 +295,9 @@ for dephasing.
 
 This command cannot be used when any fixes are defined that keep track
 of elapsed time to perform time-dependent operations.  Examples
-include the "ave" fixes such as "fix
-ave/spatial"_fix_ave_spatial.html.  Also "fix
-dt/reset"_fix_dt_reset.html and "fix deposit"_fix_deposit.html.
+include the "ave" fixes such as "fix ave/chunk"_fix_ave_chunk.html.
+Also "fix dt/reset"_fix_dt_reset.html and "fix
+deposit"_fix_deposit.html.
 
 [Related commands:]
 

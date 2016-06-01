@@ -280,7 +280,7 @@ relative RMS error.
 ----------
 
 
-Styles with a *cuda*\ , *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in :doc:`Section_accelerate <Section_accelerate>`
@@ -298,7 +298,7 @@ calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 
-These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
+These accelerated styles are part of the GPU, USER-INTEL,
 KOKKOS, USER-OMP, and OPT packages respectively.  They are only
 enabled if LAMMPS was built with those packages.  See the :ref:`Making LAMMPS <start_3>` section for more info.
 
@@ -313,10 +313,10 @@ Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.
 
-The *ewald/disp*\ , *ewald*\ , *pppm*\ , and *msm* styles support 
-non-orthogonal (triclinic symmetry) simulation boxes. However, triclinic
-simulation cells may not yet be supported by suffix versions of these 
-styles (such as *pppm/cuda*\ ).
+The *ewald/disp*\ , *ewald*\ , *pppm*\ , and *msm* styles support
+non-orthogonal (triclinic symmetry) simulation boxes. However,
+triclinic simulation cells may not yet be supported by suffix versions
+of these styles.
 
 All of the kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.  Note that

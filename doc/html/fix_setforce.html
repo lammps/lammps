@@ -127,9 +127,6 @@
   <div class="section" id="fix-setforce-command">
 <span id="index-0"></span><h1>fix setforce command</h1>
 </div>
-<div class="section" id="fix-setforce-cuda-command">
-<h1>fix setforce/cuda command</h1>
-</div>
 <div class="section" id="fix-setforce-kk-command">
 <h1>fix setforce/kk command</h1>
 <div class="section" id="syntax">
@@ -187,16 +184,16 @@ field with optional time-dependence as well.</p>
 specified geometric <a class="reference internal" href="region.html"><span class="doc">region</span></a> in order to have force added
 to it.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em> or <em>kk</em> suffix are functionally the same as the
+<p>Styles with a r <em>kk</em> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
 <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual.  The
 accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.</p>
 <p>The region keyword is also supported by Kokkos, but a Kokkos-enabled
-region must be used. See the region <a class="reference internal" href="region.html"><span class="doc">region</span></a> command for more
-information.</p>
-<p>These accelerated styles are part of the USER-CUDA or Kokkos package.  They are
+region must be used. See the region <a class="reference internal" href="region.html"><span class="doc">region</span></a> command for
+more information.</p>
+<p>These accelerated styles are part of the r Kokkos package.  They are
 only enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can

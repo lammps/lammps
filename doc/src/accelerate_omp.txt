@@ -9,7 +9,7 @@
 
 "Return to Section accelerate overview"_Section_accelerate.html
 
-5.3.5 USER-OMP package :h4
+5.3.4 USER-OMP package :h4
 
 The USER-OMP package was developed by Axel Kohlmeyer at Temple
 University.  It provides multi-threaded versions of most pair styles,

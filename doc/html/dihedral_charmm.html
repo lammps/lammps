@@ -144,7 +144,9 @@
 <div class="section" id="examples">
 <h2>Examples</h2>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dihedral_style</span> <span class="n">charmm</span>
-<span class="n">dihedral_coeff</span> <span class="mi">1</span> <span class="mf">120.0</span> <span class="mi">1</span> <span class="mi">60</span> <span class="mf">0.5</span>
+<span class="n">dihedral_coeff</span>  <span class="mi">1</span> <span class="mf">0.2</span> <span class="mi">1</span> <span class="mi">180</span> <span class="mf">1.0</span>
+<span class="n">dihedral_coeff</span>  <span class="mi">2</span> <span class="mf">1.8</span> <span class="mi">1</span>   <span class="mi">0</span> <span class="mf">1.0</span>
+<span class="n">dihedral_coeff</span>  <span class="mi">1</span> <span class="mf">3.1</span> <span class="mi">2</span> <span class="mi">180</span> <span class="mf">0.5</span>
 </pre></div>
 </div>
 </div>
@@ -165,42 +167,53 @@ or <a class="reference internal" href="read_restart.html"><span class="doc">read
 <li>K (energy)</li>
 <li>n (integer &gt;= 0)</li>
 <li>d (integer value of degrees)</li>
-<li>weighting factor (0.0 to 1.0)</li>
+<li>weighting factor (1.0, 0.5, or 0.0)</li>
 </ul>
-<p>The weighting factor is applied to pairwise interaction between the
-1st and 4th atoms in the dihedral, which are computed by a CHARMM
-<a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style</span></a> with epsilon and sigma values specified
-with a <a class="reference internal" href="pair_charmm.html"><span class="doc">pair_coeff</span></a> command.  Note that this
-weighting factor is unrelated to the weighting factor specified by the
-<a class="reference internal" href="special_bonds.html"><span class="doc">special bonds</span></a> command which applies to all 1-4
-interactions in the system.</p>
-<p>For CHARMM force fields, the special_bonds 1-4 weighting factor should
-be set to 0.0.  This is because the pair styles that contain &#8220;charmm&#8221;
-(e.g. <a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmm/coul/long</span></a>) define extra
-1-4 interaction coefficients that are used by this dihedral style to
-compute those interactions explicitly.  This means that if any of the
-weighting factors defined as dihedral coefficients (4th coeff above)
-are non-zero, then you must use a charmm pair style.  Note that if you
-do not set the special_bonds 1-4 weighting factor to 0.0 (which is the
-default) then 1-4 interactions in dihedrals will be computed twice,
-once by the pair routine and once by the dihedral routine, which is
-probably not what you want.</p>
-<p>For AMBER force fields, the special_bonds 1-4 weighting factor should
-be set to the AMBER defaults (1/2 and 5/6) and all the dihedral
-weighting factors (4th coeff above) should be set to 0.0.  In this
-case, you can use any pair style you wish, since the dihedral does not
-need any 1-4 information.</p>
+<p>The weighting factor is required to correct for double counting
+pairwise non-bonded Lennard-Jones interactions in cyclic systems or
+when using the CHARMM dihedral style with non-CHARMM force fields.
+With the CHARMM dihedral style, interactions between the 1st and 4th
+atoms in a dihedral are skipped during the normal non-bonded force
+computation and instead evaluated as part of the dihedral using
+special epsilon and sigma values specified with the
+<a class="reference internal" href="pair_charmm.html"><span class="doc">pair_coeff</span></a> command of pair styles that contain
+&#8220;lj/charmm&#8221; (e.g. <a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmm/coul/long</span></a>)
+In 6-membered rings, the same 1-4 interaction would be computed twice
+(once for the clockwise 1-4 pair in dihedral 1-2-3-4 and once in the
+counterclockwise dihedral 1-6-5-4) and thus the weighting factor has
+to be 0.5 in this case.  In 4-membered or 5-membered rings, the 1-4
+dihedral also is counted as a 1-2 or 1-3 interaction when going around
+the ring in the opposite direction and thus the weighting factor is
+0.0, as the 1-2 and 1-3 exclusions take precedence.</p>
+<p>Note that this dihedral weighting factor is unrelated to the scaling
+factor specified by the <a class="reference internal" href="special_bonds.html"><span class="doc">special bonds</span></a> command
+which applies to all 1-4 interactions in the system.  For CHARMM force
+fields, the special_bonds 1-4 interaction scaling factor should be set
+to 0.0. Since the corresponding 1-4 non-bonded interactions are
+computed with the dihedral.  This means that if any of the weighting
+factors defined as dihedral coefficients (4th coeff above) are
+non-zero, then you must use a pair style with &#8220;lj/charmm&#8221; and set the
+special_bonds 1-4 scaling factor to 0.0 (which is the
+default). Otherwise 1-4 non-bonded interactions in dihedrals will be
+computed twice.</p>
+<p>Also note that for AMBER force fields, which use pair styles with
+&#8220;lj/cut&#8221;, the special_bonds 1-4 scaling factor should be set to the
+AMBER defaults (1/2 and 5/6) and all the dihedral weighting factors
+(4th coeff above) must be set to 0.0. In this case, you can use any
+pair style you wish, since the dihedral does not need any
+Lennard-Jones parameter information and will not compute any 1-4
+non-bonded interactions.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
-KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>

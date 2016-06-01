@@ -49,7 +49,6 @@ fi
 
 if (test $1 = "CLASS2") then
   depend GPU
-  depend USER-CUDA
   depend USER-OMP
 fi
 
@@ -64,7 +63,6 @@ if (test $1 = "DIPOLE") then
 fi
 
 if (test $1 = "GRANULAR") then
-  depend USER-CUDA
   depend USER-OMP
 fi
 
@@ -74,7 +72,6 @@ if (test $1 = "KSPACE") then
   depend GPU
   depend KOKKOS
   depend OPT
-  depend USER-CUDA
   depend USER-OMP
   depend USER-INTEL
   depend USER-PHONON
@@ -85,7 +82,6 @@ if (test $1 = "MANYBODY") then
   depend GPU
   depend KOKKOS
   depend OPT
-  depend USER-CUDA
   depend USER-MISC
   depend USER-OMP
 fi
@@ -93,7 +89,6 @@ fi
 if (test $1 = "MOLECULE") then
   depend GPU
   depend KOKKOS
-  depend USER-CUDA
   depend USER-MISC
   depend USER-OMP
   depend USER-FEP
@@ -111,7 +106,6 @@ fi
 if (test $1 = "USER-CG-CMM") then
   depend GPU
   depend KOKKOS
-  depend USER-CUDA
   depend USER-OMP
 fi
 

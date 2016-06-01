@@ -12,24 +12,8 @@ package command :h3
 
 package style args :pre
 
-style = {cuda} or {gpu} or {intel} or {kokkos} or {omp} :ulb,l
+style = {gpu} or {intel} or {kokkos} or {omp} :ulb,l
 args = arguments specific to the style :l
-  {cuda} args = Ngpu keyword value ...
-    Ngpu = # of GPUs per node
-    zero or more keyword/value pairs may be appended
-    keywords = {newton} or {gpuID} or {timing} or {test} or {thread}
-      {newton} = {off} or {on}
-        off = set Newton pairwise and bonded flags off (default)
-        on = set Newton pairwise and bonded flags on
-      {gpuID} values = gpu1 .. gpuN
-        gpu1 .. gpuN = IDs of the Ngpu GPUs to use
-      {timing} values = none
-      {test} values = id
-        id = atom-ID of a test particle
-      {thread} = auto or tpa or bpa
-        auto = test whether tpa or bpa is faster
-        tpa = one thread per atom
-        bpa = one block per atom
   {gpu} args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
     zero or more keyword/value pairs may be appended 
@@ -107,8 +91,6 @@ args = arguments specific to the style :l
 package gpu 1
 package gpu 1 split 0.75
 package gpu 2 split -1.0
-package cuda 2 gpuID 0 2
-package cuda 1 test 3948
 package kokkos neigh half comm device
 package omp 0 neigh no
 package omp 4
@@ -119,8 +101,8 @@ package intel 2 omp 4 mode mixed balance 0.5 :pre
 
 This command invokes package-specific settings for the various
 accelerator packages available in LAMMPS.  Currently the following
-packages use settings from this command: USER-CUDA, GPU, USER-INTEL,
-KOKKOS, and USER-OMP.
+packages use settings from this command: GPU, USER-INTEL, KOKKOS, and
+USER-OMP.
 
 If this command is specified in an input script, it must be near the
 top of the script, before the simulation box has been defined.  This
@@ -139,10 +121,9 @@ without using it in a particular simulation).  However, in all cases,
 a default version of the command is typically invoked by other
 accelerator settings.
 
-The USER-CUDA and KOKKOS packages require a "-c on" or "-k on"
-"command-line switch"_Section_start.html#start_7 respectively, which
-invokes a "package cuda" or "package kokkos" command with default
-settings.
+The KOKKOS package requires a "-k on" "command-line
+switch"_Section_start.html#start_7 respectively, which invokes a
+"package kokkos" command with default settings.
 
 For the GPU, USER-INTEL, and USER-OMP packages, if a "-sf gpu" or "-sf
 intel" or "-sf omp" "command-line switch"_Section_start.html#start_7
@@ -161,62 +142,6 @@ across multiple invocations.
 See the "Section Accelerate"_Section_accelerate.html section of the
 manual for more details about using the various accelerator packages
 for speeding up LAMMPS simulations.
-
-:line
-
-The {cuda} style invokes settings associated with the use of the
-USER-CUDA package.
-
-The {Ngpus} argument sets the number of GPUs per node.  There must be
-exactly one MPI task per GPU, as set by the mpirun or mpiexec command.
-
-Optional keyword/value pairs can also be specified.  Each has a
-default value as listed below.
-
-The {newton} keyword sets the Newton flags for pairwise and bonded
-interactions to {off} or {on}, the same as the "newton"_newton.html
-command allows.  The default is {off} because this will almost always
-give better performance for the USER-CUDA package.  This means
-more computation is done, but less communication.
-
-The {gpuID} keyword allows selection of which GPUs on each node will
-be used for a simulation.  GPU IDs range from 0 to N-1 where N is the
-physical number of GPUs/node.  An ID is specified for each of the
-Ngpus being used.  For example if you have three GPUs on a machine,
-one of which is used for the X-Server (the GPU with the ID 1) while
-the others (with IDs 0 and 2) are used for computations you would
-specify:
-
-package cuda 2 gpuID 0 2 :pre
-
-The purpose of the {gpuID} keyword is to allow two (or more)
-simulations to be run on one workstation.  In that case one could set
-the first simulation to use GPU 0 and the second to use GPU 1. This is
-not necessary however, if the GPUs are in what is called {compute
-exclusive} mode.  Using that setting, every process will get its own
-GPU automatically.  This {compute exclusive} mode can be set as root
-using the {nvidia-smi} tool which is part of the CUDA installation.
-
-Also note that if the {gpuID} keyword is not used, the USER-CUDA
-package sorts existing GPUs on each node according to their number of
-multiprocessors.  This way, compute GPUs will be priorized over
-X-Server GPUs.
-
-If the {timing} keyword is specified, detailed timing information for
-various subroutines will be output.
-
-If the {test} keyword is specified, information for the specified atom
-with atom-ID will be output at several points during each timestep.
-This is mainly usefull for debugging purposes.  Note that the
-simulation slow down dramatically if this option is used.
-
-The {thread} keyword can be used to specify how GPU threads are
-assigned work during pair style force evaluation.  If the value =
-{tpa}, one thread per atom is used.  If the value = {bpa}, one block
-per atom is used.  If the value = {auto}, a short test is performed at
-the beginning of each run to determing where {tpa} or {bpa} mode is
-faster.  The result of this test is output.  Since {auto} is the
-default value, it is usually not necessary to use this keyword.
 
 :line
 
@@ -594,10 +519,6 @@ within its own pages.
 This command cannot be used after the simulation box is defined by a
 "read_data"_read_data.html or "create_box"_create_box.html command.
 
-The cuda style of this command can only be invoked if LAMMPS was built
-with the USER-CUDA package.  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
-
 The gpu style of this command can only be invoked if LAMMPS was built
 with the GPU package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
@@ -620,14 +541,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 setting"_Section_start.html#start_7
 
 [Default:]
-
-For the USER-CUDA package, the default is Ngpu = 1 and the option
-defaults are newton = off, gpuID = 0 to Ngpu-1, timing = not enabled,
-test = not enabled, and thread = auto.  These settings are made
-automatically by the required "-c on" "command-line
-switch"_Section_start.html#start_7.  You can change them bu using the
-package cuda command in your input script or via the "-pk cuda"
-"command-line switch"_Section_start.html#start_7.
 
 For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0

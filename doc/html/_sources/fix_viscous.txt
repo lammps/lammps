@@ -3,9 +3,6 @@
 fix viscous command
 ===================
 
-fix viscous/cuda command
-========================
-
 Syntax
 """"""
 
@@ -82,27 +79,6 @@ performing the same operation as fix viscous.  Also note that the
 gamma of fix viscous is related to the damping parameter of :doc:`fix langevin <fix_langevin>`, however the former is specified in units
 of force/velocity and the latter in units of time, so that it can more
 easily be used as a thermostat.
-
-
-----------
-
-
-Styles with a *cuda* suffix are functionally the same as the
-corresponding style without the suffix.  They have been optimized to
-run faster, depending on your available hardware, as discussed in
-:doc:`Section_accelerate <Section_accelerate>` of the manual.  The
-accelerated styles take the same arguments and should produce the same
-results, except for round-off and precision issues.
-
-These accelerated styles are part of the USER-CUDA package.  They are
-only enabled if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :ref:`-suffix command-line switch <start_7>` when you invoke LAMMPS, or you can
-use the :doc:`suffix <suffix>` command in your input script.
-
-See :doc:`Section_accelerate <Section_accelerate>` of the manual for
-more instructions on how to use the accelerated styles effectively.
 
 
 ----------

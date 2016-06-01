@@ -60,8 +60,6 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | crack       | crack propagation in a 2d solid                                  |
 +-------------+------------------------------------------------------------------+
-| cuda        | use of the USER-CUDA package for GPU acceleration                |
-+-------------+------------------------------------------------------------------+
 | deposit     | deposit atoms and molecules on a surface                         |
 +-------------+------------------------------------------------------------------+
 | dipole      | point dipolar particles, 2d system                               |

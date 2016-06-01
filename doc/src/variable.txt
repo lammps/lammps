@@ -1095,7 +1095,7 @@ variable formula.
 
 Referencing a variable with a leading "v_" is an optional or required
 kind of argument for some commands (e.g. the "fix
-ave/spatial"_fix_ave_spatial.html or "dump custom"_dump.html or
+ave/chunk"_fix_ave_chunk.html or "dump custom"_dump.html or
 "thermo_style"_thermo_style.html commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a
 variable formula if you wish to reference a second variable.  The

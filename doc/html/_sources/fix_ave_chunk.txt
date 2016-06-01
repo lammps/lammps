@@ -73,8 +73,8 @@ Examples
 
 **NOTE:**
 
-If you are trying to replace an older fix ave/spatial command with the
-newer, more flexible fix ave/chunk and :doc:`compute chunk/atom <compute_chunk_atom>` commands, you simply need to split
+If you are trying to replace a deprectated fix ave/spatial command
+with the newer, more flexible fix ave/chunk and :doc:`compute chunk/atom <compute_chunk_atom>` commands, you simply need to split
 the fix ave/spatial arguments across the two new commands.  For
 example, this command:
 

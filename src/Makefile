@@ -54,7 +54,7 @@ PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-vtk
 
 PACKLIB = compress gpu kim kokkos meam mpiio poems python voronoi \
-	  user-atc user-awpmd user-colvars user-cuda user-h5md user-intel \
+	  user-atc user-awpmd user-colvars user-h5md user-intel \
 	  user-lb user-molfile user-qmmm user-quip user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)

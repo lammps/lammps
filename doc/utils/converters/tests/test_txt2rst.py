@@ -222,7 +222,7 @@ class TestListFormatting(unittest.TestCase):
                                  "three :ule,l\n")
         self.assertEqual("* one\n"
                          "* two\n"
-                         "* three\n", s)
+                         "* three\n\n", s)
 
     def test_multi_line_unordered_list_elements(self):
         s = self.txt2rst.convert("one :ulb,l\n"
@@ -232,7 +232,7 @@ class TestListFormatting(unittest.TestCase):
         self.assertEqual("* one\n"
                          "* two\n"
                          "  words\n"
-                         "* three\n", s)
+                         "* three\n\n", s)
 
     def test_ordered_list(self):
         s = self.txt2rst.convert("one\n"
@@ -248,7 +248,7 @@ class TestListFormatting(unittest.TestCase):
                                  "three :ole,l\n")
         self.assertEqual("#. one\n"
                          "#. two\n"
-                         "#. three\n", s)
+                         "#. three\n\n", s)
 
     def test_multi_line_ordered_list_elements(self):
         s = self.txt2rst.convert("one :olb,l\n"
@@ -258,7 +258,7 @@ class TestListFormatting(unittest.TestCase):
         self.assertEqual("#. one\n"
                          "#. two\n"
                          "   words\n"
-                         "#. three\n", s)
+                         "#. three\n\n", s)
 
     def test_definition_list(self):
         s = self.txt2rst.convert("A\n"

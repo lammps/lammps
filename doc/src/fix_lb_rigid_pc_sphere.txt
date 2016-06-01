@@ -80,7 +80,7 @@ assumes the constituent atoms are point particles); see
 No information about the {rigid} and {rigid/nve} fixes are written to
 "binary restart files"_restart.html.
 
-Similar to the "fix rigid"_fix_rigid.html command: &quot; The rigid
+Similar to the "fix rigid"_fix_rigid.html command: The rigid
 fix computes a global scalar which can be accessed by various "output
 commands"_Section_howto.html#howto_15.  The scalar value calculated by
 these fixes is "intensive".  The scalar is the current temperature of
@@ -91,9 +91,9 @@ mass of the body and v = the velocity of its center of mass.  The
 rotational energy of a rigid body is 1/2 I w^2, where I = the moment
 of inertia tensor of the body and w = its angular velocity.  Degrees
 of freedom constrained by the {force} and {torque} keywords are
-removed from this calculation.&quot;
+removed from this calculation.
 
-&quot;All of these fixes compute a global array of values which can be
+All of these fixes compute a global array of values which can be
 accessed by various "output commands"_Section_howto.html#howto_15.
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15
@@ -117,7 +117,7 @@ they are independent of the number of atoms in the simulation.
 
 No parameter of these fixes can be used with the {start/stop} keywords
 of the "run"_run.html command.  These fixes are not invoked during
-"energy minimization"_minimize.html. &quot;
+"energy minimization"_minimize.html.
 
 [Restrictions:] 
 

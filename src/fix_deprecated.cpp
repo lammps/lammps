@@ -11,7 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_ave_spatial.h"
+#include <string.h>
+#include "fix_deprecated.h"
 #include "comm.h"
 #include "error.h"
 
@@ -19,22 +20,23 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixAveSpatial::FixAveSpatial(LAMMPS *lmp, int narg, char **arg) :
+FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  const char *message = "\n"
-    "NOTE: The fix ave/spatial command has been replaced by the\n"
-    "more general fix ave/chunk and compute chunk/atom commands.\n"
-    "All ave/spatial functionality is available in the new commands.\n"
-    "These ave/spatial keywords & options are part of fix ave/chunk:\n"
+  if (strncmp(style,"ave/spatial",11) == 0) {
+    const char *message = "\n"
+    "NOTE: The fix styles 'ave/spatial' and 'ave/spatial/sphere' have been replaced\n"
+    "by the more general fix ave/chunk and compute chunk/atom commands.\n"
+    "All ave/spatial and ave/spatial/sphere functionality is available in these\n"
+    "new commands. These ave/spatial keywords & options are part of fix ave/chunk:\n"
     "  Nevery, Nrepeat, Nfreq, input values, norm, ave, file, overwrite, title123\n"
     "These ave/spatial keywords & options for binning are part of compute chunk/atom:\n"
     "  dim, origin, delta, region, bound, discard, units\n\n";
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,message);
-    if (logfile) fprintf(logfile,message);
+    if (comm->me == 0) {
+      if (screen) fprintf(screen,message);
+      if (logfile) fprintf(logfile,message);
+    }
   }
-
-  error->all(FLERR,"The fix ave/spatial command has been removed from LAMMPS");
+  error->all(FLERR,"This fix command has been removed from LAMMPS");
 }

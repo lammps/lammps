@@ -260,6 +260,36 @@ class TestListFormatting(unittest.TestCase):
                          "   words\n"
                          "#. three\n\n", s)
 
+    def test_paragraphs_ordered_list(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph :olb,l\n"
+                                 "second\n"
+                                 "paragraph :l\n"
+                                 "third\n"
+                                 "paragraph :ole,l\n")
+        self.assertEqual("#. first\n"
+                         "   paragraph\n"
+                         "#. second\n"
+                         "   paragraph\n"
+                         "#. third\n"
+                         "   paragraph\n\n", s)
+
+    def test_paragraphs_unordered_list(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph :ulb,l\n"
+                                 "second\n"
+                                 "paragraph :l\n"
+                                 "third\n"
+                                 "paragraph :ule,l\n")
+        self.assertEqual("* first\n"
+                         "  paragraph\n"
+                         "* second\n"
+                         "  paragraph\n"
+                         "* third\n"
+                         "  paragraph\n\n", s)
+
+
+
     def test_definition_list(self):
         s = self.txt2rst.convert("A\n"
                                   "first\n"

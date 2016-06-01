@@ -82,7 +82,7 @@ fix_modify      cold temp Tcold
 fix             ave all ave/time 10 100 1000 v_tdiff ave running
 thermo_style    custom step temp c_Thot c_Tcold f_hot f_cold v_tdiff f_ave
 
-fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp &
-		  file profile.langevin units reduced
+compute         layers all chunk/atom bin/1d z lower 0.05 units reduced
+fix		2 all ave/chunk 10 100 1000 layers v_temp file profile.langevin
 
 run             20000

@@ -165,7 +165,7 @@ class RSTFormatting(Formatting):
         return paragraph
 
     def unordered_list_end(self, paragraph):
-        return paragraph
+        return paragraph.rstrip() + '\n'
 
     def ordered_list_begin(self, paragraph):
         if paragraph.startswith('* '):
@@ -179,7 +179,15 @@ class RSTFormatting(Formatting):
         return paragraph
 
     def ordered_list_end(self, paragraph):
-        return paragraph
+        return paragraph.rstrip() + '\n'
+
+    def ordered_list(self, paragraph):
+        paragraph = super().ordered_list(paragraph)
+        return paragraph.rstrip() + '\n'
+
+    def unordered_list(self, paragraph):
+        paragraph = super().unordered_list(paragraph)
+        return paragraph.rstrip() + '\n'
 
     def all_breaks(self, paragraph):
         indented = ""

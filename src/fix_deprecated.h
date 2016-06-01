@@ -13,23 +13,25 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(ave/spatial,FixAveSpatial)
+// list all deprecated and removed fix styles here
+
+FixStyle(ave/spatial,FixDeprecated)
+FixStyle(ave/spatial/sphere,FixDeprecated)
 
 #else
 
-#ifndef LMP_FIX_AVE_SPATIAL_H
-#define LMP_FIX_AVE_SPATIAL_H
+#ifndef LMP_FIX_DEPRECATED_H
+#define LMP_FIX_DEPRECATED_H
 
-#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixAveSpatial : public Fix {
+class FixDeprecated : public Fix {
  public:
-  FixAveSpatial(class LAMMPS *, int, char **);
-  ~FixAveSpatial() {}
-  int setmask() {}
+  FixDeprecated(class LAMMPS *, int, char **);
+  ~FixDeprecated() {}
+  int setmask() {return 0;}
   void init() {}
 };
 

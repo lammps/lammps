@@ -6,7 +6,7 @@
 
 :line
 
-LAMMPS GitHub tutorial :h1
+LAMMPS GitHub tutorial :h2
 written by Stefan Paquay :h3
 
 :line

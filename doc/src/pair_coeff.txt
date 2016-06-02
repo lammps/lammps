@@ -106,7 +106,7 @@ bash:
 
 Windows:
 
-% set LAMMPS_POTENTIALS="C:\Path to LAMMPS\Potentials" :pre
+% set LAMMPS_POTENTIALS="C:\\Path to LAMMPS\\Potentials" :pre
 
 :line
 

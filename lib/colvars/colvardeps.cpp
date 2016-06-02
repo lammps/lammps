@@ -263,6 +263,7 @@ void cvm::deps::init_cv_requires() {
     f_description(f_cv_extended_Lagrangian, "extended Lagrangian");
 
     f_description(f_cv_Langevin, "Langevin dynamics");
+    f_req_self(f_cv_Langevin, f_cv_extended_Lagrangian);
 
     f_description(f_cv_linear, "linear");
 

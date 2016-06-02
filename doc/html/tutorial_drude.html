@@ -147,25 +147,13 @@ stiffness of the harmonic bond should be large, so that the Drude
 particle remains close ot the core. The values of Drude mass, Drude
 charge, and force constant can be chosen following different
 strategies, as in the following examples of polarizable force
-fields.</p>
-<ul class="simple">
-<li><a class="reference internal" href="#lamoureux"><span class="std std-ref">Lamoureux and Roux</span></a> suggest adopting a global
-half-stiffness, <span class="math">\(K_D\)</span> = 500 kcal/(mol &amp;Aring;&lt;sup&gt;2&lt;/sup&gt;) &amp;mdash;
-which corresponds to a force constant <span class="math">\(k_D\)</span> = 4184 kJ/(mol
-&amp;Aring;&lt;sup&gt;2&lt;/sup&gt;) &amp;mdash; for all types of core-Drude bond, a
-global mass <span class="math">\(m_D\)</span> = 0.4 g/mol (or u) for all types of Drude
-particle, and to calculate the Drude charges for individual atom types
-from the atom polarizabilities using equation (1). This choice is
-followed in the polarizable CHARMM force field.</li>
-<li><a class="reference internal" href="#schroeder"><span class="std std-ref">Schroeder and Steinhauser</span></a> suggest adopting a global
-charge <span class="math">\(q_D\)</span> = -1.0e and a global mass <span class="math">\(m_D\)</span> = 0.1 g/mol (or u)
-for all Drude particles, and to calculate the force constant for each
-type of core-Drude bond from equation (1). The timesteps used by these
-authors are between 0.5 and 2 fs, with the degrees of freedom of the
-Drude oscillators kept cold at 1 K. In both these force fields
-hydrogen atoms are treated as non-polarizable.</li>
-</ul>
-<p>The motion of of the Drude particles can be calculated by minimizing
+fields:</p>
+<ol class="arabic simple">
+<li><a class="reference internal" href="#lamoureux"><span class="std std-ref">Lamoureux and Roux</span></a> suggest adopting a global half-stiffness, <span class="math">\(K_D\)</span> = 500 kcal/(mol Ang <span class="math">\({}^2\)</span>) - which corresponds to a force constant <span class="math">\(k_D\)</span> = 4184 kJ/(mol Ang <span class="math">\({}^2\)</span>) - for all types of core-Drude bond, a global mass <span class="math">\(m_D\)</span> = 0.4 g/mol (or u) for all types of Drude particles, and to calculate the Drude charges for individual atom types from the atom polarizabilities using equation (1). This choice is followed in the polarizable CHARMM force field.</li>
+<li>Alternately <a class="reference internal" href="#schroeder"><span class="std std-ref">Schroeder and Steinhauser</span></a> suggest adopting a global charge <span class="math">\(q_D\)</span> = -1.0e and a global mass <span class="math">\(m_D\)</span> = 0.1 g/mol (or u) for all Drude particles, and to calculate the force constant for each type of core-Drude bond from equation (1). The timesteps used by these authors are between 0.5 and 2 fs, with the degrees of freedom of the Drude oscillators kept cold at 1 K.</li>
+</ol>
+<p>#. In both these force fields hydrogen atoms are treated as non-polarizable.
+The motion of of the Drude particles can be calculated by minimizing
 the energy of the induced dipoles at each timestep, by an interative,
 self-consistent procedure. The Drude particles can be massless and
 therefore do not contribute to the kinetic energy. However, the
@@ -187,20 +175,8 @@ are such that the core-shell model is sufficiently stable. But to be
 applicable to molecular/covalent systems the Drude model includes two
 important features:</p>
 <ol class="arabic simple">
-<li>The possibility to thermostat the additional degrees of freedom</li>
-</ol>
-<blockquote>
-<div>associated with the induced dipoles at very low temperature, in terms
-of the reduced coordinates of the Drude particles with respect to
-their cores. This makes the trajectory close to that of relaxed
-induced dipoles.</div></blockquote>
-<ol class="arabic simple">
-<li>The Drude dipoles on covalently bonded atoms interact too strongly
-due to the short distances, so an atom may capture the Drude particle
-(shell) of a neighbor, or the induced dipoles within the same molecule
-may align too much.  To avoid this, damping at short of the
-interactions between the point charges composing the induced dipole
-can be done by <a class="reference internal" href="#thole"><span class="std std-ref">Thole</span></a> functions.</li>
+<li>The possibility to thermostat the additional degrees of freedom associated with the induced dipoles at very low temperature, in terms of the reduced coordinates of the Drude particles with respect to their cores. This makes the trajectory close to that of relaxed induced dipoles.</li>
+<li>The Drude dipoles on covalently bonded atoms interact too strongly due to the short distances, so an atom may capture the Drude particle (shell) of a neighbor, or the induced dipoles within the same molecule may align too much.  To avoid this, damping at short of the interactions between the point charges composing the induced dipole can be done by <a class="reference internal" href="#thole"><span class="std std-ref">Thole</span></a> functions.</li>
 </ol>
 <hr class="docutils" />
 <p><strong>Preparation of the data file</strong></p>
@@ -519,7 +495,7 @@ review the different thermostats and ensemble combinations.</p>
 </div>
 <hr class="docutils" />
 <p id="lamoureux"><strong>(Lamoureux)</strong> Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)</p>
-<p id="schroeder"><strong>(Schroeder)</strong>  Schr&amp;ouml;der and Steinhauser, J Chem Phys, 133,
+<p id="schroeder"><strong>(Schroeder)</strong>  Schroeder and Steinhauser, J Chem Phys, 133,
 154511 (2010).</p>
 <dl class="docutils" id="jiang">
 <dt><strong>(Jiang)</strong> Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,</dt>

@@ -61,15 +61,15 @@ thermodynamic integration (FDTI) or Bennet's acceptance ratio method
 
 The potential energy of the system is decomposed in three terms: a
 background term corresponding to interaction sites whose parameters
-remain constant, a reference term *U*\ <sub>0</sub> corresponding to the
+remain constant, a reference term :math:`U_0` corresponding to the
 initial interactions of the atoms that will undergo perturbation, and
-a term *U*\ <sub>1</sub> corresponding to the final interactions of
+a term :math:`U_1` corresponding to the final interactions of
 these atoms:
 
 .. image:: Eqs/compute_fep_u.jpg
    :align: center
 
-A coupling parameter &lambda; varying from 0 to 1 connects the
+A coupling parameter :math:`\lambda` varying from 0 to 1 connects the
 reference and perturbed systems:
 
 .. image:: Eqs/compute_fep_lambda.jpg
@@ -79,7 +79,7 @@ It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential
 energy. Therefore, this compute can apply perturbations to interaction
 parameters that are not directly proportional to the potential energy
-(e.g. &sigma; in Lennard-Jones potentials).
+(e.g. :math:`\sigma` in Lennard-Jones potentials).
 
 This command can be combined with :doc:`fix adapt <fix_adapt>` to
 perform multistage free-energy perturbation calculations along
@@ -91,26 +91,26 @@ stepwise alchemical transformations during a simulation run:
 This compute is suitable for the finite-difference thermodynamic
 integration (FDTI) method :ref:`(Mezei) <Mezei>`, which is based on an
 evaluation of the numerical derivative of the free energy by a
-perturbation method using a very small &delta;:
+perturbation method using a very small :math:`\delta`:
 
 .. image:: Eqs/compute_fep_fdti.jpg
    :align: center
 
-where *w*\ <sub>i</sub> are weights of a numerical quadrature. The :doc:`fix adapt <fix_adapt>` command can be used to define the stages of
-&lambda; at which the derivative is calculated and averaged.
+where :math:`w_i` are weights of a numerical quadrature. The :doc:`fix adapt <fix_adapt>` command can be used to define the stages of
+:math:`\lambda` at which the derivative is calculated and averaged.
 
 The compute fep calculates the exponential Boltzmann term and also the
-potential energy difference *U*\ <sub>1</sub>-\ *U*\ <sub>0</sub>. By
-choosing a very small perturbation &delta; the thermodynamic
+potential energy difference :math:`U_1 -U_0`. By
+choosing a very small perturbation :math:`\delta` the thermodynamic
 integration method can be implemented using a numerical evaluation of
-the derivative of the potential energy with respect to &lambda;:
+the derivative of the potential energy with respect to :math:`\lambda`:
 
 .. image:: Eqs/compute_fep_ti.jpg
    :align: center
 
 Another technique to calculate free energy differences is the
 acceptance ratio method :ref:`(Bennet) <Bennet>`, which can be implemented
-by calculating the potential energy differences with &delta; = 1.0 on
+by calculating the potential energy differences with :math:`\delta` = 1.0 on
 both the forward and reverse routes:
 
 .. image:: Eqs/compute_fep_bar.jpg
@@ -241,12 +241,12 @@ trajectories during which the volume fluctuates or changes :ref:`(Allen and Tild
 **Output info:**
 
 This compute calculates a global vector of length 3 which contains the
-energy difference (\ *U*\ <sub>1</sub>-\ *U*\ <sub>0</sub>) as c_ID[1], the
-Boltzmann factor exp(-(\ *U*\ <sub>1</sub>-\ *U*\ <sub>0</sub>)/\ *kT*\ ), or
-*V*\ exp(-(\ *U*\ <sub>1</sub>-\ *U*\ <sub>0</sub>)/\ *kT*\ ), as c_ID[2] and the
-volume of the simulation box *V* as c_ID[3]. *U*\ <sub>1</sub> is the
+energy difference ( :math:`U_1-U_0` ) as c_ID[1], the
+Boltzmann factor :math:`\exp(-(U_1-U_0)/kT)`, or
+:math:`V \exp(-(U_1-U_0)/kT)`, as c_ID[2] and the
+volume of the simulation box :math:`V` as c_ID[3]. :math:`U_1` is the
 pair potential energy obtained with the perturbed parameters and
-*U*\ <sub>0</sub> is the pair potential energy obtained with the
+:math:`U_0` is the pair potential energy obtained with the
 unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.
 

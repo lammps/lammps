@@ -138,12 +138,18 @@ class Formatting(object):
         elif command == "dl":
             return self.definition_list(paragraph)
         elif command == "l":
+            if "olb" in commands:
+              self.current_list_mode = Formatting.ORDERED_LIST_MODE
+            elif "ulb" in commands:
+              self.current_list_mode = Formatting.UNORDERED_LIST_MODE
+
             return self.list_item(paragraph)
         elif command == "dt":
             return self.definition_term(paragraph)
         elif command == "dd":
             return self.definition_description(paragraph)
         elif command == "ulb":
+            self.current_list_mode = Formatting.UNORDERED_LIST_MODE
             return self.unordered_list_begin(paragraph)
         elif command == "ule":
             return self.unordered_list_end(paragraph)

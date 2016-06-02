@@ -65,18 +65,18 @@ enum {NOBIAS,BIAS};
 
 
 static const char* cite_fix_nvt_manifold_rattle =
-  "fix nve/manifold/rattle command:\n\n"
-  "@article{paquay-2016,\n"
-  " author = {Paquay, Stefan and Kusters, Remy}, \n"
-  " eprint = {arXiv:1411.3019}, \n"
-  " title = {A method for molecular dynamics on curved surfaces}, \n"
-  " url = {http://arxiv.org/abs/1411.3019}, \n"
-  " year = 2016, \n"
-  " journal = {Arxiv preprint, \\url{http://arxiv.org/abs/1411.3019}}, \n"
-  " note = {To be published in Biophys. J.}, \n"
+  "fix nvt/manifold/rattle command:\n\n"
+  "   author        = {Paquay, Stefan and Kusters, Remy},\n"
+  "   doi           = {10.1016/j.bpj.2016.02.017},\n"
+  "   issn          = {0006-3495},\n"
+  "   journal       = {Biophysical Journal},\n"
+  "   month         = apr,\n"
+  "   number        = {6},\n"
+  "   pages         = {1226--1233},\n"
+  "   title         = {{A Method for Molecular Dynamics on Curved Surfaces}},\n"
+  "   volume        = {110},\n"
+  "   year          = {2016}\n"
   "}\n\n";
-
-
 /* ---------------------------------------------------------------------- */
 
 FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,

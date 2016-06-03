@@ -163,6 +163,9 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
+
+  id_temp = NULL;
+  id_press = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,10 +179,8 @@ FixRigidNHSmall::~FixRigidNHSmall()
 
   if (rfix) delete [] rfix;
 
-  if (tcomputeflag) {
-    modify->delete_compute(id_temp);
-    delete [] id_temp;
-  }
+  if (tcomputeflag) modify->delete_compute(id_temp);
+  delete [] id_temp;
 
   // delete pressure if fix created it
 
@@ -1374,7 +1375,6 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-    if (!pstat_flag) error->all(FLERR,"Illegal fix_modify command");
     if (tcomputeflag) {
       modify->delete_compute(id_temp);
       tcomputeflag = 0;

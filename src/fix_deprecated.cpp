@@ -34,8 +34,8 @@ FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) :
     "  dim, origin, delta, region, bound, discard, units\n\n";
 
     if (comm->me == 0) {
-      if (screen) fprintf(screen,message);
-      if (logfile) fprintf(logfile,message);
+      if (screen) fputs(message,screen);
+      if (logfile) fputs(message,logfile);
     }
   }
   error->all(FLERR,"This fix command has been removed from LAMMPS");

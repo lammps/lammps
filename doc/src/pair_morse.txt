@@ -151,8 +151,8 @@ The {morse/smooth/linear} pair style is only enabled if LAMMPS was
 built with the USER-MISC package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The {morse/soft} pair style is only enabled if LAMMPS was
-built with the USER-FEP package.  See the "Making
+The {morse/soft} pair style is only enabled if LAMMPS was built with
+the USER-FEP package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]

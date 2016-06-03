@@ -180,19 +180,19 @@ thermodynamic integration (FDTI) or Bennet&#8217;s acceptance ratio method
 (BAR).</p>
 <p>The potential energy of the system is decomposed in three terms: a
 background term corresponding to interaction sites whose parameters
-remain constant, a reference term <em>U</em>&lt;sub&gt;0&lt;/sub&gt; corresponding to the
+remain constant, a reference term <span class="math">\(U_0\)</span> corresponding to the
 initial interactions of the atoms that will undergo perturbation, and
-a term <em>U</em>&lt;sub&gt;1&lt;/sub&gt; corresponding to the final interactions of
+a term <span class="math">\(U_1\)</span> corresponding to the final interactions of
 these atoms:</p>
 <img alt="_images/compute_fep_u.jpg" class="align-center" src="_images/compute_fep_u.jpg" />
-<p>A coupling parameter &amp;lambda; varying from 0 to 1 connects the
+<p>A coupling parameter <span class="math">\(\lambda\)</span> varying from 0 to 1 connects the
 reference and perturbed systems:</p>
 <img alt="_images/compute_fep_lambda.jpg" class="align-center" src="_images/compute_fep_lambda.jpg" />
 <p>It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential
 energy. Therefore, this compute can apply perturbations to interaction
 parameters that are not directly proportional to the potential energy
-(e.g. &amp;sigma; in Lennard-Jones potentials).</p>
+(e.g. <span class="math">\(\sigma\)</span> in Lennard-Jones potentials).</p>
 <p>This command can be combined with <a class="reference internal" href="fix_adapt.html"><span class="doc">fix adapt</span></a> to
 perform multistage free-energy perturbation calculations along
 stepwise alchemical transformations during a simulation run:</p>
@@ -200,19 +200,19 @@ stepwise alchemical transformations during a simulation run:</p>
 <p>This compute is suitable for the finite-difference thermodynamic
 integration (FDTI) method <a class="reference internal" href="#mezei"><span class="std std-ref">(Mezei)</span></a>, which is based on an
 evaluation of the numerical derivative of the free energy by a
-perturbation method using a very small &amp;delta;:</p>
+perturbation method using a very small <span class="math">\(\delta\)</span>:</p>
 <img alt="_images/compute_fep_fdti.jpg" class="align-center" src="_images/compute_fep_fdti.jpg" />
-<p>where <em>w</em>&lt;sub&gt;i&lt;/sub&gt; are weights of a numerical quadrature. The <a class="reference internal" href="fix_adapt.html"><span class="doc">fix adapt</span></a> command can be used to define the stages of
-&amp;lambda; at which the derivative is calculated and averaged.</p>
+<p>where <span class="math">\(w_i\)</span> are weights of a numerical quadrature. The <a class="reference internal" href="fix_adapt.html"><span class="doc">fix adapt</span></a> command can be used to define the stages of
+<span class="math">\(\lambda\)</span> at which the derivative is calculated and averaged.</p>
 <p>The compute fep calculates the exponential Boltzmann term and also the
-potential energy difference <em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;. By
-choosing a very small perturbation &amp;delta; the thermodynamic
+potential energy difference <span class="math">\(U_1 -U_0\)</span>. By
+choosing a very small perturbation <span class="math">\(\delta\)</span> the thermodynamic
 integration method can be implemented using a numerical evaluation of
-the derivative of the potential energy with respect to &amp;lambda;:</p>
+the derivative of the potential energy with respect to <span class="math">\(\lambda\)</span>:</p>
 <img alt="_images/compute_fep_ti.jpg" class="align-center" src="_images/compute_fep_ti.jpg" />
 <p>Another technique to calculate free energy differences is the
 acceptance ratio method <a class="reference internal" href="#bennet"><span class="std std-ref">(Bennet)</span></a>, which can be implemented
-by calculating the potential energy differences with &amp;delta; = 1.0 on
+by calculating the potential energy differences with <span class="math">\(\delta\)</span> = 1.0 on
 both the forward and reverse routes:</p>
 <img alt="_images/compute_fep_bar.jpg" class="align-center" src="_images/compute_fep_bar.jpg" />
 <p>The value of the free energy difference is determined by numerical
@@ -346,12 +346,12 @@ trajectories during which the volume fluctuates or changes <a class="reference i
 <hr class="docutils" />
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a global vector of length 3 which contains the
-energy difference (<em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;) as c_ID[1], the
-Boltzmann factor exp(-(<em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;)/<em>kT</em>), or
-<em>V</em>exp(-(<em>U</em>&lt;sub&gt;1&lt;/sub&gt;-<em>U</em>&lt;sub&gt;0&lt;/sub&gt;)/<em>kT</em>), as c_ID[2] and the
-volume of the simulation box <em>V</em> as c_ID[3]. <em>U</em>&lt;sub&gt;1&lt;/sub&gt; is the
+energy difference ( <span class="math">\(U_1-U_0\)</span> ) as c_ID[1], the
+Boltzmann factor <span class="math">\(\exp(-(U_1-U_0)/kT)\)</span>, or
+<span class="math">\(V \exp(-(U_1-U_0)/kT)\)</span>, as c_ID[2] and the
+volume of the simulation box <span class="math">\(V\)</span> as c_ID[3]. <span class="math">\(U_1\)</span> is the
 pair potential energy obtained with the perturbed parameters and
-<em>U</em>&lt;sub&gt;0&lt;/sub&gt; is the pair potential energy obtained with the
+<span class="math">\(U_0\)</span> is the pair potential energy obtained with the
 unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.</p>
 <p>These output results can be used by any command that uses a global

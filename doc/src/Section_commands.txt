@@ -951,6 +951,7 @@ package"_Section_start.html#start_3.
 "meam/sw/spline"_pair_meam_sw_spline.html,
 "mgpt"_pair_mgpt.html,
 "morse/smooth/linear"_pair_morse.html,
+"morse/soft"_pair_morse.html,
 "multi/lucy"_pair_multi_lucy.html,
 "quip"_pair_quip.html,
 "reax/c"_pair_reax_c.html,

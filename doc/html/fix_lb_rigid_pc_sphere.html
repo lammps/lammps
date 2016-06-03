@@ -176,7 +176,7 @@
 created to be used in place of that fix, to integrate the equations of
 motion of spherical rigid bodies when a lattice-Boltzmann fluid is
 present with a user-specified value of the force-coupling constant.
-The fix uses the integration algorithm described in <a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a> to update the positions, velocities, and orientations of
+The fix uses the integration algorithm described in <a class="reference internal" href="#mackay"><span class="std std-ref">Mackay et al.</span></a> to update the positions, velocities, and orientations of
 a set of spherical rigid bodies experiencing velocity dependent
 hydrodynamic forces.  The spherical bodies are assumed to rotate as
 solid, uniform density spheres, with moments of inertia calculated
@@ -207,7 +207,7 @@ assumes the constituent atoms are point particles); see
 <h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>No information about the <em>rigid</em> and <em>rigid/nve</em> fixes are written to
 <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
-<p>Similar to the <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command: &amp;quot; The rigid
+<p>Similar to the <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command: The rigid
 fix computes a global scalar which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar value calculated by
 these fixes is &#8220;intensive&#8221;.  The scalar is the current temperature of
 the collection of rigid bodies.  This is averaged over all rigid
@@ -217,8 +217,8 @@ mass of the body and v = the velocity of its center of mass.  The
 rotational energy of a rigid body is 1/2 I w^2, where I = the moment
 of inertia tensor of the body and w = its angular velocity.  Degrees
 of freedom constrained by the <em>force</em> and <em>torque</em> keywords are
-removed from this calculation.&amp;quot;</p>
-<p>&amp;quot;All of these fixes compute a global array of values which can be
+removed from this calculation.</p>
+<p>All of these fixes compute a global array of values which can be
 accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15
@@ -239,7 +239,7 @@ of bodies.</p>
 they are independent of the number of atoms in the simulation.</p>
 <p>No parameter of these fixes can be used with the <em>start/stop</em> keywords
 of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  These fixes are not invoked during
-<a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>. &amp;quot;</p>
+<a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>

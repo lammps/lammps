@@ -59,7 +59,7 @@ FixNVTSllodIntel::FixNVTSllodIntel(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

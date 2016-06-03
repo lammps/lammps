@@ -46,7 +46,7 @@ FixNVTKokkos<DeviceType>::FixNVTKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   this->modify->add_compute(3,newarg);
   delete [] newarg;
-  this->tflag = 1;
+  this->tcomputeflag = 1;
 }
 
 namespace LAMMPS_NS {

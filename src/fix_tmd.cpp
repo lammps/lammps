@@ -85,6 +85,8 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
 
   masstotal = group->mass(igroup);
+  if (masstotal == 0.0)
+    error->all(FLERR,"Cannot use fix TMD on massless group");
 
   // rho_start = initial rho
   // xold = initial x or 0.0 if not in group
@@ -155,10 +157,7 @@ void FixTMD::init()
   int flag = 0;
   for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"tmd") == 0) flag = 1;
-    if (flag && strcmp(modify->fix[i]->style,"nve") == 0) flag = 2;
-    if (flag && strcmp(modify->fix[i]->style,"nvt") == 0) flag = 2;
-    if (flag && strcmp(modify->fix[i]->style,"npt") == 0) flag = 2;
-    if (flag && strcmp(modify->fix[i]->style,"nph") == 0) flag = 2;
+    if (flag && modify->fix[i]->time_integrate) flag = 2;
   }
   if (flag == 2) error->all(FLERR,"Fix tmd must come after integration fixes");
 

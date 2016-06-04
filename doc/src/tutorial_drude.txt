@@ -5,6 +5,14 @@
   MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
 </script>
 
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
 Tutorial for Thermalized Drude oscillators in LAMMPS :h3
 
 This tutorial explains how to use Drude oscillators in LAMMPS to
@@ -52,14 +60,14 @@ constant \(k_D\) = 4184 kJ/(mol Ang \(\{\}^2\)) - for all types of \
 core-Drude bond, a global mass \(m_D\) = 0.4 g/mol (or u) for all types \
 of Drude particles, and to calculate the Drude charges for individual \
 atom types from the atom polarizabilities using equation (1). This \
-choice is followed in the polarizable CHARMM force field. :olb,l
+choice is followed in the polarizable CHARMM force field. :ulb,l
 Alternately "Schroeder and Steinhauser"_#Schroeder suggest adopting a global \
 charge \(q_D\) = -1.0e and a global mass \(m_D\) = 0.1 g/mol (or u) \
 for all Drude particles, and to calculate the force constant for each \
 type of core-Drude bond from equation (1). The timesteps used by these \
 authors are between 0.5 and 2 fs, with the degrees of freedom of the \
 Drude oscillators kept cold at 1 K. :l
-In both these force fields hydrogen atoms are treated as non-polarizable. :ole,l
+In both these force fields hydrogen atoms are treated as non-polarizable. :ule,l
 
 
 The motion of of the Drude particles can be calculated by minimizing

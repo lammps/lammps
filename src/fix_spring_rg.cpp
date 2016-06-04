@@ -112,6 +112,7 @@ void FixSpringRG::post_force(int vflag)
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
   double massfrac;

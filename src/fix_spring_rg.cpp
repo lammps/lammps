@@ -42,6 +42,8 @@ FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
   rg0_flag = 0;
   if (strcmp(arg[4],"NULL") == 0) rg0_flag = 1;
   else rg0 = force->numeric(FLERR,arg[4]);
+
+  dynamic_group_allow = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,6 +96,8 @@ void FixSpringRG::post_force(int vflag)
   // compute current Rg and center-of-mass
 
   double xcm[3];
+  if (group->dynamic[igroup])
+    masstotal = group->mass(igroup);
   group->xcm(igroup,masstotal,xcm);
   double rg = group->gyration(igroup,masstotal,xcm);
 

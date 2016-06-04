@@ -47,6 +47,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  dynamic_group_allow = 1;
 
   group2 = NULL;
 
@@ -166,6 +167,10 @@ void FixSpring::post_force(int vflag)
 void FixSpring::spring_tether()
 {
   double xcm[3];
+
+  if (group->dynamic[igroup])
+    masstotal = group->mass(igroup);
+
   group->xcm(igroup,masstotal,xcm);
 
   // fx,fy,fz = components of k * (r-r0) / masstotal
@@ -233,6 +238,13 @@ void FixSpring::spring_tether()
 void FixSpring::spring_couple()
 {
   double xcm[3],xcm2[3];
+
+  if (group->dynamic[igroup])
+    masstotal = group->mass(igroup);
+
+  if (group->dynamic[igroup2])
+    masstotal2 = group->mass(igroup2);
+
   group->xcm(igroup,masstotal,xcm);
   group->xcm(igroup2,masstotal2,xcm2);
 

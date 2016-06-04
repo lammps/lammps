@@ -125,7 +125,9 @@ void FixSpringRG::post_force(int vflag)
       dz = unwrap[2] - xcm[2];
       term1 = 2.0 * k * (1.0 - rg0/rg);
       if (masstotal > 0.0) {
-        massfrac = mass[type[i]]/masstotal;
+        if (rmass) massfrac = rmass[i]/masstotal;
+        else  massfrac = mass[type[i]]/masstotal;
+
         f[i][0] -= term1*dx*massfrac;
         f[i][1] -= term1*dy*massfrac;
         f[i][2] -= term1*dz*massfrac;

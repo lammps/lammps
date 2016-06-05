@@ -56,6 +56,7 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) :
 ComputeForceTally::~ComputeForceTally()
 {
   if (force && force->pair) force->pair->del_tally_callback(this);
+  memory->destroy(fatom);
   delete[] vector;
 }
 

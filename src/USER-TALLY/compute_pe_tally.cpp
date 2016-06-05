@@ -55,6 +55,7 @@ ComputePETally::ComputePETally(LAMMPS *lmp, int narg, char **arg) :
 ComputePETally::~ComputePETally()
 {
   if (force && force->pair) force->pair->del_tally_callback(this);
+  memory->destroy(eatom);
   delete[] vector;
 }
 

@@ -488,13 +488,16 @@ void PairVashishta::setup_params()
 
   // set cutsq using shortcut to reduce neighbor list for accelerated
   // calculations. cut must remain unchanged as it is a potential parameter
+  double tmp_par;
 
   for (m = 0; m < nparams; m++) {
     params[m].cutsq = params[m].cut * params[m].cut;
     params[m].cutsq2 = params[m].r0 * params[m].r0;
 
-    params[m].lam1inv = 1.0/params[m].lambda1;
-    params[m].lam4inv = 1.0/params[m].lambda4;
+    tmp_par = params[m].lambda1;
+    params[m].lam1inv = (tmp_par == 0.0) ? 0.0 : 1.0/tmp_par;
+    tmp_par = params[m].lambda4;
+    params[m].lam4inv = (tmp_par == 0.0) ? 0.0 : 1.0/tmp_par;
     params[m].zizj = params[m].zi*params[m].zj * force->qqr2e;
     // note that bigd does not have 1/2 factor
     params[m].mbigd = params[m].bigd;
@@ -502,8 +505,9 @@ void PairVashishta::setup_params()
     params[m].big2b = 2.0*params[m].bigb;
     params[m].big6w = 6.0*params[m].bigw;
 
-    params[m].rcinv = 1.0/params[m].cut;
-    params[m].rc2inv = 1.0/params[m].cutsq;
+    tmp_par = params[m].cut;
+    params[m].rcinv =  (tmp_par == 0.0) ? 0.0 : 1.0/tmp_par;
+    params[m].rc2inv = params[m].rcinv*params[m].rcinv;
     params[m].rc4inv = params[m].rc2inv*params[m].rc2inv;
     params[m].rc6inv = params[m].rc2inv*params[m].rc4inv;
     params[m].rceta = pow(params[m].rcinv,params[m].eta);

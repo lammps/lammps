@@ -4,7 +4,7 @@
 
 CXX =		x86_64-w64-mingw32-g++
 CXXFLAGS =	-O2 -march=core2 -mtune=core2 -mpc64 -msse2		\
-		-fno-rtti -fno-exceptions -finline-functions		\
+		-finline-functions		\
                 -ffast-math -funroll-loops -fstrict-aliasing		\
                 -Wall -W -Wno-uninitialized
 ARCHIVE =	x86_64-w64-mingw32-ar

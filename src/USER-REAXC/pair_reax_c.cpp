@@ -386,7 +386,6 @@ void PairReaxC::init_style( )
     delete [] fixarg;
     fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

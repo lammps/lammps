@@ -146,9 +146,11 @@ void ComputeVCMChunk::compute_array()
     MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
 
   for (int i = 0; i < nchunk; i++) {
-    vcmall[i][0] /= masstotal[i];
-    vcmall[i][1] /= masstotal[i];
-    vcmall[i][2] /= masstotal[i];
+    if (masstotal[i] > 0.0) {
+      vcmall[i][0] /= masstotal[i];
+      vcmall[i][1] /= masstotal[i];
+      vcmall[i][2] /= masstotal[i];
+    } else vcmall[i][0] = vcmall[i][1] = vcmall[i][2] = 0.0;
   }
 }
 

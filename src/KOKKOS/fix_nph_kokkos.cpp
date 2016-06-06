@@ -47,7 +47,7 @@ FixNPHKokkos<DeviceType>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   this->modify->add_compute(3,newarg);
   delete [] newarg;
-  this->tflag = 1;
+  this->tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
@@ -65,7 +65,7 @@ FixNPHKokkos<DeviceType>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
   newarg[3] = this->id_temp;
   this->modify->add_compute(4,newarg);
   delete [] newarg;
-  this->pflag = 1;
+  this->pcomputeflag = 1;
 }
 
 namespace LAMMPS_NS {

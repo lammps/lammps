@@ -46,7 +46,7 @@ FixNPTAsphereOMP::FixNPTAsphereOMP(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
@@ -64,5 +64,5 @@ FixNPTAsphereOMP::FixNPTAsphereOMP(LAMMPS *lmp, int narg, char **arg) :
   newarg[3] = id_temp;
   modify->add_compute(4,newarg);
   delete [] newarg;
-  pflag = 1;
+  pcomputeflag = 1;
 }

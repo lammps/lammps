@@ -277,12 +277,13 @@ void FixSpring::spring_couple()
     fx2 = fx/masstotal2;
     fy2 = fy/masstotal2;
     fz2 = fz/masstotal2;
-  }
+  } else fx2 = fy2 = fz2 = 0.0
+
   if (masstotal > 0.0) {
     fx /= masstotal;
     fy /= masstotal;
     fz /= masstotal;
-  }
+  } else fx = fy = fz = 0.0
 
   // apply restoring force to atoms in group
   // f = -k*(r-r0)*mass/masstotal

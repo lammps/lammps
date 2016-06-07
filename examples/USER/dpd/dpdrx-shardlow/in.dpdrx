@@ -5,9 +5,7 @@ boundary        p p p
 units           metal  # ev, ps
 atom_style      dpd
 atom_modify     map array
-##fix             Concentrations all property/atom d_rdx d_h2 d_no2 d_n2 d_hcn d_no d_h2o d_co d_co2 ghost yes
 fix             4 all rx kinetics.dpdrx none lammps_rk4 1
-#fix             4 all rx kinetics_null.dpdrx none lammps_rk4
 
 lattice         hcp 6.6520898 origin 0.0833333333333 0.25 0.25 orient z 1 0 0 orient x 0 1 0 orient y 0 0 1
 region          box block 0 6.0 0 6.0 0.0 6.0 units lattice

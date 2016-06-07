@@ -54,6 +54,7 @@ or :doc:`read_restart <read_restart>` commands:
 * Some force fields let *n* be positive or negative which corresponds to
   *d* = 1 or -1 for the harmonic style.
 
+
 ----------
 
 

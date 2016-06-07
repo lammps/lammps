@@ -14,7 +14,7 @@ below:
 The 5 standard problems are as follow:
 
 #. LJ = atomic fluid, Lennard-Jones potential with 2.5 sigma cutoff (55
-  neighbors per atom), NVE integration
+   neighbors per atom), NVE integration
 #. Chain = bead-spring polymer melt of 100-mer chains, FENE bonds and LJ
    pairwise interactions with a 2^(1/6) sigma cutoff (5 neighbors per
    atom), NVE integration
@@ -26,6 +26,7 @@ The 5 standard problems are as follow:
    field with a 10 Angstrom LJ cutoff (440 neighbors per atom),
    particle-particle particle-mesh (PPPM) for long-range Coulombics, NPT
    integration
+
 Input files for these 5 problems are provided in the bench directory
 of the LAMMPS distribution.  Each has 32,000 atoms and runs for 100
 timesteps.  The size of the problem (number of atoms) can be varied

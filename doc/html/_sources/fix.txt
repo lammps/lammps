@@ -186,6 +186,7 @@ of :ref:`this page <cmd_5>`.
 * :doc:`drag <fix_drag>` - drag atoms towards a defined coordinate
 * :doc:`dt/reset <fix_dt_reset>` - reset the timestep based on velocity, forces
 * :doc:`efield <fix_efield>` - impose electric field on system
+* :doc:`ehex <fix_ehex>` - ehanced heat exchange algorithm
 * :doc:`enforce2d <fix_enforce2d>` - zero out z-dimension velocity and force
 * :doc:`evaporate <fix_evaporate>` - remove atoms from simulation periodically
 * :doc:`external <fix_external>` - callback to an external driver program

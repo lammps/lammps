@@ -325,10 +325,6 @@ void Balance::command(int narg, char **arg)
     bisection(1);
   }
 
-  // output of final result
-
-  if (outflag) dumpout(update->ntimestep,fp);
-
   // reset proc sub-domains
   // for either brick or tiled comm style
 
@@ -343,6 +339,10 @@ void Balance::command(int narg, char **arg)
   else irregular->migrate_atoms(1);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // output of final result
+
+  if (outflag) dumpout(update->ntimestep,fp);
 
   // check if any atoms were lost
 

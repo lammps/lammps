@@ -146,34 +146,37 @@
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>Style <em>exp6/rx</em> is used in reaction DPD simulations, where the coarse-grained (CG)
-particles are composed of <em>m</em> species whose reaction rate kinetics are determined
-from a set of <em>n</em> reaction rate equations through the <a class="reference internal" href="fix_rx.html"><span class="doc">fix rx</span></a> command.
-The species of one CG particle can interact with a species in a neighboring CG
-particle through a site-site interaction potential model.  The <em>exp6/rx</em> style
-computes an exponential-6 potential given by</p>
+<p>Style <em>exp6/rx</em> is used in reaction DPD simulations, where the
+coarse-grained (CG) particles are composed of <em>m</em> species whose
+reaction rate kinetics are determined from a set of <em>n</em> reaction rate
+equations through the <a class="reference internal" href="fix_rx.html"><span class="doc">fix rx</span></a> command.  The species of
+one CG particle can interact with a species in a neighboring CG
+particle through a site-site interaction potential model.  The
+<em>exp6/rx</em> style computes an exponential-6 potential given by</p>
 <img alt="_images/pair_exp6_rx.jpg" class="align-center" src="_images/pair_exp6_rx.jpg" />
 <p>where the <em>epsilon</em> parameter determines the depth of the potential
 minimum located at <em>Rm</em>, and <em>alpha</em> determines the softness of the repulsion.</p>
-<p>The coefficients must be defined for each species in a given particle type
-via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples above, where
-the first argument is the filename that includes the exponential-6 parameters
-for each species.  The file includes the species tag followed by the <em>alpha</em>,
-<em>epsilon</em> and <em>Rm</em> parameters. The format of the file is described below.</p>
+<p>The coefficients must be defined for each species in a given particle
+type via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples
+above, where the first argument is the filename that includes the
+exponential-6 parameters for each species.  The file includes the
+species tag followed by the <em>alpha</em>, <em>epsilon</em> and <em>Rm</em>
+parameters. The format of the file is described below.</p>
 <p>The second and third arguments specify the site-site interaction
-potential between two species contained within two different particles.
-The species tags must either correspond to the species defined in the reaction
-kinetics files specified with the <a class="reference internal" href="fix_rx.html"><span class="doc">fix rx</span></a> command
-or they must correspond to the tag &#8220;1fluid&#8221;, signifying interaction
-with a product species mixture determined through a one-fluid approximation.
-The interaction potential is weighted by the geometric average of the
-concentrations of the two species.  The coarse-grained potential is
-stored before and after the reaction kinetics solver is applied, where the
-difference is defined to be the internal chemical energy (uChem).</p>
+potential between two species contained within two different
+particles.  The species tags must either correspond to the species
+defined in the reaction kinetics files specified with the <a class="reference internal" href="fix_rx.html"><span class="doc">fix rx</span></a> command or they must correspond to the tag &#8220;1fluid&#8221;,
+signifying interaction with a product species mixture determined
+through a one-fluid approximation.  The interaction potential is
+weighted by the geometric average of the concentrations of the two
+species.  The coarse-grained potential is stored before and after the
+reaction kinetics solver is applied, where the difference is defined
+to be the internal chemical energy (uChem).</p>
 <p>The fourth and fifth arguments specify the <em>Rm</em> and <em>epsilon</em> scaling exponents.</p>
 <p>The final argument specifies the interaction cutoff.</p>
 <hr class="docutils" />
-<p>The format of a tabulated file is as follows (without the parenthesized comments):</p>
+<p>The format of a tabulated file is as follows (without the
+parenthesized comments):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># exponential-6 parameters for various species      (one or more comment or blank lines)</span>
 </pre></div>
 </div>
@@ -187,12 +190,12 @@ difference is defined to be the internal chemical energy (uChem).</p>
 &#8220;#&#8221;; blank lines or lines starting with &#8220;#&#8221; can be used as comments
 between sections.</p>
 <p>Following a blank line, the next N lines list the species and their
-corresponding parameters.  The first argument is the species tag,
-the second argument is the exp6 tag, the 3rd argument is the <em>alpha</em>
+corresponding parameters.  The first argument is the species tag, the
+second argument is the exp6 tag, the 3rd argument is the <em>alpha</em>
 parameter (energy units), the 4th argument is the <em>epsilon</em> parameter
-(energy-distance^6 units), and the 5th argument is the <em>Rm</em>
-parameter (distance units).  If a species tag of &#8220;1fluid&#8221; is listed as a
-pair coefficient, a one-fluid approximation is specified where a
+(energy-distance^6 units), and the 5th argument is the <em>Rm</em> parameter
+(distance units).  If a species tag of &#8220;1fluid&#8221; is listed as a pair
+coefficient, a one-fluid approximation is specified where a
 concentration-dependent combination of the parameters is computed
 through the following equations:</p>
 <img alt="_images/pair_exp6_rx_oneFluid.jpg" class="align-center" src="_images/pair_exp6_rx_oneFluid.jpg" />
@@ -212,7 +215,8 @@ pair interaction.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>None</p>
+<p>This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

@@ -25,20 +25,22 @@ Examples
 Description
 """""""""""
 
-Style *multi/lucy/rx* is used in reaction DPD simulations, where the coarse-grained 
-(CG) particles are composed of *m* species whose reaction rate kinetics are determined 
-from a set of *n* reaction rate equations through the :doc:`fix rx <fix_rx>` command.  
-The species of one CG particle can interact with a species in a neighboring CG particle 
-through a site-site interaction potential model.  Style *multi/lucy/rx* computes the 
-site-site density-dependent force following from the many-body form described in 
-:ref:`(Moore) <Moore>` and :ref:`(Warren) <Warren>` as
+Style *multi/lucy/rx* is used in reaction DPD simulations, where the
+coarse-grained (CG) particles are composed of *m* species whose
+reaction rate kinetics are determined from a set of *n* reaction rate
+equations through the :doc:`fix rx <fix_rx>` command.  The species of
+one CG particle can interact with a species in a neighboring CG
+particle through a site-site interaction potential model.  Style
+*multi/lucy/rx* computes the site-site density-dependent force
+following from the many-body form described in :ref:`(Moore) <Moore>` and
+:ref:`(Warren) <Warren>` as
 
 .. image:: Eqs/pair_multi_lucy.jpg
    :align: center
 
-which consists of a density-dependent function, A(rho), and a radial-dependent weight
-function, omegaDD(rij).  The radial-dependent weight function, omegaDD(rij), is taken 
-as the Lucy function:
+which consists of a density-dependent function, A(rho), and a
+radial-dependent weight function, omegaDD(rij).  The radial-dependent
+weight function, omegaDD(rij), is taken as the Lucy function:
 
 .. image:: Eqs/pair_multi_lucy2.jpg
    :align: center
@@ -48,24 +50,29 @@ The density-dependent energy for a given particle is given by:
 .. image:: Eqs/pair_multi_lucy_energy.jpg
    :align: center
 
-See the supporting information of :ref:`(Brennan) <Brennan>` or the publication by :ref:`(Moore) <Moore>` 
-for more details on the functional form.
+See the supporting information of :ref:`(Brennan) <Brennan>` or the
+publication by :ref:`(Moore) <Moore>` for more details on the functional
+form.
 
-An interpolation table is used to evaluate the density-dependent energy (Integral(A(rho)drho) and force (A(rho)).  
-Note that the pre-factor to the energy is computed after the interpolation, thus the Integral(A(rho)drho will 
-have units of energy / length^4.
+An interpolation table is used to evaluate the density-dependent
+energy (Integral(A(rho)drho) and force (A(rho)).  Note that the
+pre-factor to the energy is computed after the interpolation, thus the
+Integral(A(rho)drho will have units of energy / length^4.
 
-The interpolation table is created as a pre-computation by fitting cubic splines to 
-the file values and interpolating the density-dependent energy and force at each of *N* densities.  
-During a simulation, the tables are used to interpolate the density-dependent energy and force as 
-needed for each pair of particles separated by a distance *R*\ .  The interpolation is done in
-one of 2 styles: *lookup* and *linear*\ .
+The interpolation table is created as a pre-computation by fitting
+cubic splines to the file values and interpolating the
+density-dependent energy and force at each of *N* densities.  During a
+simulation, the tables are used to interpolate the density-dependent
+energy and force as needed for each pair of particles separated by a
+distance *R*\ .  The interpolation is done in one of 2 styles: *lookup*
+and *linear*\ .
 
-For the *lookup* style, the density is used to find the nearest table entry, which is the 
-density-dependent energy and force.
+For the *lookup* style, the density is used to find the nearest table
+entry, which is the density-dependent energy and force.
 
-For the *linear* style, the density is used to find the 2 surrounding table values from 
-which the density-dependent energy and force are computed by linear interpolation.
+For the *linear* style, the density is used to find the 2 surrounding
+table values from which the density-dependent energy and force are
+computed by linear interpolation.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -77,23 +84,24 @@ above.
 * species2
 * cutoff (distance units)
 
-The filename specifies a file containing the tabulated density-dependent 
-energy and force.  The keyword specifies a section of the file.  
-The cutoff is an optional coefficient.  If not specified, the outer cutoff in the
-table itself (see below) will be used to build an interpolation table
-that extend to the largest tabulated distance.  If specified, only
-file values up to the cutoff are used to create the interpolation
-table.  The format of this file is described below.
+The filename specifies a file containing the tabulated
+density-dependent energy and force.  The keyword specifies a section
+of the file.  The cutoff is an optional coefficient.  If not
+specified, the outer cutoff in the table itself (see below) will be
+used to build an interpolation table that extend to the largest
+tabulated distance.  If specified, only file values up to the cutoff
+are used to create the interpolation table.  The format of this file
+is described below.
 
-The species tags define the site-site interaction potential between two 
-species contained within two different particles.  
-The species tags must either correspond to the species defined in the reaction
-kinetics files specified with the :doc:`fix rx <fix_rx>` command 
-or they must correspond to the tag "1fluid", signifying interaction 
-with a product species mixture determined through a one-fluid approximation.  
-The interaction potential is weighted by the geometric average of the 
-concentrations of the two species.  The coarse-grained potential
-is stored before and after the reaction kinetics solver is applied, where 
+The species tags define the site-site interaction potential between
+two species contained within two different particles.  The species
+tags must either correspond to the species defined in the reaction
+kinetics files specified with the :doc:`fix rx <fix_rx>` command or they
+must correspond to the tag "1fluid", signifying interaction with a
+product species mixture determined through a one-fluid approximation.
+The interaction potential is weighted by the geometric average of the
+concentrations of the two species.  The coarse-grained potential is
+stored before and after the reaction kinetics solver is applied, where
 the difference is defined to be the internal chemical energy (uChem).
 
 
@@ -128,34 +136,34 @@ numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the *N*
-specified in the :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>` command.  Let
-Ntable = *N* in the pair_style command, and Nfile = "N" in the
-tabulated file.  What LAMMPS does is a preliminary interpolation by
-creating splines using the Nfile tabulated values as nodal points.  It
-uses these to interpolate the density-dependent energy and force at Ntable different
-points.  The resulting tables of length Ntable are then used as
-described above, when computing the density-dependent energy and force.  
-This means that if you want the interpolation tables of
-length Ntable to match exactly what is in the tabulated file (with
-effectively no preliminary interpolation), you should set Ntable =
-Nfile, and use the "RSQ" parameter.  This is because the
-internal table abscissa is always RSQ (separation distance squared),
-for efficient lookup.
+specified in the :doc:`pair_style multi/lucy/rx <pair_multi_lucy_rx>`
+command.  Let Ntable = *N* in the pair_style command, and Nfile = "N"
+in the tabulated file.  What LAMMPS does is a preliminary
+interpolation by creating splines using the Nfile tabulated values as
+nodal points.  It uses these to interpolate the density-dependent
+energy and force at Ntable different points.  The resulting tables of
+length Ntable are then used as described above, when computing the
+density-dependent energy and force.  This means that if you want the
+interpolation tables of length Ntable to match exactly what is in the
+tabulated file (with effectively no preliminary interpolation), you
+should set Ntable = Nfile, and use the "RSQ" parameter.  This is
+because the internal table abscissa is always RSQ (separation distance
+squared), for efficient lookup.
 
-All other parameters are optional.  If "R" or "RSQ" does
-not appear, then the distances in each line of the table are used
-as-is to perform spline interpolation.  In this case, the table values
-can be spaced in *density* uniformly or however you wish to position table
-values in regions of large gradients.
+All other parameters are optional.  If "R" or "RSQ" does not appear,
+then the distances in each line of the table are used as-is to perform
+spline interpolation.  In this case, the table values can be spaced in
+*density* uniformly or however you wish to position table values in
+regions of large gradients.
 
 If used, the parameters "R" or "RSQ" are followed by 2 values *rlo*
-and *rhi*\ .  If specified, the density associated with each density-dependent
-energy and force value is computed from these 2 values (at high accuracy), rather
-than using the (low-accuracy) value listed in each line of the table.
-The density values in the table file are ignored in this case.
-For "R", distances uniformly spaced between *rlo* and *rhi* are
-computed; for "RSQ", squared distances uniformly spaced between
-*rlo*rlo* and *rhi*rhi* are computed.
+and *rhi*\ .  If specified, the density associated with each
+density-dependent energy and force value is computed from these 2
+values (at high accuracy), rather than using the (low-accuracy) value
+listed in each line of the table.  The density values in the table
+file are ignored in this case.  For "R", distances uniformly spaced
+between *rlo* and *rhi* are computed; for "RSQ", squared distances
+uniformly spaced between *rlo*rlo* and *rhi*rhi* are computed.
 
 .. note::
 
@@ -163,14 +171,15 @@ computed; for "RSQ", squared distances uniformly spaced between
    file are effectively ignored, and replaced by new values as described
    in the previous paragraph.  If the density value in the table is not
    very close to the new value (i.e. round-off difference), then you will
-   be assigning density-dependent energy and force values to a different density, 
-   which is probably not what you want.  LAMMPS will warn if this is occurring.
+   be assigning density-dependent energy and force values to a different
+   density, which is probably not what you want.  LAMMPS will warn if
+   this is occurring.
 
 Following a blank line, the next N lines list the tabulated values.
 On each line, the 1st value is the index from 1 to N, the 2nd value is
-r (in density units), the 3rd value is the density-dependent function value 
-(in energy units / length^4), and the 4th is the force (in force units).  The 
-density values must increase from one line to the next.
+r (in density units), the 3rd value is the density-dependent function
+value (in energy units / length^4), and the 4th is the force (in force
+units).  The density values must increase from one line to the next.
 
 Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
@@ -205,7 +214,10 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
- none
+
+
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
 
 Related commands
 """"""""""""""""

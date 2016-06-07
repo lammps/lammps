@@ -170,16 +170,15 @@ examples/USER/dpd directory.</p>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>This fix is only available if LAMMPS is built with the USER-DPD
-package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
-for more info.</p>
+<p>This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>This fix is currently limited to orthogonal simulation cell
 geometries.</p>
 <p>This fix must be used with an additional fix that specifies time
 integration, e.g. <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
 <p>The Shardlow splitting algorithm requires the sizes of the sub-domain
 lengths to be larger than twice the cutoff+skin.  Generally, the
-domain decomposition is dependant on the number of processors
+domain decomposition is dependent on the number of processors
 requested.</p>
 </div>
 <div class="section" id="related-commands">

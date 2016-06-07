@@ -109,13 +109,16 @@ Restrictions
 """"""""""""
 
 
-The fix *eos/table* is only available if LAMMPS is built with the 
-USER-DPD package.
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+
+This command also requires use of the :doc:`atom_style dpd <atom_style>`
+command.
 
 The equation of state must be a monotonically increasing function.
 
-An exit error will occur if the internal temperature or internal
-energies are not within the table cutoffs.
+An error will occur if the internal temperature or internal energies
+are not within the table cutoffs.
 
 Related commands
 """"""""""""""""

@@ -156,46 +156,50 @@ defined within the file associated with this command.</p>
 <img alt="_images/fix_rx_reaction.jpg" class="align-center" src="_images/fix_rx_reaction.jpg" />
 <p>the reaction rate equation is defined to be of the form</p>
 <img alt="_images/fix_rx_reactionRate.jpg" class="align-center" src="_images/fix_rx_reactionRate.jpg" />
-<p>In the current implementation, the exponents are defined to be equal to the
-stoichiometric coefficients.  A given reaction set consisting of <em>n</em> reaction
-equations will contain a total of <em>m</em> species.  A set of <em>m</em> ordinary
-differential equations (ODEs) that describe the change in concentration of a
-given species as a function of time are then constructed based on the <em>n</em>
-reaction rate equations.</p>
-<p>The ODE systems are solved over the full DPD timestep <em>dt</em> using a 4th order
-Runge-Kutta <em>rk4</em> method with a fixed step-size <em>h</em>, specified by the
-<em>lammps_rk4</em> keyword. The number of ODE steps per DPD timestep for the rk4 method
-is optionally specified immediately after the rk4 keyword. The ODE step-size is set as
-<em>dt/num_steps</em>. Smaller step-sizes tend to yield more accurate results but there
-is not control on the error.</p>
+<p>In the current implementation, the exponents are defined to be equal
+to the stoichiometric coefficients.  A given reaction set consisting
+of <em>n</em> reaction equations will contain a total of <em>m</em> species.  A set
+of <em>m</em> ordinary differential equations (ODEs) that describe the change
+in concentration of a given species as a function of time are then
+constructed based on the <em>n</em> reaction rate equations.</p>
+<p>The ODE systems are solved over the full DPD timestep <em>dt</em> using a 4th
+order Runge-Kutta <em>rk4</em> method with a fixed step-size <em>h</em>, specified
+by the <em>lammps_rk4</em> keyword. The number of ODE steps per DPD timestep
+for the rk4 method is optionally specified immediately after the rk4
+keyword. The ODE step-size is set as <em>dt/num_steps</em>. Smaller
+step-sizes tend to yield more accurate results but there is not
+control on the error.</p>
 <hr class="docutils" />
 <p>The filename specifies a file that contains the entire set of reaction
 kinetic equations and corresponding Arrhenius parameters.  The format of
 this file is described below.</p>
-<p>There is no restriction on the total number or reaction equations that are
-specified.  The species names are arbitrary string names that are associated
-with the species concentrations.
-Each species in a given reaction must be preceded by it&#8217;s stoichiometric
-coefficient.  The only delimiters that are recognized between the species are
-either a <em>+</em> or <em>=</em> character.  The <em>=</em> character corresponds to an
-irreversible reaction.  After specifying the reaction, the reaction rate
-constant is determined through the temperature dependent Arrhenius equation:</p>
+<p>There is no restriction on the total number or reaction equations that
+are specified.  The species names are arbitrary string names that are
+associated with the species concentrations.  Each species in a given
+reaction must be preceded by it&#8217;s stoichiometric coefficient.  The
+only delimiters that are recognized between the species are either a
+<em>+</em> or <em>=</em> character.  The <em>=</em> character corresponds to an
+irreversible reaction.  After specifying the reaction, the reaction
+rate constant is determined through the temperature dependent
+Arrhenius equation:</p>
 <img alt="_images/fix_rx.jpg" class="align-center" src="_images/fix_rx.jpg" />
-<p>where <em>A</em> is the Arrhenius factor in time units or concentration/time units,
-<em>n</em> is the unitless exponent of the temperature dependence, and <em>E_a</em> is the
-activation energy in energy units.  The temperature dependence can be removed
-by specifying the exponent as zero.</p>
-<p>The internal temperature of the coarse-grained particles can be used in constructing the
-reaction rate constants at every DPD timestep by specifying the keyword <em>none</em>.
-Alternatively, the keyword <em>lucy</em> can be specified to compute a local-average particle
-internal temperature for use in the reaction rate constant expressions.
-The local-average particle internal temperature is defined as:</p>
+<p>where <em>A</em> is the Arrhenius factor in time units or concentration/time
+units, <em>n</em> is the unitless exponent of the temperature dependence, and
+<em>E_a</em> is the activation energy in energy units.  The temperature
+dependence can be removed by specifying the exponent as zero.</p>
+<p>The internal temperature of the coarse-grained particles can be used
+in constructing the reaction rate constants at every DPD timestep by
+specifying the keyword <em>none</em>.  Alternatively, the keyword <em>lucy</em> can
+be specified to compute a local-average particle internal temperature
+for use in the reaction rate constant expressions.  The local-average
+particle internal temperature is defined as:</p>
 <img alt="_images/fix_rx_localTemp.jpg" class="align-center" src="_images/fix_rx_localTemp.jpg" />
 <p>where the Lucy function is expressed as:</p>
 <img alt="_images/fix_rx_localTemp2.jpg" class="align-center" src="_images/fix_rx_localTemp2.jpg" />
 <p>The self-particle interaction is included in the above equation.</p>
 <hr class="docutils" />
-<p>The format of a tabulated file is as follows (without the parenthesized comments):</p>
+<p>The format of a tabulated file is as follows (without the
+parenthesized comments):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Rxn equations and parameters                                               (one or more comment or blank lines)</span>
 </pre></div>
 </div>
@@ -208,29 +212,34 @@ The local-average particle internal temperature is defined as:</p>
 <p>A section begins with a non-blank line whose 1st character is not a
 &#8220;#&#8221;; blank lines or lines starting with &#8220;#&#8221; can be used as comments
 between sections.</p>
-<p>Following a blank line, the next N lines list the N reaction equations.
-Each species within the reaction equation is specified through its
-stoichiometric coefficient and a species tag.  Reactant species are specified
-on the left-hand side of the equation and product species are specified on the
-right-hand side of the equation.  After specifying the reactant and product
-species, the final three arguments of each line represent the Arrhenius
-parameter <em>A</em>, the temperature exponent <em>n</em>, and the activation energy <em>Ea</em>.</p>
-<p>Note that the species tags that are defined in the reaction equations are
-used by the <a class="reference internal" href="fix_eos_table_rx.html"><span class="doc">fix eos/table/rx</span></a> command to define the
-thermodynamic properties of each species.  Furthermore, the number of species
-molecules (i.e., concentration) can be specified either with the <a class="reference internal" href="set.html"><span class="doc">set</span></a>
-command using the &#8220;<a href="#id1"><span class="problematic" id="id2">d_</span></a>&#8221; prefix or by reading directly the concentrations from a
-data file.  For the latter case, the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command with the
-fix keyword should be specified, where the fix-ID will be the &#8220;fix rx`ID with a &lt;SPECIES&#8221;&gt;`_ suffix, e.g.</p>
+<p>Following a blank line, the next N lines list the N reaction
+equations.  Each species within the reaction equation is specified
+through its stoichiometric coefficient and a species tag.  Reactant
+species are specified on the left-hand side of the equation and
+product species are specified on the right-hand side of the equation.
+After specifying the reactant and product species, the final three
+arguments of each line represent the Arrhenius parameter <em>A</em>, the
+temperature exponent <em>n</em>, and the activation energy <em>Ea</em>.</p>
+<p>Note that the species tags that are defined in the reaction equations
+are used by the <a class="reference internal" href="fix_eos_table_rx.html"><span class="doc">fix eos/table/rx</span></a> command to
+define the thermodynamic properties of each species.  Furthermore, the
+number of species molecules (i.e., concentration) can be specified
+either with the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command using the &#8220;<a href="#id1"><span class="problematic" id="id2">d_</span></a>&#8221; prefix or by
+reading directly the concentrations from a data file.  For the latter
+case, the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command with the fix keyword
+should be specified, where the fix-ID will be the &#8220;fix rx`ID with a &lt;SPECIES&#8221;&gt;`_ suffix, e.g.</p>
 <p>fix          foo all rx reaction.file ...
 read_data    data.dpd fix foo_SPECIES NULL Species</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>The fix <em>rx</em> is only available if LAMMPS is built with the USER-DPD package.</p>
-<p>The fix <em>rx</em> must be used with the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dpd</span></a> command.</p>
-<p>The fix <em>rx</em> can only be used with a constant energy or constant enthalpy DPD simulation.</p>
+<p>This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>This command also requires use of the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dpd</span></a>
+command.</p>
+<p>This command can only be used with a constant energy or constant
+enthalpy DPD simulation.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
@@ -238,7 +247,6 @@ read_data    data.dpd fix foo_SPECIES NULL Species</p>
 <a class="reference internal" href="fix_shardlow.html"><span class="doc">fix shardlow</span></a>,
 <span class="xref doc">pair dpd/fdt/energy</span></p>
 <p><strong>Default:</strong> none</p>
-<hr class="docutils" />
 </div>
 </div>
 

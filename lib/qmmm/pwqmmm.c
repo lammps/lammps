@@ -18,6 +18,14 @@
 #include "libqecouple.h"
 #include "libqmmm.h"
 
+#ifndef QE_LIBCOUPLE_API_VERSION
+#define QE_LIBCOUPLE_API_VERSION 1
+#endif
+
+#if QE_LIBCOUPLE_API_VERSION != 1
+#error "Unsupported QE coupling API. Want API version 1."
+#endif
+
 #include "library.h"
 
 static const char delim[] = " \t\n\r";

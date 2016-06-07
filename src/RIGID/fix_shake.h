@@ -25,6 +25,9 @@ FixStyle(shake,FixShake)
 namespace LAMMPS_NS {
 
 class FixShake : public Fix {
+
+ friend class FixEHEX;
+
  public:
   FixShake(class LAMMPS *, int, char **);
   virtual ~FixShake();
@@ -46,7 +49,13 @@ class FixShake : public Fix {
   virtual int unpack_exchange(int, double *);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
-  virtual void coordinate_constraints_end_of_step();
+
+
+
+  virtual void shake_end_of_step(int vflag);
+  virtual void correct_coordinates(int vflag);
+  virtual void correct_velocities();
+
 
   int dof(int);
   virtual void reset_dt();
@@ -61,7 +70,7 @@ class FixShake : public Fix {
   int max_iter;                          // max # of SHAKE iterations
   int output_every;                      // SHAKE stat output every so often
   bigint next_output;                    // timestep for next output
-
+  
                                          // settings from input command
   int *bond_flag,*angle_flag;            // bond/angle types to constrain
   int *type_flag;                        // constrain bonds to these types
@@ -77,6 +86,8 @@ class FixShake : public Fix {
   double *step_respa;
 
   double **x,**v,**f;                    // local ptrs to atom class quantities
+  double **ftmp, **vtmp;                 // pointers to temporary arrays for forces and velocities
+
   double *mass,*rmass;
   int *type;
   int nlocal;

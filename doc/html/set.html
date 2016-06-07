@@ -206,6 +206,8 @@
 <em>smd/mass/density</em> = set particle mass based on volume by providing a mass density
   value can be an atom-style variable (see below)
 <em>dpd/theta</em> value = internal temperature of DPD particles (temperature units)
+  value can be an atom-style variable (see below)
+  value can be NULL which sets internal temp of each particle to KE temp
 <em>i_name</em> value = value for custom integer vector with name
 <em>d_name</em> value = value for custom floating-point vector with name
 </pre>
@@ -463,8 +465,16 @@ prevent different individual physical bodies from penetrating each
 other. Note that the SPH smoothing kernel diameter used for computing
 long range, nonlocal interactions, is set using the <em>diameter</em>
 keyword.</p>
-<p>Keyword <em>dpd/theta</em> sets the internal temperature of a DPD particle
-as defined by the USER-DPD package.</p>
+<p>Keyword <em>dpd/theta</em> sets the internal temperature of a DPD particle as
+defined by the USER-DPD package.  If the specified value is a number
+it must be &gt;= 0.0.  If the specified value is NULL, then the kinetic
+temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2
+m v^2 = 1/2 m (vx*vx+vy*vy+vz*vz).  Each particle&#8217;s internal
+temperature is set to Tkin.  If the specified value is an atom-style
+variable, then the variable is evaluated for each particle.  If a
+value &gt;= 0.0, the internal temperature is set to that value.  If it is
+&lt; 0.0, the computation of Tkin is performed and the internal
+temperature is set to that value.</p>
 <p>Keywords <em>i_name</em> and <em>d_name</em> refer to custom integer and
 floating-point properties that have been added to each atom via the
 <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> command.  When that command

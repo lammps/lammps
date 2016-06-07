@@ -79,12 +79,12 @@ additional thermostatting force to the equations of motion, such that
 the time evolution of coordinates and momenta of particle :math:`i`
 becomes :ref:`(Wirnsberger) <Wirnsberger>`
 
-.. image:: src/Eqs/fix_ehex_eom.jpg
+.. image:: Eqs/fix_ehex_eom.jpg
    :align: center
 
 The thermostatting force is given by
 
-.. image:: src/Eqs/fix_ehex_f.jpg
+.. image:: Eqs/fix_ehex_f.jpg
    :align: center
 
 where :math:`m_i` is the mass and :math:`k(\mathbf r_i)` maps the particle

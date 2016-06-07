@@ -1521,7 +1521,7 @@ The current list of user-contributed packages is as follows:
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+-------------------------+-------------+
 | :ref:`USER-DIFFRACTION <USER-DIFFRACTION>` | virutal x-ray and electron diffraction         | Shawn Coleman (ARL)                             | :doc:`compute xrd <compute_xrd>`                        | USER/diffraction | -                       | -           |
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+-------------------------+-------------+
-| :ref:`USER-DPD <USER-DPD>`                 | dissipative particle dynamics (DPD)            | Larentzos & Mattox & Brennan (5)                | src/USER-DPD/README                                     | USER/dpd         | -                       | -           |
+| :ref:`USER-DPD <USER-DPD>`                 | reactive dissipative particle dynamics (DPD)   | Larentzos & Mattox & Brennan (5)                | src/USER-DPD/README                                     | USER/dpd         | -                       | -           |
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+-------------------------+-------------+
 | :ref:`USER-DRUDE <USER-DRUDE>`             | Drude oscillators                              | Dequidt & Devemy & Padua (3)                    | :doc:`tutorial <tutorial_drude>`                        | USER/drude       | -                       | -           |
 +--------------------------------------------+------------------------------------------------+-------------------------------------------------+---------------------------------------------------------+------------------+-------------------------+-------------+
@@ -1779,9 +1779,11 @@ USER-DPD package
 
 Contents: DPD stands for dissipative particle dynamics, This package
 implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
-conditions.  The DPD equations of motion are integrated efficiently
-through the Shardlow splitting algorithm.  See src/USER-DPD/README for
-more details.
+conditions.  It also has extensions for performing reactive DPD, where
+each particle has internal state for multiple species and a coupled
+set of chemical reaction ODEs are integrated each timestep.  The DPD
+equations of motion are integrated efficiently through the Shardlow
+splitting algorithm.  See src/USER-DPD/README for more details.
 
 Supporting info: /src/USER-DPD/README, :doc:`compute dpd <compute_dpd>`
 :doc:`compute dpd/atom <compute_dpd_atom>`

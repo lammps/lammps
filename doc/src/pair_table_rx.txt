@@ -26,14 +26,16 @@ pair_coeff * 3 rxn.table ENTRY1 h2o no2 10.0 :pre
 
 [Description:]
 
-Style {table/rx} is used in reaction DPD simulations,where the coarse-grained (CG) 
-particles are composed of {m} species whose reaction rate kinetics are determined 
-from a set of {n} reaction rate equations through the "fix rx"_fix_rx.html command.
-The species of one CG particle can interact with a species in a neighboring CG 
-particle through a site-site interaction potential model. Style {table/rx} creates 
-interpolation tables of length {N} from pair potential and force values listed in a 
-file(s) as a function of distance.  The files are read by the 
-"pair_coeff"_pair_coeff.html command.  
+Style {table/rx} is used in reaction DPD simulations,where the
+coarse-grained (CG) particles are composed of {m} species whose
+reaction rate kinetics are determined from a set of {n} reaction rate
+equations through the "fix rx"_fix_rx.html command.  The species of
+one CG particle can interact with a species in a neighboring CG
+particle through a site-site interaction potential model. Style
+{table/rx} creates interpolation tables of length {N} from pair
+potential and force values listed in a file(s) as a function of
+distance.  The files are read by the "pair_coeff"_pair_coeff.html
+command.
 
 The interpolation tables are created by fitting cubic splines to the
 file values and interpolating energy and force values at each of {N}
@@ -54,7 +56,7 @@ used to find the appropriate set of coefficients which are used to
 evaluate a cubic polynomial which computes the energy or force.
 
 For the {bitmap} style, the N means to create interpolation tables
-that are 2^N in length.  <The pair distance is used to index into the
+that are 2^N in length.  The pair distance is used to index into the
 table via a fast bit-mapping technique "(Wolff)"_#Wolff and a linear
 interpolation is performed between adjacent table values.
 
@@ -76,15 +78,15 @@ that extend to the largest tabulated distance.  If specified, only
 file values up to the cutoff are used to create the interpolation
 table.  The format of this file is described below.
 
-The species tags define the site-site interaction potential between two 
-species contained within two different particles.  
-The species tags must either correspond to the species defined in the reaction
-kinetics files specified with the "fix rx"_fix_rx.html command 
-or they must correspond to the tag "1fluid", signifying interaction 
-with a product species mixture determined through a one-fluid approximation.  
-The interaction potential is weighted by the geometric average of the 
-concentrations of the two species.  The coarse-grained potential
-is stored before and after the reaction kinetics solver is applied, where 
+The species tags define the site-site interaction potential between
+two species contained within two different particles.  The species
+tags must either correspond to the species defined in the reaction
+kinetics files specified with the "fix rx"_fix_rx.html command or they
+must correspond to the tag "1fluid", signifying interaction with a
+product species mixture determined through a one-fluid approximation.
+The interaction potential is weighted by the geometric average of the
+concentrations of the two species.  The coarse-grained potential is
+stored before and after the reaction kinetics solver is applied, where
 the difference is defined to be the internal chemical energy (uChem).
 
 :line
@@ -217,7 +219,11 @@ This pair style can only be used via the {pair} keyword of the
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

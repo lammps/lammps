@@ -54,9 +54,9 @@ examples/USER/dpd directory.
 
 [Restrictions:] 
 
-This fix is only available if LAMMPS is built with the USER-DPD
-package.  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info.
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 This fix is currently limited to orthogonal simulation cell
 geometries.
@@ -66,7 +66,7 @@ integration, e.g. "fix nve"_fix_nve.html or "fix nph"_fix_nh.html.
 
 The Shardlow splitting algorithm requires the sizes of the sub-domain
 lengths to be larger than twice the cutoff+skin.  Generally, the
-domain decomposition is dependant on the number of processors
+domain decomposition is dependent on the number of processors
 requested.
 
 [Related commands:]

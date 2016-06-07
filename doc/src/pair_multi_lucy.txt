@@ -22,14 +22,15 @@ pair_coeff * * multibody.table ENTRY1 7.0 :pre
 
 [Description:]
 
-Style {multi/lucy} computes a density-dependent force following from the many-body
-form described in "(Moore)"_#Moore and "(Warren)"_#Warren as
+Style {multi/lucy} computes a density-dependent force following from
+the many-body form described in "(Moore)"_#Moore and
+"(Warren)"_#Warren as
 
 :c,image(Eqs/pair_multi_lucy.jpg)
 
-which consists of a density-dependent function, A(rho), and a radial-dependent weight
-function, omegaDD(rij).  The radial-dependent weight function, omegaDD(rij), is taken 
-as the Lucy function:
+which consists of a density-dependent function, A(rho), and a
+radial-dependent weight function, omegaDD(rij).  The radial-dependent
+weight function, omegaDD(rij), is taken as the Lucy function:
 
 :c,image(Eqs/pair_multi_lucy2.jpg)
 
@@ -37,24 +38,29 @@ The density-dependent energy for a given particle is given by:
 
 :c,image(Eqs/pair_multi_lucy_energy.jpg)
 
-See the supporting information of "(Brennan)"_#Brennan or the publication by "(Moore)"_#Moore 
-for more details on the functional form.
+See the supporting information of "(Brennan)"_#Brennan or the
+publication by "(Moore)"_#Moore for more details on the functional
+form.
 
-An interpolation table is used to evaluate the density-dependent energy (Integral(A(rho)drho) and force (A(rho)).  
-Note that the pre-factor to the energy is computed after the interpolation, thus the Integral(A(rho)drho will 
-have units of energy / length^4.
+An interpolation table is used to evaluate the density-dependent
+energy (Integral(A(rho)drho) and force (A(rho)).  Note that the
+pre-factor to the energy is computed after the interpolation, thus the
+Integral(A(rho)drho will have units of energy / length^4.
 
-The interpolation table is created as a pre-computation by fitting cubic splines to 
-the file values and interpolating the density-dependent energy and force at each of {N} densities.  
-During a simulation, the tables are used to interpolate the density-dependent energy and force as 
-needed for each pair of particles separated by a distance {R}.  The interpolation is done in
-one of 2 styles: {lookup} and {linear}.
+The interpolation table is created as a pre-computation by fitting
+cubic splines to the file values and interpolating the
+density-dependent energy and force at each of {N} densities.  During a
+simulation, the tables are used to interpolate the density-dependent
+energy and force as needed for each pair of particles separated by a
+distance {R}.  The interpolation is done in one of 2 styles: {lookup}
+and {linear}.
 
-For the {lookup} style, the density is used to find the nearest table entry, which is the 
-density-dependent energy and force.
+For the {lookup} style, the density is used to find the nearest table
+entry, which is the density-dependent energy and force.
 
-For the {linear} style, the density is used to find the 2 surrounding table values from 
-which the density-dependent energy and force are computed by linear interpolation.
+For the {linear} style, the density is used to find the 2 surrounding
+table values from which the density-dependent energy and force are
+computed by linear interpolation.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -64,13 +70,14 @@ filename
 keyword
 cutoff (distance units) :ul
 
-The filename specifies a file containing the tabulated density-dependent 
-energy and force.  The keyword specifies a section of the file.  
-The cutoff is an optional coefficient.  If not specified, the outer cutoff in the
-table itself (see below) will be used to build an interpolation table
-that extend to the largest tabulated distance.  If specified, only
-file values up to the cutoff are used to create the interpolation
-table.  The format of this file is described below.
+The filename specifies a file containing the tabulated
+density-dependent energy and force.  The keyword specifies a section
+of the file.  The cutoff is an optional coefficient.  If not
+specified, the outer cutoff in the table itself (see below) will be
+used to build an interpolation table that extend to the largest
+tabulated distance.  If specified, only file values up to the cutoff
+are used to create the interpolation table.  The format of this file
+is described below.
 
 :line
 
@@ -98,19 +105,19 @@ numeric values.
 
 The parameter "N" is required and its value is the number of table
 entries that follow.  Note that this may be different than the {N}
-specified in the "pair_style multi/lucy"_pair_multi_lucy.html command.  Let
-Ntable = {N} in the pair_style command, and Nfile = "N" in the
+specified in the "pair_style multi/lucy"_pair_multi_lucy.html command.
+Let Ntable = {N} in the pair_style command, and Nfile = "N" in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
-uses these to interpolate the density-dependent energy and force at Ntable different
-points.  The resulting tables of length Ntable are then used as
-described above, when computing the density-dependent energy and force.  
-This means that if you want the interpolation tables of
-length Ntable to match exactly what is in the tabulated file (with
-effectively no preliminary interpolation), you should set Ntable =
-Nfile, and use the "RSQ" parameter.  This is because the
-internal table abscissa is always RSQ (separation distance squared),
-for efficient lookup.
+uses these to interpolate the density-dependent energy and force at
+Ntable different points.  The resulting tables of length Ntable are
+then used as described above, when computing the density-dependent
+energy and force.  This means that if you want the interpolation
+tables of length Ntable to match exactly what is in the tabulated file
+(with effectively no preliminary interpolation), you should set Ntable
+= Nfile, and use the "RSQ" parameter.  This is because the internal
+table abscissa is always RSQ (separation distance squared), for
+efficient lookup.
 
 All other parameters are optional.  If "R" or "RSQ" does
 not appear, then the distances in each line of the table are used
@@ -167,7 +174,11 @@ This pair style can only be used via the {pair} keyword of the
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
+
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

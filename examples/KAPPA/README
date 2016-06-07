@@ -65,10 +65,10 @@ dQ = (100*100) / 100 / 18.82^2 / 2
   100 = 20,000 steps at 0.005 tau timestep = run time in tau
   xy box area = 18.82^2
   divide by 2 since energy flux goes in 2 directions due to periodic z
-dTemp = 0.783 from log file for average Temp difference between 2 regions
+dTemp = 0.748 from log file for average Temp difference between 2 regions
 dZ = 18.82
 
-Kappa = 3.39
+Kappa = 3.55
 
 (3) in.ehex
 
@@ -77,10 +77,10 @@ dQ = (100*100) / 100 / 18.82^2 / 2
   100 = 20,000 steps at 0.005 tau timestep = run time in tau
   xy box area = 18.82^2
   divide by 2 since energy flux goes in 2 directions due to periodic z
-TBC: dTemp = 0.783 from log file for average Temp difference between 2 regions
+dTemp = 0.770 from log file for average Temp difference between 2 regions
 dZ = 18.82
 
-TBC: Kappa = 3.39
+Kappa = 3.45
 
 (4) in.mp 
 

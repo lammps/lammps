@@ -153,9 +153,9 @@
 <p>Fix <em>rx</em> solves the reaction kinetic ODEs for a given reaction set that is
 defined within the file associated with this command.</p>
 <p>For a general reaction such that</p>
-<img alt="Eqs/fix_rx_reaction.jpg" class="align-center" src="Eqs/fix_rx_reaction.jpg" />
+<img alt="_images/fix_rx_reaction.jpg" class="align-center" src="_images/fix_rx_reaction.jpg" />
 <p>the reaction rate equation is defined to be of the form</p>
-<img alt="Eqs/fix_rx_reactionRate.jpg" class="align-center" src="Eqs/fix_rx_reactionRate.jpg" />
+<img alt="_images/fix_rx_reactionRate.jpg" class="align-center" src="_images/fix_rx_reactionRate.jpg" />
 <p>In the current implementation, the exponents are defined to be equal to the
 stoichiometric coefficients.  A given reaction set consisting of <em>n</em> reaction
 equations will contain a total of <em>m</em> species.  A set of <em>m</em> ordinary
@@ -180,7 +180,7 @@ coefficient.  The only delimiters that are recognized between the species are
 either a <em>+</em> or <em>=</em> character.  The <em>=</em> character corresponds to an
 irreversible reaction.  After specifying the reaction, the reaction rate
 constant is determined through the temperature dependent Arrhenius equation:</p>
-<img alt="Eqs/fix_rx.jpg" class="align-center" src="Eqs/fix_rx.jpg" />
+<img alt="_images/fix_rx.jpg" class="align-center" src="_images/fix_rx.jpg" />
 <p>where <em>A</em> is the Arrhenius factor in time units or concentration/time units,
 <em>n</em> is the unitless exponent of the temperature dependence, and <em>E_a</em> is the
 activation energy in energy units.  The temperature dependence can be removed
@@ -190,9 +190,9 @@ reaction rate constants at every DPD timestep by specifying the keyword <em>none
 Alternatively, the keyword <em>lucy</em> can be specified to compute a local-average particle
 internal temperature for use in the reaction rate constant expressions.
 The local-average particle internal temperature is defined as:</p>
-<img alt="Eqs/fix_rx_localTemp.jpg" class="align-center" src="Eqs/fix_rx_localTemp.jpg" />
+<img alt="_images/fix_rx_localTemp.jpg" class="align-center" src="_images/fix_rx_localTemp.jpg" />
 <p>where the Lucy function is expressed as:</p>
-<img alt="Eqs/fix_rx_localTemp2.jpg" class="align-center" src="Eqs/fix_rx_localTemp2.jpg" />
+<img alt="_images/fix_rx_localTemp2.jpg" class="align-center" src="_images/fix_rx_localTemp2.jpg" />
 <p>The self-particle interaction is included in the above equation.</p>
 <hr class="docutils" />
 <p>The format of a tabulated file is as follows (without the parenthesized comments):</p>

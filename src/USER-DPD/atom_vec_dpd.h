@@ -58,8 +58,8 @@ class AtomVecDPD : public AtomVec {
   void write_data(FILE *, int, double **);
   int write_data_hybrid(FILE *, double *);
   bigint memory_usage();
-  double *uCond,*uMech,*dpdTheta,*rho;
-  double *duCond,*duMech;
+  double *uCond,*uMech,*uChem,*uCG,*uCGnew,*rho,*dpdTheta;
+  double *duCond,*duMech,*duChem;
 
  protected:
   tagint *tag;

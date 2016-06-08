@@ -157,7 +157,7 @@ The HEAT directory has example scripts for heat exchange algorithms
 methods.  See the HEAT/README file for more info.
 
 The KAPPA directory has example scripts for computing the thermal
-conductivity (kappa) of a LJ liquid using 4 different methods.  See
+conductivity (kappa) of a LJ liquid using 5 different methods.  See
 the KAPPA/README file for more info.
 
 The MC directory has an example script for using LAMMPS as an

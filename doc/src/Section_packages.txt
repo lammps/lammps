@@ -1143,7 +1143,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-CG-CMM"_#USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
 "USER-COLVARS"_#USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 "USER-DIFFRACTION"_#USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
-"USER-DPD"_#USER-DPD, dissipative particle dynamics (DPD), Larentzos & Mattox & Brennan (5), src/USER-DPD/README, USER/dpd, -, -
+"USER-DPD"_#USER-DPD, reactive dissipative particle dynamics (DPD), Larentzos & Mattox & Brennan (5), src/USER-DPD/README, USER/dpd, -, -
 "USER-DRUDE"_#USER-DRUDE, Drude oscillators, Dequidt & Devemy & Padua (3), "tutorial"_tutorial_drude.html, USER/drude, -, -
 "USER-EFF"_#USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 "USER-FEP"_#USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
@@ -1327,9 +1327,11 @@ USER-DPD package :link(USER-DPD),h5
 
 Contents: DPD stands for dissipative particle dynamics, This package
 implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
-conditions.  The DPD equations of motion are integrated efficiently
-through the Shardlow splitting algorithm.  See src/USER-DPD/README for
-more details.
+conditions.  It also has extensions for performing reactive DPD, where
+each particle has internal state for multiple species and a coupled
+set of chemical reaction ODEs are integrated each timestep.  The DPD
+equations of motion are integrated efficiently through the Shardlow
+splitting algorithm.  See src/USER-DPD/README for more details.
 
 Supporting info: /src/USER-DPD/README, "compute dpd"_compute_dpd.html
 "compute dpd/atom"_compute_dpd_atom.html

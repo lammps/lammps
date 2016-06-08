@@ -23,7 +23,6 @@ keyword = *noneq* and/or *every*
       of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
       sampling. It might change sampling properties when used together with *noneq*\ .
 
-
 Examples
 """"""""
 

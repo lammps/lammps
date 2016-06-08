@@ -309,9 +309,13 @@ Gaussians with a specified position and bandwidth or uncertainty in
 position, which is represented by the eradius = electron size.</p>
 <p>For the <em>peri</em> style, the particles are spherical and each stores a
 per-particle mass and volume.</p>
-<p>The <em>dpd</em> style is for dissipative particle dynamics (DPD) particles
-which store the particle internal temperature (dpdTheta), internal
-conductive energy (uCond) and internal mechanical energy (uMech).</p>
+<p>The <em>dpd</em> style is for dissipative particle dynamics (DPD) particles.
+Note that it is part of the USER-DPD package, and is not for use with
+the <a class="reference internal" href="pair_dpd.html"><span class="doc">pair_style dpd or dpd/stat</span></a> commands, which can
+simply use atom_style atomic.  Atom_style dpd extends DPD particle
+properties with internal temperature (dpdTheta), internal conductive
+energy (uCond), internal mechanical energy (uMech), and internal
+chemical energy (uChem).</p>
 <p>The <em>meso</em> style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity
 (cv).</p>

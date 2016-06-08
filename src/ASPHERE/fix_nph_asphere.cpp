@@ -25,7 +25,8 @@ FixNPHAsphere::FixNPHAsphere(LAMMPS *lmp, int narg, char **arg) :
   FixNHAsphere(lmp, narg, arg)
 {
   if (tstat_flag)
-    error->all(FLERR,"Temperature control can not be used with fix nph/asphere");
+    error->all(FLERR,"Temperature control can not be used "
+               "with fix nph/asphere");
   if (!pstat_flag)
     error->all(FLERR,"Pressure control must be used with fix nph/asphere");
 

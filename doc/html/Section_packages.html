@@ -1624,7 +1624,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#user-dpd"><span class="std std-ref">USER-DPD</span></a></td>
-<td>dissipative particle dynamics (DPD)</td>
+<td>reactive dissipative particle dynamics (DPD)</td>
 <td>Larentzos &amp; Mattox &amp; Brennan (5)</td>
 <td>src/USER-DPD/README</td>
 <td>USER/dpd</td>
@@ -2058,9 +2058,11 @@ questions.</p>
 <span id="user-dpd"></span><h3>4.2.6. USER-DPD package</h3>
 <p>Contents: DPD stands for dissipative particle dynamics, This package
 implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
-conditions.  The DPD equations of motion are integrated efficiently
-through the Shardlow splitting algorithm.  See src/USER-DPD/README for
-more details.</p>
+conditions.  It also has extensions for performing reactive DPD, where
+each particle has internal state for multiple species and a coupled
+set of chemical reaction ODEs are integrated each timestep.  The DPD
+equations of motion are integrated efficiently through the Shardlow
+splitting algorithm.  See src/USER-DPD/README for more details.</p>
 <p>Supporting info: /src/USER-DPD/README, <a class="reference internal" href="compute_dpd.html"><span class="doc">compute dpd</span></a>
 <a class="reference internal" href="compute_dpd_atom.html"><span class="doc">compute dpd/atom</span></a>
 <a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/cv</span></a> <a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/table</span></a>

@@ -45,8 +45,11 @@ Restrictions
 """"""""""""
 
 
-The fix *eos/cv* is only available if LAMMPS is built with the
-USER-DPD package.
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+
+This command also requires use of the :doc:`atom_style dpd <atom_style>`
+command.
 
 Related commands
 """"""""""""""""

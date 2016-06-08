@@ -84,6 +84,8 @@ Syntax
      *smd/mass/density* = set particle mass based on volume by providing a mass density
        value can be an atom-style variable (see below)
      *dpd/theta* value = internal temperature of DPD particles (temperature units)
+       value can be an atom-style variable (see below)
+       value can be NULL which sets internal temp of each particle to KE temp
      *i_name* value = value for custom integer vector with name
      *d_name* value = value for custom floating-point vector with name
 
@@ -383,8 +385,16 @@ other. Note that the SPH smoothing kernel diameter used for computing
 long range, nonlocal interactions, is set using the *diameter*
 keyword.
 
-Keyword *dpd/theta* sets the internal temperature of a DPD particle
-as defined by the USER-DPD package.
+Keyword *dpd/theta* sets the internal temperature of a DPD particle as
+defined by the USER-DPD package.  If the specified value is a number
+it must be >= 0.0.  If the specified value is NULL, then the kinetic
+temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2
+m v^2 = 1/2 m (vx*vx+vy*vy+vz*vz).  Each particle's internal
+temperature is set to Tkin.  If the specified value is an atom-style
+variable, then the variable is evaluated for each particle.  If a
+value >= 0.0, the internal temperature is set to that value.  If it is
+< 0.0, the computation of Tkin is performed and the internal
+temperature is set to that value.
 
 Keywords *i_name* and *d_name* refer to custom integer and
 floating-point properties that have been added to each atom via the

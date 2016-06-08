@@ -154,9 +154,13 @@ position, which is represented by the eradius = electron size.
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
 
-The *dpd* style is for dissipative particle dynamics (DPD) particles
-which store the particle internal temperature (dpdTheta), internal
-conductive energy (uCond) and internal mechanical energy (uMech).
+The *dpd* style is for dissipative particle dynamics (DPD) particles.
+Note that it is part of the USER-DPD package, and is not for use with
+the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
+simply use atom_style atomic.  Atom_style dpd extends DPD particle
+properties with internal temperature (dpdTheta), internal conductive
+energy (uCond), internal mechanical energy (uMech), and internal
+chemical energy (uChem).
 
 The *meso* style is for smoothed particle hydrodynamics (SPH)
 particles which store a density (rho), energy (e), and heat capacity

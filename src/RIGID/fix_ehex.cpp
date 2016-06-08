@@ -406,7 +406,7 @@ void FixEHEX::update_scalingmask() {
    inside the region.
 ------------------------------------------------------------------------- */
 
-bool FixEHEX::check_cluster(int *shake_atom, int n, Region * region) {
+bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region * region) {
 
   // IMPORTANT NOTE: If any site of the cluster belongs to a group
   //                 which should not be rescaled than all of the sites

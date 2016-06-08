@@ -43,7 +43,7 @@ class FixEHEX : public Fix {
   void com_properties(double *, double *, double *, double*, double *, double*);
   bool rescale_atom(int i, Region*region);
   virtual void grow_arrays(int nmax);
-  bool check_cluster(int *shake_atom, int n, Region * region);
+  bool check_cluster(tagint *shake_atom, int n, Region * region);
 
  private:
   int iregion;

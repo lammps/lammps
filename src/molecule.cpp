@@ -245,9 +245,11 @@ void Molecule::compute_com()
       com[1] += x[i][1]*onemass;
       com[2] += x[i][2]*onemass;
     }
-    com[0] /= masstotal;
-    com[1] /= masstotal;
-    com[2] /= masstotal;
+    if (masstotal > 0.0) {
+      com[0] /= masstotal;
+      com[1] /= masstotal;
+      com[2] /= masstotal;
+    }
   }
 
   memory->destroy(dxcom);

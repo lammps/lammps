@@ -50,8 +50,10 @@ compute		ke all ke/atom
 variable	temp atom c_ke/1.5
 
 fix		1 all nve
-fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp &
-		  file profile.mp units reduced
+
+compute         layers all chunk/atom bin/1d z lower 0.05 units reduced
+fix		2 all ave/chunk 10 100 1000 layers v_temp file profile.mp
+
 fix		3 all thermal/conductivity 10 z 20
 
 variable        tdiff equal f_2[11][3]-f_2[1][3]

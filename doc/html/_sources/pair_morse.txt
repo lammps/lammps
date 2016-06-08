@@ -3,9 +3,6 @@
 pair_style morse command
 ========================
 
-pair_style morse/cuda command
-=============================
-
 pair_style morse/gpu command
 ============================
 
@@ -21,24 +18,43 @@ pair_style morse/smooth/linear command
 pair_style morse/smooth/linear/omp command
 ==========================================
 
+pair_style morse/soft command
+=============================
+
 Syntax
 """"""
 
 .. parsed-literal::
 
-   pair_style morse cutoff
+   pair_style style args
 
-* cutoff = global cutoff for Morse interactions (distance units)
+* style = *morse* or *morse/smooth/linear* or *morse/soft*
+* args = list of arguments for a particular style
+
+.. parsed-literal::
+
+    *morse* args = cutoff
+      cutoff = global cutoff for Morse interactions (distance units)
+    *morse/smooth/linear* args = cutoff
+      cutoff = global cutoff for Morse interactions (distance units)
+    *morse/soft* args = n lf cutoff
+      n = soft-core parameter
+      lf      = transformation range is lf < lambda < 1
+      cutoff  = global cutoff for Morse interactions (distance units)
 
 Examples
 """"""""
 
+pair_style morse 2.5
+pair_style morse/smooth/linear 2.5
+pair_coeff * * 100.0 2.0 1.5
+pair_coeff 1 1 100.0 2.0 1.5 3.0
+
 .. parsed-literal::
 
-   pair_style morse 2.5
-   pair_style morse/smooth/linear 2.5
-   pair_coeff * * 100.0 2.0 1.5
-   pair_coeff 1 1 100.0 2.0 1.5 3.0
+   pair_style morse/soft 4 0.9 10.0
+   pair_coeff * * 100.0 2.0 1.5 1.0
+   pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
 
 Description
 """""""""""
@@ -61,16 +77,16 @@ commands:
 * r0 (distance units)
 * cutoff (distance units)
 
-* The last coefficient is optional.  If not specified, the global morse
-* cutoff is used.
+The last coefficient is optional.  If not specified, the global morse
+cutoff is used.
 
 
 ----------
 
 
-The *smooth/linear* variant is similar to the lj/smooth/linear variant
-in that it adds to the potential a shift and a linear term to make both
-the potential energy and force go to zero at the cut-off:
+The *morse/smooth/linear* variant is similar to the lj/smooth/linear
+variant in that it adds to the potential a shift and a linear term
+so that both, potential energy and force, go to zero at the cut-off:
 
 .. image:: Eqs/pair_morse_smooth_linear.jpg
    :align: center
@@ -82,7 +98,31 @@ the *morse* and *morse/smooth/linear* styles.
 ----------
 
 
-Styles with a *cuda*\ , *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+The *morse/soft* variant is similar to the *lj/cut/soft* pair style
+in that it modifies the potential at short range to have a soft core.
+This helps to avoid singularities during free energy calculation in
+which sites are created or anihilated. The formula differs from that
+of *lj/cut/soft*\ , and is instead given by:
+
+.. image:: Eqs/pair_morse_soft.jpg
+   :align: center
+
+The *morse/soft* style requires the following pair coefficients:
+
+* D0 (energy units)
+* alpha (1/distance units)
+* r0 (distance units)
+* lamda (unitless, between 0.0 and 1.0)
+* cutoff (distance units)
+
+The last coefficient is optional.  If not specified, the global morse
+cutoff is used.
+
+
+----------
+
+
+Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in :doc:`Section_accelerate <Section_accelerate>`
@@ -90,9 +130,9 @@ of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
 
-These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
-KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the :ref:`Making LAMMPS <start_3>` section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :ref:`-suffix command-line switch <start_7>` when you invoke LAMMPS, or you can
@@ -137,6 +177,9 @@ Restrictions
 
 The *morse/smooth/linear* pair style is only enabled if LAMMPS was
 built with the USER-MISC package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+
+The *morse/soft* pair style is only enabled if LAMMPS was built with
+the USER-FEP package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
 
 Related commands
 """"""""""""""""

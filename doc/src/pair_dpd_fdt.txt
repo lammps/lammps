@@ -110,8 +110,9 @@ specified.
 
 [Restrictions:]
 
-Pair styles {dpd/fdt} and {dpd/fdt/energy} are only available if
-LAMMPS is built with the USER-DPD package.
+These commands are part of the USER-DPD package.  They are only
+enabled if LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 Pair styles {dpd/fdt} and {dpd/fdt/energy} require use of the
 "communicate vel yes"_communicate.html option so that velocites are

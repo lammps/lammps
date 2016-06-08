@@ -24,12 +24,11 @@ multi-core CPUs, GPUs, and Intel Xeon Phi coprocessors.
 5.1 "Measuring performance"_#acc_1 :ulb,l
 5.2 "Algorithms and code options to boost performace"_#acc_2 :l
 5.3 "Accelerator packages with optimized styles"_#acc_3 :l
-    5.3.1 "USER-CUDA package"_accelerate_cuda.html :ulb,l
-    5.3.2 "GPU package"_accelerate_gpu.html :l
-    5.3.3 "USER-INTEL package"_accelerate_intel.html :l
-    5.3.4 "KOKKOS package"_accelerate_kokkos.html :l
-    5.3.5 "USER-OMP package"_accelerate_omp.html :l
-    5.3.6 "OPT package"_accelerate_opt.html :l,ule
+    5.3.1 "GPU package"_accelerate_gpu.html :l
+    5.3.2 "USER-INTEL package"_accelerate_intel.html :l
+    5.3.3 "KOKKOS package"_accelerate_kokkos.html :l
+    5.3.4 "USER-OMP package"_accelerate_omp.html :l
+    5.3.5 "OPT package"_accelerate_opt.html :l,ule
 5.4 "Comparison of various accelerator packages"_#acc_4 :l,ule
 
 The "Benchmark page"_http://lammps.sandia.gov/bench.html of the LAMMPS
@@ -157,7 +156,6 @@ packages"_Section_packages.html.
 These are the accelerator packages
 currently in LAMMPS, either as standard or user packages:
 
-"USER-CUDA"_accelerate_cuda.html : for NVIDIA GPUs
 "GPU"_accelerate_gpu.html : for NVIDIA GPUs as well as OpenCL support
 "USER-INTEL"_accelerate_intel.html : for Intel CPUs and Intel Xeon Phi
 "KOKKOS"_accelerate_kokkos.html : for GPUs, Intel Xeon Phi, and OpenMP threading
@@ -168,7 +166,7 @@ Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
 Many-core CPUs : "USER-INTEL"_accelerate_intel.html, "KOKKOS"_accelerate_kokkos.html, "USER-OMP"_accelerate_omp.html, "OPT"_accelerate_opt.html packages
-NVIDIA GPUs : "USER-CUDA"_accelerate_cuda.html, "GPU"_accelerate_gpu.html, "KOKKOS"_accelerate_kokkos.html packages
+NVIDIA GPUs : "GPU"_accelerate_gpu.html, "KOKKOS"_accelerate_kokkos.html packages
 Intel Phi : "USER-INTEL"_accelerate_intel.html, "KOKKOS"_accelerate_kokkos.html packages :tb(s=:)
 
 Which package is fastest for your hardware may depend on the size
@@ -186,7 +184,6 @@ same, except for precision and round-off effects.
 For example, all of these styles are accelerated variants of the
 Lennard-Jones "pair_style lj/cut"_pair_lj.html:
 
-"pair_style lj/cut/cuda"_pair_lj.html
 "pair_style lj/cut/gpu"_pair_lj.html
 "pair_style lj/cut/intel"_pair_lj.html
 "pair_style lj/cut/kk"_pair_lj.html
@@ -205,7 +202,7 @@ package and are explained in the individual accelerator doc pages,
 listed above:
 
 build the accelerator library |
-  only for USER-CUDA and GPU packages |
+  only for GPU package |
 install the accelerator package |
   make yes-opt, make yes-user-intel, etc |
 add compile/link flags to Makefile.machine |
@@ -218,7 +215,7 @@ run a LAMMPS simulation |
   mpirun -np 32 lmp_machine -in in.script |
 enable the accelerator package |
   via "-c on" and "-k on" "command-line switches"_Section_start.html#start_7, <br>
-  only for USER-CUDA and KOKKOS packages |
+  only for KOKKOS package |
 set any needed options for the package |
   via "-pk" "command-line switch"_Section_start.html#start_7 or
   "package"_package.html command, <br>
@@ -250,18 +247,16 @@ option for the KOKKOS package.
 These are the exceptions.  You cannot build a single executable with:
 
 both the USER-INTEL Phi and KOKKOS Phi options
-the USER-INTEL Phi or Kokkos Phi option, and either the USER-CUDA or GPU packages :ul
+the USER-INTEL Phi or Kokkos Phi option, and the GPU package :ul
 
 See the examples/accelerate/README and make.list files for sample
 Make.py commands that build LAMMPS with any or all of the accelerator
 packages.  As an example, here is a command that builds with all the
-GPU related packages installed (USER-CUDA, GPU, KOKKOS with Cuda),
-including settings to build the needed auxiliary USER-CUDA and GPU
-libraries for Kepler GPUs:
+GPU related packages installed (GPU, KOKKOS with Cuda), including
+settings to build the needed auxiliary GPU libraries for Kepler GPUs:
 
-Make.py -j 16 -p omp gpu cuda kokkos -cc nvcc wrap=mpi \
-  -cuda mode=double arch=35 -gpu mode=double arch=35 \\
-  -kokkos cuda arch=35 lib-all file mpi :pre
+Make.py -j 16 -p omp gpu kokkos -cc nvcc wrap=mpi \
+  -gpu mode=double arch=35 -kokkos cuda arch=35 lib-all file mpi :pre
 
 The examples/accelerate directory also has input scripts that can be
 used with all of the accelerator packages.  See its README file for
@@ -281,10 +276,9 @@ size and number of compute nodes, on different hardware platforms.
 Here is a brief summary of what the various packages provide.  Details
 are in the individual accelerator sections.
 
-Styles with a "cuda" or "gpu" suffix are part of the USER-CUDA or GPU
-packages, and can be run on NVIDIA GPUs.  The speed-up on a GPU
-depends on a variety of factors, discussed in the accelerator
-sections. :ulb,l
+Styles with a "gpu" suffix are part of the GPU package, and can be run
+on NVIDIA GPUs.  The speed-up on a GPU depends on a variety of
+factors, discussed in the accelerator sections. :ulb,l
 
 Styles with an "intel" suffix are part of the USER-INTEL
 package. These styles support vectorized single and mixed precision
@@ -343,31 +337,28 @@ section below for examples where this has been done.
 
 The GPU package allows you to assign multiple CPUs (cores) to a single
 GPU (a common configuration for "hybrid" nodes that contain multicore
-CPU(s) and GPU(s)) and works effectively in this mode.  The USER-CUDA
-package does not allow this; you can only use one CPU per GPU. :ulb,l
+CPU(s) and GPU(s)) and works effectively in this mode. :ulb,l
 
 The GPU package moves per-atom data (coordinates, forces)
-back-and-forth between the CPU and GPU every timestep.  The USER-CUDA
-package only does this on timesteps when a CPU calculation is required
-(e.g. to invoke a fix or compute that is non-GPU-ized).  Hence, if you
-can formulate your input script to only use GPU-ized fixes and
-computes, and avoid doing I/O too often (thermo output, dump file
-snapshots, restart files), then the data transfer cost of the
-USER-CUDA package can be very low, causing it to run faster than the
+back-and-forth between the CPU and GPU every timestep.  The
+KOKKOS/CUDA package only does this on timesteps when a CPU calculation
+is required (e.g. to invoke a fix or compute that is non-GPU-ized).
+Hence, if you can formulate your input script to only use GPU-ized
+fixes and computes, and avoid doing I/O too often (thermo output, dump
+file snapshots, restart files), then the data transfer cost of the
+KOKKOS/CUDA package can be very low, causing it to run faster than the
 GPU package. :l
 
-The GPU package is often faster than the USER-CUDA package, if the
+The GPU package is often faster than the KOKKOS/CUDA package, if the
 number of atoms per GPU is smaller.  The crossover point, in terms of
-atoms/GPU at which the USER-CUDA package becomes faster depends
+atoms/GPU at which the KOKKOS/CUDA package becomes faster depends
 strongly on the pair style.  For example, for a simple Lennard Jones
 system the crossover (in single precision) is often about 50K-100K
 atoms per GPU.  When performing double precision calculations the
 crossover point can be significantly smaller. :l
 
 Both packages compute bonded interactions (bonds, angles, etc) on the
-CPU.  This means a model with bonds will force the USER-CUDA package
-to transfer per-atom data back-and-forth between the CPU and GPU every
-timestep.  If the GPU package is running with several MPI processes
+CPU.  If the GPU package is running with several MPI processes
 assigned to one GPU, the cost of computing the bonded interactions is
 spread across more CPUs and hence the GPU package can run faster. :l
 
@@ -382,34 +373,7 @@ full 16 lanes to each of the PCIe 2.0 16x slots. :l,ule
 [Differences between the two packages:]
 
 The GPU package accelerates only pair force, neighbor list, and PPPM
-calculations.  The USER-CUDA package currently supports a wider range
-of pair styles and can also accelerate many fix styles and some
-compute styles, as well as neighbor list and PPPM calculations. :ulb,l
-
-The USER-CUDA package does not support acceleration for minimization. :l
-
-The USER-CUDA package does not support hybrid pair styles. :l
-
-The USER-CUDA package can order atoms in the neighbor list differently
-from run to run resulting in a different order for force accumulation. :l
-
-The USER-CUDA package has a limit on the number of atom types that can be
-used in a simulation. :l
+calculations. :ulb,l
 
 The GPU package requires neighbor lists to be built on the CPU when using
-exclusion lists or a triclinic simulation box. :l
-
-The GPU package uses more GPU memory than the USER-CUDA package.  This
-is generally not a problem since typical runs are computation-limited
-rather than memory-limited. :l,ule
-
-[Examples:]
-
-The LAMMPS distribution has two directories with sample input scripts
-for the GPU and USER-CUDA packages.
-
-lammps/examples/gpu = GPU package files
-lammps/examples/USER/cuda = USER-CUDA package files :ul
-
-These contain input scripts for identical systems, so they can be used
-to benchmark the performance of both packages on your system.
+exclusion lists or a triclinic simulation box. :l,ule

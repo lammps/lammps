@@ -69,7 +69,7 @@ class FixRigidNH : public FixRigid {
 
   char *id_temp,*id_press;
   class Compute *temperature,*pressure;
-  int tcomputeflag,pcomputeflag;
+  int tcomputeflag,pcomputeflag;      // 1 = compute was created by fix. 0 = external
 
   void couple();
   void remap();

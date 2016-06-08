@@ -16,7 +16,7 @@ Syntax
 * file = name of file to write values to
 * keyword = section name in file for this set of tabulated values
 * itype,jtype = 2 atom types (optional)
-* 
+*
 
 Examples
 """"""""

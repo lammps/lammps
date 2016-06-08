@@ -1,24 +1,24 @@
 *~
-lammps.pdf
 *.o
 *.so
 *.cu_o
 *.ptx
 *_ptx.h
 *.a
+*.d
 *.x
 *.exe
 *.dll
 
 Obj_*
-log.*
-*.log
-
+log.lammps
+log.cite
 *.bz2
 *.gz
 *.tar
 .*.swp
 *.orig
+*.rej
 .vagrant
 
 .DS_Store

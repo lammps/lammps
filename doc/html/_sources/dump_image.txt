@@ -584,6 +584,7 @@ Load the animated GIF file
   additional libraries, purchasing a license, or may not be
   supported.
 
+
 ----------
 
 

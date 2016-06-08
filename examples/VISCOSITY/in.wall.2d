@@ -51,8 +51,10 @@ fix	        2 flow langevin $t $t 0.1 498094
 fix_modify      2 temp thermal
 
 fix		3 wall setforce 0.0 0.0 0.0
-fix		4 flow ave/spatial 20 500 10000 y center 0.05 vx &
-		  units reduced file profile.wall.2d
+
+compute         layers all chunk/atom bin/1d y center 0.05 units reduced
+fix		4 all ave/chunk 20 500 10000 layers vx file profile.wall.2d
+
 fix	        5 all enforce2d
 
 # equilibration run

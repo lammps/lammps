@@ -106,11 +106,10 @@ ways:
 * Global values can be output via the :doc:`thermo_style custom <thermo_style>` or :doc:`fix ave/time <fix_ave_time>` command.
   Or the values can be referenced in a :doc:`variable equal <variable>` or
   :doc:`variable atom <variable>` command.
-* Per-atom values can be output via the :doc:`dump custom <dump>` command
-  or the :doc:`fix ave/spatial <fix_ave_spatial>` command.  Or they can be
-  time-averaged via the :doc:`fix ave/atom <fix_ave_atom>` command or
-  reduced by the :doc:`compute reduce <compute_reduce>` command.  Or the
-  per-atom values can be referenced in an :doc:`atom-style variable <variable>`.
+* Per-atom values can be output via the :doc:`dump custom <dump>` command.
+  Or they can be time-averaged via the :doc:`fix ave/atom <fix_ave_atom>`
+  command or reduced by the :doc:`compute reduce <compute_reduce>`
+  command.  Or the per-atom values can be referenced in an :doc:`atom-style variable <variable>`.
 * Local values can be reduced by the :doc:`compute reduce <compute_reduce>` command, or histogrammed by the :doc:`fix ave/histo <fix_ave_histo>` command, or output by the :doc:`dump local <dump>` command.
 The results of computes that calculate global quantities can be either
 "intensive" or "extensive" values.  Intensive means the value is
@@ -261,8 +260,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`uncompute <uncompute>`, :doc:`compute_modify <compute_modify>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/spatial <fix_ave_spatial>`,
-:doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/histo <fix_ave_histo>`
+:doc:`uncompute <uncompute>`, :doc:`compute_modify <compute_modify>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/time <fix_ave_time>`, :doc:`fix ave/histo <fix_ave_histo>`
 
 **Default:** none
 

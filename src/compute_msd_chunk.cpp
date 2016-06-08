@@ -201,9 +201,11 @@ void ComputeMSDChunk::compute_array()
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
 
   for (int i = 0; i < nchunk; i++) {
-    comall[i][0] /= masstotal[i];
-    comall[i][1] /= masstotal[i];
-    comall[i][2] /= masstotal[i];
+    if (masstotal[i] > 0.0) {
+      comall[i][0] /= masstotal[i];
+      comall[i][1] /= masstotal[i];
+      comall[i][2] /= masstotal[i];
+    }
   }
 
   // MSD is difference between current and initial COM

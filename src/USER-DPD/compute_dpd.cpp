@@ -59,6 +59,7 @@ void ComputeDpd::compute_vector()
 
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
+  double *uChem = atom->uChem;
   double *dpdTheta = atom->dpdTheta;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -72,7 +73,7 @@ void ComputeDpd::compute_vector()
     if (mask[i] & groupbit){
       dpdU[0] += uCond[i];
       dpdU[1] += uMech[i];
-      dpdU[2] += uCond[i] + uMech[i];
+      dpdU[2] += uChem[i];
       dpdU[3] += 1.0 / dpdTheta[i];
       dpdU[4]++;
     }

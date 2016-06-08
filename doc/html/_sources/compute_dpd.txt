@@ -25,7 +25,7 @@ Description
 
 Define a computation that accumulates the total internal conductive
 energy (U_cond), the total internal mechanical energy (U_mech), the
-total internal energy (U) and the *harmonic* average of the internal
+total chemical energy (U_chem) and the *harmonic* average of the internal
 temperature (dpdTheta) for the entire system of particles.  See the
 :doc:`compute dpd/atom <compute_dpd_atom>` command if you want
 per-particle internal energies and internal temperatures.
@@ -45,7 +45,7 @@ where N is the number of particles in the system
 **Output info:**
 
 This compute calculates a global vector of length 5 (U_cond, U_mech,
-U, dpdTheta, N_particles), which can be accessed by indices 1-5.  See
+U_chem, dpdTheta, N_particles), which can be accessed by indices 1-5.  See
 :ref:`this section <howto_15>` for an overview of LAMMPS
 output options.
 
@@ -55,8 +55,11 @@ Restrictions
 """"""""""""
 
 
-The compute *dpd* is only available if LAMMPS is built with the
-USER-DPD package and requires the :doc:`atom_style dpd <atom_style>`.
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+
+This command also requires use of the :doc:`atom_style dpd <atom_style>`
+command.
 
 Related commands
 """"""""""""""""

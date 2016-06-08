@@ -127,9 +127,6 @@
   <div class="section" id="pair-style-morse-command">
 <span id="index-0"></span><h1>pair_style morse command</h1>
 </div>
-<div class="section" id="pair-style-morse-cuda-command">
-<h1>pair_style morse/cuda command</h1>
-</div>
 <div class="section" id="pair-style-morse-gpu-command">
 <h1>pair_style morse/gpu command</h1>
 </div>
@@ -144,21 +141,38 @@
 </div>
 <div class="section" id="pair-style-morse-smooth-linear-omp-command">
 <h1>pair_style morse/smooth/linear/omp command</h1>
+</div>
+<div class="section" id="pair-style-morse-soft-command">
+<h1>pair_style morse/soft command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">morse</span> <span class="n">cutoff</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li>cutoff = global cutoff for Morse interactions (distance units)</li>
+<li>style = <em>morse</em> or <em>morse/smooth/linear</em> or <em>morse/soft</em></li>
+<li>args = list of arguments for a particular style</li>
 </ul>
+<pre class="literal-block">
+<em>morse</em> args = cutoff
+  cutoff = global cutoff for Morse interactions (distance units)
+<em>morse/smooth/linear</em> args = cutoff
+  cutoff = global cutoff for Morse interactions (distance units)
+<em>morse/soft</em> args = n lf cutoff
+  n = soft-core parameter
+  lf      = transformation range is lf &lt; lambda &lt; 1
+  cutoff  = global cutoff for Morse interactions (distance units)
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">morse</span> <span class="mf">2.5</span>
-<span class="n">pair_style</span> <span class="n">morse</span><span class="o">/</span><span class="n">smooth</span><span class="o">/</span><span class="n">linear</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">1.5</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">1.5</span> <span class="mf">3.0</span>
+<p>pair_style morse 2.5
+pair_style morse/smooth/linear 2.5
+pair_coeff * * 100.0 2.0 1.5
+pair_coeff 1 1 100.0 2.0 1.5 3.0</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">morse</span><span class="o">/</span><span class="n">soft</span> <span class="mi">4</span> <span class="mf">0.9</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">1.5</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">1.5</span> <span class="mf">1.0</span> <span class="mf">3.0</span>
 </pre></div>
 </div>
 </div>
@@ -177,27 +191,44 @@ commands:</p>
 <li>alpha (1/distance units)</li>
 <li>r0 (distance units)</li>
 <li>cutoff (distance units)</li>
-<li>The last coefficient is optional.  If not specified, the global morse</li>
-<li>cutoff is used.</li>
 </ul>
+<p>The last coefficient is optional.  If not specified, the global morse
+cutoff is used.</p>
 <hr class="docutils" />
-<p>The <em>smooth/linear</em> variant is similar to the lj/smooth/linear variant
-in that it adds to the potential a shift and a linear term to make both
-the potential energy and force go to zero at the cut-off:</p>
+<p>The <em>morse/smooth/linear</em> variant is similar to the lj/smooth/linear
+variant in that it adds to the potential a shift and a linear term
+so that both, potential energy and force, go to zero at the cut-off:</p>
 <img alt="_images/pair_morse_smooth_linear.jpg" class="align-center" src="_images/pair_morse_smooth_linear.jpg" />
 <p>The syntax of the pair_style and pair_coeff commands are the same for
 the <em>morse</em> and <em>morse/smooth/linear</em> styles.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+<p>The <em>morse/soft</em> variant is similar to the <em>lj/cut/soft</em> pair style
+in that it modifies the potential at short range to have a soft core.
+This helps to avoid singularities during free energy calculation in
+which sites are created or anihilated. The formula differs from that
+of <em>lj/cut/soft</em>, and is instead given by:</p>
+<img alt="_images/pair_morse_soft.jpg" class="align-center" src="_images/pair_morse_soft.jpg" />
+<p>The <em>morse/soft</em> style requires the following pair coefficients:</p>
+<ul class="simple">
+<li>D0 (energy units)</li>
+<li>alpha (1/distance units)</li>
+<li>r0 (distance units)</li>
+<li>lamda (unitless, between 0.0 and 1.0)</li>
+<li>cutoff (distance units)</li>
+</ul>
+<p>The last coefficient is optional.  If not specified, the global morse
+cutoff is used.</p>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.</p>
-<p>These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
-KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
@@ -225,6 +256,8 @@ to be specified in an input script that reads a restart file.</p>
 <h2>Restrictions</h2>
 <p>The <em>morse/smooth/linear</em> pair style is only enabled if LAMMPS was
 built with the USER-MISC package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>The <em>morse/soft</em> pair style is only enabled if LAMMPS was built with
+the USER-FEP package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

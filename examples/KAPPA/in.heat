@@ -59,15 +59,15 @@ fix             cold all heat 1 -100.0 region cold
 
 thermo_style    custom step temp c_Thot c_Tcold
 thermo	        1000
-run             10000 
+run             10000
 
 # thermal conductivity calculation
 
 compute		ke all ke/atom
 variable	temp atom c_ke/1.5
 
-fix		2 all ave/spatial 10 100 1000 z lower 0.05 v_temp &
-		  file profile.heat units reduced
+compute         layers all chunk/atom bin/1d z lower 0.05 units reduced
+fix		2 all ave/chunk 10 100 1000 layers v_temp file profile.heat
 
 variable        tdiff equal f_2[11][3]-f_2[1][3]
 fix             ave all ave/time 1 1 1000 v_tdiff ave running start 13000

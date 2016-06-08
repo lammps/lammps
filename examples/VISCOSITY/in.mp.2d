@@ -44,8 +44,9 @@ unfix		2
 velocity	all scale $t
 
 fix		4 all viscosity 100 x y 20
-fix		5 all ave/spatial 20 50 1000 y center 0.05 vx &
-		  units reduced file profile.mp.2d
+
+compute         layers all chunk/atom bin/1d y center 0.05 units reduced
+fix		5 all ave/chunk 20 50 1000 layers vx file profile.mp.2d
 
 # equilibration run
 

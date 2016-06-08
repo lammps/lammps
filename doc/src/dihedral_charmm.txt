@@ -45,46 +45,45 @@ d (integer value of degrees)
 weighting factor (1.0, 0.5, or 0.0) :ul
 
 The weighting factor is required to correct for double counting
-pairwise non-bonded Lennard-Jones interactions in cyclic systems
-or when using the CHARMM dihedral style with non-CHARMM force fields.
-With the CHARMM dihedral style, interactions between the 1st and
-4th atoms in a dihedral are skipped during the normal non-bonded
-force computation and instead evaluated as part of the dihedral
-using special epsilon and sigma values specified with the
-"pair_coeff"_pair_charmm.html command of pair styles that
-contain "lj/charmm" (e.g. "pair_style lj/charmm/coul/long"_pair_charmm.html)
-In 6-membered rings, the same 1-4 interaction would be computed
-twice (once for the clockwise 1-4 pair in dihedral 1-2-3-4 and
-once in the counterclockwise dihedral 1-6-5-4) and thus the
-weighting factor has to be 0.5 in this case.
-In 4-membered or 5-membered rings, the 1-4 dihedral also is
-counted as a 1-2 or 1-3 interaction when going around the
-ring in the opposite direction and thus the weighting factor
-is 0.0, as the 1-2 and 1-3 exclusions take precedence.
+pairwise non-bonded Lennard-Jones interactions in cyclic systems or
+when using the CHARMM dihedral style with non-CHARMM force fields.
+With the CHARMM dihedral style, interactions between the 1st and 4th
+atoms in a dihedral are skipped during the normal non-bonded force
+computation and instead evaluated as part of the dihedral using
+special epsilon and sigma values specified with the
+"pair_coeff"_pair_charmm.html command of pair styles that contain
+"lj/charmm" (e.g. "pair_style lj/charmm/coul/long"_pair_charmm.html)
+In 6-membered rings, the same 1-4 interaction would be computed twice
+(once for the clockwise 1-4 pair in dihedral 1-2-3-4 and once in the
+counterclockwise dihedral 1-6-5-4) and thus the weighting factor has
+to be 0.5 in this case.  In 4-membered or 5-membered rings, the 1-4
+dihedral also is counted as a 1-2 or 1-3 interaction when going around
+the ring in the opposite direction and thus the weighting factor is
+0.0, as the 1-2 and 1-3 exclusions take precedence.
 
-Note that this dihedral weighting factor is unrelated to the
-scaling factor specified by the "special bonds"_special_bonds.html
-command which applies to all 1-4 interactions in the system.
-For CHARMM force fields, the special_bonds 1-4 interaction scaling
-factor should be set to 0.0. Since the corresponding 1-4 non-bonded
-interactions are computed with the dihedral.
-This means that if any of the weighting factors defined as dihedral
-coefficients (4th coeff above) are non-zero, then you must use a
-pair style with "lj/charmm" and set the special_bonds 1-4 scaling
-factor to 0.0 (which is the default). Otherwise 1-4 non-bonded
-interactions in dihedrals will be computed twice.
+Note that this dihedral weighting factor is unrelated to the scaling
+factor specified by the "special bonds"_special_bonds.html command
+which applies to all 1-4 interactions in the system.  For CHARMM force
+fields, the special_bonds 1-4 interaction scaling factor should be set
+to 0.0. Since the corresponding 1-4 non-bonded interactions are
+computed with the dihedral.  This means that if any of the weighting
+factors defined as dihedral coefficients (4th coeff above) are
+non-zero, then you must use a pair style with "lj/charmm" and set the
+special_bonds 1-4 scaling factor to 0.0 (which is the
+default). Otherwise 1-4 non-bonded interactions in dihedrals will be
+computed twice.
 
-For AMBER force fields, which use pair styles with "lj/cut",
-the special_bonds 1-4 scaling factor should be set to the AMBER
-defaults (1/2 and 5/6) and all the dihedral weighting factors
-(4th coeff above) must be set to 0.0. In this case, you can use
-any pair style you wish, since the dihedral does not need any
-Lennard-Jones parameter information and will not compute any
-1-4 non-bonded interactions.
+Also note that for AMBER force fields, which use pair styles with
+"lj/cut", the special_bonds 1-4 scaling factor should be set to the
+AMBER defaults (1/2 and 5/6) and all the dihedral weighting factors
+(4th coeff above) must be set to 0.0. In this case, you can use any
+pair style you wish, since the dihedral does not need any
+Lennard-Jones parameter information and will not compute any 1-4
+non-bonded interactions.
 
 :line
 
-Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in "Section_accelerate"_Section_accelerate.html
@@ -92,9 +91,9 @@ of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
 
-These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
-KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the "Making
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script

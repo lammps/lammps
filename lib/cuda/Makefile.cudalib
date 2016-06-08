@@ -47,8 +47,8 @@ include Makefile.common
 
 tmp := $(shell sed -i '2 d' Makefile.lammps)
 tmp := $(shell sed -i '2 d' Makefile.lammps)
-tmp := $(shell sed -i '1a CUDA_FLAGS := $(CUDA_FLAGS)' Makefile.lammps)
-tmp := $(shell sed -i '2a CUDA_USRLIB_CONDITIONAL := $(CUDA_USRLIB_CONDITIONAL)' Makefile.lammps)
+tmp := $(shell sed -i '1a CUDA_FLAGS := ${CUDA_FLAGS}' Makefile.lammps)
+tmp := $(shell sed -i '2a CUDA_USRLIB_CONDITIONAL := ${CUDA_USRLIB_CONDITIONAL}' Makefile.lammps)
 
 # verbose nvcc output during compilation
 ifeq ($(verbose), 1)

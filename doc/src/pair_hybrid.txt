@@ -304,19 +304,19 @@ off C/C interaction, i.e. by setting the appropriate coefficients to
 
 :line
 
-Styles with a {cuda}, {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in "Section_accelerate"_Section_accelerate.html
 of the manual.
 
-Since the {hybrid} and {hybrid/overlay} styles delegate computation
-to the individual sub-styles, the suffix versions of the {hybrid}
-and {hybrid/overlay} styles are used to propagate the corresponding
-suffix to all sub-styles, if those versions exist. Otherwise the
+Since the {hybrid} and {hybrid/overlay} styles delegate computation to
+the individual sub-styles, the suffix versions of the {hybrid} and
+{hybrid/overlay} styles are used to propagate the corresponding suffix
+to all sub-styles, if those versions exist. Otherwise the
 non-accelerated version will be used.
 
-The individual accelerated sub-styles are part of the USER-CUDA, GPU,
+The individual accelerated sub-styles are part of the GPU,
 USER-OMP and OPT packages, respectively.  They are only enabled if
 LAMMPS was built with those packages.  See the
 "Making LAMMPS"_Section_start.html#start_3 section for more info.

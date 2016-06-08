@@ -1086,7 +1086,7 @@ the sheared fluid and integrate the SLLOD equations of motion for the
 system.  Fix nvt/sllod uses <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a> to compute a thermal temperature
 by subtracting out the streaming velocity of the shearing atoms.  The
 velocity profile or other properties of the fluid can be monitored via
-the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> command.</p>
+the <span class="xref doc">fix ave/spatial</span> command.</p>
 <p>As discussed in the previous section on non-orthogonal simulation
 boxes, the amount of tilt or skew that can be applied is limited by
 LAMMPS for computational efficiency to be 1/2 of the parallel box
@@ -2011,13 +2011,13 @@ on each of two regions to add/subtract specified amounts of energy to
 both regions.  In both cases, the resulting temperatures of the two
 regions can be monitored with the &#8220;compute temp/region&#8221; command and
 the temperature profile of the intermediate region can be monitored
-with the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.</p>
+with the <span class="xref doc">fix ave/spatial</span> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.</p>
 <p>The third method is to perform a reverse non-equilibrium MD simulation
 using the <a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">fix thermal/conductivity</span></a>
 command which implements the rNEMD algorithm of Muller-Plathe.
 Kinetic energy is swapped between atoms in two different layers of the
 simulation box.  This induces a temperature gradient between the two
-layers which can be monitored with the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.  The fix tallies the
+layers which can be monitored with the <span class="xref doc">fix ave/spatial</span> and <a class="reference internal" href="compute_ke_atom.html"><span class="doc">compute ke/atom</span></a> commands.  The fix tallies the
 cumulative energy transfer that it performs.  See the <a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">fix thermal/conductivity</span></a> command for
 details.</p>
 <p>The fourth method is based on the Green-Kubo (GK) formula which
@@ -2060,7 +2060,7 @@ used to shear the fluid in between them, again with some kind of
 thermostat that modifies only the thermal (non-shearing) components of
 velocity to prevent the fluid from heating up.</p>
 <p>In both cases, the velocity profile setup in the fluid by this
-procedure can be monitored by the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> command, which determines
+procedure can be monitored by the <span class="xref doc">fix ave/spatial</span> command, which determines
 grad(Vstream) in the equation above.  E.g. the derivative in the
 y-direction of the Vx component of fluid motion or grad(Vstream) =
 dVx/dy.  The Pxy off-diagonal component of the pressure or stress
@@ -2073,7 +2073,7 @@ using the <a class="reference internal" href="fix_viscosity.html"><span class="d
 the rNEMD algorithm of Muller-Plathe.  Momentum in one dimension is
 swapped between atoms in two different layers of the simulation box in
 a different dimension.  This induces a velocity gradient which can be
-monitored with the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> command.
+monitored with the <span class="xref doc">fix ave/spatial</span> command.
 The fix tallies the cummulative momentum transfer that it performs.
 See the <a class="reference internal" href="fix_viscosity.html"><span class="doc">fix viscosity</span></a> command for details.</p>
 <p>The fourth method is based on the Green-Kubo (GK) formula which

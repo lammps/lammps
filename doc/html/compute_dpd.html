@@ -146,7 +146,7 @@
 <h2>Description</h2>
 <p>Define a computation that accumulates the total internal conductive
 energy (U_cond), the total internal mechanical energy (U_mech), the
-total internal energy (U) and the <em>harmonic</em> average of the internal
+total chemical energy (U_chem) and the <em>harmonic</em> average of the internal
 temperature (dpdTheta) for the entire system of particles.  See the
 <a class="reference internal" href="compute_dpd_atom.html"><span class="doc">compute dpd/atom</span></a> command if you want
 per-particle internal energies and internal temperatures.</p>
@@ -157,15 +157,17 @@ relations:</p>
 <hr class="docutils" />
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a global vector of length 5 (U_cond, U_mech,
-U, dpdTheta, N_particles), which can be accessed by indices 1-5.  See
+U_chem, dpdTheta, N_particles), which can be accessed by indices 1-5.  See
 <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">this section</span></a> for an overview of LAMMPS
 output options.</p>
 <p>The vector values will be in energy and temperature <a class="reference internal" href="units.html"><span class="doc">units</span></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>The compute <em>dpd</em> is only available if LAMMPS is built with the
-USER-DPD package and requires the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dpd</span></a>.</p>
+<p>This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>This command also requires use of the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dpd</span></a>
+command.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

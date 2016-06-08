@@ -52,6 +52,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
   global_freq = 1;
+  dynamic_group_allow = 1;
 
 /* ---------------------------------------------------------------------- */
 
@@ -186,6 +187,9 @@ void FixRecenter::initial_integrate(int vflag)
   // current COM
 
   double xcm[3];
+  if (group->dynamic[igroup])
+    masstotal = group->mass(igroup);
+
   group->xcm(igroup,masstotal,xcm);
 
   // shift coords by difference between actual COM and requested COM

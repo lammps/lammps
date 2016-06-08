@@ -143,25 +143,29 @@
 <div class="section" id="description">
 <h2>Description</h2>
 <p>Define a computation that accesses the per-particle internal
-conductive energy (u_cond), internal mechanical energy (u_mech) and
+conductive energy (u_cond), internal mechanical energy (u_mech),
+internal chemical energy (u_chem) and
 internal temperatures (dpdTheta) for each particle in a group.  See
 the <a class="reference internal" href="compute_dpd.html"><span class="doc">compute dpd</span></a> command if you want the total
-internal conductive energy, the total internal mechanical energy, and
+internal conductive energy, the total internal mechanical energy, the
+total chemical energy and
 average internal temperature of the entire system or group of dpd
 particles.</p>
 <p><strong>Output info:</strong></p>
-<p>This compute calculates a per-particle array with 3 columns (u_cond,
-u_mech, dpdTheta), which can be accessed by indices 1-3 by any command
+<p>This compute calculates a per-particle array with 4 columns (u_cond,
+u_mech, u_chem, dpdTheta), which can be accessed by indices 1-4 by any command
 that uses per-particle values from a compute as input.  See
 <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section_howto15</span></a> for an overview of
 LAMMPS output options.</p>
-<p>The per-particle array values will be in energy (u_cond, u_mech) and
-temperature (dpdTheta) <a class="reference internal" href="units.html"><span class="doc">units</span></a>.</p>
+<p>The per-particle array values will be in energy (u_cond, u_mech, u_chem)
+and temperature (dpdTheta) <a class="reference internal" href="units.html"><span class="doc">units</span></a>.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>The compute <em>dpd/atom</em> is only available if LAMMPS is built with the
-USER-DPD package.</p>
+<p>This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>This command also requires use of the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dpd</span></a>
+command.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

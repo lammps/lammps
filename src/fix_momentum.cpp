@@ -86,6 +86,7 @@ void FixMomentum::init()
    if (group->count(igroup) == 0)
      error->all(FLERR,"Fix momentum group has no atoms");
   }
+
   masstotal = group->mass(igroup);
 }
 

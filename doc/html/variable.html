@@ -168,7 +168,7 @@
   constants = PI, version, on, off, true, false, yes, no
   thermo keywords = vol, ke, press, etc from <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>
   math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
-                   x == y, x != y, x &amp;lt y, x &amp;lt= y, x &amp;gt y, x &amp;gt= y, x &amp;&amp; y, x || y, !x
+                   x == y, x != y, x &lt; y, x &lt;= y, x &gt; y, x &gt;= y, x &amp;&amp; y, x || y, !x
   math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                    sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                    random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
@@ -536,36 +536,33 @@ references, and references to other variables.</p>
 <td>vol, pe, ebond, etc</td>
 </tr>
 <tr class="row-even"><td>Math operators</td>
-<td>(), -x, x+y, x-y, x*y, x/y, x^y, x%y,</td>
+<td>(), -x, x+y, x-y, x*y, x/y, x^y, x%y,      x == y, x != y, x &lt; y, x &lt;= y, x &gt; y, x &gt;= y, x &amp;&amp; y, x || y, !x</td>
 </tr>
-<tr class="row-odd"><td>Math operators</td>
-<td>(), -x, x+y, x-y, x*y, x/y, x^y, x%y,      x == y, x != y, x &amp;lt y, x &amp;lt= y, x &amp;gt y, x &amp;gt= y, x &amp;&amp; y, x || y, !x</td>
-</tr>
-<tr class="row-even"><td>Math functions</td>
+<tr class="row-odd"><td>Math functions</td>
 <td>sqrt(x), exp(x), ln(x), log(x), abs(x),      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x),      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),      stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y),      swiggle(x,y,z), cwiggle(x,y,z)</td>
 </tr>
-<tr class="row-odd"><td>Group functions</td>
+<tr class="row-even"><td>Group functions</td>
 <td>count(ID), mass(ID), charge(ID), xcm(ID,dim),      vcm(ID,dim), fcm(ID,dim), bound(ID,dir),      gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim),      inertia(ID,dimdim), omega(ID,dim)</td>
 </tr>
-<tr class="row-even"><td>Region functions</td>
+<tr class="row-odd"><td>Region functions</td>
 <td>count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</td>
 </tr>
-<tr class="row-odd"><td>Special functions</td>
+<tr class="row-even"><td>Special functions</td>
 <td>sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x)</td>
 </tr>
-<tr class="row-even"><td>Atom values</td>
+<tr class="row-odd"><td>Atom values</td>
 <td>id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]</td>
 </tr>
-<tr class="row-odd"><td>Atom vectors</td>
+<tr class="row-even"><td>Atom vectors</td>
 <td>id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q</td>
 </tr>
-<tr class="row-even"><td>Compute references</td>
+<tr class="row-odd"><td>Compute references</td>
 <td>c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]</td>
 </tr>
-<tr class="row-odd"><td>Fix references</td>
+<tr class="row-even"><td>Fix references</td>
 <td>f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]</td>
 </tr>
-<tr class="row-even"><td>Other variables</td>
+<tr class="row-odd"><td>Other variables</td>
 <td>v_name, v_name[i]</td>
 </tr>
 </tbody>
@@ -1187,7 +1184,7 @@ string like this $((xlo+xhi)/2+sqrt(v_area)) in an input script
 command evaluates the string between the parenthesis as an equal-style
 variable formula.</p>
 <p>Referencing a variable with a leading &#8220;<a href="#id7"><span class="problematic" id="id8">v_</span></a>&#8221; is an optional or required
-kind of argument for some commands (e.g. the <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> or <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> or
+kind of argument for some commands (e.g. the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a> or <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> or
 <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a
 variable formula if you wish to reference a second variable.  The

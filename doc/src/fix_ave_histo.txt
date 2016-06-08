@@ -331,7 +331,7 @@ minimization"_minimize.html.
 [Related commands:]
 
 "compute"_compute.html, "fix ave/atom"_fix_ave_atom.html, "fix
-ave/spatial"_fix_ave_spatial.html, "fix ave/time"_fix_ave_time.html,
+ave/chunk"_fix_ave_chunk.html, "fix ave/time"_fix_ave_time.html,
 "variable"_variable.html, "fix ave/correlate"_fix_ave_correlate.html,
 
 [Default:] none

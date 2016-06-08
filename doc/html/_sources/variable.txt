@@ -46,7 +46,7 @@ Syntax
        constants = PI, version, on, off, true, false, yes, no
        thermo keywords = vol, ke, press, etc from :doc:`thermo_style <thermo_style>`
        math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
-                        x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x
+                        x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, !x
        math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                         sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                         random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
@@ -456,9 +456,7 @@ references, and references to other variables.
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Thermo keywords    | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                      |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math operators     | (), -x, x+y, x-y, x*y, x/y, x^y, x%y,                                                                                                                                                                                                                                                                                                    |
-+--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math operators     | (), -x, x+y, x-y, x*y, x/y, x^y, x%y,      x == y, x != y, x &lt y, x &lt= y, x &gt y, x &gt= y, x && y, x || y, !x                                                                                                                                                                                                                      |
+| Math operators     | (), -x, x+y, x-y, x*y, x/y, x^y, x%y,      x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, !x                                                                                                                                                                                                                              |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x),      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x),      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),      stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y),      swiggle(x,y,z), cwiggle(x,y,z) |
 +--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -1189,7 +1187,7 @@ command evaluates the string between the parenthesis as an equal-style
 variable formula.
 
 Referencing a variable with a leading "v_" is an optional or required
-kind of argument for some commands (e.g. the :doc:`fix ave/spatial <fix_ave_spatial>` or :doc:`dump custom <dump>` or
+kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
 :doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a
 variable formula if you wish to reference a second variable.  The

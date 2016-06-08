@@ -53,7 +53,16 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   if (style == NONE) {
     if (narg != 2) error->all(FLERR,"Illegal lattice command");
-    xlattice = ylattice = zlattice = force->numeric(FLERR,arg[1]);
+
+    // Domain defines a default lattice of style "none" with
+    // spacing 1.0 before the force class is initialized, so
+    // we have to fall back to using atof() in that case.
+
+    if (force)
+      xlattice = ylattice = zlattice = force->numeric(FLERR,arg[1]);
+    else
+      xlattice = ylattice = zlattice = atof(arg[1]);
+
     if (xlattice <= 0.0) error->all(FLERR,"Illegal lattice command");
     return;
   }

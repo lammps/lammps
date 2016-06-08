@@ -9,7 +9,7 @@
 
 "Return to Section accelerate overview"_Section_accelerate.html
 
-5.3.3 USER-INTEL package :h4
+5.3.2 USER-INTEL package :h4
 
 The USER-INTEL package was developed by Mike Brown at Intel
 Corporation.  It provides two methods for accelerating simulations,

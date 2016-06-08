@@ -116,9 +116,9 @@ void Replicate::command(int narg, char **arg)
   // also set atomKK for Kokkos version of Atom class
 
   Atom *old = atom;
-  if (lmp->kokkos) atom = new AtomKokkos(lmp);
+  atomKK = NULL;
+  if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
   else atom = new Atom(lmp);
-  atomKK = (AtomKokkos*) atom;
 
   atom->settings(old);
   atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy,0);

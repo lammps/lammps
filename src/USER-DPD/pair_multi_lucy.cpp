@@ -87,12 +87,10 @@ PairMultiLucy::~PairMultiLucy()
 void PairMultiLucy::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,factor_lj,fraction,value,a,b;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
 
-  union_int_float_t rsq_lookup;
   int tlm1 = tablength - 1;
 
   evdwl = 0.0;
@@ -110,7 +108,6 @@ void PairMultiLucy::compute(int eflag, int vflag)
   double A_i;
   double A_j;
   double fraction_i,fraction_j;
-  double a_i,a_j,b_i,b_j;
   int jtable;
   double *rho = atom->rho;
 
@@ -134,7 +131,6 @@ void PairMultiLucy::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -293,13 +289,11 @@ void PairMultiLucy::coeff(int narg, char **arg)
   // insure cutoff is within table
 
   if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
-  double rlo,rhi;
+  double rlo;
   if (tb->rflag == 0) {
     rlo = tb->rfile[0];
-    rhi = tb->rfile[tb->ninput-1];
   } else {
     rlo = tb->rlo;
-    rhi = tb->rhi;
   }
   rho_0 = rlo;
 
@@ -390,7 +384,6 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
 
   int itmp;
   double rtmp;
-  union_int_float_t rsq_lookup;
 
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
@@ -733,7 +726,7 @@ void PairMultiLucy::computeLocalDensity()
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-  double factor, volume;
+  double factor;
 
   inum = list->inum;
   ilist = list->ilist;

@@ -40,7 +40,7 @@ ComputeDpdAtom::ComputeDpdAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3) error->all(FLERR,"Illegal compute dpd/atom command");
 
   peratom_flag = 1;
-  size_peratom_cols = 3;
+  size_peratom_cols = 4;
 
   nmax = 0;
   dpdAtom = NULL;
@@ -77,21 +77,23 @@ void ComputeDpdAtom::compute_peratom()
 
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
+  double *uChem = atom->uChem;
   double *dpdTheta = atom->dpdTheta;
+  int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  if (atom->nmax > nmax) {
+  if (nlocal > nmax) {
     memory->destroy(dpdAtom);
     nmax = atom->nmax;
     memory->create(dpdAtom,nmax,size_peratom_cols,"dpd/atom:dpdAtom");
     array_atom = dpdAtom;
   }
 
-  const int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++){
     if (mask[i] & groupbit){
       dpdAtom[i][0] =  uCond[i];
       dpdAtom[i][1] =  uMech[i];
-      dpdAtom[i][2] =  dpdTheta[i];
+      dpdAtom[i][2] =  uChem[i];
+      dpdAtom[i][3] =  dpdTheta[i];
     }
   }
 }

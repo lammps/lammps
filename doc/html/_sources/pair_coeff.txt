@@ -118,7 +118,7 @@ Windows:
 
 .. parsed-literal::
 
-   % set LAMMPS_POTENTIALS="C:\Path to LAMMPS\Potentials"
+   % set LAMMPS_POTENTIALS="C:\\Path to LAMMPS\\Potentials"
 
 
 ----------

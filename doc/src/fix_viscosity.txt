@@ -60,8 +60,8 @@ directions.  Over time, this induces a shear velocity profile in the
 system which can be measured using commands such as the following,
 which writes the profile to the file tmp.profile:
 
-fix f1 all ave/spatial 100 10 1000 z lower 0.05 vx &
-    file tmp.profile units reduced :pre
+compute layers all chunk/atom bin/1d z lower 0.05 units reduced
+fix f1 all ave/chunk 100 10 1000 layers vx file tmp.profile :pre
 
 Note that by default, Nswap = 1 and vtarget = INF, though this can be
 changed by the optional {swap} and {vtarget} keywords.  When vtarget =
@@ -152,7 +152,7 @@ solvent particles.
 
 [Related commands:]
 
-"fix ave/spatial"_fix_ave_spatial.html, "fix
+"fix ave/chunk"_fix_ave_chunk.html, "fix
 thermal/conductivity"_fix_thermal_conductivity.html
 
 [Default:]

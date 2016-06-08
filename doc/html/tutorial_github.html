@@ -132,9 +132,11 @@
 <p>This document briefly describes how to use GitHub to merge changes
 into LAMMPS using GitHub. It assumes that you are familiar with
 git. You may want to have a look at the <a class="reference external" href="http://git-scm.com/book/">Git book</a> to reacquaint yourself.</p>
+</div>
+</div>
 <hr class="docutils" />
 <div class="section" id="making-an-account">
-<h3>Making an account</h3>
+<h1>Making an account</h1>
 <p>First of all, you need a GitHub account. This is fairly simple, just
 go to <a class="reference external" href="https://github.com">GitHub</a> and create an account by clicking
 the <a href="#id1"><span class="problematic" id="id2">``</span></a>Sign up for GitHub&#8217;&#8217; button. Once your account is created, you
@@ -143,7 +145,7 @@ username or e-mail address and password.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="forking-the-repository">
-<h3>Forking the repository</h3>
+<h1>Forking the repository</h1>
 <p>To get changes into LAMMPS, you need to first fork the repository. At
 the time of writing, LAMMPS-ICMS is the preferred fork. Go to <a class="reference external" href="https://github.com/lammps/lammps">LAMMPS on GitHub</a> and make sure branch is
 set to <a href="#id3"><span class="problematic" id="id4">``</span></a>lammps-icms&#8217;&#8216;, see the figure below.</p>
@@ -158,11 +160,9 @@ can include changes from upstream into your repository.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="adding-changes-to-your-own-fork">
-<h3>Adding changes to your own fork</h3>
+<h1>Adding changes to your own fork</h1>
 <p>Before adding changes, it is better to first create a new branch that
 will contain these changes, a so-called feature branch.</p>
-</div>
-</div>
 <div class="section" id="feature-branches">
 <h2>Feature branches</h2>
 <p>Since LAMMPS is such a big project and most user contributions come in
@@ -210,6 +210,8 @@ $ git add doc/fix_manifoldforce.txt doc/user_manifolds.txt
 </div>
 <p>The &#8220;-m&#8221; switch is used to add a message to the commit. Use this to
 indicate what type of change was commited.</p>
+<div class="section" id="wisdom-by-axel">
+<h3>Wisdom by Axel:</h3>
 <p><em>&#8220;Do not use &#8220;git commit -a&#8221;.  the -a flag will automatically include
 *all</em> modified or new files.  mercurial does that and it find it
 hugely annoying and often leading to accidental commits of files you
@@ -260,16 +262,19 @@ is now up to the maintainer(s) of the upstream repository to
 incorporate the changes into the repository and to close the pull
 request.</p>
 <img alt="_images/tutorial_pull_request4.png" class="align-center" src="_images/tutorial_pull_request4.png" />
+</div>
+</div>
+</div>
 <hr class="docutils" />
 <div class="section" id="additional-changes">
-<h3>Additional changes</h3>
+<h1>Additional changes</h1>
 <p>Before the pull request is accepted, any additional changes you push
 into your repository will automatically become part of the pull
 request.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="after-a-merge">
-<h3>After a merge</h3>
+<h1>After a merge</h1>
 <p>When everything is fine the feature branch is merged into the LAMMPS
 repositories:</p>
 <img alt="_images/tutorial_merged.png" class="align-center" src="_images/tutorial_merged.png" />
@@ -292,8 +297,6 @@ first delete and then pull, everything should still be fine.</p>
 to your remote(s) as well:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ git push origin :add-user-manifold
 </pre></div>
-</div>
-</div>
 </div>
 </div>
 

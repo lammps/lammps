@@ -688,6 +688,10 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
   int maxbytes;
   MPI_Allreduce(&nbytes,&maxbytes,1,MPI_INT,MPI_MAX,world);
 
+  // no need to communicate without data
+
+  if (maxbytes == 0) return;
+
   char *buf,*bufcopy;
   memory->create(buf,maxbytes,"comm:buf");
   memory->create(bufcopy,maxbytes,"comm:bufcopy");

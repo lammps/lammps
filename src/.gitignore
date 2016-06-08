@@ -27,6 +27,11 @@
 /fix_qeq*.cpp
 /fix_qeq*.h
 
+/compute_test_nbl.cpp
+/compute_test_nbl.h
+/pair_multi_lucy.cpp
+/pair_multi_lucy.h
+
 /colvarproxy_lammps.cpp
 /colvarproxy_lammps.h
 /fix_colvars.cpp

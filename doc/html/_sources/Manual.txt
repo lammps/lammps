@@ -5,8 +5,8 @@
 LAMMPS Documentation
 ====================
 
-14 May 2016 version
--------------------
+8 Jun 2016 version
+------------------
 
 Version info:
 -------------
@@ -30,6 +30,7 @@ the first page of the manual (this page).
 * There is also a `Developer.pdf <Developer.pdf>`_ file in the doc
   directory, which describes the internal structure and algorithms of
   LAMMPS.
+
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.
 

@@ -419,11 +419,12 @@ been previously used to define the lattice spacing.</p>
 <h2>Restrictions</h2>
 <p>If you use the <em>ortho</em> or <em>triclinic</em> keywords, then at the point in
 the input script when this command is issued, no <a class="reference internal" href="dump.html"><span class="doc">dumps</span></a> can
-be active, nor can a <a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a> or <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> be active.  This is because these commands
-test whether the simulation box is orthogonal when they are first
-issued.  Note that these commands can be used in your script before a
-change_box command is issued, so long as an <a class="reference internal" href="undump.html"><span class="doc">undump</span></a> or
-<a class="reference internal" href="unfix.html"><span class="doc">unfix</span></a> command is also used to turn them off.</p>
+be active, nor can a <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> be active.  This is
+because these commands test whether the simulation box is orthogonal
+when they are first issued.  Note that these commands can be used in
+your script before a change_box command is issued, so long as an
+<a class="reference internal" href="undump.html"><span class="doc">undump</span></a> or <a class="reference internal" href="unfix.html"><span class="doc">unfix</span></a> command is also used to
+turn them off.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

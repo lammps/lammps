@@ -145,29 +145,35 @@
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>Style <em>multi/lucy</em> computes a density-dependent force following from the many-body
-form described in <a class="reference internal" href="#moore"><span class="std std-ref">(Moore)</span></a> and <a class="reference internal" href="#warren"><span class="std std-ref">(Warren)</span></a> as</p>
+<p>Style <em>multi/lucy</em> computes a density-dependent force following from
+the many-body form described in <a class="reference internal" href="pair_multi_lucy_rx.html#moore"><span class="std std-ref">(Moore)</span></a> and
+<a class="reference internal" href="pair_multi_lucy_rx.html#warren"><span class="std std-ref">(Warren)</span></a> as</p>
 <img alt="_images/pair_multi_lucy.jpg" class="align-center" src="_images/pair_multi_lucy.jpg" />
-<p>which consists of a density-dependent function, A(rho), and a radial-dependent weight
-function, omegaDD(rij).  The radial-dependent weight function, omegaDD(rij), is taken
-as the Lucy function:</p>
+<p>which consists of a density-dependent function, A(rho), and a
+radial-dependent weight function, omegaDD(rij).  The radial-dependent
+weight function, omegaDD(rij), is taken as the Lucy function:</p>
 <img alt="_images/pair_multi_lucy2.jpg" class="align-center" src="_images/pair_multi_lucy2.jpg" />
 <p>The density-dependent energy for a given particle is given by:</p>
 <img alt="_images/pair_multi_lucy_energy.jpg" class="align-center" src="_images/pair_multi_lucy_energy.jpg" />
-<p>See the supporting information of <a class="reference internal" href="#brennan"><span class="std std-ref">(Brennan)</span></a> or the publication by <a class="reference internal" href="#moore"><span class="std std-ref">(Moore)</span></a>
-for more details on the functional form.</p>
-<p>An interpolation table is used to evaluate the density-dependent energy (Integral(A(rho)drho) and force (A(rho)).
-Note that the pre-factor to the energy is computed after the interpolation, thus the Integral(A(rho)drho will
-have units of energy / length^4.</p>
-<p>The interpolation table is created as a pre-computation by fitting cubic splines to
-the file values and interpolating the density-dependent energy and force at each of <em>N</em> densities.
-During a simulation, the tables are used to interpolate the density-dependent energy and force as
-needed for each pair of particles separated by a distance <em>R</em>.  The interpolation is done in
-one of 2 styles: <em>lookup</em> and <em>linear</em>.</p>
-<p>For the <em>lookup</em> style, the density is used to find the nearest table entry, which is the
-density-dependent energy and force.</p>
-<p>For the <em>linear</em> style, the density is used to find the 2 surrounding table values from
-which the density-dependent energy and force are computed by linear interpolation.</p>
+<p>See the supporting information of <a class="reference internal" href="pair_multi_lucy_rx.html#brennan"><span class="std std-ref">(Brennan)</span></a> or the
+publication by <a class="reference internal" href="pair_multi_lucy_rx.html#moore"><span class="std std-ref">(Moore)</span></a> for more details on the functional
+form.</p>
+<p>An interpolation table is used to evaluate the density-dependent
+energy (Integral(A(rho)drho) and force (A(rho)).  Note that the
+pre-factor to the energy is computed after the interpolation, thus the
+Integral(A(rho)drho will have units of energy / length^4.</p>
+<p>The interpolation table is created as a pre-computation by fitting
+cubic splines to the file values and interpolating the
+density-dependent energy and force at each of <em>N</em> densities.  During a
+simulation, the tables are used to interpolate the density-dependent
+energy and force as needed for each pair of particles separated by a
+distance <em>R</em>.  The interpolation is done in one of 2 styles: <em>lookup</em>
+and <em>linear</em>.</p>
+<p>For the <em>lookup</em> style, the density is used to find the nearest table
+entry, which is the density-dependent energy and force.</p>
+<p>For the <em>linear</em> style, the density is used to find the 2 surrounding
+table values from which the density-dependent energy and force are
+computed by linear interpolation.</p>
 <p>The following coefficients must be defined for each pair of atoms
 types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples
 above.</p>
@@ -176,13 +182,14 @@ above.</p>
 <li>keyword</li>
 <li>cutoff (distance units)</li>
 </ul>
-<p>The filename specifies a file containing the tabulated density-dependent
-energy and force.  The keyword specifies a section of the file.
-The cutoff is an optional coefficient.  If not specified, the outer cutoff in the
-table itself (see below) will be used to build an interpolation table
-that extend to the largest tabulated distance.  If specified, only
-file values up to the cutoff are used to create the interpolation
-table.  The format of this file is described below.</p>
+<p>The filename specifies a file containing the tabulated
+density-dependent energy and force.  The keyword specifies a section
+of the file.  The cutoff is an optional coefficient.  If not
+specified, the outer cutoff in the table itself (see below) will be
+used to build an interpolation table that extend to the largest
+tabulated distance.  If specified, only file values up to the cutoff
+are used to create the interpolation table.  The format of this file
+is described below.</p>
 <hr class="docutils" />
 <p>The format of a tabulated file is a series of one or more sections,
 defined as follows (without the parenthesized comments):</p>
@@ -208,19 +215,19 @@ for the table.  Each parameter is a keyword followed by one or more
 numeric values.</p>
 <p>The parameter &#8220;N&#8221; is required and its value is the number of table
 entries that follow.  Note that this may be different than the <em>N</em>
-specified in the <a class="reference internal" href="#"><span class="doc">pair_style multi/lucy</span></a> command.  Let
-Ntable = <em>N</em> in the pair_style command, and Nfile = &#8220;N&#8221; in the
+specified in the <a class="reference internal" href="#"><span class="doc">pair_style multi/lucy</span></a> command.
+Let Ntable = <em>N</em> in the pair_style command, and Nfile = &#8220;N&#8221; in the
 tabulated file.  What LAMMPS does is a preliminary interpolation by
 creating splines using the Nfile tabulated values as nodal points.  It
-uses these to interpolate the density-dependent energy and force at Ntable different
-points.  The resulting tables of length Ntable are then used as
-described above, when computing the density-dependent energy and force.
-This means that if you want the interpolation tables of
-length Ntable to match exactly what is in the tabulated file (with
-effectively no preliminary interpolation), you should set Ntable =
-Nfile, and use the &#8220;RSQ&#8221; parameter.  This is because the
-internal table abscissa is always RSQ (separation distance squared),
-for efficient lookup.</p>
+uses these to interpolate the density-dependent energy and force at
+Ntable different points.  The resulting tables of length Ntable are
+then used as described above, when computing the density-dependent
+energy and force.  This means that if you want the interpolation
+tables of length Ntable to match exactly what is in the tabulated file
+(with effectively no preliminary interpolation), you should set Ntable
+= Nfile, and use the &#8220;RSQ&#8221; parameter.  This is because the internal
+table abscissa is always RSQ (separation distance squared), for
+efficient lookup.</p>
 <p>All other parameters are optional.  If &#8220;R&#8221; or &#8220;RSQ&#8221; does
 not appear, then the distances in each line of the table are used
 as-is to perform spline interpolation.  In this case, the table values
@@ -270,8 +277,8 @@ commands do need to be specified in the restart input script.</p>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<blockquote>
-<div>none</div></blockquote>
+<p>This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

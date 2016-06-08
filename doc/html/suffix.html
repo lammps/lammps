@@ -132,7 +132,7 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>style = <em>off</em> or <em>on</em> or <em>cuda</em> or <em>gpu</em> or <em>intel</em> or <em>kk</em> or <em>omp</em> or <em>opt</em> or <em>hybrid</em></li>
+<li>style = <em>off</em> or <em>on</em> or <em>gpu</em> or <em>intel</em> or <em>kk</em> or <em>omp</em> or <em>opt</em> or <em>hybrid</em></li>
 <li>args = for hybrid style, default suffix to be used and alternative suffix</li>
 </ul>
 </div>
@@ -152,17 +152,14 @@
 <p>This command allows you to use variants of various styles if they
 exist.  In that respect it operates the same as the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a>.  It also has options
 to turn off or back on any suffix setting made via the command line.</p>
-<p>The specified style can be <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, <em>opt</em>
-or <em>hybrid</em>. These refer to optional packages that LAMMPS can be built
-with, as described in <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">this section of the manual</span></a>.  The &#8220;cuda&#8221; style corresponds to
-the USER-CUDA package, the &#8220;gpu&#8221; style to the GPU package, the &#8220;intel&#8221;
-style to the USER-INTEL package, the &#8220;kk&#8221; style to the KOKKOS package,
-the &#8220;omp&#8221; style to the USER-OMP package, and the &#8220;opt&#8221; style to the
-OPT package.</p>
+<p>The specified style can be <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, <em>opt</em> or
+<em>hybrid</em>. These refer to optional packages that LAMMPS can be built
+with, as described in <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">this section of the manual</span></a>.  The &#8220;gpu&#8221; style corresponds to
+the GPU package, the &#8220;intel&#8221; style to the USER-INTEL package, the &#8220;kk&#8221;
+style to the KOKKOS package, the &#8220;omp&#8221; style to the USER-OMP package,
+and the &#8220;opt&#8221; style to the OPT package.</p>
 <p>These are the variants these packages provide:</p>
 <ul class="simple">
-<li>USER-CUDA = a collection of atom, pair, fix, compute, and intergrate
-styles, optimized to run on one or more NVIDIA GPUs</li>
 <li>GPU = a handful of pair styles and the PPPM kspace_style, optimized to
 run on one or more GPUs or multicore CPU/GPU nodes</li>
 <li>USER-INTEL = a collection of pair styles and neighbor routines
@@ -179,11 +176,11 @@ performance</li>
 <li>HYBRID = a combination of two packages can be specified (see below)</li>
 </ul>
 <p>As an example, all of the packages provide a <a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut</span></a> variant, with style names lj/cut/opt, lj/cut/omp,
-lj/cut/gpu, lj/cut/intel, lj/cut/cuda, or lj/cut/kk.  A variant styles
+lj/cut/gpu, lj/cut/intel, or lj/cut/kk.  A variant styles
 can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu. If the suffix command is used with the appropriate style,
 you do not need to modify your input script.  The specified suffix
-(opt,omp,gpu,intel,cuda,kk) is automatically appended whenever your
+(opt,omp,gpu,intel,kk) is automatically appended whenever your
 input script command creates a new <a class="reference internal" href="atom_style.html"><span class="doc">atom</span></a>,
 <a class="reference internal" href="pair_style.html"><span class="doc">pair</span></a>, <a class="reference internal" href="bond_style.html"><span class="doc">bond</span></a>,
 <a class="reference internal" href="angle_style.html"><span class="doc">angle</span></a>, <a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral</span></a>,

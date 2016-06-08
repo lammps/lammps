@@ -180,8 +180,8 @@ within each pair.  This resets their velocities, typically in opposite
 directions.  Over time, this induces a shear velocity profile in the
 system which can be measured using commands such as the following,
 which writes the profile to the file tmp.profile:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">f1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">spatial</span> <span class="mi">100</span> <span class="mi">10</span> <span class="mi">1000</span> <span class="n">z</span> <span class="n">lower</span> <span class="mf">0.05</span> <span class="n">vx</span> <span class="o">&amp;</span>
-    <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">profile</span> <span class="n">units</span> <span class="n">reduced</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">layers</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="nb">bin</span><span class="o">/</span><span class="mi">1</span><span class="n">d</span> <span class="n">z</span> <span class="n">lower</span> <span class="mf">0.05</span> <span class="n">units</span> <span class="n">reduced</span>
+<span class="n">fix</span> <span class="n">f1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">10</span> <span class="mi">1000</span> <span class="n">layers</span> <span class="n">vx</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">profile</span>
 </pre></div>
 </div>
 <p>Note that by default, Nswap = 1 and vtarget = INF, though this can be
@@ -262,7 +262,7 @@ solvent particles.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="fix_ave_spatial.html"><span class="doc">fix ave/spatial</span></a>, <a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">fix thermal/conductivity</span></a></p>
+<p><a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, <a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">fix thermal/conductivity</span></a></p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>

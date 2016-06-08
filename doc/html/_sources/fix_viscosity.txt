@@ -65,8 +65,8 @@ which writes the profile to the file tmp.profile:
 
 .. parsed-literal::
 
-   fix f1 all ave/spatial 100 10 1000 z lower 0.05 vx &
-       file tmp.profile units reduced
+   compute layers all chunk/atom bin/1d z lower 0.05 units reduced
+   fix f1 all ave/chunk 100 10 1000 layers vx file tmp.profile
 
 Note that by default, Nswap = 1 and vtarget = INF, though this can be
 changed by the optional *swap* and *vtarget* keywords.  When vtarget =
@@ -158,7 +158,7 @@ solvent particles.
 Related commands
 """"""""""""""""
 
-:doc:`fix ave/spatial <fix_ave_spatial>`, :doc:`fix thermal/conductivity <fix_thermal_conductivity>`
+:doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix thermal/conductivity <fix_thermal_conductivity>`
 
 Default
 """""""

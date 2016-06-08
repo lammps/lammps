@@ -164,11 +164,30 @@ it was fit, so modifying the file should be done cautiously. The
 AIREBO-M Morse potentials were parameterized using a cutoff of
 3.0 (sigma). Modifying this cutoff may impact simulation accuracy.
 
+This pair style tallies a breakdown of the total AIREBO potential
+energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 3.
+The 3 values correspond to the following sub-categories:
+
+1. *E_REBO* = REBO energy
+2. *E_LJ* = Lennard-Jones energy
+3. *E_TORSION* = Torsion energy
+
+To print these quantities to the log file (with descriptive column
+headings) the following commands could be included in an input script:
+
+.. parsed-literal::
+
+   compute 0 all pair airebo
+   variable REBO     equal c_0[1]
+   variable LJ       equal c_0[2]
+   variable TORSION  equal c_0[3]
+   thermo_style custom step temp epair v_REBO v_LJ v_TORSION
+
 
 ----------
 
 
-Styles with a *cuda*\ , *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in :doc:`Section_accelerate <Section_accelerate>`
@@ -176,9 +195,9 @@ of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
 
-These accelerated styles are part of the USER-CUDA, GPU, USER-INTEL,
-KOKKOS, USER-OMP and OPT packages, respectively.  They are only
-enabled if LAMMPS was built with those packages.  See the :ref:`Making LAMMPS <start_3>` section for more info.
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the :ref:`Making LAMMPS <start_3>` section for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :ref:`-suffix command-line switch <start_7>` when you invoke LAMMPS, or you can

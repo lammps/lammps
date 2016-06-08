@@ -76,7 +76,8 @@ class FixNH : public Fix {
 
   char *id_temp,*id_press;
   class Compute *temperature,*pressure;
-  int tflag,pflag;
+  int tcomputeflag,pcomputeflag;   // 1 = compute was created by fix
+                                   // 0 = created externally
 
   double *eta,*eta_dot;            // chain thermostat for particles
   double *eta_dotdot;

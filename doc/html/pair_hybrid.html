@@ -416,17 +416,17 @@ interactions, you would need to modify the SiC.tersoff file to turn
 off C/C interaction, i.e. by setting the appropriate coefficients to
 0.0.</p>
 <hr class="docutils" />
-<p>Styles with a <em>cuda</em>, <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
 of the manual.</p>
-<p>Since the <em>hybrid</em> and <em>hybrid/overlay</em> styles delegate computation
-to the individual sub-styles, the suffix versions of the <em>hybrid</em>
-and <em>hybrid/overlay</em> styles are used to propagate the corresponding
-suffix to all sub-styles, if those versions exist. Otherwise the
+<p>Since the <em>hybrid</em> and <em>hybrid/overlay</em> styles delegate computation to
+the individual sub-styles, the suffix versions of the <em>hybrid</em> and
+<em>hybrid/overlay</em> styles are used to propagate the corresponding suffix
+to all sub-styles, if those versions exist. Otherwise the
 non-accelerated version will be used.</p>
-<p>The individual accelerated sub-styles are part of the USER-CUDA, GPU,
+<p>The individual accelerated sub-styles are part of the GPU,
 USER-OMP and OPT packages, respectively.  They are only enabled if
 LAMMPS was built with those packages.  See the
 <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>

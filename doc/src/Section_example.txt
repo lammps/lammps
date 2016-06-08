@@ -57,7 +57,6 @@ colloid:  big colloid particles in a small particle solvent, 2d system
 comb:	  models using the COMB potential
 coreshell: core/shell model using CORESHELL package
 crack:	  crack propagation in a 2d solid
-cuda:     use of the USER-CUDA package for GPU acceleration
 deposit:  deposit atoms and molecules on a surface
 dipole:   point dipolar particles, 2d system
 dreiding: methanol via Dreiding FF

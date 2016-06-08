@@ -79,7 +79,7 @@ Each listed value can be the result of a "compute"_compute.html or
 must produce a global quantity, not a per-atom or local quantity.  If
 you wish to spatial- or time-average or histogram per-atom quantities
 from a compute, fix, or variable, then see the "fix
-ave/spatial"_fix_ave_spatial.html, "fix ave/atom"_fix_ave_atom.html,
+ave/chunk"_fix_ave_chunk.html, "fix ave/atom"_fix_ave_atom.html,
 or "fix ave/histo"_fix_ave_histo.html commands.  If you wish to sum a
 per-atom quantity into a single global quantity, see the "compute
 reduce"_compute_reduce.html command.
@@ -322,7 +322,7 @@ minimization"_minimize.html.
 [Related commands:]
 
 "compute"_compute.html, "fix ave/atom"_fix_ave_atom.html, "fix
-ave/spatial"_fix_ave_spatial.html, "fix ave/histo"_fix_ave_histo.html,
+ave/chunk"_fix_ave_chunk.html, "fix ave/histo"_fix_ave_histo.html,
 "variable"_variable.html, "fix ave/correlate"_fix_ave_correlate.html,
 
 [Default:]

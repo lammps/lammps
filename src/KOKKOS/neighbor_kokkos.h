@@ -158,8 +158,9 @@ class NeighborKokkosExecute
   KOKKOS_FUNCTION
   void build_Item(const int &i) const;
 
+  template<int HalfNeigh>
   KOKKOS_FUNCTION
-  void build_Item_Full_Ghost(const int &i) const;
+  void build_Item_Ghost(const int &i) const;
 
   template<int ClusterSize>
   KOKKOS_FUNCTION
@@ -297,20 +298,20 @@ struct NeighborKokkosBuildFunctor {
 #endif
 };
 
-template<class Device>
-struct NeighborKokkosBuildFunctorFullGhost {
+template<class Device,int HALF_NEIGH>
+struct NeighborKokkosBuildFunctorGhost {
   typedef Device device_type;
 
   const NeighborKokkosExecute<Device> c;
   const size_t sharedsize;
 
-  NeighborKokkosBuildFunctorFullGhost(const NeighborKokkosExecute<Device> &_c,
+  NeighborKokkosBuildFunctorGhost(const NeighborKokkosExecute<Device> &_c,
                              const size_t _sharedsize):c(_c),
                              sharedsize(_sharedsize) {};
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
-    c.build_Item_Full_Ghost(i);
+    c.template build_Item_Ghost<HALF_NEIGH>(i);
   }
 };
 
@@ -432,10 +433,6 @@ class NeighborKokkos : public Neighbor {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Cannot (yet) request ghost atoms with Kokkos half neighbor list
-
-This feature is not yet supported.
 
 E: Too many local+ghost atoms for neighbor list
 

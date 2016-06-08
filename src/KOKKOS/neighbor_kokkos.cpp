@@ -281,7 +281,7 @@ void NeighborKokkos::choose_build(int index, NeighRequest *rq)
     PairPtrHost pb = NULL;
     if (rq->ghost) {
       if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,1>;
-      else if (rq->half) error->one(FLERR,"Cannot (yet) request ghost atoms with Kokkos half neighbor list");
+      else if (rq->half) &NeighborKokkos::full_bin_kokkos<LMPHostType,1,1>;
       pair_build_host[index] = pb;
     } else {
       if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,0>;

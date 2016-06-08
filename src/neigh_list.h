@@ -77,8 +77,6 @@ class NeighList : protected Pointers {
   int **stencil_multi;             // list of bin offsets in each stencil
   double **distsq_multi;           // sq distances to bins in each stencil
 
-  class CudaNeighList *cuda_list;  // CUDA neighbor list
-
   NeighList(class LAMMPS *);
   virtual ~NeighList();
   void setup_pages(int, int, int);      // setup page data structures

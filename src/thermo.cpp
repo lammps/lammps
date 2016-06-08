@@ -238,16 +238,12 @@ void Thermo::init()
   }
 
   // find current ptr for each Compute ID
-  // cudable = 0 if any compute used by Thermo is non-CUDA
-
-  cudable = 1;
 
   int icompute;
   for (i = 0; i < ncompute; i++) {
     icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find thermo compute ID");
     computes[i] = modify->compute[icompute];
-    cudable = cudable && computes[i]->cudable;
   }
 
   // find current ptr for each Fix ID

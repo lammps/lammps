@@ -250,7 +250,6 @@ void NeighList::print_attributes()
   printf("  %d = omp\n",rq->omp);
   printf("  %d = intel\n",rq->intel);
   printf("  %d = ghost\n",rq->ghost);
-  printf("  %d = cudable\n",rq->cudable);
   printf("  %d = omp\n",rq->omp);
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);

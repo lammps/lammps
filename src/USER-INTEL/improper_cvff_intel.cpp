@@ -364,10 +364,8 @@ void ImproperCvffIntel::eval(const int vflag,
 
 /* ---------------------------------------------------------------------- */
 
-void ImproperCvffIntel::init()
+void ImproperCvffIntel::init_style()
 {
-  ImproperCvff::init();
-
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
     error->all(FLERR,

@@ -35,7 +35,7 @@ class ImproperCvffIntel : public ImproperCvff {
   ImproperCvffIntel(class LAMMPS *);
   virtual ~ImproperCvffIntel();
   virtual void compute(int, int);
-  virtual void init();
+  virtual void init_style();
 
  protected:
   FixIntel *fix;

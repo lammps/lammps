@@ -35,7 +35,7 @@ class ImproperHarmonicIntel : public ImproperHarmonic {
   ImproperHarmonicIntel(class LAMMPS *);
   virtual ~ImproperHarmonicIntel();
   virtual void compute(int, int);
-  virtual void init();
+  virtual void init_style();
 
  protected:
   FixIntel *fix;

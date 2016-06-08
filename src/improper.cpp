@@ -68,6 +68,8 @@ void Improper::init()
     error->all(FLERR,"Improper coeffs are not set");
   for (int i = 1; i <= atom->nimpropertypes; i++)
     if (setflag[i] == 0) error->all(FLERR,"All improper coeffs are not set");
+
+  init_style();
 }
 
 /* ----------------------------------------------------------------------

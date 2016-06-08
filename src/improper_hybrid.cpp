@@ -158,10 +158,10 @@ void ImproperHybrid::allocate()
 
 /* ---------------------------------------------------------------------- */
 
-void ImproperHybrid::init()
+void ImproperHybrid::init_style()
 {
     for (int i = 0; i < nstyles; i++)
-      styles[i]->init();
+      styles[i]->init_style();
 }
 
 

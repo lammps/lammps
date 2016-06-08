@@ -113,7 +113,6 @@ int FixShardlow::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
-  mask |= PRE_NEIGHBOR;
   return mask;
 }
 
@@ -180,6 +179,7 @@ void FixShardlow::initial_integrate(int vflag)
   int newton_pair = force->newton_pair;
   double randPair;
 
+  int *ssaAIR = atom->ssaAIR;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *duCond = atom->duCond;
@@ -263,7 +263,7 @@ void FixShardlow::initial_integrate(int vflag)
       for (jj = 0; jj < jnum; jj++) {
 	j = jlist[jj];
 	j &= NEIGHMASK;
-	if (neighbor->ssa_airnum[j] != idir) continue;
+	if (ssaAIR[j] != idir) continue;
 	jtype = type[j];
 	
 	delx = xtmp - x[j][0];
@@ -455,20 +455,6 @@ void FixShardlow::initial_integrate(int vflag)
     delete dvSSA[ii];
   }
   delete [] dvSSA;
-}
-
-/* ----------------------------------------------------------------------
- *    assign owned and ghost atoms their ssa active interaction region numbers
-------------------------------------------------------------------------- */
-
-void FixShardlow::setup_pre_neighbor()
-{
-  neighbor->assign_ssa_airnums();
-}
-
-void FixShardlow::pre_neighbor()
-{
-  neighbor->assign_ssa_airnums();
 }
 
 /* ---------------------------------------------------------------------- */

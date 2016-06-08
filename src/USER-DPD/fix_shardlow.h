@@ -34,9 +34,6 @@ class FixShardlow : public Fix {
   virtual void setup_pre_force(int);
   virtual void initial_integrate(int);
 
-  void setup_pre_neighbor();
-  void pre_neighbor();
-
  protected:
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);

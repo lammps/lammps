@@ -79,6 +79,7 @@ void AtomVecDPD::grow(int n)
   duCond = memory->grow(atom->duCond,nmax,"atom:duCond");
   duMech = memory->grow(atom->duMech,nmax,"atom:duMech");
   duChem = memory->grow(atom->duChem,nmax,"atom:duChem");
+  ssaAIR = memory->grow(atom->ssaAIR,nmax,"atom:ssaAIR");
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -104,6 +105,7 @@ void AtomVecDPD::grow_reset()
   duCond = atom->duCond;
   duMech = atom->duMech;
   duChem = atom->duChem;
+  ssaAIR = atom->ssaAIR;
 }
 
 /* ----------------------------------------------------------------------
@@ -128,6 +130,7 @@ void AtomVecDPD::copy(int i, int j, int delflag)
   uChem[j] = uChem[i];
   uCG[j] = uCG[i];
   uCGnew[j] = uCGnew[i];
+  ssaAIR[j] = ssaAIR[i];
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -517,6 +520,41 @@ int AtomVecDPD::pack_border_hybrid(int n, int *list, double *buf)
   return m;
 }
 
+/* ----------------------------------------------------------------------
+   convert atom coords into the ssa active interaction region number
+------------------------------------------------------------------------- */
+
+int AtomVecDPD::coord2ssaAIR(double *x)
+{
+  int ix, iy, iz;
+
+  ix = iy = iz = 0;
+  if (x[2] < domain->sublo[2]) iz = -1;
+  if (x[2] > domain->subhi[2]) iz = 1;
+  if (x[1] < domain->sublo[1]) iy = -1;
+  if (x[1] > domain->subhi[1]) iy = 1;
+  if (x[0] < domain->sublo[0]) ix = -1;
+  if (x[0] > domain->subhi[0]) ix = 1;
+
+  if(iz < 0) return 0;
+
+  if(iz == 0){
+    if( iy<0 ) return 0; // bottom left/middle/right
+    if( (iy==0) && (ix<0)  ) return 0; // left atoms
+    if( (iy==0) && (ix==0) ) return 1; // Locally owned atoms
+    if( (iy==0) && (ix>0)  ) return 3; // Right atoms
+    if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
+    if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
+  } else if(iz > 0) {
+    if((ix==0) && (iy==0)) return 5; // Back atoms
+    if((ix==0) && (iy!=0)) return 6; // Top-back and bottom-back atoms
+    if((ix!=0) && (iy==0)) return 7; // Left-back and right-back atoms
+    if((ix!=0) && (iy!=0)) return 8; // Back corner atoms
+  }
+
+  return 0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomVecDPD::unpack_border(int n, int first, double *buf)
@@ -539,6 +577,7 @@ void AtomVecDPD::unpack_border(int n, int first, double *buf)
     uChem[i] = buf[m++];
     uCG[i] = buf[m++];
     uCGnew[i] = buf[m++];
+    ssaAIR[i] = coord2ssaAIR(x[i]);
   }
 
   if (atom->nextra_border)
@@ -572,6 +611,7 @@ void AtomVecDPD::unpack_border_vel(int n, int first, double *buf)
     uChem[i] = buf[m++];
     uCG[i] = buf[m++];
     uCGnew[i] = buf[m++];
+    ssaAIR[i] = coord2ssaAIR(x[i]);
   }
 
   if (atom->nextra_border)
@@ -612,6 +652,7 @@ int AtomVecDPD::unpack_border_hybrid(int n, int first, double *buf)
     uChem[i] = buf[m++];
     uCG[i] = buf[m++];
     uCGnew[i] = buf[m++];
+    ssaAIR[i] = coord2ssaAIR(x[i]);
   }
   return m;
 }
@@ -673,6 +714,7 @@ int AtomVecDPD::unpack_exchange(double *buf)
   uChem[nlocal] = buf[m++];
   uCG[nlocal] = buf[m++];
   uCGnew[nlocal] = buf[m++];
+  ssaAIR[nlocal] = 1; /* coord2ssaAIR(x[nlocal]) */
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -763,6 +805,7 @@ int AtomVecDPD::unpack_restart(double *buf)
   uCond[nlocal] = buf[m++];
   uMech[nlocal] = buf[m++];
   uChem[nlocal] = buf[m++];
+  ssaAIR[nlocal] = 1; /* coord2ssaAIR(x[nlocal]) */
 
   double **extra = atom->extra;
   if (atom->nextra_store) {
@@ -805,6 +848,7 @@ void AtomVecDPD::create_atom(int itype, double *coord)
   duCond[nlocal] = 0.0;
   duMech[nlocal] = 0.0;
   duChem[nlocal] = 0.0;
+  ssaAIR[nlocal] = 1; /* coord2ssaAIR(x[nlocal]) */
 
   atom->nlocal++;
 }
@@ -845,6 +889,7 @@ void AtomVecDPD::data_atom(double *coord, tagint imagetmp, char **values)
   uChem[nlocal] = 0.0;
   uCG[nlocal] = 0.0;
   uCGnew[nlocal] = 0.0;
+  ssaAIR[nlocal] = 1; /* coord2ssaAIR(x[nlocal]) */
 
   atom->nlocal++;
 }
@@ -857,6 +902,7 @@ void AtomVecDPD::data_atom(double *coord, tagint imagetmp, char **values)
 int AtomVecDPD::data_atom_hybrid(int nlocal, char **values)
 {
   dpdTheta[nlocal] = atof(values[0]);
+  ssaAIR[nlocal] = 1; /* coord2ssaAIR(x[nlocal]) */
 
   return 1;
 }
@@ -940,6 +986,7 @@ bigint AtomVecDPD::memory_usage()
   if (atom->memcheck("duCond")) bytes += memory->usage(duCond,nmax);
   if (atom->memcheck("duMech")) bytes += memory->usage(duMech,nmax);
   if (atom->memcheck("duChem")) bytes += memory->usage(duChem,nmax);
+  if (atom->memcheck("ssaAIR")) bytes += memory->usage(ssaAIR,nmax);
 
   return bytes;
 }

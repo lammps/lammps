@@ -2,4 +2,4 @@
 
 gpu_SYSINC =
 gpu_SYSLIB = -lcudart -lcuda
-gpu_SYSPATH = -L/usr/local/cuda/lib64
+gpu_SYSPATH = -L$(CUDA_HOME)/lib64

@@ -33,6 +33,7 @@ class ImproperHybrid : public Improper {
 
   ImproperHybrid(class LAMMPS *);
   ~ImproperHybrid();
+  void init();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

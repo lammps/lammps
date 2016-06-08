@@ -106,8 +106,6 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   // USER-DPD SSA AIR binning
 
-  len_ssa_airnum = 0;
-  ssa_airnum = NULL;
   maxbin_ssa = 0;
   bins_ssa = NULL;
   binhead_ssa = NULL;
@@ -189,7 +187,6 @@ Neighbor::~Neighbor()
   memory->destroy(gbinhead_ssa);
   memory->destroy(binhead_ssa);
   memory->destroy(bins_ssa);
-  memory->destroy(ssa_airnum);
 
   memory->destroy(ex1_type);
   memory->destroy(ex2_type);
@@ -2224,8 +2221,6 @@ bigint Neighbor::memory_usage()
     bytes += memory->usage(binhead_ssa,maxhead_ssa);
     bytes += memory->usage(gbinhead_ssa,maxhead_ssa);
   }
-
-  bytes += memory->usage(ssa_airnum,len_ssa_airnum);
 
   for (int i = 0; i < nrequest; i++)
     if (lists[i]) bytes += lists[i]->memory_usage();

@@ -96,6 +96,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   uCond = uMech = uChem = uCG = uCGnew = NULL;
   duCond = duMech = duChem = NULL;
   dpdTheta = NULL;
+  ssaAIR = NULL;
 
   // USER-SMD
 
@@ -287,6 +288,7 @@ Atom::~Atom()
   memory->destroy(duCond);
   memory->destroy(duMech);
   memory->destroy(duChem);
+  memory->destroy(ssaAIR);
 
   memory->destroy(nspecial);
   memory->destroy(special);

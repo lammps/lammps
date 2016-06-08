@@ -421,7 +421,6 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
   // read r,e table values from file
 
-  int itmp;
   double rtmp, tmpE;
   int nwords;
   char * word;
@@ -439,7 +438,6 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     }
     nwords = 0;
     word = strtok(line," \t\n\r\f");
-    itmp = atoi(word);
     word = strtok(NULL," \t\n\r\f");
     rtmp = atof(word);
 

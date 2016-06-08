@@ -244,13 +244,11 @@ void FixEHEX::end_of_step() {
 ------------------------------------------------------------------------- */
 
 void FixEHEX::rescale() {
-  double heat,ke,massone;
   double Kr, Ke, escale;
   double vsub[3],vcm[3], sfr[3];
-  double dvcmdt[3];
   double mi;
   double dt;
-  double F, mr, Fo2Kr, epsr_ik, sfvr, eta_ik;
+  double F, mr, epsr_ik, sfvr, eta_ik;
 
   dt = update->dt;
 
@@ -266,8 +264,6 @@ void FixEHEX::rescale() {
 
   mr    = masstotal;
   
-  Fo2Kr = F / (2.*Kr);
-
   // energy scaling factor
 
   escale = 1. + (F*dt)/Kr;

@@ -137,7 +137,7 @@ void FixRX::post_constructor()
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = fopen(kineticsFile,"r");
+    fp = force->open_potential(kineticsFile);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open rx file %s",kineticsFile);
@@ -147,7 +147,7 @@ void FixRX::post_constructor()
 
   // Assign species names to tmpspecies array and determine the number of unique species
 
-  int n,nwords,ispecies;
+  int n,nwords;
   char line[MAXLINE],*ptr;
   int eof = 0;
   char * word;
@@ -179,17 +179,17 @@ void FixRX::post_constructor()
       word = strtok(NULL, " \t\n\r\f");
       match=false;
       for(int jj=0;jj<nUniqueSpecies;jj++){
-	if(strcmp(word,tmpspecies[jj])==0){
-	  match=true;
-	  break;
-	}
+        if(strcmp(word,tmpspecies[jj])==0){
+          match=true;
+          break;
+        }
       }
       if(!match){ 
-	if(nUniqueSpecies+1>=maxspecies)
-	  error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
-	tmpspecies[nUniqueSpecies] = new char[strlen(word)];
- 	strcpy(tmpspecies[nUniqueSpecies],word);
-	nUniqueSpecies++;
+        if(nUniqueSpecies+1>=maxspecies)
+          error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
+        tmpspecies[nUniqueSpecies] = new char[strlen(word)];
+        strcpy(tmpspecies[nUniqueSpecies],word);
+        nUniqueSpecies++;
       }
       word = strtok(NULL, " \t\n\r\f");
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0) break;
@@ -292,20 +292,19 @@ void FixRX::setup_pre_force(int vflag)
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int *mask = atom->mask;
-  double *dpdTheta = atom->dpdTheta;
   int newton_pair = force->newton_pair;
-  double tmp, theta;
+  double tmp;
   int ii;
 
   if(localTempFlag){
     if (newton_pair) {
       dpdThetaLocal = new double[nlocal+nghost];
       for (ii = 0; ii < nlocal+nghost; ii++)
-	dpdThetaLocal[ii] = double(0.0);
+    dpdThetaLocal[ii] = double(0.0);
     } else {
       dpdThetaLocal = new double[nlocal];
       for (ii = 0; ii < nlocal; ii++)
-	dpdThetaLocal[ii] = double(0.0);
+    dpdThetaLocal[ii] = double(0.0);
     }
     computeLocalTemperature();
   }
@@ -317,12 +316,10 @@ void FixRX::setup_pre_force(int vflag)
     }
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
-      if(localTempFlag) theta = dpdThetaLocal[i];
-      else theta=dpdTheta[i];
 
       // Set the reaction rate constants to zero:  no reactions occur at step 0
       for(int irxn=0;irxn<nreactions;irxn++)
-	kR[irxn] = double(0.0);
+        kR[irxn] = double(0.0);
       if(odeIntegrationFlag==ODE_LAMMPS_RK4) rk4(i);
     }
 
@@ -347,14 +344,13 @@ void FixRX::pre_force(int vflag)
     if (newton_pair) {
       dpdThetaLocal = new double[nlocal+nghost];
       for (ii = 0; ii < nlocal+nghost; ii++)
-	dpdThetaLocal[ii] = double(0.0);
+        dpdThetaLocal[ii] = double(0.0);
     } else {
       dpdThetaLocal = new double[nlocal];
       for (ii = 0; ii < nlocal; ii++)
-	dpdThetaLocal[ii] = double(0.0);
+        dpdThetaLocal[ii] = double(0.0);
     }
     computeLocalTemperature();
-    double *dpdTheta = this->dpdThetaLocal;
   }
 
   for (int i = 0; i < nlocal; i++)
@@ -364,7 +360,7 @@ void FixRX::pre_force(int vflag)
 
       //Compute the reaction rate constants
       for(int irxn=0;irxn<nreactions;irxn++)
- 	kR[irxn] = Arr[irxn]*pow(theta,nArr[irxn])*exp(-Ea[irxn]/force->boltz/theta);
+        kR[irxn] = Arr[irxn]*pow(theta,nArr[irxn])*exp(-Ea[irxn]/force->boltz/theta);
       if(odeIntegrationFlag==ODE_LAMMPS_RK4) rk4(i);
     }
 
@@ -384,7 +380,7 @@ void FixRX::read_file(char *file)
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
+    fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open rx file %s",file);
@@ -421,7 +417,7 @@ void FixRX::read_file(char *file)
   }
 
   // open file on proc 0
-  if (comm->me == 0) fp = fopen(file,"r");
+  if (comm->me == 0) fp = force->open_potential(file);
 
   // read each reaction from kinetics file
   eof=0;
@@ -479,31 +475,37 @@ void FixRX::read_file(char *file)
       tmpStoich = atof(word);
       word = strtok(NULL, " \t\n\r\f");
       for (ispecies = 0; ispecies < nspecies; ispecies++){
-	if (strcmp(word,&atom->dname[ispecies][0]) == 0){
-	  stoich[nreactions][ispecies] += sign*tmpStoich;
-	  if(sign<double(0.0)) stoichReactants[nreactions][ispecies] += tmpStoich;
-	  else stoichProducts[nreactions][ispecies] += tmpStoich;
-	  break;
-	}
+        if (strcmp(word,&atom->dname[ispecies][0]) == 0){
+          stoich[nreactions][ispecies] += sign*tmpStoich;
+          if(sign<double(0.0))
+            stoichReactants[nreactions][ispecies] += tmpStoich;
+          else stoichProducts[nreactions][ispecies] += tmpStoich;
+          break;
+        }
       }
       if(ispecies==nspecies){
-	printf("%s mol fraction is not found in data file\n",word);
-	printf("nspecies=%d ispecies=%d\n",nspecies,ispecies);
-	error->all(FLERR,"Illegal fix rx command");
+        if (comm->me) {
+          fprintf(stderr,"%s mol fraction is not found in data file\n",word);
+          fprintf(stderr,"nspecies=%d ispecies=%d\n",nspecies,ispecies);
+        }
+        error->all(FLERR,"Illegal fix rx command");
       }
       word = strtok(NULL, " \t\n\r\f");
       if(strcmp(word,"=") == 0) sign = double(1.0);
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0){
-	if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-	Arr[nreactions] = atof(word);
-	word = strtok(NULL, " \t\n\r\f");
-	if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-	nArr[nreactions]  = atof(word);
-	word = strtok(NULL, " \t\n\r\f");
-	if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
-	Ea[nreactions]  = atof(word);
-	sign = double(-1.0);
-	break;
+        if(word==NULL)
+          error->all(FLERR,"Missing parameters in reaction kinetic equation");
+        Arr[nreactions] = atof(word);
+        word = strtok(NULL, " \t\n\r\f");
+        if(word==NULL)
+          error->all(FLERR,"Missing parameters in reaction kinetic equation");
+        nArr[nreactions]  = atof(word);
+        word = strtok(NULL, " \t\n\r\f");
+        if(word==NULL)
+          error->all(FLERR,"Missing parameters in reaction kinetic equation");
+        Ea[nreactions]  = atof(word);
+        sign = double(-1.0);
+        break;
       }
       word = strtok(NULL, " \t\n\r\f");
     }
@@ -527,8 +529,8 @@ void FixRX::setupParams()
     n = -1;
     for (j = 0; j < nreactions; j++) {
       if (i == params[j].ispecies) {
-	if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	n = j;
+    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+    n = j;
       }
     }
     mol2param[i] = n;
@@ -586,7 +588,7 @@ void FixRX::rk4(int id)
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
       y[ispecies] += h*(k1[ispecies]/6.0 + k2[ispecies]/3.0 + 
-          	        k3[ispecies]/3.0 + k4[ispecies]/6.0);
+                    k3[ispecies]/3.0 + k4[ispecies]/6.0);
 
   } // end for (int step...
 
@@ -649,7 +651,7 @@ void FixRX::computeLocalTemperature()
   int newton_pair = force->newton_pair;
 
   // local temperature variables
-  double wij, fr, fr4;
+  double wij;
   double *dpdTheta = atom->dpdTheta;
 
   // Initialize the local density and local temperature arrays
@@ -690,24 +692,22 @@ void FixRX::computeLocalTemperature()
 
       if (rsq < pairDPDE->cutsq[itype][jtype]) {
         double rcut = sqrt(pairDPDE->cutsq[itype][jtype]);
-	double rij = sqrt(rsq);
-	double tmpFactor = double(1.0)-rij/rcut;
-	double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-	double ratio = rij/rcut;
+    double rij = sqrt(rsq);
+    double ratio = rij/rcut;
 
-	// Lucy's Weight Function
-	if(wtFlag==LUCY){
-	  wij = (double(1.0)+double(3.0)*ratio) * (double(1.0)-ratio)*(double(1.0)-ratio)*(double(1.0)-ratio);
-	  dpdThetaLocal[i] += wij/dpdTheta[j];
-	  if (newton_pair || j < nlocal) 
-	    dpdThetaLocal[j] += wij/dpdTheta[i];
-	}
+    // Lucy's Weight Function
+    if(wtFlag==LUCY){
+      wij = (double(1.0)+double(3.0)*ratio) * (double(1.0)-ratio)*(double(1.0)-ratio)*(double(1.0)-ratio);
+      dpdThetaLocal[i] += wij/dpdTheta[j];
+      if (newton_pair || j < nlocal) 
+        dpdThetaLocal[j] += wij/dpdTheta[i];
+    }
 
-	sumWeights[i] += wij;
+    sumWeights[i] += wij;
         if (newton_pair || j < nlocal) {
-	  sumWeights[j] += wij;
-	}
-	  
+      sumWeights[j] += wij;
+    }
+      
       }
     }
   }

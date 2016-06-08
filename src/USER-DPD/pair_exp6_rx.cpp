@@ -66,7 +66,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq,rinv,r2inv,r6inv,forceExp6,factor_lj;
+  double rsq,r2inv,r6inv,forceExp6,factor_lj;
   double rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
   double rm2ij,rm6ij;
   double r,rexp;
@@ -145,232 +145,229 @@ void PairExp6rx::compute(int eflag, int vflag)
         r6inv = r2inv*r2inv*r2inv;
 
         r = sqrt(rsq);
-	rinv = double(1.0)/r;
 
-	rCut2inv = double(1.0)/cutsq[itype][jtype];
-	rCut6inv = rCut2inv*rCut2inv*rCut2inv;
-	rCut = sqrt(cutsq[itype][jtype]);
-	rCutInv = double(1.0)/rCut;
+        rCut2inv = double(1.0)/cutsq[itype][jtype];
+        rCut6inv = rCut2inv*rCut2inv*rCut2inv;
+        rCut = sqrt(cutsq[itype][jtype]);
+        rCutInv = double(1.0)/rCut;
 
-	//
-	// A. Compute the exp-6 potential
-	//
+        //
+        // A. Compute the exp-6 potential
+        //
 
-	// A1.  Get alpha, epsilon and rm for particle j
-	getParamsEXP6(j,epsilon1_j,alpha1_j,rm1_j,fraction1_j,epsilon2_j,alpha2_j,rm2_j,fraction2_j,epsilonOld1_j,alphaOld1_j,rmOld1_j,fractionOld1_j,epsilonOld2_j,alphaOld2_j,rmOld2_j,fractionOld2_j);
+        // A1.  Get alpha, epsilon and rm for particle j
+        getParamsEXP6(j,epsilon1_j,alpha1_j,rm1_j,fraction1_j,epsilon2_j,alpha2_j,rm2_j,fraction2_j,epsilonOld1_j,alphaOld1_j,rmOld1_j,fractionOld1_j,epsilonOld2_j,alphaOld2_j,rmOld2_j,fractionOld2_j);
 
-	// A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
-	alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
-	rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
-	epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
-	alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
-	rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
-	epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
+        // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
+        alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
+        rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
+        epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
+        alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
+        rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
+        epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
 
-	alpha12_ij = sqrt(alpha1_i*alpha2_j);
-	rm12_ij = 0.5*(rm1_i + rm2_j);
-	epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
-	alpha21_ij = sqrt(alpha2_i*alpha1_j);
-	rm21_ij = 0.5*(rm2_i + rm1_j);
-	epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+        alpha12_ij = sqrt(alpha1_i*alpha2_j);
+        rm12_ij = 0.5*(rm1_i + rm2_j);
+        epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
+        alpha21_ij = sqrt(alpha2_i*alpha1_j);
+        rm21_ij = 0.5*(rm2_i + rm1_j);
+        epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
 
-	if(rmOld12_ij!=double(0.0) && rmOld21_ij!=double(0.0)){
-	  if(alphaOld21_ij == double(6.0) || alphaOld12_ij == double(6.0)) 
-	    error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
+        if(rmOld12_ij!=double(0.0) && rmOld21_ij!=double(0.0)){
+          if(alphaOld21_ij == double(6.0) || alphaOld12_ij == double(6.0)) 
+            error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
-	  // A3.  Compute some convenient quantities for evaluating the force
-	  rminv = 1.0/rmOld12_ij;
-	  buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
-	  rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
-	  rm2ij = rmOld12_ij*rmOld12_ij;
-	  rm6ij = rm2ij*rm2ij*rm2ij;
+          // A3.  Compute some convenient quantities for evaluating the force
+          rminv = 1.0/rmOld12_ij;
+          buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
+          rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
+          rm2ij = rmOld12_ij*rmOld12_ij;
+          rm6ij = rm2ij*rm2ij*rm2ij;
 
-	  // Compute the shifted potential
-	  rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
-	  buck2 = 6.0*alphaOld12_ij;
-	  urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
-	  durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
-	  rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
-	  if(r < rin1){
-	    rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-	    rin6inv = double(1.0)/rin6;
+          // Compute the shifted potential
+          rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
+          buck2 = 6.0*alphaOld12_ij;
+          urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
+          durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
+          rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
+          if(r < rin1){
+            rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            rin6inv = double(1.0)/rin6;
 
-	    rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
+            rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
 
-	    uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-	    win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-	    aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
 
-	    uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/pow(rin1,nRep);
 
-	    evdwlOldEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
 
-	  } else {
-	    evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut); 
-	  }
+          } else {
+            evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut); 
+          }
 
-	  // A3.  Compute some convenient quantities for evaluating the force
-	  rminv = 1.0/rmOld21_ij;
-	  buck1 = epsilonOld21_ij / (alphaOld21_ij - 6.0);
-	  buck2 = 6.0*alphaOld21_ij;
-	  rexp = expValue(alphaOld21_ij*(1.0-r*rminv));
-	  rm2ij = rmOld21_ij*rmOld21_ij;
-	  rm6ij = rm2ij*rm2ij*rm2ij;
-	  
-	  // Compute the shifted potential
-	  rCutExp = expValue(alphaOld21_ij*(1.0-rCut*rminv));
-	  buck2 = 6.0*alphaOld21_ij;
-	  urc = buck1*(6.0*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
-	  durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
-	  rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
+          // A3.  Compute some convenient quantities for evaluating the force
+          rminv = 1.0/rmOld21_ij;
+          buck1 = epsilonOld21_ij / (alphaOld21_ij - 6.0);
+          buck2 = 6.0*alphaOld21_ij;
+          rexp = expValue(alphaOld21_ij*(1.0-r*rminv));
+          rm2ij = rmOld21_ij*rmOld21_ij;
+          rm6ij = rm2ij*rm2ij*rm2ij;
 
-	  if(r < rin1){
-	    rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-	    rin6inv = double(1.0)/rin6;
+          // Compute the shifted potential
+          rCutExp = expValue(alphaOld21_ij*(1.0-rCut*rminv));
+          buck2 = 6.0*alphaOld21_ij;
+          urc = buck1*(6.0*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
+          durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
+          rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
 
-	    rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
+          if(r < rin1){
+            rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            rin6inv = double(1.0)/rin6;
 
-	    uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
 
-	    win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-	    aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-	    uin1rep = aRep/pow(rin1,nRep);
+            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
 
-	    evdwlOldEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
+            uin1rep = aRep/pow(rin1,nRep);
 
-	  } else {
-	    evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut); 
-	  }
+            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
 
-	  if (strcmp(site1,site2) == 0)
-	    evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12;
-	  else
-	    evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*evdwlOldEXP6_21;
-	  
-	  evdwlOld *= factor_lj;
-	  
-	  uCG[i] += double(0.5)*evdwlOld;
-	  uCG[j] += double(0.5)*evdwlOld;
-	}
+          } else {
+            evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut); 
+          }
 
-	if(rm12_ij!=double(0.0) && rm21_ij!=double(0.0)){
-	  if(alpha21_ij == double(6.0) || alpha12_ij == double(6.0)) 
-	    error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
+          if (strcmp(site1,site2) == 0)
+            evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12;
+          else
+            evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwlOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*evdwlOldEXP6_21;
 
-	  // A3.  Compute some convenient quantities for evaluating the force
-	  rminv = 1.0/rm12_ij;
-	  buck1 = epsilon12_ij / (alpha12_ij - 6.0);
-	  buck2 = 6.0*alpha12_ij;
-	  rexp = expValue(alpha12_ij*(1.0-r*rminv));
-	  rm2ij = rm12_ij*rm12_ij;
-	  rm6ij = rm2ij*rm2ij*rm2ij;
-	  
-	  // Compute the shifted potential
-	  rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
-	  urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
-	  durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
-	  rin1 = shift*rm12_ij*func_rin(alpha12_ij);
+          evdwlOld *= factor_lj;
 
-	  if(r < rin1){
-	    rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-	    rin6inv = double(1.0)/rin6;
+          uCG[i] += double(0.5)*evdwlOld;
+          uCG[j] += double(0.5)*evdwlOld;
+        }
 
-	    rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
+        if(rm12_ij!=double(0.0) && rm21_ij!=double(0.0)){
+          if(alpha21_ij == double(6.0) || alpha12_ij == double(6.0)) 
+            error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
-	    uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          // A3.  Compute some convenient quantities for evaluating the force
+          rminv = 1.0/rm12_ij;
+          buck1 = epsilon12_ij / (alpha12_ij - 6.0);
+          buck2 = 6.0*alpha12_ij;
+          rexp = expValue(alpha12_ij*(1.0-r*rminv));
+          rm2ij = rm12_ij*rm12_ij;
+          rm6ij = rm2ij*rm2ij*rm2ij;
 
-	    win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+          // Compute the shifted potential
+          rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
+          urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
+          durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
+          rin1 = shift*rm12_ij*func_rin(alpha12_ij);
 
-	    aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+          if(r < rin1){
+            rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            rin6inv = double(1.0)/rin6;
 
-	    uin1rep = aRep/pow(rin1,nRep);
+            rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
 
-	    evdwlEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
+            uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-	    forceExp6 = double(-1.0)*nRep*aRep/pow(r,nRep);
-	    fpairEXP6_12 = factor_lj*forceExp6*r2inv;
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-	  } else {
+            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
 
-	    // A4.  Compute the exp-6 force and energy
-	    forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
-	    fpairEXP6_12 = factor_lj*forceExp6*r2inv;
-	    
-	    evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
-	  }
-	  
-	  rminv = 1.0/rm21_ij;
-	  buck1 = epsilon21_ij / (alpha21_ij - 6.0);
-	  buck2 = 6.0*alpha21_ij;
-	  rexp = expValue(alpha21_ij*(1.0-r*rminv));
-	  rm2ij = rm21_ij*rm21_ij;
-	  rm6ij = rm2ij*rm2ij*rm2ij;
+            uin1rep = aRep/pow(rin1,nRep);
 
-	  // Compute the shifted potential
-	  rCutExp = expValue(alpha21_ij*(1.0-rCut*rminv));
-	  urc = buck1*(6.0*rCutExp - alpha21_ij*rm6ij*rCut6inv);
-	  durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
-	  rin1 = shift*rm21_ij*func_rin(alpha21_ij);
+            evdwlEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
 
-	  if(r < rin1){
-	    rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-	    rin6inv = double(1.0)/rin6;
+            forceExp6 = double(-1.0)*nRep*aRep/pow(r,nRep);
+            fpairEXP6_12 = factor_lj*forceExp6*r2inv;
 
-	    rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
+          } else {
 
-	    uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            // A4.  Compute the exp-6 force and energy
+            forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            fpairEXP6_12 = factor_lj*forceExp6*r2inv;
+            evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          }
 
-	    win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+          rminv = 1.0/rm21_ij;
+          buck1 = epsilon21_ij / (alpha21_ij - 6.0);
+          buck2 = 6.0*alpha21_ij;
+          rexp = expValue(alpha21_ij*(1.0-r*rminv));
+          rm2ij = rm21_ij*rm21_ij;
+          rm6ij = rm2ij*rm2ij*rm2ij;
 
-	    aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+          // Compute the shifted potential
+          rCutExp = expValue(alpha21_ij*(1.0-rCut*rminv));
+          urc = buck1*(6.0*rCutExp - alpha21_ij*rm6ij*rCut6inv);
+          durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
+          rin1 = shift*rm21_ij*func_rin(alpha21_ij);
 
-	    uin1rep = aRep/pow(rin1,nRep);
+          if(r < rin1){
+            rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
+            rin6inv = double(1.0)/rin6;
 
-	    evdwlEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
+            rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
 
-	    forceExp6 = double(-1.0)*nRep*aRep/pow(r,nRep);
-	    fpairEXP6_21 = factor_lj*forceExp6*r2inv;
+            uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-	  } else {
+            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-	    // A4.  Compute the exp-6 force and energy
-	    forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
-	    fpairEXP6_21 = factor_lj*forceExp6*r2inv;
-	    
-	    evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
-	  }
+            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
 
-	  //
-	  // Apply Mixing Rule to get the overall force for the CG pair
-	  //
-	  if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12; 
-	  else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairEXP6_21;
-	  
-	  f[i][0] += delx*fpair;
-	  f[i][1] += dely*fpair;
-	  f[i][2] += delz*fpair;
-	  if (newton_pair || j < nlocal) {
-	    f[j][0] -= delx*fpair;
-	    f[j][1] -= dely*fpair;
-	    f[j][2] -= delz*fpair;
-	  }
-	
-	  if (strcmp(site1,site2) == 0)
-	    evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12;
-	  else
-	    evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12 + sqrt(fraction2_i*fraction1_j)*evdwlEXP6_21;
-	  evdwl *= factor_lj;
-	  
-	  uCGnew[i] += double(0.5)*evdwl;
-	  uCGnew[j] += double(0.5)*evdwl;
-	  evdwl = evdwlOld;
-	  if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			       evdwl,0.0,fpair,delx,dely,delz);
-	}
+            uin1rep = aRep/pow(rin1,nRep);
+
+            evdwlEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
+
+            forceExp6 = double(-1.0)*nRep*aRep/pow(r,nRep);
+            fpairEXP6_21 = factor_lj*forceExp6*r2inv;
+
+          } else {
+
+            // A4.  Compute the exp-6 force and energy
+            forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            fpairEXP6_21 = factor_lj*forceExp6*r2inv;
+            evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          }
+
+          //
+          // Apply Mixing Rule to get the overall force for the CG pair
+          //
+          if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12; 
+          else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairEXP6_21;
+
+          f[i][0] += delx*fpair;
+          f[i][1] += dely*fpair;
+          f[i][2] += delz*fpair;
+          if (newton_pair || j < nlocal) {
+            f[j][0] -= delx*fpair;
+            f[j][1] -= dely*fpair;
+            f[j][2] -= delz*fpair;
+          }
+
+          if (strcmp(site1,site2) == 0)
+            evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12;
+          else
+            evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12 + sqrt(fraction2_i*fraction1_j)*evdwlEXP6_21;
+          evdwl *= factor_lj;
+
+          uCGnew[i] += double(0.5)*evdwl;
+          uCGnew[j] += double(0.5)*evdwl;
+          evdwl = evdwlOld;
+          if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                               evdwl,0.0,fpair,delx,dely,delz);
+        }
       }
     }
   }
@@ -597,8 +594,8 @@ void PairExp6rx::read_file(char *file)
       params[nparams].epsilon = atof(words[3]);
       params[nparams].rm = atof(words[4]);
       if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
-	  params[nparams].alpha < 0.0)
-	error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");
+          params[nparams].alpha < 0.0)
+        error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");
     } else {
       error->all(FLERR,"Illegal exp6/rx parameters.  Interaction potential does not exist.");
     }
@@ -624,8 +621,8 @@ void PairExp6rx::setup()
     n = -1;
     for (j = 0; j < nparams; j++) {
       if (i == params[j].ispecies) {
-	if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-	n = j;
+        if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+        n = j;
       }
     }
     mol2param[i] = n;
@@ -713,8 +710,8 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   double rmi, rmj, rmij, rm3ij;
   double epsiloni, epsilonj, epsilonij;
   double alphai, alphaj, alphaij;
-  double epsilon_old, rm3_old, alpha_old, fraction_old;
-  double epsilon, rm3, alpha, fraction;
+  double epsilon_old, rm3_old, alpha_old;
+  double epsilon, rm3, alpha;
   double fractionOFA, fractionOFA_old;
   double nTotalOFA, nTotalOFA_old;
   double nTotal, nTotal_old;
@@ -726,8 +723,6 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   epsilon_old = double(0.0);
   rm3_old = double(0.0);
   alpha_old = double(0.0);
-  fraction_old = double(0.0);
-  fraction = double(0.0);
   fractionOFA = double(0.0);
   fractionOFA_old = double(0.0);
   nTotalOFA = double(0.0);
@@ -797,30 +792,30 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       xMolei_old = atom->dvector[ispecies+nspecies][id]/nTotalOFA_old;
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
-    	jparam = mol2param[jspecies];
-    	if (jparam < 0 || strcmp(params[jparam].potential,"exp6") != 0) continue;
-    	if (strcmp(site1,params[jparam].name) == 0 || strcmp(site2,params[jparam].name) == 0) continue;
-    	rmj = params[jparam].rm;
-    	epsilonj = params[jparam].epsilon;
-    	alphaj = params[jparam].alpha;
-	xMolej = atom->dvector[jspecies][id]/nTotalOFA;
-	xMolej_old = atom->dvector[jspecies+nspecies][id]/nTotalOFA_old;
+        jparam = mol2param[jspecies];
+        if (jparam < 0 || strcmp(params[jparam].potential,"exp6") != 0) continue;
+        if (strcmp(site1,params[jparam].name) == 0 || strcmp(site2,params[jparam].name) == 0) continue;
+        rmj = params[jparam].rm;
+        epsilonj = params[jparam].epsilon;
+        alphaj = params[jparam].alpha;
+        xMolej = atom->dvector[jspecies][id]/nTotalOFA;
+        xMolej_old = atom->dvector[jspecies+nspecies][id]/nTotalOFA_old;
 
-    	rmij = (rmi+rmj)/2.0;
-    	rm3ij = rmij*rmij*rmij;
-    	epsilonij = sqrt(epsiloni*epsilonj);
-    	alphaij = sqrt(alphai*alphaj);
-	
-	if(fractionOFA_old > double(0.0)){
-	  rm3_old += xMolei_old*xMolej_old*rm3ij;
-	  epsilon_old += xMolei_old*xMolej_old*rm3ij*epsilonij;
-	  alpha_old += xMolei_old*xMolej_old*rm3ij*epsilonij*alphaij;
-	}
-	if(fractionOFA > double(0.0)){
-	  rm3 += xMolei*xMolej*rm3ij;
-	  epsilon += xMolei*xMolej*rm3ij*epsilonij;
-	  alpha += xMolei*xMolej*rm3ij*epsilonij*alphaij;
-	}	  
+        rmij = (rmi+rmj)/2.0;
+        rm3ij = rmij*rmij*rmij;
+        epsilonij = sqrt(epsiloni*epsilonj);
+        alphaij = sqrt(alphai*alphaj);
+    
+        if(fractionOFA_old > double(0.0)){
+          rm3_old += xMolei_old*xMolej_old*rm3ij;
+          epsilon_old += xMolei_old*xMolej_old*rm3ij*epsilonij;
+          alpha_old += xMolei_old*xMolej_old*rm3ij*epsilonij*alphaij;
+        }
+        if(fractionOFA > double(0.0)){
+          rm3 += xMolei*xMolej*rm3ij;
+          epsilon += xMolei*xMolej*rm3ij*epsilonij;
+          alpha += xMolei*xMolej*rm3ij*epsilonij*alphaij;
+        }  
       }
     }
   }
@@ -945,12 +940,10 @@ double PairExp6rx::func_rin(double &alpha)
 {
   double function;
 
-  const double alpha_min = double(11.0);
-  const double alpha_max = double(16.0);
   const double a = double(3.7682065);
   const double b = double(-1.4308614);
   
-  function = a+b*pow(alpha,0.5);
+  function = a+b*sqrt(alpha);
   function = expValue(function); 
 
   return function;

@@ -212,55 +212,57 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
 
   int inum = 0;
 
+  if (binatomflag) { /* only false in Neighbor::build_one */
 /* ----------------------------------------------------------------------
    bin owned and ghost atoms for use by Shardlow Splitting Algorithm
     exclude ghost atoms that are not in the Active Interaction Regions (AIR)
 ------------------------------------------------------------------------- */
 
-  if (mbins > maxhead_ssa) {
-    maxhead_ssa = mbins;
-    memory->destroy(gbinhead_ssa);
-    memory->destroy(binhead_ssa);
-    memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
-    memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
-  }
-  for (i = 0; i < mbins; i++) {
-    gbinhead_ssa[i] = -1;
-    binhead_ssa[i] = -1;
-  }
+    if (mbins > maxhead_ssa) {
+      maxhead_ssa = mbins;
+      memory->destroy(gbinhead_ssa);
+      memory->destroy(binhead_ssa);
+      memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
+      memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
+    }
+    for (i = 0; i < mbins; i++) {
+      gbinhead_ssa[i] = -1;
+      binhead_ssa[i] = -1;
+    }
 
-  if (maxbin > maxbin_ssa) {
-    maxbin_ssa = maxbin;
-    memory->destroy(bins_ssa);
-    memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
-  }
+    if (maxbin > maxbin_ssa) {
+      maxbin_ssa = maxbin;
+      memory->destroy(bins_ssa);
+      memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
+    }
 
-  // bin in reverse order so linked list will be in forward order
+    // bin in reverse order so linked list will be in forward order
 
-  if (includegroup) {
-    int bitmask = group->bitmask[includegroup];
-    for (i = nall-1; i >= nlocal; i--) {
-      if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
-      if (mask[i] & bitmask) {
+    if (includegroup) {
+      int bitmask = group->bitmask[includegroup];
+      for (i = nall-1; i >= nlocal; i--) {
+        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
+        if (mask[i] & bitmask) {
+          ibin = coord2bin(x[i]);
+          bins_ssa[i] = gbinhead_ssa[ibin];
+          gbinhead_ssa[ibin] = i;
+        }
+      }
+      nlocal = atom->nfirst; // This is important for the code that follows!
+    } else {
+      for (i = nall-1; i >= nlocal; i--) {
+        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
         ibin = coord2bin(x[i]);
         bins_ssa[i] = gbinhead_ssa[ibin];
         gbinhead_ssa[ibin] = i;
       }
     }
-    nlocal = atom->nfirst; // This is important for the code that follows!
-  } else {
-    for (i = nall-1; i >= nlocal; i--) {
-      if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
+    for (i = nlocal-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
-      bins_ssa[i] = gbinhead_ssa[ibin];
-      gbinhead_ssa[ibin] = i;
+      bins_ssa[i] = binhead_ssa[ibin];
+      binhead_ssa[ibin] = i;
     }
-  }
-  for (i = nlocal-1; i >= 0; i--) {
-    ibin = coord2bin(x[i]);
-    bins_ssa[i] = binhead_ssa[ibin];
-    binhead_ssa[ibin] = i;
-  }
+  } /* else reuse previous binning. See Neighbor::build_one comment. */
 
   ipage->reset();
 

@@ -346,6 +346,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
 
     // loop over AIR ghost atoms in all bins in "full" stencil
     // Note: the non-AIR ghost atoms have already been filtered out
+    // That is a significant time savings because of the "full" stencil
     for (k = 0; k < maxstencil; k++) {
       if (stencil[k] > mbins) break; /* Check if ghost stencil bins are exhausted */
       for (j = gbinhead_ssa[ibin+stencil[k]]; j >= 0; j = bins_ssa[j]) {

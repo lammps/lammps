@@ -143,13 +143,6 @@ void FixShardlow::setup(int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::setup_pre_force(int vflag)
-{
-  neighbor->build_one(list);
-}
-
 /* ----------------------------------------------------------------------
    Perform the stochastic integration and Shardlow update
    Allow for both per-type and per-atom mass

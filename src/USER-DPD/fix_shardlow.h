@@ -31,7 +31,6 @@ class FixShardlow : public Fix {
   int setmask();
   virtual void init_list(int,class NeighList *);
   virtual void setup(int);
-  virtual void setup_pre_force(int);
   virtual void initial_integrate(int);
 
  protected:

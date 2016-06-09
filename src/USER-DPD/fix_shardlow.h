@@ -67,7 +67,7 @@ Self-explanatory.
 
 E: Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow
 
-E: A deterministic integrator must be specified after fix shardlow in input 
+E: A deterministic integrator must be specified after fix shardlow in input
 file (e.g. fix nve or fix nph).
 
 Self-explanatory.
@@ -80,11 +80,11 @@ E: Fix shardlow does not yet support triclinic geometries
 
 Self-explanatory.
 
-E:  Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either 
+E:  Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either
 reduce the number of processors requested, or change the cutoff/skin
 
-The Shardlow splitting algorithm requires the size of the sub-domain lengths 
-to be are larger than twice the cutoff+skin.  Generally, the domain decomposition 
+The Shardlow splitting algorithm requires the size of the sub-domain lengths
+to be are larger than twice the cutoff+skin.  Generally, the domain decomposition
 is dependant on the number of processors requested.
 
 */

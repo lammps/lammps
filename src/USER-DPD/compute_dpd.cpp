@@ -36,9 +36,9 @@ ComputeDpd::ComputeDpd(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 5;
   extvector = 0;
-  
+
   vector = new double[size_vector];
-  
+
   if (atom->dpd_flag != 1) error->all(FLERR,"compute dpd requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 
@@ -78,7 +78,7 @@ void ComputeDpd::compute_vector()
       dpdU[4]++;
     }
   }
-    
+
   MPI_Allreduce(dpdU,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
 
   natoms = vector[4];

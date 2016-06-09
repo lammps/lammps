@@ -114,12 +114,12 @@ void PairDPDfdt::compute(int eflag, int vflag)
         if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
         rinv = 1.0/r;
         wr = 1.0 - r/cut[itype][jtype];
-	wd = wr*wr;
+        wd = wr*wr;
 
         // conservative force = a0 * wr
         fpair = a0[itype][jtype]*wr;
         fpair *= factor_dpd*rinv;
-	
+
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
         f[i][2] += delz*fpair;
@@ -179,7 +179,7 @@ void PairDPDfdt::settings(int narg, char **arg)
   temperature = force->numeric(FLERR,arg[0]);
   cut_global = force->numeric(FLERR,arg[1]);
   seed = force->inumeric(FLERR,arg[2]);
-      
+
   // initialize Marsaglia RNG with processor-unique seed
 
   if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
@@ -212,7 +212,7 @@ void PairDPDfdt::coeff(int narg, char **arg)
   double a0_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
   double cut_one = cut_global;
- 
+
   if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
 
   int count = 0;

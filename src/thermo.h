@@ -25,7 +25,6 @@ class Thermo : protected Pointers {
   char *style;
   int normflag;          // 0 if do not normalize by atoms, 1 if normalize
   int modified;          // 1 if thermo_modify has been used, else 0
-  int cudable;           // 1 if all computes used are cudable
   int lostflag;          // IGNORE,WARN,ERROR
   int lostbond;          // ditto for atoms in bonds
 

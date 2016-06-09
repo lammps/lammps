@@ -631,11 +631,8 @@ void Neighbor::init()
       // fix/compute requests:
       // whether request is occasional or not doesn't matter
       // if request = half and non-skip pair half/respaouter exists,
-      //   become copy of that list if cudable flag matches
       // if request = full and non-skip pair full exists,
-      //   become copy of that list if cudable flag matches
       // if request = half and non-skip pair full exists,
-      //   become half_from_full of that list if cudable flag matches
       // if no matches, do nothing
       //   fix/compute list will be built independently as needed
       // ok if parent is itself a copy list
@@ -652,8 +649,6 @@ void Neighbor::init()
           if (requests[i]->half && requests[j]->pair &&
               requests[j]->skip == 0 && requests[j]->respaouter) break;
         }
-        if (j < nrequest && requests[j]->cudable != requests[i]->cudable)
-          j = nrequest;
         if (j < nrequest) {
           requests[i]->copy = 1;
           requests[i]->otherlist = j;
@@ -664,8 +659,6 @@ void Neighbor::init()
             if (requests[i]->half && requests[j]->pair &&
                 requests[j]->skip == 0 && requests[j]->full) break;
           }
-          if (j < nrequest && requests[j]->cudable != requests[i]->cudable)
-            j = nrequest;
           if (j < nrequest) {
             requests[i]->half = 0;
             requests[i]->half_from_full = 1;
@@ -685,13 +678,11 @@ void Neighbor::init()
 
     // set ptrs to pair_build and stencil_create functions for each list
     // ptrs set to NULL if not set explicitly
-    // also set cudable to 0 if any neigh list request is not cudable
 
     for (i = 0; i < nrequest; i++) {
       choose_build(i,requests[i]);
       if (style != NSQ) choose_stencil(i,requests[i]);
       else stencil_create[i] = NULL;
-      if (!requests[i]->cudable) cudable = 0;
     }
 
     // set each list's build/grow/stencil/ghost flags based on neigh request

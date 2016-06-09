@@ -608,6 +608,8 @@ LAMMPS::~LAMMPS()
 
 void LAMMPS::create()
 {
+  force = NULL;         // Domain->Lattice checks if Force exists
+
   // Comm class must be created before Atom class
   // so that nthreads is defined when create_avec invokes grow()
 

@@ -2163,7 +2163,7 @@ void FixNH::compute_press_target()
       p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
       p_hydro += p_target[i];
     }
-  p_hydro /= pdim;
+  if (pdim > 0) p_hydro /= pdim;
 
   if (pstyle == TRICLINIC)
     for (int i = 3; i < 6; i++)
@@ -2215,7 +2215,7 @@ void FixNH::nh_omega_dot()
     for (int i = 0; i < 3; i++)
       if (p_flag[i])
         mtk_term2 += omega_dot[i];
-    mtk_term2 /= pdim * atom->natoms;
+    if (pdim > 0) mtk_term2 /= pdim * atom->natoms;
   }
 
   if (pstyle == TRICLINIC) {

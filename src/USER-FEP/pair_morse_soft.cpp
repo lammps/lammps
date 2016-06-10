@@ -48,7 +48,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r,dr,dexp,dexp2,dexp3,factor_lj;
   double ea,phi,V0,iea2;
-  double D, a, x0, l, B, s1, llf;
+  double D, a, x0, l, B, s1, ss, llf;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -111,7 +111,8 @@ void PairMorseSoft::compute(int eflag, int vflag)
 
         if (l >= shift_range){
           s1  = (l - 1.0) / (shift_range - 1.0);
-          phi = V0 + B*dexp3 * s1;
+          ss  = 3.0*s1*s1 - 2*s1*s1*s1;
+          phi = V0 + B*dexp3 * ss;
 
           // Force computation:
           fpair = 3.0*a*B*dexp3*s1 + 2.0*a*D*(dexp2 - dexp);

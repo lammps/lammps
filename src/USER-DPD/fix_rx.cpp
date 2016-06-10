@@ -250,10 +250,10 @@ void FixRX::post_constructor()
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
   for(int jj=0;jj<maxspecies;jj++) delete tmpspecies[jj];
-  delete tmpspecies;
+  delete[] tmpspecies;
 
-  delete newarg;
-  delete newarg2;
+  delete[] newarg;
+  delete[] newarg2;
 
   read_file( kineticsFile );
 
@@ -491,10 +491,10 @@ void FixRX::read_file(char *file)
         error->all(FLERR,"Illegal fix rx command");
       }
       word = strtok(NULL, " \t\n\r\f");
+      if(word==NULL)
+        error->all(FLERR,"Missing parameters in reaction kinetic equation");
       if(strcmp(word,"=") == 0) sign = 1.0;
-      if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0){
-        if(word==NULL)
-          error->all(FLERR,"Missing parameters in reaction kinetic equation");
+      if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0) {
         Arr[nreactions] = atof(word);
         word = strtok(NULL, " \t\n\r\f");
         if(word==NULL)
@@ -594,7 +594,7 @@ void FixRX::rk4(int id)
 
   // Store the solution back in atom->dvector.
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
-    if(y[ispecies] < double(-1.0e-10))
+    if(y[ispecies] < -1.0e-10)
       error->one(FLERR,"Computed concentration in RK4 solver is < -1.0e-10");
     else if(y[ispecies] < 0.0)
       y[ispecies] = 0.0;
@@ -651,7 +651,7 @@ void FixRX::computeLocalTemperature()
   int newton_pair = force->newton_pair;
 
   // local temperature variables
-  double wij;
+  double wij = 0.0;
   double *dpdTheta = atom->dpdTheta;
 
   // Initialize the local density and local temperature arrays

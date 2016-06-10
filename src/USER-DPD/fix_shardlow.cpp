@@ -168,7 +168,6 @@ void FixShardlow::initial_integrate(int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
-  int nall = nlocal + nghost;
   int newton_pair = force->newton_pair;
   double randPair;
 

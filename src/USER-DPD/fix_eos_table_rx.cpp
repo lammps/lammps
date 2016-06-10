@@ -57,6 +57,8 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   ntables = 0;
   tables = NULL;
   tables2 = NULL;
+  eosSpecies = NULL;
+
   int me;
   MPI_Comm_rank(world,&me);
   for (int ii=0;ii<nspecies;ii++){
@@ -129,6 +131,7 @@ FixEOStableRX::~FixEOStableRX()
   memory->sfree(tables2);
 
   delete [] dHf;
+  delete [] eosSpecies;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -332,9 +335,9 @@ void FixEOStableRX::read_file(char *file)
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
       if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
-    if (ispecies == nspecies) continue;
 
-    dHf[ispecies] = atof(words[1]);
+    if (ispecies < nspecies)
+      dHf[ispecies] = atof(words[1]);
   }
 
   delete [] words;
@@ -521,7 +524,8 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   int ispecies;
   ncolumn = 0;
 
-  eosSpecies = new int[nspecies];
+  if (!eosSpecies)
+    eosSpecies = new int[nspecies];
   for (ispecies = 0; ispecies < nspecies; ispecies++)
     eosSpecies[ispecies] = -1;
 

@@ -532,16 +532,16 @@ int AtomVecDPD::coord2ssaAIR(double *x)
   if (x[0] < domain->sublo[0]) ix = -1;
   if (x[0] > domain->subhi[0]) ix = 1;
 
-  if(iz < 0) return 0;
-
-  if(iz == 0){
+  if(iz < 0){
+    return 0;
+  } else if(iz == 0){
     if( iy<0 ) return 0; // bottom left/middle/right
     if( (iy==0) && (ix<0)  ) return 0; // left atoms
     if( (iy==0) && (ix==0) ) return 1; // Locally owned atoms
     if( (iy==0) && (ix>0)  ) return 3; // Right atoms
     if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
     if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
-  } else if(iz > 0) {
+  } else { // iz > 0
     if((ix==0) && (iy==0)) return 5; // Back atoms
     if((ix==0) && (iy!=0)) return 6; // Top-back and bottom-back atoms
     if((ix!=0) && (iy==0)) return 7; // Left-back and right-back atoms

@@ -159,8 +159,8 @@ void FixEOStableRX::setup(int vflag)
     if (mask[i] & groupbit){
       duChem = uCG[i] - uCGnew[i];
       uChem[i] += duChem;
-      uCG[i] = double(0.0);
-      uCGnew[i] = double(0.0);
+      uCG[i] = 0.0;
+      uCGnew[i] = 0.0;
     }
 
   // Communicate the updated momenta and velocities to all nodes
@@ -190,12 +190,12 @@ void FixEOStableRX::init()
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if(dpdTheta[i] <= double(0.0))
+        if(dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(i,dpdTheta[i],tmp);
-        uCond[i] = tmp / double(2.0);
-        uMech[i] = tmp / double(2.0);
-        uChem[i] = double(0.0);
+        uCond[i] = tmp / 2.0;
+        uMech[i] = tmp / 2.0;
+        uChem[i] = 0.0;
       }
   }
 }
@@ -215,7 +215,7 @@ void FixEOStableRX::post_integrate()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= double(0.0))
+      if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -241,8 +241,8 @@ void FixEOStableRX::end_of_step()
     if (mask[i] & groupbit){
       duChem = uCG[i] - uCGnew[i];
       uChem[i] += duChem;
-      uCG[i] = double(0.0);
-      uCGnew[i] = double(0.0);
+      uCG[i] = 0.0;
+      uCGnew[i] = 0.0;
     }
 
   // Communicate the updated momenta and velocities to all nodes
@@ -251,7 +251,7 @@ void FixEOStableRX::end_of_step()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= double(0.0))
+      if(dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -646,8 +646,8 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
   int itable;
   double fraction, uTmp, nTotal;
 
-  ui = double(0.0);
-  nTotal = double(0.0);
+  ui = 0.0;
+  nTotal = 0.0;
   for(int ispecies=0;ispecies<nspecies;ispecies++){
     Table *tb = &tables[ispecies];
     thetai = MAX(thetai,tb->lo);
@@ -689,7 +689,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   f1 = u1 - ui;
 
   // Compute guess of t2
-  t2 = (double(1.0) + double(0.001))*t1;
+  t2 = (1.0 + 0.001)*t1;
 
   // Compute u2 at t2
   energy_lookup(id,t2,u2);

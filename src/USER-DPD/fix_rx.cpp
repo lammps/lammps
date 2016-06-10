@@ -300,11 +300,11 @@ void FixRX::setup_pre_force(int vflag)
     if (newton_pair) {
       dpdThetaLocal = new double[nlocal+nghost];
       for (ii = 0; ii < nlocal+nghost; ii++)
-    dpdThetaLocal[ii] = double(0.0);
+    dpdThetaLocal[ii] = 0.0;
     } else {
       dpdThetaLocal = new double[nlocal];
       for (ii = 0; ii < nlocal; ii++)
-    dpdThetaLocal[ii] = double(0.0);
+    dpdThetaLocal[ii] = 0.0;
     }
     computeLocalTemperature();
   }
@@ -319,7 +319,7 @@ void FixRX::setup_pre_force(int vflag)
 
       // Set the reaction rate constants to zero:  no reactions occur at step 0
       for(int irxn=0;irxn<nreactions;irxn++)
-        kR[irxn] = double(0.0);
+        kR[irxn] = 0.0;
       if(odeIntegrationFlag==ODE_LAMMPS_RK4) rk4(i);
     }
 
@@ -344,11 +344,11 @@ void FixRX::pre_force(int vflag)
     if (newton_pair) {
       dpdThetaLocal = new double[nlocal+nghost];
       for (ii = 0; ii < nlocal+nghost; ii++)
-        dpdThetaLocal[ii] = double(0.0);
+        dpdThetaLocal[ii] = 0.0;
     } else {
       dpdThetaLocal = new double[nlocal];
       for (ii = 0; ii < nlocal; ii++)
-        dpdThetaLocal[ii] = double(0.0);
+        dpdThetaLocal[ii] = 0.0;
     }
     computeLocalTemperature();
   }
@@ -440,14 +440,14 @@ void FixRX::read_file(char *file)
   kR = new double[nreactions];
   for (int ii=0;ii<nreactions;ii++){
     for (int jj=0;jj<nspecies;jj++){
-      stoich[ii][jj] = double(0.0);
-      stoichReactants[ii][jj] = double(0.0);
-      stoichProducts[ii][jj] = double(0.0);
+      stoich[ii][jj] = 0.0;
+      stoichReactants[ii][jj] = 0.0;
+      stoichProducts[ii][jj] = 0.0;
     }
   }
 
   nreactions=0;
-  sign = double(-1.0);
+  sign = -1.0;
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
@@ -477,7 +477,7 @@ void FixRX::read_file(char *file)
       for (ispecies = 0; ispecies < nspecies; ispecies++){
         if (strcmp(word,&atom->dname[ispecies][0]) == 0){
           stoich[nreactions][ispecies] += sign*tmpStoich;
-          if(sign<double(0.0))
+          if(sign<0.0)
             stoichReactants[nreactions][ispecies] += tmpStoich;
           else stoichProducts[nreactions][ispecies] += tmpStoich;
           break;
@@ -491,7 +491,7 @@ void FixRX::read_file(char *file)
         error->all(FLERR,"Illegal fix rx command");
       }
       word = strtok(NULL, " \t\n\r\f");
-      if(strcmp(word,"=") == 0) sign = double(1.0);
+      if(strcmp(word,"=") == 0) sign = 1.0;
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0){
         if(word==NULL)
           error->all(FLERR,"Missing parameters in reaction kinetic equation");
@@ -504,7 +504,7 @@ void FixRX::read_file(char *file)
         if(word==NULL)
           error->all(FLERR,"Missing parameters in reaction kinetic equation");
         Ea[nreactions]  = atof(word);
-        sign = double(-1.0);
+        sign = -1.0;
         break;
       }
       word = strtok(NULL, " \t\n\r\f");
@@ -570,13 +570,13 @@ void FixRX::rk4(int id)
 
     // k2
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
-      yp[ispecies] = y[ispecies] + double(0.5)*h*k1[ispecies];
+      yp[ispecies] = y[ispecies] + 0.5*h*k1[ispecies];
 
     rhs(0.0,yp,k2,dummyArray);
 
     // k3
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
-      yp[ispecies] = y[ispecies] + double(0.5)*h*k2[ispecies];
+      yp[ispecies] = y[ispecies] + 0.5*h*k2[ispecies];
 
     rhs(0.0,yp,k3,dummyArray);
 
@@ -596,8 +596,8 @@ void FixRX::rk4(int id)
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
     if(y[ispecies] < double(-1.0e-10))
       error->one(FLERR,"Computed concentration in RK4 solver is < -1.0e-10");
-    else if(y[ispecies] < double(0.0))
-      y[ispecies] = double(0.0);
+    else if(y[ispecies] < 0.0)
+      y[ispecies] = 0.0;
     atom->dvector[ispecies][id] = y[ispecies];
   }
   delete [] k1;
@@ -614,7 +614,7 @@ int FixRX::rhs(double t, const double *y, double *dydt, void *params)
   int nspecies = atom->nspecies_dpd;
 
   for(int ispecies=0; ispecies<nspecies; ispecies++)
-    dydt[ispecies] = double(0.0);
+    dydt[ispecies] = 0.0;
 
   // Construct the reaction rate laws
   for(int jrxn=0; jrxn<nreactions; jrxn++){
@@ -658,11 +658,11 @@ void FixRX::computeLocalTemperature()
   if (newton_pair) {
     sumWeights = new double[nlocal+nghost];
     for (ii = 0; ii < nlocal+nghost; ii++)
-      sumWeights[ii] = double(0.0);
+      sumWeights[ii] = 0.0;
   } else {
     sumWeights = new double[nlocal];
     for (ii = 0; ii < nlocal; ii++)
-      dpdThetaLocal[ii] = double(0.0);
+      dpdThetaLocal[ii] = 0.0;
   }
 
   inum = pairDPDE->list->inum;
@@ -697,7 +697,7 @@ void FixRX::computeLocalTemperature()
 
     // Lucy's Weight Function
     if(wtFlag==LUCY){
-      wij = (double(1.0)+double(3.0)*ratio) * (double(1.0)-ratio)*(double(1.0)-ratio)*(double(1.0)-ratio);
+      wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
       dpdThetaLocal[i] += wij/dpdTheta[j];
       if (newton_pair || j < nlocal)
         dpdThetaLocal[j] += wij/dpdTheta[i];
@@ -718,7 +718,7 @@ void FixRX::computeLocalTemperature()
 
     // Lucy Weight Function
     if(wtFlag==LUCY){
-      wij = double(1.0);
+      wij = 1.0;
       dpdThetaLocal[i] += wij / dpdTheta[i];
     }
     sumWeights[i] += wij;
@@ -727,7 +727,7 @@ void FixRX::computeLocalTemperature()
     dpdThetaLocal[i] = dpdThetaLocal[i] / sumWeights[i];
 
     if(localTempFlag == HARMONIC)
-      dpdThetaLocal[i] = double(1.0) / dpdThetaLocal[i];
+      dpdThetaLocal[i] = 1.0 / dpdThetaLocal[i];
 
   }
 

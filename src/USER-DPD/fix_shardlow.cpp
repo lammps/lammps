@@ -194,7 +194,7 @@ void FixShardlow::initial_integrate(int vflag)
   double bby = domain->subhi[1] - domain->sublo[1];
   double bbz = domain->subhi[2] - domain->sublo[2];
 
-  double rcut = double(2.0)*neighbor->cutneighmax;
+  double rcut = 2.0*neighbor->cutneighmax;
 
   if (domain->triclinic)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
@@ -269,7 +269,7 @@ void FixShardlow::initial_integrate(int vflag)
         if (rsq < cut2) {
           r = sqrt(rsq);
           if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-          rinv = double(1.0)/r;
+          rinv = 1.0/r;
 
           // Keep a copy of the velocities from previous Shardlow step
           vx0i = vxi;
@@ -286,14 +286,14 @@ void FixShardlow::initial_integrate(int vflag)
           delvz = vz0i - vz0j;
 
           dot = (delx*delvx + dely*delvy + delz*delvz);
-          // wr = double(1.0) - r/pairDPD->cut[itype][jtype];
-          wr = double(1.0) - r/cut;
+          // wr = 1.0 - r/pairDPD->cut[itype][jtype];
+          wr = 1.0 - r/cut;
           wd = wr*wr;
 
           if(pairDPDE){
             // Compute the current temperature
-            theta_ij = double(0.5)*(double(1.0)/dpdTheta[i] + double(1.0)/dpdTheta[j]);
-            theta_ij = double(1.0)/theta_ij;
+            theta_ij = 0.5*(1.0/dpdTheta[i] + 1.0/dpdTheta[j]);
+            theta_ij = 1.0/theta_ij;
             sigma_ij = pairDPDE->sigma[itype][jtype];
             randnum = pairDPDE->random->gaussian();
           } else {
@@ -307,7 +307,7 @@ void FixShardlow::initial_integrate(int vflag)
 
           factor_dpd = -dt*gamma_ij*wd*dot*rinv;
           factor_dpd += randPair;
-          factor_dpd *= double(0.5);
+          factor_dpd *= 0.5;
 
           // Compute momentum change between t and t+dt
           dpx  = factor_dpd*delx*rinv;
@@ -321,8 +321,8 @@ void FixShardlow::initial_integrate(int vflag)
             mass_i = mass[itype];
             mass_j = mass[jtype];
           }
-          massinv_i = double(1.0) / mass_i;
-          massinv_j = double(1.0) / mass_j;
+          massinv_i = 1.0 / mass_i;
+          massinv_j = 1.0 / mass_j;
 
           // Update the velocity on i
           vxi += dpx*force->ftm2v*massinv_i;
@@ -345,11 +345,11 @@ void FixShardlow::initial_integrate(int vflag)
 
           //iii.    Compute dpi again
           mu_ij = massinv_i + massinv_j;
-          denom = double(1.0) + double(0.5)*mu_ij*gamma_ij*wd*dt*force->ftm2v;
-          factor_dpd = -double(0.5)*dt*gamma_ij*wd*force->ftm2v/denom;
+          denom = 1.0 + 0.5*mu_ij*gamma_ij*wd*dt*force->ftm2v;
+          factor_dpd = -0.5*dt*gamma_ij*wd*force->ftm2v/denom;
           factor_dpd1 = factor_dpd*(mu_ij*randPair);
           factor_dpd1 += randPair;
-          factor_dpd1 *= double(0.5);
+          factor_dpd1 *= 0.5;
 
           // Compute the momentum change between t and t+dt
           dpx  = (factor_dpd*dot*rinv/force->ftm2v + factor_dpd1)*delx*rinv;
@@ -379,7 +379,7 @@ void FixShardlow::initial_integrate(int vflag)
             alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
             randPair = alpha_ij*wr*randnum*dtsqrt;
 
-            factor_dpd = kappa_ij*(double(1.0)/dpdTheta[i] - double(1.0)/dpdTheta[j])*wd*dt;
+            factor_dpd = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd*dt;
             factor_dpd += randPair;
 
             uCond[i] += factor_dpd;
@@ -398,7 +398,7 @@ void FixShardlow::initial_integrate(int vflag)
             dot3 = dot3*mass_i;
             dot4 = dot4*mass_j;
 
-            factor_dpd = double(0.25)*(dot1+dot2-dot3-dot4)/force->ftm2v;
+            factor_dpd = 0.25*(dot1+dot2-dot3-dot4)/force->ftm2v;
             uMech[i] -= factor_dpd;
             if (newton_pair || j < nlocal) {
               uMech[j] -= factor_dpd;

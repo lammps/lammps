@@ -67,7 +67,7 @@ void ComputeDpd::compute_vector()
 
   dpdU = new double[size_vector];
 
-  for (int i = 0; i < size_vector; i++) dpdU[i] = double(0.0);
+  for (int i = 0; i < size_vector; i++) dpdU[i] = 0.0;
 
   for (int i = 0; i < nlocal; i++){
     if (mask[i] & groupbit){

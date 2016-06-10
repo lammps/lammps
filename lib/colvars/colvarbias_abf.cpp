@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvar.h"
@@ -8,8 +8,11 @@
 
 colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   : colvarbias(conf, key),
+    force(NULL),
     gradients(NULL),
-    samples(NULL)
+    samples(NULL),
+    last_gradients(NULL),
+    last_samples(NULL)
 {
   // TODO relax this in case of VMD plugin
   if (cvm::temperature() == 0.0)
@@ -60,10 +63,10 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
 
   if (update_bias) {
   // Request calculation of system force (which also checks for availability)
-    enable(f_cvb_get_system_force);
+    if(enable(f_cvb_get_system_force)) return;
   }
   if (apply_bias) {
-    enable(f_cvb_apply_force);
+    if(enable(f_cvb_apply_force)) return;
   }
 
   for (size_t i = 0; i < colvars.size(); i++) {
@@ -151,7 +154,10 @@ colvarbias_abf::~colvarbias_abf()
     last_gradients = NULL;
   }
 
-  delete [] force;
+  if (force) {
+    delete [] force;
+    force = NULL;
+  }
 
   if (cvm::n_abf_biases > 0)
     cvm::n_abf_biases -= 1;

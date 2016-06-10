@@ -196,7 +196,7 @@ int cvm::deps::enable(int feature_id,
 void cvm::deps::init_cvb_requires() {
   int i;
   if (features().size() == 0) {
-    for (i = 0; i < f_cv_ntot; i++) {
+    for (i = 0; i < f_cvb_ntot; i++) {
       features().push_back(new feature);
     }
   }
@@ -399,7 +399,7 @@ void cvm::deps::init_ag_requires() {
     f_description(f_ag_active, "active");
     f_description(f_ag_center, "translational fit");
     f_description(f_ag_rotate, "rotational fit");
-    f_description(f_ag_ref_pos_group, "reference positions group");
+    f_description(f_ag_fitting_group, "reference positions group");
     f_description(f_ag_fit_gradient_group, "fit gradient for main group");
     f_description(f_ag_fit_gradient_ref, "fit gradient for reference group");
     f_description(f_ag_atom_forces, "atomic forces");
@@ -413,7 +413,7 @@ void cvm::deps::init_ag_requires() {
 //     f_description(f_ag_min_msd_fit, "minimum MSD fit")
 //     f_req_self(f_ag_min_msd_fit, f_ag_center)
 //     f_req_self(f_ag_min_msd_fit, f_ag_rotate)
-//     f_req_exclude(f_ag_min_msd_fit, f_ag_ref_pos_group)
+//     f_req_exclude(f_ag_min_msd_fit, f_ag_fitting_group)
   }
 
   // Initialize feature_states for each instance

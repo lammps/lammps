@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include <iostream>
 #include <sstream>
@@ -41,10 +41,10 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
   if (cvm::n_abf_biases > 0)
     cvm::log("Warning: running ABF and metadynamics together is not recommended unless applyBias is off for ABF.\n");
 
-  get_keyval(conf, "hillWeight", hill_weight, 0.01);
-  if (hill_weight == 0.0)
-    cvm::log("Warning: hillWeight has been set to zero, "
-             "this bias will have no effect.\n");
+  get_keyval(conf, "hillWeight", hill_weight, 0.0);
+  if (hill_weight <= 0.0) {
+    cvm::error("Error: hillWeight must be provided, and a positive number.\n", INPUT_ERROR);
+  }
 
   get_keyval(conf, "newHillFrequency", new_hill_freq, 1000);
 

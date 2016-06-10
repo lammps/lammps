@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include <cmath>
 
@@ -87,15 +87,17 @@ colvar::coordnum::coordnum(std::string const &conf)
   // has set it to true
   feature_states[f_cvc_inv_gradient]->available = false;
 
-  bool const b_scale = get_keyval(conf, "cutoff", r0,
-                                   cvm::real(4.0 * cvm::unit_angstrom()));
+  bool const b_isotropic = get_keyval(conf, "cutoff", r0,
+                                      cvm::real(4.0 * cvm::unit_angstrom()));
 
-  if (get_keyval(conf, "cutoff3", r0_vec,
-                  cvm::rvector(4.0, 4.0, 4.0), parse_silent)) {
+  if (get_keyval(conf, "cutoff3", r0_vec, cvm::rvector(4.0 * cvm::unit_angstrom(),
+                                                       4.0 * cvm::unit_angstrom(),
+                                                       4.0 * cvm::unit_angstrom()))) {
+    if (b_isotropic) {
+      cvm::error("Error: cannot specify \"cutoff\" and \"cutoff3\" at the same time.\n",
+                 INPUT_ERROR);
+    }
 
-    if (b_scale)
-      cvm::fatal_error("Error: cannot specify \"scale\" and "
-                        "\"scale3\" at the same time.\n");
     b_anisotropic = true;
     // remove meaningless negative signs
     if (r0_vec.x < 0.0) r0_vec.x *= -1.0;
@@ -107,7 +109,7 @@ colvar::coordnum::coordnum(std::string const &conf)
   get_keyval(conf, "expDenom", ed, int(12));
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponents provided, can only use even ones.\n", INPUT_ERROR);
   }
 
   get_keyval(conf, "group2CenterOnly", b_group2_center_only, group2->b_dummy);

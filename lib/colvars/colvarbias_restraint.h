@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARBIAS_RESTRAINT_H
 #define COLVARBIAS_RESTRAINT_H

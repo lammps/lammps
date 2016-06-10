@@ -61,14 +61,14 @@ void FixEOScv::init()
   if(this->restart_reset){
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
+        dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if(dpdTheta[i] <= double(0.0)) 
-	  error->one(FLERR,"Internal temperature <= zero");
-	uCond[i] = double(0.5)*cvEOS*dpdTheta[i];
-	uMech[i] = double(0.5)*cvEOS*dpdTheta[i];
+        if(dpdTheta[i] <= double(0.0))
+          error->one(FLERR,"Internal temperature <= zero");
+        uCond[i] = double(0.5)*cvEOS*dpdTheta[i];
+        uMech[i] = double(0.5)*cvEOS*dpdTheta[i];
       }
   }
 }
@@ -86,8 +86,8 @@ void FixEOScv::post_integrate()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
-      if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature <= zero");
+      if(dpdTheta[i] <= double(0.0))
+        error->one(FLERR,"Internal temperature <= zero");
     }
 }
 
@@ -104,7 +104,7 @@ void FixEOScv::end_of_step()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
-      if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature <= zero");
+      if(dpdTheta[i] <= double(0.0))
+        error->one(FLERR,"Internal temperature <= zero");
     }
 }

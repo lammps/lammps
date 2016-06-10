@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -130,7 +130,7 @@ Self-explanatory
 E:  The number of molecules in CG particle is less than 1e-8.
 
 Self-explanatory.  Check the species concentrations have been properly set
-and check the reaction kinetic solver parameters in fix rx to more for 
+and check the reaction kinetic solver parameters in fix rx to more for
 sufficient accuracy.
 
 

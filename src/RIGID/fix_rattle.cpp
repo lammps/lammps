@@ -588,7 +588,6 @@ void FixRattle::solve3x3exactly(const double a[][3],
 void FixRattle::reset_dt()
 {
   FixShake::reset_dt();
-  dtfv = 0.5 * update->dt * force->ftm2v;
 }
 
 /* ----------------------------------------------------------------------
@@ -597,8 +596,8 @@ void FixRattle::reset_dt()
 
 void FixRattle::update_v_half_nocons()
 {
+  const double dtfv = 0.5 * update->dt * force->ftm2v;
   double dtfvinvm;
-  dtfv = 0.5 * update->dt * force->ftm2v;
 
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
@@ -628,10 +627,6 @@ void FixRattle::update_v_half_nocons()
 
 void FixRattle::update_v_half_nocons_respa(int ilevel)
 {
-  // select timestep for current level
-
-  dtfv = 0.5 * step_respa[ilevel] * force->ftm2v;
-
   // carry out unconstrained velocity update
 
   update_v_half_nocons();

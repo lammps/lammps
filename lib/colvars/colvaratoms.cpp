@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvarparse.h"
@@ -96,9 +96,9 @@ cvm::atom_group::~atom_group()
     index = -1;
   }
 
-  if (ref_pos_group) {
-    delete ref_pos_group;
-    ref_pos_group = NULL;
+  if (fitting_group) {
+    delete fitting_group;
+    fitting_group = NULL;
   }
 }
 
@@ -183,7 +183,7 @@ int cvm::atom_group::init()
   b_rotate = false;
   b_user_defined_fit = false;
   b_fit_gradients = false;
-  ref_pos_group = NULL;
+  fitting_group = NULL;
 
   noforce = false;
 
@@ -598,23 +598,31 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
       cvm::error("Error: centerReference or rotateReference "
                  "cannot be defined for a dummy atom.\n");
 
+    bool b_ref_pos_group = false;
     if (key_lookup(group_conf, "refPositionsGroup")) {
+      b_ref_pos_group = true;
+      cvm::log("Warning: keyword \"refPositionsGroup\" is deprecated: please use \"fittingGroup\" instead.\n");
+    }
+
+    if (b_ref_pos_group || key_lookup(group_conf, "fittingGroup")) {
       // instead of this group, define another group to compute the fit
-      if (ref_pos_group) {
+      if (fitting_group) {
         cvm::error("Error: the atom group \""+
                    key+"\" has already a reference group "
                    "for the rototranslational fit, which was communicated by the "
-                   "colvar component.  You should not use refPositionsGroup "
+                   "colvar component.  You should not use fittingGroup "
                    "in this case.\n");
       }
       cvm::log("Within atom group \""+key+"\":\n");
-      ref_pos_group = new atom_group(group_conf, "refPositionsGroup");
+      fitting_group = b_ref_pos_group ?
+        new atom_group(group_conf, "refPositionsGroup") :
+        new atom_group(group_conf, "fittingGroup");
 
-      // regardless of the configuration, fit gradients must be calculated by refPositionsGroup
-      ref_pos_group->b_fit_gradients = this->b_fit_gradients;
+      // regardless of the configuration, fit gradients must be calculated by fittingGroup
+      fitting_group->b_fit_gradients = this->b_fit_gradients;
     }
 
-    atom_group *group_for_fit = ref_pos_group ? ref_pos_group : this;
+    atom_group *group_for_fit = fitting_group ? fitting_group : this;
 
     get_keyval(group_conf, "refPositions", ref_pos, ref_pos);
 
@@ -678,7 +686,7 @@ int cvm::atom_group::parse_fitting_options(std::string const &group_conf)
                "\" will be aligned to a fixed orientation given by the reference positions provided.  "
                "If the internal structure of the group changes too much (i.e. its RMSD is comparable "
                "to its radius of gyration), the optimal rotation and its gradients may become discontinuous.  "
-               "If that happens, use refPositionsGroup (or a different definition for it if already defined) "
+               "If that happens, use fittingGroup (or a different definition for it if already defined) "
                "to align the coordinates.\n");
       // initialize rot member data
       rot.request_group1_gradients(group_for_fit->size());
@@ -741,8 +749,8 @@ void cvm::atom_group::read_positions()
     ai->read_position();
   }
 
-  if (ref_pos_group)
-    ref_pos_group->read_positions();
+  if (fitting_group)
+    fitting_group->read_positions();
 }
 
 
@@ -754,8 +762,8 @@ int cvm::atom_group::calc_required_properties()
 
   if (!is_enabled(f_ag_scalable)) {
     if (b_center || b_rotate) {
-      if (ref_pos_group) {
-        ref_pos_group->calc_center_of_geometry();
+      if (fitting_group) {
+        fitting_group->calc_center_of_geometry();
       }
 
       calc_apply_roto_translation();
@@ -763,8 +771,8 @@ int cvm::atom_group::calc_required_properties()
       // update COM and COG after fitting
       calc_center_of_geometry();
       calc_center_of_mass();
-      if (ref_pos_group) {
-        ref_pos_group->calc_center_of_geometry();
+      if (fitting_group) {
+        fitting_group->calc_center_of_geometry();
       }
     }
   }
@@ -779,25 +787,25 @@ void cvm::atom_group::calc_apply_roto_translation()
 {
   // store the laborarory-frame COGs for when they are needed later
   cog_orig = this->center_of_geometry();
-  if (ref_pos_group) {
-    ref_pos_group->cog_orig = ref_pos_group->center_of_geometry();
+  if (fitting_group) {
+    fitting_group->cog_orig = fitting_group->center_of_geometry();
   }
 
   if (b_center) {
     // center on the origin first
-    cvm::atom_pos const rpg_cog = ref_pos_group ?
-      ref_pos_group->center_of_geometry() : this->center_of_geometry();
+    cvm::atom_pos const rpg_cog = fitting_group ?
+      fitting_group->center_of_geometry() : this->center_of_geometry();
     apply_translation(-1.0 * rpg_cog);
-    if (ref_pos_group) {
-      ref_pos_group->apply_translation(-1.0 * rpg_cog);
+    if (fitting_group) {
+      fitting_group->apply_translation(-1.0 * rpg_cog);
     }
   }
 
   if (b_rotate) {
     // rotate the group (around the center of geometry if b_center is
     // true, around the origin otherwise)
-    rot.calc_optimal_rotation(ref_pos_group ?
-                              ref_pos_group->positions() :
+    rot.calc_optimal_rotation(fitting_group ?
+                              fitting_group->positions() :
                               this->positions(),
                               ref_pos);
 
@@ -805,8 +813,8 @@ void cvm::atom_group::calc_apply_roto_translation()
     for (ai = this->begin(); ai != this->end(); ai++) {
       ai->pos = rot.rotate(ai->pos);
     }
-    if (ref_pos_group) {
-      for (ai = ref_pos_group->begin(); ai != ref_pos_group->end(); ai++) {
+    if (fitting_group) {
+      for (ai = fitting_group->begin(); ai != fitting_group->end(); ai++) {
         ai->pos = rot.rotate(ai->pos);
       }
     }
@@ -815,8 +823,8 @@ void cvm::atom_group::calc_apply_roto_translation()
   if (b_center) {
     // align with the center of geometry of ref_pos
     apply_translation(ref_pos_cog);
-    if (ref_pos_group) {
-      ref_pos_group->apply_translation(ref_pos_cog);
+    if (fitting_group) {
+      fitting_group->apply_translation(ref_pos_cog);
     }
   }
   // update of COM and COG is done from the calling routine
@@ -953,7 +961,7 @@ void cvm::atom_group::calc_fit_gradients()
   if (cvm::debug())
     cvm::log("Calculating fit gradients.\n");
 
-  atom_group *group_for_fit = ref_pos_group ? ref_pos_group : this;
+  atom_group *group_for_fit = fitting_group ? fitting_group : this;
 
   if (b_center) {
     // add the center of geometry contribution to the gradients
@@ -1141,7 +1149,7 @@ void cvm::atom_group::apply_colvar_force(cvm::real const &force)
 
   if ((b_center || b_rotate) && b_fit_gradients) {
 
-    atom_group *group_for_fit = ref_pos_group ? ref_pos_group : this;
+    atom_group *group_for_fit = fitting_group ? fitting_group : this;
 
     // Fit gradients are already calculated in "laboratory" frame
     for (size_t j = 0; j < group_for_fit->size(); j++) {

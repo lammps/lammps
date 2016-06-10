@@ -1,15 +1,18 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARMODULE_H
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2016-05-23"
+#define COLVARS_VERSION "2016-06-09"
 #endif
 
 #ifndef COLVARS_DEBUG
 #define COLVARS_DEBUG false
 #endif
+
+/*! \mainpage Main page
+ */
 
 /// \file colvarmodule.h
 /// \brief Collective variables main module

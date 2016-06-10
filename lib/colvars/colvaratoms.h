@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARATOMS_H
 #define COLVARATOMS_H
@@ -299,7 +299,7 @@ public:
 
   /// \brief If b_center or b_rotate is true, use this group to
   /// define the transformation (default: this group itself)
-  atom_group                *ref_pos_group;
+  atom_group                *fitting_group;
 
   /// Total mass of the atom group
   cvm::real total_mass;
@@ -346,8 +346,8 @@ public:
   {
     for (cvm::atom_iter ai = atoms.begin(); ai != atoms.end(); ai++)
       ai->reset_data();
-    if (ref_pos_group)
-      ref_pos_group->reset_atoms_data();
+    if (fitting_group)
+      fitting_group->reset_atoms_data();
   }
 
   /// \brief Recompute all mutable quantities that are required to compute CVCs

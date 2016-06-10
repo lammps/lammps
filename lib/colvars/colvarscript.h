@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARSCRIPT_H
 #define COLVARSCRIPT_H

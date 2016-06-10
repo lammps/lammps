@@ -50,6 +50,8 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   params = NULL;
   mol2param = NULL;
   pairDPDE = NULL;
+  id_fix_species = NULL;
+  id_fix_species_old = NULL;
 
   // Keep track of the argument list.
   int iarg = 3;
@@ -110,10 +112,18 @@ FixRX::~FixRX()
     delete [] stoichReactants[ii];
     delete [] stoichProducts[ii];
   }
+  delete [] Arr;
+  delete [] nArr;
+  delete [] Ea;
+  delete [] tempExp;
   delete [] stoich;
   delete [] stoichReactants;
   delete [] stoichProducts;
   delete [] kR;
+  delete [] id_fix_species;
+  delete [] id_fix_species_old;
+
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,7 +197,7 @@ void FixRX::post_constructor()
       if(!match){
         if(nUniqueSpecies+1>=maxspecies)
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
-        tmpspecies[nUniqueSpecies] = new char[strlen(word)];
+        tmpspecies[nUniqueSpecies] = new char[strlen(word)+1];
         strcpy(tmpspecies[nUniqueSpecies],word);
         nUniqueSpecies++;
       }
@@ -201,9 +211,6 @@ void FixRX::post_constructor()
 
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
-
-  id_fix_species = NULL;
-  id_fix_species_old = NULL;
 
   n = strlen(id) + strlen("_SPECIES") + 1;
   id_fix_species = new char[n];
@@ -231,8 +238,8 @@ void FixRX::post_constructor()
     strncat(str1,tmpspecies[ii],strlen(tmpspecies[ii]));
     strncat(str2,tmpspecies[ii],strlen(tmpspecies[ii]));
     strncat(str2,"Old",3);
-    newarg[ii+3] = new char[strlen(str1)];
-    newarg2[ii+3] = new char[strlen(str2)];
+    newarg[ii+3] = new char[strlen(str1)+1];
+    newarg2[ii+3] = new char[strlen(str2)+1];
     strcpy(newarg[ii+3],str1);
     strcpy(newarg2[ii+3],str2);
   }
@@ -249,11 +256,15 @@ void FixRX::post_constructor()
 
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
-  for(int jj=0;jj<maxspecies;jj++) delete tmpspecies[jj];
-  delete[] tmpspecies;
+  for(int jj=0;jj<nspecies;jj++) {
+    delete[] tmpspecies[jj];
+    delete[] newarg[jj+3];
+    delete[] newarg2[jj+3];
+  }
 
   delete[] newarg;
   delete[] newarg2;
+  delete[] tmpspecies;
 
   read_file( kineticsFile );
 

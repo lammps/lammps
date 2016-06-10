@@ -43,12 +43,17 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   mol2param = NULL;
+  site1 = site2 = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairExp6rx::~PairExp6rx()
 {
+  for (int i=0; i < nparams; ++i) {
+    delete[] params[i].name;
+    delete[] params[i].potential;
+  }
   memory->destroy(params);
   memory->destroy(mol2param);
 
@@ -58,6 +63,8 @@ PairExp6rx::~PairExp6rx()
 
     memory->destroy(cut);
   }
+  delete[] site1;
+  delete[] site2;
 }
 
 /* ---------------------------------------------------------------------- */

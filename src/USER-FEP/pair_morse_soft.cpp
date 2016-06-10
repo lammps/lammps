@@ -111,7 +111,8 @@ void PairMorseSoft::compute(int eflag, int vflag)
 
         if (l >= shift_range){
           s1  = (l - 1.0) / (shift_range - 1.0);
-          ss  = 3.0*s1*s1 - 2*s1*s1*s1;
+          // ss  = 3.0*s1*s1 - 2*s1*s1*s1;
+          ss  = s1;
           phi = V0 + B*dexp3 * ss;
 
           // Force computation:

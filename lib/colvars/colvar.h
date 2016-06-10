@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVAR_H
 #define COLVAR_H
@@ -220,7 +220,18 @@ public:
   /// Constructor
   colvar(std::string const &conf);
 
-  /// Get ready for a run and possibly re-initialize internal data
+  /// Parse the CVC configuration and allocate their data
+  int init_components(std::string const &conf);
+
+private:
+  /// Parse the CVC configuration for all components of a certain type
+  template<typename def_class_name> int init_components_type(std::string const &conf,
+                                                             char const *def_desc,
+                                                             char const *def_config_key);
+
+public:
+
+  /// Get ready for a run and re-initialize internal data if needed
   void setup();
 
   /// Destructor

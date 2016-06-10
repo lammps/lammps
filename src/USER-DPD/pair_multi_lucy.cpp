@@ -101,7 +101,6 @@ void PairMultiLucy::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   double pi = MathConst::MY_PI;
@@ -152,7 +151,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
 
           A_i = tb->f[itable];
           A_j = tb->f[jtable];
-          fpair = double(0.5)*(A_i + A_j)*(double(1.0)+double(3.0)*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
+          fpair = 0.5*(A_i + A_j)*(1.0+3.0*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
           fpair = fpair/sqrt(rsq);
 
         } else if (tabstyle == LINEAR) {
@@ -167,7 +166,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
           A_i = tb->f[itable] + fraction_i*tb->df[itable];
           A_j = tb->f[jtable] + fraction_j*tb->df[jtable];
 
-          fpair = double(0.5)*(A_i + A_j)*(double(1.0)+double(3.0)*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
+          fpair = 0.5*(A_i + A_j)*(1.0+3.0*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
 
           fpair = fpair / sqrt(rsq);
 
@@ -193,12 +192,12 @@ void PairMultiLucy::compute(int eflag, int vflag)
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
     else if (tabstyle == LINEAR){
       if (itable >= tlm1) error->one(FLERR,"Density > table outer cutoff");
-      if(itable==0) fraction_i=double(0.0);
+      if(itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy");
 
-    evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/double(84.0);
+    evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
 
     if (evflag) ev_tally(0,0,nlocal,newton_pair,
         		 evdwl,0.0,0.0,0.0,0.0,0.0);
@@ -766,7 +765,7 @@ void PairMultiLucy::computeLocalDensity()
 
       if (rsq < cutsq[itype][jtype]) {
         double rcut = sqrt(cutsq[itype][jtype]);
-        factor= (double(84.0)/(double(5.0)*pi*rcut*rcut*rcut))*(double(1.0)+double(3.0)*sqrt(rsq)/(double(2.0)*rcut))*(double(1.0)-sqrt(rsq)/rcut)*(double(1.0)-sqrt(rsq)/rcut)*(double(1.0)-sqrt(rsq)/rcut)*(double(1.0)-sqrt(rsq)/rcut);
+        factor= (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut)*(1.0-sqrt(rsq)/rcut);
         rho[i] += factor;
         if (newton_pair || j < nlocal) {
           rho[j] += factor;

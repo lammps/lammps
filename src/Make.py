@@ -5,7 +5,7 @@
 # Syntax: Make.py -h (for help)
 # Notes: needs python 2.7 (not Python 3)
 
-import sys,os,commands,re,copy,subprocess
+import sys,os,commands,re,copy,subprocess,platform
 
 # switch abbrevs
 # switch classes = created class for each switch
@@ -1298,7 +1298,7 @@ class GPU:
     # this is b/c Cuda libs are not all available on host
 
     make = "make"
-    if "shannon" in os.environ.get("HOST"): make = "srun make"
+    if "shannon" == platform.node() : make = "srun make"
     
     commands.getoutput("cd %s; %s -f Makefile.auto clean" % (libdir,make))
     if jmake: str = "cd %s; %s -j %d -f Makefile.auto" % (libdir,make,jmake.n)

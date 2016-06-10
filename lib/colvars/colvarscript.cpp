@@ -295,6 +295,11 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
     return COLVARS_OK;
   }
 
+  if (subcmd == "state") {
+    cv->print_state();
+    return COLVARS_OK;
+  }
+
   result = "Syntax error\n" + help_string();
   return COLVARSCRIPT_ERROR;
 }

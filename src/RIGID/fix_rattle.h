@@ -28,7 +28,6 @@ namespace LAMMPS_NS {
 class FixRattle : public FixShake {
  public:
   double **vp;                // array for unconstrained velocities
-  double dtfv;                // timestep for velocity update
   int comm_mode;              // mode for communication pack/unpack
   double derr_max;            // distance error
   double verr_max;            // velocity error

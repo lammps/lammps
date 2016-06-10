@@ -105,7 +105,6 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   double fractionOld1_i,fractionOld1_j;
@@ -152,7 +151,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        fpair = double(0.0);
+        fpair = 0.0;
         getParams(j,fractionOld1_j,fractionOld2_j,fraction1_j,fraction2_j);
 
         tb = &tables[tabindex[itype][jtype]];
@@ -173,7 +172,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
           }
           A_i = tb->f[itable];
           A_j = tb->f[jtable];
-          fpair = double(0.5)*(A_i + A_j)*(double(1.0)+double(3.0)*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
+          fpair = 0.5*(A_i + A_j)*(1.0+3.0*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
           fpair = fpair/sqrt(rsq);
 
         } else if (tabstyle == LINEAR) {
@@ -192,15 +191,15 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
           fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
           fraction_j = (((rho[j]*rho[j]) - tb->rsq[jtable]) * tb->invdelta);
-          if(itable==0) fraction_i=double(0.0);
-          if(itable==tlm1) fraction_i=double(0.0);
-          if(jtable==0) fraction_j=double(0.0);
-          if(jtable==tlm1) fraction_j=double(0.0);
+          if(itable==0) fraction_i=0.0;
+          if(itable==tlm1) fraction_i=0.0;
+          if(jtable==0) fraction_j=0.0;
+          if(jtable==tlm1) fraction_j=0.0;
 
           A_i = tb->f[itable] + fraction_i*tb->df[itable];
           A_j = tb->f[jtable] + fraction_j*tb->df[jtable];
 
-          fpair = double(0.5)*(A_i + A_j)*(double(1.0)+double(3.0)*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(double(1.0) - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
+          fpair = 0.5*(A_i + A_j)*(1.0+3.0*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
 
           fpair = fpair / sqrt(rsq);
 
@@ -231,12 +230,12 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
         printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
         error->one(FLERR,"Density > table outer cutoff");
       }
-      if(itable==0) fraction_i=double(0.0);
+      if(itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
-    evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/double(84.0);
+    evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
     evdwlOld = fractionOld1_i*evdwl;
     evdwl = fraction1_i*evdwl;
 
@@ -828,9 +827,9 @@ void PairMultiLucyRX::computeLocalDensity()
 
       if (rsq < cutsq[itype][jtype]) {
         double rcut = sqrt(cutsq[itype][jtype]);
-        double tmpFactor = double(1.0)-sqrt(rsq)/rcut;
+        double tmpFactor = 1.0-sqrt(rsq)/rcut;
         double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-        factor = (double(84.0)/(double(5.0)*pi*rcut*rcut*rcut))*(double(1.0)+double(3.0)*sqrt(rsq)/(double(2.0)*rcut))*tmpFactor4;
+        factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
         rho[i] += factor;
         if (newton_pair || j < nlocal) {
           rho[j] += factor;
@@ -851,15 +850,15 @@ void PairMultiLucyRX::getParams(int id, double &fractionOld1, double &fractionOl
   double fractionOld, fraction;
   double nTotal, nTotalOld;
 
-  fractionOld  = double(0.0);
-  fraction  = double(0.0);
-  fractionOld1 = double(0.0);
-  fractionOld2 = double(0.0);
-  fraction1 = double(0.0);
-  fraction2 = double(0.0);
+  fractionOld  = 0.0;
+  fraction  = 0.0;
+  fractionOld1 = 0.0;
+  fractionOld2 = 0.0;
+  fraction1 = 0.0;
+  fraction2 = 0.0;
 
-  nTotal = double(0.0);
-  nTotalOld = double(0.0);
+  nTotal = 0.0;
+  nTotalOld = 0.0;
   for(int ispecies=0;ispecies<nspecies;ispecies++){
     nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];

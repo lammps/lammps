@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include <cmath>
 
@@ -789,7 +789,7 @@ colvar::rmsd::rmsd(std::string const &conf)
   }
 
   bool b_Jacobian_derivative = true;
-  if (atoms->ref_pos_group != NULL && b_Jacobian_derivative) {
+  if (atoms->fitting_group != NULL && b_Jacobian_derivative) {
     cvm::log("The option \"refPositionsGroup\" (alternative group for fitting) was enabled: "
               "Jacobian derivatives of the RMSD will not be calculated.\n");
     b_Jacobian_derivative = false;
@@ -798,7 +798,7 @@ colvar::rmsd::rmsd(std::string const &conf)
 
   // the following is a simplified version of the corresponding atom group options;
   // we need this because the reference coordinates defined inside the atom group
-  // may be used only for fitting, and even more so if ref_pos_group is used
+  // may be used only for fitting, and even more so if fitting_group is used
   if (get_keyval(conf, "refPositions", ref_pos, ref_pos)) {
     cvm::log("Using reference positions from configuration file to calculate the variable.\n");
     if (ref_pos.size() != atoms->size()) {

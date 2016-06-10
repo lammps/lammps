@@ -114,7 +114,7 @@ FixRX::~FixRX()
   delete [] stoichReactants;
   delete [] stoichProducts;
   delete [] kR;
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -125,10 +125,10 @@ void FixRX::post_constructor()
   bool match;
 
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"property/atom",13) == 0) 
-      error->all(FLERR,"fix rx cannot be combined with fix property/atom");  
+    if (strncmp(modify->fix[i]->style,"property/atom",13) == 0)
+      error->all(FLERR,"fix rx cannot be combined with fix property/atom");
 
-  char **tmpspecies = new char*[maxspecies];  
+  char **tmpspecies = new char*[maxspecies];
   for(int jj=0; jj < maxspecies; jj++)
     tmpspecies[jj] = NULL;
 
@@ -184,7 +184,7 @@ void FixRX::post_constructor()
           break;
         }
       }
-      if(!match){ 
+      if(!match){
         if(nUniqueSpecies+1>=maxspecies)
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
         tmpspecies[nUniqueSpecies] = new char[strlen(word)];
@@ -282,7 +282,7 @@ void FixRX::init()
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"eos/table/rx") == 0) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");  
+  if(!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -587,7 +587,7 @@ void FixRX::rk4(int id)
     rhs(0.0,yp,k4,dummyArray);
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
-      y[ispecies] += h*(k1[ispecies]/6.0 + k2[ispecies]/3.0 + 
+      y[ispecies] += h*(k1[ispecies]/6.0 + k2[ispecies]/3.0 +
                     k3[ispecies]/3.0 + k4[ispecies]/6.0);
 
   } // end for (int step...
@@ -626,7 +626,7 @@ int FixRX::rhs(double t, const double *y, double *dydt, void *params)
     }
     rxnRateLaw[jrxn] = rxnRateLawForward;
   }
-  
+
   // Construct the reaction rates for each species
   for(int ispecies=0; ispecies<nspecies; ispecies++)
     for(int jrxn=0; jrxn<nreactions; jrxn++)
@@ -699,7 +699,7 @@ void FixRX::computeLocalTemperature()
     if(wtFlag==LUCY){
       wij = (double(1.0)+double(3.0)*ratio) * (double(1.0)-ratio)*(double(1.0)-ratio)*(double(1.0)-ratio);
       dpdThetaLocal[i] += wij/dpdTheta[j];
-      if (newton_pair || j < nlocal) 
+      if (newton_pair || j < nlocal)
         dpdThetaLocal[j] += wij/dpdTheta[i];
     }
 
@@ -707,7 +707,7 @@ void FixRX::computeLocalTemperature()
         if (newton_pair || j < nlocal) {
       sumWeights[j] += wij;
     }
-      
+
       }
     }
   }
@@ -722,13 +722,13 @@ void FixRX::computeLocalTemperature()
       dpdThetaLocal[i] += wij / dpdTheta[i];
     }
     sumWeights[i] += wij;
-    
+
     // Normalized local temperature
     dpdThetaLocal[i] = dpdThetaLocal[i] / sumWeights[i];
-    
+
     if(localTempFlag == HARMONIC)
       dpdThetaLocal[i] = double(1.0) / dpdThetaLocal[i];
-    
+
   }
 
   delete [] sumWeights;

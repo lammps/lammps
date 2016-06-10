@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -66,7 +66,7 @@ class FixEOStableRX : public Fix {
   int nspecies;
 
   void read_file(char *);
-  
+
   double *dHf;
 
   int pack_reverse_comm(int, int, double *);
@@ -116,7 +116,7 @@ Self-explanatory.
 
 E:  Incorrect format in eos table/rx file
 
-Self-explanatory.  
+Self-explanatory.
 
 E:  Cannot open file %s
 

@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------------------
-   Contributing authors: 
+   Contributing authors:
    James Larentzos and Joshua Moore (U.S. Army Research Laboratory)
 
    Please cite the related publications:
-   J.D. Moore, B.C. Barnes, S. Izvekov, M. Lisal, M.S. Sellers, D.E. Taylor & J.K. Brennan 
+   J.D. Moore, B.C. Barnes, S. Izvekov, M. Lisal, M.S. Sellers, D.E. Taylor & J.K. Brennan
    "A coarse-grain force field for RDX: Density dependent and energy conserving"
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
@@ -147,8 +147,8 @@ void PairMultiLucy::compute(int eflag, int vflag)
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
           jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1 || jtable >= tlm1) 
-	    error->one(FLERR,"Density > table outer cutoff");
+          if (itable >= tlm1 || jtable >= tlm1)
+            error->one(FLERR,"Density > table outer cutoff");
 
           A_i = tb->f[itable];
           A_j = tb->f[jtable];
@@ -156,10 +156,10 @@ void PairMultiLucy::compute(int eflag, int vflag)
           fpair = fpair/sqrt(rsq);
 
         } else if (tabstyle == LINEAR) {
-	  itable = static_cast<int> ((rho[i]*rho[i] - tb->innersq) * tb->invdelta);
+          itable = static_cast<int> ((rho[i]*rho[i] - tb->innersq) * tb->invdelta);
           jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
-	  if (itable >= tlm1 || jtable >= tlm1) 
-	    error->one(FLERR,"Density > table outer cutoff");
+          if (itable >= tlm1 || jtable >= tlm1)
+            error->one(FLERR,"Density > table outer cutoff");
 
           fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
           fraction_j = (((rho[j]*rho[j]) - tb->rsq[jtable]) * tb->invdelta);
@@ -181,8 +181,8 @@ void PairMultiLucy::compute(int eflag, int vflag)
           f[j][1] -= dely*fpair;
           f[j][2] -= delz*fpair;
         }
-	if (evflag) ev_tally(i,j,nlocal,newton_pair,
-			     0.0,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,
+        		     0.0,0.0,fpair,delx,dely,delz);
       }
     }
 
@@ -191,7 +191,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
       error->one(FLERR,"Density < table inner cutoff");
     itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
-    else if (tabstyle == LINEAR){ 
+    else if (tabstyle == LINEAR){
       if (itable >= tlm1) error->one(FLERR,"Density > table outer cutoff");
       if(itable==0) fraction_i=double(0.0);
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
@@ -201,7 +201,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
     evdwl *=(pi*cutsq[itype][itype]*cutsq[itype][itype])/double(84.0);
 
     if (evflag) ev_tally(0,0,nlocal,newton_pair,
-			 evdwl,0.0,0.0,0.0,0.0,0.0);
+        		 evdwl,0.0,0.0,0.0,0.0,0.0);
   }
 
  if (vflag_fdotr) virial_fdotr_compute();
@@ -735,9 +735,9 @@ void PairMultiLucy::computeLocalDensity()
 
   double pi = MathConst::MY_PI;
   double *rho = atom->rho;
-  
+
  // zero out density
- 
+
   if (newton_pair) {
     m = nlocal + atom->nghost;
     for (i = 0; i < m; i++) rho[i] = 0.0;

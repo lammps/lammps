@@ -70,7 +70,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
 
     null_table(tb);
     null_table(tb2);
-    
+
     ntables++;
   }
 
@@ -79,7 +79,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   Table *tb2 = &tables2[ntables];
 
   if (me == 0) read_table(tb,tb2,arg[4],arg[6]);
-  
+
   for (int ii=0;ii<nspecies;ii++){
     Table *tb = &tables[ntables];
     Table *tb2 = &tables2[ntables];
@@ -88,21 +88,21 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
     bcast_table(tb2);
 
     // error check on table parameters
-    
+
     if (tb->ninput <= 1) error->one(FLERR,"Invalid eos/table/rx length");
-    
+
     tb->lo = tb->rfile[0];
     tb->hi = tb->rfile[tb->ninput-1];
     if (tb->lo >= tb->hi) error->all(FLERR,"eos/table/rx values are not increasing");
-    
+
     if (tb2->ninput <= 1) error->one(FLERR,"Invalid eos/table/rx length");
-    
+
     tb2->lo = tb2->rfile[0];
     tb2->hi = tb2->rfile[tb2->ninput-1];
     if (tb2->lo >= tb2->hi) error->all(FLERR,"eos/table/rx values are not increasing");
-    
+
     // spline read-in and compute r,e,f vectors within table
-    
+
     spline_table(tb);
     compute_table(tb);
     spline_table(tb2);
@@ -182,20 +182,20 @@ void FixEOStableRX::init()
   double *uChem = atom->uChem;
   double *dpdTheta = atom->dpdTheta;
   double tmp;
-  
+
   if(this->restart_reset){
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
+        temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if(dpdTheta[i] <= double(0.0)) 
-	  error->one(FLERR,"Internal temperature <= zero");
-	energy_lookup(i,dpdTheta[i],tmp);
-	uCond[i] = tmp / double(2.0);
-	uMech[i] = tmp / double(2.0);
-	uChem[i] = double(0.0);
+        if(dpdTheta[i] <= double(0.0))
+          error->one(FLERR,"Internal temperature <= zero");
+        energy_lookup(i,dpdTheta[i],tmp);
+        uCond[i] = tmp / double(2.0);
+        uMech[i] = tmp / double(2.0);
+        uChem[i] = double(0.0);
       }
   }
 }
@@ -215,8 +215,8 @@ void FixEOStableRX::post_integrate()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature <= zero");
+      if(dpdTheta[i] <= double(0.0))
+        error->one(FLERR,"Internal temperature <= zero");
     }
 }
 
@@ -251,8 +251,8 @@ void FixEOStableRX::end_of_step()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature <= zero");
+      if(dpdTheta[i] <= double(0.0))
+        error->one(FLERR,"Internal temperature <= zero");
     }
 }
 
@@ -380,7 +380,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     sprintf(str,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
-  
+
   // loop until section found with matching keyword
 
   while (1) {
@@ -406,13 +406,13 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   memory->create(tb->efile,tb->ninput,"eos:efile");
   memory->create(tb2->rfile,tb2->ninput,"eos:rfile");
   memory->create(tb2->efile,tb2->ninput,"eos:efile");
-  
+
   for (int ispecies=1;ispecies<nspecies;ispecies++){
     Table *tbl = &tables[ispecies];
     Table *tbl2 = &tables2[ispecies];
     tbl->ninput = tb->ninput;
     tbl2->ninput = tb2->ninput;
-    
+
     memory->create(tbl->rfile,tbl->ninput,"eos:rfile");
     memory->create(tbl->efile,tbl->ninput,"eos:efile");
     memory->create(tbl2->rfile,tbl2->ninput,"eos:rfile");
@@ -430,7 +430,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < ninputs; i++) {
     fgets(line,MAXLINE,fp);
-    
+
     nwords = atom->count_words(line);
     if(nwords != nspecies+2){
       printf("nwords=%d  nspecies=%d\n",nwords,nspecies);
@@ -524,7 +524,7 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   eosSpecies = new int[nspecies];
   for (ispecies = 0; ispecies < nspecies; ispecies++)
     eosSpecies[ispecies] = -1;
-  
+
   tb->ninput = 0;
 
   char *word = strtok(line," \t\n\r\f");
@@ -538,9 +538,9 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   while (word) {
     for (ispecies = 0; ispecies < nspecies; ispecies++)
       if (strcmp(word,&atom->dname[ispecies][0]) == 0){
-	eosSpecies[ncolumn] =  ispecies;
-	ncolumn++;
-	break;
+        eosSpecies[ncolumn] =  ispecies;
+        ncolumn++;
+        break;
       }
     if (ispecies == nspecies){
       printf("name=%s not found in species list\n",word);
@@ -550,7 +550,7 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
   }
 
   for (int icolumn = 0; icolumn < ncolumn; icolumn++)
-    if(eosSpecies[icolumn]==-1) 
+    if(eosSpecies[icolumn]==-1)
       error->one(FLERR,"EOS data is missing from fix eos/table/rx tabe");
   if(ncolumn != nspecies){
     printf("ncolumns=%d nspecies=%d\n",ncolumn,nspecies);
@@ -657,7 +657,7 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
       itable = static_cast<int> ((thetai - tb->lo) * tb->invdelta);
       fraction = (thetai - tb->r[itable]) * tb->invdelta;
       uTmp = tb->e[itable] + fraction*tb->de[itable];
-      
+
       uTmp += dHf[ispecies];
       // mol fraction form:
       ui += atom->dvector[ispecies][id]*uTmp;
@@ -693,7 +693,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
 
   // Compute u2 at t2
   energy_lookup(id,t2,u2);
-  
+
   // Compute f1
   f2 = u2 - ui;
 

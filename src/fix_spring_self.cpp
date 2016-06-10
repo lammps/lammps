@@ -116,10 +116,30 @@ int FixSpringSelf::setmask()
 
 /* ---------------------------------------------------------------------- */
 
+int FixSpringSelf::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"respa_level") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    int lvl = force->inumeric(FLERR,arg[1]);
+    if ((lvl < -1) || (lvl == 0) || lvl > (nlevels_respa))
+      error->all(FLERR,"Illegal fix_modify command");
+    respa_level = lvl;
+    return 2;
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixSpringSelf::init()
 {
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
+  if (respa_level < 0)
+    ilevel_respa = nlevels_respa-1;
+  else 
+    ilevel_respa = respa_level;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,9 +149,9 @@ void FixSpringSelf::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -179,7 +199,7 @@ void FixSpringSelf::post_force(int vflag)
 
 void FixSpringSelf::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

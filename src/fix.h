@@ -51,6 +51,7 @@ class Fix : protected Pointers {
   int dynamic_group_allow;       // 1 if can be used with dynamic group, else 0
   int dof_flag;                  // 1 if has dof() method (not min_dof())
   int special_alter_flag;        // 1 if has special_alter() meth for spec lists
+  int respa_level;               // respa level this fix is run on (-1 is outer)
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists

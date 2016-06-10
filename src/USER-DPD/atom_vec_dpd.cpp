@@ -76,8 +76,6 @@ void AtomVecDPD::grow(int n)
   uChem = memory->grow(atom->uChem,nmax,"atom:uChem");
   uCG = memory->grow(atom->uCG,nmax,"atom:uCG");
   uCGnew = memory->grow(atom->uCGnew,nmax,"atom:uCGnew");
-  duCond = memory->grow(atom->duCond,nmax,"atom:duCond");
-  duMech = memory->grow(atom->duMech,nmax,"atom:duMech");
   duChem = memory->grow(atom->duChem,nmax,"atom:duChem");
   ssaAIR = memory->grow(atom->ssaAIR,nmax,"atom:ssaAIR");
 
@@ -102,8 +100,6 @@ void AtomVecDPD::grow_reset()
   uChem = atom->uChem;
   uCG = atom->uCG;
   uCGnew = atom->uCGnew;
-  duCond = atom->duCond;
-  duMech = atom->duMech;
   duChem = atom->duChem;
   ssaAIR = atom->ssaAIR;
 }
@@ -845,8 +841,6 @@ void AtomVecDPD::create_atom(int itype, double *coord)
   uChem[nlocal] = 0.0;
   uCG[nlocal] = 0.0;
   uCGnew[nlocal] = 0.0;
-  duCond[nlocal] = 0.0;
-  duMech[nlocal] = 0.0;
   duChem[nlocal] = 0.0;
   ssaAIR[nlocal] = 1; /* coord2ssaAIR(x[nlocal]) */
 
@@ -983,8 +977,6 @@ bigint AtomVecDPD::memory_usage()
   if (atom->memcheck("uChem")) bytes += memory->usage(uChem,nmax);
   if (atom->memcheck("uCG")) bytes += memory->usage(uCG,nmax);
   if (atom->memcheck("uCGnew")) bytes += memory->usage(uCGnew,nmax);
-  if (atom->memcheck("duCond")) bytes += memory->usage(duCond,nmax);
-  if (atom->memcheck("duMech")) bytes += memory->usage(duMech,nmax);
   if (atom->memcheck("duChem")) bytes += memory->usage(duChem,nmax);
   if (atom->memcheck("ssaAIR")) bytes += memory->usage(ssaAIR,nmax);
 

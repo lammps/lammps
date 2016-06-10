@@ -96,10 +96,10 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy",1);
 
   if(pairDPDE){
-    comm_forward = 10;
+    comm_forward = 3;
     comm_reverse = 5;
   } else {
-    comm_forward = 6;
+    comm_forward = 3;
     comm_reverse = 3;
   }
 
@@ -175,8 +175,6 @@ void FixShardlow::initial_integrate(int vflag)
   int *ssaAIR = atom->ssaAIR;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
-  double *duCond = atom->duCond;
-  double *duMech = atom->duMech;
   double *dpdTheta = atom->dpdTheta;
   double kappa_ij, alpha_ij, theta_ij, gamma_ij, sigma_ij;
   double vxi, vyi, vzi, vxj, vyj, vzj;
@@ -204,24 +202,10 @@ void FixShardlow::initial_integrate(int vflag)
   if(rcut >= bbx || rcut >= bby || rcut>= bbz )
     error->all(FLERR,"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin\n");
 
-  // Allocate memory for the dvSSA arrays
-  dvSSA = new double*[nall];
-  for (ii = 0; ii < nall; ii++) {
-    dvSSA[ii] = new double[3];
-  }
+  // Allocate memory for v_t0 to hold the initial velocities for the ghosts
+  v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
-  // Zero the momenta
-  for (ii = 0; ii < nlocal; ii++) {
-    dvSSA[ii][0] = double(0.0);
-    dvSSA[ii][1] = double(0.0);
-    dvSSA[ii][2] = double(0.0);
-    if(pairDPDE){
-      duCond[ii] = double(0.0);
-      duMech[ii] = double(0.0);
-    }
-  }
-
-  // Communicate the updated momenta and velocities to all nodes
+  // Communicate the current velocities to all nodes
   comm->forward_comm_fix(this);
 
   // Define pointers to access the neighbor list
@@ -240,6 +224,10 @@ void FixShardlow::initial_integrate(int vflag)
   //Loop over all 14 directions (8 stages)
   for (int idir = 1; idir <=8; idir++){
 
+    // Zero out the ghosts' uCond & uMech to be used as delta accumulators
+    memset(&(uCond[nlocal]), 0, sizeof(double)*nghost);
+    memset(&(uMech[nlocal]), 0, sizeof(double)*nghost);
+
     // Loop over neighbors of my atoms
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -247,6 +235,11 @@ void FixShardlow::initial_integrate(int vflag)
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
+
+      // load velocity for i from memory
+      vxi = v[i][0];
+      vyi = v[i][1];
+      vzi = v[i][2];
 
       itype = type[i];
       jlist = firstneigh[i];
@@ -272,20 +265,20 @@ void FixShardlow::initial_integrate(int vflag)
           cut  = pairDPD->cut[itype][jtype];
         }
 
-        // if (rsq < pairDPD->cutsq[itype][jtype]) {
+        // if (rsq < pairDPD->cutsq[itype][jtype])
         if (rsq < cut2) {
           r = sqrt(rsq);
           if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
           rinv = double(1.0)/r;
 
-          // Store the velocities from previous Shardlow step
-          vx0i = v[i][0] + dvSSA[i][0];
-          vy0i = v[i][1] + dvSSA[i][1];
-          vz0i = v[i][2] + dvSSA[i][2];
+          // Keep a copy of the velocities from previous Shardlow step
+          vx0i = vxi;
+          vy0i = vyi;
+          vz0i = vzi;
 
-          vx0j = v[j][0] + dvSSA[j][0];
-          vy0j = v[j][1] + dvSSA[j][1];
-          vz0j = v[j][2] + dvSSA[j][2];
+          vx0j = vxj = v[j][0];
+          vy0j = vyj = v[j][1];
+          vz0j = vzj = v[j][2];
 
           // Compute the velocity difference between atom i and atom j
           delvx = vx0i - vx0j;
@@ -331,22 +324,22 @@ void FixShardlow::initial_integrate(int vflag)
           massinv_i = double(1.0) / mass_i;
           massinv_j = double(1.0) / mass_j;
 
-          // Update the delta velocity on i
-          dvSSA[i][0] += dpx*force->ftm2v*massinv_i;
-          dvSSA[i][1] += dpy*force->ftm2v*massinv_i;
-          dvSSA[i][2] += dpz*force->ftm2v*massinv_i;
+          // Update the velocity on i
+          vxi += dpx*force->ftm2v*massinv_i;
+          vyi += dpy*force->ftm2v*massinv_i;
+          vzi += dpz*force->ftm2v*massinv_i;
 
           if (newton_pair || j < nlocal) {
-            // Update the delta velocity on j
-            dvSSA[j][0] -= dpx*force->ftm2v*massinv_j;
-            dvSSA[j][1] -= dpy*force->ftm2v*massinv_j;
-            dvSSA[j][2] -= dpz*force->ftm2v*massinv_j;
+            // Update the velocity on j
+            vxj -= dpx*force->ftm2v*massinv_j;
+            vyj -= dpy*force->ftm2v*massinv_j;
+            vzj -= dpz*force->ftm2v*massinv_j;
           }
 
           //ii.   Compute the velocity diff
-          delvx = v[i][0] + dvSSA[i][0] - v[j][0] - dvSSA[j][0];
-          delvy = v[i][1] + dvSSA[i][1] - v[j][1] - dvSSA[j][1];
-          delvz = v[i][2] + dvSSA[i][2] - v[j][2] - dvSSA[j][2];
+          delvx = vxi - vxj;
+          delvy = vyi - vyj;
+          delvz = vzi - vzj;
 
           dot = delx*delvx + dely*delvy + delz*delvz;
 
@@ -363,16 +356,20 @@ void FixShardlow::initial_integrate(int vflag)
           dpy  = (factor_dpd*dot*rinv/force->ftm2v + factor_dpd1)*dely*rinv;
           dpz  = (factor_dpd*dot*rinv/force->ftm2v + factor_dpd1)*delz*rinv;
 
-          //Update the velocity change on i
-          dvSSA[i][0] += dpx*force->ftm2v*massinv_i;
-          dvSSA[i][1] += dpy*force->ftm2v*massinv_i;
-          dvSSA[i][2] += dpz*force->ftm2v*massinv_i;
+          // Update the velocity on i
+          vxi += dpx*force->ftm2v*massinv_i;
+          vyi += dpy*force->ftm2v*massinv_i;
+          vzi += dpz*force->ftm2v*massinv_i;
 
           if (newton_pair || j < nlocal) {
-            //Update the velocity change on j
-            dvSSA[j][0] -= dpx*force->ftm2v*massinv_j;
-            dvSSA[j][1] -= dpy*force->ftm2v*massinv_j;
-            dvSSA[j][2] -= dpz*force->ftm2v*massinv_j;
+            // Update the velocity on j
+            vxj -= dpx*force->ftm2v*massinv_j;
+            vyj -= dpy*force->ftm2v*massinv_j;
+            vzj -= dpz*force->ftm2v*massinv_j;
+            // Store updated velocity for j
+            v[j][0] = vxj;
+            v[j][1] = vyj;
+            v[j][2] = vzj;
           }
 
           if(pairDPDE){
@@ -385,20 +382,12 @@ void FixShardlow::initial_integrate(int vflag)
             factor_dpd = kappa_ij*(double(1.0)/dpdTheta[i] - double(1.0)/dpdTheta[j])*wd*dt;
             factor_dpd += randPair;
 
-            duCond[i] += factor_dpd;
+            uCond[i] += factor_dpd;
             if (newton_pair || j < nlocal) {
-              duCond[j] -= factor_dpd;
+              uCond[j] -= factor_dpd;
             }
 
             // Compute uMech
-            vxi = v[i][0] + dvSSA[i][0];
-            vyi = v[i][1] + dvSSA[i][1];
-            vzi = v[i][2] + dvSSA[i][2];
-
-            vxj = v[j][0] + dvSSA[j][0];
-            vyj = v[j][1] + dvSSA[j][1];
-            vzj = v[j][2] + dvSSA[j][2];
-
             dot1 = vxi*vxi + vyi*vyi + vzi*vzi;
             dot2 = vxj*vxj + vyj*vyj + vzj*vzj;
             dot3 = vx0i*vx0i + vy0i*vy0i + vz0i*vz0i;
@@ -410,44 +399,29 @@ void FixShardlow::initial_integrate(int vflag)
             dot4 = dot4*mass_j;
 
             factor_dpd = double(0.25)*(dot1+dot2-dot3-dot4)/force->ftm2v;
-            duMech[i] -= factor_dpd;
+            uMech[i] -= factor_dpd;
             if (newton_pair || j < nlocal) {
-              duMech[j] -= factor_dpd;
+              uMech[j] -= factor_dpd;
             }
           }
         }
       }
+      // store updated velocity for i
+      v[i][0] = vxi;
+      v[i][1] = vyi;
+      v[i][2] = vzi;
     }
 
-    // Communicate the ghost delta velocities to the locally owned atoms
+    // Communicate the ghost deltas to the atom owners
     comm->reverse_comm_fix(this);
 
-    // Zero the dv
-    for (ii = 0; ii < nlocal; ii++) {
-      // Shardlow update
-      v[ii][0] += dvSSA[ii][0];
-      v[ii][1] += dvSSA[ii][1];
-      v[ii][2] += dvSSA[ii][2];
-      dvSSA[ii][0] = double(0.0);
-      dvSSA[ii][1] = double(0.0);
-      dvSSA[ii][2] = double(0.0);
-      if(pairDPDE){
-        uCond[ii] += duCond[ii];
-        uMech[ii] += duMech[ii];
-        duCond[ii] = double(0.0);
-        duMech[ii] = double(0.0);
-      }
-    }
-
-    // Communicate the updated momenta and velocities to all nodes
+    // Communicate the updated velocities to all nodes
     comm->forward_comm_fix(this);
 
   }  //End Loop over all directions For idir = Top, Top-Right, Right, Bottom-Right, Back
 
-  for (ii = 0; ii < nall; ii++) {
-    delete dvSSA[ii];
-  }
-  delete [] dvSSA;
+  memory->sfree(v_t0);
+  v_t0 = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -456,26 +430,13 @@ int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, 
 {
   int ii,jj,m;
   double **v  = atom->v;
-  double *duCond = atom->duCond;
-  double *duMech = atom->duMech;
-  double *uCond = atom->uCond;
-  double *uMech = atom->uMech;
 
   m = 0;
   for (ii = 0; ii < n; ii++) {
     jj = list[ii];
-    buf[m++] = dvSSA[jj][0];
-    buf[m++] = dvSSA[jj][1];
-    buf[m++] = dvSSA[jj][2];
     buf[m++] = v[jj][0];
     buf[m++] = v[jj][1];
     buf[m++] = v[jj][2];
-    if(pairDPDE){
-      buf[m++] = duCond[jj];
-      buf[m++] = duMech[jj];
-      buf[m++] = uCond[jj];
-      buf[m++] = uMech[jj];
-    }
   }
   return m;
 }
@@ -485,27 +446,15 @@ int FixShardlow::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, 
 void FixShardlow::unpack_forward_comm(int n, int first, double *buf)
 {
   int ii,m,last;
+  int nlocal  = atom->nlocal;
   double **v  = atom->v;
-  double *duCond = atom->duCond;
-  double *duMech = atom->duMech;
-  double *uCond = atom->uCond;
-  double *uMech = atom->uMech;
 
   m = 0;
   last = first + n ;
   for (ii = first; ii < last; ii++) {
-    dvSSA[ii][0] = buf[m++];
-    dvSSA[ii][1] = buf[m++];
-    dvSSA[ii][2] = buf[m++];
-    v[ii][0] = buf[m++];
-    v[ii][1] = buf[m++];
-    v[ii][2] = buf[m++];
-    if(pairDPDE){
-      duCond[ii] = buf[m++];
-      duMech[ii] = buf[m++];
-      uCond[ii] = buf[m++];
-      uMech[ii] = buf[m++];
-    }
+    v_t0[ii - nlocal][0] = v[ii][0] = buf[m++];
+    v_t0[ii - nlocal][1] = v[ii][1] = buf[m++];
+    v_t0[ii - nlocal][2] = v[ii][2] = buf[m++];
   }
 }
 
@@ -514,18 +463,20 @@ void FixShardlow::unpack_forward_comm(int n, int first, double *buf)
 int FixShardlow::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
-  double *duCond = atom->duCond;
-  double *duMech = atom->duMech;
+  int nlocal  = atom->nlocal;
+  double **v  = atom->v;
+  double *uCond = atom->uCond;
+  double *uMech = atom->uMech;
 
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    buf[m++] = dvSSA[i][0];
-    buf[m++] = dvSSA[i][1];
-    buf[m++] = dvSSA[i][2];
+    buf[m++] = v[i][0] - v_t0[i - nlocal][0];
+    buf[m++] = v[i][1] - v_t0[i - nlocal][1];
+    buf[m++] = v[i][2] - v_t0[i - nlocal][2];
     if(pairDPDE){
-      buf[m++] = duCond[i];
-      buf[m++] = duMech[i];
+      buf[m++] = uCond[i]; // for ghosts, this is an accumulated delta
+      buf[m++] = uMech[i]; // for ghosts, this is an accumulated delta
     }
   }
   return m;
@@ -536,19 +487,20 @@ int FixShardlow::pack_reverse_comm(int n, int first, double *buf)
 void FixShardlow::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
-  double *duCond = atom->duCond;
-  double *duMech = atom->duMech;
+  double **v  = atom->v;
+  double *uCond = atom->uCond;
+  double *uMech = atom->uMech;
 
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
 
-    dvSSA[j][0] += buf[m++];
-    dvSSA[j][1] += buf[m++];
-    dvSSA[j][2] += buf[m++];
+    v[j][0] += buf[m++];
+    v[j][1] += buf[m++];
+    v[j][2] += buf[m++];
     if(pairDPDE){
-      duCond[j] += buf[m++];
-      duMech[j] += buf[m++];
+      uCond[j] += buf[m++]; // add in the accumulated delta
+      uMech[j] += buf[m++]; // add in the accumulated delta
     }
   }
 }

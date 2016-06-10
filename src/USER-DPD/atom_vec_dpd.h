@@ -59,7 +59,7 @@ class AtomVecDPD : public AtomVec {
   int write_data_hybrid(FILE *, double *);
   bigint memory_usage();
   double *uCond,*uMech,*uChem,*uCG,*uCGnew,*rho,*dpdTheta;
-  double *duCond,*duMech,*duChem;
+  double *duChem;
   int *ssaAIR; // Shardlow Splitting Algorithm Active Interaction Region number
 
  protected:

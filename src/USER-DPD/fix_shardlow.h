@@ -41,7 +41,7 @@ class FixShardlow : public Fix {
 
   class PairDPDfdt *pairDPD;
   class PairDPDfdtEnergy *pairDPDE;
-  double **dvSSA;
+  double (*v_t0)[3];
 
   private:
   class NeighList *list;

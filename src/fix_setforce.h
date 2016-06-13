@@ -36,6 +36,8 @@ class FixSetForce : public Fix {
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_vector(int);
+  int modify_param(int, char**);
+
   double memory_usage();
 
  protected:
@@ -46,7 +48,7 @@ class FixSetForce : public Fix {
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   double foriginal[3],foriginal_all[3];
   int force_flag;
-  int nlevels_respa;
+  int nlevels_respa, ilevel_respa;
 
   int maxatom;
   double **sforce;

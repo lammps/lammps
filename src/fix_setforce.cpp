@@ -129,6 +129,21 @@ int FixSetForce::setmask()
 
 /* ---------------------------------------------------------------------- */
 
+int FixSetForce::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"respa_level") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    int lvl = force->inumeric(FLERR,arg[1]);
+    if ((lvl < -1) || (lvl == 0) || lvl > (nlevels_respa))
+      error->all(FLERR,"Illegal fix_modify command");
+    respa_level = lvl;
+    return 2;
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixSetForce::init()
 {
   // check variables
@@ -174,6 +189,11 @@ void FixSetForce::init()
 
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
+  if (respa_level < 0)
+    ilevel_respa = nlevels_respa-1;
+  else
+    ilevel_respa = respa_level;
 
   // cannot use non-zero forces for a minimization since no energy is integrated
   // use fix addforce instead
@@ -290,9 +310,9 @@ void FixSetForce::post_force(int vflag)
 
 void FixSetForce::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  // set force to desired value on outermost level, 0.0 on other levels
+  // set force to desired value on requested level, 0.0 on other levels
 
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
   else {
     Region *region = NULL;
     if (iregion >= 0) {

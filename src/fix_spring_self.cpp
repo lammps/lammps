@@ -138,7 +138,7 @@ void FixSpringSelf::init()
 
   if (respa_level < 0)
     ilevel_respa = nlevels_respa-1;
-  else 
+  else
     ilevel_respa = respa_level;
 }
 

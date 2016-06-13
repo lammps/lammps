@@ -30,6 +30,11 @@
 #    20070109	Changed AddMass() to use $max_id correctly
 #    20160114   Added compatibility for parameter files that use IMPROPERS instead of IMPROPER
 #               Print warning when not all parameters are detected. Set correct number of atom types.
+#    20160613   Fix off-by-one issue in atom type validation check
+#               Replace -charmm command line flag with -nohints flag
+#               and enable type hints in data file by default.
+#               Add hints also to section headers
+#               Add a brief minimization to example input template.
 #    
 #    General	Many thanks to Paul S. Crozier for checking script validity
 #    		against his projects.
@@ -49,11 +54,11 @@
   {
     my $k		= 0;
     my @dir		= ("x", "y", "z");
-    my @options		= ("-help", "-charmm", "-water", "-ions", "-center",
+    my @options		= ("-help", "-nohints", "-water", "-ions", "-center",
 			   "-quiet", "-pdb_ctrl", "-l", "-lx", "-ly", "-lz", 
 			   "-border", "-ax", "-ay", "-az");
-    my @remarks		= ("display this message", 
-			   "add charmm types to LAMMPS data file",
+    my @remarks		= ("display this message",
+                           "do not print type and style hints in data file",
 			   "add TIP3P water [default: 1 g/cc]",
 			   "add (counter)ions using Na+ and Cl- [default: 0 mol/l]",
 			   "recenter atoms",
@@ -71,9 +76,9 @@
     my $notes;
     
     $program		= "charmm2lammps";
-    $version		= "1.8.2";
+    $version		= "1.8.3";
     $year		= "2016";
-    $add		= 0;
+    $add		= 1;
     $water_dens		= 0;
     $ions		= 0;
     $info		= 1;
@@ -118,22 +123,23 @@
 	  last if ($tmp[0] eq substr($_, 0 , length($tmp[0])));
 	  ++$k;
 	}
-	$help		= 1 if (!$k--);
-	$add		= 1 if (!$k--);
-	$water_dens	= ($tmp[1] ne "" ? $tmp[1] : 1) if (!$k--);
-	$ion_molar	= abs($tmp[1]) if (!$k);
-	$ions		= 1 if (!$k--);
-	$center		= 1 if (!$k--);
-	$info		= 0 if (!$k--);
-	$pdb_ctrl	= $switch if (!$k--);
-	my $flag	= $k--;
-        $L[0]		= abs($tmp[1]) if (!($flag && $k--));
-        $L[1]		= abs($tmp[1]) if (!($flag && $k--));
-        $L[2]		= abs($tmp[1]) if (!($flag && $k--));
-        $border		= abs($tmp[1]) if (!$k--);
-	@R		= M_Dot(M_Rotate(0, $tmp[1]), @R) if (!$k--);
-	@R		= M_Dot(M_Rotate(1, $tmp[1]), @R) if (!$k--);
-	@R		= M_Dot(M_Rotate(2, $tmp[1]), @R) if (!$k--);
+	$help		= 1 if (!$k--);                              # -help
+	$add		= 0 if (!$k--);                              # -nohints
+	$water_dens	= ($tmp[1] ne "" ? $tmp[1] : 1) if (!$k--);  # -water
+	$ion_molar	= abs($tmp[1]) if (!$k);                     # -ions
+	$ions		= 1 if (!$k--);                              # ...
+	$center		= 1 if (!$k--);                              # -center
+	$info		= 0 if (!$k--);                              # -quiet
+	$pdb_ctrl	= $switch if (!$k--);                        # -pdb_ctrl
+	my $flag	= $k--;                                      # -l
+        $L[0]		= abs($tmp[1]) if (!($flag && $k--));        # -lx
+        $L[1]		= abs($tmp[1]) if (!($flag && $k--));        # -ly
+        $L[2]		= abs($tmp[1]) if (!($flag && $k--));        # -lz
+        $border		= abs($tmp[1]) if (!$k--);                   # -border
+	@R		= M_Dot(M_Rotate(0, $tmp[1]), @R) if (!$k--);# -ax
+	@R		= M_Dot(M_Rotate(1, $tmp[1]), @R) if (!$k--);# -ay
+	@R		= M_Dot(M_Rotate(2, $tmp[1]), @R) if (!$k--);# -az
+        print("Warning: ignoring unknown command line flag: $tmp[0]\n");
       }
       else
       {
@@ -144,7 +150,7 @@
     $water_dens		= 1 if ($ions && !$water_dens);
     if (($k<2)||$help)
     {
-      printf("%s v%s (c)%s by Pieter J. in \'t Veld for SNL\n\n",
+      printf("\n%s v%s (c)%s by Pieter J. in \'t Veld for SNL\n\n",
         $program, $version, $year);
       printf("Usage:\n  %s.pl [-option[=#] ..] forcefield project\n\n",$program);
       printf("Options:\n");
@@ -155,7 +161,7 @@
       printf("\nNotes:\n%s\n", $notes);
       exit(-1);
     }
-    else { printf("%s v%s (c)%s\n\n", $program, $version, $year) if ($info); }
+    else { printf("\n%s v%s (c)%s\n\n", $program, $version, $year) if ($info); }
     my $flag		= Test($Parameters = "par_$forcefield.prm");
     $flag		|= Test($Topology = "top_$forcefield.rtf");
     $flag		|= Test($Pdb = "$project.pdb")
@@ -1004,7 +1010,7 @@
 
   sub WriteLAMMPSHeader					# print lammps header
   {
-    printf(LAMMPS "Created by $program v$version on %s\n", `date`);
+    printf(LAMMPS "LAMMPS data file. CGCMM style. atom_style full. Created by $program v$version on %s\n", `date`);
     printf(LAMMPS "%12d  atoms\n", $natoms);
     printf(LAMMPS "%12d  bonds\n", $nbonds);
     printf(LAMMPS "%12d  angles\n", $nangles);
@@ -1158,7 +1164,7 @@
     
     CRDGoto(atoms);
     $net_charge		= 0;
-    printf(LAMMPS "Atoms\n\n") if ($n>0);
+    printf(LAMMPS "Atoms # full\n\n") if ($n>0);
     for (my $i=0; $i<$n; ++$i)
     {
       my @crd		= $pdb ? NextPDB2CRD() : split(" ", <CRD>);
@@ -1192,6 +1198,7 @@
   {
     my $mode		= shift(@_)+1;
     my $header		= ("Pair","Bond","Angle","Dihedral","Improper")[$mode];
+    my $hint            = ("lj/charmm/coul/long", "harmonic", "charmm", "charmm", "harmonic")[$mode];
     my $n		= (4, 2, 4, 4, 2)[$mode];
     my $k		= 0;
 
@@ -1205,7 +1212,7 @@
       @parms		= Delete(1, @parms) if ($mode==3);
     }
     return 0 if (!scalar(@parms));
-    printf(LAMMPS "%s Coeffs\n\n", $header);
+    printf(LAMMPS "%s Coeffs # %s\n\n", $header, $hint);
     for (my $i=0; $i<scalar(@parms); ++$i)
     {
       if ($parms[$i] ne "")
@@ -1385,10 +1392,10 @@
     CreateCorrectedPairCoefficients();
     for (my $i=0; $i<scalar(@types); ++$i) { $types[$i] = $ids{$types[$i]}; }
     $natom_types	= WriteParameters(-1);	# pairs
-    if ($#types != $natom_types) {
+    if ($#types+1 > $natom_types) {
       print "Warning: $#types atom types present, but only $natom_types pair coeffs found\n";
       # reset to what is found while determining the number of atom types.
-      $natom_types = $#types;
+      $natom_types = $#types+1;
     }
     $natoms		= WriteAtoms();
     $nbond_types	= WriteParameters(0);	# bonds
@@ -1439,15 +1446,16 @@
       printf(LAMMPS "\n");
     }
     printf(LAMMPS "special_bonds   charmm\n");		# invoke charmm
+    printf(LAMMPS "thermo          1\n");		# set thermo style
+    printf(LAMMPS "thermo_style    multi\n");
+    printf(LAMMPS "timestep        0.5\n\n");		# 0.5 ps time step
+    printf(LAMMPS "minimize 0.0 0.0 1000 10000\n\n");   # take off the edge
     printf(LAMMPS "fix             1 all nve\n");
     printf(LAMMPS "fix             2 all shake 1e-6 500 0 m 1.0\n")
       if ($shake eq "");				# shake all H-bonds
     printf(LAMMPS "fix             2 all shake 1e-6 500 0 m 1.0 a %s\n",$shake)
       if ($shake ne "");				# add water if present
     printf(LAMMPS "velocity        all create 0.0 12345678 dist uniform\n\n");
-    printf(LAMMPS "thermo          1\n");		# set thermo style
-    printf(LAMMPS "thermo_style    multi\n");
-    printf(LAMMPS "timestep        0.5\n\n");		# 0.5 ps time step
     printf(LAMMPS "restart         10 $project.restart1 $project.restart2\n");
     printf(LAMMPS "dump            1 all atom 10 $project.dump\n");
     printf(LAMMPS "dump_modify     1 image yes scale yes\n\n");

@@ -11,7 +11,7 @@ In this directory, you should find:
 3) An "example" folder containing an example of how to use these tools.
 4) An "other" folder containing other potentially useful tools.
 
-In addition, you will need to provide the following input for 
+In addition, you will need to provide the following input for
 charmm2lammps.pl:
 1) a CHARMM parameter file (par_<forcefield>.prm)
 2) a CHARMM topology file (top_<forcefield>.rtf)
@@ -25,21 +25,21 @@ the common name of your *.crd and *.psf files. The options for the
 script are listed below. If the option requires a parameter, the
 syntax must be [-option[=#]], (i.e. -border=5).
 
--help        "display available options",                                    
--charmm      "add charmm types to LAMMPS data file",                    
--water       "add TIP3P water [default: 1 g/cc]",                       
--ions        "add (counter)ions using Na+ and Cl- [default: 0 mol/l]",  
--center      "recenter atoms",                                          
--quiet       "do not print info",                                       
--pdb_ctrl    "output project_ctrl.pdb",                                 
--l           "set x-, y-, and z-dimensions simultaneously",             
--lx          "x-dimension of simulation box",                           
--ly          "y-dimension of simulation box",                           
--lz          "z-dimension of simulation box",                           
+-help        "display available options",
+-nohints     "disable adding type hints to the data file",
+-water       "add TIP3P water [default: 1 g/cc]",
+-ions        "add (counter)ions using Na+ and Cl- [default: 0 mol/l]",
+-center      "recenter atoms",
+-quiet       "do not print info",
+-pdb_ctrl    "output project_ctrl.pdb",
+-l           "set x-, y-, and z-dimensions simultaneously",
+-lx          "x-dimension of simulation box",
+-ly          "y-dimension of simulation box",
+-lz          "z-dimension of simulation box",
 -border      "add border to all sides of simulation box [default: 0 A]",
--ax          "rotation around x-axis",                                  
--ay          "rotation around y-axis",                                  
--az          "rotation around z-axis"                                   
+-ax          "rotation around x-axis",
+-ay          "rotation around y-axis",
+-az          "rotation around z-axis"
 
 In the "example" folder, you will find example files that were created
 by following the steps below. These steps describe how to take a
@@ -64,26 +64,26 @@ file has to the corresponding names in the charmm FF files. You'll
 need to add a "pdbalias residue x xnew" line for each change that
 needs to be made.  The *.pgn should contain something like this:
 
-package require psfgen   
+package require psfgen
 topology top_all27_na.rtf
-pdbalias residue A ADE 
-pdbalias residue T THY 
-pdbalias residue G GUA 
-pdbalias residue C CYT 
+pdbalias residue A ADE
+pdbalias residue T THY
+pdbalias residue G GUA
+pdbalias residue C CYT
 .
 .
 .
-segment A {pdb 1ac7_pared.pdb}   
-coordpdb 1ac7_pared.pdb A   
-guesscoord   
-writepdb 1ac7.pdb   
-writepsf charmm 1ac7.psf  
-exit 
+segment A {pdb 1ac7_pared.pdb}
+coordpdb 1ac7_pared.pdb A
+guesscoord
+writepdb 1ac7.pdb
+writepsf charmm 1ac7.psf
+exit
 
 5) Type "vmd -e 1ac7.pgn" to build the 1ac7.psf file, and the new
    1ac7.pdb file.
 
-6) Run charmm2lammps.pl by typing: 
+6) Run charmm2lammps.pl by typing:
 "perl charmm2lammps.pl all27_na 1ac7 -charmm -border=1 -pdb_ctrl -water -ions"
 
 7) Run lammps by typing: "lmp < 1ac7.in"

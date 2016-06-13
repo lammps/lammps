@@ -120,10 +120,16 @@ int FixSpringSelf::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"respa_level") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+
+    if (strstr(update->integrate_style,"respa"))
+      nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    else
+      error->all(FLERR,"Trying to set r-RESPA level without using r-RESPA");
+
     int lvl = force->inumeric(FLERR,arg[1]);
     if ((lvl < -1) || (lvl == 0) || lvl > (nlevels_respa))
       error->all(FLERR,"Illegal fix_modify command");
-    respa_level = lvl;
+    respa_level = lvl-1;
     return 2;
   }
   return 0;

@@ -35,13 +35,13 @@ of a compute com/chunk command defined in the input script.  It is
 used to compute the COMs of each chunk.
 
 At the beginning of the first "run"_run.html or
-"minimize"_miminize.html command after this fix is defined, the
-initial COM of each chunk is calculated and stored as R0c, where C is
+"minimize"_minimize.html command after this fix is defined, the
+initial COM of each chunk is calculated and stored as R0m, where M is
 the chunk number.  Thereafter, at every timestep (or minimization
-iteration), the current COM of each chunk is calculated as Rc.  A
-restoring force of magnitude K (Rc - R0c) Mi / Mc is applied to each
+iteration), the current COM of each chunk is calculated as Rm.  A
+restoring force of magnitude K (Rm - R0m) Mi / Mm is applied to each
 atom in each chunk where {K} is the specified spring constant, Mi is
-the mass of the atom, and Mc is the total mass of all atoms in the
+the mass of the atom, and Mm is the total mass of all atoms in the
 chunk.  Note that {K} thus represents the spring constant for the
 total force on each chunk of atoms, not for a spring applied to each
 atom.

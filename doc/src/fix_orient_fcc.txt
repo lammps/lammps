@@ -7,20 +7,23 @@
 :line
 
 fix orient/fcc command :h3
+fix orient/bcc command :h3
 
-fix ID group-ID orient/fcc nstats dir alat dE cutlo cuthi file0 file1 :pre
+fix ID group-ID orient/fcc nstats dir alat dE cutlo cuthi file0 file1
+fix ID group-ID orient/bcc nstats dir alat dE cutlo cuthi file0 file1 :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 nstats = print stats every this many steps, 0 = never
 dir = 0/1 for which crystal is used as reference
-alat = fcc cubic lattice constant (distance units)
+alat = fcc/bcc cubic lattice constant (distance units)
 dE = energy added to each atom (energy units)
 cutlo,cuthi = values between 0.0 and 1.0, cutlo < cuthi
 file0,file1 = files that specify orientation of each grain :ul
 
 [Examples:]
 
-fix gb all orient/fcc 0 1 4.032008 0.001 0.25 0.75 xi.vec chi.vec :pre
+fix gb all orient/fcc 0 1 4.032008 0.001 0.25 0.75 xi.vec chi.vec
+fix gb all orient/bcc 0 1 2.882 0.001 0.25 0.75 ngb.left ngb.right :pre
 
 [Description:]
 
@@ -28,8 +31,9 @@ The fix applies an orientation-dependent force to atoms near a planar
 grain boundary which can be used to induce grain boundary migration
 (in the direction perpendicular to the grain boundary plane).  The
 motivation and explanation of this force and its application are
-described in "(Janssens)"_#Janssens.  The force is only applied to
-atoms in the fix group.
+described in "(Janssens)"_#Janssens. The adaptiation to bcc crystals
+is described in "(Wicaksono1)"_#Wicaksono1. The computed force is only
+applied to atoms in the fix group.
 
 The basic idea is that atoms in one grain (on one side of the
 boundary) have a potential energy dE added to them.  Atoms in the
@@ -51,11 +55,12 @@ The potential energy added to atom I is given by these formulas
 
 :c,image(Eqs/fix_orient_fcc.jpg)
 
-which are fully explained in "(Janssens)"_#Janssens.  The order
-parameter Xi for atom I in equation (1) is a sum over the 12 nearest
-neighbors of atom I.  Rj is the vector from atom I to its neighbor J,
-and RIj is a vector in the reference (perfect) crystal.  That is, if
-dir = 0/1, then RIj is a vector to an atom coord from file 0/1.
+which are fully explained in "(Janssens)"_#Janssens.  For fcc crystals
+this order parameter Xi for atom I in equation (1) is a sum over the
+12 nearest neighbors of atom I. For bcc crystals it is the corresponding
+sum of the 8 nearest neighbors. Rj is the vector from atom I to its
+neighbor J, and RIj is a vector in the reference (perfect) crystal.
+That is, if dir = 0/1, then RIj is a vector to an atom coord from file 0/1.
 Equation (2) gives the expected value of the order parameter XiIJ in
 the other grain.  Hi and lo cutoffs are defined in equations (3) and
 (4), using the input parameters {cutlo} and {cuthi} as thresholds to
@@ -82,13 +87,13 @@ expense of the other.  A value of 0 means the first grain will shrink;
 a value of 1 means it will grow.  This assumes that {dE} is positive.
 The reverse will be true if {dE} is negative.
 
-The {alat} parameter is the cubic lattice constant for the fcc
+The {alat} parameter is the cubic lattice constant for the fcc or bcc
 material and is only used to compute a cutoff distance of 1.57 * alat
-/ sqrt(2) for finding the 12 nearest neighbors of each atom (which
-should be valid for an fcc crystal).  A longer/shorter cutoff can be
-imposed by adjusting {alat}.  If a particular atom has less than 12
-neighbors within the cutoff, the order parameter of equation (1) is
-effectively multiplied by 12 divided by the actual number of neighbors
+/ sqrt(2) for finding the 12 or 8 nearest neighbors of each atom (which
+should be valid for an fcc or bcc crystal).  A longer/shorter cutoff can
+be imposed by adjusting {alat}.  If a particular atom has less than 12
+or 8 neighbors within the cutoff, the order parameter of equation (1) is
+effectively multiplied by 12 or 8 divided by the actual number of neighbors
 within the cutoff.
 
 The {dE} parameter is the maximum amount of additional energy added to
@@ -111,7 +116,8 @@ orientation.  The vector lengths should all be identical since an fcc
 lattice has a coordination number of 12.  Only 6 are listed due to
 symmetry, so the list must include one from each pair of
 equal-and-opposite neighbors.  A pair of orientation files for a
-Sigma=5 tilt boundary are show below.
+Sigma=5 tilt boundary are shown below. A tutorial that can help for 
+writing the orientation files is given in "(Wicaksono2)"_#Wicaksono2
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -143,7 +149,7 @@ This fix is part of the MISC package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-This fix should only be used with fcc lattices.
+This fix should only be used with fcc or bcc lattices.
 
 [Related commands:]
 
@@ -156,6 +162,14 @@ This fix should only be used with fcc lattices.
 :link(Janssens)
 [(Janssens)] Janssens, Olmsted, Holm, Foiles, Plimpton, Derlet, Nature
 Materials, 5, 124-127 (2006).
+
+:link(Wicaksono1)
+[(Wicaksono1)] Wicaksono, Sinclair, Militzer, Computational Materials
+Science, 117, 397-405 (2016).
+
+:link(Wicaksono2)
+[(Wicaksono2)] Wicaksono, figshare, 
+https://dx.doi.org/10.6084/m9.figshare.1488628.v1 (2015).
 
 :line
 

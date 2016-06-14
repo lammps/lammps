@@ -91,7 +91,7 @@ int ZBLT::init(const int ntypes, double **host_cutsq,
   _cut_globalsq = cut_globalsq; 
   _cut_innersq = cut_innersq;
   _cut_inner = cut_inner;
-  printf("params: %f %f %f\n", _cut_globalsq, _cut_innersq, _cut_inner);
+
   _allocated=true;
   this->_max_bytes=coeff1.row_bytes()+coeff2.row_bytes()+coeff3.row_bytes();
   return 0;

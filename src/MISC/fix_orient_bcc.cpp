@@ -60,7 +60,7 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_bcc);
-  
+
   MPI_Comm_rank(world,&me);
 
   if (narg != 11) error->all(FLERR,"Illegal fix orient/bcc command");
@@ -292,7 +292,7 @@ void FixOrientBCC::post_force(int vflag)
     i = ilist[ii];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     if (jnum < mincount) mincount = jnum;
     if (jnum > maxcount) {
       if (maxcount) delete [] sort;
@@ -315,7 +315,7 @@ void FixOrientBCC::post_force(int vflag)
       dz = x[i][2] - x[j][2];
       rsq = dx*dx + dy*dy + dz*dz;
 
-      if (rsq < cutsq) { 
+      if (rsq < cutsq) {
         sort[nsort].id = j;
         sort[nsort].rsq = rsq;
         sort[nsort].delta[0] = dx;
@@ -359,16 +359,16 @@ void FixOrientBCC::post_force(int vflag)
     if (xi_total < xi0) {
       nbr[i].duxi = 0.0;
       edelta = 0.0;
-      order[i][1] = 0.0; 
+      order[i][1] = 0.0;
     } else if (xi_total > xi1) {
       nbr[i].duxi = 0.0;
       edelta = Vxi;
-      order[i][1] = 1.0; 
+      order[i][1] = 1.0;
     } else {
       omega = MY_PI2*(xi_total-xi0) / (xi1-xi0);
       nbr[i].duxi = MY_PI*Vxi*sin(2.0*omega) / (2.0*(xi1-xi0));
       edelta = Vxi*(1 - cos(2.0*omega)) / 2.0;
-      order[i][1] = omega / MY_PI2; 
+      order[i][1] = omega / MY_PI2;
     }
     added_energy += edelta;
   }
@@ -386,7 +386,7 @@ void FixOrientBCC::post_force(int vflag)
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
     n = nbr[i].n;
-    duxi = nbr[i].duxi; 
+    duxi = nbr[i].duxi;
 
     for (j = 0; j < n; j++) {
       dxiptr = &nbr[i].dxi[j][0];
@@ -486,7 +486,7 @@ int FixOrientBCC::pack_forward_comm(int n, int *list, double *buf,
 {
   int i,j,k,num;
   tagint id;
-  
+
   tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
   int m = 0;
@@ -549,8 +549,6 @@ void FixOrientBCC::find_best_ref(double *displs, int which_crystal,
   double  best_dot  = -1.0;         // best is biggest (smallest angle)
   int     best_i    = -1;
   int     best_sign = 0;
-
-
 
   for (i = 0; i < half_bcc_nn; i++) {
     dot = displs[0] * half_xi_chi_vec[which_crystal][i][0] +

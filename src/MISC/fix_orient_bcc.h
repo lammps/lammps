@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -108,7 +108,7 @@ specified file.
 
 E: Fix orient/bcc found self twice
 
-The neighbor lists used by fix orient/BCC are messed up.  If this
+The neighbor lists used by fix orient/bcc are messed up.  If this
 error occurs, it is likely a bug, so send an email to the
 "developers"_http://lammps.sandia.gov/authors.html.
 

@@ -331,10 +331,11 @@ most one rigid body.  Which atoms are in which bodies can be defined
 via several options.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">With fix rigid/small, which requires bodystyle <em>molecule</em>, you
-can define a system that has no rigid bodies initially.  This is
-useful when you are using the <em>mol</em> keyword in conjunction with
-another fix that is adding rigid bodies on-the-fly, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>.</p>
+<p class="last">With fix rigid/small, which requires that <em>bodystyle</em> be
+specified as <em>molecule</em>, you can define a system that has no rigid
+bodies initially.  This is useful when you are using the <em>mol</em> keyword
+in conjunction with another fix that is adding rigid bodies on-the-fly
+as molecules, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>.</p>
 </div>
 <p>For bodystyle <em>single</em> the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for fix rigid and its

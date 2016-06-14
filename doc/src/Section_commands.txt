@@ -576,6 +576,7 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "setforce (k)"_fix_setforce.html,
 "shake"_fix_shake.html,
 "spring"_fix_spring.html,
+"spring/chunk"_fix_spring_chunk.html,
 "spring/rg"_fix_spring_rg.html,
 "spring/self"_fix_spring_self.html,
 "srd"_fix_srd.html,

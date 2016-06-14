@@ -994,7 +994,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "zero"_bond_zero.html,
 "hybrid"_bond_hybrid.html,
 "class2 (o)"_bond_class2.html,
-"fene (ko)"_bond_fene.html,
+"fene (iko)"_bond_fene.html,
 "fene/expand (o)"_bond_fene_expand.html,
 "harmonic (ko)"_bond_harmonic.html,
 "morse (o)"_bond_morse.html,

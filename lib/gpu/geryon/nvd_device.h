@@ -432,7 +432,11 @@ void UCL_Device::print_all(std::ostream &out) {
     out << "  Compute mode:                                  ";
     if (_properties[i].computeMode == CU_COMPUTEMODE_DEFAULT)
       out << "Default\n"; // multiple threads can use device
+#if CUDA_VERSION >= 8000
+    else if (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE_PROCESS)
+#else
     else if (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE)
+#endif
       out << "Exclusive\n"; // only thread can use device
     else if (_properties[i].computeMode == CU_COMPUTEMODE_PROHIBITED)
       out << "Prohibited\n"; // no thread can use device

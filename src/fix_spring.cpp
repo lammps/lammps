@@ -23,9 +23,9 @@
 #include "update.h"
 #include "respa.h"
 #include "domain.h"
-#include "error.h"
 #include "force.h"
 #include "group.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

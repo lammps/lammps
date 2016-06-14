@@ -229,11 +229,7 @@ class UCL_Device {
   /// Returns false if accelerator cannot be shared by multiple processes
   /** If it cannot be determined, true is returned **/
   inline bool sharing_supported(const int i)
-#if CUDA_VERSION >= 8000
-    { return (_properties[i].computeMode == CU_COMPUTEMODE_EXCLUSIVE_PROCESS); }
-#else
     { return (_properties[i].computeMode == CU_COMPUTEMODE_DEFAULT); }
-#endif
 
   /// True if splitting device into equal subdevices supported
   inline bool fission_equal()

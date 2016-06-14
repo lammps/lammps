@@ -73,7 +73,6 @@ void RespaOMP::setup()
     fprintf(screen,"Setting up r-RESPA/omp run ...\n");
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
     fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(screen,"  OuterTime step: %g\n", update->dt);
     fprintf(screen,"  Time steps    :");
     for (int ilevel=0; ilevel < nlevels; ++ilevel)
       fprintf(screen," %d/%g",ilevel+1, step[ilevel]);

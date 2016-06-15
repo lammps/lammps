@@ -44,6 +44,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 1;
 
+  ilevel_respa = nlevels_respa = 0;
   xstr = ystr = zstr = NULL;
 
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -131,17 +132,11 @@ int FixSetForce::setmask()
 
 int FixSetForce::modify_param(int narg, char **arg)
 {
-  if (strcmp(arg[0],"respa_level") == 0) {
+  if (strcmp(arg[0],"respa") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
 
-    if (strstr(update->integrate_style,"respa"))
-      nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    else
-      error->all(FLERR,"Trying to set r-RESPA level without using r-RESPA");
-
     int lvl = force->inumeric(FLERR,arg[1]);
-    if ((lvl < -1) || (lvl == 0) || lvl > (nlevels_respa))
-      error->all(FLERR,"Illegal fix_modify command");
+    if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
     respa_level = lvl-1;
     return 2;
   }
@@ -196,10 +191,8 @@ void FixSetForce::init()
   if (strstr(update->integrate_style,"respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  if (respa_level < 0)
-    ilevel_respa = nlevels_respa-1;
-  else
-    ilevel_respa = respa_level;
+  if (respa_level) ilevel_respa = (respa_level > nlevels_respa-1)
+                     ? nlevels_respa-1 : respa_level;
 
   // cannot use non-zero forces for a minimization since no energy is integrated
   // use fix addforce instead

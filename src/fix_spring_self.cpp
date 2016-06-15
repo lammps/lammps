@@ -118,17 +118,11 @@ int FixSpringSelf::setmask()
 
 int FixSpringSelf::modify_param(int narg, char **arg)
 {
-  if (strcmp(arg[0],"respa_level") == 0) {
+  if (strcmp(arg[0],"respa") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
 
-    if (strstr(update->integrate_style,"respa"))
-      nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    else
-      error->all(FLERR,"Trying to set r-RESPA level without using r-RESPA");
-
     int lvl = force->inumeric(FLERR,arg[1]);
-    if ((lvl < -1) || (lvl == 0) || lvl > (nlevels_respa))
-      error->all(FLERR,"Illegal fix_modify command");
+    if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
     respa_level = lvl-1;
     return 2;
   }
@@ -139,13 +133,13 @@ int FixSpringSelf::modify_param(int narg, char **arg)
 
 void FixSpringSelf::init()
 {
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  int max_respa = 0;
 
-  if (respa_level < 0)
-    ilevel_respa = nlevels_respa-1;
-  else
-    ilevel_respa = respa_level;
+  if (strstr(update->integrate_style,"respa"))
+    max_respa = ((Respa *) update->integrate)->nlevels - 1;
+
+  if (respa_level)
+    ilevel_respa = (respa_level > max_respa) ? max_respa : respa_level;
 }
 
 /* ---------------------------------------------------------------------- */

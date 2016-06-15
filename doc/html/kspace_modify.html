@@ -285,17 +285,16 @@ interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the <em>slab</em>
 option is explained in the paper by <a class="reference internal" href="#yeh"><span class="std std-ref">(Yeh)</span></a>.  The <em>slab</em> option
-is also extended to non-neutral systems
-<a class="reference internal" href="#ballenegger"><span class="std std-ref">(Ballenegger)</span></a>. An alternative slab option can be
-invoked with the <em>nozforce</em> keyword in lieu of the volfactor. This
-turns off all kspace forces in the z direction.  The <em>nozforce</em> option
-is not supported by MSM. For MSM, any combination of periodic,
-non-periodic, or shrink-wrapped boundaries can be set using
-<a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> (the slab approximation in not needed).  The
-<em>slab</em> keyword is not currently supported by Ewald or PPPM when using
-a triclinic simulation cell. The slab correction has also been
-extended to point dipole interactions <a class="reference internal" href="#klapp"><span class="std std-ref">(Klapp)</span></a> in
-<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> <em>ewald/disp</em>.</p>
+is also extended to non-neutral systems <a class="reference internal" href="#ballenegger"><span class="std std-ref">(Ballenegger)</span></a>.</p>
+<p>An alternative slab option can be invoked with the <em>nozforce</em> keyword
+in lieu of the volfactor.  This turns off all kspace forces in the z
+direction.  The <em>nozforce</em> option is not supported by MSM. For MSM,
+any combination of periodic, non-periodic, or shrink-wrapped
+boundaries can be set using <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> (the slab
+approximation in not needed).  The <em>slab</em> keyword is not currently
+supported by Ewald or PPPM when using a triclinic simulation cell. The
+slab correction has also been extended to point dipole interactions
+<a class="reference internal" href="#klapp"><span class="std std-ref">(Klapp)</span></a> in <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> <em>ewald/disp</em>.</p>
 <p>The <em>compute</em> keyword allows Kspace computations to be turned off,
 even though a <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> is defined.  This is
 not useful for running a real simulation, but can be useful for

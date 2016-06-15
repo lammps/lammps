@@ -323,7 +323,12 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 		  lj4 = lj34i[jtype].lj4;
 		  offset = ljc12oi[jtype].offset;
 		}
-                evdwl = r6inv * (lj3 * r6inv - lj4) - offset;
+                evdwl = r6inv * (lj3 * r6inv - lj4);
+                #ifdef INTEL_VMASK
+		evdwl -= offset;
+		#else
+		if (rsq < cutsq) evdwl -= offset;
+		#endif
                 if (!ONETYPE) evdwl *= factor_lj;
                 sevdwl += ev_pre*evdwl;
                 if (eatom) {

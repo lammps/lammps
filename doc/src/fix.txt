@@ -264,6 +264,7 @@ of "this page"_Section_commands.html#cmd_5.
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
 "spring"_fix_spring.html - apply harmonic spring force to group of atoms
+"spring/chunk"_fix_spring_chunk.html - apply harmonic spring force to each chunk of atoms
 "spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
      group of atoms
 "spring/self"_fix_spring_self.html - spring from each atom to its origin

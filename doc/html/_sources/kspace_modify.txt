@@ -177,17 +177,17 @@ interactions.  The use of fixed boundaries in z means that the user
 must prevent particle migration beyond the initial z-bounds, typically
 by providing a wall-style fix.  The methodology behind the *slab*
 option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab* option
-is also extended to non-neutral systems
-:ref:`(Ballenegger) <Ballenegger>`. An alternative slab option can be
-invoked with the *nozforce* keyword in lieu of the volfactor. This
-turns off all kspace forces in the z direction.  The *nozforce* option
-is not supported by MSM. For MSM, any combination of periodic,
-non-periodic, or shrink-wrapped boundaries can be set using
-:doc:`boundary <boundary>` (the slab approximation in not needed).  The
-*slab* keyword is not currently supported by Ewald or PPPM when using
-a triclinic simulation cell. The slab correction has also been
-extended to point dipole interactions :ref:`(Klapp) <Klapp>` in
-:doc:`kspace_style <kspace_style>` *ewald/disp*\ .
+is also extended to non-neutral systems :ref:`(Ballenegger) <Ballenegger>`.
+
+An alternative slab option can be invoked with the *nozforce* keyword
+in lieu of the volfactor.  This turns off all kspace forces in the z
+direction.  The *nozforce* option is not supported by MSM. For MSM,
+any combination of periodic, non-periodic, or shrink-wrapped
+boundaries can be set using :doc:`boundary <boundary>` (the slab
+approximation in not needed).  The *slab* keyword is not currently
+supported by Ewald or PPPM when using a triclinic simulation cell. The
+slab correction has also been extended to point dipole interactions
+:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>` *ewald/disp*\ .
 
 The *compute* keyword allows Kspace computations to be turned off,
 even though a :doc:`kspace_style <kspace_style>` is defined.  This is

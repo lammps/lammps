@@ -249,6 +249,7 @@ of :ref:`this page <cmd_5>`.
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles
 * :doc:`spring <fix_spring>` - apply harmonic spring force to group of atoms
+* :doc:`spring/chunk <fix_spring_chunk>` - apply harmonic spring force to each chunk of atoms
 * :doc:`spring/rg <fix_spring_rg>` - spring on radius of gyration of      group of atoms
 * :doc:`spring/self <fix_spring_self>` - spring from each atom to its origin
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)

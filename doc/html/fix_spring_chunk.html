@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>bond_style fene command &mdash; LAMMPS documentation</title>
+  <title>fix spring/chunk command &mdash; LAMMPS documentation</title>
   
 
   
@@ -109,7 +109,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>bond_style fene command</li>
+    <li>fix spring/chunk command</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -124,81 +124,81 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="bond-style-fene-command">
-<span id="index-0"></span><h1>bond_style fene command</h1>
-</div>
-<div class="section" id="bond-style-fene-intel-command">
-<h1>bond_style fene/intel command</h1>
-</div>
-<div class="section" id="bond-style-fene-kk-command">
-<h1>bond_style fene/kk command</h1>
-</div>
-<div class="section" id="bond-style-fene-omp-command">
-<h1>bond_style fene/omp command</h1>
+  <div class="section" id="fix-spring-chunk-command">
+<span id="index-0"></span><h1>fix spring/chunk command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">fene</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">spring</span><span class="o">/</span><span class="n">chunk</span> <span class="n">K</span> <span class="n">chunkID</span> <span class="n">comID</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>spring/chunk = style name of this fix command</li>
+<li>K = spring constant for each chunk (force/distance units)</li>
+<li>chunkID = ID of <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command</li>
+<li>comID = ID of <a class="reference internal" href="compute_com_chunk.html"><span class="doc">compute com/chunk</span></a> command</li>
+</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">fene</span>
-<span class="n">bond_coeff</span> <span class="mi">1</span> <span class="mf">30.0</span> <span class="mf">1.5</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">restrain</span> <span class="nb">all</span> <span class="n">spring</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="n">chunkID</span> <span class="n">comID</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>The <em>fene</em> bond style uses the potential</p>
-<img alt="_images/bond_fene.jpg" class="align-center" src="_images/bond_fene.jpg" />
-<p>to define a finite extensible nonlinear elastic (FENE) potential
-<a class="reference internal" href="#fene-kremer"><span class="std std-ref">(Kremer)</span></a>, used for bead-spring polymer models.  The first
-term is attractive, the 2nd Lennard-Jones term is repulsive.  The
-first term extends to R0, the maximum extent of the bond.  The 2nd
-term is cutoff at 2^(1/6) sigma, the minimum of the LJ potential.</p>
-<p>The following coefficients must be defined for each bond type via the
-<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a> command as in the example above, or in
-the data file or restart files read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>
-or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands:</p>
-<ul class="simple">
-<li>K (energy/distance^2)</li>
-<li>R0 (distance)</li>
-<li>epsilon (energy)</li>
-<li>sigma (distance)</li>
-</ul>
-<hr class="docutils" />
-<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
-of the manual.  The accelerated styles take the same arguments and
-should produce the same results, except for round-off and precision
-issues.</p>
-<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
-<p>You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
-use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
-more instructions on how to use the accelerated styles effectively.</p>
+<p>Apply a spring force to the center-of-mass (COM) of chunks of atoms as
+defined by the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command.
+Chunks can be molecules or spatial bins or other groupings of atoms.
+This is a way of tethering each chunk to its initial COM coordinates.</p>
+<p>The <em>chunkID</em> is the ID of a compute chunk/atom command defined in the
+input script.  It is used to define the chunks.  The <em>comID</em> is the ID
+of a compute com/chunk command defined in the input script.  It is
+used to compute the COMs of each chunk.</p>
+<p>At the beginning of the first <a class="reference internal" href="run.html"><span class="doc">run</span></a> or
+<a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> command after this fix is defined, the
+initial COM of each chunk is calculated and stored as R0m, where M is
+the chunk number.  Thereafter, at every timestep (or minimization
+iteration), the current COM of each chunk is calculated as Rm.  A
+restoring force of magnitude K (Rm - R0m) Mi / Mm is applied to each
+atom in each chunk where <em>K</em> is the specified spring constant, Mi is
+the mass of the atom, and Mm is the total mass of all atoms in the
+chunk.  Note that <em>K</em> thus represents the spring constant for the
+total force on each chunk of atoms, not for a spring applied to each
+atom.</p>
 </div>
-<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
+fix to add the energy stored in all the springs to the system&#8217;s potential
+energy as part of <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar is the
+energy of all the springs, i.e. 0.5 * K * r^2 per-spring.</p>
+<p>The scalar value calculated by this fix is &#8220;extensive&#8221;.</p>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
+the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.</p>
+<p>The forces due to this fix are imposed during an energy minimization,
+invoked by the <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> command.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you want the spring energies to be included in the total
+potential energy of the system (the quantity being minimized), you
+MUST enable the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option for this
+fix.</p>
+</div>
+</div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>This bond style can only be used if LAMMPS was built with the
-MOLECULE package (which it is by default).  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info on packages.</p>
-<p>You typically should specify <a class="reference external" href="special_bonds.html&quot;">special_bonds fene</a>
-or <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds lj/coul 0 1 1</span></a> to use this bond
-style.  LAMMPS will issue a warning it that&#8217;s not the case.</p>
+<blockquote>
+<div>none</div></blockquote>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>, <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a></p>
+<p><a class="reference internal" href="fix_spring.html"><span class="doc">fix spring</span></a>, <a class="reference internal" href="fix_spring_self.html"><span class="doc">fix spring/self</span></a>,
+<a class="reference internal" href="fix_spring_rg.html"><span class="doc">fix spring/rg</span></a></p>
 <p><strong>Default:</strong> none</p>
-<hr class="docutils" />
-<p id="fene-kremer"><strong>(Kremer)</strong> Kremer, Grest, J Chem Phys, 92, 5057 (1990).</p>
 </div>
 </div>
 

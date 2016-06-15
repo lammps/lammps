@@ -143,8 +143,8 @@ Restrictions
 """"""""""""
 
 
-You cannot rotate around any rotation vector except the z-axis for a
-2d simulation.
+For a 2d simulation, only rotations around the a vector parallel to
+the z-axis are allowed.
 
 Related commands
 """"""""""""""""

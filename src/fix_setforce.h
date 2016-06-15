@@ -36,7 +36,6 @@ class FixSetForce : public Fix {
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_vector(int);
-  int modify_param(int, char**);
 
   double memory_usage();
 

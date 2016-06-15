@@ -36,7 +36,6 @@ class FixSpringSelf : public Fix {
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_scalar();
-  int modify_param(int, char**);
 
   double memory_usage();
   void grow_arrays(int);

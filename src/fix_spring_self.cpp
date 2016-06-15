@@ -41,6 +41,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  respa_level_support = 1;
 
   k = force->numeric(FLERR,arg[3]);
   if (k <= 0.0) error->all(FLERR,"Illegal fix spring/self command");
@@ -116,21 +117,6 @@ int FixSpringSelf::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-int FixSpringSelf::modify_param(int narg, char **arg)
-{
-  if (strcmp(arg[0],"respa") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
-
-    int lvl = force->inumeric(FLERR,arg[1]);
-    if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
-    respa_level = lvl-1;
-    return 2;
-  }
-  return 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixSpringSelf::init()
 {
   int max_respa = 0;
@@ -138,8 +124,8 @@ void FixSpringSelf::init()
   if (strstr(update->integrate_style,"respa"))
     max_respa = ((Respa *) update->integrate)->nlevels - 1;
 
-  if (respa_level)
-    ilevel_respa = (respa_level > max_respa) ? max_respa : respa_level;
+  if (respa_level >= 0)
+    ilevel_respa = MIN(respa_level,max_respa);
 }
 
 /* ---------------------------------------------------------------------- */

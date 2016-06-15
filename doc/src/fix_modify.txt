@@ -64,12 +64,13 @@ produces to be part of the optimization criteria.
 For fixes that set or modify forces, it may be possible to select at
 which "r-RESPA"_run_style.html level the fix operates via the {respa}
 keyword. The RESPA level at which the fix is active can be selected.
-This is a number ranging from 1 to the number of levels. Default setting
-is the current outermost level. This default can be restored using
-a value of {0}. The affected fix has to be programmed to support this
-feature; if not, {fix_modify} will report an error. Active fixes with
-custom RESPA level are reported with their specified level at the
-beginning of a r-RESPA run.
+This is a number ranging from 1 to the number of levels. If the RESPA
+level is larger than the current maximum, the outermost level will be
+used, which is also the default setting. This default can be restored
+using a value of {0} for the RESPA level. The affected fix has to be
+programmed to support this feature; if not, {fix_modify} will report
+an error. Active fixes with a custom RESPA level setting are reported
+with their specified level at the beginning of a r-RESPA run.
 
 [Restrictions:] none
 

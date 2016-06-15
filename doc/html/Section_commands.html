@@ -622,9 +622,9 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <col width="13%" />
 <col width="11%" />
 <col width="12%" />
+<col width="12%" />
 <col width="11%" />
-<col width="16%" />
-<col width="11%" />
+<col width="15%" />
 <col width="12%" />
 </colgroup>
 <tbody valign="top">
@@ -730,37 +730,37 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <tr class="row-even"><td><a class="reference internal" href="fix_setforce.html"><span class="doc">setforce (k)</span></a></td>
 <td><a class="reference internal" href="fix_shake.html"><span class="doc">shake</span></a></td>
 <td><a class="reference internal" href="fix_spring.html"><span class="doc">spring</span></a></td>
+<td><a class="reference internal" href="fix_spring_chunk.html"><span class="doc">spring/chunk</span></a></td>
 <td><a class="reference internal" href="fix_spring_rg.html"><span class="doc">spring/rg</span></a></td>
 <td><a class="reference internal" href="fix_spring_self.html"><span class="doc">spring/self</span></a></td>
 <td><a class="reference internal" href="fix_srd.html"><span class="doc">srd</span></a></td>
 <td><a class="reference internal" href="fix_store_force.html"><span class="doc">store/force</span></a></td>
-<td><a class="reference internal" href="fix_store_state.html"><span class="doc">store/state</span></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">temp/berendsen</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_store_state.html"><span class="doc">store/state</span></a></td>
+<td><a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">temp/berendsen</span></a></td>
 <td><a class="reference internal" href="fix_temp_csvr.html"><span class="doc">temp/csld</span></a></td>
 <td><a class="reference internal" href="fix_temp_csvr.html"><span class="doc">temp/csvr</span></a></td>
 <td><a class="reference internal" href="fix_temp_rescale.html"><span class="doc">temp/rescale</span></a></td>
 <td><a class="reference internal" href="fix_tfmc.html"><span class="doc">tfmc</span></a></td>
 <td><a class="reference internal" href="fix_thermal_conductivity.html"><span class="doc">thermal/conductivity</span></a></td>
 <td><a class="reference internal" href="fix_tmd.html"><span class="doc">tmd</span></a></td>
-<td><a class="reference internal" href="fix_ttm.html"><span class="doc">ttm</span></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_tune_kspace.html"><span class="doc">tune/kspace</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="fix_ttm.html"><span class="doc">ttm</span></a></td>
+<td><a class="reference internal" href="fix_tune_kspace.html"><span class="doc">tune/kspace</span></a></td>
 <td><a class="reference internal" href="fix_vector.html"><span class="doc">vector</span></a></td>
 <td><a class="reference internal" href="fix_viscosity.html"><span class="doc">viscosity</span></a></td>
 <td><a class="reference internal" href="fix_viscous.html"><span class="doc">viscous</span></a></td>
 <td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/colloid</span></a></td>
 <td><a class="reference internal" href="fix_wall_gran.html"><span class="doc">wall/gran</span></a></td>
 <td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/harmonic</span></a></td>
-<td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj1043</span></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj126</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj1043</span></a></td>
+<td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj126</span></a></td>
 <td><a class="reference internal" href="fix_wall.html"><span class="doc">wall/lj93</span></a></td>
 <td><a class="reference internal" href="fix_wall_piston.html"><span class="doc">wall/piston</span></a></td>
 <td><a class="reference internal" href="fix_wall_reflect.html"><span class="doc">wall/reflect (k)</span></a></td>
 <td><a class="reference internal" href="fix_wall_region.html"><span class="doc">wall/region</span></a></td>
 <td><a class="reference internal" href="fix_wall_srd.html"><span class="doc">wall/srd</span></a></td>
-<td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
 </tbody>
@@ -1278,7 +1278,7 @@ KOKKOS, o = USER-OMP, t = OPT.</p>
 <td><a class="reference internal" href="bond_hybrid.html"><span class="doc">hybrid</span></a></td>
 <td><a class="reference internal" href="bond_class2.html"><span class="doc">class2 (o)</span></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="bond_fene.html"><span class="doc">fene (ko)</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="bond_fene.html"><span class="doc">fene (iko)</span></a></td>
 <td><a class="reference internal" href="bond_fene_expand.html"><span class="doc">fene/expand (o)</span></a></td>
 <td><a class="reference internal" href="bond_harmonic.html"><span class="doc">harmonic (ko)</span></a></td>
 <td><a class="reference internal" href="bond_morse.html"><span class="doc">morse (o)</span></a></td>

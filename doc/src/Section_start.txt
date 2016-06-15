@@ -485,8 +485,13 @@ pre-built any other needed libraries (e.g. MPI, FFT, etc) all you need
 to do from the src directory is type something like this:
 
 make foo
-or
-gmake foo :pre
+make -j N foo
+gmake foo
+gmake -j N foo :pre
+
+The -j or -j N switches perform a parallel build which can be much
+faster, depending on how many cores your compilation machine has.  N
+is the number of cores the build runs on.
 
 You should get the executable lmp_foo when the build is complete.
 

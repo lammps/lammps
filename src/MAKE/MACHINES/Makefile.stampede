@@ -14,7 +14,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicc -openmp
 LINKFLAGS =	-O3 -xhost
-LIB =           
+LIB =           -ltbbmalloc
 SIZE =		size
 
 ARCHIVE =	ar

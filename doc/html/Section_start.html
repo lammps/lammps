@@ -580,10 +580,14 @@ installed.  To build LAMMPS with optional packages, see <a class="reference inte
 pre-built any other needed libraries (e.g. MPI, FFT, etc) all you need
 to do from the src directory is type something like this:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">foo</span>
-<span class="ow">or</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">j</span> <span class="n">N</span> <span class="n">foo</span>
 <span class="n">gmake</span> <span class="n">foo</span>
+<span class="n">gmake</span> <span class="o">-</span><span class="n">j</span> <span class="n">N</span> <span class="n">foo</span>
 </pre></div>
 </div>
+<p>The -j or -j N switches perform a parallel build which can be much
+faster, depending on how many cores your compilation machine has.  N
+is the number of cores the build runs on.</p>
 <p>You should get the executable lmp_foo when the build is complete.</p>
 <hr class="docutils" />
 <p id="start-2-3"><a href="#id7"><span class="problematic" id="id8">**</span></a><em>Errors that can occur when making LAMMPS:</em>**</p>

@@ -1037,8 +1037,10 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
         #if defined(LMP_SIMD_COMPILER)
 	#ifdef _LMP_INTEL_OFFLOAD
 	int vlmin = lmin, vlmax = lmax, vgmin = gmin, vgmax = gmax;
+	#if __INTEL_COMPILER+0 > 1499
 	#pragma vector aligned
         #pragma simd reduction(max:vlmax,vgmax) reduction(min:vlmin, vgmin)
+	#endif
 	#else
 	#pragma vector aligned
         #pragma simd
@@ -1645,8 +1647,10 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
         #if defined(LMP_SIMD_COMPILER)
 	#ifdef _LMP_INTEL_OFFLOAD
 	int vlmin = lmin, vlmax = lmax, vgmin = gmin, vgmax = gmax;
+	#if __INTEL_COMPILER+0 > 1499
 	#pragma vector aligned
         #pragma simd reduction(max:vlmax,vgmax) reduction(min:vlmin, vgmin)
+	#endif
 	#else
 	#pragma vector aligned
         #pragma simd
@@ -2241,8 +2245,10 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
         #if defined(LMP_SIMD_COMPILER)
 	#ifdef _LMP_INTEL_OFFLOAD
 	int vlmin = lmin, vlmax = lmax, vgmin = gmin, vgmax = gmax;
+	#if __INTEL_COMPILER+0 > 1499
 	#pragma vector aligned
         #pragma simd reduction(max:vlmax,vgmax) reduction(min:vlmin, vgmin)
+	#endif
 	#else
 	#pragma vector aligned
         #pragma simd

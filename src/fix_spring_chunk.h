@@ -11,47 +11,43 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 
-ComputeStyle(com/chunk,ComputeCOMChunk)
+FixStyle(spring/chunk,FixSpringChunk)
 
 #else
 
-#ifndef LMP_COMPUTE_COM_CHUNK_H
-#define LMP_COMPUTE_COM_CHUNK_H
+#ifndef LMP_FIX_SPRING_CHUNK_H
+#define LMP_FIX_SPRING_CHUNK_H
 
-#include "compute.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeCOMChunk : public Compute {
+class FixSpringChunk : public Fix {
  public:
-  char *idchunk;              // fields accessed by other classes
-  double *masstotal;
-
-  ComputeCOMChunk(class LAMMPS *, int, char **);
-  ~ComputeCOMChunk();
+  FixSpringChunk(class LAMMPS *, int, char **);
+  ~FixSpringChunk();
+  int setmask();
   void init();
-  void setup();
-  void compute_array();
-
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
-
-  double memory_usage();
+  void setup(int);
+  void min_setup(int);
+  void post_force(int);
+  void post_force_respa(int, int, int);
+  void min_post_force(int);
+  double compute_scalar();
 
  private:
-  int nchunk,maxchunk;
-  int firstflag,massneed;
+  int nlevels_respa;
+  double k_spring;
+  double esprings;
+  char *idchunk,*idcom;
+
+  int nchunk;
+  double **com0,**fcom;
+
   class ComputeChunkAtom *cchunk;
-
-  double *massproc;
-  double **com,**comall;
-
-  void allocate();
+  class ComputeCOMChunk *ccom;
 };
 
 }
@@ -67,12 +63,16 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Chunk/atom compute does not exist for compute com/chunk
+E: R0 < 0 for fix spring command
+
+Equilibrium spring length is invalid.
+
+E: Fix spring couple group ID does not exist
 
 Self-explanatory.
 
-E: Compute com/chunk does not use chunk/atom compute
+E: Two groups cannot be the same in fix spring couple
 
-The style of the specified compute is not chunk/atom.
+Self-explanatory.
 
 */

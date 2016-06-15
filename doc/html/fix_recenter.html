@@ -198,15 +198,15 @@ warn you if your fixes are not ordered this way.</p>
 <p class="last">If you use this fix on a small group of atoms (e.g. a molecule
 in solvent) without using the <em>shift</em> keyword to adjust the positions
 of all atoms in the system, then the results can be unpredictable.
-For example, if the molecule is pushed in one direction by the
-solvent, its velocity will increase.  But its coordinates will be
-recentered, meaning it is pushed back towards the force.  Thus over
-time, the velocity and temperature of the molecule could become very
-large (though it won&#8217;t appear to be moving due to the recentering).
-If you are thermostatting the entire system, then the solvent would be
-cooled to compensate.  A better solution for this simulation scenario
-is to use the <a class="reference internal" href="fix_spring.html"><span class="doc">fix spring</span></a> command to tether the
-molecule in place.</p>
+For example, if the molecule is pushed consistently in one direction
+by a flowing solvent, its velocity will increase.  But its coordinates
+will be recentered, meaning it is moved back towards the force.  Thus
+over time, the velocity and effective temperature of the molecule
+could become very large, though it won&#8217;t actually be moving due to the
+recentering.  If you are thermostatting the entire system, then the
+solvent would be cooled to compensate.  A better solution for this
+simulation scenario is to use the <a class="reference internal" href="fix_spring.html"><span class="doc">fix spring</span></a> command
+to tether the molecule in place.</p>
 </div>
 </div>
 <div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">

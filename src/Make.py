@@ -571,7 +571,7 @@ class Actions:
     # this is b/c Cuda libs are not all available on host
 
     make = "make"
-    if "shannon" in os.environ.get("HOST") and packages.final["gpu"]:
+    if "shannon" == platform.node() and packages.final["gpu"]:
       make = "srun make"
       
     if jmake: str = "cd %s; %s -j %d auto" % (dir.src,make,jmake.n)
@@ -1298,8 +1298,8 @@ class GPU:
     # this is b/c Cuda libs are not all available on host
 
     make = "make"
-    if "shannon" == platform.node() : make = "srun make"
-    
+    if "shannon" == platform.node(): make = "srun make"
+
     commands.getoutput("cd %s; %s -f Makefile.auto clean" % (libdir,make))
     if jmake: str = "cd %s; %s -j %d -f Makefile.auto" % (libdir,make,jmake.n)
     else: str = "cd %s; %s -f Makefile.auto" % (libdir,make)

@@ -188,11 +188,12 @@ Each rigid body must have two or more atoms.  An atom can belong to at
 most one rigid body.  Which atoms are in which bodies can be defined
 via several options.
 
-NOTE: With fix rigid/small, which requires bodystyle {molecule}, you
-can define a system that has no rigid bodies initially.  This is
-useful when you are using the {mol} keyword in conjunction with
-another fix that is adding rigid bodies on-the-fly, such as "fix
-deposit"_fix_deposit.html or "fix pour"_fix_pour.html.
+NOTE: With fix rigid/small, which requires that {bodystyle} be
+specified as {molecule}, you can define a system that has no rigid
+bodies initially.  This is useful when you are using the {mol} keyword
+in conjunction with another fix that is adding rigid bodies on-the-fly
+as molecules, such as "fix deposit"_fix_deposit.html or "fix
+pour"_fix_pour.html.
 
 For bodystyle {single} the entire fix group of atoms is treated as one
 rigid body.  This option is only allowed for fix rigid and its

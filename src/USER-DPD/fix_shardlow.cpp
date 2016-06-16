@@ -204,9 +204,6 @@ void FixShardlow::initial_integrate(int vflag)
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
-  // Communicate the current velocities to all nodes
-  comm->forward_comm_fix(this);
-
   // Define pointers to access the neighbor list
   if(pairDPDE){
     inum = pairDPDE->list->inum;
@@ -223,9 +220,16 @@ void FixShardlow::initial_integrate(int vflag)
   //Loop over all 14 directions (8 stages)
   for (int idir = 1; idir <=8; idir++){
 
-    // Zero out the ghosts' uCond & uMech to be used as delta accumulators
-    memset(&(uCond[nlocal]), 0, sizeof(double)*nghost);
-    memset(&(uMech[nlocal]), 0, sizeof(double)*nghost);
+    if (idir > 1) {
+      // Communicate the updated velocities to all nodes
+      comm->forward_comm_fix(this);
+
+      if(pairDPDE){
+        // Zero out the ghosts' uCond & uMech to be used as delta accumulators
+        memset(&(uCond[nlocal]), 0, sizeof(double)*nghost);
+        memset(&(uMech[nlocal]), 0, sizeof(double)*nghost);
+      }
+    }
 
     // Loop over neighbors of my atoms
     for (ii = 0; ii < inum; ii++) {
@@ -412,10 +416,7 @@ void FixShardlow::initial_integrate(int vflag)
     }
 
     // Communicate the ghost deltas to the atom owners
-    comm->reverse_comm_fix(this);
-
-    // Communicate the updated velocities to all nodes
-    comm->forward_comm_fix(this);
+    if (idir > 1) comm->reverse_comm_fix(this);
 
   }  //End Loop over all directions For idir = Top, Top-Right, Right, Bottom-Right, Back
 

@@ -43,7 +43,8 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 3;
   global_freq = 1;
   extvector = 1;
-
+  respa_level_support = 1;
+  ilevel_respa = nlevels_respa = 0;
   xstr = ystr = zstr = NULL;
 
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -172,8 +173,11 @@ void FixSetForce::init()
     varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (strstr(update->integrate_style,"respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
+    else ilevel_respa = nlevels_respa-1;
+  }
 
   // cannot use non-zero forces for a minimization since no energy is integrated
   // use fix addforce instead
@@ -290,9 +294,9 @@ void FixSetForce::post_force(int vflag)
 
 void FixSetForce::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  // set force to desired value on outermost level, 0.0 on other levels
+  // set force to desired value on requested level, 0.0 on other levels
 
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
   else {
     Region *region = NULL;
     if (iregion >= 0) {

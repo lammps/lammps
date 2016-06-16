@@ -16,6 +16,7 @@
 #include "fix.h"
 #include "atom.h"
 #include "group.h"
+#include "force.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
@@ -67,6 +68,8 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   dynamic_group_allow = 0;
   dof_flag = 0;
   special_alter_flag = 0;
+  respa_level = -1;
+  respa_level_support = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
   peratom_flag = local_flag = 0;
@@ -128,6 +131,13 @@ void Fix::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) thermo_energy = 1;
       else error->all(FLERR,"Illegal fix_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"respa") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
+      if (!respa_level_support) error->all(FLERR,"Illegal fix_modify command");
+      int lvl = force->inumeric(FLERR,arg[1]);
+      if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
+      respa_level = lvl-1;
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);

@@ -29,8 +29,8 @@ fix		fl left setforce 0.0 0.5 0.0
 fix		fr right setforce 0.0 -0.5 0.0
 
 run_style	respa 2 2 pair 2
-fix_modify	fl respa_level 2
-fix_modify	fr respa_level 1
+fix_modify	fl respa 0
+fix_modify	fr respa 1
 
 
 thermo		50

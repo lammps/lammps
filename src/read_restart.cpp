@@ -756,8 +756,8 @@ void ReadRestart::header(int incompatible)
       if (force->newton_pair || force->newton_bond) force->newton = 1;
       else force->newton = 0;
 
-      // set boundary settings from restart file
-      // warn if different and input script settings are not default
+    // set boundary settings from restart file
+    // warn if different and input script settings are not default
 
     } else if (flag == XPERIODIC) {
       xperiodic = read_int();

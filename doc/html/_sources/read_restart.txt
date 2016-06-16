@@ -147,6 +147,7 @@ script that reads the restart file, though you can redefine many of
 these settings after the restart file is read.
 
 * :doc:`units <units>`
+* :doc:`newton bond <newton>` (see discussion of newton command below)
 * :doc:`atom style <atom_style>` and :doc:`atom_modify <atom_modify>` settings id, map, sort
 * :doc:`comm style <comm_style>` and `comm_modify <comm_modify>`_ settings mode, cutoff, vel
 * :doc:`timestep <timestep>`
@@ -163,6 +164,7 @@ Here is a list of information not stored in a restart file, which
 means you must re-issue these commands in your input script, after
 reading the restart file.
 
+* :doc:`newton pair <newton>` (see discussion of newton command below)
 * :doc:`fix <fix>` commands (see below)
 * :doc:`compute <compute>` commands (see below)
 * :doc:`variable <variable>` commands
@@ -170,6 +172,16 @@ reading the restart file.
 * :doc:`neighbor list <neighbor>` criteria including :doc:`neigh_modify <neigh_modify>` settings
 * :doc:`kspace_style <kspace_style>` and :doc:`kspace_modify <kspace_modify>` settings
 * info for :doc:`thermodynamic <thermo_style>`, :doc:`dump <dump>`, or :doc:`restart <restart>` output
+
+The :doc:`newton <newton>` command has two settings, one for pairwise
+interactions, the other for bonded.  Both settings are stored in the
+restart file.  For the bond setting, the value in the file will
+overwrite the current value (at the time the read_restart command is
+issued) and warn if the two values are not the same and the current
+value is not the default.  For the pair setting, the value in the file
+will not overwrite the current value (so that you can override the
+previous run's value), but a warning is issued if the two values are
+not the same and the current value is not the default.
 
 Note that some force field styles (pair, bond, angle, etc) do not
 store their coefficient info in restart files.  Typically these are

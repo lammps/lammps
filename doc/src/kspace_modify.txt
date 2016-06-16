@@ -184,6 +184,13 @@ supported by Ewald or PPPM when using a triclinic simulation cell. The
 slab correction has also been extended to point dipole interactions
 "(Klapp)"_#Klapp in "kspace_style"_kspace_style.html {ewald/disp}.
 
+NOTE: If you wish to apply an electric field in the Z-direction, in
+conjunction with the {slab} keyword, you should do it by adding
+explicit charged particles to the +/- Z surfaces.  If you do it via
+the "fix efield"_fix_efield.html command, it will not give the correct
+dielectric constant due to the Yeh/Berkowitz "(Yeh)"_#Yeh correction
+not being compatible with how "fix efield"_fix_efield.html works.
+
 The {compute} keyword allows Kspace computations to be turned off,
 even though a "kspace_style"_kspace_style.html is defined.  This is
 not useful for running a real simulation, but can be useful for

@@ -295,6 +295,15 @@ approximation in not needed).  The <em>slab</em> keyword is not currently
 supported by Ewald or PPPM when using a triclinic simulation cell. The
 slab correction has also been extended to point dipole interactions
 <a class="reference internal" href="#klapp"><span class="std std-ref">(Klapp)</span></a> in <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> <em>ewald/disp</em>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you wish to apply an electric field in the Z-direction, in
+conjunction with the <em>slab</em> keyword, you should do it by adding
+explicit charged particles to the +/- Z surfaces.  If you do it via
+the <a class="reference internal" href="fix_efield.html"><span class="doc">fix efield</span></a> command, it will not give the correct
+dielectric constant due to the Yeh/Berkowitz <a class="reference internal" href="#yeh"><span class="std std-ref">(Yeh)</span></a> correction
+not being compatible with how <a class="reference internal" href="fix_efield.html"><span class="doc">fix efield</span></a> works.</p>
+</div>
 <p>The <em>compute</em> keyword allows Kspace computations to be turned off,
 even though a <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> is defined.  This is
 not useful for running a real simulation, but can be useful for
@@ -309,7 +318,7 @@ beginning of the run to give the desired estimated error. Other
 cutoffs such as LJ will not be affected. If the grid is not set using
 the <em>mesh</em> command, this command will also attempt to use the optimal
 grid that minimizes cost using an estimate given by
-<a class="reference internal" href="kspace_style.html#hardy"><span class="std std-ref">(Hardy)</span></a>. Note that this cost estimate is not exact, somewhat
+<a class="reference internal" href="#hardy"><span class="std std-ref">(Hardy)</span></a>. Note that this cost estimate is not exact, somewhat
 experimental, and still may not yield the optimal parameters.</p>
 <p>The <em>pressure/scalar</em> keyword applies only to MSM. If this option is
 turned on, only the scalar pressure (i.e. (Pxx + Pyy + Pzz)/3.0) will
@@ -334,7 +343,7 @@ collective operations and adequate hardware.</p>
 <p>The <em>diff</em> keyword specifies the differentiation scheme used by the
 PPPM method to compute forces on particles given electrostatic
 potentials on the PPPM mesh.  The <em>ik</em> approach is the default for
-PPPM and is the original formulation used in <a class="reference internal" href="kspace_style.html#hockney"><span class="std std-ref">(Hockney)</span></a>.  It
+PPPM and is the original formulation used in <a class="reference internal" href="#hockney"><span class="std std-ref">(Hockney)</span></a>.  It
 performs differentiation in Kspace, and uses 3 FFTs to transfer each
 component of the computed fields back to real space for total of 4
 FFTs per timestep.</p>
@@ -369,7 +378,7 @@ speed-up the simulations but introduces some error in the force
 computations, as shown in <a class="reference internal" href="#wennberg"><span class="std std-ref">(Wennberg)</span></a>.  With <em>none</em>, it is
 assumed that no mixing rule is applicable. Splitting of the dispersion
 coefficients will be performed as described in
-<a class="reference internal" href="kspace_style.html#isele-holder"><span class="std std-ref">(Isele-Holder)</span></a>.  This splitting can be influenced with
+<a class="reference internal" href="#isele-holder"><span class="std std-ref">(Isele-Holder)</span></a>.  This splitting can be influenced with
 the <em>splittol</em> keywords. Only the eigenvalues that are larger than tol
 compared to the largest eigenvalues are included. Using this keywords
 the original matrix of dispersion coefficients is approximated. This
@@ -377,7 +386,7 @@ leads to faster computations, but the accuracy in the reciprocal space
 computations of the dispersion part is decreased.</p>
 <p>The <em>force/disp/real</em> and <em>force/disp/kspace</em> keywords set the force
 accuracy for the real and space computations for the dispersion part
-of pppm/disp. As shown in <a class="reference internal" href="kspace_style.html#isele-holder"><span class="std std-ref">(Isele-Holder)</span></a>, optimal
+of pppm/disp. As shown in <a class="reference internal" href="#isele-holder"><span class="std std-ref">(Isele-Holder)</span></a>, optimal
 performance and accuracy in the results is obtained when these values
 are different.</p>
 <p>The <em>disp/auto</em> option controlls whether the pppm/disp is allowed to

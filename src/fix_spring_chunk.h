@@ -38,7 +38,7 @@ class FixSpringChunk : public Fix {
   double compute_scalar();
 
  private:
-  int nlevels_respa;
+  int ilevel_respa;
   double k_spring;
   double esprings;
   char *idchunk,*idcom;

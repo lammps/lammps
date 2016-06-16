@@ -45,7 +45,7 @@ class FixEfield : public Fix {
   char *xstr,*ystr,*zstr,*estr;
   char *idregion;
   int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
-  int nlevels_respa;
+  int ilevel_respa;
   double qe2f;
   int qflag,muflag;
 

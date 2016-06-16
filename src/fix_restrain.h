@@ -38,7 +38,7 @@ class FixRestrain : public Fix {
   double compute_scalar();
 
  private:
-  int nlevels_respa;
+  int ilevel_respa;
   int nrestrain,maxrestrain;
   int *rstyle;
   int **ids;

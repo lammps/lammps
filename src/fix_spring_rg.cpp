@@ -44,6 +44,8 @@ FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
   else rg0 = force->numeric(FLERR,arg[4]);
 
   dynamic_group_allow = 1;
+  respa_level_support = 1;
+  ilevel_respa = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,8 +74,10 @@ void FixSpringRG::init()
     rg0_flag = 0;
   }
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,9 +87,9 @@ void FixSpringRG::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -140,5 +144,5 @@ void FixSpringRG::post_force(int vflag)
 
 void FixSpringRG::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }

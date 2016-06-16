@@ -43,7 +43,7 @@ class FixQEQComb : public Fix {
  protected:
   int me,firstflag;
   double precision;
-  int nlevels_respa;
+  int ilevel_respa;
   bigint ngroup;
   FILE *fp;
 

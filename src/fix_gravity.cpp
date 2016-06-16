@@ -45,6 +45,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  respa_level_support = 1;
+  ilevel_respa = 0;
 
   mstr = vstr = pstr = tstr = xstr = ystr = zstr = NULL;
   mstyle = vstyle = pstyle = tstyle = xstyle = ystyle = zstyle = CONSTANT;
@@ -162,8 +164,10 @@ int FixGravity::setmask()
 
 void FixGravity::init()
 {
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 
   // check variables
 
@@ -234,9 +238,9 @@ void FixGravity::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -297,7 +301,7 @@ void FixGravity::post_force(int vflag)
 
 void FixGravity::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

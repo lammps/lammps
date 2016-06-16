@@ -63,8 +63,10 @@ void FixQEQCombOMP::init()
     error->all(FLERR,"Must use pair_style comb or "
                "comb/omp with fix qeq/comb/omp");
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");

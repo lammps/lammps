@@ -69,6 +69,8 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   peratom_flag = 1;
   size_peratom_cols = 2;
   peratom_freq = 1;
+  respa_level_support = 1;
+  ilevel_respa = 0;
 
   nstats = force->inumeric(FLERR,arg[3]);
   direction_of_motion = force->inumeric(FLERR,arg[4]);
@@ -207,8 +209,10 @@ int FixOrientFCC::setmask()
 
 void FixOrientFCC::init()
 {
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 
   // need a full neighbor list, built whenever re-neighboring occurs
 
@@ -233,9 +237,9 @@ void FixOrientFCC::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -464,7 +468,7 @@ void FixOrientFCC::post_force(int vflag)
 
 void FixOrientFCC::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

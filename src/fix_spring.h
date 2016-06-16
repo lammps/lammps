@@ -46,7 +46,7 @@ class FixSpring : public Fix {
   char *group2;
   int igroup2,group2bit;
   double masstotal,masstotal2;
-  int nlevels_respa;
+  int ilevel_respa;
   double espring,ftotal[4];
 
   void spring_tether();

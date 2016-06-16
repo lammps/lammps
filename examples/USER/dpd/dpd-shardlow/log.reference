@@ -1,9 +1,7 @@
-LAMMPS (7 Dec 2015)
-# Input File for DPD fluid under isothermal conditions using the VV-SSA integration scheme
 boundary        p p p
 
 units           metal
-atom_style      atomic   # Can be either dpd or atomic
+atom_style      dpd
 read_data       data.dpd
   orthogonal box = (-5.36874 -4.6558 -6.56118) to (61.4618 53.2342 46.2472)
   1 by 1 by 1 MPI processor grid
@@ -38,7 +36,7 @@ Neighbor list info ...
   master list distance cutoff = 12
   ghost atom cutoff = 12
   binsize = 6 -> bins = 12 10 9
-Memory usage per processor = 2.04518 Mbytes
+Memory usage per processor = 3.15109 Mbytes
 Step Temp PotEng KinEng TotEng 
        0  128.6667660382  263.2538386154   16.6148533499  279.8686919654 
        1  128.8781761686  263.2538784644   16.6421529271  279.8960313916 
@@ -46,7 +44,7 @@ Step Temp PotEng KinEng TotEng
        3  129.0944237374  263.2540669039   16.6700771671  279.9241440710 
        4  129.1614377649  263.2542208758   16.6787307477  279.9329516235 
        5  129.5099128271  263.2544124900   16.7237296409  279.9781421309 
-       6  129.4373659799  263.2546219015   16.7143616023  279.9689835038 
+       6  129.4373659800  263.2546219015   16.7143616023  279.9689835038 
        7  129.5468806805  263.2548644992   16.7285033325  279.9833678316 
        8  129.6703137794  263.2551528171   16.7444423578  279.9995951748 
        9  129.7536788486  263.2554888044   16.7552073629  280.0106961673 
@@ -141,20 +139,20 @@ Step Temp PotEng KinEng TotEng
       98  143.3138701934  263.4462347092   18.5062468701  281.9524815793 
       99  143.5996902366  263.4503180925   18.5431550652  281.9934731576 
      100  143.4332992914  263.4544359567   18.5216688552  281.9761048118 
-Loop time of 0.802761 on 1 procs for 100 steps with 1000 atoms
+Loop time of 0.31307 on 1 procs for 100 steps with 1000 atoms
 
-Performance: 10.763 ns/day, 2.230 hours/ns, 124.570 timesteps/s
+Performance: 27.598 ns/day, 0.870 hours/ns, 319.418 timesteps/s
 99.7% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.083614   | 0.083614   | 0.083614   |   0.0 | 10.42
-Neigh   | 0.31261    | 0.31261    | 0.31261    |   0.0 | 38.94
-Comm    | 0.012618   | 0.012618   | 0.012618   |   0.0 |  1.57
-Output  | 0.0033751  | 0.0033751  | 0.0033751  |   0.0 |  0.42
-Modify  | 0.38911    | 0.38911    | 0.38911    |   0.0 | 48.47
-Other   |            | 0.001439   |            |       |  0.18
+Pair    | 0.034904   | 0.034904   | 0.034904   |   0.0 | 11.15
+Neigh   | 0.12831    | 0.12831    | 0.12831    |   0.0 | 40.98
+Comm    | 0.007879   | 0.007879   | 0.007879   |   0.0 |  2.52
+Output  | 0.0016751  | 0.0016751  | 0.0016751  |   0.0 |  0.54
+Modify  | 0.13762    | 0.13762    | 0.13762    |   0.0 | 43.96
+Other   |            | 0.002684   |            |       |  0.86
 
 Nlocal:    1000 ave 1000 max 1000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

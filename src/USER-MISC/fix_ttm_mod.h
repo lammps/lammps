@@ -58,7 +58,7 @@ class FixTTMMod : public Fix {
   int nlevels_respa;
   int seed;
   class RanMars *random;
-  FILE *fp,*fpr,*fpr_2;
+  FILE *fp;
   int nxnodes,nynodes,nznodes,total_nnodes;
   int ***nsum;
   int ***nsum_all,***T_initial_set;
@@ -79,7 +79,7 @@ class FixTTMMod : public Fix {
   double electron_temperature_min;
   el_heat_capacity_thermal_conductivity el_properties(double);
   double el_sp_heat_integral(double);
-  void read_initial_electron_temperatures();
+  void read_initial_electron_temperatures(FILE *);
 };
 
 }

@@ -3,7 +3,7 @@ log             log.dpdp
 boundary        p p p
 
 units           metal
-atom_style      atomic   # Can be either dpd or atomic
+atom_style      dpd
 read_data       data.dpd
 
 comm_modify     mode single vel yes

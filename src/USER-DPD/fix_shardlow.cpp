@@ -105,6 +105,8 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
 
   if(pairDPD == NULL && pairDPDE == NULL)
     error->all(FLERR,"Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow");
+  if(!(atom->dpd_flag))
+    error->all(FLERR,"Must use atom_style dpd with fix shardlow");
 }
 
 /* ---------------------------------------------------------------------- */

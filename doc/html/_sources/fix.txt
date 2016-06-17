@@ -226,7 +226,8 @@ of :ref:`this page <cmd_5>`.
 * :doc:`nvt/sllod <fix_nvt_sllod>` - NVT for NEMD with SLLOD equations
 * :doc:`nvt/sphere <fix_nvt_sphere>` - NVT for spherical particles
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
-* :doc:`orient/fcc <fix_orient_fcc>` - add grain boundary migration force
+* :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
+* :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move   as coupled rigid bodies
 * :doc:`pour <fix_pour>` - pour new atoms/molecules into a granular simulation domain

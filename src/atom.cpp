@@ -1481,7 +1481,8 @@ void Atom::check_mass()
 {
   if (mass == NULL) return;
   for (int itype = 1; itype <= ntypes; itype++)
-    if (mass_setflag[itype] == 0) error->all(FLERR,"All masses are not set");
+    if (mass_setflag[itype] == 0) 
+      error->all(FLERR,"Not all per-type masses are set");
 }
 
 /* ----------------------------------------------------------------------

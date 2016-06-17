@@ -249,6 +249,7 @@ script that reads the restart file, though you can redefine many of
 these settings after the restart file is read.</p>
 <ul class="simple">
 <li><a class="reference internal" href="units.html"><span class="doc">units</span></a></li>
+<li><a class="reference internal" href="newton.html"><span class="doc">newton bond</span></a> (see discussion of newton command below)</li>
 <li><a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> and <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a> settings id, map, sort</li>
 <li><a class="reference internal" href="comm_style.html"><span class="doc">comm style</span></a> and <a class="reference external" href="comm_modify">comm_modify</a> settings mode, cutoff, vel</li>
 <li><a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a></li>
@@ -265,6 +266,7 @@ these settings after the restart file is read.</p>
 means you must re-issue these commands in your input script, after
 reading the restart file.</p>
 <ul class="simple">
+<li><a class="reference internal" href="newton.html"><span class="doc">newton pair</span></a> (see discussion of newton command below)</li>
 <li><a class="reference internal" href="fix.html"><span class="doc">fix</span></a> commands (see below)</li>
 <li><a class="reference internal" href="compute.html"><span class="doc">compute</span></a> commands (see below)</li>
 <li><a class="reference internal" href="variable.html"><span class="doc">variable</span></a> commands</li>
@@ -273,6 +275,15 @@ reading the restart file.</p>
 <li><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> and <a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify</span></a> settings</li>
 <li>info for <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, or <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> output</li>
 </ul>
+<p>The <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> command has two settings, one for pairwise
+interactions, the other for bonded.  Both settings are stored in the
+restart file.  For the bond setting, the value in the file will
+overwrite the current value (at the time the read_restart command is
+issued) and warn if the two values are not the same and the current
+value is not the default.  For the pair setting, the value in the file
+will not overwrite the current value (so that you can override the
+previous run&#8217;s value), but a warning is issued if the two values are
+not the same and the current value is not the default.</p>
 <p>Note that some force field styles (pair, bond, angle, etc) do not
 store their coefficient info in restart files.  Typically these are
 many-body or tabulated potentials which read their parameters from

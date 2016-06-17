@@ -1038,6 +1038,50 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
 }
 
 /* ----------------------------------------------------------------------
+   reverse communication invoked by a Fix with variable size data
+   query fix for pack size to insure buf_send is big enough
+   handshake sizes before each Irecv/Send to insure buf_recv is big enough
+------------------------------------------------------------------------- */
+
+void CommBrick::reverse_comm_fix_variable(Fix *fix)
+{
+  int iswap,nsend,nrecv;
+  double *buf;
+  MPI_Request request;
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    nsend = fix->pack_reverse_comm_size(recvnum[iswap],firstrecv[iswap]);
+    if (nsend > maxsend) grow_send(nsend,0);
+    nsend = fix->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Sendrecv(&nsend,1,MPI_INT,recvproc[iswap],0,
+                   &nrecv,1,MPI_INT,sendproc[iswap],0,world,
+                   MPI_STATUS_IGNORE);
+      if (sendnum[iswap]) {
+        if (nrecv > maxrecv) grow_recv(nrecv);
+        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
+      }
+      if (recvnum[iswap])
+        MPI_Send(buf_send,nsend,MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+      buf = buf_recv;
+    } else buf = buf_send;
+
+    // unpack buffer
+
+    fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
    forward communication invoked by a Compute
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
@@ -1055,7 +1099,7 @@ void CommBrick::forward_comm_compute(Compute *compute)
     // pack buffer
 
     n = compute->pack_forward_comm(sendnum[iswap],sendlist[iswap],
-                           buf_send,pbc_flag[iswap],pbc[iswap]);
+                                   buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -1276,7 +1320,8 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
     nrecv += nrecv1;
     if (procgrid[dim] > 2) {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
+                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,
+                   MPI_STATUS_IGNORE);
       nrecv += nrecv2;
     } else nrecv2 = 0;
 

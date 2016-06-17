@@ -80,6 +80,7 @@ class Comm : protected Pointers {
   virtual void reverse_comm_pair(class Pair *) = 0;
   virtual void forward_comm_fix(class Fix *, int size=0) = 0;
   virtual void reverse_comm_fix(class Fix *, int size=0) = 0;
+  virtual void reverse_comm_fix_variable(class Fix *) = 0;
   virtual void forward_comm_compute(class Compute *) = 0;
   virtual void reverse_comm_compute(class Compute *) = 0;
   virtual void forward_comm_dump(class Dump *) = 0;

@@ -7,7 +7,10 @@
 
 EXTRAMAKE = Makefile.lammps.standard
 
+ifeq($(CUDA_HOME),)
 CUDA_HOME = /usr/local/cuda
+endif
+
 NVCC = nvcc
 
 # Tesla CUDA
@@ -16,6 +19,7 @@ CUDA_ARCH = -arch=sm_21
 #CUDA_ARCH = -arch=sm_13
 # older CUDA
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+CUDA_ARCH = -arch=sm_35
 
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
@@ -33,7 +37,7 @@ CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64
 CUDA_OPTS = -DUNIX -O3 -Xptxas -v --use_fast_math $(LMP_INC)
 
-CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK
+CUDR_CPP = mpic++ -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
 CUDR_OPTS = -O2 $(LMP_INC) # -xHost -no-prec-div -ansi-alias
 
 BIN_DIR = ./

@@ -267,6 +267,9 @@ current dihedral angle phi is equal to phi0.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the potential energy associated with this fix to the
 system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>respa</em> option is supported by this
+fix. This allows to set at which level of the <a class="reference internal" href="run_style.html"><span class="doc">r-RESPA</span></a>
+integrator the fix is adding its forces. Default is the outermost level.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you want the fictitious potential energy associated with the

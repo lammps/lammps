@@ -132,7 +132,7 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li><em>args</em> = one or more of <em>off</em> or <em>loop</em> or <em>normal</em> or <em>full</em> or <em>sync</em> or <em>nosync</em></li>
+<li><em>args</em> = one or more of <em>off</em> or <em>loop</em> or <em>normal</em> or <em>full</em> or <em>sync</em> or <em>nosync</em> or <em>timeout</em> or <em>every</em></li>
 </ul>
 <pre class="literal-block">
 <em>off</em> = do not collect or print any timing information
@@ -141,24 +141,26 @@
 <em>full</em> = like <em>normal</em> but also include CPU and thread utilzation
 <em>sync</em> = explicitly synchronize MPI tasks between sections
 <em>nosync</em> = do not synchronize MPI tasks between sections (default)
+<em>timeout</em> elapse = set walltime limit to <em>elapse</em>
+<em>every</em> Ncheck = perform timeout check every <em>Ncheck</em> steps
 </pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">timer</span> <span class="n">full</span> <span class="n">sync</span>
+<span class="n">timer</span> <span class="n">timeout</span> <span class="mi">2</span><span class="p">:</span><span class="mi">00</span><span class="p">:</span><span class="mi">00</span> <span class="n">every</span> <span class="mi">100</span>
 <span class="n">timer</span> <span class="n">loop</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>Select the level of detail LAMMPS performs its CPU timings.</p>
+<p>Select the level of detail at which LAMMPS performs its CPU timings.</p>
 <p>During a simulation run LAMMPS collects information about how much
 time is spent in different sections of the code and thus can provide
-valuable information for determining performance and load imbalance
-problems.  This can be done at different levels of detail and
-accuracy.  For more information about the timing output, see this
-<a class="reference internal" href="Section_start.html#start-8"><span class="std std-ref">discussion of screen output</span></a>.</p>
+information for determining performance and load imbalance problems.
+This can be done at different levels of detail and accuracy.  For more
+information about the timing output, see this <a class="reference internal" href="Section_start.html#start-8"><span class="std std-ref">discussion of screen output</span></a>.</p>
 <p>The <em>off</em> setting will turn all time measurements off. The <em>loop</em>
 setting will only measure the total time for a run and not collect any
 detailed per section information.  With the <em>normal</em> setting, timing
@@ -171,8 +173,27 @@ utilization and thread utilization, when multi-threading is enabled.</p>
 call which meaures load imbalance more accuractly, though it can also
 slow down the simulation.  Using the <em>nosync</em> setting (which is the
 default) turns off this synchronization.</p>
-<p>Multiple keywords can be specified.  For keywords that are mutually
-exclusive, the last one specified takes effect.</p>
+<p>With the <em>timeout</em> keyword a walltime limit can be imposed that
+affects the <a class="reference internal" href="run.html"><span class="doc">run</span></a> and <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> commands.  If
+the time limit is reached, the run or energy minimization will exit on
+the next step or iteration that is a multiple of the <em>Ncheck</em> value
+specified with the <em>every</em> keyword.  All subsequent run or minimize
+commands in the input script will be skipped until the timeout is
+reset or turned off by a new <em>timer</em> command.  The timeout <em>elapse</em>
+value can be specified as <em>off</em> or <em>unlimited</em> to impose no timeout
+condition (which is the default).  The <em>elapse</em> setting can be
+specified as a single number for seconds, two numbers separated by a
+colon (MM:SS) for minutes and seconds, or as three numbers separated
+by colons for hours, minutes, and seconds.</p>
+<p>The <em>every</em> keyword sets how frequently during a run or energy
+minimization the wall clock will be checked.  This check count applies
+to the outer iterations or time steps during minimizations or <a class="reference internal" href="run_style.html"><span class="doc">r-RESPA runs</span></a>, respectively.  Checking for timeout too often,
+can slow a calculation down.  Checking too infrequently can make the
+timeout measurement less accurate, with the run being stopped later
+than desired.</p>
+<p>Multiple keywords can be specified with the <em>timer</em> command.  For
+keywords that are mutually exclusive, the last one specified takes
+effect.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Using the <em>full</em> and <em>sync</em> options provides the most detailed
@@ -196,7 +217,11 @@ can just use the <em>loop</em> or <em>off</em> setting.</p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>
-<p>timer normal nosync</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">timer</span> <span class="n">normal</span> <span class="n">nosync</span>
+<span class="n">timer</span> <span class="n">timeout</span> <span class="n">off</span>
+<span class="n">timer</span> <span class="n">every</span> <span class="mi">10</span>
+</pre></div>
+</div>
 </div>
 </div>
 

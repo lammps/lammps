@@ -222,6 +222,7 @@ section of :ref:`this page <cmd_5>`.
 * :doc:`rdf <compute_rdf>` - radial distribution function g(r) histogram of group of atoms
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
+* :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`slice <compute_slice>` - extract values from global vector or array
 * :doc:`sna/atom <compute_sna_atom>` - calculate bispectrum coefficients for each atom
 * :doc:`snad/atom <compute_sna_atom>` - derivative of bispectrum coefficients for each atom

@@ -246,7 +246,7 @@ These extra quantites can be accessed by the :doc:`compute pair/local <compute_p
 
 Restrictions
 """"""""""""
- none
+
 
 All the granular pair styles are part of the GRANULAR package.  It is
 only enabled if LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.

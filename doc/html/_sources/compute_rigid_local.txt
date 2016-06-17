@@ -159,7 +159,10 @@ corresponding attribute is in:
 
 Restrictions
 """"""""""""
- none
+
+
+This compute is part of the RIGID package.  It is only enabled if
+LAMMPS was built with that package.  See the :ref:`Making LAMMPS <start_3>` section for more info.
 
 Related commands
 """"""""""""""""

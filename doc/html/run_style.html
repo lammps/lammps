@@ -267,6 +267,8 @@ forces are computed where angle forces are, improper forces are
 computed where dihedral forces are, pair forces are computed at the
 outermost level, and kspace forces are computed where pair forces are.
 The inner, middle, outer forces have no defaults.</p>
+<p>For fixes that support it, the rRESPA level at which a given fix is
+active, can be selected through the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> command.</p>
 <p>The <em>inner</em> and <em>middle</em> keywords take additional arguments for
 cutoffs that are used by the pairwise force computations.  If the 2
 cutoffs for <em>inner</em> are 5.0 and 6.0, this means that all pairs up to

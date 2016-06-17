@@ -18,7 +18,7 @@ Syntax
      *temp* value = compute ID that calculates a temperature
      *press* value = compute ID that calculates a pressure
      *energy* value = *yes* or *no*
-     *respa* value = *1* to *max respa level* or *0* (= outmost level)
+     *respa* value = *1* to *max respa level* or *0* (for outermost level)
 
 
 
@@ -72,8 +72,8 @@ This is a number ranging from 1 to the number of levels. If the RESPA
 level is larger than the current maximum, the outermost level will be
 used, which is also the default setting. This default can be restored
 using a value of *0* for the RESPA level. The affected fix has to be
-programmed to support this feature; if not, *fix_modify* will report
-an error. Active fixes with a custom RESPA level setting are reported
+enabled to support this feature; if not, *fix_modify* will report an
+error. Active fixes with a custom RESPA level setting are reported
 with their specified level at the beginning of a r-RESPA run.
 
 Restrictions

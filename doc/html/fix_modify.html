@@ -140,7 +140,7 @@
 <em>temp</em> value = compute ID that calculates a temperature
 <em>press</em> value = compute ID that calculates a pressure
 <em>energy</em> value = <em>yes</em> or <em>no</em>
-<em>respa</em> value = <em>1</em> to <em>max respa level</em> or <em>0</em> (= outmost level)
+<em>respa</em> value = <em>1</em> to <em>max respa level</em> or <em>0</em> (for outermost level)
 </pre>
 </div>
 <div class="section" id="examples">
@@ -187,8 +187,8 @@ This is a number ranging from 1 to the number of levels. If the RESPA
 level is larger than the current maximum, the outermost level will be
 used, which is also the default setting. This default can be restored
 using a value of <em>0</em> for the RESPA level. The affected fix has to be
-programmed to support this feature; if not, <em>fix_modify</em> will report
-an error. Active fixes with a custom RESPA level setting are reported
+enabled to support this feature; if not, <em>fix_modify</em> will report an
+error. Active fixes with a custom RESPA level setting are reported
 with their specified level at the beginning of a r-RESPA run.</p>
 </div>
 <div class="section" id="restrictions">

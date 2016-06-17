@@ -209,12 +209,17 @@ The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
-calculates 4 extra pairwise quantities.  The first 3 are the
+calculates 10 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
-on particle I.  {P4} is the magnitude of this tangential force.  These
-extra quantites can be accessed by the "compute
-pair/local"_compute_pair_local.html command, as {p1}, {p2}, {p3},
-{p4}.
+on particle I.  The 4th is the magnitude of this tangential force.
+The next 3 (5-7) are the components of the relative velocity in the
+normal direction (along the line joining the 2 sphere centers).  The
+last 3 (8-10) the components of the relative velocity in the
+tangential direction.
+
+These extra quantites can be accessed by the "compute
+pair/local"_compute_pair_local.html command, as {p1}, {p2}, ...,
+{p10}.
 
 :line
 

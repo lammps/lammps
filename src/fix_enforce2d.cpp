@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
+#include "modify.h"
 #include "respa.h"
 #include "error.h"
 
@@ -28,6 +29,16 @@ FixEnforce2D::FixEnforce2D(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix enforce2d command");
+
+  nfixlist = 0;
+  flist = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixEnforce2D::~FixEnforce2D()
+{
+  delete [] flist;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,6 +58,22 @@ void FixEnforce2D::init()
 {
   if (domain->dimension == 3)
     error->all(FLERR,"Cannot use fix enforce2d with 3d simulation");
+
+  // list of fixes with enforce2d methods
+
+  nfixlist = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->enforce2d_flag) nfixlist++;
+
+  if (nfixlist) {
+    delete [] flist;
+    flist = new Fix*[nfixlist];
+    nfixlist = 0;
+    for (int i = 0; i < modify->nfix; i++) {
+      if (modify->fix[i]->enforce2d_flag) 
+        flist[nfixlist++] = modify->fix[i];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,6 +143,12 @@ void FixEnforce2D::post_force(int vflag)
         torque[i][1] = 0.0;
       }
   }
+
+  // invoke other fixes that enforce 2d
+  // fix rigid variants
+
+  for (int m = 0; m < nfixlist; m++)
+    flist[m]->enforce2d();
 }
 
 /* ---------------------------------------------------------------------- */

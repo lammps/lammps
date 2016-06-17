@@ -826,7 +826,8 @@ void CommBrick::borders()
 
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,MPI_STATUS_IGNORE);
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,
+                     MPI_STATUS_IGNORE);
         if (nrecv*size_border > maxrecv) grow_recv(nrecv*size_border);
         if (nrecv) MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
                              recvproc[iswap],0,world,&request);

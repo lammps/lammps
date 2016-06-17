@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include <cmath>
 
@@ -10,10 +10,7 @@
 
 
 
-// "twogroup" flag defaults to true; set to false by selfCoordNum
-// (only distance-derived component based on only one group)
-
-colvar::distance::distance(std::string const &conf, bool twogroups)
+colvar::distance::distance(std::string const &conf)
   : cvc(conf)
 {
   function_type = "distance";
@@ -24,13 +21,12 @@ colvar::distance::distance(std::string const &conf, bool twogroups)
   if (get_keyval(conf, "forceNoPBC", b_no_PBC, false)) {
     cvm::log("Computing distance using absolute positions (not minimal-image)");
   }
-  if (twogroups && get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
+  if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
     cvm::log("Computing system force on group 1 only");
   }
   group1 = parse_group(conf, "group1");
-  if (twogroups) {
-    group2 = parse_group(conf, "group2");
-  }
+  group2 = parse_group(conf, "group2");
+
   x.type(colvarvalue::type_scalar);
 }
 
@@ -789,7 +785,7 @@ colvar::rmsd::rmsd(std::string const &conf)
   }
 
   bool b_Jacobian_derivative = true;
-  if (atoms->ref_pos_group != NULL && b_Jacobian_derivative) {
+  if (atoms->fitting_group != NULL && b_Jacobian_derivative) {
     cvm::log("The option \"refPositionsGroup\" (alternative group for fitting) was enabled: "
               "Jacobian derivatives of the RMSD will not be calculated.\n");
     b_Jacobian_derivative = false;
@@ -798,7 +794,7 @@ colvar::rmsd::rmsd(std::string const &conf)
 
   // the following is a simplified version of the corresponding atom group options;
   // we need this because the reference coordinates defined inside the atom group
-  // may be used only for fitting, and even more so if ref_pos_group is used
+  // may be used only for fitting, and even more so if fitting_group is used
   if (get_keyval(conf, "refPositions", ref_pos, ref_pos)) {
     cvm::log("Using reference positions from configuration file to calculate the variable.\n");
     if (ref_pos.size() != atoms->size()) {

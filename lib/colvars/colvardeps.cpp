@@ -196,7 +196,7 @@ int cvm::deps::enable(int feature_id,
 void cvm::deps::init_cvb_requires() {
   int i;
   if (features().size() == 0) {
-    for (i = 0; i < f_cv_ntot; i++) {
+    for (i = 0; i < f_cvb_ntot; i++) {
       features().push_back(new feature);
     }
   }
@@ -362,10 +362,14 @@ void cvm::deps::init_cvc_requires() {
     f_description(f_cvc_Jacobian, "Jacobian");
     f_req_self(f_cvc_Jacobian, f_cvc_inv_gradient);
 
-    f_description(f_cvc_scalable, "scalable calculation");
-    f_description(f_cvc_scalable_com, "scalable calculation of centers of mass");
+    f_description(f_cvc_com_based, "depends on group centers of mass");
 
+    f_description(f_cvc_scalable, "scalable calculation");
     f_req_self(f_cvc_scalable, f_cvc_scalable_com);
+
+    f_description(f_cvc_scalable_com, "scalable calculation of centers of mass");
+    f_req_self(f_cvc_scalable_com, f_cvc_com_based);
+
 
     // TODO only enable this when f_ag_scalable can be turned on for a pre-initialized group
     // f_req_children(f_cvc_scalable, f_ag_scalable);
@@ -380,9 +384,9 @@ void cvm::deps::init_cvc_requires() {
   }
 
   // Features that are implemented by all cvcs by default
+  // Each cvc specifies what other features are available
   feature_states[f_cvc_active]->available = true;
   feature_states[f_cvc_gradient]->available = true;
-  // Each cvc specifies what other features are available
   feature_states[f_cvc_scalable_com]->available = (proxy->scalable_group_coms() == COLVARS_OK);
   feature_states[f_cvc_scalable]->available = feature_states[f_cvc_scalable_com]->available;
 }
@@ -399,7 +403,7 @@ void cvm::deps::init_ag_requires() {
     f_description(f_ag_active, "active");
     f_description(f_ag_center, "translational fit");
     f_description(f_ag_rotate, "rotational fit");
-    f_description(f_ag_ref_pos_group, "reference positions group");
+    f_description(f_ag_fitting_group, "reference positions group");
     f_description(f_ag_fit_gradient_group, "fit gradient for main group");
     f_description(f_ag_fit_gradient_ref, "fit gradient for reference group");
     f_description(f_ag_atom_forces, "atomic forces");
@@ -413,7 +417,7 @@ void cvm::deps::init_ag_requires() {
 //     f_description(f_ag_min_msd_fit, "minimum MSD fit")
 //     f_req_self(f_ag_min_msd_fit, f_ag_center)
 //     f_req_self(f_ag_min_msd_fit, f_ag_rotate)
-//     f_req_exclude(f_ag_min_msd_fit, f_ag_ref_pos_group)
+//     f_req_exclude(f_ag_min_msd_fit, f_ag_fitting_group)
   }
 
   // Initialize feature_states for each instance

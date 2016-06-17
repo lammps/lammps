@@ -52,10 +52,6 @@ using namespace LAMMPS_NS;
 #define EMACH 1.0e-8
 #define EPS_QUAD 1.0e-28
 
-// same as in other min classes
-
-enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
-
 /* ---------------------------------------------------------------------- */
 
 MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp)

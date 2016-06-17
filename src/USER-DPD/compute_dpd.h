@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -51,6 +51,6 @@ command-line option when running LAMMPS to see the offending line.
 
 E: compute dpd requires atom_style with internal temperature and energies (e.g. dpd)
 
-Self-explanatory.  
+Self-explanatory.
 
 */

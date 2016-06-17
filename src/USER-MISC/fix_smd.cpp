@@ -56,6 +56,8 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 7;
   global_freq = 1;
   extvector = 1;
+  respa_level_support = 1;
+  ilevel_respa = 0;
 
   int argoffs=3;
   if (strcmp(arg[argoffs],"cvel") == 0) {
@@ -156,8 +158,10 @@ void FixSMD::init()
     zn = dz/r_old;
   }
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -167,9 +171,9 @@ void FixSMD::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -180,7 +184,12 @@ void FixSMD::post_force(int vflag)
   if (styleflag & SMD_TETHER) smd_tether();
   else smd_couple();
 
-  if (styleflag & SMD_CVEL) r_old += v_smd * update->dt;
+  if (styleflag & SMD_CVEL) {
+    if (strstr(update->integrate_style,"verlet"))
+      r_old += v_smd * update->dt;
+    else
+      r_old += v_smd * ((Respa *) update->integrate)->step[ilevel_respa];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,6 +198,10 @@ void FixSMD::smd_tether()
 {
   double xcm[3];
   group->xcm(igroup,masstotal,xcm);
+
+  double dt = update->dt;
+  if (strstr(update->integrate_style,"respa"))
+    dt = ((Respa *) update->integrate)->step[ilevel_respa];
 
   // fx,fy,fz = components of k * (r-r0)
 
@@ -209,7 +222,7 @@ void FixSMD::smd_tether()
       fx = k_smd*dx*dr/r;
       fy = k_smd*dy*dr/r;
       fz = k_smd*dz*dr/r;
-      pmf += (fx*xn + fy*yn + fz*zn) * v_smd * update->dt;
+      pmf += (fx*xn + fy*yn + fz*zn) * v_smd * dt;
     } else {
       fx = 0.0;
       fy = 0.0;
@@ -269,6 +282,10 @@ void FixSMD::smd_couple()
   group->xcm(igroup,masstotal,xcm);
   group->xcm(igroup2,masstotal2,xcm2);
 
+  double dt = update->dt;
+  if (strstr(update->integrate_style,"respa"))
+    dt = ((Respa *) update->integrate)->step[ilevel_respa];
+
   // renormalize direction of spring
   double dx,dy,dz,r,dr;
   if (styleflag & SMD_AUTOX) dx = xcm2[0] - xcm[0];
@@ -309,7 +326,7 @@ void FixSMD::smd_couple()
       fx = k_smd*dx*dr/r;
       fy = k_smd*dy*dr/r;
       fz = k_smd*dz*dr/r;
-      pmf += (fx*xn + fy*yn + fz*zn) * fsign * v_smd * update->dt;
+      pmf += (fx*xn + fy*yn + fz*zn) * fsign * v_smd * dt;
     } else {
       fx = 0.0;
       fy = 0.0;
@@ -417,7 +434,7 @@ void FixSMD::restart(char *buf)
 
 void FixSMD::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------

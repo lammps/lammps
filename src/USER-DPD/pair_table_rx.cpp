@@ -70,9 +70,9 @@ void PairTableRX::compute(int eflag, int vflag)
   union_int_float_t rsq_lookup;
   int tlm1 = tablength - 1;
 
-  fraction = double(0.0);
-  a = double(0.0);
-  b = double(0.0);
+  fraction = 0.0;
+  a = 0.0;
+  b = 0.0;
 
   evdwlOld = 0.0;
   evdwl = 0.0;
@@ -122,7 +122,7 @@ void PairTableRX::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-	getParams(j,fractionOld1_j,fractionOld2_j,fraction1_j,fraction2_j);
+        getParams(j,fractionOld1_j,fractionOld2_j,fraction1_j,fraction2_j);
 
         tb = &tables[tabindex[itype][jtype]];
         if (rsq < tb->innersq)
@@ -158,8 +158,8 @@ void PairTableRX::compute(int eflag, int vflag)
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         }
-	if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair; 
-	else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
+        if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
+        else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -170,29 +170,29 @@ void PairTableRX::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
-	if (tabstyle == LOOKUP)
-	  evdwl = tb->e[itable];
-	else if (tabstyle == LINEAR || tabstyle == BITMAP){
-	  evdwl = tb->e[itable] + fraction*tb->de[itable];
-	}
-	else
-	  evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
-	    ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
-	    tb->deltasq6;
-	if (strcmp(site1,site2) == 0){
-	  evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwl;
-	  evdwl = sqrt(fraction1_i*fraction2_j)*evdwl;
-	} else {
-	  evdwlOld = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*evdwl;
-	  evdwl = (sqrt(fraction1_i*fraction2_j) + sqrt(fraction2_i*fraction1_j))*evdwl;
-	}
-	evdwlOld *= factor_lj;
-	evdwl *= factor_lj;
-	uCG[i] += double(0.5)*evdwlOld;
-	uCG[j] += double(0.5)*evdwlOld;
-	uCGnew[i] += double(0.5)*evdwl;
-	uCGnew[j] += double(0.5)*evdwl;
-	evdwl = evdwlOld;
+        if (tabstyle == LOOKUP)
+          evdwl = tb->e[itable];
+        else if (tabstyle == LINEAR || tabstyle == BITMAP){
+          evdwl = tb->e[itable] + fraction*tb->de[itable];
+        }
+        else
+          evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
+            ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
+            tb->deltasq6;
+        if (strcmp(site1,site2) == 0){
+          evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwl;
+          evdwl = sqrt(fraction1_i*fraction2_j)*evdwl;
+        } else {
+          evdwlOld = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*evdwl;
+          evdwl = (sqrt(fraction1_i*fraction2_j) + sqrt(fraction2_i*fraction1_j))*evdwl;
+        }
+        evdwlOld *= factor_lj;
+        evdwl *= factor_lj;
+        uCG[i] += 0.5*evdwlOld;
+        uCG[j] += 0.5*evdwlOld;
+        uCGnew[i] += 0.5*evdwl;
+        uCGnew[j] += 0.5*evdwl;
+        evdwl = evdwlOld;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,fpair,delx,dely,delz);
@@ -309,7 +309,7 @@ void PairTableRX::coeff(int narg, char **arg)
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
- 
+
   n = strlen(arg[4]) + 1;
   site2 = new char[n];
   strcpy(site2,arg[5]);
@@ -599,7 +599,7 @@ void PairTableRX::compute_table(Table *tb)
   else inner = tb->rfile[0];
   tb->innersq = double(inner)*double(inner);
   tb->delta = double(tb->cut*tb->cut - double(tb->innersq)) / double(tlm1);
-  tb->invdelta = double(1.0)/double(tb->delta);
+  tb->invdelta = 1.0/double(tb->delta);
 
   // direct lookup tables
   // N-1 evenly spaced bins in rsq from inner to cut
@@ -988,9 +988,9 @@ double PairTableRX::single(int i, int j, int itype, int jtype, double rsq,
   double fractionOld1_i, fractionOld1_j;
   double fractionOld2_i, fractionOld2_j;
 
-  fraction = double(0.0);
-  a = double(0.0);
-  b = double(0.0);
+  fraction = 0.0;
+  a = 0.0;
+  b = 0.0;
 
   getParams(i,fractionOld1_i,fractionOld2_i,fraction1_i,fraction2_i);
   getParams(j,fractionOld1_j,fractionOld2_j,fraction1_j,fraction2_j);
@@ -1026,7 +1026,7 @@ double PairTableRX::single(int i, int j, int itype, int jtype, double rsq,
     fforce = factor_lj * value;
   }
 
-  if (strcmp(site1,site2) == 0) fforce = sqrt(fraction1_i*fraction2_j)*fforce; 
+  if (strcmp(site1,site2) == 0) fforce = sqrt(fraction1_i*fraction2_j)*fforce;
   else fforce = (sqrt(fraction1_i*fraction2_j) + sqrt(fraction2_i*fraction1_j))*fforce;
 
   if (tabstyle == LOOKUP)
@@ -1071,39 +1071,39 @@ void PairTableRX::getParams(int id, double &fractionOld1, double &fractionOld2, 
   double fractionOld, fraction;
   double nTotal, nTotalOld;
 
-  fractionOld  = double(0.0);
-  fraction  = double(0.0);
-  fractionOld1 = double(0.0);
-  fractionOld2 = double(0.0);
-  fraction1 = double(0.0);
-  fraction2 = double(0.0);
+  fractionOld  = 0.0;
+  fraction  = 0.0;
+  fractionOld1 = 0.0;
+  fractionOld2 = 0.0;
+  fraction1 = 0.0;
+  fraction2 = 0.0;
 
-  nTotal = double(0.0);
-  nTotalOld = double(0.0);
+  nTotal = 0.0;
+  nTotalOld = 0.0;
   for(int ispecies=0;ispecies<nspecies;ispecies++){
-    nTotal += atom->dvector[ispecies][id]; 
+    nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
-  if(nTotal < 1e-8 || nTotalOld < 1e-8) 
-    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8."); 
+  if(nTotal < 1e-8 || nTotalOld < 1e-8)
+    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){ 
+    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){
       fractionOld1 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fraction1 = atom->dvector[ispecies][id]/nTotal;
     }
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){ 
+    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){
       fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fraction2 = atom->dvector[ispecies][id]/nTotal;
     }
   }
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){ 
+    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){
       fractionOld1 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fraction1 = atom->dvector[ispecies][id]/nTotal;
     }
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){ 
+    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){
       fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fraction2 = atom->dvector[ispecies][id]/nTotal;
     }

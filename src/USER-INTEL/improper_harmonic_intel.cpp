@@ -325,10 +325,8 @@ void ImproperHarmonicIntel::eval(const int vflag,
 
 /* ---------------------------------------------------------------------- */
 
-void ImproperHarmonicIntel::init()
+void ImproperHarmonicIntel::init_style()
 {
-  ImproperHarmonic::init();
-
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
     error->all(FLERR,

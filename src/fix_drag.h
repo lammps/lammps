@@ -39,7 +39,7 @@ class FixDrag : public Fix {
   double f_mag;
   int xflag,yflag,zflag;
   double delta;
-  int nlevels_respa;
+  int ilevel_respa;
   double ftotal[3],ftotal_all[3];
   int force_flag;
 };

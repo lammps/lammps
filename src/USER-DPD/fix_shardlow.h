@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -31,11 +31,7 @@ class FixShardlow : public Fix {
   int setmask();
   virtual void init_list(int,class NeighList *);
   virtual void setup(int);
-  virtual void setup_pre_force(int);
   virtual void initial_integrate(int);
-
-  void setup_pre_neighbor();
-  void pre_neighbor();
 
  protected:
   int pack_reverse_comm(int, int, double *);
@@ -45,7 +41,7 @@ class FixShardlow : public Fix {
 
   class PairDPDfdt *pairDPD;
   class PairDPDfdtEnergy *pairDPDE;
-  double **dvSSA;
+  double (*v_t0)[3];
 
   private:
   class NeighList *list;
@@ -71,7 +67,7 @@ Self-explanatory.
 
 E: Must use pair_style dpd/fdt or dpd/fdt/energy with fix shardlow
 
-E: A deterministic integrator must be specified after fix shardlow in input 
+E: A deterministic integrator must be specified after fix shardlow in input
 file (e.g. fix nve or fix nph).
 
 Self-explanatory.
@@ -84,11 +80,11 @@ E: Fix shardlow does not yet support triclinic geometries
 
 Self-explanatory.
 
-E:  Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either 
+E:  Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either
 reduce the number of processors requested, or change the cutoff/skin
 
-The Shardlow splitting algorithm requires the size of the sub-domain lengths 
-to be are larger than twice the cutoff+skin.  Generally, the domain decomposition 
+The Shardlow splitting algorithm requires the size of the sub-domain lengths
+to be are larger than twice the cutoff+skin.  Generally, the domain decomposition
 is dependant on the number of processors requested.
 
 */

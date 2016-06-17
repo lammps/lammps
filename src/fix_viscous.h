@@ -38,7 +38,7 @@ class FixViscous : public Fix {
 
  protected:
   double *gamma;
-  int nlevels_respa;
+  int ilevel_respa;
 };
 
 }

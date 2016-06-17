@@ -88,9 +88,10 @@ class Atom : protected Pointers {
   // USER-DPD package
 
   double *uCond,*uMech,*uChem,*uCGnew,*uCG;
-  double *duCond,*duMech,*duChem;
+  double *duChem;
   double *dpdTheta;
   int nspecies_dpd;
+  int *ssaAIR; // Shardlow Splitting Algorithm Active Interaction Region number
 
   // molecular info
 

@@ -14,16 +14,18 @@ fix_modify fix-ID keyword value ... :pre
 
 fix-ID = ID of the fix to modify :ulb,l
 one or more keyword/value pairs may be appended :l
-keyword = {temp} or {press} or {energy} :l
+keyword = {temp} or {press} or {energy} or {respa} :l
   {temp} value = compute ID that calculates a temperature
   {press} value = compute ID that calculates a pressure
-  {energy} value = {yes} or {no} :pre
+  {energy} value = {yes} or {no}
+  {respa} value = {1} to {max respa level} or {0} (= outmost level) :pre
 :ule
 
 [Examples:]
 
 fix_modify 3 temp myTemp press myPress
-fix_modify 1 energy yes :pre
+fix_modify 1 energy yes
+fix_modify tether respa 2 :pre
 
 [Description:]
 
@@ -59,6 +61,17 @@ for a fix if you are using it when performing an "energy
 minimization"_minimize.html and if you want the energy and forces it
 produces to be part of the optimization criteria.
 
+For fixes that set or modify forces, it may be possible to select at
+which "r-RESPA"_run_style.html level the fix operates via the {respa}
+keyword. The RESPA level at which the fix is active can be selected.
+This is a number ranging from 1 to the number of levels. If the RESPA
+level is larger than the current maximum, the outermost level will be
+used, which is also the default setting. This default can be restored
+using a value of {0} for the RESPA level. The affected fix has to be
+programmed to support this feature; if not, {fix_modify} will report
+an error. Active fixes with a custom RESPA level setting are reported
+with their specified level at the beginning of a r-RESPA run.
+
 [Restrictions:] none
 
 [Related commands:]
@@ -69,4 +82,4 @@ pressure"_compute_pressure.html, "thermo_style"_thermo_style.html
 [Default:]
 
 The option defaults are temp = ID defined by fix, press = ID defined
-by fix, energy = no.
+by fix, energy = no, respa = 0.

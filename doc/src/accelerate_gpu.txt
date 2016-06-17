@@ -44,10 +44,10 @@ NVIDIA support as well as more general OpenCL support, so that the
 same functionality can eventually be supported on a variety of GPU
 hardware. :l,ule
 
-Here is a quick overview of how to use the GPU package:
+Here is a quick overview of how to enable and use the GPU package:
 
-build the library in lib/gpu for your GPU hardware wity desired precision
-include the GPU package and build LAMMPS
+build the library in lib/gpu for your GPU hardware with the desired precision settings
+install the GPU package and build LAMMPS as usual
 use the mpirun command to set the number of MPI tasks/node which determines the number of MPI tasks/GPU
 specify the # of GPUs per node
 use GPU styles in your input script :ul

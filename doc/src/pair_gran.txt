@@ -223,7 +223,7 @@ pair/local"_compute_pair_local.html command, as {p1}, {p2}, ...,
 
 :line
 
-[Restrictions:] none
+[Restrictions:]
 
 All the granular pair styles are part of the GRANULAR package.  It is
 only enabled if LAMMPS was built with that package.  See the "Making

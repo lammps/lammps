@@ -85,8 +85,12 @@ more instructions on how to use the accelerated styles effectively.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.
+files"_restart.html.
+
+The "fix_modify"_fix_modify.html {respa} option is supported by this
+fix. This allows to set at which level of the "r-RESPA"_run_style.html
+integrator the fix is performing charge equilibration. Default is
+the outermost level.
 
 This fix produces a per-atom vector which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The vector stores the

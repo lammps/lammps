@@ -163,6 +163,10 @@ fix to add the potential energy associated with this fix to the
 system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
+The "fix_modify"_fix_modify.html {respa} option is supported by this
+fix. This allows to set at which level of the "r-RESPA"_run_style.html
+integrator the fix is adding its forces. Default is the outermost level.
+
 NOTE: If you want the fictitious potential energy associated with the
 added forces to be included in the total potential energy of the
 system (the quantity being minimized), you MUST enable the

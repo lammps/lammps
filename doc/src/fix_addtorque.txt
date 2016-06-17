@@ -64,6 +64,10 @@ forces added by this fix in a consistent manner.  I.e. there is a
 decrease in potential energy when atoms move in the direction of the
 added forces.
 
+The "fix_modify"_fix_modify.html {respa} option is supported by
+this fix. This allows to set at which level of the "r-RESPA"_run_style.html
+integrator the fix is adding its torque. Default is the outermost level.
+
 This fix computes a global scalar and a global 3-vector, which can be
 accessed by various "output commands"_Section_howto.html#howto_15.
 The scalar is the potential energy discussed above.  The vector is the

@@ -730,6 +730,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "rdf"_compute_rdf.html,
 "reduce"_compute_reduce.html,
 "reduce/region"_compute_reduce.html,
+"rigid/local"_compute_rigid_local.html,
 "slice"_compute_slice.html,
 "sna/atom"_compute_sna_atom.html,
 "snad/atom"_compute_sna_atom.html,

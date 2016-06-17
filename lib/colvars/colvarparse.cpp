@@ -63,8 +63,8 @@ template<typename TYPE> bool colvarparse::_get_keyval_scalar_(std::string const 
     }
     value = def_value;
     if (parse_mode != parse_silent) {
-      cvm::log("# "+std::string(key)+" = \""+
-               cvm::to_str(def_value)+"\" [default]\n");
+      cvm::log("# "+std::string(key)+" = "+
+               cvm::to_str(def_value)+" [default]\n");
     }
   }
 
@@ -114,8 +114,8 @@ bool colvarparse::_get_keyval_scalar_string_(std::string const &conf,
                  std::string(key)+"\".\n", INPUT_ERROR);
     }
     if (parse_mode != parse_silent) {
-      cvm::log("# "+std::string(key)+" = "+
-               cvm::to_str(value)+"\n");
+      cvm::log("# "+std::string(key)+" = \""+
+               cvm::to_str(value)+"\"\n");
     }
   } else {
 
@@ -125,8 +125,8 @@ bool colvarparse::_get_keyval_scalar_string_(std::string const &conf,
     }
     value = def_value;
     if (parse_mode != parse_silent) {
-      cvm::log("# "+std::string(key)+" = "+
-               cvm::to_str(def_value)+" [default]\n");
+      cvm::log("# "+std::string(key)+" = \""+
+               cvm::to_str(def_value)+"\" [default]\n");
     }
   }
 

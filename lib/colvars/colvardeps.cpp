@@ -362,10 +362,14 @@ void cvm::deps::init_cvc_requires() {
     f_description(f_cvc_Jacobian, "Jacobian");
     f_req_self(f_cvc_Jacobian, f_cvc_inv_gradient);
 
-    f_description(f_cvc_scalable, "scalable calculation");
-    f_description(f_cvc_scalable_com, "scalable calculation of centers of mass");
+    f_description(f_cvc_com_based, "depends on group centers of mass");
 
+    f_description(f_cvc_scalable, "scalable calculation");
     f_req_self(f_cvc_scalable, f_cvc_scalable_com);
+
+    f_description(f_cvc_scalable_com, "scalable calculation of centers of mass");
+    f_req_self(f_cvc_scalable_com, f_cvc_com_based);
+
 
     // TODO only enable this when f_ag_scalable can be turned on for a pre-initialized group
     // f_req_children(f_cvc_scalable, f_ag_scalable);
@@ -380,9 +384,9 @@ void cvm::deps::init_cvc_requires() {
   }
 
   // Features that are implemented by all cvcs by default
+  // Each cvc specifies what other features are available
   feature_states[f_cvc_active]->available = true;
   feature_states[f_cvc_gradient]->available = true;
-  // Each cvc specifies what other features are available
   feature_states[f_cvc_scalable_com]->available = (proxy->scalable_group_coms() == COLVARS_OK);
   feature_states[f_cvc_scalable]->available = feature_states[f_cvc_scalable_com]->available;
 }

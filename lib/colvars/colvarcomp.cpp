@@ -68,6 +68,7 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
     group->key = group_key;
 
     if (b_try_scalable) {
+      // TODO rewrite this logic in terms of dependencies
       if (is_available(f_cvc_scalable_com) && is_available(f_cvc_com_based)) {
         enable(f_cvc_scalable_com);
         enable(f_cvc_scalable);
@@ -107,10 +108,6 @@ int colvar::cvc::setup()
 
   for (i = 0; i < atom_groups.size(); i++) {
     add_child((cvm::deps *) atom_groups[i]);
-  }
-
-  if (b_try_scalable && is_available(f_cvc_scalable)) {
-    enable(f_cvc_scalable);
   }
 
   return COLVARS_OK;

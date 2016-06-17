@@ -293,12 +293,7 @@ inline void colvar::cvc::wrap(colvarvalue &x) const
 
 /// \brief Colvar component: distance between the centers of mass of
 /// two groups (colvarvalue::type_scalar type, range [0:*))
-///
-/// This class also serves as the template for many collective
-/// variables with two atom groups: in this case, the
-/// distance::distance() constructor should be called on the same
-/// configuration string, to make the same member data and functions
-/// available to the derived object
+
 class colvar::distance
   : public colvar::cvc
 {
@@ -315,7 +310,7 @@ protected:
   /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
   bool b_1site_force;
 public:
-  distance(std::string const &conf, bool twogroups = true);
+  distance(std::string const &conf);
   distance();
   virtual inline ~distance() {}
   virtual void calc_value();
@@ -764,9 +759,13 @@ public:
 /// \brief Colvar component: coordination number between two groups
 /// (colvarvalue::type_scalar type, range [0:N1*N2])
 class colvar::coordnum
-  : public colvar::distance
+  : public colvar::cvc
 {
 protected:
+  /// First atom group
+  cvm::atom_group  *group1;
+  /// Second atom group
+  cvm::atom_group  *group2;
   /// \brief "Cutoff" for isotropic calculation (default)
   cvm::real     r0;
   /// \brief "Cutoff vector" for anisotropic calculation
@@ -819,9 +818,11 @@ public:
 /// \brief Colvar component: self-coordination number within a group
 /// (colvarvalue::type_scalar type, range [0:N*(N-1)/2])
 class colvar::selfcoordnum
-  : public colvar::distance
+  : public colvar::cvc
 {
 protected:
+  /// First atom group
+  cvm::atom_group  *group1;
   /// \brief "Cutoff" for isotropic calculation (default)
   cvm::real     r0;
   /// Integer exponent of the function numerator

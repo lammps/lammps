@@ -10,10 +10,7 @@
 
 
 
-// "twogroup" flag defaults to true; set to false by selfCoordNum
-// (only distance-derived component based on only one group)
-
-colvar::distance::distance(std::string const &conf, bool twogroups)
+colvar::distance::distance(std::string const &conf)
   : cvc(conf)
 {
   function_type = "distance";
@@ -24,13 +21,12 @@ colvar::distance::distance(std::string const &conf, bool twogroups)
   if (get_keyval(conf, "forceNoPBC", b_no_PBC, false)) {
     cvm::log("Computing distance using absolute positions (not minimal-image)");
   }
-  if (twogroups && get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
+  if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
     cvm::log("Computing system force on group 1 only");
   }
   group1 = parse_group(conf, "group1");
-  if (twogroups) {
-    group2 = parse_group(conf, "group2");
-  }
+  group2 = parse_group(conf, "group2");
+
   x.type(colvarvalue::type_scalar);
 }
 

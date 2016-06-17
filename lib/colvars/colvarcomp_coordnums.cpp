@@ -71,21 +71,17 @@ cvm::real colvar::coordnum::switching_function(cvm::rvector const &r0_vec,
 }
 
 
-
 colvar::coordnum::coordnum(std::string const &conf)
-  : distance(conf), b_anisotropic(false), b_group2_center_only(false)
+  : cvc(conf), b_anisotropic(false), b_group2_center_only(false)
 {
   function_type = "coordnum";
   x.type(colvarvalue::type_scalar);
 
-  // group1 and group2 are already initialized by distance()
+  group1 = parse_group(conf, "group1");
+  group2 = parse_group(conf, "group2");
+
   if (group1->b_dummy)
     cvm::fatal_error("Error: only group2 is allowed to be a dummy atom\n");
-
-
-  // need to specify this explicitly because the distance() constructor
-  // has set it to true
-  feature_states[f_cvc_inv_gradient]->available = false;
 
   bool const b_isotropic = get_keyval(conf, "cutoff", r0,
                                       cvm::real(4.0 * cvm::unit_angstrom()));
@@ -291,17 +287,12 @@ void colvar::h_bond::apply_force(colvarvalue const &force)
 
 
 colvar::selfcoordnum::selfcoordnum(std::string const &conf)
- : distance(conf, false)
+  : cvc(conf)
 {
   function_type = "selfcoordnum";
   x.type(colvarvalue::type_scalar);
 
-  // group1 is already initialized by distance()
-
-  // need to specify this explicitly because the distance() constructor
-  // has set it to true
-  feature_states[f_cvc_inv_gradient]->available = false;
-
+  group1 = parse_group(conf, "group1");
 
   get_keyval(conf, "cutoff", r0, cvm::real(4.0 * cvm::unit_angstrom()));
   get_keyval(conf, "expNumer", en, int(6) );

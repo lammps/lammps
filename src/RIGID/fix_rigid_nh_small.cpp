@@ -644,6 +644,7 @@ void FixRigidNHSmall::final_integrate()
   double tmp,scale_t[3],scale_r;
   double dtfm;
   double mbody[3],tbody[3],fquat[4];
+
   double dtf2 = dtf * 2.0;
 
   // compute scale variables

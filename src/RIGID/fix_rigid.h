@@ -51,6 +51,7 @@ class FixRigid : public Fix {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  void enforce2d();
   void reset_dt();
   void zero_momentum();
   void zero_rotation();

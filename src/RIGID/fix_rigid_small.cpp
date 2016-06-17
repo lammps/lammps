@@ -79,6 +79,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   virial_flag = 1;
   create_attribute = 1;
   dof_flag = 1;
+  enforce2d_flag = 1;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -729,14 +730,14 @@ void FixRigidSmall::post_force(int vflag)
     vcm = body[ibody].vcm;
     omega = body[ibody].omega;
     inertia = body[ibody].inertia;
-
+    
     gamma1 = -body[ibody].mass / t_period / ftm2v;
     gamma2 = sqrt(body[ibody].mass) * tsqrt *
       sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][0] = gamma1*vcm[0] + gamma2*(random->uniform()-0.5);
     langextra[ibody][1] = gamma1*vcm[1] + gamma2*(random->uniform()-0.5);
     langextra[ibody][2] = gamma1*vcm[2] + gamma2*(random->uniform()-0.5);
-
+    
     gamma1 = -1.0 / t_period / ftm2v;
     gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
     langextra[ibody][3] = inertia[0]*gamma1*omega[0] +
@@ -745,6 +746,34 @@ void FixRigidSmall::post_force(int vflag)
       sqrt(inertia[1])*gamma2*(random->uniform()-0.5);
     langextra[ibody][5] = inertia[2]*gamma1*omega[2] +
       sqrt(inertia[2])*gamma2*(random->uniform()-0.5);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   called from FixEnforce post_force() for 2d problems
+   zero all body values that should be zero for 2d model
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::enforce2d()
+{
+  Body *b;
+
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    b = &body[ibody];
+    b->xcm[2] = 0.0;
+    b->vcm[2] = 0.0;
+    b->fcm[2] = 0.0;
+    b->torque[0] = 0.0;
+    b->torque[1] = 0.0;
+    b->angmom[0] = 0.0;
+    b->angmom[1] = 0.0;
+    b->omega[0] = 0.0;
+    b->omega[1] = 0.0;
+    if (langflag) {
+      langextra[ibody][2] = 0.0;
+      langextra[ibody][3] = 0.0;
+      langextra[ibody][4] = 0.0;
+    }
   }
 }
 
@@ -2737,6 +2766,8 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
 
       b->angmom[0] = b->angmom[1] = b->angmom[2] = 0.0;
       b->omega[0] = b->omega[1] = b->omega[2] = 0.0;
+      b->conjqm[0] = b->conjqm[1] = b->conjqm[2] = b->conjqm[3] = 0.0;
+
       b->image = ((imageint) IMGMAX << IMG2BITS) |
         ((imageint) IMGMAX << IMGBITS) | IMGMAX;
       b->ilocal = i;

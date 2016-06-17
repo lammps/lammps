@@ -86,6 +86,10 @@ by this fix for access by various "output
 commands"_Section_howto.html#howto_15.  No parameter of this fix can
 be used with the {start/stop} keywords of the "run"_run.html command.
 
+The "fix_modify"_fix_modify.html {respa} option is supported by this
+fix. This allows to set at which level of the "r-RESPA"_run_style.html
+integrator the fix is modifying forces. Default is the outermost level.
+
 The forces due to this fix are imposed during an energy minimization,
 invoked by the "minimize"_minimize.html command.  This fix should only
 be used with damped dynamics minimizers that allow for

@@ -95,10 +95,12 @@ more instructions on how to use the accelerated styles effectively.
 No information about this fix is written to "binary restart
 files"_restart.html.
 
-The "fix_modify"_fix_modify.html {respa_level} option is supported by
+The "fix_modify"_fix_modify.html {respa} option is supported by
 this fix. This allows to set at which level of the "r-RESPA"_run_style.html
-integrator the fix is overriding forces; on all other levels, the force
-is set to 0.0. Default is set forces to non-zero at the outermost level.
+integrator the fix is setting the forces to the desired values; on all
+other levels, the force is set to 0.0 for the atoms in the fix group,
+so that setforce values are not counted multiple times. Default is to
+to override forces at the outermost level.
 
 This fix computes a global 3-vector of forces, which can be accessed
 by various "output commands"_Section_howto.html#howto_15.  This is the

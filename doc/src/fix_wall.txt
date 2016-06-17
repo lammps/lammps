@@ -251,6 +251,10 @@ fix to add the energy of interaction between atoms and each wall to
 the system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
+The "fix_modify"_fix_modify.html {respa} option is supported by this
+fix. This allows to set at which level of the "r-RESPA"_run_style.html
+integrator the fix is adding its forces. Default is the outermost level.
+
 This fix computes a global scalar energy and a global vector of
 forces, which can be accessed by various "output
 commands"_Section_howto.html#howto_15.  Note that the scalar energy is

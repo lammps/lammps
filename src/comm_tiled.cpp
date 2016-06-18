@@ -1181,6 +1181,18 @@ void CommTiled::reverse_comm_fix(Fix *fix, int size)
 }
 
 /* ----------------------------------------------------------------------
+   reverse communication invoked by a Fix with variable size data
+   query fix for all pack sizes to insure buf_send is big enough
+   handshake sizes before irregular comm to insure buf_recv is big enough
+   NOTE: how to setup one big buf recv with correct offsets ??
+------------------------------------------------------------------------- */
+
+void CommTiled::reverse_comm_fix_variable(Fix *fix)
+{
+  error->all(FLERR,"Reverse comm fix variable not yet supported by CommTiled");
+}
+
+/* ----------------------------------------------------------------------
    forward communication invoked by a Compute
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */

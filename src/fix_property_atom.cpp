@@ -119,7 +119,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
           || style[i] == CHARGE
           || style[i] == RMASS) flag = 1;
     if (flag && comm->me == 0)
-      error->warning(FLERR,"Fix property/atom mol or charge or rmass"
+      error->warning(FLERR,"Fix property/atom mol or charge or rmass "
                      "w/out ghost communication");
   }
 

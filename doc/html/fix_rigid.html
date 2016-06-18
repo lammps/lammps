@@ -256,7 +256,7 @@ variants, as their style names indicate.</p>
 available for both the <em>rigid</em> and <em>rigid/small</em> variants.  See
 details below.</p>
 </div>
-<p>The <em>rigid</em> variant is typically the best choice for a system with a
+<p>The <em>rigid</em> styles are typically the best choice for a system with a
 small number of large rigid bodies, each of which can extend across
 the domain of many processors.  It operates by creating a single
 global list of rigid bodies, which all processors contribute to.
@@ -264,7 +264,7 @@ MPI_Allreduce operations are performed each timestep to sum the
 contributions from each processor to the force and torque on all the
 bodies.  This operation will not scale well in parallel if large
 numbers of rigid bodies are simulated.</p>
-<p>The <em>rigid/small</em> variant is typically best for a system with a large
+<p>The <em>rigid/small</em> styles are typically best for a system with a large
 number of small rigid bodies.  Each body is assigned to the atom
 closest to the geometrical center of the body.  The fix operates using
 local lists of rigid bodies owned by each processor and information is
@@ -272,13 +272,13 @@ exchanged and summed via local communication between neighboring
 processors when ghost atom info is accumlated.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">To use <em>rigid/small</em> the ghost atom cutoff must be large enough
-to span the distance between the atom that owns the body and every
-other atom in the body.  This distance value is printed out when the
-rigid bodies are defined.  If the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> cutoff
-plus neighbor skin does not span this distance, then you should use
-the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a> command with a setting
-epsilon larger than the distance.</p>
+<p class="last">To use the <em>rigid/small</em> styles the ghost atom cutoff must be
+large enough to span the distance between the atom that owns the body
+and every other atom in the body.  This distance value is printed out
+when the rigid bodies are defined.  If the
+<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> cutoff plus neighbor skin does not span
+this distance, then you should use the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a> command with a setting epsilon larger than
+the distance.</p>
 </div>
 <p>Which of the two variants is faster for a particular problem is hard
 to predict.  The best way to decide is to perform a short test run.
@@ -308,21 +308,21 @@ setting the force on them to 0.0 (via the <a class="reference internal" href="fi
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The aggregate properties of each rigid body are calculated one
-time at the start of the first simulation run after this fix is
+time at the start of the first simulation run after these fixes are
 specified.  The properties include the position and velocity of the
 center-of-mass of the body, its moments of inertia, and its angular
 momentum.  This is done using the properties of the constituent atoms
 of the body at that point in time (or see the <em>infile</em> keyword
 option).  Thereafter, changing properties of individual atoms in the
 body will have no effect on a rigid body&#8217;s dynamics, unless they
-effect the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> interactions that individual
+affect the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> interactions that individual
 particles are part of.  For example, you might think you could
 displace the atoms in a body or add a large velocity to each atom in a
 body to make it move in a desired direction before a 2nd run is
 performed, using the <a class="reference internal" href="set.html"><span class="doc">set</span></a> or
 <a class="reference internal" href="displace_atoms.html"><span class="doc">displace_atoms</span></a> or <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a>
 command.  But these commands will not affect the internal attributes
-of the body, and the position and velocity or individual atoms in the
+of the body, and the position and velocity of individual atoms in the
 body will be reset when time integration starts.</p>
 </div>
 <hr class="docutils" />
@@ -331,27 +331,26 @@ most one rigid body.  Which atoms are in which bodies can be defined
 via several options.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">With fix rigid/small, which requires that <em>bodystyle</em> be
+<p class="last">With the <em>rigid/small</em> styles, which require that <em>bodystyle</em> be
 specified as <em>molecule</em>, you can define a system that has no rigid
 bodies initially.  This is useful when you are using the <em>mol</em> keyword
 in conjunction with another fix that is adding rigid bodies on-the-fly
 as molecules, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>.</p>
 </div>
 <p>For bodystyle <em>single</em> the entire fix group of atoms is treated as one
-rigid body.  This option is only allowed for fix rigid and its
-sub-styles.</p>
+rigid body.  This option is only allowed for the <em>rigid</em> styles.</p>
 <p>For bodystyle <em>molecule</em>, each set of atoms in the fix group with a
 different molecule ID is treated as a rigid body.  This option is
-allowed for fix rigid and fix rigid/small, and their sub-styles.  Note
-that atoms with a molecule ID = 0 will be treated as a single rigid
-body.  For a system with atomic solvent (typically this is atoms with
+allowed for both the <em>rigid</em> and <em>rigid/small</em> styles.  Note that
+atoms with a molecule ID = 0 will be treated as a single rigid body.
+For a system with atomic solvent (typically this is atoms with
 molecule ID = 0) surrounding rigid bodies, this may not be what you
 want.  Thus you should be careful to use a fix group that only
 includes atoms you want to be part of rigid bodies.</p>
 <p>For bodystyle <em>group</em>, each of the listed groups is treated as a
 separate rigid body.  Only atoms that are also in the fix group are
-included in each rigid body.  This option is only allowed for fix
-rigid and its sub-styles.</p>
+included in each rigid body.  This option is only allowed for the
+<em>rigid</em> styles.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">To compute the initial center-of-mass position and other
@@ -367,7 +366,7 @@ non-periodic then the image flag of each atom must be 0 in that
 dimension, else an error is generated.</p>
 </div>
 <p>The <em>force</em> and <em>torque</em> keywords discussed next are only allowed for
-fix rigid and its sub-styles.</p>
+the <em>rigid</em> styles.</p>
 <p>By default, each rigid body is acted on by other atoms which induce an
 external force and torque on its center of mass, causing it to
 translate and rotate.  Components of the external center-of-mass force
@@ -426,22 +425,25 @@ commands are used to do this.  For finite-size particles this also
 means the particles can be highly overlapped when creating the rigid
 body.</p>
 <hr class="docutils" />
-<p>The <em>rigid</em> and <em>rigid/small</em> and <em>rigid/nve</em> styles perform constant
-NVE time integration.  The only difference is that the <em>rigid</em> and
+<p>The <em>rigid</em>, <em>rigid/nve</em>, <em>rigid/small</em>, and <em>rigid/small/nve</em> styles
+perform constant NVE time integration.  They are referred to below as
+the 4 NVE rigid styles.  The only difference is that the <em>rigid</em> and
 <em>rigid/small</em> styles use an integration technique based on Richardson
-iterations.  The <em>rigid/nve</em> style uses the methods described in the
-paper by <a class="reference internal" href="#miller"><span class="std std-ref">Miller</span></a>, which are thought to provide better energy
-conservation than an iterative approach.</p>
+iterations.  The <em>rigid/nve</em> and <em>rigid/small/nve</em> styles uses the
+methods described in the paper by <a class="reference internal" href="#miller"><span class="std std-ref">Miller</span></a>, which are thought
+to provide better energy conservation than an iterative approach.</p>
 <p>The <em>rigid/nvt</em> and <em>rigid/nvt/small</em> styles performs constant NVT
 integration using a Nose/Hoover thermostat with chains as described
 originally in <a class="reference internal" href="#hoover"><span class="std std-ref">(Hoover)</span></a> and <a class="reference internal" href="#martyna"><span class="std std-ref">(Martyna)</span></a>, which
 thermostats both the translational and rotational degrees of freedom
-of the rigid bodies.  The rigid-body algorithm used by <em>rigid/nvt</em>
-is described in the paper by <a class="reference internal" href="#kamberaj"><span class="std std-ref">Kamberaj</span></a>.</p>
-<p>The <em>rigid/npt</em> and <em>rigid/nph</em> (and their /small counterparts) styles
-perform constant NPT or NPH integration using a Nose/Hoover barostat
-with chains.  For the NPT case, the same Nose/Hoover thermostat is also
-used as with <em>rigid/nvt</em>.</p>
+of the rigid bodies.  They are referred to below as the 2 NVT rigid
+styles.  The rigid-body algorithm used by <em>rigid/nvt</em> is described in
+the paper by <a class="reference internal" href="#kamberaj"><span class="std std-ref">Kamberaj</span></a>.</p>
+<p>The <em>rigid/npt</em>, <em>rigid/nph</em>, <em>rigid/npt/small</em>, and <em>rigid/nph/small</em>
+styles perform constant NPT or NPH integration using a Nose/Hoover
+barostat with chains.  They are referred to below as the 4 NPT and NPH
+rigid styles.  For the NPT case, the same Nose/Hoover thermostat is
+also used as with <em>rigid/nvt</em> and <em>rigid/nvt/small</em>.</p>
 <p>The barostat parameters are specified using one or more of the <em>iso</em>,
 <em>aniso</em>, <em>x</em>, <em>y</em>, <em>z</em> and <em>couple</em> keywords.  These keywords give you
 the ability to specify 3 diagonal components of the external stress
@@ -451,8 +453,9 @@ simulation.  The effects of these keywords are similar to those
 defined in <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt/nph</span></a></p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Currently the <em>rigid/npt</em> and <em>rigid/nph</em> (and their /small
-counterparts) styles do not support triclinic (non-orthongonal) boxes.</p>
+<p class="last">Currently the <em>rigid/npt</em>, <em>rigid/nph</em>, <em>rigid/npt/small</em>, and
+<em>rigid/nph/small</em> styles do not support triclinic (non-orthongonal)
+boxes.</p>
 </div>
 <p>The target pressures for each of the 6 components of the stress tensor
 can be specified independently via the <em>x</em>, <em>y</em>, <em>z</em> keywords, which
@@ -526,11 +529,12 @@ degrees of freedom.  What is meant by &#8220;temperature&#8221; of a collection 
 rigid bodies and how it can be monitored via the fix output is
 discussed below.</p>
 <p>The <em>langevin</em> keyword applies a Langevin thermostat to the constant
-NVE time integration performed by either the <em>rigid</em> or <em>rigid/small</em>
-or <em>rigid/nve</em> styles.  It cannot be used with the <em>rigid/nvt</em> style.
-The desired temperature at each timestep is a ramped value during the
-run from <em>Tstart</em> to <em>Tstop</em>.  The <em>Tdamp</em> parameter is specified in
-time units and determines how rapidly the temperature is relaxed.  For
+NVE time integration performed by any of the 4 NVE rigid styles:
+<em>rigid</em>, <em>rigid/nve</em>, <em>rigid/small</em>, <em>rigid/small/nve</em>.  It cannot be
+used with the 2 NVT rigid styles: <em>rigid/nvt</em>, <em>rigid/small/nvt</em>.  The
+desired temperature at each timestep is a ramped value during the run
+from <em>Tstart</em> to <em>Tstop</em>.  The <em>Tdamp</em> parameter is specified in time
+units and determines how rapidly the temperature is relaxed.  For
 example, a value of 100.0 means to relax the temperature in a timespan
 of (roughly) 100 time units (tau or fmsec or psec - see the
 <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).  The random # <em>seed</em> must be a positive
@@ -549,14 +553,13 @@ dynamics for the two cases should be statistically similar, but will
 not be identical, even for a single timestep.</p>
 </div>
 <p>The <em>temp</em> and <em>tparam</em> keywords apply a Nose/Hoover thermostat to the
-NVT time integration performed by the <em>rigid/nvt</em> style.  They cannot
-be used with the <em>rigid</em> or <em>rigid/small</em> or <em>rigid/nve</em> styles.  The
-desired temperature at each timestep is a ramped value during the run
-from <em>Tstart</em> to <em>Tstop</em>.  The <em>Tdamp</em> parameter is specified in time
-units and determines how rapidly the temperature is relaxed.  For
-example, a value of 100.0 means to relax the temperature in a timespan
-of (roughly) 100 time units (tau or fmsec or psec - see the
-<a class="reference internal" href="units.html"><span class="doc">units</span></a> command).</p>
+NVT time integration performed by the 2 NVT rigid styles.  They cannot
+be used with the 4 NVE rigid styles.  The desired temperature at each
+timestep is a ramped value during the run from <em>Tstart</em> to <em>Tstop</em>.
+The <em>Tdamp</em> parameter is specified in time units and determines how
+rapidly the temperature is relaxed.  For example, a value of 100.0
+means to relax the temperature in a timespan of (roughly) 100 time
+units (tau or fmsec or psec - see the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).</p>
 <p>Nose/Hoover chains are used in conjunction with this thermostat.  The
 <em>tparam</em> keyword can optionally be used to change the chain settings
 used.  <em>Tchain</em> is the number of thermostats in the Nose Hoover chain.
@@ -581,18 +584,18 @@ temperature as well without use of the Langevin or Nose/Hoover options
 associated with the fix rigid commands.</p>
 </div>
 <hr class="docutils" />
-<p>The <em>mol</em> keyword can only be used with fix rigid/small.  It must be
-used when other commands, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or
-<a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, add rigid bodies on-the-fly during a
-simulation.  You specify a <em>template-ID</em> previously defined using the
-<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command, which reads a file that defines the
-molecule.  You must use the same <em>template-ID</em> that the other fix
-which is adding rigid bodies uses.  The coordinates, atom types, atom
-diameters, center-of-mass, and moments of inertia can be specified in
-the molecule file.  See the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command for
-details.  The only settings required to be in this file are the
-coordinates and types of atoms in the molecule, in which case the
-molecule command calculates the other quantities itself.</p>
+<p>The <em>mol</em> keyword can only be used with the <em>rigid/small</em> styles.  It
+must be used when other commands, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, add rigid
+bodies on-the-fly during a simulation.  You specify a <em>template-ID</em>
+previously defined using the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command, which
+reads a file that defines the molecule.  You must use the same
+<em>template-ID</em> that the other fix which is adding rigid bodies uses.
+The coordinates, atom types, atom diameters, center-of-mass, and
+moments of inertia can be specified in the molecule file.  See the
+<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command for details.  The only settings
+required to be in this file are the coordinates and types of atoms in
+the molecule, in which case the molecule command calculates the other
+quantities itself.</p>
 <p>Note that these other fixes create new rigid bodies, in addition to
 those defined initially by this fix via the <em>bodystyle</em> setting.</p>
 <p>Also note that when using the <em>mol</em> keyword, extra restart information
@@ -688,35 +691,34 @@ also accounted for by this fix.</p>
 and non-rigid particles (e.g. solvent) there are several ways these
 rigid fixes can be used in tandem with <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>, and <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
 <p>If you wish to perform NVE dynamics (no thermostatting or
-barostatting), use fix rigid or fix rigid/nve to integrate the rigid
+barostatting), use one of 4 NVE rigid styles to integrate the rigid
 bodies, and <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> to integrate the non-rigid
 particles.</p>
 <p>If you wish to perform NVT dynamics (thermostatting, but no
-barostatting), you can use fix rigid/nvt for the rigid bodies, and any
-thermostatting fix for the non-rigid particles (<a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>,
-<a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, <a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">fix temp/berendsen</span></a>).  You can also use fix rigid
-or fix rigid/nve for the rigid bodies and thermostat them using <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> on the group that contains all the
+barostatting), you can use one of the 2 NVT rigid styles for the rigid
+bodies, and any thermostatting fix for the non-rigid particles (<a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, <a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">fix temp/berendsen</span></a>).  You can also use one of the
+4 NVE rigid styles for the rigid bodies and thermostat them using <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> on the group that contains all the
 particles in the rigid bodies.  The net force added by <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> to each rigid body effectively thermostats
 its translational center-of-mass motion.  Not sure how well it does at
 thermostatting its rotational motion.</p>
 <p>If you with to perform NPT or NPH dynamics (barostatting), you cannot
-use both <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> and fix rigid/npt (or the nph
-variants).  This is because there can only be one fix which monitors
-the global pressure and changes the simulation box dimensions.  So you
-have 3 choices:</p>
+use both <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> and the NPT or NPH rigid styles.  This
+is because there can only be one fix which monitors the global
+pressure and changes the simulation box dimensions.  So you have 3
+choices:</p>
 <ul class="simple">
-<li>Use fix rigid/npt for the rigid bodies.  Use the <em>dilate</em> all option
-so that it will dilate the positions of the non-rigid particles as
-well.  Use <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> (or any other thermostat) for the
-non-rigid particles.</li>
+<li>Use one of the 4 NPT or NPH styles for the rigid bodies.  Use the
+<em>dilate</em> all option so that it will dilate the positions of the
+non-rigid particles as well.  Use <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> (or any other
+thermostat) for the non-rigid particles.</li>
 <li>Use <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> for the group of non-rigid particles.  Use
 the <em>dilate</em> all option so that it will dilate the center-of-mass
-positions of the rigid bodies as well.  Use fix rigid/nvt for the
-rigid bodies.</li>
+positions of the rigid bodies as well.  Use one of the 4 NVE or 2 NVT
+rigid styles for the rigid bodies.</li>
 <li>Use <a class="reference internal" href="fix_press_berendsen.html"><span class="doc">fix press/berendsen</span></a> to compute the
-pressure and change the box dimensions.  Use fix rigid/nvt for the
-rigid bodies.  Use <a class="reference external" href="fix_nh.thml">fix nvt</a> (or any other thermostat) for
-the non-rigid particles.</li>
+pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
+rigid styles for the rigid bodies.  Use <a class="reference external" href="fix_nh.thml">fix nvt</a> (or any
+other thermostat) for the non-rigid particles.</li>
 </ul>
 <p>In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the
@@ -747,46 +749,51 @@ more instructions on how to use the accelerated styles effectively.</p>
 <hr class="docutils" />
 <div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
 <h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
-<p>No information about the <em>rigid</em> and <em>rigid/small</em> and <em>rigid/nve</em>
-fixes are written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  The
-exception is if the <em>infile</em> or <em>mol</em> keyword is used, in which case
-an auxiliary file is written out with rigid body information each time
-a restart file is written, as explained above for the <em>infile</em>
-keyword.  For style <em>rigid/nvt</em> the state of the Nose/Hoover
-thermostat is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the
+<p>No information about the 4 NVE rigid styles is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  The exception is if the <em>infile</em> or
+<em>mol</em> keyword is used, in which case an auxiliary file is written out
+with rigid body information each time a restart file is written, as
+explained above for the <em>infile</em> keyword.  For the 2 NVT rigid styles,
+the state of the Nose/Hoover thermostat is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  Ditto for the 4 NPT and NPH rigid styles, and
+the state of the Nose/Hoover barostat.  See the
 <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.</p>
-<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by the
-rigid/nvt fix to add the energy change induced by the thermostatting
-to the system&#8217;s potential energy as part of <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by the 6
+NVT, NPT, NPH rigid styles to add the energy change induced by the
+thermostatting to the system&#8217;s potential energy as part of
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>temp</em> and <em>press</em> options are
-supported by the rigid/npt and rigid/nph fixes to change the computes used
-to calculate the instantaneous pressure tensor. Note that the rigid/nvt fix
-does not use any external compute to compute instantaneous temperature.</p>
-<p>The <em>rigid</em> and <em>rigid/small</em> and <em>rigid/nve</em> fixes compute a global
-scalar which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar value calculated by
-these fixes is &#8220;intensive&#8221;.  The scalar is the current temperature of
-the collection of rigid bodies.  This is averaged over all rigid
-bodies and their translational and rotational degrees of freedom.  The
-translational energy of a rigid body is 1/2 m v^2, where m = total
-mass of the body and v = the velocity of its center of mass.  The
-rotational energy of a rigid body is 1/2 I w^2, where I = the moment
-of inertia tensor of the body and w = its angular velocity.  Degrees
-of freedom constrained by the <em>force</em> and <em>torque</em> keywords are
-removed from this calculation, but only for the <em>rigid</em> and
-<em>rigid/nve</em> fixes.</p>
-<p>The <em>rigid/nvt</em>, <em>rigid/npt</em>, and <em>rigid/nph</em> fixes compute a global
-scalar which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar value calculated by
-these fixes is &#8220;extensive&#8221;.  The scalar is the cumulative energy
-change due to the thermostatting and barostatting the fix performs.</p>
-<p>All of the <em>rigid</em> fixes except <em>rigid/small</em> compute a global array
-of values which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The number of rows in the
-array is equal to the number of rigid bodies.  The number of columns
-is 15.  Thus for each rigid body, 15 values are stored: the xyz coords
-of the center of mass (COM), the xyz components of the COM velocity,
-the xyz components of the force acting on the COM, the xyz components
-of the torque acting on the COM, and the xyz image flags of the COM.</p>
+supported by the 4 NPT and NPH rigid styles to change the computes
+used to calculate the instantaneous pressure tensor.  Note that the 2
+NVT rigid fixes do not use any external compute to compute
+instantaneous temperature.</p>
+<p>The 2 NVE rigid fixes compute a global scalar which can be accessed by
+various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar
+value calculated by these fixes is &#8220;intensive&#8221;.  The scalar is the
+current temperature of the collection of rigid bodies.  This is
+averaged over all rigid bodies and their translational and rotational
+degrees of freedom.  The translational energy of a rigid body is 1/2 m
+v^2, where m = total mass of the body and v = the velocity of its
+center of mass.  The rotational energy of a rigid body is 1/2 I w^2,
+where I = the moment of inertia tensor of the body and w = its angular
+velocity.  Degrees of freedom constrained by the <em>force</em> and <em>torque</em>
+keywords are removed from this calculation, but only for the <em>rigid</em>
+and <em>rigid/nve</em> fixes.</p>
+<p>The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
+accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.
+The scalar value calculated by these fixes is &#8220;extensive&#8221;.  The scalar
+is the cumulative energy change due to the thermostatting and
+barostatting the fix performs.</p>
+<p>All of the <em>rigid</em> styles (not the <em>rigid/small</em> styles) compute a
+global array of values which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  Similar information about the
+bodies defined by the <em>rigid/small</em> styles can be accessed via the
+<a class="reference internal" href="compute_rigid_local.html"><span class="doc">compute rigid/local</span></a> command.</p>
+<p>The number of rows in the array is equal to the number of rigid
+bodies.  The number of columns is 15.  Thus for each rigid body, 15
+values are stored: the xyz coords of the center of mass (COM), the xyz
+components of the COM velocity, the xyz components of the force acting
+on the COM, the xyz components of the torque acting on the COM, and
+the xyz image flags of the COM.</p>
 <p>The center of mass (COM) for each body is similar to unwrapped
 coordinates written to a dump file.  It will always be inside (or
 slightly outside) the simulation box.  The image flags have the same

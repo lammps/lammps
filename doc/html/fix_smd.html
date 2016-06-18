@@ -220,8 +220,9 @@ distance and the running PMF to <a class="reference internal" href="restart.html
 See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to
 re-specify a fix in an input script that reads a restart file, so that
 the operation of the fix continues in an uninterrupted fashion.</p>
-<p>None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options are relevant to this
-fix.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>respa</em> option is supported by
+this fix. This allows to set at which level of the <a class="reference internal" href="run_style.html"><span class="doc">r-RESPA</span></a>
+integrator the fix is adding its forces. Default is the outermost level.</p>
 <p>This fix computes a vector list of 7 quantities, which can be accessed
 by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The
 quantities in the vector are in this order: the x-, y-, and

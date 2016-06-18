@@ -37,6 +37,8 @@ class CommTiled : public Comm {
                                                    // forward comm from a Fix
   virtual void reverse_comm_fix(class Fix *, int size=0);
                                                    // reverse comm from a Fix
+  virtual void reverse_comm_fix_variable(class Fix *);
+                                     // variable size reverse comm from a Fix
   void forward_comm_compute(class Compute *);  // forward from a Compute
   void reverse_comm_compute(class Compute *);  // reverse from a Compute
   void forward_comm_dump(class Dump *);    // forward comm from a Dump

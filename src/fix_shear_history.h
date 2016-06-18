@@ -44,6 +44,10 @@ class FixShearHistory : public Fix {
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
+
+  int pack_reverse_comm_size(int, int);
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
   int pack_restart(int, double *);
@@ -52,10 +56,16 @@ class FixShearHistory : public Fix {
   int maxsize_restart();
 
  protected:
+  int newton_pair;
+  int nlocal_neigh;             // nlocal at last time neigh list was built
+  int nall_neigh;               // ditto for nlocal+nghost
+
   int *npartner;                // # of touching partners of each atom
   tagint **partner;             // global atom IDs for the partners
   double (**shearpartner)[3];   // 3 shear values with the partner
   int maxtouch;                 // max # of touching partners for my atoms
+
+  int commflag;                 // mode of reverse comm to get ghost info
 
   class Pair *pair;
   int *computeflag;             // computeflag in PairGranHookeHistory
@@ -64,6 +74,8 @@ class FixShearHistory : public Fix {
   MyPage<tagint> *ipage;        // pages of partner atom IDs
   MyPage<double[3]> *dpage;     // pages of shear history with partners
 
+  void pre_exchange_newton();
+  void pre_exchange_no_newton();
   void allocate_pages();
 };
 

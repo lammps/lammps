@@ -19,8 +19,8 @@ timer args :pre
   {full} = like {normal} but also include CPU and thread utilzation 
   {sync} = explicitly synchronize MPI tasks between sections
   {nosync} = do not synchronize MPI tasks between sections (default)
-  {timeout} value = set walltime limit to {value}
-  {every} value = perform timeout check every {value} steps :pre
+  {timeout} elapse = set walltime limit to {elapse}
+  {every} Ncheck = perform timeout check every {Ncheck} steps :pre
 
 [Examples:]
 
@@ -30,14 +30,14 @@ timer loop :pre
 
 [Description:]
 
-Select the level of detail LAMMPS performs its CPU timings.
+Select the level of detail at which LAMMPS performs its CPU timings.
 
 During a simulation run LAMMPS collects information about how much
 time is spent in different sections of the code and thus can provide
-valuable information for determining performance and load imbalance
-problems.  This can be done at different levels of detail and
-accuracy.  For more information about the timing output, see this
-"discussion of screen output"_Section_start.html#start_8.
+information for determining performance and load imbalance problems.
+This can be done at different levels of detail and accuracy.  For more
+information about the timing output, see this "discussion of screen
+output"_Section_start.html#start_8.
 
 The {off} setting will turn all time measurements off. The {loop}
 setting will only measure the total time for a run and not collect any
@@ -53,23 +53,26 @@ call which meaures load imbalance more accuractly, though it can also
 slow down the simulation.  Using the {nosync} setting (which is the
 default) turns off this synchronization.
 
-With the {timeout} keyword a walltime limit can be imposed that affects
-"run"_run.html  and "minimize"_minimize.html commands. If the time
-limit it reached, ongoing calculations will be stopped on the next
-step that is a multiple of the value specified with {every}. All
-follwing run or minimize commands will be skipped until the timeout
-is reset or turned off by a new {timer} command. The timeout value
-can be "off" or "unlimited" to turn the timeout off, otherwise a
-single number is interpreted as seconds, two numbers separated by
-a colon (MM:SS) as minutes and seconds and three numbers separated
-by colons as hours, minutes and seconds, respectively.
+With the {timeout} keyword a walltime limit can be imposed that
+affects the "run"_run.html and "minimize"_minimize.html commands.  If
+the time limit is reached, the run or energy minimization will exit on
+the next step or iteration that is a multiple of the {Ncheck} value
+specified with the {every} keyword.  All subsequent run or minimize
+commands in the input script will be skipped until the timeout is
+reset or turned off by a new {timer} command.  The timeout {elapse}
+value can be specified as {off} or {unlimited} to impose no timeout
+condition (which is the default).  The {elapse} setting can be
+specified as a single number for seconds, two numbers separated by a
+colon (MM:SS) for minutes and seconds, or as three numbers separated
+by colons for hours, minutes, and seconds.
 
-The {every} keyword sets how frequent during a run or minimization
-the wall clock will be checked. This check count applies to the outer
-iterations or time steps during minimizations or r-RESPA runs, respectively.
-Checking for timeout very often, can slow a calculation down, checking
-too infrequent makes the timeout measurement less accurate and the run
-will be stopped later than desired.
+The {every} keyword sets how frequently during a run or energy
+minimization the wall clock will be checked.  This check count applies
+to the outer iterations or time steps during minimizations or "r-RESPA
+runs"_run_style.html, respectively.  Checking for timeout too often,
+can slow a calculation down.  Checking too infrequently can make the
+timeout measurement less accurate, with the run being stopped later
+than desired.
 
 Multiple keywords can be specified with the {timer} command.  For
 keywords that are mutually exclusive, the last one specified takes

@@ -28,6 +28,8 @@ FixStyle(rigid/small,FixRigidSmall)
 namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
+  friend class ComputeRigidLocal;
+
  public:
   // static variable for ring communication callback to access class data
 
@@ -61,6 +63,7 @@ class FixRigidSmall : public Fix {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  void enforce2d();
   void reset_dt();
   void zero_momentum();
   void zero_rotation();

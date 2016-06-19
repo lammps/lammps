@@ -115,12 +115,12 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
         if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
         rinv = 1.0/r;
         wr = 1.0 - r/cut[itype][jtype];
-	wd = wr*wr;
+        wd = wr*wr;
 
         // conservative force = a0 * wr
         fpair = a0[itype][jtype]*wr;
         fpair *= factor_dpd*rinv;
-	
+
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
         f[i][2] += delz*fpair;
@@ -180,9 +180,9 @@ void PairDPDfdtEnergy::settings(int narg, char **arg)
 
   cut_global = force->numeric(FLERR,arg[0]);
   seed = force->inumeric(FLERR,arg[1]);
-  if (atom->dpd_flag != 1) 
+  if (atom->dpd_flag != 1)
     error->all(FLERR,"pair_style dpd/fdt/energy requires atom_style with internal temperature and energies (e.g. dpd)");
-      
+
   // initialize Marsaglia RNG with processor-unique seed
 
   if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
@@ -259,7 +259,7 @@ void PairDPDfdtEnergy::init_style()
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
     if (strncmp(modify->fix[i]->style,"eos",3) == 0) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS to be specified");  
+  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS to be specified");
 }
 
 /* ----------------------------------------------------------------------

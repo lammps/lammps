@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -19,11 +19,11 @@ bool compare(colvar::cvc *i, colvar::cvc *j) {
 colvar::colvar(std::string const &conf)
   : colvarparse(conf)
 {
-  size_t i;
   cvm::log("Initializing a new collective variable.\n");
+  int error_code = COLVARS_OK;
 
   get_keyval(conf, "name", this->name,
-              (std::string("colvar")+cvm::to_str(cvm::colvars.size()+1)));
+             (std::string("colvar")+cvm::to_str(cvm::colvars.size()+1)));
 
   if (cvm::colvar_by_name(this->name) != NULL) {
     cvm::error("Error: this colvar cannot have the same name, \""+this->name+
@@ -43,141 +43,9 @@ colvar::colvar(std::string const &conf)
   kinetic_energy = 0.0;
   potential_energy = 0.0;
 
-  // read the configuration and set up corresponding instances, for
-  // each type of component implemented
-#define initialize_components(def_desc,def_config_key,def_class_name)   \
-  {                                                                     \
-    size_t def_count = 0;                                               \
-    std::string def_conf = "";                                          \
-    size_t pos = 0;                                                     \
-    while ( this->key_lookup(conf,                                     \
-                              def_config_key,                           \
-                              def_conf,                                 \
-                              pos) ) {                                  \
-      if (!def_conf.size()) continue;                                   \
-      cvm::log("Initializing "                                         \
-                "a new \""+std::string(def_config_key)+"\" component"+ \
-                (cvm::debug() ? ", with configuration:\n"+def_conf      \
-                 : ".\n"));                                             \
-      cvm::increase_depth();                                            \
-      cvc *cvcp = new colvar::def_class_name(def_conf);                \
-      if (cvcp != NULL) {                                               \
-        cvcs.push_back(cvcp);                                          \
-        cvcp->check_keywords(def_conf, def_config_key);                \
-        if (cvm::get_error()) {                                         \
-          cvm::error("Error: in setting up component \""                \
-                      def_config_key"\".\n");                           \
-          return;                                                       \
-        }                                                               \
-        cvm::decrease_depth();                                          \
-      } else {                                                          \
-        cvm::error("Error: in allocating component \""                  \
-                          def_config_key"\".\n",                        \
-                          MEMORY_ERROR);                                \
-        return;                                                         \
-      }                                                                 \
-      if ( (cvcp->period != 0.0) || (cvcp->wrap_center != 0.0) ) {      \
-        if ( (cvcp->function_type != std::string("distance_z")) &&     \
-             (cvcp->function_type != std::string("dihedral")) &&       \
-             (cvcp->function_type != std::string("spin_angle")) ) {    \
-          cvm::error("Error: invalid use of period and/or "            \
-                            "wrapAround in a \""+                       \
-                            std::string(def_config_key)+               \
-                            "\" component.\n"+                          \
-                            "Period: "+cvm::to_str(cvcp->period) +      \
-                        " wrapAround: "+cvm::to_str(cvcp->wrap_center), \
-                        INPUT_ERROR);                                   \
-          return;                                                       \
-        }                                                               \
-      }                                                                 \
-      if ( ! cvcs.back()->name.size()){                                 \
-        std::ostringstream s;                                           \
-        s << def_config_key << std::setfill('0') << std::setw(4) << ++def_count;\
-        cvcs.back()->name = s.str();                                    \
-          /* pad cvc number for correct ordering when sorting by name */\
-      }                                                                 \
-      cvcs.back()->setup();                                             \
-      if (cvm::debug())                                                 \
-        cvm::log("Done initializing a \""+                             \
-                  std::string(def_config_key)+                         \
-                  "\" component"+                                       \
-                  (cvm::debug() ?                                       \
-                   ", named \""+cvcs.back()->name+"\""                  \
-                   : "")+".\n");                                        \
-      def_conf = "";                                                    \
-      if (cvm::debug())                                                 \
-        cvm::log("Parsed "+cvm::to_str(cvcs.size())+                  \
-                  " components at this time.\n");                       \
-    }                                                                   \
-  }
+  cvm::combine_errors(error_code, init_components(conf));
 
-
-  initialize_components("distance",         "distance",       distance);
-  initialize_components("distance vector",  "distanceVec",    distance_vec);
-  initialize_components("Cartesian coordinates", "cartesian",  cartesian);
-  initialize_components("distance vector "
-                        "direction",        "distanceDir",    distance_dir);
-  initialize_components("distance projection "
-                        "on an axis",       "distanceZ",      distance_z);
-  initialize_components("distance projection "
-                        "on a plane",       "distanceXY",     distance_xy);
-  initialize_components("average distance weighted by inverse power",
-                        "distanceInv", distance_inv);
-  initialize_components("N1xN2-long vector of pairwise distances",
-                        "distancePairs", distance_pairs);
-
-  initialize_components("coordination "
-                        "number",           "coordNum",       coordnum);
-  initialize_components("self-coordination "
-                        "number",           "selfCoordNum",   selfcoordnum);
-
-  initialize_components("angle",            "angle",          angle);
-  initialize_components("dipole angle",     "dipoleAngle",    dipole_angle);
-  initialize_components("dihedral",         "dihedral",       dihedral);
-
-  initialize_components("hydrogen bond",    "hBond",          h_bond);
-
-  //  initialize_components ("alpha helix",      "alphaDihedrals", alpha_dihedrals);
-  initialize_components("alpha helix",      "alpha",          alpha_angles);
-
-  initialize_components("dihedral principal "
-                        "component",        "dihedralPC",     dihedPC);
-
-  initialize_components("orientation",      "orientation",    orientation);
-  initialize_components("orientation "
-                        "angle",            "orientationAngle",orientation_angle);
-  initialize_components("orientation "
-                        "projection",       "orientationProj",orientation_proj);
-  initialize_components("tilt",             "tilt",           tilt);
-  initialize_components("spin angle",       "spinAngle",      spin_angle);
-
-  initialize_components("RMSD",             "rmsd",           rmsd);
-
-  //  initialize_components ("logarithm of MSD", "logmsd",         logmsd);
-
-  initialize_components("radius of "
-                        "gyration",         "gyration",       gyration);
-  initialize_components("moment of "
-                        "inertia",          "inertia",        inertia);
-  initialize_components("moment of inertia around an axis",
-                        "inertiaZ",       inertia_z);
-  initialize_components("eigenvector",      "eigenvector",    eigenvector);
-
-  if (!cvcs.size()) {
-    cvm::error("Error: no valid components were provided "
-               "for this collective variable.\n",
-               INPUT_ERROR);
-    return;
-  }
-
-  n_active_cvcs = cvcs.size();
-
-  cvm::log("All components initialized.\n");
-
-  // Store list of children cvcs for dependency checking purposes
-  for (i = 0; i < cvcs.size(); i++) {
-    add_child(cvcs[i]);
-  }
+  size_t i;
 
   // Setup colvar as scripted function of components
   if (get_keyval(conf, "scriptedFunction", scripted_function,
@@ -537,6 +405,215 @@ colvar::colvar(std::string const &conf)
 
   if (cvm::debug())
     cvm::log("Done initializing collective variable \""+this->name+"\".\n");
+}
+
+
+
+
+// read the configuration and set up corresponding instances, for
+// each type of component implemented
+template<typename def_class_name> int colvar::init_components_type(std::string const &conf,
+                                                                   char const *def_desc,
+                                                                   char const *def_config_key)
+{
+  size_t def_count = 0;
+  std::string def_conf = "";
+  size_t pos = 0;
+  while ( this->key_lookup(conf,
+                           def_config_key,
+                           def_conf,
+                           pos) ) {
+    if (!def_conf.size()) continue;
+    cvm::log("Initializing "
+             "a new \""+std::string(def_config_key)+"\" component"+
+             (cvm::debug() ? ", with configuration:\n"+def_conf
+              : ".\n"));
+    cvm::increase_depth();
+    cvc *cvcp = new def_class_name(def_conf);
+    if (cvcp != NULL) {
+      cvcs.push_back(cvcp);
+      cvcp->check_keywords(def_conf, def_config_key);
+      if (cvm::get_error()) {
+        cvm::error("Error: in setting up component \""+
+                   std::string(def_config_key)+"\".\n", INPUT_ERROR);
+        return INPUT_ERROR;
+      }
+      cvm::decrease_depth();
+    } else {
+      cvm::error("Error: in allocating component \""+
+                   std::string(def_config_key)+"\".\n",
+                 MEMORY_ERROR);
+      return MEMORY_ERROR;
+    }
+
+    if ( (cvcp->period != 0.0) || (cvcp->wrap_center != 0.0) ) {
+      if ( (cvcp->function_type != std::string("distance_z")) &&
+           (cvcp->function_type != std::string("dihedral")) &&
+           (cvcp->function_type != std::string("spin_angle")) ) {
+        cvm::error("Error: invalid use of period and/or "
+                   "wrapAround in a \""+
+                   std::string(def_config_key)+
+                   "\" component.\n"+
+                   "Period: "+cvm::to_str(cvcp->period) +
+                   " wrapAround: "+cvm::to_str(cvcp->wrap_center),
+                   INPUT_ERROR);
+        return INPUT_ERROR;
+      }
+    }
+
+    if ( ! cvcs.back()->name.size()) {
+      std::ostringstream s;
+      s << def_config_key << std::setfill('0') << std::setw(4) << ++def_count;
+      cvcs.back()->name = s.str();
+      /* pad cvc number for correct ordering when sorting by name */
+    }
+
+    cvcs.back()->setup();
+    if (cvm::debug()) {
+      cvm::log("Done initializing a \""+
+               std::string(def_config_key)+
+               "\" component"+
+               (cvm::debug() ?
+                ", named \""+cvcs.back()->name+"\""
+                : "")+".\n");
+    }
+    def_conf = "";
+    if (cvm::debug()) {
+      cvm::log("Parsed "+cvm::to_str(cvcs.size())+
+               " components at this time.\n");
+    }
+  }
+
+  return COLVARS_OK;
+}
+
+
+int colvar::init_components(std::string const &conf)
+{
+  int error_code = COLVARS_OK;
+
+  cvm::combine_errors(error_code,
+                      init_components_type<distance>(conf,
+                                                     "distance", "distance"));
+  cvm::combine_errors(error_code,
+                      init_components_type<distance_vec>(conf,
+                                                         "distance vector", "distanceVec"));
+  cvm::combine_errors(error_code,
+                      init_components_type<cartesian>(conf,
+                                                      "Cartesian coordinates", "cartesian"));
+  cvm::combine_errors(error_code,
+                      init_components_type<distance_dir>(conf,
+                                                         "distance vector "
+                                                         "direction", "distanceDir"));
+  cvm::combine_errors(error_code,
+                      init_components_type<distance_z>(conf,
+                                                       "distance projection "
+                                                       "on an axis", "distanceZ"));
+  cvm::combine_errors(error_code,
+                      init_components_type<distance_xy>(conf,
+                                                        "distance projection "
+                                                        "on a plane", "distanceXY"));
+  cvm::combine_errors(error_code,
+                      init_components_type<distance_inv>(conf,
+                                                         "average distance "
+                                                         "weighted by inverse power",
+                                                         "distanceInv"));
+  cvm::combine_errors(error_code,
+                      init_components_type<distance_pairs>(conf,
+                                                           "N1xN2-long vector "
+                                                           "of pairwise distances",
+                                                           "distancePairs"));
+
+  cvm::combine_errors(error_code,
+                      init_components_type<coordnum>(conf,
+                                                     "coordination "
+                                                     "number", "coordNum"));
+  cvm::combine_errors(error_code,
+                      init_components_type<selfcoordnum>(conf,
+                                                         "self-coordination "
+                                                         "number", "selfCoordNum"));
+
+  cvm::combine_errors(error_code,
+                      init_components_type<angle>(conf,
+                                                  "angle", "angle"));
+  cvm::combine_errors(error_code,
+                      init_components_type<dipole_angle>(conf,
+                                                         "dipole angle", "dipoleAngle"));
+  cvm::combine_errors(error_code,
+                      init_components_type<dihedral>(conf,
+                                                     "dihedral", "dihedral"));
+
+  cvm::combine_errors(error_code,
+                      init_components_type<h_bond>(conf,
+                                                   "hydrogen bond", "hBond"));
+
+  //    cvm::combine_errors(error_code, init_components_type<alpha_dihedrals>(conf,  "alpha helix", "alphaDihedrals"));
+  cvm::combine_errors(error_code,
+                      init_components_type<alpha_angles>(conf,
+                                                         "alpha helix", "alpha"));
+
+  cvm::combine_errors(error_code,
+                      init_components_type<dihedPC>(conf,
+                                                    "dihedral "
+                                                    "principal component", "dihedralPC"));
+
+  cvm::combine_errors(error_code,
+                      init_components_type<orientation>(conf,
+                                                        "orientation", "orientation"));
+  cvm::combine_errors(error_code,
+                      init_components_type<orientation_angle>(conf,
+                                                              "orientation "
+                                                              "angle", "orientationAngle"));
+  cvm::combine_errors(error_code,
+                      init_components_type<orientation_proj>(conf,
+                                                             "orientation "
+                                                             "projection", "orientationProj"));
+  cvm::combine_errors(error_code,
+                      init_components_type<tilt>(conf,
+                                                 "tilt", "tilt"));
+  cvm::combine_errors(error_code,
+                      init_components_type<spin_angle>(conf,
+                                                       "spin angle", "spinAngle"));
+
+  cvm::combine_errors(error_code,
+                      init_components_type<rmsd>(conf,
+                                                 "RMSD", "rmsd"));
+
+  //  cvm::combine_errors(error_code, init_components_type <logmsd>(conf,"logarithm of MSD", "logmsd"));
+
+  cvm::combine_errors(error_code,
+                      init_components_type<gyration>(conf,
+                                                     "radius of "
+                                                     "gyration", "gyration"));
+  cvm::combine_errors(error_code,
+                      init_components_type<inertia>(conf,
+                                                    "moment of "
+                                                    "inertia", "inertia"));
+  cvm::combine_errors(error_code,
+                      init_components_type<inertia_z>(conf,
+                                                      "moment of inertia around an axis",
+                                                      "inertiaZ"));
+  cvm::combine_errors(error_code,
+                      init_components_type<eigenvector>(conf,
+                                                        "eigenvector", "eigenvector"));
+
+  if (!cvcs.size() || (error_code != COLVARS_OK)) {
+    cvm::error("Error: no valid components were provided "
+               "for this collective variable.\n",
+               INPUT_ERROR);
+    return INPUT_ERROR;
+  }
+
+  n_active_cvcs = cvcs.size();
+
+  cvm::log("All components initialized.\n");
+
+  // Store list of children cvcs for dependency checking purposes
+  for (size_t i = 0; i < cvcs.size(); i++) {
+    add_child(cvcs[i]);
+  }
+
+  return COLVARS_OK;
 }
 
 
@@ -959,18 +1036,7 @@ int colvar::calc_cvc_sys_forces(int first_cvc, size_t num_cvcs)
   size_t const cvc_max_count = num_cvcs ? num_cvcs : num_active_cvcs();
   size_t i, cvc_count;
 
-  if (is_enabled(f_cv_system_force) && !is_enabled(f_cv_extended_Lagrangian)) {
-    // If extended Lagrangian is enabled, system force calculation is trivial
-    // and done together with integration of the extended coordinate.
-
-    if (is_enabled(f_cv_scripted)) {
-      // TODO see if this could reasonably be done in a generic way
-      // from generic inverse gradients
-      cvm::error("System force is not implemented for "
-                 "scripted colvars.", COLVARS_NOT_IMPLEMENTED);
-      return COLVARS_NOT_IMPLEMENTED;
-    }
-
+  if (is_enabled(f_cv_system_force_calc)) {
     if (cvm::debug())
       cvm::log("Calculating system force of colvar \""+this->name+"\".\n");
 
@@ -1001,9 +1067,7 @@ int colvar::calc_cvc_sys_forces(int first_cvc, size_t num_cvcs)
 
 int colvar::collect_cvc_sys_forces()
 {
-  if (is_enabled(f_cv_system_force) && !is_enabled(f_cv_extended_Lagrangian)) {
-    // If extended Lagrangian is enabled, system force calculation is trivial
-    // and done together with integration of the extended coordinate.
+  if (is_enabled(f_cv_system_force_calc)) {
     ft.reset();
 
     if (cvm::step_relative() > 0) {

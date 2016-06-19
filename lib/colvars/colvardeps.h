@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include "colvarmodule.h"
 
@@ -238,7 +238,7 @@ public:
     f_ag_active,
     f_ag_center,
     f_ag_rotate,
-    f_ag_ref_pos_group,
+    f_ag_fitting_group,
     /// Perform a standard minimum msd fit for given atoms
     /// ie. not using refpositionsgroup
 //     f_ag_min_msd_fit,

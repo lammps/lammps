@@ -50,7 +50,7 @@ local quantities; they cannot be global quantities.  Atom attributes
 are per-atom quantities, "computes"_compute.html and "fixes"_fix.html
 may generate any of the three kinds of quantities, and "atom-style
 variables"_variable.html generate per-atom quantities.  See the
-"variable"_variable command and its special functions which can
+"variable"_variable.html command and its special functions which can
 perform the same operations as the compute reduce command on global
 vectors.
 

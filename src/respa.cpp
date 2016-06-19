@@ -394,7 +394,17 @@ void Respa::setup()
     fprintf(screen,"Setting up r-RESPA run ...\n");
     fprintf(screen,"  Unit style    : %s\n", update->unit_style);
     fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(screen,"  OuterTime step: %g\n", update->dt);
+    fprintf(screen,"  Time steps    :");
+    for (int ilevel=0; ilevel < nlevels; ++ilevel)
+      fprintf(screen," %d:%g",ilevel+1, step[ilevel]);
+    fprintf(screen,"\n  r-RESPA fixes :");
+    for (int l=0; l < modify->n_post_force_respa; ++l) {
+      Fix *f = modify->fix[modify->list_post_force_respa[l]];
+      if (f->respa_level >= 0)
+        fprintf(screen," %d:%s[%s]",
+                MIN(f->respa_level+1,nlevels),f->style,f->id);
+    }
+    fprintf(screen,"\n");
     timer->print_timeout(screen);
   }
 

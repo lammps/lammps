@@ -43,6 +43,8 @@ FixAveForce::FixAveForce(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 3;
   global_freq = 1;
   extvector = 1;
+  respa_level_support = 1;
+  ilevel_respa = nlevels_respa = 0;
 
   xstr = ystr = zstr = NULL;
 
@@ -161,8 +163,11 @@ void FixAveForce::init()
   if (xstyle == EQUAL || ystyle == EQUAL || zstyle == EQUAL) varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (strstr(update->integrate_style,"respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
+    else ilevel_respa = nlevels_respa-1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,10 +260,10 @@ void FixAveForce::post_force(int vflag)
 
 void FixAveForce::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  // ave + extra force on outermost level
-  // just ave on inner levels
+  // ave + extra force on selected RESPA level
+  // just ave on all other levels
 
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
   else {
     Region *region = NULL;
     if (iregion >= 0) {

@@ -124,8 +124,8 @@ void NeighborKokkos::full_bin_kokkos(NeighListKokkos<DeviceType> *list)
     const int factor = 1;
 #endif
 
-if (GHOST && !HALF_NEIGH) {
-  NeighborKokkosBuildFunctorFullGhost<DeviceType> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+if (GHOST) {
+  NeighborKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
   Kokkos::parallel_for(nall, f);
 } else {
   if(newton_pair) {
@@ -557,9 +557,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
 /* ---------------------------------------------------------------------- */
 
-template<class Device>
+template<class Device>  template<int HalfNeigh>
 void NeighborKokkosExecute<Device>::
-   build_Item_Full_Ghost(const int &i) const
+   build_Item_Ghost(const int &i) const
 {
   /* if necessary, goto next page and add pages */
   int n = 0;
@@ -592,7 +592,9 @@ void NeighborKokkosExecute<Device>::
       const int jbin = ibin + stencil[k];
       for(int m = 0; m < c_bincount(jbin); m++) {
         const int j = c_bins(jbin,m);
-        if (i == j) continue;
+
+        if (HalfNeigh && j <= i) continue;
+        else if (j == i) continue;
 
         const int jtype = type[j];
         if(exclude && exclusion(i,j,itype,jtype)) continue;
@@ -646,7 +648,9 @@ void NeighborKokkosExecute<Device>::
       const int jbin = ibin + stencil[k];
       for(int m = 0; m < c_bincount(jbin); m++) {
         const int j = c_bins(jbin,m);
-        if (i == j) continue;
+
+        if (HalfNeigh && j <= i) continue;
+        else if (j == i) continue;
 
         const int jtype = type[j];
         if(exclude && exclusion(i,j,itype,jtype)) continue;

@@ -35,7 +35,7 @@ using :doc:`fix setforce <fix_setforce>`.
 ----------
 
 
-Styles with a uffix are functionally the same as the corresponding
+Styles with a suffix are functionally the same as the corresponding
 style without the suffix.  They have been optimized to run faster,
 depending on your available hardware, as discussed in
 :doc:`Section_accelerate <Section_accelerate>` of the manual.  The

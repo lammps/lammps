@@ -94,8 +94,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // USER-DPD
 
   uCond = uMech = uChem = uCG = uCGnew = NULL;
-  duCond = duMech = duChem = NULL;
+  duChem = NULL;
   dpdTheta = NULL;
+  ssaAIR = NULL;
 
   // USER-SMD
 
@@ -284,9 +285,8 @@ Atom::~Atom()
   memory->destroy(uChem);
   memory->destroy(uCG);
   memory->destroy(uCGnew);
-  memory->destroy(duCond);
-  memory->destroy(duMech);
   memory->destroy(duChem);
+  memory->destroy(ssaAIR);
 
   memory->destroy(nspecial);
   memory->destroy(special);
@@ -1481,7 +1481,8 @@ void Atom::check_mass()
 {
   if (mass == NULL) return;
   for (int itype = 1; itype <= ntypes; itype++)
-    if (mass_setflag[itype] == 0) error->all(FLERR,"All masses are not set");
+    if (mass_setflag[itype] == 0) 
+      error->all(FLERR,"Not all per-type masses are set");
 }
 
 /* ----------------------------------------------------------------------

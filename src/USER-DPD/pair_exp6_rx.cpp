@@ -43,12 +43,17 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   mol2param = NULL;
+  site1 = site2 = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairExp6rx::~PairExp6rx()
 {
+  for (int i=0; i < nparams; ++i) {
+    delete[] params[i].name;
+    delete[] params[i].potential;
+  }
   memory->destroy(params);
   memory->destroy(mol2param);
 
@@ -58,6 +63,8 @@ PairExp6rx::~PairExp6rx()
 
     memory->destroy(cut);
   }
+  delete[] site1;
+  delete[] site2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,8 +113,8 @@ void PairExp6rx::compute(int eflag, int vflag)
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  const double nRep = double(12.0);
-  const double shift = double(1.05);
+  const double nRep = 12.0;
+  const double shift = 1.05;
   double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
   inum = list->inum;
@@ -125,7 +132,7 @@ void PairExp6rx::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     getParamsEXP6(i,epsilon1_i,alpha1_i,rm1_i,fraction1_i,epsilon2_i,alpha2_i,rm2_i,fraction2_i,epsilonOld1_i,alphaOld1_i,rmOld1_i,fractionOld1_i,epsilonOld2_i,alphaOld2_i,rmOld2_i,fractionOld2_i);
 
     for (jj = 0; jj < jnum; jj++) {
@@ -141,15 +148,15 @@ void PairExp6rx::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = double(1.0)/rsq;
+        r2inv = 1.0/rsq;
         r6inv = r2inv*r2inv*r2inv;
 
         r = sqrt(rsq);
 
-        rCut2inv = double(1.0)/cutsq[itype][jtype];
+        rCut2inv = 1.0/cutsq[itype][jtype];
         rCut6inv = rCut2inv*rCut2inv*rCut2inv;
         rCut = sqrt(cutsq[itype][jtype]);
-        rCutInv = double(1.0)/rCut;
+        rCutInv = 1.0/rCut;
 
         //
         // A. Compute the exp-6 potential
@@ -173,8 +180,8 @@ void PairExp6rx::compute(int eflag, int vflag)
         rm21_ij = 0.5*(rm2_i + rm1_j);
         epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
 
-        if(rmOld12_ij!=double(0.0) && rmOld21_ij!=double(0.0)){
-          if(alphaOld21_ij == double(6.0) || alphaOld12_ij == double(6.0)) 
+        if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
+          if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
             error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
           // A3.  Compute some convenient quantities for evaluating the force
@@ -192,7 +199,7 @@ void PairExp6rx::compute(int eflag, int vflag)
           rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
           if(r < rin1){
             rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            rin6inv = double(1.0)/rin6;
+            rin6inv = 1.0/rin6;
 
             rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
 
@@ -200,14 +207,14 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
 
             uin1rep = aRep/pow(rin1,nRep);
 
             evdwlOldEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
 
           } else {
-            evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut); 
+            evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
           // A3.  Compute some convenient quantities for evaluating the force
@@ -227,7 +234,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 
           if(r < rin1){
             rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            rin6inv = double(1.0)/rin6;
+            rin6inv = 1.0/rin6;
 
             rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
 
@@ -235,14 +242,14 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
 
             uin1rep = aRep/pow(rin1,nRep);
 
             evdwlOldEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
 
           } else {
-            evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut); 
+            evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
           if (strcmp(site1,site2) == 0)
@@ -252,12 +259,12 @@ void PairExp6rx::compute(int eflag, int vflag)
 
           evdwlOld *= factor_lj;
 
-          uCG[i] += double(0.5)*evdwlOld;
-          uCG[j] += double(0.5)*evdwlOld;
+          uCG[i] += 0.5*evdwlOld;
+          uCG[j] += 0.5*evdwlOld;
         }
 
-        if(rm12_ij!=double(0.0) && rm21_ij!=double(0.0)){
-          if(alpha21_ij == double(6.0) || alpha12_ij == double(6.0)) 
+        if(rm12_ij!=0.0 && rm21_ij!=0.0){
+          if(alpha21_ij == 6.0 || alpha12_ij == 6.0)
             error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
           // A3.  Compute some convenient quantities for evaluating the force
@@ -276,7 +283,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 
           if(r < rin1){
             rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            rin6inv = double(1.0)/rin6;
+            rin6inv = 1.0/rin6;
 
             rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
 
@@ -284,13 +291,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
 
             uin1rep = aRep/pow(rin1,nRep);
 
             evdwlEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
 
-            forceExp6 = double(-1.0)*nRep*aRep/pow(r,nRep);
+            forceExp6 = -1.0*nRep*aRep/pow(r,nRep);
             fpairEXP6_12 = factor_lj*forceExp6*r2inv;
 
           } else {
@@ -316,7 +323,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 
           if(r < rin1){
             rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            rin6inv = double(1.0)/rin6;
+            rin6inv = 1.0/rin6;
 
             rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
 
@@ -324,13 +331,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = double(-1.0)*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
 
             uin1rep = aRep/pow(rin1,nRep);
 
             evdwlEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
 
-            forceExp6 = double(-1.0)*nRep*aRep/pow(r,nRep);
+            forceExp6 = -1.0*nRep*aRep/pow(r,nRep);
             fpairEXP6_21 = factor_lj*forceExp6*r2inv;
 
           } else {
@@ -344,7 +351,7 @@ void PairExp6rx::compute(int eflag, int vflag)
           //
           // Apply Mixing Rule to get the overall force for the CG pair
           //
-          if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12; 
+          if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12;
           else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairEXP6_21;
 
           f[i][0] += delx*fpair;
@@ -362,8 +369,8 @@ void PairExp6rx::compute(int eflag, int vflag)
             evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12 + sqrt(fraction2_i*fraction1_j)*evdwlEXP6_21;
           evdwl *= factor_lj;
 
-          uCGnew[i] += double(0.5)*evdwl;
-          uCGnew[j] += double(0.5)*evdwl;
+          uCGnew[i] += 0.5*evdwl;
+          uCGnew[j] += 0.5*evdwl;
           evdwl = evdwlOld;
           if (evflag) ev_tally(i,j,nlocal,newton_pair,
                                evdwl,0.0,fpair,delx,dely,delz);
@@ -448,11 +455,11 @@ void PairExp6rx::coeff(int narg, char **arg)
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
- 
+
   n = strlen(arg[4]) + 1;
   site2 = new char[n];
   strcpy(site2,arg[4]);
-  
+
   for (ispecies = 0; ispecies < nspecies; ispecies++){
     if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
   }
@@ -717,22 +724,22 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   double nTotal, nTotal_old;
   double xMolei, xMolej, xMolei_old, xMolej_old;
 
-  rm3 = double(0.0);
-  epsilon = double(0.0);
-  alpha = double(0.0);
-  epsilon_old = double(0.0);
-  rm3_old = double(0.0);
-  alpha_old = double(0.0);
-  fractionOFA = double(0.0);
-  fractionOFA_old = double(0.0);
-  nTotalOFA = double(0.0);
-  nTotalOFA_old = double(0.0);
-  nTotal = double(0.0);
-  nTotal_old = double(0.0);
+  rm3 = 0.0;
+  epsilon = 0.0;
+  alpha = 0.0;
+  epsilon_old = 0.0;
+  rm3_old = 0.0;
+  alpha_old = 0.0;
+  fractionOFA = 0.0;
+  fractionOFA_old = 0.0;
+  nTotalOFA = 0.0;
+  nTotalOFA_old = 0.0;
+  nTotal = 0.0;
+  nTotal_old = 0.0;
 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
-    nTotal += atom->dvector[ispecies][id]; 
+    nTotal += atom->dvector[ispecies][id];
     nTotal_old += atom->dvector[ispecies+nspecies][id];
 
     iparam = mol2param[ispecies];
@@ -743,8 +750,8 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       nTotalOFA += atom->dvector[ispecies][id];
     }
   }
-  if(nTotal < 1e-8 || nTotal_old < 1e-8) 
-    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8."); 
+  if(nTotal < 1e-8 || nTotal_old < 1e-8)
+    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
 
   // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
   fractionOFA_old = nTotalOFA_old / nTotal_old;
@@ -753,7 +760,7 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     iparam = mol2param[ispecies];
     if (iparam < 0 || strcmp(params[iparam].potential,"exp6") != 0) continue;
-    
+
     // If Site1 matches a pure species, then grab the parameters
     if (strcmp(site1,params[iparam].name) == 0){
       rm1_old = params[iparam].rm;
@@ -766,7 +773,7 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       // Compute the mole fraction of Site1
       fraction1_old = atom->dvector[ispecies+nspecies][id]/nTotal_old;
       fraction1 = atom->dvector[ispecies][id]/nTotal;
-    } 
+    }
 
     // If Site2 matches a pure species, then grab the parameters
     if (strcmp(site2,params[iparam].name) == 0){
@@ -780,7 +787,7 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       // Compute the mole fraction of Site2
       fraction2_old = atom->dvector[ispecies+nspecies][id]/nTotal_old;
       fraction2 = atom->dvector[ispecies][id]/nTotal;
-    } 
+    }
 
     // If Site1 or Site2 matches is a fluid, then compute the paramters
     if (strcmp(site1,"1fluid") == 0 || strcmp(site2,"1fluid") == 0) {
@@ -805,17 +812,17 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
         rm3ij = rmij*rmij*rmij;
         epsilonij = sqrt(epsiloni*epsilonj);
         alphaij = sqrt(alphai*alphaj);
-    
-        if(fractionOFA_old > double(0.0)){
+
+        if(fractionOFA_old > 0.0){
           rm3_old += xMolei_old*xMolej_old*rm3ij;
           epsilon_old += xMolei_old*xMolej_old*rm3ij*epsilonij;
           alpha_old += xMolei_old*xMolej_old*rm3ij*epsilonij*alphaij;
         }
-        if(fractionOFA > double(0.0)){
+        if(fractionOFA > 0.0){
           rm3 += xMolei*xMolej*rm3ij;
           epsilon += xMolei*xMolej*rm3ij*epsilonij;
           alpha += xMolei*xMolej*rm3ij*epsilonij*alphaij;
-        }  
+        }
       }
     }
   }
@@ -823,9 +830,9 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   if(strcmp(site1,"1fluid") == 0){
     rm1 = cbrt(rm3);
     if(rm1 < 1e-16) {
-      rm1 = double(0.0);
-      epsilon1 = double(0.0);
-      alpha1 = double(0.0);
+      rm1 = 0.0;
+      epsilon1 = 0.0;
+      alpha1 = 0.0;
     } else {
       epsilon1 = epsilon / rm3;
       alpha1 = alpha / epsilon1 / rm3;
@@ -835,9 +842,9 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
 
     rm1_old = cbrt(rm3_old);
     if(rm1_old < 1e-16) {
-      rm1_old = double(0.0);
-      epsilon1_old = double(0.0);
-      alpha1_old = double(0.0);
+      rm1_old = 0.0;
+      epsilon1_old = 0.0;
+      alpha1_old = 0.0;
     } else {
       epsilon1_old = epsilon_old / rm3_old;
       alpha1_old = alpha_old / epsilon1_old / rm3_old;
@@ -875,14 +882,14 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
       rm1 *= pow(nTotalOFA,fuchslinR);
       rm1_old *= pow(nTotalOFA_old,fuchslinR);
     }
-  } 
+  }
 
   if(strcmp(site2,"1fluid") == 0){
     rm2 = cbrt(rm3);
     if(rm2 < 1e-16) {
-      rm2 = double(0.0);
-      epsilon2 = double(0.0);
-      alpha2 = double(0.0);
+      rm2 = 0.0;
+      epsilon2 = 0.0;
+      alpha2 = 0.0;
     } else {
       epsilon2 = epsilon / rm3;
       alpha2 = alpha / epsilon2 / rm3;
@@ -891,9 +898,9 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
 
     rm2_old = cbrt(rm3_old);
     if(rm2_old < 1e-16) {
-      rm2_old = double(0.0);
-      epsilon2_old = double(0.0);
-      alpha2_old = double(0.0);
+      rm2_old = 0.0;
+      epsilon2_old = 0.0;
+      alpha2_old = 0.0;
     } else {
       epsilon2_old = epsilon_old / rm3_old;
       alpha2_old = alpha_old / epsilon2_old / rm3_old;
@@ -940,11 +947,11 @@ double PairExp6rx::func_rin(double &alpha)
 {
   double function;
 
-  const double a = double(3.7682065);
-  const double b = double(-1.4308614);
-  
+  const double a = 3.7682065;
+  const double b = -1.4308614;
+
   function = a+b*sqrt(alpha);
-  function = expValue(function); 
+  function = expValue(function);
 
   return function;
 }
@@ -954,8 +961,8 @@ double PairExp6rx::func_rin(double &alpha)
 double PairExp6rx::expValue(double value)
 {
   double returnValue;
-  if(value < DBL_MIN_EXP) returnValue = double(0.0);
+  if(value < DBL_MIN_EXP) returnValue = 0.0;
   else returnValue = exp(value);
-  
+
   return returnValue;
 }

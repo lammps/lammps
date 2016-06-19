@@ -45,7 +45,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default is encode special bond flags
   // default is no auxiliary floating point values
   // default is no neighbors of ghosts
-  // default is no CUDA neighbor list build
   // default is no multi-threaded neighbor list build
   // default is no Kokkos neighbor list build
   // default is no Shardlow Splitting Algorithm (SSA) neighbor list build
@@ -55,7 +54,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   special = 1;
   dnum = 0;
   ghost = 0;
-  cudable = 0;
   omp = 0;
   intel = 0;
   kokkos_host = kokkos_device = 0;
@@ -132,7 +130,6 @@ int NeighRequest::identical(NeighRequest *other)
   if (special != other->special) same = 0;
   if (dnum != other->dnum) same = 0;
   if (ghost != other->ghost) same = 0;
-  if (cudable != other->cudable) same = 0;
   if (omp != other->omp) same = 0;
   if (intel != other->intel) same = 0;
   if (ssa != other->ssa) same = 0;
@@ -163,7 +160,6 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (half_from_full != other->half_from_full) same = 0;
   if (newton != other->newton) same = 0;
   if (ghost != other->ghost) same = 0;
-  if (cudable != other->cudable) same = 0;
   if (omp != other->omp) same = 0;
   if (intel != other->intel) same = 0;
   if (ssa != other->ssa) same = 0;
@@ -215,7 +211,6 @@ void NeighRequest::copy_request(NeighRequest *other)
   newton = other->newton;
   dnum = other->dnum;
   ghost = other->ghost;
-  cudable = other->cudable;
   omp = other->omp;
   intel = other->intel;
   ssa = other->ssa;

@@ -78,24 +78,33 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   restart_peratom = 1;
   restart_global = 1;
-  seed = atoi(arg[3]);
-  fpr_2 = fopen(arg[4],"r");
-  nxnodes = atoi(arg[5]);
-  nynodes = atoi(arg[6]);
-  nznodes = atoi(arg[7]);
-  fpr = fopen(arg[8],"r");
-  if (fpr == NULL) {
+
+  seed = force->inumeric(FLERR,arg[3]);
+  if (seed <= 0)
+    error->all(FLERR,"Invalid random number seed in fix ttm/mod command");
+
+  FILE *fpr_2 = force->open_potential(arg[4]);
+  if (fpr_2 == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[7]);
-    error->one(FLERR,str);
+    sprintf(str,"Cannot open file %s",arg[4]);
+    error->all(FLERR,str);
   }
+
+  nxnodes = force->inumeric(FLERR,arg[5]);
+  nynodes = force->inumeric(FLERR,arg[6]);
+  nznodes = force->inumeric(FLERR,arg[7]);
+  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
+    error->all(FLERR,"Fix ttm/mod number of nodes must be > 0");
+  
+  FILE *fpr = force->open_potential(arg[8]);
   if (fpr == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",arg[8]);
-    error->one(FLERR,str);
+    error->all(FLERR,str);
   }
-  nfileevery = atoi(arg[9]);
-  if (nfileevery) {
+
+  nfileevery = force->inumeric(FLERR,arg[9]);
+  if (nfileevery > 0) {
     if (narg != 11) error->all(FLERR,"Illegal fix ttm/mod command");
     MPI_Comm_rank(world,&me);
     if (me == 0) {
@@ -226,19 +235,15 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   mult_factor = intensity;
   duration = 0.0;
   v_0_sq = v_0*v_0;
-  // error checks
-  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
-    error->all(FLERR,"Fix ttm number of nodes must be > 0");
   surface_double = double(t_surface_l)*(domain->xprd/nxnodes);
   if ((C_limit+esheat_0) < 0.0)
-    error->all(FLERR,"Fix ttm electronic_specific_heat must be >= 0.0");
+    error->all(FLERR,"Fix ttm/mod electronic_specific_heat must be >= 0.0");
   if (electronic_density <= 0.0)
-    error->all(FLERR,"Fix ttm electronic_density must be > 0.0");
-  if (gamma_p < 0.0) error->all(FLERR,"Fix ttm gamma_p must be >= 0.0");
-  if (gamma_s < 0.0) error->all(FLERR,"Fix ttm gamma_s must be >= 0.0");
-  if (v_0 < 0.0) error->all(FLERR,"Fix ttm v_0 must be >= 0.0");
-  if (ionic_density <= 0.0) error->all(FLERR,"Fix ttm ionic_density must be > 0.0");
-  if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
+    error->all(FLERR,"Fix ttm/mod electronic_density must be > 0.0");
+  if (gamma_p < 0.0) error->all(FLERR,"Fix ttm/mod gamma_p must be >= 0.0");
+  if (gamma_s < 0.0) error->all(FLERR,"Fix ttm/mod gamma_s must be >= 0.0");
+  if (v_0 < 0.0) error->all(FLERR,"Fix ttm/mod v_0 must be >= 0.0");
+  if (ionic_density <= 0.0) error->all(FLERR,"Fix ttm/mod ionic_density must be > 0.0");
   if (surface_l < 0) error->all(FLERR,"Surface coordinates must be >= 0");
   if (surface_l >= surface_r) error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");
   // initialize Marsaglia RNG with processor-unique seed
@@ -274,8 +279,10 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
   // set initial electron temperatures from user input file
-  if (me == 0) read_initial_electron_temperatures();
+  if (me == 0) read_initial_electron_temperatures(fpr);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
+  fclose(fpr);
+  fclose(fpr_2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -317,11 +324,11 @@ int FixTTMMod::setmask()
 void FixTTMMod::init()
 {
   if (domain->dimension == 2)
-    error->all(FLERR,"Cannot use fix ttm with 2d simulation");
+    error->all(FLERR,"Cannot use fix ttm/mod with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm");
+    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm/mod");
   if (domain->triclinic)
-    error->all(FLERR,"Cannot use fix ttm with triclinic box");
+    error->all(FLERR,"Cannot use fix ttm/mod with triclinic box");
   // set force prefactors
   for (int i = 1; i <= atom->ntypes; i++) {
     gfactor1[i] = - gamma_p / force->ftm2v;
@@ -488,7 +495,7 @@ void FixTTMMod::reset_dt()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixTTMMod::read_initial_electron_temperatures()
+void FixTTMMod::read_initial_electron_temperatures(FILE *fpr)
 {
   char line[MAXLINE];
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
@@ -501,7 +508,7 @@ void FixTTMMod::read_initial_electron_temperatures()
   while (1) {
     if (fgets(line,MAXLINE,fpr) == NULL) break;
     sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm electron temperatures must be >= 0.0");
+    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm/mod electron temperatures must be >= 0.0");
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }
@@ -509,9 +516,7 @@ void FixTTMMod::read_initial_electron_temperatures()
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         if (T_initial_set[ixnode][iynode][iznode] == 0)
-          error->one(FLERR,"Initial temperatures not all set in fix ttm");
-  // close file
-  fclose(fpr);
+          error->one(FLERR,"Initial temperatures not all set in fix ttm/mod");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -634,7 +639,7 @@ void FixTTMMod::end_of_step()
       num_inner_timesteps = static_cast<unsigned int>(update->dt/inner_dt) + 1;
       inner_dt = update->dt/double(num_inner_timesteps);
       if (num_inner_timesteps > 1000000)
-        error->warning(FLERR,"Too many inner timesteps in fix ttm",0);
+        error->warning(FLERR,"Too many inner timesteps in fix ttm/mod",0);
       for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
            ith_inner_timestep++) {
         for (int ixnode = 0; ixnode < nxnodes; ixnode++)

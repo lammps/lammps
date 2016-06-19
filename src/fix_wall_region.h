@@ -43,7 +43,7 @@ class FixWallRegion : public Fix {
   double epsilon,sigma,cutoff;
   int eflag;
   double ewall[4],ewall_all[4];
-  int nlevels_respa;
+  int ilevel_respa;
   char *idregion;
 
   double coeff1,coeff2,coeff3,coeff4,offset;

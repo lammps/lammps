@@ -94,8 +94,6 @@ class Compute : protected Pointers {
 
   int copymode;
 
-  int cudable;              // 1 if compute is CUDA-enabled
-
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
   void modify_params(int, char **);

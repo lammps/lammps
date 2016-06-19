@@ -10,7 +10,7 @@ Syntax
 
    timer args
 
-* *args* = one or more of *off* or *loop* or *normal* or *full* or *sync* or *nosync*
+* *args* = one or more of *off* or *loop* or *normal* or *full* or *sync* or *nosync* or *timeout* or *every*
 .. parsed-literal::
 
      *off* = do not collect or print any timing information
@@ -19,6 +19,8 @@ Syntax
      *full* = like *normal* but also include CPU and thread utilzation 
      *sync* = explicitly synchronize MPI tasks between sections
      *nosync* = do not synchronize MPI tasks between sections (default)
+     *timeout* elapse = set walltime limit to *elapse*
+     *every* Ncheck = perform timeout check every *Ncheck* steps
 
 Examples
 """"""""
@@ -26,19 +28,19 @@ Examples
 .. parsed-literal::
 
    timer full sync
+   timer timeout 2:00:00 every 100
    timer loop
 
 Description
 """""""""""
 
-Select the level of detail LAMMPS performs its CPU timings.
+Select the level of detail at which LAMMPS performs its CPU timings.
 
 During a simulation run LAMMPS collects information about how much
 time is spent in different sections of the code and thus can provide
-valuable information for determining performance and load imbalance
-problems.  This can be done at different levels of detail and
-accuracy.  For more information about the timing output, see this
-:ref:`discussion of screen output <start_8>`.
+information for determining performance and load imbalance problems.
+This can be done at different levels of detail and accuracy.  For more
+information about the timing output, see this :ref:`discussion of screen output <start_8>`.
 
 The *off* setting will turn all time measurements off. The *loop*
 setting will only measure the total time for a run and not collect any
@@ -54,8 +56,29 @@ call which meaures load imbalance more accuractly, though it can also
 slow down the simulation.  Using the *nosync* setting (which is the
 default) turns off this synchronization.
 
-Multiple keywords can be specified.  For keywords that are mutually
-exclusive, the last one specified takes effect.
+With the *timeout* keyword a walltime limit can be imposed that
+affects the :doc:`run <run>` and :doc:`minimize <minimize>` commands.  If
+the time limit is reached, the run or energy minimization will exit on
+the next step or iteration that is a multiple of the *Ncheck* value
+specified with the *every* keyword.  All subsequent run or minimize
+commands in the input script will be skipped until the timeout is
+reset or turned off by a new *timer* command.  The timeout *elapse*
+value can be specified as *off* or *unlimited* to impose no timeout
+condition (which is the default).  The *elapse* setting can be
+specified as a single number for seconds, two numbers separated by a
+colon (MM:SS) for minutes and seconds, or as three numbers separated
+by colons for hours, minutes, and seconds.
+
+The *every* keyword sets how frequently during a run or energy
+minimization the wall clock will be checked.  This check count applies
+to the outer iterations or time steps during minimizations or :doc:`r-RESPA runs <run_style>`, respectively.  Checking for timeout too often,
+can slow a calculation down.  Checking too infrequently can make the
+timeout measurement less accurate, with the run being stopped later
+than desired.
+
+Multiple keywords can be specified with the *timer* command.  For
+keywords that are mutually exclusive, the last one specified takes
+effect.
 
 .. note::
 
@@ -80,7 +103,11 @@ Related commands
 Default
 """""""
 
-timer normal nosync
+.. parsed-literal::
+
+   timer normal nosync
+   timer timeout off
+   timer every 10
 
 
 .. _lws: http://lammps.sandia.gov

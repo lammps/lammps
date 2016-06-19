@@ -76,10 +76,6 @@ class NeighRequest : protected Pointers {
 
   int ghost;
 
-  // 1 if neighbor list build will be done on GPU
-
-  int cudable;
-
   // 1 if using multi-threaded neighbor list build for USER-OMP or USER-INTEL
 
   int omp;

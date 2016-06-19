@@ -156,6 +156,15 @@ void ImproperHybrid::allocate()
   for (int m = 0; m < nstyles; m++) improperlist[m] = NULL;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void ImproperHybrid::init_style()
+{
+    for (int i = 0; i < nstyles; i++)
+      styles[i]->init_style();
+}
+
+
 /* ----------------------------------------------------------------------
    create one improper style for each arg in list
 ------------------------------------------------------------------------- */

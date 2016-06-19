@@ -239,7 +239,7 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
 
   if (rsq >= radsum*radsum) {
     fforce = 0.0;
-    svector[0] = svector[1] = svector[2] = svector[3] = 0.0;
+    for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
     return 0.0;
   }
 
@@ -318,14 +318,25 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
   if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
   else ft = 0.0;
 
-  // set all forces and return no energy
+  // set force and return no energy
 
   fforce = ccel;
+
+
+  // set single_extra quantities
+
   svector[0] = -ft*vtr1;
   svector[1] = -ft*vtr2;
   svector[2] = -ft*vtr3;
   svector[3] = sqrt(svector[0]*svector[0] +
                     svector[1]*svector[1] +
                     svector[2]*svector[2]);
+  svector[4] = vn1;
+  svector[5] = vn2;
+  svector[6] = vn3;
+  svector[7] = vt1;
+  svector[8] = vt2;
+  svector[9] = vt3;
+
   return 0.0;
 }

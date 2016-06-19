@@ -108,5 +108,5 @@ void FixGravityOMP::post_force(int vflag)
 
 void FixGravityOMP::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }

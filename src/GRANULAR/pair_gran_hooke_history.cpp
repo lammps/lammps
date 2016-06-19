@@ -46,8 +46,8 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   history = 1;
   fix_history = NULL;
 
-  single_extra = 4;
-  svector = new double[4];
+  single_extra = 10;
+  svector = new double[10];
 
   neighprev = 0;
 
@@ -131,6 +131,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -295,7 +296,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         torque[i][1] -= radi*tor2;
         torque[i][2] -= radi*tor3;
 
-        if (j < nlocal) {
+        if (newton_pair || j < nlocal) {
           f[j][0] -= fx;
           f[j][1] -= fy;
           f[j][2] -= fz;
@@ -309,6 +310,8 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
       }
     }
   }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -413,12 +416,7 @@ void PairGranHookeHistory::init_style()
   dt = update->dt;
 
   // if shear history is stored:
-  // check if newton flag is valid
   // if first init, create Fix needed for storing shear history
-
-  if (history && force->newton_pair == 1)
-    error->all(FLERR,
-               "Pair granular with shear history requires newton pair off");
 
   if (history && fix_history == NULL) {
     char **fixarg = new char*[3];
@@ -624,7 +622,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
 
   if (rsq >= radsum*radsum) {
     fforce = 0.0;
-    svector[0] = svector[1] = svector[2] = svector[3] = 0.0;
+    for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
     return 0.0;
   }
 
@@ -741,13 +739,23 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
     } else fs1 = fs2 = fs3 = fs = 0.0;
   }
 
-  // set all forces and return no energy
+  // set force and return no energy
 
   fforce = ccel;
+
+  // set single_extra quantities
+
   svector[0] = fs1;
   svector[1] = fs2;
   svector[2] = fs3;
   svector[3] = fs;
+  svector[4] = vn1;
+  svector[5] = vn2;
+  svector[6] = vn3;
+  svector[7] = vt1;
+  svector[8] = vt2;
+  svector[9] = vt3;
+
   return 0.0;
 }
 

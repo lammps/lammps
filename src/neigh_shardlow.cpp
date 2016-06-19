@@ -31,93 +31,6 @@
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
-   convert atom coords into the ssa active interaction region number
-------------------------------------------------------------------------- */
-
-int Neighbor::coord2ssa_airnum(double *x)
-{
-  int ix, iy, iz;
-
-  ix = iy = iz = 0;
-  if (x[2] < domain->sublo[2]) iz = -1;
-  if (x[2] > domain->subhi[2]) iz = 1;
-  if (x[1] < domain->sublo[1]) iy = -1;
-  if (x[1] > domain->subhi[1]) iy = 1;
-  if (x[0] < domain->sublo[0]) ix = -1;
-  if (x[0] > domain->subhi[0]) ix = 1;
-
-  if(iz < 0) return 0;
-
-  if(iz == 0){
-    if( iy<0 ) return 0; // bottom left/middle/right
-    if( (iy==0) && (ix<0)  ) return 0; // left atoms
-    if( (iy==0) && (ix==0) ) return 1; // Locally owned atoms
-    if( (iy==0) && (ix>0)  ) return 3; // Right atoms
-    if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
-    if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
-  } else if(iz > 0) {
-    if((ix==0) && (iy==0)) return 5; // Back atoms
-    if((ix==0) && (iy!=0)) return 6; // Top-back and bottom-back atoms
-    if((ix!=0) && (iy==0)) return 7; // Left-back and right-back atoms
-    if((ix!=0) && (iy!=0)) return 8; // Back corner atoms
-  }
-
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
- *    assign owned and ghost atoms their ssa active interaction region numbers
- *    Called in the pre_neighbor and setup_pre_neighbor fix stages
-------------------------------------------------------------------------- */
-
-void Neighbor::assign_ssa_airnums()
-{
-  int i,ibin;
-  double **x = atom->x;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-
-  if (nall > len_ssa_airnum) {
-    len_ssa_airnum = nall;
-    memory->destroy(ssa_airnum);
-    memory->create(ssa_airnum,len_ssa_airnum,"ssa_airnum");
-  }
-
-  // bin in reverse order so linked list will be in forward order
-
-  if (includegroup) {
-    int bitmask = group->bitmask[includegroup];
-    for (i = nall-1; i >= nlocal; i--) {
-      if (mask[i] & bitmask) {
-        ibin = coord2ssa_airnum(x[i]);
-      } else {
-        ibin = 0;
-      }
-      ssa_airnum[i] = ibin;
-    }
-    // All the local excluded atoms are in the zero airnum
-    ibin = 0;
-    for (i = atom->nlocal-1; i >= atom->nfirst; i--) {
-      ssa_airnum[i] = ibin;
-    }
-  } else {
-    for (i = nall-1; i >= nlocal; i--) {
-      ibin = coord2ssa_airnum(x[i]);
-      ssa_airnum[i] = ibin;
-    }
-  }
-
-  // All the local included atoms are in the same airnum (#1)
-  if (i >= 0) {
-    ibin = coord2ssa_airnum(x[i]);
-    do {
-      ssa_airnum[i] = ibin;
-    } while (--i >= 0);
-  }
-}
-
-/* ----------------------------------------------------------------------
    routines to create a stencil = list of bin offsets
    stencil = bins whose closest corner to central bin is within cutoff
    sx,sy,sz = bin bounds = furthest the stencil could possibly extend
@@ -207,6 +120,7 @@ void Neighbor::half_from_full_newton_ssa(NeighList *list)
   int *neighptr,*jlist;
 
   int nlocal = atom->nlocal;
+  int *ssaAIR = atom->ssaAIR;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -240,7 +154,7 @@ void Neighbor::half_from_full_newton_ssa(NeighList *list)
       if (j < nlocal) {
         if (i > j) continue;
       } else {
-        if (ssa_airnum[j] <= 0) continue;
+        if (ssaAIR[j] <= 0) continue;
       }
       neighptr[n++] = joriginal;
     }
@@ -279,6 +193,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+  int *ssaAIR = atom->ssaAIR;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
@@ -297,55 +212,57 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
 
   int inum = 0;
 
+  if (binatomflag) { /* only false in Neighbor::build_one */
 /* ----------------------------------------------------------------------
    bin owned and ghost atoms for use by Shardlow Splitting Algorithm
     exclude ghost atoms that are not in the Active Interaction Regions (AIR)
 ------------------------------------------------------------------------- */
 
-  if (mbins > maxhead_ssa) {
-    maxhead_ssa = mbins;
-    memory->destroy(gbinhead_ssa);
-    memory->destroy(binhead_ssa);
-    memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
-    memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
-  }
-  for (i = 0; i < mbins; i++) {
-    gbinhead_ssa[i] = -1;
-    binhead_ssa[i] = -1;
-  }
+    if (mbins > maxhead_ssa) {
+      maxhead_ssa = mbins;
+      memory->destroy(gbinhead_ssa);
+      memory->destroy(binhead_ssa);
+      memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
+      memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
+    }
+    for (i = 0; i < mbins; i++) {
+      gbinhead_ssa[i] = -1;
+      binhead_ssa[i] = -1;
+    }
 
-  if (maxbin > maxbin_ssa) {
-    maxbin_ssa = maxbin;
-    memory->destroy(bins_ssa);
-    memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
-  }
+    if (maxbin > maxbin_ssa) {
+      maxbin_ssa = maxbin;
+      memory->destroy(bins_ssa);
+      memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
+    }
 
-  // bin in reverse order so linked list will be in forward order
+    // bin in reverse order so linked list will be in forward order
 
-  if (includegroup) {
-    int bitmask = group->bitmask[includegroup];
-    for (i = nall-1; i >= nlocal; i--) {
-      if (ssa_airnum[i] <= 0) continue; // skip ghost atoms not in AIR
-      if (mask[i] & bitmask) {
+    if (includegroup) {
+      int bitmask = group->bitmask[includegroup];
+      for (i = nall-1; i >= nlocal; i--) {
+        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
+        if (mask[i] & bitmask) {
+          ibin = coord2bin(x[i]);
+          bins_ssa[i] = gbinhead_ssa[ibin];
+          gbinhead_ssa[ibin] = i;
+        }
+      }
+      nlocal = atom->nfirst; // This is important for the code that follows!
+    } else {
+      for (i = nall-1; i >= nlocal; i--) {
+        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
         ibin = coord2bin(x[i]);
         bins_ssa[i] = gbinhead_ssa[ibin];
         gbinhead_ssa[ibin] = i;
       }
     }
-    nlocal = atom->nfirst; // This is important for the code that follows!
-  } else {
-    for (i = nall-1; i >= nlocal; i--) {
-      if (ssa_airnum[i] <= 0) continue; // skip ghost atoms not in AIR
+    for (i = nlocal-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
-      bins_ssa[i] = gbinhead_ssa[ibin];
-      gbinhead_ssa[ibin] = i;
+      bins_ssa[i] = binhead_ssa[ibin];
+      binhead_ssa[ibin] = i;
     }
-  }
-  for (i = nlocal-1; i >= 0; i--) {
-    ibin = coord2bin(x[i]);
-    bins_ssa[i] = binhead_ssa[ibin];
-    binhead_ssa[ibin] = i;
-  }
+  } /* else reuse previous binning. See Neighbor::build_one comment. */
 
   ipage->reset();
 
@@ -429,6 +346,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
 
     // loop over AIR ghost atoms in all bins in "full" stencil
     // Note: the non-AIR ghost atoms have already been filtered out
+    // That is a significant time savings because of the "full" stencil
     for (k = 0; k < maxstencil; k++) {
       if (stencil[k] > mbins) break; /* Check if ghost stencil bins are exhausted */
       for (j = gbinhead_ssa[ibin+stencil[k]]; j >= 0; j = bins_ssa[j]) {

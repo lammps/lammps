@@ -221,7 +221,8 @@ of "this page"_Section_commands.html#cmd_5.
 "nvt/sllod"_fix_nvt_sllod.html - NVT for NEMD with SLLOD equations
 "nvt/sphere"_fix_nvt_sphere.html - NVT for spherical particles
 "oneway"_fix_oneway.html - constrain particles on move in one direction
-"orient/fcc"_fix_orient_fcc.html - add grain boundary migration force
+"orient/bcc"_fix_orient.html - add grain boundary migration force for BCC
+"orient/fcc"_fix_orient.html - add grain boundary migration force for FCC
 "planeforce"_fix_planeforce.html - constrain atoms to move in a plane
 "poems"_fix_poems.html - constrain clusters of atoms to move \
   as coupled rigid bodies
@@ -264,6 +265,7 @@ of "this page"_Section_commands.html#cmd_5.
 "setforce"_fix_setforce.html - set the force on each atom
 "shake"_fix_shake.html - SHAKE constraints on bonds and/or angles
 "spring"_fix_spring.html - apply harmonic spring force to group of atoms
+"spring/chunk"_fix_spring_chunk.html - apply harmonic spring force to each chunk of atoms
 "spring/rg"_fix_spring_rg.html - spring on radius of gyration of \
      group of atoms
 "spring/self"_fix_spring_self.html - spring from each atom to its origin

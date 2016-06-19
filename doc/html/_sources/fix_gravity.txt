@@ -128,6 +128,10 @@ The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
 fix to add the gravitational potential energy of the system to the
 system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
 
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
+fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
+integrator the fix is adding its forces. Default is the outermost level.
+
 This fix computes a global scalar which can be accessed by various
 :ref:`output commands <howto_15>`.  This scalar is the
 gravitational potential energy of the particles in the defined field,

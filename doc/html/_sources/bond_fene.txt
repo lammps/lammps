@@ -3,6 +3,9 @@
 bond_style fene command
 =======================
 
+bond_style fene/intel command
+=============================
+
 bond_style fene/kk command
 ==========================
 

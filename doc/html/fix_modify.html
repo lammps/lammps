@@ -134,18 +134,20 @@
 <ul class="simple">
 <li>fix-ID = ID of the fix to modify</li>
 <li>one or more keyword/value pairs may be appended</li>
-<li>keyword = <em>temp</em> or <em>press</em> or <em>energy</em></li>
+<li>keyword = <em>temp</em> or <em>press</em> or <em>energy</em> or <em>respa</em></li>
 </ul>
 <pre class="literal-block">
 <em>temp</em> value = compute ID that calculates a temperature
 <em>press</em> value = compute ID that calculates a pressure
 <em>energy</em> value = <em>yes</em> or <em>no</em>
+<em>respa</em> value = <em>1</em> to <em>max respa level</em> or <em>0</em> (for outermost level)
 </pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix_modify</span> <span class="mi">3</span> <span class="n">temp</span> <span class="n">myTemp</span> <span class="n">press</span> <span class="n">myPress</span>
 <span class="n">fix_modify</span> <span class="mi">1</span> <span class="n">energy</span> <span class="n">yes</span>
+<span class="n">fix_modify</span> <span class="n">tether</span> <span class="n">respa</span> <span class="mi">2</span>
 </pre></div>
 </div>
 </div>
@@ -178,6 +180,16 @@ the keyword f_ID in the thermo_style custom command, where ID is the
 fix-ID of the appropriate fix.  Note that you must use this setting
 for a fix if you are using it when performing an <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a> and if you want the energy and forces it
 produces to be part of the optimization criteria.</p>
+<p>For fixes that set or modify forces, it may be possible to select at
+which <a class="reference internal" href="run_style.html"><span class="doc">r-RESPA</span></a> level the fix operates via the <em>respa</em>
+keyword. The RESPA level at which the fix is active can be selected.
+This is a number ranging from 1 to the number of levels. If the RESPA
+level is larger than the current maximum, the outermost level will be
+used, which is also the default setting. This default can be restored
+using a value of <em>0</em> for the RESPA level. The affected fix has to be
+enabled to support this feature; if not, <em>fix_modify</em> will report an
+error. Active fixes with a custom RESPA level setting are reported
+with their specified level at the beginning of a r-RESPA run.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
@@ -191,7 +203,7 @@ produces to be part of the optimization criteria.</p>
 <div class="section" id="default">
 <h2>Default</h2>
 <p>The option defaults are temp = ID defined by fix, press = ID defined
-by fix, energy = no.</p>
+by fix, energy = no, respa = 0.</p>
 </div>
 </div>
 

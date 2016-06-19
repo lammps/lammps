@@ -893,7 +893,6 @@ void DumpImage::create_image()
     int *molatom = atom->molatom;
     int *type = atom->type;
     int nlocal = atom->nlocal;
-    int nall = atom->nlocal + atom->nghost;
     int newton_bond = force->newton_bond;
     int molecular = atom->molecular;
     Molecule **onemols = atom->avec->onemols;

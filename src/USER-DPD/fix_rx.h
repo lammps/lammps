@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -129,6 +129,6 @@ Self-explanatory
 
 E:  Computed concentration in RK4 solver is < -1.0e-10.
 
-Self-explanatory:  Adjust settings for the RK4 solver. 
+Self-explanatory:  Adjust settings for the RK4 solver.
 
 */

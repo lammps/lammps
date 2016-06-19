@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include <cmath>
 
@@ -71,31 +71,29 @@ cvm::real colvar::coordnum::switching_function(cvm::rvector const &r0_vec,
 }
 
 
-
 colvar::coordnum::coordnum(std::string const &conf)
-  : distance(conf), b_anisotropic(false), b_group2_center_only(false)
+  : cvc(conf), b_anisotropic(false), b_group2_center_only(false)
 {
   function_type = "coordnum";
   x.type(colvarvalue::type_scalar);
 
-  // group1 and group2 are already initialized by distance()
+  group1 = parse_group(conf, "group1");
+  group2 = parse_group(conf, "group2");
+
   if (group1->b_dummy)
     cvm::fatal_error("Error: only group2 is allowed to be a dummy atom\n");
 
+  bool const b_isotropic = get_keyval(conf, "cutoff", r0,
+                                      cvm::real(4.0 * cvm::unit_angstrom()));
 
-  // need to specify this explicitly because the distance() constructor
-  // has set it to true
-  feature_states[f_cvc_inv_gradient]->available = false;
+  if (get_keyval(conf, "cutoff3", r0_vec, cvm::rvector(4.0 * cvm::unit_angstrom(),
+                                                       4.0 * cvm::unit_angstrom(),
+                                                       4.0 * cvm::unit_angstrom()))) {
+    if (b_isotropic) {
+      cvm::error("Error: cannot specify \"cutoff\" and \"cutoff3\" at the same time.\n",
+                 INPUT_ERROR);
+    }
 
-  bool const b_scale = get_keyval(conf, "cutoff", r0,
-                                   cvm::real(4.0 * cvm::unit_angstrom()));
-
-  if (get_keyval(conf, "cutoff3", r0_vec,
-                  cvm::rvector(4.0, 4.0, 4.0), parse_silent)) {
-
-    if (b_scale)
-      cvm::fatal_error("Error: cannot specify \"scale\" and "
-                        "\"scale3\" at the same time.\n");
     b_anisotropic = true;
     // remove meaningless negative signs
     if (r0_vec.x < 0.0) r0_vec.x *= -1.0;
@@ -107,7 +105,7 @@ colvar::coordnum::coordnum(std::string const &conf)
   get_keyval(conf, "expDenom", ed, int(12));
 
   if ( (en%2) || (ed%2) ) {
-    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+    cvm::error("Error: odd exponents provided, can only use even ones.\n", INPUT_ERROR);
   }
 
   get_keyval(conf, "group2CenterOnly", b_group2_center_only, group2->b_dummy);
@@ -289,17 +287,12 @@ void colvar::h_bond::apply_force(colvarvalue const &force)
 
 
 colvar::selfcoordnum::selfcoordnum(std::string const &conf)
- : distance(conf, false)
+  : cvc(conf)
 {
   function_type = "selfcoordnum";
   x.type(colvarvalue::type_scalar);
 
-  // group1 is already initialized by distance()
-
-  // need to specify this explicitly because the distance() constructor
-  // has set it to true
-  feature_states[f_cvc_inv_gradient]->available = false;
-
+  group1 = parse_group(conf, "group1");
 
   get_keyval(conf, "cutoff", r0, cvm::real(4.0 * cvm::unit_angstrom()));
   get_keyval(conf, "expNumer", en, int(6) );

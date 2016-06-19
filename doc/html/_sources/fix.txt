@@ -226,7 +226,8 @@ of :ref:`this page <cmd_5>`.
 * :doc:`nvt/sllod <fix_nvt_sllod>` - NVT for NEMD with SLLOD equations
 * :doc:`nvt/sphere <fix_nvt_sphere>` - NVT for spherical particles
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
-* :doc:`orient/fcc <fix_orient_fcc>` - add grain boundary migration force
+* :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
+* :doc:`orient/fcc <fix_orient>` - add grain boundary migration force for FCC
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move   as coupled rigid bodies
 * :doc:`pour <fix_pour>` - pour new atoms/molecules into a granular simulation domain
@@ -249,6 +250,7 @@ of :ref:`this page <cmd_5>`.
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles
 * :doc:`spring <fix_spring>` - apply harmonic spring force to group of atoms
+* :doc:`spring/chunk <fix_spring_chunk>` - apply harmonic spring force to each chunk of atoms
 * :doc:`spring/rg <fix_spring_rg>` - spring on radius of gyration of      group of atoms
 * :doc:`spring/self <fix_spring_self>` - spring from each atom to its origin
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)

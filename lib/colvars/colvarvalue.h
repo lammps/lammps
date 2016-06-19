@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARVALUE_H
 #define COLVARVALUE_H

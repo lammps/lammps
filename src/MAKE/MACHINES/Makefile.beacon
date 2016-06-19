@@ -14,7 +14,7 @@ DEPFLAGS =	-M
 
 LINK =		mpiicpc -openmp
 LINKFLAGS =	-O3 -xAVX
-LIB =           
+LIB =           -ltbbmalloc
 SIZE =		size
 
 ARCHIVE =	ar

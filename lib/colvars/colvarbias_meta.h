@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARBIAS_META_H
 #define COLVARBIAS_META_H

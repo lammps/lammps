@@ -45,7 +45,7 @@ class FixAddTorque : public Fix {
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   double foriginal[4],foriginal_all[4];
   int force_flag;
-  int nlevels_respa;
+  int ilevel_respa;
 };
 
 }

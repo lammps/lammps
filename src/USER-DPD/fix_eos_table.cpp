@@ -112,15 +112,15 @@ void FixEOStable::init()
   if(this->restart_reset){
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-	temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
+        temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-	if(dpdTheta[i] <= double(0.0)) 
-	  error->one(FLERR,"Internal temperature <= zero");
-	energy_lookup(dpdTheta[i],tmp);
-	uCond[i] = tmp / double(2.0);
-	uMech[i] = tmp / double(2.0);
+        if(dpdTheta[i] <= 0.0)
+          error->one(FLERR,"Internal temperature <= zero");
+        energy_lookup(dpdTheta[i],tmp);
+        uCond[i] = tmp / 2.0;
+        uMech[i] = tmp / 2.0;
       }
   }
 }
@@ -138,8 +138,8 @@ void FixEOStable::post_integrate()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
-      if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature <= zero");
+      if(dpdTheta[i] <= 0.0)
+        error->one(FLERR,"Internal temperature <= zero");
     }
 }
 
@@ -156,8 +156,8 @@ void FixEOStable::end_of_step()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
-      if(dpdTheta[i] <= double(0.0)) 
-	error->one(FLERR,"Internal temperature <= zero");
+      if(dpdTheta[i] <= 0.0)
+        error->one(FLERR,"Internal temperature <= zero");
     }
 }
 
@@ -201,7 +201,7 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     sprintf(str,"Cannot open file %s",file);
     error->one(FLERR,str);
   }
-  
+
   // loop until section found with matching keyword
 
   while (1) {
@@ -426,7 +426,7 @@ void FixEOStable::temperature_lookup(double u, double &t)
   double fraction;
 
   Table *tb = &tables[1];
-  if(u < tb->lo || u > tb->hi){ 
+  if(u < tb->lo || u > tb->hi){
     printf("Energy=%lf TableMin=%lf TableMax=%lf\n",u,tb->lo,tb->hi);
     error->one(FLERR,"Energy is not within table cutoffs");
   }

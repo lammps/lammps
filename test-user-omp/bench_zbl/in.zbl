@@ -12,7 +12,7 @@ mass		1 1.0
 velocity	all create 300.0 87287 loop geom
 
 pair_style	zbl 3.0 4.0
-pair_coeff	1 1 14.0
+pair_coeff	1 1 14.0 14.0
 
 neighbor	2.5 bin
 neigh_modify    delay 5 every 1

@@ -1,0 +1,198 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>pair_style lj/cut/hars/at command 
+</H3>
+<H3>pair_style lj/cut/coul/dsf/hars/at command 
+</H3>
+<H3>pair_style lj/cut/hars/cg command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>pair_style style args 
+</PRE>
+<LI>style = 
+
+<PRE>	<I>lj/cut/hars/at</I> or
+	<I>lj/cut/coul/dsf/hars/at</I> or
+	<I>lj/cut/hars/cg</I> 
+</PRE>
+<LI>args = list of arguments for a particular style 
+
+<PRE>  <I>lj/cut/hars/at</I> args = cutoff All_AT Flag_Load_File
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+    All_AT = Fully atomic simulation flag, = <I>0</I> or <I>1</I>
+      <I>0</I> Fully atomic simulation is off and HAdResS is on
+      <I>1</I> Fully atomic simulation is on and HAdResS is off 
+    Flag_Load_File = Flag of employing compensation energy file, = <I>0</I> or <I>1</I>
+      <I>0</I> Do not employ compensation energy until T<sub>p</sub><sup>Start</sup>
+      <I>1</I> Employ compensation energy file immediately 
+</PRE>
+<PRE>  <I>lj/cut/coul/dsf/hars/at</I> args = Alpha LJcutoff Coulcutoff All_AT Flag_Load_File
+    Alpha = Damping coefficient in DSF potential (1.0/distance units)
+    LJcutoff = global cutoff for Lennard Jones interactions (distance units)
+    Coulcutoff = global cutoff for DSF coulombic interactions (distance units)
+    All_AT = Fully atomic simulation flag, = <I>0</I> or <I>1</I>
+      <I>0</I> Fully atomic simulation is off and HAdResS is on
+      <I>1</I> Fully atomic simulation is on and HAdResS is off 
+    Flag_Load_File = Flag of employing compensation energy file, = <I>0</I> or <I>1</I>
+      <I>0</I> Do not employ compensation energy until T<sub>p</sub><sup>Start</sup>
+      <I>1</I> Employ compensation energy file immediately 
+</PRE>
+<PRE>  <I>lj/cut/hars/cg</I> args = cutoff All_CG Flag_Load_File
+    cutoff = global cutoff for Lennard Jones interactions (distance units)
+    All_CG = Fully coarse-grained simulation flag, = <I>0</I> or <I>1</I>
+      <I>0</I> Fully coarse-grained simulation is off and HAdResS is on
+      <I>1</I> Fully coarse-grained simulation is on and HAdResS is off
+    Flag_Load_File = Flag of employing compensation energy file, = <I>0</I> or <I>1</I>
+      <I>0</I> Do not employ compensation energy until T<sub>p</sub><sup>Start</sup>
+      <I>1</I> Employ compensation energy file immediately 
+</PRE>
+<P><B>Examples:</B>
+</P>
+<PRE>pair_style      hybrid/overlay lj/cut/hars/cg 2.469416506 0 0 lj/cut/hars/at 0.2 10.0 12.0 0 0
+pair_style      hybrid/overlay lj/cut/hars/cg 1.1224 1 0 lj/cut/hars/at 1.5 1 0 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>In the H-AdResS scheme, the description of the interactions within a system of particles is given in terms
+of a global Hamiltonian function H, which has the following form <A HREF = "#Potestio2013_1">(Potestio2013_1)</A>, <A HREF = "#Potestio2013_2">(Potestio2013_2)</A>, <A HREF = "#Heidari2016">(Heidari2016)</A>:
+</P>
+<CENTER><IMG SRC = "Eqs/HADRESS_System_Hamiltonian.png">
+</CENTER>
+<P>The term K is the atomistic kinetic energy, and V<sup>int</sup> consists of all the intramolecular bonded interactions (e.g. bond stretching). 
+The value of the switching function is determined by the sizes L<sub>AT</sub>
+L<sub>HY</sub> of the atomistic and hybrid regions, respectively, and of the specific geometry of the atomistic region. 
+</P>
+<P>In the Hamiltonian, the non-bonded potential energy contribution of each molecule is given by a weighted sum of two terms
+V<sub>&#945;</sub><sup>CG</sup> and V<sub>&#945;</sub><sup>AT</sup>, defined as:
+</P>
+<CENTER><IMG SRC = "Eqs/HADRESS_System_Potentials.png">
+</CENTER>
+<P>The <I>lj/cut/hars/at</I> styles compute the standard 12/6 Lennard-Jones potential for the atoms located in atomistic (high resolution) and hybrid region. 
+The general formula is given by
+</P>
+<CENTER><IMG SRC = "Eqs/HADRESS_AT_pair_lj.png">
+</CENTER>
+<P>rc is the cutoff.
+</P>
+<P>Style <I>lj/cut/coul/dsf/hars/at</I> computes the standard 12/6 Lennard-Jones and Coulomb interactions for atoms of atomistic (high resolution) and hybrid region. 
+The Coulombic term is computed via the damped shifted force model introduced by <A HREF = "#Fennell">Fennell et al.</A>, given by:
+</P>
+<CENTER><IMG SRC = "Eqs/HADRESS_AT_pair_coul_dsf.jpg">
+</CENTER>
+<P>where <I>alpha</I> is the damping parameter and erfc() is the complementary
+error-function. This potential is essentially a short-range,
+spherically-truncated, charge-neutralized, shifted, pairwise <I>1/r</I>
+summation.
+</P>
+<P>The <I>lj/cut/hars/cg</I> styles compute the standard 12/6 Lennard-Jones potential for the atoms located in the low resolution (coarse-grained) and hybrid region. 
+The general formula is given by
+</P>
+<CENTER><IMG SRC = "Eqs/HADRESS_CG_pair_lj.png">
+</CENTER>
+<P>rc is the cutoff.
+As mentioned above, the interactions in the coarse-grained region are computed based on the center of mass of the particles.
+</P>
+<P>Important Note: For dual resolution simulations, it is required to use hybrid/overlay to include 
+both resolution pair-styles. 
+</P>
+<P>For all of dual resolution pair styles, the following coefficients must
+be defined for each pair of atoms types via the
+<A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples below
+</P>
+<LI>epsilon (energy units) 
+
+<LI>sigma (distance units) 
+
+<LI>cutoff (distance units) 
+
+<P>For examples:
+</P>
+<PRE>  pair_coeff      * * lj/cut/hars/cg 1.0 2.2
+  pair_coeff      1 1 lj/cut/coul/dsf/hars/at 0.15535 3.166
+  pair_coeff      * 2 lj/cut/coul/dsf/hars/at 0.0000 0.0000 
+</PRE>
+<P>Note that sigma is defined in the LJ formula as the zero-crossing
+distance for the potential, not as the energy minimum at 2^(1/6)
+sigma. 
+</P>
+<P>All potentials have to be shifted at the cutoff through the command
+</P>
+<PRE>  pair_modify     shift yes 
+</PRE>
+<HR>
+
+<P><B>Mixing, shift, table, tail correction, restart, rRESPA info</B>:
+</P>
+<P>All of the <I>lj/cut</I> pair styles support the
+<A HREF = "pair_modify.html">pair_modify</A> shift option for the energy of the
+Lennard-Jones portion of the pair interaction.
+</P>
+<P>All of the <I>lj/cut</I> pair styles write their information to <A HREF = "restart.html">binary
+restart files</A>, so pair_style and pair_coeff commands do
+not need to be specified in an input script that reads a restart file.
+</P>
+<P>The pair styles do not support the use of the rRESPA hierarchy.
+</P>
+<P>Each pair styles creates a file named as "Mean_Comp_Energy_XX.txt", where the file name's suffix "XX", is replaced by "AT" and "CG" for atomistic and coarse-grained pairwise interactions respectively. 
+In these files the averaged compensation energy as function of the resolution (&#955;) is printed. Each file is created at <I>T<sub>p</sub><sup>Start</sup></I> and is updated every <I>dT<sub>p</sub></I>. 
+The updating process of the files is finished at time step <I>T<sub>p</sub><sup>End</sup></I>. 
+For those equilibrated simulations starting at time step larger than <I>T<sub>p</sub><sup>End</sup></I>, the file "Mean_Comp_Energy_XX.txt" is loaded in each pair styles. For more information, 
+see <A HREF = "fix_lambdah_calc.html">fix_lambdah_calc</A>.
+</P>
+<HR>
+
+<P><B>Restrictions:</B>
+</P>
+<P>In HAdResS, it is required to include both high resolution (atomistic) 
+and low resolution (coarse-grained) force fields together through 
+</P>
+<PRE>  pair_style      hybrid/overlay 
+</PRE>
+<P>An example of such setup is given above.
+</P>
+<P>To employ the H-AdResS scheme, the full/hars atom style as well as <A HREF = "fix_lambdah_calc.html">(fix_lambdah_calc)</A> have to be used:
+</P>
+<PRE>  atom_style      full/hars 
+</PRE>
+<PRE>  fix             ID group-ID lambdah/calc ... 
+</PRE>
+<HR>
+
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_lambdah_calc.html">fix_lambdah_calc</A>, <A HREF = "pair_coeff.html">pair_coeff</A>
+</P>
+<P><B>Default:</B> none
+</P>
+<HR>
+
+<A NAME = "Potestio2013_1"></A>
+
+<P><B>(Potestio2013_1)</B> R. Potestio, S. Fritsch, P. Espanol, R. Delgado-Buscalioni, K. Kremer, R. Everaers, and D. Donadio, <I>Hamiltonian Adaptive Resolution Simulation for Molecular Liquids</I>, <A HREF = "http://dx.doi.org/10.1103/PhysRevLett.110.108301">Phys. Rev. Lett. [110],
+108301 (2013)</A>
+</P>
+<A NAME = "Potestio2013_2"></A>
+
+<P><B>(Potestio2013_2)</B> R. Potestio, S. Fritsch, P. Espanol, R. Delgado-Buscalioni, K. Kremer, R. Everaers, and D. Donadio, <I>Monte Carlo Adaptive Resolution Simulation of Multicomponent Molecular Liquids</I>, <A HREF = "http://dx.doi.org/10.1103/PhysRevLett.111.060601">Phys. Rev. Lett. [111],
+060601 (2013)</A>
+</P>
+<A NAME = "Heidari2016"></A>
+
+<P><B>(Heidari2016)</B> M. Heidari, R. Cortes-Huerto, D. Donadio and R. Potestio, <I>Accurate and general treatment of electrostatic interaction in Hamiltonian adaptive resolution simulations</I>, "EPJST (2016)"
+</P>
+<A NAME = "Fennell"></A>
+
+<P><B>(Fennell)</B> C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 
+234104 (2006).
+</P>
+</HTML>

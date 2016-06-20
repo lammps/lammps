@@ -66,6 +66,9 @@ class Timer : protected Pointers {
   // trigger enforced timeout
   void force_timeout() { _timeout = 0.0; };
 
+  // get remaining time in seconds. 0.0 if inactive, negative if expired
+  double get_timeout_remain();
+
   // print timeout message
   void print_timeout(FILE *);
 

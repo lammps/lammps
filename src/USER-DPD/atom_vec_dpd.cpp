@@ -526,11 +526,11 @@ int AtomVecDPD::coord2ssaAIR(double *x)
 
   ix = iy = iz = 0;
   if (x[2] < domain->sublo[2]) iz = -1;
-  if (x[2] > domain->subhi[2]) iz = 1;
+  if (x[2] >= domain->subhi[2]) iz = 1;
   if (x[1] < domain->sublo[1]) iy = -1;
-  if (x[1] > domain->subhi[1]) iy = 1;
+  if (x[1] >= domain->subhi[1]) iy = 1;
   if (x[0] < domain->sublo[0]) ix = -1;
-  if (x[0] > domain->subhi[0]) ix = 1;
+  if (x[0] >= domain->subhi[0]) ix = 1;
 
   if(iz < 0){
     return 0;

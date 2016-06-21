@@ -44,6 +44,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 6 || narg > 7) error->all(FLERR,"Illegal fix rx command");
+  restart_peratom = 1;
   nevery = 1;
 
   nreactions = maxparam = 0;

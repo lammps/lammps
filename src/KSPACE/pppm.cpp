@@ -1209,23 +1209,24 @@ double PPPM::compute_qopt()
           sum2 = 0.0;
           sum3 = 0.0;
           sum4 = 0.0;
+          const double inv_gew = 1.0/g_ewald;
           for (nx = -2; nx <= 2; nx++) {
             qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*square(qx/g_ewald));
+            sx = expmsq(0.5*qx*inv_gew);
             argx = 0.5*qx*xprd/nx_pppm;
             wx = powsinxx(argx,twoorder);
             qx *= qx;
 
             for (ny = -2; ny <= 2; ny++) {
               qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*square(qy/g_ewald));
+              sy = expmsq(0.5*qy*inv_gew);
               argy = 0.5*qy*yprd/ny_pppm;
               wy = powsinxx(argy,twoorder);
               qy *= qy;
 
               for (nz = -2; nz <= 2; nz++) {
                 qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*square(qz/g_ewald));
+                sz = expmsq(0.5*qz*inv_gew);
                 argz = 0.5*qz*zprd_slab/nz_pppm;
                 wz = powsinxx(argz,twoorder);
                 qz *= qz;
@@ -1297,7 +1298,7 @@ double PPPM::newton_raphson_f()
   double zprd = domain->zprd;
   bigint natoms = atom->natoms;
 
-  double df_rspace = 2.0*q2*exp(-g_ewald*g_ewald*cutoff*cutoff) /
+  double df_rspace = 2.0*q2*expmsq(g_ewald*cutoff) /
        sqrt(natoms*cutoff*xprd*yprd*zprd);
 
   double df_kspace = compute_df_kspace();
@@ -1338,7 +1339,7 @@ double PPPM::final_accuracy()
 
   double df_kspace = compute_df_kspace();
   double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd);
-  double df_rspace = 2.0 * q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
+  double df_rspace = 2.0 * q2_over_sqrt * expmsq(g_ewald*cutoff);
   double df_table = estimate_table_accuracy(q2_over_sqrt,df_rspace);
   double estimated_accuracy = sqrt(df_kspace*df_kspace + df_rspace*df_rspace +
                                    df_table*df_table);
@@ -1579,22 +1580,23 @@ void PPPM::compute_gf_ik()
           numerator = 12.5663706/sqk;
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
+          const double inv_gew = 1.0/g_ewald;
 
           for (nx = -nbx; nx <= nbx; nx++) {
             qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*square(qx/g_ewald));
+            sx = expmsq(0.5*qx*inv_gew);
             argx = 0.5*qx*xprd/nx_pppm;
             wx = powsinxx(argx,twoorder);
 
             for (ny = -nby; ny <= nby; ny++) {
               qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*square(qy/g_ewald));
+              sy = expmsq(0.5*qy*inv_gew);
               argy = 0.5*qy*yprd/ny_pppm;
               wy = powsinxx(argy,twoorder);
 
               for (nz = -nbz; nz <= nbz; nz++) {
                 qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*square(qz/g_ewald));
+                sz = expmsq(0.5*qz*inv_gew);
                 argz = 0.5*qz*zprd_slab/nz_pppm;
                 wz = powsinxx(argz,twoorder);
 
@@ -1662,6 +1664,7 @@ void PPPM::compute_gf_ik_triclinic()
           numerator = 12.5663706/sqk;
           denominator = gf_denom(snx,sny,snz);
           sum1 = 0.0;
+          const double inv_gew = 1.0/g_ewald;
 
           for (nx = -nbx; nx <= nbx; nx++) {
             argx = MY_PI*kper/nx_pppm + MY_PI*nx;
@@ -1682,13 +1685,13 @@ void PPPM::compute_gf_ik_triclinic()
                 x2lamdaT(&b[0],&b[0]);
 
                 qx = unitk_lamda[0]+b[0];
-                sx = exp(-0.25*square(qx/g_ewald));
+                sx = expmsq(0.5*qx*inv_gew);
 
                 qy = unitk_lamda[1]+b[1];
-                sy = exp(-0.25*square(qy/g_ewald));
+                sy = expmsq(0.5*qy*inv_gew);
 
                 qz = unitk_lamda[2]+b[2];
-                sz = exp(-0.25*square(qz/g_ewald));
+                sz = expmsq(0.5*qz*inv_gew);
 
                 dot1 = unitk_lamda[0]*qx + unitk_lamda[1]*qy + unitk_lamda[2]*qz;
                 dot2 = qx*qx+qy*qy+qz*qz;
@@ -1725,6 +1728,7 @@ void PPPM::compute_gf_ad()
   int k,l,m,n,kper,lper,mper;
 
   const int twoorder = 2*order;
+  const double inv_gew = 1.0/g_ewald;
 
   for (int i = 0; i < 6; i++) sf_coeff[i] = 0.0;
 
@@ -1733,7 +1737,7 @@ void PPPM::compute_gf_ad()
     mper = m - nz_pppm*(2*m/nz_pppm);
     qz = unitkz*mper;
     snz = square(sin(0.5*qz*zprd_slab/nz_pppm));
-    sz = exp(-0.25*square(qz/g_ewald));
+    sz = expmsq(0.5*qz*inv_gew);
     argz = 0.5*qz*zprd_slab/nz_pppm;
     wz = powsinxx(argz,twoorder);
 
@@ -1741,7 +1745,7 @@ void PPPM::compute_gf_ad()
       lper = l - ny_pppm*(2*l/ny_pppm);
       qy = unitky*lper;
       sny = square(sin(0.5*qy*yprd/ny_pppm));
-      sy = exp(-0.25*square(qy/g_ewald));
+      sy = expmsq(0.5*qy*inv_gew);
       argy = 0.5*qy*yprd/ny_pppm;
       wy = powsinxx(argy,twoorder);
 
@@ -1749,7 +1753,7 @@ void PPPM::compute_gf_ad()
         kper = k - nx_pppm*(2*k/nx_pppm);
         qx = unitkx*kper;
         snx = square(sin(0.5*qx*xprd/nx_pppm));
-        sx = exp(-0.25*square(qx/g_ewald));
+        sx = expmsq(0.5*qx*inv_gew);
         argx = 0.5*qx*xprd/nx_pppm;
         wx = powsinxx(argx,twoorder);
 

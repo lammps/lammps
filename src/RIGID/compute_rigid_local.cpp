@@ -87,9 +87,10 @@ ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
     else error->all(FLERR,"Invalid keyword in compute rigid/local command");
   }
 
-  nmax = 0;
+  ncount = nmax = 0;
   vector = NULL;
   array = NULL;
+  fixrigid = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

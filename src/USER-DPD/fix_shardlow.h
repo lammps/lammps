@@ -27,11 +27,22 @@ namespace LAMMPS_NS {
 class FixShardlow : public Fix {
  public:
   FixShardlow(class LAMMPS *, int, char **);
-  virtual ~FixShardlow() {}
+  ~FixShardlow();
   int setmask();
   virtual void init_list(int,class NeighList *);
   virtual void setup(int);
   virtual void initial_integrate(int);
+
+  void grow_arrays(int);
+  void copy_arrays(int, int, int);
+  void set_arrays(int);
+
+//  int pack_border(int, int *, double *);
+  int unpack_border(int, int, double *);
+  int unpack_exchange(int, double *);
+  void unpack_restart(int, int);
+
+  double memory_usage();
 
  protected:
   int pack_reverse_comm(int, int, double *);
@@ -45,6 +56,8 @@ class FixShardlow : public Fix {
 
   private:
   class NeighList *list;
+
+  int coord2ssaAIR(double *);  // map atom coord to an AIR number
 
 };
 

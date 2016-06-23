@@ -54,7 +54,7 @@ class FixQEqReax : public Fix {
   int matvecs;
   double qeq_time;
 
- private:
+ protected:
   int nevery,reaxflag;
   int n, N, m_fill;
   int n_cap, nmax, m_cap;

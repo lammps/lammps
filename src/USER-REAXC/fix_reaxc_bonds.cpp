@@ -107,6 +107,10 @@ void FixReaxCBonds::setup(int vflag)
 
 void FixReaxCBonds::init()
 {
+  Pair *pair_kk = force->pair_match("reax/c/kk",1);
+  if (pair_kk != NULL) error->all(FLERR,"Cannot (yet) use fix reax/c/bonds with "
+                  "pair_style reax/c/kk");
+
   reaxc = (PairReaxC *) force->pair_match("reax/c",1);
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                   "pair_style reax/c");

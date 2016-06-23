@@ -86,7 +86,7 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double philj,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
@@ -392,7 +392,7 @@ void PairLJCharmmCoulLong::compute_outer(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double r,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   double philj,switch1,switch2;
   double rsw;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -939,7 +939,7 @@ double PairLJCharmmCoulLong::single(int i, int j, int itype, int jtype,
                                     double factor_coul, double factor_lj,
                                     double &fforce)
 {
-  double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor;
+  double r2inv,r6inv,r,grij,expm2,erfc,prefactor;
   double switch1,switch2,fraction,table,forcecoul,forcelj,phicoul,philj;
   int itable;
 

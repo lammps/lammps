@@ -60,7 +60,6 @@ class AtomVecDPD : public AtomVec {
   bigint memory_usage();
   double *uCond,*uMech,*uChem,*uCG,*uCGnew,*rho,*dpdTheta;
   double *duChem;
-  int *ssaAIR; // Shardlow Splitting Algorithm Active Interaction Region number
 
  protected:
   tagint *tag;
@@ -68,7 +67,6 @@ class AtomVecDPD : public AtomVec {
   imageint *image;
   double **x,**v,**f;
 
-  int coord2ssaAIR(double *);  // map atom coord to an AIR number
 };
 
 }

@@ -1,7 +1,7 @@
 boundary        p p p
 
 units           metal
-atom_style      dpd
+atom_style      atomic   # Can be either dpd or atomic
 read_data       data.dpd
   orthogonal box = (-5.36874 -4.6558 -6.56118) to (61.4618 53.2342 46.2472)
   1 by 1 by 1 MPI processor grid
@@ -36,7 +36,7 @@ Neighbor list info ...
   master list distance cutoff = 12
   ghost atom cutoff = 12
   binsize = 6 -> bins = 12 10 9
-Memory usage per processor = 3.15109 Mbytes
+Memory usage per processor = 2.13692 Mbytes
 Step Temp Press Volume PotEng KinEng TotEng Enthalpy Cella Cellb Cellc 
        0  128.6667660382 3065.7908751302 204306.2673181506  263.2538386154   16.6148533499  279.8686919654  670.8120681014   66.8305353589   57.8900140312   52.8084103339 
        1  128.8781761640 3065.9340218365 204306.2673289568  263.2538784443   16.6421529266  279.8960313709  670.8576613026   66.8305353600   57.8900140323   52.8084103348 
@@ -139,20 +139,20 @@ Step Temp Press Volume PotEng KinEng TotEng Enthalpy Cella Cellb Cellc
       98  143.3138195521 3070.2680530999 204306.3711695701  263.4460419232   18.5062403307  281.9522822539  673.4667779706   66.8305466824   57.8900238400   52.8084192816 
       99  143.5996384267 3070.3502690101 204306.3733002460  263.4501213575   18.5431483749  281.9932697324  673.5182535422   66.8305469148   57.8900240412   52.8084194652 
      100  143.4332465710 3070.1261458307 204306.3754525654  263.4542352328   18.5216620473  281.9758972802  673.4723054704   66.8305471495   57.8900242445   52.8084196506 
-Loop time of 0.316642 on 1 procs for 100 steps with 1000 atoms
+Loop time of 0.376651 on 1 procs for 100 steps with 1000 atoms
 
-Performance: 27.286 ns/day, 0.880 hours/ns, 315.814 timesteps/s
-99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 22.939 ns/day, 1.046 hours/ns, 265.498 timesteps/s
+98.8% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.036243   | 0.036243   | 0.036243   |   0.0 | 11.45
-Neigh   | 0.12849    | 0.12849    | 0.12849    |   0.0 | 40.58
-Comm    | 0.0078652  | 0.0078652  | 0.0078652  |   0.0 |  2.48
-Output  | 0.0022752  | 0.0022752  | 0.0022752  |   0.0 |  0.72
-Modify  | 0.13886    | 0.13886    | 0.13886    |   0.0 | 43.86
-Other   |            | 0.002903   |            |       |  0.92
+Pair    | 0.04236    | 0.04236    | 0.04236    |   0.0 | 11.25
+Neigh   | 0.15656    | 0.15656    | 0.15656    |   0.0 | 41.57
+Comm    | 0.0069988  | 0.0069988  | 0.0069988  |   0.0 |  1.86
+Output  | 0.0026455  | 0.0026455  | 0.0026455  |   0.0 |  0.70
+Modify  | 0.1646     | 0.1646     | 0.1646     |   0.0 | 43.70
+Other   |            | 0.003486   |            |       |  0.93
 
 Nlocal:    1000 ave 1000 max 1000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

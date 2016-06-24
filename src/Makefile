@@ -51,7 +51,7 @@ PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars user-cuda \
 	   user-intel user-lb user-manifold user-mgpt \
 	   user-misc user-molfile user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
-	   user-vtk
+	   user-vtk user-hadress
 
 PACKLIB = compress gpu kim kokkos meam mpiio poems python voronoi \
 	  user-atc user-awpmd user-colvars user-cuda user-h5md user-intel \

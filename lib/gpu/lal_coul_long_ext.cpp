@@ -95,16 +95,16 @@ void cl_gpu_reinit(const int ntypes, double **host_scale) {
   int world_me=CLMF.device->world_me();
   int gpu_rank=CLMF.device->gpu_rank();
   int procs_per_gpu=CLMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
     CLMF.reinit(ntypes, host_scale);
-  
+
   CLMF.device->world_barrier();
-  
+
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       CLMF.reinit(ntypes, host_scale);
-    
+
     CLMF.device->gpu_barrier();
   }
 }

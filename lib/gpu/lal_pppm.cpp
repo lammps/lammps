@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -54,7 +54,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
                               const int nzhi_out, grdtyp **rho_coeff,
-                              grdtyp **vd_brick_p, const double slab_volfactor, 
+                              grdtyp **vd_brick_p, const double slab_volfactor,
                               const int nx_pppm, const int ny_pppm,
                               const int nz_pppm, const bool split, int &flag) {
   _max_bytes=10;
@@ -101,7 +101,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   _allocated=true;
   _max_bytes=0;
   _max_an_bytes=ans->gpu_bytes();
-  
+
   _order=order;
   _order_m_1=order-1;
   _order2=_order_m_1*_order;
@@ -130,7 +130,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
   view.view(rho_coeff[0]+n2lo,numel,*ucl_device);
   ucl_copy(d_rho_coeff,view,true);
   _max_bytes+=d_rho_coeff.row_bytes();
-  
+
   // Allocate storage for grid
   _npts_x=nxhi_out-nxlo_out+1;
   _npts_y=nyhi_out-nylo_out+1;
@@ -165,10 +165,10 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
     flag=-3;
     return 0;
   }
-  
+
   error_flag.device.zero();
   _max_bytes+=1;
-  
+
   _cpu_idle_time=0.0;
 
   return brick.host.begin();
@@ -180,13 +180,13 @@ void PPPMT::clear(const double cpu_time) {
     return;
   _allocated=false;
   _precompute_done=false;
-  
+
   brick.clear();
   vd_brick.clear();
   d_brick_counts.clear();
   error_flag.clear();
   d_brick_atoms.clear();
-  
+
   acc_timers();
   device->output_kspace_times(time_in,time_out,time_map,time_rho,time_interp,
                               *ans,_max_bytes+_max_an_bytes,cpu_time,
@@ -216,7 +216,7 @@ void PPPMT::clear(const double cpu_time) {
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
                                  double **host_x, int *host_type, bool &success,
-                                 double *host_q, double *boxlo, 
+                                 double *host_q, double *boxlo,
                                  const double delxinv, const double delyinv,
                                  const double delzinv) {
   acc_timers();
@@ -224,7 +224,7 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
     zero_timers();
     return;
   }
-  
+
   ans->inum(nlocal);
 
   if (ago==0) {
@@ -250,7 +250,7 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
   int ainum=this->ans->inum();
-  
+
   // Boxlo adjusted to be upper left brick and shift for even spline order
   double shift=0.0;
   if (_order % 2)
@@ -258,7 +258,7 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
   _brick_x=boxlo[0]+(_nxlo_out-_nlower-shift)/delxinv;
   _brick_y=boxlo[1]+(_nylo_out-_nlower-shift)/delyinv;
   _brick_z=boxlo[2]+(_nzlo_out-_nlower-shift)/delzinv;
-  
+
   _delxinv=delxinv;
   _delyinv=delyinv;
   _delzinv=delzinv;
@@ -268,7 +268,7 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
   device->zero(d_brick_counts,d_brick_counts.numel());
   k_particle_map.set_size(GX,BX);
   k_particle_map.run(&atom->x, &atom->q, &f_delvolinv, &ainum,
-                     &d_brick_counts, &d_brick_atoms, &_brick_x, &_brick_y, 
+                     &d_brick_counts, &d_brick_atoms, &_brick_x, &_brick_y,
                      &_brick_z, &_delxinv, &_delyinv, &_delzinv, &_nlocal_x,
                      &_nlocal_y, &_nlocal_z, &_atom_stride, &_max_brick_atoms,
                      &error_flag);
@@ -299,7 +299,7 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
 int PPPMT::spread(const int ago, const int nlocal, const int nall,
                            double **host_x, int *host_type, bool &success,
-                           double *host_q, double *boxlo, 
+                           double *host_q, double *boxlo,
                            const double delxinv, const double delyinv,
                            const double delzinv) {
   if (_precompute_done==false) {
@@ -309,10 +309,10 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
   }
 
   device->stop_host_timer();
-  
+
   if (!success || nlocal==0)
     return 0;
-    
+
   double t=MPI_Wtime();
   time_out.sync_stop();
   _cpu_idle_time+=MPI_Wtime()-t;
@@ -325,10 +325,10 @@ int PPPMT::spread(const int ago, const int nlocal, const int nall,
     error_flag.device.zero();
     d_brick_atoms.resize(_atom_stride*_max_brick_atoms);
     _max_bytes+=d_brick_atoms.row_bytes();
-    return spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo, 
+    return spread(ago,nlocal,nall,host_x,host_type,success,host_q,boxlo,
                   delxinv,delyinv,delzinv);
   }
-  
+
   return error_flag[0];
 }
 
@@ -340,18 +340,18 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   time_in.start();
   vd_brick.update_device(true);
   time_in.stop();
-  
+
   time_interp.start();
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
 
   int ainum=this->ans->inum();
-  
+
   k_interp.set_size(GX,BX);
   k_interp.run(&atom->x, &atom->q, &ainum, &vd_brick, &d_rho_coeff,
                &_npts_x, &_npts_yx, &_brick_x, &_brick_y, &_brick_z, &_delxinv,
-               &_delyinv, &_delzinv, &_order, &_order2, &qqrd2e_scale, 
+               &_delyinv, &_delzinv, &_order, &_order2, &qqrd2e_scale,
                &ans->force);
   time_interp.stop();
 
@@ -381,7 +381,7 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
   #endif
 
   pppm_program=new UCL_Program(dev);
-  
+
   #ifdef USE_OPENCL
   pppm_program->load_string(pppm,flags.c_str());
   #else

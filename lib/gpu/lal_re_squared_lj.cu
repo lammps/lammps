@@ -129,32 +129,32 @@
 
 __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
                                            const __global numtyp4 *restrict q,
-                                           const __global numtyp4 *restrict shape, 
+                                           const __global numtyp4 *restrict shape,
                                            const __global numtyp4 *restrict well,
-                                           const __global numtyp *restrict splj, 
+                                           const __global numtyp *restrict splj,
                                            const __global numtyp2 *restrict sig_eps,
-                                           const int ntypes, 
+                                           const int ntypes,
                                            const __global int *dev_nbor,
-                                           const int stride, 
+                                           const int stride,
                                            __global acctyp4 *restrict ans,
-                                           const int astride, 
-                                           __global acctyp *restrict engv, 
-                                           __global int *restrict err_flag, 
-                                           const int eflag, const int vflag, 
-                                           const int inum, 
+                                           const int astride,
+                                           __global acctyp *restrict engv,
+                                           __global int *restrict err_flag,
+                                           const int eflag, const int vflag,
+                                           const int inum,
                                            const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=splj[0];    
-  sp_lj[1]=splj[1];    
-  sp_lj[2]=splj[2];    
+  sp_lj[0]=splj[0];
+  sp_lj[1]=splj[1];
+  sp_lj[2]=splj[2];
   sp_lj[3]=splj[3];
-  
+
   __local numtyp b_alpha, cr60, solv_f_a, solv_f_r;
   b_alpha=(numtyp)45.0/(numtyp)56.0;
-  cr60=ucl_cbrt((numtyp)60.0);    
+  cr60=ucl_cbrt((numtyp)60.0);
   solv_f_a = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*-(numtyp)36.0);
   solv_f_r = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*(numtyp)2025.0);
 
@@ -177,7 +177,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
 
@@ -223,7 +223,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
       sigma = sig_eps[mtype].x;
       epsilon = sig_eps[mtype].y*factor_lj;
 
-      numtyp aTs[9]; 
+      numtyp aTs[9];
       numtyp4 scorrect;
       numtyp half_sigma=sigma*(numtyp)0.5;
       scorrect.x = ishape.x+half_sigma;
@@ -260,7 +260,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
       Ua = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/(numtyp)8.0;
       Ua = ((numtyp)1.0+(numtyp)3.0*tprod)*ilshape/Ua;
       Ua = epsilon*Ua*sigmap3*solv_f_a;
-    
+
       stemp = h12/cr60;
       Ur = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/
            (numtyp)60.0;
@@ -290,7 +290,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
       numtyp hsec = ucl_recip(h12+(numtyp)3.0*sec);
       numtyp dspu = ucl_recip(h12)-hsec+stemp;
       numtyp pbsu = (numtyp)3.0*sigma*hsec;
-  
+
       stemp = ucl_recip(ishape.x*cr60+h12)+
               ucl_recip(ishape.y*cr60+h12)+
               ucl_recip(ishape.z*cr60+h12)+
@@ -298,7 +298,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
       hsec = ucl_recip(h12+b_alpha*sec);
       numtyp dspr = (numtyp)7.0/h12-hsec+stemp;
       numtyp pbsr = b_alpha*sigma*hsec;
-  
+
       #pragma unroll
       for (int i=0; i<3; i++) {
         numtyp u[3];
@@ -334,7 +334,7 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
         }
 
       }
-    
+
       // torque on i
       numtyp fwae[3];
       gpu_row_times3(fourw,aTe,fwae);
@@ -384,33 +384,33 @@ __kernel void k_resquared_ellipsoid_sphere(const __global numtyp4 *restrict x_,
 }
 
 __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
-                                           const __global numtyp4 *restrict q, 
+                                           const __global numtyp4 *restrict q,
                                            const __global numtyp4 *restrict shape,
                                            const __global numtyp4 *restrict well,
                                            const __global numtyp *restrict splj,
                                            const __global numtyp2 *restrict sig_eps,
-                                           const int ntypes, 
+                                           const int ntypes,
                                            const __global int *dev_nbor,
-                                           const int stride, 
+                                           const int stride,
                                            __global acctyp4 *restrict ans,
-                                           __global acctyp *restrict engv, 
+                                           __global acctyp *restrict engv,
                                            __global int *restrict err_flag,
                                            const int eflag, const int vflag,
-                                           const int start, const int inum, 
+                                           const int start, const int inum,
                                            const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   ii+=start;
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=splj[0];    
-  sp_lj[1]=splj[1];    
-  sp_lj[2]=splj[2];    
+  sp_lj[0]=splj[0];
+  sp_lj[1]=splj[1];
+  sp_lj[2]=splj[2];
   sp_lj[3]=splj[3];
-  
+
   __local numtyp b_alpha, cr60, solv_f_a, solv_f_r;
   b_alpha=(numtyp)45.0/(numtyp)56.0;
-  cr60=ucl_cbrt((numtyp)60.0);    
+  cr60=ucl_cbrt((numtyp)60.0);
   solv_f_a = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*-(numtyp)36.0);
   solv_f_r = (numtyp)3.0/((numtyp)16.0*ucl_atan((numtyp)1.0)*(numtyp)2025.0);
 
@@ -429,7 +429,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,j,numj,
                 n_stride,nbor_end,nbor);
-  
+
     numtyp4 jx; fetch4(jx,j,pos_tex);
     int jtype=jx.w;
 
@@ -445,7 +445,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
       numtyp a[9];       // Rotation matrix (lab->body)
       numtyp aTe[9];     // A'*E
       numtyp4 ishape;
-    
+
       ishape=shape[itype];
       gpu_quat_to_mat_trans(q,i,a);
       gpu_transpose_times_diag3(a,well[itype],aTe);
@@ -467,7 +467,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
       sigma = sig_eps[mtype].x;
       epsilon = sig_eps[mtype].y*factor_lj;
 
-      numtyp aTs[9]; 
+      numtyp aTs[9];
       numtyp4 scorrect;
       numtyp half_sigma=sigma * (numtyp)0.5;
       scorrect.x = ishape.x+half_sigma;
@@ -477,7 +477,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
       scorrect.y = scorrect.y * scorrect.y * (numtyp)0.5;
       scorrect.z = scorrect.z * scorrect.z * (numtyp)0.5;
       gpu_transpose_times_diag3(a,scorrect,aTs);
-      
+
       // energy
 
       numtyp gamma[9], s[3];
@@ -505,7 +505,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
       numtyp ilshape=ishape.x*ishape.y*ishape.z;
       Ua = ((numtyp)1.0+(numtyp)3.0*tprod)*ilshape/Ua;
       Ua = epsilon*Ua*sigmap3*solv_f_a;
-    
+
       stemp = h12/cr60;
       Ur = (ishape.x+stemp)*(ishape.y+stemp)*(ishape.z+stemp)*h12p3/
            (numtyp)60.0;
@@ -535,7 +535,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
       numtyp hsec = ucl_recip(h12+(numtyp)3.0*sec);
       numtyp dspu = ucl_recip(h12)-hsec+stemp;
       numtyp pbsu = (numtyp)3.0*sigma*hsec;
-  
+
       stemp = ucl_recip(ishape.x*cr60+h12)+
               ucl_recip(ishape.y*cr60+h12)+
               ucl_recip(ishape.z*cr60+h12)+
@@ -543,7 +543,7 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
       hsec = ucl_recip(h12+b_alpha*sec);
       numtyp dspr = (numtyp)7.0/h12-hsec+stemp;
       numtyp pbsr = b_alpha*sigma*hsec;
-  
+
       #pragma unroll
       for (int i=0; i<3; i++) {
         numtyp u[3];
@@ -584,15 +584,15 @@ __kernel void k_resquared_sphere_ellipsoid(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_resquared_lj(const __global numtyp4 *restrict x_, 
-                             const __global numtyp4 *restrict lj1, 
-                             const __global numtyp4 *restrict lj3, 
-                             const int lj_types, 
-                             const __global numtyp *restrict gum, 
-                             const int stride, 
-                             const __global int *dev_ij, 
+__kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
+                             const __global numtyp4 *restrict lj1,
+                             const __global numtyp4 *restrict lj3,
+                             const int lj_types,
+                             const __global numtyp *restrict gum,
+                             const int stride,
+                             const __global int *dev_ij,
                              __global acctyp4 *restrict ans,
-                             __global acctyp *restrict engv, 
+                             __global acctyp *restrict engv,
                              __global int *restrict err_flag,
                              const int eflag, const int vflag, const int start,
                              const int inum, const int t_per_atom) {
@@ -601,10 +601,10 @@ __kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
   ii+=start;
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=gum[0];    
-  sp_lj[1]=gum[1];    
-  sp_lj[2]=gum[2];    
-  sp_lj[3]=gum[3];    
+  sp_lj[0]=gum[0];
+  sp_lj[1]=gum[1];
+  sp_lj[2]=gum[2];
+  sp_lj[3]=gum[3];
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -614,20 +614,20 @@ __kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -640,21 +640,21 @@ __kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
-        
+
       int ii=itype*lj_types+jtype;
       if (r2inv<lj1[ii].z && lj1[ii].w==SPHERE_SPHERE) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r2inv*r6inv*(lj1[ii].x*r6inv-lj1[ii].y);
         force*=factor_lj;
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=r6inv*(lj3[ii].x*r6inv-lj3[ii].y);
-          energy+=factor_lj*(e-lj3[ii].z); 
+          energy+=factor_lj*(e-lj3[ii].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -671,33 +671,33 @@ __kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_, 
-                                  const __global numtyp4 *restrict lj1_in, 
-                                  const __global numtyp4 *restrict lj3_in, 
-                                  const __global numtyp *restrict gum, 
+__kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_,
+                                  const __global numtyp4 *restrict lj1_in,
+                                  const __global numtyp4 *restrict lj3_in,
+                                  const __global numtyp *restrict gum,
                                   const int stride,
                                   const __global int *dev_ij,
                                   __global acctyp4 *restrict ans,
-                                  __global acctyp *restrict engv, 
+                                  __global acctyp *restrict engv,
                                   __global int *restrict err_flag,
                                   const int eflag, const int vflag,
-                                  const int start, const int inum, 
+                                  const int start, const int inum,
                                   const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   ii+=start;
 
-  __local numtyp sp_lj[4];                              
+  __local numtyp sp_lj[4];
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   if (tid<4)
-    sp_lj[tid]=gum[tid];    
+    sp_lj[tid]=gum[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
     if (eflag>0)
       lj3[tid]=lj3_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0;
@@ -706,9 +706,9 @@ __kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
@@ -722,7 +722,7 @@ __kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -735,19 +735,19 @@ __kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
-        
+
       if (r2inv<lj1[mtype].z && lj1[mtype].w==SPHERE_SPHERE) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-          energy+=factor_lj*(e-lj3[mtype].z); 
+          energy+=factor_lj*(e-lj3[mtype].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

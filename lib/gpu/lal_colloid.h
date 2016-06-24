@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -24,13 +24,13 @@ template <class numtyp, class acctyp>
 class Colloid : public BaseAtomic<numtyp, acctyp> {
  public:
   Colloid();
-  ~Colloid(); 
+  ~Colloid();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -40,11 +40,11 @@ class Colloid : public BaseAtomic<numtyp, acctyp> {
   int init(const int ntypes, double **host_cutsq,
            double **host_lj1, double **host_lj2, double **host_lj3,
            double **host_lj4, double **host_offset, double *host_special_lj,
-           double **host_a12, double **host_a1, double **host_a2, 
-           double **host_d1, double **host_d2, double **host_sigma3, 
-           double **host_sigma6, int **host_form, 
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           double **host_a12, double **host_a1, double **host_a2,
+           double **host_d1, double **host_d2, double **host_sigma3,
+           double **host_sigma6, int **host_form,
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
 
   /// Clear all host and device data
@@ -65,7 +65,7 @@ class Colloid : public BaseAtomic<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> lj3;
   /// colloid1.x = a12, colloid1.y = a1, colloid1.z = a2
   UCL_D_Vec<numtyp4> colloid1;
-  /// colloid2.x = d1, colloid2.y = d2, colloid2.z = sigma3, 
+  /// colloid2.x = d1, colloid2.y = d2, colloid2.z = sigma3,
   /// colloid2.w = sigma6
   UCL_D_Vec<numtyp4> colloid2;
   /// form
@@ -76,7 +76,7 @@ class Colloid : public BaseAtomic<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
  private:

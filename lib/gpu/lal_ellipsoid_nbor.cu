@@ -29,14 +29,14 @@ texture<int4,1> pos_tex;
 // -- Only unpack neighbors matching the specified inclusive range of forms
 // -- Only unpack neighbors within cutoff
 // ---------------------------------------------------------------------------
-__kernel void kernel_nbor(const __global numtyp4 *restrict x_, 
-                          const __global numtyp2 *restrict cut_form, 
-                          const int ntypes, 
+__kernel void kernel_nbor(const __global numtyp4 *restrict x_,
+                          const __global numtyp2 *restrict cut_form,
+                          const int ntypes,
                           __global int *dev_nbor,
-                          const int nbor_pitch, const int start, const int inum, 
-                          const __global int *dev_ij, 
+                          const int nbor_pitch, const int start, const int inum,
+                          const __global int *dev_ij,
                           const int form_low, const int form_high) {
-                                
+
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X+start;
 
@@ -47,11 +47,11 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
     nbor+=nbor_pitch;
     int nbor_end=nbor+fast_mul(numj,nbor_pitch);
     int packed=ii+nbor_pitch+nbor_pitch;
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul(iw,ntypes);
-    int newj=0;  
+    int newj=0;
     for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
       int j=dev_ij[nbor];
       j &= NEIGHMASK;
@@ -85,14 +85,14 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
 // -- Only unpack neighbors within cutoff
 // -- Fast version of routine that uses shared memory for LJ constants
 // ---------------------------------------------------------------------------
-__kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_, 
+__kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp2 *restrict cut_form,
-                               __global int *dev_nbor, 
-                               const int nbor_pitch, const int start, 
-                               const int inum, 
-                               const __global int *dev_ij, 
+                               __global int *dev_nbor,
+                               const int nbor_pitch, const int start,
+                               const int inum,
+                               const __global int *dev_ij,
                                const int form_low, const int form_high) {
-                                
+
   int ii=THREAD_ID_X;
   __local int form[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp cutsq[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
@@ -110,19 +110,19 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
     nbor+=nbor_pitch;
     int nbor_end=nbor+fast_mul(numj,nbor_pitch);
     int packed=ii+nbor_pitch+nbor_pitch;
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
-    int newj=0;  
+    int newj=0;
     for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
       int j=dev_ij[nbor];
       j &= NEIGHMASK;
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
       int mtype=itype+jtype;
-      
+
       if (form[mtype]>=form_low && form[mtype]<=form_high) {
         // Compute r12;
         numtyp rsq=jx.x-ix.x;

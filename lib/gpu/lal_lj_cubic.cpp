@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
@@ -33,21 +33,21 @@ LJCubicT::LJCubic() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-LJCubicT::~LJCubic() { 
+LJCubicT::~LJCubic() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int LJCubicT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int LJCubicT::init(const int ntypes, 
+int LJCubicT::init(const int ntypes,
                    double **host_cutsq, double **host_cut_inner_sq,
-                   double **host_cut_inner, double **host_sigma, 
-                   double **host_epsilon, double **host_lj1, 
-                   double **host_lj2, double **host_lj3, double **host_lj4, 
+                   double **host_cut_inner, double **host_sigma,
+                   double **host_epsilon, double **host_lj1,
+                   double **host_lj2, double **host_lj3, double **host_lj4,
                    double *host_special_lj, const int nlocal,
                    const int nall, const int max_nbors,
                    const int maxspecial, const double cell_size,
@@ -132,7 +132,7 @@ void LJCubicT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -144,12 +144,12 @@ void LJCubicT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.run(&this->atom->x, &lj1, &lj2, &lj3, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
-                          &vflag, &ainum, &nbor_pitch, 
+                          &vflag, &ainum, &nbor_pitch,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &lj1, &lj2, &lj3, &_lj_types, &sp_lj, 
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+    this->k_pair.run(&this->atom->x, &lj1, &lj2, &lj3, &_lj_types, &sp_lj,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->_threads_per_atom);
   }

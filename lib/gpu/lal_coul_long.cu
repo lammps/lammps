@@ -123,16 +123,16 @@ texture<int2> q_tex;
 
 #endif
 
-__kernel void k_coul_long(const __global numtyp4 *restrict x_, 
+__kernel void k_coul_long(const __global numtyp4 *restrict x_,
                           const __global numtyp *restrict scale,
                           const int lj_types,
-                          const __global numtyp *restrict sp_cl_in, 
+                          const __global numtyp *restrict sp_cl_in,
                           const __global int *dev_nbor,
-                          const __global int *dev_packed, 
+                          const __global int *dev_packed,
                           __global acctyp4 *restrict ans,
-                          __global acctyp *restrict engv, 
+                          __global acctyp *restrict engv,
                           const int eflag, const int vflag, const int inum,
-                          const int nbor_pitch, 
+                          const int nbor_pitch,
                           const __global numtyp *restrict q_,
                           const numtyp cut_coulsq, const numtyp qqrd2e,
                           const numtyp g_ewald, const int t_per_atom) {
@@ -216,15 +216,15 @@ __kernel void k_coul_long(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_coul_long_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_coul_long_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp *restrict scale_in,
                                const __global numtyp *restrict sp_cl_in,
-                               const __global int *dev_nbor, 
+                               const __global int *dev_nbor,
                                const __global int *dev_packed,
-                               __global acctyp4 *restrict ans, 
+                               __global acctyp4 *restrict ans,
                                __global acctyp *restrict engv,
                                const int eflag, const int vflag, const int inum,
-                               const int nbor_pitch, 
+                               const int nbor_pitch,
                                const __global numtyp *restrict q_,
                                const numtyp cut_coulsq, const numtyp qqrd2e,
                                const numtyp g_ewald, const int t_per_atom) {

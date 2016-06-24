@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
@@ -29,12 +29,12 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-__kernel void k_cg_cmm_long(const __global numtyp4 *restrict x_, 
+__kernel void k_cg_cmm_long(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict lj1,
-                            const __global numtyp4 *restrict lj3, 
-                            const int lj_types, 
+                            const __global numtyp4 *restrict lj3,
+                            const int lj_types,
                             const __global numtyp *restrict sp_lj_in,
-                            const __global int *dev_nbor, 
+                            const __global int *dev_nbor,
                             const __global int *dev_packed,
                             __global acctyp4 *restrict ans,
                             __global acctyp *restrict engv,
@@ -70,7 +70,7 @@ __kernel void k_cg_cmm_long(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
@@ -136,7 +136,7 @@ __kernel void k_cg_cmm_long(const __global numtyp4 *restrict x_,
           if (rsq < lj1[mtype].y) {
             energy += factor_lj*inv1*(lj3[mtype].y*inv2-lj3[mtype].z)-
                       lj3[mtype].w;
-          } 
+          }
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -154,17 +154,17 @@ __kernel void k_cg_cmm_long(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_cg_cmm_long_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_cg_cmm_long_fast(const __global numtyp4 *restrict x_,
                                  const __global numtyp4 *restrict lj1_in,
-                                 const __global numtyp4 *restrict lj3_in, 
-                                 const __global numtyp *restrict sp_lj_in, 
-                                 const __global int *dev_nbor, 
+                                 const __global numtyp4 *restrict lj3_in,
+                                 const __global numtyp *restrict sp_lj_in,
+                                 const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  __global acctyp4 *restrict ans,
-                                 __global acctyp *restrict engv, 
-                                 const int eflag, const int vflag, 
+                                 __global acctyp *restrict engv,
+                                 const int eflag, const int vflag,
                                  const int inum, const int nbor_pitch,
-                                 const __global numtyp *restrict q_, 
+                                 const __global numtyp *restrict q_,
                                  const numtyp cut_coulsq, const numtyp qqrd2e,
                                  const numtyp g_ewald, const int t_per_atom) {
   int tid, ii, offset;
@@ -179,7 +179,7 @@ __kernel void k_cg_cmm_long_fast(const __global numtyp4 *restrict x_,
     lj1[tid]=lj1_in[tid];
     lj3[tid]=lj3_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -187,16 +187,16 @@ __kernel void k_cg_cmm_long_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int iw=ix.w;
@@ -262,7 +262,7 @@ __kernel void k_cg_cmm_long_fast(const __global numtyp4 *restrict x_,
           if (rsq < lj1[mtype].y) {
             energy += factor_lj*inv1*(lj3[mtype].y*inv2-lj3[mtype].z)-
                       lj3[mtype].w;
-          } 
+          }
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -36,7 +36,7 @@ class NeighborShared {
  public:
   NeighborShared() : _compiled(false) {}
   ~NeighborShared() { clear(); }
- 
+
   /// Free all memory on host and device
   void clear();
 
@@ -44,7 +44,7 @@ class NeighborShared {
   UCL_Texture neigh_tex;
 
   /// Compile kernels for neighbor lists
-  void compile_kernels(UCL_Device &dev, const int gpu_nbor, 
+  void compile_kernels(UCL_Device &dev, const int gpu_nbor,
                        const std::string flags);
 
   // ----------------------------- Kernels

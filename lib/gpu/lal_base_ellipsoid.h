@@ -42,7 +42,7 @@ class BaseEllipsoid {
     * \param gpu_split fraction of particles handled by device
     * \param ellipsoid_sphere true if ellipsoid-sphere case handled separately
     * \param k_name name for the kernel for force calculation
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -68,7 +68,7 @@ class BaseEllipsoid {
       quat_tex.bind_float(atom->quat,4);
       lj_pos_tex.bind_float(atom->x,4);
       lj_quat_tex.bind_float(atom->quat,4);
-    }      
+    }
   }
 
   /// Check if there is enough storage for neighbors and realloc if not
@@ -78,7 +78,7 @@ class BaseEllipsoid {
     * \param olist_size size of list of particles from CPU neighboring
     * \note host_inum is 0 if the host is performing neighboring
     * \note if GPU is neighboring nlocal+host_inum=total number local particles
-    * \note if CPU is neighboring olist_size=total number of local particles 
+    * \note if CPU is neighboring olist_size=total number of local particles
     * \note if GPU is neighboring olist_size=0 **/
   inline void resize_local(const int nlocal, const int host_inum,
                            const int max_nbors, const int olist_size,
@@ -101,7 +101,7 @@ class BaseEllipsoid {
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear_base();
-  
+
   /// Output any timing information
   void output_times();
 
@@ -130,7 +130,7 @@ class BaseEllipsoid {
       ans->acc_timers();
     }
   }
-  
+
   /// Zero timers
   inline void zero_timers() {
     time_nbor1.zero();
@@ -148,9 +148,9 @@ class BaseEllipsoid {
     ans->zero_timers();
   }
 
-  /// Pack neighbors to limit thread divergence for lj-lj and ellipse 
+  /// Pack neighbors to limit thread divergence for lj-lj and ellipse
   void pack_nbors(const int GX, const int BX, const int start, const int inum,
-                  const int form_low, const int form_high, 
+                  const int form_low, const int form_high,
                   const bool shared_types, int ntypes);
 
   /// Copy neighbor list from host
@@ -174,17 +174,17 @@ class BaseEllipsoid {
   int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag, 
-                const bool eatom, const bool vatom, int &host_start, 
+                tagint **special, const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
                 double **host_quat);
 
   /// Build neighbor list on accelerator
-  void build_nbor_list(const int inum, const int host_inum, const int nall, 
+  void build_nbor_list(const int inum, const int host_inum, const int nall,
                        double **host_x, int *host_type, double *sublo,
                        double *subhi, bool &success);
-                       
-  // -------------------------- DEVICE DATA ------------------------- 
+
+  // -------------------------- DEVICE DATA -------------------------
 
   /// Device Properties and Atom and Neighbor storage
   Device<numtyp,acctyp> *device;
@@ -207,7 +207,7 @@ class BaseEllipsoid {
   /// Atom Data
   Atom<numtyp,acctyp> *atom;
 
-  // --------------------------- TYPE DATA -------------------------- 
+  // --------------------------- TYPE DATA --------------------------
 
   /// cut_form.x = cutsq, cut_form.y = form
   UCL_D_Vec<numtyp2> cut_form;
@@ -240,7 +240,7 @@ class BaseEllipsoid {
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 
-  // True if we want to use fast GB-sphere or sphere-sphere calculations 
+  // True if we want to use fast GB-sphere or sphere-sphere calculations
   bool _multiple_forms;
   int **_host_form;
   int _last_ellipse, _max_last_ellipse;

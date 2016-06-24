@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -28,29 +28,29 @@
 
 namespace LAMMPS_AL {
 
-template <class numtyp, class acctyp, 
+template <class numtyp, class acctyp,
           class grdtyp, class grdtyp4> class PPPM;
 
 template <class numtyp, class acctyp>
 class Device {
  public:
   Device();
-  ~Device(); 
- 
+  ~Device();
+
   /// Initialize the device for use by this process
   /** Sets up a per-device MPI communicator for load balancing and initializes
-    * the device (>=first_gpu and <=last_gpu) that this proc will be using 
+    * the device (>=first_gpu and <=last_gpu) that this proc will be using
     * Returns:
     * -  0 if successfull
     * - -2 if GPU not found
     * - -4 if GPU library not compiled for GPU
     * - -6 if GPU could not be initialized for use
-    * - -7 if accelerator sharing is not currently allowed on system 
+    * - -7 if accelerator sharing is not currently allowed on system
     * - -11 if vendor_string has the wrong number of parameters **/
-  int init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu, 
-                  const int last_gpu, const int gpu_mode, 
+  int init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
+                  const int last_gpu, const int gpu_mode,
                   const double particle_split, const int nthreads,
-                  const int t_per_atom, const double cell_size, 
+                  const int t_per_atom, const double cell_size,
                   char *vendor_string, const int block_pair);
 
   /// Initialize the device for Atom and Neighbor storage
@@ -62,9 +62,9 @@ class Device {
     *                 1 if gpu_nbor is true, and host needs a half nbor list,
     *                 2 if gpu_nbor is true, and host needs a full nbor list
     * \param max_nbors Initial number of rows in the neighbor matrix
-    * \param cell_size cutoff+skin 
+    * \param cell_size cutoff+skin
     * \param pre_cut True if cutoff test will be performed in separate kernel
-    *                than the force kernel 
+    *                than the force kernel
     * \param threads_per_atom value to be used by the neighbor list only
     *
     * Returns:
@@ -113,25 +113,25 @@ class Device {
 
   /// Returns true if double precision is supported on card
   inline bool double_precision() { return gpu->double_precision(); }
-  
+
   /// Output a message with timing information
-  void output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans, 
-                    Neighbor &nbor, const double avg_split, 
+  void output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
+                    Neighbor &nbor, const double avg_split,
                     const double max_bytes, const double gpu_overhead,
-                    const double driver_overhead, 
+                    const double driver_overhead,
                     const int threads_per_atom, FILE *screen);
 
   /// Output a message with timing information
   void output_kspace_times(UCL_Timer &time_in, UCL_Timer &time_out,
                            UCL_Timer & time_map, UCL_Timer & time_rho,
-                           UCL_Timer &time_interp, 
-                           Answer<numtyp,acctyp> &ans, 
+                           UCL_Timer &time_interp,
+                           Answer<numtyp,acctyp> &ans,
                            const double max_bytes, const double cpu_time,
                            const double cpu_idle_time, FILE *screen);
 
   /// Clear all memory on host and device associated with atom and nbor data
   void clear();
-  
+
   /// Clear all memory on host and device
   void clear_device();
 
@@ -149,24 +149,24 @@ class Device {
       while (ans_queue.empty()==false) {
         evdw+=ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul);
         ans_queue.pop();
-      }                                                 
+      }
       return evdw;
     }
     return 0.0;
   }
 
   /// Start timer on host
-  inline void start_host_timer() 
+  inline void start_host_timer()
     { _cpu_full=MPI_Wtime(); _host_timer_started=true; }
-  
+
   /// Stop timer on host
-  inline void stop_host_timer() { 
+  inline void stop_host_timer() {
     if (_host_timer_started) {
-      _cpu_full=MPI_Wtime()-_cpu_full; 
+      _cpu_full=MPI_Wtime()-_cpu_full;
       _host_timer_started=false;
     }
   }
-  
+
   /// Return host time
   inline double host_time() { return _cpu_full; }
 
@@ -239,8 +239,8 @@ class Device {
   /// Number of threads executing concurrently on same multiproc
   inline int warp_size() const { return _warp_size; }
 
-  // -------------------- SHARED DEVICE ROUTINES -------------------- 
-  // Perform asynchronous zero of integer array 
+  // -------------------- SHARED DEVICE ROUTINES --------------------
+  // Perform asynchronous zero of integer array
   void zero(UCL_D_Vec<int> &mem, const int numel) {
     int num_blocks=static_cast<int>(ceil(static_cast<double>(numel)/
                                     _block_pair));
@@ -248,25 +248,25 @@ class Device {
     k_zero.run(&mem,&numel);
   }
 
-  // -------------------------- DEVICE DATA ------------------------- 
+  // -------------------------- DEVICE DATA -------------------------
 
   /// Geryon Device
   UCL_Device *gpu;
 
   enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 
-  // --------------------------- ATOM DATA -------------------------- 
+  // --------------------------- ATOM DATA --------------------------
 
   /// Atom Data
   Atom<numtyp,acctyp> atom;
 
   // --------------------------- NBOR DATA ----------------------------
-  
+
   /// Neighbor Data
   NeighborShared _neighbor_shared;
 
   // ------------------------ LONG RANGE DATA -------------------------
-  
+
   // Long Range Data
   int _long_range_precompute;
   PPPM<numtyp,acctyp,float,_lgpu_float4> *pppm_single;
@@ -282,7 +282,7 @@ class Device {
       pppm_double->precompute(ago,nlocal,nall,host_x,host_type,success,charge,
                               boxlo,prd);
   }
-  
+
   inline std::string compile_string() { return _ocl_compile_string; }
 
  private:
@@ -290,7 +290,7 @@ class Device {
   int _init_count;
   bool _device_init, _host_timer_started, _time_device;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
-  int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me, 
+  int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
       _replica_size;
   int _gpu_mode, _first_device, _last_device, _nthreads;
   double _particle_split;
@@ -310,10 +310,10 @@ class Device {
   int compile_kernels();
 
   int _data_in_estimate, _data_out_estimate;
-  
+
   std::string _ocl_vendor_name, _ocl_vendor_string, _ocl_compile_string;
   int set_ocl_params(char *);
-  
+
   template <class t>
   inline std::string toa(const t& in) {
     std::ostringstream o;

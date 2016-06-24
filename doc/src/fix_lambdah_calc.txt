@@ -60,11 +60,11 @@ Depending on the shape of the Hybrid region which might be either slab, sphere o
 the resolution of every atom based on the center of mass of its molecule.
 The following switching function is defined for a simulation box whose atomistic region is limited to \[-0.5L<sub>AT</sub> 0.5L<sub>AT</sub>\]:
 
-:c,image(Eqs/HADRESS_Switching_Function_Slab.png)
+:c,image(Eqs/HADRESS_Switching_Function_Slab.jpg)
 
 The following switching function is defined for a spherical/cylinderical atomistic region located at the middle of the simulation box:
 
-:c,image(Eqs/HADRESS_Switching_Function_Sphere.png)
+:c,image(Eqs/HADRESS_Switching_Function_Sphere.jpg)
 
 A setup of a Hamiltonian Adaptive Resolution Simulation is shown below. The box is partitioned into three
  different region types, namely: Coarse-grained (CG), Hybrid (HY), and Atomistic (AT). In each region,

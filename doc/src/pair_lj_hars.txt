@@ -56,7 +56,7 @@ pair_style      hybrid/overlay lj/cut/hars/cg 1.1224 1 0 lj/cut/hars/at 1.5 1 0 
 In the H-AdResS scheme, the description of the interactions within a system of particles is given in terms
 of a global Hamiltonian function H, which has the following form "(Potestio2013_1)"_#Potestio2013_1, "(Potestio2013_2)"_#Potestio2013_2, "(Heidari2016)"_#Heidari2016:
 
-:c,image(Eqs/HADRESS_System_Hamiltonian.png)
+:c,image(Eqs/HADRESS_System_Hamiltonian.jpg)
 
 The term K is the atomistic kinetic energy, and V<sup>int</sup> consists of all the intramolecular bonded interactions (e.g. bond stretching). 
 The value of the switching function is determined by the sizes L<sub>AT</sub>
@@ -65,12 +65,12 @@ L<sub>HY</sub> of the atomistic and hybrid regions, respectively, and of the spe
 In the Hamiltonian, the non-bonded potential energy contribution of each molecule is given by a weighted sum of two terms
 V<sub>&#945;</sub><sup>CG</sup> and V<sub>&#945;</sub><sup>AT</sup>, defined as:
 
-:c,image(Eqs/HADRESS_System_Potentials.png)
+:c,image(Eqs/HADRESS_System_Potentials.jpg)
 
 The {lj/cut/hars/at} styles compute the standard 12/6 Lennard-Jones potential for the atoms located in atomistic (high resolution) and hybrid region. 
 The general formula is given by
 
-:c,image(Eqs/HADRESS_AT_pair_lj.png)
+:c,image(Eqs/HADRESS_AT_pair_lj.jpg)
 
 rc is the cutoff.
 
@@ -87,7 +87,7 @@ summation.
 The {lj/cut/hars/cg} styles compute the standard 12/6 Lennard-Jones potential for the atoms located in the low resolution (coarse-grained) and hybrid region. 
 The general formula is given by
 
-:c,image(Eqs/HADRESS_CG_pair_lj.png)
+:c,image(Eqs/HADRESS_CG_pair_lj.jpg)
 
 rc is the cutoff.
 As mentioned above, the interactions in the coarse-grained region are computed based on the center of mass of the particles.

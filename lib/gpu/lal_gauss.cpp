@@ -75,7 +75,7 @@ int GaussT::init(const int ntypes,
 
   gauss1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,gauss1,host_write,host_a,host_b,
-			                   host_cutsq,host_offset);
+                                           host_cutsq,host_offset);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -99,7 +99,7 @@ void GaussT::reinit(const int ntypes, double **host_cutsq, double **host_a,
     host_write[i]=0.0;
 
   this->atom->type_pack4(ntypes,_lj_types,gauss1,host_write,host_a,host_b,
-			                   host_cutsq,host_offset);
+                                           host_cutsq,host_offset);
 }
 
 template <class numtyp, class acctyp>

@@ -134,10 +134,10 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
         force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y,
                        coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
 
-      	if (rsq>cut_innersq) {
-	        t = r - cut_inner;
-	        force = t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
-      	}
+              if (rsq>cut_innersq) {
+                t = r - cut_inner;
+                force = t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
+              }
 
         force *= (numtyp)-1.0*ucl_recip(r);
 
@@ -148,10 +148,10 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-       	  e += coeff3[mtype].z;
-      	  if (rsq > cut_innersq) {
-      	    e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
-      	  }
+                 e += coeff3[mtype].z;
+                if (rsq > cut_innersq) {
+                  e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
+                }
 
           energy+=e;
         }
@@ -237,10 +237,10 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
         force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y,
                        coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
 
-      	if (rsq>cut_innersq) {
-	        t = r - cut_inner;
-	        force += t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
-      	}
+              if (rsq>cut_innersq) {
+                t = r - cut_inner;
+                force += t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
+              }
 
         force *= (numtyp)-1.0*ucl_recip(r);
 
@@ -251,10 +251,10 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
         if (eflag>0) {
           numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-       	  e += coeff3[mtype].z;
-      	  if (rsq > cut_innersq) {
-      	    e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
-      	  }
+                 e += coeff3[mtype].z;
+                if (rsq > cut_innersq) {
+                  e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
+                }
 
           energy+=e;
         }

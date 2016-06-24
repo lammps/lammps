@@ -76,11 +76,11 @@ int MieT::init(const int ntypes, double **host_cutsq,
 
   mie1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,mie1,host_write,host_mie1,host_mie2,
-			                   host_gamA,host_gamR);
+                                           host_gamA,host_gamR);
 
   mie3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,mie3,host_write,host_mie3,host_mie4,
-			                   host_offset,host_cutsq);
+                                           host_offset,host_cutsq);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);

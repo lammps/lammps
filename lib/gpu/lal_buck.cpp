@@ -79,7 +79,7 @@ int BuckT::init(const int ntypes, double **host_cutsq,
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_a,host_c,
-		         host_offset);
+                         host_offset);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);

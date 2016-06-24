@@ -80,7 +80,7 @@ int BornT::init(const int ntypes, double **host_cutsq,
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_a,host_c,
-		                     host_d,host_offset);
+                                     host_d,host_offset);
 
   cutsq_sigma.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack2(ntypes,lj_types,cutsq_sigma,host_write,host_cutsq,
@@ -113,7 +113,7 @@ void BornT::reinit(const int ntypes, double **host_rhoinv,
   this->atom->type_pack4(ntypes,_lj_types,coeff1,host_write,host_rhoinv,
                          host_born1,host_born2,host_born3);
   this->atom->type_pack4(ntypes,_lj_types,coeff2,host_write,host_a,host_c,
-		                     host_d,host_offset);
+                                     host_d,host_offset);
 }
 
 template <class numtyp, class acctyp>

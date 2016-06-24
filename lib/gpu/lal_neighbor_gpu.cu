@@ -118,24 +118,24 @@ __kernel void transpose(__global tagint *restrict out,
                         const __global tagint *restrict in,
                         int columns_in, int rows_in)
 {
-	__local tagint block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
-	
-	unsigned ti=THREAD_ID_X;
-	unsigned tj=THREAD_ID_Y;
-	unsigned bi=BLOCK_ID_X;
-	unsigned bj=BLOCK_ID_Y;
-	
-	unsigned i=bi*BLOCK_CELL_2D+ti;
-	unsigned j=bj*BLOCK_CELL_2D+tj;
-	if ((i<columns_in) && (j<rows_in))
-		block[tj][ti]=in[j*columns_in+i];
+        __local tagint block[BLOCK_CELL_2D][BLOCK_CELL_2D+1];
 
-	__syncthreads();
+        unsigned ti=THREAD_ID_X;
+        unsigned tj=THREAD_ID_Y;
+        unsigned bi=BLOCK_ID_X;
+        unsigned bj=BLOCK_ID_Y;
 
-	i=bj*BLOCK_CELL_2D+ti;
-	j=bi*BLOCK_CELL_2D+tj;
-	if ((i<rows_in) && (j<columns_in))
-		out[j*rows_in+i] = block[ti][tj];
+        unsigned i=bi*BLOCK_CELL_2D+ti;
+        unsigned j=bj*BLOCK_CELL_2D+tj;
+        if ((i<columns_in) && (j<rows_in))
+                block[tj][ti]=in[j*columns_in+i];
+
+        __syncthreads();
+
+        i=bj*BLOCK_CELL_2D+ti;
+        j=bi*BLOCK_CELL_2D+tj;
+        if ((i<rows_in) && (j<columns_in))
+                out[j*rows_in+i] = block[ti][tj];
 }
 
 __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
@@ -154,7 +154,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
   int iy = BLOCK_ID_Y % (ncelly - cells_in_cutoff*2) + cells_in_cutoff;
   int iz = BLOCK_ID_Y / (ncelly - cells_in_cutoff*2) + cells_in_cutoff;
   int bsx = BLOCK_SIZE_X;
-	
+
   int icell = ix + iy*ncellx + iz*ncellx*ncelly;
 
   __local int cell_list_sh[BLOCK_NBOR_BUILD];
@@ -191,7 +191,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
       nbor_list[pid_i]=pid_i;
     } else {
       stride=0;
-    	neigh_counts=host_numj+pid_i-inum;
+            neigh_counts=host_numj+pid_i-inum;
       neigh_list=host_nbor_list+(pid_i-inum)*neigh_bin_size;
     }
 
@@ -200,19 +200,19 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
     for (int nborz = nborz0; nborz <= nborz1; nborz++) {
       for (int nbory = nbory0; nbory <= nbory1; nbory++) {
         for (int nborx = nborx0; nborx <= nborx1; nborx++) {
-	
+
           int jcell = nborx + nbory*ncellx + nborz*ncellx*ncelly;
-		
+
           int jcell_begin = cell_counts[jcell];
           int jcell_end = cell_counts[jcell+1];
           int num_atom_cell = jcell_end - jcell_begin;
-	
+
           // load jcell to shared memory
           int num_iter = ucl_ceil((numtyp)num_atom_cell/bsx);
 
           for (int k = 0; k < num_iter; k++) {
             int end_idx = min(bsx, num_atom_cell-k*bsx);
-	
+
             if (tid < end_idx) {
               pid_j =  cell_particle_id[tid+k*bsx+jcell_begin];
               cell_list_sh[tid] = pid_j;
@@ -222,15 +222,15 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
               pos_sh[tid].z = atom_j.z;
             }
             __syncthreads();
-	
+
             if (pid_i < nt) {
-	
+
               for (int j = 0; j < end_idx; j++) {
                 int pid_j = cell_list_sh[j]; // gather from shared memory
                 diff.x = atom_i.x - pos_sh[j].x;
                 diff.y = atom_i.y - pos_sh[j].y;
                 diff.z = atom_i.z - pos_sh[j].z;
-		
+
                 r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
                 if (r2 < cell_size*cell_size && r2 > 1e-5) {
                   cnt++;
@@ -240,11 +240,11 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
                     if ((cnt & (t_per_atom-1))==0)
                       neigh_list=neigh_list+stride;
                   }
-                }		
+                }
               }
             }
-	          __syncthreads();
-	        } // for (k)
+                  __syncthreads();
+                } // for (k)
         }
       }
     }

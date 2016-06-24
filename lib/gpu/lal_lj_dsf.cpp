@@ -84,11 +84,11 @@ int LJDSFT::init(const int ntypes, double **host_cutsq, double **host_lj1,
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
-			 host_cut_ljsq, host_cutsq);
+                         host_cut_ljsq, host_cutsq);
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
-		         host_offset);
+                         host_offset);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {

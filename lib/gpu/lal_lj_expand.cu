@@ -82,9 +82,9 @@ __kernel void k_lj_expand(const __global numtyp4 *restrict x_,
       int mtype=itype*lj_types+jtype;
       if (r2inv<lj1[mtype].z) {
         numtyp r = ucl_sqrt(r2inv);
-	numtyp rshift = r - lj1[mtype].w;
-	numtyp rshiftsq = rshift*rshift;
-	r2inv = ucl_recip(rshiftsq);
+        numtyp rshift = r - lj1[mtype].w;
+        numtyp rshiftsq = rshift*rshift;
+        r2inv = ucl_recip(rshiftsq);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         force*=factor_lj/rshift/r;
@@ -175,9 +175,9 @@ __kernel void k_lj_expand_fast(const __global numtyp4 *restrict x_,
 
       if (r2inv<lj1[mtype].z) {
         numtyp r = ucl_sqrt(r2inv);
-	numtyp rshift = r - lj1[mtype].w;
-	numtyp rshiftsq = rshift*rshift;
-	r2inv = ucl_recip(rshiftsq);
+        numtyp rshift = r - lj1[mtype].w;
+        numtyp rshiftsq = rshift*rshift;
+        r2inv = ucl_recip(rshiftsq);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         force*=factor_lj/rshift/r;

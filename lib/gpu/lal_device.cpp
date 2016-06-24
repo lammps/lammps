@@ -650,8 +650,8 @@ int DeviceT::compile_kernels() {
   int flag=0;
 
   if (_compiled)
-  	return flag;
-  	
+          return flag;
+
   dev_program=new UCL_Program(*gpu);
   int success=dev_program->load_string(device,compile_string().c_str());
   if (success!=UCL_SUCCESS)

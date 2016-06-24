@@ -238,7 +238,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
           if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
-	          r7inv = r5inv*r2inv;
+                  r7inv = r5inv*r2inv;
             pdotp  = mui.x*muj.x + mui.y*muj.y + mui.z*muj.z;
             pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
             pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
@@ -251,7 +251,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
             forcecoul.x += pre1*delx + pre2*mui.x + pre3*muj.x;
             forcecoul.y += pre1*dely + pre2*mui.y + pre3*muj.y;
             forcecoul.z += pre1*delz + pre2*mui.z + pre3*muj.z;
-	
+
             numtyp crossx = pre4 * (mui.y*muj.z - mui.z*muj.y);
             numtyp crossy = pre4 * (mui.z*muj.x - mui.x*muj.z);
             numtyp crossz = pre4 * (mui.x*muj.y - mui.y*muj.x);
@@ -463,7 +463,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
             forcecoul.x += pre1*delx + pre2*mui.x + pre3*muj.x;
             forcecoul.y += pre1*dely + pre2*mui.y + pre3*muj.y;
             forcecoul.z += pre1*delz + pre2*mui.z + pre3*muj.z;
-	
+
             numtyp crossx = pre4 * (mui.y*muj.z - mui.z*muj.y);
             numtyp crossy = pre4 * (mui.z*muj.x - mui.x*muj.z);
             numtyp crossz = pre4 * (mui.x*muj.y - mui.y*muj.x);

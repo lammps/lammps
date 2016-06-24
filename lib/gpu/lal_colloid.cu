@@ -132,7 +132,7 @@ __kernel void k_colloid(const __global numtyp4 *restrict x_,
           g[1] *= (numtyp)42.0*K[0]/K[4]+(numtyp)6.0*K[1]+K[4];
           g[2] *= (numtyp)-42.0*K[0]/K[5]+(numtyp)6.0*K[2]+K[5];
           g[3] *= (numtyp)-42.0*K[0]/K[6]+(numtyp)6.0*K[2]+K[6];
-	
+
           fR = colloid1[mtype].x*colloid2[mtype].w/r/(numtyp)37800.0;
           evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
           numtyp dUR = evdwl/r + (numtyp)5.0*fR*(g[0]+g[1]-g[2]-g[3]);
@@ -296,7 +296,7 @@ __kernel void k_colloid_fast(const __global numtyp4 *restrict x_,
           g[1] *= (numtyp)42.0*K[0]/K[4]+(numtyp)6.0*K[1]+K[4];
           g[2] *= (numtyp)-42.0*K[0]/K[5]+(numtyp)6.0*K[2]+K[5];
           g[3] *= (numtyp)-42.0*K[0]/K[6]+(numtyp)6.0*K[2]+K[6];
-	
+
           fR = colloid1[mtype].x*colloid2[mtype].w/r/(numtyp)37800.0;
           evdwl = fR * (h[0]-h[1]-h[2]+h[3]);
           numtyp dUR = evdwl/r + (numtyp)5.0*fR*(g[0]+g[1]-g[2]-g[3]);

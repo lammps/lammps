@@ -80,7 +80,7 @@ int CGCMMT::init(const int ntypes, double **host_cutsq,
 
   lj3.alloc(cmm_types*cmm_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,cmm_types,lj3,host_write,host_lj3,host_lj4,
-		         host_offset);
+                         host_offset);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);

@@ -75,7 +75,7 @@ int YukawaT::init(const int ntypes,
 
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_a,host_offset,
-			 host_cutsq);
+                         host_cutsq);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);

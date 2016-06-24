@@ -463,7 +463,7 @@ ucl_inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi,
   mat[1] = twoij+twokw;
   mat[4] = w2-i2+j2-k2;
   mat[7] = twojk-twoiw;
-	
+
   mat[2] = twoik-twojw;
   mat[5] = twojk+twoiw;
   mat[8] = w2-i2-j2+k2;

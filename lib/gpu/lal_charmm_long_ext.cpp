@@ -115,11 +115,11 @@ int** crml_gpu_compute_n(const int ago, const int inum_full,
                         vatom, host_start, ilist, jnum, cpu_time, success,
                         host_q, boxlo, prd);
 }
-			
+
 void crml_gpu_compute(const int ago, const int inum_full,
-	 	                  const int nall, double **host_x, int *host_type,
+                                   const int nall, double **host_x, int *host_type,
                       int *ilist, int *numj, int **firstneigh,
-		                  const bool eflag, const bool vflag, const bool eatom,
+                                  const bool eflag, const bool vflag, const bool eatom,
                       const bool vatom, int &host_start, const double cpu_time,
                       bool &success, double *host_q, const int nlocal,
                       double *boxlo, double *prd) {

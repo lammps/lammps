@@ -114,28 +114,28 @@ void cl_gpu_clear() {
 }
 
 int** cl_gpu_compute_n(const int ago, const int inum_full,
-		       const int nall, double **host_x, int *host_type,
-		       double *sublo, double *subhi, tagint *tag, int **nspecial,
-		       tagint **special, const bool eflag, const bool vflag,
-		       const bool eatom, const bool vatom, int &host_start,
-		       int **ilist, int **jnum,  const double cpu_time,
-		       bool &success, double *host_q, double *boxlo,
-		       double *prd) {
+                       const int nall, double **host_x, int *host_type,
+                       double *sublo, double *subhi, tagint *tag, int **nspecial,
+                       tagint **special, const bool eflag, const bool vflag,
+                       const bool eatom, const bool vatom, int &host_start,
+                       int **ilist, int **jnum,  const double cpu_time,
+                       bool &success, double *host_q, double *boxlo,
+                       double *prd) {
   return CLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
-		      subhi, tag, nspecial, special, eflag, vflag, eatom,
-		      vatom, host_start, ilist, jnum, cpu_time, success,
-		      host_q, boxlo, prd);
+                      subhi, tag, nspecial, special, eflag, vflag, eatom,
+                      vatom, host_start, ilist, jnum, cpu_time, success,
+                      host_q, boxlo, prd);
 }
 
 void cl_gpu_compute(const int ago, const int inum_full, const int nall,
-		    double **host_x, int *host_type, int *ilist, int *numj,
-		    int **firstneigh, const bool eflag, const bool vflag,
-		    const bool eatom, const bool vatom, int &host_start,
-		    const double cpu_time, bool &success, double *host_q,
-		    const int nlocal, double *boxlo, double *prd) {
+                    double **host_x, int *host_type, int *ilist, int *numj,
+                    int **firstneigh, const bool eflag, const bool vflag,
+                    const bool eatom, const bool vatom, int &host_start,
+                    const double cpu_time, bool &success, double *host_q,
+                    const int nlocal, double *boxlo, double *prd) {
   CLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-	       firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
-	       host_q,nlocal,boxlo,prd);
+               firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
+               host_q,nlocal,boxlo,prd);
 }
 
 double cl_gpu_bytes() {

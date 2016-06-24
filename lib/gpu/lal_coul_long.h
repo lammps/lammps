@@ -40,9 +40,9 @@ class CoulLong : public BaseCharge<numtyp, acctyp> {
   int init(const int ntypes, double **scale,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
-	         const double gpu_split, FILE *screen,
-	         const double host_cut_coulsq, double *host_special_coul,
-	         const double qqrd2e, const double g_ewald);
+                 const double gpu_split, FILE *screen,
+                 const double host_cut_coulsq, double *host_special_coul,
+                 const double qqrd2e, const double g_ewald);
 
   /// Send updated coeffs from host to device (to be compatible with fix adapt)
   void reinit(const int ntypes, double **scale);

@@ -51,7 +51,7 @@ int CoulLongT::init(const int ntypes, double **host_scale,
                     const double qqrd2e, const double g_ewald) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-			                      gpu_split,_screen,coul_long,"k_coul_long");
+                                              gpu_split,_screen,coul_long,"k_coul_long");
   if (success!=0)
     return success;
 

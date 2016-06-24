@@ -84,7 +84,7 @@ int BornCoulWolfT::init(const int ntypes, double **host_cutsq, double **host_rho
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_a,host_c,
-		                     host_d,host_offset);
+                                     host_d,host_offset);
 
   cutsq_sigma.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,cutsq_sigma,host_write,host_cutsq,

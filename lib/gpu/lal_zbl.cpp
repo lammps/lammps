@@ -79,11 +79,11 @@ int ZBLT::init(const int ntypes, double **host_cutsq,
 
   coeff1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff1,host_write,host_sw1,host_sw2,
-			                   host_zze, host_cutsq);
+                                           host_zze, host_cutsq);
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_d1a,host_d2a,
-			                   host_d3a,host_d4a);
+                                           host_d3a,host_d4a);
 
   coeff3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff3,host_write,host_sw3,host_sw4,host_sw5);

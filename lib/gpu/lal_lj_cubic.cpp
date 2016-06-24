@@ -77,11 +77,11 @@ int LJCubicT::init(const int ntypes,
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
-			 host_cutsq);
+                         host_cutsq);
 
   lj2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj2,host_write,host_cut_inner_sq,
-			 host_cut_inner,host_sigma,host_epsilon);
+                         host_cut_inner,host_sigma,host_epsilon);
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack2(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4);

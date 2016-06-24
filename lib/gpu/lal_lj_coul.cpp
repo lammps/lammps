@@ -79,11 +79,11 @@ int LJCoulT::init(const int ntypes,
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
-			 host_cut_ljsq, host_cut_coulsq);
+                         host_cut_ljsq, host_cut_coulsq);
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
-		         host_offset);
+                         host_offset);
 
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,cutsq,host_write,host_cutsq);

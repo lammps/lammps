@@ -81,19 +81,19 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
 
   sigma_epsilon.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack2(ntypes,lj_types,sigma_epsilon,host_write,
-			 host_sigma,host_epsilon);
+                         host_sigma,host_epsilon);
 
   this->cut_form.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack2(ntypes,lj_types,this->cut_form,host_write,
-			 host_cutsq,h_form);
+                         host_cutsq,h_form);
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
-			 host_cutsq,h_form);
+                         host_cutsq,h_form);
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
-		         host_offset);
+                         host_offset);
 
   dev_error.alloc(1,*(this->ucl_device),UCL_WRITE_ONLY);
   dev_error.zero();
@@ -197,7 +197,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
                                (BX/this->_threads_per_atom)));
       NGX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/BX));
       this->pack_nbors(NGX,BX, 0, this->_last_ellipse,ELLIPSE_ELLIPSE,
-			                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
+                                         ELLIPSE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor1.stop();
 
       this->time_ellipsoid.start();
@@ -214,7 +214,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       // ------------ ELLIPSE_SPHERE ---------------
       this->time_nbor2.start();
       this->pack_nbors(NGX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
-			                 ELLIPSE_SPHERE,_shared_types,_lj_types);
+                                         ELLIPSE_SPHERE,_shared_types,_lj_types);
       this->time_nbor2.stop();
 
       this->time_ellipsoid2.start();
@@ -245,7 +245,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       NGX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
                                this->_last_ellipse)/BX));
       this->pack_nbors(NGX,BX,this->_last_ellipse,this->ans->inum(),
-			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
+                                         SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor3.stop();
 
       this->time_ellipsoid3.start();
@@ -300,7 +300,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
     NGX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
     this->time_nbor1.start();
     this->pack_nbors(NGX, BX, 0, this->ans->inum(),SPHERE_SPHERE,
-		                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
+                                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
     this->time_nbor1.stop();
     this->time_ellipsoid.start();
     this->k_ellipsoid.set_size(GX,BX);

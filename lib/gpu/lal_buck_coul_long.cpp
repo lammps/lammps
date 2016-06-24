@@ -83,7 +83,7 @@ int BuckCoulLongT::init(const int ntypes, double **host_cutsq,
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_a,host_c,
-		         host_offset);
+                         host_offset);
 
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,cutsq,host_write,host_cutsq);

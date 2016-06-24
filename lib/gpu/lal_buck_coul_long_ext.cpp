@@ -111,7 +111,7 @@ int** buckcl_gpu_compute_n(const int ago, const int inum_full,
                         vatom, host_start, ilist, jnum, cpu_time, success,
                         host_q, boxlo, prd);
 }
-			
+
 void buckcl_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,

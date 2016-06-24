@@ -118,7 +118,7 @@ int ** tersoff_gpu_compute_n(const int ago, const int inum_full,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success);
 }
-			
+
 void tersoff_gpu_compute(const int ago, const int nlocal, const int nall,
                     const int nlist, double **host_x, int *host_type,
                     int *ilist, int *numj, int **firstneigh, const bool eflag,

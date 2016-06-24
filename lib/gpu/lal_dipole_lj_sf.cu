@@ -249,7 +249,7 @@ __kernel void k_dipole_lj_sf(const __global numtyp4 *restrict x_,
           if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
-	
+
             pdotp  = mui.x*muj.x + mui.y*muj.y + mui.z*muj.z;
             pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
             pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
@@ -259,7 +259,7 @@ __kernel void k_dipole_lj_sf(const __global numtyp4 *restrict x_,
             aforcecoul.x = pre1*delx;
             aforcecoul.y = pre1*dely;
             aforcecoul.z = pre1*delz;
- 	
+
             bfac = (numtyp)1.0-(numtyp)4.0*rsq*ucl_sqrt(rsq)*rcutcoul2inv*ucl_sqrt(rcutcoul2inv)+
               (numtyp)3.0*rsq*rsq*rcutcoul2inv*rcutcoul2inv;
             presf = (numtyp)2.0*r2inv*pidotr*pjdotr;
@@ -493,7 +493,7 @@ __kernel void k_dipole_lj_sf_fast(const __global numtyp4 *restrict x_,
           if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
-	
+
             pdotp  = mui.x*muj.x + mui.y*muj.y + mui.z*muj.z;
             pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
             pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
@@ -503,14 +503,14 @@ __kernel void k_dipole_lj_sf_fast(const __global numtyp4 *restrict x_,
             aforcecoul.x = pre1*delx;
             aforcecoul.y = pre1*dely;
             aforcecoul.z = pre1*delz;
-	
+
             bfac = (numtyp)1.0-(numtyp)4.0*rsq*ucl_sqrt(rsq)*rcutcoul2inv*ucl_sqrt(rcutcoul2inv)+
               (numtyp)3.0*rsq*rsq*rcutcoul2inv*rcutcoul2inv;
             presf = (numtyp)2.0*r2inv*pidotr*pjdotr;
             bforcecoul.x = bfac * (pjdotr*mui.x+pidotr*muj.x-presf*delx);
             bforcecoul.y = bfac * (pjdotr*mui.y+pidotr*muj.y-presf*dely);
             bforcecoul.z = bfac * (pjdotr*mui.z+pidotr*muj.z-presf*delz);
-	
+
             forcecoul.x += (numtyp)3.0*r5inv*(aforcecoul.x + bforcecoul.x);
             forcecoul.y += (numtyp)3.0*r5inv*(aforcecoul.y + bforcecoul.y);
             forcecoul.z += (numtyp)3.0*r5inv*(aforcecoul.z + bforcecoul.z);

@@ -104,7 +104,7 @@ int ** ykcolloid_gpu_compute_n(const int ago, const int inum_full,
                           vatom, host_start, ilist, jnum, cpu_time, success,
                           host_rad);
 }
-			
+
 void ykcolloid_gpu_compute(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *ilist, int *numj, int **firstneigh,

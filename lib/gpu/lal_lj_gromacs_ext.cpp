@@ -108,7 +108,7 @@ int ** ljgrm_gpu_compute_n(const int ago, const int inum_full,
                          subhi, tag, nspecial, special, eflag, vflag, eatom,
                          vatom, host_start, ilist, jnum, cpu_time, success);
 }
-			
+
 void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,
@@ -118,7 +118,7 @@ void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall,
                   firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
 }
 
-		
+
 double ljgrm_gpu_bytes() {
   return LJGRMMF.host_memory_usage();
 }

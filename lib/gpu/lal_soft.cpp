@@ -74,7 +74,7 @@ int SoftT::init(const int ntypes, double **host_cutsq,
 
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_prefactor,
-			                   host_cut,host_cutsq);
+                                           host_cut,host_cutsq);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -98,7 +98,7 @@ void SoftT::reinit(const int ntypes, double **host_cutsq,
     host_write[i]=0.0;
 
   this->atom->type_pack4(ntypes,_lj_types,coeff,host_write,host_prefactor,
-			                   host_cut,host_cutsq);
+                                           host_cut,host_cutsq);
 }
 
 template <class numtyp, class acctyp>

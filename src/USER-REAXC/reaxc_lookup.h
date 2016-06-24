@@ -29,6 +29,17 @@
 
 #include "reaxc_types.h"
 
+void Tridiagonal_Solve( const double *a, const double *b,
+                        double *c, double *d, double *x, unsigned int n);
+
+void Natural_Cubic_Spline( const double *h, const double *f,
+                           cubic_spline_coef *coef, unsigned int n,
+                           MPI_Comm comm );
+
+void Complete_Cubic_Spline( const double *h, const double *f, double v0, double vlast,
+                            cubic_spline_coef *coef, unsigned int n,
+                            MPI_Comm comm );
+
 int Init_Lookup_Tables( reax_system*, control_params*, storage*,
                         mpi_datatypes*, char* );
 

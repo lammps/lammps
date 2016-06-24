@@ -129,6 +129,8 @@ FixQEqReax::~FixQEqReax()
 {
   // unregister callbacks to this fix from Atom class
 
+  if (copymode) return;
+
   atom->delete_callback(id,0);
 
   memory->destroy(s_hist);
@@ -164,6 +166,9 @@ void FixQEqReax::pertype_parameters(char *arg)
   if (strcmp(arg,"reax/c") == 0) {
     reaxflag = 1;
     Pair *pair = force->pair_match("reax/c",1);
+    if (pair == NULL)
+      pair = force->pair_match("reax/c/kk",1);
+
     if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/reax");
     int tmp;
     chi = (double *) pair->extract("chi",tmp);

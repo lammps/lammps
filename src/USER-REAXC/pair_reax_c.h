@@ -60,7 +60,7 @@ class PairReaxC : public Pair {
   double init_one(int, int);
   void *extract(const char *, int &);
 
- private:
+ protected:
   double cutmax;
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements

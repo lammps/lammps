@@ -7,6 +7,7 @@
 :line
 
 pair_style reax/c command :h3
+pair_style reax/c/kk command :h3
 
 [Syntax:]
 
@@ -40,9 +41,17 @@ supplemental information of the following paper: "(Chenoweth et al.,
 2008)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
-the "(Aktulga)"_#Aktulga paper.  The {reax/c} style was initially
+the "(Aktulga)"_#Aktulga paper. The {reax/c} style was initially
 implemented as stand-alone C code and is now integrated into LAMMPS
 as a package.
+
+The {reax/c/kk} style is a Kokkos version of the ReaxFF potential that is
+derived from the {reax/c} style. The Kokkos version can run on GPUs and
+can also use OpenMP multithreading. For more information about the Kokkos package,
+see "Section_packages"_Section_packages.html#kokkos and "Section_accelerate"_accelerate_kokkos.html.
+One important consideration when using the {reax/c/kk} style is the choice of either
+half or full neighbor lists. This setting can be changed using the Kokkos "package"_package.html
+command.
 
 LAMMPS provides several different versions of ffield.reax in its
 potentials dir, each called potentials/ffield.reax.label.  These are
@@ -112,9 +121,11 @@ control file.  Note: Force field files are different for the original
 or lg corrected pair styles, using wrong ffield file generates an error message.
 
 Optional keywords {safezone} and {mincap} are used for allocating 
-reax/c arrays.  Increase these values can avoid memory problems, such 
+reax/c arrays.  Increasing these values can avoid memory problems, such 
 as segmentation faults and bondchk failed errors, that could occur under 
-certain conditions.
+certain conditions. These keywords aren't used by the Kokkos version, which
+instead uses a more robust memory allocation scheme that checks if the sizes of
+the arrays have been exceeded and automatically allocates more memory.
 
 The thermo variable {evdwl} stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -266,6 +277,31 @@ script that reads a restart file.
 This pair style can only be used via the {pair} keyword of the
 "run_style respa"_run_style.html command.  It does not support the
 {inner}, {middle}, {outer} keywords.
+
+:line
+
+Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.
+
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the "-suffix command-line
+switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
+use the "suffix"_suffix.html command in your input script.
+
+See "Section_accelerate"_Section_accelerate.html of the manual for
+more instructions on how to use the accelerated styles effectively.
+
+:line
 
 [Restrictions:]
 

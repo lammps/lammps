@@ -16,7 +16,7 @@ variable 	Nf equal 100
 variable 	Ne equal 10
 variable 	Nr equal ${Nf}/${Ne}
 variable 	Ndump equal 1000
-variable	Nrestart equal 100
+variable	Nrestart equal 10000
 variable 	Nr_rdf equal 0.5*${Nrun}/${Ne}
 
 variable 	Text equal 300.0

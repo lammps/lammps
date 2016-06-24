@@ -81,7 +81,7 @@ FixLambdaHCalc::FixLambdaHCalc(LAMMPS *lmp, int narg, char **arg) :
 
   me = comm->me;
 
-  if (narg < 8) error->all(FLERR,"Illegal fix LambdaH/Calc command");
+  if (narg < 8) error->all(FLERR,"Illegal fix lambdah/calc command");
 
   atom->nmoltypesH  = force->numeric(FLERR,arg[3]);
   Length_Hyb  = force->numeric(FLERR,arg[4]);
@@ -95,7 +95,7 @@ FixLambdaHCalc::FixLambdaHCalc(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[11],"slab") == 0) Hybrid_Style = 0;
   else if (strcmp(arg[11],"sphere") == 0) Hybrid_Style = 1;
   else if (strcmp(arg[11],"cylinder") == 0) Hybrid_Style = 2;
-  else error->all(FLERR,"Illegal fix LambdaH/Calc command");
+  else error->all(FLERR,"Illegal fix lambdah/calc command");
 
   Density_Comp_Flag  = force->numeric(FLERR,arg[12]);
   Density_Bin_Size  = force->numeric(FLERR,arg[13]);
@@ -369,7 +369,7 @@ void FixLambdaHCalc::post_integrate()
   double **comH = atom->comH;
 
   int This_Step = update->ntimestep;
-  if(This_Step >= Density_Update_Time_Begin && This_Step <= Density_Update_Time_End && Density_Comp_Flag == 1){
+  if(This_Step >= Density_Update_Time_Begin && This_Step < Density_Update_Time_End && Density_Comp_Flag == 1){
       Density_Compensation_Run = 1;
       if(me==0 && This_Step == Density_Update_Time_Begin){
           if(screen)fprintf(screen,"\nStart of constant-density route\n");
@@ -603,7 +603,7 @@ void FixLambdaHCalc::post_integrate()
         double Density_Bin_Vol, exponent;
         double Normalization;
         int jmin, jmax,jj;
-        if(This_Step % Density_Update_Frequency == 0 && Density_Comp_Flag != 0 && Density_Compensation_Run != 0){
+        if(This_Step % Density_Update_Frequency == 0 && This_Step > Density_Update_Time_Begin && Density_Comp_Flag != 0 && Density_Compensation_Run != 0){
 
       //   if(atom->nmoltypesH ==1)   MPI_Allreduce(&Comp_Density_Num_H[0][0],&Comp_Density_Num_all_H[0][0],Density_Bin_Num,MPI_INT,MPI_SUM,world);
         MPI_Allreduce(&Comp_Density_Num_H[0][0],&Comp_Density_Num_all_H[0][0],Density_Bin_Num*(atom->nmoltypesH+1),MPI_INT,MPI_SUM,world);

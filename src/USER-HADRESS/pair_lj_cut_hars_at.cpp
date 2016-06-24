@@ -179,7 +179,7 @@ void PairLJCutHARSAT::compute(int eflag, int vflag)
   double xtmpj, iLambda, jLambda, ijLambda;
 
   int This_Step = update->ntimestep;
-  if(This_Step >= AT_Update_Time_Begin && This_Step <= AT_Update_Time_End && AT_Pressure_Comp_Flag != 0) AT_Pressure_Compensation_Run = 1;
+  if(This_Step >= AT_Update_Time_Begin && This_Step < AT_Update_Time_End && AT_Pressure_Comp_Flag != 0) AT_Pressure_Compensation_Run = 1;
 
 
   for (int i = 0; i < nmolecules; i++) {
@@ -336,7 +336,7 @@ void PairLJCutHARSAT::compute(int eflag, int vflag)
             }
         }
 
-        if(This_Step % AT_Update_Frequency == 0)AT_Update_Compensation_Energy();
+        if(This_Step % AT_Update_Frequency == 0 && This_Step > AT_Update_Time_Begin)AT_Update_Compensation_Energy();
 
     }
 
@@ -537,7 +537,14 @@ void PairLJCutHARSAT::init_style()
     if(!H_AdResS_allocated)H_AdResS_Allocation();
 
     int This_Step = update->ntimestep;
-    if((This_Step >= AT_Update_Time_End  || Load_File_Flag) && AT_Pressure_Comp_Flag != 0)Load_Compensation_Pressure();
+    if((This_Step > AT_Update_Time_Begin  || Load_File_Flag) && AT_Pressure_Comp_Flag != 0)Load_Compensation_Pressure();
+
+    if(This_Step < AT_Update_Time_End && This_Step >= AT_Update_Time_Begin)Comp_Counter_H = floor((This_Step-AT_Update_Time_Begin)/AT_Update_Frequency);
+
+    if(me==0 && This_Step < AT_Update_Time_End && This_Step > AT_Update_Time_Begin){
+        if(screen)fprintf(screen,"AT_Pressure componsation forces are again being updated after previous %d times\n",Comp_Counter_H);
+        if(logfile)fprintf(logfile,"AT_Pressure componsation forces are again being updated after previous %d times\n",Comp_Counter_H);
+    }
 
 
     int irequest;
@@ -949,12 +956,16 @@ void PairLJCutHARSAT::Load_Compensation_Pressure(){
 
         int i1;
 
+        float f1;
         while (!feof(fp1)){
                 fscanf (fp1,"%d",&i1);
-                for(int j=0;j<atom->nmoltypesH;j++)fscanf (fp1,"\t%f",&Mean_Comp_Energy_H[i1-1][j]);
+                for(int j=0;j<atom->nmoltypesH;j++){
+                    fscanf (fp1,"\t%f",&f1);
+                    Mean_Comp_Energy_H[i1-1][j] = f1;
+                }
                 fscanf (fp1,"\n");
                 if(i1 > AT_Bin_Num){
-                    sprintf(str,"Pressure bin number mismatches %d != %d",AT_Bin_Num,i1);
+                    sprintf(str,"At drift force compensation bin number mismatches %d != %d",AT_Bin_Num,i1);
                     error->one(FLERR,str);
                 }
 

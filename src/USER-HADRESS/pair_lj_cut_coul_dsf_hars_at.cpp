@@ -164,7 +164,7 @@ void PairLJCutCoulDSFHARSAT::compute(int eflag, int vflag)
   double xtmpj, iLambda, jLambda, ijLambda;
 
   int This_Step = update->ntimestep;
-  if(This_Step >= AT_Update_Time_Begin && This_Step <= AT_Update_Time_End && AT_Pressure_Comp_Flag != 0) AT_Pressure_Compensation_Run = 1;
+  if(This_Step >= AT_Update_Time_Begin && This_Step < AT_Update_Time_End && AT_Pressure_Comp_Flag != 0) AT_Pressure_Compensation_Run = 1;
 
 
   for (int i = 0; i < nmolecules; i++) {
@@ -343,7 +343,7 @@ void PairLJCutCoulDSFHARSAT::compute(int eflag, int vflag)
             }
         }
 
-        if(This_Step % AT_Update_Frequency == 0)AT_Update_Compensation_Energy();
+        if(This_Step % AT_Update_Frequency == 0 && This_Step > AT_Update_Time_Begin)AT_Update_Compensation_Energy();
 
     }
 
@@ -515,7 +515,14 @@ void PairLJCutCoulDSFHARSAT::init_style()
   int This_Step = update->ntimestep;
   AT_Restart_Time_Step = This_Step;
 
-  if((This_Step >= AT_Update_Time_End || Load_File_Flag) && AT_Pressure_Comp_Flag != 0)Load_Compensation_Pressure();
+  if((This_Step > AT_Update_Time_Begin || Load_File_Flag) && AT_Pressure_Comp_Flag != 0)Load_Compensation_Pressure();
+
+  if(This_Step < AT_Update_Time_End && This_Step >= AT_Update_Time_Begin)Comp_Counter_H = floor((This_Step-AT_Update_Time_Begin)/AT_Update_Frequency);
+
+  if(me==0 && This_Step < AT_Update_Time_End && This_Step > AT_Update_Time_Begin){
+      if(screen)fprintf(screen,"AT_Pressure componsation forces are again being updated after previous %d times\n",Comp_Counter_H);
+      if(logfile)fprintf(logfile,"AT_Pressure componsation forces are again being updated after previous %d times\n",Comp_Counter_H);
+  }
 
   neighbor->request(this,instance_me);
 
@@ -882,11 +889,14 @@ void PairLJCutCoulDSFHARSAT::Load_Compensation_Pressure(){
         }
 
         int i1;
+        float f1;
 
         while (!feof(fp1)){
                 fscanf (fp1,"%d",&i1);
-                for(int j=0;j<atom->nmoltypesH;j++)fscanf (fp1,"\t%f",&Mean_Comp_Energy_H[i1-1][j]);
-                fscanf (fp1,"\n");
+                for(int j=0;j<atom->nmoltypesH;j++){
+                    fscanf (fp1,"\t%f",&f1);
+                    Mean_Comp_Energy_H[i1-1][j] = f1;
+                }
                 if(i1 > AT_Bin_Num){
                     sprintf(str,"At drift force compensation bin number mismatches %d != %d",AT_Bin_Num,i1);
                     error->one(FLERR,str);
@@ -911,7 +921,7 @@ void PairLJCutCoulDSFHARSAT::Load_Compensation_Pressure(){
 
 void PairLJCutCoulDSFHARSAT::H_AdResS_Allocation(){
     for (int i = 0; i < modify->nfix; i++){
-      if (strcmp(modify->fix[i]->style,"LambdaH/calc") == 0){
+      if (strcmp(modify->fix[i]->style,"lambdah/calc") == 0){
              lambda_H_fix = (FixLambdaHCalc *) modify->fix[i];
              AT_lambda_Increment = lambda_H_fix->Pressure_lambda_Increment;
              AT_Bin_Num = lambda_H_fix->Pressure_Bin_Num;

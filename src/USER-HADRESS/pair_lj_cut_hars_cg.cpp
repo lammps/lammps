@@ -194,7 +194,7 @@ void PairLJCutHARSCG::compute(int eflag, int vflag)
 
 
   int This_Step = update->ntimestep;
-  if(This_Step >= CG_Update_Time_Begin && This_Step <= CG_Update_Time_End && CG_Pressure_Comp_Flag != 0){
+  if(This_Step >= CG_Update_Time_Begin && This_Step < CG_Update_Time_End && CG_Pressure_Comp_Flag != 0){
       CG_Pressure_Compensation_Run = 1;
       if(me==0 && This_Step == CG_Update_Time_Begin){
           if(screen)fprintf(screen,"\nStart of constant-pressure route\n");
@@ -363,7 +363,7 @@ void PairLJCutHARSCG::compute(int eflag, int vflag)
           }
       }
 
-      if(This_Step % CG_Update_Frequency == 0)CG_Update_Compensation_Energy();
+      if(This_Step % CG_Update_Frequency == 0 && This_Step > CG_Update_Time_Begin)CG_Update_Compensation_Energy();
   }
 
 
@@ -597,7 +597,14 @@ void PairLJCutHARSCG::init_style()
     int This_Step = update->ntimestep;
     CG_Restart_Time_Step = This_Step;
 
-    if((This_Step >= CG_Update_Time_End || Load_File_Flag)  && CG_Pressure_Comp_Flag != 0)Load_Compensation_Pressure();
+    if((This_Step > CG_Update_Time_Begin || Load_File_Flag)  && CG_Pressure_Comp_Flag != 0)Load_Compensation_Pressure();
+
+    if(This_Step < CG_Update_Time_End && This_Step >= CG_Update_Time_Begin)Comp_Counter_H = floor((This_Step-CG_Update_Time_Begin)/CG_Update_Frequency);
+
+    if(me==0 && This_Step < CG_Update_Time_End && This_Step > CG_Update_Time_Begin){
+        if(screen)fprintf(screen,"CG_Pressure componsation forces are again being updated after previous %d times\n",Comp_Counter_H);
+        if(logfile)fprintf(logfile,"CG_Pressure componsation forces are again being updated after previous %d times\n",Comp_Counter_H);
+    }
 
   int irequest;
 
@@ -1038,7 +1045,7 @@ void PairLJCutHARSCG::H_AdResS_Allocation(){
 
     for (int i = 0; i < modify->nfix; i++){
 
-        if (strcmp(modify->fix[i]->style,"LambdaH/calc") == 0){
+        if (strcmp(modify->fix[i]->style,"lambdah/calc") == 0){
 
             lambda_H_fix = (FixLambdaHCalc *) modify->fix[i];
             CG_lambda_Increment = lambda_H_fix->Pressure_lambda_Increment;

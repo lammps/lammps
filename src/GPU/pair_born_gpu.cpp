@@ -155,7 +155,7 @@ void PairBornGPU::init_style()
                               born1, born2, born3, a, c, d, sigma,
                               offset, force->special_lj, atom->nlocal,
                               atom->nlocal+atom->nghost, 300, maxspecial,
-	      cell_size, gpu_mode, screen);
+              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {

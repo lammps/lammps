@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -37,7 +37,7 @@ template <class numtyp, class acctyp>
 DipoleLJSFT::~DipoleLJSF() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int DipoleLJSFT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -45,8 +45,8 @@ int DipoleLJSFT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int DipoleLJSFT::init(const int ntypes,
-                      double **host_cutsq, double **host_lj1, 
-                      double **host_lj2, double **host_lj3, 
+                      double **host_cutsq, double **host_lj1,
+                      double **host_lj2, double **host_lj3,
                       double **host_lj4,
                       double *host_special_lj, const int nlocal,
                       const int nall, const int max_nbors,
@@ -138,7 +138,7 @@ void DipoleLJSFT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -151,17 +151,17 @@ void DipoleLJSFT::loop(const bool _eflag, const bool _vflag) {
                           &this->nbor->dev_nbor,
                           &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag, &vflag,
-                          &ainum, &nbor_pitch, &this->atom->q, 
+                          &ainum, &nbor_pitch, &this->atom->q,
                           &this->atom->quat, &cutsq,
                           &_qqrd2e, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &lj1, &lj3,
                      &_lj_types, &sp_lj, &this->nbor->dev_nbor,
-                     &this->_nbor_data->begin(), 
-                     &this->ans->force, &this->ans->engv, &eflag, &vflag, 
-                     &ainum, &nbor_pitch, &this->atom->q, 
-                     &this->atom->quat, &cutsq, 
+                     &this->_nbor_data->begin(),
+                     &this->ans->force, &this->ans->engv, &eflag, &vflag,
+                     &ainum, &nbor_pitch, &this->atom->q,
+                     &this->atom->quat, &cutsq,
                      &_qqrd2e, &this->_threads_per_atom);
   }
   this->time_pair.stop();

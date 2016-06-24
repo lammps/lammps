@@ -17,7 +17,7 @@
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
@@ -26,65 +26,65 @@
 
 // Assign an integer id based on the data type: (int, float, double, etc)
 template <class eltype> struct _UCL_DATA_ID;
-template <> struct _UCL_DATA_ID<double> { 
+template <> struct _UCL_DATA_ID<double> {
   enum { id=1 };
-  static inline const char * name() { return "double"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=double"; }  
+  static inline const char * name() { return "double"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=double"; }
 };
-template <> struct _UCL_DATA_ID<float> { 
+template <> struct _UCL_DATA_ID<float> {
   enum { id=2 };
-  static inline const char * name() { return "float"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=float"; }  
+  static inline const char * name() { return "float"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=float"; }
 };
-template <> struct _UCL_DATA_ID<unsigned> { 
+template <> struct _UCL_DATA_ID<unsigned> {
   enum { id=3 };
-  static inline const char * name() { return "unsigned"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned"; }  
+  static inline const char * name() { return "unsigned"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned"; }
 };
-template <> struct _UCL_DATA_ID<int> { 
+template <> struct _UCL_DATA_ID<int> {
   enum { id=4 };
-  static inline const char * name() { return "int"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=int"; }  
+  static inline const char * name() { return "int"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=int"; }
 };
-template <> struct _UCL_DATA_ID<char> { 
+template <> struct _UCL_DATA_ID<char> {
   enum { id=5 };
-  static inline const char * name() { return "char"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=char"; }  
+  static inline const char * name() { return "char"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=char"; }
 };
-template <> struct _UCL_DATA_ID<unsigned char> { 
+template <> struct _UCL_DATA_ID<unsigned char> {
   enum { id=6 };
-  static inline const char * name() { return "unsigned char"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned char"; }  
+  static inline const char * name() { return "unsigned char"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned char"; }
 };
-template <> struct _UCL_DATA_ID<short> { 
+template <> struct _UCL_DATA_ID<short> {
   enum { id=7 };
-  static inline const char * name() { return "short"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=short"; }  
+  static inline const char * name() { return "short"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=short"; }
 };
-template <> struct _UCL_DATA_ID<unsigned short> { 
+template <> struct _UCL_DATA_ID<unsigned short> {
   enum { id=8 };
-  static inline const char * name() { return "unsigned short"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned short"; }  
+  static inline const char * name() { return "unsigned short"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned short"; }
 };
-template <> struct _UCL_DATA_ID<long> { 
+template <> struct _UCL_DATA_ID<long> {
   enum { id=9 };
-  static inline const char * name() { return "long"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=long"; }  
+  static inline const char * name() { return "long"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=long"; }
 };
-template <> struct _UCL_DATA_ID<unsigned long> { 
+template <> struct _UCL_DATA_ID<unsigned long> {
   enum { id=10 };
-  static inline const char * name() { return "unsigned long"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned long"; }  
+  static inline const char * name() { return "unsigned long"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=unsigned long"; }
 };
-template <> struct _UCL_DATA_ID<long double> { 
+template <> struct _UCL_DATA_ID<long double> {
   enum { id=11 };
-  static inline const char * name() { return "long double"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=long double"; }  
+  static inline const char * name() { return "long double"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=long double"; }
 };
-template <class eltype> struct _UCL_DATA_ID { 
+template <class eltype> struct _UCL_DATA_ID {
   enum { id=0 };
-  static inline const char * name() { return "error_type"; }  
-  static inline const char * numtyp_flag() { return "-D NUMTYP=error_type"; }  
+  static inline const char * name() { return "error_type"; }
+  static inline const char * numtyp_flag() { return "-D NUMTYP=error_type"; }
 };
 
 // Host memory allocation types
@@ -97,7 +97,7 @@ enum UCL_MEMOPT {
   UCL_NOT_SPECIFIED
 };
 
-enum UCL_DEVICE_TYPE { 
+enum UCL_DEVICE_TYPE {
   UCL_DEFAULT,        ///< Unknown device type
   UCL_CPU,            ///< Device is a CPU
   UCL_GPU,            ///< Device is a GPU
@@ -111,7 +111,7 @@ enum UCL_ERROR_FLAG {
   UCL_FUNCTION_NOT_FOUND, ///< Kernel function not found
   UCL_COMPILE_ERROR,      ///< Error compiling kernel
   UCL_MEMORY_ERROR
-};  
+};
 
 template <class numtyp>
 const char * ucl_template_name() { return _UCL_DATA_ID<numtyp>::name(); }

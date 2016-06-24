@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : ndtrung@umich.edu
 // ***************************************************************************/
 
@@ -31,16 +31,16 @@ texture<int2> q_tex;
 
 __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
                            const __global numtyp *restrict scale,
-                           const int lj_types, 
+                           const int lj_types,
                            const __global numtyp *restrict sp_cl_in,
-                           const __global int *dev_nbor, 
-                           const __global int *dev_packed, 
+                           const __global int *dev_nbor,
+                           const __global int *dev_packed,
                            __global acctyp4 *restrict ans,
                            __global acctyp *restrict engv,
                            const int eflag, const int vflag, const int inum,
                            const int nbor_pitch,
                            const __global numtyp *restrict q_ ,
-                           const __global numtyp *restrict cutsq, 
+                           const __global numtyp *restrict cutsq,
                            const numtyp qqrd2e, const numtyp kappa,
                            const int t_per_atom) {
   int tid, ii, offset;
@@ -59,27 +59,27 @@ __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
 
     numtyp factor_coul;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_coul = sp_cl[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jtype=jx.w;
-      
+
       // Compute r12
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
@@ -146,7 +146,7 @@ __kernel void k_coul_debye_fast(const __global numtyp4 *restrict x_,
     scale[tid]=scale_in[tid];
     cutsq[tid]=_cutsq[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -154,15 +154,15 @@ __kernel void k_coul_debye_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int iw=ix.w;

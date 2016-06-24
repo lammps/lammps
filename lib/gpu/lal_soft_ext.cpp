@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -77,7 +77,7 @@ int soft_gpu_init(const int ntypes, double **cutsq, double **host_prefactor,
                         cell_size, gpu_split, screen);
 
     SLMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -96,16 +96,16 @@ void soft_gpu_reinit(const int ntypes, double **cutsq, double **host_prefactor,
   int world_me=SLMF.device->world_me();
   int gpu_rank=SLMF.device->gpu_rank();
   int procs_per_gpu=SLMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
     SLMF.reinit(ntypes, cutsq, host_prefactor, host_cut);
-  
+
   SLMF.device->world_barrier();
-  
+
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       SLMF.reinit(ntypes, cutsq, host_prefactor, host_cut);
-    
+
     SLMF.device->gpu_barrier();
   }
 }
@@ -124,8 +124,8 @@ int ** soft_gpu_compute_n(const int ago, const int inum_full,
   return SLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                       subhi, tag, nspecial, special, eflag, vflag, eatom,
                       vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void soft_gpu_compute(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,

@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
@@ -33,10 +33,10 @@ ZBLT::ZBL() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-ZBLT::~ZBL() { 
+ZBLT::~ZBL() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int ZBLT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -44,15 +44,15 @@ int ZBLT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int ZBLT::init(const int ntypes, double **host_cutsq,
-               double **host_sw1, double **host_sw2, 
-               double **host_sw3, double **host_sw4, 
+               double **host_sw1, double **host_sw2,
+               double **host_sw3, double **host_sw4,
                double **host_sw5,
-               double **host_d1a, double **host_d2a, 
-               double **host_d3a, double **host_d4a, 
-               double **host_zze, double cut_globalsq, 
+               double **host_d1a, double **host_d2a,
+               double **host_d3a, double **host_d4a,
+               double **host_zze, double cut_globalsq,
                double cut_innersq, double cut_inner,
-               const int nlocal, const int nall, const int max_nbors, 
-               const int maxspecial, const double cell_size, 
+               const int nlocal, const int nall, const int max_nbors,
+               const int maxspecial, const double cell_size,
                const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
@@ -79,16 +79,16 @@ int ZBLT::init(const int ntypes, double **host_cutsq,
 
   coeff1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff1,host_write,host_sw1,host_sw2,
-			                   host_zze, host_cutsq);
+                                           host_zze, host_cutsq);
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_d1a,host_d2a,
-			                   host_d3a,host_d4a);
+                                           host_d3a,host_d4a);
 
   coeff3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff3,host_write,host_sw3,host_sw4,host_sw5);
 
-  _cut_globalsq = cut_globalsq; 
+  _cut_globalsq = cut_globalsq;
   _cut_innersq = cut_innersq;
   _cut_inner = cut_inner;
 
@@ -131,7 +131,7 @@ void ZBLT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 

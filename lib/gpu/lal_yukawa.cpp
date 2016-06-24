@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -33,19 +33,19 @@ YukawaT::Yukawa() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-YukawaT::~Yukawa() { 
+YukawaT::~Yukawa() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int YukawaT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int YukawaT::init(const int ntypes, 
+int YukawaT::init(const int ntypes,
                   double **host_cutsq, double kappa,
-                  double **host_a, double **host_offset, 
+                  double **host_a, double **host_offset,
                   double *host_special_lj, const int nlocal,
                   const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size,
@@ -75,7 +75,7 @@ int YukawaT::init(const int ntypes,
 
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_a,host_offset,
-			 host_cutsq);
+                         host_cutsq);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -83,7 +83,7 @@ int YukawaT::init(const int ntypes,
   ucl_copy(sp_lj,dview,false);
 
   _kappa = kappa;
-  
+
   _allocated=true;
   this->_max_bytes=coeff.row_bytes()+sp_lj.row_bytes();
   return 0;
@@ -122,7 +122,7 @@ void YukawaT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -134,7 +134,7 @@ void YukawaT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.run(&this->atom->x, &coeff, &_kappa, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
-                          &vflag, &ainum, &nbor_pitch, 
+                          &vflag, &ainum, &nbor_pitch,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);

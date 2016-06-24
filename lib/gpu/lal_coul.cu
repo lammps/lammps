@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : ndtrung@umich.edu
 // ***************************************************************************/
 
@@ -33,14 +33,14 @@ __kernel void k_coul(const __global numtyp4 *restrict x_,
                      const __global numtyp *restrict scale,
                      const int lj_types,
                      const __global numtyp *restrict sp_cl_in,
-                     const __global int *dev_nbor, 
-                     const __global int *dev_packed, 
+                     const __global int *dev_nbor,
+                     const __global int *dev_packed,
                      __global acctyp4 *restrict ans,
-                     __global acctyp *restrict engv, 
+                     __global acctyp *restrict engv,
                      const int eflag, const int vflag, const int inum,
-                     const int nbor_pitch, 
-                     const __global numtyp *restrict q_, 
-                     const __global numtyp *restrict cutsq, 
+                     const int nbor_pitch,
+                     const __global numtyp *restrict q_,
+                     const __global numtyp *restrict cutsq,
                      const numtyp qqrd2e, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -50,7 +50,7 @@ __kernel void k_coul(const __global numtyp4 *restrict x_,
   sp_cl[1]=sp_cl_in[1];
   sp_cl[2]=sp_cl_in[2];
   sp_cl[3]=sp_cl_in[3];
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -58,13 +58,13 @@ __kernel void k_coul(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
@@ -120,14 +120,14 @@ __kernel void k_coul(const __global numtyp4 *restrict x_,
 __kernel void k_coul_fast(const __global numtyp4 *restrict x_,
                           const __global numtyp *restrict scale,
                           const __global numtyp *restrict sp_cl_in,
-                          const __global int *dev_nbor, 
+                          const __global int *dev_nbor,
                           const __global int *dev_packed,
                           __global acctyp4 *restrict ans,
-                          __global acctyp *restrict engv, 
-                          const int eflag, const int vflag, const int inum, 
-                          const int nbor_pitch, 
+                          __global acctyp *restrict engv,
+                          const int eflag, const int vflag, const int inum,
+                          const int nbor_pitch,
                           const __global numtyp *restrict q_,
-                          const __global numtyp *restrict _cutsq, 
+                          const __global numtyp *restrict _cutsq,
                           const numtyp qqrd2e, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -139,7 +139,7 @@ __kernel void k_coul_fast(const __global numtyp4 *restrict x_,
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     cutsq[tid]=_cutsq[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -147,15 +147,15 @@ __kernel void k_coul_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int iw=ix.w;

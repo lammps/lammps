@@ -17,7 +17,7 @@
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
@@ -28,7 +28,7 @@
 #include "nvd_mat.h"
 
 namespace ucl_cudadr {
-    
+
 /// Class storing a texture reference
 class UCL_Texture {
  public:
@@ -38,39 +38,39 @@ class UCL_Texture {
   inline UCL_Texture(UCL_Program &prog, const char *texture_name)
     { get_texture(prog,texture_name); }
   /// Set the texture reference for this object
-  inline void get_texture(UCL_Program &prog, const char *texture_name)  
+  inline void get_texture(UCL_Program &prog, const char *texture_name)
     { CU_SAFE_CALL(cuModuleGetTexRef(&_tex, prog._module, texture_name)); }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class numtyp>
-  inline void bind_float(UCL_D_Vec<numtyp> &vec, const unsigned numel) 
+  inline void bind_float(UCL_D_Vec<numtyp> &vec, const unsigned numel)
     { _bind_float(vec,numel); }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class numtyp>
-  inline void bind_float(UCL_D_Mat<numtyp> &vec, const unsigned numel) 
+  inline void bind_float(UCL_D_Mat<numtyp> &vec, const unsigned numel)
     { _bind_float(vec,numel); }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class numtyp, class devtyp>
-  inline void bind_float(UCL_Vector<numtyp, devtyp> &vec, const unsigned numel) 
+  inline void bind_float(UCL_Vector<numtyp, devtyp> &vec, const unsigned numel)
     { _bind_float(vec.device,numel); }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class numtyp, class devtyp>
-  inline void bind_float(UCL_Matrix<numtyp, devtyp> &vec, const unsigned numel) 
+  inline void bind_float(UCL_Matrix<numtyp, devtyp> &vec, const unsigned numel)
     { _bind_float(vec.device,numel); }
 
   /// Unbind the texture reference from the memory allocation
   inline void unbind() { }
 
-  /// Make a texture reference available to kernel  
-  inline void allow(UCL_Kernel &kernel) { 
+  /// Make a texture reference available to kernel
+  inline void allow(UCL_Kernel &kernel) {
     #if CUDA_VERSION < 4000
-    CU_SAFE_CALL(cuParamSetTexRef(kernel._kernel, CU_PARAM_TR_DEFAULT, _tex)); 
+    CU_SAFE_CALL(cuParamSetTexRef(kernel._kernel, CU_PARAM_TR_DEFAULT, _tex));
     #endif
   }
-  
+
  private:
   CUtexref _tex;
   friend class UCL_Kernel;
@@ -80,7 +80,7 @@ class UCL_Texture {
     #ifdef UCL_DEBUG
     assert(numel!=0 && numel<5);
     #endif
-    CU_SAFE_CALL(cuTexRefSetAddress(NULL, _tex, vec.cbegin(), 
+    CU_SAFE_CALL(cuTexRefSetAddress(NULL, _tex, vec.cbegin(),
                  vec.numel()*vec.element_size()));
     if (vec.element_size()==sizeof(float))
       CU_SAFE_CALL(cuTexRefSetFormat(_tex, CU_AD_FORMAT_FLOAT, numel));

@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
@@ -24,7 +24,7 @@ texture<int4,1> pos_tex;
 #define pos_tex x_
 #endif
 
-__kernel void k_beck(const __global numtyp4 *restrict x_, 
+__kernel void k_beck(const __global numtyp4 *restrict x_,
                      const __global numtyp4 *restrict beck1,
                      const __global numtyp4 *restrict beck2,
                      const int lj_types,
@@ -50,20 +50,20 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -76,7 +76,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       int mtype=itype*lj_types+jtype;
       if (rsq<beck2[mtype].z) {
         numtyp r = ucl_sqrt(rsq);
@@ -103,7 +103,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);
-          energy+=factor_lj*e; 
+          energy+=factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -133,7 +133,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
                           const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local numtyp4 beck1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 beck2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
@@ -143,7 +143,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
     beck1[tid]=beck1_in[tid];
     beck2[tid]=beck2_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -152,7 +152,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
@@ -166,7 +166,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -179,7 +179,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       if (rsq<beck2[mtype].z) {
         numtyp r = ucl_sqrt(rsq);
         numtyp r5 = rsq*rsq*r;
@@ -205,7 +205,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);
-          energy+=factor_lj*e; 
+          energy+=factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

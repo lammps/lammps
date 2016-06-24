@@ -1,0 +1,18 @@
+This package contains files that brings the utility of
+Hamiltonian Adaptive Resolution Simulations (H-AdResS) to the Lammps package.
+
+
+See the doc page for for detailed usage instructions.
+
+There is example script for using this package in the folder
+"example"
+
+
+The persons who created this package are 
+
+Maziar Heidari (Max Planck Institute for Polymer Research)
+Robinson Cortes-Huerto (Max Planck Institute for Polymer Research)
+Raffaello Potestio (Max Planck Institute for Polymer Research)
+and Davide Donadio ( Department of Chemistry, University of California, Davis)
+
+Here is a contact information if you have questions. (heidari@mpip-mainz.mpg.de)

@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -37,7 +37,7 @@ template <class numtyp, class acctyp>
 LJCoulDebyeT::~LJCoulDebye() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int LJCoulDebyeT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -45,9 +45,9 @@ int LJCoulDebyeT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int LJCoulDebyeT::init(const int ntypes,
-                       double **host_cutsq, double **host_lj1, 
-                       double **host_lj2, double **host_lj3, 
-                       double **host_lj4, double **host_offset, 
+                       double **host_cutsq, double **host_lj1,
+                       double **host_lj2, double **host_lj3,
+                       double **host_lj4, double **host_offset,
                        double *host_special_lj, const int nlocal,
                        const int nall, const int max_nbors,
                        const int maxspecial, const double cell_size,
@@ -80,11 +80,11 @@ int LJCoulDebyeT::init(const int ntypes,
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
-			                   host_cut_ljsq, host_cut_coulsq);
+                                           host_cut_ljsq, host_cut_coulsq);
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
-		                     host_offset);
+                                     host_offset);
 
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,cutsq,host_write,host_cutsq);
@@ -98,7 +98,7 @@ int LJCoulDebyeT::init(const int ntypes,
 
   _qqrd2e=qqrd2e;
   _kappa=kappa;
-  
+
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+cutsq.row_bytes()+
                    sp_lj.row_bytes();
@@ -140,7 +140,7 @@ void LJCoulDebyeT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -157,9 +157,9 @@ void LJCoulDebyeT::loop(const bool _eflag, const bool _vflag) {
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
-                     &ainum, &nbor_pitch, &this->atom->q, &cutsq, 
+                     &ainum, &nbor_pitch, &this->atom->q, &cutsq,
                      &_qqrd2e, &_kappa, &this->_threads_per_atom);
   }
   this->time_pair.stop();

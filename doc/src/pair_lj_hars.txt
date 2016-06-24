@@ -14,11 +14,8 @@ pair_style lj/cut/hars/cg command :h3
 
 pair_style style args :pre
 
-style = :l
-	{lj/cut/hars/at} or
-	{lj/cut/coul/dsf/hars/at} or
-	{lj/cut/hars/cg} :pre
-args = list of arguments for a particular style :l
+style = {lj/cut/hars/at} or {lj/cut/coul/dsf/hars/at} or {lj/cut/hars/cg}
+args = list of arguments for a particular style :ul
   {lj/cut/hars/at} args = cutoff All_AT Flag_Load_File
     cutoff = global cutoff for Lennard Jones interactions (distance units)
     All_AT = Fully atomic simulation flag, = {0} or {1}
@@ -44,7 +41,8 @@ args = list of arguments for a particular style :l
       {1} Fully coarse-grained simulation is on and HAdResS is off
     Flag_Load_File = Flag of employing compensation energy file, = {0} or {1}
       {0} Do not employ compensation energy until T<sub>p</sub><sup>Start</sup>
-      {1} Employ compensation energy file immediately :pre
+      {1} Employ compensation energy file immediately
+:pre
 
 [Examples:]
 

@@ -78,9 +78,9 @@ coarse-grained water molecules in the coarse-grained region, this number equals 
 water molecules and ions such as Na and Cl and they interact differently in the coarse-grained region, 
 this number is 3.
 
-The {L<sub>HY</sub>} specifies the length of the Hybrid region. For the cases of cylinderical or spherical hybrid regions, this quantity denotes {r<sub>HY</sub>}.
+The {L<sub>HY</sub>} specifies the length of the hybrid region. For the cases of cylinderical or spherical hybrid regions, this quantity denotes {r<sub>HY</sub>}.
 
-The {L<sub>AT</sub>} determines the length of Atomistic region. For the cases of cylinderical or spherical hybrid regions, this quantity denotes {r<sub>AT</sub>}.
+The {L<sub>AT</sub>} determines the length of atomistic region. For the cases of cylinderical or spherical hybrid regions, this quantity denotes {r<sub>AT</sub>}.
 
 The {P<sub>flag</sub>} switches off and on the constant-pressure route.
 

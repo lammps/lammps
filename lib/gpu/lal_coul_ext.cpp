@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : ndtrung@umich.edu
  ***************************************************************************/
 
@@ -75,7 +75,7 @@ int coul_gpu_init(const int ntypes, double **host_scale,
                           maxspecial, cell_size, gpu_split, screen, qqrd2e);
 
     COULMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -93,16 +93,16 @@ void coul_gpu_reinit(const int ntypes, double **host_scale) {
   int world_me=COULMF.device->world_me();
   int gpu_rank=COULMF.device->gpu_rank();
   int procs_per_gpu=COULMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
     COULMF.reinit(ntypes, host_scale);
-  
+
   COULMF.device->world_barrier();
-  
+
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       COULMF.reinit(ntypes, host_scale);
-    
+
     COULMF.device->gpu_barrier();
   }
 }
@@ -113,7 +113,7 @@ void coul_gpu_clear() {
 
 int** coul_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, tagint *tag, int **nspecial, 
+                        double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum, const double cpu_time,
@@ -123,8 +123,8 @@ int** coul_gpu_compute_n(const int ago, const int inum_full,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success,
                        host_q, boxlo, prd);
-}  
-			
+}
+
 void coul_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,

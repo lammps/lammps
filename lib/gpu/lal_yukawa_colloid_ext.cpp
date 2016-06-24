@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -27,10 +27,10 @@ static YukawaColloid<PRECISION,ACC_PRECISION> YKCOLLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a, 
+int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
                        double **host_offset, double *special_lj, const int inum,
                        const int nall, const int max_nbors,  const int maxspecial,
-                       const double cell_size, int &gpu_mode, FILE *screen, 
+                       const double cell_size, int &gpu_mode, FILE *screen,
                        const double kappa) {
   YKCOLLMF.clear();
   gpu_mode=YKCOLLMF.device->gpu_mode();
@@ -54,8 +54,8 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj, 
-                          inum, nall, 300, maxspecial, cell_size, gpu_split, 
+    init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
+                          inum, nall, 300, maxspecial, cell_size, gpu_split,
                           screen, kappa);
 
   YKCOLLMF.device->world_barrier();
@@ -72,12 +72,12 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj, 
-                            inum, nall, 300, maxspecial, cell_size, gpu_split, 
+      init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
+                            inum, nall, 300, maxspecial, cell_size, gpu_split,
                             screen, kappa);
 
     YKCOLLMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -103,11 +103,11 @@ int ** ykcolloid_gpu_compute_n(const int ago, const int inum_full,
                           subhi, tag, nspecial, special, eflag, vflag, eatom,
                           vatom, host_start, ilist, jnum, cpu_time, success,
                           host_rad);
-}  
-			
-void ykcolloid_gpu_compute(const int ago, const int inum_full, 
-                           const int nall, double **host_x, int *host_type, 
-                           int *ilist, int *numj, int **firstneigh, 
+}
+
+void ykcolloid_gpu_compute(const int ago, const int inum_full,
+                           const int nall, double **host_x, int *host_type,
+                           int *ilist, int *numj, int **firstneigh,
                            const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            const double cpu_time, bool &success, double *host_rad) {

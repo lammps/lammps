@@ -37,18 +37,18 @@ RESquaredT::RESquared() : BaseEllipsoid<numtyp,acctyp>(),
 }
 
 template <class numtyp, class acctyp>
-RESquaredT::~RESquared() { 
+RESquaredT::~RESquared() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int RESquaredT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int RESquaredT::init(const int ntypes, double **host_shape, double **host_well, 
-                     double **host_cutsq, double **host_sigma, 
+int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
+                     double **host_cutsq, double **host_sigma,
                      double **host_epsilon, int **h_form, double **host_lj1,
                      double **host_lj2, double **host_lj3, double **host_lj4,
                      double **host_offset, const double *host_special_lj,
@@ -81,23 +81,23 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
 
   sigma_epsilon.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack2(ntypes,lj_types,sigma_epsilon,host_write,
-			 host_sigma,host_epsilon);
+                         host_sigma,host_epsilon);
 
   this->cut_form.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack2(ntypes,lj_types,this->cut_form,host_write,
-			 host_cutsq,h_form);
+                         host_cutsq,h_form);
 
   lj1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj1,host_write,host_lj1,host_lj2,
-			 host_cutsq,h_form);
+                         host_cutsq,h_form);
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
-		         host_offset);
+                         host_offset);
 
   dev_error.alloc(1,*(this->ucl_device),UCL_WRITE_ONLY);
   dev_error.zero();
-    
+
   // Allocate, cast and asynchronous memcpy of constant data
   // Copy data for bonded interactions
   special_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -127,7 +127,7 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
   }
   view4.view((numtyp4*)host_write.begin(),well.numel(),*(this->ucl_device));
   ucl_copy(well,view4,false);
-  
+
   _allocated=true;
   this->_max_bytes=sigma_epsilon.row_bytes()+this->cut_form.row_bytes()+
                    lj1.row_bytes()+lj3.row_bytes()+special_lj.row_bytes()+
@@ -144,7 +144,7 @@ void RESquaredT::clear() {
   UCL_H_Vec<int> err_flag(1,*(this->ucl_device));
   ucl_copy(err_flag,dev_error,false);
   if (err_flag[0] == 2)
-    std::cerr << "BAD MATRIX INVERSION IN FORCE COMPUTATION.\n";  
+    std::cerr << "BAD MATRIX INVERSION IN FORCE COMPUTATION.\n";
   err_flag.clear();
 
   _allocated=false;
@@ -158,7 +158,7 @@ void RESquaredT::clear() {
   shape.clear();
   well.clear();
   special_lj.clear();
-  
+
   this->clear_base();
 }
 
@@ -184,7 +184,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=0, NGX;
   int stride=this->nbor->nbor_pitch();
   int ainum=this->ans->inum();
@@ -197,34 +197,34 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
                                (BX/this->_threads_per_atom)));
       NGX=static_cast<int>(ceil(static_cast<double>(this->_last_ellipse)/BX));
       this->pack_nbors(NGX,BX, 0, this->_last_ellipse,ELLIPSE_ELLIPSE,
-			                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
+                                         ELLIPSE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor1.stop();
 
       this->time_ellipsoid.start();
       this->k_ellipsoid.set_size(GX,BX);
       this->k_ellipsoid.run(&this->atom->x, &this->atom->quat,
                             &this->shape, &this->well, &this->special_lj,
-                            &this->sigma_epsilon, &this->_lj_types, 
-                            &this->nbor->dev_nbor, &stride, 
+                            &this->sigma_epsilon, &this->_lj_types,
+                            &this->nbor->dev_nbor, &stride,
                             &this->ans->force,&ainum, &this->ans->engv,
-                            &this->dev_error, &eflag, &vflag, 
+                            &this->dev_error, &eflag, &vflag,
                             &this->_last_ellipse, &this->_threads_per_atom);
       this->time_ellipsoid.stop();
 
       // ------------ ELLIPSE_SPHERE ---------------
       this->time_nbor2.start();
       this->pack_nbors(NGX,BX, 0, this->_last_ellipse,ELLIPSE_SPHERE,
-			                 ELLIPSE_SPHERE,_shared_types,_lj_types);
+                                         ELLIPSE_SPHERE,_shared_types,_lj_types);
       this->time_nbor2.stop();
 
       this->time_ellipsoid2.start();
       this->k_ellipsoid_sphere.set_size(GX,BX);
-      this->k_ellipsoid_sphere.run(&this->atom->x, &this->atom->quat, 
+      this->k_ellipsoid_sphere.run(&this->atom->x, &this->atom->quat,
                                    &this->shape, &this->well, &this->special_lj,
-                                   &this->sigma_epsilon, &this->_lj_types, 
+                                   &this->sigma_epsilon, &this->_lj_types,
                                    &this->nbor->dev_nbor, &stride,
                                    &this->ans->force,&ainum,
-                                   &this->ans->engv, &this->dev_error, 
+                                   &this->ans->engv, &this->dev_error,
                                    &eflag, &vflag, &this->_last_ellipse,
                                    &this->_threads_per_atom);
       this->time_ellipsoid2.stop();
@@ -245,18 +245,18 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       NGX=static_cast<int>(ceil(static_cast<double>(this->ans->inum()-
                                this->_last_ellipse)/BX));
       this->pack_nbors(NGX,BX,this->_last_ellipse,this->ans->inum(),
-			                 SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
+                                         SPHERE_ELLIPSE,SPHERE_ELLIPSE,_shared_types,_lj_types);
       this->time_nbor3.stop();
 
       this->time_ellipsoid3.start();
       this->k_sphere_ellipsoid.set_size(GX,BX);
       this->k_sphere_ellipsoid.run(&this->atom->x, &this->atom->quat,
-                                   &this->shape, &this->well, &this->special_lj, 
+                                   &this->shape, &this->well, &this->special_lj,
                                    &this->sigma_epsilon, &this->_lj_types,
-                                   &this->nbor->dev_nbor, &stride, 
+                                   &this->nbor->dev_nbor, &stride,
                                    &this->ans->force, &this->ans->engv,
                                    &this->dev_error, &eflag, &vflag,
-                                   &this->_last_ellipse, &ainum, 
+                                   &this->_last_ellipse, &ainum,
                                    &this->_threads_per_atom);
       this->time_ellipsoid3.stop();
    } else {
@@ -266,13 +266,13 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->ans->force.zero();
       this->ans->engv.zero();
       this->time_nbor1.zero();
-      this->time_ellipsoid.zero();                                 
+      this->time_ellipsoid.zero();
       this->time_nbor2.zero();
       this->time_ellipsoid2.zero();
       this->time_nbor3.zero();
       this->time_ellipsoid3.zero();
     }
-    
+
     // ------------         LJ      ---------------
     this->time_lj.start();
     if (this->_last_ellipse<this->ans->inum()) {
@@ -287,7 +287,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       } else {
         this->k_lj.set_size(GX,BX);
         this->k_lj.run(&this->atom->x, &this->lj1, &this->lj3,
-                       &this->_lj_types, &this->special_lj, &stride, 
+                       &this->_lj_types, &this->special_lj, &stride,
                        &this->nbor->dev_packed, &this->ans->force,
                        &this->ans->engv, &this->dev_error, &eflag, &vflag,
                        &this->_last_ellipse, &ainum, &this->_threads_per_atom);
@@ -300,15 +300,15 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
     NGX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
     this->time_nbor1.start();
     this->pack_nbors(NGX, BX, 0, this->ans->inum(),SPHERE_SPHERE,
-		                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
+                                 ELLIPSE_ELLIPSE,_shared_types,_lj_types);
     this->time_nbor1.stop();
-    this->time_ellipsoid.start(); 
+    this->time_ellipsoid.start();
     this->k_ellipsoid.set_size(GX,BX);
-    this->k_ellipsoid.run(&this->atom->x, &this->atom->quat, 
-                          &this->shape, &this->well, &this->special_lj, 
-                          &this->sigma_epsilon, &this->_lj_types, 
+    this->k_ellipsoid.run(&this->atom->x, &this->atom->quat,
+                          &this->shape, &this->well, &this->special_lj,
+                          &this->sigma_epsilon, &this->_lj_types,
                           &this->nbor->dev_nbor, &stride, &this->ans->force,
-                          &ainum,  &this->ans->engv, &this->dev_error, 
+                          &ainum,  &this->ans->engv, &this->dev_error,
                           &eflag, &vflag, &ainum, &this->_threads_per_atom);
     this->time_ellipsoid.stop();
   }

@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -81,7 +81,7 @@ int dplsf_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                            host_cut_coulsq, host_special_coul, qqrd2e);
 
     DPLSFMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -98,18 +98,18 @@ void dplsf_gpu_clear() {
 
 int** dplsf_gpu_compute_n(const int ago, const int inum_full,
                           const int nall, double **host_x, int *host_type,
-                          double *sublo, double *subhi, tagint *tag, int **nspecial, 
+                          double *sublo, double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum, const double cpu_time,
-                          bool &success, double *host_q, double **host_mu, 
+                          bool &success, double *host_q, double **host_mu,
                           double *boxlo, double *prd) {
   return DPLSFMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                          subhi, tag, nspecial, special, eflag, vflag, eatom,
                          vatom, host_start, ilist, jnum, cpu_time, success,
                          host_q, host_mu, boxlo, prd);
-}  
-			
+}
+
 void dplsf_gpu_compute(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,

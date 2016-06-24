@@ -17,7 +17,7 @@
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
@@ -53,9 +53,9 @@ typedef struct _double4 double4;
 #define BLOCK_SIZE_Y blockDim.y
 #define __kernel extern "C" __global__
 #define __local __shared__
-#define __global  
+#define __global
 #define atom_add atomicAdd
-#define ucl_inline static __inline__ __device__ 
+#define ucl_inline static __inline__ __device__
 
 #endif
 

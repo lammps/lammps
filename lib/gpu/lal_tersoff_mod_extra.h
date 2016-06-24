@@ -180,12 +180,12 @@ ucl_inline numtyp ters_bij_d(const numtyp zeta,
 {
   numtyp tmp = param_beta * zeta;
   if (tmp > param_ca1) return (numtyp)-0.5*(param_powern/param_powern_del) *
-	  ucl_powr(tmp,(numtyp)-0.5*(param_powern/param_powern_del)) / zeta;
+          ucl_powr(tmp,(numtyp)-0.5*(param_powern/param_powern_del)) / zeta;
   if (tmp < param_ca4) return (numtyp)0.0;
 
   numtyp tmp_n = ucl_powr(tmp,param_powern);
   return (numtyp)-0.5 *(param_powern/param_powern_del) *
-	  ucl_powr((numtyp)1.0+tmp_n, (numtyp)-1.0-((numtyp)1.0 /
+          ucl_powr((numtyp)1.0+tmp_n, (numtyp)-1.0-((numtyp)1.0 /
     ((numtyp)2.0*param_powern_del)))*tmp_n / zeta;
 }
 

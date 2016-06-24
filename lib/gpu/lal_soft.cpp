@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -33,10 +33,10 @@ SoftT::Soft() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-SoftT::~Soft() { 
+SoftT::~Soft() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int SoftT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -74,7 +74,7 @@ int SoftT::init(const int ntypes, double **host_cutsq,
 
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_prefactor,
-			                   host_cut,host_cutsq);
+                                           host_cut,host_cutsq);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -89,16 +89,16 @@ int SoftT::init(const int ntypes, double **host_cutsq,
 template <class numtyp, class acctyp>
 void SoftT::reinit(const int ntypes, double **host_cutsq,
                    double **host_prefactor, double **host_cut) {
-  
+
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
                                UCL_WRITE_ONLY);
-  
+
   for (int i=0; i<_lj_types*_lj_types; i++)
     host_write[i]=0.0;
-  
+
   this->atom->type_pack4(ntypes,_lj_types,coeff,host_write,host_prefactor,
-			                   host_cut,host_cutsq);
+                                           host_cut,host_cutsq);
 }
 
 template <class numtyp, class acctyp>
@@ -134,7 +134,7 @@ void SoftT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 

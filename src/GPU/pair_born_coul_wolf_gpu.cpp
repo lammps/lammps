@@ -71,7 +71,7 @@ double borncw_gpu_bytes();
 /* ---------------------------------------------------------------------- */
 
 PairBornCoulWolfGPU::PairBornCoulWolfGPU(LAMMPS *lmp) : PairBornCoulWolf(lmp),
-						      gpu_mode(GPU_FORCE)
+                                                      gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;

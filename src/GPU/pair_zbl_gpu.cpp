@@ -210,15 +210,15 @@ void PairZBLGPU::cpu_compute(int start, int inum, int eflag, int vflag,
       jtype = type[j];
 
       if (rsq < cut_globalsq) {
-      	r = sqrt(rsq);
+              r = sqrt(rsq);
         fpair = dzbldr(r, itype, jtype);
 
-      	if (rsq > cut_innersq) {
-	        t = r - cut_inner;
-	        fswitch = t*t *
-      	    (sw1[itype][jtype] + sw2[itype][jtype]*t);
-      	  fpair += fswitch;
-      	}
+              if (rsq > cut_innersq) {
+                t = r - cut_inner;
+                fswitch = t*t *
+                  (sw1[itype][jtype] + sw2[itype][jtype]*t);
+                fpair += fswitch;
+              }
 
         fpair *= -1.0/r;
         f[i][0] += delx*fpair;
@@ -227,12 +227,12 @@ void PairZBLGPU::cpu_compute(int start, int inum, int eflag, int vflag,
 
         if (eflag) {
           evdwl = e_zbl(r, itype, jtype);
-      	  evdwl += sw5[itype][jtype];
-      	  if (rsq > cut_innersq) {
-      	    eswitch = t*t*t *
-      	      (sw3[itype][jtype] + sw4[itype][jtype]*t);
-      	    evdwl += eswitch;
-      	  }
+                evdwl += sw5[itype][jtype];
+                if (rsq > cut_innersq) {
+                  eswitch = t*t*t *
+                    (sw3[itype][jtype] + sw4[itype][jtype]*t);
+                  evdwl += eswitch;
+                }
         }
 
         if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);

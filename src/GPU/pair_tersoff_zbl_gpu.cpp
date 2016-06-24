@@ -120,7 +120,7 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
 
-    tersoff_zbl_gpu_compute(neighbor->ago, atom->nlocal, nall, inum+list->gnum,
+    tersoff_zbl_gpu_compute(neighbor->ago, inum, nall, inum+list->gnum,
                    atom->x, atom->type, ilist, numneigh, firstneigh, eflag,
                    vflag, eflag_atom, vflag_atom, host_start, cpu_time,
                    success);

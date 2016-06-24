@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -24,13 +24,13 @@ template <class numtyp, class acctyp>
 class Soft : public BaseAtomic<numtyp, acctyp> {
  public:
   Soft();
-  ~Soft(); 
+  ~Soft();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -40,14 +40,14 @@ class Soft : public BaseAtomic<numtyp, acctyp> {
   int init(const int ntypes, double **host_cutsq,
            double **host_prefactor, double **host_cut,
            double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
 
   /// Send updated coeffs from host to device (to be compatible with fix adapt)
   void reinit(const int ntypes, double **host_cutsq,
               double **host_prefactor, double **host_cut);
-           
+
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
@@ -68,7 +68,7 @@ class Soft : public BaseAtomic<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kßernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
  private:

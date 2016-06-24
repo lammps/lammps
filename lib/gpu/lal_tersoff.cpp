@@ -437,16 +437,18 @@ void TersoffT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->nbor->dev_acc,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom);
+                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
   } else {
     this->k_three_end.set_size(GX,BX);
     this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->nbor->dev_acc,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom);
+                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   }
 
   this->time_pair.stop();

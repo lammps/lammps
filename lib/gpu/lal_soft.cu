@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
@@ -26,7 +26,7 @@ texture<int4,1> pos_tex;
 
 #define MY_PI (acctyp)3.14159265358979323846
 
-__kernel void k_soft(const __global numtyp4 *restrict x_, 
+__kernel void k_soft(const __global numtyp4 *restrict x_,
                      const __global numtyp4 *restrict coeff,
                      const int lj_types,
                      const __global numtyp *restrict sp_lj_in,
@@ -51,20 +51,20 @@ __kernel void k_soft(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -77,7 +77,7 @@ __kernel void k_soft(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       int mtype=itype*lj_types+jtype;
       if (rsq<coeff[mtype].z) {
         numtyp force;
@@ -86,14 +86,14 @@ __kernel void k_soft(const __global numtyp4 *restrict x_,
         if (r > (numtyp)0.0) force = factor_lj * coeff[mtype].x *
                        sin(arg) * MY_PI/coeff[mtype].y*ucl_recip(r);
         else force = (numtyp)0.0;
-        
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=coeff[mtype].x * ((numtyp)1.0+cos(arg));
-          energy+=factor_lj*e; 
+          energy+=factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -111,7 +111,7 @@ __kernel void k_soft(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_soft_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_soft_fast(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff_in,
                           const __global numtyp *restrict sp_lj_in,
                           const __global int *dev_nbor,
@@ -122,7 +122,7 @@ __kernel void k_soft_fast(const __global numtyp4 *restrict x_,
                           const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
   if (tid<4)
@@ -130,7 +130,7 @@ __kernel void k_soft_fast(const __global numtyp4 *restrict x_,
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -139,7 +139,7 @@ __kernel void k_soft_fast(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
@@ -153,7 +153,7 @@ __kernel void k_soft_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -166,7 +166,7 @@ __kernel void k_soft_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       if (rsq<coeff[mtype].z) {
         numtyp force;
         numtyp r = ucl_sqrt(rsq);
@@ -174,14 +174,14 @@ __kernel void k_soft_fast(const __global numtyp4 *restrict x_,
         if (r > (numtyp)0.0) force = factor_lj * coeff[mtype].x *
                        sin(arg) * MY_PI/coeff[mtype].y*ucl_recip(r);
         else force = (numtyp)0.0;
-        
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=coeff[mtype].x * ((numtyp)1.0+cos(arg));
-          energy+=factor_lj*e; 
+          energy+=factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

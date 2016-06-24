@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
@@ -17,10 +17,10 @@
 #include "lal_preprocessor.h"
 #endif
 
-__kernel void kernel_zero(__global int *restrict mem, 
+__kernel void kernel_zero(__global int *restrict mem,
                           int numel) {
   int ii=GLOBAL_ID_X;
-  
+
   if (ii<numel)
     mem[ii]=0;
 }

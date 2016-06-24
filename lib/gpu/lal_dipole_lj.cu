@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
@@ -132,17 +132,17 @@ texture<int4,1> mu_tex;
 
 #endif
 
-__kernel void k_dipole_lj(const __global numtyp4 *restrict x_, 
+__kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict lj1,
-                          const __global numtyp4 *restrict lj3, 
-                          const int lj_types, 
-                          const __global numtyp *restrict sp_lj_in, 
-                          const __global int *dev_nbor, 
-                          const __global int *dev_packed, 
+                          const __global numtyp4 *restrict lj3,
+                          const int lj_types,
+                          const __global numtyp *restrict sp_lj_in,
+                          const __global int *dev_nbor,
+                          const __global int *dev_packed,
                           __global acctyp4 *restrict ans,
-                          __global acctyp *restrict engv, 
+                          __global acctyp *restrict engv,
                           const int eflag, const int vflag, const int inum,
-                          const int nbor_pitch, 
+                          const int nbor_pitch,
                           const __global numtyp *restrict q_,
                           const __global numtyp4 *restrict mu_,
                           const __global numtyp *restrict cutsq,
@@ -171,14 +171,14 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     numtyp4 mui; fetch4(mui,i,mu_tex); //mu_[i];
@@ -225,20 +225,20 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
           rinv = ucl_rsqrt(rsq);
 
           // charge-charge
-          if (qtmp != (numtyp)0.0 && qj != (numtyp)0.0) { 
+          if (qtmp != (numtyp)0.0 && qj != (numtyp)0.0) {
             r3inv = r2inv*rinv;
             pre1 = qtmp*qj*r3inv;
 
             forcecoul.x += pre1*delx;
             forcecoul.y += pre1*dely;
             forcecoul.z += pre1*delz;
-          }                    
+          }
 
           // dipole-dipole
           if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0) {
-            r3inv = r2inv*rinv; 
+            r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
-	          r7inv = r5inv*r2inv;
+                  r7inv = r5inv*r2inv;
             pdotp  = mui.x*muj.x + mui.y*muj.y + mui.z*muj.z;
             pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
             pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
@@ -251,7 +251,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
             forcecoul.x += pre1*delx + pre2*mui.x + pre3*muj.x;
             forcecoul.y += pre1*dely + pre2*mui.y + pre3*muj.y;
             forcecoul.z += pre1*delz + pre2*mui.z + pre3*muj.z;
-	    
+
             numtyp crossx = pre4 * (mui.y*muj.z - mui.z*muj.y);
             numtyp crossy = pre4 * (mui.z*muj.x - mui.x*muj.z);
             numtyp crossz = pre4 * (mui.x*muj.y - mui.y*muj.x);
@@ -263,12 +263,12 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
 
           // dipole-charge
           if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0) {
-            r3inv = r2inv*rinv; 
+            r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
             pre1 = (numtyp)3.0*qj*r5inv * pidotr;
             pre2 = qj*r3inv;
-              
+
             forcecoul.x += pre2*mui.x - pre1*delx;
             forcecoul.y += pre2*mui.y - pre1*dely;
             forcecoul.z += pre2*mui.z - pre1*delz;
@@ -276,7 +276,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
             ticoul.y += pre2 * (mui.z*delx - mui.x*delz);
             ticoul.z += pre2 * (mui.x*dely - mui.y*delx);
           }
-          
+
           // charge-dipole
           if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0) {
             r3inv = r2inv*rinv;
@@ -284,7 +284,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
             pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
             pre1 = (numtyp)3.0*qtmp*r5inv * pjdotr;
             pre2 = qtmp*r3inv;
-            
+
             forcecoul.x += pre1*delx - pre2*muj.x;
             forcecoul.y += pre1*dely - pre2*muj.y;
             forcecoul.z += pre1*delz - pre2*muj.z;
@@ -306,12 +306,12 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
         tor.z+=fq*ticoul.z;
 
         if (eflag>0) {
-          acctyp e = (acctyp)0.0;  
+          acctyp e = (acctyp)0.0;
           if (rsq < lj1[mtype].w) {
             e = qtmp*qj*rinv;
             if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0)
               e += r3inv*pdotp - (numtyp)3.0*r5inv*pidotr*pjdotr;
-            if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0) 
+            if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0)
               e += -qj*r3inv*pidotr;
             if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0)
               e += qtmp*r3inv*pjdotr;
@@ -322,7 +322,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
           if (rsq < lj1[mtype].z) {
             e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
             energy+=factor_lj*(e-lj3[mtype].z);
-          } 
+          }
         }
         if (vflag>0) {
           virial[0] += delx*force.x;
@@ -340,19 +340,19 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict lj1_in,
-                               const __global numtyp4 *restrict lj3_in, 
+                               const __global numtyp4 *restrict lj3_in,
                                const __global numtyp *restrict sp_lj_in,
-                               const __global int *dev_nbor, 
+                               const __global int *dev_nbor,
                                const __global int *dev_packed,
-                               __global acctyp4 *restrict ans, 
-                               __global acctyp *restrict engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nbor_pitch, 
+                               __global acctyp4 *restrict ans,
+                               __global acctyp *restrict engv,
+                               const int eflag, const int vflag, const int inum,
+                               const int nbor_pitch,
                                const __global numtyp *restrict q_,
                                const __global numtyp4 *restrict mu_,
-                               const __global numtyp *restrict _cutsq, 
+                               const __global numtyp *restrict _cutsq,
                                const numtyp qqrd2e, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -369,7 +369,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
     if (eflag>0)
       lj3[tid]=lj3_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -381,16 +381,16 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     numtyp4 mui; fetch4(mui,i,mu_tex); //mu_[i];
@@ -424,7 +424,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
         numtyp pdotp, pidotr, pjdotr;
         acctyp4 forcecoul, ticoul;
         acctyp4 force;
-        
+
         forcecoul.x = forcecoul.y = forcecoul.z = (acctyp)0;
         ticoul.x = ticoul.y = ticoul.z = (acctyp)0;
 
@@ -437,7 +437,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
           rinv = ucl_rsqrt(rsq);
 
           // charge-charge
-          if (qtmp != (numtyp)0.0 && qj != (numtyp)0.0) { 
+          if (qtmp != (numtyp)0.0 && qj != (numtyp)0.0) {
             r3inv = r2inv*rinv;
             pre1 = qtmp*qj*r3inv;
 
@@ -448,7 +448,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
 
           // dipole-dipole
           if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0) {
-            r3inv = r2inv*rinv; 
+            r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             r7inv = r5inv*r2inv;
             pdotp  = mui.x*muj.x + mui.y*muj.y + mui.z*muj.z;
@@ -463,7 +463,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
             forcecoul.x += pre1*delx + pre2*mui.x + pre3*muj.x;
             forcecoul.y += pre1*dely + pre2*mui.y + pre3*muj.y;
             forcecoul.z += pre1*delz + pre2*mui.z + pre3*muj.z;
-	    
+
             numtyp crossx = pre4 * (mui.y*muj.z - mui.z*muj.y);
             numtyp crossy = pre4 * (mui.z*muj.x - mui.x*muj.z);
             numtyp crossz = pre4 * (mui.x*muj.y - mui.y*muj.x);
@@ -474,13 +474,13 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
           }
 
           // dipole-charge
-          if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0) { 
+          if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
             pre1 = (numtyp)3.0*qj*r5inv * pidotr;
             pre2 = qj*r3inv;
-            
+
             forcecoul.x += pre2*mui.x - pre1*delx;
             forcecoul.y += pre2*mui.y - pre1*dely;
             forcecoul.z += pre2*mui.z - pre1*delz;
@@ -488,7 +488,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
             ticoul.y += pre2 * (mui.z*delx - mui.x*delz);
             ticoul.z += pre2 * (mui.x*dely - mui.y*delx);
           }
-          
+
           // charge-dipole
           if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0) {
             r3inv = r2inv*rinv;
@@ -496,7 +496,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
             pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
             pre1 = (numtyp)3.0*qtmp*r5inv * pjdotr;
             pre2 = qtmp*r3inv;
-            
+
             forcecoul.x += pre1*delx - pre2*muj.x;
             forcecoul.y += pre1*dely - pre2*muj.y;
             forcecoul.z += pre1*delz - pre2*muj.z;
@@ -519,12 +519,12 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
         tor.z+=fq*ticoul.z;
 
         if (eflag>0) {
-          acctyp e = (acctyp)0;  
+          acctyp e = (acctyp)0;
           if (rsq < lj1[mtype].w) {
             e = qtmp*qj*rinv;
             if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0)
               e += r3inv*pdotp - (numtyp)3.0*r5inv*pidotr*pjdotr;
-            if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0) 
+            if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0)
               e += -qj*r3inv*pidotr;
             if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0)
               e += qtmp*r3inv*pjdotr;

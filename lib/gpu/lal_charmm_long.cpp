@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -37,7 +37,7 @@ template <class numtyp, class acctyp>
 CHARMMLongT::~CHARMMLong() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int CHARMMLongT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -45,9 +45,9 @@ int CHARMMLongT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int CHARMMLongT::init(const int ntypes,
-                           double host_cut_bothsq, double **host_lj1, 
-                           double **host_lj2, double **host_lj3, 
-                           double **host_lj4, double **host_offset, 
+                           double host_cut_bothsq, double **host_lj1,
+                           double **host_lj2, double **host_lj3,
+                           double **host_lj4, double **host_offset,
                            double *host_special_lj, const int nlocal,
                            const int nall, const int max_nbors,
                            const int maxspecial, const double cell_size,
@@ -144,7 +144,7 @@ void CHARMMLongT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -153,17 +153,17 @@ void CHARMMLongT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &ljd, &sp_lj, 
+    this->k_pair_fast.run(&this->atom->x, &ljd, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch, &this->atom->q,
                           &_cut_coulsq, &_qqrd2e, &_g_ewald, &_denom_lj,
-                          &_cut_bothsq, &_cut_ljsq, &_cut_lj_innersq, 
+                          &_cut_bothsq, &_cut_ljsq, &_cut_lj_innersq,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &lj1, &_lj_types, &sp_lj, 
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+    this->k_pair.run(&this->atom->x, &lj1, &_lj_types, &sp_lj,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->q,
                      &_cut_coulsq, &_qqrd2e, &_g_ewald, &_denom_lj,

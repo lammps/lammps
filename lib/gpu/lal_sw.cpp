@@ -33,10 +33,10 @@ SWT::SW() : BaseThree<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-SWT::~SW() { 
+SWT::~SW() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int SWT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -45,7 +45,7 @@ int SWT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
            const double cell_size, const double gpu_split, FILE *_screen,
-           int* host_map, const int nelements, int*** host_elem2param, const int nparams, 
+           int* host_map, const int nelements, int*** host_elem2param, const int nparams,
            const double* epsilon, const double* sigma,
            const double* lambda, const double* gamma,
            const double* costheta, const double* biga,
@@ -76,41 +76,41 @@ int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_
                              UCL_WRITE_ONLY);
 
   for (int i=0; i<nparams; i++) {
-    dview[i].x=(numtyp)0; 
+    dview[i].x=(numtyp)0;
     dview[i].y=(numtyp)0;
-    dview[i].z=(numtyp)0; 
+    dview[i].z=(numtyp)0;
     dview[i].w=(numtyp)0;
   }
 
   // pack coefficients into arrays
   sw1.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
-  
+
   for (int i=0; i<nparams; i++) {
     dview[i].x=static_cast<numtyp>(epsilon[i]);
     dview[i].y=static_cast<numtyp>(sigma[i]);
     dview[i].z=static_cast<numtyp>(lambda[i]);
     dview[i].w=static_cast<numtyp>(gamma[i]);
   }
-  
+
   ucl_copy(sw1,dview,false);
   sw1_tex.get_texture(*(this->pair_program),"sw1_tex");
   sw1_tex.bind_float(sw1,4);
 
   sw2.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
-  
+
   for (int i=0; i<nparams; i++) {
     dview[i].x=static_cast<numtyp>(biga[i]);
     dview[i].y=static_cast<numtyp>(bigb[i]);
     dview[i].z=static_cast<numtyp>(powerp[i]);
     dview[i].w=static_cast<numtyp>(powerq[i]);
   }
-  
+
   ucl_copy(sw2,dview,false);
   sw2_tex.get_texture(*(this->pair_program),"sw2_tex");
   sw2_tex.bind_float(sw2,4);
 
   sw3.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
-  
+
   for (int i=0; i<nparams; i++) {
     double sw_cut = cut[i];
     double sw_cutsq = cutsq[i];
@@ -121,7 +121,7 @@ int SWT::init(const int ntypes, const int nlocal, const int nall, const int max_
     dview[i].z=static_cast<numtyp>(costheta[i]);
     dview[i].w=(numtyp)0;
   }
-  
+
   ucl_copy(sw3,dview,false);
   sw3_tex.get_texture(*(this->pair_program),"sw3_tex");
   sw3_tex.bind_float(sw3,4);
@@ -192,31 +192,32 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
-  // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa == 1 
-  // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1
+  // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa > 1
+  // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1 or tpa == 1
   int ainum=this->ans->inum();
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
+
   this->k_pair.set_size(GX,BX);
-  this->k_pair.run(&this->atom->x, &sw1, &sw2, &sw3, 
+  this->k_pair.run(&this->atom->x, &sw1, &sw2, &sw3,
                    &map, &elem2param, &_nelements,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &this->ans->force, &this->ans->engv, 
-                   &eflag, &vflag, &ainum, &nbor_pitch, 
+                   &this->ans->force, &this->ans->engv,
+                   &eflag, &vflag, &ainum, &nbor_pitch,
                    &this->_threads_per_atom);
 
   BX=this->block_size();
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                           (BX/(KTHREADS*JTHREADS)))); 
+                           (BX/(KTHREADS*JTHREADS))));
   this->k_three_center.set_size(GX,BX);
-  this->k_three_center.run(&this->atom->x, &sw1, &sw2, &sw3, 
+  this->k_three_center.run(&this->atom->x, &sw1, &sw2, &sw3,
                            &map, &elem2param, &_nelements,
-                           &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
-                           &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum, 
+                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                           &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
                            &nbor_pitch, &this->_threads_per_atom, &evatom);
 
   Answer<numtyp,acctyp> *end_ans;
@@ -227,21 +228,24 @@ void SWT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   #endif
   if (evatom!=0) {
     this->k_three_end_vatom.set_size(GX,BX);
-    this->k_three_end_vatom.run(&this->atom->x, &sw1, &sw2, &sw3, 
-                          &map, &elem2param, &_nelements, 
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+    this->k_three_end_vatom.run(&this->atom->x, &sw1, &sw2, &sw3,
+                          &map, &elem2param, &_nelements,
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->nbor->dev_acc,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom);
+                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
   } else {
     this->k_three_end.set_size(GX,BX);
-    this->k_three_end.run(&this->atom->x, &sw1, &sw2, &sw3, 
-                          &map, &elem2param, &_nelements, 
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
-                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum, 
-                          &nbor_pitch, &this->_threads_per_atom);
+    this->k_three_end.run(&this->atom->x, &sw1, &sw2, &sw3,
+                          &map, &elem2param, &_nelements,
+                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->nbor->dev_acc,
+                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
+                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
   }
+
   this->time_pair.stop();
 }
 

@@ -9,16 +9,16 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
 //*************************************************************************
 //                           Preprocessor Definitions
-//                           
+//
 //  Note: It is assumed that constants with the same names are defined with
 //  the same values in all files.
-//  
+//
 //  ARCH
 //     Definition:   Architecture number for accelerator
 //  MEM_THREADS
@@ -35,22 +35,22 @@
 //     Restructions: Must be power of 2; THREADS_PER_ATOM<=WARP_SIZE
 //  PPPM_MAX_SPLINE
 //     Definition:   Maximum order for splines in PPPM
-//  PPPM_BLOCK_1D    
+//  PPPM_BLOCK_1D
 //     Definition:   Thread block size for PPPM kernels
 //     Restrictions: PPPM_BLOCK_1D>=PPPM_MAX_SPLINE*PPPM_MAX_SPLINE
-//                   PPPM_BLOCK_1D%32==0 
+//                   PPPM_BLOCK_1D%32==0
 //  BLOCK_PAIR
 //     Definition:   Default thread block size for pair styles
 //     Restrictions:
 //  MAX_SHARED_TYPES 8
 //     Definition:   Max # of atom type params can be stored in shared memory
 //     Restrictions: MAX_SHARED_TYPES*MAX_SHARED_TYPES<=BLOCK_PAIR
-//  BLOCK_CELL_2D 
+//  BLOCK_CELL_2D
 //     Definition:   Default block size in each dimension for cell list builds
 //                   and matrix transpose
-//  BLOCK_CELL_ID    
+//  BLOCK_CELL_ID
 //     Definition:   Default block size for binning atoms in cell list builds
-//  BLOCK_NBOR_BUILD 
+//  BLOCK_NBOR_BUILD
 //     Definition:   Default block size for neighbor list builds
 //  BLOCK_BIO_PAIR
 //     Definition:   Default thread block size for "bio" pair styles
@@ -78,10 +78,10 @@
 #define BLOCK_SIZE_Y blockDim.y
 #define __kernel extern "C" __global__
 #define __local __shared__
-#define __global  
+#define __global
 #define restrict __restrict__
 #define atom_add atomicAdd
-#define ucl_inline static __inline__ __device__ 
+#define ucl_inline static __inline__ __device__
 
 #ifdef __CUDA_ARCH__
 #define ARCH __CUDA_ARCH__

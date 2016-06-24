@@ -25,14 +25,14 @@ template <class numtyp, class acctyp>
 class RESquared : public BaseEllipsoid<numtyp, acctyp> {
  public:
   RESquared();
-  ~RESquared(); 
+  ~RESquared();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device 
+    * \param gpu_split fraction of particles handled by device
     * \return false if there is not sufficient memory or device init prob
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -41,7 +41,7 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_shape, double **host_well,
            double **host_cutsq, double **host_sigma,  double **host_epsilon,
-           int **h_form, double **host_lj1, double **host_lj2, 
+           int **h_form, double **host_lj1, double **host_lj2,
            double **host_lj3, double **host_lj4, double **host_offset,
            const double *host_special_lj, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial, const double cell_size,
@@ -50,7 +50,7 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
- 
+
   /// Returns memory usage on device per atom
   int bytes_per_atom(const int max_nbors) const;
 
@@ -59,8 +59,8 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
 
   /// Device Error Flag - Set if a bad matrix inversion occurs
   UCL_D_Vec<int> dev_error;
-  
-  // --------------------------- TYPE DATA -------------------------- 
+
+  // --------------------------- TYPE DATA --------------------------
 
   /// lj1.x = lj1, lj1.y = lj2, lj1.z = cutsq, lj1.w = form
   UCL_D_Vec<numtyp4> lj1;
@@ -70,12 +70,12 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
   UCL_D_Vec<numtyp2> sigma_epsilon;
   /// special lj 0-4
   UCL_D_Vec<numtyp> special_lj;
-  
+
   /// If atom type constants fit in shared memory, use fast kernels
   bool _shared_types;
   int _lj_types;
-   
-  // --------------------------- ATOM DATA -------------------------- 
+
+  // --------------------------- ATOM DATA --------------------------
 
   /// Aspherical Const Data for Atoms
   UCL_D_Vec<numtyp4> shape, well;

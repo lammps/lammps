@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
@@ -31,21 +31,21 @@ texture<int2> q_tex;
 
 #define MY_PIS (acctyp)1.77245385090551602729
 
-__kernel void k_born_wolf(const __global numtyp4 *restrict x_, 
+__kernel void k_born_wolf(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff1,
-                          const __global numtyp4 *restrict coeff2, 
-                          const int lj_types, 
-                          const __global numtyp *restrict sp_lj_in, 
-                          const __global int *dev_nbor, 
-                          const __global int *dev_packed, 
+                          const __global numtyp4 *restrict coeff2,
+                          const int lj_types,
+                          const __global numtyp *restrict sp_lj_in,
+                          const __global int *dev_nbor,
+                          const __global int *dev_packed,
                           __global acctyp4 *restrict ans,
-                          __global acctyp *restrict engv, 
+                          __global acctyp *restrict engv,
                           const int eflag, const int vflag, const int inum,
-                          const int nbor_pitch, 
+                          const int nbor_pitch,
                           const __global numtyp *restrict q_,
-                          const __global numtyp4 *restrict cutsq_sigma, 
+                          const __global numtyp4 *restrict cutsq_sigma,
                           const numtyp cut_coulsq, const numtyp qqrd2e,
-                          const numtyp alf, const numtyp e_shift, 
+                          const numtyp alf, const numtyp e_shift,
                           const numtyp f_shift, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -67,20 +67,20 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
 
     if (eflag>0) {
-      acctyp e_self = -((acctyp)0.5*e_shift + alf/MY_PIS) * 
+      acctyp e_self = -((acctyp)0.5*e_shift + alf/MY_PIS) *
         qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
       e_coul += (acctyp)2.0*e_self;
     }
@@ -108,12 +108,12 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
         numtyp forcecoul, forceborn, force, r6inv, prefactor;
         numtyp v_sh = (numtyp)0.0;
         numtyp rexp = (numtyp)0.0;
-        
+
         if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
           numtyp r = ucl_sqrt(rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
-          forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv 
+          forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv
             + coeff1[mtype].w*r2inv*r6inv)*factor_lj;
         } else forceborn = (numtyp)0.0;
 
@@ -147,7 +147,7 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
               + coeff2[mtype].z*r2inv*r6inv;
             energy+=factor_lj*(e-coeff2[mtype].w);
-          } 
+          }
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -165,20 +165,20 @@ __kernel void k_born_wolf(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict coeff1_in,
-                               const __global numtyp4 *restrict coeff2_in, 
+                               const __global numtyp4 *restrict coeff2_in,
                                const __global numtyp *restrict sp_lj_in,
-                               const __global int *dev_nbor, 
+                               const __global int *dev_nbor,
                                const __global int *dev_packed,
-                               __global acctyp4 *restrict ans, 
-                               __global acctyp *restrict engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nbor_pitch, 
+                               __global acctyp4 *restrict ans,
+                               __global acctyp *restrict engv,
+                               const int eflag, const int vflag, const int inum,
+                               const int nbor_pitch,
                                const __global numtyp *restrict q_,
                                const __global numtyp4 *restrict cutsq_sigma,
                                const numtyp cut_coulsq, const numtyp qqrd2e,
-                               const numtyp alf, const numtyp e_shift, 
+                               const numtyp alf, const numtyp e_shift,
                                const numtyp f_shift, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -193,7 +193,7 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
     if (eflag>0)
       coeff2[tid]=coeff2_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -201,23 +201,23 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     if (eflag>0) {
-      acctyp e_self = -((acctyp)0.5*e_shift + alf/MY_PIS) * 
+      acctyp e_self = -((acctyp)0.5*e_shift + alf/MY_PIS) *
         qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
       e_coul += (acctyp)2.0*e_self;
     }
@@ -244,12 +244,12 @@ __kernel void k_born_wolf_fast(const __global numtyp4 *restrict x_,
         numtyp forcecoul, forceborn, force, r6inv, prefactor;
         numtyp v_sh = (numtyp)0.0;
         numtyp rexp = (numtyp)0.0;
-        
+
         if (rsq < cutsq_sigma[mtype].y) {
           numtyp r = ucl_sqrt(rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
-          forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv 
+          forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv
             + coeff1[mtype].w*r2inv*r6inv)*factor_lj;
         } else forceborn = (numtyp)0.0;
 

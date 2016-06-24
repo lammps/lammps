@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
@@ -17,7 +17,7 @@
 #include "lal_preprocessor.h"
 #endif
 
-__kernel void kernel_unpack(__global int *dev_nbor, 
+__kernel void kernel_unpack(__global int *dev_nbor,
                             const __global int *dev_ij,
                             const int inum, const int t_per_atom) {
   int tid=THREAD_ID_X;
@@ -33,7 +33,7 @@ __kernel void kernel_unpack(__global int *dev_nbor,
     list+=offset;
     nbor+=fast_mul(ii,t_per_atom-1)+offset;
     int stride=fast_mul(t_per_atom,inum);
-      
+
     for ( ; list<list_end; list++) {
       dev_nbor[nbor]=dev_ij[list];
       nbor+=stride;

@@ -245,8 +245,8 @@ ucl_inline void gpu_cross3(const numtyp *v1, const numtyp *v2, numtyp *ans)
 
 ucl_inline numtyp gpu_det3(const numtyp m[9])
 {
-  numtyp ans = m[0]*m[4]*m[8] - m[0]*m[5]*m[7] - 
-    m[3]*m[1]*m[8] + m[3]*m[2]*m[7] + 
+  numtyp ans = m[0]*m[4]*m[8] - m[0]*m[5]*m[7] -
+    m[3]*m[1]*m[8] + m[3]*m[2]*m[7] +
     m[6]*m[1]*m[5] - m[6]*m[2]*m[4];
   return ans;
 };
@@ -255,7 +255,7 @@ ucl_inline numtyp gpu_det3(const numtyp m[9])
    diagonal matrix times a full matrix
 ------------------------------------------------------------------------- */
 
-ucl_inline void gpu_diag_times3(const numtyp4 shape, const numtyp m[9], 
+ucl_inline void gpu_diag_times3(const numtyp4 shape, const numtyp m[9],
                               numtyp ans[9])
 {
   ans[0] = shape.x*m[0];
@@ -421,7 +421,7 @@ ucl_inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
   t = aug[9]/aug[5];
   aug[10]-=t*aug[6];
   aug[11]-=t*aug[7];
-  
+
   if (aug[10] == (numtyp)0.0)
     *error_flag=2;
 
@@ -440,11 +440,11 @@ ucl_inline void gpu_mldivide3(const numtyp m[9], const numtyp *v, numtyp *ans,
    quat = [w i j k]
 ------------------------------------------------------------------------- */
 
-ucl_inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi, 
+ucl_inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi,
                                     numtyp mat[9])
 {
   numtyp4 q; fetch4(q,qi,quat_tex);
-  
+
   numtyp w2 = q.x*q.x;
   numtyp i2 = q.y*q.y;
   numtyp j2 = q.z*q.z;
@@ -463,7 +463,7 @@ ucl_inline void gpu_quat_to_mat_trans(__global const numtyp4 *qif, const int qi,
   mat[1] = twoij+twokw;
   mat[4] = w2-i2+j2-k2;
   mat[7] = twojk-twoiw;
-	
+
   mat[2] = twoik-twojw;
   mat[5] = twojk+twoiw;
   mat[8] = w2-i2-j2+k2;
@@ -561,7 +561,7 @@ ucl_inline void gpu_rotation_generator_z(const numtyp m[9], numtyp ans[9])
 ------------------------------------------------------------------------- */
 
 ucl_inline void gpu_times_column3(const numtyp m[9], const numtyp v[3],
-                                numtyp ans[3]) 
+                                numtyp ans[3])
 {
   ans[0] = m[0]*v[0] + m[1]*v[1] + m[2]*v[2];
   ans[1] = m[3]*v[0] + m[4]*v[1] + m[5]*v[2];

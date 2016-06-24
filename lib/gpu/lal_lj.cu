@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
@@ -24,15 +24,15 @@ texture<int4,1> pos_tex;
 #define pos_tex x_
 #endif
 
-__kernel void k_lj(const __global numtyp4 *restrict x_, 
+__kernel void k_lj(const __global numtyp4 *restrict x_,
                    const __global numtyp4 *restrict lj1,
-                   const __global numtyp4 *restrict lj3, 
-                   const int lj_types, 
-                   const __global numtyp *restrict sp_lj, 
-                   const __global int * dev_nbor, 
-                   const __global int * dev_packed, 
-                   __global acctyp4 *restrict ans, 
-                   __global acctyp *restrict engv, 
+                   const __global numtyp4 *restrict lj3,
+                   const int lj_types,
+                   const __global numtyp *restrict sp_lj,
+                   const __global int * dev_nbor,
+                   const __global int * dev_packed,
+                   __global acctyp4 *restrict ans,
+                   __global acctyp *restrict engv,
                    const int eflag, const int vflag, const int inum,
                    const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
@@ -44,19 +44,19 @@ __kernel void k_lj(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -69,21 +69,21 @@ __kernel void k_lj(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
-        
+
       int mtype=itype*lj_types+jtype;
       if (r2inv<lj1[mtype].z) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         force*=factor_lj;
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-          energy+=factor_lj*(e-lj3[mtype].z); 
+          energy+=factor_lj*(e-lj3[mtype].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -101,19 +101,19 @@ __kernel void k_lj(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_lj_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_lj_fast(const __global numtyp4 *restrict x_,
                         const __global numtyp4 *restrict lj1_in,
-                        const __global numtyp4 *restrict lj3_in, 
-                        const __global numtyp *restrict sp_lj_in, 
-                        const __global int * dev_nbor, 
-                        const __global int * dev_packed, 
-                        __global acctyp4 *restrict ans, 
-                        __global acctyp *restrict engv, 
-                        const int eflag, const int vflag, const int inum, 
+                        const __global numtyp4 *restrict lj3_in,
+                        const __global numtyp *restrict sp_lj_in,
+                        const __global int * dev_nbor,
+                        const __global int * dev_packed,
+                        __global acctyp4 *restrict ans,
+                        __global acctyp *restrict engv,
+                        const int eflag, const int vflag, const int inum,
                         const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
@@ -124,7 +124,7 @@ __kernel void k_lj_fast(const __global numtyp4 *restrict x_,
     if (eflag>0)
       lj3[tid]=lj3_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -133,7 +133,7 @@ __kernel void k_lj_fast(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
@@ -146,7 +146,7 @@ __kernel void k_lj_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -159,19 +159,19 @@ __kernel void k_lj_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
-        
+
       if (r2inv<lj1[mtype].z) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-          energy+=factor_lj*(e-lj3[mtype].z); 
+          energy+=factor_lj*(e-lj3[mtype].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

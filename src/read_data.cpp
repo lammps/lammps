@@ -1701,6 +1701,8 @@ void ReadData::pairIJcoeffs()
 
 void ReadData::bondcoeffs()
 {
+  if (!nbondtypes) return;
+
   char *next;
   char *buf = new char[nbondtypes*MAXLINE];
 
@@ -1723,6 +1725,8 @@ void ReadData::bondcoeffs()
 
 void ReadData::anglecoeffs(int which)
 {
+  if (!nangletypes) return;
+
   char *next;
   char *buf = new char[nangletypes*MAXLINE];
 
@@ -1747,6 +1751,8 @@ void ReadData::anglecoeffs(int which)
 
 void ReadData::dihedralcoeffs(int which)
 {
+  if (!ndihedraltypes) return;
+
   char *next;
   char *buf = new char[ndihedraltypes*MAXLINE];
 
@@ -1774,6 +1780,8 @@ void ReadData::dihedralcoeffs(int which)
 
 void ReadData::impropercoeffs(int which)
 {
+  if (!nimpropertypes) return;
+
   char *next;
   char *buf = new char[nimpropertypes*MAXLINE];
 

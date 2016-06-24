@@ -1,0 +1,212 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix lambdah command :h3
+
+[Syntax:]
+
+fix ID group-ID lambdah/calc N<sub>H-mol</sub> L<sub>HY</sub> L<sub>AT</sub> P<sub>flag</sub> &#948;&#955; dT<sub>p</sub> T<sub>p</sub><sup>Start</sup> T<sub>p</sub><sup>End</sup> HY<sub>Shape</sub> D<sub>flag</sub> &Delta;x dT<sub>d</sub> T<sub>d</sub><sup>Start</sup> T<sub>d</sub><sup>End</sup> &#963; R &#961;<sub>0</sub> c file<sub>flag</sub> :pre
+
+ID is documented in "fix"_fix.html command :ulb,l
+group-ID has to be all :l
+lambdaH/calc = style name of this fix command :l
+N<sub>H-mol</sub> = Number of molecular types within the low resolution :l
+L<sub>HY</sub> = Length of Hybrid region :l
+L<sub>AT</sub> = Length of Atomistic (high resolution) region :l
+P<sub>flag</sub> = {0} or {1} :l
+  {0} Constant-pressure route is off
+  {1} Constant-pressure route is on :pre
+&#948;&#955; = Bin size in constant-pressure route :l
+dT<sub>p</sub> = Time step interval of constant-pressure route :l
+T<sub>p</sub><sup>Start</sup> = Starting time step of constant-pressure route :l
+T<sub>p</sub><sup>End</sup> = Ending time step of constant-pressure route :l
+HY<sub>Shape</sub> = Shape of Hybrid region : {slab}, {sphere}, {cylinder} :l
+  {slab} is for rectangular hybrid region
+  {sphere} is for spherical hybrid region
+  {cylinder} is for cylinderical hybrid region :pre
+D<sub>flag</sub> = {0} or {1} :l
+  {0} Constant-density route is off 
+  {1} Constant-density route is on :pre
+&Delta;x = Bin size in constant-density route (length unit) :l
+dT<sub>d</sub> = Time step interval of constant-density route :l
+T<sub>d</sub><sup>Start</sup> = Starting time step of constant-density route :l
+T<sub>d</sub><sup>End</sup> = Ending time step of constant-density route :l
+&#963; = Width of gaussian function in constant-density route (length unit) :l
+R = Range of gaussian function in constant-density route (length unit) :l
+&#961;<sub>0</sub> = Reference number density in constant-density route :l
+c = Prefactor in constant-density route (energy unit) :l
+file<sub>flag</sub> = {0} or {1} :l
+  {0} Do not employ density-balancing file 
+  {1} Employ density-balancing file :pre
+
+:ule  
+
+[Examples:]
+
+fix 1 all lambdah/calc 1 25 60 1 0.02 1000 150000 300000 slab 1 1.5 500 400000 700000 6 2 0.1 2 0
+fix 1 all lambdah/calc 1 25 60 1 0.02 1000 100000 200000 sphere 1 1.5 500 300000 700000 6 2 0.1 2 0 :pre
+
+[Description:]
+
+The Hamiltonian adaptive resolution simulation scheme (H-AdResS) is a dual-resolution simulation method that
+joins models with different levels of complexity for the same system within a global Hamiltonian framework "(Potestio2013_1)"_#Potestio2013_1, "(Potestio2013_2)"_#Potestio2013_2, "(Heidari2016)"_#Heidari2016.
+
+Depending on the shape of the Hybrid region which might be either slab, sphere or cynlinder, this fix calculates 
+the resolution of every atom based on the center of mass of its molecule.
+The following switching function is defined for a simulation box whose atomistic region is limited to \[-0.5L<sub>AT</sub> 0.5L<sub>AT</sub>\]:
+
+:c,image(Eqs/HADRESS_Switching_Function_Slab.jpg)
+
+The following switching function is defined for a spherical/cylinderical atomistic region located at the middle of the simulation box:
+
+:c,image(Eqs/HADRESS_Switching_Function_Sphere.jpg)
+
+A setup of a Hamiltonian Adaptive Resolution Simulation is shown below. The box is partitioned into three
+ different region types, namely: Coarse-grained (CG), Hybrid (HY), and Atomistic (AT). In each region,
+ the resolution of each molecule (here water) is determined by the instantaneous value of the
+ smooth function &#955; represented above the simulation snapshot.
+ 
+:c,image(JPG/HADRESS_MODEL_LAMMPS.png)
+
+{N<sub>H-mol</sub>} determines the number of molecular types within the low resolution. For instance, for a system containing 
+coarse-grained water molecules in the coarse-grained region, this number equals one. However, for a sytem containing 
+water molecules and ions such as Na and Cl and they interact differently in the coarse-grained region, 
+this number is 3.
+
+The {L<sub>HY</sub>} specifies the length of the hybrid region. For the cases of cylinderical or spherical hybrid regions, this quantity denotes {r<sub>HY</sub>}.
+
+The {L<sub>AT</sub>} determines the length of atomistic region. For the cases of cylinderical or spherical hybrid regions, this quantity denotes {r<sub>AT</sub>}.
+
+The {P<sub>flag</sub>} switches off and on the constant-pressure route.
+
+The {&#948;&#955;} denotes the bin size over the hybrid region. In the on-the-fly method of averaging the drift forces, 
+particles are sorted into uniformly spaced &#955; bins of {&#948;&#955;} side.
+
+The {dT<sub>p</sub>} denotes the time intervals in constant-pressure route at which the averaged drift forces are applied on the molecules of the hybrid region.
+
+The {T<sub>p</sub><sup>Start</sup>} denotes the time step at which the simulation of the constant-pressure route is started.
+
+The {T<sub>p</sub><sup>End</sup>} specifies the ending time step of the constant-pressure route.
+
+The {HY<sub>Shape</sub>} specifies the geometry of the Hybrid region. This could be {slab}, {sphere}, {cylinder}.
+
+{D<sub>flag</sub>} switches off and on the constant-pressure route.
+
+{&Delta;x} is the bin size by which the simulation box is descritized in the constant-density route.
+
+{dT<sub>d</sub>} is the time interval in constant-density route at which the averaged thermodynamic forces are applied.
+
+{T<sub>d</sub><sup>Start</sup>} is the starting time step of constant-density route.
+
+{T<sub>d</sub><sup>End</sup>} is the ending time step of constant-density route.
+
+{&#963;} is the width of Gaussian function in the constant-density route.
+
+{R} is the range of Gaussian function in the constant-density route.
+
+{&#961;<sub>0</sub>} is the reference density in the constant-density route.
+
+{c} is the prefactor in the constant-density route.
+
+{file<sub>flag</sub>} denotes a flag whether the file containing the density-balancing force is employed or not.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html. 
+
+This fix creates a file named "Mean_Comp_Density.txt" in which the compensation forces are printed. 
+This file is created at {T<sub>d</sub><sup>Start</sup>} and is updated every {dT<sub>d</sub>}. 
+The updating process of the file is finished at time step {T<sub>d</sub><sup>End</sup>}. 
+For those equillibrated simulations starting at time step larger than {T<sub>d</sub><sup>End</sup>}, 
+the file "Mean_Comp_Density.txt" is loaded in this fix.
+
+:line
+
+[Restrictions:]
+
+This fix calculates the center of mass of the particles. Thus at the beginning of the calculation,
+it is required that all atoms belonging to a molecule are on the same side of the box.
+
+To employ the H-AdResS scheme, the full/hars atom style has to be used:
+
+  atom_style      full/hars :pre
+
+To perform HAdResS, Data File should contain the following extra information with respect to the Data File defined in full atom style:
+
+\[1\] [mol_H] determines the number of molecular types in the low resolution (coarse-grained) region.
+
+\[2\] [representative_flag] determines which atom carries the molecule's information 
+(center of mass, molecule's resolution, ...) in the low resolution (coarse-grained) region.
+
+\[3\] [mol_type] denotes the type of the molecule in the low resolution (coarse-grained) region.
+
+The following example is extracted from a Data File in which the simulation box contains water molecules and the ions of sodium and cholorine:
+
+30720 atoms
+20480 bonds
+10240 angles :pre
+
+4 atom types
+[1 mol_H types]
+1 bond types
+1 angle types :pre
+
+-99.968000 99.968000 xlo xhi
+-20.793600 20.793600 ylo yhi
+-20.793600 20.793600 zlo zhi :pre
+
+Masses :pre
+
+1 15.999400
+2 1.007940
+3 22.9898 
+4 35.453 :pre
+
+Atoms
+#atomID molecule-tag atom-type q [representative_flag mol_type] x y z
+1 1 1 -0.847200 1 1 -99.654503 -19.897600 -20.192101
+2 1 2 0.423600 0 1 -100.568001 -19.999300 -20.586599
+3 1 2 0.423600 0 1 -99.777702 -20.103100 -19.221300
+4 2 1 -0.847200 1 1 -97.826401 -17.709900 -20.127100
+5 2 2 0.423600 0 1 -96.938400 -18.071301 -19.842800
+6 2 2 0.423600 0 1 -97.735100 -16.718800 -20.030100
+7 3 3 1.0 1 1 -97.429398 -20.402201 -17.494900
+8 3 4 -1.0 1 1 -96.834000 -19.671400 -17.160999
+.
+.
+. :pre
+
+As it is shown, the representative_flag of the oxygen atoms is equal 1, and
+since the soldium and cholorine are single atom ions, their representative_flags are also equals 1.
+The interactions of water molecules and ions are the same in the coarse-grained region,
+thus they all carry the same molecular type (mol_type).
+
+:line
+
+[Related commands:]
+
+"pair_lj_hars.html"_pair_lj_hars.html
+
+[Default:] none
+
+:line
+
+
+:link(Potestio2013_1)
+[(Potestio2013_1)] R. Potestio, S. Fritsch, P. Espanol, R. Delgado-Buscalioni, K. Kremer, R. Everaers, and D. Donadio, {Hamiltonian Adaptive Resolution Simulation for Molecular Liquids}, "Phys. Rev. Lett. \[110\],
+108301 (2013)"_http://dx.doi.org/10.1103/PhysRevLett.110.108301
+
+:link(Potestio2013_2)
+[(Potestio2013_2)] R. Potestio, S. Fritsch, P. Espanol, R. Delgado-Buscalioni, K. Kremer, R. Everaers, and D. Donadio, {Monte Carlo Adaptive Resolution Simulation of Multicomponent Molecular Liquids}, "Phys. Rev. Lett. \[111\],
+060601 (2013)"_http://dx.doi.org/10.1103/PhysRevLett.111.060601
+
+:link(Heidari2016)
+[(Heidari2016)] M. Heidari, R. Cortes-Huerto, D. Donadio and R. Potestio, {Accurate and general treatment of electrostatic interaction in Hamiltonian adaptive resolution simulations}, "EPJST (2016)"

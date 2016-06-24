@@ -42,6 +42,7 @@ class Molecule : protected Pointers {
   // 1 if attribute defined in file, 0 if not
 
   int xflag,typeflag,qflag,radiusflag,rmassflag;
+  int replambdaHflag,moltypeHflag;
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
   int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
@@ -60,6 +61,12 @@ class Molecule : protected Pointers {
   double **x;          // displacement of each atom from origin
   int *type;           // type of each atom
   double *q;           // charge on each atom
+
+  // USER-HAdResS Package
+
+  int *replambdaH;      // replambdaH on each atom
+  int *moltypeH;      // moltypeH on each atom
+
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
 
@@ -132,6 +139,8 @@ class Molecule : protected Pointers {
   void coords(char *);
   void types(char *);
   void charges(char *);
+  void representative_atom(char *);
+  void moltype_atom(char *);
   void diameters(char *);
   void masses(char *);
   void bonds(int, char *);

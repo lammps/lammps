@@ -17,21 +17,16 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 
 #include "suffix.h"
 #include "math_const.h"
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
 using namespace MathConst;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,7 +86,7 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,factor_coul,factor_lj;
-  double prefactor,erfcc,erfcd,t;
+  double prefactor,erfcc,erfcd,grij;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -152,9 +147,9 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           prefactor = qqrd2e*qtmp*q[j]/r;
-          erfcd = exp(-alpha*alpha*r*r);
-          t = 1.0 / (1.0 + EWALD_P*alpha*r);
-          erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+          grij = alpha*r;
+          erfcd = expmsq(grij);
+          erfcc = my_erfcx(grij) * erfcd;
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                    r*f_shift) * r;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;

@@ -4,16 +4,22 @@
 #include "colvar.h"
 #include "colvarbias_abf.h"
 
-/// ABF bias constructor; parses the config file
 
-colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
-  : colvarbias(conf, key),
+colvarbias_abf::colvarbias_abf(char const *key)
+  : colvarbias(key),
     force(NULL),
     gradients(NULL),
     samples(NULL),
     last_gradients(NULL),
     last_samples(NULL)
 {
+}
+
+
+int colvarbias_abf::init(std::string const &conf)
+{
+  colvarbias::init(conf);
+
   // TODO relax this in case of VMD plugin
   if (cvm::temperature() == 0.0)
     cvm::log("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
@@ -63,10 +69,10 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
 
   if (update_bias) {
   // Request calculation of system force (which also checks for availability)
-    if(enable(f_cvb_get_system_force)) return;
+    if(enable(f_cvb_get_system_force)) return cvm::get_error();
   }
   if (apply_bias) {
-    if(enable(f_cvb_apply_force)) return;
+    if(enable(f_cvb_apply_force)) return cvm::get_error();
   }
 
   for (size_t i = 0; i < colvars.size(); i++) {
@@ -126,6 +132,8 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   }
 
   cvm::log("Finished ABF setup.\n");
+
+  return COLVARS_OK;
 }
 
 /// Destructor
@@ -276,6 +284,7 @@ int colvarbias_abf::update()
 
   return COLVARS_OK;
 }
+
 
 int colvarbias_abf::replica_share() {
   int p;

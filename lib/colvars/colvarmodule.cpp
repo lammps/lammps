@@ -32,8 +32,9 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   cvm::log(cvm::line_marker);
   cvm::log("Initializing the collective variables module, version "+
            cvm::to_str(COLVARS_VERSION)+".\n");
-  cvm::log("Please cite Fiorin et al, Mol Phys 2013 in any publication "
-           "based on this calculation.\n");
+  cvm::log("Please cite Fiorin et al, Mol Phys 2013:\n "
+           "http://dx.doi.org/10.1080/00268976.2013.813594\n"
+           "in any publication based on this calculation.\n");
 
   if (proxy->smp_enabled() == COLVARS_OK) {
     cvm::log("SMP parallelism is available.\n");
@@ -250,8 +251,9 @@ int colvarmodule::parse_biases_type(std::string const &conf,
     if (bias_conf.size()) {
       cvm::log(cvm::line_marker);
       cvm::increase_depth();
-      biases.push_back(new bias_type(bias_conf, keyword));
-      if (cvm::check_new_bias(bias_conf, keyword)) {
+      biases.push_back(new bias_type(keyword));
+      biases.back()->init(bias_conf);
+      if (cvm::check_new_bias(bias_conf, keyword) != COLVARS_OK) {
         return COLVARS_ERROR;
       }
       cvm::decrease_depth();
@@ -322,7 +324,7 @@ int colvarmodule::catch_input_errors(int result)
   if (result != COLVARS_OK || get_error()) {
     set_error_bit(result);
     set_error_bit(INPUT_ERROR);
-    parse->reset();
+    parse->init();
     return get_error();
   }
   return COLVARS_OK;
@@ -795,6 +797,7 @@ colvarmodule::~colvarmodule()
       (proxy->smp_thread_id() == 0)) {
     reset();
     delete parse;
+    parse = NULL;
     proxy = NULL;
   }
 }
@@ -802,7 +805,7 @@ colvarmodule::~colvarmodule()
 
 int colvarmodule::reset()
 {
-  parse->reset();
+  parse->init();
 
   cvm::log("Resetting the Collective Variables Module.\n");
 

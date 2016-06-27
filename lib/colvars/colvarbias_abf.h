@@ -19,10 +19,10 @@ class colvarbias_abf : public colvarbias {
 
 public:
 
-  colvarbias_abf(std::string const &conf, char const *key);
-  ~colvarbias_abf();
-
-  int update();
+  colvarbias_abf(char const *key);
+  virtual int init(std::string const &conf);
+  virtual ~colvarbias_abf();
+  virtual int update();
 
 private:
 

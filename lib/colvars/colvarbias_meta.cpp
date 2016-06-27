@@ -25,19 +25,19 @@
 #include "colvarbias_meta.h"
 
 
-colvarbias_meta::colvarbias_meta()
-  : colvarbias(),
+colvarbias_meta::colvarbias_meta(char const *key)
+  : colvarbias(key),
     new_hills_begin(hills.end()),
     state_file_step(0)
 {
 }
 
 
-colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
-  : colvarbias(conf, key),
-    new_hills_begin(hills.end()),
-    state_file_step(0)
+int colvarbias_meta::init(std::string const &conf)
 {
+  colvarbias::init(conf);
+
+  // TODO this relies on having initialized biases in alphabetical order
   if (cvm::n_abf_biases > 0)
     cvm::log("Warning: running ABF and metadynamics together is not recommended unless applyBias is off for ABF.\n");
 
@@ -152,6 +152,7 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
              ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+".\n");
 
   save_delimiters = false;
+  return COLVARS_OK;
 }
 
 
@@ -851,7 +852,7 @@ void colvarbias_meta::update_replicas_registry()
         // add this replica to the registry
         cvm::log("Metadynamics bias \""+this->name+"\""+
                  ": accessing replica \""+new_replica+"\".\n");
-        replicas.push_back(new colvarbias_meta());
+        replicas.push_back(new colvarbias_meta("metadynamics"));
         (replicas.back())->replica_id = new_replica;
         (replicas.back())->replica_list_file = new_replica_file;
         (replicas.back())->replica_state_file = "";

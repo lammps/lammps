@@ -5,12 +5,25 @@
 #include "colvarbias_restraint.h"
 
 
-colvarbias_restraint::colvarbias_restraint(std::string const &conf,
-                                           char const *key)
-  : colvarbias(conf, key),
-    target_nstages(0),
-    target_nsteps(0)
+colvarbias_restraint::colvarbias_restraint(char const *key)
+  : colvarbias(key)
 {
+}
+
+
+int colvarbias_restraint::init(std::string const &conf)
+{
+  colvarbias::init(conf);
+
+  if (cvm::debug())
+    cvm::log("Initializing a new restraint bias.\n");
+
+  // TODO move these initializations to constructor and let get_keyval
+  // only override existing values
+  target_nstages = 0;
+  target_nsteps = 0;
+  force_k = 0.0;
+
   get_keyval(conf, "forceConstant", force_k, 1.0);
 
   {
@@ -123,6 +136,7 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
   if (cvm::debug())
     cvm::log("Done initializing a new restraint bias.\n");
 }
+
 
 colvarbias_restraint::~colvarbias_restraint()
 {
@@ -505,55 +519,91 @@ std::ostream & colvarbias_restraint::write_traj(std::ostream &os)
   return os;
 }
 
-colvarbias_restraint_harmonic::colvarbias_restraint_harmonic(std::string const &conf, char const *key) :
-  colvarbias_restraint(conf, key) {
+
+colvarbias_restraint_harmonic::colvarbias_restraint_harmonic(char const *key)
+  : colvarbias_restraint(key)
+{
+}
+
+
+int colvarbias_restraint_harmonic::init(std::string const &conf)
+{
+  colvarbias_restraint::init(conf);
+
   for (size_t i = 0; i < colvars.size(); i++) {
     if (colvars[i]->width != 1.0)
       cvm::log("The force constant for colvar \""+colvars[i]->name+
-                "\" will be rescaled to "+
-                cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
-                " according to the specified width.\n");
+               "\" will be rescaled to "+
+               cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
+               " according to the specified width.\n");
   }
 }
 
-cvm::real colvarbias_restraint_harmonic::restraint_potential(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+cvm::real colvarbias_restraint_harmonic::restraint_potential(cvm::real k,
+                                                             colvar const *x,
+                                                             colvarvalue const &xcenter) const
 {
   return 0.5 * k * x->dist2(x->value(), xcenter);
 }
 
-colvarvalue colvarbias_restraint_harmonic::restraint_force(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+colvarvalue colvarbias_restraint_harmonic::restraint_force(cvm::real k,
+                                                           colvar const *x,
+                                                           colvarvalue const &xcenter) const
 {
   return 0.5 * k * x->dist2_lgrad(x->value(), xcenter);
 }
 
-cvm::real colvarbias_restraint_harmonic::restraint_convert_k(cvm::real k, cvm::real dist_measure) const
+
+cvm::real colvarbias_restraint_harmonic::restraint_convert_k(cvm::real k,
+                                                             cvm::real dist_measure) const
 {
   return k / (dist_measure * dist_measure);
 }
 
 
-colvarbias_restraint_linear::colvarbias_restraint_linear(std::string const &conf, char const *key) :
-  colvarbias_restraint(conf, key) {
+colvarbias_restraint_linear::colvarbias_restraint_linear(char const *key)
+  : colvarbias_restraint(key)
+{
+}
+
+
+int colvarbias_restraint_linear::init(std::string const &conf)
+{
+  colvarbias_restraint::init(conf);
+
   for (size_t i = 0; i < colvars.size(); i++) {
     if (colvars[i]->width != 1.0)
       cvm::log("The force constant for colvar \""+colvars[i]->name+
-                "\" will be rescaled to "+
-                cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
-                " according to the specified width.\n");
+               "\" will be rescaled to "+
+               cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
+               " according to the specified width.\n");
   }
 }
 
-cvm::real colvarbias_restraint_linear::restraint_potential(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+cvm::real colvarbias_restraint_linear::restraint_potential(cvm::real k,
+                                                           colvar const *x,
+                                                           colvarvalue const &xcenter) const
 {
   return k * (x->value() - xcenter);
 }
 
-colvarvalue colvarbias_restraint_linear::restraint_force(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+colvarvalue colvarbias_restraint_linear::restraint_force(cvm::real k,
+                                                         colvar const *x,
+                                                         colvarvalue const &xcenter) const
 {
   return k;
 }
 
-cvm::real colvarbias_restraint_linear::restraint_convert_k(cvm::real k, cvm::real dist_measure) const
+
+cvm::real colvarbias_restraint_linear::restraint_convert_k(cvm::real k,
+                                                           cvm::real dist_measure) const
 {
   return k / dist_measure;
 }
+
+
+

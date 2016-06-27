@@ -53,14 +53,35 @@ protected:
 
 public:
 
+
   inline colvarparse()
     : save_delimiters(true)
-  {}
+  {
+    init();
+  }
 
   /// Constructor that stores the object's config string
   inline colvarparse(const std::string& conf)
-    : save_delimiters(true), config_string(conf)
-  {}
+    : save_delimiters(true)
+  {
+    init(conf);
+  }
+
+  /// Set the object ready to parse a new configuration string
+  inline void init()
+  {
+    config_string.clear();
+    clear_keyword_registry();
+  }
+
+  /// Set a new config string for this object
+  inline void init(const std::string& conf)
+  {
+    if (! config_string.size()) {
+      init();
+      config_string = conf;
+    }
+  }
 
   inline const std::string& get_config()
   {
@@ -78,6 +99,16 @@ public:
     /// numerous and redundant)
     parse_silent
   };
+
+  /// \brief Check that all the keywords within "conf" are in the list
+  /// of allowed keywords; this will invoke strip_values() first and
+  /// then loop over all words
+  int check_keywords(std::string &conf, char const *key);
+
+  /// \brief Use this after parsing a config string (note that check_keywords() calls it already)
+  void clear_keyword_registry();
+
+public:
 
   /// \fn get_keyval bool const get_keyval (std::string const &conf,
   /// char const *key, _type_ &value, _type_ const &def_value,
@@ -210,17 +241,8 @@ protected:
                                                    std::vector<TYPE> &values,
                                                    std::vector<TYPE> const &def_values,
                                                    Parse_Mode const parse_mode);
+
 public:
-
-  /// \brief Check that all the keywords within "conf" are in the list
-  /// of allowed keywords; this will invoke strip_values() first and
-  /// then loop over all words
-  int check_keywords(std::string &conf, char const *key);
-
-  /// \brief Use this after parsing a config string (note that check_keywords() calls it already)
-  void clear_keyword_registry();
-
-  inline void reset() { clear_keyword_registry(); }
 
   /// \brief Return a lowercased copy of the string
   static inline std::string to_lower_cppstr(std::string const &in)

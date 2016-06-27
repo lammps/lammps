@@ -27,19 +27,13 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
+#include "math_special.h"
 #include "math_const.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
 using namespace MathConst;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
 
 /* ---------------------------------------------------------------------- */
 
@@ -64,7 +58,7 @@ void PairCoulDSF::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double r,rsq,r2inv,forcecoul,factor_coul;
-  double prefactor,erfcc,erfcd,t;
+  double prefactor,erfcc,erfcd,grij;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   ecoul = 0.0;
@@ -115,9 +109,9 @@ void PairCoulDSF::compute(int eflag, int vflag)
 
         r = sqrt(rsq);
         prefactor = qqrd2e*qtmp*q[j]/r;
-        erfcd = exp(-alpha*alpha*rsq);
-        t = 1.0 / (1.0 + EWALD_P*alpha*r);
-        erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+        grij = alpha*r;
+        erfcd = expmsq(grij);
+        erfcc = my_erfcx(grij) * erfcd;
         forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                  r*f_shift) * r;
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
@@ -295,7 +289,7 @@ double PairCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
                            double factor_coul, double factor_lj,
                            double &fforce)
 {
-  double r2inv,r,erfcc,erfcd,prefactor,t;
+  double r2inv,r,erfcc,erfcd,prefactor,grij;
   double forcecoul,phicoul;
 
   r2inv = 1.0/rsq;
@@ -303,15 +297,16 @@ double PairCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
   double eng = 0.0;
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
-    prefactor = factor_coul * force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    erfcd = exp(-alpha*alpha*rsq);
-    t = 1.0 / (1.0 + EWALD_P*alpha*r);
-    erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-
+    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
+    grij = alpha * r;
+    erfcd = expmsq(grij);
+    erfcc = my_erfcx(grij) * erfcd;
     forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS*erfcd +
       r*f_shift) * r;
+    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
 
     phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
     eng += phicoul;
   } else forcecoul = 0.0;
 

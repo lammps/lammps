@@ -17,19 +17,15 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace MathSpecial;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,7 +87,7 @@ void PairCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double fraction,table;
   double r,r2inv,rsq,forcecoul,factor_coul;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   ecoul = 0.0;
@@ -139,11 +135,10 @@ void PairCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (!ncoultablebits || rsq <= tabinnersq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+          expm2 = expmsq(grij);
+          erfc = my_erfcx(grij) * expm2;
           prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else {
           union_int_float_t rsq_lookup;

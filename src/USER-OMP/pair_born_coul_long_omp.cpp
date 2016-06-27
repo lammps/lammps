@@ -17,19 +17,15 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-
-#define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+using namespace MathSpecial;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,8 +85,8 @@ void PairBornCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r2inv,r6inv,r,rexp,forcecoul,forceborn,factor_coul,factor_lj;
-  double grij,expm2,prefactor,t,erfc;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  double grij,expm2,prefactor,erfc,table,fraction;
+  int *ilist,*jlist,*numneigh,**firstneigh,itable;
 
   evdwl = ecoul = 0.0;
 
@@ -136,19 +132,34 @@ void PairBornCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
 
         if (rsq < cut_coulsq) {
-          grij = g_ewald * r;
-          expm2 = exp(-grij*grij);
-          t = 1.0 / (1.0 + EWALD_P*grij);
-          erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          prefactor = qqrd2e * qtmp*q[j]/r;
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          if (!ncoultablebits || rsq <= tabinnersq) {
+            r = sqrt(rsq);
+            grij = g_ewald * r;
+            expm2 = expmsq(grij);
+            erfc = my_erfcx(grij) * expm2;
+            prefactor = qqrd2e * qtmp*q[j]/r;
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
+            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
+            }
+          }
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
+          r = sqrt(rsq);
           r6inv = r2inv*r2inv*r2inv;
           rexp = exp((sigma[itype][jtype]-r)*rhoinv[itype][jtype]);
           forceborn = born1[itype][jtype]*r*rexp - born2[itype][jtype]*r6inv
@@ -168,7 +179,12 @@ void PairBornCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (EFLAG) {
           if (rsq < cut_coulsq) {
-            ecoul = prefactor*erfc;
+            if (!ncoultablebits || rsq <= tabinnersq)
+              ecoul = prefactor*erfc;
+            else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
+            }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {

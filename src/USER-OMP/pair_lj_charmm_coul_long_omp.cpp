@@ -17,11 +17,15 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
+#include "math_const.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace MathSpecial;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -132,21 +136,12 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (rsq < cut_coulsq) {
           if (!ncoultablebits || rsq <= tabinnersq) {
-            const double A1 =  0.254829592;
-            const double A2 = -0.284496736;
-            const double A3 =  1.421413741;
-            const double A4 = -1.453152027;
-            const double A5 =  1.061405429;
-            const double EWALD_F = 1.12837917;
-            const double INV_EWALD_P = 1.0/0.3275911;
-
             const double r = sqrt(rsq);
             const double grij = g_ewald * r;
-            const double expm2 = exp(-grij*grij);
-            const double t = INV_EWALD_P / (INV_EWALD_P + grij);
-            const double erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            const double expm2 = expmsq(grij);
+            const double erfc = my_erfcx(grij) * expm2;
             const double prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             if (EFLAG) ecoul = prefactor*erfc;
             if (sbindex) {
               const double adjust = (1.0-special_coul[sbindex])*prefactor;

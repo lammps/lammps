@@ -34,7 +34,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulWolf::PairCoulWolf(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulWolf::PairCoulWolf(LAMMPS *lmp) : Pair(lmp)
+{
+  single_enable = 0;        // NOTE: single() method below is not yet correct
+}
 
 /* ---------------------------------------------------------------------- */
 

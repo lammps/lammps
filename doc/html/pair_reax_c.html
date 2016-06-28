@@ -126,6 +126,9 @@
             
   <div class="section" id="pair-style-reax-c-command">
 <span id="index-0"></span><h1>pair_style reax/c command</h1>
+</div>
+<div class="section" id="pair-style-reax-c-kk-command">
+<h1>pair_style reax/c/kk command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">reax</span><span class="o">/</span><span class="n">c</span> <span class="n">cfile</span> <span class="n">keyword</span> <span class="n">value</span>
@@ -164,6 +167,13 @@ supplemental information of the following paper: <a class="reference internal" h
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
 the <a class="reference internal" href="#aktulga"><span class="std std-ref">(Aktulga)</span></a> paper.</p>
+<p>The <em>reax/c/kk</em> style is a Kokkos version of the ReaxFF potential that is
+derived from the <em>reax/c</em> style. The Kokkos version can run on GPUs and
+can also use OpenMP multithreading. For more information about the Kokkos package,
+see <a class="reference internal" href="Section_packages.html#kokkos"><span class="std std-ref">Section_packages</span></a> and <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">Section_accelerate</span></a>.
+One important consideration when using the <em>reax/c/kk</em> style is the choice of either
+half or full neighbor lists. This setting can be changed using the Kokkos <a class="reference internal" href="package.html"><span class="doc">package</span></a>
+command.</p>
 <p>The <em>reax/c</em> style differs from the <a class="reference internal" href="pair_reax.html"><span class="doc">pair_style reax</span></a>
 command in the lo-level implementation details.  The <em>reax</em> style is a
 Fortran library, linked to LAMMPS.  The <em>reax/c</em> style was initially
@@ -234,9 +244,11 @@ recommended value for parameter <em>thb</em> is 0.01, which can be set in the
 control file.  Note: Force field files are different for the original
 or lg corrected pair styles, using wrong ffield file generates an error message.</p>
 <p>Optional keywords <em>safezone</em> and <em>mincap</em> are used for allocating
-reax/c arrays.  Increase these values can avoid memory problems, such
+reax/c arrays.  Increasing these values can avoid memory problems, such
 as segmentation faults and bondchk failed errors, that could occur under
-certain conditions.</p>
+certain conditions. These keywords aren&#8217;t used by the Kokkos version, which
+instead uses a more robust memory allocation scheme that checks if the sizes of
+the arrays have been exceeded and automatically allocates more memory.</p>
 <p>The thermo variable <em>evdwl</em> stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
 equilibration contributions which are stored in the thermo variable
@@ -361,7 +373,24 @@ script that reads a restart file.</p>
 <p>This pair style can only be used via the <em>pair</em> keyword of the
 <a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  It does not support the
 <em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+of the manual.  The accelerated styles take the same arguments and
+should produce the same results, except for round-off and precision
+issues.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
+use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+more instructions on how to use the accelerated styles effectively.</p>
 </div>
+<hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
 <p>This pair style is part of the USER-REAXC package.  It is only enabled

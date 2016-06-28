@@ -162,6 +162,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
 /* ----------------------------------------------------------------------
    granular particles
    N^2 / 2 search for neighbor pairs with full Newton's 3rd law
+   shear history must be accounted for when a neighbor pair is added
    pair added to list if atoms i and j are both owned and i < j
    if j is ghost only me or other proc adds pair
    decision based on itag,jtag tests
@@ -468,6 +469,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
 /* ----------------------------------------------------------------------
    granular particles
    binned neighbor list construction with full Newton's 3rd law
+   shear history must be accounted for when a neighbor pair is added
    each owned atom i checks its own bin and other bins in Newton stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
@@ -664,6 +666,7 @@ void Neighbor::granular_bin_newton(NeighList *list)
 /* ----------------------------------------------------------------------
    granular particles
    binned neighbor list construction with Newton's 3rd law for triclinic
+   shear history must be accounted for when a neighbor pair is added
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */

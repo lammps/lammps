@@ -306,18 +306,21 @@ class OutputCapture(object):
 
 class Variable(object):
     def __init__(self, lammps_wrapper_instance, name, style, definition):
-        self.lmp = lammps_wrapper_instance
+        self.wrapper = lammps_wrapper_instance
         self.name = name
         self.style = style
         self.definition = definition.split()
 
     @property
     def value(self):
-        value = self.lmp.print('"${%s}"' % self.name).strip()
-        try:
-            return float(value)
-        except ValueError:
-            return value
+        if self.style == 'atom':
+            return list(self.wrapper.lmp.extract_variable(self.name, "all", 1))
+        else:
+            value = self.wrapper.print('"${%s}"' % self.name).strip()
+            try:
+                return float(value)
+            except ValueError:
+                return value
 
 
 class AtomList(object):

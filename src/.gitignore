@@ -2,8 +2,6 @@
 /Makefile.package.settings
 /lmp_*
 
-/*_cuda.h
-/*_cuda.cpp
 /*_gpu.h
 /*_gpu.cpp
 /*_intel.h
@@ -14,6 +12,8 @@
 /*_omp.cpp
 /*_tally.h
 /*_tally.cpp
+/*_rx.h
+/*_rx.cpp
 
 /kokkos.cpp
 /kokkos.h
@@ -116,6 +116,8 @@
 /atom_vec_ellipsoid.h
 /atom_vec_full.cpp
 /atom_vec_full.h
+/atom_vec_full_hars.cpp
+/atom_vec_full_hars.h
 /atom_vec_granular.cpp
 /atom_vec_granular.h
 /atom_vec_meso.cpp
@@ -198,6 +200,8 @@
 /compute_pe_tally.h
 /compute_plasticity_atom.cpp
 /compute_plasticity_atom.h
+/compute_rigid_local.cpp
+/compute_rigid_local.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
 /compute_stress_tally.cpp
@@ -304,6 +308,8 @@
 /fix_evaporate.h
 /fix_viscosity.cpp
 /fix_viscosity.h
+/fix_ehex.cpp
+/fix_ehex.h
 /fix_event.cpp
 /fix_event.h
 /fix_event_prd.cpp
@@ -324,6 +330,8 @@
 /fix_imd.h
 /fix_ipi.cpp
 /fix_ipi.h
+/fix_lambdah_calc.cpp
+/fix_lambdah_calc.h
 /fix_langevin_eff.cpp
 /fix_langevin_eff.h
 /fix_lb_fluid.cpp
@@ -388,6 +396,8 @@
 /fix_nve_tri.h
 /fix_oneway.cpp
 /fix_oneway.h
+/fix_orient_bcc.cpp
+/fix_orient_bcc.h
 /fix_orient_fcc.cpp
 /fix_orient_fcc.h
 /fix_peri_neigh.cpp
@@ -597,6 +607,10 @@
 /pair_gran_hooke.h
 /pair_gran_hooke_history.cpp
 /pair_gran_hooke_history.h
+/pair_gw.cpp
+/pair_gw.h
+/pair_gw_zbl.cpp
+/pair_gw_zbl.h
 /pair_hbond_dreiding_lj.cpp
 /pair_hbond_dreiding_lj.h
 /pair_hbond_dreiding_morse.cpp
@@ -647,6 +661,8 @@
 /pair_lj_cut_dipole_cut.h
 /pair_lj_cut_dipole_long.cpp
 /pair_lj_cut_dipole_long.h
+/pair_lj_cut_*hars_*.cpp
+/pair_lj_cut_*hars_*.h
 /pair_lj_cut_soft.cpp
 /pair_lj_cut_soft.h
 /pair_lj_cut_tip4p_long.cpp

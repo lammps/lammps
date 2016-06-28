@@ -162,13 +162,16 @@
 <em>intel</em> args = NPhi keyword value ...
   Nphi = # of coprocessors per node
   zero or more keyword/value pairs may be appended
-  keywords = <em>omp</em> or <em>mode</em> or <em>balance</em> or <em>ghost</em> or <em>tpc</em> or <em>tptask</em> or <em>no_affinity</em>
-    <em>omp</em> value = Nthreads
-      Nthreads = number of OpenMP threads to use on CPU (default = 0)
+  keywords = <em>mode</em> or <em>omp</em> or <em>lrt</em> or <em>balance</em> or <em>ghost</em> or <em>tpc</em> or <em>tptask</em> or <em>no_affinity</em>
     <em>mode</em> value = <em>single</em> or <em>mixed</em> or <em>double</em>
       single = perform force calculations in single precision
       mixed = perform force calculations in mixed precision
       double = perform force calculations in double precision
+    <em>omp</em> value = Nthreads
+      Nthreads = number of OpenMP threads to use on CPU (default = 0)
+    <em>lrt</em> value = <em>yes</em> or <em>no</em>
+      yes = use additional thread dedicated for some PPPM calculations
+      no = do not dedicate an extra thread for some PPPM calculations
     <em>balance</em> value = split
       split = fraction of work to offload to coprocessor, -1 for dynamic
     <em>ghost</em> value = <em>yes</em> or <em>no</em>
@@ -415,6 +418,22 @@ computed in single precision, but accumulated and stored in double
 precision, including storage of forces, torques, energies, and virial
 quantities.  <em>Double</em> means double precision is used for the entire
 force calculation.</p>
+<p>The <em>lrt</em> keyword can be used to enable &#8220;Long Range Thread (LRT)&#8221;
+mode. It can take a value of <em>yes</em> to enable and <em>no</em> to disable.
+LRT mode generates an extra thread (in addition to any OpenMP threads
+specified with the OMP_NUM_THREADS environment variable or the <em>omp</em>
+keyword). The extra thread is dedicated for performing part of the
+<a class="reference internal" href="kspace_style.html"><span class="doc">PPPM solver</span></a> computations and communications. This
+can improve parallel performance on processors supporting
+Simultaneous Multithreading (SMT) such as Hyperthreading on Intel
+processors. In this mode, one additional thread is generated per MPI
+process. LAMMPS will generate a warning in the case that more threads
+are used than available in SMT hardware on a node. If the PPPM solver
+from the USER-INTEL package is not used, then the LRT setting is
+ignored and no extra threads are generated. Enabling LRT will replace
+the <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a> with the <em>verlet/lrt/intel</em> style that
+is identical to the default <em>verlet</em> style aside from supporting the
+LRT feature.</p>
 <p>The <em>balance</em> keyword sets the fraction of <a class="reference internal" href="pair_style.html"><span class="doc">pair style</span></a> work offloaded to the coprocessor for split
 values between 0.0 and 1.0 inclusive.  While this fraction of work is
 running on the coprocessor, other calculations will run on the host,
@@ -608,15 +627,15 @@ automatically if the &#8220;-sf gpu&#8221; <a class="reference internal" href="S
 must invoke the package gpu command in your input script or via the
 &#8220;-pk gpu&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
 <p>For the USER-INTEL package, the default is Nphi = 1 and the option
-defaults are omp = 0, mode = mixed, balance = -1, tpc = 4, tptask =
-240.  The default ghost option is determined by the pair style being
-used.  This value is output to the screen in the offload report at the
-end of each run.  Note that all of these settings, except &#8220;omp&#8221; and
-&#8220;mode&#8221;, are ignored if LAMMPS was not built with Xeon Phi coprocessor
-support.  These settings are made automatically if the &#8220;-sf intel&#8221;
-<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> is used.  If it is
-not used, you must invoke the package intel command in your input
-script or or via the &#8220;-pk intel&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
+defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
+tptask = 240.  The default ghost option is determined by the pair
+style being used.  This value is output to the screen in the offload
+report at the end of each run.  Note that all of these settings,
+except &#8220;omp&#8221; and &#8220;mode&#8221;, are ignored if LAMMPS was not built with
+Xeon Phi coprocessor support.  These settings are made automatically
+if the &#8220;-sf intel&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>
+is used.  If it is not used, you must invoke the package intel
+command in your input script or or via the &#8220;-pk intel&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
 <p>For the KOKKOS package, the option defaults neigh = full, newton =
 off, binsize = 0.0, and comm = device.  These settings are made
 automatically by the required &#8220;-k on&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.  You can change them bu using the

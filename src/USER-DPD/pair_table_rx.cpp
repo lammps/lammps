@@ -35,6 +35,9 @@ enum{NONE,RLINEAR,RSQ,BMP};
 
 #define MAXLINE 1024
 
+#define OneFluidValue (-1)
+#define isOneFluid(_site_) ( (_site_) == OneFluidValue )
+
 /* ---------------------------------------------------------------------- */
 
 PairTableRX::PairTableRX(LAMMPS *lmp) : Pair(lmp)
@@ -79,6 +82,21 @@ void PairTableRX::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
+  double *fractionOld1, *fractionOld2;
+  double *fraction1, *fraction2;
+
+  {
+    const int ntotal = atom->nlocal + atom->nghost;
+
+    memory->create(fractionOld1, ntotal, "PairTableRx::compute::fractionOld1");
+    memory->create(fractionOld2, ntotal, "PairTableRx::compute::fractionOld2");
+    memory->create(fraction1, ntotal, "PairTableRx::compute::fraction1");
+    memory->create(fraction2, ntotal, "PairTableRx::compute::fraction2");
+
+    for (int i = 0; i < ntotal; ++i)
+      getParams(i, fractionOld1[i], fractionOld2[i], fraction1[i], fraction2[i]);
+  }
+
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
@@ -108,7 +126,14 @@ void PairTableRX::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    getParams(i,fractionOld1_i,fractionOld2_i,fraction1_i,fraction2_i);
+    double uCG_i = 0.0;
+    double uCGnew_i = 0.0;
+    double fx_i = 0.0, fy_i = 0.0, fz_i = 0.0;
+
+    fractionOld1_i = fractionOld1[i];
+    fractionOld2_i = fractionOld2[i];
+    fraction1_i = fraction1[i];
+    fraction2_i = fraction2[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -122,7 +147,10 @@ void PairTableRX::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        getParams(j,fractionOld1_j,fractionOld2_j,fraction1_j,fraction2_j);
+        fractionOld1_j = fractionOld1[j];
+        fractionOld2_j = fractionOld2[j];
+        fraction1_j = fraction1[j];
+        fraction2_j = fraction2[j];
 
         tb = &tables[tabindex[itype][jtype]];
         if (rsq < tb->innersq)
@@ -158,12 +186,12 @@ void PairTableRX::compute(int eflag, int vflag)
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         }
-        if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
+        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair; 
         else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        fx_i += delx*fpair;
+        fy_i += dely*fpair;
+        fz_i += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -179,7 +207,7 @@ void PairTableRX::compute(int eflag, int vflag)
           evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
             ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
             tb->deltasq6;
-        if (strcmp(site1,site2) == 0){
+        if (isite1 == isite2){
           evdwlOld = sqrt(fractionOld1_i*fractionOld2_j)*evdwl;
           evdwl = sqrt(fraction1_i*fraction2_j)*evdwl;
         } else {
@@ -188,9 +216,11 @@ void PairTableRX::compute(int eflag, int vflag)
         }
         evdwlOld *= factor_lj;
         evdwl *= factor_lj;
-        uCG[i] += 0.5*evdwlOld;
+
+        uCG_i += 0.5*evdwlOld;
         uCG[j] += 0.5*evdwlOld;
-        uCGnew[i] += 0.5*evdwl;
+
+        uCGnew_i += 0.5*evdwl;
         uCGnew[j] += 0.5*evdwl;
         evdwl = evdwlOld;
 
@@ -198,8 +228,20 @@ void PairTableRX::compute(int eflag, int vflag)
                              evdwl,0.0,fpair,delx,dely,delz);
       }
     }
+
+    uCG[i] += uCG_i;
+    uCGnew[i] += uCGnew_i;
+
+    f[i][0] += fx_i;
+    f[i][1] += fy_i;
+    f[i][2] += fz_i;
   }
   if (vflag_fdotr) virial_fdotr_compute();
+
+  memory->destroy(fractionOld1);
+  memory->destroy(fractionOld2);
+  memory->destroy(fraction1);
+  memory->destroy(fraction2);
 }
 
 /* ----------------------------------------------------------------------
@@ -374,6 +416,40 @@ void PairTableRX::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Illegal pair_coeff command");
   ntables++;
+
+  {
+     if ( strcmp(site1,"1fluid") == 0 )
+       isite1 = OneFluidValue;
+     else {
+       isite1 = nspecies;
+
+       for (int k = 0; k < nspecies; k++){
+         if (strcmp(site1, atom->dname[k]) == 0){
+           isite1 = k;
+           break;
+         }
+       }
+
+       if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
+     }
+
+     if ( strcmp(site2,"1fluid") == 0 )
+       isite2 = OneFluidValue;
+     else {
+       isite2 = nspecies;
+
+       for (int k = 0; k < nspecies; k++){
+         if (strcmp(site2, atom->dname[k]) == 0){
+           isite2 = ispecies;
+           break;
+         }
+       }
+
+       if (isite2 == nspecies)
+         error->all(FLERR,"isite2 == nspecies");
+     }
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1026,7 +1102,7 @@ double PairTableRX::single(int i, int j, int itype, int jtype, double rsq,
     fforce = factor_lj * value;
   }
 
-  if (strcmp(site1,site2) == 0) fforce = sqrt(fraction1_i*fraction2_j)*fforce;
+  if (isite1 == isite2) fforce = sqrt(fraction1_i*fraction2_j)*fforce; 
   else fforce = (sqrt(fraction1_i*fraction2_j) + sqrt(fraction2_i*fraction1_j))*fforce;
 
   if (tabstyle == LOOKUP)
@@ -1037,7 +1113,7 @@ double PairTableRX::single(int i, int j, int itype, int jtype, double rsq,
     phi = a * tb->e[itable] + b * tb->e[itable+1] +
       ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
 
-  if (strcmp(site1,site2) == 0) phi = sqrt(fraction1_i*fraction2_j)*phi;
+  if (isite1 == isite2) phi = sqrt(fraction1_i*fraction2_j)*phi;
   else phi = (sqrt(fraction1_i*fraction2_j) + sqrt(fraction2_i*fraction1_j))*phi;
 
   return factor_lj*phi;
@@ -1058,8 +1134,7 @@ void *PairTableRX::extract(const char *str, int &dim)
   double cut_coul = tables[0].cut;
   for (int m = 1; m < ntables; m++)
     if (tables[m].cut != cut_coul)
-      error->all(FLERR,
-                 "Pair table cutoffs must all be equal to use with KSpace");
+      error->all(FLERR,"Pair table cutoffs must all be equal to use with KSpace");
   dim = 0;
   return &tables[0].cut;
 }
@@ -1068,59 +1143,44 @@ void *PairTableRX::extract(const char *str, int &dim)
 
 void PairTableRX::getParams(int id, double &fractionOld1, double &fractionOld2, double &fraction1, double &fraction2)
 {
-  double fractionOld, fraction;
-  double nTotal, nTotalOld;
-
-  fractionOld  = 0.0;
-  fraction  = 0.0;
-  fractionOld1 = 0.0;
-  fractionOld2 = 0.0;
-  fraction1 = 0.0;
-  fraction2 = 0.0;
-
-  nTotal = 0.0;
-  nTotalOld = 0.0;
-  for(int ispecies=0;ispecies<nspecies;ispecies++){
-    nTotal += atom->dvector[ispecies][id];
+  double nTotal = 0.0;
+  double nTotalOld = 0.0;
+  for (int ispecies = 0; ispecies < nspecies; ++ispecies){
+    nTotal += atom->dvector[ispecies][id]; 
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
   if(nTotal < 1e-8 || nTotalOld < 1e-8)
     error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
 
-  for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){
-      fractionOld1 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction1 = atom->dvector[ispecies][id]/nTotal;
-    }
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){
-      fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction2 = atom->dvector[ispecies][id]/nTotal;
-    }
+  if (isOneFluid(isite1) == false){ 
+    fractionOld1 = atom->dvector[isite1+nspecies][id]/nTotalOld;
+    fraction1 = atom->dvector[isite1][id]/nTotal;
+  }
+  if (isOneFluid(isite2) == false){ 
+    fractionOld2 = atom->dvector[isite2+nspecies][id]/nTotalOld;
+    fraction2 = atom->dvector[isite2][id]/nTotal;
   }
 
-  for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){
-      fractionOld1 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction1 = atom->dvector[ispecies][id]/nTotal;
-    }
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){
-      fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction2 = atom->dvector[ispecies][id]/nTotal;
-    }
+  if (isOneFluid(isite1) || isOneFluid(isite2)){
+    double fractionOld  = 0.0;
+    double fraction  = 0.0;
 
-    if (strcmp(site1,"1fluid") == 0 || strcmp(site2,"1fluid") == 0) {
-      if (strcmp(site1,&atom->dname[ispecies][0]) == 0 || strcmp(site2,&atom->dname[ispecies][0]) == 0) continue;
+    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+      if (isite1 == ispecies || isite2 == ispecies) continue;
+
       fractionOld += atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fraction += atom->dvector[ispecies][id]/nTotal;
     }
-  }
-  if(strcmp(site1,"1fluid") == 0){
-    fractionOld1 = fractionOld;
-    fraction1 = fraction;
-  }
-  if(strcmp(site2,"1fluid") == 0){
-    fractionOld2 = fractionOld;
-    fraction2 = fraction;
+
+    if(isOneFluid(isite1)){
+      fractionOld1 = fractionOld;
+      fraction1 = fraction;
+    }
+
+    if(isOneFluid(isite2)){
+      fractionOld2 = fractionOld;
+      fraction2 = fraction;
+    }
   }
 }
 

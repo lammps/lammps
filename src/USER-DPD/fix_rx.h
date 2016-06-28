@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -25,7 +25,7 @@ FixStyle(rx,FixRX)
 typedef int (*fnptr)(double, const double *, double *, void *);
 namespace LAMMPS_NS {
 
-enum { ODE_LAMMPS_RK4 };
+enum { ODE_LAMMPS_RK4, ODE_LAMMPS_RKF45 };
 
 class FixRX : public Fix {
  public:
@@ -61,7 +61,21 @@ class FixRX : public Fix {
   double *Arr, *nArr, *Ea, *tempExp;
   double **stoich, **stoichReactants, **stoichProducts;
   double *kR;
-  void rk4(int);
+
+  //!< Classic Runge-Kutta 4th-order stepper.
+  void rk4(int,double*);
+
+  //!< Runge-Kutta-Fehlberg ODE Solver.
+  void rkf45(int,double*);
+
+  //!< Runge-Kutta-Fehlberg ODE stepper function.
+  void rkf45_step (const int neq, const double h, double y[], double y_out[],
+                   double rwk[], void* v_param);
+
+  //!< Initial step size estimation for the Runge-Kutta-Fehlberg ODE solver.
+  int rkf45_h0 (const int neq, const double t, const double t_stop,
+                     const double hmin, const double hmax,
+                     double& h0, double y[], double rwk[], void* v_params);
 
   class PairDPDfdtEnergy *pairDPDE;
   double *dpdThetaLocal;
@@ -71,14 +85,53 @@ class FixRX : public Fix {
   double sigFactor;
 
   int rhs(double, const double *, double *, void *);
+  int rhs_dense (double, const double *, double *, void *);
+
+  // Sparse stoichiometric matrix storage format and methods.
+  bool useSparseKinetics;
+  //SparseKinetics sparseKinetics;
+  int initSparse(void);
+  int rhs_sparse(double, const double *, double *, void *) const;
+
+  int sparseKinetics_maxReactants; //<! Max # of reactants species in any reaction
+  int sparseKinetics_maxProducts; //<! Max # of product species in any reaction
+  int sparseKinetics_maxSpecies; //<! Max # of species (maxReactants + maxProducts) in any reaction
+
+  //! Objects to hold the stoichiometric coefficients using a sparse matrix
+  //! format. Enables a sparse formulation for the reaction rates:
+  //! \f${\omega}_i = \Pi_{j=1}^{NS_i} K^{f}_i [x_j]^{\nu^{'}_{ij}} -
+  //!                                  K^{r}_i x_j^{\nu^{''}_{ij}}\f$.
+  double **sparseKinetics_nu; //<! Stoichiometric matrix with FLT values.
+  int    **sparseKinetics_nuk; //<! Index (base-0) of species ... this is the column sparse matrix.
+  int    **sparseKinetics_inu; //<! Stoichiometric matrix with integral values.
+
+  bool *sparseKinetics_isIntegralReaction; //<! Flag indicating if a reaction has integer stoichiometric values.
+
+  // ODE Parameters
+  int minSteps; //!< Minimum # of steps for the ODE solver(s).
+  int maxIters; //!< Maximum # of iterations for the ODE solver(s).
+  double relTol, absTol; //!< Relative and absolute tolerances for the ODE solver(s).
+
+  // ODE Diagnostics
+  int nSteps; //!< # of accepted steps taken over all atoms.
+  int nIters; //!< # of attemped steps for all atoms.
+  int nFuncs; //!< # of RHS evaluations for all atoms.
+  int nFails; //!< # of ODE systems that failed (for some reason).
+
+  int diagnosticFrequency; //!< Frequency (LMP steps) that run-time diagnostics will be printed to the log.
+  enum { numDiagnosticCounters = 5 };
+  enum { StepSum=0, FuncSum, TimeSum, AtomSum, CountSum };
+  double diagnosticCounter[ numDiagnosticCounters ];
+
+  int *diagnosticCounterPerODE[ numDiagnosticCounters ];
+
+  //!< ODE Solver diagnostics.
+  void odeDiagnostics(void);
 
  private:
   char *kineticsFile;
   char *id_fix_species,*id_fix_species_old;
   class FixPropertyAtom *fix_species,*fix_species_old;
-
-  // ODE Parameters
-  int minSteps; //!< Minimum # of steps for the ODE solver(s).
 
 };
 
@@ -119,6 +172,10 @@ E:  fix rx requires fix eos/table/rx to be specified.
 
 Self-explanatory
 
+W:  in FixRX::pre_force, ODE solver failed for %d atoms.
+
+Self-explanatory
+
 E:  Missing parameters in reaction kinetic equation.
 
 Self-explanatory
@@ -127,7 +184,7 @@ E:  Potential file has duplicate entry.
 
 Self-explanatory
 
-E:  Computed concentration in RK4 solver is < -1.0e-10.
+E:  Computed concentration in RK4 (RKF45) solver is < -1.0e-10.
 
 Self-explanatory:  Adjust settings for the RK4 solver.
 

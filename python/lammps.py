@@ -227,7 +227,7 @@ class lammps:
             return result
         if type == 1:
             self.lib.lammps_extract_global.restype = POINTER(c_int)
-            nlocalptr = self.lib.lammps_extract_global(self.lmp, "nlocal")
+            nlocalptr = self.lib.lammps_extract_global(self.lmp, "nlocal".encode())
             nlocal = nlocalptr[0]
             result = (c_double * nlocal)()
             self.lib.lammps_extract_variable.restype = POINTER(c_double)

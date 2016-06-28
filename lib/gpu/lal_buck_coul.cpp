@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -33,10 +33,10 @@ BuckCoulT::BuckCoul() : BaseCharge<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-BuckCoulT::~BuckCoul() { 
+BuckCoulT::~BuckCoul() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int BuckCoulT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -44,11 +44,11 @@ int BuckCoulT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int BuckCoulT::init(const int ntypes, double **host_cutsq,
-                   double **host_rhoinv, double **host_buck1, double **host_buck2, 
-                   double **host_a, double **host_c, 
+                   double **host_rhoinv, double **host_buck1, double **host_buck2,
+                   double **host_a, double **host_c,
                    double **host_offset, double *host_special_lj,
-                   const int nlocal, const int nall, const int max_nbors, 
-                   const int maxspecial, const double cell_size, 
+                   const int nlocal, const int nall, const int max_nbors,
+                   const int maxspecial, const double cell_size,
                    const double gpu_split, FILE *_screen, double **host_cut_ljsq,
                    double **host_cut_coulsq, double *host_special_coul,
                    const double qqrd2e) {
@@ -81,21 +81,21 @@ int BuckCoulT::init(const int ntypes, double **host_cutsq,
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_a,host_c,
-		         host_offset);
-  
+                         host_offset);
+
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,cutsq,host_write,host_cutsq,
             host_cut_ljsq, host_cut_coulsq);
-  
+
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
     host_write[i]=host_special_lj[i];
     host_write[i+4]=host_special_coul[i];
   }
   ucl_copy(sp_lj,host_write,8,false);
-  
+
   _qqrd2e = qqrd2e;
-  
+
   _allocated=true;
   this->_max_bytes=coeff1.row_bytes()+coeff2.row_bytes()+sp_lj.row_bytes();
   return 0;
@@ -135,7 +135,7 @@ void BuckCoulT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -147,12 +147,12 @@ void BuckCoulT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.run(&this->atom->x, &coeff1, &coeff2, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
-                          &vflag, &ainum, &nbor_pitch, &this->atom->q, 
+                          &vflag, &ainum, &nbor_pitch, &this->atom->q,
                           &cutsq, &_qqrd2e, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &coeff1, &coeff2, &_lj_types, &sp_lj,
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->q,
                      &cutsq, &_qqrd2e, &this->_threads_per_atom);

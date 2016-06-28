@@ -801,18 +801,45 @@ typedef struct
 } molecule;
 
 
-typedef struct
+struct LR_data
 {
   double H;
   double e_vdW, CEvd;
   double e_ele, CEclmb;
-} LR_data;
+
+  void operator = (const LR_data& rhs) {
+    H      = rhs.H;
+    e_vdW  = rhs.e_vdW;
+    CEvd   = rhs.CEvd;
+    e_ele  = rhs.e_ele;
+    CEclmb = rhs.CEclmb;
+  }
+  void operator = (const LR_data& rhs) volatile {
+    H      = rhs.H;
+    e_vdW  = rhs.e_vdW;
+    CEvd   = rhs.CEvd;
+    e_ele  = rhs.e_ele;
+    CEclmb = rhs.CEclmb;
+  }
+};
 
 
-typedef struct
+struct cubic_spline_coef
 {
   double a, b, c, d;
-} cubic_spline_coef;
+  void operator = (const cubic_spline_coef& rhs) {
+    a = rhs.a;
+    b = rhs.b;
+    c = rhs.c;
+    d = rhs.d;
+  }
+  void operator = (const cubic_spline_coef& rhs) volatile {
+    a = rhs.a;
+    b = rhs.b;
+    c = rhs.c;
+    d = rhs.d;
+  }
+};
 
 
 

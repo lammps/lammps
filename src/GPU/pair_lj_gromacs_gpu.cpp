@@ -153,7 +153,7 @@ void PairLJGromacsGPU::init_style()
     maxspecial=atom->maxspecial;
 
   int success = ljgrm_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
-			                         force->special_lj, atom->nlocal,
+                                                 force->special_lj, atom->nlocal,
                                atom->nlocal+atom->nghost, 300, maxspecial,
                                cell_size, gpu_mode, screen, ljsw1, ljsw2,
                                ljsw3, ljsw4, ljsw5, cut_inner, cut_inner_sq);
@@ -215,31 +215,31 @@ void PairLJGromacsGPU::cpu_compute(int start, int inum, int eflag,
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-      	r6inv = r2inv*r2inv*r2inv;
+              r6inv = r2inv*r2inv*r2inv;
         forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-      	if (rsq > cut_inner_sq[itype][jtype]) {
+              if (rsq > cut_inner_sq[itype][jtype]) {
           r = sqrt(rsq);
           t = r - cut_inner[itype][jtype];
-       	  fswitch = r*t*t*(ljsw1[itype][jtype] + ljsw2[itype][jtype]*t);
-	        forcelj += fswitch;
+                 fswitch = r*t*t*(ljsw1[itype][jtype] + ljsw2[itype][jtype]*t);
+                forcelj += fswitch;
         }
-      	fpair = factor_lj*forcelj * r2inv;
+              fpair = factor_lj*forcelj * r2inv;
 
-      	f[i][0] += delx*fpair;
-      	f[i][1] += dely*fpair;
-      	f[i][2] += delz*fpair;
+              f[i][0] += delx*fpair;
+              f[i][1] += dely*fpair;
+              f[i][2] += delz*fpair;
 
-     	  if (eflag) {
-      	  evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
-      	  evdwl += ljsw5[itype][jtype];
+               if (eflag) {
+                evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+                evdwl += ljsw5[itype][jtype];
           if (rsq > cut_inner_sq[itype][jtype]) {
             eswitch = t*t*t*(ljsw3[itype][jtype] + ljsw4[itype][jtype]*t);
             evdwl += eswitch;
           }
-      	  evdwl *= factor_lj;
-      	}
+                evdwl *= factor_lj;
+              }
 
-      	if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
+              if (evflag) ev_tally_full(i,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }

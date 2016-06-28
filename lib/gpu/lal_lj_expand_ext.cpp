@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : ibains@nvidia.com
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ static LJExpand<PRECISION,ACC_PRECISION> LJEMF;
 int lje_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **host_lj2, double **host_lj3, double **host_lj4,
                  double **offset, double **shift, double *special_lj,
-                 const int inum, const int nall, const int max_nbors, 
+                 const int inum, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size, int &gpu_mode,
                  FILE *screen) {
   LJEMF.clear();
@@ -78,7 +78,7 @@ int lje_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                          cell_size, gpu_split,screen);
 
     LJEMF.device->world_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -98,12 +98,12 @@ int lje_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
   int world_me=LJEMF.device->world_me();
   int gpu_rank=LJEMF.device->gpu_rank();
   int procs_per_gpu=LJEMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
     LJEMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                 offset, shift);
   LJEMF.device->world_barrier();
-  
+
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       LJEMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
@@ -126,8 +126,8 @@ int** lje_gpu_compute_n(const int ago, const int inum_full,
   return LJEMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void lje_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,

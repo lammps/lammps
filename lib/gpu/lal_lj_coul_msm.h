@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ class LJCoulMSM : public BaseCharge<numtyp, acctyp> {
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -41,8 +41,8 @@ class LJCoulMSM : public BaseCharge<numtyp, acctyp> {
            double **host_lj1, double **host_lj2, double **host_lj3,
            double **host_lj4, double **host_gcons, double **host_dgcons,
            double **host_offset, double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen, double **host_cut_ljsq,
            const double host_cut_coulsq, double *host_special_coul,
            const int order, const double qqrd2e);
@@ -65,14 +65,14 @@ class LJCoulMSM : public BaseCharge<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> lj3;
   /// Special LJ values [0-3] and Special Coul values [4-7]
   UCL_D_Vec<numtyp> sp_lj;
-  
+
   UCL_D_Vec<numtyp> gcons, dgcons;
   UCL_Texture gcons_tex, dgcons_tex;
-  
+
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
   numtyp _cut_coulsq, _qqrd2e;

@@ -125,6 +125,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 
 PairReaxC::~PairReaxC()
 {
+  if (copymode) return;
+
   if (fix_reax) modify->delete_fix("REAXC");
 
   if (setup_flag) {

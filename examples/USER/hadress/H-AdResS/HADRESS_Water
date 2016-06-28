@@ -1,0 +1,123 @@
+# SPC/E water box benchmark
+# This is HAdResS setup for simulation of water molecules.
+# The water molecules are simulated and coupled into two resolution:
+# High resolution in which atomistic SPC/E forcefields are present and
+# Low resolution in which coarse-grained WCA forcefield is computed.
+# For more information see Documentation and the follwoing paper:
+# Heidari et al., Eur. Phys. J. Special Topics, 2016.
+
+# You need to have the file "restart.waterT300.50000" for running the script.
+# Thus you need to run first the equillibration script (LongSetup) for 50000 timestep,
+# and then set it as the restart file. 
+
+units		real
+atom_style	full/hars
+boundary	p p p 
+
+#read_data      HAdResS_SPC.data
+read_restart    restart.waterT300.50000
+
+variable        root index waterT300
+variable        Nrun equal 1000000
+variable        Nf equal 100
+variable        Ne equal 10
+variable        Nr equal ${Nf}/${Ne}
+variable        Ndump equal 500
+variable        Nrestart equal 10000
+variable        Nr_rdf equal 0.5*${Nrun}/${Ne}
+
+variable        Comp_AT_Size equal 60.0
+variable        Comp_HY_Size equal 25.0
+variable	Hyb_Shape string slab
+
+variable        Comp_Dens_nMolType equal 1
+variable        Comp_Pres_Switch equal 1
+variable        Comp_Pres_Start equal 150000
+variable        Comp_Pres_End equal 300000
+variable        Comp_Pres_Freq equal 1000
+variable        Comp_Pres_Lambda_Size equal 0.02
+
+variable        Comp_Dens_Switch equal 1
+variable        Comp_Dens_Start equal 500000
+variable        Comp_Dens_End equal 900000
+variable        Comp_Dens_Freq equal 1000
+variable        Comp_Dens_Alpha equal 4.0
+variable        Comp_Dens_Sigma equal 6.0
+variable        Comp_Dens_Range_Int equal 2.0
+variable        Comp_Dens_Bin_Size equal 1.5
+variable        Comp_Dens_Ref_Dens equal 0.1
+variable	Load_File_Flag equal 0
+
+
+variable 	Text equal 300.0
+variable 	Pext equal 1.0
+
+pair_style	hybrid/overlay lj/cut/hars/cg 2.469416506 0 0 lj/cut/coul/dsf/hars/at 0.2 10.0 12.0 0 0
+
+pair_coeff	* * lj/cut/hars/cg 1.0 2.2
+
+pair_coeff	1 1 lj/cut/coul/dsf/hars/at 0.15535 3.166
+pair_coeff	* 2 lj/cut/coul/dsf/hars/at 0.0000 0.0000
+pair_modify 	shift yes
+
+#######################################################################
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+#special_bonds   lj/cut/coul/dsf/hars/at 0.0 0.0 0.5
+special_bonds   lj/coul 0.0 0.0 0.5
+
+neighbor        1.0 bin
+neigh_modify	every 1 delay 10 check yes
+
+fix		LAMBDACALC all lambdah/calc ${Comp_Dens_nMolType} ${Comp_HY_Size} ${Comp_AT_Size} ${Comp_Pres_Switch} ${Comp_Pres_Lambda_Size} ${Comp_Pres_Freq} ${Comp_Pres_Start} ${Comp_Pres_End} ${Hyb_Shape} &
+									    ${Comp_Dens_Switch} ${Comp_Dens_Bin_Size} ${Comp_Dens_Freq} ${Comp_Dens_Start} ${Comp_Dens_End} ${Comp_Dens_Sigma} ${Comp_Dens_Range_Int} ${Comp_Dens_Ref_Dens} ${Comp_Dens_Alpha} ${Load_File_Flag}
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+fix		3 all nve
+fix             4 all langevin   300.0 300.0   100     9892571
+
+timestep	1.0
+
+########################################################################
+compute 	FFX all property/atom fx
+compute 	SumFFX all reduce sum c_FFX
+
+compute 	FFY all property/atom fy
+compute 	SumFFY all reduce sum c_FFY
+
+compute 	FFZ all property/atom fz
+compute 	SumFFZ all reduce sum c_FFZ
+
+compute 	T all temp
+fix 		TempAve all ave/time ${Ne} ${Nr} ${Nf} c_T 
+
+compute 	Pperatom all stress/atom NULL
+variable 	Patom atom -1.0*c_Pperatom[1]/(3*0.5*(yhi-ylo)*(zhi-zlo))
+
+variable 	P equal press
+fix 		PressAve all ave/time ${Ne} ${Nr} ${Nf} v_P
+
+fix 		PressureP all ave/spatial 5 1000 5000 x lower 3.0 v_Patom ave one file Pres.profile
+fix 		DensityD all ave/spatial 5 1000 5000 x lower 3.0 density/number ave one file Dens.profile
+
+compute         rdf all rdf 100 1 1 # oxygen-oxygen
+fix             rdf all ave/time 10 1000 10000 c_rdf file O.rdf mode vector
+
+########################################################################
+thermo_style 	custom step temp f_TempAve press f_PressAve density ke ebond eangle evdwl ecoul etotal c_SumFFX c_SumFFY c_SumFFZ
+
+thermo_modify 	flush yes
+thermo 		${Nf}
+
+dump            2 all  custom 500 wat.lammpstrj id type x y z vx vy vz
+
+restart         ${Nrestart} restart.${root}
+
+run		${Nrun}

@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov nguyentd@ornl.gov
 // ***************************************************************************/
 
@@ -82,7 +82,7 @@ texture<int4> z2r_sp2_tex;
       engv[ii]=energy;                                                      \
     }                                                                       \
   }
-  
+
 #define store_answers_eam(f, energy, virial, ii, inum, tid, t_per_atom,     \
                       offset, elag, vflag, ans, engv)                       \
   if (t_per_atom>1) {                                                       \
@@ -188,37 +188,37 @@ texture<int4> z2r_sp2_tex;
 
 #endif
 
-__kernel void k_energy(const __global numtyp4 *restrict x_, 
+__kernel void k_energy(const __global numtyp4 *restrict x_,
                        const __global int2 *restrict type2rhor_z2r,
-                       const __global int *restrict type2frho, 
-                       const __global numtyp4 *restrict rhor_spline2, 
+                       const __global int *restrict type2frho,
+                       const __global numtyp4 *restrict rhor_spline2,
                        const __global numtyp4 *restrict frho_spline1,
                        const __global numtyp4 *restrict frho_spline2,
-                       const __global int *dev_nbor, 
+                       const __global int *dev_nbor,
                        const __global int *dev_packed,
-                       __global numtyp *restrict fp_, 
-                       __global acctyp *restrict engv, 
+                       __global numtyp *restrict fp_,
+                       __global acctyp *restrict engv,
                        const int eflag, const int inum, const int nbor_pitch,
-                       const int ntypes,  const numtyp cutforcesq, 
-                       const numtyp rdr, const numtyp rdrho, 
+                       const int ntypes,  const numtyp cutforcesq,
+                       const numtyp rdr, const numtyp rdrho,
                        const numtyp rhomax, const int nrho,
                        const int nr, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   acctyp rho = (acctyp)0;
   acctyp energy = (acctyp)0;
-   
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
-    
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
       j &= NEIGHMASK;
@@ -231,60 +231,60 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-      
+
       if (rsq<cutforcesq) {
         numtyp p = ucl_sqrt(rsq)*rdr + (numtyp)1.0;
         int m=p;
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);
-        
+
         int mtype = jtype*ntypes+itype;
         int index = type2rhor_z2r[mtype].x*(nr+1)+m;
         numtyp4 coeff; fetch4(coeff,index,rhor_sp2_tex);
         rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       }
     } // for nbor
-    
+
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
         eflag,vflag,engv,rdrho,nrho,i,rhomax);
   } // if ii
 }
 
-__kernel void k_energy_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_energy_fast(const __global numtyp4 *restrict x_,
                             const __global int2 *restrict type2rhor_z2r_in,
-                            const __global int *restrict type2frho_in, 
-                            const __global numtyp4 *restrict rhor_spline2, 
+                            const __global int *restrict type2frho_in,
+                            const __global numtyp4 *restrict rhor_spline2,
                             const __global numtyp4 *restrict frho_spline1,
                             const __global numtyp4 *restrict frho_spline2,
-                            const __global int *dev_nbor, 
-                            const __global int *dev_packed, 
-                            __global numtyp *restrict fp_, 
-                            __global acctyp *restrict engv, 
-                            const int eflag,  const int inum, 
-                            const int nbor_pitch, const int ntypes, 
+                            const __global int *dev_nbor,
+                            const __global int *dev_packed,
+                            __global numtyp *restrict fp_,
+                            __global acctyp *restrict engv,
+                            const int eflag,  const int inum,
+                            const int nbor_pitch, const int ntypes,
                             const numtyp cutforcesq,  const numtyp rdr,
-                            const numtyp rdrho, const numtyp rhomax, 
-                            const int nrho, const int nr, 
+                            const numtyp rdrho, const numtyp rhomax,
+                            const int nrho, const int nr,
                             const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local int2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local int type2frho[MAX_SHARED_TYPES];
 
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     type2rhor_z2r[tid]=type2rhor_z2r_in[tid];
   }
-  
+
   if (tid<MAX_SHARED_TYPES) {
     type2frho[tid]=type2frho_in[tid];
   }
 
   acctyp rho = (acctyp)0;
   acctyp energy = (acctyp)0;
-  
-  __syncthreads(); 
+
+  __syncthreads();
 
   if (ii<inum) {
     int nbor, nbor_end;
@@ -292,10 +292,10 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
-    
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
       j &= NEIGHMASK;
@@ -307,14 +307,14 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-      
+
       if (rsq<cutforcesq) {
         numtyp p = ucl_sqrt(rsq)*rdr + (numtyp)1.0;
         int m=p;
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);
-        
+
         int jtype=fast_mul((int)MAX_SHARED_TYPES,jx.w);
         int mtype = jtype+itype;
         int index = type2rhor_z2r[mtype].x*(nr+1)+m;
@@ -322,24 +322,24 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
         rho += ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
       }
     } // for nbor
-    
+
     store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
                     eflag,vflag,engv,rdrho,nrho,i,rhomax);
   } // if ii
 }
 
-__kernel void k_eam(const __global numtyp4 *restrict x_, 
+__kernel void k_eam(const __global numtyp4 *restrict x_,
                     const __global numtyp *fp_,
                     const __global int2 *type2rhor_z2r,
-                    const __global numtyp4 *rhor_spline1, 
+                    const __global numtyp4 *rhor_spline1,
                     const __global numtyp4 *z2r_spline1,
                     const __global numtyp4 *z2r_spline2,
                     const __global int *dev_nbor,
-                    const __global int *dev_packed, 
+                    const __global int *dev_packed,
                     __global acctyp4 *ans,
-                    __global acctyp *engv, 
+                    __global acctyp *engv,
                     const int eflag, const int vflag,  const int inum,
-                    const int nbor_pitch, const int ntypes, 
+                    const int nbor_pitch, const int ntypes,
                     const numtyp cutforcesq,  const numtyp rdr, const int nr,
                     const int t_per_atom) {
   int tid, ii, offset;
@@ -353,14 +353,14 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp ifp; fetch(ifp,i,fp_tex);  //fp_[i];
     int itype=ix.w;
@@ -377,7 +377,7 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-      
+
       if (rsq<cutforcesq) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
@@ -385,7 +385,7 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);
-        
+
         int mtype,index;
         numtyp4 coeff;
 
@@ -398,22 +398,22 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
         fetch4(coeff,index,rhor_sp1_tex);
         numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
-              
+
         mtype = itype*ntypes+jtype;
         index = type2rhor_z2r[mtype].y*(nr+1)+m;
         fetch4(coeff,index,z2r_sp1_tex);
         numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
         fetch4(coeff,index,z2r_sp2_tex);
         numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
-        
+
         numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
         numtyp psip;
         fetch(psip,j,fp_tex);
-        psip = ifp*rhojp + psip*rhoip + phip; 
+        psip = ifp*rhojp + psip*rhoip + phip;
         numtyp force = -psip*recip;
-        
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
@@ -437,22 +437,22 @@ __kernel void k_eam(const __global numtyp4 *restrict x_,
 
 }
 
-__kernel void k_eam_fast(const __global numtyp4 *x_, 
+__kernel void k_eam_fast(const __global numtyp4 *x_,
                          const __global numtyp *fp_,
                          const __global int2 *type2rhor_z2r_in,
-                         const __global numtyp4 *rhor_spline1, 
+                         const __global numtyp4 *rhor_spline1,
                          const __global numtyp4 *z2r_spline1,
                          const __global numtyp4 *z2r_spline2,
-                         const __global int *dev_nbor, 
-                         const __global int *dev_packed, 
-                         __global acctyp4 *ans, 
-                         __global acctyp *engv, 
-                         const int eflag, const int vflag, const int inum, 
-                         const int nbor_pitch, const numtyp cutforcesq, 
+                         const __global int *dev_nbor,
+                         const __global int *dev_packed,
+                         __global acctyp4 *ans,
+                         __global acctyp *engv,
+                         const int eflag, const int vflag, const int inum,
+                         const int nbor_pitch, const numtyp cutforcesq,
                          const numtyp rdr, const int nr, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local int2 type2rhor_z2r[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
 
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
@@ -487,13 +487,13 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       int jw=jx.w;
       int jtype=fast_mul((int)MAX_SHARED_TYPES,jw);
-      
+
       // Compute r12
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       if (rsq<cutforcesq) {
         numtyp r = ucl_sqrt(rsq);
         numtyp p = r*rdr + (numtyp)1.0;
@@ -501,35 +501,35 @@ __kernel void k_eam_fast(const __global numtyp4 *x_,
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,(numtyp)1.0);
-        
+
         numtyp4 coeff;
         int mtype,index;
-        
+
         mtype = itype+jw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
         fetch4(coeff,index,rhor_sp1_tex);
         numtyp rhoip = (coeff.x*p + coeff.y)*p + coeff.z;
-        
+
         mtype = jtype+iw;
         index = type2rhor_z2r[mtype].x*(nr+1)+m;
         fetch4(coeff,index,rhor_sp1_tex);
         numtyp rhojp = (coeff.x*p + coeff.y)*p + coeff.z;
-        
+
         mtype = itype+jw;
         index = type2rhor_z2r[mtype].y*(nr+1)+m;
         fetch4(coeff,index,z2r_sp1_tex);
         numtyp z2p = (coeff.x*p + coeff.y)*p + coeff.z;
         fetch4(coeff,index,z2r_sp2_tex);
         numtyp z2 = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;
-      
+
         numtyp recip = ucl_recip(r);
         numtyp phi = z2*recip;
         numtyp phip = z2p*recip - phi*recip;
         numtyp psip;
         fetch(psip,j,fp_tex);
-        psip = ifp*rhojp + psip*rhoip + phip; 
+        psip = ifp*rhojp + psip*rhoip + phip;
         numtyp force = -psip*recip;
-        
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;

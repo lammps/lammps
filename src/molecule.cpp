@@ -505,7 +505,20 @@ void Molecule::read(int flag)
       if (flag) masses(line);
       else skip_lines(natoms,line);
 
-    } else if (strcmp(keyword,"Bonds") == 0) {
+    } else if (strcmp(keyword,"replambdaH") == 0) {
+        // USER-HAdResS Package
+
+        replambdaHflag = 1;
+        if (flag) representative_atom(line);
+        else skip_lines(natoms,line);
+      } else if (strcmp(keyword,"moltypeH") == 0) {
+        // USER-HAdResS Package
+
+        moltypeHflag = 1;
+        if (flag) moltype_atom(line);
+        else skip_lines(natoms,line);
+
+      } else if (strcmp(keyword,"Bonds") == 0) {
       if (nbonds == 0)
 	error->all(FLERR,"Molecule file has bonds but no nbonds setting");
       bondflag = tag_require = 1;
@@ -684,6 +697,30 @@ void Molecule::charges(char *line)
         error->all(FLERR,"Invalid Charges section in molecule file");
     }
     sscanf(line,"%d %lg",&tmp,&q[i]);
+  }
+}
+
+// USER-HAdResS Package
+
+void Molecule::representative_atom(char *line)
+{
+  int tmp;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    sscanf(line,"%d %d",&tmp,&replambdaH[i]);
+    printf("i=%d rep = %d",i,replambdaH[i]);
+  }
+}
+
+// USER-HAdResS Package
+
+void Molecule::moltype_atom(char *line)
+{
+  int tmp;
+  for (int i = 0; i < natoms; i++) {
+    readline(line);
+    sscanf(line,"%d %d",&tmp,&moltypeH[i]);
+    printf("i=%d rep = %d",i,moltypeH[i]);
   }
 }
 
@@ -1344,6 +1381,8 @@ void Molecule::check_attributes(int flag)
     // warn if not a match
 
     int mismatch = 0;
+    if (onemol->replambdaHflag && !atom->replambdaH_flag) mismatch = 1;
+    if (onemol->moltypeHflag && !atom->moltypeH_flag) mismatch = 1;
     if (onemol->qflag && !atom->q_flag) mismatch = 1;
     if (onemol->radiusflag && !atom->radius_flag) mismatch = 1;
     if (onemol->rmassflag && !atom->rmass_flag) mismatch = 1;
@@ -1462,6 +1501,8 @@ void Molecule::allocate()
   if (qflag) memory->create(q,natoms,"molecule:q");
   if (radiusflag) memory->create(radius,natoms,"molecule:radius");
   if (rmassflag) memory->create(rmass,natoms,"molecule:rmass");
+  if (replambdaHflag) memory->create(replambdaH,natoms,"molecule:replambdaH");
+  if (moltypeHflag) memory->create(moltypeH,natoms,"molecule:moltypeH");
 
   // always allocate num_bond,num_angle,etc and special+nspecial
   // even if not in molecule file, initialize to 0
@@ -1548,6 +1589,8 @@ void Molecule::deallocate()
   memory->destroy(type);
   memory->destroy(q);
   memory->destroy(radius);
+  memory->destroy(replambdaH);
+  memory->destroy(moltypeH);
   memory->destroy(rmass);
 
   memory->destroy(num_bond);

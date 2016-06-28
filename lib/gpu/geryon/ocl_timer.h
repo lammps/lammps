@@ -17,7 +17,7 @@
 /* -----------------------------------------------------------------------
    Copyright (2010) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
@@ -67,33 +67,33 @@ class UCL_Timer {
     clRetainCommandQueue(_cq);
     _initialized=true;
   }
-  
+
   /// Start timing on default command queue
   inline void start() { UCL_OCL_MARKER(_cq,&start_event); }
-  
+
   /// Stop timing on default command queue
   inline void stop() { UCL_OCL_MARKER(_cq,&stop_event); }
-  
+
   /// Block until the start event has been reached on device
-  inline void sync_start() 
+  inline void sync_start()
     { CL_SAFE_CALL(clWaitForEvents(1,&start_event)); }
 
   /// Block until the stop event has been reached on device
-  inline void sync_stop() 
+  inline void sync_stop()
     { CL_SAFE_CALL(clWaitForEvents(1,&stop_event)); }
 
   /// Set the time elapsed to zero (not the total_time)
-  inline void zero() 
-    { UCL_OCL_MARKER(_cq,&start_event); UCL_OCL_MARKER(_cq,&stop_event); } 
-  
+  inline void zero()
+    { UCL_OCL_MARKER(_cq,&start_event); UCL_OCL_MARKER(_cq,&stop_event); }
+
   /// Set the total time to zero
   inline void zero_total() { _total_time=0.0; }
-  
+
   /// Add time from previous start and stop to total
   /** Forces synchronization **/
-  inline double add_to_total() 
+  inline double add_to_total()
     { double t=time(); _total_time+=t; return t/1000.0; }
-  
+
   /// Add a user specified time to the total (ms)
   inline void add_time_to_total(const double t) { _total_time+=t; }
 
@@ -107,12 +107,12 @@ class UCL_Timer {
     CL_SAFE_CALL(clGetEventProfilingInfo(start_event,
                                          CL_PROFILING_COMMAND_END,
                                          sizeof(cl_ulong), &tstart, NULL));
-    return (tend-tstart)*t_factor; 
+    return (tend-tstart)*t_factor;
   }
-  
+
   /// Return the time (s) of last start to stop - Forces synchronization
   inline double seconds() { return time()/1000.0; }
-  
+
   /// Return the total time in ms
   inline double total_time() { return _total_time; }
 

@@ -59,6 +59,14 @@ class Atom : protected Pointers {
   double *radius,*rmass;
   int *ellipsoid,*line,*tri,*body;
 
+  //USER-HAdResS package
+
+  double *lambdaH,**gradlambdaH;
+  int *replambdaH;
+  int *moltypeH;
+  int nmoltypesH;
+  double **comH;
+
   // PERI package
 
   double *vfrac,*s0;
@@ -142,6 +150,10 @@ class Atom : protected Pointers {
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
   int dpd_flag;
+
+  // USER-HAdResS
+
+  int replambdaH_flag, moltypeH_flag;
 
   // USER-SMD package
 

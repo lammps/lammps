@@ -179,8 +179,6 @@ void PairDPDfdt::settings(int narg, char **arg)
   temperature = force->numeric(FLERR,arg[0]);
   cut_global = force->numeric(FLERR,arg[1]);
   seed = force->inumeric(FLERR,arg[2]);
-  if (atom->dpd_flag != 1)
-    error->all(FLERR,"pair_style dpd/fdt requires atom_style dpd");
 
   // initialize Marsaglia RNG with processor-unique seed
 

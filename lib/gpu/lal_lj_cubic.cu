@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : ndactrung@gmail.com
 // ***************************************************************************/
 
@@ -31,16 +31,16 @@ texture<int4,1> pos_tex;
 #define _DPHIDS (numtyp)2.6899009  // gradient at s
 #define _A3 (numtyp)27.93357       // cubic coefficient
 
-__kernel void k_lj_cubic(const __global numtyp4 *restrict x_, 
+__kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict lj1,
                          const __global numtyp4 *restrict lj2,
-                         const __global numtyp2 *restrict lj3, 
-                         const int lj_types, 
-                         const __global numtyp *restrict sp_lj, 
-                         const __global int * dev_nbor, 
-                         const __global int * dev_packed, 
-                         __global acctyp4 *restrict ans, 
-                         __global acctyp *restrict engv, 
+                         const __global numtyp2 *restrict lj3,
+                         const int lj_types,
+                         const __global numtyp *restrict sp_lj,
+                         const __global int * dev_nbor,
+                         const __global int * dev_packed,
+                         __global acctyp4 *restrict ans,
+                         __global acctyp *restrict engv,
                          const int eflag, const int vflag, const int inum,
                          const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
@@ -52,19 +52,19 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -77,7 +77,7 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       int mtype=itype*lj_types+jtype;
       if (rsq<lj1[mtype].z) {
         numtyp r2inv,r6inv,force,t;
@@ -93,18 +93,18 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
         }
 
         force*=factor_lj*r2inv;
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e;
-          if (rsq <= lj2[mtype].x) 
+          if (rsq <= lj2[mtype].x)
             e = r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
           else
             e = lj2[mtype].w*(_PHIS + _DPHIDS*t - _A3*t*t*t/6.0);
-          energy+=factor_lj*e; 
+          energy+=factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -122,20 +122,20 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
                               const __global numtyp4 *restrict lj1_in,
                               const __global numtyp4 *restrict lj2_in,
-                              const __global numtyp2 *restrict lj3_in, 
-                              const __global numtyp *restrict sp_lj_in, 
-                              const __global int * dev_nbor, 
-                              const __global int * dev_packed, 
-                              __global acctyp4 *restrict ans, 
-                              __global acctyp *restrict engv, 
-                              const int eflag, const int vflag, const int inum, 
+                              const __global numtyp2 *restrict lj3_in,
+                              const __global numtyp *restrict sp_lj_in,
+                              const __global int * dev_nbor,
+                              const __global int * dev_packed,
+                              __global acctyp4 *restrict ans,
+                              __global acctyp *restrict engv,
+                              const int eflag, const int vflag, const int inum,
                               const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp2 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
@@ -148,7 +148,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
     if (eflag>0)
       lj3[tid]=lj3_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -157,7 +157,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
@@ -170,7 +170,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -183,7 +183,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       if (rsq<lj1[mtype].z) {
         numtyp r2inv,r6inv,force,t;
         r2inv=ucl_recip(rsq);
@@ -198,18 +198,18 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
         }
 
         force*=factor_lj*r2inv;
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e;
-          if (rsq <= lj2[mtype].x) 
+          if (rsq <= lj2[mtype].x)
             e = r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
           else
             e = lj2[mtype].w*(_PHIS + _DPHIDS*t - _A3*t*t*t/6.0);
-          energy+=factor_lj*e; 
+          energy+=factor_lj*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

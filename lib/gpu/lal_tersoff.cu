@@ -597,11 +597,12 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
                                   const __global acctyp4 *restrict zetaij,
                                   const __global int * dev_nbor,
                                   const __global int * dev_packed,
+                                  const __global int * dev_acc,
                                   __global acctyp4 *restrict ans,
                                   __global acctyp *restrict engv,
                                   const int eflag, const int vflag,
                                   const int inum,  const int nbor_pitch,
-                                  const int t_per_atom) {
+                                  const int t_per_atom, const int gpu_nbor) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
   numtyp lam3, powermint, bigr, bigd, c, d, h, gamma;
@@ -666,13 +667,17 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
       mdelr1[1] = -delr1[1];
       mdelr1[2] = -delr1[2];
 
-      int nbor_k=j+nbor_pitch;
-      int numk=dev_nbor[nbor_k];
+      int nbor_k,numk;
       if (dev_nbor==dev_packed) {
+        if (gpu_nbor) nbor_k=j+nbor_pitch;
+        else nbor_k=dev_acc[j]+nbor_pitch;
+        numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
+        nbor_k=dev_acc[j]+nbor_pitch;
+        numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch;
         nbor_k=dev_nbor[nbor_k];
         k_end=nbor_k+numk;
@@ -810,7 +815,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
 __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global numtyp4 *restrict ts1_in,
                                         const __global numtyp4 *restrict ts2_in,
-      	                                const __global numtyp4 *restrict ts4_in,
+                                              const __global numtyp4 *restrict ts4_in,
                                         const __global numtyp *restrict cutsq,
                                         const __global int *restrict map,
                                         const __global int *restrict elem2param,
@@ -818,11 +823,12 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global acctyp4 *restrict zetaij,
                                         const __global int * dev_nbor,
                                         const __global int * dev_packed,
+                                        const __global int * dev_acc,
                                         __global acctyp4 *restrict ans,
                                         __global acctyp *restrict engv,
                                         const int eflag, const int vflag,
                                         const int inum,  const int nbor_pitch,
-                                        const int t_per_atom) {
+                                        const int t_per_atom, const int gpu_nbor) {
   __local int tpa_sq, n_stride;
   tpa_sq=fast_mul(t_per_atom,t_per_atom);
   numtyp lam3, powermint, bigr, bigd, c, d, h, gamma;
@@ -887,13 +893,17 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
       mdelr1[1] = -delr1[1];
       mdelr1[2] = -delr1[2];
 
-      int nbor_k=j+nbor_pitch;
-      int numk=dev_nbor[nbor_k];
+      int nbor_k,numk;
       if (dev_nbor==dev_packed) {
+        if (gpu_nbor) nbor_k=j+nbor_pitch;
+        else nbor_k=dev_acc[j]+nbor_pitch;
+        numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
         k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
         nbor_k+=offset_k;
       } else {
+        nbor_k=dev_acc[j]+nbor_pitch;
+        numk=dev_nbor[nbor_k];
         nbor_k+=nbor_pitch;
         nbor_k=dev_nbor[nbor_k];
         k_end=nbor_k+numk;
@@ -964,7 +974,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
 
         numtyp delr2[3];
         delr2[0] = kx.x-jx.x;
-      	delr2[1] = kx.y-jx.y;
+              delr2[1] = kx.y-jx.y;
         delr2[2] = kx.z-jx.z;
         numtyp rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 

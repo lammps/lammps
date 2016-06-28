@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -24,13 +24,13 @@ template <class numtyp, class acctyp>
 class Yukawa : public BaseAtomic<numtyp, acctyp> {
  public:
   Yukawa();
-  ~Yukawa(); 
+  ~Yukawa();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -39,8 +39,8 @@ class Yukawa : public BaseAtomic<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq, double kappa,
            double **host_a, double **host_offset, double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
 
   /// Clear all host and device data
@@ -57,16 +57,16 @@ class Yukawa : public BaseAtomic<numtyp, acctyp> {
 
   /// coeff.x = a, coeff.y = offset, coeff.z = cutsq
   UCL_D_Vec<numtyp4> coeff;
-  
+
   /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj;
 
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
-  
+
   /// kappa
   numtyp _kappa;
 

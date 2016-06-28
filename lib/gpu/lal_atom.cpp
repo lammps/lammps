@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ AtomT::Atom() : _compiled(false),_allocated(false),
 }
 
 template <class numtyp, class acctyp>
-int AtomT::bytes_per_atom() const { 
+int AtomT::bytes_per_atom() const {
   int id_space=0;
   if (_gpu_nbor==1)
     id_space=2;
@@ -51,7 +51,7 @@ bool AtomT::alloc(const int nall) {
   _max_atoms=static_cast<int>(static_cast<double>(nall)*1.10);
 
   bool success=true;
-  
+
   // Ignore host/device transfers?
   _host_view=false;
   if (dev->shared_memory() && sizeof(numtyp)==sizeof(double)) {
@@ -60,11 +60,11 @@ bool AtomT::alloc(const int nall) {
     assert(0==1);
     #endif
   }
-      
+
   // Allocate storage for CUDPP sort
   #ifdef USE_CUDPP
   if (_gpu_nbor==1) {
-    CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);  
+    CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);
     if (CUDPP_SUCCESS != result)
       return false;
   }
@@ -110,7 +110,7 @@ bool AtomT::alloc(const int nall) {
     } else {
       success=success && (host_particle_id.alloc(_max_atoms,*dev,
                                                  UCL_WRITE_ONLY)==UCL_SUCCESS);
-      success=success && 
+      success=success &&
              (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
     }
     if (_gpu_nbor==2 && _host_view)
@@ -124,8 +124,8 @@ bool AtomT::alloc(const int nall) {
   gpu_bytes+=x.device.row_bytes();
   if (gpu_bytes>_max_gpu_bytes)
     _max_gpu_bytes=gpu_bytes;
-  
-  _allocated=true;  
+
+  _allocated=true;
   return success;
 }
 
@@ -135,7 +135,7 @@ bool AtomT::add_fields(const bool charge, const bool rot,
   bool success=true;
   // Ignore host/device transfers?
   int gpu_bytes=0;
-  
+
   if (charge && _charge==false) {
     _charge=true;
     _other=true;
@@ -179,7 +179,7 @@ bool AtomT::add_fields(const bool charge, const bool rot,
     _gpu_nbor=gpu_nbor;
     #ifdef USE_CUDPP
     if (_gpu_nbor==1) {
-      CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);  
+      CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);
       if (CUDPP_SUCCESS != result)
         return false;
     }
@@ -198,9 +198,9 @@ bool AtomT::add_fields(const bool charge, const bool rot,
     } else {
       success=success && (host_particle_id.alloc(_max_atoms,*dev,
                                                  UCL_WRITE_ONLY)==UCL_SUCCESS);
-      success=success && 
+      success=success &&
              (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
-    }             
+    }
   }
 
   return success;
@@ -230,7 +230,7 @@ bool AtomT::init(const int nall, const bool charge, const bool rot,
   int ef_nall=nall;
   if (ef_nall==0)
     ef_nall=2000;
-  
+
   // Initialize timers for the selected device
   time_pos.init(*dev);
   time_q.init(*dev);
@@ -241,14 +241,14 @@ bool AtomT::init(const int nall, const bool charge, const bool rot,
   time_quat.zero();
   time_vel.zero();
   _time_cast=0.0;
-  
+
   #ifdef GPU_CAST
   compile_kernels(*dev);
   #endif
-  
+
   return success && alloc(ef_nall);
 }
-  
+
 template <class numtyp, class acctyp>
 void AtomT::clear_resize() {
   if (!_allocated)
@@ -274,7 +274,7 @@ void AtomT::clear_resize() {
   #ifdef USE_CUDPP
   if (_gpu_nbor==1) cudppDestroyPlan(sort_plan);
   #endif
-  
+
   if (_gpu_nbor==2) {
     host_particle_id.clear();
     host_cell_id.clear();
@@ -305,21 +305,21 @@ void AtomT::clear() {
 template <class numtyp, class acctyp>
 double AtomT::host_memory_usage() const {
   int atom_bytes=4;
-  if (_charge) 
+  if (_charge)
     atom_bytes+=1;
-  if (_rot) 
+  if (_rot)
     atom_bytes+=4;
-  if (_vel) 
+  if (_vel)
     atom_bytes+=4;
   return _max_atoms*atom_bytes*sizeof(numtyp)+sizeof(Atom<numtyp,acctyp>);
 }
-  
+
 // Sort arrays for neighbor list calculation
 template <class numtyp, class acctyp>
 void AtomT::sort_neighbor(const int num_atoms) {
   #ifdef USE_CUDPP
-  CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(), 
-                                 (int *)dev_particle_id.begin(), 
+  CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(),
+                                 (int *)dev_particle_id.begin(),
                                  8*sizeof(unsigned), num_atoms);
   if (CUDPP_SUCCESS != result) {
     printf("Error in cudppSort\n");

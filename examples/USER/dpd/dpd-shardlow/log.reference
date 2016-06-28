@@ -1,7 +1,7 @@
 boundary        p p p
 
 units           metal
-atom_style      dpd
+atom_style      atomic   # Can be either dpd or atomic
 read_data       data.dpd
   orthogonal box = (-5.36874 -4.6558 -6.56118) to (61.4618 53.2342 46.2472)
   1 by 1 by 1 MPI processor grid
@@ -36,7 +36,7 @@ Neighbor list info ...
   master list distance cutoff = 12
   ghost atom cutoff = 12
   binsize = 6 -> bins = 12 10 9
-Memory usage per processor = 3.15109 Mbytes
+Memory usage per processor = 2.13692 Mbytes
 Step Temp PotEng KinEng TotEng 
        0  128.6667660382  263.2538386154   16.6148533499  279.8686919654 
        1  128.8781761686  263.2538784644   16.6421529271  279.8960313916 
@@ -139,20 +139,20 @@ Step Temp PotEng KinEng TotEng
       98  143.3138701934  263.4462347092   18.5062468701  281.9524815793 
       99  143.5996902366  263.4503180925   18.5431550652  281.9934731576 
      100  143.4332992914  263.4544359567   18.5216688552  281.9761048118 
-Loop time of 0.31307 on 1 procs for 100 steps with 1000 atoms
+Loop time of 0.3716 on 1 procs for 100 steps with 1000 atoms
 
-Performance: 27.598 ns/day, 0.870 hours/ns, 319.418 timesteps/s
-99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 23.251 ns/day, 1.032 hours/ns, 269.107 timesteps/s
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.034904   | 0.034904   | 0.034904   |   0.0 | 11.15
-Neigh   | 0.12831    | 0.12831    | 0.12831    |   0.0 | 40.98
-Comm    | 0.007879   | 0.007879   | 0.007879   |   0.0 |  2.52
-Output  | 0.0016751  | 0.0016751  | 0.0016751  |   0.0 |  0.54
-Modify  | 0.13762    | 0.13762    | 0.13762    |   0.0 | 43.96
-Other   |            | 0.002684   |            |       |  0.86
+Pair    | 0.041291   | 0.041291   | 0.041291   |   0.0 | 11.11
+Neigh   | 0.15672    | 0.15672    | 0.15672    |   0.0 | 42.17
+Comm    | 0.0069661  | 0.0069661  | 0.0069661  |   0.0 |  1.87
+Output  | 0.0019002  | 0.0019002  | 0.0019002  |   0.0 |  0.51
+Modify  | 0.16144    | 0.16144    | 0.16144    |   0.0 | 43.44
+Other   |            | 0.00329    |            |       |  0.89
 
 Nlocal:    1000 ave 1000 max 1000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

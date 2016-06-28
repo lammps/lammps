@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -33,23 +33,23 @@ ColloidT::Colloid() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-ColloidT::~Colloid() { 
+ColloidT::~Colloid() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int ColloidT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int ColloidT::init(const int ntypes, 
-                   double **host_cutsq, double **host_lj1, 
-                   double **host_lj2, double **host_lj3, 
-                   double **host_lj4, double **host_offset, 
-                   double *host_special_lj, double **host_a12, 
-                   double **host_a1, double **host_a2, 
-                   double **host_d1, double **host_d2, 
+int ColloidT::init(const int ntypes,
+                   double **host_cutsq, double **host_lj1,
+                   double **host_lj2, double **host_lj3,
+                   double **host_lj4, double **host_offset,
+                   double *host_special_lj, double **host_a12,
+                   double **host_a1, double **host_a2,
+                   double **host_d1, double **host_d2,
                    double **host_sigma3, double **host_sigma6,
                    int **host_form, const int nlocal,
                    const int nall, const int max_nbors,
@@ -97,7 +97,7 @@ int ColloidT::init(const int ntypes,
   UCL_H_Vec<int> dview_form(lj_types*lj_types,*(this->ucl_device),
                              UCL_WRITE_ONLY);
   for (int i=0; i<lj_types*lj_types; i++) dview_form[i]=0;
-                                
+
   form.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<ntypes; i++)
     for (int j=0; j<ntypes; j++) {
@@ -153,7 +153,7 @@ void ColloidT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -170,9 +170,9 @@ void ColloidT::loop(const bool _eflag, const bool _vflag) {
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
-                     &colloid1, &colloid2, &form, 
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
-                     &this->ans->force, &this->ans->engv, &eflag, &vflag, 
+                     &colloid1, &colloid2, &form,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                     &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();

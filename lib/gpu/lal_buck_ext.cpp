@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -28,8 +28,8 @@ static Buck<PRECISION,ACC_PRECISION> BUCKMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                 double **host_buck1, double **host_buck2, 
-                 double **host_a, double **host_c,       
+                 double **host_buck1, double **host_buck2,
+                 double **host_a, double **host_c,
                  double **offset, double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen) {
@@ -55,7 +55,7 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=BUCKMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2, 
+    init_ok=BUCKMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                        host_a, host_c, offset, special_lj, inum, nall, 300,
                        maxspecial, cell_size, gpu_split, screen);
 
@@ -73,12 +73,12 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=BUCKMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2, 
+      init_ok=BUCKMF.init(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                        host_a, host_c, offset, special_lj, inum, nall, 300,
                        maxspecial, cell_size, gpu_split, screen);
 
     BUCKMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -98,24 +98,24 @@ void buck_gpu_reinit(const int ntypes, double **cutsq, double **host_rhoinv,
   int world_me=BUCKMF.device->world_me();
   int gpu_rank=BUCKMF.device->gpu_rank();
   int procs_per_gpu=BUCKMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
     BUCKMF.reinit(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                   host_a, host_c, offset);
-  
+
   BUCKMF.device->world_barrier();
 
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       BUCKMF.reinit(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                     host_a, host_c, offset);
-    
+
     BUCKMF.device->gpu_barrier();
   }
 }
 
 void buck_gpu_clear() {
-  BUCKMF.clear(); 
+  BUCKMF.clear();
 }
 
 int ** buck_gpu_compute_n(const int ago, const int inum_full,
@@ -128,8 +128,8 @@ int ** buck_gpu_compute_n(const int ago, const int inum_full,
   return BUCKMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void buck_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,

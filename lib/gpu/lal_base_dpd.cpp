@@ -64,7 +64,7 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
     _nbor_data=&(nbor->dev_packed);
   } else
     _nbor_data=&(nbor->dev_nbor);
-    
+
   int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
                            maxspecial,_gpu_host,max_nbors,cell_size,false,
                            _threads_per_atom,true);
@@ -153,7 +153,7 @@ template <class numtyp, class acctyp>
 inline void BaseDPDT::build_nbor_list(const int inum, const int host_inum,
                                       const int nall, double **host_x,
                                       int *host_type, double *sublo,
-                                      double *subhi, tagint *tag, 
+                                      double *subhi, tagint *tag,
                                       int **nspecial, tagint **special,
                                       bool &success) {
   success=true;
@@ -182,7 +182,7 @@ void BaseDPDT::compute(const int f_ago, const int inum_full,
                        const bool eflag, const bool vflag,
                        const bool eatom, const bool vatom,
                        int &host_start, const double cpu_time,
-                       bool &success, tagint *tag, double **host_v, 
+                       bool &success, tagint *tag, double **host_v,
                        const double dtinvsqrt, const int seed, const int timestep,
                        const int nlocal, double *boxlo, double *prd) {
   acc_timers();
@@ -193,7 +193,7 @@ void BaseDPDT::compute(const int f_ago, const int inum_full,
     zero_timers();
     return;
   }
-  
+
   int ago=hd_balancer.ago_first(f_ago);
   int inum=hd_balancer.balance(ago,inum_full,cpu_time);
   ans->inum(inum);
@@ -228,12 +228,12 @@ template <class numtyp, class acctyp>
 int** BaseDPDT::compute(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *sublo, double *subhi, tagint *tag,
-                        int **nspecial, tagint **special, const bool eflag, 
+                        int **nspecial, tagint **special, const bool eflag,
                         const bool vflag, const bool eatom,
                         const bool vatom, int &host_start,
                         int **ilist, int **jnum,
                         const double cpu_time, bool &success,
-                        double **host_v, const double dtinvsqrt, 
+                        double **host_v, const double dtinvsqrt,
                         const int seed, const int timestep,
                         double *boxlo, double *prd) {
   acc_timers();
@@ -244,12 +244,12 @@ int** BaseDPDT::compute(const int ago, const int inum_full,
     zero_timers();
     return NULL;
   }
-  
+
   hd_balancer.balance(cpu_time);
   int inum=hd_balancer.get_gpu_count(ago,inum_full);
   ans->inum(inum);
   host_start=inum;
- 
+
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
@@ -276,7 +276,7 @@ int** BaseDPDT::compute(const int ago, const int inum_full,
   ans->copy_answers(eflag,vflag,eatom,vatom);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
-  
+
   return nbor->host_jlist.begin()-host_start;
 }
 

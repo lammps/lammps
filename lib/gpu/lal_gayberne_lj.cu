@@ -18,30 +18,30 @@
 #endif
 
 __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
-                                          const __global numtyp4 *restrict q, 
+                                          const __global numtyp4 *restrict q,
                                           const __global numtyp4 *restrict shape,
-                                          const __global numtyp4 *restrict well, 
-                                          const __global numtyp *restrict gum, 
+                                          const __global numtyp4 *restrict well,
+                                          const __global numtyp *restrict gum,
                                           const __global numtyp2 *restrict sig_eps,
-                                          const int ntypes, 
+                                          const int ntypes,
                                           const __global numtyp *restrict lshape,
-                                          const __global int *dev_nbor, 
+                                          const __global int *dev_nbor,
                                           const int stride,
-                                          __global acctyp4 *restrict ans, 
+                                          __global acctyp4 *restrict ans,
                                           __global acctyp *restrict engv,
-                                          __global int *restrict err_flag, 
+                                          __global int *restrict err_flag,
                                           const int eflag, const int vflag,
-                                          const int start, const int inum, 
+                                          const int start, const int inum,
                                           const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   ii+=start;
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=gum[3];    
-  sp_lj[1]=gum[4];    
-  sp_lj[2]=gum[5];    
-  sp_lj[3]=gum[6];    
+  sp_lj[0]=gum[3];
+  sp_lj[1]=gum[4];
+  sp_lj[2]=gum[5];
+  sp_lj[3]=gum[6];
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -58,16 +58,16 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
-      
+
     numtyp oner=shape[itype].x;
     numtyp one_well=well[itype].x;
-  
+
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_nbor[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -84,7 +84,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
 
       ir = ucl_rsqrt(ir);
       numtyp r = ucl_recip(ir);
-      
+
       numtyp r12hat[3];
       r12hat[0]=r12[0]*ir;
       r12hat[1]=r12[1]*ir;
@@ -92,7 +92,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
 
       numtyp a2[9];
       gpu_quat_to_mat_trans(q,j,a2);
-  
+
       numtyp u_r, dUr[3], eta;
       { // Compute U_r, dUr, eta, and teta
         // Compute g12
@@ -110,11 +110,11 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
             g12[3]=g2[3];
             g12[5]=g2[5];
             g12[6]=g2[6];
-            g12[7]=g2[7];    
+            g12[7]=g2[7];
           }
-  
+
           { // Compute U_r and dUr
-    
+
             // Compute kappa
             numtyp kappa[3];
             gpu_mldivide3(g12,r12,kappa,err_flag);
@@ -123,9 +123,9 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
             kappa[0]*=ir;
             kappa[1]*=ir;
             kappa[2]*=ir;
-  
+
             // energy
-  
+
             // compute u_r and dUr
             numtyp uslj_rsq;
             {
@@ -139,7 +139,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
               kappa[0]*=r;
               kappa[1]*=r;
               kappa[2]*=r;
-          
+
               int mtype=fast_mul(ntypes,itype)+jtype;
               numtyp sigma = sig_eps[mtype].x;
               numtyp epsilon = sig_eps[mtype].y;
@@ -161,7 +161,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
             }
           }
         }
-     
+
         // Compute eta
         {
           eta = (numtyp)2.0*lshape[itype]*lshape[jtype];
@@ -169,7 +169,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
           eta = ucl_powr(eta/det_g12,gum[1]);
         }
       }
-  
+
       numtyp chi, dchi[3];
       { // Compute chi and dchi
 
@@ -187,7 +187,7 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
           b12[3]=b2[3];
           b12[5]=b2[5];
           b12[6]=b2[6];
-          b12[7]=b2[7];    
+          b12[7]=b2[7];
         }
 
         // compute chi_12
@@ -244,16 +244,16 @@ __kernel void k_gayberne_sphere_ellipsoid(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_gayberne_lj(const __global numtyp4 *restrict x_, 
-                            const __global numtyp4 *restrict lj1, 
-                            const __global numtyp4 *restrict lj3, 
-                            const int lj_types, 
-                            const __global numtyp *restrict gum, 
-                            const int stride, 
-                            const __global int *dev_ij, 
-                            __global acctyp4 *restrict ans, 
-                            __global acctyp *restrict engv, 
-                            __global int *restrict err_flag, 
+__kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
+                            const __global numtyp4 *restrict lj1,
+                            const __global numtyp4 *restrict lj3,
+                            const int lj_types,
+                            const __global numtyp *restrict gum,
+                            const int stride,
+                            const __global int *dev_ij,
+                            __global acctyp4 *restrict ans,
+                            __global acctyp *restrict engv,
+                            __global int *restrict err_flag,
                             const int eflag, const int vflag, const int start,
                             const int inum, const int t_per_atom) {
   int tid, ii, offset;
@@ -261,10 +261,10 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
   ii+=start;
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=gum[3];    
-  sp_lj[1]=gum[4];    
-  sp_lj[2]=gum[5];    
-  sp_lj[3]=gum[6];    
+  sp_lj[0]=gum[3];
+  sp_lj[1]=gum[4];
+  sp_lj[2]=gum[5];
+  sp_lj[3]=gum[6];
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -274,20 +274,20 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info_e(dev_ij,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -300,21 +300,21 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
-        
+
       int ii=itype*lj_types+jtype;
       if (r2inv<lj1[ii].z && lj1[ii].w==SPHERE_SPHERE) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r2inv*r6inv*(lj1[ii].x*r6inv-lj1[ii].y);
         force*=factor_lj;
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=r6inv*(lj3[ii].x*r6inv-lj3[ii].y);
-          energy+=factor_lj*(e-lj3[ii].z); 
+          energy+=factor_lj*(e-lj3[ii].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -332,33 +332,33 @@ __kernel void k_gayberne_lj(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_, 
-                                 const __global numtyp4 *restrict lj1_in, 
-                                 const __global numtyp4 *restrict lj3_in, 
-                                 const __global numtyp *restrict gum, 
-                                 const int stride, 
+__kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
+                                 const __global numtyp4 *restrict lj1_in,
+                                 const __global numtyp4 *restrict lj3_in,
+                                 const __global numtyp *restrict gum,
+                                 const int stride,
                                  const __global int *dev_ij,
-                                 __global acctyp4 *restrict ans, 
+                                 __global acctyp4 *restrict ans,
                                  __global acctyp *restrict engv,
-                                 __global int *restrict err_flag, 
-                                 const int eflag, const int vflag, 
-                                 const int start, const int inum, 
+                                 __global int *restrict err_flag,
+                                 const int eflag, const int vflag,
+                                 const int start, const int inum,
                                  const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
   ii+=start;
 
-  __local numtyp sp_lj[4];                              
+  __local numtyp sp_lj[4];
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   if (tid<4)
-    sp_lj[tid]=gum[tid+3];    
+    sp_lj[tid]=gum[tid+3];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
     if (eflag>0)
       lj3[tid]=lj3_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0;
@@ -367,9 +367,9 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
@@ -383,7 +383,7 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_ij[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -396,19 +396,19 @@ __kernel void k_gayberne_lj_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
-        
+
       if (r2inv<lj1[mtype].z && lj1[mtype].w==SPHERE_SPHERE) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
         if (eflag>0) {
           numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
-          energy+=factor_lj*(e-lj3[mtype].z); 
+          energy+=factor_lj*(e-lj3[mtype].z);
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

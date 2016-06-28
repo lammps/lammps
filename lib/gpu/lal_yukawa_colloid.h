@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -24,13 +24,13 @@ template <class numtyp, class acctyp>
 class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
  public:
   YukawaColloid();
-  ~YukawaColloid(); 
+  ~YukawaColloid();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -39,8 +39,8 @@ class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq,
            double **host_a, double **host_offset, double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen, const double kappa);
 
   inline void cast_rad_data(double* rad) {
@@ -70,22 +70,22 @@ class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
 
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
-  
+
   /// Pair loop with host neighboring
-  void compute(const int f_ago, const int inum_full, 
-               const int nall, double **host_x, int *host_type, 
-               int *ilist, int *numj, int **firstneigh, 
+  void compute(const int f_ago, const int inum_full,
+               const int nall, double **host_x, int *host_type,
+               int *ilist, int *numj, int **firstneigh,
                const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
                const double cpu_time, bool &success, double *rad);
-               
+
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag, 
-                const bool eatom, const bool vatom, int &host_start, 
-                int **ilist, int **jnum, const double cpu_time, 
+                tagint **special, const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
+                int **ilist, int **jnum, const double cpu_time,
                 bool &success, double *rad);
 
   // --------------------------- TEXTURES -----------------------------
@@ -101,7 +101,7 @@ class YukawaColloid : public BaseAtomic<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
   int _max_rad_size;

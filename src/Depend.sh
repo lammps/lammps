@@ -117,3 +117,7 @@ if (test $1 = "USER-MISC") then
   depend GPU
   depend USER-OMP
 fi
+
+if (test $1 = "USER-REAXC") then
+  depend KOKKOS
+fi

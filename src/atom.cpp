@@ -91,6 +91,15 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   rho = drho = e = de = cv = NULL;
   vest = NULL;
 
+  // USER-HAdResS package
+
+  lambdaH = NULL;
+  gradlambdaH = NULL;
+  replambdaH = NULL;
+  moltypeH = NULL;
+  comH = NULL;
+  nmoltypesH = 0;
+
   // USER-DPD
 
   uCond = uMech = uChem = uCG = uCGnew = NULL;
@@ -238,6 +247,12 @@ Atom::~Atom()
   memory->destroy(molecule);
   memory->destroy(molindex);
   memory->destroy(molatom);
+
+  memory->destroy(lambdaH);
+  memory->destroy(replambdaH);
+  memory->destroy(moltypeH);
+  memory->destroy(gradlambdaH);
+  memory->destroy(comH);
 
   memory->destroy(q);
   memory->destroy(mu);
@@ -390,6 +405,12 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
 
   molecule_flag = 0;
   q_flag = mu_flag = 0;
+
+  // USER-HAdResS
+
+  replambdaH_flag = 0;
+  moltypeH_flag = 0;
+
   omega_flag = torque_flag = angmom_flag = 0;
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
@@ -1607,6 +1628,8 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
   if (onemol->qflag && q_flag) q[ilocal] = onemol->q[iatom];
   if (onemol->radiusflag && radius_flag) radius[ilocal] = onemol->radius[iatom];
   if (onemol->rmassflag && rmass_flag) rmass[ilocal] = onemol->rmass[iatom];
+  if (onemol->replambdaHflag && replambdaH_flag) replambdaH[ilocal] = onemol->replambdaH[iatom];
+  if (onemol->moltypeHflag && moltypeH_flag) moltypeH[ilocal] = onemol->moltypeH[iatom];
   else if (rmass_flag)
     rmass[ilocal] = 4.0*MY_PI/3.0 *
       radius[ilocal]*radius[ilocal]*radius[ilocal];
@@ -2060,6 +2083,9 @@ void *Atom::extract(char *name)
   if (strcmp(name,"f") == 0) return (void *) f;
   if (strcmp(name,"molecule") == 0) return (void *) molecule;
   if (strcmp(name,"q") == 0) return (void *) q;
+  if (strcmp(name,"lambdaH") == 0) return (void *) lambdaH;
+  if (strcmp(name,"gradlambdaH") == 0) return (void *) gradlambdaH;
+  if (strcmp(name,"replambdaH") == 0) return (void *) replambdaH;
   if (strcmp(name,"mu") == 0) return (void *) mu;
   if (strcmp(name,"omega") == 0) return (void *) omega;
   if (strcmp(name,"angmom") == 0) return (void *) angmom;

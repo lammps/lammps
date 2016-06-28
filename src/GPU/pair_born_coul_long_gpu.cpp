@@ -182,8 +182,8 @@ void PairBornCoulLongGPU::init_style()
   int success = borncl_gpu_init(atom->ntypes+1, cutsq,  rhoinv,
                                 born1, born2, born3, a, c, d, sigma,
                                 offset, force->special_lj, atom->nlocal,
-                  	        atom->nlocal+atom->nghost, 300, maxspecial,
-                   	        cell_size, gpu_mode, screen, cut_ljsq,
+                                  atom->nlocal+atom->nghost, 300, maxspecial,
+                                   cell_size, gpu_mode, screen, cut_ljsq,
                                 cut_coulsq, force->special_coul,
                                 force->qqrd2e, g_ewald);
 

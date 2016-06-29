@@ -94,6 +94,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   int nomp = 0, no_affinity = 0;
   _allow_separate_buffers = 1;
   _offload_ghost = -1;
+  _lrt = 0;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -132,6 +133,12 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"no_affinity") == 0) {
       no_affinity = 1;
       iarg++;
+    } else if (strcmp(arg[iarg], "lrt") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      if (strcmp(arg[iarg+1],"yes") == 0) _lrt = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) _lrt = 0;
+      else error->all(FLERR,"Illegal package intel command");
+      iarg += 2;
     }
 
     // undocumented options
@@ -150,6 +157,13 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   if (ncops < 1) {
     ncops = -1;
     _offload_balance = 0.0;
+  }
+
+  // if using LRT mode, create the integrate style
+  if (_lrt) {
+    char *str;
+    str = (char *) "verlet/lrt/intel";
+    update->create_integrate(1,&str,0);
   }
 
   // error check

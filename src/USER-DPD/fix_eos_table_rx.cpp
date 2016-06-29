@@ -677,14 +677,19 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
 
 void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
 {
+  int itable;
+  Table *tb = &tables[0];
+
   int it;
   double t1,t2,u1,u2,f1,f2;
   double maxit = 100;
   double temp;
-
-
+  double delta = 0.001;
+  
   // Store the current thetai in t1
-  t1 = thetai;
+  t1 = MAX(thetai,tb->lo);
+  t1 = MIN(thetai,tb->hi);
+  if(t1==tb->hi) delta = -delta;
 
   // Compute u1 at thetai
   energy_lookup(id,t1,u1);
@@ -693,7 +698,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   f1 = u1 - ui;
 
   // Compute guess of t2
-  t2 = (1.0 + 0.001)*t1;
+  t2 = (1.0 + delta)*t1;
 
   // Compute u2 at t2
   energy_lookup(id,t2,u2);
@@ -703,9 +708,16 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
 
   // Apply the Secant Method
   for(it=0; it<maxit; it++){
-    if(fabs(f2-f1)<1e-15)
-      error->one(FLERR,"Divide by zero in secant solver.");
-
+    if(fabs(f2-f1)<1e-15){
+      if(isnan(f1) || isnan(f2)) error->one(FLERR,"NaN detected in secant solver.");
+      temp = t1;
+      temp = MAX(temp,tb->lo);
+      temp = MIN(temp,tb->hi);
+      char str[256];
+      sprintf(str,"Secant solver did not converge because table bounds were exceeded:  it=%d id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf dpdTheta=%lf\n",it,id,ui,thetai,t1,t2,f1,f2,temp);
+      error->warning(FLERR,str);
+      break;
+    }
     temp = t2 - f2*(t2-t1)/(f2-f1);
     if(fabs(temp-t2) < 1e-6) break;
     f1 = f2;
@@ -715,8 +727,11 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
     f2 = u2 - ui;
   }
   if(it==maxit){
-    printf("id=%d ui=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,t1,t2,f1,f2);
-    error->one(FLERR,"Maxit exceeded in secant solver");
+    char str[256];
+    sprintf(str,"Maxit exceeded in secant solver:  id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,thetai,t1,t2,f1,f2);
+    if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2)) 
+      error->one(FLERR,"NaN detected in secant solver.");
+    error->one(FLERR,str);
   }
   thetai = temp;
 }

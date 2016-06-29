@@ -42,6 +42,8 @@ action intel_buffers.cpp
 action math_extra_intel.h
 action intel_simd.h pair_sw_intel.cpp
 action intel_intrinsics.h pair_tersoff_intel.cpp
+action verlet_lrt_intel.h pppm.cpp
+action verlet_lrt_intel.cpp pppm.cpp
 
 # step 2: handle cases and tasks not handled in step 1.
 

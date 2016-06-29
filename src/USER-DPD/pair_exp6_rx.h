@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -53,6 +53,7 @@ class PairExp6rx : public Pair {
     int ispecies;
     char *name, *potential;      // names of unique molecules and interaction type
     char *tablename;             // name of interaction table
+   int potentialType;              // enumerated interaction potential type.
   };
   Param *params;                // parameter set for an I-J-K interaction
 
@@ -60,13 +61,13 @@ class PairExp6rx : public Pair {
   void read_file(char *);
   void setup();
 
+  int isite1, isite2;
   char *site1, *site2;
   double fuchslinR, fuchslinEpsilon;
-  void getParamsEXP6(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &);
-  double func_rin(double &);
-  double expValue(double);
+  void getParamsEXP6(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
 
-/*   class FixRX *fixRX; */
+  inline double func_rin(const double &) const;
+  inline double expValue(const double) const;
 };
 
 }
@@ -78,7 +79,7 @@ class PairExp6rx : public Pair {
 
 E:  alpha_ij is 6.0 in pair exp6
 
-Self-explanator
+Self-explanatory
 
 E: Illegal ... command
 

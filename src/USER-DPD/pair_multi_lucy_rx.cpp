@@ -43,6 +43,9 @@ enum{NONE,RLINEAR,RSQ};
 
 #define MAXLINE 1024
 
+#define oneFluidParameter (-1)
+#define isOneFluid(_site) ( (_site) == oneFluidParameter )
+
 static const char cite_pair_multi_lucy_rx[] =
   "pair_style multi/lucy/rx command:\n\n"
   "@Article{Moore16,\n"
@@ -90,7 +93,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq;
+  double rsq,factor_lj;
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
 
@@ -105,6 +108,8 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   double fractionOld1_i,fractionOld1_j;
@@ -119,6 +124,22 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   double fraction_i,fraction_j;
   int jtable;
   double *rho = atom->rho;
+
+  double *fractionOld1 = NULL;
+  double *fractionOld2 = NULL;
+  double *fraction1 = NULL;
+  double *fraction2 = NULL;
+
+  {
+    const int ntotal = nlocal + nghost;
+    memory->create(fractionOld1, ntotal, "PairMultiLucyRX::fractionOld1");
+    memory->create(fractionOld2, ntotal, "PairMultiLucyRX::fractionOld2");
+    memory->create(fraction1, ntotal, "PairMultiLucyRX::fraction1");
+    memory->create(fraction2, ntotal, "PairMultiLucyRX::fraction2");
+
+    for (int i = 0; i < ntotal; ++i)
+       getParams(i, fractionOld1[i], fractionOld2[i], fraction1[i], fraction2[i]);
+  }
 
   inum = list->inum;
   ilist = list->ilist;
@@ -138,10 +159,18 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    getParams(i,fractionOld1_i,fractionOld2_i,fraction1_i,fraction2_i);
+    double fx_i = 0.0;
+    double fy_i = 0.0;
+    double fz_i = 0.0;
+
+    fractionOld1_i = fractionOld1[i];
+    fractionOld2_i = fractionOld2[i];
+    fraction1_i = fraction1[i];
+    fraction2_i = fraction2[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -152,7 +181,11 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         fpair = 0.0;
-        getParams(j,fractionOld1_j,fractionOld2_j,fraction1_j,fraction2_j);
+
+        fractionOld1_j = fractionOld1[j];
+        fractionOld2_j = fractionOld2[j];
+        fraction1_j = fraction1[j];
+        fraction2_j = fraction2[j];
 
         tb = &tables[tabindex[itype][jtype]];
         if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
@@ -205,22 +238,24 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
         } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
-
-        if (strcmp(site1,site2) == 0) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
+        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair; 
         else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        fx_i += delx*fpair;
+        fy_i += dely*fpair;
+        fz_i += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
           f[j][2] -= delz*fpair;
         }
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-        		     0.0,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,0.0,0.0,fpair,delx,dely,delz);
       }
     }
+
+    f[i][0] += fx_i;
+    f[i][1] += fy_i;
+    f[i][2] += fz_i;
 
     tb = &tables[tabindex[itype][itype]];
     itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
@@ -244,11 +279,15 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
     evdwl = evdwlOld;
 
-    if (evflag) ev_tally(0,0,nlocal,newton_pair,
-        		 evdwl,0.0,0.0,0.0,0.0,0.0);
+    if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+
+  memory->destroy(fractionOld1);
+  memory->destroy(fractionOld2);
+  memory->destroy(fraction1);
+  memory->destroy(fraction2);
 }
 
 /* ----------------------------------------------------------------------
@@ -350,11 +389,13 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   // insure cutoff is within table
 
   if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
-  double rlo;
+  double rlo,rhi;
   if (tb->rflag == 0) {
     rlo = tb->rfile[0];
+    rhi = tb->rfile[tb->ninput-1];
   } else {
     rlo = tb->rlo;
+    rhi = tb->rhi;
   }
   rho_0 = rlo;
 
@@ -380,6 +421,37 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Illegal pair_coeff command");
   ntables++;
+
+  // Match site* to isite values.
+
+  if (strcmp(site1, "1fluid") == 0)
+     isite1 = oneFluidParameter;
+  else {
+     isite1 = nspecies;
+     for (int ispecies = 0; ispecies < nspecies; ++ispecies)
+        if (strcmp(site1, atom->dname[ispecies]) == 0){
+           isite1 = ispecies;
+           break;
+        }
+
+     if (isite1 == nspecies)
+        error->all(FLERR,"Pair_multi_lucy_rx site1 is invalid.");
+  }
+
+  if (strcmp(site2, "1fluid") == 0)
+     isite2 = oneFluidParameter;
+  else {
+     isite2 = nspecies;
+     for (int ispecies = 0; ispecies < nspecies; ++ispecies)
+        if (strcmp(site2, atom->dname[ispecies]) == 0){
+           isite2 = ispecies;
+           break;
+        }
+
+     if (isite2 == nspecies)
+        error->all(FLERR,"Pair_multi_lucy_rx site2 is invalid.");
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -778,64 +850,83 @@ void PairMultiLucyRX::read_restart_settings(FILE *fp)
 
 void PairMultiLucyRX::computeLocalDensity()
 {
-  int i,j,m,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz;
-  double rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-
   double **x = atom->x;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
-  double factor;
+  const int *type = atom->type;
+  const int nlocal = atom->nlocal;
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
+  const int inum = list->inum;
+  const int *ilist = list->ilist;
+  const int *numneigh = list->numneigh;
+        int **firstneigh = list->firstneigh;
 
-  double pi = MathConst::MY_PI;
+  const double pi = MathConst::MY_PI;
+
+  const bool newton_pair = force->newton_pair;
+  const bool one_type = (atom->ntypes == 1);
+
+  // Special cut-off values for when there's only one type.
+  const double cutsq_type11 = cutsq[1][1];
+  const double rcut_type11 = sqrt(cutsq_type11);
+  const double factor_type11 = 84.0/(5.0*pi*rcut_type11*rcut_type11*rcut_type11);
+
   double *rho = atom->rho;
 
- // zero out density
-
+  // zero out density
   if (newton_pair) {
-    m = nlocal + atom->nghost;
-    for (i = 0; i < m; i++) rho[i] = 0.0;
-  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
+    const int m = nlocal + atom->nghost;
+    for (int i = 0; i < m; i++) rho[i] = 0.0;
+  }
+  else
+    for (int i = 0; i < nlocal; i++) rho[i] = 0.0;
 
 // rho = density at each atom
 // loop over neighbors of my atoms
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+  for (int ii = 0; ii < inum; ii++){
+    const int i = ilist[ii];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtype = type[j];
+    const double xtmp = x[i][0];
+    const double ytmp = x[i][1];
+    const double ztmp = x[i][2];
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+    double rho_i = rho[i];
 
-      if (rsq < cutsq[itype][jtype]) {
-        double rcut = sqrt(cutsq[itype][jtype]);
-        double tmpFactor = 1.0-sqrt(rsq)/rcut;
-        double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-        factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
-        rho[i] += factor;
-        if (newton_pair || j < nlocal) {
-          rho[j] += factor;
+    const int itype = type[i];
+    const int *jlist = firstneigh[i];
+    const int jnum = numneigh[i];
+
+    for (int jj = 0; jj < jnum; jj++){
+      const int j = (jlist[jj] & NEIGHMASK);
+      const int jtype = type[j];
+
+      const double delx = xtmp - x[j][0];
+      const double dely = ytmp - x[j][1];
+      const double delz = ztmp - x[j][2];
+      const double rsq = delx*delx + dely*dely + delz*delz;
+
+      if (one_type)
+        if (rsq < cutsq_type11){
+          const double rcut = rcut_type11;
+          const double r_over_rcut = sqrt(rsq) / rcut;
+          const double tmpFactor = 1.0 - r_over_rcut;
+          const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+          const double factor = factor_type11*(1.0 + 1.5*r_over_rcut)*tmpFactor4;
+          rho_i += factor;
+          if (newton_pair || j < nlocal)
+            rho[j] += factor;
         }
-      }
+      else
+        if (rsq < cutsq[itype][jtype]){
+          const double rcut = sqrt(cutsq[itype][jtype]);
+          const double tmpFactor = 1.0-sqrt(rsq)/rcut;
+          const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+          const double factor = (84.0/(5.0*pi*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+          rho_i += factor;
+          if (newton_pair || j < nlocal)
+            rho[j] += factor;
+        }
     }
+
+    rho[i] = rho_i;
   }
   if (newton_pair) comm->reverse_comm_pair(this);
 
@@ -850,54 +941,39 @@ void PairMultiLucyRX::getParams(int id, double &fractionOld1, double &fractionOl
   double fractionOld, fraction;
   double nTotal, nTotalOld;
 
-  fractionOld  = 0.0;
-  fraction  = 0.0;
-  fractionOld1 = 0.0;
-  fractionOld2 = 0.0;
-  fraction1 = 0.0;
-  fraction2 = 0.0;
-
   nTotal = 0.0;
   nTotalOld = 0.0;
-  for(int ispecies=0;ispecies<nspecies;ispecies++){
-    nTotal += atom->dvector[ispecies][id];
+  for (int ispecies = 0; ispecies < nspecies; ispecies++){
+    nTotal += atom->dvector[ispecies][id]; 
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
 
-  for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){
-      fractionOld1 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction1 = atom->dvector[ispecies][id]/nTotal;
-    }
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){
-      fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction2 = atom->dvector[ispecies][id]/nTotal;
-    }
+  if (isOneFluid(isite1) == false){
+    fractionOld1 = atom->dvector[isite1+nspecies][id]/nTotalOld;
+    fraction1 = atom->dvector[isite1][id]/nTotal;
+  }
+  if (isOneFluid(isite2) == false){
+    fractionOld2 = atom->dvector[isite2+nspecies][id]/nTotalOld;
+    fraction2 = atom->dvector[isite2][id]/nTotal;
   }
 
-  for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dname[ispecies][0]) == 0){
-      fractionOld1 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction1 = atom->dvector[ispecies][id]/nTotal;
-    }
-    if (strcmp(site2,&atom->dname[ispecies][0]) == 0){
-      fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction2 = atom->dvector[ispecies][id]/nTotal;
-    }
+  if (isOneFluid(isite1) || isOneFluid(isite2)){
+    fractionOld  = 0.0;
+    fraction  = 0.0;
 
-    if (strcmp(site1,"all") == 0 || strcmp(site2,"all") == 0) {
-      if (strcmp(site1,&atom->dname[ispecies][0]) == 0 || strcmp(site2,&atom->dname[ispecies][0]) == 0) continue;
-      fractionOld += atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction += atom->dvector[ispecies][id]/nTotal;
+    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+      if (isite1 == ispecies || isite2 == ispecies) continue;
+      fractionOld += atom->dvector[ispecies+nspecies][id] / nTotalOld;
+      fraction += atom->dvector[ispecies][id] / nTotal;
     }
-  }
-  if(strcmp(site1,"all") == 0){
-    fractionOld1 = fractionOld;
-    fraction1 = fraction;
-  }
-  if(strcmp(site2,"all") == 0){
-    fractionOld2 = fractionOld;
-    fraction2 = fraction;
+    if (isOneFluid(isite1)){
+      fractionOld1 = fractionOld;
+      fraction1 = fraction;
+    }
+    if (isOneFluid(isite2)){
+      fractionOld2 = fractionOld;
+      fraction2 = fraction;
+    }
   }
 }
 

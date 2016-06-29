@@ -21,6 +21,7 @@
 #include "force.h"
 #include "neigh_list.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 #include "modify.h"
@@ -29,6 +30,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -135,7 +137,7 @@ void PairExp6rx::compute(int eflag, int vflag)
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  const double nRep = 12.0;
+  const int nRep = 12;
   const double shift = 1.05;
   double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
@@ -312,11 +314,11 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
 
           } else {
             evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
@@ -347,11 +349,11 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
 
           } else {
             evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
@@ -397,13 +399,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
 
-            forceExp6 = -1.0*nRep*aRep/pow(r,nRep);
+            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
             fpairEXP6_12 = factor_lj*forceExp6*r2inv;
 
           } else {
@@ -437,13 +439,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
 
-            forceExp6 = -1.0*nRep*aRep/pow(r,nRep);
+            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
             fpairEXP6_21 = factor_lj*forceExp6*r2inv;
 
           } else {

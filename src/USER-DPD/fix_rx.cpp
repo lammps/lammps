@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
 
 #include <float.h> // DBL_EPSILON
@@ -36,6 +37,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathSpecial;
 
 enum{NONE,HARMONIC};
 enum{LUCY};
@@ -52,18 +54,6 @@ namespace /* anonymous */
 typedef double TimerType;
 TimerType getTimeStamp(void) { return MPI_Wtime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
-
-// Fast (non-IEEE) x^p function where x is a double and p is a positive, integral value.
-template <typename intType>
-inline double fastpowi( const double x, const intType p )
-{
-   if      (p == 1) return x;
-   else if (p == 2) return x*x;
-   else if (p == 3) return x*x*x;
-   else if (p == 0) return 1.0;
-   else
-      return pow(x, (double)p);
-}
 
 } // end namespace
 
@@ -1626,12 +1616,12 @@ int FixRX::rhs_sparse(double t, const double *y, double *dydt, void *v_params) c
    {
       double rxnRateLawForward;
       if (isIntegral(i)){
-         rxnRateLawForward = kFor[i] * ::fastpowi( conc[ nuk[i][0] ], inu[i][0]);
+         rxnRateLawForward = kFor[i] * powint( conc[ nuk[i][0] ], inu[i][0]);
          for (int kk = 1; kk < maxReactants; ++kk){
             const int k = nuk[i][kk];
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
-               rxnRateLawForward *= ::fastpowi( conc[k], inu[i][kk] );
+               rxnRateLawForward *= powint( conc[k], inu[i][kk] );
          }
       } else {
          rxnRateLawForward = kFor[i] * pow( conc[ nuk[i][0] ], nu[i][0]);

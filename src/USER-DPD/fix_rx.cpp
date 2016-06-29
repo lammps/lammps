@@ -122,7 +122,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       else
          msg += std::string("dense");
 
-      error->message(__FILE__, __LINE__, msg.c_str());
+      error->message(FLERR, msg.c_str());
     }
   }
 
@@ -164,7 +164,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     if (comm->me == 0 and Verbosity > 1){
       char msg[128];
       sprintf(msg, "FixRX: RK4 numSteps= %d", minSteps);
-      error->message(__FILE__, __LINE__, msg);
+      error->message(FLERR, msg);
     }
   }
   else if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg>8){
@@ -190,7 +190,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       //printf("FixRX: RKF45 minSteps= %d maxIters= %d absTol= %e relTol= %e\n", minSteps, maxIters, absTol, relTol);
       char msg[128];
       sprintf(msg, "FixRX: RKF45 minSteps= %d maxIters= %d relTol= %.1e absTol= %.1e diagnosticFrequency= %d", minSteps, maxIters, relTol, absTol, diagnosticFrequency);
-      error->message(__FILE__, __LINE__, msg);
+      error->message(FLERR, msg);
     }
   }
 
@@ -481,7 +481,7 @@ int FixRX::initSparse()
   if (comm->me == 0 and Verbosity > 1){
     char msg[256];
     sprintf(msg, "FixRX: Sparsity of Stoichiometric Matrix= %.1f%% non-zeros= %d nspecies= %d nreactions= %d maxReactants= %d maxProducts= %d maxSpecies= %d integralReactions= %d", 100*(double(nzeros) / (nspecies * nreactions)), nzeros, nspecies, nreactions, mxreac, mxprod, (mxreac + mxprod), SparseKinetics_enableIntegralReactions);
-    error->message(__FILE__, __LINE__, msg);
+    error->message(FLERR, msg);
   }
 
   // Allocate the sparse matrix data.
@@ -759,7 +759,7 @@ void FixRX::pre_force(int vflag)
   if (nFails > 0){
     char sbuf[128];
     sprintf(sbuf,"in FixRX::pre_force, ODE solver failed for %d atoms.", nFails);
-    error->warning(__FILE__, __LINE__, sbuf);
+    error->warning(FLERR, sbuf);
   }
 
   // Compute and report ODE diagnostics, if requested.

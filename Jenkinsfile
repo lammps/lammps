@@ -23,7 +23,7 @@ def compile_on_env(image_name, compiler) {
                     break
             }
 
-            //sh 'ccache -C'
+            sh 'ccache -s'
             sh 'ccache -M 5G'
 
             // clean up project directory
@@ -86,7 +86,7 @@ node {
     stash includes: 'src/**', name: 'source'
     stash includes: 'lib/**', name: 'libraries'
 
-    env.CCACHE_DIR= pwd() + '/.ccache'
+    env.CCACHE_DIR='.ccache'
 
     parallel (
         "Serial Binary" : {

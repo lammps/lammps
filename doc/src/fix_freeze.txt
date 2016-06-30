@@ -38,8 +38,9 @@ depending on your available hardware, as discussed in
 accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 
-These accelerated styles are part of the ackage.  They are only
-enabled if LAMMPS was built with that package.  See the "Making
+These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
 You can specify the accelerated styles explicitly in your input script

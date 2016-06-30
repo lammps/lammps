@@ -28,16 +28,13 @@ def compile_on_env(image_name, compiler) {
 
             // clean up project directory
             sh '''
-            date
             make -C src clean-all
             make -C src yes-all
             make -C src no-lib
-            date
             '''
 
             // build libraries
             sh '''
-            date
             make -C lib/colvars clean-all
             make -j 8 -C lib/colvars -f Makefile.g++ CXX="${COMP}"
             make -j 8 -C lib/poems -f Makefile.g++ CXX="${COMP}"
@@ -45,16 +42,13 @@ def compile_on_env(image_name, compiler) {
             make -j 8 -C lib/awpmd -f Makefile.mpicc CC="${COMP}"
             make -j 8 -C lib/meam -f Makefile.gfortran CC=gcc F90=gfortran
             make -j 8 -C lib/h5md
-            date
             '''
 
             // enable modules
             sh '''
-            date
             make -C src yes-user-smd yes-user-molfile yes-compress yes-python
             make -C src yes-poems yes-voronoi yes-user-colvars yes-user-awpmd yes-meam
             make -C src yes-user-h5md
-            date
             '''
 
             // add additonal modules if MPI is used
@@ -66,10 +60,7 @@ def compile_on_env(image_name, compiler) {
                 case 'serial':
                 case 'mpi':
                     sh '''
-                    date
-                    mpicxx -v
                     make -j 8 -C src ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
-                    date
                     '''
                     sh '''
                     make -C src test-${MACH} MPICMD="${MPICMD}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
@@ -78,9 +69,7 @@ def compile_on_env(image_name, compiler) {
 
                 case 'shlib':
                     sh '''
-                    date
                     make -j 8 -C src mode=shlib serial MACH=serial MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
-                    date
                     '''
                     break
             }
@@ -94,42 +83,85 @@ node {
     stage 'Checkout'
     checkout scm
 
-    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: '', state: 'PENDING']]]])
+    stash includes: 'src/**', name: 'source'
+    stash includes: 'lib/**', name: 'libraries'
 
-    env.CCACHE_DIR= pwd() + '/.ccache'
+    parallel (
+        "Serial Binary" : {
+            node {
+                unstash 'source'
+                unstash 'libraries'
 
-    stage 'Serial Binary'
+                step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/serial'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'running serial compilation', state: 'PENDING']]]])
 
-    env.COMP     = 'g++'
-    env.MACH     = 'serial'
-    env.LMPFLAGS = '-sf off'
-    env.LMP_INC  = '-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG'
-    env.JPG_LIB  = '-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz'
+                env.CCACHE_DIR= pwd() + '/.serial_ccache'
+                env.COMP     = 'g++'
+                env.MACH     = 'serial'
+                env.LMPFLAGS = '-sf off'
+                env.LMP_INC  = '-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG'
+                env.JPG_LIB  = '-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz'
 
-    compile_on_env('rbberger/lammps-testing:ubuntu_latest', 'gcc')
+                try {
+                    compile_on_env('rbberger/lammps-testing:ubuntu_latest', 'gcc')
+                    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/serial'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'serial build successful!', state: 'SUCCESS']]]])
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/serial'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'serial build failed!', state: 'FAILURE']]]])
+                }
+            }
+        },
+        "Shared Library" : {
+            node {
+                unstash 'source'
+                unstash 'libraries'
 
-    stage 'Shared Library'
+                step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/shlib'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'running shlib compilation', state: 'PENDING']]]])
 
-    env.COMP     = 'g++'
-    env.MACH     = 'shlib'
-    env.LMPFLAGS = '-sf off'
-    env.LMP_INC  = '-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG'
-    env.JPG_LIB  = '-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz'
+                env.CCACHE_DIR= pwd() + '/.shlib_ccache'
+                env.COMP     = 'g++'
+                env.MACH     = 'shlib'
+                env.LMPFLAGS = '-sf off'
+                env.LMP_INC  = '-I../../src/STUBS -DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG'
+                env.JPG_LIB  = '-L../../src/STUBS/ -lmpi_stubs -ljpeg -lpng -lz'
 
-    compile_on_env('rbberger/lammps-testing:ubuntu_latest', 'gcc')
+                try {
+                    compile_on_env('rbberger/lammps-testing:ubuntu_latest', 'gcc')
+                    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/shlib'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'shlib build successful!', state: 'SUCCESS']]]])
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/shlib'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'shlib build failed!', state: 'FAILURE']]]])
+                }
+            }
 
-    stage 'OpenMPI binary'
+        },
+        "OpenMPI binary" : {
+            node {
+                step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/openmpi'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'running shlib compilation', state: 'PENDING']]]])
 
-    env.COMP     = 'mpicxx'
-    env.MACH     = 'mpi'
-    env.MPICMD   = 'mpirun -np 4'
-    env.LMPFLAGS = '-sf off'
-    env.LMP_INC  = '-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL'
-    env.JPG_LIB  = '-ljpeg -lpng -lz'
+                unstash 'source'
+                unstash 'libraries'
 
-    compile_on_env('rbberger/lammps-testing:ubuntu_latest', 'gcc')
+                env.CCACHE_DIR= pwd() + '/.openmpi_ccache'
+                env.COMP     = 'mpicxx'
+                env.MACH     = 'mpi'
+                env.MPICMD   = 'mpirun -np 4'
+                env.LMPFLAGS = '-sf off'
+                env.LMP_INC  = '-DFFT_KISSFFT -DLAMMPS_GZIP -DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_SMALLSMALL'
+                env.JPG_LIB  = '-ljpeg -lpng -lz'
+
+                try {
+                    compile_on_env('rbberger/lammps-testing:ubuntu_latest', 'gcc')
+                    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/openmpi'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'openmpi build successful!', state: 'SUCCESS']]]])
+                } catch (err) {
+                    echo "Caught: ${err}"
+                    currentBuild.result = 'FAILURE'
+                    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/openmpi'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'openmpi build failed!', state: 'FAILURE']]]])
+                }
+            }
+        }
+    )
 
     step([$class: 'WarningsPublisher', canComputeNew: false, consoleParsers: [[parserName: 'GNU Make + GNU C Compiler (gcc)']], defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', unHealthy: ''])
-
-    step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins']])
 }

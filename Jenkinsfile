@@ -62,9 +62,9 @@ def compile_on_env(image_name, compiler) {
                     sh '''
                     make -j 8 -C src ${MACH} MPICMD="${MPICMD}" CC="${COMP}" LINK="${COMP}" LMP_INC="${LMP_INC}" JPG_LIB="${JPG_LIB}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
                     '''
-                    sh '''
-                    make -C src test-${MACH} MPICMD="${MPICMD}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
-                    '''
+                    //sh '''
+                    //make -C src test-${MACH} MPICMD="${MPICMD}" TAG="${TAG}-$CC" LMPFLAGS="${LMPFLAGS}"
+                    //'''
                     break
 
                 case 'shlib':

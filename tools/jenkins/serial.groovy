@@ -1,5 +1,5 @@
 node {
-    def build_name = 'continuous-integration/jenkins/serial'
+    def build_name = 'jenkins/serial'
 
     step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: build_name], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'building...', state: 'PENDING']]]])
 

@@ -1,5 +1,5 @@
 node {
-    def build_name = 'continuous-integration/jenkins/shlib'
+    def build_name = 'jenkins/shlib'
 
     step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: build_name], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'building...', state: 'PENDING']]]])
 

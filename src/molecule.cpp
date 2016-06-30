@@ -708,7 +708,6 @@ void Molecule::representative_atom(char *line)
   for (int i = 0; i < natoms; i++) {
     readline(line);
     sscanf(line,"%d %d",&tmp,&replambdaH[i]);
-    printf("i=%d rep = %d",i,replambdaH[i]);
   }
 }
 
@@ -720,7 +719,6 @@ void Molecule::moltype_atom(char *line)
   for (int i = 0; i < natoms; i++) {
     readline(line);
     sscanf(line,"%d %d",&tmp,&moltypeH[i]);
-    printf("i=%d rep = %d",i,moltypeH[i]);
   }
 }
 

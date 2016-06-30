@@ -11,7 +11,7 @@ boundary	p p p
 #read_restart	restart.waterT300.10000
 
 variable        root index waterT300
-variable 	Nrun equal 50000
+variable 	Nrun equal 5000
 variable 	Nf equal 100
 variable 	Ne equal 10
 variable 	Nr equal ${Nf}/${Ne}
@@ -59,8 +59,8 @@ angle_coeff	1 100.0 109.47
 
 special_bonds   lj/coul 0.0 0.0 0.5
 
-neighbor        1.0 bin
-neigh_modify	every 1 delay 10 check yes
+neighbor        2.0 bin
+neigh_modify	every 1 delay 2 check yes
 
 fix		1 all shake 0.0001 20 0 b 1 a 1
 fix             2 all npt temp ${Text} ${Text} 100.0 iso ${Pext} ${Pext} 1000.0
@@ -87,21 +87,22 @@ variable 	Patom atom -1.0*c_Pperatom[1]/(3*0.5*(yhi-ylo)*(zhi-zlo))
 
 variable 	P equal press
 fix 		PressAve all ave/time ${Ne} ${Nr} ${Nf} v_P
+compute		xbin all chunk/atom bin/1d x lower 1.0 
 
-fix 		PressureP all ave/spatial 10 1000 10000 x lower 1.0 v_Patom ave one file Pres.profile
-fix 		DensityD all ave/spatial 10 1000 10000 x lower 1.0 density/number ave one file Dens.profile
+fix		PressureP all ave/chunk 10 100 1000 xbin v_Patom ave one file Pres.profile
+fix		DensityD all ave/chunk 10 100 1000 xbin density/number ave one file Dens.profile
 
 compute 	rdf all rdf 100 1 1 # oxygen-oxygen
-fix 		rdf all ave/time 10 1000 10000 c_rdf file O.rdf mode vector
+fix 		rdf all ave/time 10 100 1000 c_rdf file O.rdf mode vector
 
 ########################################################################
 thermo_style 	custom step temp f_TempAve press f_PressAve density vol ke ebond eangle evdwl ecoul etotal c_SumFFX c_SumFFY c_SumFFZ
 
-thermo_modify 	flush yes
 thermo 		${Nf}
 
-dump 		trj all atom ${Ndump} wat.lammpstrj
+#dump 		trj all atom ${Ndump} wat.lammpstrj
 
 restart 	${Nrestart} restart.${root}
 
 run		${Nrun}
+write_restart	restart.waterT300

@@ -23,7 +23,7 @@ def compile_on_env(image_name, compiler) {
                     break
             }
 
-            sh 'ccache -C'
+            //sh 'ccache -C'
             sh 'ccache -M 5G'
 
             // clean up project directory
@@ -86,6 +86,8 @@ node {
     stash includes: 'src/**', name: 'source'
     stash includes: 'lib/**', name: 'libraries'
 
+    env.CCACHE_DIR= pwd() + '/.ccache'
+
     parallel (
         "Serial Binary" : {
             node {
@@ -94,7 +96,6 @@ node {
 
                 step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/serial'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'running serial compilation', state: 'PENDING']]]])
 
-                env.CCACHE_DIR= pwd() + '/.serial_ccache'
                 env.COMP     = 'g++'
                 env.MACH     = 'serial'
                 env.LMPFLAGS = '-sf off'
@@ -118,7 +119,6 @@ node {
 
                 step([$class: 'GitHubCommitStatusSetter', contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'continuous-integration/jenkins/shlib'], statusResultSource: [$class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: 'running shlib compilation', state: 'PENDING']]]])
 
-                env.CCACHE_DIR= pwd() + '/.shlib_ccache'
                 env.COMP     = 'g++'
                 env.MACH     = 'shlib'
                 env.LMPFLAGS = '-sf off'
@@ -143,7 +143,6 @@ node {
                 unstash 'source'
                 unstash 'libraries'
 
-                env.CCACHE_DIR= pwd() + '/.openmpi_ccache'
                 env.COMP     = 'mpicxx'
                 env.MACH     = 'mpi'
                 env.MPICMD   = 'mpirun -np 4'

@@ -75,13 +75,16 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
 
 PairExp6rx::~PairExp6rx()
 {
+  for (int i=0; i < nparams; ++i) {
+    delete[] params[i].name;
+    delete[] params[i].potential;
+  }
   memory->destroy(params);
   memory->destroy(mol2param);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-
     memory->destroy(cut);
   }
 }
@@ -631,6 +634,9 @@ void PairExp6rx::coeff(int narg, char **arg)
         //printf("params[%d].name= %s ispecies= %d potential= %s potentialType= %d\n", iparam, params[iparam].name, params[iparam].ispecies, params[iparam].potential, params[iparam].potentialType);
       }
   }
+  delete[] site1;
+  delete[] site2;
+  site1 = site2 = NULL;
 
   fuchslinR = force->numeric(FLERR,arg[5]);
   fuchslinEpsilon = force->numeric(FLERR,arg[6]);

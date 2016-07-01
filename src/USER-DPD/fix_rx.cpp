@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "math_special.h"
 #include "pair_dpd_fdt_energy.h"
 
 #include <float.h> // DBL_EPSILON
@@ -36,6 +37,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace MathSpecial;
 
 enum{NONE,HARMONIC};
 enum{LUCY};
@@ -53,18 +55,6 @@ typedef double TimerType;
 TimerType getTimeStamp(void) { return MPI_Wtime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
-// Fast (non-IEEE) x^p function where x is a double and p is a positive, integral value.
-template <typename intType>
-inline double fastpowi( const double x, const intType p )
-{
-   if      (p == 1) return x;
-   else if (p == 2) return x*x;
-   else if (p == 3) return x*x*x;
-   else if (p == 0) return 1.0;
-   else
-      return pow(x, (double)p);
-}
-
 } // end namespace
 
 /* ---------------------------------------------------------------------- */
@@ -80,6 +70,8 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   params = NULL;
   mol2param = NULL;
   pairDPDE = NULL;
+  id_fix_species = NULL;
+  id_fix_species_old = NULL;
 
   const int Verbosity = 1;
 
@@ -130,7 +122,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       else
          msg += std::string("dense");
 
-      error->message(__FILE__, __LINE__, msg.c_str());
+      error->message(FLERR, msg.c_str());
     }
   }
 
@@ -172,7 +164,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     if (comm->me == 0 and Verbosity > 1){
       char msg[128];
       sprintf(msg, "FixRX: RK4 numSteps= %d", minSteps);
-      error->message(__FILE__, __LINE__, msg);
+      error->message(FLERR, msg);
     }
   }
   else if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg>8){
@@ -198,7 +190,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       //printf("FixRX: RKF45 minSteps= %d maxIters= %d absTol= %e relTol= %e\n", minSteps, maxIters, absTol, relTol);
       char msg[128];
       sprintf(msg, "FixRX: RKF45 minSteps= %d maxIters= %d relTol= %.1e absTol= %.1e diagnosticFrequency= %d", minSteps, maxIters, relTol, absTol, diagnosticFrequency);
-      error->message(__FILE__, __LINE__, msg);
+      error->message(FLERR, msg);
     }
   }
 
@@ -222,11 +214,17 @@ FixRX::~FixRX()
     delete [] stoichReactants[ii];
     delete [] stoichProducts[ii];
   }
+  delete [] Arr;
+  delete [] nArr;
+  delete [] Ea;
+  delete [] tempExp;
   delete [] stoich;
   delete [] stoichReactants;
   delete [] stoichProducts;
   delete [] kR;
-  
+  delete [] id_fix_species;
+  delete [] id_fix_species_old;
+
   if (useSparseKinetics){
      memory->destroy( sparseKinetics_nu );
      memory->destroy( sparseKinetics_nuk );
@@ -244,10 +242,10 @@ void FixRX::post_constructor()
   bool match;
 
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"property/atom",13) == 0) 
-      error->all(FLERR,"fix rx cannot be combined with fix property/atom");  
+    if (strncmp(modify->fix[i]->style,"property/atom",13) == 0)
+      error->all(FLERR,"fix rx cannot be combined with fix property/atom");
 
-  char **tmpspecies = new char*[maxspecies];  
+  char **tmpspecies = new char*[maxspecies];
   for(int jj=0; jj < maxspecies; jj++)
     tmpspecies[jj] = NULL;
 
@@ -256,7 +254,7 @@ void FixRX::post_constructor()
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = fopen(kineticsFile,"r");
+    fp = force->open_potential(kineticsFile);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open rx file %s",kineticsFile);
@@ -266,7 +264,7 @@ void FixRX::post_constructor()
 
   // Assign species names to tmpspecies array and determine the number of unique species
 
-  int n,nwords,ispecies;
+  int n,nwords;
   char line[MAXLINE],*ptr;
   int eof = 0;
   char * word;
@@ -306,7 +304,7 @@ void FixRX::post_constructor()
       if(!match){
         if(nUniqueSpecies+1>=maxspecies)
           error->all(FLERR,"Exceeded the maximum number of species permitted in fix rx.");
-        tmpspecies[nUniqueSpecies] = new char[strlen(word)];
+        tmpspecies[nUniqueSpecies] = new char[strlen(word)+1];
         strcpy(tmpspecies[nUniqueSpecies],word);
         nUniqueSpecies++;
       }
@@ -350,8 +348,8 @@ void FixRX::post_constructor()
     strncat(str1,tmpspecies[ii],strlen(tmpspecies[ii]));
     strncat(str2,tmpspecies[ii],strlen(tmpspecies[ii]));
     strncat(str2,"Old",3);
-    newarg[ii+3] = new char[strlen(str1)];
-    newarg2[ii+3] = new char[strlen(str2)];
+    newarg[ii+3] = new char[strlen(str1)+1];
+    newarg2[ii+3] = new char[strlen(str2)+1];
     strcpy(newarg[ii+3],str1);
     strcpy(newarg2[ii+3],str2);
   }
@@ -368,11 +366,15 @@ void FixRX::post_constructor()
 
   if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
-  for(int jj=0;jj<maxspecies;jj++) delete tmpspecies[jj];
-  delete tmpspecies;
+  for(int jj=0;jj<nspecies;jj++) {
+    delete[] tmpspecies[jj];
+    delete[] newarg[jj+3];
+    delete[] newarg2[jj+3];
+  }
 
-  delete newarg;
-  delete newarg2;
+  delete[] newarg;
+  delete[] newarg2;
+  delete[] tmpspecies;
 
   read_file( kineticsFile );
 
@@ -479,7 +481,7 @@ int FixRX::initSparse()
   if (comm->me == 0 and Verbosity > 1){
     char msg[256];
     sprintf(msg, "FixRX: Sparsity of Stoichiometric Matrix= %.1f%% non-zeros= %d nspecies= %d nreactions= %d maxReactants= %d maxProducts= %d maxSpecies= %d integralReactions= %d", 100*(double(nzeros) / (nspecies * nreactions)), nzeros, nspecies, nreactions, mxreac, mxprod, (mxreac + mxprod), SparseKinetics_enableIntegralReactions);
-    error->message(__FILE__, __LINE__, msg);
+    error->message(FLERR, msg);
   }
 
   // Allocate the sparse matrix data.
@@ -757,7 +759,7 @@ void FixRX::pre_force(int vflag)
   if (nFails > 0){
     char sbuf[128];
     sprintf(sbuf,"in FixRX::pre_force, ODE solver failed for %d atoms.", nFails);
-    error->warning(__FILE__, __LINE__, sbuf);
+    error->warning(FLERR, sbuf);
   }
 
   // Compute and report ODE diagnostics, if requested.
@@ -791,7 +793,7 @@ void FixRX::read_file(char *file)
   FILE *fp;
   fp = NULL;
   if (comm->me == 0) {
-    fp = fopen(file,"r");
+    fp = force->open_potential(file);
     if (fp == NULL) {
       char str[128];
       sprintf(str,"Cannot open rx file %s",file);
@@ -828,7 +830,7 @@ void FixRX::read_file(char *file)
   }
 
   // open file on proc 0
-  if (comm->me == 0) fp = fopen(file,"r");
+  if (comm->me == 0) fp = force->open_potential(file);
 
   // read each reaction from kinetics file
   eof=0;
@@ -895,8 +897,10 @@ void FixRX::read_file(char *file)
         }
       }
       if(ispecies==nspecies){
-        printf("%s mol fraction is not found in data file\n",word);
-        printf("nspecies=%d ispecies=%d\n",nspecies,ispecies);
+        if (comm->me) {
+          fprintf(stderr,"%s mol fraction is not found in data file\n",word);
+          fprintf(stderr,"nspecies=%d ispecies=%d\n",nspecies,ispecies);
+        }
         error->all(FLERR,"Illegal fix rx command");
       }
       word = strtok(NULL, " \t\n\r\f");
@@ -1612,12 +1616,12 @@ int FixRX::rhs_sparse(double t, const double *y, double *dydt, void *v_params) c
    {
       double rxnRateLawForward;
       if (isIntegral(i)){
-         rxnRateLawForward = kFor[i] * ::fastpowi( conc[ nuk[i][0] ], inu[i][0]);
+         rxnRateLawForward = kFor[i] * powint( conc[ nuk[i][0] ], inu[i][0]);
          for (int kk = 1; kk < maxReactants; ++kk){
             const int k = nuk[i][kk];
             if (k == SparseKinetics_invalidIndex) break;
             //if (k != SparseKinetics_invalidIndex)
-               rxnRateLawForward *= ::fastpowi( conc[k], inu[i][kk] );
+               rxnRateLawForward *= powint( conc[k], inu[i][kk] );
          }
       } else {
          rxnRateLawForward = kFor[i] * pow( conc[ nuk[i][0] ], nu[i][0]);
@@ -1692,7 +1696,7 @@ void FixRX::computeLocalTemperature()
   int newton_pair = force->newton_pair;
 
   // local temperature variables
-  double wij, fr, fr4;
+  double wij=0.0, fr, fr4;
   double *dpdTheta = atom->dpdTheta;
 
   // Initialize the local density and local temperature arrays
@@ -1742,7 +1746,7 @@ void FixRX::computeLocalTemperature()
         if(wtFlag==LUCY){
           wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio); 
           dpdThetaLocal[i] += wij/dpdTheta[j];
-          if (newton_pair || j < nlocal) 
+          if (newton_pair || j < nlocal)
             dpdThetaLocal[j] += wij/dpdTheta[i];
         }
 

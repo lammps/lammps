@@ -148,7 +148,7 @@ class MyPoolChunk {
   }
 
   // return indexed chunk to pool via free list
-  // index = -1 for no allocated chunk
+  // index = -1 if no allocated chunk
 
   void put(int index) {
     if (index < 0) return;

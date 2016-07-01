@@ -178,6 +178,11 @@ void DihedralCharmmIntel::eval(const int vflag,
       }
     }
 
+    #if defined(LMP_SIMD_COMPILER_TEST)
+    #pragma vector aligned
+    #pragma simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
+                           sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, spv5) 
+    #endif
     for (int n = nfrom; n < nto; n++) {
       const int i1 = dihedrallist[n].a;
       const int i2 = dihedrallist[n].b;
@@ -237,6 +242,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       const flt_t s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
 
       // error check
+      #ifndef LMP_SIMD_COMPILER_TEST
       if (c > PTOLERANCE || c < MTOLERANCE) {
 	int me = comm->me;
 
@@ -258,6 +264,7 @@ void DihedralCharmmIntel::eval(const int vflag,
 		  me,x[i4].x,x[i4].y,x[i4].z);
 	}
       }
+      #endif
 
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
@@ -337,6 +344,9 @@ void DihedralCharmmIntel::eval(const int vflag,
       }
 
 
+      #if defined(LMP_SIMD_COMPILER_TEST)
+      #pragma simdoff
+      #endif
       {
         if (NEWTON_BOND || i2 < nlocal) {
 	  f[i2].x += f2x;
@@ -413,6 +423,9 @@ void DihedralCharmmIntel::eval(const int vflag,
       }
 
       // apply force to each of 4 atoms
+      #if defined(LMP_SIMD_COMPILER_TEST)
+      #pragma simdoff
+      #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {
 	  f[i1].x += f1x;
@@ -668,7 +681,7 @@ void DihedralCharmmIntel::eval(const int vflag,
       const SIMD_flt_t tcos_shift = SIMD_gather(nmask, cos_shift, type);
       const SIMD_flt_t tsin_shift = SIMD_gather(nmask, sin_shift, type);
       const SIMD_flt_t tk = SIMD_gather(nmask, k, type);
-      const SIMD_int m = SIMD_gather(nmask, multiplicity, type);
+      const SIMD_int m = SIMD_gatherz_offset<flt_t>(nmask, multiplicity, type);
 
       SIMD_flt_t p(one);
       SIMD_flt_t ddf1(szero);

@@ -283,6 +283,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // set up pointer to hold original styles while we replace them with "zero"
+
   Pair *saved_pair = NULL;
   Bond *saved_bond = NULL;
   Angle *saved_angle = NULL;
@@ -346,6 +347,9 @@ void ReadData::command(int narg, char **arg)
   natoms = ntypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
+
+  boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
+  boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
   triclinic = 0;
   keyword[0] = '\0';
 

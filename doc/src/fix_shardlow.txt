@@ -69,9 +69,6 @@ lengths to be larger than twice the cutoff+skin.  Generally, the
 domain decomposition is dependent on the number of processors
 requested.
 
-This fix also requires "atom_style dpd"_atom_style.html to be used
-due to shared data structures.
-
 [Related commands:]
 
 "pair_style dpd/fdt"_pair_dpd_fdt.html, "fix eos/cv"_fix_eos_cv.html

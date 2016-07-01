@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -49,17 +49,17 @@ inline std::ostream & operator<<(std::ostream &out, const _lgpu_float2 &v) {
   out << v.x << " " << v.y;
   return out;
 }
-  
+
 inline std::ostream & operator<<(std::ostream &out, const _lgpu_float4 &v) {
   out << v.x << " " << v.y << " " << v.z;
   return out;
 }
-  
+
 inline std::ostream & operator<<(std::ostream &out, const _lgpu_double2 &v) {
   out << v.x << " " << v.y;
   return out;
 }
-  
+
 inline std::ostream & operator<<(std::ostream &out, const _lgpu_double4 &v) {
   out << v.x << " " << v.y << " " << v.z;
   return out;
@@ -113,6 +113,14 @@ enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
 #ifdef GENERIC_OCL
 #define OCL_DEFAULT_VENDOR "generic"
+#endif
+
+#ifdef INTEL_OCL
+#define OCL_DEFAULT_VENDOR "intel"
+#endif
+
+#ifdef PHI_OCL
+#define OCL_DEFAULT_VENDOR "phi"
 #endif
 
 #ifndef OCL_DEFAULT_VENDOR

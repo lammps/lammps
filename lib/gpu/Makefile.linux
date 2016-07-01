@@ -7,7 +7,7 @@
 
 EXTRAMAKE = Makefile.lammps.standard
 
-ifeq($(CUDA_HOME),)
+ifeq ($(CUDA_HOME),)
 CUDA_HOME = /usr/local/cuda
 endif
 

@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -28,9 +28,9 @@ static Born<PRECISION,ACC_PRECISION> BORNMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                  double **host_born1, double **host_born2, 
-                  double **host_born3, double **host_a, double **host_c, 
-                  double **host_d, double **sigma,      
+                  double **host_born1, double **host_born2,
+                  double **host_born3, double **host_a, double **host_c,
+                  double **host_d, double **sigma,
                   double **offset, double *special_lj, const int inum,
                   const int nall, const int max_nbors,  const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen) {
@@ -56,7 +56,7 @@ int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=BORNMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2, 
+    init_ok=BORNMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
                         host_born3, host_a, host_c, host_d, sigma,
                         offset, special_lj, inum, nall, 300,
                         maxspecial, cell_size, gpu_split, screen);
@@ -75,13 +75,13 @@ int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=BORNMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2, 
-                          host_born3, host_a, host_c, host_d, sigma, 
+      init_ok=BORNMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
+                          host_born3, host_a, host_c, host_d, sigma,
                           offset, special_lj, inum, nall, 300,
                           maxspecial, cell_size, gpu_split, screen);
 
     BORNMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -102,24 +102,24 @@ void born_gpu_reinit(const int ntypes, double **host_rhoinv,
   int world_me=BORNMF.device->world_me();
   int gpu_rank=BORNMF.device->gpu_rank();
   int procs_per_gpu=BORNMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
     BORNMF.reinit(ntypes, host_rhoinv, host_born1, host_born2,
                   host_born3, host_a, host_c, host_d, offset);
-  
+
   BORNMF.device->world_barrier();
-  
+
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       BORNMF.reinit(ntypes, host_rhoinv, host_born1, host_born2,
                     host_born3, host_a, host_c, host_d, offset);
-    
+
     BORNMF.device->gpu_barrier();
   }
 }
 
 void born_gpu_clear() {
-  BORNMF.clear(); 
+  BORNMF.clear();
 }
 
 int ** born_gpu_compute_n(const int ago, const int inum_full,
@@ -132,8 +132,8 @@ int ** born_gpu_compute_n(const int ago, const int inum_full,
   return BORNMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
                         vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void born_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,

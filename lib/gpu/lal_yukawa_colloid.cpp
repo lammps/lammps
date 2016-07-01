@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -29,23 +29,23 @@ using namespace LAMMPS_AL;
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-YukawaColloidT::YukawaColloid() : BaseAtomic<numtyp,acctyp>(), 
+YukawaColloidT::YukawaColloid() : BaseAtomic<numtyp,acctyp>(),
 _max_rad_size(0), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-YukawaColloidT::~YukawaColloid() { 
+YukawaColloidT::~YukawaColloid() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int YukawaColloidT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int YukawaColloidT::init(const int ntypes, 
-                   double **host_cutsq, double **host_a, 
+int YukawaColloidT::init(const int ntypes,
+                   double **host_cutsq, double **host_a,
                    double **host_offset, double *host_special_lj, const int nlocal,
                    const int nall, const int max_nbors,
                    const int maxspecial, const double cell_size,
@@ -62,16 +62,16 @@ int YukawaColloidT::init(const int ntypes,
     _shared_view=false;
 
   // allocate rad
-  
+
   int ef_nall=nall;
   if (ef_nall==0)
     ef_nall=2000;
-  
+
   _max_rad_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-    
+
   if (_shared_view==false)
     c_rad.alloc(_max_rad_size,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
-  
+
   rad_tex.get_texture(*(this->pair_program),"rad_tex");
   rad_tex.bind_float(c_rad,1);
 
@@ -96,13 +96,13 @@ int YukawaColloidT::init(const int ntypes,
 
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_a,
-			 host_offset,host_cutsq);
+                         host_offset,host_cutsq);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
   dview.view(host_special_lj,4,*(this->ucl_device));
   ucl_copy(sp_lj,dview,false);
-  
+
   _allocated=true;
   this->_max_bytes=coeff.row_bytes()+sp_lj.row_bytes();
   return 0;
@@ -131,15 +131,15 @@ double YukawaColloidT::host_memory_usage() const {
 // Copy nbor list from host if necessary and then compute atom energies/forces
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void YukawaColloidT::compute(const int f_ago, const int inum_full, 
-               const int nall, double **host_x, int *host_type, int *ilist, 
+void YukawaColloidT::compute(const int f_ago, const int inum_full,
+               const int nall, double **host_x, int *host_type, int *ilist,
                int *numj, int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
                const double cpu_time, bool &success, double *rad) {
   this->acc_timers();
-  
+
   // ------------------- Resize rad array --------------------------
-  
+
   if (nall>_max_rad_size) {
     _max_rad_size=static_cast<int>(static_cast<double>(nall)*1.10);
     if (_shared_view==false) {
@@ -157,7 +157,7 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
     this->zero_timers();
     return;
   }
-  
+
   int ago=this->hd_balancer.ago_first(f_ago);
   int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
   this->ans->inum(inum);
@@ -170,7 +170,7 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
     if (!success)
       return;
   }
-  
+
   this->atom->cast_x_data(host_x,host_type);
   this->cast_rad_data(rad);
   this->hd_balancer.start_timer();
@@ -182,7 +182,7 @@ void YukawaColloidT::compute(const int f_ago, const int inum_full,
   this->device->add_ans_object(this->ans);
   this->hd_balancer.stop_timer();
 }
-               
+
 // ---------------------------------------------------------------------------
 // Reneighbor on GPU and then compute per-atom densities
 // ---------------------------------------------------------------------------
@@ -190,24 +190,24 @@ template <class numtyp, class acctyp>
 int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag, 
-                const bool eatom, const bool vatom, int &host_start, 
+                tagint **special, const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **jnum, const double cpu_time, bool &success,
                 double *rad) {
   this->acc_timers();
-  
+
   // ------------------- Resize rad array ----------------------------
-  
+
   if (nall>_max_rad_size) {
     _max_rad_size=static_cast<int>(static_cast<double>(nall)*1.10);
     if (_shared_view==false) {
       c_rad.resize(_max_rad_size);
       rad_tex.bind_float(c_rad,1);
     }
-  }      
+  }
 
   // -----------------------------------------------------------------
-  
+
   if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
@@ -215,21 +215,21 @@ int** YukawaColloidT::compute(const int ago, const int inum_full, const int nall
     this->zero_timers();
     return NULL;
   }
-  
+
   // load balance, returning the atom count on the device (inum)
   this->hd_balancer.balance(cpu_time);
   int inum=this->hd_balancer.get_gpu_count(ago,inum_full);
   this->ans->inum(inum);
   host_start=inum;
- 
-  // Build neighbor list on GPU if necessary 
+
+  // Build neighbor list on GPU if necessary
   if (ago==0) {
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                           sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return NULL;
     this->cast_rad_data(rad);
-    this->hd_balancer.start_timer();  
+    this->hd_balancer.start_timer();
   } else {
     this->atom->cast_x_data(host_x,host_type);
     this->cast_rad_data(rad);
@@ -265,7 +265,7 @@ void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -280,8 +280,8 @@ void YukawaColloidT::loop(const bool _eflag, const bool _vflag) {
                           &ainum, &nbor_pitch, &this->_threads_per_atom, &_kappa);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &c_rad, &coeff, &_lj_types, &sp_lj, 
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+    this->k_pair.run(&this->atom->x, &c_rad, &coeff, &_lj_types, &sp_lj,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->_threads_per_atom, &_kappa);
   }

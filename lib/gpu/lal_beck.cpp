@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -33,17 +33,17 @@ BeckT::Beck() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-BeckT::~Beck() { 
+BeckT::~Beck() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int BeckT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int BeckT::init(const int ntypes, 
+int BeckT::init(const int ntypes,
                 double **host_cutsq, double **host_aa,
                 double **host_alpha, double **host_beta,
                 double **host_AA, double **host_BB,
@@ -126,7 +126,7 @@ void BeckT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 

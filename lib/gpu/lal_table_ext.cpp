@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ static Table<PRECISION,ACC_PRECISION> TBMF;
 int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
                  double **table_data, double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen, 
+                 const double cell_size, int &gpu_mode, FILE *screen,
                  int tabstyle, int ntables, int tablength) {
   TBMF.clear();
   gpu_mode=TBMF.device->gpu_mode();
@@ -55,7 +55,7 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
   int init_ok=0;
   if (world_me==0)
     init_ok=TBMF.init(ntypes, cutsq, table_coeffs, table_data,
-                      special_lj, inum, nall, 300, maxspecial, cell_size, 
+                      special_lj, inum, nall, 300, maxspecial, cell_size,
                       gpu_split, screen, tabstyle, ntables, tablength);
 
   TBMF.device->world_barrier();
@@ -73,11 +73,11 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=TBMF.init(ntypes, cutsq, table_coeffs, table_data,
-                      special_lj, inum, nall, 300, maxspecial, cell_size, 
+                      special_lj, inum, nall, 300, maxspecial, cell_size,
                       gpu_split, screen, tabstyle, ntables, tablength);
 
     TBMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -102,8 +102,8 @@ int ** table_gpu_compute_n(const int ago, const int inum_full,
   return TBMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
                        vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void table_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,

@@ -294,7 +294,7 @@ void TersoffZT::compute(const int f_ago, const int nlocal, const int nall,
   else
     _eflag=0;
 
-  int ainum=nall;
+  int ainum=nlist;
   int nbor_pitch=this->nbor->nbor_pitch();
   int BX=this->block_pair();
   int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
@@ -304,7 +304,7 @@ void TersoffZT::compute(const int f_ago, const int nlocal, const int nall,
   this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6, &cutsq,
                    &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &_eflag, &nall, &ainum, &nbor_pitch, &this->_threads_per_atom);
+                   &_eflag, &ainum, &nbor_pitch, &this->_threads_per_atom);
 
   int evatom=0;
   if (eatom || vatom)
@@ -389,7 +389,7 @@ int ** TersoffZT::compute(const int ago, const int inum_full,
   this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6, &cutsq,
                    &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &_eflag, &nall, &ainum, &nbor_pitch, &this->_threads_per_atom);
+                   &_eflag, &ainum, &nbor_pitch, &this->_threads_per_atom);
 
   int evatom=0;
   if (eatom || vatom)
@@ -463,16 +463,18 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
     this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->nbor->dev_acc,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom);
+                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
 
   } else {
     this->k_three_end.set_size(GX,BX);
     this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                          &this->nbor->dev_acc,
                           &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom);
+                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
   }
 
   this->time_pair.stop();

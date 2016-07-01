@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -27,9 +27,9 @@ static Gauss<PRECISION,ACC_PRECISION> GLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a, 
-                   double **host_b, double **offset, double *special_lj, 
-                   const int inum, const int nall, const int max_nbors,  
+int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
+                   double **host_b, double **offset, double *special_lj,
+                   const int inum, const int nall, const int max_nbors,
                    const int maxspecial,
                    const double cell_size, int &gpu_mode, FILE *screen) {
   GLMF.clear();
@@ -54,7 +54,7 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=GLMF.init(ntypes, cutsq, host_a, host_b, 
+    init_ok=GLMF.init(ntypes, cutsq, host_a, host_b,
                        offset, special_lj, inum, nall, 300,
                        maxspecial, cell_size, gpu_split, screen);
 
@@ -77,7 +77,7 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
                         cell_size, gpu_split, screen);
 
     GLMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -96,16 +96,16 @@ void gauss_gpu_reinit(const int ntypes, double **cutsq, double **host_a,
   int world_me=GLMF.device->world_me();
   int gpu_rank=GLMF.device->gpu_rank();
   int procs_per_gpu=GLMF.device->procs_per_gpu();
-  
+
   if (world_me==0)
     GLMF.reinit(ntypes, cutsq, host_a, host_b, offset);
-  
+
   GLMF.device->world_barrier();
-  
+
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       GLMF.reinit(ntypes, cutsq, host_a, host_b, offset);
-    
+
     GLMF.device->gpu_barrier();
   }
 }
@@ -124,8 +124,8 @@ int ** gauss_gpu_compute_n(const int ago, const int inum_full,
   return GLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                       subhi, tag, nspecial, special, eflag, vflag, eatom,
                       vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void gauss_gpu_compute(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,

@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : ndactrung@gmail.com
  ***************************************************************************/
 
@@ -24,27 +24,27 @@ template <class numtyp, class acctyp>
 class ZBL : public BaseAtomic<numtyp, acctyp> {
  public:
   ZBL();
-  ~ZBL(); 
+  ~ZBL();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, double **host_cutsq, double **host_sw1, 
+  int init(const int ntypes, double **host_cutsq, double **host_sw1,
            double **host_sw2, double **host_sw3, double **host_sw4, double **host_sw5,
-           double **host_d1a, double **host_d2a, double **host_d3a, double **host_d4a, 
+           double **host_d1a, double **host_d2a, double **host_d3a, double **host_d4a,
            double **host_zze, double cut_globalsq, double cut_innersq, double cut_inner,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
-  
+
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
@@ -70,8 +70,8 @@ class ZBL : public BaseAtomic<numtyp, acctyp> {
   double _cut_globalsq;
   double _cut_innersq;
   double _cut_inner;
- 
-  /// Number of atom types 
+
+  /// Number of atom types
   int _lj_types;
 
  private:

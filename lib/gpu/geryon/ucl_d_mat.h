@@ -17,7 +17,7 @@
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
@@ -37,23 +37,23 @@ class UCL_D_Mat : public UCL_BaseMat {
     ROW_MAJOR = 1,
     VECTOR = 0
   };
-  typedef numtyp data_type; 
+  typedef numtyp data_type;
 
   UCL_D_Mat() : _cols(0) {}
   ~UCL_D_Mat() { _device_free(*this); }
-  
+
   /// Construct with specified rows and cols
   /** \sa alloc() **/
   UCL_D_Mat(const size_t rows, const size_t cols, UCL_Device &device,
-            const enum UCL_MEMOPT kind=UCL_READ_WRITE) : 
+            const enum UCL_MEMOPT kind=UCL_READ_WRITE) :
     _cols(0) { alloc(rows,cols,device,kind); }
-    
+
   /// Row major matrix on device
   /** The kind parameter controls memory optimizations as follows:
     * - UCL_READ_WRITE - Specify that you will read and write in kernels
     * - UCL_WRITE_ONLY - Specify that you will only write in kernels
     * - UCL_READ_ONLY  - Specify that you will only read in kernels
-    * \param cq Default command queue for operations copied from another mat 
+    * \param cq Default command queue for operations copied from another mat
     * \note - Coalesced access using adjacent cols on same row
     *         UCL_D_Mat(row,col) given by array[row*row_size()+col]
     * \return UCL_SUCCESS if the memory allocation is successful **/
@@ -65,7 +65,7 @@ class UCL_D_Mat : public UCL_BaseMat {
     int err=_device_alloc(*this,cq,rows,cols,_pitch,kind);
     if (err!=UCL_SUCCESS) {
       #ifndef UCL_NO_EXIT
-      std::cerr << "UCL Error: Could not allocate " 
+      std::cerr << "UCL Error: Could not allocate "
                 << rows*cols*sizeof(numtyp) << " bytes on device.\n";
       UCL_GERYON_EXIT;
       #endif
@@ -82,9 +82,9 @@ class UCL_D_Mat : public UCL_BaseMat {
     #ifdef _OCL_MAT
     _offset=0;
     #endif
-    return err; 
+    return err;
   }
-  
+
   /// Row major matrix on device
   /** The kind parameter controls memory optimizations as follows:
     * - UCL_READ_WRITE - Specify that you will read and write in kernels
@@ -118,15 +118,15 @@ class UCL_D_Mat : public UCL_BaseMat {
     #ifdef _OCL_MAT
     _offset=0;
     #endif
-    return err; 
+    return err;
   }
-  
+
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
-    * \param stride Number of _elements_ between the start of each row **/ 
+    *   allocating container when using CUDA APIs
+    * \param stride Number of _elements_ between the start of each row **/
   template <class ucl_type>
   inline void view(ucl_type &input, const size_t rows, const size_t cols,
                    const size_t stride) {
@@ -145,7 +145,7 @@ class UCL_D_Mat : public UCL_BaseMat {
     #else
     _device_view(&_array,input.begin());
     #endif
-    
+
     #ifndef _UCL_DEVICE_PTR_MAT
     _end=_array+_cols;
     #endif
@@ -157,39 +157,39 @@ class UCL_D_Mat : public UCL_BaseMat {
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ucl_type>
-  inline void view(ucl_type &input, const size_t rows, const size_t cols) 
+  inline void view(ucl_type &input, const size_t rows, const size_t cols)
     { view(input,rows,cols,input.row_size()); }
-  
+
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
+    *   allocating container when using CUDA APIs
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
   inline void view(ucl_type &input, const size_t cols)
     { view(input,1,cols); }
-  
+
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
+    *   allocating container when using CUDA APIs
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
-  inline void view(ucl_type &input) 
+  inline void view(ucl_type &input)
     { view(input,input.rows(),input.cols()); }
-  
+
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
-    * \param stride Number of _elements_ between the start of each row **/ 
+    *   allocating container when using CUDA APIs
+    * \param stride Number of _elements_ between the start of each row **/
   template <class ptr_type>
   inline void view(ptr_type input, const size_t rows, const size_t cols,
-                   const size_t stride, UCL_Device &dev) { 
+                   const size_t stride, UCL_Device &dev) {
     clear();
     _kind=UCL_VIEW;
     _cols=cols;
@@ -215,7 +215,7 @@ class UCL_D_Mat : public UCL_BaseMat {
   template <class ptr_type>
   inline void view(ptr_type input, const size_t rows, const size_t cols,
                    UCL_Device &dev) { view(input,rows,cols,cols,dev); }
-  
+
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
@@ -223,13 +223,13 @@ class UCL_D_Mat : public UCL_BaseMat {
   template <class ptr_type>
   inline void view(ptr_type input, const size_t cols, UCL_Device &dev)
     { view(input,1,cols,dev); }
-  
+
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
-    * \param stride Number of _elements_ between the start of each row **/ 
+    *   allocating container when using CUDA APIs
+    * \param stride Number of _elements_ between the start of each row **/
   template <class ucl_type>
   inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
                           const size_t cols, const size_t stride) {
@@ -248,7 +248,7 @@ class UCL_D_Mat : public UCL_BaseMat {
     #else
     _device_view(&_array,input.begin(),offset,sizeof(numtyp));
     #endif
-    
+
     #ifndef _UCL_DEVICE_PTR_MAT
     _end=_array+_cols;
     #endif
@@ -261,45 +261,45 @@ class UCL_D_Mat : public UCL_BaseMat {
     *   allocating container when using CUDA APIs **/
   template <class ucl_type>
   inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
-                          const size_t cols) 
+                          const size_t cols)
     { view_offset(offset,input,rows,cols,input.row_size()); }
-  
+
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
+    *   allocating container when using CUDA APIs
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
   inline void view_offset(const size_t offset,ucl_type &input,const size_t cols)
     { view_offset(offset,input,1,cols); }
-  
+
   /// Do not allocate memory, instead use an existing allocation from Geryon
   /** This function must be passed a Geryon vector or matrix container.
     * No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
+    *   allocating container when using CUDA APIs
     * - If a matrix is used a input, all elements (including padding)
     *   will be used for view **/
   template <class ucl_type>
-  inline void view_offset(const size_t offset, ucl_type &input) { 
-    if (input.rows()==1) 
+  inline void view_offset(const size_t offset, ucl_type &input) {
+    if (input.rows()==1)
       view_offset(offset,input,1,input.cols()-offset);
-    else 
+    else
       view_offset(offset,input,input.rows()-offset/input.row_size(),
                   input.cols());
   }
-    
+
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
-    *   allocating container when using CUDA APIs 
-    * \param stride Number of _elements_ between the start of each row **/ 
+    *   allocating container when using CUDA APIs
+    * \param stride Number of _elements_ between the start of each row **/
   template <class ptr_type>
   inline void view_offset(const size_t offset,ptr_type input,const size_t rows,
                           const size_t cols,const size_t stride,
-                          UCL_Device &dev) { 
+                          UCL_Device &dev) {
     clear();
     _kind=UCL_VIEW;
     _cols=cols;
@@ -307,7 +307,7 @@ class UCL_D_Mat : public UCL_BaseMat {
     _pitch=stride*sizeof(numtyp);
     _row_size=stride;
     this->_cq=dev.cq();
-    
+
     #ifdef _OCL_MAT
     _array=input;
     _offset=offset;
@@ -320,7 +320,7 @@ class UCL_D_Mat : public UCL_BaseMat {
     _array=input+offset;
     #endif
     #endif
-    
+
     #ifndef _UCL_DEVICE_PTR_MAT
     _end=_array+_cols;
     #endif
@@ -332,20 +332,20 @@ class UCL_D_Mat : public UCL_BaseMat {
     *   allocating container when using CUDA APIs **/
   template <class ptr_type>
   inline void view_offset(const size_t offset,ptr_type input,const size_t rows,
-                          const size_t cols, UCL_Device &dev) 
+                          const size_t cols, UCL_Device &dev)
     { view_offset(offset,input,rows,cols,cols,dev); }
-  
+
   /// Do not allocate memory, instead use an existing allocation
   /** - No memory is freed when the object is destructed.
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ptr_type>
-  inline void view_offset(const size_t offset, ptr_type input, 
+  inline void view_offset(const size_t offset, ptr_type input,
                           const size_t cols, UCL_Device &dev)
     { view_offset(offset,input,1,cols,dev); }
-  
+
   /// Free memory and set size to 0
-  inline void clear() 
+  inline void clear()
     { _device_free(*this); _cols=0; _kind=UCL_VIEW; }
 
   /// Resize the allocation to contain cols elements
@@ -356,7 +356,7 @@ class UCL_D_Mat : public UCL_BaseMat {
     int err=_device_resize(*this,rows,cols,_pitch);
     if (err!=UCL_SUCCESS) {
       #ifndef UCL_NO_EXIT
-      std::cerr << "UCL Error: Could not allocate " 
+      std::cerr << "UCL Error: Could not allocate "
                 << rows*cols*sizeof(numtyp) << " bytes on device.\n";
       UCL_GERYON_EXIT;
       #endif
@@ -372,13 +372,13 @@ class UCL_D_Mat : public UCL_BaseMat {
     #ifdef _OCL_MAT
     _offset=0;
     #endif
-    return err; 
+    return err;
   }
-    
+
   /// Resize (only if bigger) the allocation to contain rows x cols elements
   /** \note Cannot be used on views **/
   inline int resize_ib(const int rows, const int cols)
-    { if (cols>_cols || rows>_rows) return resize(rows,cols); 
+    { if (cols>_cols || rows>_rows) return resize(rows,cols);
       else return UCL_SUCCESS; }
 
   /// Set each element to zero asynchronously in the default command_queue
@@ -386,10 +386,10 @@ class UCL_D_Mat : public UCL_BaseMat {
   /// Set first n elements to zero asynchronously in the default command_queue
   inline void zero(const int n) { zero(n,_cq); }
   /// Set each element to zero asynchronously
-  inline void zero(command_queue &cq) 
+  inline void zero(command_queue &cq)
     { _device_zero(*this,row_bytes()*_rows,cq); }
   /// Set first n elements to zero asynchronously
-  inline void zero(const int n, command_queue &cq) 
+  inline void zero(const int n, command_queue &cq)
     { _device_zero(*this,n*sizeof(numtyp),cq); }
 
 
@@ -445,7 +445,7 @@ class UCL_D_Mat : public UCL_BaseMat {
   inline size_t row_bytes() const { return _pitch; }
   /// Get the size in bytes of 1 element
   inline int element_size() const { return sizeof(numtyp); }
-  
+
   #ifdef _OCL_MAT
   /// Return the offset (in elements) from begin() pointer where data starts
   /** \note Always 0 for host matrices and CUDA APIs **/
@@ -459,7 +459,7 @@ class UCL_D_Mat : public UCL_BaseMat {
   /// Return the offset (in bytes) from begin() pointer where data starts
   /** \note Always 0 for host matrices and CUDA APIs **/
   inline size_t byteoff() const { return offset()*sizeof(numtyp); }
-  
+
  private:
   size_t _pitch, _row_size, _rows, _cols;
 

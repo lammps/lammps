@@ -9,10 +9,10 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 #include "lal_base_atomic.h"
 using namespace LAMMPS_AL;
 #define BaseAtomicT BaseAtomic<numtyp, acctyp>
@@ -63,13 +63,13 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
     _nbor_data=&(nbor->dev_packed);
   } else
     _nbor_data=&(nbor->dev_nbor);
-    
+
   int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
                            maxspecial,_gpu_host,max_nbors,cell_size,false,
                            _threads_per_atom);
   if (success!=0)
     return success;
-    
+
   ucl_device=device->gpu;
   atom=&device->atom;
 
@@ -139,7 +139,7 @@ int * BaseAtomicT::reset_nbors(const int nall, const int inum, int *ilist,
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
-  
+
   return ilist;
 }
 
@@ -188,7 +188,7 @@ void BaseAtomicT::compute(const int f_ago, const int inum_full,
     zero_timers();
     return;
   }
-  
+
   int ago=hd_balancer.ago_first(f_ago);
   int inum=hd_balancer.balance(ago,inum_full,cpu_time);
   ans->inum(inum);
@@ -217,7 +217,7 @@ template <class numtyp, class acctyp>
 int ** BaseAtomicT::compute(const int ago, const int inum_full,
                                  const int nall, double **host_x, int *host_type,
                                  double *sublo, double *subhi, tagint *tag,
-                                 int **nspecial, tagint **special, const bool eflag, 
+                                 int **nspecial, tagint **special, const bool eflag,
                                  const bool vflag, const bool eatom,
                                  const bool vatom, int &host_start,
                                  int **ilist, int **jnum,
@@ -230,12 +230,12 @@ int ** BaseAtomicT::compute(const int ago, const int inum_full,
     zero_timers();
     return NULL;
   }
-  
+
   hd_balancer.balance(cpu_time);
   int inum=hd_balancer.get_gpu_count(ago,inum_full);
   ans->inum(inum);
   host_start=inum;
- 
+
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
@@ -255,7 +255,7 @@ int ** BaseAtomicT::compute(const int ago, const int inum_full,
   ans->copy_answers(eflag,vflag,eatom,vatom);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
-  
+
   return nbor->host_jlist.begin()-host_start;
 }
 

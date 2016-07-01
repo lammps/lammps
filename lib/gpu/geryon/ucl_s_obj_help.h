@@ -3,7 +3,7 @@
                              -------------------
                                W. Michael Brown
 
-  Helper routines for allocating memory for s-objects and performing 
+  Helper routines for allocating memory for s-objects and performing
   host/device updates. (Different routines depending on whether the
   same type is used on the host and device).
 
@@ -141,29 +141,29 @@ template <> struct _ucl_s_obj_help<1> {
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer, 
+  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer,
                           const bool async) {
     ucl_copy(dst,src,cols,async);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer, 
+  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer,
                           command_queue &cq) {
     ucl_copy(dst,src,cols,cq);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols, 
+  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols,
                           t3 &buffer, const bool async) {
     ucl_copy(dst,src,rows,cols,async);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols, 
+  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols,
                           t3 &buffer, command_queue &cq) {
     ucl_copy(dst,src,rows,cols,cq);
   }
-  
+
   template <class t1, class t2, class t3>
   static inline int dev_resize(t1 &device, t2 &host, t3 &buff,const int cols) {
     if (device.kind()==UCL_VIEW) {
@@ -181,7 +181,7 @@ template <> struct _ucl_s_obj_help<1> {
   }
 
   template <class t1, class t2, class t3>
-  static inline int dev_resize(t1 &device, t2 &host, t3 &buff, const int rows, 
+  static inline int dev_resize(t1 &device, t2 &host, t3 &buff, const int rows,
                                const int cols) {
     if (device.kind()==UCL_VIEW) {
       device.view(host);
@@ -255,7 +255,7 @@ template <int st> struct _ucl_s_obj_help {
       e1=_buffer.alloc(cols,cq,kind1);
       if (e1!=UCL_SUCCESS)
         return e1;
-      return device.alloc(cols,cq,kind2); 
+      return device.alloc(cols,cq,kind2);
     }
   }
 
@@ -314,7 +314,7 @@ template <int st> struct _ucl_s_obj_help {
       e1=_buffer.alloc(rows,cols,cq,kind1);
       if (e1!=UCL_SUCCESS)
         return e1;
-      return device.alloc(rows,cols,cq,kind2); 
+      return device.alloc(rows,cols,cq,kind2);
     }
   }
 
@@ -329,25 +329,25 @@ template <int st> struct _ucl_s_obj_help {
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer, 
+  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer,
                           const bool async) {
     ucl_cast_copy(dst,src,cols,buffer,async);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer, 
+  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer,
                           command_queue &cq) {
     ucl_cast_copy(dst,src,cols,buffer,cq);
   }
-  
+
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols, 
+  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols,
                           t3 &buffer, const bool async) {
     ucl_cast_copy(dst,src,rows,cols,buffer,async);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols, 
+  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols,
                           t3 &buffer, command_queue &cq) {
     ucl_cast_copy(dst,src,rows,cols,buffer,cq);
   }
@@ -373,7 +373,7 @@ template <int st> struct _ucl_s_obj_help {
   }
 
   template <class t1, class t2, class t3>
-  static inline int dev_resize(t1 &device, t2 &host, t3 &buff, const int rows, 
+  static inline int dev_resize(t1 &device, t2 &host, t3 &buff, const int rows,
                                const int cols) {
     int err=buff.resize(rows,cols);
     if (err!=UCL_SUCCESS)

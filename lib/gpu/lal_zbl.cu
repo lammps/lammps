@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : ndactrung@gmail.com
 // ***************************************************************************/
 
@@ -35,9 +35,9 @@ texture<int4,1> pos_tex;
    compute ZBL pair energy
 ------------------------------------------------------------------------- */
 
-ucl_inline numtyp e_zbl(numtyp r, numtyp d1aij, numtyp d2aij, 
+ucl_inline numtyp e_zbl(numtyp r, numtyp d1aij, numtyp d2aij,
                       numtyp d3aij, numtyp d4aij, numtyp zzeij) {
-  
+
   numtyp rinv = ucl_recip(r);
 
   numtyp sum = c1*ucl_exp(-d1aij*r);
@@ -54,7 +54,7 @@ ucl_inline numtyp e_zbl(numtyp r, numtyp d1aij, numtyp d2aij,
    compute ZBL first derivative
 ------------------------------------------------------------------------- */
 
-ucl_inline numtyp dzbldr(numtyp r, numtyp d1aij, numtyp d2aij, 
+ucl_inline numtyp dzbldr(numtyp r, numtyp d1aij, numtyp d2aij,
                          numtyp d3aij, numtyp d4aij, numtyp zzeij) {
   numtyp rinv = ucl_recip(r);
 
@@ -72,24 +72,24 @@ ucl_inline numtyp dzbldr(numtyp r, numtyp d1aij, numtyp d2aij,
   sum_p -= c2*d2aij*e2;
   sum_p -= c3*d3aij*e3;
   sum_p -= c4*d4aij*e4;
-  
+
   numtyp result = zzeij*(sum_p - sum*rinv)*rinv;
-  
+
   return result;
 };
 
-__kernel void k_zbl(const __global numtyp4 *restrict x_, 
+__kernel void k_zbl(const __global numtyp4 *restrict x_,
                     const __global numtyp4 *restrict coeff1,
                     const __global numtyp4 *restrict coeff2,
                     const __global numtyp4 *restrict coeff3,
-                    const double cut_globalsq, 
-                    const double cut_innersq, 
-                    const double cut_inner, 
-                    const int lj_types, 
-                    const __global int *dev_nbor, 
-                    const __global int *dev_packed, 
+                    const double cut_globalsq,
+                    const double cut_innersq,
+                    const double cut_inner,
+                    const int lj_types,
+                    const __global int *dev_nbor,
+                    const __global int *dev_packed,
                     __global acctyp4 *restrict ans,
-                    __global acctyp *restrict engv, 
+                    __global acctyp *restrict engv,
                     const int eflag, const int vflag, const int inum,
                     const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
@@ -101,19 +101,19 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       j &= NEIGHMASK;
 
@@ -125,19 +125,19 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       int mtype=itype*lj_types+jtype;
       if (rsq<cut_globalsq) {
         numtyp r, t, force;
 
         r = ucl_sqrt(rsq);
-        force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y, 
+        force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y,
                        coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-      
-      	if (rsq>cut_innersq) {
-	        t = r - cut_inner;
-	        force = t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
-      	}
+
+              if (rsq>cut_innersq) {
+                t = r - cut_inner;
+                force = t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
+              }
 
         force *= (numtyp)-1.0*ucl_recip(r);
 
@@ -146,14 +146,14 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-          numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y, 
+          numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-       	  e += coeff3[mtype].z;
-      	  if (rsq > cut_innersq) {
-      	    e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
-      	  }
+                 e += coeff3[mtype].z;
+                if (rsq > cut_innersq) {
+                  e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
+                }
 
-          energy+=e; 
+          energy+=e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -171,22 +171,22 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_zbl_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict coeff1_in,
                          const __global numtyp4 *restrict coeff2_in,
                          const __global numtyp4 *restrict coeff3_in,
-                         const double cut_globalsq, 
-                         const double cut_innersq, 
-                         const double cut_inner, 
+                         const double cut_globalsq,
+                         const double cut_innersq,
+                         const double cut_inner,
                          const __global int *dev_nbor,
-                         const __global int *dev_packed, 
+                         const __global int *dev_packed,
                          __global acctyp4 *restrict ans,
-                         __global acctyp *restrict engv, 
-                         const int eflag, const int vflag, const int inum, 
+                         __global acctyp *restrict engv,
+                         const int eflag, const int vflag, const int inum,
                          const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local numtyp4 coeff1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 coeff2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 coeff3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
@@ -195,7 +195,7 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
     coeff2[tid]=coeff2_in[tid];
     coeff3[tid]=coeff3_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -204,7 +204,7 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
@@ -217,7 +217,7 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       j &= NEIGHMASK;
 
@@ -229,18 +229,18 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       if (rsq<cut_globalsq) {
         numtyp r, t, force;
 
         r = ucl_sqrt(rsq);
-        force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y, 
+        force = dzbldr(r, coeff2[mtype].x, coeff2[mtype].y,
                        coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-      
-      	if (rsq>cut_innersq) {
-	        t = r - cut_inner;
-	        force += t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
-      	}
+
+              if (rsq>cut_innersq) {
+                t = r - cut_inner;
+                force += t*t * (coeff1[mtype].x + coeff1[mtype].y*t);
+              }
 
         force *= (numtyp)-1.0*ucl_recip(r);
 
@@ -249,14 +249,14 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (eflag>0) {
-          numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y, 
+          numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
-       	  e += coeff3[mtype].z;
-      	  if (rsq > cut_innersq) {
-      	    e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
-      	  }
+                 e += coeff3[mtype].z;
+                if (rsq > cut_innersq) {
+                  e += t*t*t * (coeff3[mtype].x + coeff3[mtype].y*t);
+                }
 
-          energy+=e; 
+          energy+=e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

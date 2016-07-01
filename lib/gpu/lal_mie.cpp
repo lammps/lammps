@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -33,17 +33,17 @@ MieT::Mie() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-MieT::~Mie() { 
+MieT::~Mie() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int MieT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int MieT::init(const int ntypes, double **host_cutsq, 
+int MieT::init(const int ntypes, double **host_cutsq,
                double **host_mie1, double **host_mie2,
                double **host_mie3, double **host_mie4,
                double **host_gamA, double **host_gamR,
@@ -76,12 +76,12 @@ int MieT::init(const int ntypes, double **host_cutsq,
 
   mie1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,mie1,host_write,host_mie1,host_mie2,
-			                   host_gamA,host_gamR);
+                                           host_gamA,host_gamR);
 
   mie3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,mie3,host_write,host_mie3,host_mie4,
-			                   host_offset,host_cutsq);
-  
+                                           host_offset,host_cutsq);
+
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
   dview.view(host_special_lj,4,*(this->ucl_device));
@@ -126,7 +126,7 @@ void MieT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 

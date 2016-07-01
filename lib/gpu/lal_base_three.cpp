@@ -12,7 +12,7 @@
     begin                : Tue April 2, 2013
     email                : brownw@ornl.gov
  ***************************************************************************/
- 
+
 #include "lal_base_three.h"
 using namespace LAMMPS_AL;
 #define BaseThreeT BaseThree<numtyp, acctyp>
@@ -45,7 +45,7 @@ int BaseThreeT::bytes_per_atom_atomic(const int max_nbors) const {
   #ifdef THREE_CONCURRENT
   b+=ans2->bytes_per_atom();
   #endif
-  return b;     
+  return b;
 }
 
 template <class numtyp, class acctyp>
@@ -62,6 +62,7 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
     gpu_nbor=1;
   else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
+  _gpu_nbor=gpu_nbor;
 
   int _gpu_host=0;
   int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
@@ -76,7 +77,7 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
     _nbor_data=&(nbor->dev_nbor);
   if (_threads_per_atom*_threads_per_atom>device->warp_size())
     return -10;
-    
+
   int success=device->init(*ans,false,false,nlocal,host_nlocal,nall,nbor,
                            maxspecial,_gpu_host,max_nbors,cell_size,false,
                            _threads_per_atom);
@@ -93,7 +94,7 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
     return -3;
   ans2->cq(_end_command_queue);
   #endif
-    
+
   _block_pair=device->pair_block_size();
   _block_size=device->block_ellipse();
   compile_kernels(*ucl_device,pair_program,k_two,k_three_center,k_three_end);
@@ -111,7 +112,7 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   #ifdef THREE_CONCURRENT
   _max_an_bytes+=ans2->gpu_bytes();
   #endif
-  
+
   return 0;
 }
 
@@ -158,7 +159,7 @@ void BaseThreeT::clear_atomic() {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
-                              int *ilist, int *numj, int **firstneigh, 
+                              int *ilist, int *numj, int **firstneigh,
                               bool &success) {
   success=true;
 
@@ -168,7 +169,12 @@ int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
   if (!success)
     return NULL;
 
-  nbor->get_host3(nall,nlist,ilist,numj,firstneigh,block_size());
+  // originally the requirement that nall == nlist was enforced
+  // to allow direct indexing neighbors of neighbors after re-arrangement
+//  nbor->get_host3(nall,nlist,ilist,numj,firstneigh,block_size());
+
+  // now the requirement is removed, allowing to work within pair hybrid
+  nbor->get_host(nlist,ilist,numj,firstneigh,block_size());
 
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   #ifdef THREE_CONCURRENT
@@ -176,7 +182,7 @@ int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
   #endif
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
-  
+
   return ilist;
 }
 
@@ -185,11 +191,11 @@ int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 inline int BaseThreeT::build_nbor_list(const int inum, const int host_inum,
-                                         const int nall, double **host_x,
-                                         int *host_type, double *sublo,
-                                         double *subhi, tagint *tag,
-                                         int **nspecial, tagint **special,
-                                         bool &success) {
+                                       const int nall, double **host_x,
+                                       int *host_type, double *sublo,
+                                       double *subhi, tagint *tag,
+                                       int **nspecial, tagint **special,
+                                       bool &success) {
   success=true;
   resize_atom(inum,nall,success);
   resize_local(nall,host_inum,nbor->max_nbors(),success);
@@ -214,11 +220,11 @@ inline int BaseThreeT::build_nbor_list(const int inum, const int host_inum,
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseThreeT::compute(const int f_ago, const int nlocal, const int nall, 
+void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
                          const int nlist, double **host_x, int *host_type,
-                         int *ilist, int *numj, int **firstneigh, 
+                         int *ilist, int *numj, int **firstneigh,
                          const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, 
+                         const bool vatom, int &host_start,
                          const double cpu_time, bool &success) {
   acc_timers();
   if (nlist==0) {
@@ -228,9 +234,9 @@ void BaseThreeT::compute(const int f_ago, const int nlocal, const int nall,
     zero_timers();
     return;
   }
-  
+
   int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(ago,nlocal,cpu_time);
+  int inum=hd_balancer.balance(ago,inum_full,cpu_time);
   ans->inum(inum);
   #ifdef THREE_CONCURRENT
   ans2->inum(inum);
@@ -270,7 +276,7 @@ template <class numtyp, class acctyp>
 int ** BaseThreeT::compute(const int ago, const int inum_full,
                                  const int nall, double **host_x, int *host_type,
                                  double *sublo, double *subhi, tagint *tag,
-                                 int **nspecial, tagint **special, const bool eflag, 
+                                 int **nspecial, tagint **special, const bool eflag,
                                  const bool vflag, const bool eatom,
                                  const bool vatom, int &host_start,
                                  int **ilist, int **jnum,
@@ -283,7 +289,7 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
     zero_timers();
     return NULL;
   }
-  
+
   hd_balancer.balance(cpu_time);
   int inum=hd_balancer.get_gpu_count(ago,inum_full);
   ans->inum(inum);
@@ -291,7 +297,7 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
   ans2->inum(inum);
   #endif
   host_start=inum;
- 
+
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
@@ -321,7 +327,7 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
   device->add_ans_object(ans2);
   #endif
   hd_balancer.stop_timer();
-  
+
   return nbor->host_jlist.begin()-host_start;
 }
 
@@ -352,7 +358,7 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_three_end.cq(ucl_device->cq(_end_command_queue));
   k_three_end_vatom.cq(ucl_device->cq(_end_command_queue));
   #endif
-  
+
   _compiled=true;
 }
 

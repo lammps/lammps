@@ -30,18 +30,18 @@ class CoulDSF : public BaseCharge<numtyp, acctyp> {
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, const int nlocal, const int nall, 
-           const int max_nbors, const int maxspecial, 
+  int init(const int ntypes, const int nlocal, const int nall,
+           const int max_nbors, const int maxspecial,
            const double cell_size, const double gpu_split, FILE *screen,
            const double host_cut_coulsq, double *host_special_coul,
-           const double qqrd2e, const double e_shift, const double f_shift, 
+           const double qqrd2e, const double e_shift, const double f_shift,
            const double alpha);
 
   /// Clear all host and device data
@@ -62,7 +62,7 @@ class CoulDSF : public BaseCharge<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
   numtyp _qqrd2e;

@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -33,7 +33,7 @@ int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                    const int nall, const int max_nbors, const int maxspecial,
                    const double cell_size, int &gpu_mode, FILE *screen,
                    double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
-                   double **host_ljsw4, double **host_ljsw5, 
+                   double **host_ljsw4, double **host_ljsw5,
                    double **cut_inner, double **cut_inner_sq) {
   LJGRMMF.clear();
   gpu_mode=LJGRMMF.device->gpu_mode();
@@ -59,7 +59,7 @@ int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     LJGRMMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                  special_lj, inum, nall, 300, maxspecial, cell_size,
-                 gpu_split, screen, host_ljsw1, host_ljsw2, host_ljsw3, 
+                 gpu_split, screen, host_ljsw1, host_ljsw2, host_ljsw3,
                  host_ljsw4, host_ljsw5, cut_inner, cut_inner_sq);
 
   LJGRMMF.device->world_barrier();
@@ -78,11 +78,11 @@ int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJGRMMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                            special_lj, inum, nall, 300, maxspecial, cell_size,
-                           gpu_split, screen, host_ljsw1, host_ljsw2, host_ljsw3, 
+                           gpu_split, screen, host_ljsw1, host_ljsw2, host_ljsw3,
                            host_ljsw4, host_ljsw5, cut_inner, cut_inner_sq);
 
     LJGRMMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -107,8 +107,8 @@ int ** ljgrm_gpu_compute_n(const int ago, const int inum_full,
   return LJGRMMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                          subhi, tag, nspecial, special, eflag, vflag, eatom,
                          vatom, host_start, ilist, jnum, cpu_time, success);
-}  
-			
+}
+
 void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,
@@ -118,7 +118,7 @@ void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall,
                   firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
 }
 
-		
+
 double ljgrm_gpu_bytes() {
   return LJGRMMF.host_memory_usage();
 }

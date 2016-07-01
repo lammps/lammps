@@ -97,7 +97,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq,rinv,r2inv,r6inv,forceExp6,factor_lj;
+  double rsq,r2inv,r6inv,forceExp6,factor_lj;
   double rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
   double rm2ij,rm6ij;
   double r,rexp;
@@ -240,8 +240,6 @@ void PairExp6rx::compute(int eflag, int vflag)
         r6inv = r2inv*r2inv*r2inv;
 
         r = sqrt(rsq);
-        rinv = 1.0/r;
-
         rCut2inv = 1.0/cutsq[itype][jtype];
         rCut6inv = rCut2inv*rCut2inv*rCut2inv;
         rCut = sqrt(cutsq[itype][jtype]);
@@ -892,7 +890,7 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   double epsiloni, epsilonj, epsilonij;
   double alphai, alphaj, alphaij;
   double epsilon_old, rm3_old, alpha_old;
-  double epsilon, rm3, alpha, fraction;
+  double epsilon, rm3, alpha;
   double fractionOFA, fractionOFA_old;
   double nTotalOFA, nTotalOFA_old;
   double nTotal, nTotal_old;
@@ -904,7 +902,6 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   epsilon_old = 0.0;
   rm3_old = 0.0;
   alpha_old = 0.0;
-  fraction = 0.0;
   fractionOFA = 0.0;
   fractionOFA_old = 0.0;
   nTotalOFA = 0.0;

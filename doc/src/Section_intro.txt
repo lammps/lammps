@@ -487,7 +487,7 @@ LAMMPS.  If you use LAMMPS results in your published work, please cite
 this paper and include a pointer to the "LAMMPS WWW Site"_lws
 (http://lammps.sandia.gov):
 
-S. J. Plimpton, [Fast Parallel Algorithms for Short-Range Molecular
+S. Plimpton, [Fast Parallel Algorithms for Short-Range Molecular
 Dynamics], J Comp Phys, 117, 1-19 (1995).
 
 Other papers describing specific algorithms used in LAMMPS are listed

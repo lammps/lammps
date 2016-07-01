@@ -324,8 +324,11 @@ N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
 this atom within the topology of the molecule.  See the
 "special_bonds"_special_bonds.html doc page for more discussion of
 1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
-section must also appear.  If this section is not specied, the
-atoms in the molecule will have no special bonds.
+section must also appear.  
+
+As explained above, LAMMPS will auto-generate this information if this
+section is not specified.  If specified, this section will
+override what would be auto-generated.
 
 :line
 
@@ -342,9 +345,11 @@ values should be the 1-2 neighbors, the next N2 should be the 1-3
 neighbors, the last N3 should be the 1-4 neighbors.  No atom ID should
 appear more than once.  See the "special_bonds"_special_bonds.html doc
 page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
-appears, the Special Bond Counts section must also appear.  If this
-section is not specied, the atoms in the molecule will have no special
-bonds.
+appears, the Special Bond Counts section must also appear.  
+
+As explained above, LAMMPS will auto-generate this information if this
+section is not specified.  If specified, this section will override
+what would be auto-generated.
 
 :line
 

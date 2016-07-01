@@ -269,7 +269,7 @@ void TersoffMT::compute(const int f_ago, const int nlocal, const int nall,
   else
     _eflag=0;
 
-  int ainum=nall;
+  int ainum=nlist;
   int nbor_pitch=this->nbor->nbor_pitch();
   int BX=this->block_pair();
   int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
@@ -279,7 +279,7 @@ void TersoffMT::compute(const int f_ago, const int nlocal, const int nall,
   this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &cutsq,
                    &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &_eflag, &nall, &ainum, &nbor_pitch, &this->_threads_per_atom);
+                   &_eflag, &ainum, &nbor_pitch, &this->_threads_per_atom);
 
   int evatom=0;
   if (eatom || vatom)
@@ -364,7 +364,7 @@ int ** TersoffMT::compute(const int ago, const int inum_full,
   this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &cutsq,
                    &map, &elem2param, &_nelements, &_nparams, &_zetaij,
                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &_eflag, &nall, &ainum, &nbor_pitch, &this->_threads_per_atom);
+                   &_eflag, &ainum, &nbor_pitch, &this->_threads_per_atom);
 
   int evatom=0;
   if (eatom || vatom)

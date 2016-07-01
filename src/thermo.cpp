@@ -55,7 +55,7 @@ using namespace MathConst;
 
 // customize a new keyword by adding to this list:
 
-// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, part
+// step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain, part, timeremain
 // atoms, temp, press, pe, ke, etotal, enthalpy
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
 // vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
@@ -672,6 +672,8 @@ void Thermo::parse_fields(char *str)
       addfield("CPULeft",&Thermo::compute_cpuremain,FLOAT);
     } else if (strcmp(word,"part") == 0) {
       addfield("Part",&Thermo::compute_part,INT);
+    } else if (strcmp(word,"timeremain") == 0) {
+      addfield("TimeoutLeft",&Thermo::compute_timeremain,FLOAT);
 
     } else if (strcmp(word,"atoms") == 0) {
       addfield("Atoms",&Thermo::compute_atoms,BIGINT);
@@ -1068,6 +1070,10 @@ int Thermo::evaluate_keyword(char *word, double *answer)
   } else if (strcmp(word,"part") == 0) {
     compute_part();
     dvalue = ivalue;
+
+  } else if (strcmp(word,"timeremain") == 0) {
+    compute_timeremain();
+
 
   } else if (strcmp(word,"atoms") == 0) {
     compute_atoms();
@@ -1594,6 +1600,13 @@ void Thermo::compute_cpuremain()
 void Thermo::compute_part()
 {
   ivalue = universe->iworld;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_timeremain()
+{
+  dvalue = timer->get_timeout_remain();
 }
 
 /* ---------------------------------------------------------------------- */

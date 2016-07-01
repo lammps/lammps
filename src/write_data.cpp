@@ -286,19 +286,19 @@ void WriteData::force_fields()
       force->pair->write_data_all(fp);
     }
   }
-  if (force->bond && force->bond->writedata) {
+  if (force->bond && force->bond->writedata && atom->nbondtypes) {
     fprintf(fp,"\nBond Coeffs # %s\n\n", force->bond_style);
     force->bond->write_data(fp);
   }
-  if (force->angle && force->angle->writedata) {
+  if (force->angle && force->angle->writedata && atom->nangletypes) {
     fprintf(fp,"\nAngle Coeffs # %s\n\n", force->angle_style);
     force->angle->write_data(fp);
   }
-  if (force->dihedral && force->dihedral->writedata) {
+  if (force->dihedral && force->dihedral->writedata && atom->ndihedraltypes) {
     fprintf(fp,"\nDihedral Coeffs # %s\n\n", force->dihedral_style);
     force->dihedral->write_data(fp);
   }
-  if (force->improper && force->improper->writedata) {
+  if (force->improper && force->improper->writedata && atom->nimpropertypes) {
     fprintf(fp,"\nImproper Coeffs # %s\n\n", force->improper_style);
     force->improper->write_data(fp);
   }

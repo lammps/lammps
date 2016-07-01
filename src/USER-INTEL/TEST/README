@@ -1,35 +1,36 @@
 #############################################################################
 # Benchmarks
 #
-# in.intel.lj -		Atomic fluid (LJ Benchmark)
-# in.intel.rhodo -	Protein (Rhodopsin Benchmark)
-# in.intel.lc -	 	Liquid Crystal w/ Gay-Berne potential
-# in.intel.sw -		Silicon benchmark with Stillinger-Weber
-# in.intel.tersoff -	Silicon benchmark with Tersoff
-# in.intel.water - 	Coarse-grain water benchmark using Stillinger-Weber
+# in.intel.lj -	        Atomic fluid (LJ Benchmark)
+# in.intel.rhodo -      Protein (Rhodopsin Benchmark)
+# in.intel.lc -	        Liquid Crystal w/ Gay-Berne potential
+# in.intel.sw -	        Silicon benchmark with Stillinger-Weber
+# in.intel.tersoff -    Silicon benchmark with Tersoff
+# in.intel.water -      Coarse-grain water benchmark using Stillinger-Weber
 #
 #############################################################################
 
 #############################################################################
-# Expected Timesteps/second on E5-2697v3 with turbo on and HT enabled
+# Expected Timesteps/second with turbo on and HT enabled, LAMMPS 18-Jun-2016
 #
-# in.intel.lj -		131.943
-# in.intel.rhodo -	8.661
-# in.intel.lc -	 	14.015
-# in.intel.sw -		103.53
-# in.intel.tersoff -	55.525
-# in.intel.water - 	44.079
+#                     Xeon E5-2697v4     Xeon Phi 7250
+#                    
+# in.intel.lj -          162.764             179.148
+# in.intel.rhodo -        11.633              13.668
+# in.intel.lc -	          19.136              24.863
+# in.intel.sw -	         139.048             152.026
+# in.intel.tersoff -      82.663              92.985
+# in.intel.water -        59.838              85.704
 #
 #############################################################################
 
 #############################################################################
-# For Haswell and Broadwell architectures, depending on the compiler version, 
+# For Haswell (Xeon v3) architectures, depending on the compiler version, 
 # it may give better performance to compile for an AVX target (with -xAVX 
 # compiler option) instead of -xHost or -xCORE-AVX2 for some of the 
-# workloads due to inefficient code generation for gathers. Aside from
-# Tersoff, this will not significantly impact performance because FMA 
-# sensitive routines will still use AVX2 (MKL and SVML detect the processor 
-# at runtime)
+# workloads. In most cases, FMA sensitive routines will still use AVX2 
+# (MKL and SVML detect the processor at runtime). For Broadwell (Xeon v4)
+# architectures, -xCORE-AVX2 or -xHost will work best for all.
 #############################################################################
 
 #############################################################################
@@ -86,3 +87,8 @@ mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 0 -sf intel
 # To run with USER-INTEL and automatic load balancing to 1 coprocessor
 #############################################################################
 mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 1 -sf intel
+
+#############################################################################
+# If using PPPM (in.intel.rhodo) on Intel Xeon Phi x200 series processors
+#############################################################################
+mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 0 omp 3 lrt yes -sf intel

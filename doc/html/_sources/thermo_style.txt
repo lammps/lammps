@@ -18,7 +18,7 @@ Syntax
      *multi* args = none
      *custom* args = list of keywords
        possible keywords = step, elapsed, elaplong, dt, time,
-                           cpu, tpcpu, spcpu, cpuremain, part,
+                           cpu, tpcpu, spcpu, cpuremain, part, timeremain,
                            atoms, temp, press, pe, ke, etotal, enthalpy,
                            evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                            emol, elong, etail,
@@ -41,6 +41,7 @@ Syntax
          spcpu = timesteps per CPU second
          cpuremain = estimated CPU time remaining in run
          part = which partition (0 to Npartition-1) this is
+         timeremain = remaining time in seconds on timer timeout.
          atoms = # of atoms
          temp = temperature
          press = pressure
@@ -270,6 +271,16 @@ simulations to indicate which partition this output and this file
 corresponds to, or for use in a :doc:`variable <variable>` to append to
 a filename for output specific to this partition.  See :ref:`Section_start 7 <start_7>` of the manual for details on running in
 multi-partition mode.
+
+The *timeremain* keyword returns the remaining seconds when a
+timeout has been configured via the :doc:`timer timeout <timer>` command.
+If the timeout timer is inactive, the value of this keyword is 0.0 and
+if the timer is expired, it is negative. This allows for example to exit
+loops cleanly, if the timeout is expired with:
+
+.. parsed-literal::
+
+   if "$(timeremain) < 0.0" then "quit 0"
 
 The *fmax* and *fnorm* keywords are useful for monitoring the progress
 of an :doc:`energy minimization <minimize>`.  The *fmax* keyword

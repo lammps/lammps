@@ -662,7 +662,8 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"ebt") == 0) {
-    if (narg != 10) error->all(FLERR,"Incorrect args for dihedral coefficients");
+    if (narg != 10) 
+      error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(FLERR,arg[2]);
     double f2_1_one = force->numeric(FLERR,arg[3]);
@@ -687,7 +688,8 @@ void DihedralClass2::coeff(int narg, char **arg)
     }
 
   } else if (strcmp(arg[1],"at") == 0) {
-    if (narg != 10) error->all(FLERR,"Incorrect args for dihedral coefficients");
+    if (narg != 10) 
+      error->all(FLERR,"Incorrect args for dihedral coefficients");
 
     double f1_1_one = force->numeric(FLERR,arg[2]);
     double f2_1_one = force->numeric(FLERR,arg[3]);
@@ -924,8 +926,10 @@ void DihedralClass2::read_restart(FILE *fp)
 void DihedralClass2::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d %g %g %g %g %g %g\n",
-            i,k1[i],phi1[i],k2[i],phi2[i],k3[i],phi3[i]);
+    fprintf(fp,"%d %g %g %g %g %g %g\n",i,
+            k1[i],phi1[i]*180.0/MY_PI,
+            k2[i],phi2[i]*180.0/MY_PI,
+            k3[i],phi3[i]*180.0/MY_PI);
 
   fprintf(fp,"\nAngleAngleTorsion Coeffs\n\n");
   for (int i = 1; i <= atom->ndihedraltypes; i++)

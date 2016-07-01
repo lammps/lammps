@@ -26,10 +26,6 @@
 #include "memory.h"
 #include "error.h"
 
-// debug
-#include "update.h"
-
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

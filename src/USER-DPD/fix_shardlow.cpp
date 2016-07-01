@@ -47,7 +47,6 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "domain.h"
@@ -141,13 +140,6 @@ int FixShardlow::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixShardlow::init_list(int id, NeighList *ptr)
-{
-  list = ptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixShardlow::setup(int vflag)
 {
   bool fixShardlow = false;
@@ -194,6 +186,11 @@ void FixShardlow::initial_integrate(int vflag)
   int newton_pair = force->newton_pair;
   double randPair;
 
+  int airnum;
+  class NeighList *list; // points to list in pairDPD or pairDPDE
+  class RanMars *pRNG;
+  double **sigma;
+
   int *ssaAIR = atom->ssaAIR;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
@@ -227,23 +224,26 @@ void FixShardlow::initial_integrate(int vflag)
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
-  // Define pointers to access the neighbor list
+  // Define pointers to access the neighbor list and RNG
   if(pairDPDE){
-    inum = pairDPDE->list->inum;
-    ilist = pairDPDE->list->ilist;
-    numneigh = pairDPDE->list->numneigh;
-    firstneigh = pairDPDE->list->firstneigh;
+    list = pairDPDE->list;
+    pRNG = pairDPDE->random;
+    sigma = pairDPDE->sigma;
   } else {
-    inum = pairDPD->list->inum;
-    ilist = pairDPD->list->ilist;
-    numneigh = pairDPD->list->numneigh;
-    firstneigh = pairDPD->list->firstneigh;
+    list = pairDPD->list;
+    pRNG = pairDPD->random;
+    sigma = pairDPD->sigma;
+    theta_ij = pairDPD->temperature; // independent of i,j
   }
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   //Loop over all 14 directions (8 stages)
-  for (int idir = 1; idir <=8; idir++){
+  for (airnum = 1; airnum <=8; airnum++){
 
-    if (idir > 1) {
+    if (airnum > 1) {
       // Communicate the updated velocities to all nodes
       comm->forward_comm_fix(this);
 
@@ -275,7 +275,7 @@ void FixShardlow::initial_integrate(int vflag)
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
-        if (ssaAIR[j] != idir) continue;
+        if (ssaAIR[j] != airnum) continue;
         jtype = type[j];
 
         delx = xtmp - x[j][0];
@@ -320,13 +320,9 @@ void FixShardlow::initial_integrate(int vflag)
             // Compute the current temperature
             theta_ij = 0.5*(1.0/dpdTheta[i] + 1.0/dpdTheta[j]);
             theta_ij = 1.0/theta_ij;
-            sigma_ij = pairDPDE->sigma[itype][jtype];
-            randnum = pairDPDE->random->gaussian();
-          } else {
-            theta_ij = pairDPD->temperature;
-            sigma_ij = pairDPD->sigma[itype][jtype];
-            randnum = pairDPD->random->gaussian();
-          }
+          } // else theta_ij = pairDPD->temperature;
+          sigma_ij = sigma[itype][jtype];
+          randnum = pRNG->gaussian();
 
           gamma_ij = sigma_ij*sigma_ij / (2.0*force->boltz*theta_ij);
           randPair = sigma_ij*wr*randnum*dtsqrt;
@@ -400,7 +396,7 @@ void FixShardlow::initial_integrate(int vflag)
 
           if(pairDPDE){
             // Compute uCond
-            randnum = pairDPDE->random->gaussian();
+            randnum = pRNG->gaussian();
             kappa_ij = pairDPDE->kappa[itype][jtype];
             alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
             randPair = alpha_ij*wr*randnum*dtsqrt;
@@ -439,9 +435,9 @@ void FixShardlow::initial_integrate(int vflag)
     }
 
     // Communicate the ghost deltas to the atom owners
-    if (idir > 1) comm->reverse_comm_fix(this);
+    if (airnum > 1) comm->reverse_comm_fix(this);
 
-  }  //End Loop over all directions For idir = Top, Top-Right, Right, Bottom-Right, Back
+  }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 
   memory->sfree(v_t0);
   v_t0 = NULL;

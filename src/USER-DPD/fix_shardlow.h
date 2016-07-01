@@ -29,7 +29,6 @@ class FixShardlow : public Fix {
   FixShardlow(class LAMMPS *, int, char **);
   ~FixShardlow();
   int setmask();
-  virtual void init_list(int,class NeighList *);
   virtual void setup(int);
   virtual void initial_integrate(int);
 
@@ -54,9 +53,7 @@ class FixShardlow : public Fix {
   class PairDPDfdtEnergy *pairDPDE;
   double (*v_t0)[3];
 
-  private:
-  class NeighList *list;
-
+ private:
   int coord2ssaAIR(double *);  // map atom coord to an AIR number
 
 };

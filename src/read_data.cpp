@@ -924,14 +924,12 @@ void ReadData::header(int firstpass)
 
     // search line for header keyword and set corresponding variable
     // customize for new header lines
+    // check for triangles before angles so "triangles" not matched as "angles"
 
     if (strstr(line,"atoms")) {
       sscanf(line,BIGINT_FORMAT,&natoms);
       if (addflag == NONE) atom->natoms = natoms;
       else if (firstpass) atom->natoms += natoms;
-
-    // check for these first
-    // otherwise "triangles" will be matched as "angles"
 
     } else if (strstr(line,"ellipsoids")) {
       if (!avec_ellipsoid)

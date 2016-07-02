@@ -346,13 +346,10 @@ void ReadData::command(int narg, char **arg)
   natoms = ntypes = 0;
   nbonds = nangles = ndihedrals = nimpropers = 0;
   nbondtypes = nangletypes = ndihedraltypes = nimpropertypes = 0;
+
+  boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
+  boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
   triclinic = 0;
-  boxlo[0] = boxlo[1] = boxlo[2] = 0.0;
-  boxhi[0] = boxhi[1] = boxhi[2] = 0.0;
-  if (domain->dimension == 2) {
-    boxlo[2] = -0.5;
-    boxhi[2] =  0.5;
-  }
   keyword[0] = '\0';
 
   nlocal_previous = atom->nlocal;

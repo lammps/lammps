@@ -155,7 +155,10 @@
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>Select the level of detail at which LAMMPS performs its CPU timings.</p>
+<p>Select the level of detail at which LAMMPS performs its CPU timings.
+Multiple keywords can be specified with the <em>timer</em> command.  For
+keywords that are mutually exclusive, the last one specified takes
+effect.</p>
 <p>During a simulation run LAMMPS collects information about how much
 time is spent in different sections of the code and thus can provide
 information for determining performance and load imbalance problems.
@@ -174,26 +177,41 @@ call which meaures load imbalance more accuractly, though it can also
 slow down the simulation.  Using the <em>nosync</em> setting (which is the
 default) turns off this synchronization.</p>
 <p>With the <em>timeout</em> keyword a walltime limit can be imposed that
-affects the <a class="reference internal" href="run.html"><span class="doc">run</span></a> and <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> commands.  If
-the time limit is reached, the run or energy minimization will exit on
-the next step or iteration that is a multiple of the <em>Ncheck</em> value
-specified with the <em>every</em> keyword.  All subsequent run or minimize
-commands in the input script will be skipped until the timeout is
-reset or turned off by a new <em>timer</em> command.  The timeout <em>elapse</em>
-value can be specified as <em>off</em> or <em>unlimited</em> to impose no timeout
-condition (which is the default).  The <em>elapse</em> setting can be
-specified as a single number for seconds, two numbers separated by a
-colon (MM:SS) for minutes and seconds, or as three numbers separated
-by colons for hours, minutes, and seconds.</p>
+affects the <a class="reference internal" href="run.html"><span class="doc">run</span></a> and <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> commands.
+This can be convenient when runs have to confirm to time limits,
+e.g. when running under a batch system and you want to maximize
+the utilization of the batch time slot, especially when the time
+per timestep varies and is thus difficult to predict how many
+steps a simulation can perform, or for difficult to converge
+minimizations. The timeout <em>elapse</em> value should be somewhat smaller
+than the time requested from the batch system, as there is usually
+some overhead to launch jobs, and it may be advisable to write
+out a restart after terminating a run due to a timeout.</p>
+<p>The timeout timer starts when the command is issued. When the time
+limit is reached, the run or energy minimization will exit on the
+next step or iteration that is a multiple of the <em>Ncheck</em> value
+which can be set with the <em>every</em> keyword. Default is checking
+every 10 steps. After the timer timeout has expired all subsequent
+run or minimize commands in the input script will be skipped.
+The remaining time or timer status can be accessed with the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo</span></a> variable <em>timeremain</em>, which will be
+zero, if the timeout is inactive (default setting), it will be
+negative, if the timeout time is expired and positive if there
+is time remaining and in this case the value of the variable are
+the number of seconds remaining.</p>
+<p>When the <em>timeout</em> key word is used a second time, the timer is
+restarted with a new time limit. The timeout <em>elapse</em> value can
+be specified as <em>off</em> or <em>unlimited</em> to impose a no timeout condition
+(which is the default).  The <em>elapse</em> setting can be specified as
+a single number for seconds, two numbers separated by a colon (MM:SS)
+for minutes and seconds, or as three numbers separated by colons for
+hours, minutes, and seconds (H:MM:SS).</p>
 <p>The <em>every</em> keyword sets how frequently during a run or energy
 minimization the wall clock will be checked.  This check count applies
 to the outer iterations or time steps during minimizations or <a class="reference internal" href="run_style.html"><span class="doc">r-RESPA runs</span></a>, respectively.  Checking for timeout too often,
 can slow a calculation down.  Checking too infrequently can make the
 timeout measurement less accurate, with the run being stopped later
 than desired.</p>
-<p>Multiple keywords can be specified with the <em>timer</em> command.  For
-keywords that are mutually exclusive, the last one specified takes
-effect.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Using the <em>full</em> and <em>sync</em> options provides the most detailed

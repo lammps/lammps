@@ -135,10 +135,6 @@ Pair style *dpd/fdt/energy* requires :doc:`atom_style dpd <atom_style>`
 to be used in order to properly account for the particle internal
 energies and temperatures.
 
-Pair style *dpd/fdt* currently also requires
-:doc:`atom_style dpd <atom_style>` to be used in conjunction with
-:doc:`fix shardlow <fix_shardlow>` due to shared data structures.
-
 Related commands
 """"""""""""""""
 

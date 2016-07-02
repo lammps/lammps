@@ -206,6 +206,10 @@ void AtomVecTri::copy_bonus(int i, int j)
 void AtomVecTri::clear_bonus()
 {
   nghost_bonus = 0;
+
+  if (atom->nextra_grow)
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
+      modify->fix[atom->extra_grow[iextra]]->clear_bonus();
 }
 
 /* ----------------------------------------------------------------------

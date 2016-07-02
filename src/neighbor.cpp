@@ -24,8 +24,6 @@
 #include "neigh_request.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_line.h"
-#include "atom_vec_tri.h"
 #include "comm.h"
 #include "force.h"
 #include "pair.h"
@@ -37,7 +35,6 @@
 #include "update.h"
 #include "respa.h"
 #include "output.h"
-#include "math_extra.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
@@ -98,8 +95,6 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   maxhold = 0;
   xhold = NULL;
-  line_hold = NULL;
-  tri_hold = NULL;
   lastcall = -1;
 
   // binning
@@ -185,8 +180,6 @@ Neighbor::~Neighbor()
   delete [] fixchecklist;
 
   memory->destroy(xhold);
-  memory->destroy(line_hold);
-  memory->destroy(tri_hold);
 
   memory->destroy(binhead);
   memory->destroy(bins);
@@ -247,15 +240,6 @@ void Neighbor::init()
 
   // ------------------------------------------------------------------
   // settings
-
-  // linetri_flag = 1/2 if atom style allows for lines/tris
-
-  avec_line = (AtomVecLine *) atom->style_match("line");
-  avec_tri = (AtomVecTri *) atom->style_match("tri");
-
-  linetri_flag = 0;
-  if (avec_line) linetri_flag = 1;
-  if (avec_tri) linetri_flag = 2;
 
   // bbox lo/hi = bounding box of entire domain, stored by Domain
 
@@ -395,14 +379,6 @@ void Neighbor::init()
     memory->destroy(xhold);
     maxhold = 0;
     xhold = NULL;
-
-    if (linetri_flag == 1) {
-      memory->destroy(line_hold);
-      line_hold = NULL;
-    } else if (linetri_flag == 2) {
-      memory->destroy(tri_hold);
-      tri_hold = NULL;
-    }
   }
 
   if (style == NSQ) {
@@ -413,7 +389,6 @@ void Neighbor::init()
     bins = NULL;
 
     // for USER-DPD Shardlow Splitting Algorithm (SSA)
-
     memory->destroy(bins_ssa);
     memory->destroy(binhead_ssa);
     memory->destroy(gbinhead_ssa);
@@ -424,18 +399,11 @@ void Neighbor::init()
   }
 
   // 1st time allocation of xhold and bins
-  // also line/tri hold if linetri_flag is set
 
   if (dist_check) {
     if (maxhold == 0) {
       maxhold = atom->nmax;
       memory->create(xhold,maxhold,3,"neigh:xhold");
-      if (linetri_flag) {
-        if (linetri_flag == 1)
-          memory->create(line_hold,maxhold,4,"neigh:line_hold");
-        else
-          memory->create(tri_hold,maxhold,9,"neigh:tri_hold");
-      }
     }
   }
 
@@ -1537,25 +1505,12 @@ int Neighbor::check_distance()
   if (includegroup) nlocal = atom->nfirst;
 
   int flag = 0;
-
   for (int i = 0; i < nlocal; i++) {
     delx = x[i][0] - xhold[i][0];
     dely = x[i][1] - xhold[i][1];
     delz = x[i][2] - xhold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq > deltasq) {
-      flag = 1;
-      break;
-    }
-  }
-
-  // if line or tri particles:
-  // also check distance moved by corner pts
-  // since rotation could mean corners move when x coord does not
-  
-  if (!flag && linetri_flag) {
-    if (linetri_flag == 1) flag = check_distance_line(deltasq);
-    else flag = check_distance_tri(deltasq);
+    if (rsq > deltasq) flag = 1;
   }
 
   int flagall;
@@ -1565,153 +1520,9 @@ int Neighbor::check_distance()
 }
 
 /* ----------------------------------------------------------------------
-   if any line end pt moved deltasq, return 1
-------------------------------------------------------------------------- */
-
-int Neighbor::check_distance_line(double deltasq)
-{
-  double length,theta,dx,dy,rsq;
-  double endpts[4];
-
-  AtomVecLine::Bonus *bonus = avec_line->bonus;
-  double **x = atom->x;
-  int *line = atom->line;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (line[i] < 0) continue;
-    length = bonus[line[i]].length;
-    theta = bonus[line[i]].theta;
-    dx = 0.5*length*cos(theta);
-    dy = 0.5*length*sin(theta);
-    endpts[0] = x[i][0] - dx;
-    endpts[1] = x[i][1] - dy;
-    endpts[2] = x[i][0] + dx;
-    endpts[3] = x[i][1] + dy;
-    
-    dx = endpts[0] - line_hold[i][0];
-    dy = endpts[1] - line_hold[i][1];
-    rsq = dx*dx + dy*dy;
-    if (rsq > deltasq) return 1;
-
-    dx = endpts[2] - line_hold[i][2];
-    dy = endpts[3] - line_hold[i][3];
-    rsq = dx*dx + dy*dy;
-    if (rsq > deltasq) return 1;
-  }
-
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   compute and store current line end pts in line_hold
-------------------------------------------------------------------------- */
-
-void Neighbor::calculate_endpts()
-{
-  double length,theta,dx,dy;
-  double *endpt;
-
-  AtomVecLine::Bonus *bonus = avec_line->bonus;
-  double **x = atom->x;
-  int *line = atom->line;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (line[i] < 0) continue;
-    endpt = line_hold[i];
-    length = bonus[line[i]].length;
-    theta = bonus[line[i]].theta;
-    dx = 0.5*length*cos(theta);
-    dy = 0.5*length*sin(theta);
-    endpt[0] = x[i][0] - dx;
-    endpt[1] = x[i][1] - dy;
-    endpt[2] = x[i][0] + dx;
-    endpt[3] = x[i][1] + dy;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   if any tri corner pt moved deltasq, return 1
-------------------------------------------------------------------------- */
-
-int Neighbor::check_distance_tri(double deltasq)
-{
-  int ibonus;
-  double dx,dy,dz,rsq;
-  double p[3][3],corner[9];
-
-  AtomVecTri::Bonus *bonus = avec_tri->bonus;
-  double **x = atom->x;
-  int *tri = atom->tri;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    ibonus = tri[i];
-    MathExtra::quat_to_mat(bonus[ibonus].quat,p);
-    MathExtra::matvec(p,bonus[ibonus].c1,&corner[0]);
-    MathExtra::add3(x[i],&corner[0],&corner[0]);
-    MathExtra::matvec(p,bonus[ibonus].c2,&corner[3]);
-    MathExtra::add3(x[i],&corner[3],&corner[3]);
-    MathExtra::matvec(p,bonus[ibonus].c3,&corner[6]);
-    MathExtra::add3(x[i],&corner[6],&corner[6]);
-
-    dx = corner[0] - tri_hold[i][0];
-    dy = corner[1] - tri_hold[i][1];
-    dz = corner[2] - tri_hold[i][2];
-    rsq = dx*dx + dy*dy + dz*dz;
-    if (rsq > deltasq) return 1;
-
-    dx = corner[3] - tri_hold[i][3];
-    dy = corner[4] - tri_hold[i][4];
-    dz = corner[5] - tri_hold[i][5];
-    rsq = dx*dx + dy*dy + dz*dz;
-    if (rsq > deltasq) return 1;
-
-    dx = corner[6] - tri_hold[i][6];
-    dy = corner[7] - tri_hold[i][7];
-    dz = corner[8] - tri_hold[i][8];
-    rsq = dx*dx + dy*dy + dz*dz;
-    if (rsq > deltasq) return 1;
-  }
-
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   compute and store current tri corner pts in tri_hold
-------------------------------------------------------------------------- */
-
-void Neighbor::calculate_corners()
-{
-  int ibonus;
-  double p[3][3];
-  double *corner;
-
-  AtomVecTri::Bonus *bonus = avec_tri->bonus;
-  double **x = atom->x;
-  int *tri = atom->tri;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (tri[i] < 0) continue;
-    ibonus = tri[i];
-    corner = tri_hold[i];
-    MathExtra::quat_to_mat(bonus[ibonus].quat,p);
-    MathExtra::matvec(p,bonus[ibonus].c1,&corner[0]);
-    MathExtra::add3(x[i],&corner[0],&corner[0]);
-    MathExtra::matvec(p,bonus[ibonus].c2,&corner[3]);
-    MathExtra::add3(x[i],&corner[3],&corner[3]);
-    MathExtra::matvec(p,bonus[ibonus].c3,&corner[6]);
-    MathExtra::add3(x[i],&corner[6],&corner[6]);
-  }
-}
-
-/* ----------------------------------------------------------------------
    build perpetual neighbor lists
    called at setup and every few timesteps during run or minimization
-   topology lists also built if topoflag = 1, USER-CUDA called with tflag = 0
+   topology lists also built if topoflag = 1, USER-CUDA calls with topoflag = 0
 ------------------------------------------------------------------------- */
 
 void Neighbor::build(int topoflag)
@@ -1732,24 +1543,11 @@ void Neighbor::build(int topoflag)
       maxhold = atom->nmax;
       memory->destroy(xhold);
       memory->create(xhold,maxhold,3,"neigh:xhold");
-      if (linetri_flag) {
-        if (linetri_flag == 1) {
-          memory->destroy(line_hold);
-          memory->create(line_hold,maxhold,4,"neigh:line_hold");
-        } else {
-          memory->destroy(tri_hold);
-          memory->create(tri_hold,maxhold,4,"neigh:tri_hold");
-        }
-      }
     }
     for (i = 0; i < nlocal; i++) {
       xhold[i][0] = x[i][0];
       xhold[i][1] = x[i][1];
       xhold[i][2] = x[i][2];
-    }
-    if (linetri_flag) {
-      if (linetri_flag == 1) calculate_endpts();
-      else calculate_corners();
     }
     if (boxcheck) {
       if (triclinic == 0) {
@@ -2406,8 +2204,6 @@ bigint Neighbor::memory_usage()
 {
   bigint bytes = 0;
   bytes += memory->usage(xhold,maxhold,3);
-  if (linetri_flag == 1) bytes += memory->usage(line_hold,maxhold,4);
-  if (linetri_flag == 2) bytes += memory->usage(tri_hold,maxhold,9);
 
   if (style != NSQ) {
     bytes += memory->usage(bins,maxbin);
@@ -2436,3 +2232,4 @@ int Neighbor::exclude_setting()
 {
   return exclude;
 }
+

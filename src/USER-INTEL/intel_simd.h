@@ -194,6 +194,37 @@ namespace ip_simd {
 				      _MM_SCALE_8);
   }
 
+  template <typename T>
+  inline SIMD_int SIMD_gatherz_offset(const SIMD_mask &m, const int *p,
+				      const SIMD_int &i) {
+  }
+
+  template <>
+  inline SIMD_int SIMD_gatherz_offset<float>(const SIMD_mask &m, const int *p,
+					     const SIMD_int &i) {
+    return _mm512_mask_i32gather_epi32( _mm512_set1_epi32(0), m, i, p,
+				       _MM_SCALE_4);
+  }
+
+  template <>
+  inline SIMD_int SIMD_gatherz_offset<double>(const SIMD_mask &m, const int *p,
+					      const SIMD_int &i) {
+    return _mm512_mask_i32gather_epi32( _mm512_set1_epi32(0), m, i, p,
+				       _MM_SCALE_8);
+  }
+
+  inline SIMD_float SIMD_gatherz(const SIMD_mask &m, const float *p,
+				 const SIMD_int &i) {
+    return _mm512_mask_i32gather_ps( _mm512_set1_ps((float)0), m, i, p,
+				    _MM_SCALE_4);
+  }
+
+  inline SIMD_double SIMD_gatherz(const SIMD_mask &m, const double *p,
+				  const SIMD_int &i) {
+    return _mm512_mask_i32logather_pd( _mm512_set1_pd(0.0), m, i, p,
+				      _MM_SCALE_8);
+  }
+
   // ------- Store Operations
   
   inline void SIMD_store(int *p, const SIMD_int &one) {

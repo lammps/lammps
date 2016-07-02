@@ -116,12 +116,6 @@ class Neighbor : protected Pointers {
   double boxlo_hold[3],boxhi_hold[3];  // box size at last neighbor build
   double corners_hold[8][3];           // box corners at last neighbor build
 
-  int linetri_flag;                // 1 if lines exist, 2 if tris exist
-  double **line_hold;              // line corner pts at last neighbor build
-  double **tri_hold;               // tri corner pts at last neighbor build
-  class AtomVecLine *avec_line;    // used to extract line info
-  class AtomVecTri *avec_tri;      // used to extract tri info
-
   int binatomflag;                 // bin atoms or not when build neigh list
                                    // turned off by build_one()
 
@@ -189,11 +183,6 @@ class Neighbor : protected Pointers {
   int maxhead_ssa;           // size of binhead array used by SSA
 
   // methods
-
-  int check_distance_line(double);   // check line move dist since last neigh
-  int check_distance_tri(double);    // check tri move dist since last neigh
-  void calculate_endpts();
-  void calculate_corners();
 
   void bin_atoms();                     // bin all atoms
   double bin_distance(int, int, int);   // distance between binx

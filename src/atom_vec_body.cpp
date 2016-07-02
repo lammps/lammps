@@ -26,10 +26,6 @@
 #include "memory.h"
 #include "error.h"
 
-// debug
-#include "update.h"
-
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -199,9 +195,10 @@ void AtomVecBody::copy(int i, int j, int delflag)
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && body[j] >= 0) {
-    icp->put(bonus[body[j]].iindex);
-    dcp->put(bonus[body[j]].dindex);
-    copy_bonus(nlocal_bonus-1,body[j]);
+    int k = body[j];
+    icp->put(bonus[k].iindex);
+    dcp->put(bonus[k].dindex);
+    copy_bonus(nlocal_bonus-1,k);
     nlocal_bonus--;
   }
 

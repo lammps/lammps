@@ -283,6 +283,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // set up pointer to hold original styles while we replace them with "zero"
+
   Pair *saved_pair = NULL;
   Bond *saved_bond = NULL;
   Angle *saved_angle = NULL;

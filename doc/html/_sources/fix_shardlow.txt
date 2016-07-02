@@ -70,9 +70,6 @@ lengths to be larger than twice the cutoff+skin.  Generally, the
 domain decomposition is dependent on the number of processors
 requested.
 
-This fix also requires :doc:`atom_style dpd <atom_style>` to be used
-due to shared data structures.
-
 Related commands
 """"""""""""""""
 

@@ -36,6 +36,8 @@ class FixShardlow : public Fix {
   void copy_arrays(int, int, int);
   void set_arrays(int);
 
+  void reset_dt();
+
 //  int pack_border(int, int *, double *);
   int unpack_border(int, int, double *);
   int unpack_exchange(int, double *);
@@ -54,7 +56,11 @@ class FixShardlow : public Fix {
   double (*v_t0)[3];
 
  private:
+  double dtsqrt; // = sqrt(update->dt);
+
   int coord2ssaAIR(double *);  // map atom coord to an AIR number
+  void do_ssaAIR_for(int, int, int, int *, class RanMars *);
+
 
 };
 

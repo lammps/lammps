@@ -189,7 +189,6 @@ void FixShardlow::initial_integrate(int vflag)
   int airnum;
   class NeighList *list; // points to list in pairDPD or pairDPDE
   class RanMars *pRNG;
-  double **sigma;
 
   int *ssaAIR = atom->ssaAIR;
   double *uCond = atom->uCond;
@@ -201,7 +200,6 @@ void FixShardlow::initial_integrate(int vflag)
   double dot1, dot2, dot3, dot4;
   double mass_i, mass_j;
   double massinv_i, massinv_j;
-  double cut, cut2;
 
   const double dt     = update->dt;
   const double dtsqrt = sqrt(dt);
@@ -228,11 +226,9 @@ void FixShardlow::initial_integrate(int vflag)
   if(pairDPDE){
     list = pairDPDE->list;
     pRNG = pairDPDE->random;
-    sigma = pairDPDE->sigma;
   } else {
     list = pairDPD->list;
     pRNG = pairDPD->random;
-    sigma = pairDPD->sigma;
     theta_ij = pairDPD->temperature; // independent of i,j
   }
   inum = list->inum;
@@ -256,6 +252,8 @@ void FixShardlow::initial_integrate(int vflag)
 
     // Loop over neighbors of my atoms
     for (ii = 0; ii < inum; ii++) {
+      double *cut_i, *cut2_i, *sigma_i;
+      double theta_i_inv;
       i = ilist[ii];
 
       xtmp = x[i][0];
@@ -271,6 +269,19 @@ void FixShardlow::initial_integrate(int vflag)
       jlist = firstneigh[i];
       jnum = numneigh[i];
 
+      if(pairDPDE){
+        cut2_i = pairDPDE->cutsq[itype];
+        cut_i  = pairDPDE->cut[itype];
+        sigma_i = pairDPDE->sigma[itype];
+        theta_i_inv = 1.0/dpdTheta[i];
+      } else {
+        cut2_i = pairDPD->cutsq[itype];
+        cut_i  = pairDPD->cut[itype];
+        sigma_i = pairDPD->sigma[itype];
+      }
+      mass_i = (rmass) ? rmass[i] : mass[itype];
+      massinv_i = 1.0 / mass_i;
+
       // Loop over Directional Neighbors only
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
@@ -283,16 +294,7 @@ void FixShardlow::initial_integrate(int vflag)
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
 
-        if(pairDPDE){
-          cut2 = pairDPDE->cutsq[itype][jtype];
-          cut  = pairDPDE->cut[itype][jtype];
-        } else {
-          cut2 = pairDPD->cutsq[itype][jtype];
-          cut  = pairDPD->cut[itype][jtype];
-        }
-
-        // if (rsq < pairDPD->cutsq[itype][jtype])
-        if (rsq < cut2) {
+        if (rsq < cut2_i[jtype]) {
           r = sqrt(rsq);
           if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
           rinv = 1.0/r;
@@ -312,16 +314,14 @@ void FixShardlow::initial_integrate(int vflag)
           delvz = vz0i - vz0j;
 
           dot = (delx*delvx + dely*delvy + delz*delvz);
-          // wr = 1.0 - r/pairDPD->cut[itype][jtype];
-          wr = 1.0 - r/cut;
+          wr = 1.0 - r/cut_i[jtype];
           wd = wr*wr;
 
           if(pairDPDE){
             // Compute the current temperature
-            theta_ij = 0.5*(1.0/dpdTheta[i] + 1.0/dpdTheta[j]);
-            theta_ij = 1.0/theta_ij;
+            theta_ij = 2.0/(theta_i_inv + 1.0/dpdTheta[j]);
           } // else theta_ij = pairDPD->temperature;
-          sigma_ij = sigma[itype][jtype];
+          sigma_ij = sigma_i[jtype];
           randnum = pRNG->gaussian();
 
           gamma_ij = sigma_ij*sigma_ij / (2.0*force->boltz*theta_ij);
@@ -336,14 +336,7 @@ void FixShardlow::initial_integrate(int vflag)
           dpy  = factor_dpd*dely*rinv;
           dpz  = factor_dpd*delz*rinv;
 
-          if (rmass) {
-            mass_i = rmass[i];
-            mass_j = rmass[j];
-          } else {
-            mass_i = mass[itype];
-            mass_j = mass[jtype];
-          }
-          massinv_i = 1.0 / mass_i;
+          mass_j = (rmass) ? rmass[j] : mass[jtype];
           massinv_j = 1.0 / mass_j;
 
           // Update the velocity on i

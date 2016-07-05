@@ -227,7 +227,7 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
                          const bool vatom, int &host_start,
                          const double cpu_time, bool &success) {
   acc_timers();
-  if (nlist==0) {
+  if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);

@@ -248,14 +248,14 @@ double TersoffZT::host_memory_usage() const {
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void TersoffZT::compute(const int f_ago, const int nlocal, const int nall,
+void TersoffZT::compute(const int f_ago, const int inum_full, const int nall,
                        const int nlist, double **host_x, int *host_type,
                        int *ilist, int *numj, int **firstneigh,
                        const bool eflag, const bool vflag, const bool eatom,
                        const bool vatom, int &host_start,
                        const double cpu_time, bool &success) {
   this->acc_timers();
-  if (nlist==0) {
+  if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
@@ -264,7 +264,7 @@ void TersoffZT::compute(const int f_ago, const int nlocal, const int nall,
   }
 
   int ago=this->hd_balancer.ago_first(f_ago);
-  int inum=this->hd_balancer.balance(ago,nlocal,cpu_time);
+  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
   this->ans->inum(inum);
   #ifdef THREE_CONCURRENT
   this->ans2->inum(inum);

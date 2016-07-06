@@ -305,7 +305,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
           torque[j][2] -= radj*tor3;
         }
 
-        if (evflag) ev_tally_xyz(i,j,nlocal,0,
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
                                  0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }

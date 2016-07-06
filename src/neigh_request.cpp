@@ -51,7 +51,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
   occasional = 0;
   newton = 0;
-  special = 1;
+  //special = 1;
   dnum = 0;
   ghost = 0;
   omp = 0;
@@ -127,7 +127,7 @@ int NeighRequest::identical(NeighRequest *other)
 
   if (newton != other->newton) same = 0;
   if (occasional != other->occasional) same = 0;
-  if (special != other->special) same = 0;
+  //if (special != other->special) same = 0;
   if (dnum != other->dnum) same = 0;
   if (ghost != other->ghost) same = 0;
   if (omp != other->omp) same = 0;

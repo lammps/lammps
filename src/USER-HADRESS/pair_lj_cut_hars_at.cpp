@@ -176,7 +176,7 @@ void PairLJCutHARSAT::compute(int eflag, int vflag)
 
   //if(update->ntimestep<3)return;
 
-  double xtmpj, iLambda, jLambda, ijLambda;
+  double iLambda, jLambda, ijLambda;
 
   int This_Step = update->ntimestep;
   if(This_Step >= AT_Update_Time_Begin && This_Step < AT_Update_Time_End && AT_Pressure_Comp_Flag != 0) AT_Pressure_Compensation_Run = 1;
@@ -212,8 +212,6 @@ void PairLJCutHARSAT::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-
-      xtmpj = x[j][0];
 
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];

@@ -463,7 +463,8 @@ void Molecule::read(int flag)
 
   // error checks
 
-  if (natoms < 1) error->all(FLERR,"No count or invalid atom count in molecule file");
+  if (natoms < 1) 
+    error->all(FLERR,"No count or invalid atom count in molecule file");
   if (nbonds < 0) error->all(FLERR,"Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR,"Invalid angle count in molecule file");
   if (ndihedrals < 0)
@@ -590,13 +591,16 @@ void Molecule::read(int flag)
       error->all(FLERR,"Molecule file has no Body Doubles section");
   }
 
-  // auto-generate special bonds
+  // auto-generate special bonds if needed and not in file
+  // set maxspecial on first pass, so allocate() has a size
 
-  if (bondflag && !specialflag) {
-    specialflag = 1;
-    nspecialflag = 1;
+  if (bondflag && specialflag == 0) {
     maxspecial = atom->maxspecial;
-    if (flag) special_generate();
+    if (flag) {
+      special_generate();
+      specialflag = 1;
+      nspecialflag = 1;
+    }
   }
 
   // body particle must have natom = 1

@@ -30,7 +30,9 @@ class FixQMMM : public Fix {
   FixQMMM(class LAMMPS *, int, char **);
   ~FixQMMM();
   int setmask();
-
+  int ec_fill_radii( int * atom_Z );
+  int match_element(double mass, int search_isotopes, double *delta);
+  int *match_atom_elements();
   void init();
 
   // send up-to-date position information to QM and MM slave code
@@ -55,6 +57,7 @@ class FixQMMM : public Fix {
   void   *mm_idmap;   // hash for mapping MM atom indices to consistent order.
   tagint *mm_remap;   // list of the hash keys for reverse mapping.
   double *qm_coord;   // QM system coordinates
+  double *qm_charge;  // system charges
   double *mm_coord;   // MM system coordinates used for electrostatic coupling
   int    *mm_type;    // system atom types used for electrostatic coupling
   double *qm_force;   // QM force data buffer
@@ -73,6 +76,8 @@ class FixQMMM : public Fix {
   int    do_init;     // flag for one time initialization
   int    verbose;     // print level (<= 0 means no output)
 };
+
+
 
 }
 

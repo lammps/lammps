@@ -563,6 +563,7 @@ cvm::real colvarbias_restraint_harmonic::restraint_convert_k(cvm::real k,
 }
 
 
+
 colvarbias_restraint_linear::colvarbias_restraint_linear(char const *key)
   : colvarbias_restraint(key)
 {

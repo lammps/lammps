@@ -20,6 +20,8 @@ int colvarbias_abf::init(std::string const &conf)
 {
   colvarbias::init(conf);
 
+  provide(f_cvb_history_dependent);
+
   // TODO relax this in case of VMD plugin
   if (cvm::temperature() == 0.0)
     cvm::log("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
@@ -27,10 +29,18 @@ int colvarbias_abf::init(std::string const &conf)
   // ************* parsing general ABF options ***********************
 
   get_keyval(conf, "applyBias",  apply_bias, true);
-  if (!apply_bias) cvm::log("WARNING: ABF biases will *not* be applied!\n");
+  if (apply_bias) {
+    enable(f_cvb_apply_force);
+  } else {
+    cvm::log("WARNING: ABF biases will *not* be applied!\n");
+  }
 
   get_keyval(conf, "updateBias",  update_bias, true);
-  if (!update_bias) cvm::log("WARNING: ABF biases will *not* be updated!\n");
+  if (update_bias) {
+    enable(f_cvb_history_dependent);
+  } else {
+    cvm::log("WARNING: ABF biases will *not* be updated!\n");
+  }
 
   get_keyval(conf, "hideJacobian", hide_Jacobian, false);
   if (hide_Jacobian) {
@@ -44,7 +54,7 @@ int colvarbias_abf::init(std::string const &conf)
   min_samples = full_samples / 2;
   // full_samples - min_samples >= 1 is guaranteed
 
-  get_keyval(conf, "inputPrefix",  input_prefix, std::vector<std::string> ());
+  get_keyval(conf, "inputPrefix",  input_prefix, std::vector<std::string>());
   get_keyval(conf, "outputFreq", output_freq, cvm::restart_out_freq);
   get_keyval(conf, "historyFreq", history_freq, 0);
   b_history_files = (history_freq > 0);

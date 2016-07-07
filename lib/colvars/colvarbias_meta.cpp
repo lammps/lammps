@@ -37,18 +37,26 @@ int colvarbias_meta::init(std::string const &conf)
 {
   colvarbias::init(conf);
 
-  // TODO this relies on having initialized biases in alphabetical order
-  if (cvm::n_abf_biases > 0)
-    cvm::log("Warning: running ABF and metadynamics together is not recommended unless applyBias is off for ABF.\n");
+  provide(f_cvb_history_dependent);
 
   get_keyval(conf, "hillWeight", hill_weight, 0.0);
-  if (hill_weight <= 0.0) {
+  if (hill_weight > 0.0) {
+    enable(f_cvb_apply_force);
+  } else {
     cvm::error("Error: hillWeight must be provided, and a positive number.\n", INPUT_ERROR);
   }
 
   get_keyval(conf, "newHillFrequency", new_hill_freq, 1000);
+  if (new_hill_freq > 0) {
+    enable(f_cvb_history_dependent);
+  }
 
   get_keyval(conf, "hillWidth", hill_width, std::sqrt(2.0 * PI) / 2.0);
+  cvm::log("Half-widths of the Gaussian hills (sigma's):\n");
+  for (size_t i = 0; i < colvars.size(); i++) {
+    cvm::log(colvars[i]->name+std::string(": ")+
+             cvm::to_str(0.5 * colvars[i]->width * hill_width));
+  }
 
   {
     bool b_replicas = false;

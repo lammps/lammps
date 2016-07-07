@@ -299,10 +299,25 @@ int colvarmodule::parse_biases(std::string const &conf)
     cvm::decrease_depth();
   }
 
-  for (size_t i = 0; i < biases.size(); i++) {
+  size_t i;
+
+  for (i = 0; i < biases.size(); i++) {
     biases[i]->enable(cvm::deps::f_cvb_active);
     if (cvm::debug())
       biases[i]->print_state();
+  }
+
+  size_t n_hist_dep_biases = 0;
+  for (i = 0; i < biases.size(); i++) {
+    if (biases[i]->is_enabled(cvm::deps::f_cvb_apply_force) &&
+        biases[i]->is_enabled(cvm::deps::f_cvb_history_dependent)) {
+      n_hist_dep_biases++;
+    }
+  }
+  if (n_hist_dep_biases) {
+    cvm::log("WARNING: there are "+cvm::to_str(n_hist_dep_biases)+
+             " history-dependent biases with non-zero force parameters; "
+             "please make sure that their forces do not counteract each other.\n");
   }
 
   if (biases.size() || use_scripted_forces) {

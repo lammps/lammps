@@ -17,6 +17,9 @@ int colvarbias_histogram::init(std::string const &conf)
 {
   colvarbias::init(conf);
 
+  provide(f_cvb_history_dependent);
+  enable(f_cvb_history_dependent);
+
   size_t i;
 
   get_keyval(conf, "outputFile", out_name, std::string(""));
@@ -82,7 +85,6 @@ int colvarbias_histogram::init(std::string const &conf)
     }
   }
 
-  cvm::log("Finished histogram setup.\n");
   return COLVARS_OK;
 }
 
@@ -132,7 +134,7 @@ int colvarbias_histogram::update()
     // update indices for scalar values
     size_t i;
     for (i = 0; i < colvars.size(); i++) {
-      bin[i] = grid->value_to_bin_scalar(colvars[i]->value(), i);
+      bin[i] = grid->current_bin_scalar(i);
     }
 
     if (grid->index_ok(bin)) {
@@ -143,7 +145,7 @@ int colvarbias_histogram::update()
     size_t iv, i;
     for (iv = 0; iv < colvar_array_size; iv++) {
       for (i = 0; i < colvars.size(); i++) {
-        bin[i] = grid->value_to_bin_scalar(colvars[i]->value().vector1d_value[iv], i);
+        bin[i] = grid->current_bin_scalar(i, iv);
       }
 
       if (grid->index_ok(bin)) {

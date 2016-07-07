@@ -210,6 +210,8 @@ void cvm::deps::init_cvb_requires() {
   f_description(f_cvb_get_system_force, "obtain system force");
   f_req_children(f_cvb_get_system_force, f_cv_system_force);
 
+  f_description(f_cvb_history_dependent, "history-dependent");
+
   // Initialize feature_states for each instance
   feature_states.reserve(f_cvb_ntot);
   for (i = 0; i < f_cvb_ntot; i++) {
@@ -217,6 +219,9 @@ void cvm::deps::init_cvb_requires() {
     // Most features are available, so we set them so
     // and list exceptions below
   }
+
+  // some biases are not history-dependent
+  feature_states[f_cvb_history_dependent]->available = false;
 }
 
 

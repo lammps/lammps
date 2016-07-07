@@ -32,8 +32,6 @@
 #define REPORTFILE  "atomic_matching.txt"
 #define ERROR(argument) { fprintf(stderr, "%s\n", argument); };
 
-double *aradii = NULL;
-
 // message tags for QM/MM inter communicator communication
 // have to match with those from the QM code
 enum {QMMM_TAG_OTHER=0, QMMM_TAG_SIZE=1, QMMM_TAG_COORD=2,QMMM_TAG_FORCE=3,QMMM_TAG_FORCE2=4};
@@ -302,7 +300,7 @@ static void id_sort(tagint *idmap, tagint left, tagint right)
 struct commdata {
   tagint tag;
   float x,y,z;
-  float q; 
+  float q;
 };
 
 /***************************************************************
@@ -390,8 +388,6 @@ int FixQMMM::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-
-
 void FixQMMM::exchange_positions()
 {
   double **x = atom->x;
@@ -406,16 +402,23 @@ void FixQMMM::exchange_positions()
   count_all = 0;
 
 /*
- *  CHECK  
-*/ 
-  aradii       = (double *) calloc(ndata_all, sizeof(double));
+ *  CHECK
+ *  AK: this doesn't make sense. atom->natoms can be huge.
+ *       instead: 
+         - collect list of atom tags (from local and remoted full MM procs) that 
+           match fix qmmm group
+         - sort list -> master list of QM/MM interacting atoms
+         - create hash table that connects master list index with tag
+         - collect necessary data and get master list index via hash table
+ */
+  double * aradii       = (double *) calloc(ndata_all, sizeof(double));
   double * mm_coord_all = (double *) calloc(3*ndata_all, sizeof(double));
   double * mm_charge_all = (double *) calloc(ndata_all, sizeof(double));
   int * mm_mask_all = (int *) calloc(ndata_all, sizeof(int));
 
   if (comm->me == 0) {
     int  * atom_Z = match_atom_elements();
-    ec_fill_radii( atom_Z );
+    ec_fill_radii( atom_Z, aradii, ndata_all );
     if( !atom_Z ) free( (int *) atom_Z );
   }
 
@@ -456,9 +459,8 @@ void FixQMMM::exchange_positions()
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
     if (comm->me == 0) {
-
       MPI_Status status;
-      MPI_Request request;
+      MPI_Request request; // AK: why not request[5]? or reuse request?
       MPI_Request request2;
       MPI_Request request3;
       MPI_Request request4;
@@ -582,7 +584,6 @@ void FixQMMM::exchange_positions()
       MPI_Rsend(mm_mask_all, nlocal, MPI_INT, 0, 4, world);
 
     }
-
   } else if (qmmm_role == QMMM_ROLE_SLAVE) {
 
     MPI_Recv(qm_coord, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_COORD, mm_comm, MPI_STATUS_IGNORE); 
@@ -609,8 +610,7 @@ void FixQMMM::exchange_positions()
   return;
 }
 
-
-
+/* ---------------------------------------------------------------------- */
 
 void FixQMMM::exchange_forces()
 {
@@ -619,14 +619,12 @@ void FixQMMM::exchange_forces()
   const tagint * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
 
-
   if ((comm->me) == 0 && (verbose > 0)) {
     if (screen)  fputs("QMMM: exchange forces\n",screen);
     if (logfile) fputs("QMMM: exchange forces\n",logfile);
   }
 
-  if (qmmm_role == QMMM_ROLE_MASTER) { //----------------------------------------------
-
+  if (qmmm_role == QMMM_ROLE_MASTER) {
     MPI_Request req[3];
     struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
@@ -653,7 +651,6 @@ void FixQMMM::exchange_forces()
       // NOTE: QM forces are always sent in "real" units,
       // so we need to apply the scaling factor to get to the
       // supported internal units ("metal" or "real")
-
       for (int i=0; i < num_qm; ++i) {
         if  (verbose > 1) {
            const char fmt[] = "[" TAGINT_FORMAT "]: QM(%g %g %g) MM(%g %g %g) /\\(%g %g %g)\n";
@@ -676,8 +673,6 @@ void FixQMMM::exchange_forces()
         buf[i].z = qmmm_fscale*qm_force[3*i+2] - mm_force_on_qm_atoms[3*i+2];
       }
     }
-
-
     MPI_Bcast(comm_buf,num_qm*size_one,MPI_BYTE,0,world);
 
     // Inefficient... substitute with the proper scatter routine
@@ -778,9 +773,7 @@ void FixQMMM::exchange_forces()
 	MPI_Send(reduced_mm_force_on_qm_atoms, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
 
   }
-
   return;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -790,9 +783,7 @@ void FixQMMM::init()
   if (strstr(update->integrate_style,"respa"))
     error->all(FLERR,"Fix qmmm does not currently support r-RESPA");
 
-
   if (do_init) {
-
     int me = comm->me;
     do_init = 0;
 
@@ -806,8 +797,6 @@ void FixQMMM::init()
         // receive number of QM atoms from MM slave
         MPI_Irecv(nat+1, 1, MPI_INT, 1, QMMM_TAG_SIZE, mm_comm, req+1);
         MPI_Waitall(2,req,MPI_STATUS_IGNORE);
-
-       /////////////
       }
       // broadcast across MM master processes
       MPI_Bcast(nat, 2, MPI_INT, 0, world);
@@ -934,11 +923,9 @@ void FixQMMM::init()
       MPI_Rsend(comm_buf, j*size_one, MPI_BYTE, 0, 0, world);
     }
 
-
     // finally, after all is set up, do a first position synchronization
     exchange_positions();
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -981,7 +968,7 @@ double FixQMMM::memory_usage(void)
 
 #define MAXINDEX 351
 
-const int FixQMMM_Z[MAXINDEX] = {1, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 8, 8, 8, 9,
+static const int FixQMMM_Z[MAXINDEX] = {1, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 8, 8, 8, 9,
                                    10, 10, 10, 11, 12, 12, 12, 13, 14, 14, 14, 15, 16, 16, 16,
                                    16, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 20, 20, 20,
                                    21, 22, 22, 22, 22, 22, 23, 23, 24, 24, 24, 24, 25, 26, 26,
@@ -1006,7 +993,7 @@ const int FixQMMM_Z[MAXINDEX] = {1, 1, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 6, 7, 7, 8,
                                    100, 101, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110,
                                    111, 112, 113, 114, 115};
 
-const char FixQMMM_EL[MAXINDEX][4] = {"H", "H", "H", "He", "He", "Li", "Li", "Be", "B", "B",
+static const char FixQMMM_EL[MAXINDEX][4] = {"H", "H", "H", "He", "He", "Li", "Li", "Be", "B", "B",
                                         "C", "C", "C", "N", "N", "O", "O", "O", "F", "Ne", "Ne",
                                         "Ne", "Na", "Mg", "Mg", "Mg", "Al", "Si", "Si", "Si",
                                         "P", "S", "S", "S", "S", "Cl", "Cl", "Ar", "Ar", "Ar",
@@ -1042,7 +1029,7 @@ const char FixQMMM_EL[MAXINDEX][4] = {"H", "H", "H", "He", "He", "Li", "Li", "Be
                                         "Bk", "Cf", "Cf", "Cf", "Cf", "Es", "Fm", "Md", "Md", "No",
                                         "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds", "Rg", "Cn",
                                         "Uut", "Uuq", "Uup"};
-const int FixQMMM_A[MAXINDEX] = {1, 2, 3, 3, 4, 6, 7, 9, 10, 11, 12, 13, 14, 14, 15, 16, 17, 18,
+static const int FixQMMM_A[MAXINDEX] = {1, 2, 3, 3, 4, 6, 7, 9, 10, 11, 12, 13, 14, 14, 15, 16, 17, 18,
                                    19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34,
                                    36, 35, 37, 36, 38, 40, 39, 40, 41, 40, 42, 43, 44, 46, 48, 45,
                                    46, 47, 48, 49, 50, 50, 51, 50, 52, 53, 54, 55, 54, 56, 57, 58,
@@ -1068,7 +1055,7 @@ const int FixQMMM_A[MAXINDEX] = {1, 2, 3, 3, 4, 6, 7, 9, 10, 11, 12, 13, 14, 14,
                                    246, 247, 248, 247, 249, 249, 250, 251, 252, 252, 257, 258, 260,
                                    259, 262, 265, 268, 271, 272, 270, 276, 281, 280, 285, 284, 289,
                                    288};
-const double FixQMMM_MASS[MAXINDEX] = {1.00782503207, 2.0141017778, 3.0160492777, 3.0160293191, 4.00260325415, 6.015122795, 7.01600455, 9.0121822,
+static const double FixQMMM_MASS[MAXINDEX] = {1.00782503207, 2.0141017778, 3.0160492777, 3.0160293191, 4.00260325415, 6.015122795, 7.01600455, 9.0121822,
                                          10.0129370, 11.0093054, 12.0000000, 13.0033548378, 14.003241989, 14.0030740048, 15.0001088982, 15.99491461956,
                                          16.99913170, 17.9991610, 18.99840322, 19.9924401754, 20.99384668, 21.991385114, 22.9897692809, 23.985041700,
                                          24.98583692, 25.982592929, 26.98153863, 27.9769265325, 28.976494700, 29.97377017, 30.97376163, 31.97207100,
@@ -1208,64 +1195,38 @@ int *FixQMMM::match_atom_elements()
  *                 */
 
 /// Number of elements in the arrays
-const int  ec_elements              = 116;
-///// The Z of the indexed element. Not required for this setup, might be handy for future implementations
-///// where the data will be read from a file
-const int  ec_Z[116] = {
-1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 
-21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 
-41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 
-61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 
-81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 
-101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116
-};
+static const int  EC_ELEMENTS = 116;
 
-const int  ec_r_covalent[116] = {
- 38,  32, 134,  90,  82,  77,  75,  73,  71,  69, 154, 130, 118, 111, 106, 102,  99,  97, 196, 174, 
-144, 136, 125, 127, 139, 125, 126, 121, 138, 131, 126, 122, 119, 116, 114, 110, 211, 192, 162, 148, 
-137, 145, 156, 126, 135, 131, 153, 148, 144, 141, 138, 135, 133, 130, 225, 198, 169,  -1,  -1,  -1, 
- -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 160, 150, 138, 146, 159, 128, 137, 128, 144, 149, 
-148, 147, 146,  -1,  -1, 145,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 
- -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1
+static const double ec_r_covalent[EC_ELEMENTS+1] = { -1,
+ 0.38, 0.32, 1.34, 0.90, 0.82, 0.77, 0.75, 0.73, 0.71, 0.69, 1.54, 1.30, 1.18, 1.11, 1.06, 1.02, 0.99, 0.97, 1.96, 1.74,
+ 1.44, 1.36, 1.25, 1.27, 1.39, 1.25, 1.26, 1.21, 1.38, 1.31, 1.26, 1.22, 1.19, 1.16, 1.14, 1.10, 2.11, 1.92, 1.62, 1.48, 
+ 1.37, 1.45, 1.56, 1.26, 1.35, 1.31, 1.53, 1.48, 1.44, 1.41, 1.38, 1.35, 1.33, 1.30, 2.25, 1.98, 1.69,   -1,   -1,   -1, 
+   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 1.60, 1.50, 1.38, 1.46, 1.59, 1.28, 1.37, 1.28, 1.44, 1.49, 
+ 1.48, 1.47, 1.46,   -1,   -1, 1.45,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1, 
+   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1
 };
 //
 
-int FixQMMM::ec_fill_radii( int * atom_Z )
+int FixQMMM::ec_fill_radii( int * atom_Z, double *aradii, int ndata )
 {
-  int i, j;
-  int el, ndata_all;
+  int i, el;
   char errmsg[150];
 
-  ndata_all = (int) atom->natoms;
-
-  //fprintf(stdout, "PROVA, ndata_all= %6d \n", ndata_all);
-  for(i=0;i<ndata_all;i++) {
-    el = -1;
-    for(j=0;j<ec_elements;j++)
-      if(ec_Z[j] == atom_Z[i]) {
-        el = j;
-        break;
-      }
-    if(el == -1) {
-      snprintf(errmsg, 150, "Unable to find element Z = %d in our list (%s:%d)", ec_Z[i], __FILE__, __LINE__);
-      ERROR(errmsg);
-      return 1;
+  for (i=0; i<ndata; i++) {
+    el = atom_Z[i];
+    if (el < 0 || el > EC_ELEMENTS) {
+      sprintf(errmsg,"Unable to find element Z=%d in table of covalent radii", el);
+      error->one(FLERR,errmsg);
     }
-    aradii[i] = (double) ec_r_covalent[el] / 100.0;
-    if(ec_r_covalent[el] == -1) {
-      snprintf(errmsg, 150, "Atomic radius for atom of type Z=%d not availabe (%s:%d)", ec_Z[i], __FILE__, __LINE__);
-      ERROR(errmsg);
-      return 1;
+    aradii[i] = ec_r_covalent[el];
+    if (ec_r_covalent[el] < 0.0) {
+      sprintf(errmsg, "Covalent radius for atom of element Z=%d not availabe", el);
+      error->one(FLERR,errmsg);
     }
-   /* check if covalent radii are corectly assigned */
-   // fprintf(stdout, "atom %6d --> type: %6d radius: %-g A\n", i, atom_Z[i], aradii[i]);
   }
 
   return 0;
 }
-
-
-
 
 // Local Variables:
 // mode: c++

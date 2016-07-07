@@ -154,7 +154,7 @@ void Neighbor::half_from_full_newton_ssa(NeighList *list)
       if (j < nlocal) {
         if (i > j) continue;
       } else {
-        if (ssaAIR[j] <= 0) continue;
+        if (ssaAIR[j] < 2) continue; // skip ghost atoms not in AIR
       }
       neighptr[n++] = joriginal;
     }
@@ -241,7 +241,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
     if (includegroup) {
       int bitmask = group->bitmask[includegroup];
       for (i = nall-1; i >= nlocal; i--) {
-        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
+        if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
         if (mask[i] & bitmask) {
           ibin = coord2bin(x[i]);
           list->bins_ssa[i] = list->gbinhead_ssa[ibin];
@@ -251,7 +251,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
       nlocal = atom->nfirst; // This is important for the code that follows!
     } else {
       for (i = nall-1; i >= nlocal; i--) {
-        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
+        if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
         ibin = coord2bin(x[i]);
         list->bins_ssa[i] = list->gbinhead_ssa[ibin];
         list->gbinhead_ssa[ibin] = i;

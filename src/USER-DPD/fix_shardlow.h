@@ -31,6 +31,10 @@ class FixShardlow : public Fix {
   int setmask();
   virtual void setup(int);
   virtual void initial_integrate(int);
+  void setup_pre_exchange();
+  void pre_exchange();
+  void min_setup_pre_exchange();
+  void min_pre_exchange();
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -38,7 +42,7 @@ class FixShardlow : public Fix {
 
   void reset_dt();
 
-//  int pack_border(int, int *, double *);
+  int pack_border(int, int *, double *);
   int unpack_border(int, int, double *);
   int unpack_exchange(int, double *);
   void unpack_restart(int, int);

@@ -65,7 +65,7 @@ class NeighRequest : protected Pointers {
   // 0 if user of list wants no encoding of special bond flags and all neighs
   // 1 if user of list wants special bond flags encoded, set by default
 
-  int special;
+  //int special;
 
   // number of auxiliary floating point values to store, 0 if none
   // set by requesting class

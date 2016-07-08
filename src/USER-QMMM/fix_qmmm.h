@@ -44,9 +44,7 @@ class FixQMMM : public Fix {
  protected:
   void exchange_positions();    // communicate positions to QM and MM slave
   void exchange_forces();       // collected forces from QM and MM slave
-  int ec_fill_radii(int *, double *, int);
-  int match_element(double mass, int search_isotopes, double *delta);
-  int *match_atom_elements();
+  int ec_fill_radii(double *, int);
 
  protected:
   MPI_Comm qm_comm;   // intra communicator with QM subsystem

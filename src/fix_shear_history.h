@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class FixShearHistory : public Fix {
   friend class Neighbor;
   friend class PairGranHookeHistory;
-  friend class PairLineGranHooke;
-  friend class PairTriGranHooke;
+  friend class PairLineGranHookeHistory;
+  friend class PairTriGranHookeHistory;
 
  public:
   FixShearHistory(class LAMMPS *, int, char **);
@@ -56,7 +56,8 @@ class FixShearHistory : public Fix {
   int maxsize_restart();
 
  protected:
-  int newton_pair;
+  int newton_pair;              // same as force setting
+  int onesided;                 // 1 for line/tri history, else 0
   int nlocal_neigh;             // nlocal at last time neigh list was built
   int nall_neigh;               // ditto for nlocal+nghost
 
@@ -74,6 +75,7 @@ class FixShearHistory : public Fix {
   MyPage<tagint> *ipage;        // pages of partner atom IDs
   MyPage<double[3]> *dpage;     // pages of shear history with partners
 
+  void pre_exchange_onesided();
   void pre_exchange_newton();
   void pre_exchange_no_newton();
   void allocate_pages();

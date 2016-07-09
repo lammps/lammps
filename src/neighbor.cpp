@@ -153,6 +153,8 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   old_check = dist_check;
   old_cutoff = cutneighmax;
 
+  zeroes = NULL;
+
   // bond lists
 
   maxbond = 0;
@@ -212,6 +214,8 @@ Neighbor::~Neighbor()
   memory->sfree(requests);
   for (int i = 0; i < old_nrequest; i++) delete old_requests[i];
   memory->sfree(old_requests);
+
+  delete [] zeroes;
 
   memory->destroy(bondlist);
   memory->destroy(anglelist);
@@ -582,13 +586,11 @@ void Neighbor::init()
       }
 
       // granhistory: set preceeding list's listgranhistory to this list
-      //               also set preceeding list's ptr to FixShearHistory
+      //   also set FH ptr in preceeding list to FSH class created by pair
 
       if (requests[i]->granhistory) {
         lists[i-1]->listgranhistory = lists[i];
-        for (int ifix = 0; ifix < modify->nfix; ifix++)
-          if (strcmp(modify->fix[ifix]->style,"SHEAR_HISTORY") == 0)
-            lists[i-1]->fix_history = (FixShearHistory *) modify->fix[ifix];
+        lists[i-1]->fix_history = requests[i]->fix_history;
         processed = 1;
 
       // respaouter: point this list at preceeding 1/2 inner/middle lists
@@ -669,11 +671,21 @@ void Neighbor::init()
     }
 
     // allocate initial pages for each list, except if listcopy set
+    // allocate dnum vector of zeroes if set
 
+    int dnummax = 0;
     for (i = 0; i < nrequest; i++) {
       if (!lists[i]) continue;
-      if (!lists[i]->listcopy)
+      if (!lists[i]->listcopy) {
         lists[i]->setup_pages(pgsize,oneatom,requests[i]->dnum);
+        dnummax = MAX(dnummax,requests[i]->dnum);
+      }
+    }
+
+    if (dnummax) {
+      delete [] zeroes;
+      zeroes = new double[dnummax];
+      for (i = 0; i < dnummax; i++) zeroes[i] = 0.0;
     }
 
     // set ptrs to pair_build and stencil_create functions for each list
@@ -1028,17 +1040,17 @@ int Neighbor::request(void *requestor, int instance)
    determine which pair_build function each neigh list needs
    based on settings of neigh request
    copy -> copy_from function
-   skip -> granular function if gran with granhistory,
+   skip -> granular function if gran, several options
            respa function if respaouter,
            skip_from function for everything else
    ssa -> special case for USER-DPD pair styles
    half_from_full, half, full, gran, respaouter ->
-     choose by newton and rq->newton and tri settings
+     choose by newton and rq->newton and triclinic settings
      style NSQ options = newton off, newton on
      style BIN options = newton off, newton on and not tri, newton on and tri
      stlye MULTI options = same options as BIN
    if none of these, ptr = NULL since pair_build is not invoked for this list
-   use "else if" b/c skip,copy can be set in addition to half,full,etc
+   use "else if" logic b/c skip,copy can be set in addition to half,full,etc
 ------------------------------------------------------------------------- */
 
 void Neighbor::choose_build(int index, NeighRequest *rq)
@@ -1050,8 +1062,19 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
     if (rq->copy) pb = &Neighbor::copy_from;
 
     else if (rq->skip) {
-      if (rq->gran && lists[index]->listgranhistory)
-        pb = &Neighbor::skip_from_granular;
+      if (rq->gran) {
+        NeighRequest *otherrq = requests[rq->otherlist];
+        if (otherrq->newton == 0) {
+          pb = &Neighbor::skip_from_granular;
+        } else if (otherrq->newton == 1) {
+          error->all(FLERR,"Neighbor build method not supported");
+        } else if (otherrq->newton == 2) {
+          if (rq->granonesided == 0)
+            pb = &Neighbor::skip_from_granular_off2on;
+          else if (rq->granonesided == 1)
+            pb = &Neighbor::skip_from_granular_off2on_onesided;
+        }
+      } 
       else if (rq->respaouter) pb = &Neighbor::skip_from_respa;
       else pb = &Neighbor::skip_from;
 
@@ -1145,16 +1168,39 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
       }
 
     } else if (rq->gran) {
-      if (style == NSQ) {
-        if (newton_pair == 0) pb = &Neighbor::granular_nsq_no_newton;
-        else if (newton_pair == 1) pb = &Neighbor::granular_nsq_newton;
-      } else if (style == BIN) {
-        if (newton_pair == 0) pb = &Neighbor::granular_bin_no_newton;
-        else if (triclinic == 0) pb = &Neighbor::granular_bin_newton;
-        else if (triclinic == 1) pb = &Neighbor::granular_bin_newton_tri;
-      } else if (style == MULTI)
-        error->all(FLERR,"Neighbor multi not yet enabled for granular");
-
+      if (rq->newton == 0) {
+        if (style == NSQ) {
+          if (newton_pair == 0) pb = &Neighbor::granular_nsq_no_newton;
+          else if (newton_pair == 1) {
+            if (rq->granonesided == 0) pb = &Neighbor::granular_nsq_newton;
+            else pb = &Neighbor::granular_nsq_newton_onesided;
+          }
+        } else if (style == BIN) {
+          if (newton_pair == 0) pb = &Neighbor::granular_bin_no_newton;
+          else if (newton_pair == 1) {
+            if (triclinic == 0) {
+              if (rq->granonesided == 0) pb = &Neighbor::granular_bin_newton;
+              else pb = &Neighbor::granular_bin_newton_onesided;
+            } else if (triclinic == 1) {
+              if (rq->granonesided == 0) 
+                pb = &Neighbor::granular_bin_newton_tri;
+              else error->all(FLERR,"Neighbor build method not supported");
+            }
+          }
+        } else if (style == MULTI)
+          error->all(FLERR,"Neighbor multi not yet enabled for granular");
+      } else if (rq->newton == 1) {
+        error->all(FLERR,"Neighbor build method not yet supported");
+      } else if (rq->newton == 2) {
+        if (style == NSQ) pb = &Neighbor::granular_nsq_no_newton;
+        else if (style == BIN) {
+          if (triclinic == 0) pb = &Neighbor::granular_bin_no_newton;
+          else if (triclinic == 1) 
+            error->all(FLERR,"Neighbor build method not yet supported");
+        } else if (style == MULTI)
+          error->all(FLERR,"Neighbor multi not yet enabled for granular");
+      }
+      
     } else if (rq->respaouter) {
       if (style == NSQ) {
         if (newton_pair == 0) pb = &Neighbor::respa_nsq_no_newton;
@@ -2232,4 +2278,3 @@ int Neighbor::exclude_setting()
 {
   return exclude;
 }
-

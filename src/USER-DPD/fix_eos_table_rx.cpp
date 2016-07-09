@@ -677,7 +677,6 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
 
 void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
 {
-  int itable;
   Table *tb = &tables[0];
 
   int it;

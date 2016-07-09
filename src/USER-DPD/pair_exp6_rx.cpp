@@ -21,6 +21,7 @@
 #include "force.h"
 #include "neigh_list.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "error.h"
 #include "modify.h"
@@ -29,6 +30,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -95,7 +97,7 @@ void PairExp6rx::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq,rinv,r2inv,r6inv,forceExp6,factor_lj;
+  double rsq,r2inv,r6inv,forceExp6,factor_lj;
   double rCut,rCutInv,rCut2inv,rCut6inv,rCutExp,urc,durc;
   double rm2ij,rm6ij;
   double r,rexp;
@@ -135,7 +137,7 @@ void PairExp6rx::compute(int eflag, int vflag)
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  const double nRep = 12.0;
+  const int nRep = 12;
   const double shift = 1.05;
   double rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
@@ -238,8 +240,6 @@ void PairExp6rx::compute(int eflag, int vflag)
         r6inv = r2inv*r2inv*r2inv;
 
         r = sqrt(rsq);
-        rinv = 1.0/r;
-
         rCut2inv = 1.0/cutsq[itype][jtype];
         rCut6inv = rCut2inv*rCut2inv*rCut2inv;
         rCut = sqrt(cutsq[itype][jtype]);
@@ -312,11 +312,11 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
 
           } else {
             evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
@@ -347,11 +347,11 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
 
           } else {
             evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
@@ -397,13 +397,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlEXP6_12 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
 
-            forceExp6 = -1.0*nRep*aRep/pow(r,nRep);
+            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
             fpairEXP6_12 = factor_lj*forceExp6*r2inv;
 
           } else {
@@ -437,13 +437,13 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
-            aRep = -1.0*win1*pow(rin1,nRep)/nRep;
+            aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
-            uin1rep = aRep/pow(rin1,nRep);
+            uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlEXP6_21 = uin1 - uin1rep + aRep/pow(r,nRep);
+            evdwlEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
 
-            forceExp6 = -1.0*nRep*aRep/pow(r,nRep);
+            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
             fpairEXP6_21 = factor_lj*forceExp6*r2inv;
 
           } else {
@@ -890,7 +890,7 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   double epsiloni, epsilonj, epsilonij;
   double alphai, alphaj, alphaij;
   double epsilon_old, rm3_old, alpha_old;
-  double epsilon, rm3, alpha, fraction;
+  double epsilon, rm3, alpha;
   double fractionOFA, fractionOFA_old;
   double nTotalOFA, nTotalOFA_old;
   double nTotal, nTotal_old;
@@ -902,7 +902,6 @@ void PairExp6rx::getParamsEXP6(int id,double &epsilon1,double &alpha1,double &rm
   epsilon_old = 0.0;
   rm3_old = 0.0;
   alpha_old = 0.0;
-  fraction = 0.0;
   fractionOFA = 0.0;
   fractionOFA_old = 0.0;
   nTotalOFA = 0.0;

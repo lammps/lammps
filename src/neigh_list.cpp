@@ -246,11 +246,15 @@ void NeighList::print_attributes()
   printf("  %d = half_from_full\n",rq->half_from_full);
   printf("\n");
   printf("  %d = occasional\n",rq->occasional);
+  printf("  %d = newton\n",rq->newton);
+  printf("  %d = granonesided\n",rq->granonesided);
   printf("  %d = dnum\n",rq->dnum);
-  printf("  %d = omp\n",rq->omp);
-  printf("  %d = intel\n",rq->intel);
   printf("  %d = ghost\n",rq->ghost);
   printf("  %d = omp\n",rq->omp);
+  printf("  %d = intel\n",rq->intel);
+  printf("  %d = kokkos host\n",rq->kokkos_host);
+  printf("  %d = kokkos device\n",rq->kokkos_device);
+  printf("  %d = ssa\n",rq->ssa);
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);
   printf("  %d = otherlist\n",rq->otherlist);

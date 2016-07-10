@@ -41,6 +41,10 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
 
   newton_pair = force->newton_pair;
 
+  onesided = 0;
+  if (strcmp(id,"LINE_SHEAR_HISTORY") == 0) onesided = 1;
+  if (strcmp(id,"TRI_SHEAR_HISTORY") == 0) onesided = 1;
+
   if (newton_pair) comm_reverse = 1;   // just for single npartner value
                                        // variable-size history communicated via
                                        // reverse_comm_fix_variable()
@@ -111,8 +115,8 @@ void FixShearHistory::init()
 }
 
 /* ----------------------------------------------------------------------
-  create pages if first time or if neighbor pgsize/oneatom has changed
-  note that latter could cause shear history info to be discarded
+   create pages if first time or if neighbor pgsize/oneatom has changed
+   note that latter could cause shear history info to be discarded
 ------------------------------------------------------------------------- */
 
 void FixShearHistory::allocate_pages()
@@ -151,18 +155,120 @@ void FixShearHistory::allocate_pages()
      b/c there is no guarantee of a current neigh list (even on continued run)
    if run command does a 2nd run with pre = no, then no neigh list
      will be built, but old neigh list will still have the info
-   newton ON and newton OFF versions
-     newton ON does reverse comm to acquire shear partner info from ghost atoms
-     newton OFF works with smaller vectors that don't include ghost info
+   onesided and newton on and newton off versions
 ------------------------------------------------------------------------- */
 
 void FixShearHistory::pre_exchange()
 {
-  if (newton_pair) pre_exchange_newton();
+  if (onesided) pre_exchange_onesided();
+  else if (newton_pair) pre_exchange_newton();
   else pre_exchange_no_newton();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   onesided version for sphere contact with line/tri particles
+   neighbor list has I = sphere, J = line/tri
+   only store history info with spheres
+------------------------------------------------------------------------- */
+
+void FixShearHistory::pre_exchange_onesided()
+{
+  int i,j,ii,jj,m,n,inum,jnum;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *touch,**firsttouch;
+  double *shear,*allshear,**firstshear;
+
+  // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
+  // b/c previous neigh list was built with nlocal_neigh
+  // nlocal can be larger if other fixes added atoms at this pre_exchange()
+
+  // zero npartner for owned atoms
+  // clear 2 page data structures
+
+  for (i = 0; i < nlocal_neigh; i++) npartner[i] = 0;
+
+  ipage->reset();
+  dpage->reset();
+
+  // 1st loop over neighbor list, I = sphere, J = tri
+  // only calculate npartner for owned spheres
+
+  tagint *tag = atom->tag;
+  NeighList *list = pair->list;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+  firsttouch = list->listgranhistory->firstneigh;
+  firstshear = list->listgranhistory->firstdouble;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    touch = firsttouch[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      if (touch[jj]) npartner[i]++;
+    }
+  }
+
+  // get page chunks to store atom IDs and shear history for owned atoms
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    n = npartner[i];
+    partner[i] = ipage->get(n);
+    shearpartner[i] = dpage->get(n);
+    if (partner[i] == NULL || shearpartner[i] == NULL)
+      error->one(FLERR,"Shear history overflow, boost neigh_modify one");
+  }
+
+  // 2nd loop over neighbor list, I = sphere, J = tri
+  // store atom IDs and shear history for owned spheres
+  // re-zero npartner to use as counter
+
+  for (i = 0; i < nlocal_neigh; i++) npartner[i] = 0;
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    jlist = firstneigh[i];
+    allshear = firstshear[i];
+    jnum = numneigh[i];
+    touch = firsttouch[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      if (touch[jj]) {
+        shear = &allshear[3*jj];
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        m = npartner[i];
+        partner[i][m] = tag[j];
+        shearpartner[i][m][0] = shear[0];
+        shearpartner[i][m][1] = shear[1];
+        shearpartner[i][m][2] = shear[2];
+        npartner[i]++;
+      }
+    }
+  }
+
+  // set maxtouch = max # of partners of any owned atom
+  // bump up comm->maxexchange_fix if necessary
+  
+  maxtouch = 0;
+  for (i = 0; i < nlocal_neigh; i++) maxtouch = MAX(maxtouch,npartner[i]);
+  comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxtouch+1);
+
+  // zero npartner values from previous nlocal_neigh to current nlocal
+
+  int nlocal = atom->nlocal;
+  for (i = nlocal_neigh; i < nlocal; i++) npartner[i] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   newton on version, for sphere/sphere contacts
+   performs reverse comm to acquire shear partner info from ghost atoms
+------------------------------------------------------------------------- */
 
 void FixShearHistory::pre_exchange_newton()
 {
@@ -291,7 +397,10 @@ void FixShearHistory::pre_exchange_newton()
   for (i = nlocal_neigh; i < nlocal; i++) npartner[i] = 0;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   newton off version, for sphere/sphere contacts
+   newton OFF works with smaller vectors that don't include ghost info
+------------------------------------------------------------------------- */
 
 void FixShearHistory::pre_exchange_no_newton()
 {
@@ -443,6 +552,7 @@ void FixShearHistory::grow_arrays(int nmax)
   memory->grow(npartner,nmax,"shear_history:npartner");
   partner = (tagint **) memory->srealloc(partner,nmax*sizeof(tagint *),
                                          "shear_history:partner");
+
   typedef double (*sptype)[3];
   shearpartner = (sptype *)
     memory->srealloc(shearpartner,nmax*sizeof(sptype),

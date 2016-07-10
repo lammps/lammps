@@ -55,7 +55,7 @@ class NeighList : protected Pointers {
 
   // settings and pointers for related neighbor lists and fixes
 
-  NeighList *listgranhistory;          // point at history list
+  NeighList *listgranhistory;          // point at list storing shear history
   class FixShearHistory *fix_history;  // fix that stores history info
 
   int respamiddle;              // 1 if this respaouter has middle list

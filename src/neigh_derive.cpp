@@ -11,11 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <string.h>
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
+#include "domain.h"
+#include "fix_shear_history.h"
 #include "my_page.h"
 #include "error.h"
+
+
+
+
+// DEBUG
+#include "update.h"
+#include "comm.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -222,16 +233,28 @@ void Neighbor::skip_from(NeighList *list)
 /* ----------------------------------------------------------------------
    build skip list for subset of types from parent list
    iskip and ijskip flag which atom types and type pairs to skip
-   this is for granular lists with history, copy the history values from parent
+   if list requests it, preserve shear history via fix shear/history 
 ------------------------------------------------------------------------- */
 
 void Neighbor::skip_from_granular(NeighList *list)
 {
-  int i,j,ii,jj,n,nn,itype,jnum,joriginal;
+  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
+  tagint jtag;
   int *neighptr,*jlist,*touchptr,*touchptr_skip;
   double *shearptr,*shearptr_skip;
 
+  NeighList *listgranhistory;
+  int *npartner;
+  tagint **partner;
+  double (**shearpartner)[3];
+  int **firsttouch;
+  double **firstshear;
+  MyPage<int> *ipage_touch;
+  MyPage<double> *dpage_shear;
+
+  tagint *tag = atom->tag;
   int *type = atom->type;
+  int nlocal = atom->nlocal;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -241,23 +264,33 @@ void Neighbor::skip_from_granular(NeighList *list)
   int *ilist_skip = list->listskip->ilist;
   int *numneigh_skip = list->listskip->numneigh;
   int **firstneigh_skip = list->listskip->firstneigh;
-  int **firsttouch_skip = list->listskip->listgranhistory->firstneigh;
-  double **firstshear_skip = list->listskip->listgranhistory->firstdouble;
   int inum_skip = list->listskip->inum;
 
   int *iskip = list->iskip;
   int **ijskip = list->ijskip;
 
-  NeighList *listgranhistory = list->listgranhistory;
-  int **firsttouch = listgranhistory->firstneigh;
-  double **firstshear = listgranhistory->firstdouble;
-  MyPage<int> *ipage_touch = listgranhistory->ipage;
-  MyPage<double> *dpage_shear = listgranhistory->dpage;
+  FixShearHistory *fix_history = list->fix_history;
+  if (fix_history) {
+    fix_history->nlocal_neigh = nlocal;
+    fix_history->nall_neigh = nlocal + atom->nghost;
+    npartner = fix_history->npartner;
+    partner = fix_history->partner;
+    shearpartner = fix_history->shearpartner;
+    listgranhistory = list->listgranhistory;
+    firsttouch = listgranhistory->firstneigh;
+    firstshear = listgranhistory->firstdouble;
+    ipage_touch = listgranhistory->ipage;
+    dpage_shear = listgranhistory->dpage;
+    dnum = listgranhistory->dnum;
+    dnumbytes = dnum * sizeof(double);
+  }
 
   int inum = 0;
   ipage->reset();
-  ipage_touch->reset();
-  dpage_shear->reset();
+  if (fix_history) {
+    ipage_touch->reset();
+    dpage_shear->reset();
+  }
 
   // loop over atoms in other list
   // skip I atom entirely if iskip is set for type[I]
@@ -268,15 +301,16 @@ void Neighbor::skip_from_granular(NeighList *list)
     itype = type[i];
     if (iskip[itype]) continue;
 
-    n = nn = 0;
+    n = 0;
     neighptr = ipage->vget();
-    touchptr = ipage_touch->vget();
-    shearptr = dpage_shear->vget();
+    if (fix_history) {
+      nn = 0;
+      touchptr = ipage_touch->vget();
+      shearptr = dpage_shear->vget();
+    }
 
-    // loop over parent non-skip granular list and its history info
+    // loop over parent non-skip granular list and optionally its history info
 
-    touchptr_skip = firsttouch_skip[i];
-    shearptr_skip = firstshear_skip[i];
     jlist = firstneigh_skip[i];
     jnum = numneigh_skip[i];
 
@@ -285,10 +319,28 @@ void Neighbor::skip_from_granular(NeighList *list)
       j = joriginal & NEIGHMASK;
       if (ijskip[itype][type[j]]) continue;
       neighptr[n] = joriginal;
-      touchptr[n++] = touchptr_skip[jj];
-      shearptr[nn++] = shearptr_skip[3*jj];
-      shearptr[nn++] = shearptr_skip[3*jj+1];
-      shearptr[nn++] = shearptr_skip[3*jj+2];
+
+      // no numeric test for current touch
+      // just use FSH partner list to infer it
+      // would require distance calculation for spheres
+      // more complex calculation for surfs
+
+      if (fix_history) {
+        jtag = tag[j];
+        for (m = 0; m < npartner[i]; m++)
+          if (partner[i][m] == jtag) break;
+        if (m < npartner[i]) {
+          touchptr[n] = 1;
+          memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+          nn += dnum;
+        } else {
+          touchptr[n] = 0;
+          memcpy(&shearptr[nn],zeroes,dnumbytes);
+          nn += dnum;
+        }
+      }
+
+      n++;
     }
 
     ilist[inum++] = i;
@@ -298,10 +350,344 @@ void Neighbor::skip_from_granular(NeighList *list)
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
-    firsttouch[i] = touchptr;
-    firstshear[i] = shearptr;
-    ipage_touch->vgot(n);
-    dpage_shear->vgot(nn);
+    if (fix_history) {
+      firsttouch[i] = touchptr;
+      firstshear[i] = shearptr;
+      ipage_touch->vgot(n);
+      dpage_shear->vgot(nn);
+    }
+  }
+
+  list->inum = inum;
+}
+
+/* ----------------------------------------------------------------------
+   build skip list for subset of types from parent list
+   iskip and ijskip flag which atom types and type pairs to skip
+   parent non-skip list used newton off, this skip list is newton on
+   if list requests it, preserve shear history via fix shear/history 
+------------------------------------------------------------------------- */
+
+void Neighbor::skip_from_granular_off2on(NeighList *list)
+{
+  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
+  tagint itag,jtag;
+  int *neighptr,*jlist,*touchptr,*touchptr_skip;
+  double *shearptr,*shearptr_skip;
+
+  NeighList *listgranhistory;
+  int *npartner;
+  tagint **partner;
+  double (**shearpartner)[3];
+  int **firsttouch;
+  double **firstshear;
+  MyPage<int> *ipage_touch;
+  MyPage<double> *dpage_shear;
+
+  tagint *tag = atom->tag;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  MyPage<int> *ipage = list->ipage;
+
+  int *ilist_skip = list->listskip->ilist;
+  int *numneigh_skip = list->listskip->numneigh;
+  int **firstneigh_skip = list->listskip->firstneigh;
+  int inum_skip = list->listskip->inum;
+
+  int *iskip = list->iskip;
+  int **ijskip = list->ijskip;
+
+  FixShearHistory *fix_history = list->fix_history;
+  if (fix_history) {
+    fix_history->nlocal_neigh = nlocal;
+    fix_history->nall_neigh = nlocal + atom->nghost;
+    npartner = fix_history->npartner;
+    partner = fix_history->partner;
+    shearpartner = fix_history->shearpartner;
+    listgranhistory = list->listgranhistory;
+    firsttouch = listgranhistory->firstneigh;
+    firstshear = listgranhistory->firstdouble;
+    ipage_touch = listgranhistory->ipage;
+    dpage_shear = listgranhistory->dpage;
+    dnum = listgranhistory->dnum;
+    dnumbytes = dnum * sizeof(double);
+  }
+
+  int inum = 0;
+  ipage->reset();
+  if (fix_history) {
+    ipage_touch->reset();
+    dpage_shear->reset();
+  }
+
+  // loop over atoms in other list
+  // skip I atom entirely if iskip is set for type[I]
+  // skip I,J pair if ijskip is set for type[I],type[J]
+
+  for (ii = 0; ii < inum_skip; ii++) {
+    i = ilist_skip[ii];
+    itype = type[i];
+    if (iskip[itype]) continue;
+    itag = tag[i];
+
+    n = 0;
+    neighptr = ipage->vget();
+    if (fix_history) {
+      nn = 0;
+      touchptr = ipage_touch->vget();
+      shearptr = dpage_shear->vget();
+    }
+
+    // loop over parent non-skip granular list and optionally its history info
+
+    jlist = firstneigh_skip[i];
+    jnum = numneigh_skip[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
+      if (ijskip[itype][type[j]]) continue;
+
+      // only keep I,J when J = ghost if Itag < Jtag
+
+      jtag = tag[j];
+      if (j >= nlocal && jtag < itag) continue;
+
+      neighptr[n] = joriginal;
+
+      // no numeric test for current touch
+      // just use FSH partner list to infer it
+      // would require distance calculation for spheres
+      // more complex calculation for surfs
+
+      if (fix_history) {
+        for (m = 0; m < npartner[i]; m++)
+          if (partner[i][m] == jtag) break;
+        if (m < npartner[i]) {
+          touchptr[n] = 1;
+          memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+          nn += dnum;
+        } else {
+          touchptr[n] = 0;
+          memcpy(&shearptr[nn],zeroes,dnumbytes);
+          nn += dnum;
+        }
+      }
+
+      n++;
+    }
+
+    ilist[inum++] = i;
+    firstneigh[i] = neighptr;
+    numneigh[i] = n;
+    ipage->vgot(n);
+    if (ipage->status())
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+
+    if (fix_history) {
+      firsttouch[i] = touchptr;
+      firstshear[i] = shearptr;
+      ipage_touch->vgot(n);
+      dpage_shear->vgot(nn);
+    }
+  }
+
+  list->inum = inum;
+}
+
+/* ----------------------------------------------------------------------
+   build skip list for subset of types from parent list
+   iskip and ijskip flag which atom types and type pairs to skip
+   parent non-skip list used newton off and was not onesided,
+     this skip list is newton on and onesided
+   if list requests it, preserve shear history via fix shear/history 
+------------------------------------------------------------------------- */
+
+void Neighbor::skip_from_granular_off2on_onesided(NeighList *list)
+{
+  int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,flip,dnum,dnumbytes,tmp;
+  tagint itag,jtag;
+  int *surf,*neighptr,*jlist;
+
+  NeighList *listgranhistory;
+  int *npartner;
+  tagint **partner;
+  double (**shearpartner)[3];
+  int **firsttouch;
+  double **firstshear;
+  MyPage<int> *ipage_touch;
+  MyPage<double> *dpage_shear;
+
+  tagint *tag = atom->tag;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  int *ilist = list->ilist;
+  int *numneigh = list->numneigh;
+  int **firstneigh = list->firstneigh;
+  MyPage<int> *ipage = list->ipage;
+
+  int *ilist_skip = list->listskip->ilist;
+  int *numneigh_skip = list->listskip->numneigh;
+  int **firstneigh_skip = list->listskip->firstneigh;
+  int inum_skip = list->listskip->inum;
+
+  int *iskip = list->iskip;
+  int **ijskip = list->ijskip;
+
+  if (domain->dimension == 2) surf = atom->line;
+  else surf = atom->tri;
+
+  FixShearHistory *fix_history = list->fix_history;
+  if (fix_history) {
+    fix_history->nlocal_neigh = nlocal;
+    fix_history->nall_neigh = nlocal + atom->nghost;
+    npartner = fix_history->npartner;
+    partner = fix_history->partner;
+    shearpartner = fix_history->shearpartner;
+    listgranhistory = list->listgranhistory;
+    firsttouch = listgranhistory->firstneigh;
+    firstshear = listgranhistory->firstdouble;
+    ipage_touch = listgranhistory->ipage;
+    dpage_shear = listgranhistory->dpage;
+    dnum = listgranhistory->dnum;
+    dnumbytes = dnum * sizeof(double);
+  }
+
+  int inum = 0;
+  ipage->reset();
+  if (fix_history) {
+    ipage_touch->reset();
+    dpage_shear->reset();
+  }
+
+  // two loops over parent list required, one to count, one to store
+  // because onesided constraint means pair I,J may be stored with I or J
+  // so don't know in advance how much space to alloc for each atom's neighs
+
+  // first loop over atoms in other list to count neighbors
+  // skip I atom entirely if iskip is set for type[I]
+  // skip I,J pair if ijskip is set for type[I],type[J]
+
+  for (i = 0; i < nlocal; i++) numneigh[i] = 0;
+
+  for (ii = 0; ii < inum_skip; ii++) {
+    i = ilist_skip[ii];
+    itype = type[i];
+    if (iskip[itype]) continue;
+    itag = tag[i];
+
+    n = 0;
+
+    // loop over parent non-skip granular list
+
+    jlist = firstneigh_skip[i];
+    jnum = numneigh_skip[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
+      if (ijskip[itype][type[j]]) continue;
+
+      // flip I,J if necessary to satisfy onesided constraint
+      // do not keep if I is now ghost
+
+      if (surf[i] >= 0) {
+        if (j >= nlocal) continue;
+        tmp = i;
+        i = j;
+        j = tmp;
+        flip = 1;
+      } else flip = 0;
+
+      numneigh[i]++;
+      if (flip) i = j;
+    }
+  }
+
+  // allocate all per-atom neigh list chunks, including history
+
+  for (i = 0; i < nlocal; i++) {
+    if (numneigh[i] == 0) continue;
+    n = numneigh[i];
+    firstneigh[i] = ipage->get(n);
+    if (ipage->status())
+      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (fix_history) {
+      firsttouch[i] = ipage_touch->get(n);
+      firstshear[i] = dpage_shear->get(dnum*n);
+    }
+  }
+
+  // second loop over atoms in other list to store neighbors
+  // skip I atom entirely if iskip is set for type[I]
+  // skip I,J pair if ijskip is set for type[I],type[J]
+
+  for (i = 0; i < nlocal; i++) numneigh[i] = 0;
+
+  for (ii = 0; ii < inum_skip; ii++) {
+    i = ilist_skip[ii];
+    itype = type[i];
+    if (iskip[itype]) continue;
+    itag = tag[i];
+
+    // loop over parent non-skip granular list and optionally its history info
+
+    jlist = firstneigh_skip[i];
+    jnum = numneigh_skip[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      joriginal = jlist[jj];
+      j = joriginal & NEIGHMASK;
+      if (ijskip[itype][type[j]]) continue;
+
+      // flip I,J if necessary to satisfy onesided constraint
+      // do not keep if I is now ghost
+
+      if (surf[i] >= 0) {
+        if (j >= nlocal) continue;
+        tmp = i;
+        i = j;
+        j = tmp;
+        flip = 1;
+      } else flip = 0;
+
+      // store j in neigh list, not joriginal, like other neigh methods
+      // OK, b/c there is no special list flagging for surfs
+
+      firstneigh[i][numneigh[i]] = j;
+
+      // no numeric test for current touch
+      // just use FSH partner list to infer it
+      // would require complex calculation for surfs
+
+      if (fix_history) {
+        jtag = tag[j];
+        n = numneigh[i];
+        nn = dnum*n;
+        for (m = 0; m < npartner[i]; m++)
+          if (partner[i][m] == jtag) break;
+        if (m < npartner[i]) {
+          firsttouch[i][n] = 1;
+          memcpy(&firstshear[i][nn],shearpartner[i][m],dnumbytes);
+        } else {
+          firsttouch[i][n] = 0;
+          memcpy(&firstshear[i][nn],zeroes,dnumbytes);
+        }
+      }
+
+      numneigh[i]++;
+      if (flip) i = j;
+    }
+
+    // only add atom I to ilist if it has neighbors
+    // fix shear/history allows for this in pre_exchange_onesided()
+
+    if (numneigh[i]) ilist[inum++] = i;
   }
 
   list->inum = inum;

@@ -244,6 +244,8 @@
 /dihedral_opls.h
 /dihedral_quadratic.cpp
 /dihedral_quadratic.h
+/dihedral_spherical.cpp
+/dihedral_spherical.h
 /dihedral_table.cpp
 /dihedral_table.h
 /dump_atom_gz.cpp

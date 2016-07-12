@@ -30,7 +30,6 @@ class FixQMMM : public Fix {
   FixQMMM(class LAMMPS *, int, char **);
   ~FixQMMM();
   int setmask();
-
   void init();
 
   // send up-to-date position information to QM and MM slave code
@@ -45,6 +44,7 @@ class FixQMMM : public Fix {
  protected:
   void exchange_positions();    // communicate positions to QM and MM slave
   void exchange_forces();       // collected forces from QM and MM slave
+  int ec_fill_radii(double *, int);
 
  protected:
   MPI_Comm qm_comm;   // intra communicator with QM subsystem
@@ -55,6 +55,7 @@ class FixQMMM : public Fix {
   void   *mm_idmap;   // hash for mapping MM atom indices to consistent order.
   tagint *mm_remap;   // list of the hash keys for reverse mapping.
   double *qm_coord;   // QM system coordinates
+  double *qm_charge;  // QM system charges
   double *mm_coord;   // MM system coordinates used for electrostatic coupling
   int    *mm_type;    // system atom types used for electrostatic coupling
   double *qm_force;   // QM force data buffer

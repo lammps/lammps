@@ -33,7 +33,8 @@
 // message tags for QM/MM inter communicator communication
 // have to match with those from the QM code
 enum {QMMM_TAG_OTHER=0, QMMM_TAG_SIZE=1, QMMM_TAG_COORD=2,
-      QMMM_TAG_FORCE=3, QMMM_TAG_FORCE2=4};
+      QMMM_TAG_FORCE=3, QMMM_TAG_FORCE2=4, QMMM_TAG_CELL=5,
+      QMMM_TAG_RADII=6, QMMM_TAG_CHARGE=7};
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -323,6 +324,12 @@ FixQMMM::FixQMMM(LAMMPS *lmp, int narg, char **arg) :
     qmmm_fscale = 1.0;
   } else error->all(FLERR,"Fix qmmm requires real or metal units");
 
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Fix qmmm requires atom IDs");
+
+  if (atom->tag_consecutive() == 0)
+    error->all(FLERR,"Fix qmmm requires consecutive atom IDs");
+
   /* define ec coupling group */
   mm_group = group->find("all");
   if ((narg == 5) && (0 == strcmp(arg[0],"couple"))) {
@@ -398,13 +405,11 @@ void FixQMMM::exchange_positions()
   const int * const mask  = atom->mask;
   const tagint * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
-  int ndata_all;
+  const int natoms = (int) atom->natoms;
   int *mm_type =  atom->type;  
 
   if (atom->natoms > MAXSMALLINT)
     error->all(FLERR,"Too many MM atoms for fix qmmmm");
-
-  ndata_all = (int) atom->natoms;
 
 /*
  *  CHECK
@@ -416,14 +421,14 @@ void FixQMMM::exchange_positions()
  - create hash table that connects master list index with tag
  - collect necessary data and get master list index via hash table
 */
-  double * aradii       = (double *) calloc(ndata_all, sizeof(double));
-  double * mm_coord_all = (double *) calloc(3*ndata_all, sizeof(double));
-  double * mm_charge_all = (double *) calloc(ndata_all, sizeof(double));
-  int * mm_mask_all = (int *) calloc(ndata_all, sizeof(int));
+  double * aradii       = (double *) calloc(natoms, sizeof(double));
+  double * mm_coord_all = (double *) calloc(3*natoms, sizeof(double));
+  double * mm_charge_all = (double *) calloc(natoms, sizeof(double));
+  int * mm_mask_all = (int *) calloc(natoms, sizeof(int));
 
   if (comm->me == 0) {  // AK: make aradii a per-atom property managed by
                         // fix qmmm so it migrates with the local atoms.
-    ec_fill_radii( aradii, ndata_all );
+    ec_fill_radii( aradii, natoms );
   }
 
   // This array will pack all details about the cell
@@ -437,16 +442,15 @@ void FixQMMM::exchange_positions()
   celldata[6] = domain->xy;
   celldata[7] = domain->xz;
   celldata[8] = domain->yz;
-  //
 
   if (qmmm_role == QMMM_ROLE_MASTER) { 
-	if (comm->me == 0) {
+    if (comm->me == 0) {
       int isend_buf[3];
-      isend_buf[0] = ndata_all, isend_buf[1] = num_qm, isend_buf[2] =num_mm;
-      MPI_Send( isend_buf, 3, MPI_INTEGER, 1, QMMM_TAG_COORD, qm_comm );
-      MPI_Send( celldata, 9, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm );
-      MPI_Send( aradii, ndata_all, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm );
-	}
+      isend_buf[0] = natoms, isend_buf[1] = num_qm, isend_buf[2] =num_mm;
+      MPI_Send( isend_buf, 3,      MPI_INTEGER,1, QMMM_TAG_SIZE,  qm_comm );
+      MPI_Send( celldata,  9,      MPI_DOUBLE, 1, QMMM_TAG_CELL,  qm_comm );
+      MPI_Send( aradii, natoms, MPI_DOUBLE, 1, QMMM_TAG_RADII, qm_comm );
+    }
   }
 
 
@@ -503,14 +507,14 @@ void FixQMMM::exchange_positions()
 
  int ndata;
  int other_nlocal;
- double * other_mm_coord = (double *) calloc(3*ndata_all, sizeof(double));  // improve : do not use ndata_all
- double * other_mm_charge = (double *) calloc(ndata_all, sizeof(double));  // improve : do not use ndata_all
- int * other_mm_mask = (int *) calloc(ndata_all, sizeof(int));  // improve : do not use ndata_all
+ double * other_mm_coord = (double *) calloc(3*natoms, sizeof(double));  // improve : do not use natoms
+ double * other_mm_charge = (double *) calloc(natoms, sizeof(double));  // improve : do not use natoms
+ int * other_mm_mask = (int *) calloc(natoms, sizeof(int));  // improve : do not use natoms
  MPI_Irecv(comm_buf, maxbuf, MPI_BYTE, i, 0, world, &request);
  MPI_Irecv(&other_nlocal, 1, MPI_INT, i, 1, world, &request2);
- MPI_Irecv(other_mm_coord, 3*ndata_all, MPI_DOUBLE, i, 2, world, &request3);
- MPI_Irecv(other_mm_charge, ndata_all, MPI_DOUBLE, i, 3, world, &request4);
- MPI_Irecv(other_mm_mask, ndata_all, MPI_INT, i, 4, world, &request5);
+ MPI_Irecv(other_mm_coord, 3*natoms, MPI_DOUBLE, i, 2, world, &request3);
+ MPI_Irecv(other_mm_charge, natoms, MPI_DOUBLE, i, 3, world, &request4);
+ MPI_Irecv(other_mm_mask, natoms, MPI_INT, i, 4, world, &request5);
 
  MPI_Send(&tmp, 0, MPI_INT, i, 0, world);
  MPI_Wait(&request, &status);
@@ -551,10 +555,10 @@ void FixQMMM::exchange_positions()
       /* done collecting coordinates, send it to dependent codes */
 
       MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
-      MPI_Send(qm_charge, num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
-      MPI_Send(mm_charge_all, ndata_all, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
-      MPI_Send(mm_coord_all, 3*ndata_all, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
-      MPI_Send(mm_mask_all, ndata_all, MPI_INT, 1, QMMM_TAG_COORD, qm_comm);
+      MPI_Send(qm_charge, num_qm, MPI_DOUBLE, 1, QMMM_TAG_CHARGE, qm_comm);
+      MPI_Send(mm_charge_all, natoms, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
+      MPI_Send(mm_coord_all, 3*natoms, MPI_DOUBLE, 1, QMMM_TAG_COORD, qm_comm);
+      MPI_Send(mm_mask_all, natoms, MPI_INT, 1, QMMM_TAG_COORD, qm_comm);
       MPI_Send(qm_coord, 3*num_qm, MPI_DOUBLE, 1, QMMM_TAG_COORD, mm_comm);
 
 
@@ -1160,7 +1164,7 @@ int match_element(double mass, int search_isotopes, double &delta)
 /// Number of elements in the arrays
 static const int  EC_ELEMENTS = 116;
 
-static const double ec_r_covalent[EC_ELEMENTS+1] = { -1,
+static const double ec_r_covalent[EC_ELEMENTS+1] = {-1,
  0.38, 0.32, 1.34, 0.90, 0.82, 0.77, 0.75, 0.73, 0.71, 0.69, 1.54, 1.30, 1.18, 1.11, 1.06, 1.02, 0.99, 0.97, 1.96, 1.74,
  1.44, 1.36, 1.25, 1.27, 1.39, 1.25, 1.26, 1.21, 1.38, 1.31, 1.26, 1.22, 1.19, 1.16, 1.14, 1.10, 2.11, 1.92, 1.62, 1.48, 
  1.37, 1.45, 1.56, 1.26, 1.35, 1.31, 1.53, 1.48, 1.44, 1.41, 1.38, 1.35, 1.33, 1.30, 2.25, 1.98, 1.69,   -1,   -1,   -1, 
@@ -1186,7 +1190,7 @@ int FixQMMM::ec_fill_radii( double *aradii, int ndata )
             " Z = %-3d A = %-3d r_cov = %5.2f (error = %-8.2g -> %-.2g%%)\n",
             i, atom->mass[i], FixQMMM_EL[el], FixQMMM_Z[el], FixQMMM_A[el],
             ec_r_covalent[el], delta, delta/atom->mass[i] * 100.0);
-    type2element[i] = el;
+    type2element[i] = FixQMMM_Z[el];
     if(screen) fprintf(screen, "%s", errmsg);
     if(logfile) fprintf(logfile, "%s", errmsg);
   }

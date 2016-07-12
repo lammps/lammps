@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 
     } else if (qmmmcfg.role == QMMM_ROLE_MASTER) {
         FILE *fp;
-        char *cuda, *echo, *suffix;
+        char *suffix;
         void *lmp;
 
         MPI_Comm_rank(intra_comm,&me);
@@ -241,15 +241,7 @@ int main(int argc, char **argv)
         if (qmmmcfg.maarg != NULL) {
             char *ptr = strtok(qmmmcfg.maarg,delim);
             do {
-                if ((strncmp("-c",ptr,2) == 0)
-                    || (strncmp("-cuda",ptr,5) == 0)) {
-                    ptr=strtok(NULL,delim);
-                    cuda=strdup(ptr);
-                } else if ((strncmp("-e",ptr,2) == 0)
-                           || (strncmp("-echo",ptr,5) == 0)) {
-                    ptr=strtok(NULL,delim);
-                    echo=strdup(ptr);
-                } else if ((strncmp("-sf",ptr,3) == 0)
+                if ((strncmp("-sf",ptr,3) == 0)
                            || (strncmp("-suffix",ptr,7) == 0)) {
                     ptr=strtok(NULL,delim);
                     suffix=strdup(ptr);
@@ -287,7 +279,7 @@ int main(int argc, char **argv)
 
     } else if (qmmmcfg.role == QMMM_ROLE_SLAVE) {
         FILE *fp;
-        char *cuda, *echo, *suffix;
+        char *suffix;
         void *lmp;
 
         MPI_Comm_rank(intra_comm,&me);
@@ -321,15 +313,7 @@ int main(int argc, char **argv)
         if (qmmmcfg.slarg != NULL) {
             char *ptr = strtok(qmmmcfg.maarg,delim);
             do {
-                if ((strncmp("-c",ptr,2) == 0)
-                    || (strncmp("-cuda",ptr,5) == 0)) {
-                    ptr=strtok(NULL,delim);
-                    cuda=strdup(ptr);
-                } else if ((strncmp("-e",ptr,2) == 0)
-                           || (strncmp("-echo",ptr,5) == 0)) {
-                    ptr=strtok(NULL,delim);
-                    echo=strdup(ptr);
-                } else if ((strncmp("-sf",ptr,3) == 0)
+                if ((strncmp("-sf",ptr,3) == 0)
                            || (strncmp("-suffix",ptr,7) == 0)) {
                     ptr=strtok(NULL,delim);
                     suffix=strdup(ptr);

@@ -344,7 +344,6 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   int *neighptr,*touchptr;
   double *shearptr;
 
-
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;

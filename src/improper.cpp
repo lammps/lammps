@@ -96,12 +96,12 @@ void Improper::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
-    memory->create(eatom,comm->nthreads*maxeatom,"bond:eatom");
+    memory->create(eatom,comm->nthreads*maxeatom,"improper:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,comm->nthreads*maxvatom,6,"bond:vatom");
+    memory->create(vatom,comm->nthreads*maxvatom,6,"improper:vatom");
   }
 
   // zero accumulators

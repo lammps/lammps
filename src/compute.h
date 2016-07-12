@@ -151,7 +151,6 @@ class Compute : protected Pointers {
   int fix_dof;                 // DOF due to fixes
   int dynamic;                 // recount atoms for temperature computes
   int dynamic_user;            // user request for temp compute to be dynamic
-  int thermoflag;              // 1 if include fix PE for PE computes
 
   double vbias[3];             // stored velocity bias for one atom
   double **vbiasall;           // stored velocity bias for all atoms

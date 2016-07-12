@@ -141,12 +141,6 @@ void Compute::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"yes") == 0) dynamic_user = 1;
       else error->all(FLERR,"Illegal compute_modify command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"thermo") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) thermoflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) thermoflag = 1;
-      else error->all(FLERR,"Illegal compute_modify command");
-      iarg += 2;
     } else error->all(FLERR,"Illegal compute_modify command");
   }
 }

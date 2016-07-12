@@ -64,6 +64,16 @@ int main(int argc, char **argv)
     qmmmcfg.comm_mode = QMMM_COMM_MPI;
     nqm = ncpu - qmmmcfg.nmm;
     retval = 0;
+#if 1    // AK: temporary hack
+    if ( qmmmcfg.nmm != 2 ) {
+        if (me == 0) {
+            fprintf( stderr, "\n Error in the number of processors for MM code"
+            "\n for the time being only two processor are allowed\n");
+        }
+        MPI_Finalize();
+        return -1;
+    }
+#endif
 
     if (me == 0) {
         const char *msg;
@@ -156,11 +166,9 @@ int main(int argc, char **argv)
         if (qmmmcfg.qmarg != NULL) {
             char *ptr = strtok(qmmmcfg.qmarg,delim);
             do {
-                /* -nimage is not supported */
-                if (strncmp("-npot",ptr,5) == 0) {
-                    ptr=strtok(NULL,delim);
-                    npots=atoi(ptr);
-                } else if ((strncmp("-nk",ptr,3) == 0)
+                /* -nimage parallelization is not supported with QM/MM
+                 * -npot parallelization has been removed from QE */
+                if ((strncmp("-nk",ptr,3) == 0)
                            || (strncmp("-npoo",ptr,5) == 0)) {
                     ptr=strtok(NULL,delim);
                     npool=atoi(ptr);
@@ -187,9 +195,6 @@ int main(int argc, char **argv)
         }
 
         retval = 0;
-        if (me == 0) fprintf(stderr,"QM: nimage: %d  npots: %d  npools: %d  "
-                             "ntg: %d  nband: %d  ndiag: %d\n",
-                             nimage,npots,npool,ntg,nband,ndiag);
 
         /* setup and call Q-E. */
         c2qmmm_mpi_config(qmmmcfg.qmmm_mode, qmmmcfg.qm_comm,

@@ -3,7 +3,7 @@
 mode     mech         # coupling choices: o(ff), m(echanical), e(lectrostatic)
 #mode     elec         # coupling choices: o(ff), m(echanical), e(lectrostatic)
 handle   qmmm         # name of sysv shmem handle
-steps    20           # number of QM/MM (MD) steps
+steps    100           # number of QM/MM (MD) steps
 verbose  1  
 restart    water.restart  # checkpoint/restart file to write out at end
 

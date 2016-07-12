@@ -52,6 +52,7 @@ class Integrate : protected Pointers {
 }
 
 #endif
+
 /* ERROR/WARNING messages:
 
 */

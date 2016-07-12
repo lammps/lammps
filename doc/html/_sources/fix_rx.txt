@@ -8,23 +8,30 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rx file localTemp solver ...
+   fix ID group-ID rx file localTemp matrix solver minSteps ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rx = style name of this fix command
 * file = filename containing the reaction kinetic equations and Arrhenius parameters
 * localTemp = *none,lucy* = no local temperature averaging or local temperature defined through Lucy weighting function
-* solver = *lammps_rk4* = Explicit 4th order Runge-Kutta method
-* minSteps = # of steps for rk4 solver
+* matrix = *sparse, dense* format for the stoichiometric matrix
+* solver = *lammps_rk4,rkf45* = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method
+* minSteps = # of steps for rk4 solver or minimum # of steps for rkf45 (rk4 or rkf45)
+* maxSteps = maximum number of steps for the rkf45 solver (rkf45 only)
+* relTol = relative tolerance for the rkf45 solver (rkf45 only)
+* absTol = absolute tolernace for the rkf45 solver (rkf45 only)
+* diag   = Diagnostics frequency for the rkf45 solver (optional, rkf45 only)
 
 Examples
 """"""""
 
 .. parsed-literal::
 
-   fix 1 all rx kinetics.rx none lammps_rk4 
-   fix 1 all rx kinetics.rx none lammps_rk4 1
-   fix 1 all rx kinetics.rx lucy lammps_rk4 10
+   fix 1 all rx kinetics.rx none dense lammps_rk4 
+   fix 1 all rx kinetics.rx none sparse lammps_rk4 1
+   fix 1 all rx kinetics.rx lucy sparse lammps_rk4 10 
+   fix 1 all rx kinetics.rx none dense rkf45 1 100 1e-6 1e-8
+   fix 1 all rx kinetics.rx none dense rkf45 1 100 1e-6 1e-8 -1
 
 Description
 """""""""""
@@ -49,13 +56,47 @@ of *m* ordinary differential equations (ODEs) that describe the change
 in concentration of a given species as a function of time are then
 constructed based on the *n* reaction rate equations.
 
-The ODE systems are solved over the full DPD timestep *dt* using a 4th
+The ODE systems are solved over the full DPD timestep *dt* using either a 4th
 order Runge-Kutta *rk4* method with a fixed step-size *h*\ , specified
-by the *lammps_rk4* keyword. The number of ODE steps per DPD timestep
+by the *lammps_rk4* keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method 
+with an adaptive step-size for *h*\ . The number of ODE steps per DPD timestep
 for the rk4 method is optionally specified immediately after the rk4
 keyword. The ODE step-size is set as *dt/num_steps*\ . Smaller
 step-sizes tend to yield more accurate results but there is not
-control on the error.
+control on the error. For error control, use the rkf45 ODE solver.
+
+The rkf45 method adjusts the step-size so that the local truncation error is held 
+within the specified absolute and relative tolerances. The initial step-size *h0* 
+can be specified by the user or estimated internally. It is recommeded that the user
+specify *h0* since this will generally reduced the number of ODE integration steps 
+required. *h0* is defined as *dt / min_steps* if min_steps >= 1. If min_steps == 0, 
+*h0* is estimated such that an explicit Euler method would likely produce
+an acceptable solution. This is generally overly conservative for the 4th-order
+method and users are advised to specify *h0* as some fraction of the DPD timestep.
+For small DPD timesteps, only one step may be necessary depending upon the tolerances.
+Note that more than min_steps ODE steps may be taken depending upon the ODE stiffness
+but no more than max_steps will be taken. If max_steps is reached, an error warning
+is printed and the simulation is stopped.
+
+After each ODE step, the solution error *e* is tested and weighted using the absTol
+and relTol values. The error vector is weighted as *e* / (relTol * |\ *u*\ | + absTol) 
+where *u* is the solution vector. If the norm of the error is <= 1, the solution is 
+accepted, *h* is increased by a proportional amount, and the next ODE step is begun.
+Otherwise, *h* is shrunk and the ODE step is repeated.
+
+Run-time diagnostics are available for the rkf45 ODE solver. The frequency 
+(in time-steps) that diagnostics are reported is controlled by the last (optional) 
+12th argument. A negative frequency means that diagnostics are reported once at the 
+end of each run. A positive value N means that the diagnostics are reported once 
+per N time-steps.
+
+The diagnostics report the average # of integrator steps and RHS function evaluations 
+and run-time per ODE as well as the the average/RMS/min/max per process. If the 
+reporting frequency is 1, the RMS/min/max per ODE are also reported. The per ODE 
+statistics can be used to adjust the tolerance and min/max step parameters. The 
+statistics per MPI process can be useful to examine any load imbalance caused by the 
+adaptive ODE solver. (Some DPD particles can take longer to solve than others. This 
+can lead to an imbalance across the MPI processes.)
 
 
 ----------
@@ -99,6 +140,17 @@ where the Lucy function is expressed as:
    :align: center
 
 The self-particle interaction is included in the above equation.
+
+The stoichiometric coefficients for the reaction mechanism are stored
+in either a sparse or dense matrix format. The dense matrix should only be
+used for small reaction mechanisms. The sparse matrix should be used when there
+are many reactions (e.g., more than 5). This allows the number of reactions and
+species to grow while keeping the computational cost tractable. The matrix
+format can be specified as using either the *sparse* or *dense* keywords.
+If all stoichiometric coefficients for a reaction are small integers (whole
+numbers <= 3), a fast exponential function is used. This can save significant
+computational time so users are encouraged to use integer coefficients
+where possible.
 
 
 ----------

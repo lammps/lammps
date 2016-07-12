@@ -135,7 +135,7 @@
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</li>
 <li>pe/atom = style name of this compute command</li>
 <li>zero or more keywords may be appended</li>
-<li>keyword = <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em></li>
+<li>keyword = <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em> or <em>fix</em></li>
 </ul>
 </div>
 <div class="section" id="examples">
@@ -154,9 +154,9 @@ you want the potential energy of the entire system.</p>
 <p>The per-atom energy is calculated by the various pair, bond, etc
 potentials defined for the simulation.  If no extra keywords are
 listed, then the potential energy is the sum of pair, bond, angle,
-dihedral,improper, and kspace energy.  If any extra keywords are
-listed, then only those components are summed to compute the potential
-energy.</p>
+dihedral,improper, kspace (long-range), and fix energy.  I.e. it is as
+if all the keywords were listed.  If any extra keywords are listed,
+then only those components are summed to compute the potential energy.</p>
 <p>Note that the energy of each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.</p>
 <p>For an energy contribution produced by a small set of atoms (e.g. 4
@@ -172,6 +172,16 @@ as specified by the <a class="reference internal" href="kspace_style.html"><span
 For PPPM, the calcluation requires 1 extra FFT each timestep that
 per-atom energy is calculated.  Thie <a class="reference external" href="PDF/kspace.pdf">document</a>
 describes how the long-range per-atom energy calculation is performed.</p>
+<p>Various fixes can contribute to the per-atom potential energy of the
+system if the <em>fix</em> contribution is included.  See the doc pages for
+<a class="reference internal" href="fix.html"><span class="doc">individual fixes</span></a> for details of which ones compute a
+per-atom potential energy.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify energy yes</span></a> command must also be
+specified if a fix is to contribute per-atom potential energy to this
+command.</p>
+</div>
 <p>As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:</p>

@@ -2684,11 +2684,9 @@ void *FixShake::extract(const char *str, int &dim)
   return NULL;
 }
 
-
-
 /* ----------------------------------------------------------------------
-   Add coordinate constraining forces; this method is called
-   at the end of a timestep.
+   add coordinate constraining forces
+   this method is called at the end of a timestep
 ------------------------------------------------------------------------- */
 
 void FixShake::shake_end_of_step(int vflag) {
@@ -2715,20 +2713,15 @@ void FixShake::shake_end_of_step(int vflag) {
   }
 }
 
-
-
 /* ----------------------------------------------------------------------
    wrapper method for end_of_step fixes which modify velocities
 ------------------------------------------------------------------------- */
 
-void FixShake::correct_velocities() { 
-
-}
-
+void FixShake::correct_velocities() {}
 
 /* ----------------------------------------------------------------------
-   Calculate constraining forces based on the current configuration
-   and change coordinates.
+   calculate constraining forces based on the current configuration
+   change coordinates
 ------------------------------------------------------------------------- */
 
 void FixShake::correct_coordinates(int vflag) { 

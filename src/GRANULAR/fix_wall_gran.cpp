@@ -248,6 +248,9 @@ void FixWallGran::post_force(int vflag)
 {
   double vwall[3],dx,dy,dz,del1,del2,delxy,delr,rsq;
 
+  shearupdate = 1;
+  if (update->setupflag) shearupdate = 0;
+
   // set position of wall to initial settings and velocity to 0.0
   // if wiggle or shear, set wall position and velocity accordingly
 
@@ -282,9 +285,6 @@ void FixWallGran::post_force(int vflag)
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  shearupdate = 1;
-  if (update->setupflag) shearupdate = 0;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {

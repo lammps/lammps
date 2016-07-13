@@ -128,12 +128,18 @@
 <span id="index-0"></span><h1>fix wall/gran command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="n">Kn</span> <span class="n">Kt</span> <span class="n">gamma_n</span> <span class="n">gamma_t</span> <span class="n">xmu</span> <span class="n">dampflag</span> <span class="n">wallstyle</span> <span class="n">args</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="n">Kn</span> <span class="n">Kt</span> <span class="n">fstyle</span> <span class="n">gamma_n</span> <span class="n">gamma_t</span> <span class="n">xmu</span> <span class="n">dampflag</span> <span class="n">wallstyle</span> <span class="n">args</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>wall/gran = style name of this fix command</li>
+<li>fstyle = style of force interactions between particles and wall</li>
+</ul>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">possible</span> <span class="n">choices</span><span class="p">:</span> <span class="n">hooke</span><span class="p">,</span> <span class="n">hooke</span><span class="o">/</span><span class="n">history</span><span class="p">,</span> <span class="n">hertz</span><span class="o">/</span><span class="n">history</span>
+</pre></div>
+</div>
+<ul class="simple">
 <li>Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)</li>
 <li>Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)</li>
 <li>gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)</li>
@@ -165,9 +171,9 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="mf">200000.0</span> <span class="n">NULL</span> <span class="mf">50.0</span> <span class="n">NULL</span> <span class="mf">0.5</span> <span class="mi">0</span> <span class="n">xplane</span> <span class="o">-</span><span class="mf">10.0</span> <span class="mf">10.0</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="mf">200000.0</span> <span class="n">NULL</span> <span class="mf">50.0</span> <span class="n">NULL</span> <span class="mf">0.5</span> <span class="mi">0</span> <span class="n">zplane</span> <span class="mf">0.0</span> <span class="n">NULL</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="mf">100000.0</span> <span class="mf">20000.0</span> <span class="mf">50.0</span> <span class="mf">30.0</span> <span class="mf">0.5</span> <span class="mi">1</span> <span class="n">zcylinder</span> <span class="mf">15.0</span> <span class="n">wiggle</span> <span class="n">z</span> <span class="mf">3.0</span> <span class="mf">2.0</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="n">hooke</span>  <span class="mf">200000.0</span> <span class="n">NULL</span> <span class="mf">50.0</span> <span class="n">NULL</span> <span class="mf">0.5</span> <span class="mi">0</span> <span class="n">xplane</span> <span class="o">-</span><span class="mf">10.0</span> <span class="mf">10.0</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="n">hooke</span><span class="o">/</span><span class="n">history</span> <span class="mf">200000.0</span> <span class="n">NULL</span> <span class="mf">50.0</span> <span class="n">NULL</span> <span class="mf">0.5</span> <span class="mi">0</span> <span class="n">zplane</span> <span class="mf">0.0</span> <span class="n">NULL</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">gran</span> <span class="n">hooke</span> <span class="mf">100000.0</span> <span class="mf">20000.0</span> <span class="mf">50.0</span> <span class="mf">30.0</span> <span class="mf">0.5</span> <span class="mi">1</span> <span class="n">zcylinder</span> <span class="mf">15.0</span> <span class="n">wiggle</span> <span class="n">z</span> <span class="mf">3.0</span> <span class="mf">2.0</span>
 </pre></div>
 </div>
 </div>
@@ -176,27 +182,27 @@
 <p>Bound the simulation domain of a granular system with a frictional
 wall.  All particles in the group interact with the wall when they are
 close enough to touch it.</p>
-<p>The first set of parameters (Kn, Kt, gamma_n, gamma_t, xmu, and
-dampflag) have the same meaning as those specified with the
-<a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> force fields.  This means a NULL
-can be used for either Kt or gamma_t as described on that page.  If a
-NULL is used for Kt, then a default value is used where Kt = 2/7 Kn.
-If a NULL is used for gamma_t, then a default value is used where
-gamma_t = 1/2 gamma_n.</p>
-<p>The nature of the wall/particle interactions are determined by which
-pair_style is used in your input script: <em>hooke</em>, <em>hooke/history</em>, or
-<em>hertz/history</em>.  The equation for the force between the wall and
-particles touching it is the same as the corresponding equation on the
-<a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> doc page, in the limit of one of
-the two particles going to infinite radius and mass (flat wall).
-I.e. delta = radius - r = overlap of particle with wall, m_eff = mass
-of particle, and sqrt(RiRj/Ri+Rj) becomes sqrt(radius of particle).
-The units for Kn, Kt, gamma_n, and gamma_t are as described on that
-doc page.  The meaning of xmu and dampflag are also as described on
-that page.  Note that you can choose different values for these 6
-wall/particle coefficients than for particle/particle interactions, if
-you wish your wall to interact differently with the particles, e.g. if
-the wall is a different material.</p>
+<p>The nature of the wall/particle interactions are determined by the
+<em>fstyle</em> setting.  It can be any of the styles defined by the
+<a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> commands.  Currently this is
+<em>hooke</em>, <em>hooke/history</em>, or <em>hertz/history</em>.  The equation for the
+force between the wall and particles touching it is the same as the
+corresponding equation on the <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> doc
+page, in the limit of one of the two particles going to infinite
+radius and mass (flat wall).  I.e. delta = radius - r = overlap of
+particle with wall, m_eff = mass of particle, and sqrt(RiRj/Ri+Rj)
+becomes sqrt(radius of particle).  The units for Kn, Kt, gamma_n, and
+gamma_t are as described on that doc page.  The meaning of xmu and
+dampflag are also as described on that page.  Note that you can choose
+a different force styles and/or different values for the 6
+wall/particle coefficients than for particle/particle interactions.
+E.g. if you wish to model the wall as a different material.</p>
+<p>The parameters <em>Kn</em>, <em>Kt</em>, <em>gamma_n</em>, <em>gamma_t</em>, <em>xmu</em> and <em>dampflag</em>
+have the same meaning as those specified with the <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> commands.  This means a NULL can be used for
+either <em>Kt</em> or <em>gamma_t</em> as described on that page.  If a NULL is used
+for <em>Kt</em>, then a default value is used where <em>Kt</em> = 2/7 <em>Kn</em>.  If a
+NULL is used for <em>gamma_t</em>, then a default value is used where
+<em>gamma_t</em> = 1/2 <em>gamma_n</em>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">As discussed on the doc page for <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a>, versions of LAMMPS before 9Jan09 used a
@@ -212,6 +218,11 @@ common case of a monodisperse system with particles of diameter 1, Kn,
 Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
 previously.</p>
 </div>
+<p>The effective mass <em>m_eff</em> in the formulas listed on the <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> doc page is the mass of the particle for
+particle/wall interactions (mass of wall is infinite).  If the
+particle is part of a rigid body, its mass is replaced by the mass of
+the rigid body in those formulas.  This is determined by searching for
+a <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command (or its variants).</p>
 <p>The <em>wallstyle</em> can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by
 <em>lo</em> and <em>hi</em>.  Either of the values can be specified as NULL if a

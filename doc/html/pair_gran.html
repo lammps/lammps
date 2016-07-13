@@ -205,7 +205,7 @@ if <em>dampflag</em> is set to 0.</p>
 <li>gamma_n = viscoelastic damping constant for normal contact</li>
 <li>gamma_t = viscoelastic damping constant for tangential contact</li>
 <li>m_eff = Mi Mj / (Mi + Mj) = effective mass of 2 particles of mass Mi and Mj</li>
-<li>Delta St = tangential displacement vector between 2 spherical particles       which is truncated to satisfy a frictional yield criterion</li>
+<li>Delta St = tangential displacement vector between 2 particles       which is truncated to satisfy a frictional yield criterion</li>
 <li>n_ij = unit vector along the line connecting the centers of the 2 particles</li>
 <li>Vn = normal component of the relative velocity of the 2 particles</li>
 <li>Vt = tangential component of the relative velocity of the 2 particles</li>
@@ -277,6 +277,11 @@ holds, though the spring is no longer linear.</p>
 for modeling of systems which can sustain very large tangential
 forces.</p>
 </div>
+<p>The effective mass <em>m_eff</em> is given by the formula above for two
+isolated particles.  If either particle is part of a rigid body, its
+mass is replaced by the mass of the rigid body in the formula above.
+This is determined by searching for a <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a>
+command (or its variants).</p>
 <p>For granular styles there are no additional coefficients to set for
 each pair of atom types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command.
 All settings are global and are made via the pair_style command.

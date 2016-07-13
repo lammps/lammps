@@ -2678,9 +2678,7 @@ void FixShake::reset_dt()
 void *FixShake::extract(const char *str, int &dim)
 {
   dim = 0;
-  if (strcmp(str,"onemol") == 0) {
-    return onemols;
-  }
+  if (strcmp(str,"onemol") == 0) return onemols;
   return NULL;
 }
 

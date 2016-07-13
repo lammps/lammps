@@ -45,9 +45,6 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(id,"LINE_SHEAR_HISTORY") == 0) onesided = 1;
   if (strcmp(id,"TRI_SHEAR_HISTORY") == 0) onesided = 1;
 
-  surfglobal = 0;
-  if (strcmp(id,"SURFACE_GLOBAL_SHEAR_HISTORY") == 0) surfglobal = 1;
-
   if (newton_pair) comm_reverse = 1;   // just for single npartner value
                                        // variable-size history communicated via
                                        // reverse_comm_fix_variable()
@@ -109,15 +106,10 @@ void FixShearHistory::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,
-               "Granular interactions with history require atoms have IDs");
+               "Pair style granular with history requires atoms have IDs");
 
-  // extract pointers to neigh lists in FixSurfaceGlobal
-
-  if (surfglobal) {
-    int dim;
-    fsg_list = (NeighList *) fsg->extract("list",dim);
-    fsg_listgranhistory = (NeighList *) fsg->extract("listgranhistory",dim);
-  }
+  int dim;
+  computeflag = (int *) pair->extract("computeflag",dim);
 
   allocate_pages();
 }
@@ -169,7 +161,6 @@ void FixShearHistory::allocate_pages()
 void FixShearHistory::pre_exchange()
 {
   if (onesided) pre_exchange_onesided();
-  else if (surfglobal) pre_exchange_surf();
   else if (newton_pair) pre_exchange_newton();
   else pre_exchange_no_newton();
 }
@@ -253,103 +244,6 @@ void FixShearHistory::pre_exchange_onesided()
         j &= NEIGHMASK;
         m = npartner[i];
         partner[i][m] = tag[j];
-        shearpartner[i][m][0] = shear[0];
-        shearpartner[i][m][1] = shear[1];
-        shearpartner[i][m][2] = shear[2];
-        npartner[i]++;
-      }
-    }
-  }
-
-  // set maxtouch = max # of partners of any owned atom
-  // bump up comm->maxexchange_fix if necessary
-  
-  maxtouch = 0;
-  for (i = 0; i < nlocal_neigh; i++) maxtouch = MAX(maxtouch,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxtouch+1);
-
-  // zero npartner values from previous nlocal_neigh to current nlocal
-
-  int nlocal = atom->nlocal;
-  for (i = nlocal_neigh; i < nlocal; i++) npartner[i] = 0;
-}
-
-/* ----------------------------------------------------------------------
-   version for sphere contact with global line/tri particles
-   neighbor list has I = sphere, J = line/tri
-   only store history info with spheres
-------------------------------------------------------------------------- */
-
-void FixShearHistory::pre_exchange_surf()
-{
-  int i,j,ii,jj,m,n,inum,jnum;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  int *touch,**firsttouch;
-  double *shear,*allshear,**firstshear;
-
-  // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
-  // b/c previous neigh list was built with nlocal_neigh
-  // nlocal can be larger if other fixes added atoms at this pre_exchange()
-
-  // zero npartner for owned atoms
-  // clear 2 page data structures
-
-  for (i = 0; i < nlocal_neigh; i++) npartner[i] = 0;
-
-  ipage->reset();
-  dpage->reset();
-
-  // 1st loop over neighbor list, I = sphere, J = global tri
-  // only calculate npartner for owned spheres
-
-  inum = fsg_list->inum;
-  ilist = fsg_list->ilist;
-  numneigh = fsg_list->numneigh;
-  firstneigh = fsg_list->firstneigh;
-  firsttouch = fsg_listgranhistory->firstneigh;
-  firstshear = fsg_listgranhistory->firstdouble;
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    touch = firsttouch[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      if (touch[jj]) npartner[i]++;
-    }
-  }
-
-  // get page chunks to store atom IDs and shear history for owned atoms
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    n = npartner[i];
-    partner[i] = ipage->get(n);
-    shearpartner[i] = dpage->get(n);
-    if (partner[i] == NULL || shearpartner[i] == NULL)
-      error->one(FLERR,"Shear history overflow, boost neigh_modify one");
-  }
-
-  // 2nd loop over neighbor list, I = sphere, J = global tri
-  // store atom IDs and shear history for owned spheres
-  // re-zero npartner to use as counter
-
-  for (i = 0; i < nlocal_neigh; i++) npartner[i] = 0;
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    jlist = firstneigh[i];
-    allshear = firstshear[i];
-    jnum = numneigh[i];
-    touch = firsttouch[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      if (touch[jj]) {
-        shear = &allshear[3*jj];
-        j = jlist[jj];
-        m = npartner[i];
-        partner[i][m] = j;
         shearpartner[i][m][0] = shear[0];
         shearpartner[i][m][1] = shear[1];
         shearpartner[i][m][2] = shear[2];

@@ -30,7 +30,6 @@ class FixShearHistory : public Fix {
   friend class PairGranHookeHistory;
   friend class PairLineGranHookeHistory;
   friend class PairTriGranHookeHistory;
-  friend class FixSurfaceGlobal;
 
  public:
   FixShearHistory(class LAMMPS *, int, char **);
@@ -59,7 +58,6 @@ class FixShearHistory : public Fix {
  protected:
   int newton_pair;              // same as force setting
   int onesided;                 // 1 for line/tri history, else 0
-  int surfglobal;               // 1 for surf/global history, else 0
   int nlocal_neigh;             // nlocal at last time neigh list was built
   int nall_neigh;               // ditto for nlocal+nghost
 
@@ -70,17 +68,14 @@ class FixShearHistory : public Fix {
 
   int commflag;                 // mode of reverse comm to get ghost info
 
-  class Pair *pair;             // pointers to callers and their data
-  class Fix *fsg;
-  class NeighList *fsg_list;
-  class NeighList *fsg_listgranhistory;
+  class Pair *pair;
+  int *computeflag;             // computeflag in PairGranHookeHistory
 
   int pgsize,oneatom;           // copy of settings in Neighbor
   MyPage<tagint> *ipage;        // pages of partner atom IDs
   MyPage<double[3]> *dpage;     // pages of shear history with partners
 
   void pre_exchange_onesided();
-  void pre_exchange_surf();
   void pre_exchange_newton();
   void pre_exchange_no_newton();
   void allocate_pages();

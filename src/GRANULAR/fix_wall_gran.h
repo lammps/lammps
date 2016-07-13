@@ -47,7 +47,7 @@ class FixWallGran : public Fix {
   void reset_dt();
 
  protected:
-  int wallstyle,pairstyle,wiggle,wshear,axis;
+  int wallstyle,pairstyle,history,wiggle,wshear,axis;
   double kn,kt,gamman,gammat,xmu;
   double lo,hi,cylradius;
   double amplitude,period,omega,vshear;
@@ -55,9 +55,16 @@ class FixWallGran : public Fix {
   int nlevels_respa;
   int time_origin;
 
-  int *touch;
+  // shear history values
+
   double **shear;
   int shearupdate;
+
+  // rigid body masses for use in granular interactions
+
+  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  double *mass_rigid;      // rigid mass for owned+ghost atoms
+  int nmax;                // allocated size of mass_rigid
 
   void hooke(double, double, double, double, double *,
              double *, double *, double *, double *, double, double);

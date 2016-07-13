@@ -173,13 +173,21 @@ documentation.  Thus this option allows the user to override the
 default method for computing P.</p>
 <p>For fixes that calculate a contribution to the potential energy of the
 system, the <em>energy</em> keyword will include that contribution in
-thermodynamic output of potential energy.  See the
-<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command for info on how potential
-energy is output.  The contribution by itself can be printed by using
-the keyword f_ID in the thermo_style custom command, where ID is the
-fix-ID of the appropriate fix.  Note that you must use this setting
-for a fix if you are using it when performing an <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a> and if you want the energy and forces it
-produces to be part of the optimization criteria.</p>
+thermodynamic output of potential energy.  This is because the <em>energy
+yes</em> setting must be specfied to include the fix&#8217;s global or per-atom
+energy in the calculation performed by the <a class="reference internal" href="compute_pe.html"><span class="doc">compute pe</span></a> or <a class="reference internal" href="compute_pe_atom.html"><span class="doc">compute pe/atom</span></a>
+commands.  See the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command for info
+on how potential energy is output.  For fixes that tally a global
+energy, it can be printed by using the keyword f_ID in the
+thermo_style custom command, where ID is the fix-ID of the appropriate
+fix.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You must also specify the <em>energy yes</em> setting for a fix if you
+are using it when performing an <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>
+and if you want the energy and forces it produces to be part of the
+optimization criteria.</p>
+</div>
 <p>For fixes that set or modify forces, it may be possible to select at
 which <a class="reference internal" href="run_style.html"><span class="doc">r-RESPA</span></a> level the fix operates via the <em>respa</em>
 keyword. The RESPA level at which the fix is active can be selected.

@@ -170,7 +170,7 @@ class Pair : protected Pointers {
   virtual void write_data(FILE *) {}
   virtual void write_data_all(FILE *) {}
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *) {printf("WHAT\n"); return 0;}
+  virtual int pack_forward_comm(int, int *, double *, int, int *) {return 0;}
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, 
                                        int, DAT::tdual_xfloat_1d &, 

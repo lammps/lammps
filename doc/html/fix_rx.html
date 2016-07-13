@@ -128,7 +128,7 @@
 <span id="index-0"></span><h1>fix rx command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">rx</span> <span class="n">file</span> <span class="n">localTemp</span> <span class="n">solver</span> <span class="o">...</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">rx</span> <span class="n">file</span> <span class="n">localTemp</span> <span class="n">matrix</span> <span class="n">solver</span> <span class="n">minSteps</span> <span class="o">...</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -136,15 +136,22 @@
 <li>rx = style name of this fix command</li>
 <li>file = filename containing the reaction kinetic equations and Arrhenius parameters</li>
 <li>localTemp = <em>none,lucy</em> = no local temperature averaging or local temperature defined through Lucy weighting function</li>
-<li>solver = <em>lammps_rk4</em> = Explicit 4th order Runge-Kutta method</li>
-<li>minSteps = # of steps for rk4 solver</li>
+<li>matrix = <em>sparse, dense</em> format for the stoichiometric matrix</li>
+<li>solver = <em>lammps_rk4,rkf45</em> = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method</li>
+<li>minSteps = # of steps for rk4 solver or minimum # of steps for rkf45 (rk4 or rkf45)</li>
+<li>maxSteps = maximum number of steps for the rkf45 solver (rkf45 only)</li>
+<li>relTol = relative tolerance for the rkf45 solver (rkf45 only)</li>
+<li>absTol = absolute tolernace for the rkf45 solver (rkf45 only)</li>
+<li>diag   = Diagnostics frequency for the rkf45 solver (optional, rkf45 only)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">lammps_rk4</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">lammps_rk4</span> <span class="mi">1</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">lucy</span> <span class="n">lammps_rk4</span> <span class="mi">10</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">dense</span> <span class="n">lammps_rk4</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">sparse</span> <span class="n">lammps_rk4</span> <span class="mi">1</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">lucy</span> <span class="n">sparse</span> <span class="n">lammps_rk4</span> <span class="mi">10</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">dense</span> <span class="n">rkf45</span> <span class="mi">1</span> <span class="mi">100</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">dense</span> <span class="n">rkf45</span> <span class="mi">1</span> <span class="mi">100</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span> <span class="o">-</span><span class="mi">1</span>
 </pre></div>
 </div>
 </div>
@@ -162,13 +169,43 @@ of <em>n</em> reaction equations will contain a total of <em>m</em> species.  A 
 of <em>m</em> ordinary differential equations (ODEs) that describe the change
 in concentration of a given species as a function of time are then
 constructed based on the <em>n</em> reaction rate equations.</p>
-<p>The ODE systems are solved over the full DPD timestep <em>dt</em> using a 4th
+<p>The ODE systems are solved over the full DPD timestep <em>dt</em> using either a 4th
 order Runge-Kutta <em>rk4</em> method with a fixed step-size <em>h</em>, specified
-by the <em>lammps_rk4</em> keyword. The number of ODE steps per DPD timestep
+by the <em>lammps_rk4</em> keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method
+with an adaptive step-size for <em>h</em>. The number of ODE steps per DPD timestep
 for the rk4 method is optionally specified immediately after the rk4
 keyword. The ODE step-size is set as <em>dt/num_steps</em>. Smaller
 step-sizes tend to yield more accurate results but there is not
-control on the error.</p>
+control on the error. For error control, use the rkf45 ODE solver.</p>
+<p>The rkf45 method adjusts the step-size so that the local truncation error is held
+within the specified absolute and relative tolerances. The initial step-size <em>h0</em>
+can be specified by the user or estimated internally. It is recommeded that the user
+specify <em>h0</em> since this will generally reduced the number of ODE integration steps
+required. <em>h0</em> is defined as <em>dt / min_steps</em> if min_steps &gt;= 1. If min_steps == 0,
+<em>h0</em> is estimated such that an explicit Euler method would likely produce
+an acceptable solution. This is generally overly conservative for the 4th-order
+method and users are advised to specify <em>h0</em> as some fraction of the DPD timestep.
+For small DPD timesteps, only one step may be necessary depending upon the tolerances.
+Note that more than min_steps ODE steps may be taken depending upon the ODE stiffness
+but no more than max_steps will be taken. If max_steps is reached, an error warning
+is printed and the simulation is stopped.</p>
+<p>After each ODE step, the solution error <em>e</em> is tested and weighted using the absTol
+and relTol values. The error vector is weighted as <em>e</em> / (relTol * <a href="#id1"><span class="problematic" id="id2">|</span></a><em>u</em>| + absTol)
+where <em>u</em> is the solution vector. If the norm of the error is &lt;= 1, the solution is
+accepted, <em>h</em> is increased by a proportional amount, and the next ODE step is begun.
+Otherwise, <em>h</em> is shrunk and the ODE step is repeated.</p>
+<p>Run-time diagnostics are available for the rkf45 ODE solver. The frequency
+(in time-steps) that diagnostics are reported is controlled by the last (optional)
+12th argument. A negative frequency means that diagnostics are reported once at the
+end of each run. A positive value N means that the diagnostics are reported once
+per N time-steps.</p>
+<p>The diagnostics report the average # of integrator steps and RHS function evaluations
+and run-time per ODE as well as the the average/RMS/min/max per process. If the
+reporting frequency is 1, the RMS/min/max per ODE are also reported. The per ODE
+statistics can be used to adjust the tolerance and min/max step parameters. The
+statistics per MPI process can be useful to examine any load imbalance caused by the
+adaptive ODE solver. (Some DPD particles can take longer to solve than others. This
+can lead to an imbalance across the MPI processes.)</p>
 <hr class="docutils" />
 <p>The filename specifies a file that contains the entire set of reaction
 kinetic equations and corresponding Arrhenius parameters.  The format of
@@ -197,6 +234,16 @@ particle internal temperature is defined as:</p>
 <p>where the Lucy function is expressed as:</p>
 <img alt="_images/fix_rx_localTemp2.jpg" class="align-center" src="_images/fix_rx_localTemp2.jpg" />
 <p>The self-particle interaction is included in the above equation.</p>
+<p>The stoichiometric coefficients for the reaction mechanism are stored
+in either a sparse or dense matrix format. The dense matrix should only be
+used for small reaction mechanisms. The sparse matrix should be used when there
+are many reactions (e.g., more than 5). This allows the number of reactions and
+species to grow while keeping the computational cost tractable. The matrix
+format can be specified as using either the <em>sparse</em> or <em>dense</em> keywords.
+If all stoichiometric coefficients for a reaction are small integers (whole
+numbers &lt;= 3), a fast exponential function is used. This can save significant
+computational time so users are encouraged to use integer coefficients
+where possible.</p>
 <hr class="docutils" />
 <p>The format of a tabulated file is as follows (without the
 parenthesized comments):</p>
@@ -224,7 +271,7 @@ temperature exponent <em>n</em>, and the activation energy <em>Ea</em>.</p>
 are used by the <a class="reference internal" href="fix_eos_table_rx.html"><span class="doc">fix eos/table/rx</span></a> command to
 define the thermodynamic properties of each species.  Furthermore, the
 number of species molecules (i.e., concentration) can be specified
-either with the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command using the &#8220;<a href="#id1"><span class="problematic" id="id2">d_</span></a>&#8221; prefix or by
+either with the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command using the &#8220;<a href="#id3"><span class="problematic" id="id4">d_</span></a>&#8221; prefix or by
 reading directly the concentrations from a data file.  For the latter
 case, the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command with the fix keyword
 should be specified, where the fix-ID will be the &#8220;fix rx`ID with a &lt;SPECIES&#8221;&gt;`_ suffix, e.g.</p>

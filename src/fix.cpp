@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "group.h"
 #include "force.h"
+#include "comm.h"
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
@@ -58,6 +59,7 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   box_change_size = box_change_shape = box_change_domain = 0;
   thermo_energy = 0;
   rigid_flag = 0;
+  peatom_flag = 0;
   virial_flag = 0;
   no_change_box = 0;
   time_integrate = 0;
@@ -89,7 +91,8 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // set vflag_atom = 0 b/c some fixes grow vatom in grow_arrays()
   //   which may occur outside of timestepping
 
-  maxvatom = 0;
+  maxeatom = maxvatom = 0;
+  eatom = NULL;
   vatom = NULL;
   vflag_atom = 0;
 
@@ -113,6 +116,7 @@ Fix::~Fix()
 
   delete [] id;
   delete [] style;
+  memory->destroy(eatom);
   memory->destroy(vatom);
 }
 
@@ -149,8 +153,64 @@ void Fix::modify_params(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   setup for energy, virial computation
+   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   fixes call this if use ev_tally()
+------------------------------------------------------------------------- */
+
+void Fix::ev_setup(int eflag, int vflag)
+{
+  int i,n;
+
+  evflag = 1;
+
+  eflag_either = eflag;
+  eflag_global = eflag % 2;
+  eflag_atom = eflag / 2;
+
+  vflag_either = vflag;
+  vflag_global = vflag % 4;
+  vflag_atom = vflag / 4;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom && atom->nlocal > maxeatom) {
+    maxeatom = atom->nmax;
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"fix:eatom");
+  }
+  if (vflag_atom && atom->nlocal > maxvatom) {
+    maxvatom = atom->nmax;
+    memory->destroy(vatom);
+    memory->create(vatom,maxvatom,6,"fix:vatom");
+  }
+
+  // zero accumulators
+  // no global energy variable to zero (unlike pair,bond,angle,etc)
+  // fixes tally it individually via fix_modify energy yes and compute_scalar()
+
+  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (eflag_atom) {
+    n = atom->nlocal;
+    for (i = 0; i < n; i++) eatom[i] = 0.0;
+  }
+  if (vflag_atom) {
+    n = atom->nlocal;
+    for (i = 0; i < n; i++) {
+      vatom[i][0] = 0.0;
+      vatom[i][1] = 0.0;
+      vatom[i][2] = 0.0;
+      vatom[i][3] = 0.0;
+      vatom[i][4] = 0.0;
+      vatom[i][5] = 0.0;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    setup for virial computation
    see integrate::ev_set() for values of vflag (0-6)
+   fixes call this if use v_tally()
 ------------------------------------------------------------------------- */
 
 void Fix::v_setup(int vflag)
@@ -187,12 +247,42 @@ void Fix::v_setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   tally virial into global and per-atom accumulators
+   tally per-atom energy and global/per-atom virial into accumulators
+   n = # of local owned atoms involved, with local indices in list
+   eng = total energy for the interaction involving total atoms
    v = total virial for the interaction involving total atoms
-   n = # of local atoms involved, with local indices in list
+   increment per-atom energy of each atom in list by 1/total fraction
+   v_tally tallies virial
+   this method can be used when fix computes energy/forces in post_force()
+     e.g. fix cmap: compute energy and virial only on owned atoms
+       whether newton_bond is on or off
+     other procs will tally left-over fractions for atoms they own
+------------------------------------------------------------------------- */
+
+void Fix::ev_tally(int n, int *list, double total, double eng, double *v)
+{
+  int m;
+
+  if (eflag_atom) {
+    double fraction = eng/total;
+    for (int i = 0; i < n; i++)
+      eatom[list[i]] += fraction;
+  }
+
+  v_tally(n,list,total,v);
+}
+
+
+/* ----------------------------------------------------------------------
+   tally virial into global and per-atom accumulators
+   n = # of local owned atoms involved, with local indices in list
+   v = total virial for the interaction involving total atoms
    increment global virial by n/total fraction
    increment per-atom virial of each atom in list by 1/total fraction
-   assumes other procs will tally left-over fractions
+   this method can be used when fix computes forces in post_force()
+     e.g. fix shake, fix rigid: compute virial only on owned atoms
+       whether newton_bond is on or off
+     other procs will tally left-over fractions for atoms they own
 ------------------------------------------------------------------------- */
 
 void Fix::v_tally(int n, int *list, double total, double *v)

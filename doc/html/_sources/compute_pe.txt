@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pe = style name of this compute command
 * zero or more keywords may be appended
-* keyword = *pair* or *bond* or *angle* or *dihedral* or *improper* or *kspace*
+* keyword = *pair* or *bond* or *angle* or *dihedral* or *improper* or *kspace* or *fix*
 
 Examples
 """"""""
@@ -35,8 +35,9 @@ via the :doc:`compute reduce <compute_reduce>` command.
 The energy is calculated by the various pair, bond, etc potentials
 defined for the simulation.  If no extra keywords are listed, then the
 potential energy is the sum of pair, bond, angle, dihedral, improper,
-and kspace (long-range) energy.  If any extra keywords are listed,
-then only those components are summed to compute the potential energy.
+kspace (long-range), and fix energy.  I.e. it is as if all the
+keywords were listed.  If any extra keywords are listed, then only
+those components are summed to compute the potential energy.
 
 The Kspace contribution requires 1 extra FFT each timestep the energy
 is calculated, if using the PPPM solver via the :doc:`kspace_style pppm <kspace_style>` command.  Thus it can increase the cost of the
@@ -44,12 +45,14 @@ PPPM calculation if it is needed on a large fraction of the simulation
 timesteps.
 
 Various fixes can contribute to the total potential energy of the
-system.  See the doc pages for :doc:`individual fixes <fix>` for
-details.  The *thermo* option of the
-:doc:`compute_modify <compute_modify>` command determines whether these
-contributions are added into the computed potential energy.  If no
-keywords are specified the default is *yes*\ .  If any keywords are
-specified, the default is *no*\ .
+system if the *fix* contribution is included.  See the doc pages for
+:doc:`individual fixes <fix>` for details of which ones compute a
+potential energy.
+
+.. note::
+
+   The :doc:`fix_modify energy yes <fix_modify>` command must also be
+   specified if a fix is to contribute potential energy to this command.
 
 A compute of this style with the ID of "thermo_pe" is created when
 LAMMPS starts up, as if this command were in the input script:

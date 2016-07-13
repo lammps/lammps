@@ -141,8 +141,6 @@
   N = # of extra degrees of freedom to subtract
 <em>dynamic</em> value = <em>yes</em> or <em>no</em>
   yes/no = do or do not recompute the number of atoms contributing to the temperature
-<em>thermo</em> value = <em>yes</em> or <em>no</em>
-  yes/no = do or do not add contributions from fixes to the potential energy
 </pre>
 </div>
 <div class="section" id="examples">
@@ -160,25 +158,18 @@ all compute styles support all parameters.</p>
 subtracted (typically from 3N) as a normalizing factor in a
 temperature computation.  Only computes that compute a temperature use
 this option.  The default is 2 or 3 for <a class="reference internal" href="dimension.html"><span class="doc">2d or 3d systems</span></a> which is a correction factor for an ensemble
-of velocities with zero total linear momentum. For compute temp/partial,
-if one or more velocity components are excluded, the value used for
-<em>extra</em> is scaled accordingly. You can use a negative number for
-the <em>extra</em> parameter if you need to add degrees-of-freedom.</p>
-<blockquote>
-<div>See the <a class="reference internal" href="compute_temp_asphere.html"><span class="doc">compute temp/asphere</span></a> command</div></blockquote>
-<p>for an example.</p>
+of velocities with zero total linear momentum. For compute
+temp/partial, if one or more velocity components are excluded, the
+value used for <em>extra</em> is scaled accordingly. You can use a negative
+number for the <em>extra</em> parameter if you need to add
+degrees-of-freedom.  See the <a class="reference internal" href="compute_temp_asphere.html"><span class="doc">compute temp/asphere</span></a> command for an example.</p>
 <p>The <em>dynamic</em> keyword determines whether the number of atoms N in the
 compute group is re-computed each time a temperature is computed.
-Only compute styles that compute a temperature use this option.  By
+Only compute styles that calculate a temperature use this option.  By
 default, N is assumed to be constant.  If you are adding atoms to the
 system (see the <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a> or <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> commands) or expect atoms to be lost
 (e.g. due to evaporation), then this option should be used to insure
 the temperature is correctly normalized.</p>
-<p>The <em>thermo</em> keyword determines whether the potential energy
-contribution calculated by some <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> is added to the
-potential energy calculated by the compute.  Currently, only the
-compute of style <em>pe</em> uses this option.  See the doc pages for
-<a class="reference internal" href="fix.html"><span class="doc">individual fixes</span></a> for details.</p>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
@@ -192,8 +183,7 @@ compute of style <em>pe</em> uses this option.  See the doc pages for
 <div class="section" id="default">
 <h2>Default</h2>
 <p>The option defaults are extra = 2 or 3 for 2d or 3d systems and
-dynamic = no.  Thermo is <em>yes</em> if the compute of style <em>pe</em> was
-defined with no extra keywords; otherwise it is <em>no</em>.</p>
+dynamic = no.</p>
 </div>
 </div>
 

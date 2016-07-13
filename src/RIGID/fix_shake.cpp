@@ -2401,7 +2401,6 @@ void FixShake::grow_arrays(int nmax)
   memory->create(ftmp,nmax,3,"shake:ftmp");
   memory->destroy(vtmp);
   memory->create(vtmp,nmax,3,"shake:vtmp");
-
 }
 
 /* ----------------------------------------------------------------------

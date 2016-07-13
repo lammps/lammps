@@ -38,6 +38,7 @@ class Fix : protected Pointers {
   int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not
   int nevery;                    // how often to call an end_of_step fix
   int rigid_flag;                // 1 if Fix integrates rigid bodies, 0 if not
+  int peatom_flag;               // 1 if Fix contributes per-atom eng, 0 if not
   int virial_flag;               // 1 if Fix contributes to virial, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
   int time_integrate;            // 1 if fix performs time integration, 0 if no
@@ -89,7 +90,7 @@ class Fix : protected Pointers {
   int comm_border;               // size of border communication (0 if none)
 
   double virial[6];              // accumlated virial
-  double **vatom;                // accumulated per-atom virial
+  double *eatom,**vatom;         // accumulated per-atom energy/virial
 
   int restart_reset;             // 1 if restart just re-initialized fix
 
@@ -215,12 +216,15 @@ class Fix : protected Pointers {
   int instance_me;        // which Fix class instantiation I am
 
   int evflag;
-  int vflag_global,vflag_atom;
-  int maxvatom;
+  int eflag_either,eflag_global,eflag_atom;
+  int vflag_either,vflag_global,vflag_atom;
+  int maxeatom,maxvatom;
 
   int copymode;   // if set, do not deallocate during destruction
                   // required when classes are used as functors by Kokkos
 
+  void ev_setup(int, int);
+  void ev_tally(int, int *, double, double, double *);
   void v_setup(int);
   void v_tally(int, int *, double, double *);
 

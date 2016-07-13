@@ -7,7 +7,7 @@ with contributions by
 Carlo Cavazzoni & Mariella Ippolito
 Cineca, Italy
 
-This library provides  the basic glue code to  combine LAMMPS with the
+This library provides  the basic glue code to combine LAMMPS with the
 Quantum ESPRESSO package plane wave density functional theory code for
 performing QM/MM molecular dynamics simulations.  More information on
 Quantum ESPRESSO can be found at: http://www.quantum-espresso.org
@@ -20,10 +20,16 @@ also an interface layer into the QM code similar to the one in QE.
 
 -------------------------------------------------
 
-WARNING: This is experimental code under developementand is provided
+WARNING: This is experimental code under developement and is provided
 at this early stage to encourage others to write interfaces to other
 QM codes. Please test *very* carefully before using this software for
-production calculations.
+production calculations. At the time of the last update of this README 
+(July 2016) you have to download a QE snapshot (revision 12582) from
+the QE subversion repository.
+
+At this point, both mechanical and multipole based electrostatic
+coupling have been successfully tested on a cluster of water
+molecules as included in the two example folders.
 
 -------------------------------------------------
 
@@ -56,11 +62,13 @@ to confirm that the classical part of the code is set up correctly.
 Step 3)
 Build a standalone pw.x executable in the Quantum ESPRESSO directory
 and also make the "couple" target. At the time of this writing 
-(July 2016) you have to download a QE snapshot from the SVN 
-repository, since no official release with the completed QM/MM 
-support code has been made available yet. This is also needed
-to confirm that corresponding code is working correctly and to
-run test calculations on the cluster of QM atoms.
+(July 2016) you have to download a QE snapshot (revision 12582)
+from the SVN repository, since no official release with the
+completed QM/MM support code has been made available yet. The current
+plan is to have a usable QM/MM interface released with the next
+Quantum ESPRESSO release version 6.0. Building the standalone pw.x
+binary is also needed to confirm that corresponding QM input is
+working correctly and to run test calculations on QM atoms only.
 
 Step 4)
 To compile and link the final QM/MM executable, which combines the

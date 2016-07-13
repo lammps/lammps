@@ -104,14 +104,6 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   maxbin = 0;
   bins = NULL;
 
-  // USER-DPD SSA AIR binning
-
-  maxbin_ssa = 0;
-  bins_ssa = NULL;
-  binhead_ssa = NULL;
-  gbinhead_ssa = NULL;
-  maxhead_ssa = 0;
-
   // pair exclusion list info
 
   includegroup = 0;
@@ -185,10 +177,6 @@ Neighbor::~Neighbor()
 
   memory->destroy(binhead);
   memory->destroy(bins);
-
-  memory->destroy(gbinhead_ssa);
-  memory->destroy(binhead_ssa);
-  memory->destroy(bins_ssa);
 
   memory->destroy(ex1_type);
   memory->destroy(ex2_type);
@@ -391,15 +379,6 @@ void Neighbor::init()
     maxbin = maxhead = 0;
     binhead = NULL;
     bins = NULL;
-
-    // for USER-DPD Shardlow Splitting Algorithm (SSA)
-    memory->destroy(bins_ssa);
-    memory->destroy(binhead_ssa);
-    memory->destroy(gbinhead_ssa);
-    maxbin_ssa = maxhead_ssa = 0;
-    bins_ssa = NULL;
-    binhead_ssa = NULL;
-    gbinhead_ssa = NULL;
   }
 
   // 1st time allocation of xhold and bins
@@ -2254,9 +2233,6 @@ bigint Neighbor::memory_usage()
   if (style != NSQ) {
     bytes += memory->usage(bins,maxbin);
     bytes += memory->usage(binhead,maxhead);
-    bytes += memory->usage(bins_ssa,maxbin_ssa);
-    bytes += memory->usage(binhead_ssa,maxhead_ssa);
-    bytes += memory->usage(gbinhead_ssa,maxhead_ssa);
   }
 
   for (int i = 0; i < nrequest; i++)

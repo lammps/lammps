@@ -57,6 +57,13 @@ NeighList::NeighList(LAMMPS *lmp) :
   listcopy = NULL;
   listskip = NULL;
 
+  // USER-DPD package
+  maxbin_ssa = 0;
+  bins_ssa = NULL;
+  maxhead_ssa = 0;
+  binhead_ssa = NULL;
+  gbinhead_ssa = NULL;
+
   maxstencil = 0;
   stencil = NULL;
   stencilxyz = NULL;
@@ -89,6 +96,11 @@ NeighList::~NeighList()
 
   if (maxstencil) memory->destroy(stencil);
   if (ghostflag) memory->destroy(stencilxyz);
+  if (maxbin_ssa) memory->destroy(bins_ssa);
+  if (maxhead_ssa) {
+    memory->destroy(binhead_ssa);
+    memory->destroy(gbinhead_ssa);
+  }
 
   if (maxstencil_multi) {
     for (int i = 1; i <= atom->ntypes; i++) {
@@ -291,6 +303,11 @@ bigint NeighList::memory_usage()
 
   if (maxstencil) bytes += memory->usage(stencil,maxstencil);
   if (ghostflag) bytes += memory->usage(stencilxyz,maxstencil,3);
+  if (maxbin_ssa) bytes += memory->usage(bins_ssa,maxbin_ssa);
+  if (maxhead_ssa) {
+    bytes += memory->usage(binhead_ssa,maxhead_ssa);
+    bytes += memory->usage(gbinhead_ssa,maxhead_ssa);
+  }
 
   if (maxstencil_multi) {
     bytes += memory->usage(stencil_multi,atom->ntypes,maxstencil_multi);

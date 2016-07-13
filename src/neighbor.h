@@ -176,14 +176,6 @@ class Neighbor : protected Pointers {
 
   double *zeroes;              // vector of zeroes for shear history init
 
-  // USER-DPD package
-
-  int *bins_ssa;             // ptr to next atom in each bin used by SSA
-  int maxbin_ssa;            // size of bins array used by SSA
-  int *binhead_ssa;          // ptr to 1st atom in each bin used by SSA
-  int *gbinhead_ssa;         // ptr to 1st ghost atom in each bin used by SSA
-  int maxhead_ssa;           // size of binhead array used by SSA
-
   // methods
 
   void bin_atoms();                     // bin all atoms

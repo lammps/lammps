@@ -52,13 +52,6 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
       error->all(FLERR,"Molecule template ID must be "
                  "alphanumeric or underscore characters");
 
-  // initialize all flags to zero
-
-  xflag=typeflag=qflag=radiusflag=rmassflag=replambdaHflag=moltypeHflag=0;
-  bondflag=angleflag=dihedralflag=improperflag=nspecialflag=specialflag=0;
-  shakeflag=shakeflagflag=shakeatomflag=shaketypeflag=tag_require=0;
-  bodyflag=ibodyflag=dbodyflag=centerflag=massflag=comflag=inertiaflag=0;
-
   // parse args until reach unknown arg (next file)
 
   toffset = 0;
@@ -1450,6 +1443,7 @@ void Molecule::initialize()
   maxspecial = 0;
 
   xflag = typeflag = qflag = radiusflag = rmassflag = 0;
+  replambdaHflag = moltypeHflag = 0;
   bondflag = angleflag = dihedralflag = improperflag = 0;
   nspecialflag = specialflag = 0;
   shakeflag = shakeflagflag = shakeatomflag = shaketypeflag = 0;
@@ -1463,6 +1457,9 @@ void Molecule::initialize()
   q = NULL;
   radius = NULL;
   rmass = NULL;
+
+  replambdaH = NULL;
+  moltypeH = NULL;
 
   num_bond = NULL;
   bond_type = NULL;

@@ -18,6 +18,8 @@
 #include <math.h>
 #include "fix_wall_gran_omp.h"
 #include "atom.h"
+#include "memory.h"
+#include "neighbor.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -46,15 +48,15 @@ void FixWallGranOMP::post_force(int vflag)
 
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
-    int *body = (int *) fix_rigid->extract("body",tmp);
+    const int * const body = (const int * const) fix_rigid->extract("body",tmp);
     double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
       memory->create(mass_rigid,nmax,"wall/gran:mass_rigid");
     }
-    int nlocal = atom->nlocal;
-    for (i = 0; i < nlocal; i++) {
+    const int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++) {
       if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
       else mass_rigid[i] = 0.0;
     }

@@ -67,6 +67,8 @@ class NeighList : protected Pointers {
 
   // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
 
+  int ssaflag;               // 1 if the list has the ndxAIR_ssa array
+  uint16_t (*ndxAIR_ssa)[8]; // for each atom, last neighbor index of each AIR
   int *bins_ssa;             // index of next atom in each bin
   int maxbin_ssa;            // size of bins_ssa array
   int *binhead_ssa;          // index of 1st local atom in each bin

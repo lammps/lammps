@@ -200,11 +200,10 @@ void FixShardlow::setup(int vflag)
 
    NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
-void FixShardlow::do_ssaAIR_for(
-  int airnum,
+void FixShardlow::ssa_update(
   int i,
-  int jnum,
   int *jlist,
+  int jlen,
   class RanMars *pRNG
 )
 {
@@ -268,14 +267,9 @@ void FixShardlow::do_ssaAIR_for(
   massinv_i = 1.0 / mass_i;
 
   // Loop over Directional Neighbors only
-  for (jj = 0; jj < jnum; jj++) {
+  for (jj = 0; jj < jlen; jj++) {
     j = jlist[jj];
     j &= NEIGHMASK;
-    if (airnum == 1) {
-      if (ssaAIR[j] > 1) continue;
-    } else {
-      if (ssaAIR[j] != airnum) continue;
-    }
     jtype = type[j];
 
     delx = xtmp - x[j][0];
@@ -475,7 +469,9 @@ void FixShardlow::initial_integrate(int vflag)
     // Loop over neighbors of my atoms
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      do_ssaAIR_for(airnum, i, list->numneigh[i], list->firstneigh[i], pRNG);
+      int start = (airnum < 2) ? 0 : list->ndxAIR_ssa[i][airnum - 2];
+      int len = list->ndxAIR_ssa[i][airnum - 1] - start;
+      if (len > 0) ssa_update(i, &(list->firstneigh[i][start]), len, pRNG);
     }
 
     // Communicate the ghost deltas to the atom owners

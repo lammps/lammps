@@ -63,7 +63,7 @@ class FixShardlow : public Fix {
   double dtsqrt; // = sqrt(update->dt);
 
   int coord2ssaAIR(double *);  // map atom coord to an AIR number
-  void do_ssaAIR_for(int, int, int, int *, class RanMars *);
+  void ssa_update(int, int *, int, class RanMars *);
 
 
 };

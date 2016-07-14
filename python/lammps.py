@@ -274,7 +274,14 @@ class lammps:
         self.lib.lammps_scatter_atoms(self.lmp, name, type, count, data)
 
 
+####################################################################################
+# Alternative Python Wrapper
+# Written by Richard Berger <richard.berger@temple.edu>
+####################################################################################
+
 class OutputCapture(object):
+    """ Utility class to capture LAMMPS library output """
+
     def __init__(self):
         self.stdout_pipe_read, self.stdout_pipe_write = os.pipe()
         self.stdout_fd = 1
@@ -377,6 +384,10 @@ class Atom(object):
 
 
 class LammpsWrapper(object):
+    """
+    More Python-like wrapper for LAMMPS (e.g., for iPython)
+    See examples/ipython for usage
+    """
     def __init__(self, lmp):
         self.lmp = lmp
 
@@ -474,6 +485,29 @@ class LammpsWrapper(object):
                 keys, values = [self._split_values(x) for x in self._get_pair(line)]
                 for key, value in zip(keys, values):
                     system[key] = float(value)
+            elif line.startswith("Molecule type"):
+                system['molecule_type'] = self._get_pair(line)[1]
+            elif line.startswith("Bonds"):
+                parts = self._split_values(line)
+                system['nbonds'] = int(self._get_pair(parts[0])[1])
+                system['nbondtypes'] = int(self._get_pair(parts[1])[1])
+                system['bond_style'] = self._get_pair(parts[2])[1]
+            elif line.startswith("Angles"):
+                parts = self._split_values(line)
+                system['nangles'] = int(self._get_pair(parts[0])[1])
+                system['nangletypes'] = int(self._get_pair(parts[1])[1])
+                system['angle_style'] = self._get_pair(parts[2])[1]
+            elif line.startswith("Dihedrals"):
+                parts = self._split_values(line)
+                system['ndihedrals'] = int(self._get_pair(parts[0])[1])
+                system['nangletypes'] = int(self._get_pair(parts[1])[1])
+                system['dihedral_style'] = self._get_pair(parts[2])[1]
+            elif line.startswith("Impropers"):
+                parts = self._split_values(line)
+                system['nimpropers'] = int(self._get_pair(parts[0])[1])
+                system['nimpropertypes'] = int(self._get_pair(parts[1])[1])
+                system['improper_style'] = self._get_pair(parts[2])[1]
+
         return system
 
     def _parse_info_communication(self, output):
@@ -539,6 +573,10 @@ class LammpsWrapper(object):
 
 
 class LammpsIPythonWrapper(LammpsWrapper):
+    """
+    iPython wrapper for LAMMPS which adds embedded graphics capabilities
+    """
+
     def __init__(self, lmp):
         super(LammpsIPythonWrapper, self).__init__(lmp)
 

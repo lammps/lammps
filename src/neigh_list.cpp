@@ -58,6 +58,7 @@ NeighList::NeighList(LAMMPS *lmp) :
   listskip = NULL;
 
   // USER-DPD package
+  ndxAIR_ssa = NULL;
   maxbin_ssa = 0;
   bins_ssa = NULL;
   maxhead_ssa = 0;
@@ -96,6 +97,7 @@ NeighList::~NeighList()
 
   if (maxstencil) memory->destroy(stencil);
   if (ghostflag) memory->destroy(stencilxyz);
+  if (ndxAIR_ssa) memory->sfree(ndxAIR_ssa);
   if (maxbin_ssa) memory->destroy(bins_ssa);
   if (maxhead_ssa) {
     memory->destroy(binhead_ssa);
@@ -161,6 +163,11 @@ void NeighList::grow(int nmax)
   if (dnum)
     firstdouble = (double **) memory->smalloc(maxatoms*sizeof(double *),
                                               "neighlist:firstdouble");
+  if (ssaflag) {
+    if (ndxAIR_ssa) memory->sfree(ndxAIR_ssa);
+    ndxAIR_ssa = (uint16_t (*)[8]) memory->smalloc(sizeof(uint16_t)*8*maxatoms,
+      "neighlist:ndxAIR_ssa");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -242,6 +249,7 @@ void NeighList::print_attributes()
   printf("  %d = grow flag\n",growflag);
   printf("  %d = stencil flag\n",stencilflag);
   printf("  %d = ghost flag\n",ghostflag);
+  printf("  %d = ssa flag\n",ssaflag);
   printf("\n");
   printf("  %d = pair\n",rq->pair);
   printf("  %d = fix\n",rq->fix);
@@ -303,6 +311,7 @@ bigint NeighList::memory_usage()
 
   if (maxstencil) bytes += memory->usage(stencil,maxstencil);
   if (ghostflag) bytes += memory->usage(stencilxyz,maxstencil,3);
+  if (ndxAIR_ssa) bytes += sizeof(uint16_t) * 8 * maxatoms;
   if (maxbin_ssa) bytes += memory->usage(bins_ssa,maxbin_ssa);
   if (maxhead_ssa) {
     bytes += memory->usage(binhead_ssa,maxhead_ssa);

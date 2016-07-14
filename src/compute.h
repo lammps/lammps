@@ -149,7 +149,7 @@ class Compute : protected Pointers {
   int instance_me;             // which Compute class instantiation I am
 
   double natoms_temp;          // # of atoms used for temperature calculation
-  int extra_dof;               // extra DOF for temperature computes
+  double extra_dof;            // extra DOF for temperature computes
   int fix_dof;                 // DOF due to fixes
   int dynamic;                 // recount atoms for temperature computes
   int dynamic_user;            // user request for temp compute to be dynamic

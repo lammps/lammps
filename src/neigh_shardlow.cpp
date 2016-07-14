@@ -107,6 +107,20 @@ void Neighbor::stencil_half_bin_3d_ssa(NeighList *list,
   }
 }
 
+// space for static variable ssaAIRptr so it
+// can be used in qsort's compair function "cmp_ssaAIR()"
+static int *ssaAIRptr;
+
+static int cmp_ssaAIR(const void *iptr, const void *jptr)
+{
+  int i = *((int *) iptr);
+  int j = *((int *) jptr);
+  if (ssaAIRptr[i] < ssaAIRptr[j]) return -1;
+  if (ssaAIRptr[i] > ssaAIRptr[j]) return 1;
+  return 0;
+}
+
+
 /* ----------------------------------------------------------------------
    build half list from full list for use by Shardlow Spliting Algorithm
    pair stored once if i,j are both owned and i < j
@@ -138,6 +152,7 @@ void Neighbor::half_from_full_newton_ssa(NeighList *list)
   // loop over parent full list
 
   for (ii = 0; ii < inum_full; ii++) {
+    int AIRct[8] = { 0 };
     n = 0;
     neighptr = ipage->vget();
 
@@ -153,8 +168,10 @@ void Neighbor::half_from_full_newton_ssa(NeighList *list)
       j = joriginal & NEIGHMASK;
       if (j < nlocal) {
         if (i > j) continue;
+        ++(AIRct[0]);
       } else {
-        if (ssaAIR[j] <= 0) continue;
+        if (ssaAIR[j] < 2) continue; // skip ghost atoms not in AIR
+        ++(AIRct[ssaAIR[j] - 1]);
       }
       neighptr[n++] = joriginal;
     }
@@ -165,6 +182,16 @@ void Neighbor::half_from_full_newton_ssa(NeighList *list)
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+
+    // sort the locals+ghosts in the neighbor list by their ssaAIR number
+    ssaAIRptr = atom->ssaAIR;
+    qsort(&(neighptr[0]), n, sizeof(int), cmp_ssaAIR);
+
+    // Do a prefix sum on the counts to turn them into indexes.
+    list->ndxAIR_ssa[i][0] = AIRct[0];
+    for (int ndx = 1; ndx < 8; ++ndx) {
+      list->ndxAIR_ssa[i][ndx] = AIRct[ndx] + list->ndxAIR_ssa[i][ndx - 1];
+    }
   }
 
   list->inum = inum;
@@ -241,7 +268,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
     if (includegroup) {
       int bitmask = group->bitmask[includegroup];
       for (i = nall-1; i >= nlocal; i--) {
-        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
+        if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
         if (mask[i] & bitmask) {
           ibin = coord2bin(x[i]);
           list->bins_ssa[i] = list->gbinhead_ssa[ibin];
@@ -251,7 +278,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
       nlocal = atom->nfirst; // This is important for the code that follows!
     } else {
       for (i = nall-1; i >= nlocal; i--) {
-        if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
+        if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
         ibin = coord2bin(x[i]);
         list->bins_ssa[i] = list->gbinhead_ssa[ibin];
         list->gbinhead_ssa[ibin] = i;
@@ -269,6 +296,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
   // loop over owned atoms, storing half of the neighbors
 
   for (i = 0; i < nlocal; i++) {
+    int AIRct[8] = { 0 };
     n = 0;
     neighptr = ipage->vget();
 
@@ -343,11 +371,13 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
         }
       }
     }
+    AIRct[0] = n;
 
     // loop over AIR ghost atoms in all bins in "full" stencil
     // Note: the non-AIR ghost atoms have already been filtered out
     // That is a significant time savings because of the "full" stencil
-    for (k = 0; k < maxstencil; k++) {
+    // Note2: only non-pure locals can have ghosts as neighbors
+    if (ssaAIR[i] == 1) for (k = 0; k < maxstencil; k++) {
       if (stencil[k] > mbins) break; /* Check if ghost stencil bins are exhausted */
       for (j = list->gbinhead_ssa[ibin+stencil[k]]; j >= 0; j = list->bins_ssa[j]) {
 
@@ -368,11 +398,20 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
             else which = 0;
-            if (which == 0) neighptr[n++] = j;
-            else if (domain->minimum_image_check(delx,dely,delz))
+            if (which == 0) {
               neighptr[n++] = j;
-            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-          } else neighptr[n++] = j;
+              ++(AIRct[ssaAIR[j] - 1]);
+            } else if (domain->minimum_image_check(delx,dely,delz)) {
+              neighptr[n++] = j;
+              ++(AIRct[ssaAIR[j] - 1]);
+            } else if (which > 0) {
+              neighptr[n++] = j ^ (which << SBBITS);
+              ++(AIRct[ssaAIR[j] - 1]);
+            }
+          } else {
+            neighptr[n++] = j;
+            ++(AIRct[ssaAIR[j] - 1]);
+          }
         }
       }
     }
@@ -383,6 +422,16 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
     ipage->vgot(n);
     if (ipage->status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+
+    // sort the ghosts in the neighbor list by their ssaAIR number
+    ssaAIRptr = atom->ssaAIR;
+    qsort(&(neighptr[AIRct[0]]), n - AIRct[0], sizeof(int), cmp_ssaAIR);
+
+    // Do a prefix sum on the counts to turn them into indexes.
+    list->ndxAIR_ssa[i][0] = AIRct[0];
+    for (int ndx = 1; ndx < 8; ++ndx) {
+      list->ndxAIR_ssa[i][ndx] = AIRct[ndx] + list->ndxAIR_ssa[i][ndx - 1];
+    }
   }
 
   list->inum = inum;

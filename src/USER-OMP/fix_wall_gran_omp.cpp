@@ -39,6 +39,27 @@ void FixWallGranOMP::post_force(int vflag)
 {
   double vwall[3];
 
+  // if just reneighbored:
+  // update rigid body masses for owned atoms if using FixRigid
+  //   body[i] = which body atom I is in, -1 if none
+  //   mass_body = mass of each rigid body
+
+  if (neighbor->ago == 0 && fix_rigid) {
+    int tmp;
+    int *body = (int *) fix_rigid->extract("body",tmp);
+    double *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    if (atom->nmax > nmax) {
+      memory->destroy(mass_rigid);
+      nmax = atom->nmax;
+      memory->create(mass_rigid,nmax,"wall/gran:mass_rigid");
+    }
+    int nlocal = atom->nlocal;
+    for (i = 0; i < nlocal; i++) {
+      if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+      else mass_rigid[i] = 0.0;
+    }
+  }
+
   // set position of wall to initial settings and velocity to 0.0
   // if wiggle or shear, set wall position and velocity accordingly
 
@@ -126,15 +147,24 @@ void FixWallGranOMP::post_force(int vflag)
           shear[i][2] = 0.0;
         }
       } else {
+
+        // meff = effective mass of sphere
+        // if I is part of rigid body, use body mass
+
+        double meff = rmass[i];
+        if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
+
+        // inovke sphere/wall interaction
+
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                radius[i],rmass[i]);
+                radius[i],meff);
         else if (pairstyle == HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                        radius[i],rmass[i],shear[i]);
+                        radius[i],meff,shear[i]);
         else if (pairstyle == HERTZ_HISTORY)
           hertz_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                        radius[i],rmass[i],shear[i]);
+                        radius[i],meff,shear[i]);
       }
     }
   }

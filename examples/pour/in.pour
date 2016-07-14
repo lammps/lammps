@@ -23,7 +23,7 @@ timestep	0.001
 
 fix		1 all nve/sphere
 fix		2 all gravity 1.0 spherical 0.0 -180.0
-fix		zlower all wall/gran 2000.0 NULL 50.0 NULL 0.5 0 &
+fix		zlower all wall/gran hooke/history 2000.0 NULL 50.0 NULL 0.5 0 &
 		zplane 0.0 2000.0 
 
 region		slab block -9.0 9.0 -9.0 9.0 10.0 15.0 units box

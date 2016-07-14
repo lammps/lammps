@@ -12,6 +12,7 @@
 # -------------------------------------------------------------------------
 
 # Python wrapper on LAMMPS library via ctypes
+from __future__ import print_function
 
 import sys, traceback, types
 from ctypes import *
@@ -383,7 +384,7 @@ class Atom(object):
         return self.lmp.eval("q[%d]" % self.index)
 
 
-class LammpsWrapper(object):
+class PyLammps(object):
     """
     More Python-like wrapper for LAMMPS (e.g., for iPython)
     See examples/ipython for usage
@@ -572,13 +573,13 @@ class LammpsWrapper(object):
         return handler
 
 
-class LammpsIPythonWrapper(LammpsWrapper):
+class IPyLammps(PyLammps):
     """
     iPython wrapper for LAMMPS which adds embedded graphics capabilities
     """
 
     def __init__(self, lmp):
-        super(LammpsIPythonWrapper, self).__init__(lmp)
+        super(IPyLammps, self).__init__(lmp)
 
     def image(self, filename="snapshot.png", group="all", color="type", diameter="type",
               size=None, view=None, center=None, up=None, zoom=1.0):

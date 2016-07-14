@@ -40,7 +40,7 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
 
  private:
   FixIntel *fix;
-  int _cop;
+  int _cop, _lrt;
 
   template <class flt_t> class ForceConst;
 

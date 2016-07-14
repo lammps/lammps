@@ -8,10 +8,15 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID wall/gran Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ...
+   fix ID group-ID wall/gran Kn Kt fstyle gamma_n gamma_t xmu dampflag wallstyle args keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/gran = style name of this fix command
+* fstyle = style of force interactions between particles and wall
+.. parsed-literal::
+
+     possible choices: hooke, hooke/history, hertz/history
+
 * Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
 * Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
 * gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
@@ -46,9 +51,9 @@ Examples
 
 .. parsed-literal::
 
-   fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 
-   fix 1 all wall/gran 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL 
-   fix 2 all wall/gran 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
+   fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 
+   fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL 
+   fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
 
 Description
 """""""""""
@@ -57,28 +62,28 @@ Bound the simulation domain of a granular system with a frictional
 wall.  All particles in the group interact with the wall when they are
 close enough to touch it.
 
-The first set of parameters (Kn, Kt, gamma_n, gamma_t, xmu, and
-dampflag) have the same meaning as those specified with the
-:doc:`pair_style granular <pair_gran>` force fields.  This means a NULL
-can be used for either Kt or gamma_t as described on that page.  If a
-NULL is used for Kt, then a default value is used where Kt = 2/7 Kn.
-If a NULL is used for gamma_t, then a default value is used where
-gamma_t = 1/2 gamma_n.
+The nature of the wall/particle interactions are determined by the
+*fstyle* setting.  It can be any of the styles defined by the
+:doc:`pair_style granular <pair_gran>` commands.  Currently this is
+*hooke*\ , *hooke/history*\ , or *hertz/history*\ .  The equation for the
+force between the wall and particles touching it is the same as the
+corresponding equation on the :doc:`pair_style granular <pair_gran>` doc
+page, in the limit of one of the two particles going to infinite
+radius and mass (flat wall).  I.e. delta = radius - r = overlap of
+particle with wall, m_eff = mass of particle, and sqrt(RiRj/Ri+Rj)
+becomes sqrt(radius of particle).  The units for Kn, Kt, gamma_n, and
+gamma_t are as described on that doc page.  The meaning of xmu and
+dampflag are also as described on that page.  Note that you can choose
+a different force styles and/or different values for the 6
+wall/particle coefficients than for particle/particle interactions.
+E.g. if you wish to model the wall as a different material.
 
-The nature of the wall/particle interactions are determined by which
-pair_style is used in your input script: *hooke*\ , *hooke/history*\ , or
-*hertz/history*\ .  The equation for the force between the wall and
-particles touching it is the same as the corresponding equation on the
-:doc:`pair_style granular <pair_gran>` doc page, in the limit of one of
-the two particles going to infinite radius and mass (flat wall).
-I.e. delta = radius - r = overlap of particle with wall, m_eff = mass
-of particle, and sqrt(RiRj/Ri+Rj) becomes sqrt(radius of particle).
-The units for Kn, Kt, gamma_n, and gamma_t are as described on that
-doc page.  The meaning of xmu and dampflag are also as described on
-that page.  Note that you can choose different values for these 6
-wall/particle coefficients than for particle/particle interactions, if
-you wish your wall to interact differently with the particles, e.g. if
-the wall is a different material.
+The parameters *Kn*\ , *Kt*\ , *gamma_n*\ , *gamma_t*\ , *xmu* and *dampflag*
+have the same meaning as those specified with the :doc:`pair_style granular <pair_gran>` commands.  This means a NULL can be used for
+either *Kt* or *gamma_t* as described on that page.  If a NULL is used
+for *Kt*\ , then a default value is used where *Kt* = 2/7 *Kn*\ .  If a
+NULL is used for *gamma_t*\ , then a default value is used where
+*gamma_t* = 1/2 *gamma_n*\ .
 
 .. note::
 
@@ -94,6 +99,12 @@ the wall is a different material.
    common case of a monodisperse system with particles of diameter 1, Kn,
    Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
    previously.
+
+The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` doc page is the mass of the particle for
+particle/wall interactions (mass of wall is infinite).  If the
+particle is part of a rigid body, its mass is replaced by the mass of
+the rigid body in those formulas.  This is determined by searching for
+a :doc:`fix rigid <fix_rigid>` command (or its variants).
 
 The *wallstyle* can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by

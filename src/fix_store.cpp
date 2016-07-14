@@ -34,7 +34,7 @@ FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // 4th arg determines GLOBAL vs PERATOM values
   // syntax: id group style global nrow ncol
   //   Nrow by Ncol array of global values
-  //   Ncol = 1 is vector, Nrow > 1 is array
+  //   Ncol = 1 is vector, Ncol > 1 is array
   // syntax: id group style peratom 0/1 nvalues
   //   0/1 flag = not-store or store peratom values in restart file
   //   nvalues = # of peratom values, N = 1 is vector, N > 1 is array

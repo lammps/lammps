@@ -25,30 +25,38 @@
 #include "colvarbias_meta.h"
 
 
-colvarbias_meta::colvarbias_meta()
-  : colvarbias(),
+colvarbias_meta::colvarbias_meta(char const *key)
+  : colvarbias(key),
     new_hills_begin(hills.end()),
     state_file_step(0)
 {
 }
 
 
-colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
-  : colvarbias(conf, key),
-    new_hills_begin(hills.end()),
-    state_file_step(0)
+int colvarbias_meta::init(std::string const &conf)
 {
-  if (cvm::n_abf_biases > 0)
-    cvm::log("Warning: running ABF and metadynamics together is not recommended unless applyBias is off for ABF.\n");
+  colvarbias::init(conf);
+
+  provide(f_cvb_history_dependent);
 
   get_keyval(conf, "hillWeight", hill_weight, 0.0);
-  if (hill_weight <= 0.0) {
+  if (hill_weight > 0.0) {
+    enable(f_cvb_apply_force);
+  } else {
     cvm::error("Error: hillWeight must be provided, and a positive number.\n", INPUT_ERROR);
   }
 
   get_keyval(conf, "newHillFrequency", new_hill_freq, 1000);
+  if (new_hill_freq > 0) {
+    enable(f_cvb_history_dependent);
+  }
 
   get_keyval(conf, "hillWidth", hill_width, std::sqrt(2.0 * PI) / 2.0);
+  cvm::log("Half-widths of the Gaussian hills (sigma's):\n");
+  for (size_t i = 0; i < colvars.size(); i++) {
+    cvm::log(colvars[i]->name+std::string(": ")+
+             cvm::to_str(0.5 * colvars[i]->width * hill_width));
+  }
 
   {
     bool b_replicas = false;
@@ -152,6 +160,7 @@ colvarbias_meta::colvarbias_meta(std::string const &conf, char const *key)
              ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+".\n");
 
   save_delimiters = false;
+  return COLVARS_OK;
 }
 
 
@@ -851,7 +860,7 @@ void colvarbias_meta::update_replicas_registry()
         // add this replica to the registry
         cvm::log("Metadynamics bias \""+this->name+"\""+
                  ": accessing replica \""+new_replica+"\".\n");
-        replicas.push_back(new colvarbias_meta());
+        replicas.push_back(new colvarbias_meta("metadynamics"));
         (replicas.back())->replica_id = new_replica;
         (replicas.back())->replica_list_file = new_replica_file;
         (replicas.back())->replica_state_file = "";

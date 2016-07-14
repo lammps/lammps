@@ -27,7 +27,7 @@ class NeighRequest : protected Pointers {
   int unprocessed;          // 1 when first requested
                             // 0 after processed by Neighbor class
 
-  // which class is requesting the list, one flag is 1, others are 0
+  // which class style requests the list, one flag is 1, others are 0
 
   int pair;              // set by default
   int fix;
@@ -35,24 +35,23 @@ class NeighRequest : protected Pointers {
   int command;
 
   // kind of list requested, one flag is 1, others are 0
-  // set by requesting class
 
   int half;              // 1 if half neigh list (set by default)
   int full;              // 1 if full neigh list
   int full_cluster;      // only used by Kokkos pair styles
-
   int gran;              // 1 if granular list
-  int granhistory;       // 1 if granular history list
-
+  int granhistory;       // 1 if history info for granular contact pairs
   int respainner;        // 1 if a rRESPA inner list
   int respamiddle;       // 1 if a rRESPA middle list
   int respaouter;        // 1 if a rRESPA outer list
-
   int half_from_full;    // 1 if half list computed from previous full list
+
+  // -----------------
+  // optional settings
+  // -----------------
 
   // 0 if needed every reneighboring during run
   // 1 if occasionally needed by a fix, compute, etc
-  // set by requesting class
 
   int occasional;
 
@@ -65,10 +64,13 @@ class NeighRequest : protected Pointers {
   // 0 if user of list wants no encoding of special bond flags and all neighs
   // 1 if user of list wants special bond flags encoded, set by default
 
-  int special;
+  //int special;
 
-  // number of auxiliary floating point values to store, 0 if none
-  // set by requesting class
+  // 1 if one-sided granular list for sphere/surf interactions (gran = 1)
+
+  int granonesided;
+
+  // number of auxiliary floating point values to store, 0 if none set
 
   int dnum;
 
@@ -108,6 +110,10 @@ class NeighRequest : protected Pointers {
   int half_from_full_original;
   int copy_original;
   int otherlist_original;
+
+  // pointer to FSH class, set by caller
+
+  class FixShearHistory *fix_history;  // fix that stores history info
 
   // methods
 

@@ -16,12 +16,11 @@ class colvarbias_histogram : public colvarbias {
 
 public:
 
-  colvarbias_histogram(std::string const &conf, char const *key);
+  colvarbias_histogram(char const *key);
   ~colvarbias_histogram();
-
-  int update();
-
-  int write_output_files();
+  virtual int init(std::string const &conf);
+  virtual int update();
+  virtual int write_output_files();
 
 protected:
 
@@ -36,8 +35,8 @@ protected:
   /// If colvar_array_size is larger than 1, weigh each one by this number before accumulating the histogram
   std::vector<cvm::real> weights;
 
-  std::istream& read_restart(std::istream&);
-  std::ostream& write_restart(std::ostream&);
+  virtual std::istream& read_restart(std::istream&);
+  virtual std::ostream& write_restart(std::ostream&);
 };
 
 #endif

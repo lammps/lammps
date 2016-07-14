@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Rodrigo Canales (RWTH Aachen University)
+   Contributing authors: Rodrigo Canales (RWTH Aachen University)
+                         W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
@@ -107,7 +108,14 @@ void PPPMIntel::compute(int eflag, int vflag)
     return;
   }
   #endif
+  compute_first(eflag,vflag);
+  compute_second(eflag,vflag);
+}
 
+/* ---------------------------------------------------------------------- */
+
+void PPPMIntel::compute_first(int eflag, int vflag)
+{
   int i,j;
 
   // set energy/virial flags
@@ -192,6 +200,13 @@ void PPPMIntel::compute(int eflag, int vflag)
     else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PPPMIntel::compute_second(int eflag, int vflag)
+{
+  int i,j;
 
   // calculate the force on my particles
 
@@ -617,3 +632,38 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
     if (slabflag != 2) f[i].z += qfactor * ekz - fqqrd2es * sf;
   }
 }
+
+/* ----------------------------------------------------------------------
+  Pack data into intel package buffers if using LRT mode
+------------------------------------------------------------------------- */
+
+void PPPMIntel::pack_buffers()
+{
+  fix->start_watch(TIME_PACK);
+  #if defined(_OPENMP)
+  #pragma omp parallel default(none)
+  #endif
+  {
+    int ifrom, ito, tid;
+    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost,
+                              comm->nthreads, 
+                              sizeof(IntelBuffers<float,double>::atom_t));
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+      fix->get_mixed_buffers()->thr_pack(ifrom,ito,1);
+    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+      fix->get_double_buffers()->thr_pack(ifrom,ito,1);
+    else
+      fix->get_single_buffers()->thr_pack(ifrom,ito,1);
+  }
+  fix->stop_watch(TIME_PACK);
+}
+
+/* ----------------------------------------------------------------------
+   Returns 0 if Intel optimizations for PPPM ignored due to offload
+------------------------------------------------------------------------- */
+
+#ifdef _LMP_INTEL_OFFLOAD
+int PPPMIntel::use_base() {
+  return _use_base;
+}
+#endif

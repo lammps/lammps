@@ -140,7 +140,7 @@
 <em>multi</em> args = none
 <em>custom</em> args = list of keywords
   possible keywords = step, elapsed, elaplong, dt, time,
-                      cpu, tpcpu, spcpu, cpuremain, part,
+                      cpu, tpcpu, spcpu, cpuremain, part, timeremain,
                       atoms, temp, press, pe, ke, etotal, enthalpy,
                       evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                       emol, elong, etail,
@@ -163,6 +163,7 @@
     spcpu = timesteps per CPU second
     cpuremain = estimated CPU time remaining in run
     part = which partition (0 to Npartition-1) this is
+    timeremain = remaining time in seconds on timer timeout.
     atoms = # of atoms
     temp = temperature
     press = pressure
@@ -357,6 +358,14 @@ simulations to indicate which partition this output and this file
 corresponds to, or for use in a <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> to append to
 a filename for output specific to this partition.  See <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">Section_start 7</span></a> of the manual for details on running in
 multi-partition mode.</p>
+<p>The <em>timeremain</em> keyword returns the remaining seconds when a
+timeout has been configured via the <a class="reference internal" href="timer.html"><span class="doc">timer timeout</span></a> command.
+If the timeout timer is inactive, the value of this keyword is 0.0 and
+if the timer is expired, it is negative. This allows for example to exit
+loops cleanly, if the timeout is expired with:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="s2">&quot;$(timeremain) &lt; 0.0&quot;</span> <span class="n">then</span> <span class="s2">&quot;quit 0&quot;</span>
+</pre></div>
+</div>
 <p>The <em>fmax</em> and <em>fnorm</em> keywords are useful for monitoring the progress
 of an <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.  The <em>fmax</em> keyword
 calculates the maximum force in any dimension on any atom in the

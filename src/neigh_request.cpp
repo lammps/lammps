@@ -26,23 +26,28 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   id = 0;
   unprocessed = 1;
 
-  // default is pair request
+  // class user of list: default is pair request
+  // only one is set to 1
 
   pair = 1;
   fix = compute = command = 0;
 
-  // default is half neighbor list
+  // kind of list: default is half neighbor list
+  // only one is set to 1
 
   half = 1;
   full = 0;
   full_cluster = 0;
-  gran = granhistory = 0;
+  gran = 0;
   respainner = respamiddle = respaouter = 0;
   half_from_full = 0;
 
+  // combination of settings, mutiple can be set to 1
   // default is every reneighboring
   // default is use newton_pair setting in force
   // default is encode special bond flags
+  // default is no granular history (when gran = 1)
+  // default is no one-sided sphere/surface interactions (when gran = 1)
   // default is no auxiliary floating point values
   // default is no neighbors of ghosts
   // default is no multi-threaded neighbor list build
@@ -51,7 +56,9 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
   occasional = 0;
   newton = 0;
-  special = 1;
+  //special = 1;
+  granhistory = 0;
+  granonesided = 0;
   dnum = 0;
   ghost = 0;
   omp = 0;
@@ -59,7 +66,8 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   kokkos_host = kokkos_device = 0;
   ssa = 0;
 
-  // default is no copy or skip
+  // copy/skip/derive info, default is no copy or skip
+  // none or only one option is set
 
   copy = 0;
   skip = 0;
@@ -119,7 +127,6 @@ int NeighRequest::identical(NeighRequest *other)
   if (half != other->half_original) same = 0;
   if (full != other->full) same = 0;
   if (gran != other->gran) same = 0;
-  if (granhistory != other->granhistory) same = 0;
   if (respainner != other->respainner) same = 0;
   if (respamiddle != other->respamiddle) same = 0;
   if (respaouter != other->respaouter) same = 0;
@@ -127,7 +134,9 @@ int NeighRequest::identical(NeighRequest *other)
 
   if (newton != other->newton) same = 0;
   if (occasional != other->occasional) same = 0;
-  if (special != other->special) same = 0;
+  //if (special != other->special) same = 0;
+  if (granhistory != other->granhistory) same = 0;
+  if (granonesided != other->granonesided) same = 0;
   if (dnum != other->dnum) same = 0;
   if (ghost != other->ghost) same = 0;
   if (omp != other->omp) same = 0;
@@ -150,6 +159,10 @@ int NeighRequest::same_kind(NeighRequest *other)
 {
   int same = 1;
 
+  // class caller will be same (pair), b/c called by pair hybrid styles
+
+  // kind must be the the same
+
   if (half != other->half) same = 0;
   if (full != other->full) same = 0;
   if (gran != other->gran) same = 0;
@@ -158,11 +171,19 @@ int NeighRequest::same_kind(NeighRequest *other)
   if (respamiddle != other->respamiddle) same = 0;
   if (respaouter != other->respaouter) same = 0;
   if (half_from_full != other->half_from_full) same = 0;
+
+  // settings that must be the same
+  // other settings do not need to be the same (e.g. granonesided)
+
   if (newton != other->newton) same = 0;
   if (ghost != other->ghost) same = 0;
   if (omp != other->omp) same = 0;
   if (intel != other->intel) same = 0;
+  if (kokkos_host != other->kokkos_host) same = 0;
+  if (kokkos_device != other->kokkos_device) same = 0;
   if (ssa != other->ssa) same = 0;
+
+  // copy/skip/derive info does not need to be the same
 
   return same;
 }
@@ -192,26 +213,28 @@ int NeighRequest::same_skip(NeighRequest *other)
 }
 
 /* ----------------------------------------------------------------------
-   set kind and other values of this request to that of other request
+   set kind and optional values in this request to those of other request
+   not copy/skip/derive values since this may be non-skip parent of child
 ------------------------------------------------------------------------- */
 
 void NeighRequest::copy_request(NeighRequest *other)
 {
-  half = 0;
-
-  if (other->half) half = 1;
-  if (other->full) full = 1;
-  if (other->gran) gran = 1;
-  if (other->granhistory) granhistory = 1;
-  if (other->respainner) respainner = 1;
-  if (other->respamiddle) respamiddle = 1;
-  if (other->respaouter) respaouter = 1;
-  if (other->half_from_full) half_from_full = 1;
+  half = other->half;
+  full = other->full;
+  gran = other->gran;
+  granhistory = other->granhistory;
+  respainner =  other->respainner;
+  respamiddle = other->respamiddle;
+  respaouter = other->respaouter;
+  half_from_full = other->half_from_full;
 
   newton = other->newton;
+  granonesided = other->granonesided;
   dnum = other->dnum;
   ghost = other->ghost;
   omp = other->omp;
   intel = other->intel;
+  kokkos_host = other->kokkos_host;
+  kokkos_device = other->kokkos_device;
   ssa = other->ssa;
 }

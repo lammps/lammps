@@ -184,7 +184,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
                              __global acctyp4 * zetaij,
                              const __global int * dev_nbor,
                              const __global int * dev_packed,
-                             const int eflag, const int nall, const int inum,
+                             const int eflag, const int inum,
                              const int nbor_pitch, const int t_per_atom) {
   __local int tpa_sq,n_stride;
   tpa_sq = fast_mul(t_per_atom,t_per_atom);
@@ -210,7 +210,7 @@ __kernel void k_tersoff_zeta(const __global numtyp4 *restrict x_,
 
   __syncthreads();
 
-  if (ii<nall) {
+  if (ii<inum) {
     int nbor_j, nbor_end;
     int i, numj;
 
@@ -815,7 +815,7 @@ __kernel void k_tersoff_three_end(const __global numtyp4 *restrict x_,
 __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
                                         const __global numtyp4 *restrict ts1_in,
                                         const __global numtyp4 *restrict ts2_in,
-                                              const __global numtyp4 *restrict ts4_in,
+                                        const __global numtyp4 *restrict ts4_in,
                                         const __global numtyp *restrict cutsq,
                                         const __global int *restrict map,
                                         const __global int *restrict elem2param,
@@ -974,7 +974,7 @@ __kernel void k_tersoff_three_end_vatom(const __global numtyp4 *restrict x_,
 
         numtyp delr2[3];
         delr2[0] = kx.x-jx.x;
-              delr2[1] = kx.y-jx.y;
+        delr2[1] = kx.y-jx.y;
         delr2[2] = kx.z-jx.z;
         numtyp rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 

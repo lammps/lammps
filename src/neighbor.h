@@ -174,13 +174,7 @@ class Neighbor : protected Pointers {
   int *glist;                  // lists to grow atom arrays every reneigh
   int *slist;                  // lists to grow stencil arrays every reneigh
 
-  // USER-DPD package
-
-  int *bins_ssa;             // ptr to next atom in each bin used by SSA
-  int maxbin_ssa;            // size of bins array used by SSA
-  int *binhead_ssa;          // ptr to 1st atom in each bin used by SSA
-  int *gbinhead_ssa;         // ptr to 1st ghost atom in each bin used by SSA
-  int maxhead_ssa;           // size of binhead array used by SSA
+  double *zeroes;              // vector of zeroes for shear history init
 
   // methods
 
@@ -236,17 +230,12 @@ class Neighbor : protected Pointers {
   void full_bin_ghost(class NeighList *);
   void full_multi(class NeighList *);
 
-  void half_from_full_no_newton(class NeighList *);
-  void half_from_full_newton(class NeighList *);
-  void skip_from(class NeighList *);
-  void skip_from_granular(class NeighList *);
-  void skip_from_respa(class NeighList *);
-  void copy_from(class NeighList *);
-
   void granular_nsq_no_newton(class NeighList *);
   void granular_nsq_newton(class NeighList *);
+  void granular_nsq_newton_onesided(class NeighList *);
   void granular_bin_no_newton(class NeighList *);
   void granular_bin_newton(class NeighList *);
+  void granular_bin_newton_onesided(class NeighList *);
   void granular_bin_newton_tri(class NeighList *);
 
   void respa_nsq_no_newton(class NeighList *);
@@ -254,6 +243,15 @@ class Neighbor : protected Pointers {
   void respa_bin_no_newton(class NeighList *);
   void respa_bin_newton(class NeighList *);
   void respa_bin_newton_tri(class NeighList *);
+
+  void half_from_full_no_newton(class NeighList *);
+  void half_from_full_newton(class NeighList *);
+  void skip_from(class NeighList *);
+  void skip_from_granular(class NeighList *);
+  void skip_from_granular_off2on(class NeighList *);
+  void skip_from_granular_off2on_onesided(class NeighList *);
+  void skip_from_respa(class NeighList *);
+  void copy_from(class NeighList *);
 
   // include prototypes for multi-threaded neighbor lists
   // builds or their corresponding dummy versions

@@ -15,7 +15,7 @@ compute ID group-ID pe/atom keyword ... :pre
 ID, group-ID are documented in "compute"_compute.html command
 pe/atom = style name of this compute command
 zero or more keywords may be appended
-keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} :ul
+keyword = {pair} or {bond} or {angle} or {dihedral} or {improper} or {kspace} or {fix} :ul
 
 [Examples:]
 
@@ -32,9 +32,9 @@ you want the potential energy of the entire system.
 The per-atom energy is calculated by the various pair, bond, etc
 potentials defined for the simulation.  If no extra keywords are
 listed, then the potential energy is the sum of pair, bond, angle,
-dihedral,improper, and kspace energy.  If any extra keywords are
-listed, then only those components are summed to compute the potential
-energy.
+dihedral,improper, kspace (long-range), and fix energy.  I.e. it is as
+if all the keywords were listed.  If any extra keywords are listed,
+then only those components are summed to compute the potential energy.
 
 Note that the energy of each atom is due to its interaction with all
 other atoms in the simulation, not just with other atoms in the group.
@@ -54,6 +54,15 @@ as specified by the "kspace_style pppm"_kspace_style.html command.
 For PPPM, the calcluation requires 1 extra FFT each timestep that
 per-atom energy is calculated.  Thie "document"_PDF/kspace.pdf
 describes how the long-range per-atom energy calculation is performed.
+
+Various fixes can contribute to the per-atom potential energy of the
+system if the {fix} contribution is included.  See the doc pages for
+"individual fixes"_fix.html for details of which ones compute a
+per-atom potential energy.
+
+NOTE: The "fix_modify energy yes"_fix_modify.html command must also be
+specified if a fix is to contribute per-atom potential energy to this
+command.
 
 As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result

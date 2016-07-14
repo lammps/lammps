@@ -50,12 +50,9 @@ class FixShake : public Fix {
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
 
-
-
   virtual void shake_end_of_step(int vflag);
   virtual void correct_coordinates(int vflag);
   virtual void correct_velocities();
-
 
   int dof(int);
   virtual void reset_dt();
@@ -86,7 +83,7 @@ class FixShake : public Fix {
   double *step_respa;
 
   double **x,**v,**f;                    // local ptrs to atom class quantities
-  double **ftmp, **vtmp;                 // pointers to temporary arrays for forces and velocities
+  double **ftmp,**vtmp;                  // pointers to temporary arrays for f,v
 
   double *mass,*rmass;
   int *type;

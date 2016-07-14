@@ -135,7 +135,7 @@
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</li>
 <li>pe = style name of this compute command</li>
 <li>zero or more keywords may be appended</li>
-<li>keyword = <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em></li>
+<li>keyword = <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em> or <em>fix</em></li>
 </ul>
 </div>
 <div class="section" id="examples">
@@ -155,19 +155,22 @@ via the <a class="reference internal" href="compute_reduce.html"><span class="do
 <p>The energy is calculated by the various pair, bond, etc potentials
 defined for the simulation.  If no extra keywords are listed, then the
 potential energy is the sum of pair, bond, angle, dihedral, improper,
-and kspace (long-range) energy.  If any extra keywords are listed,
-then only those components are summed to compute the potential energy.</p>
+kspace (long-range), and fix energy.  I.e. it is as if all the
+keywords were listed.  If any extra keywords are listed, then only
+those components are summed to compute the potential energy.</p>
 <p>The Kspace contribution requires 1 extra FFT each timestep the energy
 is calculated, if using the PPPM solver via the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a> command.  Thus it can increase the cost of the
 PPPM calculation if it is needed on a large fraction of the simulation
 timesteps.</p>
 <p>Various fixes can contribute to the total potential energy of the
-system.  See the doc pages for <a class="reference internal" href="fix.html"><span class="doc">individual fixes</span></a> for
-details.  The <em>thermo</em> option of the
-<a class="reference internal" href="compute_modify.html"><span class="doc">compute_modify</span></a> command determines whether these
-contributions are added into the computed potential energy.  If no
-keywords are specified the default is <em>yes</em>.  If any keywords are
-specified, the default is <em>no</em>.</p>
+system if the <em>fix</em> contribution is included.  See the doc pages for
+<a class="reference internal" href="fix.html"><span class="doc">individual fixes</span></a> for details of which ones compute a
+potential energy.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify energy yes</span></a> command must also be
+specified if a fix is to contribute potential energy to this command.</p>
+</div>
 <p>A compute of this style with the ID of &#8220;thermo_pe&#8221; is created when
 LAMMPS starts up, as if this command were in the input script:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">thermo_pe</span> <span class="nb">all</span> <span class="n">pe</span>

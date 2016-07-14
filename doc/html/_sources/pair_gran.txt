@@ -91,7 +91,7 @@ The other quantities in the equations are as follows:
 * gamma_n = viscoelastic damping constant for normal contact
 * gamma_t = viscoelastic damping constant for tangential contact
 * m_eff = Mi Mj / (Mi + Mj) = effective mass of 2 particles of mass Mi and Mj
-* Delta St = tangential displacement vector between 2 spherical particles       which is truncated to satisfy a frictional yield criterion
+* Delta St = tangential displacement vector between 2 particles       which is truncated to satisfy a frictional yield criterion
 * n_ij = unit vector along the line connecting the centers of the 2 particles
 * Vn = normal component of the relative velocity of the 2 particles
 * Vt = tangential component of the relative velocity of the 2 particles
@@ -169,6 +169,12 @@ holds, though the spring is no longer linear.
    0.0 and 1.0, however LAMMPS allows large values (up to 1.0e4) to allow
    for modeling of systems which can sustain very large tangential
    forces.
+
+The effective mass *m_eff* is given by the formula above for two
+isolated particles.  If either particle is part of a rigid body, its
+mass is replaced by the mass of the rigid body in the formula above.
+This is determined by searching for a :doc:`fix rigid <fix_rigid>`
+command (or its variants).
 
 For granular styles there are no additional coefficients to set for
 each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command.

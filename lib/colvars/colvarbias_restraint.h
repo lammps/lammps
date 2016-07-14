@@ -14,6 +14,7 @@ public:
   /// Retrieve colvar values and calculate their biasing forces
   virtual int update();
 
+  // TODO the following can be supplanted by a new call to init()
   /// Load new configuration - force constant and/or centers only
   virtual void change_configuration(std::string const &conf);
 
@@ -33,19 +34,21 @@ public:
   virtual std::ostream & write_traj(std::ostream &os);
 
   /// \brief Constructor
-  colvarbias_restraint(std::string const &conf, char const *key);
+  colvarbias_restraint(char const *key);
 
-  /// Destructor
+  virtual int init(std::string const &conf);
   virtual ~colvarbias_restraint();
 
 
 protected:
 
   /// \brief Potential function
-  virtual cvm::real restraint_potential(cvm::real k, colvar* x, const colvarvalue& xcenter) const = 0;
+  virtual cvm::real restraint_potential(cvm::real k, colvar const *x,
+                                        colvarvalue const &xcenter) const = 0;
 
   /// \brief Force function
-  virtual colvarvalue restraint_force(cvm::real k, colvar* x, const colvarvalue& xcenter) const = 0;
+  virtual colvarvalue restraint_force(cvm::real k, colvar const *x,
+                                      colvarvalue const &xcenter) const = 0;
 
   ///\brief Unit scaling
   virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const = 0;
@@ -113,36 +116,51 @@ protected:
   long target_nsteps;
 };
 
+
 /// \brief Harmonic bias restraint
 /// (implementation of \link colvarbias_restraint \endlink)
 class colvarbias_restraint_harmonic : public colvarbias_restraint {
 
 public:
-  colvarbias_restraint_harmonic(std::string const &conf, char const *key);
 
-protected: /// \brief Potential function
-  virtual cvm::real restraint_potential(cvm::real k,  colvar*  x, const colvarvalue& xcenter) const;
+  colvarbias_restraint_harmonic(char const *key);
+  virtual int init(std::string const &conf);
+  // no additional members, destructor not needed
+
+protected:
+
+  /// \brief Potential function
+  virtual cvm::real restraint_potential(cvm::real k, colvar const *x,
+                                        colvarvalue const &xcenter) const;
 
   /// \brief Force function
-  virtual colvarvalue restraint_force(cvm::real k,  colvar* x,  const colvarvalue& xcenter) const;
+  virtual colvarvalue restraint_force(cvm::real k, colvar const *x,
+                                      colvarvalue const &xcenter) const;
 
   ///\brief Unit scaling
   virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const;
 
 };
 
+
 /// \brief Linear bias restraint
 /// (implementation of \link colvarbias_restraint \endlink)
 class colvarbias_restraint_linear : public colvarbias_restraint {
 
 public:
-  colvarbias_restraint_linear(std::string const &conf, char const *key);
+  colvarbias_restraint_linear(char const *key);
+  virtual int init(std::string const &conf);
+  // no additional members, destructor not needed
 
-protected: /// \brief Potential function
-  virtual cvm::real restraint_potential(cvm::real k,  colvar*  x, const colvarvalue& xcenter) const;
+protected:
+
+  /// \brief Potential function
+  virtual cvm::real restraint_potential(cvm::real k, colvar const *x,
+                                        colvarvalue const &xcenter) const;
 
   /// \brief Force function
-  virtual colvarvalue restraint_force(cvm::real k,  colvar* x,  const colvarvalue& xcenter) const;
+  virtual colvarvalue restraint_force(cvm::real k, colvar const *x,
+                                      colvarvalue const &xcenter) const;
 
   ///\brief Unit scaling
   virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const;

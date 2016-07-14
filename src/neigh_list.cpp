@@ -57,6 +57,13 @@ NeighList::NeighList(LAMMPS *lmp) :
   listcopy = NULL;
   listskip = NULL;
 
+  // USER-DPD package
+  maxbin_ssa = 0;
+  bins_ssa = NULL;
+  maxhead_ssa = 0;
+  binhead_ssa = NULL;
+  gbinhead_ssa = NULL;
+
   maxstencil = 0;
   stencil = NULL;
   stencilxyz = NULL;
@@ -89,6 +96,11 @@ NeighList::~NeighList()
 
   if (maxstencil) memory->destroy(stencil);
   if (ghostflag) memory->destroy(stencilxyz);
+  if (maxbin_ssa) memory->destroy(bins_ssa);
+  if (maxhead_ssa) {
+    memory->destroy(binhead_ssa);
+    memory->destroy(gbinhead_ssa);
+  }
 
   if (maxstencil_multi) {
     for (int i = 1; i <= atom->ntypes; i++) {
@@ -246,11 +258,15 @@ void NeighList::print_attributes()
   printf("  %d = half_from_full\n",rq->half_from_full);
   printf("\n");
   printf("  %d = occasional\n",rq->occasional);
+  printf("  %d = newton\n",rq->newton);
+  printf("  %d = granonesided\n",rq->granonesided);
   printf("  %d = dnum\n",rq->dnum);
-  printf("  %d = omp\n",rq->omp);
-  printf("  %d = intel\n",rq->intel);
   printf("  %d = ghost\n",rq->ghost);
   printf("  %d = omp\n",rq->omp);
+  printf("  %d = intel\n",rq->intel);
+  printf("  %d = kokkos host\n",rq->kokkos_host);
+  printf("  %d = kokkos device\n",rq->kokkos_device);
+  printf("  %d = ssa\n",rq->ssa);
   printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);
   printf("  %d = otherlist\n",rq->otherlist);
@@ -287,6 +303,11 @@ bigint NeighList::memory_usage()
 
   if (maxstencil) bytes += memory->usage(stencil,maxstencil);
   if (ghostflag) bytes += memory->usage(stencilxyz,maxstencil,3);
+  if (maxbin_ssa) bytes += memory->usage(bins_ssa,maxbin_ssa);
+  if (maxhead_ssa) {
+    bytes += memory->usage(binhead_ssa,maxhead_ssa);
+    bytes += memory->usage(gbinhead_ssa,maxhead_ssa);
+  }
 
   if (maxstencil_multi) {
     bytes += memory->usage(stencil_multi,atom->ntypes,maxstencil_multi);

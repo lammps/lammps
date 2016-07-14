@@ -83,7 +83,7 @@ void PairBuckCoulLongIntel::compute(int eflag, int vflag,
   const int offload_end = fix->offload_end_pair();
   const int ago = neighbor->ago;
 
-  if (ago != 0 && fix->separate_buffers() == 0) {
+  if (_lrt == 0 && ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
     #if defined(_OPENMP)
     #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
@@ -476,6 +476,8 @@ void PairBuckCoulLongIntel::init_style()
     pack_force_const(force_const_double, fix->get_double_buffers());
   else
     pack_force_const(force_const_single, fix->get_single_buffers());
+
+  _lrt = fix->lrt();
 }
 
 template <class flt_t, class acc_t>

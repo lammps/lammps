@@ -55,7 +55,7 @@ class NeighList : protected Pointers {
 
   // settings and pointers for related neighbor lists and fixes
 
-  NeighList *listgranhistory;          // point at history list
+  NeighList *listgranhistory;          // point at list storing shear history
   class FixShearHistory *fix_history;  // fix that stores history info
 
   int respamiddle;              // 1 if this respaouter has middle list
@@ -64,6 +64,14 @@ class NeighList : protected Pointers {
   NeighList *listfull;          // me = half list, point to full I derive from
   NeighList *listcopy;          // me = copy list, point to list I copy from
   NeighList *listskip;          // me = skip list, point to list I skip from
+
+  // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
+
+  int *bins_ssa;             // index of next atom in each bin
+  int maxbin_ssa;            // size of bins_ssa array
+  int *binhead_ssa;          // index of 1st local atom in each bin
+  int *gbinhead_ssa;         // index of 1st ghost atom in each bin
+  int maxhead_ssa;           // size of binhead_ssa and gbinhead_ssa arrays
 
   // stencils of bin indices for neighbor finding
 

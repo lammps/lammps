@@ -26,16 +26,18 @@ This package is based on the USER-OMP package and provides LAMMPS styles that:
 When using the suffix command with "intel", intel styles will be used if they
 exist. If the suffix command is used with "hybrid intel omp" and the USER-OMP 
 USER-OMP styles will be used whenever USER-INTEL styles are not available. This
-allow for running most styles in LAMMPS with threading. For example, in the
-latter case with the USER-OMP package installed,
+allow for running most styles in LAMMPS with threading.
 
-      kspace_style     pppm 1e-4
+-----------------------------------------------------------------------------
 
-is equivalent to:
-
-      kspace_style     pppm/omp   1e-4
-
-because no pppm style has been implemented for the Intel package.
+The Long-Range Thread mode (LRT) in the Intel package currently uses
+pthreads by default. If pthreads are not supported in the build environment,
+the compile flag "-DLMP_INTEL_NOLRT" will disable the feature to allow for 
+builds without pthreads. Alternatively, "-DLMP_INTEL_LRT11" can be used to
+build with compilers that support threads using the C++11 standard. When using
+LRT mode, you might need to disable OpenMP affinity settings (e.g.
+export KMP_AFFINITY=none). LAMMPS will generate a warning if the settings
+need to be changed.
 
 -----------------------------------------------------------------------------
 

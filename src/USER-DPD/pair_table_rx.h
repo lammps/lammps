@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -71,9 +71,9 @@ class PairTableRX : public Pair {
 
   int nspecies;
   char *site1, *site2;
+  int isite1, isite2;
   void getParams(int, double &, double &, double &, double &);
 
-/*   class FixRX *fixRX; */
 };
 
 }

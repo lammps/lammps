@@ -23,6 +23,8 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
+#include "modify.h"
+#include "fix.h"
 #include "memory.h"
 #include "error.h"
 
@@ -45,10 +47,12 @@ ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) :
     pairflag = 1;
     bondflag = angleflag = dihedralflag = improperflag = 1;
     kspaceflag = 1;
+    fixflag = 1;
   } else {
     pairflag = 0;
     bondflag = angleflag = dihedralflag = improperflag = 0;
     kspaceflag = 0;
+    fixflag = 0;
     int iarg = 3;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
@@ -57,6 +61,7 @@ ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"dihedral") == 0) dihedralflag = 1;
       else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
       else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
+      else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
       else error->all(FLERR,"Illegal compute pe/atom command");
       iarg++;
     }
@@ -144,6 +149,12 @@ void ComputePEAtom::compute_peratom()
     double *eatom = force->kspace->eatom;
     for (i = 0; i < nkspace; i++) energy[i] += eatom[i];
   }
+
+  // add in per-atom contributions from relevant fixes
+  // always only for owned atoms, not ghost
+
+  if (fixflag && modify->n_thermo_energy_atom) 
+    modify->thermo_energy_atom(nlocal,energy);
 
   // communicate ghost energy between neighbor procs
 

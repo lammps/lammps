@@ -44,6 +44,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_pre_exchange = n_pre_neighbor = 0;
   n_pre_force = n_pre_reverse = n_post_force = 0;
   n_final_integrate = n_end_of_step = n_thermo_energy = 0;
+  n_thermo_energy_atom = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_post_force = n_min_energy = 0;
@@ -54,7 +55,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_pre_exchange = list_pre_neighbor = NULL;
   list_pre_force = list_pre_reverse = list_post_force = NULL;
   list_final_integrate = list_end_of_step = NULL;
-  list_thermo_energy = NULL;
+  list_thermo_energy = list_thermo_energy_atom = NULL;
   list_initial_integrate_respa = list_post_integrate_respa = NULL;
   list_pre_force_respa = list_post_force_respa = NULL;
   list_final_integrate_respa = NULL;
@@ -124,6 +125,7 @@ Modify::~Modify()
   delete [] list_final_integrate;
   delete [] list_end_of_step;
   delete [] list_thermo_energy;
+  delete [] list_thermo_energy_atom;
   delete [] list_initial_integrate_respa;
   delete [] list_post_integrate_respa;
   delete [] list_pre_force_respa;
@@ -168,6 +170,7 @@ void Modify::init()
   list_init(FINAL_INTEGRATE,n_final_integrate,list_final_integrate);
   list_init_end_of_step(END_OF_STEP,n_end_of_step,list_end_of_step);
   list_init_thermo_energy(THERMO_ENERGY,n_thermo_energy,list_thermo_energy);
+  list_init_thermo_energy_atom(n_thermo_energy_atom,list_thermo_energy_atom);
 
   list_init(INITIAL_INTEGRATE_RESPA,
             n_initial_integrate_respa,list_initial_integrate_respa);
@@ -441,6 +444,23 @@ double Modify::thermo_energy()
 }
 
 /* ----------------------------------------------------------------------
+   per-atom thermo energy call, only for relevant fixes
+   called by compute pe/atom
+------------------------------------------------------------------------- */
+
+void Modify::thermo_energy_atom(int nlocal, double *energy)
+{
+  int i,j;
+  double *eatom;
+
+  for (i = 0; i < n_thermo_energy_atom; i++) {
+    eatom = fix[list_thermo_energy_atom[i]]->eatom;
+    if (!eatom) continue;
+    for (j = 0; j < nlocal; j++) energy[j] += eatom[j];
+  }
+}
+
+/* ----------------------------------------------------------------------
    post_run call
 ------------------------------------------------------------------------- */
 
@@ -697,7 +717,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   // MUST change NEXCEPT above when add new fix to this list
 
   const char *exceptions[NEXCEPT] =
-    {"GPU","OMP","INTEL","property/atom","cmap","cmap2","rx"};
+    {"GPU","OMP","INTEL","property/atom","cmap","cmap3","rx"};
 
   if (domain->box_exist == 0) {
     int m;
@@ -1275,7 +1295,7 @@ void Modify::list_init_end_of_step(int mask, int &n, int *&list)
 
 /* ----------------------------------------------------------------------
    create list of fix indices for thermo energy fixes
-   only added to list if fix has THERMO_ENERGY mask
+   only added to list if fix has THERMO_ENERGY mask set,
    and its thermo_energy flag was set via fix_modify
 ------------------------------------------------------------------------- */
 
@@ -1291,6 +1311,26 @@ void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
   n = 0;
   for (int i = 0; i < nfix; i++)
     if (fmask[i] & mask && fix[i]->thermo_energy) list[n++] = i;
+}
+
+/* ----------------------------------------------------------------------
+   create list of fix indices for peratom thermo energy fixes
+   only added to list if fix has its peatom_flag set,
+   and its thermo_energy flag was set via fix_modify
+------------------------------------------------------------------------- */
+
+void Modify::list_init_thermo_energy_atom(int &n, int *&list)
+{
+  delete [] list;
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->peatom_flag && fix[i]->thermo_energy) n++;
+  list = new int[n];
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->peatom_flag && fix[i]->thermo_energy) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------

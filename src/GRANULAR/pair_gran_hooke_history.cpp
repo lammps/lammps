@@ -305,7 +305,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
           torque[j][2] -= radj*tor3;
         }
 
-        if (evflag) ev_tally_xyz(i,j,nlocal,0,
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
                                  0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }
@@ -427,6 +427,7 @@ void PairGranHookeHistory::init_style()
     delete [] fixarg;
     fix_history = (FixShearHistory *) modify->fix[modify->nfix-1];
     fix_history->pair = this;
+    neighbor->requests[irequest]->fix_history = fix_history;
   }
 
   // check for FixFreeze and set freeze_group_bit

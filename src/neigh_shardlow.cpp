@@ -218,22 +218,22 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
     exclude ghost atoms that are not in the Active Interaction Regions (AIR)
 ------------------------------------------------------------------------- */
 
-    if (mbins > maxhead_ssa) {
-      maxhead_ssa = mbins;
-      memory->destroy(gbinhead_ssa);
-      memory->destroy(binhead_ssa);
-      memory->create(binhead_ssa,maxhead_ssa,"binhead_ssa");
-      memory->create(gbinhead_ssa,maxhead_ssa,"gbinhead_ssa");
+    if (mbins > list->maxhead_ssa) {
+      list->maxhead_ssa = mbins;
+      memory->destroy(list->gbinhead_ssa);
+      memory->destroy(list->binhead_ssa);
+      memory->create(list->binhead_ssa,list->maxhead_ssa,"binhead_ssa");
+      memory->create(list->gbinhead_ssa,list->maxhead_ssa,"gbinhead_ssa");
     }
     for (i = 0; i < mbins; i++) {
-      gbinhead_ssa[i] = -1;
-      binhead_ssa[i] = -1;
+      list->gbinhead_ssa[i] = -1;
+      list->binhead_ssa[i] = -1;
     }
 
-    if (maxbin > maxbin_ssa) {
-      maxbin_ssa = maxbin;
-      memory->destroy(bins_ssa);
-      memory->create(bins_ssa,maxbin_ssa,"bins_ssa");
+    if (maxbin > list->maxbin_ssa) {
+      list->maxbin_ssa = maxbin;
+      memory->destroy(list->bins_ssa);
+      memory->create(list->bins_ssa,list->maxbin_ssa,"bins_ssa");
     }
 
     // bin in reverse order so linked list will be in forward order
@@ -244,8 +244,8 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
         if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
         if (mask[i] & bitmask) {
           ibin = coord2bin(x[i]);
-          bins_ssa[i] = gbinhead_ssa[ibin];
-          gbinhead_ssa[ibin] = i;
+          list->bins_ssa[i] = list->gbinhead_ssa[ibin];
+          list->gbinhead_ssa[ibin] = i;
         }
       }
       nlocal = atom->nfirst; // This is important for the code that follows!
@@ -253,14 +253,14 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
       for (i = nall-1; i >= nlocal; i--) {
         if (ssaAIR[i] <= 0) continue; // skip ghost atoms not in AIR
         ibin = coord2bin(x[i]);
-        bins_ssa[i] = gbinhead_ssa[ibin];
-        gbinhead_ssa[ibin] = i;
+        list->bins_ssa[i] = list->gbinhead_ssa[ibin];
+        list->gbinhead_ssa[ibin] = i;
       }
     }
     for (i = nlocal-1; i >= 0; i--) {
       ibin = coord2bin(x[i]);
-      bins_ssa[i] = binhead_ssa[ibin];
-      binhead_ssa[ibin] = i;
+      list->bins_ssa[i] = list->binhead_ssa[ibin];
+      list->binhead_ssa[ibin] = i;
     }
   } /* else reuse previous binning. See Neighbor::build_one comment. */
 
@@ -285,7 +285,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
     // loop over rest of local atoms in i's bin
     // just store them, since j is beyond i in linked list
 
-    for (j = bins_ssa[i]; j >= 0; j = bins_ssa[j]) {
+    for (j = list->bins_ssa[i]; j >= 0; j = list->bins_ssa[j]) {
 
       jtype = type[j];
       if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
@@ -316,7 +316,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
 
     // loop over all local atoms in other bins in "half" stencil
     for (k = 0; k < nstencil; k++) {
-      for (j = binhead_ssa[ibin+stencil[k]]; j >= 0; j = bins_ssa[j]) {
+      for (j = list->binhead_ssa[ibin+stencil[k]]; j >= 0; j = list->bins_ssa[j]) {
 
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
@@ -349,7 +349,7 @@ void Neighbor::half_bin_newton_ssa(NeighList *list)
     // That is a significant time savings because of the "full" stencil
     for (k = 0; k < maxstencil; k++) {
       if (stencil[k] > mbins) break; /* Check if ghost stencil bins are exhausted */
-      for (j = gbinhead_ssa[ibin+stencil[k]]; j >= 0; j = bins_ssa[j]) {
+      for (j = list->gbinhead_ssa[ibin+stencil[k]]; j >= 0; j = list->bins_ssa[j]) {
 
         jtype = type[j];
         if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;

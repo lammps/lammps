@@ -251,15 +251,15 @@ void FixAtomSwap::init()
 	    } else if (qtype[iswaptype] != atom->q[i])
 	      error->one(FLERR,"All atoms of a swapped type must have the same charge.");
 	  }
-	  MPI_Allreduce(&first,&firstall,1,MPI_INT,MPI_MIN,world);
-	  if (firstall) error->all(FLERR,"At least one atom of each swapped type must be present to define charges.");
-	  if (first) qtype[iswaptype] = -DBL_MAX;
-	  MPI_Allreduce(&qtype[iswaptype],&qmax,1,MPI_DOUBLE,MPI_MAX,world);
-	  if (first) qtype[iswaptype] = DBL_MAX;
-	  MPI_Allreduce(&qtype[iswaptype],&qmin,1,MPI_DOUBLE,MPI_MIN,world);
-	  if (qmax != qmin) error->all(FLERR,"All atoms of a swapped type must have same charge.");
 	}
       }
+      MPI_Allreduce(&first,&firstall,1,MPI_INT,MPI_MIN,world);
+      if (firstall) error->all(FLERR,"At least one atom of each swapped type must be present to define charges.");
+      if (first) qtype[iswaptype] = -DBL_MAX;
+      MPI_Allreduce(&qtype[iswaptype],&qmax,1,MPI_DOUBLE,MPI_MAX,world);
+      if (first) qtype[iswaptype] = DBL_MAX;
+      MPI_Allreduce(&qtype[iswaptype],&qmin,1,MPI_DOUBLE,MPI_MIN,world);
+      if (qmax != qmin) error->all(FLERR,"All atoms of a swapped type must have same charge.");
     }
   }
 

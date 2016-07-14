@@ -45,7 +45,6 @@ class BodyNparticle : public Body {
  private:
   int *imflag;
   double **imdata;
-
 };
 
 }

@@ -57,13 +57,21 @@ default method for computing P.
 
 For fixes that calculate a contribution to the potential energy of the
 system, the *energy* keyword will include that contribution in
-thermodynamic output of potential energy.  See the
-:doc:`thermo_style <thermo_style>` command for info on how potential
-energy is output.  The contribution by itself can be printed by using
-the keyword f_ID in the thermo_style custom command, where ID is the
-fix-ID of the appropriate fix.  Note that you must use this setting
-for a fix if you are using it when performing an :doc:`energy minimization <minimize>` and if you want the energy and forces it
-produces to be part of the optimization criteria.
+thermodynamic output of potential energy.  This is because the *energy
+yes* setting must be specfied to include the fix's global or per-atom
+energy in the calculation performed by the :doc:`compute pe <compute_pe>` or :doc:`compute pe/atom <compute_pe_atom>`
+commands.  See the :doc:`thermo_style <thermo_style>` command for info
+on how potential energy is output.  For fixes that tally a global
+energy, it can be printed by using the keyword f_ID in the
+thermo_style custom command, where ID is the fix-ID of the appropriate
+fix.
+
+.. note::
+
+   You must also specify the *energy yes* setting for a fix if you
+   are using it when performing an :doc:`energy minimization <minimize>`
+   and if you want the energy and forces it produces to be part of the
+   optimization criteria.
 
 For fixes that set or modify forces, it may be possible to select at
 which :doc:`r-RESPA <run_style>` level the fix operates via the *respa*

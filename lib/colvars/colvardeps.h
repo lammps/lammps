@@ -147,8 +147,9 @@ public:
   enum features_biases {
     /// \brief Bias is active
     f_cvb_active,
-    f_cvb_apply_force,
-    f_cvb_get_system_force,
+    f_cvb_apply_force, // will apply forces
+    f_cvb_get_system_force, // requires system forces
+    f_cvb_history_dependent, // depends on simulation history
     f_cvb_ntot
   };
 

@@ -12,6 +12,7 @@
 # -------------------------------------------------------------------------
 
 # Python wrapper on LAMMPS library via ctypes
+from __future__ import print_function
 
 import sys, traceback, types
 from ctypes import *

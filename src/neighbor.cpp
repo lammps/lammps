@@ -703,6 +703,9 @@ void Neighbor::init()
         lists[i]->ghostflag = 0;
         if (requests[i]->ghost) lists[i]->ghostflag = 1;
         if (requests[i]->ghost && !requests[i]->occasional) anyghostlist = 1;
+
+        lists[i]->ssaflag = 0;
+        if (requests[i]->ssa) lists[i]->ssaflag = 1;
       } else init_list_flags1_kokkos(i);
     }
 

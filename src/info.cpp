@@ -262,7 +262,7 @@ void Info::command(int narg, char **arg)
         fprintf(out,"Communication cutoff for type %d = %g\n", i, cut);
       }
     }
-    fprintf(out,"Nprocs = %d    Nthreads = %d\n",
+    fprintf(out,"Nprocs = %d,   Nthreads = %d\n",
             comm->nprocs, comm->nthreads);
     fprintf(out,"Processor grid = %d x %d x %d\n",comm->procgrid[0],
             comm->procgrid[1], comm->procgrid[2]);
@@ -411,7 +411,7 @@ void Info::command(int narg, char **arg)
     fprintf(out,"\nVariable information:\n");
     for (int i=0; i < nvar; ++i) {
       int ndata = 1;
-      fprintf(out,"Variable[%3d]: %-10s  style = %-10s  def =",
+      fprintf(out,"Variable[%3d]: %-10s,  style = %-10s,  def =",
               i,names[i],varstyles[style[i]]);
       if ((style[i] != LOOP) && (style[i] != ULOOP))
         ndata = input->variable->num[i];

@@ -65,6 +65,16 @@ class NeighList : protected Pointers {
   NeighList *listcopy;          // me = copy list, point to list I copy from
   NeighList *listskip;          // me = skip list, point to list I skip from
 
+  // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
+
+  int ssaflag;               // 1 if the list has the ndxAIR_ssa array
+  uint16_t (*ndxAIR_ssa)[8]; // for each atom, last neighbor index of each AIR
+  int *bins_ssa;             // index of next atom in each bin
+  int maxbin_ssa;            // size of bins_ssa array
+  int *binhead_ssa;          // index of 1st local atom in each bin
+  int *gbinhead_ssa;         // index of 1st ghost atom in each bin
+  int maxhead_ssa;           // size of binhead_ssa and gbinhead_ssa arrays
+
   // stencils of bin indices for neighbor finding
 
   int maxstencil;                  // max size of stencil

@@ -54,7 +54,7 @@ In the formulas listed for each dihedral style, {phi} is the torsional
 angle defined by the quadruplet of atoms.  This angle has a sign
 convention as shown in this diagram:
 
-:c,image(Eqs/dihedral_sign.jpg)
+:c,image(JPG/dihedral_sign.jpg)
 
 where the I,J,K,L ordering of the 4 atoms that define the dihedral
 is from left to right.

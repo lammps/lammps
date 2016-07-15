@@ -79,6 +79,9 @@ class lammps:
         if cmdargs:
           cmdargs.insert(0,"lammps.py")
           narg = len(cmdargs)
+          for i in range(narg):
+            if type(cmdargs[i]) is str:
+              cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
           self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
                                            MPI_Comm, c_void_p()]
@@ -98,6 +101,9 @@ class lammps:
         if cmdargs:
           cmdargs.insert(0,"lammps.py")
           narg = len(cmdargs)
+          for i in range(narg):
+            if type(cmdargs[i]) is str:
+              cmdargs[i] = cmdargs[i].encode()
           cargs = (c_char_p*narg)(*cmdargs)
           self.lmp = c_void_p()
           self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
@@ -211,12 +217,12 @@ class lammps:
       return result
     if type == 1:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
-      nlocalptr = self.lib.lammps_extract_global(self.lmp,"nlocal")
+      nlocalptr = self.lib.lammps_extract_global(self.lmp,"nlocal".encode())
       nlocal = nlocalptr[0]
       result = (c_double*nlocal)()
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
-      for i in xrange(nlocal): result[i] = ptr[i]
+      for i in range(nlocal): result[i] = ptr[i]
       self.lib.lammps_free(ptr)
       return result
     return None

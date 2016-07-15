@@ -6,10 +6,20 @@
 
 /// Histogram "bias" constructor
 
-colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *key)
-  : colvarbias(conf, key),
+colvarbias_histogram::colvarbias_histogram(char const *key)
+  : colvarbias(key),
     grid(NULL), out_name("")
 {
+}
+
+
+int colvarbias_histogram::init(std::string const &conf)
+{
+  colvarbias::init(conf);
+
+  provide(f_cvb_history_dependent);
+  enable(f_cvb_history_dependent);
+
   size_t i;
 
   get_keyval(conf, "outputFile", out_name, std::string(""));
@@ -30,18 +40,18 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
       for (i = 0; i < colvars.size(); i++) { // should be all vector
         if (colvars[i]->value().type() != colvarvalue::type_vector) {
           cvm::error("Error: used gatherVectorColvars with non-vector colvar.\n", INPUT_ERROR);
-          return;
+          return INPUT_ERROR;
         }
         if (i == 0) {
           colvar_array_size = colvars[i]->value().size();
           if (colvar_array_size < 1) {
             cvm::error("Error: vector variable has dimension less than one.\n", INPUT_ERROR);
-            return;
+            return INPUT_ERROR;
           }
         } else {
           if (colvar_array_size != colvars[i]->value().size()) {
             cvm::error("Error: trying to combine vector colvars of different lengths.\n", INPUT_ERROR);
-            return;
+            return INPUT_ERROR;
           }
         }
       }
@@ -49,7 +59,7 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
       for (i = 0; i < colvars.size(); i++) { // should be all scalar
         if (colvars[i]->value().type() != colvarvalue::type_scalar) {
           cvm::error("Error: only scalar colvars are supported when gatherVectorColvars is off.\n", INPUT_ERROR);
-          return;
+          return INPUT_ERROR;
         }
       }
     }
@@ -75,10 +85,10 @@ colvarbias_histogram::colvarbias_histogram(std::string const &conf, char const *
     }
   }
 
-  cvm::log("Finished histogram setup.\n");
+  return COLVARS_OK;
 }
 
-/// Destructor
+
 colvarbias_histogram::~colvarbias_histogram()
 {
   if (grid) {
@@ -90,7 +100,7 @@ colvarbias_histogram::~colvarbias_histogram()
     cvm::n_histo_biases -= 1;
 }
 
-/// Update the grid
+
 int colvarbias_histogram::update()
 {
   int error_code = COLVARS_OK;
@@ -124,7 +134,7 @@ int colvarbias_histogram::update()
     // update indices for scalar values
     size_t i;
     for (i = 0; i < colvars.size(); i++) {
-      bin[i] = grid->value_to_bin_scalar(colvars[i]->value(), i);
+      bin[i] = grid->current_bin_scalar(i);
     }
 
     if (grid->index_ok(bin)) {
@@ -135,7 +145,7 @@ int colvarbias_histogram::update()
     size_t iv, i;
     for (iv = 0; iv < colvar_array_size; iv++) {
       for (i = 0; i < colvars.size(); i++) {
-        bin[i] = grid->value_to_bin_scalar(colvars[i]->value().vector1d_value[iv], i);
+        bin[i] = grid->current_bin_scalar(i, iv);
       }
 
       if (grid->index_ok(bin)) {

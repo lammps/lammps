@@ -13,10 +13,16 @@ class colvarbias : public colvarparse, public cvm::deps {
 public:
 
   /// Name of this bias
-  std::string    name;
+  std::string name;
+
+  /// Type of this bias
+  std::string bias_type;
+
+  /// If there is more than one bias of this type, record its rank
+  int rank;
 
   /// Add a new collective variable to this bias
-  void add_colvar(std::string const &cv_name);
+  int add_colvar(std::string const &cv_name);
 
   /// Retrieve colvar values and calculate their biasing forces
   /// Return bias energy
@@ -46,10 +52,28 @@ public:
   void communicate_forces();
 
   /// \brief Constructor
-  colvarbias(std::string const &conf, char const *key);
+  colvarbias(char const *key);
+
+  /// \brief Parse config string and (re)initialize
+  virtual int init(std::string const &conf);
+
+  /// \brief Set to zero all mutable data
+  virtual int reset();
+
+protected:
 
   /// Default constructor
   colvarbias();
+
+private:
+
+  /// Copy constructor
+  colvarbias(colvarbias &);
+
+public:
+
+  /// \brief Delete everything
+  virtual int clear();
 
   /// Destructor
   virtual ~colvarbias();
@@ -103,7 +127,7 @@ protected:
   bool                     b_output_energy;
 
   /// \brief Whether this bias has already accumulated information
-  /// (when relevant)
+  /// (for history-dependent biases)
   bool                     has_data;
 
 };

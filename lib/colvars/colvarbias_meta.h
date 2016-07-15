@@ -27,23 +27,13 @@ public:
   /// Communication between different replicas
   Communication comm;
 
-  /// Constructor
-  colvarbias_meta(std::string const &conf, char const *key);
-
-  /// Default constructor
-  colvarbias_meta();
-
-  /// Destructor
+  colvarbias_meta(char const *key);
+  virtual int init(std::string const &conf);
   virtual ~colvarbias_meta();
-
   virtual int update();
-
   virtual std::istream & read_restart(std::istream &is);
-
   virtual std::ostream & write_restart(std::ostream &os);
-
   virtual int setup_output();
-
   virtual void write_pmf();
 
   class hill;

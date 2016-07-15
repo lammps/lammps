@@ -4,16 +4,24 @@
 #include "colvar.h"
 #include "colvarbias_abf.h"
 
-/// ABF bias constructor; parses the config file
 
-colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
-  : colvarbias(conf, key),
+colvarbias_abf::colvarbias_abf(char const *key)
+  : colvarbias(key),
     force(NULL),
     gradients(NULL),
     samples(NULL),
     last_gradients(NULL),
     last_samples(NULL)
 {
+}
+
+
+int colvarbias_abf::init(std::string const &conf)
+{
+  colvarbias::init(conf);
+
+  provide(f_cvb_history_dependent);
+
   // TODO relax this in case of VMD plugin
   if (cvm::temperature() == 0.0)
     cvm::log("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
@@ -21,10 +29,18 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   // ************* parsing general ABF options ***********************
 
   get_keyval(conf, "applyBias",  apply_bias, true);
-  if (!apply_bias) cvm::log("WARNING: ABF biases will *not* be applied!\n");
+  if (apply_bias) {
+    enable(f_cvb_apply_force);
+  } else {
+    cvm::log("WARNING: ABF biases will *not* be applied!\n");
+  }
 
   get_keyval(conf, "updateBias",  update_bias, true);
-  if (!update_bias) cvm::log("WARNING: ABF biases will *not* be updated!\n");
+  if (update_bias) {
+    enable(f_cvb_history_dependent);
+  } else {
+    cvm::log("WARNING: ABF biases will *not* be updated!\n");
+  }
 
   get_keyval(conf, "hideJacobian", hide_Jacobian, false);
   if (hide_Jacobian) {
@@ -38,7 +54,7 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   min_samples = full_samples / 2;
   // full_samples - min_samples >= 1 is guaranteed
 
-  get_keyval(conf, "inputPrefix",  input_prefix, std::vector<std::string> ());
+  get_keyval(conf, "inputPrefix",  input_prefix, std::vector<std::string>());
   get_keyval(conf, "outputFreq", output_freq, cvm::restart_out_freq);
   get_keyval(conf, "historyFreq", history_freq, 0);
   b_history_files = (history_freq > 0);
@@ -63,10 +79,10 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
 
   if (update_bias) {
   // Request calculation of system force (which also checks for availability)
-    if(enable(f_cvb_get_system_force)) return;
+    if(enable(f_cvb_get_system_force)) return cvm::get_error();
   }
   if (apply_bias) {
-    if(enable(f_cvb_apply_force)) return;
+    if(enable(f_cvb_apply_force)) return cvm::get_error();
   }
 
   for (size_t i = 0; i < colvars.size(); i++) {
@@ -126,6 +142,8 @@ colvarbias_abf::colvarbias_abf(std::string const &conf, char const *key)
   }
 
   cvm::log("Finished ABF setup.\n");
+
+  return COLVARS_OK;
 }
 
 /// Destructor
@@ -276,6 +294,7 @@ int colvarbias_abf::update()
 
   return COLVARS_OK;
 }
+
 
 int colvarbias_abf::replica_share() {
   int p;

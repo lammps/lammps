@@ -65,7 +65,7 @@ NeighList::NeighList(LAMMPS *lmp) :
   binhead_ssa = NULL;
   gbinhead_ssa = NULL;
 
-  maxstencil = 0;
+  maxstencil = ghostflag = 0;
   stencil = NULL;
   stencilxyz = NULL;
 
@@ -159,7 +159,6 @@ void NeighList::grow(int nmax)
   memory->create(numneigh,maxatoms,"neighlist:numneigh");
   firstneigh = (int **) memory->smalloc(maxatoms*sizeof(int *),
                                         "neighlist:firstneigh");
-
   if (dnum)
     firstdouble = (double **) memory->smalloc(maxatoms*sizeof(double *),
                                               "neighlist:firstdouble");

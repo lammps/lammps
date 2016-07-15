@@ -204,6 +204,8 @@ class Fix : protected Pointers {
 
   virtual void rebuild_special() {}
 
+  virtual int image(int *&, double **&) {return 0;}
+
   virtual int modify_param(int, char **) {return 0;}
   virtual void *extract(const char *, int &) {return NULL;}
 

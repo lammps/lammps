@@ -187,9 +187,11 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize as if particle is not touching wall
 
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++)
-    shear[i][0] = shear[i][1] = shear[i][2] = 0.0;
+  if (history) {
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++)
+      shear[i][0] = shear[i][1] = shear[i][2] = 0.0;
+  }
 
   time_origin = update->ntimestep;
 }

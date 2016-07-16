@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <string.h>
 #include "neighbor.h"
 #include "neighbor_omp.h"
 #include "neigh_list.h"
@@ -45,7 +46,7 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,m,n,nn;
+  int i,j,m,n,nn,dnum,dnumbytes;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr,*touchptr;
@@ -53,7 +54,7 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
 
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -83,6 +84,8 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
     firstshear = listgranhistory->firstdouble;
     ipage_touch = listgranhistory->ipage+tid;
     dpage_shear = listgranhistory->dpage+tid;
+    dnum = listgranhistory->dnum;
+    dnumbytes = dnum * sizeof(double);
     ipage_touch->reset();
     dpage_shear->reset();
   }
@@ -124,20 +127,17 @@ void Neighbor::granular_nsq_no_newton_omp(NeighList *list)
               if (partner[i][m] == tag[j]) break;
             if (m < npartner[i]) {
               touchptr[n] = 1;
-              shearptr[nn++] = shearpartner[i][m][0];
-              shearptr[nn++] = shearpartner[i][m][1];
-              shearptr[nn++] = shearpartner[i][m][2];
+              memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
+              nn += dnum;
             } else {
               touchptr[n] = 0;
-              shearptr[nn++] = 0.0;
-              shearptr[nn++] = 0.0;
-              shearptr[nn++] = 0.0;
+              memcpy(&shearptr[nn],zeroes,dnumbytes);
+              nn += dnum;
             }
           } else {
             touchptr[n] = 0;
-            shearptr[nn++] = 0.0;
-            shearptr[nn++] = 0.0;
-            shearptr[nn++] = 0.0;
+            memcpy(&shearptr[nn],zeroes,dnumbytes);
+            nn += dnum;
           }
         }
 
@@ -285,7 +285,7 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
 #endif
   NEIGH_OMP_SETUP(nlocal);
 
-  int i,j,k,m,n,nn,ibin;
+  int i,j,k,m,n,nn,ibin,dnum,dnumbytes;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutsq;
   int *neighptr,*touchptr;
@@ -295,7 +295,7 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
 
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
 
@@ -326,6 +326,8 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
     firstshear = listgranhistory->firstdouble;
     ipage_touch = listgranhistory->ipage+tid;
     dpage_shear = listgranhistory->dpage+tid;
+    dnum = listgranhistory->dnum;
+    dnumbytes = dnum * sizeof(double);
     ipage_touch->reset();
     dpage_shear->reset();
   }
@@ -372,20 +374,17 @@ void Neighbor::granular_bin_no_newton_omp(NeighList *list)
                 if (partner[i][m] == tag[j]) break;
               if (m < npartner[i]) {
                 touchptr[n] = 1;
-                shearptr[nn++] = shearpartner[i][m][0];
-                shearptr[nn++] = shearpartner[i][m][1];
-                shearptr[nn++] = shearpartner[i][m][2];
+                memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
+                nn += dnum;
               } else {
                 touchptr[n] = 0;
-                shearptr[nn++] = 0.0;
-                shearptr[nn++] = 0.0;
-                shearptr[nn++] = 0.0;
+                memcpy(&shearptr[nn],zeroes,dnumbytes);
+                nn += dnum;
               }
             } else {
               touchptr[n] = 0;
-              shearptr[nn++] = 0.0;
-              shearptr[nn++] = 0.0;
-              shearptr[nn++] = 0.0;
+              memcpy(&shearptr[nn],zeroes,dnumbytes);
+              nn += dnum;
             }
           }
 

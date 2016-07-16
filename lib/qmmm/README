@@ -23,7 +23,7 @@ also an interface layer into the QM code similar to the one in QE.
 WARNING: This is experimental code under developement and is provided
 at this early stage to encourage others to write interfaces to other
 QM codes. Please test *very* carefully before using this software for
-production calculations. At the time of the last update of this README 
+production calculations. At the time of the last update of this README
 (July 2016) you have to download a QE snapshot (revision 12582) from
 the QE subversion repository.
 

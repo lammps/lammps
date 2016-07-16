@@ -22,8 +22,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "style_stencil.h"
-#include "style_build.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -37,12 +35,9 @@
 #include "update.h"
 #include "respa.h"
 #include "output.h"
-#include "stencil.h"
 #include "citeme.h"
 #include "memory.h"
 #include "error.h"
-
-#include <map>
 
 using namespace LAMMPS_NS;
 
@@ -55,9 +50,6 @@ using namespace LAMMPS_NS;
 #define CUT2BIN_RATIO 100
 
 enum{NSQ,BIN,MULTI};     // also in neigh_list.cpp
-
-enum{STENCIL_HALF_BIN_3D_NEWTON};
-enum{BUILD_HALF_BIN_NEWTON};
 
 static const char cite_neigh_multi[] =
   "neighbor multi command:\n\n"
@@ -133,9 +125,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
 
   nlist = 0;
   lists = NULL;
-  pair_build_new = NULL;
   pair_build = NULL;
-  stencil_create_new = NULL;
   stencil_create = NULL;
   blist = glist = slist = NULL;
   anyghostlist = 0;
@@ -169,28 +159,6 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   improperlist = NULL;
 
   copymode = 0;
-
-  // fill map with stencil classes listed in style_stencil.h
-
-  stencil_map = new std::map<int,StencilCreator>();
-
-#define STENCIL_CLASS
-#define StencilStyle(key,Class) \
-  (*stencil_map)[key] = &stencil_creator<Class>;
-#include "style_stencil.h"
-#undef StencilStyle
-#undef STENCIL_CLASS
-
-  // fill map with build classes listed in style_build.h
-
-  build_map = new std::map<int,BuildCreator>();
-
-#define BUILD_CLASS
-#define BuildStyle(key,Class) \
-  (*build_map)[key] = &build_creator<Class>;
-#include "style_build.h"
-#undef BuildStyle
-#undef BUILD_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -224,11 +192,7 @@ Neighbor::~Neighbor()
 
   for (int i = 0; i < nlist; i++) delete lists[i];
   delete [] lists;
-  for (int i = 0; i < nlist; i++) delete pair_build_new[i];
-  delete [] pair_build_new;
   delete [] pair_build;
-  for (int i = 0; i < nlist; i++) delete stencil_create_new[i];
-  delete [] stencil_create_new;
   delete [] stencil_create;
   delete [] blist;
   delete [] glist;
@@ -245,9 +209,6 @@ Neighbor::~Neighbor()
   memory->destroy(anglelist);
   memory->destroy(dihedrallist);
   memory->destroy(improperlist);
-
-  delete stencil_map;
-  delete build_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -531,29 +492,21 @@ void Neighbor::init()
 
     for (i = 0; i < nlist; i++) delete lists[i];
     delete [] lists;
-    for (i = 0; i < nlist; i++) delete pair_build_new[i];
-    delete [] pair_build_new;
     delete [] pair_build;
-    for (i = 0; i < nlist; i++) delete stencil_create_new[i];
-    delete [] stencil_create_new;
     delete [] stencil_create;
 
     if (lmp->kokkos) nlist = init_lists_kokkos();
     else nlist = nrequest;
 
     lists = new NeighList*[nrequest];
-    pair_build_new = new Build*[nrequest];
     pair_build = new PairPtr[nrequest];
-    stencil_create_new = new Stencil*[nrequest];
     stencil_create = new StencilPtr[nrequest];
 
     // initialize to NULL since some may be Kokkos lists
 
     for (i = 0; i < nrequest; i++) {
       lists[i] = NULL;
-      pair_build_new[i] = NULL;
       pair_build[i] = NULL;
-      stencil_create_new[i] = NULL;
       stencil_create[i] = NULL;
     }
 
@@ -718,15 +671,9 @@ void Neighbor::init()
     // ptrs set to NULL if not set explicitly
 
     for (i = 0; i < nrequest; i++) {
-      choose_build_new(i,requests[i]);
       choose_build(i,requests[i]);
-      if (style != NSQ) {
-        choose_stencil_new(i,requests[i]);
-        choose_stencil(i,requests[i]);
-      } else {
-        stencil_create_new[i] = NULL;
-        stencil_create[i] = NULL;
-      }
+      if (style != NSQ) choose_stencil(i,requests[i]);
+      else stencil_create[i] = NULL;
     }
 
     // set each list's build/grow/stencil/ghost flags based on neigh request
@@ -742,8 +689,6 @@ void Neighbor::init()
     for (i = 0; i < nrequest; i++) {
       if (lists[i]) {
         lists[i]->buildflag = 1;
-        // NOTE: let old pair_build determine buildflag
-        //if (pair_build_new[i] == NULL) lists[i]->buildflag = 0;
         if (pair_build[i] == NULL) lists[i]->buildflag = 0;
         if (requests[i]->occasional) lists[i]->buildflag = 0;
         if (lists[i]->buildflag) anybuild = 1;
@@ -753,8 +698,6 @@ void Neighbor::init()
 
         lists[i]->stencilflag = 1;
         if (style == NSQ) lists[i]->stencilflag = 0;
-        // NOTE: let old stencil_create determine stencilflag
-        //if (stencil_create_new[i] == NULL) lists[i]->stencilflag = 0;
         if (stencil_create[i] == NULL) lists[i]->stencilflag = 0;
 
         lists[i]->ghostflag = 0;
@@ -1076,331 +1019,6 @@ int Neighbor::request(void *requestor, int instance)
 }
 
 /* ----------------------------------------------------------------------
-   determine which Build class each neigh list needs
-   based on settings of neigh request
-   copy -> copy_from function
-   skip -> granular function if gran, several options
-           respa function if respaouter,
-           skip_from function for everything else
-   ssa -> special case for USER-DPD pair styles
-   half_from_full, half, full, gran, respaouter ->
-     choose by newton and rq->newton and triclinic settings
-     style NSQ options = newton off, newton on
-     style BIN options = newton off, newton on and not tri, newton on and tri
-     stlye MULTI options = same options as BIN
-   if none of these, ptr = NULL since pair_build is not invoked for this list
-   use "else if" logic b/c skip,copy can be set in addition to half,full,etc
-------------------------------------------------------------------------- */
-
-void Neighbor::choose_build_new(int index, NeighRequest *rq)
-{
-  int build = -1;
-
-  if (rq->omp == 0 && rq->intel == 0) {
-
-    if (rq->copy) build = -1; // BUILD_COPY_FROM;
-
-    else if (rq->skip) {
-      if (rq->gran) {
-        NeighRequest *otherrq = requests[rq->otherlist];
-        if (otherrq->newton == 0) {
-          build = -1; // BUILD_SKIP_FROM_GRANULAR;
-        } else if (otherrq->newton == 1) {
-          error->all(FLERR,"Neighbor build method not supported");
-        } else if (otherrq->newton == 2) {
-          if (rq->granonesided == 0)
-            build = -1; // BUILD_SKIP_FROM_GRANULAR_OFF2ON;
-          else if (rq->granonesided == 1)
-            build = -1; // BUILD_SKIP_FROM_GRANULAR_OFF2ON_ONESIDED;
-        }
-      } 
-      else if (rq->respaouter) build = -1; // BUILD_SKIP_FROM_RESPA;
-      else build = -1; // BUILD_SKIP_FROM;
-
-    } else if (rq->ssa) {
-      if (rq->half_from_full) build = -1; // BUILD_HALF_FROM_FULL_NEWTON_SSA;
-      else build = -1; // BUILD_HALF_BIN_NEWTON_SSA;
-
-    } else if (rq->half_from_full) {
-      if (rq->newton == 0) {
-        if (newton_pair == 0) build = -1; // BUILD_HALF_FROM_FULL_NO_NEWTON;
-        else if (newton_pair == 1) build = -1; // BUILD_HALF_FROM_FULL_NEWTON;
-      } else if (rq->newton == 1) {
-        build = -1; // BUILD_HALF_FROM_FULL_NEWTON;
-      } else if (rq->newton == 2) {
-        build = -1; // BUILD_HALF_FROM_FULL_NO_NEWTON;
-      }
-
-    } else if (rq->half) {
-      if (style == NSQ) {
-        if (rq->newton == 0) {
-          if (newton_pair == 0) {
-            if (rq->ghost == 0) build = -1; // BUILD_HALF_NSQ_NO_NEWTON;
-            else if (includegroup)
-              error->all(FLERR,"Neighbor include group not allowed "
-                         "with ghost neighbors");
-            else build = -1; // BUILD_HALF_NSQ_NO_NEWTON_GHOST;
-          } else if (newton_pair == 1) build = -1; // BUILD_HALF_NSQ_NEWTON;
-        } else if (rq->newton == 1) {
-          build = -1; // BUILD_HALF_NSQ_NEWTON;
-        } else if (rq->newton == 2) {
-          if (rq->ghost == 0) build = -1; // BUILD_HALF_NSQ_NO_NEWTON;
-          else if (includegroup)
-            error->all(FLERR,"Neighbor include group not allowed "
-                       "with ghost neighbors");
-          else build = -1; // BUILD_HALF_NSQ_NO_NEWTON_GHOST;
-        }
-      } else if (style == BIN) {
-        if (rq->newton == 0) {
-          if (newton_pair == 0) {
-            if (rq->ghost == 0) build = -1; // BUILD_HALF_BIN_NO_NEWTON;
-            else if (includegroup)
-              error->all(FLERR,"Neighbor include group not allowed "
-                         "with ghost neighbors");
-            else build = -1; // BUILD_HALF_BIN_NO_NEWTON_GHOST;
-          } else if (triclinic == 0) {
-            build = BUILD_HALF_BIN_NEWTON;
-          } else if (triclinic == 1)
-            build = -1; // BUILD_HALF_BIN_NEWTON_TRI;
-        } else if (rq->newton == 1) {
-          if (triclinic == 0) build = BUILD_HALF_BIN_NEWTON;
-          else if (triclinic == 1) build = -1; // BUILD_HALF_BIN_NEWTON_TRI;
-        } else if (rq->newton == 2) {
-          if (rq->ghost == 0) build = -1; // BUILD_HALF_BIN_NO_NEWTON;
-          else if (includegroup)
-            error->all(FLERR,"Neighbor include group not allowed "
-                       "with ghost neighbors");
-          else build = -1; // BUILD_HALF_BIN_NO_NEWTON_GHOST;
-        }
-      } else if (style == MULTI) {
-        if (rq->ghost == 1)
-          error->all(FLERR,
-                     "Neighbor multi not yet enabled for ghost neighbors");
-        if (rq->newton == 0) {
-          if (newton_pair == 0) build = -1; // BUILD_HALF_MULTI_NO_NEWTON;
-          else if (triclinic == 0) build = -1; // BUILD_HALF_MULTI_NEWTON;
-          else if (triclinic == 1) build = -1; // BUILD_HALF_MULTI_NEWTON_TRI;
-        } else if (rq->newton == 1) {
-          if (triclinic == 0) build = -1; // BUILD_HALF_MULTI_NEWTON;
-          else if (triclinic == 1) build = -1; // BUILD_HALF_MULTI_NEWTON_TRI;
-        } else if (rq->newton == 2) build = -1; // BUILD_HALF_MULTI_NO_NEWTON;
-      }
-
-    } else if (rq->full) {
-      if (style == NSQ) {
-        if (rq->ghost == 0) build = -1; // BUILD_FULL_NSQ;
-        else if (includegroup)
-          error->all(FLERR,
-                     "Neighbor include group not allowed with ghost neighbors");
-        else build = -1; // BUILD_FULL_NSQ_GHOST;
-      } else if (style == BIN) {
-        if (rq->ghost == 0) build = -1; // BUILD_FULL_BIN;
-        else if (includegroup)
-          error->all(FLERR,
-                     "Neighbor include group not allowed with ghost neighbors");
-        else build = -1; // BUILD_FULL_BIN_GHOST;
-      } else if (style == MULTI) {
-        if (rq->ghost == 1)
-          error->all(FLERR,
-                     "Neighbor multi not yet enabled for ghost neighbors");
-        build = -1; // BUILD_FULL_MULTI;
-      }
-
-    } else if (rq->gran) {
-      if (rq->newton == 0) {
-        if (style == NSQ) {
-          if (newton_pair == 0) build = -1; // BUILD_GRANULAR_NSQ_NO_NEWTON;
-          else if (newton_pair == 1) {
-            if (rq->granonesided == 0) build = -1; // BUILD_GRANULAR_NSQ_NEWTON;
-            else build = -1; // BUILD_GRANULAR_NSQ_NEWTON_ONESIDED;
-          }
-        } else if (style == BIN) {
-          if (newton_pair == 0) build = -1; // BUILD_GRANULAR_BIN_NO_NEWTON;
-          else if (newton_pair == 1) {
-            if (triclinic == 0) {
-              if (rq->granonesided == 0) build = -1; // BUILD_GRANULAR_BIN_NEWTON;
-              else build = -1; // BUILD_GRANULAR_BIN_NEWTON_ONESIDED;
-            } else if (triclinic == 1) {
-              if (rq->granonesided == 0) 
-                build = -1; // BUILD_GRANULAR_BIN_NEWTON_TRI;
-              else error->all(FLERR,"Neighbor build method not supported");
-            }
-          }
-        } else if (style == MULTI)
-          error->all(FLERR,"Neighbor multi not yet enabled for granular");
-      } else if (rq->newton == 1) {
-        error->all(FLERR,"Neighbor build method not yet supported");
-      } else if (rq->newton == 2) {
-        if (style == NSQ) build = -1; // BUILD_GRANULAR_NSQ_NO_NEWTON;
-        else if (style == BIN) {
-          if (triclinic == 0) build = -1; // BUILD_GRANULAR_BIN_NO_NEWTON;
-          else if (triclinic == 1) 
-            error->all(FLERR,"Neighbor build method not yet supported");
-        } else if (style == MULTI)
-          error->all(FLERR,"Neighbor multi not yet enabled for granular");
-      }
-      
-    } else if (rq->respaouter) {
-      if (style == NSQ) {
-        if (newton_pair == 0) build = -1; // BUILD_RESPA_NSQ_NO_NEWTON;
-        else if (newton_pair == 1) build = -1; // BUILD_RESPA_NSQ_NEWTON;
-      } else if (style == BIN) {
-        if (newton_pair == 0) build = -1; // BUILD_RESPA_BIN_NO_NEWTON;
-        else if (triclinic == 0) build = -1; // BUILD_RESPA_BIN_NEWTON;
-        else if (triclinic == 1) build = -1; // BUILD_RESPA_BIN_NEWTON_TRI;
-      } else if (style == MULTI)
-        error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
-    }
-
-  // OMP versions of build methods
-
-  } else {
-
-    if (rq->copy) build = -1; // BUILD_COPY_FROM;
-
-    else if (rq->skip) {
-      if (rq->gran && lists[index]->listgranhistory)
-        build = -1; // BUILD_SKIP_FROM_GRANULAR;
-      else if (rq->respaouter) build = -1; // BUILD_SKIP_FROM_RESPA;
-      else build = -1; // BUILD_SKIP_FROM;
-
-    } else if (rq->half_from_full) {
-      if (newton_pair == 0) build = -1; // BUILD_HALF_FROM_FULL_NO_NEWTON_OMP;
-      else if (newton_pair == 1) build = -1; // BUILD_HALF_FROM_FULL_NEWTON_OMP;
-
-    } else if (rq->half) {
-      if (style == NSQ) {
-        if (rq->newton == 0) {
-          if (newton_pair == 0) {
-            if (rq->ghost == 0) build = -1; // BUILD_HALF_NSQ_NO_NEWTON_OMP;
-            else if (includegroup)
-              error->all(FLERR,"Neighbor include group not allowed "
-                         "with ghost neighbors");
-            else build = -1; // BUILD_HALF_NSQ_NO_NEWTON_GHOST_OMP;
-          } else if (newton_pair == 1) build = -1; // BUILD_HALF_NSQ_NEWTON_OMP;
-        } else if (rq->newton == 1) {
-          build = -1; // BUILD_HALF_NSQ_NEWTON_OMP;
-        } else if (rq->newton == 2) {
-          if (rq->ghost == 0) build = -1; // BUILD_HALF_NSQ_NO_NEWTON_OMP;
-          else if (includegroup)
-            error->all(FLERR,"Neighbor include group not allowed "
-                       "with ghost neighbors");
-          else build = -1; // BUILD_HALF_NSQ_NO_NEWTON_GHOST_OMP;
-        }
-      } else if (style == BIN) {
-        if (rq->newton == 0) {
-          if (newton_pair == 0) {
-            if (rq->ghost == 0) {
-	      if (rq->intel) build = -1; // BUILD_HALF_BIN_NO_NEWTON_INTEL;
-	      else build = -1; // BUILD_HALF_BIN_NO_NEWTON_OMP;
-            } else if (includegroup)
-              error->all(FLERR,"Neighbor include group not allowed "
-                         "with ghost neighbors");
-            else build = -1; // BUILD_HALF_BIN_NO_NEWTON_GHOST_OMP;
-          } else if (triclinic == 0) {
-            if (rq->intel) build = -1; // BUILD_HALF_BIN_NEWTON_INTEL;
-            else build = -1; // BUILD_HALF_BIN_NEWTON_OMP;
-          } else if (triclinic == 1) {
-            if (rq->intel) build = -1; // BUILD_HALF_BIN_NEWTON_TRI_INTEL;
-            else build = -1; // BUILD_HALF_BIN_NEWTON_TRI_OMP;
-	  }
-        } else if (rq->newton == 1) {
-          if (triclinic == 0) {
-	    if (rq->intel) build = -1; // BUILD_HALF_BIN_NEWTON_INTEL;
-	    else build = -1; // BUILD_HALF_BIN_NEWTON_OMP;
-          } else if (triclinic == 1) {
-            if (rq->intel) build = -1; // BUILD_HALF_BIN_NEWTON_TRI_INTEL;
-            else build = -1; // BUILD_HALF_BIN_NEWTON_TRI_OMP;
-	  }
-        } else if (rq->newton == 2) {
-          if (rq->ghost == 0) {
-	    if (rq->intel) build = -1; // BUILD_HALF_BIN_NO_NEWTON_INTEL;
-	    else build = -1; // BUILD_HALF_BIN_NO_NEWTON_OMP;
-          } else if (includegroup)
-            error->all(FLERR,"Neighbor include group not allowed "
-                       "with ghost neighbors");
-          else build = -1; // BUILD_HALF_BIN_NO_NEWTON_GHOST_OMP;
-        }
-      } else if (style == MULTI) {
-        if (rq->ghost == 1)
-          error->all(FLERR,
-                     "Neighbor multi not yet enabled for ghost neighbors");
-        if (rq->newton == 0) {
-          if (newton_pair == 0) build = -1; // BUILD_HALF_MULTI_NO_NEWTON_OMP;
-          else if (triclinic == 0) build = -1; // BUILD_HALF_MULTI_NEWTON_OMP;
-          else if (triclinic == 1) build = -1; // BUILD_HALF_MULTI_NEWTON_TRI_OMP;
-        } else if (rq->newton == 1) {
-          if (triclinic == 0) build = -1; // BUILD_HALF_MULTI_NEWTON_OMP;
-          else if (triclinic == 1) build = -1; // BUILD_HALF_MULTI_NEWTON_TRI_OMP;
-        } else if (rq->newton == 2) build = -1; // BUILD_HALF_MULTI_NO_NEWTON_OMP;
-      }
-
-    } else if (rq->full) {
-      if (style == NSQ) {
-        if (rq->ghost == 0) build = -1; // BUILD_FULL_NSQ_OMP;
-        else if (includegroup)
-          error->all(FLERR,
-                     "Neighbor include group not allowed with ghost neighbors");
-        else build = -1; // BUILD_FULL_NSQ_GHOST_OMP;
-      } else if (style == BIN) {
-        if (rq->ghost == 0) {
-	  if (rq->intel) build = -1; // BUILD_FULL_BIN_INTEL;
-	  else build = -1; // BUILD_FULL_BIN_OMP;
-        } else if (includegroup)
-          error->all(FLERR,
-                     "Neighbor include group not allowed with ghost neighbors");
-        else build = -1; // BUILD_FULL_BIN_GHOST_OMP;
-      } else if (style == MULTI) {
-        if (rq->ghost == 1)
-          error->all(FLERR,
-                     "Neighbor multi not yet enabled for ghost neighbors");
-        build = -1; // BUILD_FULL_MULTI_OMP;
-      }
-
-    } else if (rq->gran) {
-      if (style == NSQ) {
-        if (newton_pair == 0) build = -1; // BUILD_GRANULAR_NSQ_NO_NEWTON_OMP;
-        else if (newton_pair == 1) build = -1; // BUILD_GRANULAR_NSQ_NEWTON_OMP;
-      } else if (style == BIN) {
-        if (newton_pair == 0) build = -1; // BUILD_GRANULAR_BIN_NO_NEWTON_OMP;
-        else if (triclinic == 0) build = -1; // BUILD_GRANULAR_BIN_NEWTON_OMP;
-        else if (triclinic == 1) build = -1; // BUILD_GRANULAR_BIN_NEWTON_TRI_OMP;
-      } else if (style == MULTI)
-        error->all(FLERR,"Neighbor multi not yet enabled for granular");
-
-    } else if (rq->respaouter) {
-      if (style == NSQ) {
-        if (newton_pair == 0) build = -1; // BUILD_RESPA_NSQ_NO_NEWTON_OMP;
-        else if (newton_pair == 1) build = -1; // BUILD_RESPA_NSQ_NEWTON_OMP;
-      } else if (style == BIN) {
-        if (newton_pair == 0) build = -1; // BUILD_RESPA_BIN_NO_NEWTON_OMP;
-        else if (triclinic == 0) build = -1; // BUILD_RESPA_BIN_NEWTON_OMP;
-        else if (triclinic == 1) build = -1; // BUILD_RESPA_BIN_NEWTON_TRI_OMP;
-      } else if (style == MULTI)
-        error->all(FLERR,"Neighbor multi not yet enabled for rRESPA");
-    }
-  }
-
-  // instantiate selected Stencil class
-
-  if (build < 0) pair_build_new[index] = NULL;
-  else if (build_map->find(build) != build_map->end()) {
-    BuildCreator build_creator = (*build_map)[build];
-    pair_build_new[index] = build_creator(lmp);
-  } else error->all(FLERR,"Neighbor build class does not exit");
-}
-
-/* ----------------------------------------------------------------------
-   one instance per fix in style_build.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Build *Neighbor::build_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-/* ----------------------------------------------------------------------
    determine which pair_build function each neigh list needs
    based on settings of neigh request
    copy -> copy_from function
@@ -1710,133 +1328,6 @@ void Neighbor::choose_build(int index, NeighRequest *rq)
 }
 
 /* ----------------------------------------------------------------------
-   determine which Stencil class each neigh list needs
-   based on settings of neigh request, only called if style != NSQ
-   skip or copy or half_from_full -> no stencil
-   ssa = special case for USER-DPD pair styles
-   half, gran, respaouter, full -> choose by newton and tri and dimension
-   if none of these, ptr = NULL since this list needs no stencils
-   use "else if" b/c skip,copy can be set in addition to half,full,etc
-------------------------------------------------------------------------- */
-
-void Neighbor::choose_stencil_new(int index, NeighRequest *rq)
-{
-  int stencil = -1;
-
-  if (rq->skip || rq->copy || rq->half_from_full) stencil = -1;
-
-  else if (rq->ssa) {
-    if (dimension == 2) stencil = -1; // STENCIL_HALF_BIN_2D_SSA;
-    else if (dimension == 3) stencil = -1; // STENCIL_HALF_BIN_3D_SSA;
-
-  } else if (rq->half || rq->gran || rq->respaouter) {
-    if (style == BIN) {
-      if (rq->newton == 0) {
-        if (newton_pair == 0) {
-          if (dimension == 2) {
-            if (rq->ghost) stencil = -1; // STENCIL_HALF_GHOST_BIN_2D_NO_NEWTON;
-            else stencil = -1; // STENCIL_HALF_BIN_2D_NO_NEWTON;
-          } else if (dimension == 3) {
-            if (rq->ghost) stencil = -1; // STENCIL_HALF_GHOST_BIN_3D_NO_NEWTON;
-            else stencil = -1; // STENCIL_HALF_BIN_3D_NO_NEWTON;
-          }
-        } else if (triclinic == 0) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_BIN_2D_NEWTON;
-          else if (dimension == 3)
-            stencil = STENCIL_HALF_BIN_3D_NEWTON;
-        } else if (triclinic == 1) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_BIN_2D_NEWTON_TRI;
-          else if (dimension == 3)
-            stencil = -1; // STENCIL_HALF_BIN_3D_NEWTON_TRI;
-        }
-      } else if (rq->newton == 1) {
-        if (triclinic == 0) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_BIN_2D_NEWTON;
-          else if (dimension == 3)
-            stencil = STENCIL_HALF_BIN_3D_NEWTON;
-        } else if (triclinic == 1) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_BIN_2D_NEWTON_TRI;
-          else if (dimension == 3)
-            stencil = -1; // STENCIL_HALF_BIN_3D_NEWTON_TRI;
-        }
-      } else if (rq->newton == 2) {
-        if (dimension == 2)
-          if (rq->ghost) stencil = -1; // STENCIL_HALF_GHOST_BIN_2D_NO_NEWTON;
-          else stencil = -1; // STENCIL_HALF_BIN_2D_NO_NEWTON;
-        else if (dimension == 3) {
-          if (rq->ghost) stencil = -1; // STENCIL_HALF_GHOST_BIN_3D_NO_NEWTON;
-          else stencil = -1; // STENCIL_HALF_BIN_3D_NO_NEWTON;
-        }
-      }
-
-    } else if (style == MULTI) {
-      if (rq->newton == 0) {
-        if (newton_pair == 0) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_MULTI_2D_NO_NEWTON;
-          else if (dimension == 3)
-            stencil = -1; // STENCIL_HALF_MULTI_3D_NO_NEWTON;
-        } else if (triclinic == 0) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_MULTI_2D_NEWTON;
-          else if (dimension == 3)
-            stencil = -1; // STENCIL_HALF_MULTI_3D_NEWTON;
-        } else if (triclinic == 1) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_MULTI_2D_NEWTON_TRI;
-          else if (dimension == 3)
-            stencil = -1; // STENCIL_HALF_MULTI_3D_NEWTON_TRI;
-        }
-      } else if (rq->newton == 1) {
-        if (triclinic == 0) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_MULTI_2D_NEWTON;
-          else if (dimension == 3)
-            stencil = -1; // STENCIL_HALF_MULTI_3D_NEWTON;
-        } else if (triclinic == 1) {
-          if (dimension == 2)
-            stencil = -1; // STENCIL_HALF_MULTI_2D_NEWTON_TRI;
-          else if (dimension == 3)
-            stencil = -1; // STENCIL_HALF_MULTI_3D_NEWTON_TRI;
-        }
-      } else if (rq->newton == 2) {
-        if (dimension == 2)
-          stencil = -1; // STENCIL_HALF_MULTI_2D_NO_NEWTON;
-        else if (dimension == 3)
-          stencil = -1; // STENCIL_HALF_MULTI_3D_NO_NEWTON;
-      }
-    }
-
-  } else if (rq->full) {
-    if (style == BIN) {
-      if (dimension == 2) {
-        if (rq->ghost) stencil = -1; // STENCIL_FULL_GHOST_BIN_2D;
-        else stencil = -1; // STENCIL_FULL_BIN_2D;
-      }
-      else if (dimension == 3) {
-        if (rq->ghost) stencil = -1; // STENCIL_FULL_GHOST_BIN_3D;
-        else stencil = -1; // STENCIL_FULL_BIN_3D;
-      }
-    } else if (style == MULTI) {
-      if (dimension == 2) stencil = -1; // STENCIL_FULL_MULTI_2D;
-      else if (dimension == 3) stencil = -1; // STENCIL_FULL_MULTI_3D;
-    }
-  }
-
-  // instantiate selected Stencil class
-
-  if (stencil < 0) stencil_create_new[index] = NULL;
-  else if (stencil_map->find(stencil) != stencil_map->end()) {
-    StencilCreator stencil_creator = (*stencil_map)[stencil];
-    stencil_create_new[index] = stencil_creator(lmp);
-  } else error->all(FLERR,"Neighbor stencil class does not exit");
-}
-
-/* ----------------------------------------------------------------------
    determine which stencil_create function each neigh list needs
    based on settings of neigh request, only called if style != NSQ
    skip or copy or half_from_full -> no stencil
@@ -1955,16 +1446,6 @@ void Neighbor::choose_stencil(int index, NeighRequest *rq)
   }
 
   stencil_create[index] = sc;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per fix in style_stencil.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Stencil *Neighbor::stencil_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2146,11 +1627,8 @@ void Neighbor::build(int topoflag)
   // only for pairwise lists with buildflag set
   // blist is for standard neigh lists, otherwise is a Kokkos list
 
-  for (i = 0; i < nblist; i++) {
-    if (pair_build_new[blist[i]])
-      pair_build_new[blist[i]]->compute(lists[blist[i]]);
-    else (this->*pair_build[blist[i]])(lists[blist[i]]);
-  }
+  for (i = 0; i < nblist; i++)
+    (this->*pair_build[blist[i]])(lists[blist[i]]);
 
   if (atom->molecular && topoflag) build_topology();
 }
@@ -2199,9 +1677,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   if (mylist->stencilflag) {
     mylist->stencil_allocate(smax,style);
-    if (stencil_create_new[mylist->index])
-      stencil_create_new[mylist->index]->compute(mylist,sx,sy,sz);
-    else (this->*stencil_create[mylist->index])(mylist,sx,sy,sz);
+    (this->*stencil_create[mylist->index])(mylist,sx,sy,sz);
   }
 
   if (mylist->growflag) mylist->grow(maxatom);
@@ -2212,9 +1688,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   //   leading to errors or even a crash
 
   binatomflag = 0;
-  if (pair_build_new[mylist->index])
-    pair_build_new[mylist->index]->compute(mylist);
-  else (this->*pair_build[mylist->index])(mylist);
+  (this->*pair_build[mylist->index])(mylist);
   binatomflag = 1;
 }
 
@@ -2406,9 +1880,7 @@ void Neighbor::setup_bins()
   for (int i = 0; i < nslist; i++) {
     if (lists[slist[i]]) {
       lists[slist[i]]->stencil_allocate(smax,style);
-      if (stencil_create_new[slist[i]])
-        stencil_create_new[slist[i]]->compute(lists[slist[i]],sx,sy,sz);
-      else (this->*stencil_create[slist[i]])(lists[slist[i]],sx,sy,sz);
+      (this->*stencil_create[slist[i]])(lists[slist[i]],sx,sy,sz);
     } else setup_bins_kokkos(i);
   }
 }

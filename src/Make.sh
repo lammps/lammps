@@ -54,8 +54,7 @@ style () {
 # col 1 = string to search for
 # col 2 = search in *.h files starting with this name
 # col 3 = prefix of style file
-# col 4 = file that includes the style file
-# col 5 = optional 2nd file that includes the style file
+# col 4 
 
 if (test $1 = "style") then
 
@@ -63,9 +62,8 @@ if (test $1 = "style") then
   style ATOM_CLASS      atom_vec_   atom       atom      atom_vec_hybrid
   style BODY_CLASS      body_       body       atom_vec_body
   style BOND_CLASS      bond_       bond       force
-  style BUILD_CLASS     build_      build      neighbor
   style COMMAND_CLASS   ""          command    input
-  style COMPUTE_CLASS   compute_    compute    modify
+  style COMPUTE_CLASS   compute_    compute    modify    modify_cuda
   style DIHEDRAL_CLASS  dihedral_   dihedral   force
   style DUMP_CLASS      dump_       dump       output    write_dump
   style FIX_CLASS       fix_        fix        modify
@@ -76,7 +74,6 @@ if (test $1 = "style") then
   style PAIR_CLASS      pair_       pair       force
   style READER_CLASS    reader_     reader     read_dump
   style REGION_CLASS    region_     region     domain
-  style STENCIL_CLASS   stencil_    stencil    neighbor
 
 # edit Makefile.lib, for creating non-shared lib
 # called by "make makelib"

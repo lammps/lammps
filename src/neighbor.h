@@ -15,13 +15,11 @@
 #define LMP_NEIGHBOR_H
 
 #include "pointers.h"
-#include <map>
 
 namespace LAMMPS_NS {
 
 class Neighbor : protected Pointers {
-  friend class StencilHalfBin3dNewton;
-  friend class BuildHalfBinNewton;
+  friend class Cuda;
 
  public:
   int style;                       // 0,1,2 = nsq, bin, multi
@@ -188,28 +186,8 @@ class Neighbor : protected Pointers {
   int exclusion(int, int, int,
                 int, int *, tagint *) const;    // test for pair exclusion
 
-  // choose stencil and build methods
-
   virtual void choose_build(int, class NeighRequest *);
   void choose_stencil(int, class NeighRequest *);
-
-  // new versions
-  // choose stencil and build classes
-
-  void choose_stencil_new(int, class NeighRequest *);
-  void choose_build_new(int, class NeighRequest *);
-
-  typedef class Stencil *(*StencilCreator)(class LAMMPS *);
-  std::map<int,StencilCreator> *stencil_map;
-
-  typedef class Build *(*BuildCreator)(class LAMMPS *);
-  std::map<int,BuildCreator> *build_map;
-
-  template <typename T> static Stencil *stencil_creator(class LAMMPS *);
-  template <typename T> static Build *build_creator(class LAMMPS *);
-
-  class Stencil **stencil_create_new;
-  class Build **pair_build_new;
 
   // dummy functions provided by NeighborKokkos
 

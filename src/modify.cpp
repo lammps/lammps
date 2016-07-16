@@ -28,6 +28,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <map>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

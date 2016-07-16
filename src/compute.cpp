@@ -18,6 +18,7 @@
 #include "compute.h"
 #include "atom.h"
 #include "domain.h"
+#include "force.h"
 #include "comm.h"
 #include "group.h"
 #include "modify.h"
@@ -25,7 +26,6 @@
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 

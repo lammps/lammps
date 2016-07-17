@@ -36,10 +36,15 @@ enum{NPARTNER,PERPARTNER};
 FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY commmand");
+
   restart_peratom = 1;
   create_attribute = 1;
 
   newton_pair = force->newton_pair;
+
+  dnum = force->inumeric(FLERR,arg[3]);
+  dnumbytes = dnum * sizeof(double);
 
   onesided = 0;
   if (strcmp(id,"LINE_SHEAR_HISTORY") == 0) onesided = 1;
@@ -105,11 +110,7 @@ int FixShearHistory::setmask()
 void FixShearHistory::init()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,
-               "Pair style granular with history requires atoms have IDs");
-
-  int dim;
-  computeflag = (int *) pair->extract("computeflag",dim);
+    error->all(FLERR,"Granular shear history requires atoms have IDs");
 
   allocate_pages();
 }
@@ -134,10 +135,10 @@ void FixShearHistory::allocate_pages()
     oneatom = neighbor->oneatom;
     int nmypage = comm->nthreads;
     ipage = new MyPage<tagint>[nmypage];
-    dpage = new MyPage<double[3]>[nmypage];
+    dpage = new MyPage<double>[nmypage];
     for (int i = 0; i < nmypage; i++) {
       ipage[i].init(oneatom,pgsize);
-      dpage[i].init(oneatom,pgsize);
+      dpage[i].init(dnum*oneatom,dnum*pgsize);
     }
   }
 }
@@ -208,9 +209,8 @@ void FixShearHistory::pre_exchange_onesided()
     jnum = numneigh[i];
     touch = firsttouch[i];
 
-    for (jj = 0; jj < jnum; jj++) {
+    for (jj = 0; jj < jnum; jj++)
       if (touch[jj]) npartner[i]++;
-    }
   }
 
   // get page chunks to store atom IDs and shear history for owned atoms
@@ -219,7 +219,7 @@ void FixShearHistory::pre_exchange_onesided()
     i = ilist[ii];
     n = npartner[i];
     partner[i] = ipage->get(n);
-    shearpartner[i] = dpage->get(n);
+    shearpartner[i] = dpage->get(dnum*n);
     if (partner[i] == NULL || shearpartner[i] == NULL)
       error->one(FLERR,"Shear history overflow, boost neigh_modify one");
   }
@@ -239,14 +239,12 @@ void FixShearHistory::pre_exchange_onesided()
 
     for (jj = 0; jj < jnum; jj++) {
       if (touch[jj]) {
-        shear = &allshear[3*jj];
+        shear = &allshear[dnum*jj];
         j = jlist[jj];
         j &= NEIGHMASK;
         m = npartner[i];
         partner[i][m] = tag[j];
-        shearpartner[i][m][0] = shear[0];
-        shearpartner[i][m][1] = shear[1];
-        shearpartner[i][m][2] = shear[2];
+        memcpy(&shearpartner[i][dnum*m],shear,dnumbytes);
         npartner[i]++;
       }
     }
@@ -257,7 +255,7 @@ void FixShearHistory::pre_exchange_onesided()
   
   maxtouch = 0;
   for (i = 0; i < nlocal_neigh; i++) maxtouch = MAX(maxtouch,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxtouch+1);
+  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxtouch+1);
 
   // zero npartner values from previous nlocal_neigh to current nlocal
 
@@ -275,7 +273,7 @@ void FixShearHistory::pre_exchange_newton()
   int i,j,ii,jj,m,n,inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
-  double *shear,*allshear,**firstshear;
+  double *shear,*shearj,*allshear,**firstshear;
 
   // NOTE: all operations until very end are with 
   //   nlocal_neigh  <= current nlocal and nall_neigh
@@ -329,7 +327,7 @@ void FixShearHistory::pre_exchange_newton()
     i = ilist[ii];
     n = npartner[i];
     partner[i] = ipage->get(n);
-    shearpartner[i] = dpage->get(n);
+    shearpartner[i] = dpage->get(dnum*n);
     if (partner[i] == NULL || shearpartner[i] == NULL) {
       error->one(FLERR,"Shear history overflow, boost neigh_modify one");
     }
@@ -338,7 +336,7 @@ void FixShearHistory::pre_exchange_newton()
   for (i = nlocal_neigh; i < nall_neigh; i++) {
     n = npartner[i];
     partner[i] = ipage->get(n);
-    shearpartner[i] = dpage->get(n);
+    shearpartner[i] = dpage->get(dnum*n);
     if (partner[i] == NULL || shearpartner[i] == NULL) {
       error->one(FLERR,"Shear history overflow, boost neigh_modify one");
     }
@@ -359,19 +357,16 @@ void FixShearHistory::pre_exchange_newton()
 
     for (jj = 0; jj < jnum; jj++) {
       if (touch[jj]) {
-        shear = &allshear[3*jj];
+        shear = &allshear[dnum*jj];
         j = jlist[jj];
         j &= NEIGHMASK;
         m = npartner[i]++;
         partner[i][m] = tag[j];
-        shearpartner[i][m][0] = shear[0];
-        shearpartner[i][m][1] = shear[1];
-        shearpartner[i][m][2] = shear[2];
+        memcpy(&shearpartner[i][dnum*m],shear,dnumbytes);
         m = npartner[j]++;
         partner[j][m] = tag[i];
-        shearpartner[j][m][0] = -shear[0];
-        shearpartner[j][m][1] = -shear[1];
-        shearpartner[j][m][2] = -shear[2];
+        shearj = &shearpartner[j][dnum*m];
+        for (n = 0; n < dnum; n++) shearj[n] = -shear[n];
       }
     }
   }
@@ -407,7 +402,7 @@ void FixShearHistory::pre_exchange_no_newton()
   int i,j,ii,jj,m,n,inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *touch,**firsttouch;
-  double *shear,*allshear,**firstshear;
+  double *shear,*shearj,*allshear,**firstshear;
 
   // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
   // b/c previous neigh list was built with nlocal_neigh
@@ -455,7 +450,7 @@ void FixShearHistory::pre_exchange_no_newton()
     i = ilist[ii];
     n = npartner[i];
     partner[i] = ipage->get(n);
-    shearpartner[i] = dpage->get(n);
+    shearpartner[i] = dpage->get(dnum*n);
     if (partner[i] == NULL || shearpartner[i] == NULL)
       error->one(FLERR,"Shear history overflow, boost neigh_modify one");
   }
@@ -475,22 +470,17 @@ void FixShearHistory::pre_exchange_no_newton()
 
     for (jj = 0; jj < jnum; jj++) {
       if (touch[jj]) {
-        shear = &allshear[3*jj];
+        shear = &allshear[dnum*jj];
         j = jlist[jj];
         j &= NEIGHMASK;
-        m = npartner[i];
+        m = npartner[i]++;
         partner[i][m] = tag[j];
-        shearpartner[i][m][0] = shear[0];
-        shearpartner[i][m][1] = shear[1];
-        shearpartner[i][m][2] = shear[2];
-        npartner[i]++;
+        memcpy(&shearpartner[i][dnum*m],shear,dnumbytes);
         if (j < nlocal_neigh) {
-          m = npartner[j];
+          m = npartner[j]++;
           partner[j][m] = tag[i];
-          shearpartner[j][m][0] = -shear[0];
-          shearpartner[j][m][1] = -shear[1];
-          shearpartner[j][m][2] = -shear[2];
-          npartner[j]++;
+          shearj = &shearpartner[j][dnum*m];
+          for (n = 0; n < dnum; n++) shearj[n] = -shear[n];
         }
       }
     }
@@ -501,7 +491,7 @@ void FixShearHistory::pre_exchange_no_newton()
   
   maxtouch = 0;
   for (i = 0; i < nlocal_neigh; i++) maxtouch = MAX(maxtouch,npartner[i]);
-  comm->maxexchange_fix = MAX(comm->maxexchange_fix,4*maxtouch+1);
+  comm->maxexchange_fix = MAX(comm->maxexchange_fix,(dnum+1)*maxtouch+1);
 
   // zero npartner values from previous nlocal_neigh to current nlocal
 
@@ -552,11 +542,9 @@ void FixShearHistory::grow_arrays(int nmax)
   memory->grow(npartner,nmax,"shear_history:npartner");
   partner = (tagint **) memory->srealloc(partner,nmax*sizeof(tagint *),
                                          "shear_history:partner");
-
-  typedef double (*sptype)[3];
-  shearpartner = (sptype *)
-    memory->srealloc(shearpartner,nmax*sizeof(sptype),
-                     "shear_history:shearpartner");
+  shearpartner = (double **) memory->srealloc(shearpartner,
+                                              nmax*sizeof(double *),
+                                              "shear_history:shearpartner");
 }
 
 /* ----------------------------------------------------------------------
@@ -622,9 +610,8 @@ int FixShearHistory::pack_reverse_comm(int n, int first, double *buf)
       buf[m++] = npartner[i];
       for (int k = 0; k < npartner[i]; k++) {
         buf[m++] = partner[i][k];
-        buf[m++] = shearpartner[i][k][0];
-        buf[m++] = shearpartner[i][k][1];
-        buf[m++] = shearpartner[i][k][2];
+        memcpy(&buf[m],&shearpartner[i][dnum*k],dnumbytes);
+        m += dnum;
       }
     }
   }
@@ -654,9 +641,8 @@ void FixShearHistory::unpack_reverse_comm(int n, int *list, double *buf)
       for (int k = 0; k < ncount; k++) {
         kk = npartner[j]++;
         partner[j][kk] = static_cast<tagint> (buf[m++]);
-        shearpartner[j][kk][0] = buf[m++];
-        shearpartner[j][kk][1] = buf[m++];
-        shearpartner[j][kk][2] = buf[m++];
+        memcpy(&shearpartner[j][dnum*kk],&buf[m],dnumbytes);
+        m += dnum;
       }
     }
   }
@@ -675,9 +661,8 @@ int FixShearHistory::pack_exchange(int i, double *buf)
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
-    buf[m++] = shearpartner[i][n][0];
-    buf[m++] = shearpartner[i][n][1];
-    buf[m++] = shearpartner[i][n][2];
+    memcpy(&buf[m],&shearpartner[i][dnum*n],dnumbytes);
+    m += dnum;
   }
   return m;
 }
@@ -694,12 +679,11 @@ int FixShearHistory::unpack_exchange(int nlocal, double *buf)
   npartner[nlocal] = static_cast<int> (buf[m++]);
   maxtouch = MAX(maxtouch,npartner[nlocal]);
   partner[nlocal] = ipage->get(npartner[nlocal]);
-  shearpartner[nlocal] = dpage->get(npartner[nlocal]);
+  shearpartner[nlocal] = dpage->get(dnum*npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<tagint> (buf[m++]);
-    shearpartner[nlocal][n][0] = buf[m++];
-    shearpartner[nlocal][n][1] = buf[m++];
-    shearpartner[nlocal][n][2] = buf[m++];
+    memcpy(&shearpartner[nlocal][dnum*n],&buf[m],dnumbytes);
+    m += dnum;
   }
   return m;
 }
@@ -715,9 +699,8 @@ int FixShearHistory::pack_restart(int i, double *buf)
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
-    buf[m++] = shearpartner[i][n][0];
-    buf[m++] = shearpartner[i][n][1];
-    buf[m++] = shearpartner[i][n][2];
+    memcpy(&buf[m],&shearpartner[i][dnum*n],dnumbytes);
+    m += dnum;
   }
   return m;
 }
@@ -745,12 +728,11 @@ void FixShearHistory::unpack_restart(int nlocal, int nth)
   npartner[nlocal] = static_cast<int> (extra[nlocal][m++]);
   maxtouch = MAX(maxtouch,npartner[nlocal]);
   partner[nlocal] = ipage->get(npartner[nlocal]);
-  shearpartner[nlocal] = dpage->get(npartner[nlocal]);
+  shearpartner[nlocal] = dpage->get(dnum*npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
     partner[nlocal][n] = static_cast<tagint> (extra[nlocal][m++]);
-    shearpartner[nlocal][n][0] = extra[nlocal][m++];
-    shearpartner[nlocal][n][1] = extra[nlocal][m++];
-    shearpartner[nlocal][n][2] = extra[nlocal][m++];
+    memcpy(&shearpartner[nlocal][dnum*n],&extra[nlocal][m],dnumbytes);
+    m += dnum;
   }
 }
 
@@ -764,7 +746,7 @@ int FixShearHistory::maxsize_restart()
 
   int maxtouch_all;
   MPI_Allreduce(&maxtouch,&maxtouch_all,1,MPI_INT,MPI_MAX,world);
-  return 4*maxtouch_all + 2;
+  return (dnum+1)*maxtouch_all + 2;
 }
 
 /* ----------------------------------------------------------------------
@@ -773,5 +755,5 @@ int FixShearHistory::maxsize_restart()
 
 int FixShearHistory::size_restart(int nlocal)
 {
-  return 4*npartner[nlocal] + 2;
+  return (dnum+1)*npartner[nlocal] + 2;
 }

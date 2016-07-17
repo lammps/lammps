@@ -419,11 +419,14 @@ void PairGranHookeHistory::init_style()
   // if first init, create Fix needed for storing shear history
 
   if (history && fix_history == NULL) {
-    char **fixarg = new char*[3];
+    char dnumstr[16];
+    sprintf(dnumstr,"%d",3);
+    char **fixarg = new char*[4];
     fixarg[0] = (char *) "SHEAR_HISTORY";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "SHEAR_HISTORY";
-    modify->add_fix(3,fixarg,1);
+    fixarg[3] = dnumstr;
+    modify->add_fix(4,fixarg,1);
     delete [] fixarg;
     fix_history = (FixShearHistory *) modify->fix[modify->nfix-1];
     fix_history->pair = this;

@@ -58,6 +58,8 @@ NeighList::NeighList(LAMMPS *lmp) :
   listskip = NULL;
 
   // USER-DPD package
+
+  ssaflag = 0;
   ndxAIR_ssa = NULL;
   maxbin_ssa = 0;
   bins_ssa = NULL;

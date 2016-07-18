@@ -23,7 +23,7 @@
 using namespace LAMMPS_NS;
 
 #define EPSILON 1.0e-7
-enum{SPHERE,LINE};           // also in DumpImage
+enum{SPHERE,LINE,TRI};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 

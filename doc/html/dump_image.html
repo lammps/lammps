@@ -143,7 +143,7 @@
 <li>color = atom attribute that determines color of each atom</li>
 <li>diameter = atom attribute that determines size of each atom</li>
 <li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>atom</em> or <em>adiam</em> or <em>bond</em> or <em>line</em> or <em>tri</em> or <em>body</em> or <em>size</em> or <em>view</em> or <em>center</em> or <em>up</em> or <em>zoom</em> or <em>persp</em> or <em>box</em> or <em>axes</em> or <em>subbox</em> or <em>shiny</em> or <em>ssao</em></li>
+<li>keyword = <em>atom</em> or <em>adiam</em> or <em>bond</em> or <em>line</em> or <em>tri</em> or <em>body</em> or <em>fix</em> or <em>size</em> or <em>view</em> or <em>center</em> or <em>up</em> or <em>zoom</em> or <em>persp</em> or <em>box</em> or <em>axes</em> or <em>subbox</em> or <em>shiny</em> or <em>ssao</em></li>
 </ul>
 <pre class="literal-block">
 <em>atom</em> = yes/no = do or do not draw atoms
@@ -162,6 +162,10 @@
 <em>body</em> = color bflag1 bflag2
   color = <em>type</em>
   bflag1,bflag2 = 2 numeric flags to affect how bodies are drawn
+<em>fix</em> = fixID color fflag1 fflag2
+  fixID = ID of fix that generates objects to dray
+  color = <em>type</em>
+  fflag1,fflag2 = 2 numeric flags to affect how fix objects are drawn
 <em>size</em> values = width height = size of images
   width = width of image in # of pixels
   height = height of image in # of pixels
@@ -366,6 +370,7 @@ if the <em>line</em>, <em>tri</em>, or <em>body</em> keywords are used.</p>
 set a single numeric <em>size</em>.  All atoms will be drawn with that
 diameter, e.g. 1.5, which is in whatever distance <a class="reference internal" href="units.html"><span class="doc">units</span></a>
 the input script defines, e.g. Angstroms.</p>
+<hr class="docutils" />
 <p>The <em>bond</em> keyword allows to you to alter how bonds are drawn.  A bond
 is only drawn if both atoms in the bond are being drawn due to being
 in the specified group and due to other selection criteria
@@ -401,6 +406,7 @@ of the 2 atoms in the bond.</p>
 <p>If <em>type</em> is specified for the <em>width</em> value then the diameter of each
 bond is determined by its bond type.  By default all types have
 diameter 0.5.  This mapping can be changed by the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify bdiam</span></a> command.</p>
+<hr class="docutils" />
 <p>The <em>line</em> keyword can be used when <a class="reference internal" href="atom_style.html"><span class="doc">atom_style line</span></a>
 is used to define particles as line segments, and will draw them as
 lines.  If this keyword is not used, such particles will be drawn as
@@ -422,6 +428,7 @@ change this via the <a class="reference internal" href="dump_modify.html"><span 
 lines will be drawn as cylinders with that diameter, e.g. 1.0, which
 is in whatever distance <a class="reference internal" href="units.html"><span class="doc">units</span></a> the input script defines,
 e.g. Angstroms.</p>
+<hr class="docutils" />
 <p>The <em>tri</em> keyword can be used when <a class="reference internal" href="atom_style.html"><span class="doc">atom_style tri</span></a> is
 used to define particles as triangles, and will draw them as triangles
 or edges (3 lines) or both, depending on the setting for <em>tflag</em>.  If
@@ -441,6 +448,7 @@ default the mapping of types to colors is as follows:</p>
 </ul>
 <p>and repeats itself for types &gt; 6.  There is not yet an option to
 change this via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command.</p>
+<hr class="docutils" />
 <p>The <em>body</em> keyword can be used when <a class="reference internal" href="atom_style.html"><span class="doc">atom_style body</span></a>
 is used to define body particles with internal state
 (e.g. sub-particles), and will drawn them in a manner specific to the
@@ -456,6 +464,40 @@ The <em>bflag1</em> and <em>bflag2</em> settings are numerical values which are
 passed to the body style to affect how the drawing of a body particle
 is done.  See the <a class="reference internal" href="body.html"><span class="doc">body</span></a> doc page for a description of what
 these parameters mean for each body style.</p>
+<p>The only setting currently allowed for the <em>color</em> value is <em>type</em>,
+which will color the body particles according to the atom type of the
+particle.  By default the mapping of types to colors is as follows:</p>
+<ul class="simple">
+<li>type 1 = red</li>
+<li>type 2 = green</li>
+<li>type 3 = blue</li>
+<li>type 4 = yellow</li>
+<li>type 5 = aqua</li>
+<li>type 6 = cyan</li>
+</ul>
+<p>and repeats itself for types &gt; 6.  There is not yet an option to
+change this via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command.</p>
+<hr class="docutils" />
+<p>The <em>fix</em> keyword can be used with a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> that produces
+objects to be drawn.  An example is the <span class="xref doc">fix surface/global</span> command which can draw lines
+or triangles for 2d/3d simulations.</p>
+<p>The <em>fflag1</em> and <em>fflag2</em> settings are numerical values which are
+passed to the fix to affect how the drawing of its objects is done.
+See the individual fix doc page for a description of what these
+parameters mean for a particular fix.</p>
+<p>The only setting currently allowed for the <em>color</em> value is <em>type</em>,
+which will color the fix objects according to their type.  By default
+the mapping of types to colors is as follows:</p>
+<ul class="simple">
+<li>type 1 = red</li>
+<li>type 2 = green</li>
+<li>type 3 = blue</li>
+<li>type 4 = yellow</li>
+<li>type 5 = aqua</li>
+<li>type 6 = cyan</li>
+</ul>
+<p>and repeats itself for types &gt; 6.  There is not yet an option to
+change this via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command.</p>
 <hr class="docutils" />
 <p>The <em>size</em> keyword sets the width and height of the created images,
 i.e. the number of pixels in each direction.</p>

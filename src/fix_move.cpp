@@ -108,6 +108,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
       az = force->numeric(FLERR,arg[6]);
     }
     period = force->numeric(FLERR,arg[7]);
+    if (period <= 0.0) error->all(FLERR,"Illegal fix move command");
 
   } else if (strcmp(arg[3],"rotate") == 0) {
     if (narg < 11) error->all(FLERR,"Illegal fix move command");
@@ -120,6 +121,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     axis[1] = force->numeric(FLERR,arg[8]);
     axis[2] = force->numeric(FLERR,arg[9]);
     period = force->numeric(FLERR,arg[10]);
+    if (period <= 0.0) error->all(FLERR,"Illegal fix move command");
 
   } else if (strcmp(arg[3],"variable") == 0) {
     if (narg < 10) error->all(FLERR,"Illegal fix move command");
@@ -187,7 +189,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Fix move cannot set wiggle z motion for 2d problem");
     if (mstyle == ROTATE && (axis[0] != 0.0 || axis[1] != 0.0))
       error->all(FLERR,
-                 "Fix move cannot rotate aroung non z-axis for 2d problem");
+                 "Fix move cannot rotate around non z-axis for 2d problem");
     if (mstyle == VARIABLE && (zvarstr || vzvarstr))
       error->all(FLERR,
                  "Fix move cannot define z or vz variable for 2d problem");

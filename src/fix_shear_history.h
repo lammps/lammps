@@ -26,12 +26,19 @@ FixStyle(SHEAR_HISTORY,FixShearHistory)
 namespace LAMMPS_NS {
 
 class FixShearHistory : public Fix {
-  friend class Neighbor;
-  friend class PairGranHookeHistory;
+  //friend class Neighbor;
+  //friend class PairGranHookeHistory;
   friend class PairLineGranHookeHistory;
   friend class PairTriGranHookeHistory;
 
  public:
+  int nlocal_neigh;             // nlocal at last time neigh list was built
+  int nall_neigh;               // ditto for nlocal+nghost
+  int *npartner;                // # of touching partners of each atom
+  tagint **partner;             // global atom IDs for the partners
+  double **shearpartner;        // shear values with the partner
+  class Pair *pair;             // ptr to pair style that uses shear history
+
   FixShearHistory(class LAMMPS *, int, char **);
   ~FixShearHistory();
   int setmask();
@@ -57,23 +64,15 @@ class FixShearHistory : public Fix {
 
  protected:
   int newton_pair;              // same as force setting
+  int dnum,dnumbytes;           // dnum = # of shear history values
   int onesided;                 // 1 for line/tri history, else 0
-  int nlocal_neigh;             // nlocal at last time neigh list was built
-  int nall_neigh;               // ditto for nlocal+nghost
 
-  int *npartner;                // # of touching partners of each atom
-  tagint **partner;             // global atom IDs for the partners
-  double (**shearpartner)[3];   // 3 shear values with the partner
   int maxtouch;                 // max # of touching partners for my atoms
-
   int commflag;                 // mode of reverse comm to get ghost info
-
-  class Pair *pair;
-  int *computeflag;             // computeflag in PairGranHookeHistory
 
   int pgsize,oneatom;           // copy of settings in Neighbor
   MyPage<tagint> *ipage;        // pages of partner atom IDs
-  MyPage<double[3]> *dpage;     // pages of shear history with partners
+  MyPage<double> *dpage;        // pages of shear history with partners
 
   void pre_exchange_onesided();
   void pre_exchange_newton();

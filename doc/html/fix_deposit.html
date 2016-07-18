@@ -139,7 +139,7 @@
 <li>M = insert a single atom or molecule every M steps</li>
 <li>seed = random # seed (positive integer)</li>
 <li>one or more keyword/value pairs may be appended to args</li>
-<li>keyword = <em>region</em> or <em>id</em> or <em>global</em> or <em>local</em> or <em>near</em> or <em>attempt</em> or <em>rate</em> or <em>vx</em> or <em>vy</em> or <em>vz</em> or <em>mol</em> or <em>rigid</em> or <em>shake</em> or <em>units</em></li>
+<li>keyword = <em>region</em> or <em>id</em> or <em>global</em> or <em>local</em> or <em>near</em> or <em>gaussian</em> or <em>attempt</em> or <em>rate</em> or <em>vx</em> or <em>vy</em> or <em>vz</em> or <em>mol</em> or <em>rigid</em> or <em>shake</em> or <em>units</em></li>
 </ul>
 <pre class="literal-block">
 <em>region</em> value = region-ID
@@ -154,6 +154,9 @@
   delta = lateral distance within which a neighbor is considered &quot;nearby&quot; (distance units)
 <em>near</em> value = R
   R = only insert atom/molecule if further than R from existing particles (distance units)
+<em>gaussian</em> values = xmid ymid zmid sigma
+  xmid,ymid,zmid = center of the gaussian distribution (distance units)
+  sigma = width of gaussian distribution (distance units)
 <em>attempt</em> value = Q
   Q = attempt a single insertion up to Q times
 <em>rate</em> value = V
@@ -184,6 +187,7 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">3</span> <span class="nb">all</span> <span class="n">deposit</span> <span class="mi">1000</span> <span class="mi">2</span> <span class="mi">100</span> <span class="mi">29494</span> <span class="n">region</span> <span class="n">myblock</span> <span class="n">local</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="n">units</span> <span class="n">box</span>
 <span class="n">fix</span> <span class="mi">2</span> <span class="n">newatoms</span> <span class="n">deposit</span> <span class="mi">10000</span> <span class="mi">1</span> <span class="mi">500</span> <span class="mi">12345</span> <span class="n">region</span> <span class="n">disk</span> <span class="n">near</span> <span class="mf">2.0</span> <span class="n">vz</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">-</span><span class="mf">0.8</span>
 <span class="n">fix</span> <span class="mi">4</span> <span class="n">sputter</span> <span class="n">deposit</span> <span class="mi">1000</span> <span class="mi">2</span> <span class="mi">500</span> <span class="mi">12235</span> <span class="n">region</span> <span class="n">sphere</span> <span class="n">vz</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">-</span><span class="mf">1.0</span> <span class="n">target</span> <span class="mf">5.0</span> <span class="mf">5.0</span> <span class="mf">0.0</span> <span class="n">units</span> <span class="n">lattice</span>
+<span class="n">fix</span> <span class="mi">5</span> <span class="n">insert</span> <span class="n">deposit</span> <span class="mi">200</span> <span class="mi">2</span> <span class="mi">100</span> <span class="mi">777</span> <span class="n">region</span> <span class="n">disk</span> <span class="n">gaussian</span> <span class="mf">5.0</span> <span class="mf">5.0</span> <span class="mf">9.0</span> <span class="mf">1.0</span> <span class="n">units</span> <span class="n">box</span>
 </pre></div>
 </div>
 </div>
@@ -239,6 +243,10 @@ tilted box, then an insertion will likely fail, leading to a &#8220;lost
 atoms&#8221; error.  Thus for triclinic boxes you should insure the
 specified region is wholly inside the simulation box.</p>
 </div>
+<p>The locations of inserted particles are taken from uniform distributed
+random numbers, unless the <em>gaussian</em> keyword is used. Then the
+individual coordinates are taken from a gaussian distribution of
+width <em>sigma</em> centered on <em>xmid,ymid,zmid</em>.</p>
 <p>Individual atoms are inserted, unless the <em>mol</em> keyword is used.  It
 specifies a <em>template-ID</em> previously defined using the
 <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command, which reads files that define one or

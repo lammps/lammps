@@ -20,14 +20,6 @@
 #include "my_page.h"
 #include "error.h"
 
-
-
-
-// DEBUG
-#include "update.h"
-#include "comm.h"
-
-
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
@@ -246,7 +238,7 @@ void Neighbor::skip_from_granular(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -331,7 +323,7 @@ void Neighbor::skip_from_granular(NeighList *list)
           if (partner[i][m] == jtag) break;
         if (m < npartner[i]) {
           touchptr[n] = 1;
-          memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+          memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
           nn += dnum;
         } else {
           touchptr[n] = 0;
@@ -378,7 +370,7 @@ void Neighbor::skip_from_granular_off2on(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -469,7 +461,7 @@ void Neighbor::skip_from_granular_off2on(NeighList *list)
           if (partner[i][m] == jtag) break;
         if (m < npartner[i]) {
           touchptr[n] = 1;
-          memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+          memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
           nn += dnum;
         } else {
           touchptr[n] = 0;
@@ -516,7 +508,7 @@ void Neighbor::skip_from_granular_off2on_onesided(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -673,7 +665,7 @@ void Neighbor::skip_from_granular_off2on_onesided(NeighList *list)
           if (partner[i][m] == jtag) break;
         if (m < npartner[i]) {
           firsttouch[i][n] = 1;
-          memcpy(&firstshear[i][nn],shearpartner[i][m],dnumbytes);
+          memcpy(&firstshear[i][nn],&shearpartner[i][dnum*m],dnumbytes);
         } else {
           firsttouch[i][n] = 0;
           memcpy(&firstshear[i][nn],zeroes,dnumbytes);

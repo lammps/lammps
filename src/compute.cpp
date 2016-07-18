@@ -18,6 +18,7 @@
 #include "compute.h"
 #include "atom.h"
 #include "domain.h"
+#include "force.h"
 #include "comm.h"
 #include "group.h"
 #include "modify.h"
@@ -25,7 +26,6 @@
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -133,7 +133,7 @@ void Compute::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"extra") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      extra_dof = force->inumeric(FLERR,arg[iarg+1]);
+      extra_dof = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dynamic") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");

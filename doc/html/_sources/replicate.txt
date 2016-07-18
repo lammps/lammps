@@ -85,15 +85,6 @@ the time the replicate command is used that require vectors of atom
 information to be stored.  This is because the replicate command does
 not know how to replicate that information for new atoms it creates.
 
-Replicating a system that has rigid bodies (defined via the :doc:`fix rigid <fix_rigid>` command), either currently defined or that
-created the restart file which was read in before replicating, can
-cause problems if there is a bond between a pair of rigid bodies that
-straddle a periodic boundary.  This is because the periodic image
-information for particles in the rigid bodies are set differently than
-for a non-rigid system and can result in a new bond being created that
-spans the periodic box.  Thus you cannot use the replicate command in
-this scenario.
-
 **Related commands:** none
 
 **Default:** none

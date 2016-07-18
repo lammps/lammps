@@ -40,7 +40,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -123,7 +123,7 @@ void Neighbor::granular_nsq_no_newton(NeighList *list)
               if (partner[i][m] == tag[j]) break;
             if (m < npartner[i]) {
               touchptr[n] = 1;
-              memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+              memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
               nn += dnum;
             } else {
               touchptr[n] = 0;
@@ -179,7 +179,7 @@ void Neighbor::granular_nsq_newton(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -279,7 +279,7 @@ void Neighbor::granular_nsq_newton(NeighList *list)
               if (partner[i][m] == tag[j]) break;
             if (m < npartner[i]) {
               touchptr[n] = 1;
-              memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+              memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
               nn += dnum;
             } else {
               touchptr[n] = 0;
@@ -347,7 +347,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -439,7 +439,7 @@ void Neighbor::granular_bin_no_newton(NeighList *list)
                 if (partner[i][m] == tag[j]) break;
               if (m < npartner[i]) {
                 touchptr[n] = 1;
-                memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+                memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
                 nn += dnum;
               } else {
                 touchptr[n] = 0;
@@ -495,7 +495,7 @@ void Neighbor::granular_bin_newton(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -591,7 +591,7 @@ void Neighbor::granular_bin_newton(NeighList *list)
               if (partner[i][m] == tag[j]) break;
             if (m < npartner[i]) {
               touchptr[n] = 1;
-              memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+              memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
               nn += dnum;
             } else {
               touchptr[n] = 0;
@@ -632,7 +632,7 @@ void Neighbor::granular_bin_newton(NeighList *list)
                 if (partner[i][m] == tag[j]) break;
               if (m < npartner[i]) {
                 touchptr[n] = 1;
-                memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+                memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
                 nn += dnum;
               } else {
                 touchptr[n] = 0;
@@ -700,7 +700,7 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
   NeighList *listgranhistory;
   int *npartner;
   tagint **partner;
-  double (**shearpartner)[3];
+  double **shearpartner;
   int **firsttouch;
   double **firstshear;
   MyPage<int> *ipage_touch;
@@ -801,7 +801,7 @@ void Neighbor::granular_bin_newton_tri(NeighList *list)
                 if (partner[i][m] == tag[j]) break;
               if (m < npartner[i]) {
                 touchptr[n] = 1;
-                memcpy(&shearptr[nn],shearpartner[i][m],dnumbytes);
+                memcpy(&shearptr[nn],&shearpartner[i][dnum*m],dnumbytes);
                 nn += dnum;
               } else {
                 touchptr[n] = 0;

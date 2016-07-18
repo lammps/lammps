@@ -17,7 +17,7 @@ Syntax
 * M = insert a single atom or molecule every M steps
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
-* keyword = *region* or *id* or *global* or *local* or *near* or *attempt* or *rate* or *vx* or *vy* or *vz* or *mol* or *rigid* or *shake* or *units*
+* keyword = *region* or *id* or *global* or *local* or *near* or *gaussian* or *attempt* or *rate* or *vx* or *vy* or *vz* or *mol* or *rigid* or *shake* or *units*
 .. parsed-literal::
 
      *region* value = region-ID
@@ -32,6 +32,9 @@ Syntax
        delta = lateral distance within which a neighbor is considered "nearby" (distance units)
      *near* value = R
        R = only insert atom/molecule if further than R from existing particles (distance units)
+     *gaussian* values = xmid ymid zmid sigma
+       xmid,ymid,zmid = center of the gaussian distribution (distance units)
+       sigma = width of gaussian distribution (distance units)
      *attempt* value = Q
        Q = attempt a single insertion up to Q times
      *rate* value = V
@@ -66,6 +69,7 @@ Examples
    fix 3 all deposit 1000 2 100 29494 region myblock local 1.0 1.0 1.0 units box
    fix 2 newatoms deposit 10000 1 500 12345 region disk near 2.0 vz -1.0 -0.8
    fix 4 sputter deposit 1000 2 500 12235 region sphere vz -1.0 -1.0 target 5.0 5.0 0.0 units lattice
+   fix 5 insert deposit 200 2 100 777 region disk gaussian 5.0 5.0 9.0 1.0 units box
 
 Description
 """""""""""
@@ -125,6 +129,11 @@ side = *in*\ .
    tilted box, then an insertion will likely fail, leading to a "lost
    atoms" error.  Thus for triclinic boxes you should insure the
    specified region is wholly inside the simulation box.
+
+The locations of inserted particles are taken from uniform distributed
+random numbers, unless the *gaussian* keyword is used. Then the
+individual coordinates are taken from a gaussian distribution of
+width *sigma* centered on *xmid,ymid,zmid*\ .
 
 Individual atoms are inserted, unless the *mol* keyword is used.  It
 specifies a *template-ID* previously defined using the

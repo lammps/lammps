@@ -108,9 +108,7 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   // Setup the ssaAIR array
   atom->ssaAIR = NULL;
   grow_arrays(atom->nmax);
-  for (int i = 0; i < atom->nlocal; i++) {
-    atom->ssaAIR[i] = 1; /* coord2ssaAIR(x[i]) */
-  }
+  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
 
   // Setup callbacks for maintaining atom->ssaAIR[]
   atom->add_callback(0); // grow (aka exchange)
@@ -137,7 +135,36 @@ int FixShardlow::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
+  mask |= PRE_EXCHANGE | MIN_PRE_EXCHANGE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShardlow::pre_exchange()
+{
+  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShardlow::setup_pre_exchange()
+{
+  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShardlow::min_pre_exchange()
+{
+  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShardlow::min_setup_pre_exchange()
+{
+  memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,11 +200,10 @@ void FixShardlow::setup(int vflag)
 
    NOTE: only implemented for orthogonal boxes, not triclinic
 ------------------------------------------------------------------------- */
-void FixShardlow::do_ssaAIR_for(
-  int airnum,
+void FixShardlow::ssa_update(
   int i,
-  int jnum,
   int *jlist,
+  int jlen,
   class RanMars *pRNG
 )
 {
@@ -241,10 +267,9 @@ void FixShardlow::do_ssaAIR_for(
   massinv_i = 1.0 / mass_i;
 
   // Loop over Directional Neighbors only
-  for (jj = 0; jj < jnum; jj++) {
+  for (jj = 0; jj < jlen; jj++) {
     j = jlist[jj];
     j &= NEIGHMASK;
-    if (ssaAIR[j] != airnum) continue;
     jtype = type[j];
 
     delx = xtmp - x[j][0];
@@ -444,7 +469,9 @@ void FixShardlow::initial_integrate(int vflag)
     // Loop over neighbors of my atoms
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      do_ssaAIR_for(airnum, i, list->numneigh[i], list->firstneigh[i], pRNG);
+      int start = (airnum < 2) ? 0 : list->ndxAIR_ssa[i][airnum - 2];
+      int len = list->ndxAIR_ssa[i][airnum - 1] - start;
+      if (len > 0) ssa_update(i, &(list->firstneigh[i][start]), len, pRNG);
     }
 
     // Communicate the ghost deltas to the atom owners
@@ -554,11 +581,11 @@ int FixShardlow::coord2ssaAIR(double *x)
   if (x[0] >= domain->subhi[0]) ix = 1;
 
   if(iz < 0){
-    return 0;
+    return -1;
   } else if(iz == 0){
-    if( iy<0 ) return 0; // bottom left/middle/right
-    if( (iy==0) && (ix<0)  ) return 0; // left atoms
-    if( (iy==0) && (ix==0) ) return 1; // Locally owned atoms
+    if( iy<0 ) return -1; // bottom left/middle/right
+    if( (iy==0) && (ix<0)  ) return -1; // left atoms
+    if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
     if( (iy==0) && (ix>0)  ) return 3; // Right atoms
     if( (iy>0)  && (ix==0) ) return 2; // Top-middle atoms
     if( (iy>0)  && (ix!=0) ) return 4; // Top-right and top-left atoms
@@ -569,7 +596,7 @@ int FixShardlow::coord2ssaAIR(double *x)
     if((ix!=0) && (iy!=0)) return 8; // Back corner atoms
   }
 
-  return 0;
+  return -2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -586,7 +613,16 @@ void FixShardlow::copy_arrays(int i, int j, int delflag)
 
 void FixShardlow::set_arrays(int i)
 {
-  atom->ssaAIR[i] = 1; /* coord2ssaAIR(x[i]) */
+  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
+}
+
+int FixShardlow::pack_border(int n, int *list, double *buf)
+{
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
+    if (atom->ssaAIR[j] == 0) atom->ssaAIR[j] = 1; // not purely local anymore
+  }
+  return 0;
 }
 
 int FixShardlow::unpack_border(int n, int first, double *buf)
@@ -600,13 +636,13 @@ int FixShardlow::unpack_border(int n, int first, double *buf)
 
 int FixShardlow::unpack_exchange(int i, double *buf)
 {
-  atom->ssaAIR[i] = 1; /* coord2ssaAIR(x[i]) */
+  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
   return 0;
 }
 
 void FixShardlow::unpack_restart(int i, int nth)
 {
-  atom->ssaAIR[i] = 1; /* coord2ssaAIR(x[i]) */
+  atom->ssaAIR[i] = 0; /* coord2ssaAIR(x[i]) */
 }
 
 double FixShardlow::memory_usage()

@@ -42,7 +42,7 @@ Examples
 Description
 """""""""""
 
-Styles *brownian* and *brownain/poly* compute Brownian forces and
+Styles *brownian* and *brownian/poly* compute Brownian forces and
 torques on finite-size spherical particles.  The former requires
 monodisperse spherical particles; the latter allows for polydisperse
 spherical particles.

@@ -74,21 +74,14 @@ larger version of your molecule as a pre-processing step and input a
 new data file to LAMMPS.
 
 If the current simulation was read in from a restart file (before a
-run is performed), there can have been no fix information stored in
+run is performed), there must not be any fix information stored in
 the file for individual atoms.  Similarly, no fixes can be defined at
 the time the replicate command is used that require vectors of atom
 information to be stored.  This is because the replicate command does
 not know how to replicate that information for new atoms it creates.
-
-Replicating a system that has rigid bodies (defined via the "fix
-rigid"_fix_rigid.html command), either currently defined or that
-created the restart file which was read in before replicating, can
-cause problems if there is a bond between a pair of rigid bodies that
-straddle a periodic boundary.  This is because the periodic image
-information for particles in the rigid bodies are set differently than
-for a non-rigid system and can result in a new bond being created that
-spans the periodic box.  Thus you cannot use the replicate command in
-this scenario.
+To work around this restriction, restart files may be converted into
+data files and fixes may be undefined via the "unfix"_unfix.html
+command before and redefined after the replicate command.
 
 [Related commands:] none
 

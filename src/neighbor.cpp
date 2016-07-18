@@ -722,6 +722,9 @@ void Neighbor::init()
     }
 
 #ifdef NEIGH_LIST_DEBUG
+    for (i = 0; i < nrequest; i++)
+      if (comm->me == 0) printf("Build/stencil methods: %d: %p %p\n",
+                                i,pair_build[i],stencil_create[i]);
     for (i = 0; i < nrequest; i++) lists[i]->print_attributes();
 #endif
 
@@ -1654,6 +1657,7 @@ void Neighbor::build_topology()
 void Neighbor::build_one(class NeighList *mylist, int preflag)
 {
   // check if list structure is initialized
+
   if (mylist == NULL)
     error->all(FLERR,"Trying to build an occasional neighbor list "
                "before initialization completed");

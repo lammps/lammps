@@ -242,10 +242,9 @@ void FixShearHistory::pre_exchange_onesided()
         shear = &allshear[dnum*jj];
         j = jlist[jj];
         j &= NEIGHMASK;
-        m = npartner[i];
+        m = npartner[i]++;
         partner[i][m] = tag[j];
         memcpy(&shearpartner[i][dnum*m],shear,dnumbytes);
-        npartner[i]++;
       }
     }
   }

@@ -58,6 +58,11 @@ It also gives you an easier way to query the system state, evaluate variable
 expressions and access atom data. See examples/ipython/interface_usage.ipynb
 for more details.
 
+NOTE: this alternative wrapper was primarily developed for Python 3. While it
+is mostly compatible to Python 2, not all functionality is available due to
+language restrictions. E.g., 'print' is a reserved keyword in Python 2, which
+is why the LAMMPS 'print' command is only available as 'lmp_print'.
+
 -------------------------------------------------------------------
 
 Once you have successfully wrapped LAMMPS, you can run the Python

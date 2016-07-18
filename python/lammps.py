@@ -304,7 +304,7 @@ class OutputCapture(object):
   def read_pipe(self, pipe):
     out = ""
     while self.more_data(pipe):
-      out += str(os.read(pipe, 1024), 'utf-8')
+      out += os.read(pipe, 1024).decode()
     return out
 
   @property
@@ -324,7 +324,7 @@ class Variable(object):
     if self.style == 'atom':
       return list(self.wrapper.lmp.extract_variable(self.name, "all", 1))
     else:
-      value = self.wrapper.print('"${%s}"' % self.name).strip()
+      value = self.wrapper.lmp_print('"${%s}"' % self.name).strip()
       try:
         return float(value)
       except ValueError:
@@ -390,7 +390,8 @@ class PyLammps(object):
   See examples/ipython for usage
   """
 
-  def __init__(self, lmp):
+  def __init__(self, lmp=lammps()):
+    print("LAMMPS output is captured by PyLammps wrapper")
     self.lmp = lmp
 
   @property
@@ -438,7 +439,7 @@ class PyLammps(object):
     return vars
 
   def eval(self, expr):
-    value = self.print('"$(%s)"' % expr).strip()
+    value = self.lmp_print('"$(%s)"' % expr).strip()
     try:
       return float(value)
     except ValueError:
@@ -555,6 +556,10 @@ class PyLammps(object):
       groups.append(group)
     return groups
 
+  def lmp_print(self, s):
+    """ needed for Python2 compatibility, since print is a reserved keyword """
+    return self.__getattr__("print")(s)
+
   def __getattr__(self, name):
     def handler(*args, **kwargs):
       cmd_args = [name] + [str(x) for x in args]
@@ -578,7 +583,7 @@ class IPyLammps(PyLammps):
   iPython wrapper for LAMMPS which adds embedded graphics capabilities
   """
 
-  def __init__(self, lmp):
+  def __init__(self, lmp=lammps()):
     super(IPyLammps, self).__init__(lmp)
 
   def image(self, filename="snapshot.png", group="all", color="type", diameter="type",

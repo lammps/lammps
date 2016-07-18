@@ -11,13 +11,18 @@
 #   See the README file in the top-level LAMMPS directory.
 # -------------------------------------------------------------------------
 
-# Python wrapper on LAMMPS library via ctypes
+# Python wrappers on LAMMPS library via ctypes
+
+# for python3 compatibility
 from __future__ import print_function
 
-import sys, traceback, types
+# imports for simple LAMMPS python wrapper module "lammps"
+import sys,traceback,types
 from ctypes import *
-from os.path import dirname, abspath, join
+from os.path import dirname,abspath,join
 from inspect import getsourcefile
+
+# imports for advanced LAMMPS python wrapper modules "PyLammps" and "IPyLammps"
 from collections import namedtuple
 import os
 import select
@@ -38,11 +43,11 @@ class lammps:
 
   # create instance of LAMMPS
 
-  def __init__(self, name="", cmdargs=None, ptr=None, comm=None):
+  def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
 
     # determine module location
 
-    modpath = dirname(abspath(getsourcefile(lambda: 0)))
+    modpath = dirname(abspath(getsourcefile(lambda:0)))
 
     # load liblammps.so unless name is given.
     # e.g. if name = "g++", load liblammps_g++.so
@@ -53,15 +58,11 @@ class lammps:
     # requires LD_LIBRARY_PATH to be set appropriately.
 
     try:
-      if not name:
-        self.lib = CDLL(join(modpath, "liblammps.so"), RTLD_GLOBAL)
-      else:
-        self.lib = CDLL(join(modpath, "liblammps_%s.so" % name), RTLD_GLOBAL)
+      if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
+      else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
     except:
-      if not name:
-        self.lib = CDLL("liblammps.so", RTLD_GLOBAL)
-      else:
-        self.lib = CDLL("liblammps_%s.so" % name, RTLD_GLOBAL)
+      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
+      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -86,13 +87,13 @@ class lammps:
         narg = 0
         cargs = 0
         if cmdargs:
-          cmdargs.insert(0, "lammps.py")
+          cmdargs.insert(0,"lammps.py")
           narg = len(cmdargs)
           for i in range(narg):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p * narg)(*cmdargs)
-          self.lib.lammps_open.argtypes = [c_int, c_char_p * narg, \
+          cargs = (c_char_p*narg)(*cmdargs)
+          self.lib.lammps_open.argtypes = [c_int, c_char_p*narg, \
                                            MPI_Comm, c_void_p()]
         else:
           self.lib.lammps_open.argtypes = [c_int, c_int, \
@@ -103,22 +104,22 @@ class lammps:
         self.lmp = c_void_p()
         comm_ptr = lammps.MPI._addressof(comm)
         comm_val = MPI_Comm.from_address(comm_ptr)
-        self.lib.lammps_open(narg, cargs, comm_val, byref(self.lmp))
+        self.lib.lammps_open(narg,cargs,comm_val,byref(self.lmp))
 
       else:
         self.opened = 1
         if cmdargs:
-          cmdargs.insert(0, "lammps.py")
+          cmdargs.insert(0,"lammps.py")
           narg = len(cmdargs)
           for i in range(narg):
             if type(cmdargs[i]) is str:
               cmdargs[i] = cmdargs[i].encode()
-          cargs = (c_char_p * narg)(*cmdargs)
+          cargs = (c_char_p*narg)(*cmdargs)
           self.lmp = c_void_p()
-          self.lib.lammps_open_no_mpi(narg, cargs, byref(self.lmp))
+          self.lib.lammps_open_no_mpi(narg,cargs,byref(self.lmp))
         else:
           self.lmp = c_void_p()
-          self.lib.lammps_open_no_mpi(0, None, byref(self.lmp))
+          self.lib.lammps_open_no_mpi(0,None,byref(self.lmp))
           # could use just this if LAMMPS lib interface supported it
           # self.lmp = self.lib.lammps_open_no_mpi(0,None)
 
@@ -139,26 +140,25 @@ class lammps:
   def version(self):
     return self.lib.lammps_version(self.lmp)
 
-  def file(self, file):
+  def file(self,file):
     file = file.encode()
-    self.lib.lammps_file(self.lmp, file)
+    self.lib.lammps_file(self.lmp,file)
 
-  def command(self, cmd):
+  def command(self,cmd):
     cmd = cmd.encode()
-    self.lib.lammps_command(self.lmp, cmd)
+    self.lib.lammps_command(self.lmp,cmd)
 
-  def extract_global(self, name, type):
+  def extract_global(self,name,type):
     name = name.encode()
     if type == 0:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
     elif type == 1:
       self.lib.lammps_extract_global.restype = POINTER(c_double)
-    else:
-      return None
-    ptr = self.lib.lammps_extract_global(self.lmp, name)
+    else: return None
+    ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]
 
-  def extract_atom(self, name, type):
+  def extract_atom(self,name,type):
     name = name.encode()
     if type == 0:
       self.lib.lammps_extract_atom.restype = POINTER(c_int)
@@ -168,36 +168,35 @@ class lammps:
       self.lib.lammps_extract_atom.restype = POINTER(c_double)
     elif type == 3:
       self.lib.lammps_extract_atom.restype = POINTER(POINTER(c_double))
-    else:
-      return None
-    ptr = self.lib.lammps_extract_atom(self.lmp, name)
+    else: return None
+    ptr = self.lib.lammps_extract_atom(self.lmp,name)
     return ptr
 
-  def extract_compute(self, id, style, type):
+  def extract_compute(self,id,style,type):
     id = id.encode()
     if type == 0:
       if style > 0: return None
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_compute(self.lmp, id, style, type)
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
       return ptr[0]
     if type == 1:
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_compute(self.lmp, id, style, type)
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
       return ptr
     if type == 2:
       self.lib.lammps_extract_compute.restype = POINTER(POINTER(c_double))
-      ptr = self.lib.lammps_extract_compute(self.lmp, id, style, type)
+      ptr = self.lib.lammps_extract_compute(self.lmp,id,style,type)
       return ptr
     return None
 
   # in case of global datum, free memory for 1 double via lammps_free()
   # double was allocated by library interface function
 
-  def extract_fix(self, id, style, type, i=0, j=0):
+  def extract_fix(self,id,style,type,i=0,j=0):
     id = id.encode()
     if style == 0:
       self.lib.lammps_extract_fix.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_fix(self.lmp, id, style, type, i, j)
+      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
@@ -208,7 +207,7 @@ class lammps:
         self.lib.lammps_extract_fix.restype = POINTER(POINTER(c_double))
       else:
         return None
-      ptr = self.lib.lammps_extract_fix(self.lmp, id, style, type, i, j)
+      ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
       return ptr
     else:
       return None
@@ -217,22 +216,22 @@ class lammps:
   # for vector, must copy nlocal returned values to local c_double vector
   # memory was allocated by library interface function
 
-  def extract_variable(self, name, group, type):
+  def extract_variable(self,name,group,type):
     name = name.encode()
     group = group.encode()
     if type == 0:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_variable(self.lmp, name, group)
+      ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
       result = ptr[0]
       self.lib.lammps_free(ptr)
       return result
     if type == 1:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
-      nlocalptr = self.lib.lammps_extract_global(self.lmp, "nlocal".encode())
+      nlocalptr = self.lib.lammps_extract_global(self.lmp,"nlocal".encode())
       nlocal = nlocalptr[0]
-      result = (c_double * nlocal)()
+      result = (c_double*nlocal)()
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
-      ptr = self.lib.lammps_extract_variable(self.lmp, name, group)
+      ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
       for i in range(nlocal): result[i] = ptr[i]
       self.lib.lammps_free(ptr)
       return result
@@ -242,10 +241,10 @@ class lammps:
   # value is converted to string
   # returns 0 for success, -1 if failed
 
-  def set_variable(self, name, value):
+  def set_variable(self,name,value):
     name = name.encode()
     value = str(value).encode()
-    return self.lib.lammps_set_variable(self.lmp, name, str(value))
+    return self.lib.lammps_set_variable(self.lmp,name,str(value))
 
   # return total number of atoms in system
 
@@ -254,25 +253,24 @@ class lammps:
 
   # return vector of atom properties gathered across procs, ordered by atom ID
 
-  def gather_atoms(self, name, type, count):
+  def gather_atoms(self,name,type,count):
     name = name.encode()
     natoms = self.lib.lammps_get_natoms(self.lmp)
     if type == 0:
-      data = ((count * natoms) * c_int)()
-      self.lib.lammps_gather_atoms(self.lmp, name, type, count, data)
+      data = ((count*natoms)*c_int)()
+      self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
     elif type == 1:
-      data = ((count * natoms) * c_double)()
-      self.lib.lammps_gather_atoms(self.lmp, name, type, count, data)
-    else:
-      return None
+      data = ((count*natoms)*c_double)()
+      self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+    else: return None
     return data
 
   # scatter vector of atom properties across procs, ordered by atom ID
   # assume vector is of correct type and length, as created by gather_atoms()
 
-  def scatter_atoms(self, name, type, count, data):
+  def scatter_atoms(self,name,type,count,data):
     name = name.encode()
-    self.lib.lammps_scatter_atoms(self.lmp, name, type, count, data)
+    self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
 
 
 ####################################################################################

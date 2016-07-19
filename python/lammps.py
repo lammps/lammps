@@ -387,9 +387,12 @@ class PyLammps(object):
   See examples/ipython for usage
   """
 
-  def __init__(self, lmp=lammps()):
+  def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+    if ptr:
+      self.lmp = ptr
+    else:
+      self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")
-    self.lmp = lmp
 
   @property
   def atoms(self):

@@ -404,11 +404,11 @@ class PyLammps(object):
     print("LAMMPS output is captured by PyLammps wrapper")
 
   def __del__(self):
-    self.lmp.close()
+    if self.lmp: self.lmp.close()
     self.lmp = None
 
   def close(self):
-    self.lmp.close()
+    if self.lmp: self.lmp.close()
     self.lmp = None
 
   def version(self):

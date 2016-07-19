@@ -609,8 +609,8 @@ class IPyLammps(PyLammps):
   iPython wrapper for LAMMPS which adds embedded graphics capabilities
   """
 
-  def __init__(self, lmp=lammps()):
-    super(IPyLammps, self).__init__(lmp)
+  def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+    super(IPyLammps, self).__init__(name=name,cmdargs=cmdargs,ptr=ptr,comm=comm)
 
   def image(self, filename="snapshot.png", group="all", color="type", diameter="type",
             size=None, view=None, center=None, up=None, zoom=1.0):

@@ -28,8 +28,7 @@ import os
 import select
 import re
 
-
-class lammps:
+class lammps(object):
   # detect if Python is using version of mpi4py that can pass a communicator
 
   has_mpi4py_v2 = False

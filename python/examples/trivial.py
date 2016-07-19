@@ -6,13 +6,14 @@
 # Syntax:  trivial.py in.lammps
 #          in.lammps = LAMMPS input script
 
+from __future__ import print_function
 import sys
 
 # parse command line
 
 argv = sys.argv
 if len(argv) != 2:
-  print "Syntax: trivial.py in.lammps"
+  print("Syntax: trivial.py in.lammps")
   sys.exit()
 
 infile = sys.argv[1]

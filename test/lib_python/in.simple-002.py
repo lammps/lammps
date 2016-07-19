@@ -6,6 +6,7 @@
 # Syntax:  simple.py in.lammps
 #          in.lammps = LAMMPS input script
 
+from __future__ import print_function
 import sys
 
 infile = 'in.simple'
@@ -27,8 +28,8 @@ lmp.scatter_atoms("x",1,3,x)
 lmp.command("run 1");
 
 f = lmp.extract_atom("f",3)
-print "Force on 1 atom via extract_atom: ",f[0][0]
+print ("Force on 1 atom via extract_atom: ",f[0][0])
 
 fx = lmp.extract_variable("fx","all",1)
-print "Force on 1 atom via extract_variable:",fx[0]
+print ("Force on 1 atom via extract_variable:",fx[0])
 

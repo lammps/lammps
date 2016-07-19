@@ -392,7 +392,13 @@ class PyLammps(object):
 
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
     if ptr:
-      self.lmp = ptr
+      if isinstance(ptr,PyLammps):
+        self.lmp = ptr.lmp
+      elif isinstance(ptr,lammps):
+        self.lmp = ptr
+      else:
+        self.lmp = None
+        raise TypeError('Unsupported type passed as "ptr"')
     else:
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")

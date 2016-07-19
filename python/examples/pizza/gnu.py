@@ -6,6 +6,9 @@
 # certain rights in this software.  This software is distributed under 
 # the GNU General Public License.
 
+# for python3 compatibility
+from __future__ import print_function
+
 # gnu tool
 
 oneline = "Create plots via GnuPlot plotting program"
@@ -172,8 +175,8 @@ class gnu:
     nvec = len(vectors)
     for i in range(n):
       for j in range(nvec):
-        print >>f,vectors[j][i],
-      print >>f
+        print(str(vectors[j][i])+" ",file=f,end='')
+      print ("",file=f)
     f.close()
 
   # --------------------------------------------------------------------
@@ -350,7 +353,7 @@ class gnu:
 
     self.__call__("set key off")
     cmd = 'plot '
-    for i in range(fig.ncurves):
+    for i in range(int(fig.ncurves)):
       file = self.file + ".%d.%d" % (self.current,i+1)
       if len(fig.colors) > i and fig.colors[i]:
         cmd += "'" + file + "' using 1:2 with line %d, " % fig.colors[i]

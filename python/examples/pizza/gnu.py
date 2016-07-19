@@ -87,7 +87,7 @@ g.curve(N,'r')                 set color of curve N
 import types, os
 
 try: from DEFAULTS import PIZZA_GNUPLOT
-except: PIZZA_GNUPLOT = "gnuplot"
+except: PIZZA_GNUPLOT = "gnuplot -p"
 try: from DEFAULTS import PIZZA_GNUTERM
 except: PIZZA_GNUTERM = "x11"
 
@@ -133,7 +133,7 @@ class gnu:
       self.export(file,linear,vectors[0])
       self.figures[self.current-1].ncurves = 1
     else:
-      if len(vectors) % 2: raise StandardError,"vectors must come in pairs"
+      if len(vectors) % 2: raise StandardError("vectors must come in pairs")
       for i in range(0,len(vectors),2):
         file = self.file + ".%d.%d" % (self.current,i/2+1)
         self.export(file,vectors[i],vectors[i+1])
@@ -167,11 +167,11 @@ class gnu:
   def export(self,filename,*vectors):
     n = len(vectors[0])
     for vector in vectors:
-      if len(vector) != n: raise StandardError,"vectors must be same length"
+      if len(vector) != n: raise StandardError("vectors must be same length")
     f = open(filename,'w')
     nvec = len(vectors)
-    for i in xrange(n):
-      for j in xrange(nvec):
+    for i in range(n):
+      for j in range(nvec):
         print >>f,vectors[j][i],
       print >>f
     f.close()

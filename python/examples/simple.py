@@ -11,13 +11,14 @@
 #                  in.lammps = LAMMPS input script
 # also need to uncomment either Pypar or mpi4py sections below
 
+from __future__ import print_function
 import sys
 
 # parse command line
 
 argv = sys.argv
 if len(argv) != 2:
-  print "Syntax: simple.py in.lammps"
+  print("Syntax: simple.py in.lammps")
   sys.exit()
 
 infile = sys.argv[1]
@@ -56,13 +57,13 @@ lmp.scatter_atoms("x",1,3,x)
 lmp.command("run 1");
 
 f = lmp.extract_atom("f",3)
-print "Force on 1 atom via extract_atom: ",f[0][0]
+print("Force on 1 atom via extract_atom: ",f[0][0])
 
 fx = lmp.extract_variable("fx","all",1)
-print "Force on 1 atom via extract_variable:",fx[0]
+print("Force on 1 atom via extract_variable:",fx[0])
 
 # uncomment if running in parallel via Pypar
-#print "Proc %d out of %d procs has" % (me,nprocs), lmp
+#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
 #pypar.finalize()
 
 # uncomment if running in parallel via mpi4py

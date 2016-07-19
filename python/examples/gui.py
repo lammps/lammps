@@ -10,6 +10,7 @@
 # IMPORTANT: this script cannot yet be run in parallel via Pypar,
 #            because I can't seem to do a MPI-style broadcast in Pypar
 
+from __future__ import print_function
 import sys,time
 
 # methods called by GUI
@@ -31,7 +32,7 @@ def quit():
 
 argv = sys.argv
 if len(argv) != 3:
-  print "Syntax: gui.py in.lammps Nfreq"
+  print("Syntax: gui.py in.lammps Nfreq")
   sys.exit()
 
 infile = sys.argv[1]
@@ -60,7 +61,10 @@ runflag = 0
 temptarget = 1.0
 
 if me == 0:
-  from Tkinter import *
+  try:
+    from Tkinter import *
+  except:
+    from tkinter import *
   tkroot = Tk()
   tkroot.withdraw()
   root = Toplevel(tkroot)
@@ -108,5 +112,5 @@ while 1:
   time.sleep(0.01)
 
 # uncomment if running in parallel via Pypar
-#print "Proc %d out of %d procs has" % (me,nprocs), lmp
+#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
 #pypar.finalize()

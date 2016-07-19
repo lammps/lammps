@@ -179,6 +179,8 @@ d.extra(data)				   extract bond/tri/line list from data
 
 # Imports and external programs
 
+from __future__ import print_function
+
 import sys, commands, re, glob, types
 from os import popen
 from math import *             # any function could be used by set()
@@ -324,7 +326,7 @@ class dump:
     snap = self.snaps[self.nsnaps]
     snap.tselect = 1
     snap.nselect = snap.natoms
-    for i in xrange(snap.natoms): snap.aselect[i] = 1
+    for i in range(snap.natoms): snap.aselect[i] = 1
     self.nsnaps += 1
     self.nselect += 1
 
@@ -370,14 +372,14 @@ class dump:
       if snap.natoms:
         words = f.readline().split()
         ncol = len(words)
-        for i in xrange(1,snap.natoms):
+        for i in range(1,snap.natoms):
           words += f.readline().split()
         floats = map(float,words)
         if oldnumeric: atoms = np.zeros((snap.natoms,ncol),np.Float)
         else: atoms = np.zeros((snap.natoms,ncol),np.float)
         start = 0
         stop = ncol
-        for i in xrange(snap.natoms):
+        for i in range(snap.natoms):
           atoms[i] = floats[start:stop]
           start = stop
           stop += ncol
@@ -554,9 +556,9 @@ class dump:
       zprd = snap.zhi - snap.zlo
       atoms = snap.atoms
       ids = {}
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         ids[atoms[i][id]] = i
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         j = ids[atoms[i][iother]]
         atoms[i][x] += (atoms[i][ix]-atoms[j][ix])*xprd
         atoms[i][y] += (atoms[i][iy]-atoms[j][iy])*yprd
@@ -570,7 +572,7 @@ class dump:
     pairs = self.names.items()
     values = self.names.values()
     str = ""
-    for i in xrange(ncol):
+    for i in range(ncol):
       if i in values: str += pairs[values.index(i)][0] + ' '
     return str
 
@@ -602,7 +604,7 @@ class dump:
     atoms = snap.atoms
     ids = atoms[:,id]
     ordering = np.argsort(ids)
-    for i in xrange(len(atoms[0])):
+    for i in range(len(atoms[0])):
       atoms[:,i] = np.take(atoms[:,i],ordering)
 
   # --------------------------------------------------------------------
@@ -630,10 +632,10 @@ class dump:
       
       atoms = snap.atoms
       nvalues = len(atoms[0])
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         line = ""
-        for j in xrange(nvalues):
+        for j in range(nvalues):
           if (j < 2):
             line += str(int(atoms[i][j])) + " "
           else:
@@ -666,10 +668,10 @@ class dump:
       
       atoms = snap.atoms
       nvalues = len(atoms[0])
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         line = ""
-        for j in xrange(nvalues):
+        for j in range(nvalues):
           if (j < 2):
             line += str(int(atoms[i][j])) + " "
           else:
@@ -688,7 +690,7 @@ class dump:
     for snap in self.snaps:
       if not snap.tselect: continue
       atoms = snap.atoms
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         if atoms[i][icol] < min: min = atoms[i][icol]
         if atoms[i][icol] > max: max = atoms[i][icol]
@@ -715,7 +717,7 @@ class dump:
 
     for snap in self.snaps:
       if not snap.tselect: continue
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if snap.aselect[i]: exec ceq
           
   # --------------------------------------------------------------------
@@ -733,7 +735,7 @@ class dump:
         raise StandardError,"vec length does not match # of selected atoms"
       atoms = snap.atoms
       m = 0
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if snap.aselect[i]:
           atoms[i][icol] = vec[m]
           m += 1
@@ -746,12 +748,12 @@ class dump:
     icol = self.names[col]
     id = self.names["id"]
     ids = {}
-    for i in xrange(self.snaps[istep].natoms):
+    for i in range(self.snaps[istep].natoms):
       ids[self.snaps[istep].atoms[i][id]] = i
     for snap in self.snaps:
       if not snap.tselect: continue
       atoms = snap.atoms
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         j = ids[atoms[i][id]]
         atoms[i][icol] = self.snaps[istep].atoms[j][icol]
@@ -772,7 +774,7 @@ class dump:
     for snap in self.snaps:
       if not snap.tselect: continue
       atoms = snap.atoms
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         ivalue = int((atoms[i][iold] - min) * invdelta) + 1
         if ivalue > n: ivalue = n
@@ -809,11 +811,11 @@ class dump:
     for snap in self.snaps:
       if not snap.tselect: continue
       atoms = snap.atoms
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if atoms[i][id] == n: break
       if atoms[i][id] != n:
         raise StandardError, "could not find atom ID in snapshot"
-      for j in xrange(ncol):
+      for j in range(ncol):
         values[j][m] = atoms[i][columns[j]]
       m += 1
 
@@ -836,9 +838,9 @@ class dump:
     ncol = len(columns)
 
     m = 0
-    for i in xrange(snap.natoms):
+    for i in range(snap.natoms):
       if not snap.aselect[i]: continue
-      for j in xrange(ncol):
+      for j in range(ncol):
         values[j][m] = snap.atoms[i][columns[j]]
       m += 1
 
@@ -887,7 +889,7 @@ class dump:
   def iterator(self,flag):
     start = 0
     if flag: start = self.iterate + 1
-    for i in xrange(start,self.nsnaps):
+    for i in range(start,self.nsnaps):
       if self.snaps[i].tselect:
         self.iterate = i
         return i,self.snaps[i].time,1
@@ -912,7 +914,7 @@ class dump:
     # need Numeric/Numpy mode here
     
     atoms = []
-    for i in xrange(snap.natoms):
+    for i in range(snap.natoms):
       if not snap.aselect[i]: continue
       atom = snap.atoms[i]
       atoms.append([atom[id],atom[type],atom[x],atom[y],atom[z]])
@@ -927,7 +929,7 @@ class dump:
     bonds = []
     if self.bondflag:
       alist = {}
-      for i in xrange(len(atoms)): alist[int(atoms[i][0])] = i
+      for i in range(len(atoms)): alist[int(atoms[i][0])] = i
       for bond in self.bondlist:
         try:
           i = alist[bond[2]]
@@ -953,7 +955,7 @@ class dump:
   # --------------------------------------------------------------------
 
   def findtime(self,n):
-    for i in xrange(self.nsnaps):
+    for i in range(self.nsnaps):
       if self.snaps[i].time == n: return i
     raise StandardError, "no step %d exists" % n
 
@@ -982,7 +984,7 @@ class dump:
     for snap in self.snaps:
       if not snap.tselect: continue
       atoms = snap.atoms
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         if atoms[i][icol] > max: max = atoms[i][icol]
     return int(max)
@@ -1008,7 +1010,7 @@ class dump:
 
         words = f.readline().split()
         ncol = len(words)
-        for i in xrange(1,nbonds):
+        for i in range(1,nbonds):
           words += f.readline().split()
         f.close()
 
@@ -1019,7 +1021,7 @@ class dump:
         ints = [abs(int(value)) for value in words]
         start = 0
         stop = 4
-        for i in xrange(nbonds):
+        for i in range(nbonds):
           bondlist[i] = ints[start:stop]
           start += ncol
           stop += ncol
@@ -1149,7 +1151,7 @@ class tselect:
     snaps = data.snaps
     cmd = "flag = " + teststr.replace("$t","snaps[i].time")
     ccmd = compile(cmd,'','single')
-    for i in xrange(data.nsnaps):
+    for i in range(data.nsnaps):
       if not snaps[i].tselect: continue
       exec ccmd
       if not flag:
@@ -1173,12 +1175,12 @@ class aselect:
     if len(args) == 0:                           # all selected timesteps
       for snap in data.snaps:
         if not snap.tselect: continue
-        for i in xrange(snap.natoms): snap.aselect[i] = 1
+        for i in range(snap.natoms): snap.aselect[i] = 1
         snap.nselect = snap.natoms
     else:                                        # one timestep
       n = data.findtime(args[0])
       snap = data.snaps[n]
-      for i in xrange(snap.natoms): snap.aselect[i] = 1
+      for i in range(snap.natoms): snap.aselect[i] = 1
       snap.nselect = snap.natoms
 
   # --------------------------------------------------------------------
@@ -1201,18 +1203,18 @@ class aselect:
     if len(args) == 0:                           # all selected timesteps
       for snap in data.snaps:
         if not snap.tselect: continue
-        for i in xrange(snap.natoms):
+        for i in range(snap.natoms):
           if not snap.aselect[i]: continue
           exec ccmd
           if not flag:
             snap.aselect[i] = 0
             snap.nselect -= 1
-      for i in xrange(data.nsnaps):
+      for i in range(data.nsnaps):
         if data.snaps[i].tselect:
           print "%d atoms of %d selected in first step %d" % \
                 (data.snaps[i].nselect,data.snaps[i].natoms,data.snaps[i].time)
           break
-      for i in xrange(data.nsnaps-1,-1,-1):
+      for i in range(data.nsnaps-1,-1,-1):
         if data.snaps[i].tselect:
           print "%d atoms of %d selected in last step %d" % \
                 (data.snaps[i].nselect,data.snaps[i].natoms,data.snaps[i].time)
@@ -1221,7 +1223,7 @@ class aselect:
     else:                                        # one timestep
       n = data.findtime(args[0])
       snap = data.snaps[n]
-      for i in xrange(snap.natoms):
+      for i in range(snap.natoms):
         if not snap.aselect[i]: continue
         exec ccmd
         if not flag:

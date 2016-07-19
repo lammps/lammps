@@ -143,15 +143,15 @@ class lammps(object):
     return self.lib.lammps_version(self.lmp)
 
   def file(self,file):
-    file = file.encode()
+    if file: file = file.encode()
     self.lib.lammps_file(self.lmp,file)
 
   def command(self,cmd):
-    cmd = cmd.encode()
+    if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
 
   def extract_global(self,name,type):
-    name = name.encode()
+    if name: name = name.encode()
     if type == 0:
       self.lib.lammps_extract_global.restype = POINTER(c_int)
     elif type == 1:
@@ -161,7 +161,7 @@ class lammps(object):
     return ptr[0]
 
   def extract_atom(self,name,type):
-    name = name.encode()
+    if name: name = name.encode()
     if type == 0:
       self.lib.lammps_extract_atom.restype = POINTER(c_int)
     elif type == 1:
@@ -175,7 +175,7 @@ class lammps(object):
     return ptr
 
   def extract_compute(self,id,style,type):
-    id = id.encode()
+    if id: id = id.encode()
     if type == 0:
       if style > 0: return None
       self.lib.lammps_extract_compute.restype = POINTER(c_double)
@@ -195,7 +195,7 @@ class lammps(object):
   # double was allocated by library interface function
 
   def extract_fix(self,id,style,type,i=0,j=0):
-    id = id.encode()
+    if id: id = id.encode()
     if style == 0:
       self.lib.lammps_extract_fix.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_fix(self.lmp,id,style,type,i,j)
@@ -219,8 +219,8 @@ class lammps(object):
   # memory was allocated by library interface function
 
   def extract_variable(self,name,group,type):
-    name = name.encode()
-    group = group.encode()
+    if name: name = name.encode()
+    if group: group = group.encode()
     if type == 0:
       self.lib.lammps_extract_variable.restype = POINTER(c_double)
       ptr = self.lib.lammps_extract_variable(self.lmp,name,group)
@@ -244,8 +244,8 @@ class lammps(object):
   # returns 0 for success, -1 if failed
 
   def set_variable(self,name,value):
-    name = name.encode()
-    value = str(value).encode()
+    if name: name = name.encode()
+    if value: value = str(value).encode()
     return self.lib.lammps_set_variable(self.lmp,name,str(value))
 
   # return total number of atoms in system
@@ -256,7 +256,7 @@ class lammps(object):
   # return vector of atom properties gathered across procs, ordered by atom ID
 
   def gather_atoms(self,name,type,count):
-    name = name.encode()
+    if name: name = name.encode()
     natoms = self.lib.lammps_get_natoms(self.lmp)
     if type == 0:
       data = ((count*natoms)*c_int)()
@@ -271,7 +271,7 @@ class lammps(object):
   # assume vector is of correct type and length, as created by gather_atoms()
 
   def scatter_atoms(self,name,type,count,data):
-    name = name.encode()
+    if name: name = name.encode()
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
 
 

@@ -394,6 +394,23 @@ class PyLammps(object):
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")
 
+  def __del__(self):
+    self.lmp.close()
+    self.lmp = None
+
+  def close(self):
+    self.lmp.close()
+    self.lmp = None
+
+  def version(self):
+    return self.lmp.version()
+
+  def file(self,file):
+    self.lmp.file(file)
+
+  def command(self,cmd):
+    self.lmp.command(cmd)
+
   @property
   def atoms(self):
     return AtomList(self)

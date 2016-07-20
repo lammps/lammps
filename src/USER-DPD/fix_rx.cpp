@@ -904,6 +904,7 @@ void FixRX::read_file(char *file)
         error->all(FLERR,"Illegal fix rx command");
       }
       word = strtok(NULL, " \t\n\r\f");
+      if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
       if(strcmp(word,"=") == 0) sign = 1.0;
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0){
         if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");

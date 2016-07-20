@@ -1028,6 +1028,7 @@ void PairLJCutHARSCG::Load_Compensation_Pressure(){
             }
 
         }
+        fclose(fp1);
     }
 
 

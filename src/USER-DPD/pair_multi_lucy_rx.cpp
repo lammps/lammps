@@ -904,7 +904,7 @@ void PairMultiLucyRX::computeLocalDensity()
       const double rsq = delx*delx + dely*dely + delz*delz;
 
       if (one_type)
-        if (rsq < cutsq_type11){
+        if (rsq < cutsq_type11) {
           const double rcut = rcut_type11;
           const double r_over_rcut = sqrt(rsq) / rcut;
           const double tmpFactor = 1.0 - r_over_rcut;
@@ -913,9 +913,7 @@ void PairMultiLucyRX::computeLocalDensity()
           rho_i += factor;
           if (newton_pair || j < nlocal)
             rho[j] += factor;
-        }
-      else
-        if (rsq < cutsq[itype][jtype]){
+        } else if (rsq < cutsq[itype][jtype]) {
           const double rcut = sqrt(cutsq[itype][jtype]);
           const double tmpFactor = 1.0-sqrt(rsq)/rcut;
           const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;

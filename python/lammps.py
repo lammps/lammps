@@ -275,10 +275,10 @@ class lammps(object):
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
 
 
-####################################################################################
+################################################################################
 # Alternative Python Wrapper
 # Written by Richard Berger <richard.berger@temple.edu>
-####################################################################################
+################################################################################
 
 class OutputCapture(object):
   """ Utility class to capture LAMMPS library output """

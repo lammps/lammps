@@ -159,7 +159,7 @@ As a last resort, you can send an email directly to the
 These are two alphabetic lists of the "ERROR"_#error and
 "WARNING"_#warn messages LAMMPS prints out and the reason why.  If the
 explanation here is not sufficient, the documentation for the
-offending command may help.  
+offending command may help.
 Error and warning messages also list the source file and line number
 where the error was generated.  For example, this message
 

@@ -16,7 +16,7 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 property/chunk = style name of this compute command :l
 input = one or more attributes :l
   attributes = count, id, coord1, coord2, coord3
-    count = # of atoms in chunk 
+    count = # of atoms in chunk
     id = original chunk IDs before compression by "compute chunk/atom"_compute_chunk_atom.html
     coord123 = coordinates for spatial bins calculated by "compute chunk/atom"_compute_chunk_atom.html :pre
 :ule

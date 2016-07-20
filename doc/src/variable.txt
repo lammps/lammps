@@ -50,19 +50,19 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
-                     ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), 
-		     stride(x,y,z), stride2(x,y,z,a,b,c), 
-		     vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+                     ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
+                     stride(x,y,z), stride2(x,y,z,a,b,c),
+                     vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
-		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
-		      bound(group,dir), gyration(group), ke(group),
-		      angmom(group,dim), torque(group,dim),
+                      xcm(group,dim), vcm(group,dim), fcm(group,dim),
+                      bound(group,dir), gyration(group), ke(group),
+                      angmom(group,dim), torque(group,dim),
                       inertia(group,dimdim), omega(group,dim)
     region functions = count(group,region), mass(group,region), charge(group,region),
-		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
-		      bound(group,dir,region), gyration(group,region), ke(group,reigon),
-		      angmom(group,dim,region), torque(group,dim,region), 
-		      inertia(group,dimdim,region), omega(group,dim,region)
+                      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
+                      bound(group,dir,region), gyration(group,region), ke(group,reigon),
+                      angmom(group,dim,region), torque(group,dim,region),
+                      inertia(group,dimdim,region), omega(group,dim,region)
     special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
     feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
     atom value = id\[i\], mass\[i\], type\[i\], mol\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\], q\[i\]
@@ -208,13 +208,13 @@ script or when the input script is looped over.  This can be useful
 when breaking out of a loop via the "if"_if.html and "jump"_jump.html
 commands before the variable would become exhausted.  For example,
 
-label	    loop
+label       loop
 variable    a loop 5
-print	    "A = $a"
-if	    "$a > 2" then "jump in.script break"
-next	    a
-jump	    in.script loop
-label	    break
+print       "A = $a"
+if          "$a > 2" then "jump in.script break"
+next        a
+jump        in.script loop
+label       break
 variable    a delete :pre
 
 :line
@@ -570,7 +570,7 @@ vector.  For example, "sqrt(natoms)" is the sqrt() of a scalar, where
 sqrt() of the product of one atom's y and z coordinates.
 
 Most of the math functions perform obvious operations.  The ln() is
-the natural log; log() is the base 10 log. 
+the natural log; log() is the base 10 log.
 
 The random(x,y,z) function takes 3 arguments: x = lo, y = hi, and z =
 seed.  It generates a uniform random number between lo and hi.  The
@@ -1027,7 +1027,7 @@ Variable References :h4
 Variable references access quantities stored or calculated by other
 variables, which will cause those variables to be evaluated.  The name
 in the reference should be replaced by the name of a variable defined
-elsewhere in the input script. 
+elsewhere in the input script.
 
 As discussed on this doc page, equal-style variables generate a single
 global numeric value, vector-style variables gerarate a vector of

@@ -6,7 +6,7 @@
 
 :line
 
-compute ti command :h3 
+compute ti command :h3
 
 [Syntax:]
 
@@ -35,7 +35,7 @@ keyword = pair style (lj/cut, gauss, born, etc) or {tail} or {kspace} :l
 compute 1 all ti lj/cut 1 v_lj v_dlj coul/long 2 v_c v_dc kspace 1 v_ks v_dks
 compute 1 all ti lj/cut 1*3 v_lj v_dlj coul/long * v_c v_dc kspace * v_ks v_dks :pre
 
-[Description:] 
+[Description:]
 
 Define a computation that calculates the derivative of the interaction
 potential with respect to {lambda}, the coupling parameter used in a
@@ -107,7 +107,7 @@ du/dl can be found in the paper by "Eike"_#Eike.
 
 :line
 
-[Output info:] 
+[Output info:]
 
 This compute calculates a global scalar, namely dUs/dlambda.  This
 value can be used by any command that uses a global scalar value from

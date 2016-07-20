@@ -30,7 +30,7 @@ HY<sub>Shape</sub> = Shape of Hybrid region : {slab}, {sphere}, {cylinder} :l
   {sphere} is for spherical hybrid region
   {cylinder} is for cylinderical hybrid region :pre
 D<sub>flag</sub> = {0} or {1} :l
-  {0} Constant-density route is off 
+  {0} Constant-density route is off
   {1} Constant-density route is on :pre
 &Delta;x = Bin size in constant-density route (length unit) :l
 dT<sub>d</sub> = Time step interval of constant-density route :l
@@ -41,10 +41,10 @@ R = Range of gaussian function in constant-density route (length unit) :l
 &#961;<sub>0</sub> = Reference number density in constant-density route :l
 c = Prefactor in constant-density route (energy unit) :l
 file<sub>flag</sub> = {0} or {1} :l
-  {0} Do not employ density-balancing file 
+  {0} Do not employ density-balancing file
   {1} Employ density-balancing file :pre
 
-:ule  
+:ule
 
 [Examples:]
 
@@ -56,7 +56,7 @@ fix 1 all lambdah/calc 1 25 60 1 0.02 1000 100000 200000 sphere 1 1.5 500 300000
 The Hamiltonian adaptive resolution simulation scheme (H-AdResS) is a dual-resolution simulation method that
 joins models with different levels of complexity for the same system within a global Hamiltonian framework "(Potestio2013_1)"_#Potestio2013_1, "(Potestio2013_2)"_#Potestio2013_2, "(Heidari2016)"_#Heidari2016.
 
-Depending on the shape of the Hybrid region which might be either slab, sphere or cynlinder, this fix calculates 
+Depending on the shape of the Hybrid region which might be either slab, sphere or cynlinder, this fix calculates
 the resolution of every atom based on the center of mass of its molecule.
 The following switching function is defined for a simulation box whose atomistic region is limited to \[-0.5L<sub>AT</sub> 0.5L<sub>AT</sub>\]:
 
@@ -70,12 +70,12 @@ A setup of a Hamiltonian Adaptive Resolution Simulation is shown below. The box 
  different region types, namely: Coarse-grained (CG), Hybrid (HY), and Atomistic (AT). In each region,
  the resolution of each molecule (here water) is determined by the instantaneous value of the
  smooth function &#955; represented above the simulation snapshot.
- 
+
 :c,image(JPG/HADRESS_MODEL_LAMMPS.png)
 
-{N<sub>H-mol</sub>} determines the number of molecular types within the low resolution. For instance, for a system containing 
-coarse-grained water molecules in the coarse-grained region, this number equals one. However, for a sytem containing 
-water molecules and ions such as Na and Cl and they interact differently in the coarse-grained region, 
+{N<sub>H-mol</sub>} determines the number of molecular types within the low resolution. For instance, for a system containing
+coarse-grained water molecules in the coarse-grained region, this number equals one. However, for a sytem containing
+water molecules and ions such as Na and Cl and they interact differently in the coarse-grained region,
 this number is 3.
 
 The {L<sub>HY</sub>} specifies the length of the hybrid region. For the cases of cylinderical or spherical hybrid regions, this quantity denotes {r<sub>HY</sub>}.
@@ -84,7 +84,7 @@ The {L<sub>AT</sub>} determines the length of atomistic region. For the cases of
 
 The {P<sub>flag</sub>} switches off and on the constant-pressure route.
 
-The {&#948;&#955;} denotes the bin size over the hybrid region. In the on-the-fly method of averaging the drift forces, 
+The {&#948;&#955;} denotes the bin size over the hybrid region. In the on-the-fly method of averaging the drift forces,
 particles are sorted into uniformly spaced &#955; bins of {&#948;&#955;} side.
 
 The {dT<sub>p</sub>} denotes the time intervals in constant-pressure route at which the averaged drift forces are applied on the molecules of the hybrid region.
@@ -120,12 +120,12 @@ The {HY<sub>Shape</sub>} specifies the geometry of the Hybrid region. This could
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html. 
+files"_restart.html.
 
-This fix creates a file named "Mean_Comp_Density.txt" in which the compensation forces are printed. 
-This file is created at {T<sub>d</sub><sup>Start</sup>} and is updated every {dT<sub>d</sub>}. 
-The updating process of the file is finished at time step {T<sub>d</sub><sup>End</sup>}. 
-For those equillibrated simulations starting at time step larger than {T<sub>d</sub><sup>End</sup>}, 
+This fix creates a file named "Mean_Comp_Density.txt" in which the compensation forces are printed.
+This file is created at {T<sub>d</sub><sup>Start</sup>} and is updated every {dT<sub>d</sub>}.
+The updating process of the file is finished at time step {T<sub>d</sub><sup>End</sup>}.
+For those equillibrated simulations starting at time step larger than {T<sub>d</sub><sup>End</sup>},
 the file "Mean_Comp_Density.txt" is loaded in this fix.
 
 :line
@@ -143,7 +143,7 @@ To perform HAdResS, Data File should contain the following extra information wit
 
 \[1\] [mol_H] determines the number of molecular types in the low resolution (coarse-grained) region.
 
-\[2\] [representative_flag] determines which atom carries the molecule's information 
+\[2\] [representative_flag] determines which atom carries the molecule's information
 (center of mass, molecule's resolution, ...) in the low resolution (coarse-grained) region.
 
 \[3\] [mol_type] denotes the type of the molecule in the low resolution (coarse-grained) region.
@@ -167,7 +167,7 @@ Masses :pre
 
 1 15.999400
 2 1.007940
-3 22.9898 
+3 22.9898
 4 35.453 :pre
 
 Atoms

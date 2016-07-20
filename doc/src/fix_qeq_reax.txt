@@ -14,7 +14,7 @@ fix qeq/reax/kk command :h3
 fix ID group-ID qeq/reax Nevery cutlo cuthi tolerance params :pre
 
 ID, group-ID are documented in "fix"_fix.html command
-qeq/reax = style name of this fix command 
+qeq/reax = style name of this fix command
 Nevery = perform QEq every this many steps
 cutlo,cuthi = lo and hi cutoff for Taper radius
 tolerance = precision to which charges will be equilibrated
@@ -57,7 +57,7 @@ potential in eV, and {gamma} denotes the valence orbital
 exponent.  Note that these 3 quantities are also in the ReaxFF
 potential file, except that eta is defined here as twice the eta value
 in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
-of this fix are hard-coded to be A, eV, and electronic charge. 
+of this fix are hard-coded to be A, eV, and electronic charge.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
@@ -102,7 +102,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 This fix does not correctly handle interactions
 involving multiple periodic images of the same atom. Hence, it should not
-be used for periodic cell dimensions less than 10 angstroms. 
+be used for periodic cell dimensions less than 10 angstroms.
 
 [Related commands:]
 

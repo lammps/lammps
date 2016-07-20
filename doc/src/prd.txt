@@ -98,7 +98,7 @@ shared with all replicas, so that all replicas begin from the same
 initial state. The first potential energy basin is identified by
 quenching (an energy minimization, see below) the initial state and
 storing the resulting coordinates for reference.
-    
+
 In the first stage, dephasing is performed by each replica
 independently to eliminate correlations between replicas.  This is
 done by choosing a random set of velocities, based on the
@@ -189,7 +189,7 @@ waiting for an event to occur.  The second is when correlated events
 are being searched for and only one replica is running dynamics.
 
 The CPU time is the total processor time since the start of the PRD
-run. 
+run.
 
 The clock is the same as the timestep except that it advances by M
 steps every timestep during the first kind of dynamics when the M
@@ -213,7 +213,7 @@ when a correlated event occurs during the third stage of the loop
 listed above, i.e. when only one replica is running dynamics.
 
 When more than one replica detects an event at the end of the second
-stage, then one of them is chosen at random. The number of coincident 
+stage, then one of them is chosen at random. The number of coincident
 events is the number of replicas that detected an event. Normally, we
 expect this value to be 1. If it is often greater than 1, then either
 the number of replicas is too large, or {t_event} is too large.
@@ -307,7 +307,7 @@ deposit"_fix_deposit.html.
 "velocity"_velocity.html, "temper"_temper.html, "neb"_neb.html,
 "tad"_tad.html
 
-[Default:] 
+[Default:]
 
 The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
 geom gaussian, and time = steps.

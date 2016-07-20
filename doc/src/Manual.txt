@@ -37,7 +37,7 @@ the first page of the manual (this page).
 
 LAMMPS-ICMS is an experimental variant of LAMMPS with additional
 features made available for testing before they will be submitted
-for inclusion into the official LAMMPS tree. The source code is 
+for inclusion into the official LAMMPS tree. The source code is
 based on the official LAMMPS svn repository mirror at the Institute
 for Computational Molecular Science at Temple University and generally
 kept up-to-date as much as possible. Sometimes, e.g. when additional
@@ -101,7 +101,7 @@ it gives quick access to documentation for all LAMMPS commands.
 .. toctree::
    :maxdepth: 2
    :numbered:
-   
+
    Section_intro
    Section_start
    Section_commands
@@ -122,7 +122,7 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
-   
+
 END_RST -->
 
 <!-- HTML_ONLY -->

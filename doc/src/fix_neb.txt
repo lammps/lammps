@@ -11,7 +11,7 @@ fix neb command :h3
 [Syntax:]
 
 fix ID group-ID neb Kspring :pre
-  
+
 ID, group-ID are documented in "fix"_fix.html command
 neb = style name of this fix command
 Kspring = inter-replica spring constant (force/distance units) :ul

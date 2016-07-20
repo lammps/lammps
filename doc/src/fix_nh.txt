@@ -429,14 +429,14 @@ thermal degrees of freedom, and the bias is added back in.
 
 :line
 
-These fixes can be used with either the {verlet} or {respa} 
+These fixes can be used with either the {verlet} or {respa}
 "integrators"_run_style.html. When using one of the barostat fixes
 with {respa}, LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):
 
-:c,image(Eqs/fix_nh1.jpg) 
- 
+:c,image(Eqs/fix_nh1.jpg)
+
 This factorization differs somewhat from that of Tuckerman et al, in
 that the barostat is only updated at the outermost rRESPA level,
 whereas Tuckerman's factorization requires splitting the pressure into
@@ -452,7 +452,7 @@ NOTE: This implementation has been shown to conserve linear momentum
 up to machine precision under NVT dynamics. Under NPT dynamics,
 for a system with zero initial total linear momentum, the total
 momentum fluctuates close to zero. It may occasionally undergo brief
-excursions to non-negligible values, before returning close to zero. 
+excursions to non-negligible values, before returning close to zero.
 Over long simulations, this has the effect of causing the center-of-mass
 to undergo a slow random walk. This can be mitigated by resetting
 the momentum at infrequent intervals using the
@@ -462,7 +462,7 @@ NOTE: This implementation has been shown to conserve linear momentum
 up to machine precision under NVT dynamics. Under NPT dynamics,
 for a system with zero initial total linear momentum, the total
 momentum fluctuates close to zero. It may occasionally undergo brief
-excursions to non-negligible values, before returning close to zero. 
+excursions to non-negligible values, before returning close to zero.
 Over long simulations, this has the effect of causing the center-of-mass
 to undergo a slow random walk. This can be mitigated by resetting
 the momentum at infrequent intervals using the
@@ -603,7 +603,7 @@ for 2D simulations. {scaleyz yes}, {scalexz yes}, and {scalexy yes} options
 can only be used if the 2nd dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 {tri}, {yz}, {xz}, and {xy}.
-  
+
 These fixes can be used with dynamic groups as defined by the
 "group"_group.html command.  Likewise they can be used with groups to
 which atoms are added or deleted over time, e.g. a deposition
@@ -621,7 +621,7 @@ over time or the atom count becomes very small.
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and 
+scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.
 
 :line

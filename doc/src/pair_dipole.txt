@@ -36,19 +36,19 @@ flag_coul = {long} or {off} :l
 [Examples:]
 
 pair_style lj/cut/dipole/cut 10.0
-pair_coeff * * 1.0 1.0 
+pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 pair_style lj/sf/dipole/sf 9.0
-pair_coeff * * 1.0 1.0 
+pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 pair_style lj/cut/dipole/long 10.0
-pair_coeff * * 1.0 1.0 
+pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 pair_style lj/long/dipole/long long long 3.5 10.0
-pair_coeff * * 1.0 1.0 
+pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 [Description:]
@@ -207,7 +207,7 @@ is an energy value mixed like a LJ epsilon.  D1 and d2 are distance
 values and are mixed like sigma.  The default mix value is
 {geometric}.  See the "pair_modify" command for details.
 
-This pair style does not support the "pair_modify"_pair_modify.html 
+This pair style does not support the "pair_modify"_pair_modify.html
 shift option for the energy of the Lennard-Jones portion of the pair
 interaction; such energy goes to zero at the cutoff by construction.
 

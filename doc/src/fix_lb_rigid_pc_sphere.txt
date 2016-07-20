@@ -26,14 +26,14 @@ keyword = {force} or {torque} or {innerNodes} :l
     xflag,yflag,zflag = off/on if component of center-of-mass force is active
   {torque} values = M xflag yflag zflag
     M = which rigid body from 1-Nbody (see asterisk form below)
-    xflag,yflag,zflag = off/on if component of center-of-mass torque is active 
-  {innerNodes} values = innergroup-ID 
+    xflag,yflag,zflag = off/on if component of center-of-mass torque is active
+  {innerNodes} values = innergroup-ID
     innergroup-ID = ID of the atom group which does not experience a hydrodynamic force from the lattice-Boltzmann fluid :pre
 :ule
 
 [Examples:]
 
-fix 1 spheres lb/rigid/pc/sphere 
+fix 1 spheres lb/rigid/pc/sphere
 fix 1 all lb/rigid/pc/sphere force 1 0 0 innerNodes ForceAtoms :pre
 
 [Description:]
@@ -68,7 +68,7 @@ is desirable simply to place an atom at the center of each sphere,
 which does not contribute to the hydrodynamic force, and have these
 central atoms interact with one another.
 
-:line  
+:line
 
 Apart from the features described above, this fix is very similar to
 the rigid fix (although it includes fewer optional arguments, and
@@ -119,7 +119,7 @@ No parameter of these fixes can be used with the {start/stop} keywords
 of the "run"_run.html command.  These fixes are not invoked during
 "energy minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making
@@ -136,7 +136,7 @@ by default.
 
 "fix lb/fluid"_fix_lb_fluid.html, "fix lb/pc"_fix_lb_pc.html
 
-[Default:] 
+[Default:]
 
 The defaults are force * on on on, and torque * on on on.
 

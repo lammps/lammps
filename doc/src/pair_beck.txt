@@ -16,7 +16,7 @@ pair_style beck Rc :pre
 
 Rc = cutoff for interactions (distance units) :ul
 
-[Examples:] 
+[Examples:]
 
 pair_style beck 8.0
 pair_coeff * * 399.671876712 0.0000867636112694 0.675 4.390 0.0003746

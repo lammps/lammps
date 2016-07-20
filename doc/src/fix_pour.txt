@@ -63,7 +63,7 @@ keyword = {region} or {diam} or {vol} or {rate} or {dens} or {vel} or {mol} or {
 [Examples:]
 
 fix 3 all pour 1000 2 29494 region myblock
-fix 2 all pour 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam range 0.9 1.1 
+fix 2 all pour 10000 1 19985583 region disk vol 0.33 100 rate 1.0 diam range 0.9 1.1
 fix 2 all pour 10000 1 19985583 region disk diam poly 2 0.7 0.4 1.5 0.6
 fix ins all pour 500 1 4767548 vol 0.8 10 region slab mol object rigid myRigid :pre
 

@@ -18,7 +18,7 @@ N = use N values in {lookup}, {linear} tables :ul
 [Examples:]
 
 pair_style multi/lucy/rx linear 1000
-pair_coeff * * multibody.table ENTRY1 h2o h2o 7.0 
+pair_coeff * * multibody.table ENTRY1 h2o h2o 7.0
 pair_coeff * * multibody.table ENTRY1 h2o 1fluid 7.0 :pre
 
 [Description:]

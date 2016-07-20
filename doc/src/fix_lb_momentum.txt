@@ -23,7 +23,7 @@ keyword = {linear} :l
 
 [Examples:]
 
-fix 1 sphere lb/momentum 
+fix 1 sphere lb/momentum
 fix 1 all lb/momentum linear 1 1 0 :pre
 
 [Description:]
@@ -54,7 +54,7 @@ commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
 "fix lb/fluid"_fix_lb_fluid.html command, and must come after this
@@ -68,6 +68,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 "fix momentum"_fix_momentum.html, "fix lb/fluid"_fix_lb_fluid.html
 
-[Default:] 
+[Default:]
 
 Zeros the total system linear momentum in each dimension.

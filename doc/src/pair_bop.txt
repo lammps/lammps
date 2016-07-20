@@ -19,7 +19,7 @@ keyword = {save} :l
 
 [Examples:]
 
-pair_style bop 
+pair_style bop
 pair_coeff * * ../potentials/CdTe_bop Cd Te
 pair_style bop save
 pair_coeff * * ../potentials/CdTe.bop.table Cd Te Te
@@ -131,7 +131,7 @@ element in the BOP file.  The final Te argument maps LAMMPS atom type
 4 to the Te element in the BOP file.
 
 BOP files in the {potentials} directory of the LAMMPS distribution
-have a ".bop" suffix.  The potentials are in tabulated form containing 
+have a ".bop" suffix.  The potentials are in tabulated form containing
 pre-tabulated pair functions for phi_ij(r_ij), beta_(sigma,ij)(r_ij),
 and beta_pi,ij)(r_ij).
 
@@ -152,14 +152,14 @@ assumes the angular functions have the formulation of ("Ward"_#Ward).
 
 Line 1: # elements N :ul
 
-The first line is followed by N lines containing the atomic 
+The first line is followed by N lines containing the atomic
 number, mass, and element symbol of each element.
 
-Following the definition of the elements several global variables for 
+Following the definition of the elements several global variables for
 the tabulated functions are given.
 
-Line 1: nr, nBOt (nr is the number of divisions the radius is broken 
-into for function tables and MUST be a factor of 5; nBOt is the number 
+Line 1: nr, nBOt (nr is the number of divisions the radius is broken
+into for function tables and MUST be a factor of 5; nBOt is the number
 of divisions for the tabulated values of THETA_(S,ij) :ulb,l
 Line 2: delta_1-delta_7 (if all are not used in the particular  :l
 formulation, set unused values to 0.0) :l,ule
@@ -169,68 +169,68 @@ Following this N lines for e_1-e_N containing p_pi.
 Line 3: p_pi (for e_1)
 Line 4: p_pi (for e_2 and continues to e_N) :ul
 
-The next section contains several pair constants for the number of 
+The next section contains several pair constants for the number of
 interaction types e_i-e_j, with i=1->N, j=i->N
 
 Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
-Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
 the previous section but is interaction type dependent) :l,ule
 
-The next section contains a line for each three body interaction type 
+The next section contains a line for each three body interaction type
 e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
 
-Line 1: g_(sigma0), g_(sigma1), g_(sigma2) (These are coefficients for 
-g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction. "Ward"_#Ward 
-contains the full expressions for the constants as functions of 
+Line 1: g_(sigma0), g_(sigma1), g_(sigma2) (These are coefficients for
+g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction. "Ward"_#Ward
+contains the full expressions for the constants as functions of
 b_(sigma,ijk), p_(sigma,ijk), u_(sigma,ijk)) :ulb,l
 Line 2: g_(sigma0), g_(sigma1), g_(sigma2) (for e_1-e_1-e_2) :l,ule
 
-The next section contains a block for each interaction type for the 
+The next section contains a block for each interaction type for the
 phi_ij(r_ij).  Each block has nr entries with 5 entries per line.
 
-Line 1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5) (for the e_1-e_1 
+Line 1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5) (for the e_1-e_1
 interaction type) :ulb,l
-Line 2: phi(r6), phi(r7), phi(r8), phi(r9), phi(r10) (this continues 
+Line 2: phi(r6), phi(r7), phi(r8), phi(r9), phi(r10) (this continues
 until nr) :l
 ... :l
-Line nr/5_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the 
+Line nr/5_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the
 e_1-e_1 interaction type) :l,ule
 
-The next section contains a block for each interaction type for the 
-beta_(sigma,ij)(r_ij).  Each block has nr entries with 5 entries per 
+The next section contains a block for each interaction type for the
+beta_(sigma,ij)(r_ij).  Each block has nr entries with 5 entries per
 line.
 
-Line 1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), beta_sigma(r4), 
+Line 1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), beta_sigma(r4),
 beta_sigma(r5) (for the e_1-e_1 interaction type) :ulb,l
-Line 2: beta_sigma(r6), beta_sigma(r7), beta_sigma(r8), beta_sigma(r9), 
+Line 2: beta_sigma(r6), beta_sigma(r7), beta_sigma(r8), beta_sigma(r9),
 beta_sigma(r10) (this continues until nr) :l
 ... :l
-Line nr/5+1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), 
+Line nr/5+1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3),
 beta_sigma(r4), beta_sigma(r5) (for the e_1-e_2 interaction type) :l,ule
 
-The next section contains a block for each interaction type for 
+The next section contains a block for each interaction type for
 beta_(pi,ij)(r_ij).  Each block has nr entries with 5 entries per line.
 
-Line 1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), beta_pi(r5) 
+Line 1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), beta_pi(r5)
 (for the e_1-e_1 interaction type) :ulb,l
-Line 2: beta_pi(r6), beta_pi(r7), beta_pi(r8), beta_pi(r9), 
+Line 2: beta_pi(r6), beta_pi(r7), beta_pi(r8), beta_pi(r9),
 beta_pi(r10) (this continues until nr) :l
 ... :l
-Line nr/5+1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), 
+Line nr/5+1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4),
 beta_pi(r5) (for the e_1-e_2 interaction type) :l,ule
 
-The next section contains a block for each interaction type for the 
-THETA_(S,ij)((THETA_(sigma,ij))^(1/2), f_(sigma,ij)).  Each block has 
+The next section contains a block for each interaction type for the
+THETA_(S,ij)((THETA_(sigma,ij))^(1/2), f_(sigma,ij)).  Each block has
 nBOt entries with 5 entries per line.
 
-Line 1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3), 
+Line 1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3),
 THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) :ulb,l
-Line 2: THETA_(S,ij)(r6), THETA_(S,ij)(r7), THETA_(S,ij)(r8), 
+Line 2: THETA_(S,ij)(r6), THETA_(S,ij)(r7), THETA_(S,ij)(r8),
 THETA_(S,ij)(r9), THETA_(S,ij)(r10) (this continues until nBOt) :l
 ... :l
-Line nBOt/5+1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3), 
+Line nBOt/5+1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3),
 THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) :l,ule
 
 The next section contains a block of N lines for e_1-e_N
@@ -238,7 +238,7 @@ The next section contains a block of N lines for e_1-e_N
 Line 1: delta^mu (for e_1)
 Line 2: delta^mu (for e_2 and repeats to e_N) :ul
 
-The last section contains more constants for e_i-e_j interactions with 
+The last section contains more constants for e_i-e_j interactions with
 i=0->N, j=i->N
 
 Line 1: (A_ij)^(mu*nu) (for e1-e1)
@@ -255,15 +255,15 @@ assumes the angular functions have the formulation of ("Zhou"_#Zhou).
 
 Line 1: # elements N :ul
 
-The first line is followed by N lines containing the atomic 
+The first line is followed by N lines containing the atomic
 number, mass, and element symbol of each element.
 
-Following the definition of the elements several global variables for 
+Following the definition of the elements several global variables for
 the tabulated functions are given.
 
-Line 1: nr, ntheta, nBOt (nr is the number of divisions the radius is broken 
+Line 1: nr, ntheta, nBOt (nr is the number of divisions the radius is broken
 into for function tables and MUST be a factor of 5; ntheta is the power of the
-power of the spline used to fit the angular function; nBOt is the number 
+power of the spline used to fit the angular function; nBOt is the number
 of divisions for the tabulated values of THETA_(S,ij) :ulb,l
 Line 2: delta_1-delta_7 (if all are not used in the particular  :l
 formulation, set unused values to 0.0) :l,ule
@@ -273,16 +273,16 @@ Following this N lines for e_1-e_N containing p_pi.
 Line 3: p_pi (for e_1)
 Line 4: p_pi (for e_2 and continues to e_N) :ul
 
-The next section contains several pair constants for the number of 
+The next section contains several pair constants for the number of
 interaction types e_i-e_j, with i=1->N, j=i->N
 
 Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
-Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
 the previous section but is interaction type dependent) :l,ule
 
-The next section contains a line for each three body interaction type 
+The next section contains a line for each three body interaction type
 e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
 
 Line 1: g0, g1, g2... (These are coefficients for the angular spline
@@ -308,15 +308,15 @@ assumes the angular functions have the formulation of ("Zhou"_#Zhou).
 
 Line 1: # elements N :ul
 
-The first two lines are followed by N lines containing the atomic 
+The first two lines are followed by N lines containing the atomic
 number, mass, and element symbol of each element.
 
-Following the definition of the elements several global variables for 
+Following the definition of the elements several global variables for
 the tabulated functions are given.
 
-Line 1: nr, ntheta, nBOt (nr is the number of divisions the radius is broken 
+Line 1: nr, ntheta, nBOt (nr is the number of divisions the radius is broken
 into for function tables and MUST be a factor of 5; ntheta is the number of
-divisions for the tabulated values of the g angular function; nBOt is the number 
+divisions for the tabulated values of the g angular function; nBOt is the number
 of divisions for the tabulated values of THETA_(S,ij) :ulb,l
 Line 2: delta_1-delta_7 (if all are not used in the particular  :l
 formulation, set unused values to 0.0) :l,ule
@@ -326,24 +326,24 @@ Following this N lines for e_1-e_N containing p_pi.
 Line 3: p_pi (for e_1)
 Line 4: p_pi (for e_2 and continues to e_N) :ul
 
-The next section contains several pair constants for the number of 
+The next section contains several pair constants for the number of
 interaction types e_i-e_j, with i=1->N, j=i->N
 
 Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
-Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
 the previous section but is interaction type dependent) :l,ule
 
-The next section contains a line for each three body interaction type 
+The next section contains a line for each three body interaction type
 e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
 
 Line 1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5) (for the e_1-e_1-e_1
 interaction type) :ulb,l
-Line 2: g(theta6), g(theta7), g(theta8), g(theta9), g(theta10) (this continues 
+Line 2: g(theta6), g(theta7), g(theta8), g(theta9), g(theta10) (this continues
 until ntheta) :l
 ... :l
-Line ntheta/5+1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5), (for the 
+Line ntheta/5+1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5), (for the
 e_1-e_1-e_2 interaction type) :l,ule
 
 The rest of the table has the same structure as the previous section (see above).
@@ -368,18 +368,18 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-These pair styles are part of the MANYBODY package.  They are only 
-enabled if LAMMPS was built with that package (which it is by default).  
-See the "Making LAMMPS"_Section_start.html#start_3 section for more 
+These pair styles are part of the MANYBODY package.  They are only
+enabled if LAMMPS was built with that package (which it is by default).
+See the "Making LAMMPS"_Section_start.html#start_3 section for more
 info.
 
-These pair potentials require the "newtion"_newton.html setting to be 
+These pair potentials require the "newtion"_newton.html setting to be
 "on" for pair interactions.
 
-The CdTe.bop and GaAs.bop potential files provided with LAMMPS (see the 
-potentials directory) are parameterized for metal "units"_units.html.  
-You can use the BOP potential with any LAMMPS units, but you would need 
-to create your own BOP potential file with coefficients listed in the 
+The CdTe.bop and GaAs.bop potential files provided with LAMMPS (see the
+potentials directory) are parameterized for metal "units"_units.html.
+You can use the BOP potential with any LAMMPS units, but you would need
+to create your own BOP potential file with coefficients listed in the
 appropriate units if your simulation does not use "metal" units.
 
 [Related commands:]
@@ -393,23 +393,23 @@ non-tabulated potential file, a_0 is non-zero.
 :line
 
 :link(Pettifor_1)
-[(Pettifor_1)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487 
+[(Pettifor_1)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 59, 8487
 (1999).
 
 :link(Pettifor_2)
-[(Pettifor_2)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84, 
+[(Pettifor_2)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. Lett., 84,
 4124 (2000).
 
 :link(Pettifor_3)
-[(Pettifor_3)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103 
+[(Pettifor_3)] D.G. Pettifor and I.I. Oleinik, Phys. Rev. B, 65, 172103
 (2002).
 
 :link(Murdick)
-[(Murdick)] D.A. Murdick, X.W. Zhou, H.N.G. Wadley, D. Nguyen-Manh, R. 
+[(Murdick)] D.A. Murdick, X.W. Zhou, H.N.G. Wadley, D. Nguyen-Manh, R.
 Drautz, and D.G. Pettifor, Phys. Rev. B, 73, 45206 (2006).
 
 :link(Ward)
-[(Ward)] D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A. 
+[(Ward)] D.K. Ward, X.W. Zhou, B.M. Wong, F.P. Doty, and J.A.
 Zimmerman, Phys. Rev. B, 85,115206 (2012).
 
 :link(Zhou)

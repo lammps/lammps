@@ -17,7 +17,7 @@ qmmm = style name of this fix command :ul
 
 [Examples:]
 
-fix 1 qmol qmmm 
+fix 1 qmol qmmm
 
 [Description:]
 

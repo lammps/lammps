@@ -17,11 +17,11 @@ rigid/local = style name of this compute command :l
 rigidID = ID of fix rigid/small command or one of its variants :l
 input = one or more rigid body attributes :l
   possible attributes = id, mol, mass,
- 	                x, y, z, xu, yu, zu, ix, iy, iz
-		        vx, vy, vz, fx, fy, fz, 
+                        x, y, z, xu, yu, zu, ix, iy, iz
+                        vx, vy, vz, fx, fy, fz,
                         omegax, omegay, omegaz,
-			angmomx, angmomy, angmomz,
-		        quatw, quati, quatj, quatk, 
+                        angmomx, angmomy, angmomz,
+                        quatw, quati, quatj, quatk,
                         tqx, tqy, tqz,
                         inertiax, inertiay, inertiaz
       id = atom ID of atom within body which owns body properties
@@ -29,7 +29,7 @@ input = one or more rigid body attributes :l
       mass = total mass of body
       x,y,z = center of mass coords of body
       xu,yu,zu = unwrapped center of mass coords of body
-      ix,iy,iz = box image that the center of mass is in 
+      ix,iy,iz = box image that the center of mass is in
       vx,vy,vz = center of mass velocities
       fx,fy,fz = force of center of mass
       omegax,omegay,omegaz = angular velocity of body
@@ -71,7 +71,7 @@ it is skipped (only one atom per body is so assigned).  If it is the
 assigned atom, then the info for that body is output.  This means that
 information for N bodies is generated.  N may be less than the # of
 bodies defined by the fix rigid command, if the atoms in some bodies
-are not in the {group-ID}.  
+are not in the {group-ID}.
 
 NOTE: Which atom in a body owns the body info is determined internal
 to LAMMPS; it's the one nearest the geometric center of the body.
@@ -109,7 +109,7 @@ sigma, etc).  Use {xu}, {yu}, {zu} if you want the COM "unwrapped" by
 the image flags for each atobody.  Unwrapped means that if the body
 COM has passed thru a periodic boundary one or more times, the value
 is generated what the COM coordinate would be if it had not been
-wrapped back into the periodic box. 
+wrapped back into the periodic box.
 
 The image flags for the body can be generated directly using the {ix},
 {iy}, {iz} attributes.  For periodic dimensions, they specify which

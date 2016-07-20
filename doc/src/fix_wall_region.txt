@@ -63,7 +63,7 @@ that if you embed a region in your simulation box and want it to
 repulse particles from its surface (using the "side out" option in the
 "region"_region.html command), that its repulsive force will not be
 felt across a periodic boundary.
- 
+
 NOTE: For primitive regions with sharp corners and/or edges (e.g. a
 block or cylinder), wall/particle forces are computed accurately for
 both interior and exterior regions.  For {union} and {intersect}

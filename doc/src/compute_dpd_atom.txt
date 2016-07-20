@@ -22,7 +22,7 @@ compute 1 all dpd/atom
 [Description:]
 
 Define a computation that accesses the per-particle internal
-conductive energy (u_cond), internal mechanical energy (u_mech), 
+conductive energy (u_cond), internal mechanical energy (u_mech),
 internal chemical energy (u_chem) and
 internal temperatures (dpdTheta) for each particle in a group.  See
 the "compute dpd"_compute_dpd.html command if you want the total
@@ -39,10 +39,10 @@ that uses per-particle values from a compute as input.  See
 "Section_howto15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
-The per-particle array values will be in energy (u_cond, u_mech, u_chem) 
+The per-particle array values will be in energy (u_cond, u_mech, u_chem)
 and temperature (dpdTheta) "units"_units.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making

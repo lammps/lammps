@@ -28,7 +28,7 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
         factor = multiplicative factor for change in box length at end of run
       {vel} value = V
         V = change box length at this velocity (distance/time units),
-	    effectively an engineering strain rate
+            effectively an engineering strain rate
       {erate} value = R
         R = engineering strain rate (1/time units)
       {trate} value = R
@@ -36,10 +36,10 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
       {volume} value = none = adjust this dim to preserve volume of system
       {wiggle} values = A Tp
         A = amplitude of oscillation (distance units)
-	Tp = period of oscillation (time units)
+        Tp = period of oscillation (time units)
       {variable} values = v_name1 v_name2
         v_name1 = variable with name1 for box length change as function of time
-	v_name2 = variable with name2 for change rate as function of time
+        v_name2 = variable with name2 for change rate as function of time
   {xy}, {xz}, {yz} args = style value
     style = {final} or {delta} or {vel} or {erate} or {trate} or {wiggle}
       {final} value = tilt
@@ -48,17 +48,17 @@ parameter = {x} or {y} or {z} or {xy} or {xz} or {yz}
         dtilt = change in tilt factor at end of run (distance units)
       {vel} value = V
         V = change tilt factor at this velocity (distance/time units),
-	    effectively an engineering shear strain rate
+            effectively an engineering shear strain rate
       {erate} value = R
         R = engineering shear strain rate (1/time units)
       {trate} value = R
         R = true shear strain rate (1/time units)
       {wiggle} values = A Tp
         A = amplitude of oscillation (distance units)
-	Tp = period of oscillation (time units)
+        Tp = period of oscillation (time units)
       {variable} values = v_name1 v_name2
         v_name1 = variable with name1 for tilt change as function of time
-	v_name2 = variable with name2 for change rate as function of time :pre
+        v_name2 = variable with name2 for change rate as function of time :pre
 
 zero or more keyword/value pairs may be appended :l
 keyword = {remap} or {flip} or {units} :l

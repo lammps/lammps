@@ -173,7 +173,7 @@ change_box all x scale 1.1 y volume z volume :pre
 
 The {volume} style changes the associated dimension so that the
 overall box volume is unchanged relative to its value before the
-preceding keyword was invoked. 
+preceding keyword was invoked.
 
 If the following command is used, then the z box length will shrink by
 the same 1.1 factor the x box length was increased by:

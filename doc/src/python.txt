@@ -24,7 +24,7 @@ keyword = {invoke} or {input} or {return} or {format} or {file} or {here} or {ex
       variable = v_name, where name = name of LAMMPS variable, e.g. v_abc
   {return} arg = varReturn
     varReturn = v_name  = LAMMPS variable name which return value of function will be assigned to
-  {format} arg = fstring with M characters 
+  {format} arg = fstring with M characters
     M = N if no return value, where N = # of inputs
     M = N+1 if there is a return value
     fstring = each character (i,f,s,p) corresponds in order to an input or return value
@@ -231,7 +231,7 @@ nvaluelast = 0 :pre
 def expensive(nstep):
   global nsteplast,nvaluelast
   if nstep == nsteplast: return nvaluelast
-  nsteplast = nstep  
+  nsteplast = nstep
   # perform complicated calculation
   nvalue = ...
   nvaluelast = nvalue
@@ -255,7 +255,7 @@ function loaded first.
 It's important to realize that if you are running LAMMPS in parallel,
 each MPI task will load the Python interpreter and execute a local
 copy of the Python function(s) you define.  There is no connection
-between the Python interpreters running on different processors.  
+between the Python interpreters running on different processors.
 This implies three important things.
 
 First, if you put a print statement in your Python function, you will
@@ -321,7 +321,7 @@ def loop(N,cut0,thresh,lmpptr):
   from lammps import lammps
   lmp = lammps(ptr=lmpptr)
   natoms = lmp.get_natoms() :pre
-  
+
   for i in range(N):
     cut = cut0 + i*0.1 :pre
 

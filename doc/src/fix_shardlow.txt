@@ -52,7 +52,7 @@ examples/USER/dpd directory.
 
 :line
 
-[Restrictions:] 
+[Restrictions:]
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making

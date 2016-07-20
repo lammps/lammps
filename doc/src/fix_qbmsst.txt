@@ -10,7 +10,7 @@ fix qbmsst command :h3
 
 [Syntax:]
 
-fix ID group-ID qbmsst dir shockvel keyword value ... :pre 
+fix ID group-ID qbmsst dir shockvel keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 qbmsst = style name of this fix :l
@@ -155,8 +155,8 @@ vector contains five values in this order:
 \[{dhugoniot}, {drayleigh}, {lagrangian_speed}, {lagrangian_position},
 {quantum_temperature}\]
 
-{dhugoniot} is the departure from the Hugoniot (temperature units). 
-{drayleigh} is the departure from the Rayleigh line (pressure units). 
+{dhugoniot} is the departure from the Hugoniot (temperature units).
+{drayleigh} is the departure from the Rayleigh line (pressure units).
 {lagrangian_speed} is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
 {lagrangian_position} is the computational cell position in the reference frame moving at the shock speed. This is the distance of the computational cell behind the shock front.
 {quantum_temperature} is the temperature of the quantum thermal bath <i>T</i><sup>qm</sup>. :ol
@@ -167,14 +167,14 @@ headers, the following LAMMPS commands are suggested. Here the
 the thermo keyword {etotal} to print the quantity <i>etot</i>.  See
 also the "thermo_style"_thermo_style.html command.
 
-fix		fix_id all msst z 
-fix_modify	fix_id energy yes
-variable	dhug	equal f_fix_id\[1\]
-variable	dray	equal f_fix_id\[2\]
-variable	lgr_vel	equal f_fix_id\[3\]
-variable	lgr_pos	equal f_fix_id\[4\]
-variable	T_qm	equal f_fix_id\[5\]
-thermo_style	custom	step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id :pre
+fix             fix_id all msst z
+fix_modify      fix_id energy yes
+variable        dhug    equal f_fix_id\[1\]
+variable        dray    equal f_fix_id\[2\]
+variable        lgr_vel equal f_fix_id\[3\]
+variable        lgr_pos equal f_fix_id\[4\]
+variable        T_qm    equal f_fix_id\[5\]
+thermo_style    custom  step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id :pre
 
 The global scalar under the entry f_fix_id is the quantity of thermo
 energy as an extra part of <i>etot</i>. This global scalar and the

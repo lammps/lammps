@@ -88,7 +88,7 @@ minimum of the 3 shape diameters of the particles involved in an I,I
 interaction, though this is not required.  Note that this is a
 different meaning for {sigma} than the "pair_style
 resquared"_pair_resquared.html potential uses.
- 
+
 The epsilon_i and epsilon_j coefficients are actually defined for atom
 types, not for pairs of atom types.  Thus, in a series of pair_coeff
 commands, they only need to be specified once for each atom type.

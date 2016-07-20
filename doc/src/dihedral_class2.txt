@@ -17,10 +17,10 @@ dihedral_style class2 :pre
 
 dihedral_style class2
 dihedral_coeff 1 100 75 100 70 80 60
-dihedral_coeff * mbt 3.5945 0.1704 -0.5490 1.5228 
+dihedral_coeff * mbt 3.5945 0.1704 -0.5490 1.5228
 dihedral_coeff * ebt 0.3417 0.3264 -0.9036 0.1368 0.0 -0.8080 1.0119 1.1010
-dihedral_coeff 2 at 0.0 -0.1850 -0.7963 -2.0220 0.0 -0.3991 110.2453 105.1270 
-dihedral_coeff * aat -13.5271 110.2453 105.1270 
+dihedral_coeff 2 at 0.0 -0.1850 -0.7963 -2.0220 0.0 -0.3991 110.2453 105.1270
+dihedral_coeff * aat -13.5271 110.2453 105.1270
 dihedral_coeff * bb13 0.0 1.0119 1.1010 :pre
 
 [Description:]

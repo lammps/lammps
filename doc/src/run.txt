@@ -21,7 +21,7 @@ keyword = {upto} or {start} or {stop} or {pre} or {post} or {every} :l
   {stop} value = N2
     N2 = timestep at which last run will end
   {pre} value = {no} or {yes}
-  {post} value = {no} or {yes} 
+  {post} value = {no} or {yes}
   {every} values = M c1 c2 ...
     M = break the run into M-timestep segments and invoke one or more commands between each segment
     c1,c2,...,cN = one or more LAMMPS commands, each enclosed in quotes
@@ -66,11 +66,11 @@ keywords.
 
 For example, consider this fix followed by 10 run commands:
 
-fix	     1 all nvt 200.0 300.0 1.0
-run	     1000 start 0 stop 10000
-run	     1000 start 0 stop 10000
+fix         1 all nvt 200.0 300.0 1.0
+run         1000 start 0 stop 10000
+run         1000 start 0 stop 10000
 ...
-run	     1000 start 0 stop 10000 :pre
+run         1000 start 0 stop 10000 :pre
 
 The NVT fix ramps the target temperature from 200.0 to 300.0 during a
 run.  If the run commands did not have the start/stop keywords (just
@@ -188,7 +188,7 @@ must fit in a signed 32-bit integer, so you are limited to slightly
 more than 2 billion steps (2^31) in a single run.  When using {upto},
 N can be larger than a signed 32-bit integer, however the difference
 between N and the current timestep must still be no larger than
-2^31 steps.  
+2^31 steps.
 
 However, with or without the {upto} keyword, you can perform
 successive runs to run a simulation for any number of steps (ok, up to

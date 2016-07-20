@@ -37,14 +37,14 @@ simulation with all the settings.  Rather, the input script is read
 one line at a time and each command takes effect when it is read.
 Thus this sequence of commands:
 
-timestep 0.5 
-run      100 
+timestep 0.5
+run      100
 run      100 :pre
 
 does something different than this sequence:
 
-run      100 
-timestep 0.5 
+run      100
+timestep 0.5
 run      100 :pre
 
 In the first case, the specified timestep (0.5 fmsec) is used for two
@@ -97,7 +97,7 @@ single leading "#" will comment out the entire command.
 
 (3) The line is searched repeatedly for $ characters, which indicate
 variables that are replaced with a text string.  See an exception in
-(6).  
+(6).
 
 If the $ is followed by curly brackets, then the variable name is the
 text inside the curly brackets.  If no curly brackets follow the $,
@@ -123,7 +123,7 @@ variable X equal (xlo+xhi)/2+sqrt(v_area)
 region 1 block $X 2 INF INF EDGE EDGE
 variable X delete :pre
 
-can be replaced by 
+can be replaced by
 
 region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE :pre
 

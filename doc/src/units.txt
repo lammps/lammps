@@ -70,7 +70,7 @@ pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
 dynamic viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
 charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
 dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
-electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon 
+electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon
 density = mass/volume, where rho* = rho sigma^dim :ul
 
 Note that for LJ units, the default mode of thermodyamic output via
@@ -86,8 +86,8 @@ For style {real}, these are the units:
 mass = grams/mole
 distance = Angstroms
 time = femtoseconds
-energy = Kcal/mole 
-velocity = Angstroms/femtosecond 
+energy = Kcal/mole
+velocity = Angstroms/femtosecond
 force = Kcal/mole-Angstrom
 torque = Kcal/mole
 temperature = Kelvin
@@ -95,7 +95,7 @@ pressure = atmospheres
 dynamic viscosity = Poise
 charge = multiple of electron charge (1.0 is a proton)
 dipole = charge*Angstroms
-electric field = volts/Angstrom 
+electric field = volts/Angstrom
 density = gram/cm^dim :ul
 
 For style {metal}, these are the units:
@@ -104,7 +104,7 @@ mass = grams/mole
 distance = Angstroms
 time = picoseconds
 energy = eV
-velocity = Angstroms/picosecond 
+velocity = Angstroms/picosecond
 force = eV/Angstrom
 torque = eV
 temperature = Kelvin
@@ -129,7 +129,7 @@ pressure = Pascals
 dynamic viscosity = Pascal*second
 charge = Coulombs (1.6021765e-19 is a proton)
 dipole = Coulombs*meters
-electric field = volts/meter 
+electric field = volts/meter
 density = kilograms/meter^dim :ul
 
 For style {cgs}, these are the units:
@@ -146,7 +146,7 @@ pressure = dyne/cm^2 or barye = 1.0e-6 bars
 dynamic viscosity = Poise
 charge = statcoulombs or esu (4.8032044e-10 is a proton)
 dipole = statcoul-cm = 10^18 debye
-electric field = statvolt/cm or dyne/esu 
+electric field = statvolt/cm or dyne/esu
 density = grams/cm^dim :ul
 
 For style {electron}, these are the units:
@@ -177,7 +177,7 @@ pressure = picogram/(micrometer-microsecond^2)
 dynamic viscosity = picogram/(micrometer-microsecond)
 charge = picocoulombs (1.6021765e-7 is a proton)
 dipole = picocoulomb-micrometer
-electric field = volt/micrometer 
+electric field = volt/micrometer
 density = picograms/micrometer^dim :ul
 
 For style {nano}, these are the units:
@@ -194,7 +194,7 @@ pressure = attogram/(nanometer-nanosecond^2)
 dynamic viscosity = attogram/(nanometer-nanosecond)
 charge = multiple of electron charge (1.0 is a proton)
 dipole = charge-nanometer
-electric field = volt/nanometer 
+electric field = volt/nanometer
 density = attograms/nanometer^dim :ul
 
 The units command also sets the timestep size and neighbor skin
@@ -205,7 +205,7 @@ For style {real} these are dt = 1.0 fmsec and skin = 2.0 Angstroms.
 For style {metal} these are dt = 0.001 psec and skin = 2.0 Angstroms.
 For style {si} these are dt = 1.0e-8 sec and skin = 0.001 meters.
 For style {cgs} these are dt = 1.0e-8 sec and skin = 0.1 cm.
-For style {electron} these are dt = 0.001 fmsec and skin = 2.0 Bohr. 
+For style {electron} these are dt = 0.001 fmsec and skin = 2.0 Bohr.
 For style {micro} these are dt = 2.0 microsec and skin = 0.1 micrometers.
 For style {nano} these are dt = 0.00045 nanosec and skin = 0.1 nanometers. :ul
 

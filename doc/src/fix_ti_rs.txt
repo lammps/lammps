@@ -23,7 +23,7 @@ keyword = {function} :l
 
 [Example:]
 
-fix ref all ti/rs 50.0 2000 1000 
+fix ref all ti/rs 50.0 2000 1000
 fix vf vacancy ti/rs 10.0 70000 50000 function 2 :pre
 
 [Description:]

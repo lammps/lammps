@@ -15,13 +15,13 @@ fix ID group-ID box/relax keyword value ... :pre
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 box/relax = style name of this fix command :l
 one or more keyword value pairs may be appended
-keyword = {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {nreset} or {vmax} or {dilate} or {scaleyz} or {scalexz} or {scalexy} or {fixedpoint} 
+keyword = {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {yz} or {xz} or {couple} or {nreset} or {vmax} or {dilate} or {scaleyz} or {scalexz} or {scalexy} or {fixedpoint}
   {iso} or {aniso} or {tri} value = Ptarget = desired pressure (pressure units)
   {x} or {y} or {z} or {xy} or {yz} or {xz} value = Ptarget = desired pressure (pressure units)
   {couple} = {none} or {xyz} or {xy} or {yz} or {xz}
   {nreset} value = reset reference cell every this many minimizer iterations
   {vmax} value = fraction = max allowed volume change in one iteration
-  {dilate} value = {all} or {partial} 
+  {dilate} value = {all} or {partial}
   {scaleyz} value = {yes} or {no} = scale yz with lz
   {scalexz} value = {yes} or {no} = scale xz with lz
   {scalexy} value = {yes} or {no} = scale xy with ly
@@ -99,8 +99,8 @@ chosen will not move during the simulation.  For example, if the lower
 periodic boundaries pass through (0,0,0), and this point is provided
 to {fixedpoint}, then the lower periodic boundaries will remain at
 (0,0,0), while the upper periodic boundaries will move twice as
-far. In all cases, the particle positions at each iteration are 
-unaffected by the chosen value, except that all particles are 
+far. In all cases, the particle positions at each iteration are
+unaffected by the chosen value, except that all particles are
 displaced by the same amount, different on each iteration.
 
 NOTE: Appling an external pressure to tilt dimensions {xy}, {xz}, {yz}
@@ -178,9 +178,9 @@ these 7 keywords:
 x Ptarget
 y Ptarget
 z Ptarget
-xy 0.0 
-yz 0.0 
-xz 0.0 
+xy 0.0
+yz 0.0
+xz 0.0
 couple none :pre
 
 :line
@@ -201,7 +201,7 @@ With this fix, the potential energy used by the minimizer is augmented
 by an additional energy provided by the fix. The overall objective
 function then is:
 
-:c,image(Eqs/fix_box_relax1.jpg) 
+:c,image(Eqs/fix_box_relax1.jpg)
 
 where {U} is the system potential energy, {P}_t is the desired
 hydrostatic pressure, {V} and {V}_0 are the system and reference
@@ -211,14 +211,14 @@ Taking derivatives of {E} w.r.t. the box dimensions, and setting these
 to zero, we find that at the minimum of the objective function, the
 global system stress tensor [P] will satisfy the relation:
 
-:c,image(Eqs/fix_box_relax2.jpg) 
+:c,image(Eqs/fix_box_relax2.jpg)
 
 where [I] is the identity matrix, [h]_0 is the box dimension tensor of
 the reference cell, and [h]_0{d} is the diagonal part of
 [h]_0. [S]_{t} is a symmetric stress tensor that is chosen by LAMMPS
 so that the upper-triangular components of [P] equal the stress tensor
 specified by the user.
- 
+
 This equation only applies when the box dimensions are equal to those
 of the reference dimensions. If this is not the case, then the
 converged stress tensor will not equal that specified by the user.  We

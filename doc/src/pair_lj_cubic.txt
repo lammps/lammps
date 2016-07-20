@@ -32,12 +32,12 @@ force go to zero at the cutoff distance.  Outside the cutoff distance
 the energy and force are zero.
 
 :c,image(Eqs/pair_lj_cubic.jpg)
- 
+
 The location of the inflection point rs is defined
-by the LJ diameter, rs/sigma = (26/7)^1/6. The cutoff distance 
-is defined by rc/rs = 67/48 or rc/sigma = 1.737.... 
-The analytic expression for the 
-the cubic coefficient 
+by the LJ diameter, rs/sigma = (26/7)^1/6. The cutoff distance
+is defined by rc/rs = 67/48 or rc/sigma = 1.737....
+The analytic expression for the
+the cubic coefficient
 A3*rmin^3/epsilon = 27.93... is given in the paper by
 Holian and Ravelo "(Holian)"_#Holian.
 
@@ -91,7 +91,7 @@ The default mix value is {geometric}.  See the "pair_modify" command
 for details.
 
 The lj/cubic pair style does not support the
-"pair_modify"_pair_modify.html shift option, 
+"pair_modify"_pair_modify.html shift option,
 since pair interaction is already smoothed to 0.0 at the
 cutoff.
 

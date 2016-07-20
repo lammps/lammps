@@ -19,7 +19,7 @@ charge-correction = {mass} or {geometry}, use COM or geometric center for charge
 
 [Examples:]
 
-compute 1 fluid dipole/chunk molchunk 
+compute 1 fluid dipole/chunk molchunk
 compute dw water dipole/chunk 1 geometry :pre
 
 [Description:]

@@ -15,7 +15,7 @@ compute ID group-ID voronoi/atom keyword arg ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 voronoi/atom = style name of this compute command :l
 zero or more keyword/value pairs may be appended :l
-keyword = {only_group} or {surface} or {radius} or {edge_histo} or {edge_threshold} 
+keyword = {only_group} or {surface} or {radius} or {edge_histo} or {edge_threshold}
 or {face_threshold} or {neighbors} or {peratom} :l
   {only_group} = no arg
   {occupation} = no arg
@@ -25,7 +25,7 @@ or {face_threshold} or {neighbors} or {peratom} :l
   {radius} arg = v_r
     v_r = radius atom style variable for a poly-disperse Voronoi tessellation
   {edge_histo} arg = maxedge
-    maxedge = maximum number of Voronoi cell edges to be accounted in the histogram 
+    maxedge = maximum number of Voronoi cell edges to be accounted in the histogram
   {edge_threshold} arg = minlength
     minlength = minimum length for an edge to be counted
   {face_threshold} arg = minarea
@@ -38,7 +38,7 @@ or {face_threshold} or {neighbors} or {peratom} :l
 
 compute 1 all voronoi/atom
 compute 2 precipitate voronoi/atom surface matrix
-compute 3b precipitate voronoi/atom radius v_r 
+compute 3b precipitate voronoi/atom radius v_r
 compute 4 solute voronoi/atom only_group
 compute 5 defects voronoi/atom occupation
 compute 6 all voronoi/atom neighbors yes :pre
@@ -53,11 +53,11 @@ in the group.
 By default two per-atom quantities are calculated by this compute.
 The first is the volume of the Voronoi cell around each atom.  Any
 point in an atom's Voronoi cell is closer to that atom than any other.
-The second is the number of faces of the Voronoi cell. This is 
+The second is the number of faces of the Voronoi cell. This is
 equal to the number of nearest neighbors of the central atom,
-plus any exterior faces (see note below). If the {peratom} keyword 
-is set to "no", the per-atom quantities are still calculated, 
-but they are not accessible. 
+plus any exterior faces (see note below). If the {peratom} keyword
+is set to "no", the per-atom quantities are still calculated,
+but they are not accessible.
 
 :line
 
@@ -122,23 +122,23 @@ to locate vacancies (the coordinates are given by the atom coordinates
 at the time step when the compute was first invoked), while column two
 data can be used to identify interstitial atoms.
 
-If the {neighbors} value is set to yes, then 
+If the {neighbors} value is set to yes, then
 this compute creates a local array with 3 columns. There
-is one row for each face of each Voronoi cell. The 
-3 columns are the atom ID of the atom that owns the cell, 
-the atom ID of the atom in the neighboring cell 
-(or zero if the face is external), and the area of the face. 
+is one row for each face of each Voronoi cell. The
+3 columns are the atom ID of the atom that owns the cell,
+the atom ID of the atom in the neighboring cell
+(or zero if the face is external), and the area of the face.
 The array can be accessed by any command that
 uses local values from a compute as input.  See "this
 section"_Section_howto.html#howto_15 for an overview of LAMMPS output
-options. More specifically, the array can be accessed by a 
+options. More specifically, the array can be accessed by a
 "dump local"_dump.html command to write a file containing
 all the Voronoi neighbors in a system:
 
 compute 6 all voronoi/atom neighbors yes
 dump d2 all local 1 dump.neighbors index c_6\[1\] c_6\[2\] c_6\[3\] :pre
 
-If the {face_threshold} keyword is used, then only faces 
+If the {face_threshold} keyword is used, then only faces
 with areas greater than the threshold are stored.
 
 :line
@@ -190,7 +190,7 @@ per-atom values from a compute as input.  See "Section_howto
 15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options. If the {peratom} keyword is set to "no", the per-atom array
 is still created, but it is not accessible.
- 
+
 If the {edge_histo} keyword is used, then this compute generates a
 global vector of length {maxedge}+1, containing a histogram of the
 number of edges per face.

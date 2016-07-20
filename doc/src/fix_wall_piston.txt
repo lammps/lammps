@@ -102,8 +102,8 @@ This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-The face that has the wall/piston must be boundary type 's' 
-(shrink-wrapped). The opposing face can be 
+The face that has the wall/piston must be boundary type 's'
+(shrink-wrapped). The opposing face can be
 any boundary type other than periodic.
 
 A wall/piston should not be used with rigid bodies such as those

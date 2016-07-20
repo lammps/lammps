@@ -297,7 +297,7 @@ per processor.  Note that the 4 sub-domains share vertices, so there
 will be duplicate nodes in the list.
 
 The "SQUARES" section lists the node IDs of the 4 vertices in a
-rectangle for each processor (1 to 4).  
+rectangle for each processor (1 to 4).
 
 For a 3d problem, the syntax is similar with 8 vertices listed for
 each processor, instead of 4, and "SQUARES" replaced by "CUBES".

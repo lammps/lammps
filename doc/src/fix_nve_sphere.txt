@@ -78,7 +78,7 @@ commands"_Section_howto.html#howto_15.  No parameter of this fix can
 be used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 This fix requires that atoms store torque and angular velocity (omega)
 and a radius as defined by the "atom_style sphere"_atom_style.html

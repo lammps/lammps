@@ -116,7 +116,7 @@ PPPM. However, 2-FFT PPPM also requires a slightly larger mesh size to
 achieve the same accuracy as 4-FFT PPPM. For problems where the FFT
 cost is the performance bottleneck (typically large problems running
 on many processors), 2-FFT PPPM may be faster than 4-FFT PPPM.
-  
+
 Staggered PPPM performs calculations using two different meshes, one
 shifted slightly with respect to the other.  This can reduce force
 aliasing errors and increase the accuracy of the method, but also
@@ -211,7 +211,7 @@ add compile/link flags to Makefile.machine |
 re-build LAMMPS |
   make machine |
 run a LAMMPS simulation |
-  lmp_machine < in.script <br> 
+  lmp_machine < in.script <br>
   mpirun -np 32 lmp_machine -in in.script |
 enable the accelerator package |
   via "-c on" and "-k on" "command-line switches"_Section_start.html#start_7, <br>

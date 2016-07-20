@@ -141,7 +141,7 @@ iteration counts.  An example is as follows:
 
 Minimization stats:
   Stopping criterion = max iterations
-  Energy initial, next-to-last, final = 
+  Energy initial, next-to-last, final =
        -0.626828169302     -2.82642039062     -2.82643549739
   Force two-norm initial, final = 2052.1 91.9642
   Force max component initial, final = 346.048 9.78056

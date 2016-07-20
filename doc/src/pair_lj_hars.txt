@@ -20,7 +20,7 @@ args = list of arguments for a particular style :ul
     cutoff = global cutoff for Lennard Jones interactions (distance units)
     All_AT = Fully atomic simulation flag, = {0} or {1}
       {0} Fully atomic simulation is off and HAdResS is on
-      {1} Fully atomic simulation is on and HAdResS is off 
+      {1} Fully atomic simulation is on and HAdResS is off
     Flag_Load_File = Flag of employing compensation energy file, = {0} or {1}
       {0} Do not employ compensation energy until T<sub>p</sub><sup>Start</sup>
       {1} Employ compensation energy file immediately :pre
@@ -30,7 +30,7 @@ args = list of arguments for a particular style :ul
     Coulcutoff = global cutoff for DSF coulombic interactions (distance units)
     All_AT = Fully atomic simulation flag, = {0} or {1}
       {0} Fully atomic simulation is off and HAdResS is on
-      {1} Fully atomic simulation is on and HAdResS is off 
+      {1} Fully atomic simulation is on and HAdResS is off
     Flag_Load_File = Flag of employing compensation energy file, = {0} or {1}
       {0} Do not employ compensation energy until T<sub>p</sub><sup>Start</sup>
       {1} Employ compensation energy file immediately :pre
@@ -56,23 +56,23 @@ of a global Hamiltonian function H, which has the following form "(Potestio2013_
 
 :c,image(Eqs/HADRESS_System_Hamiltonian.jpg)
 
-The term K is the atomistic kinetic energy, and V<sup>int</sup> consists of all the intramolecular bonded interactions (e.g. bond stretching). 
+The term K is the atomistic kinetic energy, and V<sup>int</sup> consists of all the intramolecular bonded interactions (e.g. bond stretching).
 The value of the switching function is determined by the sizes L<sub>AT</sub>
-L<sub>HY</sub> of the atomistic and hybrid regions, respectively, and of the specific geometry of the atomistic region. 
+L<sub>HY</sub> of the atomistic and hybrid regions, respectively, and of the specific geometry of the atomistic region.
 
 In the Hamiltonian, the non-bonded potential energy contribution of each molecule is given by a weighted sum of two terms
 V<sub>&#945;</sub><sup>CG</sup> and V<sub>&#945;</sub><sup>AT</sup>, defined as:
 
 :c,image(Eqs/HADRESS_System_Potentials.jpg)
 
-The {lj/cut/hars/at} styles compute the standard 12/6 Lennard-Jones potential for the atoms located in atomistic (high resolution) and hybrid region. 
+The {lj/cut/hars/at} styles compute the standard 12/6 Lennard-Jones potential for the atoms located in atomistic (high resolution) and hybrid region.
 The general formula is given by
 
 :c,image(Eqs/HADRESS_AT_pair_lj.jpg)
 
 rc is the cutoff.
 
-Style {lj/cut/coul/dsf/hars/at} computes the standard 12/6 Lennard-Jones and Coulomb interactions for atoms of atomistic (high resolution) and hybrid region. 
+Style {lj/cut/coul/dsf/hars/at} computes the standard 12/6 Lennard-Jones and Coulomb interactions for atoms of atomistic (high resolution) and hybrid region.
 The Coulombic term is computed via the damped shifted force model introduced by "Fennell et al."_#Fennell, given by:
 
 :c,image(Eqs/HADRESS_AT_pair_coul_dsf.jpg)
@@ -82,7 +82,7 @@ error-function. This potential is essentially a short-range,
 spherically-truncated, charge-neutralized, shifted, pairwise {1/r}
 summation.
 
-The {lj/cut/hars/cg} styles compute the standard 12/6 Lennard-Jones potential for the atoms located in the low resolution (coarse-grained) and hybrid region. 
+The {lj/cut/hars/cg} styles compute the standard 12/6 Lennard-Jones potential for the atoms located in the low resolution (coarse-grained) and hybrid region.
 The general formula is given by
 
 :c,image(Eqs/HADRESS_CG_pair_lj.jpg)
@@ -90,8 +90,8 @@ The general formula is given by
 rc is the cutoff.
 As mentioned above, the interactions in the coarse-grained region are computed based on the center of mass of the particles.
 
-Important Note: For dual resolution simulations, it is required to use hybrid/overlay to include 
-both resolution pair-styles. 
+Important Note: For dual resolution simulations, it is required to use hybrid/overlay to include
+both resolution pair-styles.
 
 For all of dual resolution pair styles, the following coefficients must
 be defined for each pair of atoms types via the
@@ -109,7 +109,7 @@ For examples:
 
 Note that sigma is defined in the LJ formula as the zero-crossing
 distance for the potential, not as the energy minimum at 2^(1/6)
-sigma. 
+sigma.
 
 All potentials have to be shifted at the cutoff through the command
 
@@ -131,18 +131,18 @@ not need to be specified in an input script that reads a restart file.
 
 The pair styles do not support the use of the rRESPA hierarchy.
 
-Each pair styles creates a file named as "Mean_Comp_Energy_XX.txt", where the file name's suffix "XX", is replaced by "AT" and "CG" for atomistic and coarse-grained pairwise interactions respectively. 
-In these files the averaged compensation energy as function of the resolution (&#955;) is printed. Each file is created at {T<sub>p</sub><sup>Start</sup>} and is updated every {dT<sub>p</sub>}. 
-The updating process of the files is finished at time step {T<sub>p</sub><sup>End</sup>}. 
-For those equilibrated simulations starting at time step larger than {T<sub>p</sub><sup>End</sup>}, the file "Mean_Comp_Energy_XX.txt" is loaded in each pair styles. For more information, 
+Each pair styles creates a file named as "Mean_Comp_Energy_XX.txt", where the file name's suffix "XX", is replaced by "AT" and "CG" for atomistic and coarse-grained pairwise interactions respectively.
+In these files the averaged compensation energy as function of the resolution (&#955;) is printed. Each file is created at {T<sub>p</sub><sup>Start</sup>} and is updated every {dT<sub>p</sub>}.
+The updating process of the files is finished at time step {T<sub>p</sub><sup>End</sup>}.
+For those equilibrated simulations starting at time step larger than {T<sub>p</sub><sup>End</sup>}, the file "Mean_Comp_Energy_XX.txt" is loaded in each pair styles. For more information,
 see "fix_lambdah_calc"_fix_lambdah_calc.html.
 
 :line
 
 [Restrictions:]
 
-In HAdResS, it is required to include both high resolution (atomistic) 
-and low resolution (coarse-grained) force fields together through 
+In HAdResS, it is required to include both high resolution (atomistic)
+and low resolution (coarse-grained) force fields together through
 
   pair_style      hybrid/overlay :pre
 An example of such setup is given above.
@@ -175,5 +175,5 @@ To employ the H-AdResS scheme, the full/hars atom style as well as "(fix_lambdah
 [(Heidari2016)] M. Heidari, R. Cortes-Huerto, D. Donadio and R. Potestio, {Accurate and general treatment of electrostatic interaction in Hamiltonian adaptive resolution simulations}, "EPJST (2016)"
 
 :link(Fennell)
-[(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 
+[(Fennell)] C. J. Fennell, J. D. Gezelter, J Chem Phys, 124,
 234104 (2006).

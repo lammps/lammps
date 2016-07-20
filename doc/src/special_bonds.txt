@@ -178,9 +178,9 @@ bond/create"_fix_bond_create.html command.  It can also be used if
 molecules will be added to the system, e.g. via the "fix
 deposit"_fix_deposit.html, or "fix pour"_fix_pour.html commands, which
 will have atoms with more special neighbors than any atom in the
-current system has.  
+current system has.
 
-:line 
+:line
 
 NOTE: LAMMPS stores and maintains a data structure with a list of the
 1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
@@ -193,7 +193,7 @@ empty space in the list for this N additional 1st, 2nd, or 3rd
 neighbors to be added.  If you do not do this, you may get an error
 when bonds (or molecules) are added.
 
-:line 
+:line
 
 NOTE: If you reuse this command in an input script, you should set all
 the options you need each time.  This command cannot be used a 2nd
@@ -203,7 +203,7 @@ time incrementally, e.g. to add some extra storage locations via the
 special_bonds lj 0.0 1.0 1.0
 special_bonds coul 0.0 0.0 1.0
 
-are not the same as 
+are not the same as
 
 special_bonds lj 0.0 1.0 1.0 coul 0.0 0.0 1.0
 

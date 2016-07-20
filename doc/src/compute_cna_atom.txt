@@ -13,7 +13,7 @@ compute cna/atom command :h3
 compute ID group-ID cna/atom cutoff :pre
 
 ID, group-ID are documented in "compute"_compute.html command
-cna/atom = style name of this compute command 
+cna/atom = style name of this compute command
 cutoff = cutoff distance for nearest neighbors (distance units) :ul
 
 [Examples:]

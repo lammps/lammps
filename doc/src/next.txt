@@ -116,19 +116,19 @@ Here is an example of a double loop which uses the "if"_if.html and
 "jump"_jump.html commands to break out of the inner loop when a
 condition is met, then continues iterating thru the outer loop.
 
-label	    loopa
+label       loopa
 variable    a loop 5
-  label	    loopb
+  label     loopb
   variable  b loop 5
-  print	    "A,B = $a,$b"
+  print     "A,B = $a,$b"
   run       10000
-  if	    $b > 2 then "jump in.script break"
-  next	    b
-  jump	    in.script loopb
-label	    break
+  if        $b > 2 then "jump in.script break"
+  next      b
+  jump      in.script loopb
+label       break
 variable    b delete :pre
-next	    a
-jump	    in.script loopa :pre
+next        a
+jump        in.script loopa :pre
 
 [Restrictions:]
 

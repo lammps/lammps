@@ -48,9 +48,9 @@ thermodynamic output by using the "thermo_modify"_thermo_modify.html
 command, as shown in the following example:
 
 compute         effTemp all temp/eff
-thermo_style    custom step etotal pe ke temp press 
+thermo_style    custom step etotal pe ke temp press
 thermo_modify   temp effTemp :pre
- 
+
 The value of the kinetic energy will be 0.0 for atoms (nuclei or
 electrons) not in the specified compute group.
 

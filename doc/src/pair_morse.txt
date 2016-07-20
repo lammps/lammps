@@ -145,7 +145,7 @@ These pair styles can only be used via the {pair} keyword of the
 
 :line
 
-[Restrictions:] 
+[Restrictions:]
 
 The {morse/smooth/linear} pair style is only enabled if LAMMPS was
 built with the USER-MISC package.  See the "Making

@@ -15,7 +15,7 @@ pair_style nm/cut/coul/long/omp command :h3
 
 [Syntax:]
 
-pair_style style args :pre 
+pair_style style args :pre
 
 style = {nm/cut} or {nm/cut/coul/cut} or {nm/cut/coul/long} :ulb,l
 args = list of arguments for a particular style :l
@@ -59,9 +59,9 @@ Style {nm/cut/coul/cut} adds a Coulombic pairwise interaction given by
 :c,image(Eqs/pair_coulomb.jpg)
 
 where C is an energy-conversion constant, Qi and Qj are the charges on
-the 2 atoms, and epsilon is the dielectric constant which can be set 
+the 2 atoms, and epsilon is the dielectric constant which can be set
 by the "dielectric"_dielectric.html command.  If one cutoff is
-specified in the pair_style command, it is used for both the NM and 
+specified in the pair_style command, it is used for both the NM and
 Coulombic terms.  If two cutoffs are specified, they are used as
 cutoffs for the NM and Coulombic terms respectively.
 

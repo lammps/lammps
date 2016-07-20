@@ -31,7 +31,7 @@ applied between the inner and outer cutoff.
 
 The polynomial coefficients C1, C2, C3, C4 are computed by LAMMPS to
 cause the force to vary smoothly from the inner cutoff Rin to the
-outer cutoff Rc. 
+outer cutoff Rc.
 
 At the inner cutoff the force and its 1st derivative
 will match the unsmoothed LJ formula.  At the outer cutoff the force

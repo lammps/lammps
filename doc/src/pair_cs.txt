@@ -61,7 +61,7 @@ pair is treated, as follows
 
 where C is an energy-conversion constant, Qi and Qj are the charges on
 the core and shell, epsilon is the dielectric constant and r_min is the
-minimal distance. 
+minimal distance.
 
 [Restrictions:]
 
@@ -71,7 +71,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, "pair_style born"_pair_born.html, 
+"pair_coeff"_pair_coeff.html, "pair_style born"_pair_born.html,
 "pair_style buck"_pair_buck.html
 
 [Default:] none

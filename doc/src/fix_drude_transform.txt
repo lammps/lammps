@@ -61,12 +61,12 @@ Velocities: \begin\{equation\} V' = \frac \{M\, V + m\, v\} \{M'\}
 Forces: \begin\{equation\} F' = F + f \end\{equation\}
 \begin\{equation\} f' = \frac \{ M\, f - m\, F\} \{M'\}
 \end\{equation\}
- 
+
 This transform conserves the total kinetic energy
-\begin\{equation\} \frac 1 2 \, (M\, V^2\ + m\, v^2) 
+\begin\{equation\} \frac 1 2 \, (M\, V^2\ + m\, v^2)
 = \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2) \end\{equation\}
 and the virial defined with absolute positions
-\begin\{equation\} X\, F + x\, f = X'\, F' + x'\, f' \end\{equation\} 
+\begin\{equation\} X\, F + x\, f = X'\, F' + x'\, f' \end\{equation\}
 
 :line
 

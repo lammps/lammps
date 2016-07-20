@@ -23,12 +23,12 @@ args = list of arguments for a particular style :l
                         evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                         emol, elong, etail,
                         vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
-		        xy, xz, yz, xlat, ylat, zlat,
+                        xy, xz, yz, xlat, ylat, zlat,
                         bonds, angles, dihedrals, impropers,
-		        pxx, pyy, pzz, pxy, pxz, pyz,
-			fmax, fnorm, nbuild, ndanger,
-			cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
-			c_ID, c_ID\[I\], c_ID\[I\]\[J\],
+                        pxx, pyy, pzz, pxy, pxz, pyz,
+                        fmax, fnorm, nbuild, ndanger,
+                        cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
+                        c_ID, c_ID\[I\], c_ID\[I\]\[J\],
                         f_ID, f_ID\[I\], f_ID\[I\]\[J\],
                         v_name, v_name\[I\]
       step = timestep
@@ -71,7 +71,7 @@ args = list of arguments for a particular style :l
       fnorm = length of force vector for all atoms
       nbuild = # of neighbor list builds
       ndanger = # of dangerous neighbor list builds
-      cella,cellb,cellc = periodic cell lattice constants a,b,c 
+      cella,cellb,cellc = periodic cell lattice constants a,b,c
       cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
       c_ID = global scalar value calculated by a compute with ID
       c_ID\[I\] = Ith component of global vector calculated by a compute with ID

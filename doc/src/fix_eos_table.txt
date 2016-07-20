@@ -87,7 +87,7 @@ On each line, the 1st value is the index from 1 to N, the 2nd value is
 the internal temperature (in temperature units), the 3rd value is the
 internal energy (in energy units).
 
-Note that the internal temperature and internal energy values must 
+Note that the internal temperature and internal energy values must
 increase from one line to the next.
 
 Note that one file can contain many sections, each with a tabulated
@@ -96,7 +96,7 @@ one that matches the specified keyword.
 
 :line
 
-[Restrictions:] 
+[Restrictions:]
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making

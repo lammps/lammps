@@ -16,7 +16,7 @@ ID, group-ID are documented in "compute"_compute.html command :ulb,l
 property/local = style name of this compute command :l
 input = one or more attributes :l
   possible attributes = natom1 natom2 ntype1 ntype2
-		        patom1 patom2 ptype1 ptype2
+                        patom1 patom2 ptype1 ptype2
                         batom1 batom2 btype
                         aatom1 aatom2 aatom3 atype
                         datom1 datom2 datom3 dtype

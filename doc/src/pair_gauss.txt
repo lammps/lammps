@@ -12,16 +12,16 @@ pair_style gauss/omp command :h3
 pair_style gauss/cut command :h3
 pair_style gauss/cut/omp command :h3
 
-[Syntax:] 
+[Syntax:]
 
 pair_style gauss cutoff
 pair_style gauss/cut cutoff :pre
 
 cutoff = global cutoff for Gauss interactions (distance units) :ul
 
-[Examples:] 
+[Examples:]
 
-pair_style gauss 12.0 
+pair_style gauss 12.0
 pair_coeff * * 1.0 0.9
 pair_coeff 1 4 1.0 0.9 10.0 :pre
 
@@ -29,7 +29,7 @@ pair_style gauss/cut 3.5
 pair_coeff 1 4 0.2805 1.45 0.112 :pre
 
 
-[Description:] 
+[Description:]
 
 Style {gauss} computes a tethering potential of the form
 
@@ -45,13 +45,13 @@ or in the data file or restart files read by the
 commands:
 
 A (energy units)
-B (1/distance^2 units) 
-cutoff (distance units) :ul 
+B (1/distance^2 units)
+cutoff (distance units) :ul
 
 The last coefficient is optional. If not specified, the global cutoff
 is used.
 
-Style {gauss/cut} computes a generalized Gaussian interaction potential 
+Style {gauss/cut} computes a generalized Gaussian interaction potential
 between pairs of particles:
 
 :c,image(Eqs/pair_gauss_cut.jpg)
@@ -148,7 +148,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html, 
+"pair_coeff"_pair_coeff.html,
 "pair_style coul/diel"_pair_coul_diel.html
 
 [Default:] none

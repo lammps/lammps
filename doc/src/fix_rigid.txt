@@ -61,7 +61,7 @@ keyword = {langevin} or {temp} or {iso} or {aniso} or {x} or {y} or {z} or {coup
     M = which rigid body from 1-Nbody (see asterisk form below)
     xflag,yflag,zflag = off/on if component of center-of-mass torque is active
   {infile} filename
-    filename = file with per-body values of mass, center-of-mass, moments of inertia 
+    filename = file with per-body values of mass, center-of-mass, moments of inertia
   {mol} value = template-ID
     template-ID = ID of molecule template specified in a separate "molecule"_molecule.html command :pre
 :ule
@@ -74,12 +74,12 @@ fix 1 clump rigid single force 1 off off on langevin 1.0 1.0 1.0 428984
 fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0
 fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
 fix 1 polychains rigid/small molecule langevin 1.0 1.0 1.0 428984
-fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off 
+fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off
 fix 1 rods rigid/npt molecule temp 300.0 300.0 100.0 iso 0.5 0.5 10.0
 fix 1 particles rigid/npt molecule temp 1.0 1.0 5.0 x 0.5 0.5 1.0 z 0.5 0.5 1.0 couple xz
 fix 1 water rigid/nph molecule iso 0.5 0.5 1.0
 fix 1 particles rigid/npt/small molecule temp 1.0 1.0 1.0 iso 0.5 0.5 1.0 :pre
-	
+
 [Description:]
 
 Treat one or more sets of atoms as independent rigid bodies.  This
@@ -105,11 +105,11 @@ the constituent atoms as point masses.
 
 These fixes also update the positions and velocities of the atoms in
 each rigid body via time integration, in the NVE, NVT, NPT, or NPH
-ensemble, as described below.  
+ensemble, as described below.
 
 There are two main variants of this fix, fix rigid and fix
 rigid/small.  The NVE/NVT/NPT/NHT versions belong to one of the two
-variants, as their style names indicate.  
+variants, as their style names indicate.
 
 NOTE: Not all of the {bodystyle} options and keyword/value options are
 available for both the {rigid} and {rigid/small} variants.  See
@@ -449,7 +449,7 @@ oscillations in temperature that can occur in a simulation.  As a rule
 of thumb, increasing the chain length should lead to smaller
 oscillations. The keyword {pchain} specifies the number of
 thermostats in the chain thermostatting the barostat degrees of
-freedom. 
+freedom.
 
 NOTE: There are alternate ways to thermostat a system of rigid bodies.
 You can use "fix langevin"_fix_langevin.html to treat the individual
@@ -792,7 +792,7 @@ torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3.
 Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.
 
 :link(Miller)
-[(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns, 
+[(Miller)] Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
 J Chem Phys, 116, 8649 (2002).
 
 :link(Zhang)

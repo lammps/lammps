@@ -39,7 +39,7 @@ commands"_Section_howto.html#4_15.  No parameter of this fix can be
 used with the {start/stop} keywords of the "run"_run.html command.
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
 was built with that package.  See the "Making
@@ -58,5 +58,5 @@ lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html
 
 :line
 
-:link(Mackay) 
+:link(Mackay)
 [(Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

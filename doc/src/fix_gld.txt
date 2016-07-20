@@ -126,7 +126,7 @@ sense, a restarted simulation should produce the same behavior.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
-access by various "output commands"_Section_howto.html#howto_15.  
+access by various "output commands"_Section_howto.html#howto_15.
 
 This fix can ramp its target temperature over multiple runs, using the
 {start} and {stop} keywords of the "run"_run.html command.  See the

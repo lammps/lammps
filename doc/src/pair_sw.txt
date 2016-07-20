@@ -86,7 +86,7 @@ The A, B, p, and q parameters are used only for two-body
 interactions.  The lambda and costheta0 parameters are used only for
 three-body interactions. The epsilon, sigma and a parameters are used
 for both two-body and three-body interactions. gamma is used only in the
-three-body interactions, but is defined for pairs of atoms.   
+three-body interactions, but is defined for pairs of atoms.
 The non-annotated parameters are unitless.
 
 LAMMPS introduces an additional performance-optimization parameter tol
@@ -135,8 +135,8 @@ entries CSiC and CCSi should be the same.  Similarly, the two-body
 parameters for entries SiCC and CSiSi should also be the same.  The
 parameters used only for two-body interactions (A, B, p, and q) in
 entries whose 2nd and 3rd element are different (e.g. SiCSi) are not
-used for anything and can be set to 0.0 if desired. 
-This is also true for the parameters in phi3 that are 
+used for anything and can be set to 0.0 if desired.
+This is also true for the parameters in phi3 that are
 taken from the ij and ik pairs (sigma, a, gamma)
 
 :line

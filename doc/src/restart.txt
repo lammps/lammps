@@ -109,17 +109,17 @@ variables"_variable.html, as examples of useful functions to use in
 this context.  Other similar math functions could easily be added as
 options for "equal-style variables"_variable.html.
 
-For example, the following commands will write restart files 
+For example, the following commands will write restart files
 every step from 1100 to 1200, and could be useful for debugging
 a simulation where something goes wrong at step 1163:
 
-variable	s equal stride(1100,1200,1)
-restart		v_s tmp.restart :pre
+variable       s equal stride(1100,1200,1)
+restart        v_s tmp.restart :pre
 
 :line
 
 See the "read_restart"_read_restart.html command for information about
-what is stored in a restart file.  
+what is stored in a restart file.
 
 Restart files can be read by a "read_restart"_read_restart.html
 command to restart a simulation from a particular state.  Because the

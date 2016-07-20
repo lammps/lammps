@@ -319,11 +319,11 @@ this case), the print-out to the screen and master log.lammps file
 contains a line of output, printed once every {Nevery} timesteps.  It
 contains the timestep, the maximum force per replica, the maximum
 force per atom (in any replica), potential gradients in the initial,
- final, and climbing replicas,  
-the forward and backward energy barriers, 
+ final, and climbing replicas,
+the forward and backward energy barriers,
 the total reaction coordinate (RDT), and
 the normalized reaction coordinate and potential energy of each replica.
-  
+
 The "maximum force per replica" is
 the two-norm of the 3N-length force vector for the atoms in each
 replica, maximized across replicas, which is what the {ftol} setting
@@ -333,7 +333,7 @@ of any atom in any replica.  The potential gradients are the two-norm
 of the 3N-length force vector solely due to the interaction potential i.e.
 without adding in inter-replica forces. Note that inter-replica forces
 are zero in the initial and final replicas, and only affect
-the direction in the climbing replica. For this reason, the "maximum 
+the direction in the climbing replica. For this reason, the "maximum
 force per replica" is often equal to the potential gradient in the
 climbing replica. In the first stage of NEB, there is no climbing
 replica, and so the potential gradient in the highest energy replica
@@ -343,11 +343,11 @@ in the second stage of NEB.
 The "reaction coordinate" (RD) for each
 replica is the two-norm of the 3N-length vector of distances between
 its atoms and the preceding replica's atoms, added to the RD of the
-preceding replica. The RD of the first replica RD1 = 0.0; 
+preceding replica. The RD of the first replica RD1 = 0.0;
 the RD of the final replica RDN = RDT, the total reaction coordinate.
 The normalized RDs are divided by RDT,
 so that they form a monotonically increasing sequence
-from zero to one. When computing RD, N only includes the atoms 
+from zero to one. When computing RD, N only includes the atoms
 being operated on by the fix neb command.
 
 The forward (reverse) energy barrier is the potential energy of the highest

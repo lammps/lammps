@@ -149,8 +149,10 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
+  if (strcmp(name,"nbonds") == 0) return (void *) &lmp->neighbor->nbondlist;
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
+  if (strcmp(name,"time") == 0) return (void *) &lmp->update->atime;
 
   return NULL;
 }

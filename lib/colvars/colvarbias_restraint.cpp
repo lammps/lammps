@@ -135,6 +135,8 @@ int colvarbias_restraint::init(std::string const &conf)
 
   if (cvm::debug())
     cvm::log("Done initializing a new restraint bias.\n");
+
+  return COLVARS_OK;
 }
 
 
@@ -537,6 +539,7 @@ int colvarbias_restraint_harmonic::init(std::string const &conf)
                cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
                " according to the specified width.\n");
   }
+  return COLVARS_OK;
 }
 
 
@@ -581,6 +584,7 @@ int colvarbias_restraint_linear::init(std::string const &conf)
                cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
                " according to the specified width.\n");
   }
+  return COLVARS_OK;
 }
 
 

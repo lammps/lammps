@@ -180,7 +180,7 @@ class Pair : protected Pointers {
   virtual void unpack_reverse_comm(int, int *, double *) {}
   virtual double memory_usage();
 
-  void set_copymode(int value) { copymode = value; }
+  void set_copymode(int value) {copymode = value;}
 
   // specific child-class methods for certain Pair styles
 

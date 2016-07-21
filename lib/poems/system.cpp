@@ -145,6 +145,7 @@ bool System::ReadIn(istream& in){
     in >> body1 >> body2;
     if( !(body1<numbodies) || !(body2<numbodies) ){
       cerr << "Body index out of range" << endl;
+      delete [] bodyarray;
       return false;
     }
     
@@ -159,6 +160,7 @@ bool System::ReadIn(istream& in){
 
     // read in the rest of its data
     if(!joint->ReadIn(in)){
+      delete [] bodyarray;
       return false;
     }
   }

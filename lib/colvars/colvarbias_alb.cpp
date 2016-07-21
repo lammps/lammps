@@ -81,7 +81,7 @@ int colvarbias_alb::init(std::string const &conf)
   //we split the time between updating and equilibrating
   update_freq /= 2;
 
-  if (update_freq == 0)
+  if (update_freq <= 1)
     cvm::fatal_error("Error: must set updateFrequency to greater than 2.\n");
 
   enable(f_cvb_history_dependent);

@@ -248,6 +248,13 @@ class lammps(object):
     if value: value = str(value).encode()
     return self.lib.lammps_set_variable(self.lmp,name,str(value))
 
+  # return current value of thermo keyword
+
+  def get_thermo(self,name):
+    if name: name = name.encode()
+    self.lib.lammps_get_thermo.restype = c_double
+    return self.lib.lammps_get_thermo(self.lmp,name)
+
   # return total number of atoms in system
 
   def get_natoms(self):

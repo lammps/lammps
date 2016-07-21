@@ -28,6 +28,8 @@
 #include "input.h"
 #include "variable.h"
 #include "modify.h"
+#include "output.h"
+#include "thermo.h"
 #include "compute.h"
 #include "fix.h"
 #include "comm.h"
@@ -385,6 +387,23 @@ int lammps_set_variable(void *ptr, char *name, char *str)
   LAMMPS *lmp = (LAMMPS *) ptr;
   int err = lmp->input->variable->set_string(name,str);
   return err;
+}
+
+/* ----------------------------------------------------------------------
+   return the current value of a thermo keyword as double.
+   unlike lammps_extract_global() this does not give access to the
+   storage of the data in question, and thus needs to be called
+   again to retrieve an updated value. The upshot is that it allows
+   accessing information that is only computed on-the-fly.
+------------------------------------------------------------------------- */
+
+double lammps_get_thermo(void *ptr, char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  double dval;
+
+  lmp->output->thermo->evaluate_keyword(name,&dval);
+  return dval;
 }
 
 /* ----------------------------------------------------------------------

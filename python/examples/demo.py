@@ -39,6 +39,9 @@ print("Energy from equal-style variable =",eng)
 vy = lmp.extract_variable("vy","all",1)
 print("Velocity component from atom-style variable =",vy[1])
 
+vol = lmp.get_thermo("vol")
+print("Volume from get_thermo = ",vol)
+
 natoms = lmp.get_natoms()
 print("Natoms from get_natoms =",natoms)
 

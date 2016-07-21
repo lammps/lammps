@@ -22,6 +22,7 @@
 #include "universe.h"
 #include "input.h"
 #include "atom.h"
+#include "neighbor.h"
 #include "domain.h"
 #include "update.h"
 #include "group.h"

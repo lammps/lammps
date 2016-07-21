@@ -991,7 +991,7 @@ int Thermo::add_variable(const char *id)
 }
 
 /* ----------------------------------------------------------------------
-   compute a single thermodyanmic value, word is any keyword in custom list
+   compute a single thermodynamic value, word is any keyword in custom list
    called when a variable is evaluated by Variable class
    return value as double in answer
    return 0 if str is recoginzed keyword, 1 if unrecognized

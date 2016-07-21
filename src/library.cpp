@@ -158,6 +158,12 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
 
+  // NOTE: we cannot give access to the thermo "time" data by reference,
+  // as that is a recomputed property. only "atime" can be provided as pointer.
+  // please use lammps_get_thermo() defined below to access all supported
+  // thermo keywords by value
+  if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
+
   return NULL;
 }
 

@@ -93,7 +93,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq,factor_lj;
+  double rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
   Table *tb;
 
@@ -109,13 +109,11 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
-  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   double fractionOld1_i,fractionOld1_j;
   double fractionOld2_i,fractionOld2_j;
-  double fraction1_i,fraction1_j;
-  double fraction2_i,fraction2_j;
+  double fraction1_i;
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
@@ -166,11 +164,9 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
     fractionOld1_i = fractionOld1[i];
     fractionOld2_i = fractionOld2[i];
     fraction1_i = fraction1[i];
-    fraction2_i = fraction2[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -184,8 +180,6 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
         fractionOld1_j = fractionOld1[j];
         fractionOld2_j = fractionOld2[j];
-        fraction1_j = fraction1[j];
-        fraction2_j = fraction2[j];
 
         tb = &tables[tabindex[itype][jtype]];
         if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
@@ -205,8 +199,10 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
           }
           A_i = tb->f[itable];
           A_j = tb->f[jtable];
-          fpair = 0.5*(A_i + A_j)*(1.0+3.0*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
-          fpair = fpair/sqrt(rsq);
+
+          const double rfactor = 1.0-sqrt(rsq/cutsq[itype][jtype]);
+          fpair = 0.5*(A_i + A_j)*(4.0-3.0*rfactor)*rfactor*rfactor*rfactor;
+          fpair /= sqrt(rsq);
 
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rho[i]*rho[i] - tb->innersq) * tb->invdelta);
@@ -232,9 +228,9 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
           A_i = tb->f[itable] + fraction_i*tb->df[itable];
           A_j = tb->f[jtable] + fraction_j*tb->df[jtable];
 
-          fpair = 0.5*(A_i + A_j)*(1.0+3.0*sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]))*(1.0 - sqrt(rsq)/sqrt(cutsq[itype][jtype]));
-
-          fpair = fpair / sqrt(rsq);
+          const double rfactor = 1.0-sqrt(rsq/cutsq[itype][jtype]);
+          fpair = 0.5*(A_i + A_j)*(4.0-3.0*rfactor)*rfactor*rfactor*rfactor;
+          fpair /= sqrt(rsq);
 
         } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
@@ -389,15 +385,11 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   // insure cutoff is within table
 
   if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
-  double rlo,rhi;
   if (tb->rflag == 0) {
-    rlo = tb->rfile[0];
-    rhi = tb->rfile[tb->ninput-1];
+    rho_0 = tb->rfile[0];
   } else {
-    rlo = tb->rlo;
-    rhi = tb->rhi;
+    rho_0 = tb->rlo;
   }
-  rho_0 = rlo;
 
   tb->match = 0;
   if (tabstyle == LINEAR && tb->ninput == tablength &&
@@ -903,7 +895,7 @@ void PairMultiLucyRX::computeLocalDensity()
       const double delz = ztmp - x[j][2];
       const double rsq = delx*delx + dely*dely + delz*delz;
 
-      if (one_type)
+      if (one_type) {
         if (rsq < cutsq_type11) {
           const double rcut = rcut_type11;
           const double r_over_rcut = sqrt(rsq) / rcut;
@@ -922,6 +914,7 @@ void PairMultiLucyRX::computeLocalDensity()
           if (newton_pair || j < nlocal)
             rho[j] += factor;
         }
+      }
     }
 
     rho[i] = rho_i;

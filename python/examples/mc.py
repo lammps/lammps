@@ -6,6 +6,7 @@
 # Syntax:  mc.py in.mc
 #          in.mc = LAMMPS input script
 
+from __future__ import print_function
 import sys,random,math
 
 # set these parameters
@@ -21,7 +22,7 @@ random.seed(27848)
 
 argv = sys.argv
 if len(argv) != 2:
-  print "Syntax: mc.py in.mc"
+  print("Syntax: mc.py in.mc")
   sys.exit()
 
 infile = sys.argv[1]
@@ -50,7 +51,7 @@ lmp.command("variable emin equal $e")
 
 x = lmp.extract_atom("x",3)
 
-for i in xrange(natoms):
+for i in range(natoms):
   x[i][0] += deltaperturb * (2*random.random()-1)
   x[i][1] += deltaperturb * (2*random.random()-1)
 
@@ -68,7 +69,7 @@ estart = lmp.extract_compute("thermo_pe",0,0) / natoms
 elast = estart
 naccept = 0
 
-for i in xrange(nloop):
+for i in range(nloop):
   iatom = random.randrange(0,natoms)
   x0 = x[iatom][0]
   y0 = x[iatom][1]
@@ -100,9 +101,9 @@ nbuild = lmp.extract_variable("nbuild",None,0)
 lmp.command("run 0")
 estop = lmp.extract_compute("thermo_pe",0,0) / natoms
 
-print "MC stats:"
-print "  starting energy =",estart
-print "  final energy =",estop
-print "  minimum energy of perfect lattice =",emin
-print "  accepted MC moves =",naccept
-print "  neighbor list rebuilds =",nbuild
+print("MC stats:")
+print("  starting energy =",estart)
+print("  final energy =",estop)
+print("  minimum energy of perfect lattice =",emin)
+print("  accepted MC moves =",naccept)
+print("  neighbor list rebuilds =",nbuild)

@@ -10,6 +10,7 @@
 #          compute-ID = ID of compute that calculates temperature
 #                       (or any other scalar quantity)
 
+from __future__ import print_function
 import sys
 sys.path.append("./pizza")
 from gnu import gnu
@@ -18,7 +19,7 @@ from gnu import gnu
 
 argv = sys.argv
 if len(argv) != 5:
-  print "Syntax: plot.py in.lammps Nfreq Nsteps compute-ID"
+  print("Syntax: plot.py in.lammps Nfreq Nsteps compute-ID")
   sys.exit()
 
 infile = sys.argv[1]
@@ -71,5 +72,5 @@ while ntimestep < nsteps:
 lmp.command("run 0 pre no post yes")
 
 # uncomment if running in parallel via Pypar
-#print "Proc %d out of %d procs has" % (me,nprocs), lmp
+#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
 #pypar.finalize()

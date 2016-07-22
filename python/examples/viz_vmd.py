@@ -8,6 +8,7 @@
 #          Nfreq = dump and viz shapshot every this many steps
 #          Nsteps = run for this many steps
 
+from __future__ import print_function
 import sys
 sys.path.append("./pizza")
 
@@ -15,7 +16,7 @@ sys.path.append("./pizza")
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: viz_vmd.py in.lammps Nfreq Nsteps"
+  print("Syntax: viz_vmd.py in.lammps Nfreq Nsteps")
   sys.exit()
 
 infile = sys.argv[1]
@@ -82,10 +83,10 @@ if me == 0:
   v.flush()
   # uncomment the following, if you want to work with the viz some more.
   #v('menu main on')
-  #print "type quit to terminate."
+  #print("type quit to terminate.")
   #v.enter()
   #v.stop()
 
 # uncomment if running in parallel via Pypar
-#print "Proc %d out of %d procs has" % (me,nprocs), lmp
+#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
 #pypar.finalize()

@@ -6,6 +6,9 @@
 # certain rights in this software.  This software is distributed under 
 # the GNU General Public License.
 
+# for python3 compatibility
+from __future__ import print_function
+
 # gl tool
 
 oneline = "3d interactive visualization via OpenGL"
@@ -73,7 +76,7 @@ g.ldef()  			   default = 0 fill
   if atom/bond/tri/line has type > # defined properties, is an error
   
 from vizinfo import colors         access color list
-print colors                       list defined color names and RGB values
+print(colors)                      list defined color names and RGB values
 colors["nickname"] = [R,G,B]       set new RGB values from 0 to 255
 
   140 pre-defined colors: red, green, blue, purple, yellow, black, white, etc
@@ -499,7 +502,7 @@ class gl:
   # add GL-specific info to each bond
   
   def reload(self):
-    print "Loading data into gl tool ..."
+    print("Loading data into gl tool ...")
     data = self.data
 
     self.timeframes = []
@@ -527,9 +530,9 @@ class gl:
       self.triframes.append(tris)
       self.lineframes.append(lines)
       
-      print time,
+      print(time,end='')
       sys.stdout.flush()
-    print
+    print()
 
     self.nframes = len(self.timeframes)
     self.distance = compute_distance(self.boxframes[0])
@@ -651,7 +654,7 @@ class gl:
         self.w.tkRedraw()
         self.save(file)
         
-        print time,
+        print(time,end='')
         sys.stdout.flush()
         i += 1
         n += 1
@@ -690,7 +693,7 @@ class gl:
                           fraction*(self.scale_stop - self.scale_start)
           self.viewupright()
 
-	if n == nstart or self.panflag: self.center = compute_center(box)
+        if n == nstart or self.panflag: self.center = compute_center(box)
 
         if bonds: self.bonds_augment(bonds)
 
@@ -706,11 +709,11 @@ class gl:
         self.w.tkRedraw()
         self.save(file)
 
-        print n,
+        print(n,end='')
         sys.stdout.flush()
         n += 1
 
-    print "\n%d images" % ncount
+    print("\n%d images" % ncount)
 
   # --------------------------------------------------------------------
 
@@ -776,11 +779,11 @@ class gl:
       ncolor = self.vizinfo.nlcolor
       for line in self.linedraw:
         itype = int(line[1])
-        if itype > ncolor: raise StandardError,"line type too big"
+        if itype > ncolor: raise StandardError("line type too big")
         red,green,blue = self.vizinfo.lcolor[itype]
         glColor3f(red,green,blue)
         thick = self.vizinfo.lrad[itype]
-	glLineWidth(thick)
+        glLineWidth(thick)
         glBegin(GL_LINES)
         glVertex3f(line[2],line[3],line[4])
         glVertex3f(line[5],line[6],line[7])
@@ -825,7 +828,7 @@ class gl:
           for bond in self.bonddraw:
             if bond[10] > bound: continue
             itype = int(bond[1])
-            if itype > ncolor: raise StandardError,"bond type too big"
+            if itype > ncolor: raise StandardError("bond type too big")
             red,green,blue = self.vizinfo.bcolor[itype]
             rad = self.vizinfo.brad[itype]
             glPushMatrix()
@@ -848,7 +851,7 @@ class gl:
             ncolor = self.vizinfo.ntcolor
             for tri in self.tridraw:
               itype = int(tri[1])
-              if itype > ncolor: raise StandardError,"tri type too big"
+              if itype > ncolor: raise StandardError("tri type too big")
               red,green,blue = self.vizinfo.tcolor[itype]
               glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,[red,green,blue,1.0]);
               glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,self.shiny);
@@ -906,7 +909,7 @@ class gl:
                    ymin >= ylo and ymax <= yhi and zmin >= zlo and zmax <= zhi:
               if bond[10] > bound: continue
               itype = int(bond[1])
-              if itype > ncolor: raise StandardError,"bond type too big"
+              if itype > ncolor: raise StandardError("bond type too big")
               red,green,blue = self.vizinfo.bcolor[itype]
               rad = self.vizinfo.brad[itype]
               glPushMatrix()
@@ -938,7 +941,7 @@ class gl:
                      ymin >= ylo and ymax <= yhi and \
                      zmin >= zlo and zmax <= zhi:
                 itype = int(tri[1])
-                if itype > ncolor: raise StandardError,"tri type too big"
+                if itype > ncolor: raise StandardError("tri type too big")
                 red,green,blue = self.vizinfo.tcolor[itype]
                 glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,
                              [red,green,blue,1.0]);

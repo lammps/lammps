@@ -115,7 +115,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
 Pair::~Pair()
 {
   num_tally_compute = 0;
-  memory->sfree((void *)list_tally_compute);
+  memory->sfree((void *) list_tally_compute);
   list_tally_compute = NULL;
 
   if (copymode) return;

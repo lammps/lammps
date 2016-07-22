@@ -28,6 +28,8 @@
 #include "input.h"
 #include "variable.h"
 #include "modify.h"
+#include "output.h"
+#include "thermo.h"
 #include "compute.h"
 #include "fix.h"
 #include "comm.h"
@@ -149,8 +151,18 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
   if (strcmp(name,"natoms") == 0) return (void *) &lmp->atom->natoms;
+  if (strcmp(name,"nbonds") == 0) return (void *) &lmp->atom->nbonds;
+  if (strcmp(name,"nangles") == 0) return (void *) &lmp->atom->nangles;
+  if (strcmp(name,"ndihedrals") == 0) return (void *) &lmp->atom->ndihedrals;
+  if (strcmp(name,"nimpropers") == 0) return (void *) &lmp->atom->nimpropers;
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
+
+  // NOTE: we cannot give access to the thermo "time" data by reference,
+  // as that is a recomputed property. only "atime" can be provided as pointer.
+  // please use lammps_get_thermo() defined below to access all supported
+  // thermo keywords by value
+  if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
 
   return NULL;
 }
@@ -381,6 +393,23 @@ int lammps_set_variable(void *ptr, char *name, char *str)
   LAMMPS *lmp = (LAMMPS *) ptr;
   int err = lmp->input->variable->set_string(name,str);
   return err;
+}
+
+/* ----------------------------------------------------------------------
+   return the current value of a thermo keyword as double.
+   unlike lammps_extract_global() this does not give access to the
+   storage of the data in question, and thus needs to be called
+   again to retrieve an updated value. The upshot is that it allows
+   accessing information that is only computed on-the-fly.
+------------------------------------------------------------------------- */
+
+double lammps_get_thermo(void *ptr, char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  double dval;
+
+  lmp->output->thermo->evaluate_keyword(name,&dval);
+  return dval;
 }
 
 /* ----------------------------------------------------------------------

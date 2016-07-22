@@ -1,6 +1,8 @@
 # LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
+PYTHON = python
+
 #.IGNORE:
 
 # Definitions
@@ -198,7 +200,7 @@ mpi-stubs:
 # install LAMMPS shared lib and Python wrapper for Python usage
 
 install-python:
-	@python ../python/install.py
+	@$(PYTHON) ../python/install.py
 
 # Create a tarball of src dir and packages
 

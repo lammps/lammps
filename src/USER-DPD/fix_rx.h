@@ -90,7 +90,7 @@ class FixRX : public Fix {
   // Sparse stoichiometric matrix storage format and methods.
   bool useSparseKinetics;
   //SparseKinetics sparseKinetics;
-  int initSparse(void);
+  void initSparse(void);
   int rhs_sparse(double, const double *, double *, void *) const;
 
   int sparseKinetics_maxReactants; //<! Max # of reactants species in any reaction

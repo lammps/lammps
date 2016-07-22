@@ -1036,7 +1036,7 @@ void DumpImage::create_image()
   // render objects provided by a fix
 
   if (fixflag) {
-    int tridraw,edgedraw;
+    int tridraw=0,edgedraw=0;
     if (domain->dimension == 3) {
       tridraw = 1;
       edgedraw = 1;

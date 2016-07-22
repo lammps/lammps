@@ -687,7 +687,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   
   // Store the current thetai in t1
   t1 = MAX(thetai,tb->lo);
-  t1 = MIN(thetai,tb->hi);
+  t1 = MIN(t1,tb->hi);
   if(t1==tb->hi) delta = -delta;
 
   // Compute u1 at thetai

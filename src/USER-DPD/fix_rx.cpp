@@ -388,7 +388,7 @@ void FixRX::post_constructor()
 
 /* ---------------------------------------------------------------------- */
 
-int FixRX::initSparse()
+void FixRX::initSparse()
 {
   const int Verbosity = 1;
 
@@ -637,9 +637,8 @@ void FixRX::setup_pre_force(int vflag)
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int *mask = atom->mask;
-  double *dpdTheta = atom->dpdTheta;
   int newton_pair = force->newton_pair;
-  double tmp, theta;
+  double tmp;
   int ii;
 
   if(localTempFlag){
@@ -662,8 +661,6 @@ void FixRX::setup_pre_force(int vflag)
     }
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit){
-      if(localTempFlag) theta = dpdThetaLocal[i];
-      else theta=dpdTheta[i];
 
       // Set the reaction rate constants to zero:  no reactions occur at step 0
       for(int irxn=0;irxn<nreactions;irxn++)
@@ -692,8 +689,6 @@ void FixRX::pre_force(int vflag)
   int ii;
   double theta;
 
-  TimerType timer_start = getTimeStamp();
-
   if(localTempFlag){
     if (newton_pair) {
       dpdThetaLocal = new double[nlocal+nghost];
@@ -705,7 +700,6 @@ void FixRX::pre_force(int vflag)
         dpdThetaLocal[ii] = 0.0;
     }
     computeLocalTemperature();
-    double *dpdTheta = this->dpdThetaLocal;
   }
 
   TimerType timer_localTemperature = getTimeStamp();
@@ -746,14 +740,7 @@ void FixRX::pre_force(int vflag)
   comm->forward_comm_fix(this);
   if(localTempFlag) delete [] dpdThetaLocal;
 
-  TimerType timer_stop = getTimeStamp();
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
-//   printf("FixRX::pre_force total= %e Temp= %e ODE= %e Comm= %e nlocal= %d %d %d %d %d\n",
-//                       getElapsedTime(timer_start, timer_stop),
-//                       (localTempFlag) ? getElapsedTime(timer_start, timer_localTemperature) : 0.0,
-//                       time_ODE,
-//                       getElapsedTime(timer_ODE, timer_stop),
-//                       nlocal, nSteps, nIters, nFuncs, nFails);
 
   // Warn the user if a failure was detected in the ODE solver.
   if (nFails > 0){
@@ -904,6 +891,7 @@ void FixRX::read_file(char *file)
         error->all(FLERR,"Illegal fix rx command");
       }
       word = strtok(NULL, " \t\n\r\f");
+      if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
       if(strcmp(word,"=") == 0) sign = 1.0;
       if(strcmp(word,"+") != 0 && strcmp(word,"=") != 0){
         if(word==NULL) error->all(FLERR,"Missing parameters in reaction kinetic equation");
@@ -1034,12 +1022,9 @@ void FixRX::rk4(int id, double *rwork)
 
 void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[], double rwk[], void* v_param)
 {
-   const double c20=0.25;
    const double c21=0.25;
-   const double c30=0.375;
    const double c31=0.09375;
    const double c32=0.28125;
-   const double c40=0.92307692307692;
    const double c41=0.87938097405553;
    const double c42=-3.2771961766045;
    const double c43=3.3208921256258;
@@ -1047,19 +1032,16 @@ void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[
    const double c52=-8.0;
    const double c53=7.1734892787524;
    const double c54=-0.20589668615984;
-   const double c60=0.5;
    const double c61=-0.2962962962963;
    const double c62=2.0;
    const double c63=-1.3816764132554;
    const double c64=0.45297270955166;
    const double c65=-0.275;
    const double a1=0.11574074074074;
-   const double a2=0.0;
    const double a3=0.54892787524366;
    const double a4=0.5353313840156;
    const double a5=-0.2;
    const double b1=0.11851851851852;
-   const double b2=0.0;
    const double b3=0.51898635477583;
    const double b4=0.50613149034201;
    const double b5=-0.18;
@@ -1146,10 +1128,6 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double t_stop,
                      const double hmin, const double hmax,
                      double& h0, double y[], double rwk[], void* v_params)
 {
-   const double uround = DBL_EPSILON;
-   const double tdist = fabs(t_stop - t);
-   const double tround = tdist * uround;
-
    // Set lower and upper bounds on h0, and take geometric mean as first trial value.
    // Exit with this value if the bounds cross each other.
 
@@ -1696,7 +1674,7 @@ void FixRX::computeLocalTemperature()
   int newton_pair = force->newton_pair;
 
   // local temperature variables
-  double wij=0.0, fr, fr4;
+  double wij=0.0;
   double *dpdTheta = atom->dpdTheta;
 
   // Initialize the local density and local temperature arrays
@@ -1738,8 +1716,6 @@ void FixRX::computeLocalTemperature()
       if (rsq < pairDPDE->cutsq[itype][jtype]) {
         double rcut = sqrt(pairDPDE->cutsq[itype][jtype]);
         double rij = sqrt(rsq);
-        double tmpFactor = 1.0-rij/rcut;
-        double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
         double ratio = rij/rcut;
 
         // Lucy's Weight Function

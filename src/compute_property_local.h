@@ -34,7 +34,7 @@ class ComputePropertyLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues,kindflag;
+  int nvalues,kindflag,cutstyle;
 
   int nmax;
   double *vector;

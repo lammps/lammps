@@ -245,6 +245,31 @@ Pair *Force::pair_match(const char *word, int exact, int nsub)
 }
 
 /* ----------------------------------------------------------------------
+   return style name of Pair class that matches Pair ptr
+   called by Neighbor::print_neigh_info()
+   return NULL if no match
+------------------------------------------------------------------------- */
+
+char *Force::pair_match_ptr(Pair *ptr)
+{
+  if (ptr == pair) return pair_style;
+
+  if (strstr(pair_style,"hybrid")) {
+    PairHybrid *hybrid = (PairHybrid *) pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
+  }
+
+  if (strstr(pair_style,"hybrid/overlay")) {
+    PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
+  }
+
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
    create a bond style, called from input script or restart file
 ------------------------------------------------------------------------- */
 

@@ -578,7 +578,7 @@ void FixShearHistory::set_arrays(int i)
 
 int FixShearHistory::pack_reverse_comm_size(int n, int first)
 {
-  int i,j,k,last;
+  int i,last;
 
   int m = 0;
   last = first + n;
@@ -595,7 +595,7 @@ int FixShearHistory::pack_reverse_comm_size(int n, int first)
 
 int FixShearHistory::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,j,k,last;
+  int i,k,last;
 
   int m = 0;
   last = first + n;
@@ -607,7 +607,7 @@ int FixShearHistory::pack_reverse_comm(int n, int first, double *buf)
   } else if (commflag == PERPARTNER) {
     for (i = first; i < last; i++) {
       buf[m++] = npartner[i];
-      for (int k = 0; k < npartner[i]; k++) {
+      for (k = 0; k < npartner[i]; k++) {
         buf[m++] = partner[i][k];
         memcpy(&buf[m],&shearpartner[i][dnum*k],dnumbytes);
         m += dnum;
@@ -637,7 +637,7 @@ void FixShearHistory::unpack_reverse_comm(int n, int *list, double *buf)
     for (i = 0; i < n; i++) {
       j = list[i];
       ncount = static_cast<int> (buf[m++]);
-      for (int k = 0; k < ncount; k++) {
+      for (k = 0; k < ncount; k++) {
         kk = npartner[j]++;
         partner[j][kk] = static_cast<tagint> (buf[m++]);
         memcpy(&shearpartner[j][dnum*kk],&buf[m],dnumbytes);

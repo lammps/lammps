@@ -46,6 +46,11 @@ class NeighRequest : protected Pointers {
   int respaouter;        // 1 if a rRESPA outer list
   int half_from_full;    // 1 if half list computed from previous full list
 
+  // command_style only set if command = 1
+  // allows print_pair_info() to access command name
+
+  const char *command_style;
+
   // -----------------
   // optional settings
   // -----------------

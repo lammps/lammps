@@ -76,6 +76,7 @@ void CreateBonds::command(int narg, char **arg)
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 1;
+  neighbor->requests[irequest]->command_style = "create_bonds";
 
   // init entire system since comm->borders and neighbor->build is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc

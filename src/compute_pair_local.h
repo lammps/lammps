@@ -34,8 +34,7 @@ class ComputePairLocal : public Compute {
   double memory_usage();
 
  private:
-  int nvalues;
-  int ncount;
+  int nvalues,ncount,cutstyle;
 
   int *pstyle;              // style of each requested output
   int *pindex;              // for pI, index of the output (0 to M-1)

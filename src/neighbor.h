@@ -86,6 +86,7 @@ class Neighbor : protected Pointers {
   void build_one(class NeighList *list,
                  int preflag=0);    // create a single one-time neigh list
   void set(int, char **);           // set neighbor style and skin distance
+  void reset_timestep(bigint);      // reset of timestep counter
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   int exclude_setting();

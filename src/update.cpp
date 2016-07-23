@@ -448,10 +448,9 @@ void Update::reset_timestep(bigint newstep)
   for (int i = 0; i < modify->ncompute; i++)
     if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
 
-  // set last_build of all neigh lists to -1 to force rebuild
+  // Neighbor Bin/Stencil/Pair classes store timestamps that need to be cleared
 
-  for (int i = 0; i < neighbor->nlist; i++)
-    neighbor->lists[i]->last_build = -1;
+  neighbor->reset_timestep(ntimestep);
 
   // NOTE: 7Jun12, adding rerun command, don't think this is required
 

@@ -260,12 +260,6 @@ char *Force::pair_match_ptr(Pair *ptr)
       if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
   }
 
-  if (strstr(pair_style,"hybrid/overlay")) {
-    PairHybridOverlay *hybrid = (PairHybridOverlay *) pair;
-    for (int i = 0; i < hybrid->nstyles; i++)
-      if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
-  }
-
   return NULL;
 }
 

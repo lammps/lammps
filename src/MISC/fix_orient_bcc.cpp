@@ -217,7 +217,8 @@ void FixOrientBCC::init()
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
-  // need a full neighbor list, built whenever re-neighboring occurs
+  // need a full neighbor list
+  // perpetual list, built whenever re-neighboring occurs
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;

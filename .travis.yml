@@ -41,7 +41,7 @@ install:
   - export OMPI_CC="ccache $CC"
   - export OMPI_CXX="ccache $CXX"
   - test "$MACH" = "mpi" && export COMP="mpicxx -fopenmp" || export COMP="ccache $CXX"
-  - test "$CC" = "clang" && export CCACHE_CPP2=yes
+  - test "$CC" = "clang" && export CCACHE_CPP2=yes || :
 
 script:
   - ccache -z

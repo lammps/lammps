@@ -1932,6 +1932,17 @@ void Neighbor::set(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   reset timestamps in all NeighList classes
+   so that neighbor lists will rebuild properly with timestep change
+------------------------------------------------------------------------- */
+
+void Neighbor::reset_timestep(bigint ntimestep)
+{
+  for (int i = 0; i < nlist; i++)
+    lists[i]->last_build = -1;
+}
+
+/* ----------------------------------------------------------------------
    modify parameters of the pair-wise neighbor build
 ------------------------------------------------------------------------- */
 

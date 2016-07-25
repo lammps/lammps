@@ -410,8 +410,8 @@ void FixQMMM::exchange_positions()
   const double * const mass = atom->mass;
   const tagint * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
+  const int ntypes = atom->ntypes;
   const int natoms = (int) atom->natoms;
-  const int ntypes = (int) atom->ntypes;
 
   if (atom->natoms > MAXSMALLINT)
     error->all(FLERR,"Too many MM atoms for fix qmmmm");

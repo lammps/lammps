@@ -425,10 +425,8 @@ void FixQMMM::exchange_positions()
  - create hash table that connects master list index with tag
  - collect necessary data and get master list index via hash table
 */
-  if (comm->me == 0) {  // AK: make aradii a per-atom property managed by
-                        // fix qmmm so it migrates with the local atoms.
-                        // CC: aradii definition move to QE, nonneed to have it in LAMMPS
-    // This array will pack all details about the cell
+  if (comm->me == 0) {
+    // Pack various cell dimension properties into one chunk.
     double celldata[9];
     celldata[0] = domain->boxlo[0];
     celldata[1] = domain->boxlo[1];
@@ -446,8 +444,8 @@ void FixQMMM::exchange_positions()
       isend_buf[1] = num_qm;
       isend_buf[2] = num_mm;
       isend_buf[3] = ntypes;
-      MPI_Send( isend_buf, 4,   MPI_INTEGER,1, QMMM_TAG_SIZE,  qm_comm );
-      MPI_Send( celldata,  9,   MPI_DOUBLE, 1, QMMM_TAG_CELL,  qm_comm );
+      MPI_Send(isend_buf, 4, MPI_INTEGER,1, QMMM_TAG_SIZE, qm_comm);
+      MPI_Send(celldata,  9, MPI_DOUBLE, 1, QMMM_TAG_CELL, qm_comm);
     }
     if (verbose > 0) {
       if (screen) fputs("QMMM: exchange positions\n",screen);

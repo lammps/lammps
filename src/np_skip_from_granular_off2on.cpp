@@ -41,8 +41,8 @@ void NeighPairSkipFromGranularOff2on::build(NeighList *list)
 {
   int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
   tagint itag,jtag;
-  int *neighptr,*jlist,*touchptr,*touchptr_skip;
-  double *shearptr,*shearptr_skip;
+  int *neighptr,*jlist,*touchptr;
+  double *shearptr;
 
   int *npartner;
   tagint **partner;

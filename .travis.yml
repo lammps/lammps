@@ -56,6 +56,7 @@ script:
   - make -C lib/awpmd -f Makefile.mpicc CC="${COMP}"
   - make -C lib/meam -f Makefile.gfortran CC=gcc F90=gfortran
   - make -C src yes-poems yes-voronoi yes-user-colvars yes-user-awpmd yes-meam
+  - make -C src no-user-dpd
   - make -C lib/h5md
   - make -C src yes-user-h5md
   - test "$MACH" = mpi && make -C src yes-mpiio yes-user-lb || true

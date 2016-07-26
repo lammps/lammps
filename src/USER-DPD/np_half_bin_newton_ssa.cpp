@@ -23,6 +23,8 @@
 #include "atom_vec.h"
 #include "molecule.h"
 #include "domain.h"
+#include "group.h"
+#include "memory.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -32,7 +34,7 @@ using namespace LAMMPS_NS;
 // prototype for non-class function
 
 static int *ssaAIRptr;
-int cmp_ssaAIR(const void *, const void *);
+static int cmp_ssaAIR(const void *, const void *);
 
 /* ---------------------------------------------------------------------- */
 
@@ -62,6 +64,7 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
   int **nspecial = atom->nspecial;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
+  if (includegroup) nlocal = atom->nfirst;
   int *ssaAIR = atom->ssaAIR;
 
   int *molindex = atom->molindex;
@@ -74,9 +77,6 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  int nstencil = list->nstencil;
-  int maxstencil = list->maxstencil;
-  int *stencil = list->stencil;
   MyPage<int> *ipage = list->ipage;
 
   int inum = 0;
@@ -97,7 +97,7 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
   //   if it is created by the binning operation, then I think
   //     it should be in a new NeighBinShardlow class
 
-  if (binatomflag) { // only false in Neighbor::build_one
+  if (true /* binatomflag */) { // only false in Neighbor::build_one
 
     if (mbins > list->maxhead_ssa) {
       list->maxhead_ssa = mbins;
@@ -111,8 +111,8 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
       list->binhead_ssa[i] = -1;
     }
 
-    if (maxbin > list->maxbin_ssa) {
-      list->maxbin_ssa = maxbin;
+    if (nall > list->maxbin_ssa) {
+      list->maxbin_ssa = nall;
       memory->destroy(list->bins_ssa);
       memory->create(list->bins_ssa,list->maxbin_ssa,"bins_ssa");
     }
@@ -121,7 +121,8 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
 
     if (includegroup) {
       int bitmask = group->bitmask[includegroup];
-      for (i = nall-1; i >= nlocal; i--) {
+      int nowned = atom->nlocal; // NOTE: nlocal was set to atom->nfirst above
+      for (i = nall-1; i >= nowned; i--) {
         if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
         if (mask[i] & bitmask) {
           ibin = coord2bin(x[i]);
@@ -129,7 +130,6 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
           list->gbinhead_ssa[ibin] = i;
         }
       }
-      nlocal = atom->nfirst; // This is important for the code that follows!
     } else {
       for (i = nall-1; i >= nlocal; i--) {
         if (ssaAIR[i] < 2) continue; // skip ghost atoms not in AIR
@@ -234,10 +234,7 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
     // That is a significant time savings because of the "full" stencil
     // Note2: only non-pure locals can have ghosts as neighbors
 
-    if (ssaAIR[i] == 1) for (k = 0; k < maxstencil; k++) {
-        // check if ghost stencil bins exhausted
-      if (stencil[k] > mbins) break;  
-
+    if (ssaAIR[i] == 1) for (k = 0; k < nstencil_ssa; k++) {
       for (j = list->gbinhead_ssa[ibin+stencil[k]]; j >= 0; 
            j = list->bins_ssa[j]) {
 
@@ -304,7 +301,7 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
    accesses static class member ssaAIRptr, set before call to qsort()
 ------------------------------------------------------------------------- */
 
-int cmp_ssaAIR(const void *iptr, const void *jptr)
+static int cmp_ssaAIR(const void *iptr, const void *jptr)
 {
   int i = *((int *) iptr);
   int j = *((int *) jptr);

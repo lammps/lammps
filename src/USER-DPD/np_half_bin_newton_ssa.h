@@ -13,7 +13,7 @@
 
 #ifdef NEIGH_PAIR_CLASS
 
-NeighPairStyle(NEIGH_PAIR_HALF_BIN_NEWTON_SSA,NeighPairHalfBinNewtonSsa)
+NeighPairStyle(NEIGH_PAIR_HALF_BIN_NEWTON_SSA,NeighPairHalfBinNewtonSSA)
 
 #else
 
@@ -24,10 +24,10 @@ NeighPairStyle(NEIGH_PAIR_HALF_BIN_NEWTON_SSA,NeighPairHalfBinNewtonSsa)
 
 namespace LAMMPS_NS {
 
-class NeighPairHalfBinNewtonSsa : public NeighPair {
+class NeighPairHalfBinNewtonSSA : public NeighPair {
  public:
-  NeighPairHalfBinNewtonSsa(class LAMMPS *);
-  ~NeighPairHalfBinNewtonSsa() {}
+  NeighPairHalfBinNewtonSSA(class LAMMPS *);
+  ~NeighPairHalfBinNewtonSSA() {}
   void build(class NeighList *);
 };
 

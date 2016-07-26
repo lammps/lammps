@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 // prototype for non-class function
 
 static int *ssaAIRptr;
-int cmp_ssaAIR(const void *, const void *);
+static int cmp_ssaAIR(const void *, const void *);
 
 /* ---------------------------------------------------------------------- */
 
@@ -122,7 +122,7 @@ void NeighPairHalfFromFullNewtonSSA::build(NeighList *list)
    accesses static class member ssaAIRptr, set before call to qsort()
 ------------------------------------------------------------------------- */
 
-int cmp_ssaAIR(const void *iptr, const void *jptr)
+static int cmp_ssaAIR(const void *iptr, const void *jptr)
 {
   int i = *((int *) iptr);
   int j = *((int *) jptr);

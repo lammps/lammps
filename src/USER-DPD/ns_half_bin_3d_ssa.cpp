@@ -35,20 +35,22 @@ NeighStencilHalfBin3dSSA::NeighStencilHalfBin3dSSA(LAMMPS *lmp) :
    for half list with newton on:
      stencil is bins to the "upper right" of central bin
      stencil does not include self
+   Additionally, includes the bins beyond nstencil that are needed
+   to locate all the Active Interaction Region (AIR) ghosts for SSA
 ------------------------------------------------------------------------- */
 
 void NeighStencilHalfBin3dSSA::create()
 {
-  int i,j,k;
-
-  nstencil = 0;
+  int i,j,k,pos = 0;
 
   for (k = 0; k <= sz; k++)
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)
         if (k > 0 || j > 0 || (j == 0 && i > 0))
           if (bin_distance(i,j,k) < cutneighmaxsq)
-            stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+            stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
+
+  nstencil = pos; // record where normal half stencil ends
 
   // include additional bins for AIR ghosts only
 
@@ -56,21 +58,17 @@ void NeighStencilHalfBin3dSSA::create()
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)
         if (bin_distance(i,j,k) < cutneighmaxsq)
-          stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+          stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
 
-  // skip already included bins at k == 0
+  // For k==0, make sure to skip already included bins
 
   k = 0; 
   for (j = -sy; j <= 0; j++)
     for (i = -sx; i <= sx; i++) {
       if (j == 0 && i > 0) continue;
       if (bin_distance(i,j,k) < cutneighmaxsq)
-        stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
+        stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
     }
 
-  // NOTE to Tim: not sure if/why you need to pad the stencil?
-
-  while (nstencil < maxstencil) {
-    stencil[nstencil++] = INT_MAX;
-  }
+  nstencil_ssa = pos; // record where full stencil ends
 }

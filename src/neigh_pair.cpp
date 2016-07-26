@@ -113,6 +113,7 @@ void NeighPair::copy_bin_info()
 void NeighPair::copy_stencil_info()
 {
   nstencil = ns->nstencil;
+  nstencil_ssa = ns->nstencil_ssa;
   stencil = ns->stencil;
   stencilxyz = ns->stencilxyz;
   nstencil_multi = ns->nstencil_multi;

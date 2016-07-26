@@ -35,19 +35,21 @@ NeighStencilHalfBin2dSSA::NeighStencilHalfBin2dSSA(LAMMPS *lmp) :
    for half list with newton on:
      stencil is bins to the "upper right" of central bin
      stencil does not include self
+   Additionally, includes the bins beyond nstencil that are needed
+   to locate all the Active Interaction Region (AIR) ghosts for SSA
 ------------------------------------------------------------------------- */
 
 void NeighStencilHalfBin2dSSA::create()
 {
-  int i,j;
-
-  nstencil = 0;
+  int i,j,pos = 0;
 
   for (j = 0; j <= sy; j++)
     for (i = -sx; i <= sx; i++)
       if (j > 0 || (j == 0 && i > 0))
         if (bin_distance(i,j,0) < cutneighmaxsq)
-          stencil[nstencil++] = j*mbinx + i;
+          stencil[pos++] = j*mbinx + i;
+
+  nstencil = pos; // record where normal half stencil ends
 
   // include additional bins for AIR ghosts only
 
@@ -55,12 +57,8 @@ void NeighStencilHalfBin2dSSA::create()
     for (i = -sx; i <= sx; i++) {
       if (j == 0 && i > 0) continue;
       if (bin_distance(i,j,0) < cutneighmaxsq)
-        stencil[nstencil++] = j*mbinx + i;
+        stencil[pos++] = j*mbinx + i;
     }
 
-  // NOTE to Tim: not sure why you need to pad the stencil?
-
-  while (nstencil < maxstencil) {
-    stencil[nstencil++] = INT_MAX;
-  }
+  nstencil_ssa = pos; // record where full stencil ends
 }

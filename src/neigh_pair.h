@@ -81,6 +81,7 @@ class NeighPair : protected Pointers {
   // data from NeighStencil class
 
   int nstencil;
+  int nstencil_ssa;
   int *stencil;
   int **stencilxyz;
   int *nstencil_multi;

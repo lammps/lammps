@@ -79,6 +79,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   etap_mass_flag = 0;
   flipflag = 1;
   dipole_flag = 0;
+  dlm_flag = 0;
 
   tcomputeflag = 0;
   pcomputeflag = 0;
@@ -332,6 +333,9 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
       else error->all(FLERR,"Illegal fix nvt/npt/nph command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"dlm") == 0) {
+      dlm_flag = 1;
+      iarg += 1;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
@@ -434,6 +438,9 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     if (!atom->mu_flag)
       error->all(FLERR,"Using update dipole flag requires atom attribute mu");
   }
+  
+  if (dlm_flag && !dipole_flag)
+    error->all(FLERR,"The dlm flag must be used with update dipole");
 
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||

@@ -54,7 +54,7 @@ void FixNHSphere::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
-        error->one(FLERR,"Fix nvt/sphere requires extended particles");
+        error->one(FLERR,"Fix nvt/npt/nph/sphere require extended particles");
 
   FixNH::init();
 }
@@ -129,11 +129,11 @@ void FixNHSphere::nve_x()
             mu[i][1] = g[1]*scale;
             mu[i][2] = g[2]*scale;
           }
-    }else{
+    } else {
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
       vector w, w_temp, a;
       matrix Q, Q_temp, R;
-      double scale,s2,c,inv_len_mu;
+      double scale,s2,inv_len_mu;
       
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && mu[i][3] > 0.0) {
@@ -165,7 +165,7 @@ void FixNHSphere::nve_x()
             Q[0][0] = 1.0 - scale*a[0]*a[0]; Q[0][1] = -scale*a[0]*a[1];      Q[0][2] = -a[0];
             Q[1][0] = -scale*a[0]*a[1];      Q[1][1] = 1.0 - scale*a[1]*a[1]; Q[1][2] = -a[1];
             Q[2][0] = a[0];                  Q[2][1] = a[1];                  Q[2][2] = 1.0 - scale*(a[0]*a[0] + a[1]*a[1]);
-          }else{ // if parallel then we just have I or -I
+          } else { // if parallel then we just have I or -I
             Q[0][0] = 1.0/a[2];  Q[0][1] = 0.0;       Q[0][2] = 0.0;
             Q[1][0] = 0.0;       Q[1][1] = 1.0/a[2];  Q[1][2] = 0.0;
             Q[2][0] = 0.0;       Q[2][1] = 0.0;       Q[2][2] = 1.0/a[2];

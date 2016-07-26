@@ -153,7 +153,7 @@ void FixNVESphere::initial_integrate(int vflag)
             mu[i][1] = g[1]*scale;
             mu[i][2] = g[2]*scale;
           }
-    }else{
+    } else {
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && mu[i][3] > 0.0) {
@@ -185,7 +185,7 @@ void FixNVESphere::initial_integrate(int vflag)
             Q[0][0] = 1.0 - scale*a[0]*a[0]; Q[0][1] = -scale*a[0]*a[1];      Q[0][2] = -a[0];
             Q[1][0] = -scale*a[0]*a[1];      Q[1][1] = 1.0 - scale*a[1]*a[1]; Q[1][2] = -a[1];
             Q[2][0] = a[0];                  Q[2][1] = a[1];                  Q[2][2] = 1.0 - scale*(a[0]*a[0] + a[1]*a[1]);
-          }else{ // if parallel then we just have I or -I
+          } else { // if parallel then we just have I or -I
             Q[0][0] = 1.0/a[2];  Q[0][1] = 0.0;       Q[0][2] = 0.0;
             Q[1][0] = 0.0;       Q[1][1] = 1.0/a[2];  Q[1][2] = 0.0;
             Q[2][0] = 0.0;       Q[2][1] = 0.0;       Q[2][2] = 1.0/a[2];

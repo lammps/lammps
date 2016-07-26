@@ -416,7 +416,8 @@ void FixQEqReax::init_taper()
 
 void FixQEqReax::setup_pre_force(int vflag)
 {
-  neighbor->build_one(list);
+  // should not be needed
+  // neighbor->build_one(list);
 
   deallocate_storage();
   allocate_storage();

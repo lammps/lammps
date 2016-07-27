@@ -190,7 +190,7 @@ int MPI_Type_size(MPI_Datatype datatype, int *size)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Send(void *buf, int count, MPI_Datatype datatype,
+int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm)
 {
   printf("MPI Stub WARNING: Should not send message to self\n");
@@ -199,7 +199,7 @@ int MPI_Send(void *buf, int count, MPI_Datatype datatype,
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
               int source, int tag, MPI_Comm comm, MPI_Request *request)
 {
   printf("MPI Stub WARNING: Should not send message to self\n");
@@ -208,7 +208,7 @@ int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype,
               int dest, int tag, MPI_Comm comm)
 {
   printf("MPI Stub WARNING: Should not rsend message to self\n");
@@ -260,7 +260,7 @@ int MPI_Waitany(int count, MPI_Request *request, int *index,
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
+int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype,
                  int dest, int stag, void *rbuf, int rcount,
                  MPI_Datatype rdatatype, int source, int rtag,
                  MPI_Comm comm, MPI_Status *status)

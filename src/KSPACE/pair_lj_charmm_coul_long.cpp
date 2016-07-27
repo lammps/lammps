@@ -733,8 +733,9 @@ void PairLJCharmmCoulLong::init_style()
   cut_coulsq = cut_coul * cut_coul;
   cut_bothsq = MAX(cut_ljsq,cut_coulsq);
 
-  denom_lj_inv = 1.0 / ( (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) *
-    (cut_ljsq-cut_lj_innersq) );
+  denom_lj = ( (cut_ljsq-cut_lj_innersq) * (cut_ljsq-cut_lj_innersq) *
+               (cut_ljsq-cut_lj_innersq) );
+  denom_lj_inv = 1.0 / denom_lj;
 
   // set & error check interior rRESPA cutoffs
 

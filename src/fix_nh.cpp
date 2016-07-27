@@ -331,7 +331,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg],"update") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nvt/npt/nph command");
       if (strcmp(arg[iarg+1],"dipole") == 0) dipole_flag = 1;
-      else if (strcmp(arg[iarg],"dipole/dlm") == 0) {
+      else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
         dipole_flag = 1;
         dlm_flag = 1;
       } else error->all(FLERR,"Illegal fix nvt/npt/nph command");

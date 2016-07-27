@@ -90,11 +90,11 @@ double MPI_Wtime();
 
 int MPI_Type_size(int, int *);
 
-int MPI_Send(void *buf, int count, MPI_Datatype datatype,
+int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm);
-int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
               int source, int tag, MPI_Comm comm, MPI_Request *request);
-int MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype,
               int dest, int tag, MPI_Comm comm);
 int MPI_Recv(void *buf, int count, MPI_Datatype datatype,
              int source, int tag, MPI_Comm comm, MPI_Status *status);
@@ -104,7 +104,7 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status);
 int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status);
 int MPI_Waitany(int count, MPI_Request *request, int *index,
                 MPI_Status *status);
-int MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
+int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype,
                   int dest, int stag, void *rbuf, int rcount,
                   MPI_Datatype rdatatype, int source, int rtag,
                   MPI_Comm comm, MPI_Status *status);

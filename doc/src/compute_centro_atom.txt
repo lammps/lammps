@@ -10,11 +10,17 @@ compute centro/atom command :h3
 
 [Syntax:]
 
-compute ID group-ID centro/atom lattice :pre
+compute ID group-ID centro/atom lattice keyword value :pre
 
 ID, group-ID are documented in "compute"_compute.html command
 centro/atom = style name of this compute command
-lattice = {fcc} or {bcc} or N = # of neighbors per atom to include :ul
+lattice = {fcc} or {bcc} or N = # of neighbors per atom to include :l
+zero or one keyword/value pairs may be appended :l
+keyword = {axes} :l
+  {axes} value = {no} or {yes}
+    {no} = do not calulate 3 symmetry axes
+    {yes} = calulate 3 symmetry axes
+:ule
 
 [Examples:]
 
@@ -38,7 +44,7 @@ This parameter is computed using the following formula from
 
 :c,image(Eqs/centro_symmetry.jpg)
 
-where the {N} nearest neighbors or each atom are identified and Ri and
+where the {N} nearest neighbors of each atom are identified and Ri and
 Ri+N/2 are vectors from the central atom to a particular pair of
 nearest neighbors.  There are N*(N-1)/2 possible neighbor pairs that
 can contribute to this formula.  The quantity in the sum is computed
@@ -61,6 +67,20 @@ positive parameter.  If the atom does not have {N} neighbors (within
 the potential cutoff), then its centro-symmetry parameter is set to
 0.0.
 
+If the keyword {axes} has the argument {yes}, then this compute
+also estimates three symmetry axes for each atoms local neighborhood.
+The first two of these are the vectors joining the two pairs of neighbor
+atoms with smallest contributions to the centrosymmetry parameter i.e.
+the two most symmetric pairs of atoms. The third vector is normal to the
+first two. All three vectors are normalized to 1. For FCC crystals, the
+first two vectors will lie along a <110> direction,
+while the third vector will lie along either a <100> or <111> direction.
+For HCP crystals, the first two vectors will lie along <1000> directions,
+while the third vector will lie along <0001>. This provides a simple way
+to measure local orientation in HCP structures. In general, the {axes}
+keyword can be used to estimate the orientation of symmetry axes in
+the neighborhood of any atom.
+
 Only atoms within the cutoff of the pairwise neighbor list are
 considered as possible neighbors.  Atoms not in the compute group are
 included in the {N} neighbors used in this calculation.
@@ -73,12 +93,13 @@ too frequently or to have multiple compute/dump commands, each with a
 
 [Output info:]
 
-This compute calculates a per-atom vector, which can be accessed by
+By default, this compute calculates the centrosymmetry value for each atom
+as a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
 "Section_howto 15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
-The per-atom vector values are unitless values >= 0.0.  Their
+The centrosymmetry values are unitless values >= 0.0.  Their
 magnitude depends on the lattice style due to the number of
 contibuting neighbor pairs in the summation in the formula above.  And
 it depends on the local defects surrounding the central atom, as
@@ -105,13 +126,18 @@ For BCC materials, the values for dislocation cores and free surfaces
 would be somewhat different, due to their being only 8 neighbors instead
 of 12.
 
+If {axes} keyword arguement is {yes}, then this compute calculates a per-atom
+array. The first column is the centrosymmetry parameter. The next three columns
+are the x, y, and z components of the first symmetry axis, followed by the
+second, and third symmetry axis in columns 5 through 10. 
+
 [Restrictions:] none
 
 [Related commands:]
 
 "compute cna/atom"_compute_cna_atom.html
 
-[Default:] none
+[Default:] {axes} no
 
 :line
 

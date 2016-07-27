@@ -52,11 +52,11 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"update") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix nve/sphere command");
       if (strcmp(arg[iarg+1],"dipole") == 0) extra = DIPOLE;
-      else error->all(FLERR,"Illegal fix nve/sphere command");
+      else if (strcmp(arg[iarg+1],"dipole/dlm") == 0) {
+        extra = DIPOLE;
+        dlm = DLM;
+      } else error->all(FLERR,"Illegal fix nve/sphere command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dlm") == 0) {
-      dlm = DLM;
-      iarg += 1;
     } else error->all(FLERR,"Illegal fix nve/sphere command");
   }
 
@@ -66,8 +66,6 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix nve/sphere requires atom style sphere");
   if (extra == DIPOLE && !atom->mu_flag)
     error->all(FLERR,"Fix nve/sphere update dipole requires atom attribute mu");
-  if (dlm == DLM && extra != DIPOLE)
-    error->all(FLERR,"Fix nve/sphere dlm must be used with update dipole");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,7 +91,7 @@ void FixNVESphere::init()
 
 void FixNVESphere::initial_integrate(int vflag)
 {
-  double dtfm,dtirotate,msq,scale,s2,c,inv_len_mu;
+  double dtfm,dtirotate,msq,scale,s2,inv_len_mu;
   double g[3];
   vector w, w_temp, a;
   matrix Q, Q_temp, R;

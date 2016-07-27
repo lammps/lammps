@@ -138,17 +138,19 @@
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>nve/sphere = style name of this fix command</li>
 <li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>update</em></li>
 </ul>
 <pre class="literal-block">
-<em>update</em> value = <em>dipole</em>
-  dipole = update orientation of dipole moment during integration
+keyword = <em>update</em>
+  <em>update</em> value = <em>dipole</em> or <em>dipole/dlm</em>
+    dipole = update orientation of dipole moment during integration
+    dipole/dlm = use DLM integrator to update dipole orientation
 </pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">nve</span><span class="o">/</span><span class="n">sphere</span>
 <span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">nve</span><span class="o">/</span><span class="n">sphere</span> <span class="n">update</span> <span class="n">dipole</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">nve</span><span class="o">/</span><span class="n">sphere</span> <span class="n">update</span> <span class="n">dipole</span><span class="o">/</span><span class="n">dlm</span>
 </pre></div>
 </div>
 </div>
@@ -165,6 +167,12 @@ orientation of the dipole moment of each particle is also updated
 during the time integration.  This option should be used for models
 where a dipole moment is assigned to finite-size particles,
 e.g. spheroids via use of the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style hybrid sphere dipole</span></a> command.</p>
+<p>The default dipole orientation integrator can be changed the
+Dullweber-Leimkuhler-McLachlan integration scheme
+<a class="reference internal" href="fix_nh.html#nh-dullweber"><span class="std std-ref">(Dullweber)</span></a> when using <em>update</em> with the value
+<em>dipole/dlm</em>. This integrator is symplectic and time-reversible,
+giving better energy conservation and allows slightly longer timesteps
+at only a small additional computational cost.</p>
 <hr class="docutils" />
 <p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
@@ -205,6 +213,9 @@ be point particles.</p>
 <h2>Related commands</h2>
 <p><a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nve_asphere.html"><span class="doc">fix nve/asphere</span></a></p>
 <p><strong>Default:</strong> none</p>
+<hr class="docutils" />
+<p id="nve-dullweber"><strong>(Dullweber)</strong> Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
+5840 (1997).</p>
 </div>
 </div>
 

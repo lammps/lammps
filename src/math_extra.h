@@ -27,12 +27,15 @@ namespace MathExtra {
 
   // 3 vector operations
 
+  inline void copy3(const double *v, double *ans);
+  inline void zero3(double *v);
   inline void norm3(double *v);
   inline void normalize3(const double *v, double *ans);
   inline void snormalize3(const double, const double *v, double *ans);
   inline void negate3(double *v);
   inline void scale3(double s, double *v);
   inline void add3(const double *v1, const double *v2, double *ans);
+  inline void scaleadd3(double s, const double *v1, const double *v2, double *ans);
   inline void sub3(const double *v1, const double *v2, double *ans);
   inline double len3(const double *v);
   inline double lensq3(const double *v);
@@ -129,6 +132,28 @@ namespace MathExtra {
 }
 
 /* ----------------------------------------------------------------------
+   copy a vector, return in ans
+------------------------------------------------------------------------- */
+
+inline void MathExtra::copy3(const double *v, double *ans)
+{
+  ans[0] = v[0];
+  ans[1] = v[1];
+  ans[2] = v[2];
+}
+
+/* ----------------------------------------------------------------------
+   set vector equal to zero
+------------------------------------------------------------------------- */
+
+inline void MathExtra::zero3(double *v)
+{
+  v[0] = 0.0;
+  v[1] = 0.0;
+  v[2] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
    normalize a vector in place
 ------------------------------------------------------------------------- */
 
@@ -196,6 +221,17 @@ inline void MathExtra::add3(const double *v1, const double *v2, double *ans)
   ans[0] = v1[0] + v2[0];
   ans[1] = v1[1] + v2[1];
   ans[2] = v1[2] + v2[2];
+}
+
+/* ----------------------------------------------------------------------
+   ans = s*v1 + v2
+------------------------------------------------------------------------- */
+
+inline void MathExtra::scaleadd3(double s, const double *v1, const double *v2, double *ans)
+{
+  ans[0] = s*v1[0] + v2[0];
+  ans[1] = s*v1[1] + v2[1];
+  ans[2] = s*v1[2] + v2[2];
 }
 
 /* ----------------------------------------------------------------------

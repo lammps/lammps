@@ -161,9 +161,9 @@ void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-              (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+              (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
             switch2 = 12.0*rsq * (cut_ljsq-rsq) *
-              (rsq-cut_lj_innersq) / denom_lj;
+              (rsq-cut_lj_innersq) * denom_lj_inv;
             philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
             forcelj = forcelj*switch1 + philj*switch2;
           }
@@ -221,7 +221,7 @@ void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
               evdwl *= switch1;
             }
             evdwl *= factor_lj;
@@ -358,9 +358,9 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-              (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+              (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
             switch2 = 12.0*rsq * (cut_ljsq-rsq) *
-              (rsq-cut_lj_innersq) / denom_lj;
+              (rsq-cut_lj_innersq) * denom_lj_inv;
             philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
             forcelj = forcelj*switch1 + philj*switch2;
           }
@@ -402,7 +402,7 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
               evdwl *= switch1;
             }
             evdwl *= factor_lj;
@@ -430,9 +430,9 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
               switch2 = 12.0*rsq * (cut_ljsq-rsq) *
-                (rsq-cut_lj_innersq) / denom_lj;
+                (rsq-cut_lj_innersq) * denom_lj_inv;
               philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
               forcelj = forcelj*switch1 + philj*switch2;
             }
@@ -441,9 +441,9 @@ void PairLJCharmmCoulMSM::compute_outer(int eflag, int vflag)
             forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+                (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
               switch2 = 12.0*rsq * (cut_ljsq-rsq) *
-                (rsq-cut_lj_innersq) / denom_lj;
+                (rsq-cut_lj_innersq) * denom_lj_inv;
               philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
               forcelj = forcelj*switch1 + philj*switch2;
             }
@@ -499,9 +499,9 @@ double PairLJCharmmCoulMSM::single(int i, int j, int itype, int jtype,
     forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
     if (rsq > cut_lj_innersq) {
       switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-        (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+        (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
       switch2 = 12.0*rsq * (cut_ljsq-rsq) *
-        (rsq-cut_lj_innersq) / denom_lj;
+        (rsq-cut_lj_innersq) * denom_lj_inv;
       philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
       forcelj = forcelj*switch1 + philj*switch2;
     }
@@ -524,7 +524,7 @@ double PairLJCharmmCoulMSM::single(int i, int j, int itype, int jtype,
     philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
     if (rsq > cut_lj_innersq) {
       switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-        (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+        (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
       philj *= switch1;
     }
     eng += factor_lj*philj;

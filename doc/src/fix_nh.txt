@@ -56,7 +56,9 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {flip} value = {yes} or {no} = allow or disallow box flips when it becomes highly skewed
   {fixedpoint} values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units)
-  {update} value = {dipole} update dipole orientation (only for sphere variants) :pre
+  {update} value = {dipole} or {dipole/dlm}
+    dipole = update dipole orientation (only for sphere variants) 
+    dipole/dlm = use alternative Dullweber-Leimkuhler-McLachlan integrator to update the dipole orientation (only for sphere variants) :pre
 
 :ule
 
@@ -334,6 +336,12 @@ during the time integration.  This option should be used for models
 where a dipole moment is assigned to finite-size particles,
 e.g. spheroids via use of the "atom_style hybrid sphere
 dipole"_atom_style.html command.
+The default dipole orientation integrator can be changed the
+Dullweber-Leimkuhler-McLachlan integration scheme "(Dullweber)"_#nh-Dullweber
+when using {update} with the value {dipole/dlm}. This integrator
+is symplectic and time-reversible, giving better energy conservation
+and allows slightly longer timesteps at only a small additional
+computational cost.
 
 :line
 
@@ -638,3 +646,6 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 :link(nh-Shinoda)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
+
+:link(nh-Dullweber)
+[(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107, 5840 (1997).

@@ -55,7 +55,7 @@ void FixNHSphereOMP::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (radius[i] == 0.0)
-        error->one(FLERR,"Fix nvt/sphere requires extended particles");
+        error->one(FLERR,"Fix nvt/npt/nph/sphere/omp require extended particles");
 
   FixNHOMP::init();
 }
@@ -97,6 +97,7 @@ void FixNHSphereOMP::nve_v()
       v[i].x += dtfm*f[i].x;
       v[i].y += dtfm*f[i].y;
       v[i].z += dtfm*f[i].z;
+
       const double dtirotate = dtfrotate / (radius[i]*radius[i]*rmass[i]);
       omega[i].x += dtirotate*torque[i].x;
       omega[i].y += dtirotate*torque[i].y;

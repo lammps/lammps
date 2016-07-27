@@ -123,8 +123,8 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_coul = special_coul[sbmask(j)];
       factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -139,8 +139,6 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         // atom can have both a charge and dipole
         // i,j = charge-charge, dipole-dipole, dipole-charge, or charge-dipole
-        // atom can have both a charge and dipole
-        // i,j = charge-charge, dipole-dipole, dipole-charge, or charge-dipole
 
         forcecoulx = forcecouly = forcecoulz = 0.0;
         tixcoul = tiycoul = tizcoul = 0.0;
@@ -148,8 +146,9 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (rsq < cut_coulsq[itype][jtype]) {
 
+          rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
           if (qtmp != 0.0 && q[j] != 0.0) {
-            pre1 = qtmp*q[j]*rinv*(r2inv-1.0/cut_coulsq[itype][jtype]);
+            pre1 = qtmp*q[j]*rinv*(r2inv-rcutcoul2inv);
 
             forcecoulx += pre1*delx;
             forcecouly += pre1*dely;
@@ -159,7 +158,6 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (mu[i].w > 0.0 && mu[j].w > 0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
-            rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
 
             pdotp = mu[i].x*mu[j].x + mu[i].y*mu[j].y + mu[i].z*mu[j].z;
             pidotr = mu[i].x*delx + mu[i].y*dely + mu[i].z*delz;
@@ -171,7 +169,7 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
             aforcecouly = pre1*dely;
             aforcecoulz = pre1*delz;
 
-            bfac = 1.0 - 4.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv) +
+            bfac = 1.0 - 4.0*rsq*sqrt(rsq*rcutcoul2inv)*rcutcoul2inv +
               3.0*rsq*rsq*rcutcoul2inv*rcutcoul2inv;
             presf = 2.0 * r2inv * pidotr * pjdotr;
             bforcecoulx = bfac * (pjdotr*mu[i].x+pidotr*mu[j].x-presf*delx);
@@ -202,10 +200,9 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pidotr = mu[i].x*delx + mu[i].y*dely + mu[i].z*delz;
-            rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
             pre1 = 3.0 * q[j] * r5inv * pidotr * (1-rsq*rcutcoul2inv);
             pqfac = 1.0 - 3.0*rsq*rcutcoul2inv +
-              2.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv);
+              2.0*rsq*sqrt(rsq*rcutcoul2inv)*rcutcoul2inv;
             pre2 = q[j] * r3inv * pqfac;
 
             forcecoulx += pre2*mu[i].x - pre1*delx;
@@ -220,10 +217,9 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pjdotr = mu[j].x*delx + mu[j].y*dely + mu[j].z*delz;
-            rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
             pre1 = 3.0 * qtmp * r5inv * pjdotr * (1-rsq*rcutcoul2inv);
             qpfac = 1.0 - 3.0*rsq*rcutcoul2inv +
-              2.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv);
+              2.0*rsq*sqrt(rsq*rcutcoul2inv)*rcutcoul2inv;
             pre2 = qtmp * r3inv * qpfac;
 
             forcecoulx += pre1*delx - pre2*mu[j].x;

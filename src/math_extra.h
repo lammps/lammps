@@ -111,6 +111,10 @@ namespace MathExtra {
   inline void rotation_generator_x(const double m[3][3], double ans[3][3]);
   inline void rotation_generator_y(const double m[3][3], double ans[3][3]);
   inline void rotation_generator_z(const double m[3][3], double ans[3][3]);
+  
+  void BuildRxMatrix(double R[3][3], const double angle);
+  void BuildRyMatrix(double R[3][3], const double angle);
+  void BuildRzMatrix(double R[3][3], const double angle);
 
   // moment of inertia operations
 

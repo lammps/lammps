@@ -607,6 +607,51 @@ void inertia_triangle(double *idiag, double *quat, double mass,
   inertia[5] = tensor[0][1];
 }
 
+/* ----------------------------------------------------------------------
+ Build rotation matrix for a small angle rotation around the X axis
+ ------------------------------------------------------------------------- */
+
+void BuildRxMatrix(double R[3][3], const double angle)
+{
+  const double angleSq = angle * angle;
+  const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
+  const double sinAngle = angle / (1.0 + angleSq * 0.25);
+  
+  R[0][0] = 1.0;  R[0][1] = 0.0;       R[0][2] = 0.0;
+  R[1][0] = 0.0;  R[1][1] = cosAngle;  R[1][2] = -sinAngle;
+  R[2][0] = 0.0;  R[2][1] = sinAngle;  R[2][2] = cosAngle;
+}
+
+/* ----------------------------------------------------------------------
+ Build rotation matrix for a small angle rotation around the Y axis
+ ------------------------------------------------------------------------- */
+
+void BuildRyMatrix(double R[3][3], const double angle)
+{
+  const double angleSq = angle * angle;
+  const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
+  const double sinAngle = angle / (1.0 + angleSq * 0.25);
+  
+  R[0][0] = cosAngle;   R[0][1] = 0.0;  R[0][2] = sinAngle;
+  R[1][0] = 0.0;        R[1][1] = 1.0;  R[1][2] = 0.0;
+  R[2][0] = -sinAngle;  R[2][1] = 0.0;  R[2][2] = cosAngle;
+}
+
+/* ----------------------------------------------------------------------
+ Build rotation matrix for a small angle rotation around the Y axis
+ ------------------------------------------------------------------------- */
+
+void BuildRzMatrix(double R[3][3], const double angle)
+{
+  const double angleSq = angle * angle;
+  const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
+  const double sinAngle = angle / (1.0 + angleSq * 0.25);
+  
+  R[0][0] = cosAngle;  R[0][1] = -sinAngle;  R[0][2] = 0.0;
+  R[1][0] = sinAngle;  R[1][1] = cosAngle;   R[1][2] = 0.0;
+  R[2][0] = 0.0;       R[2][1] = 0.0;        R[2][2] = 1.0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 }

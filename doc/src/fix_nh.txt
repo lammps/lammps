@@ -56,8 +56,9 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {flip} value = {yes} or {no} = allow or disallow box flips when it becomes highly skewed
   {fixedpoint} values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units)
-  {update} value = {dipole} update dipole orientation (only for sphere variants) :pre
-
+  {update} value = {dipole} or {dipole/dlm}
+    dipole = update dipole orientation (only for sphere variants) 
+    dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants) :pre
 :ule
 
 [Examples:]
@@ -335,6 +336,13 @@ where a dipole moment is assigned to finite-size particles,
 e.g. spheroids via use of the "atom_style hybrid sphere
 dipole"_atom_style.html command.
 
+The default dipole orientation integrator can be changed the
+Dullweber-Leimkuhler-McLachlan integration scheme
+"(Dullweber)"_#nh-Dullweber when using {update} with the value
+{dipole/dlm}. This integrator is symplectic and time-reversible,
+giving better energy conservation and allows slightly longer timesteps
+at only a small additional computational cost.
+
 :line
 
 NOTE: Using a barostat coupled to tilt dimensions {xy}, {xz}, {yz} can
@@ -429,14 +437,14 @@ thermal degrees of freedom, and the bias is added back in.
 
 :line
 
-These fixes can be used with either the {verlet} or {respa} 
+These fixes can be used with either the {verlet} or {respa}
 "integrators"_run_style.html. When using one of the barostat fixes
 with {respa}, LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):
 
-:c,image(Eqs/fix_nh1.jpg) 
- 
+:c,image(Eqs/fix_nh1.jpg)
+
 This factorization differs somewhat from that of Tuckerman et al, in
 that the barostat is only updated at the outermost rRESPA level,
 whereas Tuckerman's factorization requires splitting the pressure into
@@ -452,7 +460,7 @@ NOTE: This implementation has been shown to conserve linear momentum
 up to machine precision under NVT dynamics. Under NPT dynamics,
 for a system with zero initial total linear momentum, the total
 momentum fluctuates close to zero. It may occasionally undergo brief
-excursions to non-negligible values, before returning close to zero. 
+excursions to non-negligible values, before returning close to zero.
 Over long simulations, this has the effect of causing the center-of-mass
 to undergo a slow random walk. This can be mitigated by resetting
 the momentum at infrequent intervals using the
@@ -462,7 +470,7 @@ NOTE: This implementation has been shown to conserve linear momentum
 up to machine precision under NVT dynamics. Under NPT dynamics,
 for a system with zero initial total linear momentum, the total
 momentum fluctuates close to zero. It may occasionally undergo brief
-excursions to non-negligible values, before returning close to zero. 
+excursions to non-negligible values, before returning close to zero.
 Over long simulations, this has the effect of causing the center-of-mass
 to undergo a slow random walk. This can be mitigated by resetting
 the momentum at infrequent intervals using the
@@ -603,7 +611,7 @@ for 2D simulations. {scaleyz yes}, {scalexz yes}, and {scalexy yes} options
 can only be used if the 2nd dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
 {tri}, {yz}, {xz}, and {xy}.
-  
+
 These fixes can be used with dynamic groups as defined by the
 "group"_group.html command.  Likewise they can be used with groups to
 which atoms are added or deleted over time, e.g. a deposition
@@ -621,7 +629,7 @@ over time or the atom count becomes very small.
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and 
+scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.
 
 :line
@@ -638,3 +646,7 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 :link(nh-Shinoda)
 [(Shinoda)] Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
+
+:link(nh-Dullweber)
+[(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
+5840 (1997).

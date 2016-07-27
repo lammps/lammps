@@ -61,6 +61,8 @@ NeighStencil::NeighStencil(LAMMPS *lmp) : Pointers(lmp)
   nstencil_multi = NULL;
   stencil_multi = NULL;
   distsq_multi = NULL;
+  naux_nstencil = 0;
+  aux_nstencil = NULL;
 
   dimension = domain->dimension;
 }
@@ -72,6 +74,7 @@ NeighStencil::~NeighStencil()
   memory->destroy(stencil);
   memory->destroy(stencilxyz);
   memory->destroy(nstencil_multi);
+  memory->destroy(aux_nstencil);
 
   if (!stencil_multi) return;
 
@@ -216,6 +219,7 @@ bigint NeighStencil::memory_usage()
   if (neighstyle == BIN) {
     bytes += memory->usage(stencil,maxstencil);
     bytes += memory->usage(stencilxyz,maxstencil,3);
+    bytes += memory->usage(aux_nstencil,naux_nstencil);
   } else if (neighstyle == MULTI) {
     bytes += atom->ntypes*maxstencil_multi * sizeof(int);
     bytes += atom->ntypes*maxstencil_multi * sizeof(double);

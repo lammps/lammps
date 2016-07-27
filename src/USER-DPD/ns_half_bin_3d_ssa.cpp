@@ -19,6 +19,7 @@
 #include "ns_half_bin_3d_ssa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 
@@ -35,22 +36,30 @@ NeighStencilHalfBin3dSSA::NeighStencilHalfBin3dSSA(LAMMPS *lmp) :
    for half list with newton on:
      stencil is bins to the "upper right" of central bin
      stencil does not include self
-   Additionally, includes the bins beyond nstencil that are needed
+   Additionally, includes the bins beyond half stencil that are needed
    to locate all the Active Interaction Region (AIR) ghosts for SSA
 ------------------------------------------------------------------------- */
 
 void NeighStencilHalfBin3dSSA::create()
 {
-  int i,j,k,pos = 0;
+  int i,j,k;
+
+  if (naux_nstencil < 1) {
+    naux_nstencil = 1;
+    if (aux_nstencil) memory->destroy(aux_nstencil);
+    memory->create(aux_nstencil,naux_nstencil,"neighstencil:aux_nstencil");
+  }
+
+  nstencil = 0;
 
   for (k = 0; k <= sz; k++)
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)
         if (k > 0 || j > 0 || (j == 0 && i > 0))
           if (bin_distance(i,j,k) < cutneighmaxsq)
-            stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
+            stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
 
-  nstencil = pos; // record where normal half stencil ends
+  aux_nstencil[0] = nstencil; // record where non-ghost half stencil ends
 
   // include additional bins for AIR ghosts only
 
@@ -58,7 +67,7 @@ void NeighStencilHalfBin3dSSA::create()
     for (j = -sy; j <= sy; j++)
       for (i = -sx; i <= sx; i++)
         if (bin_distance(i,j,k) < cutneighmaxsq)
-          stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
+          stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
 
   // For k==0, make sure to skip already included bins
 
@@ -67,8 +76,6 @@ void NeighStencilHalfBin3dSSA::create()
     for (i = -sx; i <= sx; i++) {
       if (j == 0 && i > 0) continue;
       if (bin_distance(i,j,k) < cutneighmaxsq)
-        stencil[pos++] = k*mbiny*mbinx + j*mbinx + i;
+        stencil[nstencil++] = k*mbiny*mbinx + j*mbinx + i;
     }
-
-  nstencil_ssa = pos; // record where full stencil ends
 }

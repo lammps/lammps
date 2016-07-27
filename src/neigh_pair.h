@@ -81,12 +81,13 @@ class NeighPair : protected Pointers {
   // data from NeighStencil class
 
   int nstencil;
-  int nstencil_ssa;
   int *stencil;
   int **stencilxyz;
   int *nstencil_multi;
   int **stencil_multi;
   double **distsq_multi;
+  int naux_nstencil;
+  int *aux_nstencil;
 
   // data common to all NeighPair variants
 

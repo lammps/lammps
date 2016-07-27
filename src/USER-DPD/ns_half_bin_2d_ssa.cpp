@@ -19,6 +19,7 @@
 #include "ns_half_bin_2d_ssa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "memory.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,15 +42,23 @@ NeighStencilHalfBin2dSSA::NeighStencilHalfBin2dSSA(LAMMPS *lmp) :
 
 void NeighStencilHalfBin2dSSA::create()
 {
-  int i,j,pos = 0;
+  int i,j;
+
+  if (naux_nstencil < 1) {
+    naux_nstencil = 1;
+    if (aux_nstencil) memory->destroy(aux_nstencil);
+    memory->create(aux_nstencil,naux_nstencil,"neighstencil:aux_nstencil");
+  }
+
+  nstencil = 0;
 
   for (j = 0; j <= sy; j++)
     for (i = -sx; i <= sx; i++)
       if (j > 0 || (j == 0 && i > 0))
         if (bin_distance(i,j,0) < cutneighmaxsq)
-          stencil[pos++] = j*mbinx + i;
+          stencil[nstencil++] = j*mbinx + i;
 
-  nstencil = pos; // record where normal half stencil ends
+  aux_nstencil[0] = nstencil; // record where non-ghost half stencil ends
 
   // include additional bins for AIR ghosts only
 
@@ -57,8 +66,6 @@ void NeighStencilHalfBin2dSSA::create()
     for (i = -sx; i <= sx; i++) {
       if (j == 0 && i > 0) continue;
       if (bin_distance(i,j,0) < cutneighmaxsq)
-        stencil[pos++] = j*mbinx + i;
+        stencil[nstencil++] = j*mbinx + i;
     }
-
-  nstencil_ssa = pos; // record where full stencil ends
 }

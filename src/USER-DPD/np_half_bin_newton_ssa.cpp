@@ -197,8 +197,9 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
     ibin = coord2bin(x[i]);
 
     // loop over all local atoms in other bins in "half" stencil
+    int stencil_end = aux_nstencil[0];
 
-    for (k = 0; k < nstencil; k++) {
+    for (k = 0; k < stencil_end; k++) {
       for (j = list->binhead_ssa[ibin+stencil[k]]; j >= 0; 
            j = list->bins_ssa[j]) {
 
@@ -234,7 +235,7 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
     // That is a significant time savings because of the "full" stencil
     // Note2: only non-pure locals can have ghosts as neighbors
 
-    if (ssaAIR[i] == 1) for (k = 0; k < nstencil_ssa; k++) {
+    if (ssaAIR[i] == 1) for (k = 0; k < nstencil; k++) {
       for (j = list->gbinhead_ssa[ibin+stencil[k]]; j >= 0; 
            j = list->bins_ssa[j]) {
 

@@ -47,7 +47,7 @@ where a dipole moment is assigned to finite-size particles,
 e.g. spheroids via use of the "atom_style hybrid sphere
 dipole"_atom_style.html command.
 
-Instead of the default integrator used when the {update dipole} keyword/value pair is present, adding the {dlm} keyword enables the Dullweber-Leimkuhler-McLachlan integration scheme for the dipole orientation.  This integrator is symplectic and time-reversible, giving better energy conservation and allows slightly longer timesteps at only a small additional computational cost. The {dlm} keyword may only be used together with {update dipole}.
+Instead of the default integrator used when the {update dipole} keyword/value pair is present, adding the {dlm} keyword enables the Dullweber-Leimkuhler-McLachlan integration scheme "(Dullweber)"_#nve-Dullweber for the dipole orientation.  This integrator is symplectic and time-reversible, giving better energy conservation and allows slightly longer timesteps at only a small additional computational cost. The {dlm} keyword may only be used together with {update dipole}.
 
 :line
 
@@ -100,3 +100,8 @@ be point particles.
 "fix nve"_fix_nve.html, "fix nve/asphere"_fix_nve_asphere.html
 
 [Default:] none
+
+:line
+
+:link(nve-Dullweber)
+[(Dullweber)] Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107, 5840 (1997).

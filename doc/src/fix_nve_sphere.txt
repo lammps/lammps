@@ -45,7 +45,7 @@ where a dipole moment is assigned to finite-size particles,
 e.g. spheroids via use of the "atom_style hybrid sphere
 dipole"_atom_style.html command.
 
-The default dipole orientation integrator can be changed the
+The default dipole orientation integrator can be changed to the
 Dullweber-Leimkuhler-McLachlan integration scheme
 "(Dullweber)"_#nh-Dullweber when using {update} with the value
 {dipole/dlm}. This integrator is symplectic and time-reversible,

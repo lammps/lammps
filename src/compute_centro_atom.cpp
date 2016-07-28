@@ -273,7 +273,7 @@ void ComputeCentroAtom::compute_peratom()
 	    double rsq = delx*delx + dely*dely + delz*delz;
 	    pairs[n++] = rsq;
 	    
-	    if (rsq < rsq2)
+	    if (rsq < rsq2) {
 	      if (rsq < rsq1) {
 		rsq2 = rsq1;
 		MathExtra::copy3(r1, r2);
@@ -283,6 +283,7 @@ void ComputeCentroAtom::compute_peratom()
 		rsq2 = rsq;
 		MathExtra::sub3(x[jj],x[kk],r2);
 	      }
+            }
 	  }
 	}
 

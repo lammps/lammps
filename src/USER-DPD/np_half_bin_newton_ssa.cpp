@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: 
-   James Larentzos and Timothy I. Mattox (Engility Corporation)
+   James Larentzos (ARL) and Timothy I. Mattox (Engility Corporation)
 ------------------------------------------------------------------------- */
 
 #include "np_half_bin_newton_ssa.h"

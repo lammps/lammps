@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: 
-   James Larentzos and Timothy I. Mattox (Engility Corporation)
+   James Larentzos (ARL) and Timothy I. Mattox (Engility Corporation)
 ------------------------------------------------------------------------- */
 
 #include "ns_half_bin_2d_ssa.h"

@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   James Larentzos (ARL) and Timothy I. Mattox (Engility Corporation)
+------------------------------------------------------------------------- */
+
 #include "nb_ssa.h"
 #include "atom.h"
 #include "group.h"

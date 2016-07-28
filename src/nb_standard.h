@@ -28,7 +28,6 @@ class NeighBinStandard : public NeighBin {
  public:
   NeighBinStandard(class LAMMPS *);
   ~NeighBinStandard() {}
-  void setup_bins(int);
   void bin_atoms();
 };
 

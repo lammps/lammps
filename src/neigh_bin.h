@@ -42,7 +42,7 @@ class NeighBin : protected Pointers {
   virtual void bin_atoms_setup(int);
   virtual bigint memory_usage();
 
-  virtual void setup_bins(int) = 0;
+  virtual void setup_bins(int);
   virtual void bin_atoms() = 0;
 
  protected:

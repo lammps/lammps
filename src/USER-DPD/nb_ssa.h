@@ -35,8 +35,8 @@ class NeighBinSSA : public NeighBin {
 
   NeighBinSSA(class LAMMPS *);
   ~NeighBinSSA();
+
   void bin_atoms_setup(int);
-  void setup_bins(int);
   void bin_atoms();
 
   bigint memory_usage();

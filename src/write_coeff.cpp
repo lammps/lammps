@@ -43,6 +43,9 @@ void WriteCoeff::command(int narg, char **arg)
   strcpy(file,"tmp.");
   strcat(file,arg[0]);
 
+  // initialize relevant styles
+  force->init();
+
   if (comm->me == 0) {
     char str[256], coeff[256];
     FILE *one = fopen(file,"wb+");
@@ -52,7 +55,6 @@ void WriteCoeff::command(int narg, char **arg)
     }
 
     if (force->pair && force->pair->writedata) {
-      force->pair->init();
       fprintf(one,"# pair_style %s\npair_coeff\n",force->pair_style);
       force->pair->write_data_all(one);
       fprintf(one,"end\n");

@@ -70,11 +70,6 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   // USER-DPD package
 
   ndxAIR_ssa = NULL;
-  maxbin_ssa = 0;
-  bins_ssa = NULL;
-  maxhead_ssa = 0;
-  binhead_ssa = NULL;
-  gbinhead_ssa = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,9 +91,6 @@ NeighList::~NeighList()
 
   if (ssa) {
     memory->sfree(ndxAIR_ssa);
-    memory->destroy(bins_ssa);
-    memory->destroy(binhead_ssa);
-    memory->destroy(gbinhead_ssa);
   }
 }
 
@@ -308,11 +300,6 @@ bigint NeighList::memory_usage()
   }
 
   if (ndxAIR_ssa) bytes += sizeof(uint16_t) * 8 * maxatom;
-  if (maxbin_ssa) bytes += memory->usage(bins_ssa,maxbin_ssa);
-  if (maxhead_ssa) {
-    bytes += memory->usage(binhead_ssa,maxhead_ssa);
-    bytes += memory->usage(gbinhead_ssa,maxhead_ssa);
-  }
 
   return bytes;
 }

@@ -20,6 +20,8 @@ enum{
   NEIGH_BIN_STANDARD=1,
 
   NEIGH_BIN_INTEL=201,
+
+  NEIGH_BIN_SSA=301,
 };
 
 struct BinName {
@@ -29,6 +31,8 @@ struct BinName {
   "standard", 1,
 
   "intel", 201,
+
+  "ssa", 301,
 
   "", -1
 };

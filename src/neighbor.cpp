@@ -1196,7 +1196,7 @@ void Neighbor::requests_new2old()
    return 0 for no binning
    style = NSQ -> no binning
    skip, copy, half_from_full, granhistory, respa inner/middle -> no stencil
-   everything else is INTEL or STANDARD
+   everything else is INTEL, SSA, or STANDARD
 ------------------------------------------------------------------------- */
 
 int Neighbor::choose_bin(NeighRequest *rq)
@@ -1207,6 +1207,7 @@ int Neighbor::choose_bin(NeighRequest *rq)
   if (rq->respainner || rq->respamiddle) return 0;
 
   if (rq->intel) return NEIGH_BIN_INTEL;
+  if (rq->ssa) return NEIGH_BIN_SSA;
 
   return NEIGH_BIN_STANDARD;
 }

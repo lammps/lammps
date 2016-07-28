@@ -88,22 +88,6 @@ void NeighPairHalfBinNewtonSSA::build(NeighList *list)
 
   int inum = 0;
 
-  // bin owned and ghost atoms for use by Shardlow Splitting Algorithm
-  // exclude ghost atoms that are not in the Active Interaction Regions (AIR)
-
-  // NOTE to Tim: this binatomflag no longer exists
-  //   the logic up higher assures that binning has been done
-  //     before this build() method is called
-  //   maybe this code below needs to be in a new NeighBinShardlow class?
-  // this class also inherits NeighPair::nb from its parent
-  //   which points to the NeighBin class that did the binning
-  //   there are last_step variables stored there which indicate
-  //   the last time binning was done
-  // the basic question is what data is created/stored by SSA binning
-  //   and in what class should it live?
-  //   if it is created by the binning operation, then I think
-  //     it should be in a new NeighBinShardlow class
-
   ipage->reset();
 
   // loop over owned atoms, storing half of the neighbors

@@ -164,12 +164,13 @@ void PairDPD::compute(int eflag, int vflag)
 
 void PairDPD::allocate()
 {
+  int i,j;
   allocated = 1;
   int n = atom->ntypes;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++)
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
@@ -178,6 +179,9 @@ void PairDPD::allocate()
   memory->create(a0,n+1,n+1,"pair:a0");
   memory->create(gamma,n+1,n+1,"pair:gamma");
   memory->create(sigma,n+1,n+1,"pair:sigma");
+  for (i = 0; i <= atom->ntypes; i++)
+    for (j = 0; j <= atom->ntypes; j++)
+      sigma[i][j] = gamma[i][j] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

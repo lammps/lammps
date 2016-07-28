@@ -105,6 +105,7 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
   // print summary of settings
 
   if (comm->me == 0) {
+#if defined(_OPENMP)
     const char * const nmode = _neighbor ? "multi-threaded" : "serial";
 
     if (screen) {
@@ -118,6 +119,10 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
 	fprintf(logfile,"set %d OpenMP thread(s) per MPI task\n", nthreads);
       fprintf(logfile,"using %s neighbor list subroutines\n", nmode);
     }
+#else
+    error->warning(FLERR,"OpenMP support not enabled during compilation; "
+                         "using 1 thread only.");
+#endif
   }
 
   // allocate list for per thread accumulator manager class instances

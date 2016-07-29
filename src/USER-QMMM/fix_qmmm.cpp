@@ -410,8 +410,8 @@ void FixQMMM::exchange_positions()
   const double * const mass = atom->mass;
   const tagint * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
+  const int ntypes = atom->ntypes;
   const int natoms = (int) atom->natoms;
-  const int ntypes = (int) atom->ntypes;
 
   if (atom->natoms > MAXSMALLINT)
     error->all(FLERR,"Too many MM atoms for fix qmmmm");
@@ -444,7 +444,7 @@ void FixQMMM::exchange_positions()
       isend_buf[1] = num_qm;
       isend_buf[2] = num_mm;
       isend_buf[3] = ntypes;
-      MPI_Send(isend_buf, 4, MPI_INTEGER,1, QMMM_TAG_SIZE, qm_comm);
+      MPI_Send(isend_buf, 4, MPI_INT,    1, QMMM_TAG_SIZE, qm_comm);
       MPI_Send(celldata,  9, MPI_DOUBLE, 1, QMMM_TAG_CELL, qm_comm);
     }
     if (verbose > 0) {

@@ -124,6 +124,7 @@ ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 {
   memory->destroy(qnarray);
   memory->destroy(distsq);
+  memory->destroy(rlist);
   memory->destroy(nearest);
   memory->destroy(qlist);
   memory->destroy(qnm_r);

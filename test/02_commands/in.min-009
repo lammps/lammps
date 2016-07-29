@@ -9,6 +9,8 @@ create_box	1 box
 create_atoms	1 box
 mass		1 1.0
 
+change_box      all triclinic
+
 velocity	all create 3.0 87287
 
 pair_style	lj/cut 2.5
@@ -17,10 +19,10 @@ pair_coeff	1 1 1.0 1.0 2.5
 neighbor	0.3 bin
 
 displace_atoms	all random 0.1 0.1 0.1 12314
-min_style	sd
-fix		1 all box/relax aniso 0.0
+min_style	cg
+fix		1 all box/relax tri 0.0 fixedpoint 5.0 5.0 5.0
 thermo 		100
 minimize	0.0 0.0 100 1000
-min_style	cg
+min_style       sd
 minimize	0.0 0.0 100 1000
 

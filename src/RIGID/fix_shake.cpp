@@ -446,6 +446,15 @@ void FixShake::setup(int vflag)
   else
     respa = 1;
 
+  if (!respa) {
+    dtv     = update->dt;
+    dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
+    if (!rattle) dtfsq = update->dt * update->dt * force->ftm2v;
+  } else {
+    dtv = step_respa[0];
+    dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
+    dtf_inner = dtf_innerhalf;
+  }
 
   // correct geometry of cluster if necessary
 

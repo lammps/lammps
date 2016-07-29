@@ -76,7 +76,9 @@ Syntax
      *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
      *fixedpoint* values = x y z
        x,y,z = perform barostat dilation/contraction around this point (distance units)
-     *update* value = *dipole* update dipole orientation (only for sphere variants)
+     *update* value = *dipole* or *dipole/dlm*
+       dipole = update dipole orientation (only for sphere variants) 
+       dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants)
 
 
 
@@ -376,6 +378,13 @@ during the time integration.  This option should be used for models
 where a dipole moment is assigned to finite-size particles,
 e.g. spheroids via use of the :doc:`atom_style hybrid sphere dipole <atom_style>` command.
 
+The default dipole orientation integrator can be changed to the
+Dullweber-Leimkuhler-McLachlan integration scheme
+:ref:`(Dullweber) <nh-Dullweber>` when using *update* with the value
+*dipole/dlm*\ . This integrator is symplectic and time-reversible,
+giving better energy conservation and allows slightly longer timesteps
+at only a small additional computational cost.
+
 
 ----------
 
@@ -479,7 +488,7 @@ thermal degrees of freedom, and the bias is added back in.
 ----------
 
 
-These fixes can be used with either the *verlet* or *respa* 
+These fixes can be used with either the *verlet* or *respa*
 :doc:`integrators <run_style>`. When using one of the barostat fixes
 with *respa*\ , LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
@@ -505,7 +514,7 @@ of the underlying non-Hamiltonian equations of motion.
    up to machine precision under NVT dynamics. Under NPT dynamics,
    for a system with zero initial total linear momentum, the total
    momentum fluctuates close to zero. It may occasionally undergo brief
-   excursions to non-negligible values, before returning close to zero. 
+   excursions to non-negligible values, before returning close to zero.
    Over long simulations, this has the effect of causing the center-of-mass
    to undergo a slow random walk. This can be mitigated by resetting
    the momentum at infrequent intervals using the
@@ -517,7 +526,7 @@ of the underlying non-Hamiltonian equations of motion.
    up to machine precision under NVT dynamics. Under NPT dynamics,
    for a system with zero initial total linear momentum, the total
    momentum fluctuates close to zero. It may occasionally undergo brief
-   excursions to non-negligible values, before returning close to zero. 
+   excursions to non-negligible values, before returning close to zero.
    Over long simulations, this has the effect of causing the center-of-mass
    to undergo a slow random walk. This can be mitigated by resetting
    the momentum at infrequent intervals using the
@@ -685,7 +694,7 @@ Default
 
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and 
+scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
 not coupled to barostat, otherwise no.
 
 
@@ -716,6 +725,13 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 
 **(Shinoda)** Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).
+
+.. _nh-Dullweber:
+
+
+
+**(Dullweber)** Dullweber, Leimkuhler and McLachlan, J Chem Phys, 107,
+5840 (1997).
 
 
 .. _lws: http://lammps.sandia.gov

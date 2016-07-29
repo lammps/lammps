@@ -43,27 +43,18 @@ enum{SINGLE,MULTI};
 
 CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 {
-  sendlist = NULL;  // need to free this since parent allocated?
+  if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
+  memory->sfree(sendlist);
+  sendlist = NULL;
   k_sendlist = ArrayTypes<LMPDeviceType>::tdual_int_2d();
 
   // error check for disallow of OpenMP threads?
 
   // initialize comm buffers & exchange memory
 
-  // maxsend = BUFMIN;
-  // k_buf_send = ArrayTypes<LMPDeviceType>::
-  //   tdual_xfloat_2d("comm:k_buf_send",(maxsend+BUFEXTRA+5)/6,6);
-  // buf_send = k_buf_send.view<LMPHostType>().ptr_on_device();
-
-  maxsend = 0;
+  memory->destroy(buf_send);
   buf_send = NULL;
-
-  // maxrecv = BUFMIN;
-  // k_buf_recv = ArrayTypes<LMPDeviceType>::
-  //   tdual_xfloat_2d("comm:k_buf_recv",(maxrecv+5)/6,6);
-  // buf_recv = k_buf_recv.view<LMPHostType>().ptr_on_device();
-
-  maxrecv = 0;
+  memory->destroy(buf_recv);
   buf_recv = NULL;
 
   k_exchange_sendlist = ArrayTypes<LMPDeviceType>::
@@ -73,8 +64,8 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   k_count = ArrayTypes<LMPDeviceType>::tdual_int_1d("comm:k_count",1);
   k_sendflag = ArrayTypes<LMPDeviceType>::tdual_int_1d("comm:k_sendflag",100);
 
-  // next line is bogus?
-
+  memory->destroy(maxsendlist);
+  maxsendlist = NULL;
   memory->create(maxsendlist,maxswap,"comm:maxsendlist");
   for (int i = 0; i < maxswap; i++) {
     maxsendlist[i] = BUFMIN;
@@ -87,14 +78,20 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
 CommKokkos::~CommKokkos()
 {
   memory->destroy_kokkos(k_sendlist,sendlist);
+  sendlist = NULL;
   memory->destroy_kokkos(k_buf_send,buf_send);
+  buf_send = NULL;
   memory->destroy_kokkos(k_buf_recv,buf_recv);
+  buf_recv = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void CommKokkos::init()
 {
+  grow_send_kokkos(maxsend+bufextra,0,Host);
+  grow_recv_kokkos(maxrecv,Host);
+
   atomKK = (AtomKokkos *) atom;
   exchange_comm_classic = lmp->kokkos->exchange_comm_classic;
   forward_comm_classic = lmp->kokkos->forward_comm_classic;

@@ -264,7 +264,8 @@ void Info::command(int narg, char **arg)
     }
     fprintf(out,"Nprocs = %d,   Nthreads = %d\n",
             comm->nprocs, comm->nthreads);
-    fprintf(out,"Processor grid = %d x %d x %d\n",comm->procgrid[0],
+    if (domain->box_exist)
+      fprintf(out,"Processor grid = %d x %d x %d\n",comm->procgrid[0],
             comm->procgrid[1], comm->procgrid[2]);
   }
 

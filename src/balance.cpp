@@ -357,7 +357,7 @@ void Balance::command(int narg, char **arg)
     error->all(FLERR,str);
   }
 
-  // imbfinal = final imbalance based on final nlocal
+  // imbfinal = final imbalance based on final (weighted) nlocal
 
   int maxfinal;
   double imbfinal = imbalance_nlocal(maxfinal);
@@ -430,7 +430,7 @@ double Balance::getcost(int i)
 }
 
 /* ----------------------------------------------------------------------
-   calculate imbalance based on nlocal
+   calculate imbalance based on (weighted) nlocal
    return max = max atom per proc
    return imbalance factor = max atom per proc / ave atom per proc
 ------------------------------------------------------------------------- */

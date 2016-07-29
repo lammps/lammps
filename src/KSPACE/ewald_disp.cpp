@@ -141,6 +141,7 @@ void EwaldDisp::init()
   init_coeffs();
   init_coeff_sums();
   if (function[0]) qsum_qsq();
+  natoms_original = atom->natoms;
 
   // turn off coulombic if no charge
 
@@ -680,7 +681,7 @@ void EwaldDisp::compute(int eflag, int vflag)
   // update qsum and qsqsum, if atom count has changed and energy needed
 
   if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
-    qsum_qsq();
+    if (function[0]) qsum_qsq();
     natoms_original = atom->natoms;
   }
 

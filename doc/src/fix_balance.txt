@@ -44,6 +44,11 @@ rebalancing is performed periodically during the simulation.  To
 perform "static" balancing, before or between runs, see the
 "balance"_balance.html command.
 
+NOTE: If a particle is part of a "group"_group.html where a non-unity
+{load_factor} is set, those particles are weighted when the load
+balancer counts particles in each sub-domain.  Thus a particle with a
+weight of 10 counts as much as 10 normal particles.
+
 Load-balancing is typically only useful if the particles in the
 simulation box have a spatially-varying density distribution.  E.g. a
 model of a vapor/liquid interface, or a solid with an irregular-shaped
@@ -340,6 +345,6 @@ style.
 
 [Related commands:]
 
-"processors"_processors.html, "balance"_balance.html
+"group"_group.html, "processors"_processors.html, "balance"_balance.html
 
 [Default:] none

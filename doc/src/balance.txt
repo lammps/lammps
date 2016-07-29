@@ -58,6 +58,11 @@ subsequent run.  To perform "dynamic" balancing, see the "fix
 balance"_fix_balance.html command, which can adjust processor
 sub-domain sizes and shapes on-the-fly during a "run"_run.html.
 
+NOTE: If a particle is part of a "group"_group.html where a non-unity
+{load_factor} is set, those particles are weighted when the load
+balancer counts particles in each sub-domain.  Thus a particle with a
+weight of 10 counts as much as 10 normal particles.
+
 Load-balancing is typically only useful if the particles in the
 simulation box have a spatially-varying density distribution.  E.g. a
 model of a vapor/liquid interface, or a solid with an irregular-shaped
@@ -341,6 +346,7 @@ appear in {dimstr} for the {shift} style.
 
 [Related commands:]
 
-"processors"_processors.html, "fix balance"_fix_balance.html
+"group"_group.html, "processors"_processors.html,
+"fix balance"_fix_balance.html
 
 [Default:] none

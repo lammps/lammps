@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 void WriteCoeff::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"write_coeff command before simulation box is defined");
+    error->all(FLERR,"Write_coeff command before simulation box is defined");
 
   if (narg != 1) error->all(FLERR,"Illegal write_coeff command");
 
@@ -70,12 +70,14 @@ void WriteCoeff::command(int narg, char **arg)
       fprintf(one,"end\n");
     }
     if (force->dihedral && force->dihedral->writedata) {
-      fprintf(one,"# dihedral_style %s\ndihedral_coeff\n",force->dihedral_style);
+      fprintf(one,"# dihedral_style %s\ndihedral_coeff\n",
+              force->dihedral_style);
       force->dihedral->write_data(one);
       fprintf(one,"end\n");
     }
     if (force->improper && force->improper->writedata) {
-      fprintf(one,"# improper_style %s\nimproper_coeff\n",force->improper_style);
+      fprintf(one,"# improper_style %s\nimproper_coeff\n",
+              force->improper_style);
       force->improper->write_data(one);
       fprintf(one,"end\n");
     }

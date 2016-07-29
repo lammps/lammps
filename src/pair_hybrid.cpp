@@ -684,9 +684,10 @@ void PairHybrid::modify_requests()
   }
 
   // adjustments to newly added granular parent requests (gran = 1)
-  // parent newton = 2 if has children with granonesided = 0 and 1
+  // set parent newton = 2 if has children with granonesided = 0 and 1
   //   else newton = 0 = setting of children
-  // parent gran onesided = 0 if has children with granonesided = 0 and 1
+  //   if 2, also set child off2on for both granonesided kinds of children
+  // set parent gran onesided = 0 if has children with granonesided = 0 and 1
   //   else onesided = setting of children
 
   for (i = nrequest_original; i < neighbor->nrequest; i++) {
@@ -698,6 +699,7 @@ void PairHybrid::modify_requests()
     for (j = 0; j < nrequest_original; j++) {
       if (!neighbor->requests[j]->pair) continue;
       if (!neighbor->requests[j]->gran) continue;
+      if (neighbor->requests[j]->otherlist != i) continue;
       jrq = neighbor->requests[j];
       
       if (onesided < 0) onesided = jrq->granonesided;
@@ -708,6 +710,14 @@ void PairHybrid::modify_requests()
     if (onesided == 2) {
       irq->newton = 2;
       irq->granonesided = 0;
+
+      for (j = 0; j < nrequest_original; j++) {
+        if (!neighbor->requests[j]->pair) continue;
+        if (!neighbor->requests[j]->gran) continue;
+        if (neighbor->requests[j]->otherlist != i) continue;
+        jrq = neighbor->requests[j];
+        jrq->off2on = 1;
+      }
     }
   }
 }

@@ -770,6 +770,7 @@ void PairLubricateUPoly::compute_RU(double **x)
           beta[0][4] = beta[0][3]*beta[0][1];
           beta[1][2] = beta[1][1]*beta[1][1];
           beta[1][3] = beta[1][2]*beta[1][1];
+          double log_h_sep = log(1.0/h_sep);
           double log_h_sep_beta13 = log(1.0/h_sep)/beta[1][3];
           double h_sep_beta11 = h_sep/beta[1][1];
 
@@ -782,9 +783,14 @@ void PairLubricateUPoly::compute_RU(double **x)
                 +(64.0-180.0*(beta[0][1]+beta[0][3])+232.0*beta[0][2]
                   +64.0*beta[0][4])*h_sep_beta11/375.0)*log_h_sep_beta13;
 
-          a_pu = pre[1]*((0.4*beta[0][1]+0.1*beta[0][2])*beta[1][1]
-                +(0.128-0.132*beta[0][1]+0.332*beta[0][2]
-                  +0.172*beta[0][3])*h_sep)*log_h_sep_beta13;
+          // old invalid eq for pumping term
+          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karilla
+//          a_pu = pre[1]*((0.4*beta[0][1]+0.1*beta[0][2])*beta[1][1]
+//                +(0.128-0.132*beta[0][1]+0.332*beta[0][2]
+//                  +0.172*beta[0][3])*h_sep)*log_h_sep_beta13;
+          a_pu = pre[1]*(0.4*beta[0][1]*beta[1][1]
+                +(0.128+0.096*beta[0][1]+0.528*beta[0][2])*beta[1][2]*h_sep)
+                  *log_h_sep;
 
           /*//a_sq = 6*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1/h_sep));
           a_sq = beta0*beta0/beta1/beta1/h_sep

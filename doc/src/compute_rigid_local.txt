@@ -36,7 +36,7 @@ input = one or more rigid body attributes :l
       angmomx,angmomy,angmomz = angular momentum of body
       quatw,quati,quatj,quatk = quaternion components for body
       tqx,tqy,tqz = torque on body
-      inertiax,inertiay,inertiaz = diagonalized moments of inertia of body :per
+      inertiax,inertiay,inertiaz = diagonalized moments of inertia of body :pre
 :ule
 
 [Examples:]

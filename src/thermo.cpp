@@ -573,7 +573,7 @@ void Thermo::allocate()
   int n = nfield_initial + 1;
 
   keyword = new char*[n];
-  for (int i = 0; i < n; i++) keyword[i] = NULL;
+  for (int i = 0; i < n; i++) keyword[i] = new char[32];
   vfunc = new FnPtr[n];
   vtype = new int[n];
 
@@ -821,6 +821,7 @@ void Thermo::parse_fields(char *str)
 
     // compute value = c_ID, fix value = f_ID, variable value = v_ID
     // count trailing [] and store int arguments
+    // copy = at most 8 chars of ID to pass to addfield
 
     } else if ((strncmp(word,"c_",2) == 0) || (strncmp(word,"f_",2) == 0) ||
                (strncmp(word,"v_",2) == 0)) {
@@ -828,6 +829,9 @@ void Thermo::parse_fields(char *str)
       int n = strlen(word);
       char *id = new char[n];
       strcpy(id,&word[2]);
+      char copy[9];
+      strncpy(copy,id,8);
+      copy[8] = '\0';
 
       // parse zero or one or two trailing brackets from ID
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
@@ -874,7 +878,7 @@ void Thermo::parse_fields(char *str)
           field2index[nfield] = add_compute(id,VECTOR);
         else
           field2index[nfield] = add_compute(id,ARRAY);
-        addfield(word,&Thermo::compute_compute,FLOAT);
+        addfield(copy,&Thermo::compute_compute,FLOAT);
 
       } else if (word[0] == 'f') {
         n = modify->find_fix(id);
@@ -899,7 +903,7 @@ void Thermo::parse_fields(char *str)
         }
 
         field2index[nfield] = add_fix(id);
-        addfield(word,&Thermo::compute_fix,FLOAT);
+        addfield(copy,&Thermo::compute_fix,FLOAT);
 
       } else if (word[0] == 'v') {
         n = input->variable->find(id);
@@ -915,7 +919,7 @@ void Thermo::parse_fields(char *str)
           error->all(FLERR,"Thermo custom variable cannot have two indices");
 
         field2index[nfield] = add_variable(id);
-        addfield(word,&Thermo::compute_variable,FLOAT);
+        addfield(copy,&Thermo::compute_variable,FLOAT);
       }
 
       delete [] id;
@@ -932,8 +936,6 @@ void Thermo::parse_fields(char *str)
 
 void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 {
-  int n = strlen(key) + 1;
-  keyword[nfield] = new char[n];
   strcpy(keyword[nfield],key);
   vfunc[nfield] = func;
   vtype[nfield] = typeflag;

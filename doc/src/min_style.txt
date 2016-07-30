@@ -69,7 +69,7 @@ defined via the "timestep"_timestep.html command.  Often they will
 converge more quickly if you use a timestep about 10x larger than you
 would normally use for dynamics simulations.
 
-NOTE: The {quickmin}, {fire} and {hftn} styles do not yet support the
+NOTE: The {quickmin}, {fire}, and {hftn} styles do not yet support the
 use of the "fix box/relax"_fix_box_relax.html command or minimizations
 involving the electron radius in "eFF"_pair_eff.html models.
 

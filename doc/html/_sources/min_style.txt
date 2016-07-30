@@ -76,8 +76,8 @@ nudged elastic band (NEB) calculations via the :doc:`neb <neb>` command.
 
 .. note::
 
-   The *quickmin* and *fire* styles do not yet support the use of
-   the :doc:`fix box/relax <fix_box_relax>` command or minimizations
+   The *quickmin*\ , *fire*\ , and *hftn* styles do not yet support the
+   use of the :doc:`fix box/relax <fix_box_relax>` command or minimizations
    involving the electron radius in :doc:`eFF <pair_eff>` models.
 
 Restrictions

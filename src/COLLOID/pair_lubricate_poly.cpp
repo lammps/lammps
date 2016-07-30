@@ -306,9 +306,15 @@ void PairLubricatePoly::compute(int eflag, int vflag)
                        16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) *
             h_sep*log(1.0/h_sep);
           a_sh *= 6.0*MY_PI*mu*radi;
-          a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
-          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
-                   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
+          // old invalid eq for pumping term
+          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karilla
+//          a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
+//          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
+//                   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
+//          a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
+          a_pu = 2.0*beta0/5.0/beta1*log(1.0/h_sep);
+          a_pu += 2.0*(8.0+6.0*beta0+33.0*beta0*beta0)/125.0/beta1/beta1*
+                   h_sep*log(1.0/h_sep);
           a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
         } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
 

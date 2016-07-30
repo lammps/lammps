@@ -153,7 +153,9 @@ void FixAveHistoWeight::end_of_step()
   // invoke compute if not previously invoked
 
   if (which[i] == COMPUTE) {
+
     Compute *compute = modify->compute[m];
+
     if (kind == GLOBAL && mode == SCALAR) {
       if (j == 0) {
         if (!(compute->invoked_flag & INVOKED_SCALAR)) {
@@ -219,11 +221,9 @@ void FixAveHistoWeight::end_of_step()
     if (kind == GLOBAL && mode == SCALAR) {
       if (j == 0) weight = fix->compute_scalar();
       else weight = fix->compute_vector(j-1);
-
     } else if (kind == GLOBAL && mode == VECTOR) {
-
-      error->all(FLERR,"Illegal fix ave/spatial command");
-
+      error->all(FLERR,"Fix ave/histo/weight option not yet supported");
+      // NOTE: need to allocate local storage
       if (j == 0) {
         int n = fix->size_vector;
         for (i = 0; i < n; i++) weights[n] = fix->compute_vector(i);
@@ -231,7 +231,6 @@ void FixAveHistoWeight::end_of_step()
         int n = fix->size_vector;
         for (i = 0; i < n; i++) weights[n] = fix->compute_array(i,j-1);
       }
-
     } else if (kind == PERATOM) {
       if (j == 0) {
         weights = fix->vector_atom;

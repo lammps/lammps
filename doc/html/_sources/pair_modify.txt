@@ -216,9 +216,6 @@ pair style be defined.
 ----------
 
 
-Use of *special* keyword
-^^^^^^^^^^^^^^^^^^^^^^^^
-
 The *special* keyword allows to override the 1-2, 1-3, and 1-4
 exclusion settings for individual sub-styles of a
 :doc:`hybrid pair style <pair_hybrid>`. It requires 4 arguments similar

@@ -405,10 +405,10 @@ void FixQMMM::exchange_positions()
 {
   double **x = atom->x;
   double *charge = atom->q;
-  const int * const mask = atom->mask;
-  const int * const type = atom->type;
-  const double * const mass = atom->mass;
-  const tagint * const tag  = atom->tag;
+  int * const mask = atom->mask;
+  int * const type = atom->type;
+  double * const mass = atom->mass;
+  tagint * const tag  = atom->tag;
   const int nlocal = atom->nlocal;
   const int ntypes = atom->ntypes;
   const int natoms = (int) atom->natoms;

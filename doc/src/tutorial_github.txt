@@ -6,19 +6,19 @@
 
 :line
 
-LAMMPS GitHub tutorial :h2
-written by Stefan Paquay :h3
+LAMMPS GitHub tutorial :h3
+[written by Stefan Paquay]
 
 :line
 
-This document briefly describes how to use GitHub to merge changes
-into LAMMPS using GitHub. It assumes that you are familiar with
+This document briefly describes how to use GitHub to merge changes you
+make into LAMMPS, using GitHub. It assumes that you are familiar with
 git. You may want to have a look at the "Git
 book"_http://git-scm.com/book/ to reacquaint yourself.
 
 :line
 
-Making an account :h2
+[Making an account]
 
 First of all, you need a GitHub account. This is fairly simple, just
 go to "GitHub"_https://github.com and create an account by clicking
@@ -28,7 +28,7 @@ username or e-mail address and password.
 
 :line
 
-Forking the repository :h2
+[Forking the repository]
 
 To get changes into LAMMPS, you need to first fork the repository. At
 the time of writing, LAMMPS-ICMS is the preferred fork. Go to "LAMMPS
@@ -49,12 +49,12 @@ can include changes from upstream into your repository.
 
 :line
 
-Adding changes to your own fork :h2
+[Adding changes to your own fork]
 
 Before adding changes, it is better to first create a new branch that
 will contain these changes, a so-called feature branch.
 
-Feature branches :h3
+[Feature branches]
 
 Since LAMMPS is such a big project and most user contributions come in
 small portions, the most ideal workflow for LAMMPS is the so-called
@@ -111,7 +111,7 @@ After the files are added, the change should be comitted:
 The "-m" switch is used to add a message to the commit. Use this to
 indicate what type of change was commited.
 
-Wisdom by Axel: :h4
+[Wisdom by Axel]
 
 {"Do not use "git commit -a".  the -a flag will automatically include
 *all* modified or new files.  mercurial does that and it find it
@@ -176,7 +176,7 @@ request.
 
 :line
 
-Additional changes :h2
+[Additional changes]
 
 Before the pull request is accepted, any additional changes you push
 into your repository will automatically become part of the pull
@@ -184,7 +184,7 @@ request.
 
 :line
 
-After a merge :h2
+[After a merge]
 
 When everything is fine the feature branch is merged into the LAMMPS
 repositories:

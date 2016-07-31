@@ -376,6 +376,7 @@ void EwaldDisp::reallocate()
   delete [] kflag;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::reallocate_atoms()
 {
@@ -393,6 +394,7 @@ void EwaldDisp::reallocate_atoms()
   nevec_max = nevec;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::allocate_peratom()
 {
@@ -402,6 +404,7 @@ void EwaldDisp::allocate_peratom()
       atom->nmax,EWALD_NFUNCS,"ewald/n:virial_self_peratom");
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::deallocate_peratom()                        // free memory
 {
@@ -416,6 +419,7 @@ void EwaldDisp::deallocate_peratom()                        // free memory
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::deallocate()                                // free memory
 {
@@ -427,6 +431,7 @@ void EwaldDisp::deallocate()                                // free memory
   delete [] cek_global;                cek_global = NULL;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::coefficients()
 {
@@ -473,6 +478,8 @@ void EwaldDisp::coefficients()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void EwaldDisp::init_coeffs()
 {
   int tmp;
@@ -505,6 +512,8 @@ void EwaldDisp::init_coeffs()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::init_coeff_sums()
 {
@@ -548,6 +557,7 @@ void EwaldDisp::init_coeff_sums()
   MPI_Allreduce(sum_local, sum, 2*EWALD_MAX_NSUMS, MPI_DOUBLE, MPI_SUM, world);
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::init_self()
 {
@@ -576,6 +586,7 @@ void EwaldDisp::init_self()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::init_self_peratom()
 {
@@ -650,7 +661,6 @@ void EwaldDisp::init_self_peratom()
     }
   }
 }
-
 
 /* ----------------------------------------------------------------------
    compute the EwaldDisp long-range force, energy, virial
@@ -767,6 +777,7 @@ void EwaldDisp::compute_ek()
   delete [] z;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_force()
 {
@@ -872,6 +883,7 @@ void EwaldDisp::compute_force()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_surface()
 {
@@ -909,6 +921,7 @@ void EwaldDisp::compute_surface()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_energy()
 {
@@ -956,6 +969,7 @@ void EwaldDisp::compute_energy()
   if (slabflag) compute_slabcorr();
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_energy_peratom()
 {
@@ -1048,6 +1062,7 @@ void EwaldDisp::compute_energy_peratom()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 #define swap(a, b) { register double t = a; a= b; b = t; }
 
@@ -1112,6 +1127,7 @@ void EwaldDisp::compute_virial()
     }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_virial_dipole()
 {
@@ -1206,6 +1222,8 @@ void EwaldDisp::compute_virial_dipole()
       virial[n] += sum[n];
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_virial_peratom()
 {

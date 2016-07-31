@@ -489,7 +489,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   maxatom = 0;
 
   if (ave == WINDOW) {
-    memory->create(stats_list,nwindow,4,"histo:stats_list");
+    memory->create(stats_list,nwindow,4,"ave/histo:stats_list");
     memory->create(bin_list,nwindow,nbins,"ave/histo:bin_list");
   }
 
@@ -1048,10 +1048,10 @@ void FixAveHisto::options(int narg, char **arg)
 
 void FixAveHisto::allocate_values(int n)
 {
-  memory->grow(which,n,"ave/time:which");
-  memory->grow(argindex,n,"ave/time:argindex");
-  memory->grow(value2index,n,"ave/time:value2index");
-  ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/time:ids");
+  memory->grow(which,n,"ave/hsito:which");
+  memory->grow(argindex,n,"ave/histo:argindex");
+  memory->grow(value2index,n,"ave/histo:value2index");
+  ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/histo:ids");
 }
 
 /* ----------------------------------------------------------------------

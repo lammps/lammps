@@ -228,7 +228,7 @@ see the doc page for individual styles to see which potentials support
 these options.  If N is non-zero, a table of length 2^N is
 pre-computed for forces and energies, which can shrink their
 computational cost by up to a factor of 2.  The table is indexed via a
-bit-mapping technique <a class="reference internal" href="pair_table_rx.html#wolff"><span class="std std-ref">(Wolff)</span></a> and a linear interpolation is
+bit-mapping technique <a class="reference internal" href="#wolff"><span class="std std-ref">(Wolff)</span></a> and a linear interpolation is
 performed between adjacent table values.  In our experiments with
 different table styles (lookup, linear, spline), this method typically
 gave the best performance in terms of speed and accuracy.</p>
@@ -316,8 +316,6 @@ a pair style will not work, because the
 <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command requires a Kspace-compatible
 pair style be defined.</p>
 <hr class="docutils" />
-<div class="section" id="use-of-special-keyword">
-<h3>Use of <em>special</em> keyword</h3>
 <p>The <em>special</em> keyword allows to override the 1-2, 1-3, and 1-4
 exclusion settings for individual sub-styles of a
 <a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid pair style</span></a>. It requires 4 arguments similar
@@ -341,7 +339,6 @@ generated if the requested setting is not compatible with the global
 setting. Substituting 1.0e-10 for 0.0 and 0.9999999999 for 1.0 is
 usually a sufficient workaround in this case without causing a
 significant error.</p>
-</div>
 </div>
 </div>
 <hr class="docutils" />

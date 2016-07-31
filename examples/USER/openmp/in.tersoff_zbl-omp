@@ -4,6 +4,7 @@
 #   mpirun -np 4 lmp_g++ -partition 4x1 -in in.prd
 
 units           metal
+package omp 0
 
 atom_style      atomic
 atom_modify     map array

@@ -3,6 +3,7 @@
 units		real
 dimension	3
 atom_style	angle
+package omp 0
 
 # enforce that in z-direction there is only one 
 # processor (could be two) for optimal performance

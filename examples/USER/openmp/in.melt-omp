@@ -2,6 +2,7 @@
 
 units		lj
 atom_style	atomic
+package omp 0
 
 lattice		fcc 0.8442
 region		box block 0 20 0 20 0 20

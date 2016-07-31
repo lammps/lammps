@@ -2,6 +2,7 @@
 
 units           real  
 neigh_modify    delay 5 every 1   
+package omp 0
 
 atom_style      full  
 bond_style      harmonic 

@@ -1,6 +1,6 @@
 # stick a buckyball into a nanotube
 
-package omp * force/neigh
+package omp 0
 
 units           metal
 dimension       3

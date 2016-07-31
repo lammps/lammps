@@ -3,6 +3,7 @@
 units	     lj
 atom_style   ellipsoid
 dimension    2
+package omp 0
 
 lattice	     sq 0.02
 region	     box block 0 20 0 20 -0.5 0.5

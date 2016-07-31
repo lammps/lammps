@@ -16,7 +16,7 @@ pair_coeff	* * 0.0 1.12246
 velocity	all zero linear
 
 timestep	0.02
-communicate single vel yes
+comm_modify    mode single vel yes
 
 # integration ensemble
 fix		1 all nve

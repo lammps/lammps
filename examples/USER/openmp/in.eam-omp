@@ -12,6 +12,7 @@ newton on
 
 units		metal
 atom_style	atomic
+package omp 0
 
 lattice		fcc 3.615
 region		box block 0 ${xx} 0 ${yy} 0 ${zz}

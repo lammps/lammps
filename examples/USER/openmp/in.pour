@@ -3,7 +3,7 @@
 atom_style	granular
 boundary	p p fm
 newton		off
-communicate	single vel yes
+comm_modify    mode	single vel yes
 
 region		reg block -10 10 -10 10 -0.5 16 units box
 create_box	1 reg

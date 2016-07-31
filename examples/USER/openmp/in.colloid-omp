@@ -3,6 +3,7 @@
 units		lj
 atom_style	atomic
 dimension	2
+package omp 0
 
 lattice		sq 0.01
 region		box block 0 30 0 30 -0.5 0.5
@@ -20,7 +21,7 @@ velocity	all create 1.44 87287 loop geom
 
 neighbor	1 multi
 neigh_modify	delay 0
-communicate	multi
+comm_modify    mode	multi
 
 # colloid potential
 

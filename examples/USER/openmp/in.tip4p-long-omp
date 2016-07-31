@@ -1,6 +1,7 @@
 # water
 
 atom_style     full
+package omp 0
 newton on on
 units   metal  
 dimension 3

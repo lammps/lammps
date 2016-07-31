@@ -3,6 +3,7 @@
 units           lj
 dimension       3
 atom_style      full
+package omp 0
 
 read_data       data.gauss-diel
 
@@ -85,7 +86,7 @@ group           sds subtract all cions
 velocity        all create 1. 87287 dist gaussian
 
 neighbor        1.5 multi
-communicate     multi
+comm_modify    mode     multi
 neigh_modify    exclude molecule sds
 neigh_modify    every 5 delay 0 check yes
 

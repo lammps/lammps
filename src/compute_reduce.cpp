@@ -72,16 +72,27 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
+  // expand args if any have wildcard character "*"
+
+  int expand = 0;
+  char **earg,**arghold;
+  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+
+  if (earg != &arg[iarg]) expand = 1;
+  arghold = arg;
+  arg = earg;
+
   // parse remaining values until one isn't recognized
 
-  which = new int[narg-4];
-  argindex = new int[narg-4];
-  flavor = new int[narg-4];
-  ids = new char*[narg-4];
-  value2index = new int[narg-4];
+  which = new int[nargnew];
+  argindex = new int[nargnew];
+  flavor = new int[nargnew];
+  ids = new char*[nargnew];
+  value2index = new int[nargnew];
   nvalues = 0;
 
-  while (iarg < narg) {
+  iarg = 0;
+  while (iarg < nargnew) {
     ids[nvalues] = NULL;
 
     if (strcmp(arg[iarg],"x") == 0) {
@@ -149,7 +160,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   replace = new int[nvalues];
   for (int i = 0; i < nvalues; i++) replace[i] = -1;
 
-  while (iarg < narg) {
+  while (iarg < nargnew) {
     if (strcmp(arg[iarg],"replace") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute reduce command");
       if (mode != MINN && mode != MAXX)
@@ -174,6 +185,14 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   if (!flag) {
     delete [] replace;
     replace = NULL;
+  }
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+
+  if (expand) {
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    memory->sfree(earg);
+    arg = arghold;
   }
 
   // setup and error check

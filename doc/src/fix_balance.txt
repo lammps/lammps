@@ -23,15 +23,20 @@ style = {shift} or {rcb} :l
     stopthresh = stop balancing when this imbalance threshhold is reached
   rcb args = none :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {out} :l
+keyword = {out} or {group} :l
   {out} value = filename
-    filename = write each processor's sub-domain to a file, at each re-balancing :pre
+    filename = write each processor's sub-domain to a file, at each re-balancing
+  {group} args = Ngroup groupID-1 weight-1 groupID-2 weight-2...
+    Ngroup = number of groups with assigned weights
+    groupID-1, groupID-2, ... = group names
+    weight-1, weight-2, ...   = corresponding weights :pre
 :ule
 
 [Examples:]
 
 fix 2 all balance 1000 1.05 shift x 10 1.05
 fix 2 all balance 100 0.9 shift xy 20 1.1 out tmp.balance
+fix 2 all balance 100 0.9 shift xy 20 1.1 group 3 substrate 3.0 solvent 1.0 solute 0.8 out tmp.balance
 fix 2 all balance 1000 1.1 rcb :pre
 
 [Description:]
@@ -44,19 +49,28 @@ rebalancing is performed periodically during the simulation.  To
 perform "static" balancing, before or between runs, see the
 "balance"_balance.html command.
 
-NOTE: If a particle is part of a "group"_group.html where a non-unity
-{load_factor} is set, those particles are weighted when the load
-balancer counts particles in each sub-domain.  Thus a particle with a
-weight of 10 counts as much as 10 normal particles.
+With the optional {group} keyword different weight factors can be
+assigned to particles according to which groups they belong to.
+The {group} keyword is followed by the number of groups with
+custom weights (default weight is 1.0) and pairs of group ID and
+the corresponding weight factor. The final weight for each atom
+is the product of all weight factors from the groups it belongs to.
+An atom with a total weight of 5 then be will be considered to
+have 5x the computational cost than an atom with the default weight
+of 1.0.
 
-Load-balancing is typically only useful if the particles in the
-simulation box have a spatially-varying density distribution.  E.g. a
-model of a vapor/liquid interface, or a solid with an irregular-shaped
-geometry containing void regions.  In this case, the LAMMPS default of
-dividing the simulation box volume into a regular-spaced grid of 3d
-bricks, with one equal-volume sub-domain per processor, may assign
-very different numbers of particles per processor.  This can lead to
-poor performance when the simulation is run in parallel.
+Load-balancing is typically most useful if the particles in the
+simulation box have a spatially-varying density distribution or
+where the computational cost varies signficantly between different
+atoms. E.g. a model of a vapor/liquid interface, or a solid with
+an irregular-shaped geometry containing void regions, or
+"hybrid pair style simulations"_pair_hybrid.html which combine
+pair styles with different computational cost.  In these cases, the
+LAMMPS default of dividing the simulation box volume into a
+regular-spaced grid of 3d bricks, with one equal-volume sub-domain
+per procesor, may assign numbers of particles per processor in a
+way that the computational effort varies significantly.  This can
+lead to poor performance when the simulation is run in parallel.
 
 Note that the "processors"_processors.html command allows some control
 over how the box volume is split across processors.  Specifically, for
@@ -143,12 +157,10 @@ from scratch.
 
 :line
 
-The {group-ID} is currently ignored.  In the future it may be used to
-determine what particles are considered for balancing.  Normally it
-would only makes sense to use the {all} group.  But in some cases it
-may be useful to balance on a subset of the particles, e.g. when
-modeling large nanoparticles in a background of small solvent
-particles.
+The {group-ID} is currently ignored. Load-balancing will always affect
+all atoms. However the different impact of different groups of atoms in
+a simulation can be considered through the {group} keyword and assigning
+different weight factors != 1.0 to atoms in these groups.
 
 The {Nfreq} setting determines how often a rebalance is performed.  If
 {Nfreq} > 0, then rebalancing will occur every {Nfreq} steps.  Each
@@ -229,7 +241,7 @@ than {Niter} and exit early.
 
 The {rcb} style invokes a "tiled" method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
-simulation domain.  The basic idea is as follows.
+simulation domain. The basic idea is as follows.
 
 The simulation domain is cut into 2 boxes by an axis-aligned cut in
 the longest dimension, leaving one new box on either side of the cut.
@@ -325,8 +337,8 @@ values in the vector are as follows:
 3 = imbalance factor right before the last rebalance was performed :ul
 
 As explained above, the imbalance factor is the ratio of the maximum
-number of particles on any processor to the average number of
-particles per processor.
+number of particles (or total weight) on any processor to the average
+number of particles (or total weight) per processor.
 
 These quantities can be accessed by various "output
 commands"_Section_howto.html#howto_15.  The scalar and vector values
@@ -340,8 +352,8 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-For 2d simulations, a "z" cannot appear in {dimstr} for the {shift}
-style.
+For 2d simulations, the {z} style cannot be used.  Nor can a "z"
+appear in {dimstr} for the {shift} style.
 
 [Related commands:]
 

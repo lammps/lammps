@@ -138,13 +138,13 @@ asterisk means all indices from 1 to n (inclusive).  A trailing
 asterisk means all indices from n to N (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).
 
-Using a wildcard is the same as if the individual elements of the
-vector or columns of the array had been listed one by one.  E.g. these
-2 fix ave/chunk commands are equivalent, since the "compute
+Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  E.g. these 2 fix ave/chunk commands are
+equivalent, since the "compute
 property/atom"_compute_property/atom.html command creates, in this
 case, a per-atom array with 3 columns:
 
-compute myAng all property/atom 50 angmomx angmomy angmomz
+compute myAng all property/atom angmomx angmomy angmomz
 fix 1 all ave/chunk 100 1 100 cc1 c_myAng\[*\] file tmp.angmom
 fix 2 all ave/chunk 100 1 100 cc1 c_myAng\[1\] c_myAng\[2\] c_myAng\[3\] file tmp.angmom :pre
 

@@ -249,11 +249,11 @@ with no numeric values means all indices from 1 to N.  A leading
 asterisk means all indices from 1 to n (inclusive).  A trailing
 asterisk means all indices from n to N (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).</p>
-<p>Using a wildcard is the same as if the individual elements of the
-vector or columns of the array had been listed one by one.  E.g. these
-2 fix ave/chunk commands are equivalent, since the <span class="xref doc">compute property/atom</span> command creates, in this
+<p>Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  E.g. these 2 fix ave/chunk commands are
+equivalent, since the <span class="xref doc">compute property/atom</span> command creates, in this
 case, a per-atom array with 3 columns:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myAng</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="mi">50</span> <span class="n">angmomx</span> <span class="n">angmomy</span> <span class="n">angmomz</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myAng</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">angmomx</span> <span class="n">angmomy</span> <span class="n">angmomz</span>
 <span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">cc1</span> <span class="n">c_myAng</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">angmom</span>
 <span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">cc1</span> <span class="n">c_myAng</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myAng</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myAng</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">angmom</span>
 </pre></div>

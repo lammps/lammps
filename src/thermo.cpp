@@ -129,7 +129,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     int nvalues = input->expand_args(narg-1,&arg[1],0,earg);
     if (earg != &arg[1]) expand = 1;
 
-    line = new char[256+narg*64];
+    line = new char[256+nvalues*64];
     line[0] = '\0';
     for (int iarg = 0; iarg < nvalues; iarg++) {
       strcat(line,earg[iarg]);

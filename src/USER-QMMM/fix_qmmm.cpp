@@ -40,10 +40,6 @@ enum {QMMM_TAG_OTHER=0, QMMM_TAG_SIZE=1, QMMM_TAG_COORD=2,
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-// prototypes for local helper functions
-
-static int match_element(double mass, int search_isotopes, double &delta);
-
 /****************************************************************************/
 
 /* re-usable integer hash table code with static linkage. */

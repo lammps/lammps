@@ -15,7 +15,7 @@ group ID style args :pre
 ID = user-defined name of the group :ulb,l
 style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
         {include} or {subtract} or {union} or {intersect} or \
-        {dynamic} or {static} :l
+        {dynamic} or {static} or {load_factor} :l
   {delete} = no args
   {clear} = no args
   {region} args = region-ID
@@ -42,7 +42,8 @@ style = {delete} or {region} or {type} or {id} or {molecule} or {variable} or \
       {region} value = region-ID
       {var} value = name of variable
       {every} value = N = update group every this many timesteps
-  {static} = no args :pre
+  {static} = no args
+  {load_factor} value = weighting to apply to particles in the group for load balancing :pre
 :ule
 
 [Examples:]
@@ -60,7 +61,8 @@ group boundary subtract all a2 a3
 group boundary union lower upper
 group boundary intersect upper flow
 group boundary delete
-group mine dynamic all region myRegion every 100 :pre
+group mine dynamic all region myRegion every 100
+group mine load_factor 2.0 :pre
 
 
 [Description:]
@@ -265,6 +267,12 @@ The {static} style removes the setting for a dynamic group, converting
 it to a static group (the default).  The atoms in the static group are
 those currently in the dynamic group.
 
+The {load_factor} style applies a weight to all atoms in the group. When
+load balancing is applied (by "balance"_balance.html or 
+"fix balance"_fix_balance.html) the count of atoms per processor is
+weighted by the produce of the load factors of the groups which each
+atom is a member of.
+
 :line
 
 [Restrictions:]
@@ -276,7 +284,8 @@ The parent group of a dynamic group cannot itself be a dynamic group.
 
 [Related commands:]
 
-"dump"_dump.html, "fix"_fix.html, "region"_region.html,
+"balance"_balance.html, "dump"_dump.html, "fix"_fix.html,
+"fix balance"_fix_balance.html, "region"_region.html,
 "velocity"_velocity.html
 
 [Default:]

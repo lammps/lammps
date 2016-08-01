@@ -27,6 +27,7 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 
@@ -52,6 +53,10 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
 
   fp = NULL;
   firststep = 1;
+
+  ngroup = 0;
+  group_id = NULL;
+  group_weight = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +83,9 @@ Balance::~Balance()
   }
 
   delete rcb;
+
+  delete [] group_id;
+  delete [] group_weight;
 
   if (fp) fclose(fp);
 }
@@ -201,6 +209,9 @@ void Balance::command(int narg, char **arg)
         if (fp == NULL) error->one(FLERR,"Cannot open balance output file");
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"group") == 0) {
+      group_setup(narg-iarg-1,arg+iarg+1);
+      iarg += 2*ngroup + 2;
     } else error->all(FLERR,"Illegal balance command");
   }
 
@@ -356,7 +367,7 @@ void Balance::command(int narg, char **arg)
     error->all(FLERR,str);
   }
 
-  // imbfinal = final imbalance based on final nlocal
+  // imbfinal = final imbalance based on final (weighted) nlocal
 
   int maxfinal;
   double imbfinal = imbalance_nlocal(maxfinal);
@@ -364,14 +375,26 @@ void Balance::command(int narg, char **arg)
   if (me == 0) {
     if (screen) {
       fprintf(screen,"  iteration count = %d\n",niter);
-      fprintf(screen,"  initial/final max atoms/proc = %d %d\n",
+      if (ngroup > 0) {
+        fprintf(screen,"  group weights:");
+        for (int i=0; i < ngroup; ++i)
+          fprintf(screen," %s=%g", group->names[group_id[i]],group_weight[i]);
+        fprintf(screen,"\n");
+      }
+      fprintf(screen,"  initial/final max load/proc = %d %d\n",
               maxinit,maxfinal);
       fprintf(screen,"  initial/final imbalance factor = %g %g\n",
               imbinit,imbfinal);
     }
     if (logfile) {
       fprintf(logfile,"  iteration count = %d\n",niter);
-      fprintf(logfile,"  initial/final max atoms/proc = %d %d\n",
+      if (ngroup > 0) {
+        fprintf(logfile,"  group weights:");
+        for (int i=0; i < ngroup; ++i)
+          fprintf(logfile," %s=%g", group->names[group_id[i]],group_weight[i]);
+        fprintf(logfile,"\n");
+      }
+      fprintf(logfile,"  initial/final max load/proc = %d %d\n",
               maxinit,maxfinal);
       fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
               imbinit,imbfinal);
@@ -412,17 +435,46 @@ void Balance::command(int narg, char **arg)
   }
 }
 
+ /* ----------------------------------------------------------------------
+    compute the computational load associated with an atom
+    i = atom index
+    return cost = product of group weights for this atom.
+------------------------------------------------------------------------- */
+
+double Balance::getcost(int i)
+{
+   double cost = 1.0;
+   for (int j = 0; j < ngroup; ++j) {
+     if (atom->mask[i] & group->bitmask[group_id[j]])
+       cost *= group_weight[j];
+   }
+   return cost;
+}
+
 /* ----------------------------------------------------------------------
-   calculate imbalance based on nlocal
+   calculate imbalance based on (weighted) nlocal
    return max = max atom per proc
    return imbalance factor = max atom per proc / ave atom per proc
 ------------------------------------------------------------------------- */
 
-double Balance::imbalance_nlocal(int &max)
+double Balance::imbalance_nlocal(int &maxcost)
 {
-  MPI_Allreduce(&atom->nlocal,&max,1,MPI_INT,MPI_MAX,world);
+  // Compute the cost function of local atoms
+
+  double cost = 0.0;
+  for (int i=0; i < atom->nlocal; ++i) {
+    cost += getcost(i);
+  }
+
   double imbalance = 1.0;
-  if (max) imbalance = max / (1.0 * atom->natoms / nprocs);
+  int intcost = (int)cost;
+  int sumcost;
+
+  MPI_Allreduce(&intcost,&maxcost,1,MPI_INT,MPI_MAX,world);
+  MPI_Allreduce(&intcost,&sumcost,1,MPI_INT,MPI_SUM,world);
+  
+  if (maxcost && sumcost > 0)
+    imbalance = maxcost / (static_cast<double>(sumcost)/nprocs);
   return imbalance;
 }
 
@@ -444,7 +496,8 @@ double Balance::imbalance_splits(int &max)
   int ny = comm->procgrid[1];
   int nz = comm->procgrid[2];
 
-  for (int i = 0; i < nprocs; i++) proccount[i] = 0;
+  double *proccost = new double[nprocs];
+  for (int i = 0; i < nprocs; i++) proccost[i] = 0.0;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -454,14 +507,25 @@ double Balance::imbalance_splits(int &max)
     ix = binary(x[i][0],nx,xsplit);
     iy = binary(x[i][1],ny,ysplit);
     iz = binary(x[i][2],nz,zsplit);
-    proccount[iz*nx*ny + iy*nx + ix]++;
+
+    proccost[iz*nx*ny + iy*nx + ix] += getcost(i);
   }
 
+  for (int i = 0; i < nprocs; i++)
+    proccount[i] = static_cast<int>(proccost[i]);
+
   MPI_Allreduce(proccount,allproccount,nprocs,MPI_INT,MPI_SUM,world);
+  bigint sum = 0;
   max = 0;
-  for (int i = 0; i < nprocs; i++) max = MAX(max,allproccount[i]);
+  for (int i = 0; i < nprocs; i++){
+    max = MAX(max,allproccount[i]);
+    sum += allproccount[i];
+  }
   double imbalance = 1.0;
-  if (max) imbalance = max / (1.0 * atom->natoms / nprocs);
+  if (max && sum > 0)
+    imbalance = max / (static_cast<double>(sum) / nprocs);
+
+  delete [] proccost;
   return imbalance;
 }
 
@@ -511,9 +575,16 @@ int *Balance::bisection(int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignements for my atoms
+  // Use specified weightings for each atom rather than atom count
+
+  double weights[nlocal];
+
+  for (int i = 0; i < nlocal; i++) {
+    weights[i] = getcost(i);
+  }
 
   //rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
-  rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+  rcb->compute(dim,atom->nlocal,atom->x,weights,shrinklo,shrinkhi);
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed
@@ -624,6 +695,28 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 }
 
 /* ----------------------------------------------------------------------
+   setup group based load balance operations
+   called from balance->command() and fix balance
+------------------------------------------------------------------------- */
+int Balance::group_setup(int narg, char **arg)
+{
+  if (narg < 3) error->all(FLERR,"Illegal balance command");
+
+  ngroup = force->inumeric(FLERR,arg[0]);
+  if (ngroup < 1) error->all(FLERR,"Illegal balance command");
+  if (2*ngroup+1 > narg) error->all(FLERR,"Illegal balance command");
+
+  group_id = new int[ngroup];
+  group_weight = new double[ngroup];
+  for (int i = 0; i < ngroup; ++i) {
+    group_id[i] = group->find(arg[2*i+1]);
+    if (group_id[i] < 0) error->all(FLERR,"Unknown group in balance command");
+    group_weight[i] = force->numeric(FLERR,arg[2*i+2]);
+  }
+  return ngroup;
+}
+
+/* ----------------------------------------------------------------------
    load balance by changing xyz split proc boundaries in Comm
    called one time from input script command or many times from fix balance
    return niter = iteration count
@@ -666,11 +759,19 @@ int Balance::shift()
     np = procgrid[bdim[idim]];
     tally(bdim[idim],np,split);
 
+    double cost = 0.0;
+    for (i=0; i < atom->nlocal; i++)
+      cost += getcost(i);
+
+    int intcost = (int)cost;
+    int totalcost;
+    MPI_Allreduce(&intcost,&totalcost,1,MPI_INT,MPI_SUM,world);
+
     // target[i] = desired sum at split I
 
     for (i = 0; i < np; i++)
-      target[i] = static_cast<int> (1.0*natoms/np * i + 0.5);
-    target[np] = natoms;
+      target[i] = static_cast<int> (1.0*totalcost/np * i + 0.5);
+    target[np] = totalcost;
 
     // lo[i] = closest split <= split[i] with a sum <= target
     // hi[i] = closest split >= split[i] with a sum >= target
@@ -678,7 +779,7 @@ int Balance::shift()
     lo[0] = hi[0] = 0.0;
     lo[np] = hi[np] = 1.0;
     losum[0] = hisum[0] = 0;
-    losum[np] = hisum[np] = natoms;
+    losum[np] = hisum[np] = totalcost;
 
     for (i = 1; i < np; i++) {
       for (j = i; j >= 0; j--)
@@ -798,22 +899,27 @@ int Balance::shift()
 
 void Balance::tally(int dim, int n, double *split)
 {
-  for (int i = 0; i < n; i++) onecount[i] = 0;
+  double *onecost = new double[n];
+  for (int i = 0; i < n; i++) onecost[i] = 0.0;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
   int index;
 
+
   for (int i = 0; i < nlocal; i++) {
     index = binary(x[i][dim],n,split);
-    onecount[index]++;
+    onecost[index] += getcost(i);
   }
 
+  for (int i = 0; i < n; i++) onecount[i] = static_cast<bigint>(onecost[i]);
   MPI_Allreduce(onecount,count,n,MPI_LMP_BIGINT,MPI_SUM,world);
 
   sum[0] = 0;
   for (int i = 1; i < n+1; i++)
     sum[i] = sum[i-1] + count[i-1];
+
+  delete [] onecost;
 }
 
 /* ----------------------------------------------------------------------

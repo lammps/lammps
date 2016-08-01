@@ -261,8 +261,6 @@ void Fix::v_setup(int vflag)
 
 void Fix::ev_tally(int n, int *list, double total, double eng, double *v)
 {
-  int m;
-
   if (eflag_atom) {
     double fraction = eng/total;
     for (int i = 0; i < n; i++)

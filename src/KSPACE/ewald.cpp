@@ -232,18 +232,27 @@ void Ewald::setup()
     kzmax = 1;
 
     err = rms(kxmax,xprd,natoms,q2);
+    if (!ISFINITE(err))
+      error->all(FLERR,"Non-numeric box dimensions - simulation unstable");
+
     while (err > accuracy) {
       kxmax++;
       err = rms(kxmax,xprd,natoms,q2);
     }
 
     err = rms(kymax,yprd,natoms,q2);
+    if (!ISFINITE(err))
+      error->all(FLERR,"Non-numeric box dimensions - simulation unstable");
+
     while (err > accuracy) {
       kymax++;
       err = rms(kymax,yprd,natoms,q2);
     }
 
     err = rms(kzmax,zprd_slab,natoms,q2);
+    if (!ISFINITE(err))
+      error->all(FLERR,"Non-numeric box dimensions - simulation unstable");
+
     while (err > accuracy) {
       kzmax++;
       err = rms(kzmax,zprd_slab,natoms,q2);

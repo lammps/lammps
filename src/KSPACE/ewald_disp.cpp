@@ -247,21 +247,33 @@ void EwaldDisp::setup()
   int kxmax = 1;
   int kymax = 1;
   int kzmax = 1;
+
   err = rms(kxmax,domain->h[0],natoms,q2,b2,M2);
+  if (!ISFINITE(err))
+    error->all(FLERR,"Non-numeric box dimensions - simulation unstable");
+
   while (err > accuracy) {
     kxmax++;
     err = rms(kxmax,domain->h[0],natoms,q2,b2,M2);
   }
+
   err = rms(kymax,domain->h[1],natoms,q2,b2,M2);
+  if (!ISFINITE(err))
+    error->all(FLERR,"Non-numeric box dimensions - simulation unstable");
   while (err > accuracy) {
     kymax++;
     err = rms(kymax,domain->h[1],natoms,q2,b2,M2);
   }
+
   err = rms(kzmax,domain->h[2]*slab_volfactor,natoms,q2,b2,M2);
+  if (!ISFINITE(err))
+    error->all(FLERR,"Non-numeric box dimensions - simulation unstable");
+
   while (err > accuracy) {
     kzmax++;
     err = rms(kzmax,domain->h[2]*slab_volfactor,natoms,q2,b2,M2);
   }
+
   nbox = MAX(kxmax,kymax);
   nbox = MAX(nbox,kzmax);
   double gsqxmx = unit[0]*unit[0]*kxmax*kxmax;

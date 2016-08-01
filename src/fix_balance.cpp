@@ -73,6 +73,10 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
+  // create instance of Balance class. required for processing group flags.
+
+  balance = new Balance(lmp);
+
   // optional args
 
   outflag = 0;
@@ -85,6 +89,9 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
       outflag = 1;
       outarg = iarg+1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"group") == 0) {
+      int ngroup = balance->group_setup(narg-iarg-1,arg+iarg+1);
+      iarg += 2 + 2*ngroup;
     } else error->all(FLERR,"Illegal fix balance command");
   }
 
@@ -106,10 +113,8 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   if (lbstyle == BISECTION && comm->style == 0)
     error->all(FLERR,"Fix balance rcb cannot be used with comm_style brick");
 
-  // create instance of Balance class
-  // if SHIFT, initialize it with params
+  // if SHIFT, initialize balance class with params
 
-  balance = new Balance(lmp);
   if (lbstyle == SHIFT) balance->shift_setup(bstr,nitermax,thresh);
 
   // create instance of Irregular class

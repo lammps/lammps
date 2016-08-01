@@ -32,6 +32,7 @@ class Balance : protected Pointers {
   Balance(class LAMMPS *);
   ~Balance();
   void command(int, char **);
+  int group_setup(int, char **);
   void shift_setup(char *, int, double);
   int shift();
   int *bisection(int sortflag = 0);
@@ -64,6 +65,10 @@ class Balance : protected Pointers {
 
   int *proccount;            // particle count per processor
   int *allproccount;
+
+  int    ngroup;             // number of groups weights
+  int    *group_id;          // group ids for weights
+  double *group_weight;      // weights of groups
 
   int outflag;               // for output of balance results to file
   FILE *fp;

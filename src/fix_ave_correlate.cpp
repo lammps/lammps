@@ -56,16 +56,26 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   global_freq = nfreq;
 
+  // expand args if any have wildcard character "*"
+
+  int expand = 0;
+  char **earg,**arghold;
+  int nargnew = input->expand_args(narg-6,&arg[6],0,earg);
+
+  if (earg != &arg[6]) expand = 1;
+  arghold = arg;
+  arg = earg;
+
   // parse values until one isn't recognized
 
-  which = new int[narg-6];
-  argindex = new int[narg-6];
-  ids = new char*[narg-6];
-  value2index = new int[narg-6];
+  which = new int[nargnew];
+  argindex = new int[nargnew];
+  ids = new char*[nargnew];
+  value2index = new int[nargnew];
   nvalues = 0;
 
-  int iarg = 6;
-  while (iarg < narg) {
+  int iarg = 0;
+  while (iarg < nargnew) {
     if (strncmp(arg[iarg],"c_",2) == 0 ||
         strncmp(arg[iarg],"f_",2) == 0 ||
         strncmp(arg[iarg],"v_",2) == 0) {
@@ -107,7 +117,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   char *title2 = NULL;
   char *title3 = NULL;
 
-  while (iarg < narg) {
+  while (iarg < nargnew) {
     if (strcmp(arg[iarg],"type") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       if (strcmp(arg[iarg+1],"auto") == 0) type = AUTO;
@@ -245,27 +255,27 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       fprintf(fp,"# Index TimeDelta Ncount");
       if (type == AUTO)
         for (int i = 0; i < nvalues; i++)
-          fprintf(fp," %s*%s",arg[6+i],arg[6+i]);
+          fprintf(fp," %s*%s",earg[i],earg[i]);
       else if (type == UPPER)
         for (int i = 0; i < nvalues; i++)
           for (int j = i+1; j < nvalues; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == LOWER)
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < i-1; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOUPPER)
         for (int i = 0; i < nvalues; i++)
           for (int j = i; j < nvalues; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOLOWER)
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < i; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == FULL)
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < nvalues; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       fprintf(fp,"\n");
     }
     if (ferror(fp))
@@ -277,6 +287,15 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   delete [] title1;
   delete [] title2;
   delete [] title3;
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+  // wait to do this until after file comment lines are printed
+
+  if (expand) {
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    memory->sfree(earg);
+    arg = arghold;
+  }
 
   // allocate and initialize memory for averaging
   // set count and corr to zero since they accumulate

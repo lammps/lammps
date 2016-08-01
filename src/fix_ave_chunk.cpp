@@ -57,15 +57,25 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nfreq;
   no_change_box = 1;
 
+  // expand args if any have wildcard character "*"
+
+  int expand = 0;
+  char **earg,**arghold;
+  int nargnew = input->expand_args(narg-7,&arg[7],1,earg);
+
+  if (earg != &arg[7]) expand = 1;
+  arghold = arg;
+  arg = earg;
+
   // parse values until one isn't recognized
 
-  int iarg = 7;
-  which = new int[narg-iarg];
-  argindex = new int[narg-iarg];
-  ids = new char*[narg-iarg];
-  value2index = new int[narg-iarg];
+  which = new int[nargnew];
+  argindex = new int[nargnew];
+  ids = new char*[nargnew];
+  value2index = new int[nargnew];
   nvalues = 0;
 
+  int iarg = 7;
   while (iarg < narg) {
     ids[nvalues] = NULL;
 
@@ -152,7 +162,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   char *title2 = NULL;
   char *title3 = NULL;
 
-  while (iarg < narg) {
+  while (iarg < nargnew) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       if (strcmp(arg[iarg+1],"all") == 0) {
@@ -349,7 +359,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         else if (ncoord == 3)
           fprintf(fp,"# Chunk OrigID Coord1 Coord2 Coord3 Ncount");
       }
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[7+i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",earg[i]);
       fprintf(fp,"\n");
     }
     if (ferror(fp))
@@ -361,6 +371,15 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   delete [] title1;
   delete [] title2;
   delete [] title3;
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+  // wait to do this until after file comment lines are printed
+
+  if (expand) {
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    memory->sfree(earg);
+    arg = arghold;
+  }
 
   // this fix produces a global array
   // size_array_rows is variable and set by allocate()

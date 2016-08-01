@@ -288,7 +288,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   delete [] title3;
 
   // if wildcard expansion occurred, free earg memory from expand_args()
-  // wait to do this after file comment lines are printed
+  // wait to do this until after file comment lines are printed
 
   if (expand) {
     for (int i = 0; i < nvalues; i++) delete [] earg[i];

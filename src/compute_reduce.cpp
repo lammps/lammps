@@ -82,7 +82,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   arghold = arg;
   arg = earg;
 
-  // parse remaining values until one isn't recognized
+  // parse values until one isn't recognized
 
   which = new int[nargnew];
   argindex = new int[nargnew];

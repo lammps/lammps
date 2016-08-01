@@ -19,10 +19,10 @@ Nrepeat = # of times to use input values for calculating averages :l
 Nfreq = calculate averages every this many timesteps :l
 one or more input values can be listed :l
 value = c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
-  c_ID = global scalar, vector, or array calculated by a compute with ID
-  c_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a compute with ID
-  f_ID = global scalar, vector, or array calculated by a fix with ID
-  f_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a fix with ID
+  c_ID = global scalar or vector calculated by a compute with ID
+  c_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a compute with ID, I can include wildcard (see below)
+  f_ID = global scalar or vector calculated by a fix with ID
+  f_ID\[I\] = Ith component of global vector or Ith column of global array calculated by a fix with ID, I can include wildcard (see below)
   v_name = value(s) calculated by an equal-style or vector-style variable with name
   v_name\[I\] = value calculated by a vector-style variable with name :pre
 
@@ -57,6 +57,7 @@ keyword = {mode} or {file} or {ave} or {start} or {off} or {overwrite} or {title
 fix 1 all ave/time 100 5 1000 c_myTemp c_thermo_temp file temp.profile
 fix 1 all ave/time 100 5 1000 c_thermo_press\[2\] ave window 20 &
                               title1 "My output values"
+fix 1 all ave/time 100 5 1000 c_thermo_press\[*\]
 fix 1 all ave/time 1 100 1000 f_indent f_indent\[1\] file temp.indent off 1 :pre
 
 [Description:]
@@ -92,22 +93,39 @@ individual fixes for info on which ones produce such values.
 ones that can be used with this fix.  Variables of style {atom} cannot
 be used, since they produce per-atom values.
 
-The input values must either be all scalars or all vectors (or
-arrays), depending on the setting of the {mode} keyword.  In both
-cases, the averaging is performed independently on each input value.
-I.e. each input scalar is averaged independently and each element of
-each input vector (or array) is averaged independently.
+The input values must either be all scalars or all vectors depending
+on the setting of the {mode} keyword.  In both cases, the averaging is
+performed independently on each input value.  I.e. each input scalar
+is averaged independently or each element of each input vector is
+averaged independently.
 
-If {mode} = vector, then the input values may either be vectors or
-arrays and all must be the same "length", which is the length of the
-vector or number of rows in the array.  If a global array is listed,
-then it is the same as if the individual columns of the array had been
-listed one by one.  E.g. these 2 fix ave/time commands are equivalent,
-since the "compute rdf"_compute_rdf.html command creates, in this
-case, a global array with 3 columns, each of length 50:
+If {mode} = scalar, then the input values must be scalars, or vectors
+with a bracketed term appended, indicating the Ith value of the vector
+is used.
+
+If {mode} = vector, then the input values must be vectors, or arrays
+with a bracketed term appended, indicating the Ith column of the array
+is used.  All vectors must be the same length, which is the length of
+the vector or number of rows in the array.
+
+Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "*" or "*n" or "n*" or
+"m*n".  If N = the size of the vector (for {mode} = scalar) or the
+number of columns in the array (for {mode} = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).
+
+Using a wildcard is the same as if the individual elements of the
+vector or columns of the array had been listed one by one.  E.g. these
+2 fix ave/time commands are equivalent, since the "compute
+rdf"_compute_rdf.html command creates, in this case, a global array
+with 3 columns, each of length 50:
 
 compute myRDF all rdf 50 1 2
-fix 1 all ave/time 100 1 100 c_myRDF file tmp1.rdf mode vector
+fix 1 all ave/time 100 1 100 c_myRDF\[*\] file tmp1.rdf mode vector
 fix 2 all ave/time 100 1 100 c_myRDF\[1\] c_myRDF\[2\] c_myRDF\[3\] file tmp2.rdf mode vector :pre
 
 :line
@@ -137,11 +155,10 @@ no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
 the global vector calculated by the compute is used.  If {mode} =
 vector, then if no bracketed term is appended, the global vector
-calculated by the compute is used.  Or if the compute calculates an
-array, all of the columns of the global array are used as if they had
-been specified as individual vectors (see description above).  If a
-bracketed term is appended, the Ith column of the global array
-calculated by the compute is used.
+calculated by the compute is used.  If a bracketed term is appended,
+the Ith column of the global array calculated by the compute is used.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.
 
 Note that there is a "compute reduce"_compute_reduce.html command
 which can sum per-atom quantities into a global scalar or vector which
@@ -159,10 +176,10 @@ no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
 global vector calculated by the fix is used.  If {mode} = vector, then
 if no bracketed term is appended, the global vector calculated by the
-fix is used.  Or if the fix calculates an array, all of the columns of
-the global array are used as if they had been specified as individual
-vectors (see description above).  If a bracketed term is appended, the
-Ith column of the global array calculated by the fix is used.
+fix is used.  If a bracketed term is appended, the Ith column of the
+global array calculated by the fix is used.  See the discussion above
+for how I can be specified with a wildcard asterisk to effectively
+specify multiple values.
 
 Note that some fixes only produce their values on certain timesteps,
 which must be compatible with {Nevery}, else an error will result.

@@ -74,12 +74,12 @@ Syntax
 .. parsed-literal::
 
      *local* args = list of local attributes
-       possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
+       possible attributes = index, c_ID, c_ID[I], f_ID, f_ID[I]
          index = enumeration of local values
          c_ID = local vector calculated by a compute with ID
-         c_ID[N] = Nth column of local array calculated by a compute with ID
+         c_ID[I] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
          f_ID = local vector calculated by a fix with ID
-         f_ID[N] = Nth column of local array calculated by a fix with ID
+         f_ID[I] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below)
 
 .. parsed-literal::
 
@@ -117,9 +117,9 @@ Syntax
          angmomx,angmomy,angmomz = angular momentum of aspherical particle
          tqx,tqy,tqz = torque on finite-size particles
          c_ID = per-atom vector calculated by a compute with ID
-         c_ID[N] = Nth column of per-atom array calculated by a compute with ID
+         c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
          f_ID = per-atom vector calculated by a fix with ID
-         f_ID[N] = Nth column of per-atom array calculated by a fix with ID
+         f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
          v_name = per-atom vector calculated by an atom-style variable with name
          d_name = per-atom floating point vector with name, managed by fix property/atom
          i_name = per-atom integer vector with name, managed by fix property/atom
@@ -138,6 +138,7 @@ Examples
    dump 2 subgroup atom 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
+   dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
    dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
    dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
    dump 1 all xtc 1000 file.xtc
@@ -467,6 +468,34 @@ styles.
 ----------
 
 
+Note that in the discussion which follows, for styles which can
+reference values from a compute or fix, like the *custom*\ , *cfg*\ , or
+*local* styles, the bracketed index I can be specified using a
+wildcard asterisk with the index to effectively specify multiple
+values.  This takes the form "*" or "*n" or "n*" or "m*n".  If N = the
+size of the vector (for *mode* = scalar) or the number of columns in
+the array (for *mode* = vector), then an asterisk with no numeric
+values means all indices from 1 to N.  A leading asterisk means all
+indices from 1 to n (inclusive).  A trailing asterisk means all
+indices from n to N (inclusive).  A middle asterisk means all indices
+from m to n (inclusive).
+
+Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  E.g. these 2 dump commands are
+equivalent, since the :doc:`compute stress/atom <compute_stress/atom>`
+command creates a per-atom array with 6 columns:
+
+.. parsed-literal::
+
+   compute myPress all stress/atom NULL
+   dump 2 all custom 100 tmp.dump id myPress[*]
+   dump 2 all custom 100 tmp.dump id myPress[1] myPress[2] myPress[3] &
+                                     myPress[4] myPress[5] myPress[6]
+
+
+----------
+
+
 This section explains the local attributes that can be specified as
 part of the *local* style.
 
@@ -479,7 +508,7 @@ between processor, there is no guarantee that the same index will be
 used for the same info (e.g. a particular bond) in successive
 snapshots.
 
-The *c_ID* and *c_ID[N]* attributes allow local vectors or arrays
+The *c_ID* and *c_ID[I]* attributes allow local vectors or arrays
 calculated by a :doc:`compute <compute>` to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
@@ -493,22 +522,26 @@ Instead, global quantities can be output by the :doc:`thermo_style custom <therm
 output by the dump custom command.
 
 If *c_ID* is used as a attribute, then the local vector calculated by
-the compute is printed.  If *c_ID[N]* is used, then N must be in the
-range from 1-M, which will print the Nth column of the M-length local
-array calculated by the compute.
+the compute is printed.  If *c_ID[I]* is used, then I must be in the
+range from 1-M, which will print the Ith column of the local array
+with M columns calculated by the compute.  See the discussion above
+for how I can be specified with a wildcard asterisk to effectively
+specify multiple values.
 
-The *f_ID* and *f_ID[N]* attributes allow local vectors or arrays
+The *f_ID* and *f_ID[I]* attributes allow local vectors or arrays
 calculated by a :doc:`fix <fix>` to be output.  The ID in the attribute
 should be replaced by the actual ID of the fix that has been defined
 previously in the input script.
 
 If *f_ID* is used as a attribute, then the local vector calculated by
-the fix is printed.  If *f_ID[N]* is used, then N must be in the
-range from 1-M, which will print the Nth column of the M-length local
-array calculated by the fix.
+the fix is printed.  If *f_ID[I]* is used, then I must be in the
+range from 1-M, which will print the Ith column of the local with M
+columns calculated by the fix.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.
 
-Here is an example of how to dump bond info for a system,
-including the distance and energy of each bond:
+Here is an example of how to dump bond info for a system, including
+the distance and energy of each bond:
 
 .. parsed-literal::
 
@@ -587,7 +620,7 @@ The *tqx*\ , *tqy*\ , *tqz* attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
 particles.
 
-The *c_ID* and *c_ID[N]* attributes allow per-atom vectors or arrays
+The *c_ID* and *c_ID[I]* attributes allow per-atom vectors or arrays
 calculated by a :doc:`compute <compute>` to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
@@ -602,11 +635,13 @@ command.  Instead, global quantities can be output by the
 can be output by the dump local command.
 
 If *c_ID* is used as a attribute, then the per-atom vector calculated
-by the compute is printed.  If *c_ID[N]* is used, then N must be in
-the range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the compute.
+by the compute is printed.  If *c_ID[I]* is used, then I must be in
+the range from 1-M, which will print the Ith column of the per-atom
+array with M columns calculated by the compute.  See the discussion
+above for how I can be specified with a wildcard asterisk to
+effectively specify multiple values.
 
-The *f_ID* and *f_ID[N]* attributes allow vector or array per-atom
+The *f_ID* and *f_ID[I]* attributes allow vector or array per-atom
 quantities calculated by a :doc:`fix <fix>` to be output.  The ID in the
 attribute should be replaced by the actual ID of the fix that has been
 defined previously in the input script.  The :doc:`fix ave/atom <fix_ave_atom>` command is one that calculates per-atom
@@ -616,9 +651,11 @@ any :doc:`compute <compute>`, :doc:`fix <fix>`, or atom-style
 be written to a dump file.
 
 If *f_ID* is used as a attribute, then the per-atom vector calculated
-by the fix is printed.  If *f_ID[N]* is used, then N must be in the
-range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the fix.
+by the fix is printed.  If *f_ID[I]* is used, then I must be in the
+range from 1-M, which will print the Ith column of the per-atom array
+with M columns calculated by the fix.  See the discussion above for
+how I can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
 The *v_name* attribute allows per-atom vectors calculated by a
 :doc:`variable <variable>` to be output.  The name in the attribute

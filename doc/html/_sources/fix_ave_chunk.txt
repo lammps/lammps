@@ -24,9 +24,9 @@ Syntax
      density/number, density/mass = number or mass density
      temp = temperature
      c_ID = per-atom vector calculated by a compute with ID
-     c_ID[I] = Ith column of per-atom array calculated by a compute with ID
+     c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
      f_ID = per-atom vector calculated by a fix with ID
-     f_ID[I] = Ith column of per-atom array calculated by a fix with ID
+     f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
      v_name = per-atom vector calculated by an atom-style variable with name
 
 * zero or more keyword/arg pairs may be appended
@@ -121,6 +121,9 @@ any attribute defined and stored by atoms.  If you wish to
 time-average global quantities from a compute, fix, or variable, then
 see the :doc:`fix ave/time <fix_ave_time>` command.
 
+The per-atom values of each input vector are summed and averaged
+independently of the per-atom values in other input vectors.
+
 :doc:`Computes <compute>` that produce per-atom quantities are those
 which have the word *atom* in their style name.  See the doc pages for
 individual :doc:`fixes <fix>` to determine which ones produce per-atom
@@ -128,8 +131,26 @@ quantities.  :doc:`Variables <variable>` of style *atom* are the only
 ones that can be used with this fix since all other styles of variable
 produce global quantities.
 
-The per-atom values of each input vector are summed and averaged
-independently of the per-atom values in other input vectors.
+Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "*" or "*n" or "n*" or
+"m*n".  If N = the size of the vector (for *mode* = scalar) or the
+number of columns in the array (for *mode* = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).
+
+Using a wildcard is the same as if the individual elements of the
+vector or columns of the array had been listed one by one.  E.g. these
+2 fix ave/chunk commands are equivalent, since the :doc:`compute property/atom <compute_property/atom>` command creates, in this
+case, a per-atom array with 3 columns:
+
+.. parsed-literal::
+
+   compute myAng all property/atom 50 angmomx angmomy angmomz
+   fix 1 all ave/chunk 100 1 100 cc1 c_myAng[*] file tmp.angmom
+   fix 2 all ave/chunk 100 1 100 cc1 c_myAng[1] c_myAng[2] c_myAng[3] file tmp.angmom
 
 .. note::
 
@@ -244,6 +265,8 @@ appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
 their own compute styles and :doc:`add them to LAMMPS <Section_modify>`.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.
 
 If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
@@ -252,7 +275,9 @@ bracketed integer is appended, the Ith column of the per-atom array
 calculated by the fix is used.  Note that some fixes only produce
 their values on certain timesteps, which must be compatible with
 *Nevery*\ , else an error results.  Users can also write code for their
-own fix styles and :doc:`add them to LAMMPS <Section_modify>`.
+own fix styles and :doc:`add them to LAMMPS <Section_modify>`.  See the
+discussion above for how I can be specified with a wildcard asterisk
+to effectively specify multiple values.
 
 If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  Variables of style

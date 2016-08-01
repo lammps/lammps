@@ -23,9 +23,9 @@ one or more inputs can be listed :l
 input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :l
   x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
   c_ID = per-atom or local vector calculated by a compute with ID
-  c_ID\[I\] = Ith column of per-atom or local array calculated by a compute with ID
+  c_ID\[I\] = Ith column of per-atom or local array calculated by a compute with ID, I can include wildcard (see below)
   f_ID = per-atom or local vector calculated by a fix with ID
-  f_ID\[I\] = Ith column of per-atom or local array calculated by a fix with ID
+  f_ID\[I\] = Ith column of per-atom or local array calculated by a fix with ID, I can include wildcard (see below)
   v_name = per-atom vector calculated by an atom-style variable with name :pre
 
 zero or more keyword/args pairs may be appended :l
@@ -40,6 +40,7 @@ keyword = {replace} :l
 compute 1 all reduce sum c_force
 compute 1 all reduce/region subbox sum c_force
 compute 2 all reduce min c_press\[2\] f_ave v_myKE
+compute 2 all reduce min c_press\[*\] f_ave v_myKE
 compute 3 fluid reduce max c_index\[1\] c_index\[2\] c_dist replace 1 3 replace 2 3 :pre
 
 [Description:]
@@ -80,6 +81,28 @@ component) or can be the result of a "compute"_compute.html or
 "fix"_fix.html or the evaluation of an atom-style
 "variable"_variable.html.
 
+Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "*" or "*n" or "n*" or
+"m*n".  If N = the size of the vector (for {mode} = scalar) or the
+number of columns in the array (for {mode} = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).
+
+Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  E.g. these 2 compute reduce commands are
+equivalent, since the "compute stress/atom"_compute_stress/atom.html
+command creates a per-atom array with 6 columns:
+
+compute myPress all stress/atom NULL
+compute 2 all reduce min myPress\[*\]
+compute 2 all reduce min myPress\[1\] myPress\[2\] myPress\[3\] &
+                         myPress\[4\] myPress\[5\] myPress\[6\] :pre
+
+:line
+
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
 self-explanatory.  Note that other atom attributes can be used as
 inputs to this fix by using the "compute
@@ -93,7 +116,9 @@ per-atom or local quantities.  See the individual
 is appended, the vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the array calculated
 by the compute is used.  Users can also write code for their own
-compute styles and "add them to LAMMPS"_Section_modify.html.
+compute styles and "add them to LAMMPS"_Section_modify.html.  See the
+discussion above for how I can be specified with a wildcard asterisk
+to effectively specify multiple values.
 
 If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  Fixes can generate per-atom
@@ -104,7 +129,9 @@ references the values, else an error results.  If no bracketed integer
 is appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
 is used.  Users can also write code for their own fix style and "add
-them to LAMMPS"_Section_modify.html.
+them to LAMMPS"_Section_modify.html.  See the discussion above for how
+I can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
 If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script.  It must be an

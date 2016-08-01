@@ -26,9 +26,9 @@ Syntax
 
      x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
      c_ID = scalar or vector calculated by a compute with ID
-     c_ID[I] = Ith component of vector or Ith column of array calculated by a compute with ID
+     c_ID[I] = Ith component of vector or Ith column of array calculated by a compute with ID, I can include wildcard (see below)
      f_ID = scalar or vector calculated by a fix with ID
-     f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID
+     f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID, I can include wildcard (see below)
      v_name = value(s) calculated by an equal-style or vector-style or atom-style variable with name
      v_name[I] = value calculated by a vector-style variable with name
 
@@ -68,15 +68,16 @@ Examples
 
    fix 1 all ave/histo 100 5 1000 0.5 1.5 50 c_myTemp file temp.histo ave running
    fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[2] c_thermo_press[3] title1 "My output values"
+   fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[*]
    fix 1 all ave/histo 1 100 1000 -2.0 2.0 18 vx vy vz mode vector ave running beyond extra 
    fix 1 all ave/histo/weight 1 1 1 10 100 2000 c_XRD[1] c_XRD[2]
 
 Description
 """""""""""
 
-Use one or more values as inputs every few timesteps, histogram them,
-and average the histogram over longer timescales.  The resulting
-histogram can be used by other :ref:`output commands <howto_15>`, and can also be written to a
+Use one or more values as inputs every few timesteps to create a
+single histogram.  The histogram can then be averaged over longer
+timescales.  The resulting histogram can be used by other :ref:`output commands <howto_15>`, and can also be written to a
 file.  The fix ave/histo/weight command has identical syntax to fix
 ave/histo, except that exactly two values must be specified.  See
 details below.
@@ -102,23 +103,41 @@ attributes are per-atom vector values.  See the doc page for
 individual "compute" and "fix" commands to see what kinds of
 quantities they generate.
 
-The input values must either be all scalars or all vectors (or
-arrays), depending on the setting of the *mode* keyword.
-
 Note that the output of this command is a single histogram for all
 input values combined together, not one histogram per input value.
 See below for details on the format of the output of this fix.
 
-If *mode* = vector, then the input values may either be vectors or
-arrays.  If a global array is listed, then it is the same as if the
-individual columns of the array had been listed one by one.
-E.g. these 2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array
-with 3 columns:
+The input values must either be all scalars or all vectors (or
+arrays), depending on the setting of the *mode* keyword.
+
+If *mode* = scalar, then the input values must be scalars, or vectors
+with a bracketed term appended, indicating the Ith value of the vector
+is used.
+
+If *mode* = vector, then the input values must be vectors, or arrays
+with a bracketed term appended, indicating the Ith column of the array
+is used.  All vectors must be the same length, which is the length of
+the vector or number of rows in the array.
+
+Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "*" or "*n" or "n*" or
+"m*n".  If N = the size of the vector (for *mode* = scalar) or the
+number of columns in the array (for *mode* = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).
+
+Using a wildcard is the same as if the individual elements of the
+vector or columns of the array had been listed one by one.  E.g. these
+2 fix ave/histo commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a global array with
+3 columns:
 
 .. parsed-literal::
 
    compute myCOM all com/chunk
-   fix 1 all ave/histo 100 1 100 c_myCOM file tmp1.com mode vector
+   fix 1 all ave/histo 100 1 100 c_myCOM[*] file tmp1.com mode vector
    fix 2 all ave/histo 100 1 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
 
 If the fix ave/histo/weight command is used, exactly two values must
@@ -166,11 +185,11 @@ no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
 the global vector calculated by the compute is used.  If *mode* =
 vector, then if no bracketed term is appended, the global or per-atom
-or local vector calculated by the compute is used.  Or if the compute
-calculates an array, all of the columns of the array are used as if
-they had been specified as individual vectors (see description above).
-If a bracketed term is appended, the Ith column of the global or
-per-atom or local array calculated by the compute is used.
+or local vector calculated by the compute is used.  If a bracketed
+term is appended, the Ith column of the global or per-atom or local
+array calculated by the compute is used.  See the discussion above for
+how I can be specified with a wildcard asterisk to effectively specify
+multiple values.
 
 Note that there is a :doc:`compute reduce <compute_reduce>` command
 which can sum per-atom quantities into a global scalar or vector which
@@ -185,11 +204,11 @@ no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
 global vector calculated by the fix is used.  If *mode* = vector, then
 if no bracketed term is appended, the global or per-atom or local
-vector calculated by the fix is used.  Or if the fix calculates an
-array, all of the columns of the array are used as if they had been
-specified as individual vectors (see description above).  If a
-bracketed term is appended, the Ith column of the global or per-atom
-or local array calculated by the fix is used.
+vector calculated by the fix is used.  If a bracketed term is
+appended, the Ith column of the global or per-atom or local array
+calculated by the fix is used.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.
 
 Note that some fixes only produce their values on certain timesteps,
 which must be compatible with *Nevery*\ , else an error will result.

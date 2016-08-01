@@ -74,6 +74,7 @@ class Balance : protected Pointers {
   void tally(int, int, double *);
   int adjust(int, double *);
   int binary(double, int, double *);
+  double getcost(int);
 #ifdef BALANCE_DEBUG
   void debug_shift_output(int, int, int, double *);
 #endif

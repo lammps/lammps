@@ -101,7 +101,7 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 DumpCFG::~DumpCFG()
 {
   if (auxname) {
-    for (int i = 0; i < nfield; i++) delete [] auxname[i];
+    for (int i = 0; i < nfield-5; i++) delete [] auxname[i];
     delete [] auxname;
   }
 }

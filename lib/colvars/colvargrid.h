@@ -125,6 +125,15 @@ public:
     return mult;
   }
 
+  /// \brief Request grid to use actual values of extended coords
+  inline void request_actual_value(bool b = true)
+  {
+    size_t i;
+    for (i = 0; i < actual_value.size(); i++) {
+      actual_value[i] = b;
+    }
+  }
+
   /// \brief Allocate data
   int setup(std::vector<int> const &nx_i,
             T const &t = T(),
@@ -282,6 +291,7 @@ public:
 
       // except if a colvar is specified twice in a row
       // then the first instance is the actual value
+      // For histograms of extended-system coordinates
       if (i > 0 && cv[i-1] == cv[i]) {
         actual_value[i-1] = true;
       }

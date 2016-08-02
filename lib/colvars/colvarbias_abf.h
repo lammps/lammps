@@ -49,13 +49,17 @@ private:
 
   // Internal data and methods
 
-  std::vector<int>  bin, force_bin;
+  std::vector<int>  bin, force_bin, z_bin;
   gradient_t	    force;
 
   /// n-dim grid of free energy gradients
   colvar_grid_gradient  *gradients;
   /// n-dim grid of number of samples
   colvar_grid_count     *samples;
+  /// n-dim grid: average force on "real" coordinate for eABF z-based estimator
+  colvar_grid_gradient  *z_gradients;
+  /// n-dim grid of number of samples on "real" coordinate for eABF z-based estimator
+  colvar_grid_count     *z_samples;
 
   // shared ABF
   bool     shared_on;

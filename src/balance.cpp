@@ -59,7 +59,6 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   group_id = NULL;
   group_weight = NULL;
 
-  last_clock = 0.0;
   clock_imbalance = NULL;
 }
 
@@ -219,7 +218,7 @@ void Balance::command(int narg, char **arg)
       double factor = force->numeric(FLERR,arg[iarg+1]);
       if (factor < 0.0 || factor > 1.0)
         error->all(FLERR,"Illegal balance command");
-      imbalance_clock(factor);
+      imbalance_clock(factor,0.0);
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
       group_setup(narg-iarg-1,arg+iarg+1);
@@ -464,29 +463,30 @@ double Balance::getcost(int i)
 }
 
 /* ----------------------------------------------------------------------
-   calculate imbalance based on timer for Pair+Neighbor
+   calculate imbalance based on timers for Pair+Bond+Kspace+Neighbor time.
 ------------------------------------------------------------------------- */
 
-void Balance::imbalance_clock(double factor)
+double Balance::imbalance_clock(double factor, double last_cost)
 {
 
   // Compute the cost function of based on relevant timers
   if (timer->has_normal()) {
-    double cost = -last_clock;
     if (!clock_imbalance) clock_imbalance = new double[nprocs+1];
-    double *clock_cost = new double[nprocs+1];
-    for (int i = 0; i <= nprocs; ++i) clock_cost[i] = 0.0;
+
+    double cost = -last_cost;
     cost += timer->get_wall(Timer::PAIR);
     cost += timer->get_wall(Timer::NEIGH);
     cost += timer->get_wall(Timer::BOND);
     cost += timer->get_wall(Timer::KSPACE);
 
+    double *clock_cost = new double[nprocs+1];
+    for (int i = 0; i <= nprocs; ++i) clock_cost[i] = 0.0;
     clock_cost[me] = cost;
     clock_cost[nprocs] = cost;
     MPI_Allreduce(clock_cost,clock_imbalance,nprocs+1,MPI_DOUBLE,MPI_SUM,world);
 
     const double avg_cost = clock_imbalance[nprocs]/nprocs;
-    if (cost > 0.0) {
+    if (avg_cost > 0.0) {
       for (int i = 0; i < nprocs; ++i)
         clock_imbalance[i] = (1.0-factor) + factor*clock_imbalance[i]/avg_cost;
     } else {
@@ -504,7 +504,9 @@ void Balance::imbalance_clock(double factor)
 #endif
 
     delete [] clock_cost;
+    return cost + last_cost;
   }
+  return last_cost;
 }
 
 /* ----------------------------------------------------------------------

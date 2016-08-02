@@ -33,9 +33,11 @@ style = {x} or {y} or {z} or {shift} or {rcb} :l
     stopthresh = stop balancing when this imbalance threshhold is reached
   {rcb} args = none :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {out} or {group} :l
+keyword = {out} or {clock} or {group} :l
   {out} value = filename
     filename = write each processor's sub-domain to a file
+  {clock} value = weight
+    weight = weight factor between 0 and 1 for including wall clock data
   {group} args = Ngroup groupID-1 weight-1 groupID-2 weight-2...
     Ngroup = number of groups with assigned weights
     groupID-1, groupID-2, ... = group names
@@ -49,6 +51,7 @@ balance 1.2 shift xz 5 1.1
 balance 1.0 shift xz 5 1.1
 balance 1.1 rcb
 balance 1.0 shift x 10 1.1 group 2 fast 0.5 slow 2.0
+balance 1.0 shift x 10 1.1 clock 0.8
 balance 1.0 shift x 20 1.0 out tmp.balance :pre
 
 [Description:]
@@ -73,6 +76,15 @@ is the product of all weight factors from the groups it belongs to.
 An atom with a total weight of 5 then be will be considered to
 have 5x the computational cost than an atom with the default weight
 of 1.0.
+
+With the optional {clock} keyword, "timer data"_timer.html is
+incorporated into the load balancing cost function. The required
+weight factor argument (a number between 0 and 1) determines to
+which degree timing information is included. The timer information
+is taken from the preceding run. If no such information is
+available, e.g. at the beginning of an input, of when the
+"timer"_timer.html level is set to either {loop} or {off},
+the clock keyword has no effect.
 
 Load-balancing is typically most useful if the particles in the
 simulation box have a spatially-varying density distribution or

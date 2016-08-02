@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "error.h"
 #include "group.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 
@@ -57,6 +58,9 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   ngroup = 0;
   group_id = NULL;
   group_weight = NULL;
+
+  last_clock = 0.0;
+  clock_imbalance = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,6 +90,7 @@ Balance::~Balance()
 
   delete [] group_id;
   delete [] group_weight;
+  delete [] clock_imbalance;
 
   if (fp) fclose(fp);
 }
@@ -209,6 +214,13 @@ void Balance::command(int narg, char **arg)
         if (fp == NULL) error->one(FLERR,"Cannot open balance output file");
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"clock") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
+      double factor = force->numeric(FLERR,arg[iarg+1]);
+      if (factor < 0.0 || factor > 1.0)
+        error->all(FLERR,"Illegal balance command");
+      imbalance_clock(factor);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
       group_setup(narg-iarg-1,arg+iarg+1);
       iarg += 2*ngroup + 2;
@@ -264,7 +276,7 @@ void Balance::command(int narg, char **arg)
   comm->exchange();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // imbinit = initial imbalance
+// imbinit = initial imbalance
 
   int maxinit;
   double imbinit = imbalance_nlocal(maxinit);
@@ -452,6 +464,49 @@ double Balance::getcost(int i)
 }
 
 /* ----------------------------------------------------------------------
+   calculate imbalance based on timer for Pair+Neighbor
+------------------------------------------------------------------------- */
+
+void Balance::imbalance_clock(double factor)
+{
+
+  // Compute the cost function of based on relevant timers
+  if (timer->has_normal()) {
+    double cost = -last_clock;
+    if (!clock_imbalance) clock_imbalance = new double[nprocs+1];
+    double *clock_cost = new double[nprocs+1];
+    for (int i = 0; i <= nprocs; ++i) clock_cost[i] = 0.0;
+    cost += timer->get_wall(Timer::PAIR);
+    cost += timer->get_wall(Timer::NEIGH);
+    if (force->kspace) cost += timer->get_wall(Timer::KSPACE);
+
+    clock_cost[me] = cost;
+    clock_cost[nprocs] = cost;
+    MPI_Allreduce(clock_cost,clock_imbalance,nprocs+1,MPI_DOUBLE,MPI_SUM,world);
+    
+    const double avg_cost = clock_imbalance[nprocs]/nprocs;
+    if (cost > 0.0) {
+      for (int i = 0; i < nprocs; ++i)
+        clock_imbalance[i] = (1.0-factor) + factor*clock_imbalance[i]/avg_cost;
+    } else {
+      for (int i = 0; i < nprocs; ++i)
+        clock_imbalance[i] = 1.0;
+    }
+
+#if 1 // BALANCE_DEBUG    
+    if (me == 0) {
+      printf("clock imbalance scaled using factor %g\n",factor);
+      for (int i = 0; i < nprocs; ++i)
+        printf(" % 2d: %4.2f",i,clock_imbalance[i]);
+      puts("");
+    }
+#endif
+
+    delete [] clock_cost;
+  }
+}
+
+/* ----------------------------------------------------------------------
    calculate imbalance based on (weighted) nlocal
    return max = max atom per proc
    return imbalance factor = max atom per proc / ave atom per proc
@@ -465,6 +520,7 @@ double Balance::imbalance_nlocal(int &maxcost)
   for (int i=0; i < atom->nlocal; ++i) {
     cost += getcost(i);
   }
+  if (clock_imbalance) cost *= clock_imbalance[me];
 
   double imbalance = 1.0;
   int intcost = (int)cost;
@@ -511,8 +567,12 @@ double Balance::imbalance_splits(int &max)
     proccost[iz*nx*ny + iy*nx + ix] += getcost(i);
   }
 
-  for (int i = 0; i < nprocs; i++)
-    proccount[i] = static_cast<int>(proccost[i]);
+  for (int i = 0; i < nprocs; i++) {
+    if (clock_imbalance)
+      proccount[i] = static_cast<int>(proccost[i]*clock_imbalance[i]);
+    else
+      proccount[i] = static_cast<int>(proccost[i]);
+  }
 
   MPI_Allreduce(proccount,allproccount,nprocs,MPI_INT,MPI_SUM,world);
   bigint sum = 0;
@@ -577,11 +637,12 @@ int *Balance::bisection(int sortflag)
   // then invert() to create list of proc assignements for my atoms
   // Use specified weightings for each atom rather than atom count
 
-  double weights[nlocal];
+  double factor = 1.0;
+  if (clock_imbalance) factor = clock_imbalance[me];
 
-  for (int i = 0; i < nlocal; i++) {
-    weights[i] = getcost(i);
-  }
+  double weights[nlocal];
+  for (int i = 0; i < nlocal; i++)
+    weights[i] = getcost(i)*factor;
 
   //rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
   rcb->compute(dim,atom->nlocal,atom->x,weights,shrinklo,shrinkhi);
@@ -763,6 +824,7 @@ int Balance::shift()
     for (i=0; i < atom->nlocal; i++)
       cost += getcost(i);
 
+    if (clock_imbalance) cost *= clock_imbalance[me];
     int intcost = (int)cost;
     int totalcost;
     MPI_Allreduce(&intcost,&totalcost,1,MPI_INT,MPI_SUM,world);
@@ -906,10 +968,12 @@ void Balance::tally(int dim, int n, double *split)
   int nlocal = atom->nlocal;
   int index;
 
+  double factor = 1.0;
+  if (clock_imbalance) factor = clock_imbalance[me];
 
   for (int i = 0; i < nlocal; i++) {
     index = binary(x[i][dim],n,split);
-    onecost[index] += getcost(i);
+    onecost[index] += getcost(i)*factor;
   }
 
   for (int i = 0; i < n; i++) onecount[i] = static_cast<bigint>(onecost[i]);

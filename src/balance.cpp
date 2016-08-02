@@ -276,7 +276,7 @@ void Balance::command(int narg, char **arg)
   comm->exchange();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-// imbinit = initial imbalance
+  // imbinit = initial imbalance
 
   int maxinit;
   double imbinit = imbalance_nlocal(maxinit);
@@ -496,10 +496,10 @@ void Balance::imbalance_clock(double factor)
 
 #if BALANCE_DEBUG
     if (me == 0) {
-      printf("clock imbalance scaled using factor %g\n",factor);
+      fprintf(stderr,"Clock imbalance using factor %g\n",factor);
       for (int i = 0; i < nprocs; ++i)
-        printf(" % 2d: %4.2f",i,clock_imbalance[i]);
-      puts("");
+        fprintf(stderr," % 2d: %4.2f",i,clock_imbalance[i]);
+      fputs("\n",stderr);
     }
 #endif
 
@@ -508,7 +508,7 @@ void Balance::imbalance_clock(double factor)
 }
 
 /* ----------------------------------------------------------------------
-   calculate imbalance based on (weighted) nlocal
+   calculate imbalance based on (weighted) local atom counts
    return max = max atom per proc
    return imbalance factor = max atom per proc / ave atom per proc
 ------------------------------------------------------------------------- */
@@ -645,7 +645,6 @@ int *Balance::bisection(int sortflag)
   for (int i = 0; i < nlocal; i++)
     weights[i] = getcost(i)*factor;
 
-  //rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
   rcb->compute(dim,atom->nlocal,atom->x,weights,shrinklo,shrinkhi);
   rcb->invert(sortflag);
   delete[] weights;

@@ -23,7 +23,7 @@ style = {shift} or {rcb} :l
     stopthresh = stop balancing when this imbalance threshhold is reached
   rcb args = none :pre
 zero or more keyword/value pairs may be appended :l
-keyword = {out} or {group} :l
+keyword = {out} or {clock} or {group} :l
   {out} value = filename
     filename = write each processor's sub-domain to a file, at each re-balancing
   {clock} value = weight

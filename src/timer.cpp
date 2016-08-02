@@ -98,6 +98,7 @@ Timer::Timer(LAMMPS *lmp) : Pointers(lmp)
   _timeout = -1.0;
   _checkfreq = 10;
   _nextcheck = -1;
+  this->_stamp(RESET);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -83,6 +83,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int outarg = 0;
   fp = NULL;
   last_clock = 0.0;
+  clock_factor = -1.0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
@@ -229,7 +230,8 @@ void FixBalance::pre_exchange()
 
   // return if imbalance < threshhold
 
-  last_clock = balance->imbalance_clock(clock_factor,last_clock);
+  if (clock_factor > 0.0)
+    last_clock = balance->imbalance_clock(clock_factor,last_clock);
   imbnow = balance->imbalance_nlocal(maxperproc);
   if (imbnow <= thresh) {
     if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;

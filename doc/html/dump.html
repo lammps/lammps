@@ -188,12 +188,12 @@
 </pre>
 <pre class="literal-block">
 <em>local</em> args = list of local attributes
-  possible attributes = index, c_ID, c_ID[N], f_ID, f_ID[N]
+  possible attributes = index, c_ID, c_ID[I], f_ID, f_ID[I]
     index = enumeration of local values
     c_ID = local vector calculated by a compute with ID
-    c_ID[N] = Nth column of local array calculated by a compute with ID
+    c_ID[I] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
     f_ID = local vector calculated by a fix with ID
-    f_ID[N] = Nth column of local array calculated by a fix with ID
+    f_ID[I] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below)
 </pre>
 <pre class="literal-block">
 <em>custom</em> or <em>custom/gz</em> or <em>custom/mpiio</em> args = list of atom attributes
@@ -229,9 +229,9 @@ omegax,omegay,omegaz = angular velocity of spherical particle
 angmomx,angmomy,angmomz = angular momentum of aspherical particle
 tqx,tqy,tqz = torque on finite-size particles
 c_ID = per-atom vector calculated by a compute with ID
-c_ID[N] = Nth column of per-atom array calculated by a compute with ID
+c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
 f_ID = per-atom vector calculated by a fix with ID
-f_ID[N] = Nth column of per-atom array calculated by a fix with ID
+f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
 v_name = per-atom vector calculated by an atom-style variable with name
 d_name = per-atom floating point vector with name, managed by fix property/atom
 i_name = per-atom integer vector with name, managed by fix property/atom
@@ -246,6 +246,7 @@ i_name = per-atom integer vector with name, managed by fix property/atom
 <span class="n">dump</span> <span class="mi">2</span> <span class="n">subgroup</span> <span class="n">atom</span> <span class="mi">50</span> <span class="n">dump</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">mpiio</span><span class="o">.</span><span class="n">bin</span>
 <span class="n">dump</span> <span class="mi">4</span><span class="n">a</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">myforce</span><span class="o">.*</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">x</span> <span class="n">y</span> <span class="n">vx</span> <span class="n">fx</span>
 <span class="n">dump</span> <span class="mi">4</span><span class="n">b</span> <span class="n">flow</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.%.</span><span class="n">myforce</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_myF</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">v_ke</span>
+<span class="n">dump</span> <span class="mi">4</span><span class="n">b</span> <span class="n">flow</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.%.</span><span class="n">myforce</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_myF</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">v_ke</span>
 <span class="n">dump</span> <span class="mi">2</span> <span class="n">inner</span> <span class="n">cfg</span> <span class="mi">10</span> <span class="n">dump</span><span class="o">.</span><span class="n">snap</span><span class="o">.*.</span><span class="n">cfg</span> <span class="n">mass</span> <span class="nb">type</span> <span class="n">xs</span> <span class="n">ys</span> <span class="n">zs</span> <span class="n">vx</span> <span class="n">vy</span> <span class="n">vz</span>
 <span class="n">dump</span> <span class="n">snap</span> <span class="nb">all</span> <span class="n">cfg</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">config</span><span class="o">.*.</span><span class="n">cfg</span> <span class="n">mass</span> <span class="nb">type</span> <span class="n">xs</span> <span class="n">ys</span> <span class="n">zs</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_Stress</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
 <span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">xtc</span> <span class="mi">1000</span> <span class="n">file</span><span class="o">.</span><span class="n">xtc</span>
@@ -530,6 +531,28 @@ be about 3x smaller than the text version, but will also take longer
 to write.  This option is not available for the <em>dcd</em> and <em>xtc</em>
 styles.</p>
 <hr class="docutils" />
+<p>Note that in the discussion which follows, for styles which can
+reference values from a compute or fix, like the <em>custom</em>, <em>cfg</em>, or
+<em>local</em> styles, the bracketed index I can be specified using a
+wildcard asterisk with the index to effectively specify multiple
+values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
+size of the vector (for <em>mode</em> = scalar) or the number of columns in
+the array (for <em>mode</em> = vector), then an asterisk with no numeric
+values means all indices from 1 to N.  A leading asterisk means all
+indices from 1 to n (inclusive).  A trailing asterisk means all
+indices from n to N (inclusive).  A middle asterisk means all indices
+from m to n (inclusive).</p>
+<p>Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  E.g. these 2 dump commands are
+equivalent, since the <span class="xref doc">compute stress/atom</span>
+command creates a per-atom array with 6 columns:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myPress</span> <span class="nb">all</span> <span class="n">stress</span><span class="o">/</span><span class="n">atom</span> <span class="n">NULL</span>
+<span class="n">dump</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="nb">id</span> <span class="n">myPress</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
+<span class="n">dump</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="nb">id</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
+                                  <span class="n">myPress</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+</pre></div>
+</div>
+<hr class="docutils" />
 <p>This section explains the local attributes that can be specified as
 part of the <em>local</em> style.</p>
 <p>The <em>index</em> attribute can be used to generate an index number from 1
@@ -540,7 +563,7 @@ processors depend on what atoms they currently own, and atoms migrate
 between processor, there is no guarantee that the same index will be
 used for the same info (e.g. a particular bond) in successive
 snapshots.</p>
-<p>The <em>c_ID</em> and <em>c_ID[N]</em> attributes allow local vectors or arrays
+<p>The <em>c_ID</em> and <em>c_ID[I]</em> attributes allow local vectors or arrays
 calculated by a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
@@ -552,19 +575,23 @@ opposed to local quantities, cannot be output in a dump local command.
 Instead, global quantities can be output by the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command, and per-atom quantities can be
 output by the dump custom command.</p>
 <p>If <em>c_ID</em> is used as a attribute, then the local vector calculated by
-the compute is printed.  If <em>c_ID[N]</em> is used, then N must be in the
-range from 1-M, which will print the Nth column of the M-length local
-array calculated by the compute.</p>
-<p>The <em>f_ID</em> and <em>f_ID[N]</em> attributes allow local vectors or arrays
+the compute is printed.  If <em>c_ID[I]</em> is used, then I must be in the
+range from 1-M, which will print the Ith column of the local array
+with M columns calculated by the compute.  See the discussion above
+for how I can be specified with a wildcard asterisk to effectively
+specify multiple values.</p>
+<p>The <em>f_ID</em> and <em>f_ID[I]</em> attributes allow local vectors or arrays
 calculated by a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> to be output.  The ID in the attribute
 should be replaced by the actual ID of the fix that has been defined
 previously in the input script.</p>
 <p>If <em>f_ID</em> is used as a attribute, then the local vector calculated by
-the fix is printed.  If <em>f_ID[N]</em> is used, then N must be in the
-range from 1-M, which will print the Nth column of the M-length local
-array calculated by the fix.</p>
-<p>Here is an example of how to dump bond info for a system,
-including the distance and energy of each bond:</p>
+the fix is printed.  If <em>f_ID[I]</em> is used, then I must be in the
+range from 1-M, which will print the Ith column of the local with M
+columns calculated by the fix.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.</p>
+<p>Here is an example of how to dump bond info for a system, including
+the distance and energy of each bond:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">local</span> <span class="n">batom1</span> <span class="n">batom2</span> <span class="n">btype</span>
 <span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">bond</span><span class="o">/</span><span class="n">local</span> <span class="n">dist</span> <span class="n">eng</span>
 <span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">1000</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="n">index</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
@@ -627,7 +654,7 @@ the <em>ellipsoid</em> atom style defines this quantity.</p>
 <p>The <em>tqx</em>, <em>tqy</em>, <em>tqz</em> attributes are for finite-size particles that
 can sustain a rotational torque due to interactions with other
 particles.</p>
-<p>The <em>c_ID</em> and <em>c_ID[N]</em> attributes allow per-atom vectors or arrays
+<p>The <em>c_ID</em> and <em>c_ID[I]</em> attributes allow per-atom vectors or arrays
 calculated by a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> to be output.  The ID in the
 attribute should be replaced by the actual ID of the compute that has
 been defined previously in the input script.  See the
@@ -640,10 +667,12 @@ command.  Instead, global quantities can be output by the
 <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command, and local quantities
 can be output by the dump local command.</p>
 <p>If <em>c_ID</em> is used as a attribute, then the per-atom vector calculated
-by the compute is printed.  If <em>c_ID[N]</em> is used, then N must be in
-the range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the compute.</p>
-<p>The <em>f_ID</em> and <em>f_ID[N]</em> attributes allow vector or array per-atom
+by the compute is printed.  If <em>c_ID[I]</em> is used, then I must be in
+the range from 1-M, which will print the Ith column of the per-atom
+array with M columns calculated by the compute.  See the discussion
+above for how I can be specified with a wildcard asterisk to
+effectively specify multiple values.</p>
+<p>The <em>f_ID</em> and <em>f_ID[I]</em> attributes allow vector or array per-atom
 quantities calculated by a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> to be output.  The ID in the
 attribute should be replaced by the actual ID of the fix that has been
 defined previously in the input script.  The <a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a> command is one that calculates per-atom
@@ -652,9 +681,11 @@ any <a class="reference internal" href="compute.html"><span class="doc">compute<
 <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>, this allows those time-averaged results to
 be written to a dump file.</p>
 <p>If <em>f_ID</em> is used as a attribute, then the per-atom vector calculated
-by the fix is printed.  If <em>f_ID[N]</em> is used, then N must be in the
-range from 1-M, which will print the Nth column of the M-length
-per-atom array calculated by the fix.</p>
+by the fix is printed.  If <em>f_ID[I]</em> is used, then I must be in the
+range from 1-M, which will print the Ith column of the per-atom array
+with M columns calculated by the fix.  See the discussion above for
+how I can be specified with a wildcard asterisk to effectively specify
+multiple values.</p>
 <p>The <em>v_name</em> attribute allows per-atom vectors calculated by a
 <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> to be output.  The name in the attribute
 should be replaced by the actual name of the variable that has been

@@ -36,6 +36,7 @@
 #include "min.h"
 #include "modify.h"
 #include "compute.h"
+#include "fix.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -581,6 +582,141 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
   if (max2 > max) reallocate(str,max,max2);
   strcpy(str,str2);
+}
+
+/* ----------------------------------------------------------------------
+   expand arg to earg, for arguments with syntax c_ID[*] or f_ID[*]
+   fields to consider in input arg range from iarg to narg
+   return new expanded # of values, and copy them w/out "*" into earg
+   if any expansion occurs, earg is new allocation, must be freed by caller
+   if no expansion occurs, earg just points to arg, caller need not free
+------------------------------------------------------------------------- */
+
+int Input::expand_args(int narg, char **arg, int mode, char **&earg)
+{
+  int n,iarg,index,nlo,nhi,nmax,which,expandflag,icompute,ifix;
+  char *ptr1,*ptr2,*str;
+
+  ptr1 = NULL;
+  for (iarg = 0; iarg < narg; iarg++) {
+    ptr1 = strchr(arg[iarg],'*');
+    if (ptr1) break;
+  }
+
+  if (!ptr1) {
+    earg = arg;
+    return narg;
+  }
+
+  // maxarg should always end up equal to newarg, so caller can free earg
+
+  int maxarg = narg-iarg;
+  earg = (char **) memory->smalloc(maxarg*sizeof(char *),"input:earg");
+
+  int newarg = 0;
+  for (iarg = 0; iarg < narg; iarg++) {
+    expandflag = 0;
+
+    if (strncmp(arg[iarg],"c_",2) == 0 ||
+        strncmp(arg[iarg],"f_",2) == 0) {
+
+      ptr1 = strchr(&arg[iarg][2],'[');
+      if (ptr1) {
+	ptr2 = strchr(ptr1,']');
+	if (ptr2) {
+	  *ptr2 = '\0';
+	  if (strchr(ptr1,'*')) {
+	    if (arg[iarg][0] == 'c') {
+	      *ptr1 = '\0';
+	      icompute = modify->find_compute(&arg[iarg][2]);
+	      *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+	      if (icompute >= 0) {
+		if (mode == 0 && modify->compute[icompute]->vector_flag) {
+		  nmax = modify->compute[icompute]->size_vector;
+		  expandflag = 1;
+		} else if (mode == 1 && modify->compute[icompute]->array_flag) {
+		  nmax = modify->compute[icompute]->size_array_cols;
+		  expandflag = 1;
+                } else if (modify->compute[icompute]->peratom_flag && 
+                           modify->compute[icompute]->size_peratom_cols) {
+		  nmax = modify->compute[icompute]->size_peratom_cols;
+		  expandflag = 1;
+                } else if (modify->compute[icompute]->local_flag && 
+                           modify->compute[icompute]->size_local_cols) {
+		  nmax = modify->compute[icompute]->size_local_cols;
+		  expandflag = 1;
+		}
+	      }	      
+	    } else if (arg[iarg][0] == 'f') {
+	      *ptr1 = '\0';
+	      ifix = modify->find_fix(&arg[iarg][2]);
+	      *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+	      if (ifix >= 0) {
+		if (mode == 0 && modify->fix[ifix]->vector_flag) {
+		  nmax = modify->fix[ifix]->size_vector;
+		  expandflag = 1;
+		} else if (mode == 1 && modify->fix[ifix]->array_flag) {
+		  nmax = modify->fix[ifix]->size_array_cols;
+		  expandflag = 1;
+                } else if (modify->fix[ifix]->peratom_flag && 
+                           modify->fix[ifix]->size_peratom_cols) {
+		  nmax = modify->fix[ifix]->size_peratom_cols;
+		  expandflag = 1;
+                } else if (modify->fix[ifix]->local_flag && 
+                           modify->fix[ifix]->size_local_cols) {
+		  nmax = modify->fix[ifix]->size_local_cols;
+		  expandflag = 1;
+		}
+	      }
+	    }
+	  }
+	  *ptr2 = ']';
+	}
+      }
+    }
+
+    if (expandflag) {
+      *ptr2 = '\0';
+      force->bounds(ptr1+1,nmax,nlo,nhi);
+      *ptr2 = ']';
+      if (newarg+nhi-nlo+1 > maxarg) {
+	maxarg += nhi-nlo+1;
+	earg = (char **) 
+          memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      for (index = nlo; index <= nhi; index++) {
+	n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
+	str = earg[newarg] = new char[n];
+	strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
+	sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
+	strcat(str,ptr2);
+        newarg++;
+      }
+
+    } else {
+      if (newarg == maxarg) {
+	maxarg++;
+	earg = (char **) 
+          memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      n = strlen(arg[iarg]) + 1;
+      earg[newarg] = new char[n];
+      strcpy(earg[newarg],arg[iarg]);
+      newarg++;
+    }
+  }
+
+  //printf("NEWARG %d\n",newarg);
+  //for (int i = 0; i < newarg; i++)
+  //  printf("  arg %d: %s\n",i,earg[i]);
+
+  return newarg;
 }
 
 /* ----------------------------------------------------------------------

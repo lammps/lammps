@@ -140,10 +140,10 @@
 <li>one or more input values can be listed</li>
 <li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="ow">or</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="ow">or</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="k">global</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span><span class="p">,</span> <span class="n">vector</span><span class="p">,</span> <span class="ow">or</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="ow">or</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="k">global</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="ow">or</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="ow">or</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="k">global</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
+<span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="ow">or</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="ow">or</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="k">global</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
 <span class="n">v_name</span> <span class="o">=</span> <span class="n">value</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">equal</span><span class="o">-</span><span class="n">style</span> <span class="ow">or</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
 <span class="n">v_name</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
 </pre></div>
@@ -182,6 +182,7 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="n">c_myTemp</span> <span class="n">c_thermo_temp</span> <span class="n">file</span> <span class="n">temp</span><span class="o">.</span><span class="n">profile</span>
 <span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">ave</span> <span class="n">window</span> <span class="mi">20</span> <span class="o">&amp;</span>
                               <span class="n">title1</span> <span class="s2">&quot;My output values&quot;</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
 <span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">1</span> <span class="mi">100</span> <span class="mi">1000</span> <span class="n">f_indent</span> <span class="n">f_indent</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">file</span> <span class="n">temp</span><span class="o">.</span><span class="n">indent</span> <span class="n">off</span> <span class="mi">1</span>
 </pre></div>
 </div>
@@ -213,20 +214,33 @@ individual fixes for info on which ones produce such values.
 <a class="reference internal" href="variable.html"><span class="doc">Variables</span></a> of style <em>equal</em> and <em>vector</em> are the only
 ones that can be used with this fix.  Variables of style <em>atom</em> cannot
 be used, since they produce per-atom values.</p>
-<p>The input values must either be all scalars or all vectors (or
-arrays), depending on the setting of the <em>mode</em> keyword.  In both
-cases, the averaging is performed independently on each input value.
-I.e. each input scalar is averaged independently and each element of
-each input vector (or array) is averaged independently.</p>
-<p>If <em>mode</em> = vector, then the input values may either be vectors or
-arrays and all must be the same &#8220;length&#8221;, which is the length of the
-vector or number of rows in the array.  If a global array is listed,
-then it is the same as if the individual columns of the array had been
-listed one by one.  E.g. these 2 fix ave/time commands are equivalent,
-since the <a class="reference internal" href="compute_rdf.html"><span class="doc">compute rdf</span></a> command creates, in this
-case, a global array with 3 columns, each of length 50:</p>
+<p>The input values must either be all scalars or all vectors depending
+on the setting of the <em>mode</em> keyword.  In both cases, the averaging is
+performed independently on each input value.  I.e. each input scalar
+is averaged independently or each element of each input vector is
+averaged independently.</p>
+<p>If <em>mode</em> = scalar, then the input values must be scalars, or vectors
+with a bracketed term appended, indicating the Ith value of the vector
+is used.</p>
+<p>If <em>mode</em> = vector, then the input values must be vectors, or arrays
+with a bracketed term appended, indicating the Ith column of the array
+is used.  All vectors must be the same length, which is the length of
+the vector or number of rows in the array.</p>
+<p>Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or
+&#8220;m*n&#8221;.  If N = the size of the vector (for <em>mode</em> = scalar) or the
+number of columns in the array (for <em>mode</em> = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).</p>
+<p>Using a wildcard is the same as if the individual elements of the
+vector or columns of the array had been listed one by one.  E.g. these
+2 fix ave/time commands are equivalent, since the <a class="reference internal" href="compute_rdf.html"><span class="doc">compute rdf</span></a> command creates, in this case, a global array
+with 3 columns, each of length 50:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myRDF</span> <span class="nb">all</span> <span class="n">rdf</span> <span class="mi">50</span> <span class="mi">1</span> <span class="mi">2</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myRDF</span> <span class="n">file</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">rdf</span> <span class="n">mode</span> <span class="n">vector</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myRDF</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">rdf</span> <span class="n">mode</span> <span class="n">vector</span>
 <span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myRDF</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myRDF</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myRDF</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">rdf</span> <span class="n">mode</span> <span class="n">vector</span>
 </pre></div>
 </div>
@@ -253,11 +267,10 @@ no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
 the global vector calculated by the compute is used.  If <em>mode</em> =
 vector, then if no bracketed term is appended, the global vector
-calculated by the compute is used.  Or if the compute calculates an
-array, all of the columns of the global array are used as if they had
-been specified as individual vectors (see description above).  If a
-bracketed term is appended, the Ith column of the global array
-calculated by the compute is used.</p>
+calculated by the compute is used.  If a bracketed term is appended,
+the Ith column of the global array calculated by the compute is used.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.</p>
 <p>Note that there is a <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> command
 which can sum per-atom quantities into a global scalar or vector which
 can thus be accessed by fix ave/time.  Or it can be a compute defined
@@ -270,10 +283,10 @@ no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
 global vector calculated by the fix is used.  If <em>mode</em> = vector, then
 if no bracketed term is appended, the global vector calculated by the
-fix is used.  Or if the fix calculates an array, all of the columns of
-the global array are used as if they had been specified as individual
-vectors (see description above).  If a bracketed term is appended, the
-Ith column of the global array calculated by the fix is used.</p>
+fix is used.  If a bracketed term is appended, the Ith column of the
+global array calculated by the fix is used.  See the discussion above
+for how I can be specified with a wildcard asterisk to effectively
+specify multiple values.</p>
 <p>Note that some fixes only produce their values on certain timesteps,
 which must be compatible with <em>Nevery</em>, else an error will result.
 Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>

@@ -150,9 +150,9 @@
 </ul>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">vx</span><span class="p">,</span><span class="n">vy</span><span class="p">,</span><span class="n">vz</span><span class="p">,</span><span class="n">fx</span><span class="p">,</span><span class="n">fy</span><span class="p">,</span><span class="n">fz</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">attribute</span> <span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">velocity</span><span class="p">,</span> <span class="n">force</span> <span class="n">component</span><span class="p">)</span>
 <span class="n">c_ID</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="ow">or</span> <span class="n">local</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="ow">or</span> <span class="n">local</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="ow">or</span> <span class="n">local</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
 <span class="n">f_ID</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="ow">or</span> <span class="n">local</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="ow">or</span> <span class="n">local</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="ow">or</span> <span class="n">local</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
 <span class="n">v_name</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">atom</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
 </pre></div>
 </div>
@@ -171,6 +171,7 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">sum</span> <span class="n">c_force</span>
 <span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">reduce</span><span class="o">/</span><span class="n">region</span> <span class="n">subbox</span> <span class="nb">sum</span> <span class="n">c_force</span>
 <span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">min</span> <span class="n">c_press</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">f_ave</span> <span class="n">v_myKE</span>
+<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">min</span> <span class="n">c_press</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">f_ave</span> <span class="n">v_myKE</span>
 <span class="n">compute</span> <span class="mi">3</span> <span class="n">fluid</span> <span class="n">reduce</span> <span class="nb">max</span> <span class="n">c_index</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_index</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_dist</span> <span class="n">replace</span> <span class="mi">1</span> <span class="mi">3</span> <span class="n">replace</span> <span class="mi">2</span> <span class="mi">3</span>
 </pre></div>
 </div>
@@ -208,6 +209,26 @@ group specified for that compute.</p>
 component) or can be the result of a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> or
 <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> or the evaluation of an atom-style
 <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>.</p>
+<p>Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or
+&#8220;m*n&#8221;.  If N = the size of the vector (for <em>mode</em> = scalar) or the
+number of columns in the array (for <em>mode</em> = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).</p>
+<p>Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  E.g. these 2 compute reduce commands are
+equivalent, since the <span class="xref doc">compute stress/atom</span>
+command creates a per-atom array with 6 columns:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myPress</span> <span class="nb">all</span> <span class="n">stress</span><span class="o">/</span><span class="n">atom</span> <span class="n">NULL</span>
+<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">min</span> <span class="n">myPress</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
+<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">min</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
+                         <span class="n">myPress</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+</pre></div>
+</div>
+<hr class="docutils" />
 <p>The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
 self-explanatory.  Note that other atom attributes can be used as
 inputs to this fix by using the <a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a> command and then specifying
@@ -219,7 +240,9 @@ per-atom or local quantities.  See the individual
 is appended, the vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the array calculated
 by the compute is used.  Users can also write code for their own
-compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
+compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.  See the
+discussion above for how I can be specified with a wildcard asterisk
+to effectively specify multiple values.</p>
 <p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
 previously defined in the input script.  Fixes can generate per-atom
 or local quantities.  See the individual <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> doc page for
@@ -228,7 +251,9 @@ timesteps, which must be compatible with when compute reduce
 references the values, else an error results.  If no bracketed integer
 is appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
-is used.  Users can also write code for their own fix style and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
+is used.  Users can also write code for their own fix style and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.  See the discussion above for how
+I can be specified with a wildcard asterisk to effectively specify
+multiple values.</p>
 <p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
 been previously defined in the input script.  It must be an
 <a class="reference internal" href="variable.html"><span class="doc">atom-style variable</span></a>.  Atom-style variables can

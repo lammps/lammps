@@ -141,9 +141,9 @@
 <li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
 <span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
 <span class="n">v_name</span> <span class="o">=</span> <span class="k">global</span> <span class="n">value</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">equal</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
 <span class="n">v_name</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="n">a</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
 </pre></div>
@@ -186,6 +186,7 @@
        <span class="nb">type</span> <span class="n">upper</span> <span class="n">ave</span> <span class="n">running</span> <span class="n">title1</span> <span class="s2">&quot;My correlation data&quot;</span>
 </pre></div>
 </div>
+<p>fix 1 all ave/correlate 1 50 10000 c_thermo_press[*]</p>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -208,6 +209,9 @@ you wish to spatial- or time-average or histogram per-atom quantities
 from a compute, fix, or variable, then see the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, <a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a>, or
 <a class="reference internal" href="fix_ave_histo.html"><span class="doc">fix ave/histo</span></a> commands.  If you wish to convert a
 per-atom quantity into a single global value, see the <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> command.</p>
+<p>The input values must either be all scalars.  What kinds of
+correlations between input values are calculated is determined by the
+<em>type</em> keyword as discussed below.</p>
 <p><a class="reference internal" href="compute.html"><span class="doc">Computes</span></a> that produce global quantities are those which
 do not have the word <em>atom</em> in their style name.  Only a few
 <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> produce global quantities.  See the doc pages for
@@ -215,9 +219,26 @@ individual fixes for info on which ones produce such values.
 <a class="reference internal" href="variable.html"><span class="doc">Variables</span></a> of style <em>equal</em> and <em>vector</em> are the only
 ones that can be used with this fix.  Variables of style <em>atom</em> cannot
 be used, since they produce per-atom values.</p>
-<p>The input values must either be all scalars.  What kinds of
-correlations between input values are calculated is determined by the
-<em>type</em> keyword as discussed below.</p>
+<p>Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or
+&#8220;m*n&#8221;.  If N = the size of the vector (for <em>mode</em> = scalar) or the
+number of columns in the array (for <em>mode</em> = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).</p>
+<p>Using a wildcard is the same as if the individual elements of the
+vector had been listed one by one.  E.g. these 2 fix ave/correlate
+commands are equivalent, since the <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> command creates a global vector with 6
+values.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myPress</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">NULL</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span> <span class="mi">1</span> <span class="mi">50</span> <span class="mi">10000</span> <span class="n">c_myPress</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span> <span class="mi">1</span> <span class="mi">50</span> <span class="mi">10000</span> <span class="o">&amp;</span>
+          <span class="n">c_myPress</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
+          <span class="n">c_myPress</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p>The <em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> arguments specify on what
 timesteps the input values will be used to calculate correlation data.
@@ -255,7 +276,9 @@ default, then <em>Nfreq</em> &gt;= (<em>Nrepeat</em>-1)*<em>Nevery</em> is requi
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the Ith element of the global vector
-calculated by the compute is used.</p>
+calculated by the compute is used.  See the discussion above for how I
+can be specified with a wildcard asterisk to effectively specify
+multiple values.</p>
 <p>Note that there is a <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> command
 which can sum per-atom quantities into a global scalar or vector which
 can thus be accessed by fix ave/correlate.  Or it can be a compute
@@ -267,7 +290,9 @@ write code for their own compute styles and <a class="reference internal" href="
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the Ith element of the global vector
-calculated by the fix is used.</p>
+calculated by the fix is used.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.</p>
 <p>Note that some fixes only produce their values on certain timesteps,
 which must be compatible with <em>Nevery</em>, else an error will result.
 Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>

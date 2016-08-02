@@ -37,6 +37,7 @@ class Balance : protected Pointers {
   int shift();
   int *bisection(int sortflag = 0);
   double imbalance_nlocal(int &);
+  void imbalance_clock(double);
   void dumpout(bigint, FILE *);
 
  private:
@@ -69,6 +70,9 @@ class Balance : protected Pointers {
   int    ngroup;             // number of groups weights
   int    *group_id;          // group ids for weights
   double *group_weight;      // weights of groups
+
+  double *clock_imbalance;   // computed wall clock imbalance
+  double last_clock;         // accumulated clock at previous balancing step
 
   int outflag;               // for output of balance results to file
   FILE *fp;

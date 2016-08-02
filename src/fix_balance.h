@@ -48,6 +48,7 @@ class FixBalance : public Fix {
   double imbnow;                // current imbalance factor
   double imbprev;               // imbalance factor before last rebalancing
   double imbfinal;              // imbalance factor after last rebalancing
+  double clock_factor;          // weighting factor for timer imbalance
   int maxperproc;               // max atoms on any processor
   int itercount;                // iteration count of last call to Balance
   int kspace_flag;              // 1 if KSpace solver defined

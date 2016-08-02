@@ -641,13 +641,14 @@ int *Balance::bisection(int sortflag)
   double factor = 1.0;
   if (clock_imbalance) factor = clock_imbalance[me];
 
-  double weights[nlocal];
+  double *weights = new double[nlocal];
   for (int i = 0; i < nlocal; i++)
     weights[i] = getcost(i)*factor;
 
   //rcb->compute(dim,atom->nlocal,atom->x,NULL,boxlo,boxhi);
   rcb->compute(dim,atom->nlocal,atom->x,weights,shrinklo,shrinkhi);
   rcb->invert(sortflag);
+  delete[] weights;
 
   // reset RCB lo/hi bounding box to full simulation box as needed
 

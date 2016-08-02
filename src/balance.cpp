@@ -478,7 +478,8 @@ void Balance::imbalance_clock(double factor)
     for (int i = 0; i <= nprocs; ++i) clock_cost[i] = 0.0;
     cost += timer->get_wall(Timer::PAIR);
     cost += timer->get_wall(Timer::NEIGH);
-    if (force->kspace) cost += timer->get_wall(Timer::KSPACE);
+    cost += timer->get_wall(Timer::BOND);
+    cost += timer->get_wall(Timer::KSPACE);
 
     clock_cost[me] = cost;
     clock_cost[nprocs] = cost;
@@ -493,7 +494,7 @@ void Balance::imbalance_clock(double factor)
         clock_imbalance[i] = 1.0;
     }
 
-#if 1 // BALANCE_DEBUG    
+#if BALANCE_DEBUG
     if (me == 0) {
       printf("clock imbalance scaled using factor %g\n",factor);
       for (int i = 0; i < nprocs; ++i)

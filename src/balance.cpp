@@ -103,7 +103,7 @@ void Balance::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Balance command before simulation box is defined");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Balancing ...\n");
+  if (me == 0 && screen) fprintf(screen,"Balancing ...\n");
 
   // parse arguments
 
@@ -480,7 +480,7 @@ double Balance::imbalance_clock(double factor, double last_cost)
     cost += timer->get_wall(Timer::KSPACE);
 
     double *clock_cost = new double[nprocs+1];
-    for (int i = 0; i <= nprocs; ++i) clock_cost[i] = 0.0;
+    for (int i = 0; i <= nprocs; ++i) clock_imbalance[i] = clock_cost[i] = 0.0;
     clock_cost[me] = cost;
     clock_cost[nprocs] = cost;
     MPI_Allreduce(clock_cost,clock_imbalance,nprocs+1,MPI_DOUBLE,MPI_SUM,world);
@@ -525,15 +525,16 @@ double Balance::imbalance_nlocal(int &maxcost)
   }
   if (clock_imbalance) cost *= clock_imbalance[me];
 
-  double imbalance = 1.0;
   int intcost = (int)cost;
-  int sumcost;
+  int sumcost = maxcost = 0;
 
   MPI_Allreduce(&intcost,&maxcost,1,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(&intcost,&sumcost,1,MPI_INT,MPI_SUM,world);
 
-  if (maxcost && sumcost > 0)
+  double imbalance = 1.0;
+  if (maxcost > 0 && sumcost > 0)
     imbalance = maxcost / (static_cast<double>(sumcost)/nprocs);
+
   return imbalance;
 }
 

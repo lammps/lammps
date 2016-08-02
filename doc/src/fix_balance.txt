@@ -68,7 +68,7 @@ incorporated into the load balancing cost function. The required
 weight factor argument (a number between 0 and 1) determines to
 which degree timing information is included. The timer information
 is taken from the preceding run. If no such information is
-available, e.g. at the beginning of an input, of when the 
+available, e.g. at the beginning of an input, of when the
 "timer"_timer.html level is set to either {loop} or {off},
 the clock keyword has no effect.
 

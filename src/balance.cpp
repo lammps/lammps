@@ -484,7 +484,7 @@ void Balance::imbalance_clock(double factor)
     clock_cost[me] = cost;
     clock_cost[nprocs] = cost;
     MPI_Allreduce(clock_cost,clock_imbalance,nprocs+1,MPI_DOUBLE,MPI_SUM,world);
-    
+
     const double avg_cost = clock_imbalance[nprocs]/nprocs;
     if (cost > 0.0) {
       for (int i = 0; i < nprocs; ++i)
@@ -529,7 +529,7 @@ double Balance::imbalance_nlocal(int &maxcost)
 
   MPI_Allreduce(&intcost,&maxcost,1,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(&intcost,&sumcost,1,MPI_INT,MPI_SUM,world);
-  
+
   if (maxcost && sumcost > 0)
     imbalance = maxcost / (static_cast<double>(sumcost)/nprocs);
   return imbalance;

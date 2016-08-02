@@ -73,89 +73,46 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
 
   if (nvalues == 0) error->all(FLERR,"No values in fix ave/time command");
 
-  options(narg,arg);
+  options(iarg,narg,arg);
 
-  // parse values until one isn't recognized
-  // if mode = VECTOR and value is a global array:
-  //   expand it as if columns listed one by one
-  //   adjust nvalues accordingly via maxvalues
+  // expand args if any have wildcard character "*"
+  // this can reset nvalues
+
+  int expand = 0;
+  char **earg,**arghold;
+  nvalues = input->expand_args(nvalues,&arg[6],mode,earg);
+
+  if (earg != &arg[6]) expand = 1;
+  arghold = arg;
+  arg = earg;
+
+  // parse values
 
   which = argindex = value2index = offcol = varlen = NULL;
   ids = NULL;
-  int maxvalues = nvalues;
-  allocate_values(maxvalues);
-  nvalues = 0;
+  allocate_values(nvalues);
 
-  iarg = 6;
-  while (iarg < narg) {
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0 ||
-        strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+  for (int i = 0; i < nvalues; i++) {
+    if (arg[i][0] == 'c') which[i] = COMPUTE;
+    else if (arg[i][0] == 'f') which[i] = FIX;
+    else if (arg[i][0] == 'v') which[i] = VARIABLE;
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+    int n = strlen(arg[i]);
+    char *suffix = new char[n];
+    strcpy(suffix,&arg[i][2]);
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix ave/time command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
-
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      delete [] suffix;
-
-      if (mode == VECTOR && which[nvalues] == COMPUTE &&
-          argindex[nvalues] == 0) {
-        int icompute = modify->find_compute(ids[nvalues]);
-        if (icompute < 0)
-          error->all(FLERR,"Compute ID for fix ave/time does not exist");
-        if (modify->compute[icompute]->array_flag) {
-          int ncols = modify->compute[icompute]->size_array_cols;
-          maxvalues += ncols-1;
-          allocate_values(maxvalues);
-          argindex[nvalues] = 1;
-          for (int icol = 1; icol < ncols; icol++) {
-            which[nvalues+icol] = which[nvalues];
-            argindex[nvalues+icol] = icol+1;
-            n = strlen(ids[nvalues]) + 1;
-            ids[nvalues+icol] = new char[n];
-            strcpy(ids[nvalues+icol],ids[nvalues]);
-          }
-          nvalues += ncols-1;
-        }
-
-      } else if (mode == VECTOR && which[nvalues] == FIX &&
-                 argindex[nvalues] == 0) {
-        int ifix = modify->find_fix(ids[nvalues]);
-        if (ifix < 0)
-          error->all(FLERR,"Fix ID for fix ave/time does not exist");
-        if (modify->fix[ifix]->array_flag) {
-          int ncols = modify->fix[ifix]->size_array_cols;
-          maxvalues += ncols-1;
-          allocate_values(maxvalues);
-          argindex[nvalues] = 1;
-          for (int icol = 1; icol < ncols; icol++) {
-            which[nvalues+icol] = which[nvalues];
-            argindex[nvalues+icol] = icol+1;
-            n = strlen(ids[nvalues]) + 1;
-            ids[nvalues+icol] = new char[n];
-            strcpy(ids[nvalues+icol],ids[nvalues]);
-          }
-          nvalues += ncols-1;
-        }
-      }
-
-      nvalues++;
-      iarg++;
-    } else break;
+    char *ptr = strchr(suffix,'[');
+    if (ptr) {
+      if (suffix[strlen(suffix)-1] != ']')
+        error->all(FLERR,"Illegal fix ave/time command");
+      argindex[i] = atoi(ptr+1);
+      *ptr = '\0';
+    } else argindex[i] = 0;
+    
+    n = strlen(suffix) + 1;
+    ids[i] = new char[n];
+    strcpy(ids[i],suffix);
+    delete [] suffix;
   }
 
   // set off columns now that nvalues is finalized
@@ -311,18 +268,13 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     if (title2) fprintf(fp,"%s\n",title2);
     else if (mode == SCALAR) {
       fprintf(fp,"# TimeStep");
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[6+i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",earg[i]);
       fprintf(fp,"\n");
     } else fprintf(fp,"# TimeStep Number-of-rows\n");
     if (title3 && mode == VECTOR) fprintf(fp,"%s\n",title3);
     else if (mode == VECTOR) {
       fprintf(fp,"# Row");
-      for (int i = 0; i < nvalues; i++) {
-        if (which[i] == COMPUTE) fprintf(fp," c_%s",ids[i]);
-        else if (which[i] == FIX) fprintf(fp," f_%s",ids[i]);
-        else if (which[i] == VARIABLE) fprintf(fp," v_%s",ids[i]);
-        if (argindex[i]) fprintf(fp,"[%d]",argindex[i]);
-      }
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",earg[i]);
       fprintf(fp,"\n");
     }
     if (ferror(fp))
@@ -334,6 +286,15 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   delete [] title1;
   delete [] title2;
   delete [] title3;
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+  // wait to do this until after file comment lines are printed
+
+  if (expand) {
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    memory->sfree(earg);
+    arg = arghold;
+  }
 
   // allocate memory for averaging
 
@@ -1049,7 +1010,7 @@ double FixAveTime::compute_array(int i, int j)
    parse optional args
 ------------------------------------------------------------------------- */
 
-void FixAveTime::options(int narg, char **arg)
+void FixAveTime::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
@@ -1068,7 +1029,6 @@ void FixAveTime::options(int narg, char **arg)
 
   // optional args
 
-  int iarg = 6 + nvalues;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");

@@ -43,76 +43,92 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   nrepeat = force->inumeric(FLERR,arg[4]);
   peratom_freq = force->inumeric(FLERR,arg[5]);
 
-  // parse remaining values
+  nvalues = narg - 6;
 
-  which = new int[narg-6];
-  argindex = new int[narg-6];
-  ids = new char*[narg-6];
-  value2index = new int[narg-6];
-  nvalues = 0;
+  // expand args if any have wildcard character "*"
+  // this can reset nvalues
 
-  int iarg = 6;
-  while (iarg < narg) {
-    ids[nvalues] = NULL;
+  int expand = 0;
+  char **earg,**arghold;
+  nvalues = input->expand_args(nvalues,&arg[6],1,earg);
 
-    if (strcmp(arg[iarg],"x") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"y") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 1;
-    } else if (strcmp(arg[iarg],"z") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 2;
+  if (earg != &arg[6]) expand = 1;
+  arghold = arg;
+  arg = earg;
 
-    } else if (strcmp(arg[iarg],"vx") == 0) {
-      which[nvalues] = V;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"vy") == 0) {
-      which[nvalues] = V;
-      argindex[nvalues++] = 1;
-    } else if (strcmp(arg[iarg],"vz") == 0) {
-      which[nvalues] = V;
-      argindex[nvalues++] = 2;
+  // parse values
 
-    } else if (strcmp(arg[iarg],"fx") == 0) {
-      which[nvalues] = F;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"fy") == 0) {
-      which[nvalues] = F;
-      argindex[nvalues++] = 1;
-    } else if (strcmp(arg[iarg],"fz") == 0) {
-      which[nvalues] = F;
-      argindex[nvalues++] = 2;
+  which = new int[nvalues];
+  argindex = new int[nvalues];
+  ids = new char*[nvalues];
+  value2index = new int[nvalues];
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
-               strncmp(arg[iarg],"f_",2) == 0 ||
-               strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+  for (int i = 0; i < nvalues; i++) {
+    ids[i] = NULL;
 
-      int n = strlen(arg[iarg]);
+    if (strcmp(arg[i],"x") == 0) {
+      which[i] = X;
+      argindex[i++] = 0;
+    } else if (strcmp(arg[i],"y") == 0) {
+      which[i] = X;
+      argindex[i++] = 1;
+    } else if (strcmp(arg[i],"z") == 0) {
+      which[i] = X;
+      argindex[i++] = 2;
+
+    } else if (strcmp(arg[i],"vx") == 0) {
+      which[i] = V;
+      argindex[i++] = 0;
+    } else if (strcmp(arg[i],"vy") == 0) {
+      which[i] = V;
+      argindex[i++] = 1;
+    } else if (strcmp(arg[i],"vz") == 0) {
+      which[i] = V;
+      argindex[i++] = 2;
+
+    } else if (strcmp(arg[i],"fx") == 0) {
+      which[i] = F;
+      argindex[i++] = 0;
+    } else if (strcmp(arg[i],"fy") == 0) {
+      which[i] = F;
+      argindex[i++] = 1;
+    } else if (strcmp(arg[i],"fz") == 0) {
+      which[i] = F;
+      argindex[i++] = 2;
+
+    } else if (strncmp(arg[i],"c_",2) == 0 ||
+               strncmp(arg[i],"f_",2) == 0 ||
+               strncmp(arg[i],"v_",2) == 0) {
+      if (arg[i][0] == 'c') which[i] = COMPUTE;
+      else if (arg[i][0] == 'f') which[i] = FIX;
+      else if (arg[i][0] == 'v') which[i] = VARIABLE;
+
+      int n = strlen(arg[i]);
       char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+      strcpy(suffix,&arg[i][2]);
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
         if (suffix[strlen(suffix)-1] != ']')
           error->all(FLERR,"Illegal fix ave/atom command");
-        argindex[nvalues] = atoi(ptr+1);
+        argindex[i] = atoi(ptr+1);
         *ptr = '\0';
-      } else argindex[nvalues] = 0;
+      } else argindex[i] = 0;
 
       n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      nvalues++;
+      ids[i] = new char[n];
+      strcpy(ids[i],suffix);
       delete [] suffix;
 
     } else error->all(FLERR,"Illegal fix ave/atom command");
+  }
 
-    iarg++;
+  // if wildcard expansion occurred, free earg memory from exapnd_args()
+
+  if (expand) {
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    memory->sfree(earg);
+    arg = arghold;
   }
 
   // setup and error check

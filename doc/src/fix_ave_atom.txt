@@ -21,16 +21,17 @@ one or more input values can be listed :l
 value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID\[i\], f_ID, f_ID\[i\], v_name :l
   x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
   c_ID = per-atom vector calculated by a compute with ID
-  c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID
+  c_ID\[I\] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
   f_ID = per-atom vector calculated by a fix with ID
-  f_ID\[I\] = Ith column of per-atom array calculated by a fix with ID
+  f_ID\[I\] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
   v_name = per-atom vector calculated by an atom-style variable with name :pre
 :ule
 
 [Examples:]
 
 fix 1 all ave/atom 1 100 100 vx vy vz
-fix 1 all ave/atom 10 20 1000 c_my_stress\[1\] :pre
+fix 1 all ave/atom 10 20 1000 c_my_stress\[1\]
+fix 1 all ave/atom 10 20 1000 c_my_stress\[*\] :pre
 
 [Description:]
 
@@ -53,6 +54,8 @@ local quantity.  If you wish to time-average global quantities from a
 compute, fix, or variable, then see the "fix
 ave/time"_fix_ave_time.html command.
 
+Each per-atom value of each input vector is averaged independently.
+
 "Computes"_compute.html that produce per-atom vectors or arrays are
 those which have the word {atom} in their style name.  See the doc
 pages for individual "fixes"_fix.html to determine which ones produce
@@ -60,7 +63,26 @@ per-atom vectors or arrays.  "Variables"_variable.html of style {atom}
 are the only ones that can be used with this fix since they produce
 per-atom vectors.
 
-Each per-atom value of each input vector is averaged independently.
+Note that for values from a compute or fix, the bracketed index I can
+be specified using a wildcard asterisk with the index to effectively
+specify multiple values.  This takes the form "*" or "*n" or "n*" or
+"m*n".  If N = the size of the vector (for {mode} = scalar) or the
+number of columns in the array (for {mode} = vector), then an asterisk
+with no numeric values means all indices from 1 to N.  A leading
+asterisk means all indices from 1 to n (inclusive).  A trailing
+asterisk means all indices from n to N (inclusive).  A middle asterisk
+means all indices from m to n (inclusive).
+
+Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  E.g. these 2 fix ave/atom commands are
+equivalent, since the "compute stress/atom"_compute_stress/atom.html
+command creates a per-atom array with 6 columns:
+
+compute my_stress all stress/atom NULL
+fix 1 all ave/atom 10 20 1000 c_my_stress\[*\] 
+fix 1 all ave/atom 10 20 1000 c_my_stress\[1\] c_my_stress\[1\] &
+                              c_my_stress\[3\] c_my_stress\[4\] &
+                              c_my_stress\[5\] c_my_stress\[6\] :pre
 
 :line
 
@@ -102,7 +124,9 @@ appended, the per-atom vector calculated by the compute is used.  If a
 bracketed term containing an index I is appended, the Ith column of
 the per-atom array calculated by the compute is used.  Users can also
 write code for their own compute styles and "add them to
-LAMMPS"_Section_modify.html.
+LAMMPS"_Section_modify.html.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.
 
 If a value begins with "f_", a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
@@ -112,7 +136,9 @@ the per-atom array calculated by the fix is used.  Note that some
 fixes only produce their values on certain timesteps, which must be
 compatible with {Nevery}, else an error will result.  Users can also
 write code for their own fix styles and "add them to
-LAMMPS"_Section_modify.html.
+LAMMPS"_Section_modify.html.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.
 
 If a value begins with "v_", a variable name must follow which has
 been previously defined in the input script as an "atom-style

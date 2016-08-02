@@ -46,59 +46,52 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 {
   multifile_override = 0;
 
-  if (narg < 10 ||
-      strcmp(arg[5],"mass") != 0 || strcmp(arg[6],"type") != 0 ||
-      (strcmp(arg[7],"xs") != 0 && strcmp(arg[7],"xsu") != 0) ||
-      (strcmp(arg[8],"ys") != 0 && strcmp(arg[8],"ysu") != 0) ||
-      (strcmp(arg[9],"zs") != 0 && strcmp(arg[9],"zsu") != 0))
+  // use earg instead of original arg since it includes expanded wildcards
+  // earg was created by parent DumpCustom
+
+  if (nfield < 5 ||
+      strcmp(earg[0],"mass") != 0 || strcmp(earg[1],"type") != 0 ||
+      (strcmp(earg[2],"xs") != 0 && strcmp(earg[2],"xsu") != 0) ||
+      (strcmp(earg[3],"ys") != 0 && strcmp(earg[3],"ysu") != 0) ||
+      (strcmp(earg[4],"zs") != 0 && strcmp(earg[4],"zsu") != 0))
     error->all(FLERR,"Dump cfg arguments must start with "
                "'mass type xs ys zs' or 'mass type xsu ysu zsu'");
 
-  if (strcmp(arg[7],"xs") == 0)
-    if (strcmp(arg[8],"ysu") == 0 || strcmp(arg[9],"zsu") == 0)
+  if (strcmp(earg[2],"xs") == 0) {
+    if (strcmp(earg[3],"ysu") == 0 || strcmp(earg[4],"zsu") == 0)
       error->all(FLERR,
                  "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
-    else unwrapflag = 0;
-  else if (strcmp(arg[8],"ys") == 0 || strcmp(arg[9],"zs") == 0)
-    error->all(FLERR,
-               "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
-  else unwrapflag = 1;
+    unwrapflag = 0;
+  } else {
+    if (strcmp(earg[3],"ys") == 0 || strcmp(earg[4],"zs") == 0)
+      error->all(FLERR,
+                 "Dump cfg arguments can not mix xs|ys|zs with xsu|ysu|zsu");
+    unwrapflag = 1;
+  }
 
   // setup auxiliary property name strings
-  // convert 'X_ID[m]' (X=c,f,v) to 'ID_m'
+  // convert 'X_ID[m]' (X=c,f,v) to 'X_ID_m'
 
-  if (narg > 10) auxname = new char*[narg-10];
+  if (nfield > 5) auxname = new char*[nfield];
   else auxname = NULL;
 
   int i = 0;
-  for (int iarg = 10; iarg < narg; iarg++, i++) {
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0 ||
-        strncmp(arg[iarg],"v_",2) == 0) {
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
-
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid keyword in dump cfg command");
-        *ptr = '\0';
-        *(ptr+2) = '\0';
-        auxname[i] = new char[strlen(suffix) + 3];
-        strcpy(auxname[i],suffix);
-        strcat(auxname[i],"_");
-        strcat(auxname[i],ptr+1);
-      } else {
-        auxname[i] = new char[strlen(suffix) + 1];
-        strcpy(auxname[i],suffix);
-      }
-
-      delete [] suffix;
+  for (int iarg = 5; iarg < nfield; iarg++, i++) {
+    if ((strncmp(earg[iarg],"c_",2) == 0 ||
+         strncmp(earg[iarg],"f_",2) == 0 ||
+         strncmp(earg[iarg],"v_",2) == 0) && strchr(earg[iarg],'[')) {
+      char *ptr = strchr(earg[iarg],'[');
+      char *ptr2 = strchr(ptr,']');
+      auxname[i] = new char[strlen(earg[iarg])];
+      *ptr = '\0';
+      *ptr2 = '\0';
+      strcpy(auxname[i],earg[iarg]);
+      strcat(auxname[i],"_");
+      strcat(auxname[i],ptr+1);
 
     } else {
-      auxname[i] = new char[strlen(arg[iarg]) + 1];
-      strcpy(auxname[i],arg[iarg]);
+      auxname[i] = new char[strlen(earg[iarg]) + 1];
+      strcpy(auxname[i],earg[iarg]);
     }
   }
 }

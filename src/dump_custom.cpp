@@ -62,9 +62,17 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal dump custom command");
 
-  // size_one may be shrunk below if additional optional args exist
+  // expand args if any have wildcard character "*"
+  // ok to include trailing optional args,
+  //   so long as they do not have "*" between square brackets
+  // nfield may be shrunk below if extra optional args exist
 
-  size_one = nfield = narg - 5;
+  expand = 0;
+  nfield = input->expand_args(narg-5,&arg[5],1,earg);
+  if (earg != &arg[5]) expand = 1;
+
+  // allocate field vectors
+
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
 
@@ -100,15 +108,24 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   flag_custom = NULL;
 
   // process attributes
-  // ioptional = start of additional optional args
-  // only dump image and dump movie styles process optional args
+  // ioptional = start of additional optional args in expanded args
 
-  ioptional = parse_fields(narg,arg);
+  ioptional = parse_fields(nfield,earg);
 
-  if (ioptional < narg &&
+  if (ioptional < nfield &&
       strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
     error->all(FLERR,"Invalid attribute in dump custom command");
-  size_one = nfield = ioptional - 5;
+
+  // noptional = # of optional args
+  // reset nfield to subtract off optional args
+  // reset ioptional to what it would be in original arg list
+  // only dump image and dump movie styles process optional args,
+  //   they do not use expanded earg list
+
+  int noptional = nfield - ioptional;
+  nfield -= noptional;
+  size_one = nfield;
+  ioptional = narg - noptional;
 
   // atom selection arrays
 
@@ -140,11 +157,11 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // setup column string
 
   int n = 0;
-  for (int iarg = 5; iarg < narg; iarg++) n += strlen(arg[iarg]) + 2;
+  for (int iarg = 0; iarg < nfield; iarg++) n += strlen(earg[iarg]) + 2;
   columns = new char[n];
   columns[0] = '\0';
-  for (int iarg = 5; iarg < narg; iarg++) {
-    strcat(columns,arg[iarg]);
+  for (int iarg = 0; iarg < nfield; iarg++) {
+    strcat(columns,earg[iarg]);
     strcat(columns," ");
   }
 }
@@ -153,6 +170,14 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
 DumpCustom::~DumpCustom()
 {
+  // if wildcard expansion occurred, free earg memory from expand_args()
+  // could not do in constructor, b/c some derived classes process earg
+
+  if (expand) {
+    for (int i = 0; i < nfield; i++) delete [] earg[i];
+    memory->sfree(earg);
+  }
+
   delete [] pack_choice;
   delete [] vtype;
   memory->destroy(field2index);
@@ -1018,8 +1043,8 @@ int DumpCustom::parse_fields(int narg, char **arg)
   // customize by adding to if statement
 
   int i;
-  for (int iarg = 5; iarg < narg; iarg++) {
-    i = iarg-5;
+  for (int iarg = 0; iarg < narg; iarg++) {
+    i = iarg;
 
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[i] = &DumpCustom::pack_id;

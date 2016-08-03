@@ -97,9 +97,11 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
       if (clock_factor < 0.0 || clock_factor > 1.0)
         error->all(FLERR,"Illegal fix balance command");
       iarg += 2;
+#if 0
     } else if (strcmp(arg[iarg],"group") == 0) {
       int ngroup = balance->group_setup(narg-iarg-1,arg+iarg+1);
       iarg += 2 + 2*ngroup;
+#endif
     } else error->all(FLERR,"Illegal fix balance command");
   }
 
@@ -229,10 +231,11 @@ void FixBalance::pre_exchange()
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // return if imbalance < threshhold
-
+#if 0
   if (clock_factor > 0.0)
     last_clock = balance->imbalance_clock(clock_factor,last_clock);
   imbnow = balance->imbalance_nlocal(maxperproc);
+#endif
   if (imbnow <= thresh) {
     if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
     return;

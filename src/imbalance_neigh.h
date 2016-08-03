@@ -20,20 +20,20 @@ namespace LAMMPS_NS {
 
 class ImbalanceNeigh : public Imbalance {
  public:
-  ImbalanceNeigh() : Imbalance() {};
+  ImbalanceNeigh(LAMMPS *lmp) : Imbalance(lmp), _factor(0.0) {};
   virtual ~ImbalanceNeigh() {};
 
-  // disallow copy constructor and assignment operator
+  // internal data members
  private:
-  ImbalanceNeigh(const ImbalanceNeigh &) {};
-  ImbalanceNeigh &operator=(const ImbalanceNeigh &) {return *this;};
+  double _factor;               // weight factor for neighbor imbalance
 
-  // required member functions
  public:
-  // parse options. return number of arguments consumed.
-  virtual int options(LAMMPS *lmp, int narg, char **arg);
-  // compute per-atom imbalance and apply to weight array
-  virtual void compute(LAMMPS *lmp, double *weight);
+  // parse options. return number of arguments consumed
+  virtual int options(int narg, char **arg);
+  // compute and apply weight factors to local atom array
+  virtual void compute(double *weights);
+  // print information about the state of this imbalance compute
+  virtual void info(FILE *fp);
 };
 
 }

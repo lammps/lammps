@@ -20,20 +20,24 @@ namespace LAMMPS_NS {
 
 class ImbalanceVar : public Imbalance {
  public:
-  ImbalanceVar() : Imbalance() {};
-  virtual ~ImbalanceVar() {};
+  ImbalanceVar(LAMMPS *lmp) : Imbalance(lmp), _name(0), _id(-1) {};
+  virtual ~ImbalanceVar() { delete[] _name; };
 
-  // disallow copy constructor and assignment operator
+  // internal data members
  private:
-  ImbalanceVar(const ImbalanceVar &) {};
-  ImbalanceVar &operator=(const ImbalanceVar &) {return *this;};
+  char *_name;                  // variable name
+  int _id;                      // variable ID
 
   // required member functions
  public:
   // parse options. return number of arguments consumed.
-  virtual int options(LAMMPS *lmp, int narg, char **arg);
+  virtual int options(int narg, char **arg);
+  // re-initialize internal data, e.g. variable ID
+  virtual void init();
   // compute per-atom imbalance and apply to weight array
-  virtual void compute(LAMMPS *lmp, double *weight);
+  virtual void compute(double *weight);
+  // print information about the state of this imbalance compute (required)
+  virtual void info(FILE *fp);
 };
 
 }

@@ -21,11 +21,11 @@
 
 using namespace LAMMPS_NS;
 
-int ImbalanceGroup::options(LAMMPS *lmp, int narg, char **arg)
+int ImbalanceGroup::options(int narg, char **arg)
 {
-  Error *error = lmp->error;
-  Force *force = lmp->force;
-  Group *group = lmp->group;
+  Error *error = _lmp->error;
+  Force *force = _lmp->force;
+  Group *group = _lmp->group;
 
   if (narg < 3) error->all(FLERR,"Illegal balance weight command");
 
@@ -41,14 +41,16 @@ int ImbalanceGroup::options(LAMMPS *lmp, int narg, char **arg)
       error->all(FLERR,"Unknown group in balance weight command");
     _factor[i] = force->numeric(FLERR,arg[2*i+2]);
   }
-  return _num;
+  return 2*_num+1;
 }
- 
-void ImbalanceGroup::compute(LAMMPS *lmp, double *weight)
+
+/* -------------------------------------------------------------------- */
+
+void ImbalanceGroup::compute(double *weight)
 {
-  const int * const mask = lmp->atom->mask;
-  const int * const bitmask = lmp->group->bitmask;
-  const int nlocal = lmp->atom->nlocal;
+  const int * const mask = _lmp->atom->mask;
+  const int * const bitmask = _lmp->group->bitmask;
+  const int nlocal = _lmp->atom->nlocal;
 
   if (_num == 0) return;
 
@@ -60,5 +62,19 @@ void ImbalanceGroup::compute(LAMMPS *lmp, double *weight)
         iweight *= _factor[j];
     }
     weight[i] = iweight;
+  }
+}
+
+/* -------------------------------------------------------------------- */
+
+void ImbalanceGroup::info(FILE *fp)
+{
+  if (_num > 0) {
+    const char * const * const names = _lmp->group->names;
+
+    fprintf(fp,"  group weights:");
+    for (int i = 0; i < _num; ++i)
+      fprintf(fp," %s=%g",names[_id[i]],_factor[i]);
+    fputs("\n",fp);
   }
 }

@@ -215,9 +215,9 @@ void DumpAtom::header_item(bigint ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-  fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-  fprintf(fp,"%g %g\n",boxylo,boxyhi);
-  fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
   fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 
@@ -230,9 +230,9 @@ void DumpAtom::header_item_triclinic(bigint ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-  fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-  fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-  fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
   fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 

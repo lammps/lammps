@@ -67,11 +67,17 @@ class Balance : protected Pointers {
   int *proccount;            // particle count per processor
   int *allproccount;
 
+  int nimbalance;
+  class Imbalance **imbalance; // list of imbalance compute classes
+  double *weight;            // per (local) atom weight factor or NULL
+
+#if 1
   int    ngroup;             // number of groups weights
   int    *group_id;          // group ids for weights
   double *group_weight;      // weights of groups
 
   double *clock_imbalance;   // computed wall clock imbalance, NULL if not available
+#endif
 
   int outflag;               // for output of balance results to file
   FILE *fp;

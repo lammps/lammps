@@ -30,6 +30,11 @@
 #include "group.h"
 #include "timer.h"
 
+#include "imbalance_group.h"
+#include "imbalance_time.h"
+#include "imbalance_neigh.h"
+#include "imbalance_var.h"
+
 using namespace LAMMPS_NS;
 
 enum{XYZ,SHIFT,BISECTION};
@@ -54,6 +59,10 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
 
   fp = NULL;
   firststep = 1;
+
+  nimbalance = 0;
+  imbalance = NULL;
+  weight = NULL;
 
   ngroup = 0;
   group_id = NULL;
@@ -86,11 +95,16 @@ Balance::~Balance()
   }
 
   delete rcb;
+  for (int i; i < nimbalance; ++i)
+    delete imbalance[i];
+  delete [] imbalance;
+  delete [] weight;
 
+#if 1
   delete [] group_id;
   delete [] group_weight;
   delete [] clock_imbalance;
-
+#endif
   if (fp) fclose(fp);
 }
 
@@ -100,6 +114,8 @@ Balance::~Balance()
 
 void Balance::command(int narg, char **arg)
 {
+  double start_time = MPI_Wtime();
+
   if (domain->box_exist == 0)
     error->all(FLERR,"Balance command before simulation box is defined");
 
@@ -199,10 +215,15 @@ void Balance::command(int narg, char **arg)
     } else break;
   }
 
-  // optional keywords
+  // process optional keywords
 
-  outflag = 0;
+  // get max number of imbalance weight flags/classes
+  nimbalance = 0;
+  for (int i=iarg; i < narg; ++i)
+    if (strcmp(arg[iarg],"weight") == 0) ++nimbalance;
+  imbalance = new Imbalance*[nimbalance];
 
+  nimbalance = outflag = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
@@ -213,6 +234,30 @@ void Balance::command(int narg, char **arg)
         if (fp == NULL) error->one(FLERR,"Cannot open balance output file");
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"weight") == 0) {
+      Imbalance *imb;
+      int nopt = 0;
+      if (strcmp(arg[iarg+1],"group") == 0) {
+        imb = new ImbalanceGroup;
+        nopt = imb->options(lmp,narg-iarg-1,arg+iarg+1);
+        imbalance[nimbalance] = imb;
+      } else if (strcmp(arg[iarg+1],"time") == 0) {
+        imb = new ImbalanceTime;
+        nopt = imb->options(lmp,narg-iarg-1,arg+iarg+1);
+        imbalance[nimbalance] = imb;
+      } else if (strcmp(arg[iarg+1],"neigh") == 0) {
+        imb = new ImbalanceNeigh;
+        nopt = imb->options(lmp,narg-iarg-1,arg+iarg+1);
+        imbalance[nimbalance] = imb;
+      } else if (strcmp(arg[iarg+1],"var") == 0) {
+        imb = new ImbalanceVar;
+        nopt = imb->options(lmp,narg-iarg-1,arg+iarg+1);
+        imbalance[nimbalance] = imb;
+      } else {
+        error->all(FLERR,"Unknown balance weight method");
+      }
+      iarg += 2+nopt;
+#if 1
     } else if (strcmp(arg[iarg],"clock") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
       double factor = force->numeric(FLERR,arg[iarg+1]);
@@ -223,6 +268,7 @@ void Balance::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"group") == 0) {
       group_setup(narg-iarg-1,arg+iarg+1);
       iarg += 2*ngroup + 2;
+#endif
     } else error->all(FLERR,"Illegal balance command");
   }
 
@@ -274,6 +320,17 @@ void Balance::command(int narg, char **arg)
   comm->setup();
   comm->exchange();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // compute and apply imbalance weights
+  if (nimbalance > 0) {
+    int i;
+    const int nlocal = atom->nlocal;
+    weight = new double[nlocal];
+    for (i = 0; i < nlocal; ++i)
+      weight[i] = 1.0;
+    for (i = 0; i < nimbalance; ++i)
+      imbalance[i]->compute(lmp,weight);
+  } else weight = NULL;
 
   // imbinit = initial imbalance
 
@@ -385,6 +442,8 @@ void Balance::command(int narg, char **arg)
 
   if (me == 0) {
     if (screen) {
+      fprintf(screen,"  rebalancing time: %g seconds\n",
+              MPI_Wtime()-start_time);
       fprintf(screen,"  iteration count = %d\n",niter);
       if (ngroup > 0) {
         fprintf(screen,"  group weights:");
@@ -641,12 +700,14 @@ int *Balance::bisection(int sortflag)
   // then invert() to create list of proc assignements for my atoms
   // Use specified weightings for each atom rather than atom count
 
+#if 1
   double factor = 1.0;
   if (clock_imbalance) factor = clock_imbalance[me];
 
   double *weights = new double[nlocal];
   for (int i = 0; i < nlocal; i++)
     weights[i] = getcost(i)*factor;
+#endif
 
   rcb->compute(dim,atom->nlocal,atom->x,weights,shrinklo,shrinkhi);
   rcb->invert(sortflag);

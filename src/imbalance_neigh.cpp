@@ -14,14 +14,40 @@
 
 #include "pointers.h"
 #include "imbalance_neigh.h"
+#include "atom.h"
+#include "error.h"
+#include "comm.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
 
-int ImbalanceNeigh::options(LAMMPS *lmp, int narg, char **arg)
+int ImbalanceNeigh::options(int narg, char **arg)
 {
-  return 0;
+  Error *error = _lmp->error;
+  Force *force = _lmp->force;
+
+  if (narg < 1) error->all(FLERR,"Illegal balance weight command");
+  _factor = force->numeric(FLERR,arg[0]);
+  if (_factor < 0.0 || _factor > 1.0)
+    error->all(FLERR,"Illegal balance weight command");
+  return 1;
 }
+
+/* -------------------------------------------------------------------- */
  
-void ImbalanceNeigh::compute(LAMMPS *lmp, double *weight)
+void ImbalanceNeigh::compute(double *weight)
 {
+  const int nlocal = _lmp->atom->nlocal;
+  MPI_Comm world = _lmp->world;
+
+  if (_factor > 0.0) {
+  }
+}
+
+/* -------------------------------------------------------------------- */
+
+void ImbalanceNeigh::info(FILE *fp)
+{
+  if (_factor > 0.0)
+    fprintf(fp,"  neigh weight factor: %g\n",_factor);
 }

@@ -14,25 +14,36 @@
 #ifndef LMP_IMBALANCE_H
 #define LMP_IMBALANCE_H
 
+#include <stdio.h>
+
 namespace LAMMPS_NS {
  class LAMMPS;
 
 class Imbalance {
  public:
-  Imbalance() {};
+  Imbalance(LAMMPS *lmp) : _lmp(lmp) {};
   virtual ~Imbalance() {};
 
-  // disallow copy constructor and assignment operator
+  // disallow default and copy constructor, assignment operator
  private:
+  Imbalance() {};
   Imbalance(const Imbalance &) {};
   Imbalance &operator=(const Imbalance &) {return *this;};
 
-  // required member functions
+  // internal use only data members
+ protected:
+  LAMMPS *_lmp;
+
+  // public API
  public:
-  // parse options. return number of arguments consumed.
-  virtual int options(LAMMPS *lmp, int narg, char **arg) = 0;
-  // compute and apply weigh factors to local atom array
-  virtual void compute(LAMMPS *lmp, double *weights) = 0;
+  // parse options. return number of arguments consumed. (required)
+  virtual int options(int narg, char **arg) = 0;
+  // reinitialize internal data (needed for fix balance) (optional)
+  virtual void init() {};
+  // compute and apply weight factors to local atom array (required)
+  virtual void compute(double *weights) = 0;
+  // print information about the state of this imbalance compute (required)
+  virtual void info(FILE *fp) = 0;
 };
 
 }

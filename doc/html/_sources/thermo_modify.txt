@@ -19,9 +19,9 @@ Syntax
      *norm* value = *yes* or *no*
      *flush* value = *yes* or *no*
      *line* value = *one* or *multi*
-     *format* values = *int* string or *float* string or M string
-       M = integer from 1 to N, where N = # of quantities being printed
+     *format* values = *line* string, *int* string, *float* string, M string, or *none*
        string = C-style format string
+       M = integer from 1 to N, where N = # of quantities being output
      *temp* value = compute ID that calculates a temperature
      *press* value = compute ID that calculates a pressure
 
@@ -34,6 +34,7 @@ Examples
 
    thermo_modify lost ignore flush yes
    thermo_modify temp myTemp format 3 %15.8g
+   thermo_modify temp myTemp format line "%ld %g %g %15.8g"
    thermo_modify line multi format float %g
 
 Description
@@ -100,30 +101,42 @@ is written to the log file.  This insures the output in that file is
 current (no buffering by the OS), even if LAMMPS halts before the
 simulation completes.
 
-The *line* keyword determines whether thermodynamics will be printed
-as a series of numeric values on one line or in a multi-line format
-with 3 quantities with text strings per line and a dashed-line header
+The *line* keyword determines whether thermodynamics will be output as
+a series of numeric values on one line or in a multi-line format with
+3 quantities with text strings per line and a dashed-line header
 containing the timestep and CPU time.  This modify option overrides
 the *one* and *multi* thermo_style settings.
 
-The *format* keyword sets the numeric format of individual printed
-quantities.  The *int* and *float* keywords set the format for all
-integer or floating-point quantities printed.  The setting with a
-numeric value M (e.g. format 5 %10.4g) sets the format of the Mth
-value printed in each output line, e.g. the 5th column of output in
-this case.  If the format for a specific column has been set, it will
-take precedent over the *int* or *float* setting.
+The *format* keyword can be used to change the default numeric format
+of any of quantities the :doc:`thermo_style <thermo_style>` command
+outputs.  All the specified format strings are C-style formats,
+e.g. as used by the C/C++ printf() command.  The *line* keyword takes
+a single argument which is the format string for the entire line of
+thermo output, with N fields, which you must enclose in quotes if it
+is more than one field.  The *int* and *float* keywords take a single
+format argument and are applied to all integer or floating-point
+quantities output.  The setting for *M string* also takes a single
+format argument which is used for the Mth value output in each line,
+e.g. the 5th column of output is output in high precision for "format
+5 %20.15g".
+
+The *format* keyword can be used multiple times.  The precedence is
+that for each value in a line of output, the *M* format (if specified)
+is used, else the *int* or *float* setting (if specified) is used,
+else the *line* setting (if specified) for that value is used, else
+the default setting is used.  A setting of *none* clears all previous
+settings, reverting all values to their default format.
 
 .. note::
 
    The thermo output values *step* and *atoms* are stored
    internally as 8-byte signed integers, rather than the usual 4-byte
-   signed integers.  When specifying the "format int" keyword you can use
+   signed integers.  When specifying the *format int* option you can use
    a "%d"-style format identifier in the format string and LAMMPS will
-   convert this to the corresponding "%lu" form when it is applied to
-   those keywords.  However, when specifying the "format M string"
-   keyword for *step* and *natoms*\ , you should specify a string
-   appropriate for an 8-byte signed integer, e.g. one with "%ld".
+   convert this to the corresponding 8-byte form when it is applied to
+   those keywords.  However, when specifying the *line* option or *format
+   M string* option for *step* and *natoms*\ , you should specify a format
+   string appropriate for an 8-byte signed integer, e.g. one with "%ld".
 
 The *temp* keyword is used to determine how thermodynamic temperature
 is calculated, which is used by all thermo quantities that require a

@@ -26,7 +26,9 @@ Syntax
      *fileper* arg = Np
        Np = write one file for every this many processors
      *first* arg = *yes* or *no*
-     *format* arg = C-style format string for one line of output
+     *format* args = *line* string, *int* string, *float* string, M string, or *none*
+       string = C-style format string
+       M = integer from 1 to N, where N = # of per-atom quantities being output
      *flush* arg = *yes* or *no*
      *image* arg = *yes* or *no*
      *label* arg = string
@@ -106,7 +108,8 @@ Examples
 
 .. parsed-literal::
 
-   dump_modify 1 format "%d %d %20.15g %g %g" scale yes
+   dump_modify 1 format line "%d %d %20.15g %g %g" scale yes
+   dump_modify 1 format float %20.15g scale yes
    dump_modify myDump image yes scale no flush yes
    dump_modify 1 region mySphere thresh x < 0.0 thresh epair >= 3.2
    dump_modify xtcdump precision 10000 sfactor 0.1
@@ -282,6 +285,41 @@ performed with dump style *xtc*\ .
 
 ----------
 
+
+The *format* keyword can be used to change the default numeric format
+output by the text-based dump styles: *atom*\ , *custom*\ , *cfg*\ , and
+*xyz* styles, and their MPIIO variants.  Only the *line* or *none*
+options can be used with the *atom* and *xyz* styles.
+
+All the specified format strings are C-style formats, e.g. as used by
+the C/C++ printf() command.  The *line* keyword takes a single
+argument which is the format string for an entire line of output for
+each atoms, with N fields, which you must enclose in quotes if it is
+more than one field.  The *int* and *float* keywords take a single
+format argument and are applied to all integer or floating-point
+quantities output.  The setting for *M string* also takes a single
+format argument which is used for the Mth value output in each line,
+e.g. the 5th column is output in high precision for "format 5
+%20.15g".
+
+The *format* keyword can be used multiple times.  The precedence is
+that for each value in a line of output, the *M* format (if specified)
+is used, else the *int* or *float* setting (if specified) is used,
+else the *line* setting (if specified) for that value is used, else
+the default setting is used.  A setting of *none* clears all previous
+settings, reverting all values to their default format.
+
+.. note::
+
+   Atom and molecule IDs are stored internally as 4-byte or 8-byte
+   signed integers, depending on how LAMMPS was compiled.  When
+   specifying the *format int* option you can use a "%d"-style format
+   identifier in the format string and LAMMPS will convert this to the
+   corresponding 8-byte form it it is needed when outputting those
+   values.  However, when specifying the *line* option or *format M
+   string* option for those values, you should specify a format string
+   appropriate for an 8-byte signed integer, e.g. one with "%ld", if
+   LAMMPS was compiled with the -DLAMMPS_BIGBIG option for 8-byte IDs.
 
 The text-based dump styles have a default C-style format string which
 simply specifies %d for integers and %g for floating-point values.

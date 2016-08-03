@@ -19,14 +19,16 @@
 namespace LAMMPS_NS {
 
 class ImbalanceGroup : public Imbalance {
- public:
-  ImbalanceGroup() : Imbalance() {};
-  virtual ~ImbalanceGroup() {};
 
-  // disallow copy constructor and assignment operator
+ public:
+  ImbalanceGroup() : Imbalance(), _num(0), _id(0), _factor(0) {};
+  virtual ~ImbalanceGroup() { delete[] _id; delete[] _factor; };
+
+  // internal data members
  private:
-  ImbalanceGroup(const ImbalanceGroup &) {};
-  ImbalanceGroup &operator=(const ImbalanceGroup &) {return *this;};
+  int _num;                     // number of groups with weights
+  int *_id;                     // list numerical id's of groups
+  double *_factor;              // list if group weight factors
 
   // required member functions
  public:

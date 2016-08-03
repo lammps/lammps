@@ -31,7 +31,7 @@ class Imbalance {
  public:
   // parse options. return number of arguments consumed.
   virtual int options(LAMMPS *lmp, int narg, char **arg) = 0;
-  // compute per-atom imbalance and apply to weight array
+  // compute and apply weigh factors to local atom array
   virtual void compute(LAMMPS *lmp, double *weights) = 0;
 };
 

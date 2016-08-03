@@ -45,13 +45,14 @@ void DumpAtom::init_style()
   if (image_flag == 0) size_one = 5;
   else size_one = 8;
 
-  // default format depends on image flags
+  // format = copy of default or user-specified line format
+  // default depends on image flags
 
   delete [] format;
-  if (format_user) {
-    int n = strlen(format_user) + 2;
+  if (format_line_user) {
+    int n = strlen(format_line_user) + 2;
     format = new char[n];
-    strcpy(format,format_user);
+    strcpy(format,format_line_user);
     strcat(format,"\n");
   } else {
     char *str;

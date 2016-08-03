@@ -45,10 +45,13 @@ class Thermo : protected Pointers {
   int nfield,nfield_initial;
   int me;
 
-  char **format,**format_user;
+  char **format;
+  char *format_line_user;
+  char *format_float_user,*format_int_user,*format_bigint_user;
+  char **format_column_user;
+
   char *format_float_one_def,*format_float_multi_def;
   char *format_int_one_def,*format_int_multi_def;
-  char *format_float_user,*format_int_user,*format_bigint_user;
   char format_multi[128];
   char format_bigint_one_def[8],format_bigint_multi_def[8];
 

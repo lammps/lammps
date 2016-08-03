@@ -308,16 +308,19 @@ int colvarmodule::parse_biases(std::string const &conf)
   }
 
   size_t n_hist_dep_biases = 0;
+  std::vector<std::string> hist_dep_biases_names;
   for (i = 0; i < biases.size(); i++) {
     if (biases[i]->is_enabled(cvm::deps::f_cvb_apply_force) &&
         biases[i]->is_enabled(cvm::deps::f_cvb_history_dependent)) {
       n_hist_dep_biases++;
+      hist_dep_biases_names.push_back(biases[i]->name);
     }
   }
-  if (n_hist_dep_biases) {
+  if (n_hist_dep_biases > 1) {
     cvm::log("WARNING: there are "+cvm::to_str(n_hist_dep_biases)+
-             " history-dependent biases with non-zero force parameters; "
-             "please make sure that their forces do not counteract each other.\n");
+             " history-dependent biases with non-zero force parameters:\n"+
+             cvm::to_str(hist_dep_biases_names)+"\n"+
+             "Please make sure that their forces do not counteract each other.\n");
   }
 
   if (biases.size() || use_scripted_forces) {

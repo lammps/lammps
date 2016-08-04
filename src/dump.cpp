@@ -829,7 +829,6 @@ void Dump::modify_params(int narg, char **arg)
         format_float_user = NULL;
         // pass format none to child classes which may use it
         // not an error if they don't
-        printf("CALL %d %s\n",narg-iarg,arg[iarg]);
         int n = modify_param(narg-iarg,&arg[iarg]);
         iarg += 2;
         continue;

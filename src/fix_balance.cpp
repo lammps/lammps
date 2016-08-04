@@ -89,7 +89,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   nimbalance = 0;
   imbalance = NULL;
   for (int i=iarg; i < narg; ++i)
-    if (strcmp(arg[iarg],"weight") == 0) ++nimbalance;
+    if (strcmp(arg[i],"weight") == 0) ++nimbalance;
   if (nimbalance) imbalance = new Imbalance*[nimbalance];
 
   outflag = 0;

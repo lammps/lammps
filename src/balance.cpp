@@ -207,7 +207,7 @@ void Balance::command(int narg, char **arg)
   // get max number of imbalance weight flags/classes
   nimbalance = 0;
   for (int i=iarg; i < narg; ++i)
-    if (strcmp(arg[iarg],"weight") == 0) ++nimbalance;
+    if (strcmp(arg[i],"weight") == 0) ++nimbalance;
   if (nimbalance) imbalance = new Imbalance*[nimbalance];
 
   nimbalance = outflag = 0;

@@ -33,9 +33,9 @@ class Balance : protected Pointers {
   ~Balance();
   void command(int, char **);
   void shift_setup(char *, int, double);
-  int shift();
-  int *bisection(int sortflag = 0);
-  double imbalance_nlocal(int &);
+  int shift(double *);
+  int *bisection(double *, int sortflag = 0);
+  double imbalance_nlocal(int &, double *);
   void dumpout(bigint, FILE *);
 
  private:
@@ -50,32 +50,31 @@ class Balance : protected Pointers {
   double stopthresh;
   char bstr[4];
 
-  int shift_allocate;        // 1 if SHIFT vectors have been allocated
-  int ndim;                  // length of balance string bstr
-  int *bdim;                 // XYZ for each character in bstr
-  bigint *count;             // counts for slices in one dim
-  bigint *onecount;          // work vector of counts in one dim
-  bigint *sum;               // cummulative count for slices in one dim
-  bigint *target;            // target sum for slices in one dim
-  double *lo,*hi;            // lo/hi split coords that bound each target
-  bigint *losum,*hisum;      // cummulative counts at lo/hi coords
-  int rho;                   // 0 for geometric recursion
-                             // 1 for density weighted recursion
+  int shift_allocate;           // 1 if SHIFT vectors have been allocated
+  int ndim;                     // length of balance string bstr
+  int *bdim;                    // XYZ for each character in bstr
+  bigint *count;                // counts for slices in one dim
+  bigint *onecount;             // work vector of counts in one dim
+  bigint *sum;                  // cummulative count for slices in one dim
+  bigint *target;               // target sum for slices in one dim
+  double *lo,*hi;               // lo/hi split coords that bound each target
+  bigint *losum,*hisum;         // cummulative counts at lo/hi coords
+  int rho;                      // 0 for geometric recursion
+                                // 1 for density weighted recursion
 
-  int *proccount;            // particle count per processor
+  int *proccount;               // (weighted) particle count per processor
   int *allproccount;
 
-  int nimbalance;
-  class Imbalance **imbalance; // list of imbalance compute classes
-  double *weight;            // per (local) atom weight factor or NULL
+  int nimbalance;               // number of imbalance weight computes
+  class Imbalance **imbalance;  // list of imbalance compute classes
 
-  int outflag;               // for output of balance results to file
+  int outflag;                  // for output of balance results to file
   FILE *fp;
   int firststep;
 
-  double imbalance_splits(int &);
+  double imbalance_splits(int &, double *);
   void shift_setup_static(char *);
-  void tally(int, int, double *);
+  void tally(int, int, double *, double *);
   int adjust(int, double *);
   int binary(double, int, double *);
 #ifdef BALANCE_DEBUG

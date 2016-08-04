@@ -16,7 +16,6 @@
 #include "imbalance_var.h"
 #include "atom.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
@@ -26,7 +25,6 @@ using namespace LAMMPS_NS;
 int ImbalanceVar::options(int narg, char **arg)
 {
   Error *error = _lmp->error;
-  Force *force = _lmp->force;
 
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
   int len = strlen(arg[0])+1;

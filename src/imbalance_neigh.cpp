@@ -18,6 +18,9 @@
 #include "error.h"
 #include "comm.h"
 #include "force.h"
+#include "neighbor.h"
+#include "neigh_request.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,10 +40,49 @@ int ImbalanceNeigh::options(int narg, char **arg)
  
 void ImbalanceNeigh::compute(double *weight)
 {
-  const int nlocal = _lmp->atom->nlocal;
-  MPI_Comm world = _lmp->world;
+  // find suitable existing neighbor list
+  Error *error = _lmp->error;
+  Neighbor *neighbor = _lmp->neighbor;
+  int req;
+
+  // we can only make use of certain (conventional) neighbor lists.
+  for (req = 0; req < neighbor->old_nrequest; ++req) {
+    if ((neighbor->old_requests[req]->half ||
+         neighbor->old_requests[req]->gran ||
+         neighbor->old_requests[req]->respaouter ||
+         neighbor->old_requests[req]->half_from_full) &&
+        neighbor->old_requests[req]->skip == 0 &&
+        neighbor->lists[req] && neighbor->lists[req]->numneigh) break;
+  }
+
+  if (req >= neighbor->old_nrequest) {
+    if (_lmp->comm->me == 0)
+      error->warning(FLERR,"No suitable neighbor list for balancing found");
+    return;
+  }
 
   if (_factor > 0.0) {
+
+    MPI_Comm world = _lmp->world;
+    NeighList *list = neighbor->lists[req];
+    bigint neighsum = 0;
+
+    const int inum = list->inum;
+    const int * const ilist = list->ilist;
+    const int * const numneigh = list->numneigh;
+
+    // first pass: get local number of neighbors.
+    for (int i = 0; i < inum; ++i) neighsum += numneigh[ilist[i]];
+
+    double allavg, myavg = ((double) neighsum)/((double) _lmp->atom->natoms);
+    MPI_Allreduce(&myavg,&allavg,1,MPI_DOUBLE,MPI_SUM,world);
+    double scale = 1.0/allavg;
+
+    // second pass: compute and apply weights
+    for (int ii = 0; ii < inum; ++ii) {
+      const int i = ilist[ii];
+      weight[i] *= (1.0-_factor) + _factor*scale*numneigh[i];
+    }
   }
 }
 

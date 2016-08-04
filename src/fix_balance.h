@@ -55,7 +55,6 @@ class FixBalance : public Fix {
 
   int nimbalance;               // number of imbalance weight computes
   class Imbalance **imbalance;  // list of imbalance compute classes
-  double *weight;               // per (local) atom weight factor or NULL
 
   class Balance *balance;
   class Irregular *irregular;

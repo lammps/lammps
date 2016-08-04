@@ -196,7 +196,6 @@ FixBalance::~FixBalance()
   delete balance;
   delete irregular;
 
-  delete[] weight;
   for (int i = 0; i < nimbalance; ++i)
     delete imbalance[i];
   delete[] imbalance;

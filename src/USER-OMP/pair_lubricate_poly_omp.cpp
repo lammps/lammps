@@ -236,50 +236,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
     sync_threads();
   }
 
-  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
-  // in the volume fraction as a result of fix deform or moving walls
-
-  double dims[3], wallcoord;
-  if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
-      if (flagdeform && !flagwall)
-        for (j = 0; j < 3; j++)
-          dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-         double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
-           wallhi[j] = domain->prd[j];
-           walllo[j] = 0;
-         }
-         for (int m = 0; m < wallfix->nwall; m++){
-           int dim = wallfix->wallwhich[m] / 2;
-           int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
-             wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
-           }
-           else wallcoord = wallfix->coord0[m];
-           if (side == 0) walllo[dim] = wallcoord;
-           else wallhi[dim] = wallcoord;
-         }
-         for (int j = 0; j < 3; j++)
-           dims[j] = wallhi[j] - walllo[j];
-      }
-      double vol_T = dims[0]*dims[1]*dims[2];
-      double vol_f = vol_P/vol_T;
-      if (flaglog == 0) {
-        R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
-        RT0 = 8*MY_PI*mu;
-        RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
-      } else {
-        R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-        RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
-        RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
-      }
-    }
-
-
-  // end of R0 adjustment code
-
+  // R0 adjustment has already been done in this->compute()
 
   for (ii = iifrom; ii < iito; ++ii) {
     i = ilist[ii];

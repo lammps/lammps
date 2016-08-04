@@ -48,17 +48,19 @@ class FixBalance : public Fix {
   double imbnow;                // current imbalance factor
   double imbprev;               // imbalance factor before last rebalancing
   double imbfinal;              // imbalance factor after last rebalancing
-  double clock_factor;          // weighting factor for timer imbalance
-  double last_clock;            // combined clock of previous balancing chunks
   int maxperproc;               // max atoms on any processor
   int itercount;                // iteration count of last call to Balance
   int kspace_flag;              // 1 if KSpace solver defined
   int pending;
 
+  int nimbalance;               // number of imbalance weight computes
+  class Imbalance **imbalance;  // list of imbalance compute classes
+  double *weight;               // per (local) atom weight factor or NULL
+
   class Balance *balance;
   class Irregular *irregular;
 
-  void rebalance();
+  void rebalance(double *);
 };
 
 }

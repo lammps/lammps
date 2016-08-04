@@ -65,9 +65,16 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   first_flag = 0;
   flush_flag = 1;
+
   format = NULL;
-  format_user = NULL;
   format_default = NULL;
+
+  format_line_user = NULL;
+  format_float_user = NULL;
+  format_int_user = NULL;
+  format_bigint_user = NULL;
+  format_column_user = NULL;
+
   clearstep = 0;
   sort_flag = 0;
   append_flag = 0;
@@ -140,7 +147,12 @@ Dump::~Dump()
 
   delete [] format;
   delete [] format_default;
-  delete [] format_user;
+  delete [] format_line_user;
+  delete [] format_float_user;
+  delete [] format_int_user;
+  delete [] format_bigint_user;
+
+  // format_column_user is deallocated by child classes that use it
 
   memory->destroy(buf);
   memory->destroy(bufsort);
@@ -805,14 +817,37 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      delete [] format_user;
-      format_user = NULL;
-      if (strcmp(arg[iarg+1],"none")) {
-        int n = strlen(arg[iarg+1]) + 1;
-        format_user = new char[n];
-        strcpy(format_user,arg[iarg+1]);
+
+      if (strcmp(arg[iarg+1],"none") == 0) {
+        delete [] format_line_user;
+        delete [] format_int_user;
+        delete [] format_bigint_user;
+        delete [] format_float_user;
+        format_line_user = NULL;
+        format_int_user = NULL;
+        format_bigint_user = NULL;
+        format_float_user = NULL;
+        // pass format none to child classes which may use it
+        // not an error if they don't
+        printf("CALL %d %s\n",narg-iarg,arg[iarg]);
+        int n = modify_param(narg-iarg,&arg[iarg]);
+        iarg += 2;
+        continue;
       }
-      iarg += 2;
+
+      if (iarg+3 > narg) error->all(FLERR,"Illegal dump_modify command");
+
+      if (strcmp(arg[iarg+1],"line") == 0) {
+        delete [] format_line_user;
+        int n = strlen(arg[iarg+2]) + 1;
+        format_line_user = new char[n];
+        strcpy(format_line_user,arg[iarg+2]);
+        iarg += 3;
+      } else {   // pass other format options to child classes
+        int n = modify_param(narg-iarg,&arg[iarg]);
+        if (n == 0) error->all(FLERR,"Illegal dump_modify command");
+        iarg += n;
+      }
 
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");

@@ -148,7 +148,9 @@
 <em>fileper</em> arg = Np
   Np = write one file for every this many processors
 <em>first</em> arg = <em>yes</em> or <em>no</em>
-<em>format</em> arg = C-style format string for one line of output
+<em>format</em> args = <em>line</em> string, <em>int</em> string, <em>float</em> string, M string, or <em>none</em>
+  string = C-style format string
+  M = integer from 1 to N, where N = # of per-atom quantities being output
 <em>flush</em> arg = <em>yes</em> or <em>no</em>
 <em>image</em> arg = <em>yes</em> or <em>no</em>
 <em>label</em> arg = string
@@ -225,7 +227,8 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump_modify</span> <span class="mi">1</span> <span class="nb">format</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%20.15g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="n">scale</span> <span class="n">yes</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump_modify</span> <span class="mi">1</span> <span class="nb">format</span> <span class="n">line</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%20.15g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="n">scale</span> <span class="n">yes</span>
+<span class="n">dump_modify</span> <span class="mi">1</span> <span class="nb">format</span> <span class="nb">float</span> <span class="o">%</span><span class="mf">20.15</span><span class="n">g</span> <span class="n">scale</span> <span class="n">yes</span>
 <span class="n">dump_modify</span> <span class="n">myDump</span> <span class="n">image</span> <span class="n">yes</span> <span class="n">scale</span> <span class="n">no</span> <span class="n">flush</span> <span class="n">yes</span>
 <span class="n">dump_modify</span> <span class="mi">1</span> <span class="n">region</span> <span class="n">mySphere</span> <span class="n">thresh</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="n">thresh</span> <span class="n">epair</span> <span class="o">&gt;=</span> <span class="mf">3.2</span>
 <span class="n">dump_modify</span> <span class="n">xtcdump</span> <span class="n">precision</span> <span class="mi">10000</span> <span class="n">sfactor</span> <span class="mf">0.1</span>
@@ -355,6 +358,38 @@ the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style <em>xtc</em>.</p>
 <hr class="docutils" />
+<p>The <em>format</em> keyword can be used to change the default numeric format
+output by the text-based dump styles: <em>atom</em>, <em>custom</em>, <em>cfg</em>, and
+<em>xyz</em> styles, and their MPIIO variants.  Only the <em>line</em> or <em>none</em>
+options can be used with the <em>atom</em> and <em>xyz</em> styles.</p>
+<p>All the specified format strings are C-style formats, e.g. as used by
+the C/C++ printf() command.  The <em>line</em> keyword takes a single
+argument which is the format string for an entire line of output for
+each atoms, with N fields, which you must enclose in quotes if it is
+more than one field.  The <em>int</em> and <em>float</em> keywords take a single
+format argument and are applied to all integer or floating-point
+quantities output.  The setting for <em>M string</em> also takes a single
+format argument which is used for the Mth value output in each line,
+e.g. the 5th column is output in high precision for &#8220;format 5
+%20.15g&#8221;.</p>
+<p>The <em>format</em> keyword can be used multiple times.  The precedence is
+that for each value in a line of output, the <em>M</em> format (if specified)
+is used, else the <em>int</em> or <em>float</em> setting (if specified) is used,
+else the <em>line</em> setting (if specified) for that value is used, else
+the default setting is used.  A setting of <em>none</em> clears all previous
+settings, reverting all values to their default format.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Atom and molecule IDs are stored internally as 4-byte or 8-byte
+signed integers, depending on how LAMMPS was compiled.  When
+specifying the <em>format int</em> option you can use a &#8220;%d&#8221;-style format
+identifier in the format string and LAMMPS will convert this to the
+corresponding 8-byte form it it is needed when outputting those
+values.  However, when specifying the <em>line</em> option or <em>format M
+string</em> option for those values, you should specify a format string
+appropriate for an 8-byte signed integer, e.g. one with &#8220;%ld&#8221;, if
+LAMMPS was compiled with the -DLAMMPS_BIGBIG option for 8-byte IDs.</p>
+</div>
 <p>The text-based dump styles have a default C-style format string which
 simply specifies %d for integers and %g for floating-point values.
 The <em>format</em> keyword can be used to override the default with a new

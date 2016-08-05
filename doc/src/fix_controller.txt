@@ -89,8 +89,8 @@ keywords described above. The discretized version of this equation is:
 
 :c,image(Eqs/fix_controller2.jpg)
 
-where {tau} = {Nevery}*timestep is the time interval between updates,
-and the subsripted variables indicated the values of {c} and {e} at
+where {tau} = {Nevery} * {timestep} is the time interval between updates,
+and the subscripted variables indicate the values of {c} and {e} at
 successive updates.
 
 From the first equation, it is clear that if the three gain values

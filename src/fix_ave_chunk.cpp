@@ -75,8 +75,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[nargnew];
   nvalues = 0;
 
-  int iarg = 7;
+  int iarg = 0;
   while (iarg < narg) {
+
     ids[nvalues] = NULL;
 
     if (strcmp(arg[iarg],"vx") == 0) {

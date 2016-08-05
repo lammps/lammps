@@ -139,7 +139,7 @@
 <li>Kp = proportional gain in PID equation (unitless)</li>
 <li>Ki = integral gain in PID equation (unitless)</li>
 <li>Kd = derivative gain in PID equation (unitless)</li>
-<li>pvar = process variable of form c_ID, c_ID[N], f_ID, f_ID[N], or v_name</li>
+<li>pvar = process variable of form c_ID, c_ID[I], f_ID, f_ID[I], or v_name</li>
 </ul>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
 <span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
@@ -233,8 +233,8 @@ the following dynamic equation:</p>
 <em>alpha</em>, <em>Kp</em>, <em>Ki</em>, and <em>Kd</em> are constants set by the corresponding
 keywords described above. The discretized version of this equation is:</p>
 <img alt="_images/fix_controller2.jpg" class="align-center" src="_images/fix_controller2.jpg" />
-<p>where <em>tau</em> = <em>Nevery</em><em>timestep is the time interval between updates,
-and the subsripted variables indicated the values of *c</em> and <em>e</em> at
+<p>where <em>tau</em> = <em>Nevery</em> * <em>timestep</em> is the time interval between updates,
+and the subscripted variables indicate the values of <em>c</em> and <em>e</em> at
 successive updates.</p>
 <p>From the first equation, it is clear that if the three gain values
 <em>Kp</em>, <em>Ki</em>, <em>Kd</em> are dimensionless constants, then <em>alpha</em> must have
@@ -254,9 +254,10 @@ feedback is sufficient, and so <em>Ki</em>=<em>Kd</em>=0 can be used. In cases w
 there is a substantial lag time in the response of <em>pvar</em> to a change
 in <em>cvar</em>, this can be counteracted by increasing <em>Kd</em>. In situations
 where <em>pvar</em> plateaus without reaching <em>setpoint</em>, this can be
-counteracted by increasing <em>Ki</em>.  In the language of Charles Dickens
-(or Donald Trump), <em>Kp</em> represents the error of the present, <em>Ki</em> the
-error of the past, and <em>Kd</em> the error yet to come.</p>
+counteracted by increasing <em>Ki</em>.  In the language of Charles Dickens,
+<em>Kp</em> represents the error of the present, <em>Ki</em> the error of the past,
+and <em>Kd</em> the error yet to come.  (insert your own Donald Trump joke
+here)</p>
 <p>Because this fix updates <em>cvar</em>, but does not initialize its value,
 the initial value is that assigned by the user in the input script via
 the <a class="reference internal" href="variable.html"><span class="doc">internal-style variable</span></a> command.  This value is

@@ -350,8 +350,27 @@ minimization, most likely in an undesirable way.
    setting.
 
 This fix computes a global scalar which can be accessed by various
-:ref:`output commands <howto_15>`.  The scalar is the
+:ref:`output commands <howto_15>`. The scalar is the
 pressure-volume energy, plus the strain energy, if it exists.
+
+This fix computes a global scalar which can be accessed by various
+:ref:`output commands <howto_15>`. The scalar is given
+by the energy expression shown above. The energy values reported
+at the end of a minimization run under "Minimization stats" include
+this energy, and so differ from what LAMMPS normally reports as
+potential energy. This fix does not support the
+:doc:`fix_modify <fix_modify>` *energy* option,
+because that would result in double-counting of the fix energy in the
+minimization energy. Instead, the fix energy can be explicitly
+added to the potential energy using one of these two variants:
+
+.. parsed-literal::
+
+   variable emin equal pe+f_1
+
+.. parsed-literal::
+
+   variable emin equal pe+f_1/atoms
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.

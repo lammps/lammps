@@ -19,7 +19,7 @@ alpha = coupling constant for PID equation (see units discussion below) :l
 Kp = proportional gain in PID equation (unitless) :l
 Ki = integral gain in PID equation (unitless) :l
 Kd = derivative gain in PID equation (unitless) :l
-pvar = process variable of form c_ID, c_ID\[N\], f_ID, f_ID\[N\], or v_name :l
+pvar = process variable of form c_ID, c_ID\[I\], f_ID, f_ID\[I\], or v_name :l
   c_ID = global scalar calculated by a compute with ID
   c_ID\[I\] = Ith component of global vector calculated by a compute with ID
   f_ID = global scalar calculated by a fix with ID
@@ -113,9 +113,10 @@ feedback is sufficient, and so {Ki}={Kd}=0 can be used. In cases where
 there is a substantial lag time in the response of {pvar} to a change
 in {cvar}, this can be counteracted by increasing {Kd}. In situations
 where {pvar} plateaus without reaching {setpoint}, this can be
-counteracted by increasing {Ki}.  In the language of Charles Dickens
-(or Donald Trump), {Kp} represents the error of the present, {Ki} the
-error of the past, and {Kd} the error yet to come.
+counteracted by increasing {Ki}.  In the language of Charles Dickens,
+{Kp} represents the error of the present, {Ki} the error of the past,
+and {Kd} the error yet to come.  (insert your own Donald Trump joke
+here)
 
 Because this fix updates {cvar}, but does not initialize its value,
 the initial value is that assigned by the user in the input script via

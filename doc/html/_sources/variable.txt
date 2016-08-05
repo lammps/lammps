@@ -11,7 +11,7 @@ Syntax
    variable name style args ...
 
 * name = name of variable to define
-* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *equal* or *vector* or *atom*
+* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *equal* or *internal* or *vector* or *atom*
 .. parsed-literal::
 
      *delete* = no args

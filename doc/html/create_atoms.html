@@ -312,16 +312,14 @@ three variables which will store the x, y, or z coordinates of an atom
 (one variable per coordinate).  If used, these other variables must be
 <a class="reference internal" href="variable.html"><span class="doc">internal-style variables</span></a> defined in the input script;
 their initial numeric value can be anything.  They must be
-internal-style variables, because this command updates their values
+internal-style variables, because this command resets their values
 directly.  The <em>set</em> keyword is used to identify the names of these
 other variables, one variable for the x-coordinate of a created atom,
 one for y, and one for z.</p>
 <p>When an atom is created, its x,y,z coordinates become the values for
 any <em>set</em> variable that is defined.  The <em>var</em> variable is then
 evaluated.  If the returned value is 0.0, the atom is not created.  If
-it is non-zero, the atom is created.  After all atoms are created, the
-formulas defined for all of the <em>set</em> variables are restored to their
-original strings.</p>
+it is non-zero, the atom is created.</p>
 <p>As an example, these commands can be used in a 2d simulation, to
 create a sinusoidal surface.  Note that the surface is &#8220;rough&#8221; due to
 individual lattice points being &#8220;above&#8221; or &#8220;below&#8221; the mathematical

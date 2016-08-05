@@ -242,7 +242,7 @@ per-atom values from a file rather than from a formula.  Variables of
 style <em>python</em> can be hooked to Python functions using code you
 provide, so that the variable gets its value from the evaluation of
 the Python code.  Variables of style <em>internal</em> are used by a few
-commands in LAMMPS which set their value directly.</p>
+commands which set their value directly.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">As discussed in <a class="reference internal" href="Section_commands.html#cmd-2"><span class="std std-ref">Section 3.2</span></a> of the
@@ -265,29 +265,25 @@ different values when it is evaluated at different times during a
 simulation.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">When the input script line is encountered that defines a
-variable of style <em>equal</em> or <em>vector</em> or <em>atom</em> or <em>python</em> that
-contains a formula or Python code, the formula is NOT immediately
-evaluated.  It will be evaluated every time when the variable is
-<strong>used</strong> instead.  If you simply want to evaluate a formula in place you
-can use as so-called. See the section below about &#8220;Immediate
-Evaluation of Variables&#8221; for more details on the topic.  This is also
-true of a <em>format</em> style variable since it evaluates another variable
-when it is invoked.</p>
+<p class="last">When an input script line is encountered that defines a variable
+of style <em>equal</em> or <em>vector</em> or <em>atom</em> or <em>python</em> that contains a
+formula or Python code, the formula is NOT immediately evaluated.  It
+will be evaluated every time when the variable is <strong>used</strong> instead.  If
+you simply want to evaluate a formula in place you can use as
+so-called. See the section below about &#8220;Immediate Evaluation of
+Variables&#8221; for more details on the topic.  This is also true of a
+<em>format</em> style variable since it evaluates another variable when it is
+invoked.</p>
 </div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Variables of style <em>equal</em> and <em>vector</em> and <em>atom</em> can be used
-as inputs to various other LAMMPS commands which evaluate their
-formulas as needed, e.g. at different timesteps during a
-<a class="reference internal" href="run.html"><span class="doc">run</span></a>.</p>
-</div>
+<p>Variables of style <em>equal</em> and <em>vector</em> and <em>atom</em> can be used as
+inputs to various other commands which evaluate their formulas as
+needed, e.g. at different timesteps during a <a class="reference internal" href="run.html"><span class="doc">run</span></a>.</p>
 <p>Variables of style <em>internal</em> can be used in place of an equal-style
-variable, except by commands that set the value in the internal-style
-variable.  Thus any command that states it can use an equal-style
-variable as an argument, can also use an internal-style variable.
-This means that when the LAMMPS command evaluates the variable, it
-will use the value set (internally) by another LAMMPS command.</p>
+variable, except by commands that set the value stored by the
+internal-style variable.  Thus any command that states it can use an
+equal-style variable as an argument, can also use an internal-style
+variable.  This means that when the command evaluates the variable, it
+will use the value set (internally) by another command.</p>
 <p>Variables of style <em>python</em> can be used in place of an equal-style
 variable so long as the associated Python function, as defined by the
 <a class="reference internal" href="python.html"><span class="doc">python</span></a> command, returns a numeric value.  Thus any
@@ -308,7 +304,7 @@ will override a corresponding index variable setting in the input
 script.</p>
 </div>
 <p>There are two exceptions to this rule.  First, variables of style
-<em>string</em>, <em>getenv</em>, <em>equal</em>, <em>vector</em>, <em>atom</em>, <em>internal</em>, and
+<em>string</em>, <em>getenv</em>, <em>internal</em>, <em>equal</em>, <em>vector</em>, <em>atom</em>, and
 <em>python</em> ARE redefined each time the command is encountered.  This
 allows these style of variables to be redefined multiple times in an
 input script.  In a loop, this means the formula associated with an

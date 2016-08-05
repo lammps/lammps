@@ -122,7 +122,7 @@ per-atom values from a file rather than from a formula.  Variables of
 style {python} can be hooked to Python functions using code you
 provide, so that the variable gets its value from the evaluation of
 the Python code.  Variables of style {internal} are used by a few
-commands in LAMMPS which set their value directly.
+commands which set their value directly.
 
 NOTE: As discussed in "Section 3.2"_Section_commands.html#cmd_2 of the
 manual, an input script can use "immediate" variables, specified as
@@ -143,27 +143,26 @@ evaluation of the string.  Note that the same string can generate
 different values when it is evaluated at different times during a
 simulation.
 
-NOTE: When the input script line is encountered that defines a
-variable of style {equal} or {vector} or {atom} or {python} that
-contains a formula or Python code, the formula is NOT immediately
-evaluated.  It will be evaluated every time when the variable is
-[used] instead.  If you simply want to evaluate a formula in place you
-can use as so-called. See the section below about "Immediate
-Evaluation of Variables" for more details on the topic.  This is also
-true of a {format} style variable since it evaluates another variable
-when it is invoked.
+NOTE: When an input script line is encountered that defines a variable
+of style {equal} or {vector} or {atom} or {python} that contains a
+formula or Python code, the formula is NOT immediately evaluated.  It
+will be evaluated every time when the variable is [used] instead.  If
+you simply want to evaluate a formula in place you can use as
+so-called. See the section below about "Immediate Evaluation of
+Variables" for more details on the topic.  This is also true of a
+{format} style variable since it evaluates another variable when it is
+invoked.
 
-NOTE: Variables of style {equal} and {vector} and {atom} can be used
-as inputs to various other LAMMPS commands which evaluate their
-formulas as needed, e.g. at different timesteps during a
-"run"_run.html.  
+Variables of style {equal} and {vector} and {atom} can be used as
+inputs to various other commands which evaluate their formulas as
+needed, e.g. at different timesteps during a "run"_run.html.
 
 Variables of style {internal} can be used in place of an equal-style
-variable, except by commands that set the value in the internal-style
-variable.  Thus any command that states it can use an equal-style
-variable as an argument, can also use an internal-style variable.
-This means that when the LAMMPS command evaluates the variable, it
-will use the value set (internally) by another LAMMPS command.
+variable, except by commands that set the value stored by the
+internal-style variable.  Thus any command that states it can use an
+equal-style variable as an argument, can also use an internal-style
+variable.  This means that when the command evaluates the variable, it
+will use the value set (internally) by another command.
 
 Variables of style {python} can be used in place of an equal-style
 variable so long as the associated Python function, as defined by the
@@ -184,7 +183,7 @@ will override a corresponding index variable setting in the input
 script.
 
 There are two exceptions to this rule.  First, variables of style
-{string}, {getenv}, {equal}, {vector}, {atom}, {internal}, and
+{string}, {getenv}, {internal}, {equal}, {vector}, {atom}, and
 {python} ARE redefined each time the command is encountered.  This
 allows these style of variables to be redefined multiple times in an
 input script.  In a loop, this means the formula associated with an

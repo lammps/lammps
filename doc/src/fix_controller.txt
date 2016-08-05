@@ -41,12 +41,12 @@ fix 1 all controller 10000 0.2 0.5 0 2000 v_avpe -3.785 tcontrol :pre
 This fix enables control of a LAMMPS simulation using a control loop
 feedback mechanism known as a proportional-integral-derivative (PID)
 controller.  The basic idea is to define a "process variable" which is
-a quantity that can be monitor during a running simulation.  A desired
-target value is chosen for the process variable.  A "control variable"
-is also defined which is an adjustable attribute of the simulation
-which the process variable will respond to.  The PID controller
-continuously adjusts the control variable based on the difference
-between the process variable and the target.
+a quantity that can be monitored during a running simulation.  A
+desired target value is chosen for the process variable.  A "control
+variable" is also defined which is an adjustable attribute of the
+running simulation, which the process variable will respond to.  The
+PID controller continuously adjusts the control variable based on the
+difference between the process variable and the target.
 
 Here are examples of ways in which this fix can be used.  The
 examples/pid directory contains a script that implements the simple
@@ -118,12 +118,12 @@ counteracted by increasing {Ki}.  In the language of Charles Dickens
 error of the past, and {Kd} the error yet to come.
 
 Because this fix updates {cvar}, but does not initialize its value,
-the initial value is that assigned by the user in the internal-style
-variable command. This value is used (by the other LAMMPS command that
-used the variable) until this fix performs its first update of {cvar}
-after {Nevery} timesteps.  On the first update, the value of the
-derivative term is set to zero, because the value of {e_n-1} is not
-yet defined.
+the initial value is that assigned by the user in the input script via
+the "internal-style variable"_variable.html command.  This value is
+used (by the other LAMMPS command that used the variable) until this
+fix performs its first update of {cvar} after {Nevery} timesteps.  On
+the first update, the value of the derivative term is set to zero,
+because the value of {e_n-1} is not yet defined.
 
 :line
 

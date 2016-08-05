@@ -166,12 +166,12 @@
 <p>This fix enables control of a LAMMPS simulation using a control loop
 feedback mechanism known as a proportional-integral-derivative (PID)
 controller.  The basic idea is to define a &#8220;process variable&#8221; which is
-a quantity that can be monitor during a running simulation.  A desired
-target value is chosen for the process variable.  A &#8220;control variable&#8221;
-is also defined which is an adjustable attribute of the simulation
-which the process variable will respond to.  The PID controller
-continuously adjusts the control variable based on the difference
-between the process variable and the target.</p>
+a quantity that can be monitored during a running simulation.  A
+desired target value is chosen for the process variable.  A &#8220;control
+variable&#8221; is also defined which is an adjustable attribute of the
+running simulation, which the process variable will respond to.  The
+PID controller continuously adjusts the control variable based on the
+difference between the process variable and the target.</p>
 <p>Here are examples of ways in which this fix can be used.  The
 examples/pid directory contains a script that implements the simple
 thermostat.</p>
@@ -258,12 +258,12 @@ counteracted by increasing <em>Ki</em>.  In the language of Charles Dickens
 (or Donald Trump), <em>Kp</em> represents the error of the present, <em>Ki</em> the
 error of the past, and <em>Kd</em> the error yet to come.</p>
 <p>Because this fix updates <em>cvar</em>, but does not initialize its value,
-the initial value is that assigned by the user in the internal-style
-variable command. This value is used (by the other LAMMPS command that
-used the variable) until this fix performs its first update of <em>cvar</em>
-after <em>Nevery</em> timesteps.  On the first update, the value of the
-derivative term is set to zero, because the value of <em>e_n-1</em> is not
-yet defined.</p>
+the initial value is that assigned by the user in the input script via
+the <a class="reference internal" href="variable.html"><span class="doc">internal-style variable</span></a> command.  This value is
+used (by the other LAMMPS command that used the variable) until this
+fix performs its first update of <em>cvar</em> after <em>Nevery</em> timesteps.  On
+the first update, the value of the derivative term is set to zero,
+because the value of <em>e_n-1</em> is not yet defined.</p>
 <hr class="docutils" />
 <p>The process variable <em>pvar</em> can be specified as the output of a
 <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> or <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> or the evaluation of a

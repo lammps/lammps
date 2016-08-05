@@ -33,8 +33,10 @@ fix             10 all controller 100 1.0 0.5 0.0 0.0 &
                 c_thermo_temp 1.5 tcontrol
 
 # time-average temp for control
+		
 #fix             ave all ave/time 5 20 100 c_thermo_temp
-#fix             10 all controller 100 0.5 0.0 0.0 f_ave 1.5 tcontrol
+#fix             10 all controller 100 1.0 0.5 0.0 0.0 &
+#                f_ave 1.5 tcontrol
 
 # run with controller
 

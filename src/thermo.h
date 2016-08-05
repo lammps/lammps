@@ -45,10 +45,13 @@ class Thermo : protected Pointers {
   int nfield,nfield_initial;
   int me;
 
-  char **format,**format_user;
+  char **format;
+  char *format_line_user;
+  char *format_float_user,*format_int_user,*format_bigint_user;
+  char **format_column_user;
+
   char *format_float_one_def,*format_float_multi_def;
   char *format_int_one_def,*format_int_multi_def;
-  char *format_float_user,*format_int_user,*format_bigint_user;
   char format_multi[128];
   char format_bigint_one_def[8],format_bigint_multi_def[8];
 
@@ -79,9 +82,9 @@ class Thermo : protected Pointers {
                          // index = where they are in computes list
                          // id = ID of Compute objects
                          // Compute * = ptrs to the Compute objects
-  int index_temp,index_press_scalar,index_press_vector,index_pe;
-  char *id_temp,*id_press,*id_pe;
-  class Compute *temperature,*pressure,*pe;
+  int index_temp,index_press_scalar,index_press_vector,index_pe,index_ke;
+  char *id_temp,*id_press,*id_pe,*id_ke;
+  class Compute *temperature,*pressure,*pe,*ke;
 
   int ncompute;                // # of Compute objects called by thermo
   char **id_compute;           // their IDs

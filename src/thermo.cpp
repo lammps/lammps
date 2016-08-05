@@ -151,12 +151,14 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   temperature = NULL;
   pressure = NULL;
   pe = NULL;
+  ke = NULL;
 
-  index_temp = index_press_scalar = index_press_vector = index_pe = -1;
+  index_temp = index_press_scalar = index_press_vector = index_pe = index_ke = -1;
 
   id_temp = (char *) "thermo_temp";
   id_press = (char *) "thermo_press";
   id_pe = (char *) "thermo_pe";
+  id_ke = (char *) "thermo_ke";
 
   // count fields in line
   // allocate per-field memory
@@ -180,6 +182,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   sprintf(format_bigint_one_def,"%%8%s",&bigint_format[1]);
   sprintf(format_bigint_multi_def,"%%14%s",&bigint_format[1]);
 
+  format_line_user = NULL;
   format_float_user = NULL;
   format_int_user = NULL;
   format_bigint_user = NULL;
@@ -195,7 +198,8 @@ Thermo::~Thermo()
   deallocate();
 
   // format strings
-
+  
+  delete [] format_line_user;
   delete [] format_float_user;
   delete [] format_int_user;
   delete [] format_bigint_user;
@@ -225,22 +229,37 @@ void Thermo::init()
   // add '/n' every 3 values if lineflag = MULTILINE
   // add trailing '/n' to last value
 
-  char *ptr;
+  char *format_line = NULL;
+  if (format_line_user) {
+    int n = strlen(format_line_user) + 1;
+    format_line = new char[n];
+    strcpy(format_line,format_line_user);
+  }
+
+  char *ptr,*format_line_ptr;
   for (i = 0; i < nfield; i++) {
     format[i][0] = '\0';
     if (lineflag == MULTILINE && i % 3 == 0) strcat(format[i],"\n");
 
-    if (format_user[i]) ptr = format_user[i];
+    if (format_line) {
+      if (i == 0) format_line_ptr = strtok(format_line," \0");
+      else format_line_ptr = strtok(NULL," \0");
+    }
+
+    if (format_column_user[i]) ptr = format_column_user[i];
     else if (vtype[i] == FLOAT) {
       if (format_float_user) ptr = format_float_user;
+      else if (format_line_user) ptr = format_line_ptr;
       else if (lineflag == ONELINE) ptr = format_float_one_def;
       else if (lineflag == MULTILINE) ptr = format_float_multi_def;
     } else if (vtype[i] == INT) {
       if (format_int_user) ptr = format_int_user;
+      else if (format_line_user) ptr = format_line_ptr;
       else if (lineflag == ONELINE) ptr = format_int_one_def;
       else if (lineflag == MULTILINE) ptr = format_int_multi_def;
     } else if (vtype[i] == BIGINT) {
       if (format_bigint_user) ptr = format_bigint_user;
+      else if (format_line_user) ptr = format_line_ptr;
       else if (lineflag == ONELINE) ptr = format_bigint_one_def;
       else if (lineflag == MULTILINE) ptr = format_bigint_multi_def;
     }
@@ -248,9 +267,10 @@ void Thermo::init()
     n = strlen(format[i]);
     if (lineflag == ONELINE) sprintf(&format[i][n],"%s ",ptr);
     else sprintf(&format[i][n],"%-8s = %s ",keyword[i],ptr);
-
-    if (i == nfield-1) strcat(format[i],"\n");
   }
+  strcat(format[nfield-1],"\n");
+
+  delete [] format_line;
 
   // find current ptr for each Compute ID
 
@@ -289,6 +309,7 @@ void Thermo::init()
   if (index_press_scalar >= 0) pressure = computes[index_press_scalar];
   if (index_press_vector >= 0) pressure = computes[index_press_vector];
   if (index_pe >= 0) pe = computes[index_pe];
+  if (index_ke >= 0) ke = computes[index_ke];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -540,22 +561,50 @@ void Thermo::modify_params(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"format") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
+
+      if (strcmp(arg[iarg+1],"none") == 0) {
+        delete [] format_line_user;
+        delete [] format_int_user;
+        delete [] format_bigint_user;
+        delete [] format_float_user;
+        format_line_user = NULL;
+        format_int_user = NULL;
+        format_bigint_user = NULL;
+        format_float_user = NULL;
+        for (int i = 0; i < nfield_initial; i++) {
+          delete [] format_column_user[i];
+          format_column_user[i] = NULL;
+        }
+        iarg += 2;
+        continue;
+      }
+
       if (iarg+3 > narg) error->all(FLERR,"Illegal thermo_modify command");
-      if (strcmp(arg[iarg+1],"int") == 0) {
+
+      if (strcmp(arg[iarg+1],"line") == 0) {
+        delete [] format_line_user;
+        int n = strlen(arg[iarg+2]) + 1;
+        format_line_user = new char[n];
+        strcpy(format_line_user,arg[iarg+2]);
+      } else if (strcmp(arg[iarg+1],"int") == 0) {
         if (format_int_user) delete [] format_int_user;
         int n = strlen(arg[iarg+2]) + 1;
         format_int_user = new char[n];
         strcpy(format_int_user,arg[iarg+2]);
         if (format_bigint_user) delete [] format_bigint_user;
-        n = strlen(format_int_user) + 3;
+        n = strlen(format_int_user) + 8;
         format_bigint_user = new char[n];
+        // replace "d" in format_int_user with bigint format specifier
+        // use of &str[1] removes leading '%' from BIGINT_FORMAT string
         char *ptr = strchr(format_int_user,'d');
         if (ptr == NULL)
           error->all(FLERR,
                      "Thermo_modify int format does not contain d character");
+        char str[8];
+        sprintf(str,"%s",BIGINT_FORMAT);
         *ptr = '\0';
-        sprintf(format_bigint_user,"%s%s%s",format_int_user,
-                BIGINT_FORMAT,ptr+1);
+        sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
         *ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
         if (format_float_user) delete [] format_float_user;
@@ -566,10 +615,10 @@ void Thermo::modify_params(int narg, char **arg)
         int i = force->inumeric(FLERR,arg[iarg+1]) - 1;
         if (i < 0 || i >= nfield_initial)
           error->all(FLERR,"Illegal thermo_modify command");
-        if (format_user[i]) delete [] format_user[i];
+        if (format_column_user[i]) delete [] format_column_user[i];
         int n = strlen(arg[iarg+2]) + 1;
-        format_user[i] = new char[n];
-        strcpy(format_user[i],arg[iarg+2]);
+        format_column_user[i] = new char[n];
+        strcpy(format_column_user[i],arg[iarg+2]);
       }
       iarg += 3;
 
@@ -594,8 +643,8 @@ void Thermo::allocate()
 
   format = new char*[n];
   for (int i = 0; i < n; i++) format[i] = new char[32];
-  format_user = new char*[n];
-  for (int i = 0; i < n; i++) format_user[i] = NULL;
+  format_column_user = new char*[n];
+  for (int i = 0; i < n; i++) format_column_user[i] = NULL;
 
   field2index = new int[n];
   argindex1 = new int[n];
@@ -632,8 +681,8 @@ void Thermo::deallocate()
 
   for (int i = 0; i < n; i++) delete [] format[i];
   delete [] format;
-  for (int i = 0; i < n; i++) delete [] format_user[i];
-  delete [] format_user;
+  for (int i = 0; i < n; i++) delete [] format_column_user[i];
+  delete [] format_column_user;
 
   delete [] field2index;
   delete [] argindex1;
@@ -703,16 +752,16 @@ void Thermo::parse_fields(char *str)
       index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"ke") == 0) {
       addfield("KinEng",&Thermo::compute_ke,FLOAT);
-      index_temp = add_compute(id_temp,SCALAR);
+      index_ke = add_compute(id_ke,SCALAR);
     } else if (strcmp(word,"etotal") == 0) {
       addfield("TotEng",&Thermo::compute_etotal,FLOAT);
-      index_temp = add_compute(id_temp,SCALAR);
+      index_ke = add_compute(id_ke,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
     } else if (strcmp(word,"enthalpy") == 0) {
       addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
-      index_temp = add_compute(id_temp,SCALAR);
-      index_press_scalar = add_compute(id_press,SCALAR);
+      index_ke = add_compute(id_ke,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
+      index_press_scalar = add_compute(id_press,SCALAR);
 
     } else if (strcmp(word,"evdwl") == 0) {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
@@ -1135,16 +1184,16 @@ int Thermo::evaluate_keyword(char *word, double *answer)
     compute_pe();
 
   } else if (strcmp(word,"ke") == 0) {
-    if (!temperature)
+    if (!ke)
       error->all(FLERR,"Thermo keyword in variable requires "
-                 "thermo to use/init temp");
+                 "thermo to use/init ke");
     if (update->whichflag == 0) {
-      if (temperature->invoked_scalar != update->ntimestep)
+      if (ke->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
-      temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+    } else if (!(ke->invoked_flag & INVOKED_SCALAR)) {
+      ke->compute_scalar();
+      ke->invoked_flag |= INVOKED_SCALAR;
     }
     compute_ke();
 
@@ -1160,16 +1209,16 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
-    if (!temperature)
+    if (!ke)
       error->all(FLERR,"Thermo keyword in variable requires "
-                 "thermo to use/init temp");
+                 "thermo to use/init ke");
     if (update->whichflag == 0) {
-      if (temperature->invoked_scalar != update->ntimestep)
+      if (ke->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
-      temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+    } else if (!(ke->invoked_flag & INVOKED_SCALAR)) {
+      ke->compute_scalar();
+      ke->invoked_flag |= INVOKED_SCALAR;
     }
     compute_etotal();
 
@@ -1185,16 +1234,16 @@ int Thermo::evaluate_keyword(char *word, double *answer)
       pe->compute_scalar();
       pe->invoked_flag |= INVOKED_SCALAR;
     }
-    if (!temperature)
+    if (!ke)
       error->all(FLERR,"Thermo keyword in variable requires "
-                 "thermo to use/init temp");
+                 "thermo to use/init ke");
     if (update->whichflag == 0) {
-      if (temperature->invoked_scalar != update->ntimestep)
+      if (ke->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
-      temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+    } else if (!(ke->invoked_flag & INVOKED_SCALAR)) {
+      ke->compute_scalar();
+      ke->invoked_flag |= INVOKED_SCALAR;
     }
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1655,8 +1704,7 @@ void Thermo::compute_pe()
 
 void Thermo::compute_ke()
 {
-  dvalue = temperature->scalar;
-  dvalue *= 0.5 * temperature->dof * force->boltz;
+  dvalue = ke->scalar;
   if (normflag) dvalue /= natoms;
 }
 
@@ -1665,10 +1713,9 @@ void Thermo::compute_ke()
 void Thermo::compute_etotal()
 {
   compute_pe();
-  double ke = temperature->scalar;
-  ke *= 0.5 * temperature->dof * force->boltz;
-  if (normflag) ke /= natoms;
-  dvalue += ke;
+  double ek = ke->scalar;
+  if (normflag) ek /= natoms;
+  dvalue += ek;
 }
 
 /* ---------------------------------------------------------------------- */

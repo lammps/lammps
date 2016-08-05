@@ -54,7 +54,7 @@ enum{ID,MOL,TYPE,ELEMENT,MASS,
      TQX,TQY,TQZ,SPIN,ERADIUS,ERVEL,ERFORCE,
      COMPUTE,FIX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ};
-enum{INT,DOUBLE,STRING};    // same as in DumpCFG
+enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 
 /* ---------------------------------------------------------------------- */
 
@@ -221,36 +221,46 @@ void DumpCustomMPIIO::write()
 
 void DumpCustomMPIIO::init_style()
 {
+  // format = copy of default or user-specified line format
 
   delete [] format;
   char *str;
-  if (format_user) str = format_user;
+  if (format_line_user) str = format_line_user;
   else str = format_default;
 
   int n = strlen(str) + 1;
   format = new char[n];
   strcpy(format,str);
 
-  // default for element names = C
-
-  if (typenames == NULL) {
-    typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[2];
-      strcpy(typenames[itype],"C");
-    }
-  }
-
   // tokenize the format string and add space at end of each format element
+  // if user-specified int/float format exists, use it instead
+  // if user-specified column format exists, use it instead
+  // lo priority = line, medium priority = int/float, hi priority = column
 
   char *ptr;
   for (int i = 0; i < size_one; i++) {
     if (i == 0) ptr = strtok(format," \0");
     else ptr = strtok(NULL," \0");
-    if (ptr == NULL) error->all(FLERR,"Dump_modify format string is too short");
+    if (ptr == NULL) error->all(FLERR,"Dump_modify format line is too short");
     delete [] vformat[i];
-    vformat[i] = new char[strlen(ptr) + 2];
-    strcpy(vformat[i],ptr);
+
+    if (format_column_user[i]) {
+      vformat[i] = new char[strlen(format_column_user[i]) + 2];
+      strcpy(vformat[i],format_column_user[i]);
+    } else if (vtype[i] == INT && format_int_user) {
+      vformat[i] = new char[strlen(format_int_user) + 2];
+      strcpy(vformat[i],format_int_user);
+    } else if (vtype[i] == DOUBLE && format_float_user) {
+      vformat[i] = new char[strlen(format_float_user) + 2];
+      strcpy(vformat[i],format_float_user);
+    } else if (vtype[i] == BIGINT && format_bigint_user) {
+      vformat[i] = new char[strlen(format_bigint_user) + 2];
+      strcpy(vformat[i],format_bigint_user);
+    } else {
+      vformat[i] = new char[strlen(ptr) + 2];
+      strcpy(vformat[i],ptr);
+    }
+
     vformat[i] = strcat(vformat[i]," ");
   }
 

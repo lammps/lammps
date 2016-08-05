@@ -141,9 +141,9 @@ keyword = <em>lost</em> or <em>lost/bond</em> or <em>norm</em> or <em>flush</em>
   <em>norm</em> value = <em>yes</em> or <em>no</em>
   <em>flush</em> value = <em>yes</em> or <em>no</em>
   <em>line</em> value = <em>one</em> or <em>multi</em>
-  <em>format</em> values = <em>int</em> string or <em>float</em> string or M string
-    M = integer from 1 to N, where N = # of quantities being printed
+  <em>format</em> values = <em>line</em> string, <em>int</em> string, <em>float</em> string, M string, or <em>none</em>
     string = C-style format string
+    M = integer from 1 to N, where N = # of quantities being output
   <em>temp</em> value = compute ID that calculates a temperature
   <em>press</em> value = compute ID that calculates a pressure
 </pre>
@@ -152,6 +152,7 @@ keyword = <em>lost</em> or <em>lost/bond</em> or <em>norm</em> or <em>flush</em>
 <h2>Examples</h2>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thermo_modify</span> <span class="n">lost</span> <span class="n">ignore</span> <span class="n">flush</span> <span class="n">yes</span>
 <span class="n">thermo_modify</span> <span class="n">temp</span> <span class="n">myTemp</span> <span class="nb">format</span> <span class="mi">3</span> <span class="o">%</span><span class="mf">15.8</span><span class="n">g</span>
+<span class="n">thermo_modify</span> <span class="n">temp</span> <span class="n">myTemp</span> <span class="nb">format</span> <span class="n">line</span> <span class="s2">&quot;</span><span class="si">%ld</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%15.8g</span><span class="s2">&quot;</span>
 <span class="n">thermo_modify</span> <span class="n">line</span> <span class="n">multi</span> <span class="nb">format</span> <span class="nb">float</span> <span class="o">%</span><span class="n">g</span>
 </pre></div>
 </div>
@@ -214,28 +215,39 @@ if this is not the case.</p>
 is written to the log file.  This insures the output in that file is
 current (no buffering by the OS), even if LAMMPS halts before the
 simulation completes.</p>
-<p>The <em>line</em> keyword determines whether thermodynamics will be printed
-as a series of numeric values on one line or in a multi-line format
-with 3 quantities with text strings per line and a dashed-line header
+<p>The <em>line</em> keyword determines whether thermodynamics will be output as
+a series of numeric values on one line or in a multi-line format with
+3 quantities with text strings per line and a dashed-line header
 containing the timestep and CPU time.  This modify option overrides
 the <em>one</em> and <em>multi</em> thermo_style settings.</p>
-<p>The <em>format</em> keyword sets the numeric format of individual printed
-quantities.  The <em>int</em> and <em>float</em> keywords set the format for all
-integer or floating-point quantities printed.  The setting with a
-numeric value M (e.g. format 5 %10.4g) sets the format of the Mth
-value printed in each output line, e.g. the 5th column of output in
-this case.  If the format for a specific column has been set, it will
-take precedent over the <em>int</em> or <em>float</em> setting.</p>
+<p>The <em>format</em> keyword can be used to change the default numeric format
+of any of quantities the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command
+outputs.  All the specified format strings are C-style formats,
+e.g. as used by the C/C++ printf() command.  The <em>line</em> keyword takes
+a single argument which is the format string for the entire line of
+thermo output, with N fields, which you must enclose in quotes if it
+is more than one field.  The <em>int</em> and <em>float</em> keywords take a single
+format argument and are applied to all integer or floating-point
+quantities output.  The setting for <em>M string</em> also takes a single
+format argument which is used for the Mth value output in each line,
+e.g. the 5th column of output is output in high precision for &#8220;format
+5 %20.15g&#8221;.</p>
+<p>The <em>format</em> keyword can be used multiple times.  The precedence is
+that for each value in a line of output, the <em>M</em> format (if specified)
+is used, else the <em>int</em> or <em>float</em> setting (if specified) is used,
+else the <em>line</em> setting (if specified) for that value is used, else
+the default setting is used.  A setting of <em>none</em> clears all previous
+settings, reverting all values to their default format.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The thermo output values <em>step</em> and <em>atoms</em> are stored
 internally as 8-byte signed integers, rather than the usual 4-byte
-signed integers.  When specifying the &#8220;format int&#8221; keyword you can use
+signed integers.  When specifying the <em>format int</em> option you can use
 a &#8220;%d&#8221;-style format identifier in the format string and LAMMPS will
-convert this to the corresponding &#8220;%lu&#8221; form when it is applied to
-those keywords.  However, when specifying the &#8220;format M string&#8221;
-keyword for <em>step</em> and <em>natoms</em>, you should specify a string
-appropriate for an 8-byte signed integer, e.g. one with &#8220;%ld&#8221;.</p>
+convert this to the corresponding 8-byte form when it is applied to
+those keywords.  However, when specifying the <em>line</em> option or <em>format
+M string</em> option for <em>step</em> and <em>natoms</em>, you should specify a format
+string appropriate for an 8-byte signed integer, e.g. one with &#8220;%ld&#8221;.</p>
 </div>
 <p>The <em>temp</em> keyword is used to determine how thermodynamic temperature
 is calculated, which is used by all thermo quantities that require a

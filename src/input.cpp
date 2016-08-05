@@ -594,7 +594,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 
 int Input::expand_args(int narg, char **arg, int mode, char **&earg)
 {
-  int n,iarg,index,nlo,nhi,nmax,which,expandflag,icompute,ifix;
+  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
   char *ptr1,*ptr2,*str;
 
   ptr1 = NULL;

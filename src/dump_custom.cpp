@@ -134,10 +134,14 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   dchoose = NULL;
   clist = NULL;
 
-  // element names
+  // default element name for all types = C
 
   ntypes = atom->ntypes;
-  typenames = NULL;
+  typenames = new char*[ntypes+1];
+  for (int itype = 1; itype <= ntypes; itype++) {
+    typenames[itype] = new char[2];
+    strcpy(typenames[itype],"C");
+  }
 
   // setup format strings
 
@@ -153,6 +157,9 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     else if (vtype[i] == BIGINT) strcat(format_default,BIGINT_FORMAT " ");
     vformat[i] = NULL;
   }
+
+  format_column_user = new char*[size_one];
+  for (int i = 0; i < size_one; i++) format_column_user[i] = NULL;
 
   // setup column string
 
@@ -210,13 +217,14 @@ DumpCustom::~DumpCustom()
   memory->destroy(dchoose);
   memory->destroy(clist);
 
-  if (typenames) {
-    for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
-    delete [] typenames;
-  }
+  for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
+  delete [] typenames;
 
   for (int i = 0; i < size_one; i++) delete [] vformat[i];
   delete [] vformat;
+
+  for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
+  delete [] format_column_user;
 
   delete [] columns;
 }
@@ -225,35 +233,46 @@ DumpCustom::~DumpCustom()
 
 void DumpCustom::init_style()
 {
+  // format = copy of default or user-specified line format
+
   delete [] format;
   char *str;
-  if (format_user) str = format_user;
+  if (format_line_user) str = format_line_user;
   else str = format_default;
 
   int n = strlen(str) + 1;
   format = new char[n];
   strcpy(format,str);
 
-  // default for element names = C
-
-  if (typenames == NULL) {
-    typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[2];
-      strcpy(typenames[itype],"C");
-    }
-  }
-
   // tokenize the format string and add space at end of each format element
+  // if user-specified int/float format exists, use it instead
+  // if user-specified column format exists, use it instead
+  // lo priority = line, medium priority = int/float, hi priority = column
 
   char *ptr;
   for (int i = 0; i < size_one; i++) {
     if (i == 0) ptr = strtok(format," \0");
     else ptr = strtok(NULL," \0");
-    if (ptr == NULL) error->all(FLERR,"Dump_modify format string is too short");
+    if (ptr == NULL) error->all(FLERR,"Dump_modify format line is too short");
     delete [] vformat[i];
-    vformat[i] = new char[strlen(ptr) + 2];
-    strcpy(vformat[i],ptr);
+
+    if (format_column_user[i]) {
+      vformat[i] = new char[strlen(format_column_user[i]) + 2];
+      strcpy(vformat[i],format_column_user[i]);
+    } else if (vtype[i] == INT && format_int_user) {
+      vformat[i] = new char[strlen(format_int_user) + 2];
+      strcpy(vformat[i],format_int_user);
+    } else if (vtype[i] == DOUBLE && format_float_user) {
+      vformat[i] = new char[strlen(format_float_user) + 2];
+      strcpy(vformat[i],format_float_user);
+    } else if (vtype[i] == BIGINT && format_bigint_user) {
+      vformat[i] = new char[strlen(format_bigint_user) + 2];
+      strcpy(vformat[i],format_bigint_user);
+    } else {
+      vformat[i] = new char[strlen(ptr) + 2];
+      strcpy(vformat[i],ptr);
+    }
+
     vformat[i] = strcat(vformat[i]," ");
   }
 
@@ -381,9 +400,9 @@ void DumpCustom::header_item(bigint ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-  fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-  fprintf(fp,"%g %g\n",boxylo,boxyhi);
-  fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
   fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 
@@ -396,9 +415,9 @@ void DumpCustom::header_item_triclinic(bigint ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-  fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-  fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-  fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
   fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 
@@ -1054,7 +1073,8 @@ int DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->molecule_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_molecule;
-      vtype[i] = INT;
+      if (sizeof(tagint) == sizeof(smallint)) vtype[i] = INT;
+      else vtype[i] = BIGINT;
     } else if (strcmp(arg[iarg],"proc") == 0) {
       pack_choice[i] = &DumpCustom::pack_proc;
       vtype[i] = INT;
@@ -1493,16 +1513,64 @@ int DumpCustom::modify_param(int narg, char **arg)
     return 2;
   }
 
-  if (strcmp(arg[0],"element") == 0) {
-    if (narg < ntypes+1)
-      error->all(FLERR,"Dump modify element names do not match atom types");
+  if (strcmp(arg[0],"format") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
 
-    if (typenames) {
-      for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
-      delete [] typenames;
-      typenames = NULL;
+    if (strcmp(arg[1],"none") == 0) {
+      // just clear format_column_user allocated by this dump child class
+      for (int i = 0; i < size_one; i++) {
+        delete [] format_column_user[i];
+        format_column_user[i] = NULL;
+      }
+      return 2;
     }
 
+    if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
+
+    if (strcmp(arg[1],"int") == 0) {
+      delete [] format_int_user;
+      int n = strlen(arg[2]) + 1;
+      format_int_user = new char[n];
+      strcpy(format_int_user,arg[2]);
+      delete [] format_bigint_user;
+      n = strlen(format_int_user) + 8;
+      format_bigint_user = new char[n];
+      // replace "d" in format_int_user with bigint format specifier
+      // use of &str[1] removes leading '%' from BIGINT_FORMAT string
+      char *ptr = strchr(format_int_user,'d');
+      if (ptr == NULL)
+        error->all(FLERR,
+                   "Dump_modify int format does not contain d character");
+      char str[8];
+      sprintf(str,"%s",BIGINT_FORMAT);
+      *ptr = '\0';
+      sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+      *ptr = 'd';
+
+    } else if (strcmp(arg[1],"float") == 0) {
+      delete [] format_float_user;
+      int n = strlen(arg[2]) + 1;
+      format_float_user = new char[n];
+      strcpy(format_float_user,arg[2]);
+
+    } else {
+      int i = force->inumeric(FLERR,arg[1]) - 1;
+      if (i < 0 || i >= size_one)
+        error->all(FLERR,"Illegal dump_modify command");
+      if (format_column_user[i]) delete [] format_column_user[i];
+      int n = strlen(arg[2]) + 1;
+      format_column_user[i] = new char[n];
+      strcpy(format_column_user[i],arg[2]);
+    }
+    return 3;
+  }
+
+  if (strcmp(arg[0],"element") == 0) {
+    if (narg < ntypes+1)
+      error->all(FLERR,"Dump_modify element names do not match atom types");
+
+    for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
+    delete [] typenames;
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
       int n = strlen(arg[itype]) + 1;

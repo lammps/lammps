@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 Output::Output(LAMMPS *lmp) : Pointers(lmp)
 {
-  // create default computes for temp,pressure,pe
+  // create default computes for temp,pressure,pe,ke
 
   char **newarg = new char*[4];
   newarg[0] = (char *) "thermo_temp";
@@ -60,6 +60,11 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   newarg[0] = (char *) "thermo_pe";
   newarg[1] = (char *) "all";
   newarg[2] = (char *) "pe";
+  modify->add_compute(3,newarg,1);
+
+  newarg[0] = (char *) "thermo_ke";
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "ke";
   modify->add_compute(3,newarg,1);
 
   delete [] newarg;

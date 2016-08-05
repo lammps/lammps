@@ -220,9 +220,11 @@ void DumpXYZMPIIO::write()
 
 void DumpXYZMPIIO::init_style()
 {
+  // format = copy of default or user-specified line format
+
   delete [] format;
   char *str;
-  if (format_user) str = format_user;
+  if (format_line_user) str = format_line_user;
   else str = format_default;
 
   int n = strlen(str) + 2;

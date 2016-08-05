@@ -64,6 +64,7 @@ body:     body particles, 2d system
 colloid:  big colloid particles in a small particle solvent, 2d system
 coreshell: adiabatic core/shell model
 comb:	  models using the COMB potential
+controller: use of fix controller as a thermostat
 crack:	  crack propagation in a 2d solid
 deposit:  deposition of atoms and molecules onto a 3d substrate
 dipole:   point dipolar particles, 2d system

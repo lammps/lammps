@@ -108,8 +108,7 @@ is used.
 
 If {mode} = vector, then the input values must be vectors, or arrays
 with a bracketed term appended, indicating the Ith column of the array
-is used.  All vectors must be the same length, which is the length of
-the vector or number of rows in the array.
+is used.
 
 Note that for values from a compute or fix, the bracketed index I can
 be specified using a wildcard asterisk with the index to effectively

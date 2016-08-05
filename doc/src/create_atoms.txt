@@ -196,9 +196,11 @@ should evaluate to a zero or non-zero value based on one or two or
 three variables which will store the x, y, or z coordinates of an atom
 (one variable per coordinate).  If used, these other variables must be
 "internal-style variables"_variable.html defined in the input script;
-their initial numeric value can be anything.  The {set} keyword is
-used to identify the names of these other variables, one variable for
-the x-coordinate of a created atom, one for y, and one for z.
+their initial numeric value can be anything.  They must be
+internal-style variables, because this command updates their values
+directly.  The {set} keyword is used to identify the names of these
+other variables, one variable for the x-coordinate of a created atom,
+one for y, and one for z.
 
 When an atom is created, its x,y,z coordinates become the values for
 any {set} variable that is defined.  The {var} variable is then

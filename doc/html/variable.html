@@ -133,7 +133,7 @@
 </div>
 <ul class="simple">
 <li>name = name of variable to define</li>
-<li>style = <em>delete</em> or <em>index</em> or <em>loop</em> or <em>world</em> or <em>universe</em> or <em>uloop</em> or <em>string</em> or <em>format</em> or <em>getenv</em> or <em>file</em> or <em>atomfile</em> or <em>python</em> or <em>equal</em> or <em>vector</em> or <em>atom</em></li>
+<li>style = <em>delete</em> or <em>index</em> or <em>loop</em> or <em>world</em> or <em>universe</em> or <em>uloop</em> or <em>string</em> or <em>format</em> or <em>getenv</em> or <em>file</em> or <em>atomfile</em> or <em>python</em> or <em>internal</em> or <em>equal</em> or <em>vector</em> or <em>atom</em></li>
 </ul>
 <pre class="literal-block">
 <em>delete</em> = no args
@@ -163,6 +163,7 @@
 <em>file</em> arg = filename
 <em>atomfile</em> arg = filename
 <em>python</em> arg = function
+<em>internal</em> arg = numeric value
 <em>equal</em> or <em>vector</em> or <em>atom</em> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
   numbers = 0.0, 100, -5.4, 2.8e-4, etc
   constants = PI, version, on, off, true, false, yes, no
@@ -205,6 +206,7 @@ variable b equal xcm(mol1,x)/2.0
 variable b equal c_myTemp
 variable b atom x*y/vol
 variable foo string myfile
+variable foo internal 3.5
 variable myPy python increase
 variable f file values.txt
 variable temp world 300.0 310.0 320.0 ${Tfinal}
@@ -239,7 +241,8 @@ input script that atom-style variables are used; they get their
 per-atom values from a file rather than from a formula.  Variables of
 style <em>python</em> can be hooked to Python functions using code you
 provide, so that the variable gets its value from the evaluation of
-the Python code.</p>
+the Python code.  Variables of style <em>internal</em> are used by a few
+commands in LAMMPS which set their value directly.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">As discussed in <a class="reference internal" href="Section_commands.html#cmd-2"><span class="std std-ref">Section 3.2</span></a> of the
@@ -277,14 +280,21 @@ when it is invoked.</p>
 <p class="last">Variables of style <em>equal</em> and <em>vector</em> and <em>atom</em> can be used
 as inputs to various other LAMMPS commands which evaluate their
 formulas as needed, e.g. at different timesteps during a
-<a class="reference internal" href="run.html"><span class="doc">run</span></a>.  Variables of style <em>python</em> can be used in place of
-an equal-style variable so long as the associated Python function, as
-defined by the <a class="reference internal" href="python.html"><span class="doc">python</span></a> command, returns a numeric value.
-Thus any command that states it can use an equal-style variable as an
-argument, can also use such a python-style variable.  This means that
-when the LAMMPS command evaluates the variable, the Python function
-will be executed.</p>
+<a class="reference internal" href="run.html"><span class="doc">run</span></a>.</p>
 </div>
+<p>Variables of style <em>internal</em> can be used in place of an equal-style
+variable, except by commands that set the value in the internal-style
+variable.  Thus any command that states it can use an equal-style
+variable as an argument, can also use an internal-style variable.
+This means that when the LAMMPS command evaluates the variable, it
+will use the value set (internally) by another LAMMPS command.</p>
+<p>Variables of style <em>python</em> can be used in place of an equal-style
+variable so long as the associated Python function, as defined by the
+<a class="reference internal" href="python.html"><span class="doc">python</span></a> command, returns a numeric value.  Thus any
+command that states it can use an equal-style variable as an argument,
+can also use such a python-style variable.  This means that when the
+LAMMPS command evaluates the variable, the Python function will be
+executed.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">When a variable command is encountered in the input script and
@@ -298,12 +308,12 @@ will override a corresponding index variable setting in the input
 script.</p>
 </div>
 <p>There are two exceptions to this rule.  First, variables of style
-<em>string</em>, <em>getenv</em>, <em>equal</em>, <em>vector</em>, <em>atom</em>, and <em>python</em> ARE
-redefined each time the command is encountered.  This allows these
-style of variables to be redefined multiple times in an input script.
-In a loop, this means the formula associated with an <em>equal</em> or <em>atom</em>
-style variable can change if it contains a substitution for another
-variable, e.g. $x or v_x.</p>
+<em>string</em>, <em>getenv</em>, <em>equal</em>, <em>vector</em>, <em>atom</em>, <em>internal</em>, and
+<em>python</em> ARE redefined each time the command is encountered.  This
+allows these style of variables to be redefined multiple times in an
+input script.  In a loop, this means the formula associated with an
+<em>equal</em> or <em>atom</em> style variable can change if it contains a
+substitution for another variable, e.g. $x or v_x.</p>
 <p>Second, as described below, if a variable is iterated on to the end of
 its list of strings via the <a class="reference internal" href="next.html"><span class="doc">next</span></a> command, it is removed
 from the list of active variables, and is thus available to be
@@ -463,7 +473,7 @@ appear in the set, will remain 0.0.</p>
 <p>For the <em>python</em> style a Python function name is provided.  This needs
 to match a function name specified in a <a class="reference internal" href="python.html"><span class="doc">python</span></a> command
 which returns a value to this variable as defined by its <em>return</em>
-keyword.  For exampe these two commands would be self-consistent:</p>
+keyword.  For example these two commands would be self-consistent:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">foo</span> <span class="n">python</span> <span class="n">myMultiply</span>
 <span class="n">python</span> <span class="n">myMultiply</span> <span class="k">return</span> <span class="n">v_foo</span> <span class="nb">format</span> <span class="n">f</span> <span class="n">file</span> <span class="n">funcs</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
@@ -482,6 +492,14 @@ it is a numeric value (integer or floating point), then the
 python-style variable can be used in place of an equal-style variable
 anywhere in an input script, e.g. as an argument to another command
 that allows for equal-style variables.</p>
+<p>For the <em>internal</em> style a numeric value is provided.  This value will
+be assigned to the variable until a LAMMPS command sets it to a new
+value.  There are currently only two LAMMPS commands that require
+<em>internal</em> variables as inputs, because they reset them:
+<a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> and <a class="reference internal" href="fix_controller.html"><span class="doc">fix controller</span></a>.  As mentioned above, an
+internal-style variable can be used in place of an equal-style
+variable anywhere else in an input script, e.g. as an argument to
+another command that allows for equal-style variables.</p>
 <hr class="docutils" />
 <p>For the <em>equal</em> and <em>vector</em> and <em>atom</em> styles, a single string is
 specified which represents a formula that will be evaluated afresh

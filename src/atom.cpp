@@ -1989,7 +1989,7 @@ void Atom::update_callback(int ifix)
    return -1 if not found
 ------------------------------------------------------------------------- */
 
-int Atom::find_custom(char *name, int &flag)
+int Atom::find_custom(const char *name, int &flag)
 {
   for (int i = 0; i < nivector; i++)
     if (iname[i] && strcmp(iname[i],name) == 0) {
@@ -2012,7 +2012,7 @@ int Atom::find_custom(char *name, int &flag)
    return index in ivector or dvector of its location
 ------------------------------------------------------------------------- */
 
-int Atom::add_custom(char *name, int flag)
+int Atom::add_custom(const char *name, int flag)
 {
   int index;
 

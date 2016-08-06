@@ -646,15 +646,17 @@ int *Balance::bisection(int sortflag)
   double *shrinklo = &shrinkall[0];
   double *shrinkhi = &shrinkall[3];
 
-  // invoke RCB
-  // then invert() to create list of proc assignements for my atoms
   // Use pre-computed weights for each atom, if available
+
   int dflag = 0;
   int iweight = atom->find_custom(bal_id,dflag);
-  if (iweight < 0 || dflag != 1)
-    rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
-  else rcb->compute(dim,atom->nlocal,atom->x,atom->dvector[iweight],
-                    shrinklo,shrinkhi);
+  double * const weight =
+    (iweight < 0 || dflag != 1) ? NULL : atom->dvector[iweight];
+
+  // invoke RCB
+  // then invert() to create list of proc assignements for my atoms
+
+  rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed
@@ -814,10 +816,10 @@ int Balance::shift()
     tally(bdim[idim],np,split,weight);
 
     if (weight) {
-      cost = atom->nlocal;
-    } else {
       for (int i=0; i < atom->nlocal; ++i)
         cost += weight[i];
+    } else {
+      cost = atom->nlocal;
     }
 
     int intcost = (int)cost;

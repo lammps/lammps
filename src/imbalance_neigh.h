@@ -20,12 +20,13 @@ namespace LAMMPS_NS {
 
 class ImbalanceNeigh : public Imbalance {
  public:
-  ImbalanceNeigh(LAMMPS *lmp) : Imbalance(lmp), _factor(0.0) {};
+  ImbalanceNeigh(LAMMPS *lmp) : Imbalance(lmp), _factor(0.0), did_warn(0) {};
   virtual ~ImbalanceNeigh() {};
 
   // internal data members
  private:
   double _factor;               // weight factor for neighbor imbalance
+  int did_warn;                 // 1 if warned about no suitable neighbor list
 
  public:
   // parse options. return number of arguments consumed

@@ -158,9 +158,15 @@ subtracted to a group of atoms.</p>
 <p>The compute takes three arguments which are IDs of other
 <a class="reference internal" href="compute.html"><span class="doc">computes</span></a>.  One calculates per-atom kinetic energy
 (<em>ke-ID</em>), one calculates per-atom potential energy (<em>pe-ID)</em>, and the
-third calcualtes per-atom stress (<em>stress-ID</em>).  These should be
-defined for the same group used by compute heat/flux, though LAMMPS
-does not check for this.</p>
+third calcualtes per-atom stress (<em>stress-ID</em>).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">These other computes should provide values for all the atoms in
+the group this compute specifies.  That means the other computes could
+use the same group as this compute, or they can just use group &#8220;all&#8221;
+(or any group whose atoms are superset of the atoms in this compute&#8217;s
+group).  LAMMPS does not check for this.</p>
+</div>
 <p>The Green-Kubo formulas relate the ensemble average of the
 auto-correlation of the heat flux J to the thermal conductivity kappa:</p>
 <img alt="_images/heat_flux_J.jpg" class="align-center" src="_images/heat_flux_J.jpg" />

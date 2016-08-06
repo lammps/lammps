@@ -11,7 +11,7 @@ Syntax
    variable name style args ...
 
 * name = name of variable to define
-* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *equal* or *vector* or *atom*
+* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *internal* or *equal* or *vector* or *atom*
 .. parsed-literal::
 
      *delete* = no args
@@ -41,6 +41,7 @@ Syntax
      *file* arg = filename
      *atomfile* arg = filename
      *python* arg = function
+     *internal* arg = numeric value
      *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
        numbers = 0.0, 100, -5.4, 2.8e-4, etc
        constants = PI, version, on, off, true, false, yes, no
@@ -87,6 +88,7 @@ Examples
    variable b equal c_myTemp
    variable b atom x*y/vol
    variable foo string myfile
+   variable foo internal 3.5
    variable myPy python increase
    variable f file values.txt
    variable temp world 300.0 310.0 320.0 ${Tfinal}
@@ -121,7 +123,8 @@ input script that atom-style variables are used; they get their
 per-atom values from a file rather than from a formula.  Variables of
 style *python* can be hooked to Python functions using code you
 provide, so that the variable gets its value from the evaluation of
-the Python code.
+the Python code.  Variables of style *internal* are used by a few
+commands which set their value directly.
 
 .. note::
 
@@ -146,28 +149,34 @@ simulation.
 
 .. note::
 
-   When the input script line is encountered that defines a
-   variable of style *equal* or *vector* or *atom* or *python* that
-   contains a formula or Python code, the formula is NOT immediately
-   evaluated.  It will be evaluated every time when the variable is
-   **used** instead.  If you simply want to evaluate a formula in place you
-   can use as so-called. See the section below about "Immediate
-   Evaluation of Variables" for more details on the topic.  This is also
-   true of a *format* style variable since it evaluates another variable
-   when it is invoked.
+   When an input script line is encountered that defines a variable
+   of style *equal* or *vector* or *atom* or *python* that contains a
+   formula or Python code, the formula is NOT immediately evaluated.  It
+   will be evaluated every time when the variable is **used** instead.  If
+   you simply want to evaluate a formula in place you can use as
+   so-called. See the section below about "Immediate Evaluation of
+   Variables" for more details on the topic.  This is also true of a
+   *format* style variable since it evaluates another variable when it is
+   invoked.
 
-.. note::
+Variables of style *equal* and *vector* and *atom* can be used as
+inputs to various other commands which evaluate their formulas as
+needed, e.g. at different timesteps during a :doc:`run <run>`.
 
-   Variables of style *equal* and *vector* and *atom* can be used
-   as inputs to various other LAMMPS commands which evaluate their
-   formulas as needed, e.g. at different timesteps during a
-   :doc:`run <run>`.  Variables of style *python* can be used in place of
-   an equal-style variable so long as the associated Python function, as
-   defined by the :doc:`python <python>` command, returns a numeric value.
-   Thus any command that states it can use an equal-style variable as an
-   argument, can also use such a python-style variable.  This means that
-   when the LAMMPS command evaluates the variable, the Python function
-   will be executed.
+Variables of style *internal* can be used in place of an equal-style
+variable, except by commands that set the value stored by the
+internal-style variable.  Thus any command that states it can use an
+equal-style variable as an argument, can also use an internal-style
+variable.  This means that when the command evaluates the variable, it
+will use the value set (internally) by another command.
+
+Variables of style *python* can be used in place of an equal-style
+variable so long as the associated Python function, as defined by the
+:doc:`python <python>` command, returns a numeric value.  Thus any
+command that states it can use an equal-style variable as an argument,
+can also use such a python-style variable.  This means that when the
+LAMMPS command evaluates the variable, the Python function will be
+executed.
 
 .. note::
 
@@ -182,12 +191,12 @@ simulation.
    script.
 
 There are two exceptions to this rule.  First, variables of style
-*string*\ , *getenv*\ , *equal*\ , *vector*\ , *atom*\ , and *python* ARE
-redefined each time the command is encountered.  This allows these
-style of variables to be redefined multiple times in an input script.
-In a loop, this means the formula associated with an *equal* or *atom*
-style variable can change if it contains a substitution for another
-variable, e.g. $x or v_x.
+*string*\ , *getenv*\ , *internal*\ , *equal*\ , *vector*\ , *atom*\ , and
+*python* ARE redefined each time the command is encountered.  This
+allows these style of variables to be redefined multiple times in an
+input script.  In a loop, this means the formula associated with an
+*equal* or *atom* style variable can change if it contains a
+substitution for another variable, e.g. $x or v_x.
 
 Second, as described below, if a variable is iterated on to the end of
 its list of strings via the :doc:`next <next>` command, it is removed
@@ -378,7 +387,7 @@ will be assigned to that atom.  IDs can be listed in any order.
 For the *python* style a Python function name is provided.  This needs
 to match a function name specified in a :doc:`python <python>` command
 which returns a value to this variable as defined by its *return*
-keyword.  For exampe these two commands would be self-consistent:
+keyword.  For example these two commands would be self-consistent:
 
 .. parsed-literal::
 
@@ -401,6 +410,15 @@ it is a numeric value (integer or floating point), then the
 python-style variable can be used in place of an equal-style variable
 anywhere in an input script, e.g. as an argument to another command
 that allows for equal-style variables.
+
+For the *internal* style a numeric value is provided.  This value will
+be assigned to the variable until a LAMMPS command sets it to a new
+value.  There are currently only two LAMMPS commands that require
+*internal* variables as inputs, because they reset them:
+:doc:`create_atoms <create_atoms>` and :doc:`fix controller <fix_controller>`.  As mentioned above, an
+internal-style variable can be used in place of an equal-style
+variable anywhere else in an input script, e.g. as an argument to
+another command that allows for equal-style variables.
 
 
 ----------

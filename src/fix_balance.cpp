@@ -158,35 +158,6 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   irregular = new Irregular(lmp);
 
-  // add per atom weight property, if weighted balancing is requested
-
-  imb_id = NULL;
-  if (nimbalance > 0) {
-    int dflag = 0;
-    int iweight = atom->find_custom(Balance::bal_id,dflag);
-
-    if (iweight < 0 || dflag != 1) {
-      char *fixargs[4];
-      
-      imb_id = new char[strlen(this->id)+strlen(Balance::bal_id)+2];
-      char *val_id = new char[strlen(Balance::bal_id)+3];
-
-      strcpy(imb_id,this->id);
-      strcat(imb_id,"_");
-      strcat(imb_id,Balance::bal_id);
-      strcpy(val_id,"d_");
-      strcat(val_id,Balance::bal_id);
-
-      fixargs[0] = imb_id;
-      fixargs[1] = (char *)"all";
-      fixargs[2] = (char *)"property/atom";
-      fixargs[3] = val_id;
-
-      modify->add_fix(4,fixargs);
-      delete[] val_id;
-    }
-  }
-
   // output file
 
   if (outflag && comm->me == 0) {
@@ -233,6 +204,35 @@ void FixBalance::init()
 {
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
+
+  // add per atom weight property, if weighted balancing is requested
+
+  imb_id = NULL;
+  if (nimbalance > 0) {
+    int dflag = 0;
+    int iweight = atom->find_custom(Balance::bal_id,dflag);
+
+    if (iweight < 0 || dflag != 1) {
+      char *fixargs[4];
+      
+      imb_id = new char[strlen(this->id)+strlen(Balance::bal_id)+2];
+      char *val_id = new char[strlen(Balance::bal_id)+3];
+
+      strcpy(imb_id,this->id);
+      strcat(imb_id,"_");
+      strcat(imb_id,Balance::bal_id);
+      strcpy(val_id,"d_");
+      strcat(val_id,Balance::bal_id);
+
+      fixargs[0] = imb_id;
+      fixargs[1] = (char *)"all";
+      fixargs[2] = (char *)"property/atom";
+      fixargs[3] = val_id;
+
+      modify->add_fix(4,fixargs);
+      delete[] val_id;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

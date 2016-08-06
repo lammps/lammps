@@ -55,11 +55,12 @@ class FixBalance : public Fix {
 
   int nimbalance;               // number of imbalance weight computes
   class Imbalance **imbalance;  // list of imbalance compute classes
-
+  char *imb_id;                 // id of property/atom fix for storing weights
+  
   class Balance *balance;
   class Irregular *irregular;
 
-  void rebalance(double *);
+  void rebalance();
 };
 
 }

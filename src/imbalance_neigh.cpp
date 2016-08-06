@@ -55,9 +55,11 @@ void ImbalanceNeigh::compute(double *weight)
         neighbor->lists[req] && neighbor->lists[req]->numneigh) break;
   }
 
-  if (req >= neighbor->old_nrequest) {
-    if (_lmp->comm->me == 0)
-      error->warning(FLERR,"No suitable neighbor list for balancing found");
+  if (req >= neighbor->old_nrequest || neighbor->ago < 0) {
+    if (_lmp->comm->me == 0 && !did_warn)
+      error->warning(FLERR,"No suitable neighbor list found. "
+                     "Neighbor weighted balancing skipped");
+    did_warn = 1;
     return;
   }
 
@@ -74,11 +76,14 @@ void ImbalanceNeigh::compute(double *weight)
     // first pass: get local number of neighbors.
     for (int i = 0; i < inum; ++i) neighsum += numneigh[ilist[i]];
 
-    double allavg, myavg = ((double) neighsum)/((double) _lmp->atom->natoms);
+    double allatoms = static_cast <double>(_lmp->atom->natoms);
+    if (allatoms == 0.0) allatoms = 1.0;
+    double allavg;
+    double myavg = static_cast<double>(neighsum)/allatoms;
     MPI_Allreduce(&myavg,&allavg,1,MPI_DOUBLE,MPI_SUM,world);
-    double scale = 1.0/allavg;
 
     // second pass: compute and apply weights
+    double scale = 1.0/allavg;
     for (int ii = 0; ii < inum; ++ii) {
       const int i = ilist[ii];
       weight[i] *= (1.0-_factor) + _factor*scale*numneigh[i];

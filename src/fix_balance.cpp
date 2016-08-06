@@ -97,6 +97,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int outarg = 0;
   fp = NULL;
   nimbalance = 0;
+  imb_id = NULL;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
@@ -186,6 +187,7 @@ FixBalance::~FixBalance()
     delete imbalance[i];
   delete[] imbalance;
   if (imb_id) modify->delete_fix(imb_id);
+  delete [] imb_id;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -207,7 +209,6 @@ void FixBalance::init()
 
   // add per atom weight property, if weighted balancing is requested
 
-  imb_id = NULL;
   if (nimbalance > 0) {
     int dflag = 0;
     int iweight = atom->find_custom(Balance::bal_id,dflag);

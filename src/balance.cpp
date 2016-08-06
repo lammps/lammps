@@ -36,14 +36,14 @@
 #include "imbalance_neigh.h"
 #include "imbalance_var.h"
 
+#include "fix_store.h"
+
 using namespace LAMMPS_NS;
 
 enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
-
-const char * const Balance::bal_id = (const char * const) "BALANCE_WEIGHTS";
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,6 +65,7 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
 
   nimbalance = 0;
   imbalance = NULL;
+  imb_fix = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,8 +95,8 @@ Balance::~Balance()
   for (int i; i < nimbalance; ++i)
     delete imbalance[i];
   delete [] imbalance;
-  int ifix = modify->find_fix(bal_id);
-  if (ifix >= 0) modify->delete_fix(bal_id);
+  if (imb_fix) modify->delete_fix(imb_fix->id);
+  imb_fix = NULL;
 
   if (fp) fclose(fp);
 }
@@ -216,6 +217,7 @@ void Balance::command(int narg, char **arg)
   if (nimbalance) imbalance = new Imbalance*[nimbalance];
 
   nimbalance = outflag = 0;
+  imb_fix = NULL;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal balance command");
@@ -303,29 +305,22 @@ void Balance::command(int narg, char **arg)
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // compute and apply imbalance weights for local atoms
-  int iweight = -1;
   if (nimbalance > 0) {
-    int dflag = 0;
-    iweight = atom->find_custom(bal_id,dflag);
 
     // add fix property/atom, for storing weights with atoms, if needed.
-    if (iweight < 0 || dflag != 1) {
-      char *fixargs[4];
-      char *val_id = new char[strlen(bal_id)+3];
-      strcpy(val_id,"d_");
-      strcat(val_id,bal_id);
+    char *fixargs[6];
 
-      fixargs[0] = (char *)bal_id;
-      fixargs[1] = (char *)"all";
-      fixargs[2] = (char *)"property/atom";
-      fixargs[3] = val_id;
+    fixargs[0] = (char *) "IMBALANCE_WEIGHTS";
+    fixargs[1] = (char *) "all";
+    fixargs[2] = (char *) "STORE";
+    fixargs[3] = (char *) "peratom";
+    fixargs[4] = (char *) "1";
+    fixargs[5] = (char *) "1";
 
-      modify->add_fix(4,fixargs);
-      iweight = atom->find_custom(bal_id,dflag);
-      delete[] val_id;
-    }
+    modify->add_fix(6,fixargs);
+    imb_fix = (FixStore *) modify->fix[modify->nfix-1];
 
-    double * const weight = atom->dvector[iweight];
+    double * const weight = imb_fix->vstore;
     for (int i = 0; i < atom->nlocal; ++i)
       weight[i] = 1.0;
     for (int n = 0; n < nimbalance; ++n)
@@ -435,19 +430,6 @@ void Balance::command(int narg, char **arg)
     error->all(FLERR,str);
   }
 
-  // recompute and apply imbalance weights for local atoms
-
-  if (nimbalance > 0) {
-    int i;
-    const int nlocal = atom->nlocal;
-    double * const weight = atom->dvector[iweight];
-
-    for (i = 0; i < nlocal; ++i)
-      weight[i] = 1.0;
-    for (i = 0; i < nimbalance; ++i)
-      imbalance[i]->compute(weight);
-  }
-
   // imbfinal = final imbalance based on final (weighted) nlocal
 
   int maxfinal;
@@ -518,22 +500,20 @@ void Balance::command(int narg, char **arg)
 double Balance::imbalance_nlocal(int &maxcost)
 {
   // Compute the cost function of local atoms
+  const int nlocal = atom->nlocal;
+  int intcost, sumcost;
+  intcost = sumcost = maxcost = 0;
 
-  double cost = 0.0;
-  int dflag = 0;
-  int iweight = atom->find_custom(bal_id,dflag);
-
-  if (iweight < 0 || dflag != 1) {
-    cost = atom->nlocal;
-  } else {
-    const double * const weight = atom->dvector[iweight];
-    const int nlocal = atom->nlocal;
+  if (imb_fix) {
+    const double * const weight = imb_fix->vstore;
+    double cost = 0.0;
     for (int i=0; i < nlocal; ++i)
       cost += weight[i];
-  }
 
-  int intcost = (int)cost;
-  int sumcost = maxcost = 0;
+    intcost = (int)cost;
+  } else {
+    intcost = nlocal;
+  }
 
   MPI_Allreduce(&intcost,&maxcost,1,MPI_INT,MPI_MAX,world);
   MPI_Allreduce(&intcost,&sumcost,1,MPI_INT,MPI_SUM,world);
@@ -648,10 +628,7 @@ int *Balance::bisection(int sortflag)
 
   // Use pre-computed weights for each atom, if available
 
-  int dflag = 0;
-  int iweight = atom->find_custom(bal_id,dflag);
-  double * const weight =
-    (iweight < 0 || dflag != 1) ? NULL : atom->dvector[iweight];
+  double * const weight = (imb_fix) ? imb_fix->vstore : NULL;
 
   // invoke RCB
   // then invert() to create list of proc assignements for my atoms
@@ -806,24 +783,21 @@ int Balance::shift()
 
     // intial count and sum
 
-    int dflag = 0;
-    int iweight = atom->find_custom(bal_id,dflag);
-    const double * const weight =
-      (iweight < 0 || dflag != 1) ? NULL : atom->dvector[iweight];
-    double cost = 0.0;
+    const double * const weight = (imb_fix) ? imb_fix->vstore : NULL;
+    int intcost, totalcost;
 
     np = procgrid[bdim[idim]];
     tally(bdim[idim],np,split,weight);
 
     if (weight) {
+      double cost = 0.0;
       for (int i=0; i < atom->nlocal; ++i)
         cost += weight[i];
+      intcost = (int) cost;
     } else {
-      cost = atom->nlocal;
+      intcost = atom->nlocal;
     }
 
-    int intcost = (int)cost;
-    int totalcost;
     MPI_Allreduce(&intcost,&totalcost,1,MPI_INT,MPI_SUM,world);
 
     // target[i] = desired sum at split I

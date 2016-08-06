@@ -26,8 +26,9 @@ CommandStyle(balance,Balance)
 namespace LAMMPS_NS {
 
 class Balance : protected Pointers {
+  friend class FixBalance;
+
  public:
-  class RCB *rcb;
 
   Balance(class LAMMPS *);
   ~Balance();
@@ -38,7 +39,9 @@ class Balance : protected Pointers {
   double imbalance_nlocal(int &);
   void dumpout(bigint, FILE *);
 
-  static const char * const bal_id; // name of custom atom property for weights
+ protected:
+  class RCB *rcb;
+  void set_imb_fix(class FixStore *fix) { imb_fix = fix; };
 
  private:
   int me,nprocs;
@@ -69,6 +72,7 @@ class Balance : protected Pointers {
 
   int nimbalance;              // number of imbalance weight computes
   class Imbalance **imbalance; // list of imbalance compute classes
+  class FixStore *imb_fix;     // fix for storing per-atom weights
 
   int outflag;                 // for output of balance results to file
   FILE *fp;

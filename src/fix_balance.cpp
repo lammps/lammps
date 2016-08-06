@@ -32,6 +32,8 @@
 #include "imbalance_neigh.h"
 #include "imbalance_var.h"
 
+#include "fix_store.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -97,7 +99,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int outarg = 0;
   fp = NULL;
   nimbalance = 0;
-  imb_id = NULL;
+  imb_fix = NULL;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
@@ -179,15 +181,19 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
 FixBalance::~FixBalance()
 {
-  if (fp) fclose(fp);
-  delete balance;
-  delete irregular;
-
   for (int i = 0; i < nimbalance; ++i)
     delete imbalance[i];
   delete[] imbalance;
-  if (imb_id) modify->delete_fix(imb_id);
-  delete [] imb_id;
+
+  if (imb_fix && (modify->nfix > 0)) {
+    modify->delete_fix(imb_fix->id);
+    imb_fix = NULL;
+    balance->set_imb_fix(NULL);
+  }
+
+  delete balance;
+  delete irregular;
+  if (fp) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -202,38 +208,38 @@ int FixBalance::setmask()
 
 /* ---------------------------------------------------------------------- */
 
+void FixBalance::post_constructor()
+{
+  // add per atom weight property, if weighted balancing is requested
+
+  if (nimbalance > 0) {
+    char *fixargs[6];
+    char *imb_id = new char[strlen(this->id)+19];
+
+    strcpy(imb_id,this->id);
+    strcat(imb_id,"_IMBALANCE_WEIGHTS");
+
+    fixargs[0] = imb_id;
+    fixargs[1] = (char *) "all";
+    fixargs[2] = (char *) "STORE";
+    fixargs[3] = (char *) "peratom";
+    fixargs[4] = (char *) "1";
+    fixargs[5] = (char *) "1";
+
+    modify->add_fix(6,fixargs);
+    imb_fix = (FixStore *) modify->fix[modify->nfix-1];
+    balance->set_imb_fix(imb_fix);
+
+    delete[] imb_id;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixBalance::init()
 {
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
-
-  // add per atom weight property, if weighted balancing is requested
-
-  if (nimbalance > 0) {
-    int dflag = 0;
-    int iweight = atom->find_custom(Balance::bal_id,dflag);
-
-    if (iweight < 0 || dflag != 1) {
-      char *fixargs[4];
-      
-      imb_id = new char[strlen(this->id)+strlen(Balance::bal_id)+2];
-      char *val_id = new char[strlen(Balance::bal_id)+3];
-
-      strcpy(imb_id,this->id);
-      strcat(imb_id,"_");
-      strcat(imb_id,Balance::bal_id);
-      strcpy(val_id,"d_");
-      strcat(val_id,Balance::bal_id);
-
-      fixargs[0] = imb_id;
-      fixargs[1] = (char *)"all";
-      fixargs[2] = (char *)"property/atom";
-      fixargs[3] = val_id;
-
-      modify->add_fix(4,fixargs);
-      delete[] val_id;
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,11 +269,8 @@ void FixBalance::setup_pre_exchange()
 
   // compute and apply imbalance weights for local atoms
 
-  int iweight = -1;
   if (nimbalance > 0) {
-    int dflag = 0;
-    iweight = atom->find_custom(Balance::bal_id,dflag);
-    double * const weight = atom->dvector[iweight];
+    double * const weight = imb_fix->vstore;
     for (int i = 0; i < atom->nlocal; ++i)
       weight[i] = 1.0;
     for (int n = 0; n < nimbalance; ++n)
@@ -304,11 +307,8 @@ void FixBalance::pre_exchange()
 
   // compute and apply imbalance weights for local atoms
 
-  int iweight = -1;
   if (nimbalance > 0) {
-    int dflag = 0;
-    iweight = atom->find_custom(Balance::bal_id,dflag);
-    double * const weight = atom->dvector[iweight];
+    double * const weight = imb_fix->vstore;
     for (int i = 0; i < atom->nlocal; ++i)
       weight[i] = 1.0;
     for (int n = 0; n < nimbalance; ++n)

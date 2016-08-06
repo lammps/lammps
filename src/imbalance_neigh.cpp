@@ -37,7 +37,7 @@ int ImbalanceNeigh::options(int narg, char **arg)
 }
 
 /* -------------------------------------------------------------------- */
- 
+
 void ImbalanceNeigh::compute(double *weight)
 {
   // find suitable existing neighbor list

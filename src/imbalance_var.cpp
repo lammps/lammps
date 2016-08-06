@@ -36,7 +36,7 @@ int ImbalanceVar::options(int narg, char **arg)
 }
 
 /* -------------------------------------------------------------------- */
- 
+
 void ImbalanceVar::init()
 {
   Error *error = _lmp->error;
@@ -54,7 +54,7 @@ void ImbalanceVar::init()
 }
 
 /* -------------------------------------------------------------------- */
- 
+
 void ImbalanceVar::compute(double *weight)
 {
   if (_id >= 0) {

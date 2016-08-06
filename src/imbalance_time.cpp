@@ -35,7 +35,7 @@ int ImbalanceTime::options(int narg, char **arg)
 }
 
 /* -------------------------------------------------------------------- */
- 
+
 void ImbalanceTime::compute(double *weight)
 {
   const int nlocal = _lmp->atom->nlocal;

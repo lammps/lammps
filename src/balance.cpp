@@ -312,7 +312,7 @@ void Balance::command(int narg, char **arg)
     if (iweight < 0 || dflag != 1) {
       char *fixargs[4];
       char *val_id = new char[strlen(bal_id)+3];
-      strcat(val_id,"d_");
+      strcpy(val_id,"d_");
       strcat(val_id,bal_id);
 
       fixargs[0] = (char *)bal_id;

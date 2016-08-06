@@ -166,6 +166,10 @@ you should thus consider the {atom} and {atom/mpiio} styles (etc) to
 be inter-changeable.  The one exception is how the filename is
 specified for the MPI-IO styles, as explained below.
 
+The precision of values output to text-based dump files can be
+controlled by the "dump_modify format"_dump_modify.html command and
+its options.
+
 :line
 
 The {style} keyword determines what atom quantities are written to the

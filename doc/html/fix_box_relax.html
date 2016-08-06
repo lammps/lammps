@@ -413,8 +413,24 @@ specified by the <em>press</em> keyword will be unaffected by the <em>temp</em>
 setting.</p>
 </div>
 <p>This fix computes a global scalar which can be accessed by various
-<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar is the
+<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>. The scalar is the
 pressure-volume energy, plus the strain energy, if it exists.</p>
+<p>This fix computes a global scalar which can be accessed by various
+<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>. The scalar is given
+by the energy expression shown above. The energy values reported
+at the end of a minimization run under &#8220;Minimization stats&#8221; include
+this energy, and so differ from what LAMMPS normally reports as
+potential energy. This fix does not support the
+<a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option,
+because that would result in double-counting of the fix energy in the
+minimization energy. Instead, the fix energy can be explicitly
+added to the potential energy using one of these two variants:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">emin</span> <span class="n">equal</span> <span class="n">pe</span><span class="o">+</span><span class="n">f_1</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">emin</span> <span class="n">equal</span> <span class="n">pe</span><span class="o">+</span><span class="n">f_1</span><span class="o">/</span><span class="n">atoms</span>
+</pre></div>
+</div>
 <p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
 the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.</p>
 <p>This fix is invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>, but

@@ -501,6 +501,7 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "bond/create"_fix_bond_create.html,
 "bond/swap"_fix_bond_swap.html,
 "box/relax"_fix_box_relax.html,
+"controller"_fix_controller.html,
 "deform (k)"_fix_deform.html,
 "deposit"_fix_deposit.html,
 "drag"_fix_drag.html,

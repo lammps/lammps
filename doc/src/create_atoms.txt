@@ -195,17 +195,17 @@ keyword is the name of an "equal-style variable"_variable.html which
 should evaluate to a zero or non-zero value based on one or two or
 three variables which will store the x, y, or z coordinates of an atom
 (one variable per coordinate).  If used, these other variables must be
-"equal-style variables"_variable.html defined in the input script, but
-their formula can by anything.  The {set} keyword is used to identify
-the names of these other variables, one variable for the x-coordinate
-of a created atom, one for y, and one for z.
+"internal-style variables"_variable.html defined in the input script;
+their initial numeric value can be anything.  They must be
+internal-style variables, because this command resets their values
+directly.  The {set} keyword is used to identify the names of these
+other variables, one variable for the x-coordinate of a created atom,
+one for y, and one for z.
 
-When an atom is created, its x, y, or z coordinates override the
-formula for any {set} variable that is defined.  The {var} variable is
-then evaluated.  If the returned value is 0.0, the atom is not
-created.  If it is non-zero, the atom is created.  After all atoms are
-created, the formulas defined for all of the {set} variables are
-restored to their original strings.
+When an atom is created, its x,y,z coordinates become the values for
+any {set} variable that is defined.  The {var} variable is then
+evaluated.  If the returned value is 0.0, the atom is not created.  If
+it is non-zero, the atom is created.
 
 As an example, these commands can be used in a 2d simulation, to
 create a sinusoidal surface.  Note that the surface is "rough" due to

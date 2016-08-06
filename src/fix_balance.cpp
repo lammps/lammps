@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "irregular.h"
 #include "force.h"
@@ -157,6 +158,35 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   irregular = new Irregular(lmp);
 
+  // add per atom weight property, if weighted balancing is requested
+
+  imb_id = NULL;
+  if (nimbalance > 0) {
+    int dflag = 0;
+    int iweight = atom->find_custom(Balance::bal_id,dflag);
+
+    if (iweight < 0 || dflag != 1) {
+      char *fixargs[4];
+      
+      imb_id = new char[strlen(this->id)+strlen(Balance::bal_id)+2];
+      char *val_id = new char[strlen(Balance::bal_id)+3];
+
+      strcpy(imb_id,this->id);
+      strcat(imb_id,"_");
+      strcat(imb_id,Balance::bal_id);
+      strcpy(val_id,"d_");
+      strcat(val_id,Balance::bal_id);
+
+      fixargs[0] = imb_id;
+      fixargs[1] = (char *)"all";
+      fixargs[2] = (char *)"property/atom";
+      fixargs[3] = val_id;
+
+      modify->add_fix(4,fixargs);
+      delete[] val_id;
+    }
+  }
+
   // output file
 
   if (outflag && comm->me == 0) {
@@ -168,24 +198,9 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery) force_reneighbor = 1;
 
-  // compute and apply imbalance weights for local atoms
-  double *weight = NULL;
-  if (nimbalance > 0) {
-    int i;
-    const int nlocal = atom->nlocal;
-    weight = new double[nlocal];
-    for (i = 0; i < nlocal; ++i)
-      weight[i] = 1.0;
-    for (i = 0; i < nimbalance; ++i)
-      imbalance[i]->compute(weight);
-  }
-
-  // compute initial outputs
-
-  imbfinal = imbprev = balance->imbalance_nlocal(maxperproc,weight);
   itercount = 0;
   pending = 0;
-  delete[] weight;
+  imbfinal = imbprev = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -199,6 +214,7 @@ FixBalance::~FixBalance()
   for (int i = 0; i < nimbalance; ++i)
     delete imbalance[i];
   delete[] imbalance;
+  if (imb_id) modify->delete_fix(imb_id);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -244,23 +260,23 @@ void FixBalance::setup_pre_exchange()
   domain->reset_box();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // perform a rebalance if threshhold exceeded
-
   // compute and apply imbalance weights for local atoms
-  double *weight = NULL;
+
+  int iweight = -1;
   if (nimbalance > 0) {
-    int i;
-    const int nlocal = atom->nlocal;
-    weight = new double[nlocal];
-    for (i = 0; i < nlocal; ++i)
+    int dflag = 0;
+    iweight = atom->find_custom(Balance::bal_id,dflag);
+    double * const weight = atom->dvector[iweight];
+    for (int i = 0; i < atom->nlocal; ++i)
       weight[i] = 1.0;
-    for (i = 0; i < nimbalance; ++i)
-      imbalance[i]->compute(weight);
+    for (int n = 0; n < nimbalance; ++n)
+      imbalance[n]->compute(weight);
   }
 
-  imbnow = balance->imbalance_nlocal(maxperproc,weight);
-  if (imbnow > thresh) rebalance(weight);
-  delete[] weight;
+  // compute initial outputs and perform a rebalance if threshhold exceeded
+
+  imbfinal = imbprev = imbnow = balance->imbalance_nlocal(maxperproc);
+  if (imbnow > thresh) rebalance();
 
   // next_reneighbor = next time to force reneighboring
 
@@ -285,30 +301,29 @@ void FixBalance::pre_exchange()
   domain->reset_box();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-    // compute and apply imbalance weights for local atoms
-  double *weight = NULL;
+  // compute and apply imbalance weights for local atoms
+
+  int iweight = -1;
   if (nimbalance > 0) {
-    int i;
-    const int nlocal = atom->nlocal;
-    weight = new double[nlocal];
-    for (i = 0; i < nlocal; ++i)
+    int dflag = 0;
+    iweight = atom->find_custom(Balance::bal_id,dflag);
+    double * const weight = atom->dvector[iweight];
+    for (int i = 0; i < atom->nlocal; ++i)
       weight[i] = 1.0;
-    for (i = 0; i < nimbalance; ++i)
-      imbalance[i]->compute(weight);
+    for (int n = 0; n < nimbalance; ++n)
+      imbalance[n]->compute(weight);
   }
 
   // return if imbalance < threshhold
 
-  imbnow = balance->imbalance_nlocal(maxperproc,weight);
+  imbnow = balance->imbalance_nlocal(maxperproc);
 
   if (imbnow <= thresh) {
     if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
-    delete[] weight;
     return;
   }
 
-  rebalance(weight);
-  delete[] weight;
+  rebalance();
 
   // next timestep to rebalance
 
@@ -324,28 +339,15 @@ void FixBalance::pre_neighbor()
 {
   if (!pending) return;
 
-  // compute and apply imbalance weights for local atoms
-  double *weight = NULL;
-  if (nimbalance > 0) {
-    int i;
-    const int nlocal = atom->nlocal;
-    weight = new double[nlocal];
-    for (i = 0; i < nlocal; ++i)
-      weight[i] = 1.0;
-    for (i = 0; i < nimbalance; ++i)
-      imbalance[i]->compute(weight);
-  }
-
-  imbfinal = balance->imbalance_nlocal(maxperproc,weight);
+  imbfinal = balance->imbalance_nlocal(maxperproc);
   pending = 0;
-  delete[] weight;
 }
 
 /* ----------------------------------------------------------------------
    perform dynamic load balancing
 ------------------------------------------------------------------------- */
 
-void FixBalance::rebalance(double *weight)
+void FixBalance::rebalance()
 {
   imbprev = imbnow;
 
@@ -353,10 +355,10 @@ void FixBalance::rebalance(double *weight)
 
   int *sendproc;
   if (lbstyle == SHIFT) {
-    itercount = balance->shift(weight);
+    itercount = balance->shift();
     comm->layout = LAYOUT_NONUNIFORM;
   } else if (lbstyle == BISECTION) {
-    sendproc = balance->bisection(weight);
+    sendproc = balance->bisection();
     comm->layout = LAYOUT_TILED;
   }
 

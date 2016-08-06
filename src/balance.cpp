@@ -24,6 +24,7 @@
 #include "irregular.h"
 #include "domain.h"
 #include "force.h"
+#include "modify.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
@@ -41,6 +42,8 @@ enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
+
+const char * const Balance::bal_id = (const char * const) "BALANCE_WEIGHTS";
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,6 +94,8 @@ Balance::~Balance()
   for (int i; i < nimbalance; ++i)
     delete imbalance[i];
   delete [] imbalance;
+  int ifix = modify->find_fix(bal_id);
+  if (ifix >= 0) modify->delete_fix(bal_id);
 
   if (fp) fclose(fp);
 }
@@ -298,21 +303,39 @@ void Balance::command(int narg, char **arg)
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // compute and apply imbalance weights for local atoms
-  double *weight = NULL;
+  int iweight = -1;
   if (nimbalance > 0) {
-    int i;
-    const int nlocal = atom->nlocal;
-    weight = new double[nlocal];
-    for (i = 0; i < nlocal; ++i)
+    int dflag = 0;
+    iweight = atom->find_custom(bal_id,dflag);
+
+    // add fix property/atom, for storing weights with atoms, if needed.
+    if (iweight < 0 || dflag != 1) {
+      char *fixargs[4];
+      char *val_id = new char[strlen(bal_id)+3];
+      strcat(val_id,"d_");
+      strcat(val_id,bal_id);
+
+      fixargs[0] = (char *)bal_id;
+      fixargs[1] = (char *)"all";
+      fixargs[2] = (char *)"property/atom";
+      fixargs[3] = val_id;
+
+      modify->add_fix(4,fixargs);
+      iweight = atom->find_custom(bal_id,dflag);
+      delete[] val_id;
+    }
+
+    double * const weight = atom->dvector[iweight];
+    for (int i = 0; i < atom->nlocal; ++i)
       weight[i] = 1.0;
-    for (i = 0; i < nimbalance; ++i)
-      imbalance[i]->compute(weight);
+    for (int n = 0; n < nimbalance; ++n)
+      imbalance[n]->compute(weight);
   }
 
   // imbinit = initial imbalance
 
   int maxinit;
-  double imbinit = imbalance_nlocal(maxinit,weight);
+  double imbinit = imbalance_nlocal(maxinit);
 
   // no load-balance if imbalance doesn't exceed threshhold
   // unless switching from tiled to non tiled layout, then force rebalance
@@ -371,14 +394,14 @@ void Balance::command(int narg, char **arg)
   if (style == SHIFT) {
     comm->layout = LAYOUT_NONUNIFORM;
     shift_setup_static(bstr);
-    niter = shift(weight);
+    niter = shift();
   }
 
   // style BISECTION = recursive coordinate bisectioning
 
   if (style == BISECTION) {
     comm->layout = LAYOUT_TILED;
-    bisection(weight,1);
+    bisection(1);
   }
 
   // reset proc sub-domains
@@ -417,8 +440,8 @@ void Balance::command(int narg, char **arg)
   if (nimbalance > 0) {
     int i;
     const int nlocal = atom->nlocal;
-    delete[] weight;
-    weight = new double[nlocal];
+    double * const weight = atom->dvector[iweight];
+
     for (i = 0; i < nlocal; ++i)
       weight[i] = 1.0;
     for (i = 0; i < nimbalance; ++i)
@@ -428,8 +451,7 @@ void Balance::command(int narg, char **arg)
   // imbfinal = final imbalance based on final (weighted) nlocal
 
   int maxfinal;
-  double imbfinal = imbalance_nlocal(maxfinal,weight);
-  delete[] weight;
+  double imbfinal = imbalance_nlocal(maxfinal);
 
   if (me == 0) {
     double stop_time = MPI_Wtime();
@@ -493,15 +515,20 @@ void Balance::command(int narg, char **arg)
    return imbalance factor = max atom per proc / ave atom per proc
 ------------------------------------------------------------------------- */
 
-double Balance::imbalance_nlocal(int &maxcost, double *weight)
+double Balance::imbalance_nlocal(int &maxcost)
 {
   // Compute the cost function of local atoms
 
   double cost = 0.0;
-  if (weight == NULL) {
+  int dflag = 0;
+  int iweight = atom->find_custom(bal_id,dflag);
+
+  if (iweight < 0 || dflag != 1) {
     cost = atom->nlocal;
   } else {
-    for (int i=0; i < atom->nlocal; ++i)
+    const double * const weight = atom->dvector[iweight];
+    const int nlocal = atom->nlocal;
+    for (int i=0; i < nlocal; ++i)
       cost += weight[i];
   }
 
@@ -526,7 +553,7 @@ double Balance::imbalance_nlocal(int &maxcost, double *weight)
    return imbalance factor = max atom per proc / ave atom per proc
 ------------------------------------------------------------------------- */
 
-double Balance::imbalance_splits(int &max, double *weight)
+double Balance::imbalance_splits(int &max, const double *weight)
 {
   double *xsplit = comm->xsplit;
   double *ysplit = comm->ysplit;
@@ -580,7 +607,7 @@ double Balance::imbalance_splits(int &max, double *weight)
    sortflag = flag for sorting order of received messages by proc ID
 ------------------------------------------------------------------------- */
 
-int *Balance::bisection(double *weight, int sortflag)
+int *Balance::bisection(int sortflag)
 {
   if (!rcb) rcb = new RCB(lmp);
 
@@ -621,9 +648,13 @@ int *Balance::bisection(double *weight, int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignements for my atoms
-  // Use compute weights for each atom, if available
-
-  rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
+  // Use pre-computed weights for each atom, if available
+  int dflag = 0;
+  int iweight = atom->find_custom(bal_id,dflag);
+  if (iweight < 0 || dflag != 1)
+    rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+  else rcb->compute(dim,atom->nlocal,atom->x,atom->dvector[iweight],
+                    shrinklo,shrinkhi);
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed
@@ -739,7 +770,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
    return niter = iteration count
 ------------------------------------------------------------------------- */
 
-int Balance::shift(double *weight)
+int Balance::shift()
 {
   int i,j,k,m,np,max;
   double *split;
@@ -773,11 +804,16 @@ int Balance::shift(double *weight)
 
     // intial count and sum
 
+    int dflag = 0;
+    int iweight = atom->find_custom(bal_id,dflag);
+    const double * const weight =
+      (iweight < 0 || dflag != 1) ? NULL : atom->dvector[iweight];
+    double cost = 0.0;
+
     np = procgrid[bdim[idim]];
     tally(bdim[idim],np,split,weight);
 
-    double cost = 0.0;
-    if (weight == NULL) {
+    if (weight) {
       cost = atom->nlocal;
     } else {
       for (int i=0; i < atom->nlocal; ++i)
@@ -918,7 +954,7 @@ int Balance::shift(double *weight)
    use binary search to find which slice each atom is in
 ------------------------------------------------------------------------- */
 
-void Balance::tally(int dim, int n, double *split, double *weight)
+void Balance::tally(int dim, int n, double *split, const double *weight)
 {
   double *onecost = new double[n];
   for (int i = 0; i < n; i++) onecost[i] = 0.0;

@@ -34,6 +34,7 @@
 #include "imbalance_group.h"
 #include "imbalance_time.h"
 #include "imbalance_neigh.h"
+#include "imbalance_store.h"
 #include "imbalance_var.h"
 
 #include "fix_store.h"
@@ -245,6 +246,10 @@ void Balance::command(int narg, char **arg)
         imbalance[nimbalance] = imb;
       } else if (strcmp(arg[iarg+1],"var") == 0) {
         imb = new ImbalanceVar(lmp);
+        nopt = imb->options(narg-iarg,arg+iarg+2);
+        imbalance[nimbalance] = imb;
+      } else if (strcmp(arg[iarg+1],"store") == 0) {
+        imb = new ImbalanceStore(lmp);
         nopt = imb->options(narg-iarg,arg+iarg+2);
         imbalance[nimbalance] = imb;
       } else {

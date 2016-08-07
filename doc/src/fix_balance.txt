@@ -21,26 +21,34 @@ style = {shift} or {rcb} :l
     dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
     Niter = # of times to iterate within each dimension of dimstr sequence
     stopthresh = stop balancing when this imbalance threshhold is reached
-  rcb args = none :pre
-zero or more keyword/value pairs may be appended :l
-keyword = {out} or {clock} or {group} :l
-  {out} value = filename
-    filename = write each processor's sub-domain to a file, at each re-balancing
-  {clock} value = weight
-    weight = weight factor between 0 and 1 for including wall clock data
-  {group} args = Ngroup groupID-1 weight-1 groupID-2 weight-2...
-    Ngroup = number of groups with assigned weights
-    groupID-1, groupID-2, ... = group names
-    weight-1, weight-2, ...   = corresponding weights :pre
+  {rcb} args = none :pre
+zero or more optional keywords with their respective arguments may be appended :l
+keyword = {out} or {weight} :l
+  {out} arg = filename
+    filename = write each processor's sub-domain to a file
+  {weight} style args = use weighted atom counts to compute the per processor load
+    {style} = {group} or {neigh} or {time} or {var} or {store}
+      {group} args = Ngroup groupID-1 weight-1 groupID-2 weight-2...
+        Ngroup = number of groups with assigned weights
+        groupID-1, groupID-2, ... = group names
+        weight-1, weight-2, ...   = corresponding weight factors
+      {neigh} factor = compute weight based on number of neighbors
+        factor = scaling factor (> 0)
+      {time} factor = compute weight based on time spend computing
+        factor = scaling factor (> 0)
+      {var} name = take weight from atom-style variable
+        name = name of the atom style variable
+      {store} name = store weight in custom atom property
+        name = name of the atom property (without d_ prefix) :pre
 :ule
 
 [Examples:]
 
 fix 2 all balance 1000 1.05 shift x 10 1.05
 fix 2 all balance 100 0.9 shift xy 20 1.1 out tmp.balance
-fix 2 all balance 100 0.9 shift xy 20 1.1 group 3 substrate 3.0 solvent 1.0 solute 0.8 out tmp.balance
-fix 2 all balance 100 1.0 shift x 10 1.1 clock 0.8
-fix 2 all balance 100 1.0 shift xy 5 1.1 group 2 fast 0.8 slow 2.0 clock 0.8
+fix 2 all balance 100 0.9 shift xy 20 1.1 weight group 3 substrate 3.0 solvent 1.0 solute 0.8 out tmp.balance
+fix 2 all balance 100 1.0 shift x 10 1.1 weight time 0.8
+fix 2 all balance 100 1.0 shift xy 5 1.1 weight var myweight weight neigh 0.6 weight store allweight
 fix 2 all balance 1000 1.1 rcb :pre
 
 [Description:]
@@ -53,24 +61,46 @@ rebalancing is performed periodically during the simulation.  To
 perform "static" balancing, before or between runs, see the
 "balance"_balance.html command.
 
-With the optional {group} keyword different weight factors can be
-assigned to particles according to which groups they belong to.
-The {group} keyword is followed by the number of groups with
-custom weights (default weight is 1.0) and pairs of group ID and
-the corresponding weight factor. The final weight for each atom
-is the product of all weight factors from the groups it belongs to.
+With the optional {weight} keyword different weight factors can be
+assigned to particles according several styles and balancing will
+be performed on the weighted particle counts. Multiple weight
+styles may be given and they are processed in order by multiplying
+the existing weight factor, which defaults to 1.0 with the newly
+computed weight factor. The {store} weight style is an exception,
+as does not compute a weight, but instead stores the current
+accumulated weights in a custom per-atom property defined with
+"fix property/atom"_fix_property_atom.html.
+
+The {group} weight style assigns fixed weight factors according
+to which group atoms belong to. The {group} style keyword is
+followed by the number of groups with custom weights
+(default weight is 1.0) and pairs of group ID and the corresponding
+weight factor. The final weight for each atom is the product of
+all individual weight factors from the groups it belongs to.
 An atom with a total weight of 5 then be will be considered to
 have 5x the computational cost than an atom with the default weight
 of 1.0.
 
-With the optional {clock} keyword, "timer data"_timer.html is
-incorporated into the load balancing cost function. The required
-weight factor argument (a number between 0 and 1) determines to
-which degree timing information is included. The timer information
-is taken from the preceding run. If no such information is
-available, e.g. at the beginning of an input, of when the
-"timer"_timer.html level is set to either {loop} or {off},
-the clock keyword has no effect.
+The {neigh} weight style assigns weights computed from the number
+of neighbors divided by the avergage number of neighbors. The
+scaling factor argument determines the relative impact of this
+weight factor. This weight style will use the first suitable neighbor
+list that is internally available and by inactive and print a
+warning, if there is not suitable list available. This is typically
+the case before the first "run"_run.html or "minimize"_minimize.html
+command is issued.
+
+The {time} weight style allows to incorporate "timer data"_timer.html 
+into the load balancing cost function. The required weight factor
+rgument (a number > 0) determines to which degree timing information
+is included. The timer information is taken from the preceding run.
+If no such information is available, e.g. at the beginning of an input,
+of when the "timer"_timer.html level is set to either {loop} or {off},
+this style is ignored.
+
+The {var} weight style allows to set per-atom weights from an
+atom-style "variable"_variable.html into the load balancing cost
+function.
 
 Load-balancing is typically most useful if the particles in the
 simulation box have a spatially-varying density distribution or
@@ -148,8 +178,9 @@ applied.
 The {rcb} style is a "tiling" method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
 rectangular sub-boxes of varying size and shape in an irregular
-fashion so as to have equal numbers of particles in each sub-box, as
-in the rightmost diagram above.
+fashion so as to have equal numbers of particles (or an equal
+load in case weighted load-balancing is requested) in each sub-box,
+as in the rightmost diagram above.
 
 The "grid" methods can be used with either of the
 "comm_style"_comm_style.html command options, {brick} or {tiled}.  The
@@ -172,8 +203,8 @@ from scratch.
 
 The {group-ID} is currently ignored. Load-balancing will always affect
 all atoms. However the different impact of different groups of atoms in
-a simulation can be considered through the {group} keyword and assigning
-different weight factors != 1.0 to atoms in these groups.
+a simulation can be considered through the {group} weight style and
+assigning different weight factors != 1.0 to atoms in these groups.
 
 The {Nfreq} setting determines how often a rebalance is performed.  If
 {Nfreq} > 0, then rebalancing will occur every {Nfreq} steps.  Each

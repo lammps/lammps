@@ -1187,40 +1187,6 @@ cvm::real colvar::update_forces_energy()
       f -= fj;
   }
 
-  if (is_enabled(f_cv_extended_Lagrangian)) {
-
-    cvm::real dt = cvm::dt();
-    cvm::real f_ext;
-
-    // the total force is applied to the fictitious mass, while the
-    // atoms only feel the harmonic force
-    // fr: bias force on extended coordinate (without harmonic spring), for output in trajectory
-    // f_ext: total force on extended coordinate (including harmonic spring)
-    // f: - initially, external biasing force
-    //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
-    //      (note: wall potential is added to f after this block)
-    fr    = f;
-    f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
-    f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
-
-    // leapfrog: starting from x_i, f_i, v_(i-1/2)
-    vr  += (0.5 * dt) * f_ext / ext_mass;
-    // Because of leapfrog, kinetic energy at time i is approximate
-    kinetic_energy = 0.5 * ext_mass * vr * vr;
-    potential_energy = 0.5 * ext_force_k * this->dist2(xr, x);
-    // leap to v_(i+1/2)
-    if (is_enabled(f_cv_Langevin)) {
-      vr -= dt * ext_gamma * vr.real_value;
-      vr += dt * ext_sigma * cvm::rand_gaussian() / ext_mass;
-    }
-    vr  += (0.5 * dt) * f_ext / ext_mass;
-    xr  += dt * vr;
-    xr.apply_constraints();
-    if (this->b_periodic) this->wrap(xr);
-  }
-
-
-  // Adding wall potential to "true" colvar force, whether or not an extended coordinate is in use
   if (is_enabled(f_cv_lower_wall) || is_enabled(f_cv_upper_wall)) {
 
     // Wall force
@@ -1255,6 +1221,37 @@ cvm::real colvar::update_forces_energy()
                     cvm::to_str(fw)+") to \""+this->name+"\".\n");
       }
     }
+  }
+
+  if (is_enabled(f_cv_extended_Lagrangian)) {
+
+    cvm::real dt = cvm::dt();
+    cvm::real f_ext;
+
+    // the total force is applied to the fictitious mass, while the
+    // atoms only feel the harmonic force
+    // fr: bias force on extended coordinate (without harmonic spring), for output in trajectory
+    // f_ext: total force on extended coordinate (including harmonic spring)
+    // f: - initially, external biasing force
+    //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    fr    = f;
+    f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
+    f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
+
+    // leapfrog: starting from x_i, f_i, v_(i-1/2)
+    vr  += (0.5 * dt) * f_ext / ext_mass;
+    // Because of leapfrog, kinetic energy at time i is approximate
+    kinetic_energy = 0.5 * ext_mass * vr * vr;
+    potential_energy = 0.5 * ext_force_k * this->dist2(xr, x);
+    // leap to v_(i+1/2)
+    if (is_enabled(f_cv_Langevin)) {
+      vr -= dt * ext_gamma * vr.real_value;
+      vr += dt * ext_sigma * cvm::rand_gaussian() / ext_mass;
+    }
+    vr  += (0.5 * dt) * f_ext / ext_mass;
+    xr  += dt * vr;
+    xr.apply_constraints();
+    if (this->b_periodic) this->wrap(xr);
   }
 
   f_accumulated += f;

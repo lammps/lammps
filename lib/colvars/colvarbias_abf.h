@@ -60,6 +60,8 @@ private:
   colvar_grid_gradient  *z_gradients;
   /// n-dim grid of number of samples on "real" coordinate for eABF z-based estimator
   colvar_grid_count     *z_samples;
+  /// n-dim grid contining CZAR estimator of "real" free energy gradients
+  colvar_grid_gradient  *czar_gradients;
 
   // shared ABF
   bool     shared_on;

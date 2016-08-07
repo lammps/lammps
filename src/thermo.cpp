@@ -997,6 +997,7 @@ void Thermo::parse_fields(char *str)
 void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 {
   int n = strlen(key) + 1;
+  delete[] keyword[nfield];
   keyword[nfield] = new char[n];
   strcpy(keyword[nfield],key);
   vfunc[nfield] = func;

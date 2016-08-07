@@ -31,8 +31,7 @@ int ImbalanceNeigh::options(int narg, char **arg)
 
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
   _factor = force->numeric(FLERR,arg[0]);
-  if (_factor < 0.0 || _factor > 1.0)
-    error->all(FLERR,"Illegal balance weight command");
+  if (_factor < 0.0) error->all(FLERR,"Illegal balance weight command");
   return 1;
 }
 

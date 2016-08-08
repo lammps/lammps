@@ -68,13 +68,15 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   // nfield may be shrunk below if extra optional args exist
 
   expand = 0;
-  nfield = input->expand_args(narg-5,&arg[5],1,earg);
+  nfield = nargnew = input->expand_args(narg-5,&arg[5],1,earg);
   if (earg != &arg[5]) expand = 1;
 
   // allocate field vectors
 
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
+  field2index = new int[nfield];
+  argindex = new int[nfield];
 
   buffer_allow = 1;
   buffer_flag = 1;
@@ -86,9 +88,6 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   thresh_value = NULL;
 
   // computes, fixes, variables which the dump accesses
-
-  memory->create(field2index,nfield,"dump:field2index");
-  memory->create(argindex,nfield,"dump:argindex");
 
   ncompute = 0;
   id_compute = NULL;
@@ -181,14 +180,14 @@ DumpCustom::~DumpCustom()
   // could not do in constructor, b/c some derived classes process earg
 
   if (expand) {
-    for (int i = 0; i < nfield; i++) delete [] earg[i];
+    for (int i = 0; i < nargnew; i++) delete [] earg[i];
     memory->sfree(earg);
   }
 
   delete [] pack_choice;
   delete [] vtype;
-  memory->destroy(field2index);
-  memory->destroy(argindex);
+  delete [] field2index;
+  delete [] argindex;
 
   delete [] idregion;
   memory->destroy(thresh_array);

@@ -59,7 +59,7 @@ balance 1.2 shift xz 5 1.1
 balance 1.0 shift xz 5 1.1
 balance 1.1 rcb
 balance 1.0 shift x 10 1.1 weight group 2 fast 0.5 slow 2.0
-balance 1.0 shift x 10 1.1 weight clock 0.8 weight neigh 0.5 weight store balance
+balance 1.0 shift x 10 1.1 weight time 0.8 weight neigh 0.5 weight store balance
 balance 1.0 shift x 20 1.0 out tmp.balance :pre
 
 [Description:]

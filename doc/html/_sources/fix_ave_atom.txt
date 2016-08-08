@@ -77,7 +77,7 @@ means all indices from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 fix ave/atom commands are
-equivalent, since the :doc:`compute stress/atom <compute_stress/atom>`
+equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
 command creates a per-atom array with 6 columns:
 
 .. parsed-literal::

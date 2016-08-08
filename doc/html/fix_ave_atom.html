@@ -190,7 +190,7 @@ asterisk means all indices from n to N (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).</p>
 <p>Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 fix ave/atom commands are
-equivalent, since the <span class="xref doc">compute stress/atom</span>
+equivalent, since the <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a>
 command creates a per-atom array with 6 columns:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">my_stress</span> <span class="nb">all</span> <span class="n">stress</span><span class="o">/</span><span class="n">atom</span> <span class="n">NULL</span>
 <span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">atom</span> <span class="mi">10</span> <span class="mi">20</span> <span class="mi">1000</span> <span class="n">c_my_stress</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>

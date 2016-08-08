@@ -256,28 +256,6 @@ if your input script specifies a thermo_style command, you should use
 the thermo_modify command after it.</p>
 </div>
 <hr class="docutils" />
-<p>Note that for values from a compute or fix, the bracketed index I used
-to index a vector, as in <em>c_ID[I]</em> or <em>f_ID[I]</em>, can be specified
-using a wildcard asterisk with the index to effectively specify
-multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.
-If N = the size of the vector (for <em>mode</em> = scalar) or the number of
-columns in the array (for <em>mode</em> = vector), then an asterisk with no
-numeric values means all indices from 1 to N.  A leading asterisk
-means all indices from 1 to n (inclusive).  A trailing asterisk means
-all indices from n to N (inclusive).  A middle asterisk means all
-indices from m to n (inclusive).</p>
-<p>Using a wildcard is the same as if the individual elements of the
-vector had been listed one by one.  E.g. these 2 thermo_style commands
-are equivalent, since the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> command
-creates a global vector with 6 values.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myTemp</span> <span class="nb">all</span> <span class="n">temp</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="o">&amp;</span>
-             <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
-             <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
-</pre></div>
-</div>
-<hr class="docutils" />
 <p>Several of the thermodynamic quantities require a temperature to be
 computed: &#8220;temp&#8221;, &#8220;press&#8221;, &#8220;ke&#8221;, &#8220;etotal&#8221;, &#8220;enthalpy&#8221;, &#8220;pxx&#8221;, etc.  By
 default this is done by using a <em>temperature</em> compute which is created
@@ -412,6 +390,28 @@ define the periodic unit cell of a crystal.  See <a class="reference internal" h
 description of triclinic periodic cells, including a precise defintion
 of these quantities in terms of the internal LAMMPS cell dimensions
 <em>lx</em>, <em>ly</em>, <em>lz</em>, <em>yz</em>, <em>xz</em>, <em>xy</em>.</p>
+<hr class="docutils" />
+<p>For output values from a compute or fix, the bracketed index I used to
+index a vector, as in <em>c_ID[I]</em> or <em>f_ID[I]</em>, can be specified
+using a wildcard asterisk with the index to effectively specify
+multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.
+If N = the size of the vector (for <em>mode</em> = scalar) or the number of
+columns in the array (for <em>mode</em> = vector), then an asterisk with no
+numeric values means all indices from 1 to N.  A leading asterisk
+means all indices from 1 to n (inclusive).  A trailing asterisk means
+all indices from n to N (inclusive).  A middle asterisk means all
+indices from m to n (inclusive).</p>
+<p>Using a wildcard is the same as if the individual elements of the
+vector had been listed one by one.  E.g. these 2 thermo_style commands
+are equivalent, since the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> command
+creates a global vector with 6 values.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myTemp</span> <span class="nb">all</span> <span class="n">temp</span>
+<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
+<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="o">&amp;</span>
+             <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
+             <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p>The <em>c_ID</em> and <em>c_ID[I]</em> and <em>c_ID[I][J]</em> keywords allow global
 values calculated by a compute to be output.  As discussed on the

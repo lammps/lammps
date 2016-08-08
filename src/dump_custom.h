@@ -40,7 +40,6 @@ class DumpCustom : public Dump {
 
   int expand;                // flag for whether field args were expanded
   char **earg;               // field names with wildcard expansion
-  int nargnew;               // size of earg
 
   int *vtype;                // type of each vector (INT, DOUBLE)
   char **vformat;            // format string for each vector element

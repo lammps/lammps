@@ -79,20 +79,18 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   // this can reset nvalues
 
   int expand = 0;
-  char **earg;
+  char **earg,**arghold;
   nvalues = input->expand_args(nvalues,&arg[6],mode,earg);
 
   if (earg != &arg[6]) expand = 1;
+  arghold = arg;
   arg = earg;
 
   // parse values
 
-  which = new int[nvalues];
-  argindex = new int[nvalues];
-  value2index = new int[nvalues];
-  offcol = new int[nvalues];
-  varlen = new int[nvalues];
-  ids = new char*[nvalues];
+  which = argindex = value2index = offcol = varlen = NULL;
+  ids = NULL;
+  allocate_values(nvalues);
 
   for (int i = 0; i < nvalues; i++) {
     if (arg[i][0] == 'c') which[i] = COMPUTE;
@@ -295,6 +293,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nvalues; i++) delete [] earg[i];
     memory->sfree(earg);
+    arg = arghold;
   }
 
   // allocate memory for averaging
@@ -456,13 +455,13 @@ FixAveTime::~FixAveTime()
 
   delete [] format_user;
 
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
-  delete [] offcol;
-  delete [] varlen;
+  memory->destroy(which);
+  memory->destroy(argindex);
+  memory->destroy(value2index);
+  memory->destroy(offcol);
+  memory->destroy(varlen);
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  memory->sfree(ids);
 
   delete [] extlist;
 
@@ -1104,6 +1103,20 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/time command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   reallocate vectors for N input values
+------------------------------------------------------------------------- */
+
+void FixAveTime::allocate_values(int n)
+{
+  memory->grow(which,n,"ave/time:which");
+  memory->grow(argindex,n,"ave/time:argindex");
+  memory->grow(value2index,n,"ave/time:value2index");
+  memory->grow(offcol,n,"ave/time:offcol");
+  memory->grow(varlen,n,"ave/time:varlen");
+  ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/time:ids");
 }
 
 /* ----------------------------------------------------------------------

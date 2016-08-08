@@ -75,10 +75,11 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   // expand args if any have wildcard character "*"
 
   int expand = 0;
-  char **earg;
+  char **earg,**arghold;
   int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
 
   if (earg != &arg[iarg]) expand = 1;
+  arghold = arg;
   arg = earg;
 
   // parse values until one isn't recognized
@@ -189,8 +190,9 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
-    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
     memory->sfree(earg);
+    arg = arghold;
   }
 
   // setup and error check

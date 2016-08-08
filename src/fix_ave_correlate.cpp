@@ -59,10 +59,11 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   // expand args if any have wildcard character "*"
 
   int expand = 0;
-  char **earg;
+  char **earg,**arghold;
   int nargnew = input->expand_args(narg-6,&arg[6],0,earg);
 
   if (earg != &arg[6]) expand = 1;
+  arghold = arg;
   arg = earg;
 
   // parse values until one isn't recognized
@@ -291,8 +292,9 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   // wait to do this until after file comment lines are printed
 
   if (expand) {
-    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
     memory->sfree(earg);
+    arg = arghold;
   }
 
   // allocate and initialize memory for averaging

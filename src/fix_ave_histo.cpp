@@ -100,58 +100,67 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // this can reset nvalues
 
   int expand = 0;
-  char **earg;
+  char **earg,**arghold;
   nvalues = input->expand_args(nvalues,&arg[9],mode,earg);
 
   if (earg != &arg[9]) expand = 1;
+  arghold = arg;
   arg = earg;
 
   // parse values
 
-  which = new int[nvalues];
-  argindex = new int[nvalues];
-  value2index = new int[nvalues];
-  ids = new char*[nvalues];
+  which = argindex = value2index = NULL;
+  ids = NULL;
+  allocate_values(nvalues);
 
   for (int i = 0; i < nvalues; i++) {
     if (strcmp(arg[i],"x") == 0) {
       which[i] = X;
       argindex[i] = 0;
       ids[i] = NULL;
+      iarg++;
     } else if (strcmp(arg[i],"y") == 0) {
       which[i] = X;
       argindex[i] = 1;
       ids[i] = NULL;
+      iarg++;
     } else if (strcmp(arg[i],"z") == 0) {
       which[i] = X;
       argindex[i] = 2;
       ids[i] = NULL;
+      iarg++;
 
     } else if (strcmp(arg[i],"vx") == 0) {
       which[i] = V;
       argindex[i] = 0;
       ids[i] = NULL;
+      iarg++;
     } else if (strcmp(arg[i],"vy") == 0) {
       which[i] = V;
       argindex[i] = 1;
       ids[i] = NULL;
+      iarg++;
     } else if (strcmp(arg[i],"vz") == 0) {
       which[i] = V;
       argindex[i] = 2;
       ids[i] = NULL;
+      iarg++;
 
     } else if (strcmp(arg[i],"fx") == 0) {
       which[i] = F;
       argindex[i] = 0;
       ids[i] = NULL;
+      iarg++;
     } else if (strcmp(arg[i],"fy") == 0) {
       which[i] = F;
       argindex[i] = 1;
       ids[i] = NULL;
+      iarg++;
     } else if (strcmp(arg[i],"fz") == 0) {
       which[i] = F;
       argindex[i] = 2;
       ids[i] = NULL;
+      iarg++;
 
     } else if ((strncmp(arg[i],"c_",2) == 0) ||
         (strncmp(arg[i],"f_",2) == 0) ||
@@ -184,6 +193,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nvalues; i++) delete [] earg[i];
     memory->sfree(earg);
+    arg = arghold;
   }
 
   // setup and error check
@@ -486,11 +496,11 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveHisto::~FixAveHisto()
 {
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
+  memory->destroy(which);
+  memory->destroy(argindex);
+  memory->destroy(value2index);
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  memory->sfree(ids);
 
   if (fp && me == 0) fclose(fp);
 
@@ -991,6 +1001,18 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/histo command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   reallocate vectors for each input value, of length N
+------------------------------------------------------------------------- */
+
+void FixAveHisto::allocate_values(int n)
+{
+  memory->grow(which,n,"ave/hsito:which");
+  memory->grow(argindex,n,"ave/histo:argindex");
+  memory->grow(value2index,n,"ave/histo:value2index");
+  ids = (char **) memory->srealloc(ids,n*sizeof(char *),"ave/histo:ids");
 }
 
 /* ----------------------------------------------------------------------

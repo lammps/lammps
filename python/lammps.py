@@ -348,8 +348,11 @@ class AtomList(object):
   def __init__(self, lammps_wrapper_instance):
     self.lmp = lammps_wrapper_instance
     self.natoms = self.lmp.system.natoms
+    self.dimensions = self.lmp.system.dimensions
 
   def __getitem__(self, index):
+    if self.dimensions == 2:
+        return Atom2D(self.lmp, index + 1)
     return Atom(self.lmp, index + 1)
 
 
@@ -395,6 +398,26 @@ class Atom(object):
   @property
   def charge(self):
     return self.lmp.eval("q[%d]" % self.index)
+
+
+class Atom2D(Atom):
+  def __init__(self, lammps_wrapper_instance, index):
+    super(Atom2D, self).__init__(lammps_wrapper_instance, index)
+
+  @property
+  def position(self):
+    return (self.lmp.eval("x[%d]" % self.index),
+            self.lmp.eval("y[%d]" % self.index))
+
+  @property
+  def velocity(self):
+    return (self.lmp.eval("vx[%d]" % self.index),
+            self.lmp.eval("vy[%d]" % self.index))
+
+  @property
+  def force(self):
+    return (self.lmp.eval("fx[%d]" % self.index),
+            self.lmp.eval("fy[%d]" % self.index))
 
 
 class PyLammps(object):

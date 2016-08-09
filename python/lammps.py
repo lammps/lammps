@@ -15,6 +15,10 @@
 
 # for python3 compatibility
 from __future__ import print_function
+from builtins import zip
+from builtins import str
+from builtins import range
+from builtins import object
 
 # imports for simple LAMMPS python wrapper module "lammps"
 import sys,traceback,types
@@ -438,13 +442,13 @@ class PyLammps(object):
   def system(self):
     output = self.info("system")
     d = self._parse_info_system(output)
-    return namedtuple('System', d.keys())(*d.values())
+    return namedtuple('System', list(d.keys()))(*list(d.values()))
 
   @property
   def communication(self):
     output = self.info("communication")
     d = self._parse_info_communication(output)
-    return namedtuple('Communication', d.keys())(*d.values())
+    return namedtuple('Communication', list(d.keys()))(*list(d.values()))
 
   @property
   def computes(self):

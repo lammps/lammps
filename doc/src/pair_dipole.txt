@@ -39,9 +39,11 @@ pair_style lj/cut/dipole/cut 10.0
 pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
-pair_style lj/sf/dipole/sf 9.0
+pair_style lj/sf/dipole/sf 3.0 3.0
 pair_coeff * * 1.0 1.0
-pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
+pair_coeff * * 1.0 1.0 scale 0.8
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+pair_coeff * * 1.0 1.0 2.5 4.0 scale 0.8 :pre
 
 pair_style lj/cut/dipole/long 10.0
 pair_coeff * * 1.0 1.0

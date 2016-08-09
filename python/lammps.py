@@ -304,6 +304,9 @@ class OutputCapture(object):
 
   def __exit__(self, type, value, tracebac):
     os.dup2(self.stdout, self.stdout_fd)
+    os.close(self.stdout)
+    os.close(self.stdout_pipe_read)
+    os.close(self.stdout_pipe_write)
 
   # check if we have more to read from the pipe
   def more_data(self, pipe):

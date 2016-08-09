@@ -5,6 +5,7 @@
 # Syntax: Make.py -h (for help)
 # Notes: needs python 2.7 (not Python 3)
 
+from __future__ import print_function
 import sys,os,commands,re,copy,subprocess,platform
 
 # switch abbrevs
@@ -39,10 +40,10 @@ gpubuildflag = 0
 
 def error(str,flag=1):
   if flag:
-    print "ERROR:",str
+    print("ERROR:",str)
     sys.exit()
   else:
-    print "WARNING:",str
+    print("WARNING:",str)
 
 # store command-line args as sw = dict of key/value
 # key = switch word, value = list of following args
@@ -89,9 +90,9 @@ def compile_check(compiler,ccflags,warn):
   if txt or not os.path.isfile("tmpauto.o"):
     flag = 0
     if warn:
-      print str
-      if txt: print txt
-      else: print "compile produced no output"
+      print(str)
+      if txt: print(txt)
+      else: print("compile produced no output")
   os.remove("tmpauto.cpp")
   if os.path.isfile("tmpauto.o"): os.remove("tmpauto.o")
   return flag
@@ -108,9 +109,9 @@ def link_check(linker,linkflags,libs,warn):
   if txt or not os.path.isfile("tmpauto"):
     flag = 0
     if warn:
-      print str
-      if txt: print txt
-      else: print "link produced no output"
+      print(str)
+      if txt: print(txt)
+      else: print("link produced no output")
   os.remove("tmpauto.cpp")
   if os.path.isfile("tmpauto"): os.remove("tmpauto")
   return flag
@@ -229,7 +230,7 @@ class Actions:
   
   def lib(self,suffix):
     if suffix != "all":
-      print "building",suffix,"library ..."
+      print("building",suffix,"library ...")
       str = "%s.build()" % suffix
       exec(str)
     else:
@@ -238,7 +239,7 @@ class Actions:
         if final[one]:
           if "user" in one: pkg = one[5:]
           else: pkg = one
-          print "building",pkg,"library ..."
+          print("building",pkg,"library ...")
           str = "%s.build()" % pkg
           exec(str)
 
@@ -527,7 +528,7 @@ class Actions:
     
     if caller == "file" or "file" not in self.alist:
       make.write("%s/MAKE/MINE/Makefile.auto" % dir.src,1)
-      print "Created src/MAKE/MINE/Makefile.auto"
+      print("Created src/MAKE/MINE/Makefile.auto")
       
     # test full compile and link
     # unless caller = "file" and "exe" action will be invoked later
@@ -547,7 +548,7 @@ class Actions:
   def clean(self):
     str = "cd %s; make clean-auto" % dir.src
     commands.getoutput(str)
-    print "Performed make clean-auto"
+    print("Performed make clean-auto")
 
   # build LAMMPS using Makefile.auto and -j setting
   # invoke self.file() first, to test makefile compile/link
@@ -558,13 +559,13 @@ class Actions:
     self.file("exe")
     commands.getoutput("cd %s; rm -f lmp_auto" % dir.src)
     if self.stubs and not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
-      print "building serial STUBS library ..."
+      print("building serial STUBS library ...")
       str = "cd %s/STUBS; make clean; make" % dir.src
       txt = commands.getoutput(str)
       if not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
-        print txt
+        print(txt)
         error('Unsuccessful "make stubs"')
-      print "Created src/STUBS/libmpi_stubs.a"
+      print("Created src/STUBS/libmpi_stubs.a")
 
     # special hack for shannon GPU cluster
     # must use "srun make" if on it and building w/ GPU package, else just make
@@ -581,13 +582,13 @@ class Actions:
 
     if verbose: subprocess.call(str,shell=True)
     else:
-      print str
+      print(str)
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/lmp_auto" % dir.src):
       error('Unsuccessful "make auto"')
-    elif not output: print "Created src/lmp_auto"
+    elif not output: print("Created src/lmp_auto")
     
 # dir switch
 
@@ -849,29 +850,29 @@ class Packages:
   # install packages in plist
     
   def install(self):
-    if self.plist: print "Installing packages ..."
+    if self.plist: print("Installing packages ...")
     for one in self.plist:
       if one == "orig": continue
       commands.getoutput("cd %s; make %s" % (dir.src,one))
     if self.plist and verbose:
       txt = commands.getoutput("cd %s; make ps" % dir.src)
-      print "Package status after installation:"
-      print txt
+      print("Package status after installation:")
+      print(txt)
       
   # restore packages to original list if requested
   # order of re-install should not matter matter b/c of Depend.sh
   
   def uninstall(self):
     if not self.plist or self.plist[-1] != "orig": return
-    print "Restoring packages to original state ..."
+    print("Restoring packages to original state ...")
     commands.getoutput("cd %s; make no-all" % dir.src)
     for one in self.all:
       if self.original[one]:
         commands.getoutput("cd %s; make yes-%s" % (dir.src,one))
     if verbose:
       txt = commands.getoutput("cd %s; make ps" % dir.src)
-      print "Restored package status:"
-      print txt
+      print("Restored package status:")
+      print(txt)
       
 # redo switch
     
@@ -1060,12 +1061,12 @@ class ATC:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libatc.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/atc library")
-    else: print "Created lib/atc library"
+    else: print("Created lib/atc library")
     
 # AWPMD lib
 
@@ -1111,12 +1112,12 @@ class AWPMD:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
    
     if not os.path.isfile("%s/libawpmd.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/awpmd library")
-    else: print "Created lib/awpmd library"
+    else: print("Created lib/awpmd library")
 
 # COLVARS lib
 
@@ -1162,12 +1163,12 @@ class COLVARS:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libcolvars.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/colvars library")
-    else: print "Created lib/colvars library"
+    else: print("Created lib/colvars library")
 
 # CUDA lib
 
@@ -1219,12 +1220,12 @@ class CUDA:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/liblammpscuda.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/cuda library")
-    else: print "Created lib/cuda library"
+    else: print("Created lib/cuda library")
 
 # GPU lib
 
@@ -1309,12 +1310,12 @@ class GPU:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libgpu.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/gpu library")
-    else: print "Created lib/gpu library"
+    else: print("Created lib/gpu library")
 
 # H5MD lib
 
@@ -1359,12 +1360,12 @@ class H5MD:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libch5md.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/h5md library")
-    else: print "Created lib/h5md library"
+    else: print("Created lib/h5md library")
 
 # MEAM lib
 
@@ -1410,12 +1411,12 @@ class MEAM:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libmeam.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/meam library")
-    else: print "Created lib/meam library"
+    else: print("Created lib/meam library")
 
 # POEMS lib
 
@@ -1461,12 +1462,12 @@ class POEMS:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libpoems.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/poems library")
-    else: print "Created lib/poems library"
+    else: print("Created lib/poems library")
 
 # PYTHON lib
 
@@ -1501,7 +1502,7 @@ class PYTHON:
                          (libdir,self.lammps))
     if not os.path.isfile("%s/Makefile.lammps.%s" % (libdir,self.lammps)):
       error("Unsuccessful creation of lib/python/Makefile.lammps.%s file" % self.lammps)
-    else: print "Created lib/python/Makefile.lammps file"
+    else: print("Created lib/python/Makefile.lammps file")
 
 # QMMM lib
 
@@ -1547,12 +1548,12 @@ class QMMM:
     if verbose: subprocess.call(str,shell=True)
     else:
       try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print e.output
+      except Exception as e: print(e.output)
    
     if not os.path.isfile("%s/libqmmm.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
       error("Unsuccessful build of lib/qmmm library")
-    else: print "Created lib/qmmm library"
+    else: print("Created lib/qmmm library")
 
 # VORONOI lib
 
@@ -1585,8 +1586,8 @@ class VORONOI:
     libdir = dir.lib + "/voronoi"
     cmd = "cd %s; python install.py %s" % (libdir,self.install)
     txt = commands.getoutput(cmd)
-    if verbose: print txt
-    print "Created lib/voronoi library"
+    if verbose: print(txt)
+    print("Created lib/voronoi library")
 
 # ----------------------------------------------------------------
 # build classes for intel, kokkos build options
@@ -1637,7 +1638,7 @@ class Kokkos:
 """
 
   def check(self):
-    print self.inlist
+    print(self.inlist)
     if self.inlist != None and len(self.inlist) == 0:
       error("-kokkos args are invalid")
       
@@ -2076,14 +2077,14 @@ class MakeReader:
       if not line.isdigit():
         if flag and i == 0:
           line = "# auto = makefile auto-generated by Make.py"
-        print >>fp,line
+        print(line, file=fp)
       else:
         index = int(line)
         name = self.varinfo[index][0]
         txt = self.varinfo[index][1]
         if name not in self.var: continue
         values = self.var[name]
-        print >>fp,"%s%s" % (txt,' '.join(values))
+        print("%s%s" % (txt,' '.join(values)), file=fp)
   
 # ----------------------------------------------------------------
 # main program
@@ -2152,7 +2153,7 @@ while 1:
       switches[switch] = cmd_switches[switch]
 
     argstr = switch2str(switches,switch_order)
-    print "Redo command: Make.py",argstr
+    print("Redo command: Make.py",argstr)
   else:
     switches = cmd_switches
     switch_order = cmd_switch_order
@@ -2195,10 +2196,10 @@ while 1:
 
   if help or (actions and "-h" in actions.inlist) or not switches:
     if not help: help = Help(None)
-    print help.help()
+    print(help.help())
     for switch in switch_order:
       if switch == "h": continue
-      print classes[switch].help()[1:]
+      print(classes[switch].help()[1:])
     sys.exit()
 
   # create needed default classes if not specified with switch
@@ -2247,7 +2248,7 @@ while 1:
 
   if actions:
     for action in actions.alist:
-      print "Action %s ..." % action
+      print("Action %s ..." % action)
       if action.startswith("lib-"): actions.lib(action[4:])
       elif action == "file": actions.file("file")
       elif action == "clean": actions.clean()
@@ -2260,7 +2261,7 @@ while 1:
   if output and actions and "exe" in actions.alist:
     txt = "cp %s/lmp_auto %s/lmp_%s" % (dir.src,dir.cwd,output.machine)
     commands.getoutput(txt)
-    print "Created lmp_%s in %s" % (output.machine,dir.cwd)
+    print("Created lmp_%s in %s" % (output.machine,dir.cwd))
 
   # create copy of Makefile.auto if requested, and file or exe action performed
   # ditto for library Makefile.auto and Makefile.lammps files
@@ -2270,24 +2271,24 @@ while 1:
     txt = "cp %s/MAKE/MINE/Makefile.auto %s/MAKE/MINE/Makefile.%s" % \
         (dir.src,dir.src,zoutput.machine)
     commands.getoutput(txt)
-    print "Created Makefile.%s in %s/MAKE/MINE" % (zoutput.machine,dir.src)
+    print("Created Makefile.%s in %s/MAKE/MINE" % (zoutput.machine,dir.src))
     if gpubuildflag:
       txt = "cp %s/gpu/Makefile.auto %s/MAKE/MINE/Makefile_gpu.%s" % \
           (dir.lib,dir.src,zoutput.machine)
       commands.getoutput(txt)
-      print "Created Makefile_gpu.%s in %s/MAKE/MINE" % \
-          (zoutput.machine,dir.src)
+      print("Created Makefile_gpu.%s in %s/MAKE/MINE" % \
+          (zoutput.machine,dir.src))
       txt = "cp %s/gpu/Makefile.lammps %s/MAKE/MINE/Makefile_gpu_lammps.%s" % \
           (dir.lib,dir.src,zoutput.machine)
       commands.getoutput(txt)
-      print "Created Makefile_gpu_lammps.%s in %s/MAKE/MINE" % \
-          (zoutput.machine,dir.src)
+      print("Created Makefile_gpu_lammps.%s in %s/MAKE/MINE" % \
+          (zoutput.machine,dir.src))
       
   # write current Make.py command to src/Make.py.last
 
   fp = open("%s/Make.py.last" % dir.src,'w')
-  print >>fp,"# last invoked Make.py command"
-  print >>fp,switch2str(switches,switch_order)
+  print("# last invoked Make.py command", file=fp)
+  print(switch2str(switches,switch_order), file=fp)
   fp.close()
   
   # if not redoflag, done

@@ -58,7 +58,7 @@ if me == 0:
 
   d = dump("tmp.dump",0)
   p = pdbfile(d)
-  d.next()
+  next(d)
   d.unscale()
   p.single(ntimestep)
   pm.load("tmp.pdb")
@@ -70,7 +70,7 @@ while ntimestep < nsteps:
   lmp.command("run %d pre no post no" % nfreq)
   ntimestep += nfreq
   if me == 0:
-    d.next()
+    next(d)
     d.unscale()
     p.single(ntimestep)
     pm.load("tmp.pdb")

@@ -35,7 +35,7 @@ def quit():
 # read dump snapshot and viz it, update plot with compute value
 
 def update(ntimestep):
-  d.next()
+  next(d)
   d.unscale()
   p.single(ntimestep)
   v.append('tmp.pdb','pdb')
@@ -98,7 +98,7 @@ if me == 0:
 
   d = dump('tmp.dump',0)
   p = pdbfile(d)
-  d.next()
+  next(d)
   d.unscale()
   p.single(ntimestep)
   v.new('tmp.pdb','pdb')

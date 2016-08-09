@@ -77,7 +77,7 @@ class pdbfile:
 
   def __init__(self,*args):
     if len(args) == 1:
-      if type(args[0]) is types.StringType:
+      if type(args[0]) is bytes:
         filestr = args[0]
         self.data = None
       else:
@@ -86,7 +86,7 @@ class pdbfile:
     elif len(args) == 2:
       filestr = args[0]
       self.data = args[1]
-    else: raise StandardError("invalid args for pdb()")
+    else: raise Exception("invalid args for pdb()")
 
     # flist = full list of all PDB input file names
     # append .pdb if needed
@@ -100,14 +100,14 @@ class pdbfile:
       for i in xrange(len(flist)):
         if flist[i][-4:] != ".pdb": flist[i] += ".pdb"
       if len(flist) == 0:
-        raise StandardError("no PDB file specified")
+        raise Exception("no PDB file specified")
       self.files = flist
     else: self.files = []
 
     if len(self.files) > 1 and self.data:
-      raise StandardError("cannot use multiple PDB files with data object")
+      raise Exception("cannot use multiple PDB files with data object")
     if len(self.files) == 0 and not self.data:
-      raise StandardError("no input PDB file(s)")
+      raise Exception("no input PDB file(s)")
 
     # grab PDB file from http://rcsb.org if not a local file
     
@@ -280,7 +280,7 @@ class pdbfile:
     if len(self.files):
       for atom in atoms:
         id = atom[0]
-        if self.atomlines.has_key(id):
+        if id in self.atomlines:
           (begin,end) = self.atomlines[id]
           line = "%s%8.3f%8.3f%8.3f%s" % (begin,atom[2],atom[3],atom[4],end)
           print(line,file=f,end='')

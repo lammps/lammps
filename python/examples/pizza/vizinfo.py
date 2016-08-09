@@ -66,14 +66,14 @@ class vizinfo:
     # convert args into lists if single values
     # if arg = 0, convert to full-range list
     
-    if type(ids) is types.IntType and ids == 0:
+    if type(ids) is int and ids == 0:
       if which == "atom": ids = range(self.nacolor)
       if which == "bond": ids = range(self.nbcolor)
       if which == "tri": ids = range(self.ntcolor)
       if which == "line": ids = range(self.nlcolor)
-    if type(ids) is not types.ListType and type(ids) is not types.TupleType:
+    if type(ids) is not list and type(ids) is not tuple:
       ids = [ids]
-    if type(rgbs) is not types.ListType and type(rgbs) is not types.TupleType:
+    if type(rgbs) is not list and type(rgbs) is not tuple:
       rgbs = [rgbs]
 
     # if list of types has a 0, increment each type value
@@ -144,14 +144,14 @@ class vizinfo:
     # convert args into lists if single values
     # if arg = 0, convert to full-range list
     
-    if type(ids) is types.IntType and ids == 0:
+    if type(ids) is int and ids == 0:
       if which == "atom": ids = range(self.narad)
       if which == "bond": ids = range(self.nbrad)
       if which == "line": ids = range(self.nlrad)
-    if type(ids) is not types.ListType and type(ids) is not types.TupleType:
+    if type(ids) is not list and type(ids) is not tuple:
       ids = [ids]
-    if type(radii) is not types.ListType and \
-           type(radii) is not types.TupleType:
+    if type(radii) is not list and \
+           type(radii) is not tuple:
       radii = [radii]
 
     # if list of types has a 0, increment each type value
@@ -209,12 +209,12 @@ class vizinfo:
     # convert args into lists if single values
     # if arg = 0, convert to full-range list
     
-    if type(ids) is types.IntType and ids == 0:
+    if type(ids) is int and ids == 0:
       ids = range(self.ntfill)
-    if type(ids) is not types.ListType and type(ids) is not types.TupleType:
+    if type(ids) is not list and type(ids) is not tuple:
       ids = [ids]
-    if type(fills) is not types.ListType and \
-           type(fills) is not types.TupleType:
+    if type(fills) is not list and \
+           type(fills) is not tuple:
       fills = [fills]
 
     # if list of types has a 0, increment each type value

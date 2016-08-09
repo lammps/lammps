@@ -224,7 +224,7 @@ class dump:
     self.flist = []
     for word in words: self.flist += glob.glob(word)
     if len(self.flist) == 0 and len(list) == 1:
-      raise StandardError("no dump file specified")
+      raise Exception("no dump file specified")
     
     if len(list) == 1:
       self.increment = 0
@@ -286,9 +286,9 @@ class dump:
 
     # if snapshots are scaled, unscale them
 
-    if (not self.names.has_key("x")) or \
-       (not self.names.has_key("y")) or \
-       (not self.names.has_key("z")):
+    if ("x" not in self.names) or \
+       ("y" not in self.names) or \
+       ("z" not in self.names):
       print("no unscaling could be performed")
     elif self.nsnaps > 0:
       if self.scaled(self.nsnaps-1): self.unscale()
@@ -299,7 +299,7 @@ class dump:
 
   def next(self):
 
-    if not self.increment: raise StandardError("cannot read incrementally")
+    if not self.increment: raise Exception("cannot read incrementally")
 
     # read next snapshot in current file using eof as pointer
     # if fail, try next file
@@ -417,7 +417,7 @@ class dump:
   
   def map(self,*pairs):
     if len(pairs) % 2 != 0:
-      raise StandardError("dump map() requires pairs of mappings")
+      raise Exception("dump map() requires pairs of mappings")
     for i in range(0,len(pairs),2):
       j = i + 1
       self.names[pairs[j]] = pairs[i]-1
@@ -589,7 +589,7 @@ class dump:
       id = self.names["id"]
       for snap in self.snaps:
         if snap.tselect: self.sort_one(snap,id)
-    elif type(list[0]) is types.StringType:
+    elif type(list[0]) is bytes:
       print("Sorting selected snapshots by %s ..." % list[0])
       id = self.names[list[0]]
       for snap in self.snaps:
@@ -707,7 +707,7 @@ class dump:
     list = re.findall(pattern,eq)
 
     lhs = list[0][1:]
-    if not self.names.has_key(lhs):
+    if lhs not in self.names:
       self.newcolumn(lhs)
       
     for item in list:
@@ -727,14 +727,14 @@ class dump:
 
   def setv(self,colname,vec):
     print("Setting ...")
-    if not self.names.has_key(colname):
+    if colname not in self.names:
       self.newcolumn(colname)
     icol = self.names[colname]
 
     for snap in self.snaps:
       if not snap.tselect: continue
       if snap.nselect != len(vec):
-        raise StandardError("vec length does not match # of selected atoms")
+        raise Exception("vec length does not match # of selected atoms")
       atoms = snap.atoms
       m = 0
       for i in range(snap.natoms):
@@ -765,7 +765,7 @@ class dump:
 
   def spread(self,old,n,new):
     iold = self.names[old]
-    if not self.names.has_key(new): self.newcolumn(new)
+    if new not in self.names: self.newcolumn(new)
     inew = self.names[new]
 
     min,max = self.minmax(old)
@@ -800,7 +800,7 @@ class dump:
 
   def atom(self,n,*list):
     if len(list) == 0:
-      raise StandardError("no columns specified")
+      raise Exception("no columns specified")
     columns = []
     values = []
     for name in list:
@@ -816,7 +816,7 @@ class dump:
       for i in range(snap.natoms):
         if atoms[i][id] == n: break
       if atoms[i][id] != n:
-        raise StandardError("could not find atom ID in snapshot")
+        raise Exception("could not find atom ID in snapshot")
       for j in range(ncol):
         values[j][m] = atoms[i][columns[j]]
       m += 1
@@ -831,7 +831,7 @@ class dump:
     snap = self.snaps[self.findtime(n)]
     
     if len(list) == 0:
-      raise StandardError("no columns specified")
+      raise Exception("no columns specified")
     columns = []
     values = []
     for name in list:
@@ -959,7 +959,7 @@ class dump:
   def findtime(self,n):
     for i in range(self.nsnaps):
       if self.snaps[i].time == n: return i
-    raise StandardError("no step %d exists" % n)
+    raise Exception("no step %d exists" % n)
 
   # --------------------------------------------------------------------
   # return maximum box size across all selected snapshots
@@ -998,7 +998,7 @@ class dump:
 
     # read bonds from bond dump file
     
-    if type(arg) is types.StringType:
+    if type(arg) is bytes:
       try:
         f = open(arg,'r')
 
@@ -1008,7 +1008,7 @@ class dump:
         nbonds = int(f.readline())
         item = f.readline()
         if not re.search("BONDS",item):
-          raise StandardError("could not read bonds from dump file")
+          raise Exception("could not read bonds from dump file")
 
         words = f.readline().split()
         ncol = len(words)
@@ -1031,7 +1031,7 @@ class dump:
           self.bondflag = 1
           self.bondlist = bondlist
       except:
-        raise StandardError("could not read from bond dump file")
+        raise Exception("could not read from bond dump file")
       
     # request bonds from data object
     
@@ -1047,7 +1047,7 @@ class dump:
           self.bondflag = 1
           self.bondlist = bondlist
       except:
-        raise StandardError("could not extract bonds from data object")
+        raise Exception("could not extract bonds from data object")
 
     # request tris/lines from cdata object
     
@@ -1061,7 +1061,7 @@ class dump:
           self.lineflag = 1
           self.linelist = lines
       except:
-        raise StandardError("could not extract tris/lines from cdata object")
+        raise Exception("could not extract tris/lines from cdata object")
 
     # request tris from mdump object
     
@@ -1070,10 +1070,10 @@ class dump:
         self.triflag = 2
         self.triobj = arg
       except:
-        raise StandardError("could not extract tris from mdump object")
+        raise Exception("could not extract tris from mdump object")
 
     else:
-      raise StandardError("unrecognized argument to dump.extra()")
+      raise Exception("unrecognized argument to dump.extra()")
       
   # --------------------------------------------------------------------
 

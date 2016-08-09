@@ -62,7 +62,7 @@ if me == 0:
 
   d = dump("tmp.dump",0)
   g = gl(d)
-  d.next()
+  next(d)
   d.unscale()
   g.zoom(1)
   g.shift(0,0)
@@ -77,7 +77,7 @@ while ntimestep < nsteps:
   lmp.command("run %d pre no post no" % nfreq)
   ntimestep += nfreq
   if me == 0:
-    d.next()
+    next(d)
     d.unscale()
     g.show(ntimestep)
 

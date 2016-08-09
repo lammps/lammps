@@ -35,7 +35,7 @@ def quit():
 # read dump snapshot and viz it, update plot with compute value
 
 def update(ntimestep):
-  d.next()
+  next(d)
   d.unscale()
   g.show(ntimestep)
   value = lmp.extract_compute(compute,0,0)
@@ -99,7 +99,7 @@ if me == 0:
 
   d = dump("tmp.dump",0)
   g = gl(d)
-  d.next()
+  next(d)
   d.unscale()
   g.zoom(1)
   g.shift(0,0)

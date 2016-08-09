@@ -147,34 +147,6 @@ atoms in the system), and the numeric precision of each printed value.
 ----------
 
 
-Note that for values from a compute or fix, the bracketed index I used
-to index a vector, as in *c_ID[I]* or *f_ID[I]*\ , can be specified
-using a wildcard asterisk with the index to effectively specify
-multiple values.  This takes the form "*" or "*n" or "n*" or "m*n".
-If N = the size of the vector (for *mode* = scalar) or the number of
-columns in the array (for *mode* = vector), then an asterisk with no
-numeric values means all indices from 1 to N.  A leading asterisk
-means all indices from 1 to n (inclusive).  A trailing asterisk means
-all indices from n to N (inclusive).  A middle asterisk means all
-indices from m to n (inclusive).
-
-Using a wildcard is the same as if the individual elements of the
-vector had been listed one by one.  E.g. these 2 thermo_style commands
-are equivalent, since the :doc:`compute temp <compute_temp>` command
-creates a global vector with 6 values.
-
-.. parsed-literal::
-
-   compute myTemp all temp
-   thermo_style custom step temp etotal c_myTemp[*]
-   thermo_style custom step temp etotal &
-                c_myTemp[1] c_myTemp[2] c_myTemp[3] &
-                c_myTemp[4] c_myTemp[5] c_myTemp[6]
-
-
-----------
-
-
 Several of the thermodynamic quantities require a temperature to be
 computed: "temp", "press", "ke", "etotal", "enthalpy", "pxx", etc.  By
 default this is done by using a *temperature* compute which is created
@@ -336,6 +308,34 @@ define the periodic unit cell of a crystal.  See :ref:`this section <howto_12>` 
 description of triclinic periodic cells, including a precise defintion
 of these quantities in terms of the internal LAMMPS cell dimensions
 *lx*\ , *ly*\ , *lz*\ , *yz*\ , *xz*\ , *xy*\ .
+
+
+----------
+
+
+For output values from a compute or fix, the bracketed index I used to
+index a vector, as in *c_ID[I]* or *f_ID[I]*\ , can be specified
+using a wildcard asterisk with the index to effectively specify
+multiple values.  This takes the form "*" or "*n" or "n*" or "m*n".
+If N = the size of the vector (for *mode* = scalar) or the number of
+columns in the array (for *mode* = vector), then an asterisk with no
+numeric values means all indices from 1 to N.  A leading asterisk
+means all indices from 1 to n (inclusive).  A trailing asterisk means
+all indices from n to N (inclusive).  A middle asterisk means all
+indices from m to n (inclusive).
+
+Using a wildcard is the same as if the individual elements of the
+vector had been listed one by one.  E.g. these 2 thermo_style commands
+are equivalent, since the :doc:`compute temp <compute_temp>` command
+creates a global vector with 6 values.
+
+.. parsed-literal::
+
+   compute myTemp all temp
+   thermo_style custom step temp etotal c_myTemp[*]
+   thermo_style custom step temp etotal &
+                c_myTemp[1] c_myTemp[2] c_myTemp[3] &
+                c_myTemp[4] c_myTemp[5] c_myTemp[6]
 
 
 ----------

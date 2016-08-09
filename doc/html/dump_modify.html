@@ -365,13 +365,19 @@ options can be used with the <em>atom</em> and <em>xyz</em> styles.</p>
 <p>All the specified format strings are C-style formats, e.g. as used by
 the C/C++ printf() command.  The <em>line</em> keyword takes a single
 argument which is the format string for an entire line of output for
-each atoms, with N fields, which you must enclose in quotes if it is
-more than one field.  The <em>int</em> and <em>float</em> keywords take a single
-format argument and are applied to all integer or floating-point
-quantities output.  The setting for <em>M string</em> also takes a single
-format argument which is used for the Mth value output in each line,
-e.g. the 5th column is output in high precision for &#8220;format 5
-%20.15g&#8221;.</p>
+each atom (do not include a trailing &#8220;n&#8221;), with N fields, which you
+must enclose in quotes if it is more than one field.  The <em>int</em> and
+<em>float</em> keywords take a single format argument and are applied to all
+integer or floating-point quantities output.  The setting for <em>M
+string</em> also takes a single format argument which is used for the Mth
+value output in each line, e.g. the 5th column is output in high
+precision for &#8220;format 5 %20.15g&#8221;.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">When using the <em>line</em> keyword for the <em>cfg</em> style, the first two
+fields (atom ID and type) are not actually written into the CFG file,
+however you must include formats for them in the format string.</p>
+</div>
 <p>The <em>format</em> keyword can be used multiple times.  The precedence is
 that for each value in a line of output, the <em>M</em> format (if specified)
 is used, else the <em>int</em> or <em>float</em> setting (if specified) is used,
@@ -390,15 +396,6 @@ string</em> option for those values, you should specify a format string
 appropriate for an 8-byte signed integer, e.g. one with &#8220;%ld&#8221;, if
 LAMMPS was compiled with the -DLAMMPS_BIGBIG option for 8-byte IDs.</p>
 </div>
-<p>The text-based dump styles have a default C-style format string which
-simply specifies %d for integers and %g for floating-point values.
-The <em>format</em> keyword can be used to override the default with a new
-C-style format string.  Do not include a trailing &#8220;\n&#8221; newline
-character in the format string.  This option has no effect on the
-<em>dcd</em> and <em>xtc</em> dump styles since they write binary files.  Note that
-for the <em>cfg</em> style, the first two fields (atom id and type) are not
-actually written into the CFG file, though you must include formats
-for them in the format string.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Any value written to a text-based dump file that is a per-atom

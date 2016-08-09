@@ -49,11 +49,10 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // this can reset nvalues
 
   int expand = 0;
-  char **earg,**arghold;
+  char **earg;
   nvalues = input->expand_args(nvalues,&arg[6],1,earg);
 
   if (earg != &arg[6]) expand = 1;
-  arghold = arg;
   arg = earg;
 
   // parse values
@@ -128,7 +127,6 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   if (expand) {
     for (int i = 0; i < nvalues; i++) delete [] earg[i];
     memory->sfree(earg);
-    arg = arghold;
   }
 
   // setup and error check

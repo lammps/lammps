@@ -70,7 +70,6 @@ class FixAveTime : public Fix {
   void invoke_scalar(bigint);
   void invoke_vector(bigint);
   void options(int, int, char **);
-  void allocate_values(int);
   void allocate_arrays();
   bigint nextvalid();
 };

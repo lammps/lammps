@@ -3,10 +3,12 @@
 # Make.py tool for managing packages and their auxiliary libs,
 #   auto-editing machine Makefiles, and building LAMMPS
 # Syntax: Make.py -h (for help)
-# Notes: needs python 2.7 (not Python 3)
+# Notes: should be compatible with python 2.7 and 3.x thanks to 'futurize'
 
 from __future__ import print_function
-import sys,os,commands,re,copy,subprocess,platform
+from builtins import str
+from builtins import object
+import sys,os,re,copy,subprocess,platform
 
 # switch abbrevs
 # switch classes = created class for each switch
@@ -85,7 +87,7 @@ def switch2str(switches,switch_order):
 def compile_check(compiler,ccflags,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   str = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
-  txt = commands.getoutput(str)
+  txt = subprocess.getoutput(str)
   flag = 1
   if txt or not os.path.isfile("tmpauto.o"):
     flag = 0
@@ -104,7 +106,7 @@ def compile_check(compiler,ccflags,warn):
 def link_check(linker,linkflags,libs,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   str = "%s %s -o tmpauto tmpauto.cpp %s" % (linker,linkflags,libs)
-  txt = commands.getoutput(str)
+  txt = subprocess.getoutput(str)
   flag = 1
   if txt or not os.path.isfile("tmpauto"):
     flag = 0
@@ -122,7 +124,7 @@ def link_check(linker,linkflags,libs,warn):
 
 # actions
 
-class Actions:
+class Actions(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     
@@ -547,7 +549,7 @@ class Actions:
     
   def clean(self):
     str = "cd %s; make clean-auto" % dir.src
-    commands.getoutput(str)
+    subprocess.getoutput(str)
     print("Performed make clean-auto")
 
   # build LAMMPS using Makefile.auto and -j setting
@@ -557,11 +559,11 @@ class Actions:
     
   def exe(self):
     self.file("exe")
-    commands.getoutput("cd %s; rm -f lmp_auto" % dir.src)
+    subprocess.getoutput("cd %s; rm -f lmp_auto" % dir.src)
     if self.stubs and not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
       print("building serial STUBS library ...")
       str = "cd %s/STUBS; make clean; make" % dir.src
-      txt = commands.getoutput(str)
+      txt = subprocess.getoutput(str)
       if not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
         print(txt)
         error('Unsuccessful "make stubs"')
@@ -592,7 +594,7 @@ class Actions:
     
 # dir switch
 
-class Dir:
+class Dir(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
       
@@ -626,7 +628,7 @@ class Dir:
 
 # help switch
 
-class Help:
+class Help(object):
   def __init__(self,list): pass
 
   def help(self):
@@ -651,7 +653,7 @@ Syntax: Make.py switch args ...
 
 # jmake switch
   
-class Jmake:
+class Jmake(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
   
@@ -672,7 +674,7 @@ class Jmake:
         
 # makefile switch
 
-class Makefile:
+class Makefile(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
   
@@ -691,7 +693,7 @@ class Makefile:
     
 # output switch
 
-class Output:
+class Output(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
 
@@ -708,7 +710,7 @@ class Output:
 
 # packages switch
   
-class Packages:
+class Packages(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
 
@@ -807,7 +809,7 @@ class Packages:
 
     original = {}
     str = "cd %s; make ps" % dir.src
-    output = commands.getoutput(str).split('\n')
+    output = subprocess.getoutput(str).split('\n')
     pattern = "Installed\s+(\w+): package (\S+)"
     for line in output:
       m = re.search(pattern,line)
@@ -853,9 +855,9 @@ class Packages:
     if self.plist: print("Installing packages ...")
     for one in self.plist:
       if one == "orig": continue
-      commands.getoutput("cd %s; make %s" % (dir.src,one))
+      subprocess.getoutput("cd %s; make %s" % (dir.src,one))
     if self.plist and verbose:
-      txt = commands.getoutput("cd %s; make ps" % dir.src)
+      txt = subprocess.getoutput("cd %s; make ps" % dir.src)
       print("Package status after installation:")
       print(txt)
       
@@ -865,18 +867,18 @@ class Packages:
   def uninstall(self):
     if not self.plist or self.plist[-1] != "orig": return
     print("Restoring packages to original state ...")
-    commands.getoutput("cd %s; make no-all" % dir.src)
+    subprocess.getoutput("cd %s; make no-all" % dir.src)
     for one in self.all:
       if self.original[one]:
-        commands.getoutput("cd %s; make yes-%s" % (dir.src,one))
+        subprocess.getoutput("cd %s; make yes-%s" % (dir.src,one))
     if verbose:
-      txt = commands.getoutput("cd %s; make ps" % dir.src)
+      txt = subprocess.getoutput("cd %s; make ps" % dir.src)
       print("Restored package status:")
       print(txt)
       
 # redo switch
     
-class Redo:
+class Redo(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
   
@@ -941,8 +943,8 @@ class Redo:
       if words[0][-1] == ':': label = words[0][:-1]
       else: label = None
       if not self.labels:
-        if label: commands.append(' '.join(words[1:]))
-        else: commands.append(line)
+        if label: subprocess.append(' '.join(words[1:]))
+        else: subprocess.append(line)
       else:
         if not label: continue
         dict[label] = ' '.join(words[1:])
@@ -951,13 +953,13 @@ class Redo:
         
     for label in self.labels:
       if label not in dict: error("Redo label not in redo file")
-      commands.append(dict[label])
+      subprocess.append(dict[label])
 
     self.commands = commands
 
 # settings switch
 
-class Settings:
+class Settings(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
   
@@ -980,7 +982,7 @@ class Settings:
   
 # verbose switch
 
-class Verbose:
+class Verbose(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
   
@@ -996,7 +998,7 @@ class Verbose:
 
 # zoutput switch for making copy of final Makefile.auto
 
-class Zoutput:
+class Zoutput(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
 
@@ -1019,7 +1021,7 @@ class Zoutput:
 
 # ATC lib
 
-class ATC:
+class ATC(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "g++"
@@ -1052,7 +1054,7 @@ class ATC:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
     
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
+    subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
     
@@ -1070,7 +1072,7 @@ class ATC:
     
 # AWPMD lib
 
-class AWPMD:
+class AWPMD(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "mpicc"
@@ -1103,7 +1105,7 @@ class AWPMD:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
+    subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
 
@@ -1121,7 +1123,7 @@ class AWPMD:
 
 # COLVARS lib
 
-class COLVARS:
+class COLVARS(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "g++"
@@ -1154,7 +1156,7 @@ class COLVARS:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
+    subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
 
@@ -1172,7 +1174,7 @@ class COLVARS:
 
 # CUDA lib
 
-class CUDA:
+class CUDA(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.mode = "double"
@@ -1206,7 +1208,7 @@ class CUDA:
           
   def build(self): 
     libdir = dir.lib + "/cuda"
-    commands.getoutput("cd %s; make clean" % libdir)
+    subprocess.getoutput("cd %s; make clean" % libdir)
     if self.mode == "double": n = 2
     elif self.mode == "mixed": n = 3
     elif self.mode == "single": n = 1
@@ -1229,7 +1231,7 @@ class CUDA:
 
 # GPU lib
 
-class GPU:
+class GPU(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "linux.double"
@@ -1301,7 +1303,7 @@ class GPU:
     make = "make"
     if "shannon" == platform.node(): make = "srun make"
 
-    commands.getoutput("cd %s; %s -f Makefile.auto clean" % (libdir,make))
+    subprocess.getoutput("cd %s; %s -f Makefile.auto clean" % (libdir,make))
     if jmake: str = "cd %s; %s -j %d -f Makefile.auto" % (libdir,make,jmake.n)
     else: str = "cd %s; %s -f Makefile.auto" % (libdir,make)
 
@@ -1319,7 +1321,7 @@ class GPU:
 
 # H5MD lib
 
-class H5MD:
+class H5MD(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "h5cc"
@@ -1352,7 +1354,7 @@ class H5MD:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make clean" % libdir)
+    subprocess.getoutput("cd %s; make clean" % libdir)
     str = "cd %s; make" % libdir
 
     # if verbose, print output as build proceeds, else only print if fails
@@ -1369,7 +1371,7 @@ class H5MD:
 
 # MEAM lib
 
-class MEAM:
+class MEAM(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "gfortran"
@@ -1402,7 +1404,7 @@ class MEAM:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
+    subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     # do not use -j for MEAM build, parallel build does not work
     str = "cd %s; make -f Makefile.auto" % libdir
 
@@ -1420,7 +1422,7 @@ class MEAM:
 
 # POEMS lib
 
-class POEMS:
+class POEMS(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "g++"
@@ -1453,7 +1455,7 @@ class POEMS:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
+    subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
 
@@ -1471,7 +1473,7 @@ class POEMS:
 
 # PYTHON lib
 
-class PYTHON:
+class PYTHON(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "g++"
@@ -1498,7 +1500,7 @@ class PYTHON:
   def build(self):
     libdir = dir.lib + "/python"
     if self.lammpsflag:
-      commands.getoutput("cd %s; cp Makefile.lammps.%s Makefile.lammps" %
+      subprocess.getoutput("cd %s; cp Makefile.lammps.%s Makefile.lammps" %
                          (libdir,self.lammps))
     if not os.path.isfile("%s/Makefile.lammps.%s" % (libdir,self.lammps)):
       error("Unsuccessful creation of lib/python/Makefile.lammps.%s file" % self.lammps)
@@ -1506,7 +1508,7 @@ class PYTHON:
 
 # QMMM lib
 
-class QMMM:
+class QMMM(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.make = "gfortran"
@@ -1539,7 +1541,7 @@ class QMMM:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
+    subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
     else: str = "cd %s; make -f Makefile.auto" % libdir
 
@@ -1557,7 +1559,7 @@ class QMMM:
 
 # VORONOI lib
 
-class VORONOI:
+class VORONOI(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.install = ""
@@ -1585,7 +1587,7 @@ class VORONOI:
     if not self.install: return
     libdir = dir.lib + "/voronoi"
     cmd = "cd %s; python install.py %s" % (libdir,self.install)
-    txt = commands.getoutput(cmd)
+    txt = subprocess.getoutput(cmd)
     if verbose: print(txt)
     print("Created lib/voronoi library")
 
@@ -1595,7 +1597,7 @@ class VORONOI:
 
 # Intel class
 
-class Intel:
+class Intel(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.mode = "cpu"
@@ -1616,7 +1618,7 @@ class Intel:
 
 # Kokkos class
 
-class Kokkos:
+class Kokkos(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.mode = ""
@@ -1660,7 +1662,7 @@ class Kokkos:
 
 # Cc class
 
-class Cc:
+class Cc(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.compiler = self.abbrev = ""
@@ -1712,7 +1714,7 @@ class Cc:
 
 # Flags class
 
-class Flags:
+class Flags(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.flags = []
@@ -1753,7 +1755,7 @@ class Flags:
       
 # Mpi class
 
-class Mpi:
+class Mpi(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.style = self.dir = ""
@@ -1787,7 +1789,7 @@ class Mpi:
 
 # Fft class
 
-class Fft:
+class Fft(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.dir = self.incdir = self.libdir = ""
@@ -1827,7 +1829,7 @@ class Fft:
 
 # Jpg class
 
-class Jpg:
+class Jpg(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.on = 1
@@ -1866,7 +1868,7 @@ class Jpg:
 
 # Png class
 
-class Png:
+class Png(object):
   def __init__(self,list):
     self.inlist = copy.copy(list)
     self.on = 1
@@ -1908,7 +1910,7 @@ class Png:
 
 # read, tweak, and write a Makefile
 
-class MakeReader:
+class MakeReader(object):
 
   # read a makefile
   # flag = 0 if file is full path name
@@ -2260,7 +2262,7 @@ while 1:
 
   if output and actions and "exe" in actions.alist:
     txt = "cp %s/lmp_auto %s/lmp_%s" % (dir.src,dir.cwd,output.machine)
-    commands.getoutput(txt)
+    subprocess.getoutput(txt)
     print("Created lmp_%s in %s" % (output.machine,dir.cwd))
 
   # create copy of Makefile.auto if requested, and file or exe action performed
@@ -2270,17 +2272,17 @@ while 1:
         ("file" in actions.alist or "exe" in actions.alist):
     txt = "cp %s/MAKE/MINE/Makefile.auto %s/MAKE/MINE/Makefile.%s" % \
         (dir.src,dir.src,zoutput.machine)
-    commands.getoutput(txt)
+    subprocess.getoutput(txt)
     print("Created Makefile.%s in %s/MAKE/MINE" % (zoutput.machine,dir.src))
     if gpubuildflag:
       txt = "cp %s/gpu/Makefile.auto %s/MAKE/MINE/Makefile_gpu.%s" % \
           (dir.lib,dir.src,zoutput.machine)
-      commands.getoutput(txt)
+      subprocess.getoutput(txt)
       print("Created Makefile_gpu.%s in %s/MAKE/MINE" % \
           (zoutput.machine,dir.src))
       txt = "cp %s/gpu/Makefile.lammps %s/MAKE/MINE/Makefile_gpu_lammps.%s" % \
           (dir.lib,dir.src,zoutput.machine)
-      commands.getoutput(txt)
+      subprocess.getoutput(txt)
       print("Created Makefile_gpu_lammps.%s in %s/MAKE/MINE" % \
           (zoutput.machine,dir.src))
       

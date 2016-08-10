@@ -302,7 +302,7 @@ int colvarmodule::parse_biases(std::string const &conf)
   size_t i;
 
   for (i = 0; i < biases.size(); i++) {
-    biases[i]->enable(cvm::deps::f_cvb_active);
+    biases[i]->enable(colvardeps::f_cvb_active);
     if (cvm::debug())
       biases[i]->print_state();
   }
@@ -310,8 +310,8 @@ int colvarmodule::parse_biases(std::string const &conf)
   size_t n_hist_dep_biases = 0;
   std::vector<std::string> hist_dep_biases_names;
   for (i = 0; i < biases.size(); i++) {
-    if (biases[i]->is_enabled(cvm::deps::f_cvb_apply_force) &&
-        biases[i]->is_enabled(cvm::deps::f_cvb_history_dependent)) {
+    if (biases[i]->is_enabled(colvardeps::f_cvb_apply_force) &&
+        biases[i]->is_enabled(colvardeps::f_cvb_history_dependent)) {
       n_hist_dep_biases++;
       hist_dep_biases_names.push_back(biases[i]->name);
     }
@@ -531,7 +531,7 @@ int colvarmodule::calc_colvars()
 
   // Determine which colvars are active at this time step
   for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
-    (*cvi)->feature_states[cvm::deps::f_cv_active]->enabled = (step_absolute() % (*cvi)->get_time_step_factor() == 0);
+    (*cvi)->feature_states[colvardeps::f_cv_active]->enabled = (step_absolute() % (*cvi)->get_time_step_factor() == 0);
   }
 
   // if SMP support is available, split up the work
@@ -689,7 +689,7 @@ int colvarmodule::update_colvar_forces()
     cvm::log("Communicating forces from the colvars to the atoms.\n");
   cvm::increase_depth();
   for (cvi = colvars.begin(); cvi != colvars.end(); cvi++) {
-    if ((*cvi)->is_enabled(cvm::deps::f_cv_gradient)) {
+    if ((*cvi)->is_enabled(colvardeps::f_cv_gradient)) {
       if (!(*cvi)->is_enabled()) continue;
       (*cvi)->communicate_forces();
       if (cvm::get_error()) {

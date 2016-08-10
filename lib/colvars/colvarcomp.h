@@ -61,7 +61,7 @@
 /// call to e.g. apply_force().
 
 class colvar::cvc
-  : public colvarparse, public cvm::deps
+  : public colvarparse, public colvardeps
 {
 public:
 

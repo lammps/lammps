@@ -74,9 +74,6 @@ private:
 
 public:
 
-  /// Base class to handle mutual dependencies of most objects
-  class deps;
-
   friend class colvarproxy;
   // TODO colvarscript should be unaware of colvarmodule's internals
   friend class colvarscript;

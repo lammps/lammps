@@ -640,6 +640,10 @@ class PyLammps(object):
       with OutputCapture() as capture:
         self.lmp.command(' '.join(cmd_args))
         output = capture.output
+
+      if 'verbose' in kwargs and kwargs['verbose']:
+        print(output)
+
       lines = output.splitlines()
 
       if len(lines) > 1:
@@ -694,3 +698,7 @@ class IPyLammps(PyLammps):
     self.write_dump(*cmd_args)
     from IPython.core.display import Image
     return Image('snapshot.png')
+
+  def video(self, filename):
+    from IPython.display import HTML
+    return HTML("<video controls><source src=\"" + filename + "\"></video>")

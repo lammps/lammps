@@ -69,12 +69,12 @@ public:
   virtual cvm::real rand_gaussian(void) = 0;
 
   /// \brief Get the current frame number
-  // Negative return values indicate error
-  virtual int frame() { return COLVARS_NOT_IMPLEMENTED; }
+  // Returns error code
+  virtual int get_frame(long int&) { return COLVARS_NOT_IMPLEMENTED; }
 
-  /// \brief Set the current frame number
-  // return frame number on success, COLVARS_NO_SUCH_FRAME otherwise
-  virtual int frame(int) { return COLVARS_NOT_IMPLEMENTED; }
+  /// \brief Set the current frame number (as well as colvarmodule::it)
+  // Returns error code
+  virtual int set_frame(long int) { return COLVARS_NOT_IMPLEMENTED; }
 
   /// \brief Prefix to be used for input files (restarts, not
   /// configuration)

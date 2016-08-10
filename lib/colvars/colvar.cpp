@@ -43,7 +43,8 @@ colvar::colvar(std::string const &conf)
   kinetic_energy = 0.0;
   potential_energy = 0.0;
 
-  cvm::combine_errors(error_code, init_components(conf));
+  error_code |= init_components(conf);
+  if (error_code != COLVARS_OK) return;
 
   size_t i;
 
@@ -492,110 +493,44 @@ int colvar::init_components(std::string const &conf)
 {
   int error_code = COLVARS_OK;
 
-  cvm::combine_errors(error_code,
-                      init_components_type<distance>(conf,
-                                                     "distance", "distance"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_vec>(conf,
-                                                         "distance vector", "distanceVec"));
-  cvm::combine_errors(error_code,
-                      init_components_type<cartesian>(conf,
-                                                      "Cartesian coordinates", "cartesian"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_dir>(conf,
-                                                         "distance vector "
-                                                         "direction", "distanceDir"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_z>(conf,
-                                                       "distance projection "
-                                                       "on an axis", "distanceZ"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_xy>(conf,
-                                                        "distance projection "
-                                                        "on a plane", "distanceXY"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_inv>(conf,
-                                                         "average distance "
-                                                         "weighted by inverse power",
-                                                         "distanceInv"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_pairs>(conf,
-                                                           "N1xN2-long vector "
-                                                           "of pairwise distances",
-                                                           "distancePairs"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<coordnum>(conf,
-                                                     "coordination "
-                                                     "number", "coordNum"));
-  cvm::combine_errors(error_code,
-                      init_components_type<selfcoordnum>(conf,
-                                                         "self-coordination "
-                                                         "number", "selfCoordNum"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<angle>(conf,
-                                                  "angle", "angle"));
-  cvm::combine_errors(error_code,
-                      init_components_type<dipole_angle>(conf,
-                                                         "dipole angle", "dipoleAngle"));
-  cvm::combine_errors(error_code,
-                      init_components_type<dihedral>(conf,
-                                                     "dihedral", "dihedral"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<h_bond>(conf,
-                                                   "hydrogen bond", "hBond"));
-
-  //    cvm::combine_errors(error_code, init_components_type<alpha_dihedrals>(conf,  "alpha helix", "alphaDihedrals"));
-  cvm::combine_errors(error_code,
-                      init_components_type<alpha_angles>(conf,
-                                                         "alpha helix", "alpha"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<dihedPC>(conf,
-                                                    "dihedral "
-                                                    "principal component", "dihedralPC"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<orientation>(conf,
-                                                        "orientation", "orientation"));
-  cvm::combine_errors(error_code,
-                      init_components_type<orientation_angle>(conf,
-                                                              "orientation "
-                                                              "angle", "orientationAngle"));
-  cvm::combine_errors(error_code,
-                      init_components_type<orientation_proj>(conf,
-                                                             "orientation "
-                                                             "projection", "orientationProj"));
-  cvm::combine_errors(error_code,
-                      init_components_type<tilt>(conf,
-                                                 "tilt", "tilt"));
-  cvm::combine_errors(error_code,
-                      init_components_type<spin_angle>(conf,
-                                                       "spin angle", "spinAngle"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<rmsd>(conf,
-                                                 "RMSD", "rmsd"));
-
-  //  cvm::combine_errors(error_code, init_components_type <logmsd>(conf,"logarithm of MSD", "logmsd"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<gyration>(conf,
-                                                     "radius of "
-                                                     "gyration", "gyration"));
-  cvm::combine_errors(error_code,
-                      init_components_type<inertia>(conf,
-                                                    "moment of "
-                                                    "inertia", "inertia"));
-  cvm::combine_errors(error_code,
-                      init_components_type<inertia_z>(conf,
-                                                      "moment of inertia around an axis",
-                                                      "inertiaZ"));
-  cvm::combine_errors(error_code,
-                      init_components_type<eigenvector>(conf,
-                                                        "eigenvector", "eigenvector"));
+  error_code |= init_components_type<distance>(conf, "distance", "distance");
+  error_code |= init_components_type<distance_vec>(conf, "distance vector", "distanceVec");
+  error_code |= init_components_type<cartesian>(conf, "Cartesian coordinates", "cartesian");
+  error_code |= init_components_type<distance_dir>(conf, "distance vector "
+    "direction", "distanceDir");
+  error_code |= init_components_type<distance_z>(conf, "distance projection "
+    "on an axis", "distanceZ");
+  error_code |= init_components_type<distance_xy>(conf, "distance projection "
+    "on a plane", "distanceXY");
+  error_code |= init_components_type<distance_inv>(conf, "average distance "
+    "weighted by inverse power", "distanceInv");
+  error_code |= init_components_type<distance_pairs>(conf, "N1xN2-long vector "
+    "of pairwise distances", "distancePairs");
+  error_code |= init_components_type<coordnum>(conf, "coordination "
+    "number", "coordNum");
+  error_code |= init_components_type<selfcoordnum>(conf, "self-coordination "
+    "number", "selfCoordNum");
+  error_code |= init_components_type<angle>(conf, "angle", "angle");
+  error_code |= init_components_type<dipole_angle>(conf, "dipole angle", "dipoleAngle");
+  error_code |= init_components_type<dihedral>(conf, "dihedral", "dihedral");
+  error_code |= init_components_type<h_bond>(conf, "hydrogen bond", "hBond");
+  error_code |= init_components_type<alpha_angles>(conf, "alpha helix", "alpha");
+  error_code |= init_components_type<dihedPC>(conf, "dihedral "
+    "principal component", "dihedralPC");
+  error_code |= init_components_type<orientation>(conf, "orientation", "orientation");
+  error_code |= init_components_type<orientation_angle>(conf, "orientation "
+    "angle", "orientationAngle");
+  error_code |= init_components_type<orientation_proj>(conf, "orientation "
+    "projection", "orientationProj");
+  error_code |= init_components_type<tilt>(conf, "tilt", "tilt");
+  error_code |= init_components_type<spin_angle>(conf, "spin angle", "spinAngle");
+  error_code |= init_components_type<rmsd>(conf, "RMSD", "rmsd");
+  error_code |= init_components_type<gyration>(conf, "radius of "
+    "gyration", "gyration");
+  error_code |= init_components_type<inertia>(conf, "moment of "
+    "inertia", "inertia");
+  error_code |= init_components_type<inertia_z>(conf, "moment of inertia around an axis", "inertiaZ");
+  error_code |= init_components_type<eigenvector>(conf, "eigenvector", "eigenvector");
 
   if (!cvcs.size() || (error_code != COLVARS_OK)) {
     cvm::error("Error: no valid components were provided "
@@ -732,7 +667,7 @@ int colvar::parse_analysis(std::string const &conf)
     } else {
       cvm::log("Unknown type of correlation function, \""+
                         acf_type_str+"\".\n");
-      cvm::set_error_bit(INPUT_ERROR);
+      cvm::set_error_bits(INPUT_ERROR);
     }
 
     get_keyval(conf, "corrFuncOffset", acf_offset, 0);
@@ -803,9 +738,11 @@ int colvar::calc()
   // Note: if anything is added here, it should be added also in the SMP block of calc_colvars()
   int error_code = COLVARS_OK;
   if (is_enabled(f_cv_active)) {
-    cvm::combine_errors(error_code, update_cvc_flags());
-    cvm::combine_errors(error_code, calc_cvcs());
-    cvm::combine_errors(error_code, collect_cvc_data());
+    error_code |= update_cvc_flags();
+    if (error_code != COLVARS_OK) return error_code;
+    error_code |= calc_cvcs();
+    if (error_code != COLVARS_OK) return error_code;
+    error_code |= collect_cvc_data();
   }
   return error_code;
 }
@@ -818,15 +755,15 @@ int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
     cvm::log("Calculating colvar \""+this->name+"\", components "+
              cvm::to_str(first_cvc)+" through "+cvm::to_str(first_cvc+num_cvcs)+".\n");
 
-  cvm::combine_errors(error_code, check_cvc_range(first_cvc, num_cvcs));
+  error_code |= check_cvc_range(first_cvc, num_cvcs);
   if (error_code != COLVARS_OK) {
     return error_code;
   }
 
-  cvm::combine_errors(error_code, calc_cvc_values(first_cvc, num_cvcs));
-  cvm::combine_errors(error_code, calc_cvc_gradients(first_cvc, num_cvcs));
-  cvm::combine_errors(error_code, calc_cvc_sys_forces(first_cvc, num_cvcs));
-  cvm::combine_errors(error_code, calc_cvc_Jacobians(first_cvc, num_cvcs));
+  error_code |= calc_cvc_values(first_cvc, num_cvcs);
+  error_code |= calc_cvc_gradients(first_cvc, num_cvcs);
+  error_code |= calc_cvc_sys_forces(first_cvc, num_cvcs);
+  error_code |= calc_cvc_Jacobians(first_cvc, num_cvcs);
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\".\n");
@@ -842,12 +779,11 @@ int colvar::collect_cvc_data()
 
   int error_code = COLVARS_OK;
 
-  cvm::combine_errors(error_code, collect_cvc_values());
-  cvm::combine_errors(error_code, collect_cvc_gradients());
-  cvm::combine_errors(error_code, collect_cvc_sys_forces());
-  cvm::combine_errors(error_code, collect_cvc_Jacobians());
-
-  cvm::combine_errors(error_code, calc_colvar_properties());
+  error_code |= collect_cvc_values();
+  error_code |= collect_cvc_gradients();
+  error_code |= collect_cvc_sys_forces();
+  error_code |= collect_cvc_Jacobians();
+  error_code |= calc_colvar_properties();
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\"'s properties.\n");
@@ -1374,7 +1310,7 @@ bool colvar::periodic_boundaries(colvarvalue const &lb, colvarvalue const &ub) c
   if ( (!is_enabled(f_cv_lower_boundary)) || (!is_enabled(f_cv_upper_boundary)) ) {
     cvm::log("Error: checking periodicity for collective variable \""+this->name+"\" "
                     "requires lower and upper boundaries to be defined.\n");
-    cvm::set_error_bit(INPUT_ERROR);
+    cvm::set_error_bits(INPUT_ERROR);
   }
 
   if (period > 0.0) {

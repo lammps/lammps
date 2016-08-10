@@ -8,6 +8,7 @@
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
+#include "colvardeps.h"
 
 
 /// \file colvarparse.h Parsing functions for collective variables
@@ -178,6 +179,11 @@ public:
   bool get_keyval(std::string const &conf,
                   char const *key,
                   bool &value,
+                  bool const &def_value = false,
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  cvm::deps::feature_state *value,
                   bool const &def_value = false,
                   Parse_Mode const parse_mode = parse_normal);
 

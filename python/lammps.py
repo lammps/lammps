@@ -698,3 +698,7 @@ class IPyLammps(PyLammps):
     self.write_dump(*cmd_args)
     from IPython.core.display import Image
     return Image('snapshot.png')
+
+  def video(self, filename):
+    from IPython.display import HTML
+    return HTML("<video controls><source src=\"" + filename + "\"></video>")

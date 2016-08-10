@@ -16,11 +16,11 @@
 
 // It seems important to have available default to false (for safety) and enabled to false (for efficiency)
 
-class cvm::deps {
+class colvardeps {
 public:
 
-  deps() {}
-  virtual ~deps();
+  colvardeps() {}
+  virtual ~colvardeps();
 
   // Subclasses should initialize the following members:
 
@@ -29,13 +29,13 @@ public:
   /// This contains the current state of each feature for each object
   class feature_state {
   private:
-    cvm::deps *const deps_object;
+    colvardeps *const deps_object;
     int const id;
     operator int() { return 0; } // never cast as int
   public:
-    inline cvm::deps *object() const { return deps_object; }
+    inline colvardeps *object() const { return deps_object; }
     inline int feature_id() const { return id; }
-    feature_state(cvm::deps *o, int i, bool a, bool e)
+    feature_state(colvardeps *o, int i, bool a, bool e)
       : deps_object(o), id(i), available(a), enabled(e) {}
 
     /// Available means: supported, subject to dependencies as listed,
@@ -97,9 +97,9 @@ public:
   // implement this as virtual to allow overriding
   virtual std::vector<feature *>&features() = 0;
 
-  void add_child(deps *child);
+  void add_child(colvardeps *child);
 
-  void remove_child(deps *child);
+  void remove_child(colvardeps *child);
 
   /// Used before deleting an object, if not handled by that object's destructor
   /// (useful for cvcs because their children are member objects)
@@ -111,11 +111,11 @@ private:
   // pointers to objects this object depends on
   // list should be maintained by any code that modifies the object
   // this could be secured by making lists of colvars / cvcs / atom groups private and modified through accessor functions
-  std::vector<deps *> children;
+  std::vector<colvardeps *> children;
 
   // pointers to objects that depend on this object
   // the size of this array is in effect a reference counter
-  std::vector<deps *> parents;
+  std::vector<colvardeps *> parents;
 
 public:
   // disabling a feature f:
@@ -128,7 +128,7 @@ public:
 //
 //   }
 
-  // std::vector<deps *> parents; // Needed to trigger a refresh if capabilities of this object change
+  // std::vector<colvardeps *> parents; // Needed to trigger a refresh if capabilities of this object change
 
   // End of members to be initialized by subclasses
 

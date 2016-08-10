@@ -139,7 +139,7 @@ public:
 /// \brief Group of \link atom \endlink objects, mostly used by a
 /// \link cvc \endlink object to gather all atomic data
 class colvarmodule::atom_group
-  : public colvarparse, public cvm::deps
+  : public colvarparse, public colvardeps
 {
 public:
 

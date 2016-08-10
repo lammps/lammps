@@ -38,7 +38,7 @@
 /// \link colvarvalue \endlink type, you should also add its
 /// initialization line in the \link colvar \endlink constructor.
 
-class colvar : public colvarparse, public cvm::deps {
+class colvar : public colvarparse, public colvardeps {
 
 public:
 

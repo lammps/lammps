@@ -2,7 +2,7 @@
 #include "colvardeps.h"
 
 
-cvm::deps::~deps() {
+colvardeps::~colvardeps() {
   size_t i;
 
   for (i=0; i<feature_states.size(); i++) {
@@ -25,12 +25,12 @@ cvm::deps::~deps() {
 }
 
 
-void cvm::deps::provide(int feature_id) {
+void colvardeps::provide(int feature_id) {
   feature_states[feature_id]->available = true;
 }
 
 
-int cvm::deps::enable(int feature_id,
+int colvardeps::enable(int feature_id,
                       bool dry_run /* default: false */,
                       // dry_run: fail silently, do not enable if available
                       // flag is passed recursively to deps of this feature
@@ -193,7 +193,7 @@ int cvm::deps::enable(int feature_id,
   features()[f]->requires_alt.back()[1] = h;                                           \
   features()[f]->requires_alt.back()[2] = i
 
-void cvm::deps::init_cvb_requires() {
+void colvardeps::init_cvb_requires() {
   int i;
   if (features().size() == 0) {
     for (i = 0; i < f_cvb_ntot; i++) {
@@ -225,7 +225,7 @@ void cvm::deps::init_cvb_requires() {
 }
 
 
-void cvm::deps::init_cv_requires() {
+void colvardeps::init_cv_requires() {
   size_t i;
   if (features().size() == 0) {
     for (i = 0; i < f_cv_ntot; i++) {
@@ -342,11 +342,11 @@ void cvm::deps::init_cv_requires() {
 }
 
 
-void cvm::deps::init_cvc_requires() {
+void colvardeps::init_cvc_requires() {
   size_t i;
   // Initialize static array once and for all
   if (features().size() == 0) {
-    for (i = 0; i < cvm::deps::f_cvc_ntot; i++) {
+    for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
       features().push_back(new feature);
     }
 
@@ -384,7 +384,7 @@ void cvm::deps::init_cvc_requires() {
   // Initialize feature_states for each instance
   // default as unavailable, not enabled
   feature_states.reserve(f_cvc_ntot);
-  for (i = 0; i < cvm::deps::f_cvc_ntot; i++) {
+  for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
     feature_states.push_back(new feature_state(this, feature_states.size(), false, false));
   }
 
@@ -392,12 +392,12 @@ void cvm::deps::init_cvc_requires() {
   // Each cvc specifies what other features are available
   feature_states[f_cvc_active]->available = true;
   feature_states[f_cvc_gradient]->available = true;
-  feature_states[f_cvc_scalable_com]->available = (proxy->scalable_group_coms() == COLVARS_OK);
+  feature_states[f_cvc_scalable_com]->available = (cvm::proxy->scalable_group_coms() == COLVARS_OK);
   feature_states[f_cvc_scalable]->available = feature_states[f_cvc_scalable_com]->available;
 }
 
 
-void cvm::deps::init_ag_requires() {
+void colvardeps::init_ag_requires() {
   size_t i;
   // Initialize static array once and for all
   if (features().size() == 0) {
@@ -428,18 +428,18 @@ void cvm::deps::init_ag_requires() {
   // Initialize feature_states for each instance
   // default as unavailable, not enabled
   feature_states.reserve(f_ag_ntot);
-  for (i = 0; i < cvm::deps::f_ag_ntot; i++) {
+  for (i = 0; i < colvardeps::f_ag_ntot; i++) {
     feature_states.push_back(new feature_state(this, feature_states.size(), false, false));
   }
 
   // Features that are implemented (or not) by all atom groups
   feature_states[f_ag_active]->available = true;
-  feature_states[f_ag_scalable_com]->available = (proxy->scalable_group_coms() == COLVARS_OK);
+  feature_states[f_ag_scalable_com]->available = (cvm::proxy->scalable_group_coms() == COLVARS_OK);
   feature_states[f_ag_scalable]->available = feature_states[f_ag_scalable_com]->available;
 }
 
 
-void cvm::deps::print_state() {
+void colvardeps::print_state() {
   size_t i;
   cvm::log("Enabled features of " + description);
   for (i = 0; i < feature_states.size(); i++) {
@@ -456,13 +456,13 @@ void cvm::deps::print_state() {
 
 
 
-void cvm::deps::add_child(deps *child) {
+void colvardeps::add_child(colvardeps *child) {
   children.push_back(child);
-  child->parents.push_back((deps *)this);
+  child->parents.push_back((colvardeps *)this);
 }
 
 
-void cvm::deps::remove_child(deps *child) {
+void colvardeps::remove_child(colvardeps *child) {
   int i;
   bool found = false;
 
@@ -490,7 +490,7 @@ void cvm::deps::remove_child(deps *child) {
 }
 
 
-void cvm::deps::remove_all_children() {
+void colvardeps::remove_all_children() {
   size_t i;
   int j;
   bool found;

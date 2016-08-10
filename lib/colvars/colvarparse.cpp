@@ -356,7 +356,7 @@ bool colvarparse::get_keyval(std::string const &conf,
 
 bool colvarparse::get_keyval(std::string const &conf,
                              char const *key,
-                             cvm::deps::feature_state *value,
+                             colvardeps::feature_state *value,
                              bool const &def_value,
                              Parse_Mode const parse_mode)
 {
@@ -695,7 +695,6 @@ bool colvarparse::key_lookup(std::string const &conf,
                        line+"\".\n", INPUT_ERROR);
             return false;
           }
-          size_t const old_end = line.size();
 
           line_begin = line_end;
           nl = conf.find('\n', line_begin+1);
@@ -714,8 +713,6 @@ bool colvarparse::key_lookup(std::string const &conf,
           cvm::error("Error: found closing brace without opening brace.\n", INPUT_ERROR);
         }
       }
-
-      cvm::log("Value so far = "+line.substr(data_begin, (data_end-data_begin))+".\n");
 
       // strip the leading and trailing braces
       data_begin = line.find_first_of('{') + 1;

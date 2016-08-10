@@ -15,10 +15,6 @@
 
 # for python3 compatibility
 from __future__ import print_function
-from builtins import zip
-from builtins import str
-from builtins import range
-from builtins import object
 
 # imports for simple LAMMPS python wrapper module "lammps"
 import sys,traceback,types

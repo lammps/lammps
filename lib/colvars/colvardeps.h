@@ -31,7 +31,7 @@ public:
   private:
     cvm::deps *const deps_object;
     int const id;
-    operator int() {} // never cast as int
+    operator int() { return 0; } // never cast as int
   public:
     inline cvm::deps *object() const { return deps_object; }
     inline int feature_id() const { return id; }

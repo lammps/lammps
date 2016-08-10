@@ -640,6 +640,10 @@ class PyLammps(object):
       with OutputCapture() as capture:
         self.lmp.command(' '.join(cmd_args))
         output = capture.output
+
+      if 'verbose' in kwargs and kwargs['verbose']:
+        print(output)
+
       lines = output.splitlines()
 
       if len(lines) > 1:

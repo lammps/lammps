@@ -1013,12 +1013,18 @@ void FixNH::couple()
     p_current[2] = tensor[2];
   }
 
+  if (!ISFINITE(p_current[0]) || !ISFINITE(p_current[1]) || !ISFINITE(p_current[2]))
+    error->all(FLERR,"Non-numeric pressure - simulation unstable");
+
   // switch order from xy-xz-yz to Voigt
 
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
     p_current[4] = tensor[4];
     p_current[5] = tensor[3];
+
+    if (!ISFINITE(p_current[3]) || !ISFINITE(p_current[4]) || !ISFINITE(p_current[5]))
+      error->all(FLERR,"Non-numeric pressure - simulation unstable");
   }
 }
 

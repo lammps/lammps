@@ -83,6 +83,7 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   build_once = 0;
   cluster_check = 0;
   binatomflag = 1;
+  ago = -1;
 
   cutneighmax = 0.0;
   cutneighsq = NULL;

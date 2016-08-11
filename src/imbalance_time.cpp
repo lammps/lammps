@@ -38,7 +38,7 @@ int ImbalanceTime::options(int narg, char **arg)
 void ImbalanceTime::compute(double *weight)
 {
   const int nlocal = _lmp->atom->nlocal;
-  const int nprocs = _lmp->comm->nprocs;
+  const bigint natoms = _lmp->atom->natoms;
   MPI_Comm world = _lmp->world;
   Timer *timer = _lmp->timer;
 
@@ -55,8 +55,10 @@ void ImbalanceTime::compute(double *weight)
       double allcost;
       MPI_Allreduce(&cost,&allcost,1,MPI_DOUBLE,MPI_SUM,world);
 
-      if (allcost > 0.0) {
-        const double scale = (1.0-_factor) + _factor*cost*nprocs/allcost;
+      if ((allcost > 0.0) && (nlocal > 0)) {
+        const double avgcost = allcost/natoms;
+        const double localcost = cost/nlocal;
+        const double scale = (1.0-_factor) + _factor*localcost/avgcost;
         for (int i = 0; i < nlocal; ++i) weight[i] *= scale;
       }
       // record time up to this point

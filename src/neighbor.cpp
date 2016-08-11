@@ -85,8 +85,6 @@ Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp)
   binatomflag = 1;
   ago = -1;
 
-  ago = -1;
-
   cutneighmax = 0.0;
   cutneighsq = NULL;
   cutneighghostsq = NULL;

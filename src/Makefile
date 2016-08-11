@@ -44,20 +44,20 @@ endif
 # Package variables
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-          granular kim kokkos kspace manybody mc meam misc molecule mpiio \
-          opt peri poems python qeq replica rigid shock snap srd \
-          voronoi
+	  granular kim \
+	  kokkos kspace manybody mc meam misc molecule mpiio opt peri poems \
+	  python qeq reax replica rigid shock snap srd voronoi
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-hadress user-intel user-lb user-manifold user-mgpt \
+	   user-intel user-lb user-manifold user-mgpt \
 	   user-misc user-molfile user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
-	   user-vtk
+	   user-vtk user-crslnk
 
-PACKLIB = compress gpu kim kokkos meam mpiio poems python voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-intel \
-	  user-lb user-molfile user-qmmm user-quip user-smd user-vtk
+PACKLIB = compress gpu kim kokkos meam poems python reax voronoi \
+	  user-atc user-awpmd user-colvars user-h5md user-molfile \
+	  user-qmmm user-quip user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -183,16 +183,8 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
-
 clean-%:
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
-
-test-clean:
-	@cd ../test/; $(MAKE) $(MFLAGS) clean; cd ..
-
-test-%:
-	$(MAKE) $(MFLAGS) $(@:test-%=%)
-	@cd ../test/; $(MAKE) $(MFLAGS) test MACH=$(@:test-%=%) MPICMD="$(MPICMD)" LMPFLAGS="$(LMPFLAGS)" TAG=$(TAG) || exit 1 ; cd ..
 
 # Create Makefile.list
 

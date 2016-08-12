@@ -2209,6 +2209,50 @@ double Variable::evaluate(char *str, Tree **tree)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+TypeDetector* Variable::get_type_detector(char* id) {
+  TypeDetector* detector = NULL;
+  for (std::vector<TypeDetector*>::iterator it = this->type_dectors.begin();
+       it != type_dectors.end(); it++) {
+    detector = (*it);
+    if (strcmp(detector->id, id) == 0)
+      break;
+  }
+  return detector;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Variable::add_type_detector(int type, int narg, char** args) {
+
+  TypeDetector* priority = new TypeDetector(args[0], type);
+
+  int len = priority->length;
+  int nleft = narg - 1;
+
+  int n_t = (int) nleft / (len + 1);
+  int *t = new int[len];
+  int val = 0;
+  int iarg = 1;
+  for (int num = 0; num < n_t; num++) {
+    for (int i = 0; i < len; i++) {
+      if (strcmp(args[iarg], "*") == 0)
+        t[i] = 0;
+      else
+        t[i] = force->inumeric(FLERR, args[iarg]);
+      iarg++;
+    }
+    val = force->inumeric(FLERR, args[iarg++]);
+    priority->set(t, val);
+  }
+
+  this->type_dectors.push_back(priority);
+
+  delete[] t;
+
+}
+
 /* ----------------------------------------------------------------------
    one-time collapse of an atom-style variable parse tree
    tree was created by one-time parsing of formula string via evaluate()

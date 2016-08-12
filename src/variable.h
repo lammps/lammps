@@ -15,131 +15,303 @@
 #define LMP_VARIABLE_H
 
 #include <stdlib.h>
+#include <vector>
+#include <iostream>
+#include <stdio.h>
+#include <string.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class Variable : protected Pointers {
- friend class Info;
- public:
-  Variable(class LAMMPS *);
-  ~Variable();
-  void set(int, char **);
-  void set(char *, int, char **);
-  int set_string(char *, char *);
-  int next(int, char **);
+    class Variable : protected Pointers {
+        friend class Info;
 
-  int find(char *);
-  void set_arrays(int);
-  void python_command(int, char **);
+    public:
+        Variable(class LAMMPS *);
 
-  int equalstyle(int);
-  int atomstyle(int);
-  int vectorstyle(int);
-  char *pythonstyle(char *, char *);
-  int internalstyle(int);
+        ~Variable();
 
-  char *retrieve(char *);
-  double compute_equal(int);
-  double compute_equal(char *);
-  void compute_atom(int, int, double *, int, int);
-  int compute_vector(int, double **);
-  void internal_set(int, double);
+        void set(int, char **);
 
-  tagint int_between_brackets(char *&, int);
-  double evaluate_boolean(char *);
+        void set(char *, int, char **);
 
-  unsigned int data_mask(int ivar);
-  unsigned int data_mask(char *str);
+        int set_string(char *, char *);
 
- private:
-  int me;
-  int nvar;                // # of defined variables
-  int maxvar;              // max # of variables following lists can hold
-  char **names;            // name of each variable
-  int *style;              // style of each variable
-  int *num;                // # of values for each variable
-  int *which;              // next available value for each variable
-  int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
-  class VarReader **reader;   // variable that reads from file
-  char ***data;            // str value of each variable's values
-  double *dvalue;          // single numeric value for internal variables
+        int next(int, char **);
 
-  struct VecVar {
-    int n,nmax;
-    bigint currentstep;
-    double *values;
-  };
-  VecVar *vecs;
+        int find(char *);
 
-  int *eval_in_progress;       // flag if evaluation of variable is in progress
-  int treetype;                // ATOM or VECTOR flag for formula evaluation
+        void set_arrays(int);
 
-  class RanMars *randomequal;   // random number generator for equal-style vars
-  class RanMars *randomatom;    // random number generator for atom-style vars
+        void python_command(int, char **);
 
-  int precedence[17];      // precedence level of math operators
-                           // set length to include up to OR in enum
+        int equalstyle(int);
 
-  class Python *python;    // ptr to embedded Python interpreter
+        int atomstyle(int);
 
-  struct Tree {            // parse tree for atom-style or vector-style variables
-    double value;          // single scalar
-    double *array;         // per-atom or per-type list of doubles
-    int *iarray;           // per-atom list of ints
-    bigint *barray;        // per-atom list of bigints
-    int type;              // operation, see enum{} in variable.cpp
-    int nvector;           // length of array for vector-style variable
-    int nstride;           // stride between atoms if array is a 2d array
-    int selfalloc;         // 1 if array is allocated here, else 0
-    int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
-    int nextra;            // # of additional args beyond first 2
-    Tree *first,*second;   // ptrs further down tree for first 2 args
-    Tree **extra;          // ptrs further down tree for nextra args
-  };
+        int vectorstyle(int);
 
-  int compute_python(int);
-  void remove(int);
-  void grow();
-  void copy(int, char **, char **);
-  double evaluate(char *, Tree **);
-  double collapse_tree(Tree *);
-  double eval_tree(Tree *, int);
-  int size_tree_vector(Tree *);
-  int compare_tree_vector(int, int);
-  void free_tree(Tree *);
-  int find_matching_paren(char *, int, char *&);
-  int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
-  int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
-  int region_function(char *);
-  int special_function(char *, char *, Tree **, Tree **,
-                       int &, double *, int &);
-  void peratom2global(int, char *, double *, int, tagint,
-                      Tree **, Tree **, int &, double *, int &);
-  int is_atom_vector(char *);
-  void atom_vector(char *, Tree **, Tree **, int &);
-  int is_constant(char *);
-  double constant(char *);
-  int parse_args(char *, char **);
-  char *find_next_comma(char *);
-  void print_tree(Tree *, int);
-};
+        char *pythonstyle(char *, char *);
 
-class VarReader : protected Pointers {
- public:
-  class FixStore *fixstore;
-  char *id_fix;
+        int internalstyle(int);
 
-  VarReader(class LAMMPS *, char *, char *, int);
-  ~VarReader();
-  int read_scalar(char *);
-  int read_peratom();
+        char *retrieve(char *);
 
- private:
-  int me,style;
-  FILE *fp;
-  char *buffer;
-};
+        double compute_equal(int);
+
+        double compute_equal(char *);
+
+        void compute_atom(int, int, double *, int, int);
+
+        int compute_vector(int, double **);
+
+        void internal_set(int, double);
+
+        tagint int_between_brackets(char *&, int);
+
+        double evaluate_boolean(char *);
+
+        unsigned int data_mask(int ivar);
+
+        unsigned int data_mask(char *str);
+
+        class TypeDetector *get_type_detector(char *);
+
+        void add_type_detector(int, int, char **);
+
+    private:
+        int me;
+        int nvar;                // # of defined variables
+        int maxvar;              // max # of variables following lists can hold
+        char **names;            // name of each variable
+        int *style;              // style of each variable
+        int *num;                // # of values for each variable
+        int *which;              // next available value for each variable
+        int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
+        class VarReader **reader;   // variable that reads from file
+        char ***data;            // str value of each variable's values
+        double *dvalue;          // single numeric value for internal variables
+
+        std::vector<class TypeDetector*> type_dectors;
+
+        struct VecVar {
+            int n, nmax;
+            bigint currentstep;
+            double *values;
+        };
+        VecVar *vecs;
+
+        int *eval_in_progress;       // flag if evaluation of variable is in progress
+        int treetype;                // ATOM or VECTOR flag for formula evaluation
+
+        class RanMars *randomequal;   // random number generator for equal-style vars
+        class RanMars *randomatom;    // random number generator for atom-style vars
+
+        int precedence[17];      // precedence level of math operators
+        // set length to include up to OR in enum
+
+        class Python *python;    // ptr to embedded Python interpreter
+
+        struct Tree {            // parse tree for atom-style or vector-style variables
+            double value;          // single scalar
+            double *array;         // per-atom or per-type list of doubles
+            int *iarray;           // per-atom list of ints
+            bigint *barray;        // per-atom list of bigints
+            int type;              // operation, see enum{} in variable.cpp
+            int nvector;           // length of array for vector-style variable
+            int nstride;           // stride between atoms if array is a 2d array
+            int selfalloc;         // 1 if array is allocated here, else 0
+            int ivalue1, ivalue2;   // extra values for needed for gmask,rmask,grmask
+            int nextra;            // # of additional args beyond first 2
+            Tree *first, *second;   // ptrs further down tree for first 2 args
+            Tree **extra;          // ptrs further down tree for nextra args
+        };
+
+        int compute_python(int);
+
+        void remove(int);
+
+        void grow();
+
+        void copy(int, char **, char **);
+
+        double evaluate(char *, Tree **);
+
+        double collapse_tree(Tree *);
+
+        double eval_tree(Tree *, int);
+
+        int size_tree_vector(Tree *);
+
+        int compare_tree_vector(int, int);
+
+        void free_tree(Tree *);
+
+        int find_matching_paren(char *, int, char *&);
+
+        int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
+
+        int group_function(char *, char *, Tree **, Tree **, int &, double *, int &);
+
+        int region_function(char *);
+
+        int special_function(char *, char *, Tree **, Tree **,
+                             int &, double *, int &);
+
+        void peratom2global(int, char *, double *, int, tagint,
+                            Tree **, Tree **, int &, double *, int &);
+
+        int is_atom_vector(char *);
+
+        void atom_vector(char *, Tree **, Tree **, int &);
+
+        int is_constant(char *);
+
+        double constant(char *);
+
+        int parse_args(char *, char **);
+
+        char *find_next_comma(char *);
+
+        void print_tree(Tree *, int);
+    };
+
+    class VarReader : protected Pointers {
+    public:
+        class FixStore *fixstore;
+
+        char *id_fix;
+
+        VarReader(class LAMMPS *, char *, char *, int);
+
+        ~VarReader();
+
+        int read_scalar(char *);
+
+        int read_peratom();
+
+    private:
+        int me, style;
+        FILE *fp;
+        char *buffer;
+    };
+
+    class TypeDetector {
+
+        struct Entity {
+            int *ID; // * -> -1
+            int value;
+            int level;
+
+            Entity() {
+                ID = NULL;
+                value = -1;
+                level = 0;
+            }
+
+            virtual ~Entity() {
+                delete[] ID;
+            }
+        };
+
+    public:
+        char *id;
+        int type; // 0=bond, 1=angle, 2=dihedral, 3=improper
+        int length;
+
+        TypeDetector(char *tag, int t) {
+            type = t;
+            switch (type) {
+                case 0:
+                    length = 2;
+                    break;
+                case 1:
+                    length = 3;
+                    break;
+                case 2:
+                    length = 4;
+                    break;
+                case 3:
+                    length = 4;
+                    break;
+            }
+
+            int n = strlen(tag) + 1;
+            id = new char[n];
+            strcpy(id, tag);
+        }
+
+        virtual ~TypeDetector() {
+            values.empty();
+        }
+
+        void set(int *t1, int value) {
+            int i, p = 0;
+            for (i = 0; i < length; ++i)
+                p += (t1[i] == 0) ? 1 : 0;
+            std::vector<Entity *>::iterator it = values.begin();
+            bool equal = false;
+            while (it != values.end()) {
+                Entity *e = (*it);
+                if (equals(e, t1) && e->level == p) {
+                    equal = true;
+                    break;
+                } else if (e->level > p) {
+                    break;
+                }
+                it++;
+            }
+            if (equal)
+                (*it)->value = value;
+            else {
+                Entity *ne = new Entity();
+                ne->ID = new int[length];
+                for (int i = 0; i < length; ++i)
+                    ne->ID[i] = t1[i];
+                ne->value = value;
+                ne->level = p;
+                values.insert(it, ne);
+            }
+        }
+
+        bool get(int *&t1, int &answer) {
+            for (std::vector<Entity *>::iterator it = values.begin();
+                 it != values.end(); it++) {
+                if (equals((*it), t1)) {
+                    answer = (*it)->value;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        int get_num_types()
+        {
+            int max = 0;
+            for (std::vector<Entity *>::iterator it = values.begin();
+                 it != values.end(); it++) {
+                if ((*it)->value > max) {
+                    max = (*it)->value;
+                }
+            }
+            return max;
+        }
+
+    private:
+        int equals(Entity *&e, int *&id) {
+            int *ID = e->ID;
+            int res = 1, res_rev = 1;
+            for (int i = 0; i < length; ++i) {
+                res *= (ID[i] == id[i] || ID[i] == 0) ? 1 : 0;
+                res_rev *= (ID[i] == id[length - i - 1] || ID[i] == 0) ? 1 : 0;
+            }
+            if (res == 1 || res_rev == 1)
+                return 1;
+            return 0;
+        }
+
+        std::vector<Entity *> values;
+    };
 
 }
 

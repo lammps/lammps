@@ -85,8 +85,10 @@ class Input : protected Pointers {
   void angle_style();
   void atom_modify();
   void atom_style();
+    void angle_type();
   void bond_coeff();
   void bond_style();
+    void bond_type();
   void bond_write();
   void boundary();
   void box();
@@ -97,6 +99,7 @@ class Input : protected Pointers {
   void dielectric();
   void dihedral_coeff();
   void dihedral_style();
+    void dihedral_type();
   void dimension();
   void dump();
   void dump_modify();
@@ -107,6 +110,7 @@ class Input : protected Pointers {
   void improper_style();
   void kspace_modify();
   void kspace_style();
+    void improper_type();
   void lattice();
   void mass();
   void min_modify();

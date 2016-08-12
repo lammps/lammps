@@ -828,7 +828,10 @@ int Input::execute_command()
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
   else if (!strcmp(command,"units")) units();
-
+  else if (!strcmp(command, "bond_type")) bond_type();
+  else if (!strcmp(command, "angle_type")) angle_type();
+  else if (!strcmp(command, "dihedral_type")) dihedral_type();
+  else if (!strcmp(command, "improper_type")) improper_type();
   else flag = 0;
 
   // return if command was listed above
@@ -1376,6 +1379,18 @@ void Input::angle_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::angle_type() {
+  if (((narg - 1) % 4) != 0)
+    error->all(FLERR, "Illegal angle_type command");
+  if (atom->avec->angles_allow == 0)
+    error->all(FLERR, "angle_type command when no angle allowed");
+  if (!isalpha(arg[0][0]))
+    error->all(FLERR, "angle_type id must start with a letter");
+  variable->add_type_detector(1, narg, arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::atom_modify()
 {
   atom->modify_params(narg,arg);
@@ -1413,6 +1428,18 @@ void Input::bond_style()
     error->all(FLERR,"Bond_style command when no bonds allowed");
   force->create_bond(arg[0],1);
   if (force->bond) force->bond->settings(narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::bond_type() { // i1_t i2_t bond_t
+  if (((narg - 1) % 3) != 0)
+    error->all(FLERR, "Illegal bond_type command");
+  if (atom->avec->bonds_allow == 0)
+    error->all(FLERR, "Bond_style command when no bonds allowed");
+  if (!isalpha(arg[0][0]))
+    error->all(FLERR, "Bond_style id must start with a letter");
+  variable->add_type_detector(0, narg, arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1517,6 +1544,18 @@ void Input::dihedral_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::dihedral_type() {
+  if (((narg - 1) % 5) != 0)
+    error->all(FLERR, "Illegal dihedral_type command");
+  if (atom->avec->dihedrals_allow == 0)
+    error->all(FLERR, "dihedral_type command when no dihedral allowed");
+  if (!isalpha(arg[0][0]))
+    error->all(FLERR, "dihedral_type id must start with a letter!");
+  variable->add_type_detector(2, narg, arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::dimension()
 {
   if (narg != 1) error->all(FLERR,"Illegal dimension command");
@@ -1590,6 +1629,18 @@ void Input::improper_style()
     error->all(FLERR,"Improper_style command when no impropers allowed");
   force->create_improper(arg[0],1);
   if (force->improper) force->improper->settings(narg-1,&arg[1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::improper_type() {
+  if (((narg - 1) % 5) != 0)
+    error->all(FLERR, "Illegal improper_type command");
+  if (atom->avec->impropers_allow == 0)
+    error->all(FLERR, "improper_type command when no improper allowed");
+  if (!isalpha(arg[0][0]))
+    error->all(FLERR, "improper_type must start with a letter!");
+  variable->add_type_detector(3, narg, arg);
 }
 
 /* ---------------------------------------------------------------------- */

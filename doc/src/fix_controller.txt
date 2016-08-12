@@ -115,8 +115,7 @@ in {cvar}, this can be counteracted by increasing {Kd}. In situations
 where {pvar} plateaus without reaching {setpoint}, this can be
 counteracted by increasing {Ki}.  In the language of Charles Dickens,
 {Kp} represents the error of the present, {Ki} the error of the past,
-and {Kd} the error yet to come.  (insert your own Donald Trump joke
-here)
+and {Kd} the error yet to come.
 
 Because this fix updates {cvar}, but does not initialize its value,
 the initial value is that assigned by the user in the input script via

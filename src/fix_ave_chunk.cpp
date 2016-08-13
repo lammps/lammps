@@ -75,7 +75,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
 
   int iarg = 0;
-  while (iarg < narg) {
+  while (iarg < nargnew) {
 
     ids[nvalues] = NULL;
 

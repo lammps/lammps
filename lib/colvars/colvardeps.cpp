@@ -207,8 +207,8 @@ void colvardeps::init_cvb_requires() {
   f_description(f_cvb_apply_force, "apply force");
   f_req_children(f_cvb_apply_force, f_cv_gradient);
 
-  f_description(f_cvb_get_system_force, "obtain system force");
-  f_req_children(f_cvb_get_system_force, f_cv_system_force);
+  f_description(f_cvb_get_total_force, "obtain total force");
+  f_req_children(f_cvb_get_total_force, f_cv_total_force);
 
   f_description(f_cvb_history_dependent, "history-dependent");
 
@@ -247,15 +247,15 @@ void colvardeps::init_cv_requires() {
     f_description(f_cv_fdiff_velocity, "fdiff_velocity");
 
     // System force: either trivial (spring force); through extended Lagrangian, or calculated explicitly
-    f_description(f_cv_system_force, "system force");
-    f_req_alt2(f_cv_system_force, f_cv_extended_Lagrangian, f_cv_system_force_calc);
+    f_description(f_cv_total_force, "total force");
+    f_req_alt2(f_cv_total_force, f_cv_extended_Lagrangian, f_cv_total_force_calc);
 
-    // Deps for explicit system force calculation
-    f_description(f_cv_system_force_calc, "system force calculation");
-    f_req_self(f_cv_system_force_calc, f_cv_scalar);
-    f_req_self(f_cv_system_force_calc, f_cv_linear);
-    f_req_children(f_cv_system_force_calc, f_cvc_inv_gradient);
-    f_req_self(f_cv_system_force_calc, f_cv_Jacobian);
+    // Deps for explicit total force calculation
+    f_description(f_cv_total_force_calc, "total force calculation");
+    f_req_self(f_cv_total_force_calc, f_cv_scalar);
+    f_req_self(f_cv_total_force_calc, f_cv_linear);
+    f_req_children(f_cv_total_force_calc, f_cvc_inv_gradient);
+    f_req_self(f_cv_total_force_calc, f_cv_Jacobian);
 
     f_description(f_cv_Jacobian, "Jacobian derivative");
     f_req_self(f_cv_Jacobian, f_cv_scalar);
@@ -283,8 +283,8 @@ void colvardeps::init_cv_requires() {
 
     f_description(f_cv_output_applied_force, "output applied force");
 
-    f_description(f_cv_output_system_force, "output system force");
-    f_req_self(f_cv_output_system_force, f_cv_system_force);
+    f_description(f_cv_output_total_force, "output total force");
+    f_req_self(f_cv_output_total_force, f_cv_total_force);
 
     f_description(f_cv_lower_boundary, "lower boundary");
     f_req_self(f_cv_lower_boundary, f_cv_scalar);

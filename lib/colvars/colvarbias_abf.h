@@ -27,7 +27,7 @@ public:
 private:
 
   /// Filename prefix for human-readable gradient/sample count output
-  std::string	output_prefix;
+  std::string  output_prefix;
 
   /// Base filename(s) for reading previous gradient data (replaces data from restart file)
   std::vector<std::string> input_prefix;
@@ -50,7 +50,7 @@ private:
   // Internal data and methods
 
   std::vector<int>  bin, force_bin, z_bin;
-  gradient_t	    force;
+  gradient_t    system_force, applied_force;
 
   /// n-dim grid of free energy gradients
   colvar_grid_gradient  *gradients;

@@ -93,7 +93,7 @@ Balance::~Balance()
   }
 
   delete rcb;
-  for (int i; i < nimbalance; ++i)
+  for (int i = 0; i < nimbalance; ++i)
     delete imbalance[i];
   delete [] imbalance;
   if (imb_fix) modify->delete_fix(imb_fix->id);

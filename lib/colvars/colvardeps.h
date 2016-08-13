@@ -161,7 +161,7 @@ public:
     /// \brief Bias is active
     f_cvb_active,
     f_cvb_apply_force, // will apply forces
-    f_cvb_get_system_force, // requires system forces
+    f_cvb_get_total_force, // requires total forces
     f_cvb_history_dependent, // depends on simulation history
     f_cvb_ntot
   };
@@ -177,14 +177,14 @@ public:
     f_cv_collect_gradient,
     /// \brief Calculate the velocity with finite differences
     f_cv_fdiff_velocity,
-    /// \brief The system force is calculated, projecting the atomic
+    /// \brief The total force is calculated, projecting the atomic
     /// forces on the inverse gradient
-    f_cv_system_force,
-    /// \brief Calculate system force from atomic forces
-    f_cv_system_force_calc,
+    f_cv_total_force,
+    /// \brief Calculate total force from atomic forces
+    f_cv_total_force_calc,
     /// \brief Estimate Jacobian derivative
     f_cv_Jacobian,
-    /// \brief Do not report the Jacobian force as part of the system force
+    /// \brief Do not report the Jacobian force as part of the total force
     /// instead, apply a correction internally to cancel it
     f_cv_hide_Jacobian,
     /// \brief The variable has a harmonic restraint around a moving
@@ -202,8 +202,8 @@ public:
     f_cv_output_velocity,
     /// \brief Output the applied force to the trajectory file
     f_cv_output_applied_force,
-    /// \brief Output the system force to the trajectory file
-    f_cv_output_system_force,
+    /// \brief Output the total force to the trajectory file
+    f_cv_output_total_force,
     /// \brief A lower boundary is defined
     f_cv_lower_boundary,
     /// \brief An upper boundary is defined

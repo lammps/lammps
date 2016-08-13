@@ -248,7 +248,7 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if (subcmd == "getsystemforce") {
-    result = (cv->system_force()).to_simple_string();
+    result = (cv->total_force()).to_simple_string();
     return COLVARS_OK;
   }
 

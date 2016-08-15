@@ -154,7 +154,7 @@ private:
 	}
 
 	void tokentize(char* &dup, std::vector<char*> & v) {
-		const char delim[] = { ' ', ',' };
+		const char delim[] = { ' ', ',', ';' };
 		char *token = strtok(dup, delim);
 		while (token != NULL) {
 			v.push_back(token);

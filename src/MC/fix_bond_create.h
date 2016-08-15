@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Assigning different types for angle, dihedral, and
+   improper dihedral angles added to the code:
+   Contributing author: Amin Aramoon (Johns Hopkins U)
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(bond/create,FixBondCreate)
@@ -21,6 +27,7 @@ FixStyle(bond/create,FixBondCreate)
 #define LMP_FIX_BOND_CREATE_H
 
 #include "fix.h"
+#include "type_detector.h"
 
 namespace LAMMPS_NS {
 
@@ -57,6 +64,9 @@ class FixBondCreate : public Fix {
   int angleflag,dihedralflag,improperflag;
   int overflow;
   tagint lastcheck;
+
+  int angledynflag, dihedraldynflag, improperdynflag; // set whether the types are specified on the go
+  TypeDetector *angle_detector, *dihedral_detector, *improper_detector;
 
   int *bondcount;
   int createcount,createcounttotal;

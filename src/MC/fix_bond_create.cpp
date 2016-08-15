@@ -11,6 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Assigning different types for angle, dihedral, and
+   improper dihedral angles added to the code:
+   Contributing author: Amin Aramoon (Johns Hopkins U)
+------------------------------------------------------------------------- */
+
 #include <math.h>
 #include <mpi.h>
 #include <string.h>

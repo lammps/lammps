@@ -1,9 +1,19 @@
-/*
- * type_detector.h
- *
- *  Created on: Aug 12, 2016
- *      Author: amin
- */
+/* ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Author: Amin Aramoon (Johns Hopkins U) aaramoo1@jhu.edu
+------------------------------------------------------------------------- */
 
 #ifndef LMP_TYPE_DETECTOR_H_
 #define LMP_TYPE_DETECTOR_H_

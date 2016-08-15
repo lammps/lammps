@@ -41,7 +41,10 @@ keyword = {iparam} or {jparam} or {prob} or {atype} or {dtype} or {itype} :l
 
 fix 5 all bond/create 10 1 2 0.8 1
 fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
-fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype 1 dtype 2 :pre
+
+varialbe  ang_type string "1 2 1 1 2 1 2 2 3 3 1 3 1 3 1 4 2 1 3 5 * * * 6"
+variable dtype_type string "1 2 1 2 1 * * * * 2"
+fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype ang_type dtype dtype_type :pre
 
 [Description:]
 
@@ -52,7 +55,10 @@ context, a bond means an interaction between a pair of atoms computed
 by the "bond_style"_bond_style.html command.  Once the bond is created
 it will be permanently in place.  Optionally, the creation of a bond
 can also create angle, dihedral, and improper interactions that bond
-is part of.  See the discussion of the {atype}, {dtype}, and {itype}
+is part of.  Type of angle, proper/improper dihedrals can be specified with 
+an number, or with a "angle_type", "dihedral_type", or "improper_type" class 
+which determines types of newly created angles, dihedrals based on the type of 
+atoms in the angle or dihedral. See the discussion of the {atype}, {dtype}, and {itype}
 keywords below.
 
 This is different than a "pairwise"_pair_style.html bond-order
@@ -127,7 +133,10 @@ interactions inferred by the creation of a bond will create new angles
 of type {angletype}, with parameters assigned by the corresponding
 "angle_coeff"_angle_coeff.html command.  Likewise, the {dtype} and
 {itype} keywords will create new dihedrals and impropers of type
-{dihedraltype} and {impropertype}.
+{dihedraltype} and {impropertype}. Type of angles, proper/improper dihedrals created
+due to fomation of the bond can be specified with an number, or with a "angle_type", 
+"dihedral_type", or "improper_type" variable which determines types of 
+newly created angles, dihedrals based on the type of atoms in the angle or dihedral.
 
 NOTE: To create a new bond, the internal LAMMPS data structures that
 store this information must have space for it.  When LAMMPS is
@@ -167,8 +176,8 @@ be potentially turned off or weighted by the 1-3 weighting specified
 by the "special_bonds"_special_bonds.html command.  This is the case
 even if the "angle yes" option was used with that command.  The same
 is true for 3rd neighbors (1-4 interactions), the {dtype} keyword, and
-the "dihedral yes" option used with the
-"special_bonds"_special_bonds.html command.
+the "dihedral yes" option used with the "special_bonds"_special_bonds.html 
+command.
 
 Note that even if your simulation starts with no bonds, you must
 define a "bond_style"_bond_style.html and use the
@@ -208,7 +217,7 @@ created bonds (and angles, dihedrals, impropers).
 
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix.
+are relevant to this fix. 
 
 This fix computes two statistics which it stores in a global vector of
 length 2, which can be accessed by various "output

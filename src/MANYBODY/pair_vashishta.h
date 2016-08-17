@@ -28,6 +28,7 @@ class PairVashishta : public Pair {
  public:
   PairVashishta(class LAMMPS *);
   virtual ~PairVashishta();
+  virtual void modify_params(int, char **);
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
@@ -45,6 +46,12 @@ class PairVashishta : public Pair {
     double lam1rc,lam4rc,vrcc2,vrcc3,vrc,dvrc,c0;
     int ielement,jelement,kelement;
   };
+  bool useTable;
+  int tableSize;
+  double deltaR2;
+  double oneOverDeltaR2;
+  double ***forceTable;          // Table containing the forces
+  double ***potentialTable;      // Table containing the potential energies
 
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
@@ -58,7 +65,8 @@ class PairVashishta : public Pair {
   virtual void allocate();
   void read_file(char *);
   void setup_params();
-  void twobody(Param *, double, double &, int, double &);
+  void createTable();
+  void twobody(Param *, double, double &, int, double &, bool);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);
 };

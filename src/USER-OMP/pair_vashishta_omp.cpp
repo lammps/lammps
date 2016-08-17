@@ -135,7 +135,7 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
       ijparam = elem2param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) continue;
 
-      twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
+      twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl, useTable);
 
       fxtmp += delx*fpair;
       fytmp += dely*fpair;

@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author:  Yongnan Xiong (HNU), xyn@hnu.edu.cn
                          Aidan Thompson (SNL)
+                         Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -52,6 +53,11 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   params = NULL;
   elem2param = NULL;
   map = NULL;
+
+  useTable = true;
+  tableSize = 65536;
+  forceTable = NULL;
+  potentialTable = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -70,6 +76,63 @@ PairVashishta::~PairVashishta()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
+  }
+}
+#include <iostream>
+using namespace std;
+void PairVashishta::modify_params(int narg, char **arg)
+{
+  if(narg < 2 || narg > 3) // We accept table yes/no [tableSize]
+    error->all(FLERR,"Illegal pair_modify command");
+  if(strcmp(arg[0], "table") != 0) 
+    error->all(FLERR,"Illegal pair_modify command. Expected 'table yes/no [tableSize]'");
+  if(strcmp(arg[1], "yes") == 0) 
+    useTable = true;
+  else if(strcmp(arg[1], "no") == 0) 
+    useTable = false;
+  else 
+    error->all(FLERR,"Illegal pair_modify command. Expected 'table yes/no [tableSize]'");
+
+  if(narg == 3) {
+    tableSize = atoi(arg[2]);
+    if(tableSize <= 0) 
+      error->all(FLERR,"Illegal pair_modify command. Expected 'table yes/no [tableSize]', but tableSize has value 0.");
+
+    createTable();
+  }
+}
+
+void PairVashishta::createTable()
+{
+  int ntypes = atom->ntypes+1;
+  deltaR2 = cutmax*cutmax / (tableSize-1);
+  oneOverDeltaR2 = 1.0/deltaR2;
+
+  memory->destroy(forceTable);
+  memory->destroy(potentialTable);
+  memory->create(forceTable,ntypes,ntypes,tableSize+1,"pair:vashishta:forceTable");
+  memory->create(potentialTable,ntypes,ntypes,tableSize+1,"pair:vashishta:potentialTable");
+
+  for (int ii = 0; ii < ntypes; ii++) {
+    int i = map[ii];
+    for (int jj = 0; jj < ntypes; jj++) {
+        int j = map[jj];
+        if (i < 0 || j < 0 || ii == 0 || jj == 0) {
+            for(int tableIndex=0; tableIndex<=tableSize; tableIndex++) {
+                forceTable[ii][jj][tableIndex] = 0;
+                potentialTable[ii][jj][tableIndex] = 0;
+            }
+        } else {
+            int ijparam = elem2param[i][j][j];
+            for(int tableIndex=0; tableIndex<=tableSize; tableIndex++) {
+                double rsq = tableIndex*deltaR2;
+                double fpair, eng;
+                twobody(&params[ijparam], rsq, fpair, 1, eng, false /* Don't ask for tabulated since we are generating it now*/ );
+                forceTable[ii][jj][tableIndex] = fpair;
+                potentialTable[ii][jj][tableIndex] = eng;
+            }
+        }
+    }
   }
 }
 
@@ -141,7 +204,7 @@ void PairVashishta::compute(int eflag, int vflag)
       ijparam = elem2param[itype][jtype][jtype];
       if (rsq > params[ijparam].cutsq) continue;
 
-      twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
+      twobody(&params[ijparam],rsq,fpair,eflag,evdwl, useTable);
 
       f[i][0] += delx*fpair;
       f[i][1] += dely*fpair;
@@ -536,32 +599,48 @@ void PairVashishta::setup_params()
     if (params[m].cut > cutmax) cutmax = params[m].cut;
     if (params[m].r0 > cutmax) cutmax = params[m].r0;
   }
+
+  createTable();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairVashishta::twobody(Param *param, double rsq, double &fforce,
-                     int eflag, double &eng)
+                     int eflag, double &eng, bool tabulated)
 {
-  double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
+  if(tabulated) {
+    int potentialTableIndex = rsq*oneOverDeltaR2;
+    double fractionalRest = rsq*oneOverDeltaR2 - potentialTableIndex; // double - int will only keep the 0.xxxx part
 
-  r = sqrt(rsq);
-  rinvsq = 1.0/rsq;
-  r4inv = rinvsq*rinvsq;
-  r6inv = rinvsq*r4inv;
-  reta = pow(r,-param->eta);
-  lam1r = r*param->lam1inv;
-  lam4r = r*param->lam4inv;
-  vc2 = param->zizj * exp(-lam1r)/r;
-  vc3 = param->mbigd * r4inv*exp(-lam4r);
+    double force0 = forceTable[param->ielement+1][param->jelement+1][potentialTableIndex];
+    double force1 = forceTable[param->ielement+1][param->jelement+1][potentialTableIndex+1];
+    fforce = (1.0 - fractionalRest)*force0 + fractionalRest*force1; // force is linearly interpolated between the two values
+    if(evflag) {
+        double energy0 = potentialTable[param->ielement+1][param->jelement+1][potentialTableIndex];
+        double energy1 = potentialTable[param->ielement+1][param->jelement+1][potentialTableIndex+1];
+        eng = (1.0 - fractionalRest)*energy0 + fractionalRest*energy1;
+    }
+  } else {
+    double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
 
-  fforce = (param->dvrc*r
-	    - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv
-	       - param->heta*reta - vc2 - lam1r*vc2)
-	    ) * rinvsq;
-  if (eflag) eng = param->bigh*reta
-	       + vc2 - vc3 - param->bigw*r6inv
-	       - r*param->dvrc + param->c0;
+    r = sqrt(rsq);
+    rinvsq = 1.0/rsq;
+    r4inv = rinvsq*rinvsq;
+    r6inv = rinvsq*r4inv;
+    reta = pow(r,-param->eta);
+    lam1r = r*param->lam1inv;
+    lam4r = r*param->lam4inv;
+    vc2 = param->zizj * exp(-lam1r)/r;
+    vc3 = param->mbigd * r4inv*exp(-lam4r);
+
+    fforce = (param->dvrc*r
+  	    - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv
+  	       - param->heta*reta - vc2 - lam1r*vc2)
+  	    ) * rinvsq;
+    if (eflag) eng = param->bigh*reta
+  	       + vc2 - vc3 - param->bigw*r6inv
+  	       - r*param->dvrc + param->c0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

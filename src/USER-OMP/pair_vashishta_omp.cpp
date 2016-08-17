@@ -36,6 +36,8 @@ PairVashishtaOMP::PairVashishtaOMP(LAMMPS *lmp) :
 
 void PairVashishtaOMP::compute(int eflag, int vflag)
 {
+  validateNeigh3Body();
+
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
@@ -105,6 +107,8 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
     ztmp = x[i].z;
     fxtmp = fytmp = fztmp = 0.0;
 
+    neigh3BodyCount[i] = 0;
+    
     // two-body interactions, skip half of them
 
     jlist = firstneigh[i];
@@ -114,6 +118,21 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
       j = jlist[jj];
       j &= NEIGHMASK;
       jtag = tag[j];
+      jtype = map[type[j]];
+
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      ijparam = elem2param[itype][jtype][jtype];
+
+      if (rsq <= params[ijparam].cutsq2) {
+          neigh3Body[i][neigh3BodyCount[i]] = j;
+          neigh3BodyCount[i]++;
+      }
+
+      if (rsq >= params[ijparam].cutsq) continue;
 
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
@@ -124,16 +143,6 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (x[j].z == ztmp && x[j].y < ytmp) continue;
         if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
       }
-
-      jtype = map[type[j]];
-
-      delx = xtmp - x[j].x;
-      dely = ytmp - x[j].y;
-      delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl, useTable);
 
@@ -148,6 +157,8 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
                                evdwl,0.0,fpair,delx,dely,delz,thr);
     }
 
+    jlist = neigh3Body[i];
+    jnum = neigh3BodyCount[i];
     jnumm1 = jnum - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {

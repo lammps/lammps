@@ -53,6 +53,10 @@ class PairVashishta : public Pair {
   double ***forceTable;          // Table containing the forces
   double ***potentialTable;      // Table containing the potential energies
 
+  int neigh3BodyMax;            // Max size of short neighborlist
+  int *neigh3BodyCount;         // Number of neighbors in short range 3 particle forces neighbor list
+  int **neigh3Body;             // Neighborlist for short range 3 particle forces
+
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
@@ -66,6 +70,7 @@ class PairVashishta : public Pair {
   void read_file(char *);
   void setup_params();
   void createTable();
+  void validateNeigh3Body();
   void twobody(Param *, double, double &, int, double &, bool);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);

@@ -76,6 +76,11 @@ PairVashishta::~PairVashishta()
   memory->destroy(params);
   memory->destroy(elem2param);
 
+  memory->destroy(forceTable);
+  memory->destroy(potentialTable);
+  memory->destroy(neigh3BodyCount);
+  memory->destroy(neigh3Body);
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

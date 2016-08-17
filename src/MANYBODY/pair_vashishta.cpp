@@ -54,6 +54,10 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   elem2param = NULL;
   map = NULL;
 
+  neigh3BodyMax = 0;
+  neigh3BodyCount = NULL; 
+  neigh3Body = NULL;
+  
   useTable = true;
   tableSize = 65536;
   forceTable = NULL;
@@ -78,8 +82,7 @@ PairVashishta::~PairVashishta()
     delete [] map;
   }
 }
-#include <iostream>
-using namespace std;
+
 void PairVashishta::modify_params(int narg, char **arg)
 {
   if(narg < 2 || narg > 3) // We accept table yes/no [tableSize]
@@ -100,6 +103,16 @@ void PairVashishta::modify_params(int narg, char **arg)
 
     createTable();
   }
+}
+
+void PairVashishta::validateNeigh3Body() {
+  if (atom->nlocal > neigh3BodyMax) {
+        neigh3BodyMax = atom->nmax;
+        memory->destroy(neigh3BodyCount);
+        memory->destroy(neigh3Body);
+        memory->create(neigh3BodyCount,neigh3BodyMax,  "pair:vashishta:neigh3BodyCount");
+        memory->create(neigh3Body,neigh3BodyMax, 1000, "pair:vashishta:neigh3Body"); // TODO: pick this number more wisely? 
+    }
 }
 
 void PairVashishta::createTable()
@@ -140,6 +153,7 @@ void PairVashishta::createTable()
 
 void PairVashishta::compute(int eflag, int vflag)
 {
+  validateNeigh3Body();
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
   tagint itag,jtag;
@@ -174,6 +188,8 @@ void PairVashishta::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
 
+    neigh3BodyCount[i] = 0; // Reset the 3-body neighbor list
+
     // two-body interactions, skip half of them
 
     jlist = firstneigh[i];
@@ -184,6 +200,21 @@ void PairVashishta::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtag = tag[j];
 
+      jtype = map[type[j]];
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      ijparam = elem2param[itype][jtype][jtype];
+
+      if (rsq <= params[ijparam].cutsq2) {
+          neigh3Body[i][neigh3BodyCount[i]] = j;
+          neigh3BodyCount[i]++;
+      }
+
+      if (rsq > params[ijparam].cutsq) continue;
+
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -193,16 +224,6 @@ void PairVashishta::compute(int eflag, int vflag)
         if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
-
-      jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl, useTable);
 
@@ -217,6 +238,8 @@ void PairVashishta::compute(int eflag, int vflag)
       			   evdwl,0.0,fpair,delx,dely,delz);
     }
 
+    jlist = neigh3Body[i];
+    jnum = neigh3BodyCount[i];
     jnumm1 = jnum - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {

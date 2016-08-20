@@ -298,6 +298,9 @@ int Dump::count()
 
 void Dump::write()
 {
+  imageint *imagehold;
+  double **xhold,**vhold;
+
   // if file per timestep, open new file
 
   if (multifile) openfile();
@@ -377,15 +380,12 @@ void Dump::write()
       memcpy(&vpbc[0][0],&atom->v[0][0],3*nlocal*sizeof(double));
       memcpy(imagepbc,atom->image,nlocal*sizeof(imageint));
     }
-    double **dtmp = atom->x;
+    xhold = atom->x;
+    vhold = atom->v;
+    imagehold = atom->image;
     atom->x = xpbc;
-    xpbc = dtmp;
-    dtmp = atom->v;
     atom->v = vpbc;
-    vpbc = dtmp;
-    imageint *itmp = atom->image;
     atom->image = imagepbc;
-    imagepbc = itmp;
     domain->pbc();
   }
   
@@ -468,17 +468,11 @@ void Dump::write()
   }
 
   // restore original x,v,image unaltered by PBC
-  
+
   if (pbcflag) {
-    double **dtmp = atom->x;
-    atom->x = xpbc;
-    xpbc = dtmp;
-    dtmp = atom->v;
-    atom->v = vpbc;
-    vpbc = dtmp;
-    imageint *itmp = atom->image;
-    atom->image = imagepbc;
-    imagepbc = itmp;
+    atom->x = xhold;
+    atom->v = vhold;
+    atom->image = imagehold;
   }
 
   // if file per timestep, close file if I am filewriter

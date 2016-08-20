@@ -169,6 +169,9 @@ or multiple smaller files).
    Because periodic boundary conditions are enforced only on
    timesteps when neighbor lists are rebuilt, the coordinates of an atom
    written to a dump file may be slightly outside the simulation box.
+   Re-neighbor timesteps will not typically coincide with the timesteps
+   dump snapshots are written.  See the :doc:`dump_modify pbc <dump_modify>` command if you with to force coordinates to be
+   strictly inside the simulation box.
 
 .. note::
 

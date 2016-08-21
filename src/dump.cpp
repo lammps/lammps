@@ -81,7 +81,8 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   buffer_allow = 0;
   buffer_flag = 0;
   padflag = 0;
-
+  pbcflag = 0;
+  
   maxbuf = maxids = maxsort = maxproc = 0;
   buf = bufsort = NULL;
   ids = idsort = NULL;
@@ -90,6 +91,10 @@ Dump::Dump(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   maxsbuf = 0;
   sbuf = NULL;
+
+  maxpbc = 0;
+  xpbc = vpbc = NULL;
+  imagepbc = NULL;
 
   // parse filename for special syntax
   // if contains '%', write one file per proc and replace % with proc-ID
@@ -163,7 +168,13 @@ Dump::~Dump()
   delete irregular;
 
   memory->destroy(sbuf);
-
+  
+  if (pbcflag) {
+    memory->destroy(xpbc);
+    memory->destroy(vpbc);
+    memory->destroy(imagepbc);
+  }
+  
   if (multiproc) MPI_Comm_free(&clustercomm);
 
   // XTC style sets fp to NULL since it closes file in its destructor
@@ -262,6 +273,10 @@ void Dump::init()
       }
     }
   }
+
+  // preallocation for PBC copies if requested
+  
+  if (pbcflag && atom->nlocal > maxpbc) pbc_allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -283,6 +298,9 @@ int Dump::count()
 
 void Dump::write()
 {
+  imageint *imagehold;
+  double **xhold,**vhold;
+
   // if file per timestep, open new file
 
   if (multifile) openfile();
@@ -352,6 +370,25 @@ void Dump::write()
     memory->create(ids,maxids,"dump:ids");
   }
 
+  // apply PBC on copy of x,v,image if requested
+
+  if (pbcflag) {
+    int nlocal = atom->nlocal;
+    if (nlocal > maxpbc) pbc_allocate();
+    if (nlocal) {
+      memcpy(&xpbc[0][0],&atom->x[0][0],3*nlocal*sizeof(double));
+      memcpy(&vpbc[0][0],&atom->v[0][0],3*nlocal*sizeof(double));
+      memcpy(imagepbc,atom->image,nlocal*sizeof(imageint));
+    }
+    xhold = atom->x;
+    vhold = atom->v;
+    imagehold = atom->image;
+    atom->x = xpbc;
+    atom->v = vpbc;
+    atom->image = imagepbc;
+    domain->pbc();
+  }
+  
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()
   // sort buf as needed
@@ -428,6 +465,14 @@ void Dump::write()
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(sbuf,nsme,MPI_CHAR,fileproc,0,world);
     }
+  }
+
+  // restore original x,v,image unaltered by PBC
+
+  if (pbcflag) {
+    atom->x = xhold;
+    atom->v = vhold;
+    atom->image = imagehold;
   }
 
   // if file per timestep, close file if I am filewriter
@@ -887,6 +932,13 @@ void Dump::modify_params(int narg, char **arg)
       if (padflag < 0) error->all(FLERR,"Illegal dump_modify command");
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"pbc") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
+      else error->all(FLERR,"Illegal dump_modify command");
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"sort") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (strcmp(arg[iarg+1],"off") == 0) sort_flag = 0;
@@ -919,6 +971,21 @@ void Dump::modify_params(int narg, char **arg)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
+void Dump::pbc_allocate()
+{
+  memory->destroy(xpbc);
+  memory->destroy(vpbc);
+  memory->destroy(imagepbc);
+  maxpbc = atom->nmax;
+  memory->create(xpbc,maxpbc,3,"dump:xbpc");
+  memory->create(vpbc,maxpbc,3,"dump:vbpc");
+  memory->create(imagepbc,maxpbc,"dump:imagebpc");
+}
+
+/* ----------------------------------------------------------------------
+   return # of bytes of allocated memory
+------------------------------------------------------------------------- */
+
 bigint Dump::memory_usage()
 {
   bigint bytes = memory->usage(buf,size_one*maxbuf);
@@ -930,6 +997,10 @@ bigint Dump::memory_usage()
     bytes += memory->usage(index,maxsort);
     bytes += memory->usage(proclist,maxproc);
     if (irregular) bytes += irregular->memory_usage();
+  }
+  if (pbcflag) {
+    bytes += 6*maxpbc * sizeof(double);
+    bytes += maxpbc * sizeof(imageint);
   }
   return bytes;
 }

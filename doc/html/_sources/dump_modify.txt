@@ -36,6 +36,7 @@ Syntax
      *nfile* arg = Nf
        Nf = write this many files, one from each of Nf processors
      *pad* arg = Nchar = # of characters to convert timestep to
+     *pbc* arg = *yes* or *no* = remap atoms via periodic boundary conditions
      *precision* arg = power-of-10 value from 10 to 1000000
      *region* arg = region-ID or "none"
      *scale* arg = *yes* or *no*
@@ -423,6 +424,21 @@ so they are all the same length = *Nchar*\ .  For example, pad 7 would
 yield 0000100, 0012000, 2000000.  This can be useful so that
 post-processing programs can easily read the files in ascending
 timestep order.
+
+
+----------
+
+
+The *pbc* keyword applies to all the dump styles.  As explained on the
+:doc:`dump <dump>` doc page, atom coordinates in a dump file may be
+slightly outside the simulation box.  This is because periodic
+boundary conditions are enforced only on timesteps when neighbor lists
+are rebuilt, which will not typically coincide with the timesteps dump
+snapshots are written.  If the setting of this keyword is set to
+*yes*\ , then all atoms will be remapped to the periodic box before the
+snapshot is written, then restored to their original position.  If it
+is set to *no* they will not be.  The *no* setting is the default
+because it requires no extra computation.
 
 
 ----------
@@ -846,6 +862,7 @@ The option defaults are
 * label = ENTRIES
 * nfile = 1
 * pad = 0
+* pbc = no
 * precision = 1000
 * region = none
 * scale = yes

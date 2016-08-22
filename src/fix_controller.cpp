@@ -197,7 +197,7 @@ void FixController::end_of_step()
 
   // invoke compute if not previously invoked
 
-  double current = 0.0;
+  double current;
 
   if (pvwhich == COMPUTE) {
     if (pvindex == 0) {

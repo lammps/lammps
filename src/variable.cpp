@@ -898,7 +898,7 @@ double Variable::compute_equal(int ivar)
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
-  double value = 0.0;
+  double value;
   if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],NULL);
   else if (style[ivar] == INTERNAL) value = dvalue[ivar];
   else if (style[ivar] == PYTHON) {

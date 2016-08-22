@@ -95,14 +95,22 @@ void PairVashishta::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+
       nTablebits = force->inumeric(FLERR,arg[iarg+1]);
-      if (nTablebits > sizeof(float)*CHAR_BIT)
+      if (nTablebits > sizeof(float)*CHAR_BIT) {
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
-      if(nTablebits != 0) 
+      }
+
+      if(nTablebits == 0) {
+        useTable = false;
+      } else {
         useTable = true;
+      }
+
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      
       tabinner = force->numeric(FLERR,arg[iarg+1]);
       iarg += 2;
     }

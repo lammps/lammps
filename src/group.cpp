@@ -36,6 +36,8 @@
 
 using namespace LAMMPS_NS;
 
+#define MAX_GROUP 32
+
 enum{TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
@@ -57,13 +59,11 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
   bitmask = new int[MAX_GROUP];
   inversemask = new int[MAX_GROUP];
   dynamic = new int[MAX_GROUP];
-  load_factor = new double[MAX_GROUP];
 
   for (int i = 0; i < MAX_GROUP; i++) names[i] = NULL;
   for (int i = 0; i < MAX_GROUP; i++) bitmask[i] = 1 << i;
   for (int i = 0; i < MAX_GROUP; i++) inversemask[i] = bitmask[i] ^ ~0;
   for (int i = 0; i < MAX_GROUP; i++) dynamic[i] = 0;
-  for (int i = 0; i < MAX_GROUP; i++) load_factor[i] = 1.0;
 
   // create "all" group
 
@@ -85,7 +85,6 @@ Group::~Group()
   delete [] bitmask;
   delete [] inversemask;
   delete [] dynamic;
-  delete [] load_factor;
 }
 
 /* ----------------------------------------------------------------------
@@ -136,7 +135,6 @@ void Group::assign(int narg, char **arg)
     delete [] names[igroup];
     names[igroup] = NULL;
     dynamic[igroup] = 0;
-    load_factor[igroup] = 1.0;
     ngroup--;
 
     return;
@@ -520,17 +518,9 @@ void Group::assign(int narg, char **arg)
 
     dynamic[igroup] = 0;
 
-  } else if (strcmp(arg[1],"load_factor") == 0) {
-    
-    if (narg != 3) error->all(FLERR,"Illegal group command");
-   
-    load_factor[igroup] = force->numeric(FLERR, arg[2]);
-    
-    // not a valid group style
-    
-  }
-  
-  else error->all(FLERR,"Illegal group command");
+  // not a valid group style
+
+  } else error->all(FLERR,"Illegal group command");
 
   // print stats for changed group
 

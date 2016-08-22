@@ -18,8 +18,6 @@
 #include "pointers.h"
 #include <map>
 
-#define MAX_GROUP 32
-
 namespace LAMMPS_NS {
 
 class Group : protected Pointers {
@@ -29,7 +27,6 @@ class Group : protected Pointers {
   int *bitmask;                // one-bit mask for each group
   int *inversemask;            // inverse mask for each group
   int *dynamic;                // 1 if dynamic, 0 if not
-  double *load_factor;      // weight factor for atoms in group, for load balancing
 
   Group(class LAMMPS *);
   ~Group();

@@ -428,16 +428,15 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveChunk::~FixAveChunk()
 {
-  if(which) delete [] which;
-  if(argindex) delete [] argindex;
+  delete [] which;
+  delete [] argindex;
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  if(ids) delete [] ids;
-  if(value2index) delete [] value2index;
+  delete [] ids;
+  delete [] value2index;
 
   if (fp && me == 0) fclose(fp);
 
   memory->destroy(varatom);
-
   memory->destroy(count_one);
   memory->destroy(count_many);
   memory->destroy(count_sum);
@@ -448,7 +447,7 @@ FixAveChunk::~FixAveChunk()
   memory->destroy(values_sum);
   memory->destroy(values_total);
   memory->destroy(values_list);
-
+  
   // decrement lock counter in compute chunk/atom, it if still exists
 
   if (nrepeat > 1 || ave == RUNNING || ave == WINDOW) {
@@ -460,7 +459,25 @@ FixAveChunk::~FixAveChunk()
     }
   }
 
-  if(idchunk) delete [] idchunk;
+  delete [] idchunk;
+  which = NULL;
+  argindex = NULL;
+  ids = NULL;
+  value2index = NULL;
+  fp = NULL;
+  varatom = NULL;
+  count_one = NULL;
+  count_many = NULL;
+  count_sum = NULL;
+  count_total = NULL;
+  count_list = NULL;
+  values_one = NULL;
+  values_many = NULL;
+  values_sum = NULL;
+  values_total = NULL;
+  values_list = NULL;
+  idchunk = NULL;
+  cchunk = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

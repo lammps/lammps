@@ -40,7 +40,11 @@ enum{ONE,RUNNING,WINDOW};
 /* ---------------------------------------------------------------------- */
 
 FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalues(0), nrepeat(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL),
+  fp(NULL), idchunk(NULL), varatom(NULL), count_one(NULL), count_many(NULL), count_sum(NULL), 
+  count_total(NULL), count_list(NULL), values_one(NULL), values_many(NULL), 
+  values_sum(NULL), values_total(NULL), values_list(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/chunk command");
 
@@ -424,11 +428,11 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveChunk::~FixAveChunk()
 {
-  delete [] which;
-  delete [] argindex;
+  if(which) delete [] which;
+  if(argindex) delete [] argindex;
   for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
-  delete [] value2index;
+  if(ids) delete [] ids;
+  if(value2index) delete [] value2index;
 
   if (fp && me == 0) fclose(fp);
 
@@ -456,7 +460,7 @@ FixAveChunk::~FixAveChunk()
     }
   }
 
-  delete [] idchunk;
+  if(idchunk) delete [] idchunk;
 }
 
 /* ---------------------------------------------------------------------- */

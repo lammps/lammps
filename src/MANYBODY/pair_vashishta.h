@@ -46,8 +46,9 @@ class PairVashishta : public Pair {
     double lam1rc,lam4rc,vrcc2,vrcc3,vrc,dvrc,c0;
     int ielement,jelement,kelement;
   };
+
   bool useTable;
-  int tableSize;
+  int nTablebits;
   double deltaR2;
   double oneOverDeltaR2;
   double ***forceTable;          // Table containing the forces
@@ -62,6 +63,7 @@ class PairVashishta : public Pair {
   char **elements;              // names of unique elements
   int ***elem2param;            // mapping from element triplets to parameters
   int *map;                     // mapping from atom types to elements
+  char estr[128];               // Char array to store error message with sprintf (i.e. twobody table)
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
@@ -71,7 +73,7 @@ class PairVashishta : public Pair {
   void setup_params();
   void createTable();
   void validateNeigh3Body();
-  void twobody(Param *, double, double &, int, double &, bool);
+  void twobody(Param *, double, double &, int, double &, bool tabulated = false);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);
 };

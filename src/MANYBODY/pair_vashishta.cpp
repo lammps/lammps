@@ -32,7 +32,6 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
@@ -58,8 +57,8 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   neigh3BodyCount = NULL; 
   neigh3Body = NULL;
   
-  useTable = true;
-  tableSize = 65536;
+  useTable = false;
+  nTablebits = 12;
   forceTable = NULL;
   potentialTable = NULL;
 }
@@ -90,24 +89,26 @@ PairVashishta::~PairVashishta()
 
 void PairVashishta::modify_params(int narg, char **arg)
 {
-  if(narg < 2 || narg > 3) // We accept table yes/no [tableSize]
-    error->all(FLERR,"Illegal pair_modify command");
-  if(strcmp(arg[0], "table") != 0) 
-    error->all(FLERR,"Illegal pair_modify command. Expected 'table yes/no [tableSize]'");
-  if(strcmp(arg[1], "yes") == 0) 
-    useTable = true;
-  else if(strcmp(arg[1], "no") == 0) 
-    useTable = false;
-  else 
-    error->all(FLERR,"Illegal pair_modify command. Expected 'table yes/no [tableSize]'");
+  if (narg == 0) error->all(FLERR,"Illegal pair_modify command");
 
-  if(narg == 3) {
-    tableSize = atoi(arg[2]);
-    if(tableSize <= 0) 
-      error->all(FLERR,"Illegal pair_modify command. Expected 'table yes/no [tableSize]', but tableSize has value 0.");
-
-    createTable();
+  int iarg = 0;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"table") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      nTablebits = force->inumeric(FLERR,arg[iarg+1]);
+      if (nTablebits > sizeof(float)*CHAR_BIT)
+        error->all(FLERR,"Too many total bits for bitmapped lookup table");
+      if(nTablebits != 0) 
+        useTable = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tabinner") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
+      tabinner = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    }
   }
+
+  createTable();
 }
 
 void PairVashishta::validateNeigh3Body() {
@@ -123,33 +124,38 @@ void PairVashishta::validateNeigh3Body() {
 void PairVashishta::createTable()
 {
   int ntypes = atom->ntypes+1;
-  deltaR2 = cutmax*cutmax / (tableSize-1);
+  tabinnersq = tabinner*tabinner;
+  
+  int ntable = 1;
+  for (int i = 0; i < nTablebits; i++) ntable *= 2;
+
+  deltaR2 = (cutmax*cutmax - tabinnersq) / (ntable-1);
   oneOverDeltaR2 = 1.0/deltaR2;
 
   memory->destroy(forceTable);
   memory->destroy(potentialTable);
-  memory->create(forceTable,ntypes,ntypes,tableSize+1,"pair:vashishta:forceTable");
-  memory->create(potentialTable,ntypes,ntypes,tableSize+1,"pair:vashishta:potentialTable");
+  memory->create(forceTable,ntypes,ntypes,ntable+1,"pair:vashishta:forceTable");
+  memory->create(potentialTable,ntypes,ntypes,ntable+1,"pair:vashishta:potentialTable");
 
   for (int ii = 0; ii < ntypes; ii++) {
     int i = map[ii];
     for (int jj = 0; jj < ntypes; jj++) {
-        int j = map[jj];
-        if (i < 0 || j < 0 || ii == 0 || jj == 0) {
-            for(int tableIndex=0; tableIndex<=tableSize; tableIndex++) {
-                forceTable[ii][jj][tableIndex] = 0;
-                potentialTable[ii][jj][tableIndex] = 0;
-            }
-        } else {
-            int ijparam = elem2param[i][j][j];
-            for(int tableIndex=0; tableIndex<=tableSize; tableIndex++) {
-                double rsq = tableIndex*deltaR2;
-                double fpair, eng;
-                twobody(&params[ijparam], rsq, fpair, 1, eng, false /* Don't ask for tabulated since we are generating it now*/ );
-                forceTable[ii][jj][tableIndex] = fpair;
-                potentialTable[ii][jj][tableIndex] = eng;
-            }
+      int j = map[jj];
+      if (i < 0 || j < 0 || ii == 0 || jj == 0) {
+        for(int tableIndex=0; tableIndex<=ntable; tableIndex++) {
+            forceTable[ii][jj][tableIndex] = 0;
+            potentialTable[ii][jj][tableIndex] = 0;
         }
+      } else {
+        int ijparam = elem2param[i][j][j];
+        for(int tableIndex=0; tableIndex<=ntable; tableIndex++) {
+            double rsq = tabinnersq + tableIndex*deltaR2;
+            double fpair, eng;
+            twobody(&params[ijparam], rsq, fpair, 1, eng, false /* Don't ask for tabulated since we are generating it now*/ );
+            forceTable[ii][jj][tableIndex] = fpair;
+            potentialTable[ii][jj][tableIndex] = eng;
+        }
+      }
     }
   }
 }
@@ -637,16 +643,22 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
                      int eflag, double &eng, bool tabulated)
 {
   if(tabulated) {
-    int potentialTableIndex = rsq*oneOverDeltaR2;
-    double fractionalRest = rsq*oneOverDeltaR2 - potentialTableIndex; // double - int will only keep the 0.xxxx part
+    if (rsq < tabinnersq) {
+      sprintf(estr,"Pair distance < table inner cutoff: " 
+              "ijtype %d %d dist %g",param->ielement+1,param->jelement+1,sqrt(rsq));
+      error->one(FLERR,estr);
+    }
 
-    double force0 = forceTable[param->ielement+1][param->jelement+1][potentialTableIndex];
-    double force1 = forceTable[param->ielement+1][param->jelement+1][potentialTableIndex+1];
-    fforce = (1.0 - fractionalRest)*force0 + fractionalRest*force1; // force is linearly interpolated between the two values
+    int tableIndex = (rsq - tabinnersq)*oneOverDeltaR2;
+    double fraction = (rsq - tabinnersq)*oneOverDeltaR2 - tableIndex; // double - int will only keep the 0.xxxx part
+
+    double force0 = forceTable[param->ielement+1][param->jelement+1][tableIndex];
+    double force1 = forceTable[param->ielement+1][param->jelement+1][tableIndex+1];
+    fforce = (1.0 - fraction)*force0 + fraction*force1; // force is linearly interpolated between the two values
     if(evflag) {
-        double energy0 = potentialTable[param->ielement+1][param->jelement+1][potentialTableIndex];
-        double energy1 = potentialTable[param->ielement+1][param->jelement+1][potentialTableIndex+1];
-        eng = (1.0 - fractionalRest)*energy0 + fractionalRest*energy1;
+        double energy0 = potentialTable[param->ielement+1][param->jelement+1][tableIndex];
+        double energy1 = potentialTable[param->ielement+1][param->jelement+1][tableIndex+1];
+        eng = (1.0 - fraction)*energy0 + fraction*energy1;
     }
   } else {
     double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;

@@ -20,10 +20,11 @@
 
 #include <stdlib.h>
 #include <vector>
-#include <iostream>
-#include <stdio.h>
-#include <string.h>
-#include "pointers.h"
+
+namespace LAMMPS_NS {
+	
+enum{BOND,ANGLE,DIHEDRAL,IMPROPER};
+
 
 class TypeDetector {
 
@@ -44,7 +45,7 @@ class TypeDetector {
 	};
 
 public:
-	int type; // 0=bond, 1=angle, 2=dihedral, 3=improper
+	int type; 
 	int length;
 
 	TypeDetector() {
@@ -61,13 +62,13 @@ public:
 		tokentize(s, args);
 		int len = args.size();
 		type = style;
-		if (type == 0)
+		if (type == BOND)
 			length = 2;
-		else if (type == 1)
+		else if (type == ANGLE)
 			length = 3;
-		else if (type == 2)
+		else if (type == DIHEDRAL)
 			length = 4;
-		else if (type == 3)
+		else if (type == IMPROPER)
 			length = 4;
 
 		int ntype = len / (length + 1);
@@ -164,5 +165,7 @@ private:
 
 	std::vector<Entity*> values;
 };
+
+}
 
 #endif /* SRC_TYPE_DETECTOR_H_ */

@@ -108,8 +108,15 @@ void lammps_file(void *ptr, char *str)
 
 char *lammps_command(void *ptr, char *str)
 {
-  LAMMPS *lmp = (LAMMPS *) ptr;
-  return lmp->input->one(str);
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Error * error = lmp->error;
+
+  try {
+    return lmp->input->one(str);
+  } catch(LAMMPSException & e) {
+    error->set_last_error(e.message.c_str());
+    return NULL;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -592,4 +599,30 @@ void lammps_scatter_atoms(void *ptr, char *name,
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   Check if a new error message
+------------------------------------------------------------------------- */
+
+int lammps_has_error(void *ptr) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Error * error = lmp->error;
+  return error->get_last_error() ? 1 : 0;
+}
+
+/* ----------------------------------------------------------------------
+   Copy the last error message of LAMMPS into a character buffer
+------------------------------------------------------------------------- */
+
+int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
+  LAMMPS *  lmp = (LAMMPS *) ptr;
+  Error * error = lmp->error;
+
+  if(error->get_last_error()) {
+    strncpy(buffer, error->get_last_error(), buffer_size-1);
+    error->set_last_error(NULL);
+    return 1;
+  }
+  return 0;
 }

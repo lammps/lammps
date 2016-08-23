@@ -26,42 +26,44 @@ namespace LAMMPS_NS {
 class TypeDetector {
 
   struct Entity {
-    int *ID; // * -> -1
+    int *types; // list of atom types. * -> 0
     int value;
     int level;
 
     Entity() {
-      ID = NULL;
+      types = NULL;
       value = -1;
       level = 0;
     }
 
     virtual ~Entity() {
-      delete[] ID;
-      ID = NULL;
+      delete[] types;
+      types = NULL;
     }
   };
 
  public:
-  enum{BOND,ANGLE,DIHEDRAL,IMPROPER};
+  enum Style {BOND,ANGLE,DIHEDRAL,IMPROPER};
 
   int type; 
   int length;
 
+ private:
   TypeDetector() {}
 
+ public:
+  TypeDetector(enum Style t) : type(t) {}
   virtual ~TypeDetector() {
     values.empty();
   }
 
-  bool init(const char* input, int style) {
+  bool init(const char* input) {
     bool status = true;
     std::vector<char*> args;
     char* s = new char[128];
     strcpy(s, input);
     tokenize(s, args);
     int len = args.size();
-    type = style;
     if (type == BOND)
       length = 2;
     else if (type == ANGLE)
@@ -100,15 +102,19 @@ class TypeDetector {
     return -1;
   }
 
-  int get_num_types() {
-    int max = 0;
+  bool check_types(int nentitytypes, int natomtypes) {
+    int entitymax = 0;
+    int atommax = -1;
     for (std::vector<Entity *>::iterator it = values.begin();
          it != values.end(); it++) {
-      if ((*it)->value > max) {
-        max = (*it)->value;
-      }
+      if ((*it)->value > entitymax) entitymax = (*it)->value;
+      int *types = (*it)->types;
+      for (int i = 0; i < length; ++i)
+        if (types[i] > atommax) atommax = types[i];
     }
-    return max;
+    if (entitymax < 1 || entitymax > nentitytypes) return false;
+    if (atommax < 0 || atommax > natomtypes) return false;
+    return true;
   }
 
  private:
@@ -133,9 +139,9 @@ class TypeDetector {
       (*it)->value = value;
     else {
       Entity *ne = new Entity();
-      ne->ID = new int[length];
+      ne->types = new int[length];
       for (int i = 0; i < length; ++i)
-        ne->ID[i] = t1[i];
+        ne->types[i] = t1[i];
       ne->value = value;
       ne->level = p;
       values.insert(it, ne);
@@ -143,11 +149,11 @@ class TypeDetector {
   }
 
   int equals(Entity *&e, int *&id) {
-    int *ID = e->ID;
+    int *types = e->types;
     int res = 1, res_rev = 1;
     for (int i = 0; i < length; ++i) {
-      res *= (ID[i] == id[i] || ID[i] == 0) ? 1 : 0;
-      res_rev *= (ID[i] == id[length - i - 1] || ID[i] == 0) ? 1 : 0;
+      res *= (types[i] == id[i] || types[i] == 0) ? 1 : 0;
+      res_rev *= (types[i] == id[length - i - 1] || types[i] == 0) ? 1 : 0;
     }
     if (res == 1 || res_rev == 1)
       return 1;

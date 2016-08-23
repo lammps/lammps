@@ -41,6 +41,7 @@ class TypeDetector {
 
 		virtual ~Entity() {
 			delete[] ID;
+			ID = NULL;
 		}
 	};
 
@@ -56,10 +57,11 @@ public:
 	}
 
 	bool init(const char* input, int style) {
+		bool status = true;
 		std::vector<char*> args;
 		char* s = new char[128];
 		strcpy(s, input);
-		tokentize(s, args);
+		tokenize(s, args);
 		int len = args.size();
 		type = style;
 		if (type == BOND)
@@ -76,17 +78,19 @@ public:
 		int val = 0;
 		int iarg = 0;
 		for (int num = 0; num < ntype; num++) {
-			for (int i = 0; i < length; i++) {
-				if (strcmp(args[iarg], "*") == 0)
-					t[i] = 0;
-				else
-					t[i] = atoi(args[iarg]);
-				iarg++;
-			}
-			val = atoi(args[iarg++]);
-			this->set(t, val);
-		}
-		return true;
+            for (int i = 0; i < length; i++) {
+				if (strcmp(args[iarg], "*") == 0)  t[i] = 0;
+                else if (isdigit(args[iarg][0])) t[i] = atoi(args[iarg]);
+                else status = false;
+                iarg++;
+            }
+            val = atoi(args[iarg++]);			
+            if (!status) break;
+            this->set(t, val);
+        }
+        delete[] t;
+        delete[] s;
+        return status;        
 	}
 
 	bool get(int *&t1, int &answer) {
@@ -113,7 +117,7 @@ public:
 
 private:
 
-	void set(int *t1, int value) {
+	void set(int *&t1, int value) {
 		int i, p = 0;
 		for (i = 0; i < length; ++i)
 			p += (t1[i] == 0) ? 1 : 0;
@@ -154,7 +158,7 @@ private:
 		return 0;
 	}
 
-	void tokentize(char* &dup, std::vector<char*> & v) {
+	void tokenize(char* &dup, std::vector<char*> & v) {
 		const char delim[] = { ' ', ',', ';' };
 		char *token = strtok(dup, delim);
 		while (token != NULL) {

@@ -15,18 +15,15 @@
    ------------------------------------------------------------------------- */
 
 #include "stdlib.h"
-#include "string.h"
 #include "fix_flow_gauss.h"
 #include "atom.h"
 #include "force.h"
 #include "group.h"
 #include "comm.h"
-#include "modify.h"
 #include "update.h"
 #include "domain.h"
 #include "error.h"
 #include "citeme.h"
-#include "velocity.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

@@ -874,7 +874,7 @@ void Dump::modify_params(int narg, char **arg)
         format_float_user = NULL;
         // pass format none to child classes which may use it
         // not an error if they don't
-        int n = modify_param(narg-iarg,&arg[iarg]);
+        modify_param(narg-iarg,&arg[iarg]);
         iarg += 2;
         continue;
       }

@@ -21,7 +21,6 @@ FixStyle(bond/create,FixBondCreate)
 #define LMP_FIX_BOND_CREATE_H
 
 #include "fix.h"
-#include "type_detector.h"
 
 namespace LAMMPS_NS {
 
@@ -60,7 +59,7 @@ class FixBondCreate : public Fix {
   tagint lastcheck;
 
   int angledynflag, dihedraldynflag, improperdynflag; // set whether the types are specified on the go
-  TypeDetector *angle_detector, *dihedral_detector, *improper_detector;
+  class TypeDetector *angle_detector, *dihedral_detector, *improper_detector;
 
   int *bondcount;
   int createcount,createcounttotal;

@@ -32,6 +32,7 @@
 #include "variable.h"
 #include "input.h"
 #include "citeme.h"
+#include "type_detector.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -48,6 +49,8 @@ static const char cite_crosslinking[] =
 				" year =    2016,\n"
 				" doi =  10.1021/acs.jpcb.6b03809 \n"
 				"}\n\n";
+
+enum{BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
@@ -127,7 +130,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       if (isalpha(arg[iarg + 1][0])) {
 				char* syntax = input->variable->retrieve(arg[iarg + 1]);
 				angle_detector = new TypeDetector();
-				bool sucess = angle_detector->init(syntax, 1);
+				bool sucess = angle_detector->init(syntax, ANGLE);
 				if (!sucess) error->all(FLERR, "Illegal fix bond/create command");
 			} else {
 				atype = force->inumeric(FLERR, arg[iarg + 1]);
@@ -139,7 +142,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       if (isalpha(arg[iarg + 1][0])) {
 				char* syntax = input->variable->retrieve(arg[iarg + 1]);
 				dihedral_detector = new TypeDetector();
-				bool sucess = dihedral_detector->init(syntax, 2);
+				bool sucess = dihedral_detector->init(syntax, DIHEDRAL);
 				if (!sucess) error->all(FLERR, "Illegal fix bond/create command");
 			} else {
 				dtype = force->inumeric(FLERR, arg[iarg + 1]);
@@ -151,7 +154,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
       if (isalpha(arg[iarg + 1][0])) {
 				char* syntax = input->variable->retrieve(arg[iarg + 1]);
 				improper_detector = new TypeDetector();
-				bool sucess = improper_detector->init(syntax, 3);
+				bool sucess = improper_detector->init(syntax, IMPROPER);
 				if (!sucess) error->all(FLERR, "Illegal fix bond/create command");
 			} else {
 				itype = force->inumeric(FLERR, arg[iarg + 1]);

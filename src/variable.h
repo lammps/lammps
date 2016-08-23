@@ -38,6 +38,7 @@ class Variable : protected Pointers {
   int vectorstyle(int);
   char *pythonstyle(char *, char *);
   int internalstyle(int);
+  int stringstyle(int);
 
   char *retrieve(char *);
   double compute_equal(int);

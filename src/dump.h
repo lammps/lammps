@@ -118,7 +118,7 @@ class Dump : protected Pointers {
   int *index,*proclist;
 
   double **xpbc,**vpbc;
-  int *imagepbc;
+  imageint *imagepbc;
   int maxpbc;
 
   class Irregular *irregular;

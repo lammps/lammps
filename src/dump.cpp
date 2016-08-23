@@ -276,7 +276,7 @@ void Dump::init()
 
   // preallocation for PBC copies if requested
   
-  if (pbcflag && atom->nmax > maxpbc) pbc_allocate();
+  if (pbcflag && atom->nlocal > maxpbc) pbc_allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -374,7 +374,7 @@ void Dump::write()
 
   if (pbcflag) {
     int nlocal = atom->nlocal;
-    if (atom->nmax > maxpbc) pbc_allocate();
+    if (nlocal > maxpbc) pbc_allocate();
     if (nlocal) {
       memcpy(&xpbc[0][0],&atom->x[0][0],3*nlocal*sizeof(double));
       memcpy(&vpbc[0][0],&atom->v[0][0],3*nlocal*sizeof(double));

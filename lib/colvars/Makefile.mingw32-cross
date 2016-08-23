@@ -100,8 +100,8 @@ $(DIR)colvarcomp_rotations.o: colvarcomp_rotations.cpp colvarmodule.h \
 $(DIR)colvar.o: colvar.cpp colvarmodule.h colvartypes.h colvarproxy.h \
  colvarvalue.h colvarparse.h colvardeps.h colvar.h colvarcomp.h \
  colvaratoms.h colvarscript.h colvarbias.h
-$(DIR)colvardeps.o: colvardeps.cpp colvarmodule.h colvartypes.h colvarproxy.h \
- colvarvalue.h colvardeps.h
+$(DIR)colvardeps.o: colvardeps.cpp colvardeps.h colvarmodule.h colvartypes.h \
+ colvarproxy.h colvarvalue.h colvarparse.h
 $(DIR)colvargrid.o: colvargrid.cpp colvarmodule.h colvartypes.h colvarproxy.h \
  colvarvalue.h colvarparse.h colvardeps.h colvar.h colvarcomp.h \
  colvaratoms.h colvargrid.h
@@ -111,12 +111,12 @@ $(DIR)colvarmodule.o: colvarmodule.cpp colvarmodule.h colvartypes.h \
  colvarbias_restraint.h colvarbias_histogram.h colvarbias_meta.h \
  colvarscript.h
 $(DIR)colvarparse.o: colvarparse.cpp colvarmodule.h colvartypes.h colvarproxy.h \
- colvarvalue.h colvarparse.h colvardeps.h
+ colvarvalue.h colvarparse.h
 $(DIR)colvarscript.o: colvarscript.cpp colvarscript.h colvarmodule.h \
  colvartypes.h colvarproxy.h colvarvalue.h colvarbias.h colvar.h \
  colvarparse.h colvardeps.h
 $(DIR)colvartypes.o: colvartypes.cpp colvarmodule.h colvartypes.h colvarproxy.h \
- colvarvalue.h colvarparse.h colvardeps.h
+ colvarvalue.h colvarparse.h
 $(DIR)colvarvalue.o: colvarvalue.cpp colvarmodule.h colvartypes.h colvarproxy.h \
  colvarvalue.h
 

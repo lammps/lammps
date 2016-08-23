@@ -336,6 +336,11 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
     return COLVARS_OK;
   }
 
+  if (subcmd == "state") {
+    b->print_state();
+    return COLVARS_OK;
+  }
+
   // Subcommands for MW ABF
   if (subcmd == "bin") {
     int r = b->current_bin();

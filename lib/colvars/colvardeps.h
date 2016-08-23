@@ -1,9 +1,10 @@
 // -*- c++ -*-
 
-#include "colvarmodule.h"
-
 #ifndef COLVARDEPS_H
 #define COLVARDEPS_H
+
+#include "colvarmodule.h"
+#include "colvarparse.h"
 
 /// Parent class for a member object of a bias, cv or cvc etc. containing dependencies
 /// (features) and handling dependency resolution
@@ -27,16 +28,9 @@ public:
   std::string description; // reference to object name (cv, cvc etc.)
 
   /// This contains the current state of each feature for each object
-  class feature_state {
-  private:
-    colvardeps *const deps_object;
-    int const id;
-    operator int() { return 0; } // never cast as int
-  public:
-    inline colvardeps *object() const { return deps_object; }
-    inline int feature_id() const { return id; }
-    feature_state(colvardeps *o, int i, bool a, bool e)
-      : deps_object(o), id(i), available(a), enabled(e) {}
+  struct feature_state {
+    feature_state(bool a, bool e)
+    : available(a), enabled(e) {}
 
     /// Available means: supported, subject to dependencies as listed,
     /// MAY BE ENABLED AS A RESULT OF DEPENDENCY SOLVING
@@ -54,12 +48,6 @@ public:
 
   /// List of the state of all features
   std::vector<feature_state *> feature_states;
-
-  /// Allow setting a feature state while parsing its kewyord
-  inline feature_state * set_feature(int id)
-  {
-    return feature_states[id];
-  }
 
   /// Describes a feature and its dependecies
   /// used in a static array within each subclass
@@ -145,6 +133,12 @@ public:
   }
 
   void provide(int feature_id); // set the feature's flag to available in local object
+
+  /// Parse a keyword and enable a feature accordingly
+  bool get_keyval_feature(colvarparse *cvp,
+                          std::string const &conf, char const *key,
+                          int feature_id, bool const &def_value,
+                          colvarparse::Parse_Mode const parse_mode = colvarparse::parse_normal);
 
   int enable(int f, bool dry_run = false, bool toplevel = true);  // enable a feature and recursively solve its dependencies
   // dry_run is set to true to recursively test if a feature is available, without enabling it

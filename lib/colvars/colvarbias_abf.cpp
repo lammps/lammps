@@ -31,10 +31,8 @@ int colvarbias_abf::init(std::string const &conf)
 
   // ************* parsing general ABF options ***********************
 
-  get_keyval(conf, "applyBias",  apply_bias, true);
-  if (apply_bias) {
-    enable(f_cvb_apply_force);
-  } else {
+  get_keyval_feature((colvarparse *)this, conf, "applyBias",  f_cvb_apply_force, true);
+  if (!is_enabled(f_cvb_apply_force)){
     cvm::log("WARNING: ABF biases will *not* be applied!\n");
   }
 
@@ -83,9 +81,6 @@ int colvarbias_abf::init(std::string const &conf)
   if (update_bias) {
   // Request calculation of total force (which also checks for availability)
     if(enable(f_cvb_get_total_force)) return cvm::get_error();
-  }
-  if (apply_bias) {
-    if(enable(f_cvb_apply_force)) return cvm::get_error();
   }
 
   bool b_extended = false;
@@ -249,6 +244,11 @@ int colvarbias_abf::update()
         // and subtract previous ABF force
         system_force[i] = colvars[i]->total_force().real_value
                         - colvar_forces[i].real_value;
+//         if (cvm::debug())
+//           cvm::log("ABF System force calc: cv " + cvm::to_str(i) +
+//                   " fs " + cvm::to_str(system_force[i]) +
+//                   " = ft " + cvm::to_str(colvars[i]->total_force().real_value) +
+//                   " - fa " + cvm::to_str(colvar_forces[i].real_value));
       }
       gradients->acc_force(force_bin, system_force);
     }
@@ -277,7 +277,7 @@ int colvarbias_abf::update()
   }
 
   // Compute and apply the new bias, if applicable
-  if ( apply_bias && samples->index_ok(bin) ) {
+  if (is_enabled(f_cvb_apply_force) && samples->index_ok(bin)) {
 
     size_t  count = samples->value(bin);
     cvm::real	fact = 1.0;

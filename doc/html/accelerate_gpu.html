@@ -71,22 +71,14 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">5.GPU package</a><ul>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
 </ul>
-
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -163,7 +155,7 @@ hardware.</li>
 <li>use GPU styles in your input script</li>
 </ul>
 <p>The latter two steps can be done using the &#8220;-pk gpu&#8221; and &#8220;-sf gpu&#8221;
-<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switches</span></a> respectively.  Or
+<span class="xref std std-ref">command-line switches</span> respectively.  Or
 the effect of the &#8220;-pk&#8221; or &#8220;-sf&#8221; switches can be duplicated by adding
 the <a class="reference internal" href="package.html"><span class="doc">package gpu</span></a> or <a class="reference internal" href="suffix.html"><span class="doc">suffix gpu</span></a> commands
 respectively to your input script.</p>
@@ -180,7 +172,7 @@ install the NVIDIA Cuda software on your system:</p>
 <p>This requires two steps (a,b): build the GPU library, then build
 LAMMPS with the GPU package.</p>
 <p>You can do both these steps in one line, using the src/Make.py script,
-described in <a class="reference internal" href="Section_start.html#start-4"><span class="std std-ref">Section 2.4</span></a> of the manual.
+described in <span class="xref std std-ref">Section 2.4</span> of the manual.
 Type &#8220;Make.py -h&#8221; for help.  If run from the src directory, this
 command will create src/lmp_gpu using src/MAKE/Makefile.mpi as the
 starting Makefile.machine:</p>
@@ -249,9 +241,9 @@ it may be more efficient to use less MPI tasks/node than the available
 automatically if you create more MPI tasks/node than there are
 GPUs/mode.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
 shared by 4 MPI tasks.</p>
-<p>Use the &#8220;-sf gpu&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>,
+<p>Use the &#8220;-sf gpu&#8221; <span class="xref std std-ref">command-line switch</span>,
 which will automatically append &#8220;gpu&#8221; to styles that support it.  Use
-the &#8220;-pk gpu Ng&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> to
+the &#8220;-pk gpu Ng&#8221; <span class="xref std std-ref">command-line switch</span> to
 set Ng = # of GPUs/node to use.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">gpu</span> <span class="o">-</span><span class="n">pk</span> <span class="n">gpu</span> <span class="mi">1</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>                         <span class="c1"># 1 MPI task uses 1 GPU</span>
 <span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">12</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">gpu</span> <span class="o">-</span><span class="n">pk</span> <span class="n">gpu</span> <span class="mi">2</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>           <span class="c1"># 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node</span>
@@ -280,7 +272,7 @@ and use of multiple MPI tasks/GPU is the same.</p>
 </pre></div>
 </div>
 <p>You must also use the <a class="reference internal" href="package.html"><span class="doc">package gpu</span></a> command to enable the
-GPU package, unless the &#8220;-sf gpu&#8221; or &#8220;-pk gpu&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switches</span></a> were used.  It specifies the
+GPU package, unless the &#8220;-sf gpu&#8221; or &#8220;-pk gpu&#8221; <span class="xref std std-ref">command-line switches</span> were used.  It specifies the
 number of GPUs/node to use, as well as other options.</p>
 <p><strong>Speed-ups to expect:</strong></p>
 <p>The performance of a GPU versus a multi-core CPU is a function of your

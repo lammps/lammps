@@ -71,22 +71,19 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">package command</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li><a class="reference internal" href="#default">Default</a></li>
 </ul>
-
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -235,7 +232,7 @@ top of the script, before the simulation box has been defined.  This
 is because it specifies settings that the accelerator packages use in
 their intialization, before a simultion is defined.</p>
 <p>This command can also be specified from the command-line when
-launching LAMMPS, using the &#8220;-pk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.  The syntax is exactly the same as
+launching LAMMPS, using the &#8220;-pk&#8221; <span class="xref std std-ref">command-line switch</span>.  The syntax is exactly the same as
 when used in an input script.</p>
 <p>Note that all of the accelerator packages require the package command
 to be specified (except the OPT package), if the package is to be used
@@ -243,10 +240,10 @@ in a simulation (LAMMPS can be built with an accelerator package
 without using it in a particular simulation).  However, in all cases,
 a default version of the command is typically invoked by other
 accelerator settings.</p>
-<p>The KOKKOS package requires a &#8220;-k on&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> respectively, which invokes a
+<p>The KOKKOS package requires a &#8220;-k on&#8221; <span class="xref std std-ref">command-line switch</span> respectively, which invokes a
 &#8220;package kokkos&#8221; command with default settings.</p>
 <p>For the GPU, USER-INTEL, and USER-OMP packages, if a &#8220;-sf gpu&#8221; or &#8220;-sf
-intel&#8221; or &#8220;-sf omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>
+intel&#8221; or &#8220;-sf omp&#8221; <span class="xref std std-ref">command-line switch</span>
 is used to auto-append accelerator suffixes to various styles in the
 input script, then those switches also invoke a &#8220;package gpu&#8221;,
 &#8220;package intel&#8221;, or &#8220;package omp&#8221; command with default settings.</p>
@@ -254,7 +251,7 @@ input script, then those switches also invoke a &#8220;package gpu&#8221;,
 <p class="first admonition-title">Note</p>
 <p class="last">A package command for a particular style can be invoked multiple
 times when a simulation is setup, e.g. by the &#8220;-c on&#8221;, &#8220;-k on&#8221;, &#8220;-sf&#8221;,
-and &#8220;-pk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switches</span></a>, and by
+and &#8220;-pk&#8221; <span class="xref std std-ref">command-line switches</span>, and by
 using this command in an input script.  Each time it is used all of
 the style options are set, either to default values or to specified
 settings.  I.e. settings from previous invocations do not persist
@@ -404,7 +401,7 @@ value via their package commands, but there is only a single global
 <em>Nthreads</em> value used by OpenMP.  Thus if both package commands are
 invoked, you should insure the two values are consistent.  If they are
 not, the last one invoked will take precedence, for both packages.
-Also note that if the &#8220;-sf hybrid intel omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> is used, it invokes a &#8220;package
+Also note that if the &#8220;-sf hybrid intel omp&#8221; <span class="xref std std-ref">command-line switch</span> is used, it invokes a &#8220;package
 intel&#8221; command, followed by a &#8220;package omp&#8221; command, both with a
 setting of <em>Nthreads</em> = 0.</p>
 </div>
@@ -606,26 +603,26 @@ within its own pages.</p>
 <p>This command cannot be used after the simulation box is defined by a
 <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command.</p>
 <p>The gpu style of this command can only be invoked if LAMMPS was built
-with the GPU package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+with the GPU package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
 <p>The intel style of this command can only be invoked if LAMMPS was
-built with the USER-INTEL package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+built with the USER-INTEL package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
 <p>The kk style of this command can only be invoked if LAMMPS was built
-with the KOKKOS package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+with the KOKKOS package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
 <p>The omp style of this command can only be invoked if LAMMPS was built
-with the USER-OMP package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
+with the USER-OMP package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a>, &#8220;-pk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line setting</span></a></p>
+<p><a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a>, &#8220;-pk&#8221; <span class="xref std std-ref">command-line setting</span></p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>
 <p>For the GPU package, the default is Ngpu = 1 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
 to Ngpu-1, tpa = 1, and device = not used.  These settings are made
-automatically if the &#8220;-sf gpu&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> is used.  If it is not used, you
+automatically if the &#8220;-sf gpu&#8221; <span class="xref std std-ref">command-line switch</span> is used.  If it is not used, you
 must invoke the package gpu command in your input script or via the
-&#8220;-pk gpu&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
+&#8220;-pk gpu&#8221; <span class="xref std std-ref">command-line switch</span>.</p>
 <p>For the USER-INTEL package, the default is Nphi = 1 and the option
 defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
 tptask = 240.  The default ghost option is determined by the pair
@@ -633,19 +630,19 @@ style being used.  This value is output to the screen in the offload
 report at the end of each run.  Note that all of these settings,
 except &#8220;omp&#8221; and &#8220;mode&#8221;, are ignored if LAMMPS was not built with
 Xeon Phi coprocessor support.  These settings are made automatically
-if the &#8220;-sf intel&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>
+if the &#8220;-sf intel&#8221; <span class="xref std std-ref">command-line switch</span>
 is used.  If it is not used, you must invoke the package intel
-command in your input script or or via the &#8220;-pk intel&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
+command in your input script or or via the &#8220;-pk intel&#8221; <span class="xref std std-ref">command-line switch</span>.</p>
 <p>For the KOKKOS package, the option defaults neigh = full, newton =
 off, binsize = 0.0, and comm = device.  These settings are made
-automatically by the required &#8220;-k on&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.  You can change them bu using the
+automatically by the required &#8220;-k on&#8221; <span class="xref std std-ref">command-line switch</span>.  You can change them bu using the
 package kokkos command in your input script or via the &#8220;-pk kokkos&#8221;
-<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
+<span class="xref std std-ref">command-line switch</span>.</p>
 <p>For the OMP package, the default is Nthreads = 0 and the option
 defaults are neigh = yes.  These settings are made automatically if
-the &#8220;-sf omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> is
+the &#8220;-sf omp&#8221; <span class="xref std std-ref">command-line switch</span> is
 used.  If it is not used, you must invoke the package omp command in
-your input script or via the &#8220;-pk omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
+your input script or via the &#8220;-pk omp&#8221; <span class="xref std std-ref">command-line switch</span>.</p>
 </div>
 </div>
 

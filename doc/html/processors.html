@@ -71,22 +71,19 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">processors command</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li><a class="reference internal" href="#default">Default</a></li>
 </ul>
-
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -200,7 +197,7 @@ such as 1 x P x 1 will be required, which may incur extra
 communication costs due to the high surface area of each processor&#8217;s
 sub-domain.</p>
 <p>Also note that if multiple partitions are being used then P is the
-number of processors in this partition; see <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">this section</span></a> for an explanation of the
+number of processors in this partition; see <span class="xref std std-ref">this section</span> for an explanation of the
 -partition command-line switch.  Also note that you can prefix the
 processors command with the <a class="reference internal" href="partition.html"><span class="doc">partition</span></a> command to
 easily specify different Px,Py,Pz values for different partitions.</p>
@@ -352,7 +349,7 @@ dependency bewteen a sending partition <em>Psend</em> and a receiving
 partition <em>Precv</em> which is enforced when each is setting up their own
 mapping of their processors to the simulation box.  Each of <em>Psend</em>
 and <em>Precv</em> must be integers from 1 to Np, where Np is the number of
-partitions you have defined via the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-partition command-line switch</span></a>.</p>
+partitions you have defined via the <span class="xref std std-ref">-partition command-line switch</span>.</p>
 <p>A &#8220;dependency&#8221; means that the sending partition will create its
 regular 3d grid as Px by Py by Pz and after it has done this, it will
 send the Px,Py,Pz values to the receiving partition.  The receiving
@@ -386,7 +383,7 @@ processors and their mapping to the 3d grid to the specified file
 processors in the manner you desired, which can be tricky to figure
 out, especially when running on multiple partitions or on, a multicore
 machine or when the processor ranks were reordered by use of the
-<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-reorder command-line switch</span></a> or due to
+<span class="xref std std-ref">-reorder command-line switch</span> or due to
 use of MPI-specific launch options such as a config file.</p>
 <p>If you have multiple partitions you should insure that each one writes
 to a different file, e.g. using a <a class="reference internal" href="variable.html"><span class="doc">world-style variable</span></a>
@@ -397,9 +394,9 @@ one-line per processor in this format:</p>
 universe (of multiple simulations), and the original MPI communicator
 used to instantiate LAMMPS, respectively.  The world and universe IDs
 will only be different if you are running on more than one partition;
-see the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-partition command-line switch</span></a>.
+see the <span class="xref std std-ref">-partition command-line switch</span>.
 The universe and original IDs will only be different if you used the
-<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-reorder command-line switch</span></a> to reorder
+<span class="xref std std-ref">-reorder command-line switch</span> to reorder
 the processors differently than their rank in the original
 communicator LAMMPS was instantiated with.</p>
 <p>I,J,K are the indices of the processor in the regular 3d grid, each
@@ -424,7 +421,7 @@ option.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="partition.html"><span class="doc">partition</span></a>, <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-reorder command-line switch</span></a></p>
+<p><a class="reference internal" href="partition.html"><span class="doc">partition</span></a>, <span class="xref std std-ref">-reorder command-line switch</span></p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>

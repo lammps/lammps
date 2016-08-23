@@ -71,22 +71,18 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">suffix command</a><ul>
+<li><a class="reference internal" href="#syntax">Syntax</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li><a class="reference internal" href="#related-commands">Related commands</a></li>
 </ul>
-
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -150,11 +146,11 @@
 <div class="section" id="description">
 <h2>Description</h2>
 <p>This command allows you to use variants of various styles if they
-exist.  In that respect it operates the same as the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a>.  It also has options
+exist.  In that respect it operates the same as the <span class="xref std std-ref">-suffix command-line switch</span>.  It also has options
 to turn off or back on any suffix setting made via the command line.</p>
 <p>The specified style can be <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, <em>opt</em> or
 <em>hybrid</em>. These refer to optional packages that LAMMPS can be built
-with, as described in <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">this section of the manual</span></a>.  The &#8220;gpu&#8221; style corresponds to
+with, as described in <span class="xref std std-ref">this section of the manual</span>.  The &#8220;gpu&#8221; style corresponds to
 the GPU package, the &#8220;intel&#8221; style to the USER-INTEL package, the &#8220;kk&#8221;
 style to the KOKKOS package, the &#8220;omp&#8221; style to the USER-OMP package,
 and the &#8220;opt&#8221; style to the OPT package.</p>
@@ -211,7 +207,7 @@ commands in your input script.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">Command-line switch -suffix</span></a></p>
+<p><span class="xref std std-ref">Command-line switch -suffix</span></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>

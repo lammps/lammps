@@ -71,22 +71,14 @@
         
           
           
-              <ul>
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">5.USER-OMP package</a><ul>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
 </ul>
-
+</li>
+</ul>
+</div>
           
         
       </div>
@@ -153,7 +145,7 @@ each MPI task running on a CPU.</p>
 <p><strong>Building LAMMPS with the USER-OMP package:</strong></p>
 <p>The lines above illustrate how to include/build with the USER-OMP
 package in two steps, using the &#8220;make&#8221; command.  Or how to do it with
-one command via the src/Make.py script, described in <a class="reference internal" href="Section_start.html#start-4"><span class="std std-ref">Section 2.4</span></a> of the manual.  Type &#8220;Make.py -h&#8221; for
+one command via the src/Make.py script, described in <span class="xref std std-ref">Section 2.4</span> of the manual.  Type &#8220;Make.py -h&#8221; for
 help.</p>
 <p>Note that the CCFLAGS and LINKFLAGS settings in Makefile.machine must
 include &#8220;-fopenmp&#8221;.  Likewise, if you use an Intel compiler, the
@@ -168,12 +160,12 @@ its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.</p>
 by the USER-OMP package.  Note that the product of MPI tasks *
 threads/task should not exceed the physical number of cores (on a
 node), otherwise performance will suffer.</p>
-<p>As in the lines above, use the &#8220;-sf omp&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>, which will automatically append
+<p>As in the lines above, use the &#8220;-sf omp&#8221; <span class="xref std std-ref">command-line switch</span>, which will automatically append
 &#8220;omp&#8221; to styles that support it.  The &#8220;-sf omp&#8221; switch also issues a
 default <a class="reference internal" href="package.html"><span class="doc">package omp 0</span></a> command, which will set the
 number of threads per MPI task via the OMP_NUM_THREADS environment
 variable.</p>
-<p>You can also use the &#8220;-pk omp Nt&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>, to explicitly set Nt = # of OpenMP
+<p>You can also use the &#8220;-pk omp Nt&#8221; <span class="xref std std-ref">command-line switch</span>, to explicitly set Nt = # of OpenMP
 threads per MPI task to use, as well as additional options.  Its
 syntax is the same as the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command whose doc
 page gives details, including the default values used if it is not

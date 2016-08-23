@@ -58,6 +58,9 @@ class FixBondCreate : public Fix {
   int overflow;
   tagint lastcheck;
 
+  int angledynflag, dihedraldynflag, improperdynflag; // set whether the types are specified on the go
+  class TypeDetector *angle_detector, *dihedral_detector, *improper_detector;
+
   int *bondcount;
   int createcount,createcounttotal;
   int nmax;

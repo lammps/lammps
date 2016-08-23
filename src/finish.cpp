@@ -162,10 +162,17 @@ void Finish::end(int flag)
       if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
       if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
 #else
-      const char fmt2[] =
-        "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
-      if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
-      if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
+      if (lmp->kokkos) {
+        const char fmt2[] =
+          "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
+        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
+        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
+      } else {
+        const char fmt2[] =
+          "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
+        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
+        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
+      }
 #endif
 
     }

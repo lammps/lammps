@@ -60,7 +60,7 @@ the pump method "(Zhu)"_#Zhu. The pressure correction is discussed and
 described in "(Strong)"_#Strong. 
 
 NOTE: For a complete example including the considerations discussed above, see 
-the examples/flow_gauss directory. 
+the examples/USER/flow_gauss directory. 
 
 NOTE: Only the flux of the atoms in group-ID will be conserved. If the 
 velocities of the group-ID atoms are coupled to the velocities of other atoms 

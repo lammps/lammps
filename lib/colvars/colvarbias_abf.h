@@ -32,7 +32,6 @@ private:
   /// Base filename(s) for reading previous gradient data (replaces data from restart file)
   std::vector<std::string> input_prefix;
 
-  bool		apply_bias;
   bool		update_bias;
   bool		hide_Jacobian;
   size_t	full_samples;

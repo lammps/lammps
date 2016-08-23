@@ -254,7 +254,7 @@ public:
   /// \brief Same as \link colvar::calc_cvc_values \endlink but for gradients
   int calc_cvc_gradients(int first, size_t num_cvcs);
   /// \brief Same as \link colvar::calc_cvc_values \endlink but for total forces
-  int calc_cvc_sys_forces(int first, size_t num_cvcs);
+  int calc_cvc_total_force(int first, size_t num_cvcs);
   /// \brief Same as \link colvar::calc_cvc_values \endlink but for Jacobian derivatives/forces
   int calc_cvc_Jacobians(int first, size_t num_cvcs);
 
@@ -266,7 +266,7 @@ public:
   /// \brief Same as \link colvar::collect_cvc_values \endlink but for gradients
   int collect_cvc_gradients();
   /// \brief Same as \link colvar::collect_cvc_values \endlink but for total forces
-  int collect_cvc_sys_forces();
+  int collect_cvc_total_forces();
   /// \brief Same as \link colvar::collect_cvc_values \endlink but for Jacobian derivatives/forces
   int collect_cvc_Jacobians();
   /// \brief Calculate the quantities associated to the colvar (but not to the CVCs)

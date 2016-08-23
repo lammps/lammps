@@ -58,7 +58,9 @@ class FixBondCreate : public Fix {
   int overflow;
   tagint lastcheck;
 
-  int angledynflag, dihedraldynflag, improperdynflag; // set whether the types are specified on the go
+  // 1 if type of generated angle/dihedral/improper depends on sequence
+  // of atoms types, 0 if only one particular type is used. default: 0
+  int angledynflag, dihedraldynflag, improperdynflag;
   class TypeDetector *angle_detector, *dihedral_detector, *improper_detector;
 
   int *bondcount;

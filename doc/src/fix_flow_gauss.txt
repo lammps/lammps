@@ -6,14 +6,14 @@
 
 :line
 
-fix gaussFlow command :h3
+fix flow/gauss command :h3
 
 [Syntax:]
 
-fix ID group-ID gaussFlow xflag yflag zflag keyword :pre
+fix ID group-ID flow/gauss xflag yflag zflag keyword :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
-gaussFlow = style name of this fix command :l
+flow/gauss = style name of this fix command :l
 xflag,yflag,zflag = 0 or 1 :l
     0 = do not conserve current in this dimension
     1 = conserve current in this dimension :pre
@@ -26,8 +26,8 @@ keyword = {energy} :l
 
 [Examples:]
 
-fix GD fluid gaussFlow 1 0 0 
-fix GD fluid gaussFlow 1 1 1 energy yes :pre
+fix GD fluid flow/gauss 1 0 0 
+fix GD fluid flow/gauss 1 1 1 energy yes :pre
 
 [Description:]
 
@@ -60,7 +60,7 @@ the pump method "(Zhu)"_#Zhu. The pressure correction is discussed and
 described in "(Strong)"_#Strong. 
 
 NOTE: For a complete example including the considerations discussed above, see 
-the examples/gaussFlow directory. 
+the examples/flow_gauss directory. 
 
 NOTE: Only the flux of the atoms in group-ID will be conserved. If the 
 velocities of the group-ID atoms are coupled to the velocities of other atoms 
@@ -90,6 +90,10 @@ fixed, such as "fix spring/self"_fix_spring_self.html.
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
+
+This fix is part of the USER-MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 No information about this fix is written to "binary restart
 files"_restart.html.

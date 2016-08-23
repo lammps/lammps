@@ -207,7 +207,7 @@ variable	Vadd		equal $J*lx*ly/count(bulk)
 velocity        bulk zero linear
 velocity 	bulk set ${Vadd} 0.0 0.0 units box sum yes mom no
 
-fix		GD bulk gaussFlow 1 0 0 #energy yes
+fix		GD bulk flow/gauss 1 0 0 #energy yes
 #fix_modify	GD energy yes
 
 run		${stabil}

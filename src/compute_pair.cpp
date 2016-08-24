@@ -26,7 +26,8 @@ enum{EPAIR,EVDWL,ECOUL};
 /* ---------------------------------------------------------------------- */
 
 ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  pstyle(NULL), pair(NULL), one(NULL)
 {
   if (narg < 4 || narg > 5) error->all(FLERR,"Illegal compute pair command");
 

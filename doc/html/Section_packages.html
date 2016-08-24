@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>4. Packages &mdash; LAMMPS documentation</title>
+  <title>Packages &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,9 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS documentation" href="index.html"/>
-        <link rel="next" title="5. Accelerating LAMMPS performance" href="Section_accelerate.html"/>
-        <link rel="prev" title="3. Commands" href="Section_commands.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -73,87 +71,76 @@
         
           
           
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Packages</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#standard-packages">4.1. Standard packages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#asphere-package">4.1.1. ASPHERE package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#body-package">4.1.2. BODY package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#class2-package">4.1.3. CLASS2 package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#colloid-package">4.1.4. COLLOID package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#compress-package">4.1.5. COMPRESS package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#coreshell-package">4.1.6. CORESHELL package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dipole-package">4.1.7. DIPOLE package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#gpu-package">4.1.8. GPU package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#granular-package">4.1.9. GRANULAR package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#kim-package">4.1.10. KIM package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#kokkos-package">4.1.11. KOKKOS package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#kspace-package">4.1.12. KSPACE package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#manybody-package">4.1.13. MANYBODY package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#mc-package">4.1.14. MC package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#meam-package">4.1.15. MEAM package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#misc-package">4.1.16. MISC package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#molecule-package">4.1.17. MOLECULE package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#mpiio-package">4.1.18. MPIIO package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#opt-package">4.1.19. OPT package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#peri-package">4.1.20. PERI package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#poems-package">4.1.21. POEMS package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#python-package">4.1.22. PYTHON package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#qeq-package">4.1.23. QEQ package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#reax-package">4.1.24. REAX package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#replica-package">4.1.25. REPLICA package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#rigid-package">4.1.26. RIGID package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#shock-package">4.1.27. SHOCK package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#snap-package">4.1.28. SNAP package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#srd-package">4.1.29. SRD package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#voronoi-package">4.1.30. VORONOI package</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Packages</a><ul>
+<li><a class="reference internal" href="#standard-packages">Standard packages</a><ul>
+<li><a class="reference internal" href="#asphere-package">ASPHERE package</a></li>
+<li><a class="reference internal" href="#body-package">BODY package</a></li>
+<li><a class="reference internal" href="#class2-package">CLASS2 package</a></li>
+<li><a class="reference internal" href="#colloid-package">COLLOID package</a></li>
+<li><a class="reference internal" href="#compress-package">COMPRESS package</a></li>
+<li><a class="reference internal" href="#coreshell-package">CORESHELL package</a></li>
+<li><a class="reference internal" href="#dipole-package">DIPOLE package</a></li>
+<li><a class="reference internal" href="#gpu-package">GPU package</a></li>
+<li><a class="reference internal" href="#granular-package">GRANULAR package</a></li>
+<li><a class="reference internal" href="#kim-package">KIM package</a></li>
+<li><a class="reference internal" href="#kokkos-package">KOKKOS package</a></li>
+<li><a class="reference internal" href="#kspace-package">KSPACE package</a></li>
+<li><a class="reference internal" href="#manybody-package">MANYBODY package</a></li>
+<li><a class="reference internal" href="#mc-package">MC package</a></li>
+<li><a class="reference internal" href="#meam-package">MEAM package</a></li>
+<li><a class="reference internal" href="#misc-package">MISC package</a></li>
+<li><a class="reference internal" href="#molecule-package">MOLECULE package</a></li>
+<li><a class="reference internal" href="#mpiio-package">MPIIO package</a></li>
+<li><a class="reference internal" href="#opt-package">OPT package</a></li>
+<li><a class="reference internal" href="#peri-package">PERI package</a></li>
+<li><a class="reference internal" href="#poems-package">POEMS package</a></li>
+<li><a class="reference internal" href="#python-package">PYTHON package</a></li>
+<li><a class="reference internal" href="#qeq-package">QEQ package</a></li>
+<li><a class="reference internal" href="#reax-package">REAX package</a></li>
+<li><a class="reference internal" href="#replica-package">REPLICA package</a></li>
+<li><a class="reference internal" href="#rigid-package">RIGID package</a></li>
+<li><a class="reference internal" href="#shock-package">SHOCK package</a></li>
+<li><a class="reference internal" href="#snap-package">SNAP package</a></li>
+<li><a class="reference internal" href="#srd-package">SRD package</a></li>
+<li><a class="reference internal" href="#voronoi-package">VORONOI package</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#user-packages">4.2. User packages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#user-atc-package">4.2.1. USER-ATC package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-awpmd-package">4.2.2. USER-AWPMD package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-cg-cmm-package">4.2.3. USER-CG-CMM package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-colvars-package">4.2.4. USER-COLVARS package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-diffraction-package">4.2.5. USER-DIFFRACTION package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-dpd-package">4.2.6. USER-DPD package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-drude-package">4.2.7. USER-DRUDE package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-eff-package">4.2.8. USER-EFF package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-fep-package">4.2.9. USER-FEP package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-h5md-package">4.2.10. USER-H5MD package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-intel-package">4.2.11. USER-INTEL package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-lb-package">4.2.12. USER-LB package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-mgpt-package">4.2.13. USER-MGPT package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-misc-package">4.2.14. USER-MISC package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-manifold-package">4.2.15. USER-MANIFOLD package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-molfile-package">4.2.16. USER-MOLFILE package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-omp-package">4.2.17. USER-OMP package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-phonon-package">4.2.18. USER-PHONON package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-qmmm-package">4.2.19. USER-QMMM package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-qtb-package">4.2.20. USER-QTB package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-quip-package">4.2.21. USER-QUIP package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-reaxc-package">4.2.22. USER-REAXC package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-smd-package">4.2.23. USER-SMD package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-smtbq-package">4.2.24. USER-SMTBQ package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-sph-package">4.2.25. USER-SPH package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-tally-package">4.2.26. USER-TALLY package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#user-vtk-package">4.2.27. USER-VTK package</a></li>
+<li><a class="reference internal" href="#user-packages">User packages</a><ul>
+<li><a class="reference internal" href="#user-atc-package">USER-ATC package</a></li>
+<li><a class="reference internal" href="#user-awpmd-package">USER-AWPMD package</a></li>
+<li><a class="reference internal" href="#user-cg-cmm-package">USER-CG-CMM package</a></li>
+<li><a class="reference internal" href="#user-colvars-package">USER-COLVARS package</a></li>
+<li><a class="reference internal" href="#user-diffraction-package">USER-DIFFRACTION package</a></li>
+<li><a class="reference internal" href="#user-dpd-package">USER-DPD package</a></li>
+<li><a class="reference internal" href="#user-drude-package">USER-DRUDE package</a></li>
+<li><a class="reference internal" href="#user-eff-package">USER-EFF package</a></li>
+<li><a class="reference internal" href="#user-fep-package">USER-FEP package</a></li>
+<li><a class="reference internal" href="#user-h5md-package">USER-H5MD package</a></li>
+<li><a class="reference internal" href="#user-intel-package">USER-INTEL package</a></li>
+<li><a class="reference internal" href="#user-lb-package">USER-LB package</a></li>
+<li><a class="reference internal" href="#user-mgpt-package">USER-MGPT package</a></li>
+<li><a class="reference internal" href="#user-misc-package">USER-MISC package</a></li>
+<li><a class="reference internal" href="#user-manifold-package">USER-MANIFOLD package</a></li>
+<li><a class="reference internal" href="#user-molfile-package">USER-MOLFILE package</a></li>
+<li><a class="reference internal" href="#user-omp-package">USER-OMP package</a></li>
+<li><a class="reference internal" href="#user-phonon-package">USER-PHONON package</a></li>
+<li><a class="reference internal" href="#user-qmmm-package">USER-QMMM package</a></li>
+<li><a class="reference internal" href="#user-qtb-package">USER-QTB package</a></li>
+<li><a class="reference internal" href="#user-quip-package">USER-QUIP package</a></li>
+<li><a class="reference internal" href="#user-reaxc-package">USER-REAXC package</a></li>
+<li><a class="reference internal" href="#user-smd-package">USER-SMD package</a></li>
+<li><a class="reference internal" href="#user-smtbq-package">USER-SMTBQ package</a></li>
+<li><a class="reference internal" href="#user-sph-package">USER-SPH package</a></li>
+<li><a class="reference internal" href="#user-tally-package">USER-TALLY package</a></li>
+<li><a class="reference internal" href="#user-vtk-package">USER-VTK package</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-
+</div>
           
         
       </div>
@@ -176,7 +163,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>4. Packages</li>
+    <li>Packages</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -187,21 +174,12 @@
   </ul>
   <hr/>
   
-    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_accelerate.html" class="btn btn-neutral float-right" title="5. Accelerating LAMMPS performance" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Section_commands.html" class="btn btn-neutral" title="3. Commands" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
   <div class="section" id="packages">
-<h1>4. Packages</h1>
+<h1>Packages</h1>
 <p>This section gives an overview of the add-on optional packages that
 extend LAMMPS functionality.  Packages are groups of files that enable
 a specific set of features.  For example, force fields for molecular
@@ -215,7 +193,7 @@ packages.</p>
 <div class="line">4.2 <a class="reference internal" href="#pkg-2"><span class="std std-ref">User packages</span></a></div>
 <div class="line"><br /></div>
 </div>
-<p><a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Section_start 3</span></a> of the manual describes
+<p><span class="xref std std-ref">Section_start 3</span> of the manual describes
 the difference between standard packages and user packages.  It also
 has general details on how to include/exclude specific packages as
 part of the LAMMPS build process, and on how to build auxiliary
@@ -249,7 +227,7 @@ the USER-OMP package is already installed, both the pair
 lj/cut/coul/long and lj/cut/coul/long/omp commands will be installed.</p>
 <hr class="docutils" />
 <div class="section" id="standard-packages">
-<span id="pkg-1"></span><h2>4.1. Standard packages</h2>
+<span id="pkg-1"></span><h2>Standard packages</h2>
 <p>The current list of standard packages is as follows.  Each package
 name links to a sub-section below with more details.</p>
 <table border="1" class="docutils">
@@ -614,7 +592,7 @@ See details on all of this below for individual packages.
 p.s.: are we ever going to get commit messages from you? ;-)</p>
 <hr class="docutils" />
 <div class="section" id="asphere-package">
-<span id="asphere"></span><h3>4.1.1. ASPHERE package</h3>
+<span id="asphere"></span><h3>ASPHERE package</h3>
 <p>Contents: Several computes, time-integration fixes, and pair styles
 for aspherical particle models: ellipsoids, 2d lines, 3d triangles.</p>
 <p>To install via make or Make.py:</p>
@@ -641,7 +619,7 @@ examples/ASPHERE, examples/ellipse</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="body-package">
-<span id="body"></span><h3>4.1.2. BODY package</h3>
+<span id="body"></span><h3>BODY package</h3>
 <p>Contents: Support for body-style particles.  Computes,
 time-integration fixes, pair styles, as well as the body styles
 themselves.  See the <a class="reference internal" href="body.html"><span class="doc">body</span></a> doc page for an overview.</p>
@@ -666,7 +644,7 @@ themselves.  See the <a class="reference internal" href="body.html"><span class=
 <hr class="docutils" />
 </div>
 <div class="section" id="class2-package">
-<span id="class2"></span><h3>4.1.3. CLASS2 package</h3>
+<span id="class2"></span><h3>CLASS2 package</h3>
 <p>Contents: Bond, angle, dihedral, improper, and pair styles for the
 COMPASS CLASS2 molecular force field.</p>
 <p>To install via make or Make.py:</p>
@@ -689,7 +667,7 @@ COMPASS CLASS2 molecular force field.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="colloid-package">
-<span id="colloid"></span><h3>4.1.4. COLLOID package</h3>
+<span id="colloid"></span><h3>COLLOID package</h3>
 <p>Contents: Support for coarse-grained colloidal particles.  Wall fix
 and pair styles that implement colloidal interaction models for
 finite-size particles.  This includes the Fast Lubrication Dynamics
@@ -715,7 +693,7 @@ approximation to Stokesian dynamics.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="compress-package">
-<span id="compress"></span><h3>4.1.5. COMPRESS package</h3>
+<span id="compress"></span><h3>COMPRESS package</h3>
 <p>Contents: Support for compressed output of dump files via the zlib
 compression library, using dump styles with a &#8220;gz&#8221; in their style
 name.</p>
@@ -744,7 +722,7 @@ zlib info it specifies.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="coreshell-package">
-<span id="coreshell"></span><h3>4.1.6. CORESHELL package</h3>
+<span id="coreshell"></span><h3>CORESHELL package</h3>
 <p>Contents: Compute and pair styles that implement the adiabatic
 core/shell model for polarizability.  The compute temp/cs command
 measures the temperature of a system with core/shell particles.  The
@@ -773,7 +751,7 @@ lj/cut/coul/long/cs&#8221;_pair_lj.html, examples/coreshell</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="dipole-package">
-<span id="dipole"></span><h3>4.1.7. DIPOLE package</h3>
+<span id="dipole"></span><h3>DIPOLE package</h3>
 <p>Contents: An atom style and several pair styles to support point
 dipole models with short-range or long-range interactions.</p>
 <p>To install via make or Make.py:</p>
@@ -796,7 +774,7 @@ dipole models with short-range or long-range interactions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="gpu-package">
-<span id="gpu"></span><h3>4.1.8. GPU package</h3>
+<span id="gpu"></span><h3>GPU package</h3>
 <p>Contents: Dozens of pair styles and a version of the PPPM long-range
 Coulombic solver for NVIDIA GPUs.  All of them have a &#8220;gpu&#8221; in their
 style name.  <a class="reference internal" href="accelerate_gpu.html"><span class="doc">Section accelerate gpu</span></a> gives
@@ -850,7 +828,7 @@ examples/accelerate, bench/FERMI, bench/KEPLER</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="granular-package">
-<span id="granular"></span><h3>4.1.9. GRANULAR package</h3>
+<span id="granular"></span><h3>GRANULAR package</h3>
 <p>Contents: Fixes and pair styles that support models of finite-size
 granular particles, which interact with each other and boundaries via
 frictional and dissipative potentials.</p>
@@ -874,7 +852,7 @@ frictional and dissipative potentials.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="kim-package">
-<span id="kim"></span><h3>4.1.10. KIM package</h3>
+<span id="kim"></span><h3>KIM package</h3>
 <p>Contents: A pair style that interfaces to the Knowledge Base for
 Interatomic Models (KIM) repository of interatomic potentials, so that
 KIM potentials can be used in a LAMMPS simulation.</p>
@@ -903,7 +881,7 @@ process.  You should not need to edit this file.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="kokkos-package">
-<span id="kokkos"></span><h3>4.1.11. KOKKOS package</h3>
+<span id="kokkos"></span><h3>KOKKOS package</h3>
 <p>Contents: Dozens of atom, pair, bond, angle, dihedral, improper styles
 which run with the Kokkos library to provide optimization for
 multicore CPUs (via OpenMP), NVIDIA GPUs, or the Intel Xeon Phi (in
@@ -951,7 +929,7 @@ examples/accelerate, bench/FERMI, bench/KEPLER</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="kspace-package">
-<span id="kspace"></span><h3>4.1.12. KSPACE package</h3>
+<span id="kspace"></span><h3>KSPACE package</h3>
 <p>Contents: A variety of long-range Coulombic solvers, and pair styles
 which compute the corresponding short-range portion of the pairwise
 Coulombic interactions.  These include Ewald, particle-particle
@@ -959,7 +937,7 @@ particle-mesh (PPPM), and multilevel summation method (MSM) solvers.</p>
 <p>Building with the KSPACE package requires a 1d FFT library be present
 on your system for use by the PPPM solvers.  This can be the KISS FFT
 library provided with LAMMPS, or 3rd party libraries like FFTW or a
-vendor-supplied FFT library.  See step 6 of <a class="reference internal" href="Section_start.html#start-2-2"><span class="std std-ref">Section start 2.2.2</span></a> of the manual for details of how
+vendor-supplied FFT library.  See step 6 of <span class="xref std std-ref">Section start 2.2.2</span> of the manual for details of how
 to select different FFT options in your machine Makefile.  The Make.py
 tool has an &#8220;-fft&#8221; option which can insert these settings into your
 machine Makefile automatically.  Type &#8220;python src/Make.py -h -fft&#8221; to
@@ -987,7 +965,7 @@ style name, examples/peptide, bench/in.rhodo</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="manybody-package">
-<span id="manybody"></span><h3>4.1.13. MANYBODY package</h3>
+<span id="manybody"></span><h3>MANYBODY package</h3>
 <p>Contents: A variety of many-body and bond-order potentials.  These
 include (AI)REBO, EAM, EIM, BOP, Stillinger-Weber, and Tersoff
 potentials.  Do a directory listing, &#8220;ls src/MANYBODY&#8221;, to see
@@ -1014,7 +992,7 @@ examples/nb3d, examples/vashishta</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="mc-package">
-<span id="mc"></span><h3>4.1.14. MC package</h3>
+<span id="mc"></span><h3>MC package</h3>
 <p>Contents: Several fixes and a pair style that have Monte Carlo (MC) or
 MC-like attributes.  These include fixes for creating, breaking, and
 swapping bonds, and for performing atomic swaps and grand-canonical MC
@@ -1040,7 +1018,7 @@ in conjuction with dynamics.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="meam-package">
-<span id="meam"></span><h3>4.1.15. MEAM package</h3>
+<span id="meam"></span><h3>MEAM package</h3>
 <p>Contents: A pair style for the modified embedded atom (MEAM)
 potential.</p>
 <p>Building LAMMPS with the MEAM package requires first building the MEAM
@@ -1087,7 +1065,7 @@ examples/meam</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="misc-package">
-<span id="misc"></span><h3>4.1.16. MISC package</h3>
+<span id="misc"></span><h3>MISC package</h3>
 <p>Contents: A variety of computes, fixes, and pair styles that are not
 commonly used, but don&#8217;t align with other packages.  Do a directory
 listing, &#8220;ls src/MISC&#8221;, to see the list of commands.</p>
@@ -1111,7 +1089,7 @@ listing, &#8220;ls src/MISC&#8221;, to see the list of commands.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="molecule-package">
-<span id="molecule"></span><h3>4.1.17. MOLECULE package</h3>
+<span id="molecule"></span><h3>MOLECULE package</h3>
 <p>Contents: A large number of atom, pair, bond, angle, dihedral,
 improper styles that are used to model molecular systems with fixed
 covalent bonds.  The pair styles include terms for the Dreiding
@@ -1140,7 +1118,7 @@ bench/in.chain, bench/in.rhodo</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="mpiio-package">
-<span id="mpiio"></span><h3>4.1.18. MPIIO package</h3>
+<span id="mpiio"></span><h3>MPIIO package</h3>
 <p>Contents: Support for parallel output/input of dump and restart files
 via the MPIIO library, which is part of the standard message-passing
 interface (MPI) library.  It adds <a class="reference internal" href="dump.html"><span class="doc">dump styles</span></a> with a
@@ -1167,7 +1145,7 @@ are also written and read in parallel.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="opt-package">
-<span id="opt"></span><h3>4.1.19. OPT package</h3>
+<span id="opt"></span><h3>OPT package</h3>
 <p>Contents: A handful of pair styles with an &#8220;opt&#8221; in their style name
 which are optimized for improved CPU performance on single or multiple
 cores.  These include EAM, LJ, CHARMM, and Morse potentials.  <a class="reference internal" href="accelerate_opt.html"><span class="doc">Section accelerate opt</span></a> gives details of how to build and
@@ -1200,7 +1178,7 @@ with an (o), examples/accelerate, bench/KEPLER</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="peri-package">
-<span id="peri"></span><h3>4.1.20. PERI package</h3>
+<span id="peri"></span><h3>PERI package</h3>
 <p>Contents: Support for the Peridynamics method, a particle-based
 meshless continuum model.  The package includes an atom style, several
 computes which calculate diagnostics, and several Peridynamic pair
@@ -1229,7 +1207,7 @@ styles which implement different materials models.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="poems-package">
-<span id="poems"></span><h3>4.1.21. POEMS package</h3>
+<span id="poems"></span><h3>POEMS package</h3>
 <p>Contents: A fix that wraps the Parallelizable Open source Efficient
 Multibody Software (POEMS) librar, which is able to simulate the
 dynamics of articulated body systems.  These are systems with multiple
@@ -1269,7 +1247,7 @@ one step.  Type &#8220;python src/Make.py -h -poems&#8221; to see the details.</
 <hr class="docutils" />
 </div>
 <div class="section" id="python-package">
-<span id="python"></span><h3>4.1.22. PYTHON package</h3>
+<span id="python"></span><h3>PYTHON package</h3>
 <p>Contents: A <a class="reference internal" href="python.html"><span class="doc">python</span></a> command which allow you to execute
 Python code from a LAMMPS input script.  The code can be in a separate
 file or embedded in the input script itself.  See <span class="xref std std-ref">Section python 11.2</span> for an overview of using Python from
@@ -1304,7 +1282,7 @@ in one step.  Type &#8220;python src/Make.py -h -python&#8221; to see the detail
 <hr class="docutils" />
 </div>
 <div class="section" id="qeq-package">
-<span id="qeq"></span><h3>4.1.23. QEQ package</h3>
+<span id="qeq"></span><h3>QEQ package</h3>
 <p>Contents: Several fixes for performing charge equilibration (QEq) via
 severeal different algorithms.  These can be used with pair styles
 that use QEq as part of their formulation.</p>
@@ -1328,7 +1306,7 @@ that use QEq as part of their formulation.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="reax-package">
-<span id="reax"></span><h3>4.1.24. REAX package</h3>
+<span id="reax"></span><h3>REAX package</h3>
 <p>Contents: A pair style for the ReaxFF potential, a universal reactive
 force field, as well as a <a class="reference internal" href="fix_reax_bonds.html"><span class="doc">fix reax/bonds</span></a> command
 for monitoring molecules as bonds are created and destroyed.</p>
@@ -1371,7 +1349,7 @@ one step.  Type &#8220;python src/Make.py -h -reax&#8221; to see the details.</p
 <hr class="docutils" />
 </div>
 <div class="section" id="replica-package">
-<span id="replica"></span><h3>4.1.25. REPLICA package</h3>
+<span id="replica"></span><h3>REPLICA package</h3>
 <p>Contents: A collection of multi-replica methods that are used by
 invoking multiple instances (replicas) of LAMMPS
 simulations. Communication between individual replicas is performed in
@@ -1405,7 +1383,7 @@ examples/tad</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="rigid-package">
-<span id="rigid"></span><h3>4.1.26. RIGID package</h3>
+<span id="rigid"></span><h3>RIGID package</h3>
 <p>Contents: A collection of computes and fixes which enforce rigid
 constraints on collections of atoms or particles.  This includes SHAKE
 and RATTLE, as well as variants of rigid-body time integrators for a
@@ -1431,7 +1409,7 @@ few large bodies or many small bodies.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="shock-package">
-<span id="shock"></span><h3>4.1.27. SHOCK package</h3>
+<span id="shock"></span><h3>SHOCK package</h3>
 <p>Contents: A small number of fixes useful for running impact
 simulations where a shock-wave passes through a material.</p>
 <p>To install via make or Make.py:</p>
@@ -1454,7 +1432,7 @@ simulations where a shock-wave passes through a material.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="snap-package">
-<span id="snap"></span><h3>4.1.28. SNAP package</h3>
+<span id="snap"></span><h3>SNAP package</h3>
 <p>Contents: A pair style for the spectral neighbor analysis potential
 (SNAP), which is an empirical potential which can be quantum accurate
 when fit to an archive of DFT data.  Computes useful for analyzing
@@ -1480,7 +1458,7 @@ properties of the potential are also included.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="srd-package">
-<span id="srd"></span><h3>4.1.29. SRD package</h3>
+<span id="srd"></span><h3>SRD package</h3>
 <p>Contents: Two fixes which implement the Stochastic Rotation Dynamics
 (SRD) method for coarse-graining of a solvent, typically around large
 colloidal-scale particles.</p>
@@ -1504,7 +1482,7 @@ colloidal-scale particles.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="voronoi-package">
-<span id="voronoi"></span><h3>4.1.30. VORONOI package</h3>
+<span id="voronoi"></span><h3>VORONOI package</h3>
 <p>Contents: A <a class="reference internal" href="compute_voronoi_atom.html"><span class="doc">compute voronoi/atom</span></a> command
 which computes the Voronoi tesselation of a collection of atoms or
 particles by wrapping the Voro++ lib</p>
@@ -1550,7 +1528,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 </div>
 </div>
 <div class="section" id="user-packages">
-<span id="pkg-2"></span><h2>4.2. User packages</h2>
+<span id="pkg-2"></span><h2>User packages</h2>
 <p>The current list of user-contributed packages is as follows:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -1967,7 +1945,7 @@ it is a third-party library not included in the LAMMPS distribution.
 See details on all of this below for individual packages.</p>
 <hr class="docutils" />
 <div class="section" id="user-atc-package">
-<span id="user-atc"></span><h3>4.2.1. USER-ATC package</h3>
+<span id="user-atc"></span><h3>USER-ATC package</h3>
 <p>Contents: ATC stands for atoms-to-continuum.  This package implements
 a <a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a> command to either couple MD with continuum
 finite element equations or perform on-the-fly post-processing of
@@ -1998,7 +1976,7 @@ Contact them directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-awpmd-package">
-<span id="user-awpmd"></span><h3>4.2.2. USER-AWPMD package</h3>
+<span id="user-awpmd"></span><h3>USER-AWPMD package</h3>
 <p>Contents: AWPMD stands for Antisymmetrized Wave Packet Molecular
 Dynamics.  This package implements an atom, pair, and fix style which
 allows electrons to be treated as explicit particles in an MD
@@ -2010,7 +1988,7 @@ physik.hu-berlin.de).  Contact him directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-cg-cmm-package">
-<span id="user-cg-cmm"></span><h3>4.2.3. USER-CG-CMM package</h3>
+<span id="user-cg-cmm"></span><h3>USER-CG-CMM package</h3>
 <p>Contents: CG-CMM stands for coarse-grained ??.  This package
 implements several pair styles and an angle style using the coarse
 grained parametrization of Shinoda, DeVane, Klein, Mol Sim, 33, 27
@@ -2025,7 +2003,7 @@ him directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-colvars-package">
-<span id="user-colvars"></span><h3>4.2.4. USER-COLVARS package</h3>
+<span id="user-colvars"></span><h3>USER-COLVARS package</h3>
 <p>Contents: COLVARS stands for collective variables which can be used to
 implement Adaptive Biasing Force, Metadynamics, Steered MD, Umbrella
 Sampling and Restraints.  This package implements a <a class="reference internal" href="fix_colvars.html"><span class="doc">fix colvars</span></a> command which wraps a COLVARS library which
@@ -2042,7 +2020,7 @@ have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-diffraction-package">
-<span id="user-diffraction"></span><h3>4.2.5. USER-DIFFRACTION package</h3>
+<span id="user-diffraction"></span><h3>USER-DIFFRACTION package</h3>
 <p>Contents: This packages implements two computes and a fix for
 calculating x-ray and electron diffraction intensities based on
 kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
@@ -2055,7 +2033,7 @@ questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-dpd-package">
-<span id="user-dpd"></span><h3>4.2.6. USER-DPD package</h3>
+<span id="user-dpd"></span><h3>USER-DPD package</h3>
 <p>Contents: DPD stands for dissipative particle dynamics, This package
 implements DPD for isothermal, isoenergetic, isobaric and isenthalpic
 conditions.  It also has extensions for performing reactive DPD, where
@@ -2077,7 +2055,7 @@ directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-drude-package">
-<span id="user-drude"></span><h3>4.2.7. USER-DRUDE package</h3>
+<span id="user-drude"></span><h3>USER-DRUDE package</h3>
 <p>Contents: This package contains methods for simulating polarizable
 systems using thermalized Drude oscillators.  It has computes, fixes,
 and pair styles for this purpose.  See <a class="reference internal" href="Section_howto.html#howto-27"><span class="std std-ref">Section howto 6.27</span></a> for an overview of how to use the
@@ -2093,7 +2071,7 @@ Agilio Padua.  Contact them directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-eff-package">
-<span id="user-eff"></span><h3>4.2.8. USER-EFF package</h3>
+<span id="user-eff"></span><h3>USER-EFF package</h3>
 <p>Contents: EFF stands for electron force field.  This package contains
 atom, pair, fix and compute styles which implement the eFF as
 described in A. Jaramillo-Botero, J. Su, Q. An, and W.A. Goddard III,
@@ -2107,7 +2085,7 @@ wag.caltech.edu).  Contact him directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-fep-package">
-<span id="user-fep"></span><h3>4.2.9. USER-FEP package</h3>
+<span id="user-fep"></span><h3>USER-FEP package</h3>
 <p>Contents: FEP stands for free energy perturbation.  This package
 provides methods for performing FEP simulations by using a <a class="reference internal" href="fix_adapt_fep.html"><span class="doc">fix adapt/fep</span></a> command with soft-core pair potentials,
 which have a &#8220;soft&#8221; in their style name.  See src/USER-FEP/README for
@@ -2121,7 +2099,7 @@ questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-h5md-package">
-<span id="user-h5md"></span><h3>4.2.10. USER-H5MD package</h3>
+<span id="user-h5md"></span><h3>USER-H5MD package</h3>
 <p>Contents: H5MD stands for HDF5 for MD.  <a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5</a> is a binary,
 portable, self-describing file format, used by many scientific
 simulations.  H5MD is a format for molecular simulations, built on top
@@ -2135,7 +2113,7 @@ directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-intel-package">
-<span id="user-intel"></span><h3>4.2.11. USER-INTEL package</h3>
+<span id="user-intel"></span><h3>USER-INTEL package</h3>
 <p>Contents: Dozens of pair, bond, angle, dihedral, and improper styles
 that are optimized for Intel CPUs and the Intel Xeon Phi (in offload
 mode).  All of them have an &#8220;intel&#8221; in their style name.  <a class="reference internal" href="accelerate_intel.html"><span class="doc">Section accelerate intel</span></a> gives details of what hardware
@@ -2169,7 +2147,7 @@ your Makefile.machine for CCFLAGS and LINKFLAGS.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-lb-package">
-<span id="user-lb"></span><h3>4.2.12. USER-LB package</h3>
+<span id="user-lb"></span><h3>USER-LB package</h3>
 <p>Supporting info:</p>
 <p>This package contains a LAMMPS implementation of a background
 Lattice-Boltzmann fluid, which can be used to model MD particles
@@ -2183,7 +2161,7 @@ Western Ontario.  Contact them directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-mgpt-package">
-<span id="user-mgpt"></span><h3>4.2.13. USER-MGPT package</h3>
+<span id="user-mgpt"></span><h3>USER-MGPT package</h3>
 <p>Supporting info:</p>
 <p>This package contains a fast implementation for LAMMPS of
 quantum-based MGPT multi-ion potentials.  The MGPT or model GPT method
@@ -2208,7 +2186,7 @@ Contact them directly if you have any questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-misc-package">
-<span id="user-misc"></span><h3>4.2.14. USER-MISC package</h3>
+<span id="user-misc"></span><h3>USER-MISC package</h3>
 <p>Supporting info:</p>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
@@ -2227,7 +2205,7 @@ about the feature or its coding.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-manifold-package">
-<span id="user-manifold"></span><h3>4.2.15. USER-MANIFOLD package</h3>
+<span id="user-manifold"></span><h3>USER-MANIFOLD package</h3>
 <p>Supporting info:</p>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
@@ -2247,7 +2225,7 @@ Contact him directly if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-molfile-package">
-<span id="user-molfile"></span><h3>4.2.16. USER-MOLFILE package</h3>
+<span id="user-molfile"></span><h3>USER-MOLFILE package</h3>
 <p>Supporting info:</p>
 <p>This package contains a dump molfile command which uses molfile
 plugins that are bundled with the
@@ -2267,7 +2245,7 @@ application itself.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-omp-package">
-<span id="user-omp"></span><h3>4.2.17. USER-OMP package</h3>
+<span id="user-omp"></span><h3>USER-OMP package</h3>
 <p>Supporting info:</p>
 <p>This package provides OpenMP multi-threading support and
 other optimizations of various LAMMPS pair styles, dihedral
@@ -2286,7 +2264,7 @@ settings for CCFLAGS and LINKFLAGS.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-phonon-package">
-<span id="user-phonon"></span><h3>4.2.18. USER-PHONON package</h3>
+<span id="user-phonon"></span><h3>USER-PHONON package</h3>
 <p>This package contains a fix phonon command that calculates dynamical
 matrices, which can then be used to compute phonon dispersion
 relations, directly from molecular dynamics simulations.</p>
@@ -2299,7 +2277,7 @@ if you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-qmmm-package">
-<span id="user-qmmm"></span><h3>4.2.19. USER-QMMM package</h3>
+<span id="user-qmmm"></span><h3>USER-QMMM package</h3>
 <p>Supporting info:</p>
 <p>This package provides a fix qmmm command which allows LAMMPS to be
 used in a QM/MM simulation, currently only in combination with pw.x
@@ -2317,7 +2295,7 @@ without changes to LAMMPS itself.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-qtb-package">
-<span id="user-qtb"></span><h3>4.2.20. USER-QTB package</h3>
+<span id="user-qtb"></span><h3>USER-QTB package</h3>
 <p>Supporting info:</p>
 <p>This package provides a self-consistent quantum treatment of the
 vibrational modes in a classical molecular dynamics simulation.  By
@@ -2341,13 +2319,13 @@ have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-quip-package">
-<span id="user-quip"></span><h3>4.2.21. USER-QUIP package</h3>
+<span id="user-quip"></span><h3>USER-QUIP package</h3>
 <p>Supporting info:</p>
 <p>Examples: examples/USER/quip</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-reaxc-package">
-<span id="user-reaxc"></span><h3>4.2.22. USER-REAXC package</h3>
+<span id="user-reaxc"></span><h3>USER-REAXC package</h3>
 <p>Supporting info:</p>
 <p>This package contains a implementation for LAMMPS of the ReaxFF force
 field.  ReaxFF uses distance-dependent bond-order functions to
@@ -2377,7 +2355,7 @@ questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-smd-package">
-<span id="user-smd"></span><h3>4.2.23. USER-SMD package</h3>
+<span id="user-smd"></span><h3>USER-SMD package</h3>
 <p>Supporting info:</p>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
@@ -2403,7 +2381,7 @@ you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-smtbq-package">
-<span id="user-smtbq"></span><h3>4.2.24. USER-SMTBQ package</h3>
+<span id="user-smtbq"></span><h3>USER-SMTBQ package</h3>
 <p>Supporting info:</p>
 <p>This package implements the Second Moment Tight Binding - QEq (SMTB-Q)
 potential for the description of ionocovalent bonds in oxides.</p>
@@ -2419,7 +2397,7 @@ them directly if you have any questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-sph-package">
-<span id="user-sph"></span><h3>4.2.25. USER-SPH package</h3>
+<span id="user-sph"></span><h3>USER-SPH package</h3>
 <p>Supporting info:</p>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
@@ -2443,13 +2421,13 @@ you have questions.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-tally-package">
-<span id="user-tally"></span><h3>4.2.26. USER-TALLY package</h3>
+<span id="user-tally"></span><h3>USER-TALLY package</h3>
 <p>Supporting info:</p>
 <p>Examples: examples/USER/tally</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="user-vtk-package">
-<span id="user-vtk"></span><h3>4.2.27. USER-VTK package</h3>
+<span id="user-vtk"></span><h3>USER-VTK package</h3>
 </div>
 </div>
 </div>
@@ -2458,15 +2436,6 @@ you have questions.</p>
            </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_accelerate.html" class="btn btn-neutral float-right" title="5. Accelerating LAMMPS performance" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Section_commands.html" class="btn btn-neutral" title="3. Commands" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

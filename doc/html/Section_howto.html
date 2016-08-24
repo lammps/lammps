@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>6. How-to discussions &mdash; LAMMPS documentation</title>
+  <title>How-to discussions &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,9 +32,7 @@
   
 
   
-    <link rel="top" title="LAMMPS documentation" href="index.html"/>
-        <link rel="next" title="7. Example problems" href="Section_example.html"/>
-        <link rel="prev" title="5. Accelerating LAMMPS performance" href="Section_accelerate.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -73,77 +71,66 @@
         
           
           
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">6. How-to discussions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#restarting-a-simulation">6.1. Restarting a simulation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#d-simulations">6.2. 2d simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#charmm-amber-and-dreiding-force-fields">6.3. CHARMM, AMBER, and DREIDING force fields</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#running-multiple-simulations-from-one-input-script">6.4. Running multiple simulations from one input script</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#multi-replica-simulations">6.5. Multi-replica simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#granular-models">6.6. Granular models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#tip3p-water-model">6.7. TIP3P water model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#tip4p-water-model">6.8. TIP4P water model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#spc-water-model">6.9. SPC water model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#coupling-lammps-to-other-codes">6.10. Coupling LAMMPS to other codes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#visualizing-lammps-snapshots">6.11. Visualizing LAMMPS snapshots</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#triclinic-non-orthogonal-simulation-boxes">6.12. Triclinic (non-orthogonal) simulation boxes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#nemd-simulations">6.13. NEMD simulations</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#finite-size-spherical-and-aspherical-particles">6.14. Finite-size spherical and aspherical particles</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#atom-styles">6.14.1. Atom styles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#pair-potentials">6.14.2. Pair potentials</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#time-integration">6.14.3. Time integration</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#computes-thermodynamics-and-dump-output">6.14.4. Computes, thermodynamics, and dump output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#rigid-bodies-composed-of-finite-size-particles">6.14.5. Rigid bodies composed of finite-size particles</a></li>
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">How-to discussions</a><ul>
+<li><a class="reference internal" href="#restarting-a-simulation">Restarting a simulation</a></li>
+<li><a class="reference internal" href="#d-simulations">2d simulations</a></li>
+<li><a class="reference internal" href="#charmm-amber-and-dreiding-force-fields">CHARMM, AMBER, and DREIDING force fields</a></li>
+<li><a class="reference internal" href="#running-multiple-simulations-from-one-input-script">Running multiple simulations from one input script</a></li>
+<li><a class="reference internal" href="#multi-replica-simulations">Multi-replica simulations</a></li>
+<li><a class="reference internal" href="#granular-models">Granular models</a></li>
+<li><a class="reference internal" href="#tip3p-water-model">TIP3P water model</a></li>
+<li><a class="reference internal" href="#tip4p-water-model">TIP4P water model</a></li>
+<li><a class="reference internal" href="#spc-water-model">SPC water model</a></li>
+<li><a class="reference internal" href="#coupling-lammps-to-other-codes">Coupling LAMMPS to other codes</a></li>
+<li><a class="reference internal" href="#visualizing-lammps-snapshots">Visualizing LAMMPS snapshots</a></li>
+<li><a class="reference internal" href="#triclinic-non-orthogonal-simulation-boxes">Triclinic (non-orthogonal) simulation boxes</a></li>
+<li><a class="reference internal" href="#nemd-simulations">NEMD simulations</a></li>
+<li><a class="reference internal" href="#finite-size-spherical-and-aspherical-particles">Finite-size spherical and aspherical particles</a><ul>
+<li><a class="reference internal" href="#atom-styles">Atom styles</a></li>
+<li><a class="reference internal" href="#pair-potentials">Pair potentials</a></li>
+<li><a class="reference internal" href="#time-integration">Time integration</a></li>
+<li><a class="reference internal" href="#computes-thermodynamics-and-dump-output">Computes, thermodynamics, and dump output</a></li>
+<li><a class="reference internal" href="#rigid-bodies-composed-of-finite-size-particles">Rigid bodies composed of finite-size particles</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#output-from-lammps-thermo-dumps-computes-fixes-variables">6.15. Output from LAMMPS (thermo, dumps, computes, fixes, variables)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#global-per-atom-local-data">6.15.1. Global/per-atom/local data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#scalar-vector-array-data">6.15.2. Scalar/vector/array data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#thermodynamic-output">6.15.3. Thermodynamic output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#dump-file-output">6.15.4. Dump file output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fixes-that-write-output-files">6.15.5. Fixes that write output files</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#computes-that-process-output-quantities">6.15.6. Computes that process output quantities</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fixes-that-process-output-quantities">6.15.7. Fixes that process output quantities</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#computes-that-generate-values-to-output">6.15.8. Computes that generate values to output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fixes-that-generate-values-to-output">6.15.9. Fixes that generate values to output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#variables-that-generate-values-to-output">6.15.10. Variables that generate values to output</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#summary-table-of-output-options-and-data-flow-between-commands">6.15.11. Summary table of output options and data flow between commands</a></li>
+<li><a class="reference internal" href="#output-from-lammps-thermo-dumps-computes-fixes-variables">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</a><ul>
+<li><a class="reference internal" href="#global-per-atom-local-data">Global/per-atom/local data</a></li>
+<li><a class="reference internal" href="#scalar-vector-array-data">Scalar/vector/array data</a></li>
+<li><a class="reference internal" href="#thermodynamic-output">Thermodynamic output</a></li>
+<li><a class="reference internal" href="#dump-file-output">Dump file output</a></li>
+<li><a class="reference internal" href="#fixes-that-write-output-files">Fixes that write output files</a></li>
+<li><a class="reference internal" href="#computes-that-process-output-quantities">Computes that process output quantities</a></li>
+<li><a class="reference internal" href="#fixes-that-process-output-quantities">Fixes that process output quantities</a></li>
+<li><a class="reference internal" href="#computes-that-generate-values-to-output">Computes that generate values to output</a></li>
+<li><a class="reference internal" href="#fixes-that-generate-values-to-output">Fixes that generate values to output</a></li>
+<li><a class="reference internal" href="#variables-that-generate-values-to-output">Variables that generate values to output</a></li>
+<li><a class="reference internal" href="#summary-table-of-output-options-and-data-flow-between-commands">Summary table of output options and data flow between commands</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#thermostatting-barostatting-and-computing-temperature">6.16. Thermostatting, barostatting, and computing temperature</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#walls">6.17. Walls</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#elastic-constants">6.18. Elastic constants</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#library-interface-to-lammps">6.19. Library interface to LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#calculating-thermal-conductivity">6.20. Calculating thermal conductivity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#calculating-viscosity">6.21. Calculating viscosity</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#calculating-a-diffusion-coefficient">6.22. Calculating a diffusion coefficient</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-chunks-to-calculate-system-properties">6.23. Using chunks to calculate system properties</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#compute-chunk-atom-command">6.23.1. Compute chunk/atom command:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#fix-ave-chunk-command">6.23.2. Fix ave/chunk command:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#compute-chunk-commands">6.23.3. Compute */chunk commands:</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-calculations-with-chunks">6.23.4. Example calculations with chunks</a></li>
+<li><a class="reference internal" href="#thermostatting-barostatting-and-computing-temperature">Thermostatting, barostatting, and computing temperature</a></li>
+<li><a class="reference internal" href="#walls">Walls</a></li>
+<li><a class="reference internal" href="#elastic-constants">Elastic constants</a></li>
+<li><a class="reference internal" href="#library-interface-to-lammps">Library interface to LAMMPS</a></li>
+<li><a class="reference internal" href="#calculating-thermal-conductivity">Calculating thermal conductivity</a></li>
+<li><a class="reference internal" href="#calculating-viscosity">Calculating viscosity</a></li>
+<li><a class="reference internal" href="#calculating-a-diffusion-coefficient">Calculating a diffusion coefficient</a></li>
+<li><a class="reference internal" href="#using-chunks-to-calculate-system-properties">Using chunks to calculate system properties</a><ul>
+<li><a class="reference internal" href="#compute-chunk-atom-command">Compute chunk/atom command:</a></li>
+<li><a class="reference internal" href="#fix-ave-chunk-command">Fix ave/chunk command:</a></li>
+<li><a class="reference internal" href="#compute-chunk-commands">Compute */chunk commands:</a></li>
+<li><a class="reference internal" href="#example-calculations-with-chunks">Example calculations with chunks</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#setting-parameters-for-the-kspace-style-pppm-disp-command">6.24. Setting parameters for the <code class="docutils literal"><span class="pre">kspace_style</span> <span class="pre">pppm/disp</span></code> command</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#polarizable-models">6.25. Polarizable models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#adiabatic-core-shell-model">6.26. Adiabatic core/shell model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#drude-induced-dipoles">6.27. Drude induced dipoles</a></li>
+<li><a class="reference internal" href="#setting-parameters-for-the-kspace-style-pppm-disp-command">Setting parameters for the <code class="docutils literal"><span class="pre">kspace_style</span> <span class="pre">pppm/disp</span></code> command</a></li>
+<li><a class="reference internal" href="#polarizable-models">Polarizable models</a></li>
+<li><a class="reference internal" href="#adiabatic-core-shell-model">Adiabatic core/shell model</a></li>
+<li><a class="reference internal" href="#drude-induced-dipoles">Drude induced dipoles</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-
+</div>
           
         
       </div>
@@ -166,7 +153,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>6. How-to discussions</li>
+    <li>How-to discussions</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -177,21 +164,12 @@
   </ul>
   <hr/>
   
-    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_example.html" class="btn btn-neutral float-right" title="7. Example problems" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Section_accelerate.html" class="btn btn-neutral" title="5. Accelerating LAMMPS performance" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
-  
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
   <div class="section" id="how-to-discussions">
-<h1>6. How-to discussions</h1>
+<h1>How-to discussions</h1>
 <p>This section describes how to perform common tasks using LAMMPS.</p>
 <div class="line-block">
 <div class="line">6.1 <a class="reference internal" href="#howto-1"><span class="std std-ref">Restarting a simulation</span></a></div>
@@ -227,14 +205,14 @@
 highlighted in <a class="reference internal" href="Section_example.html"><span class="doc">Section_example</span></a> also show how to
 setup and run various kinds of simulations.</p>
 <div class="section" id="restarting-a-simulation">
-<span id="howto-1"></span><h2>6.1. Restarting a simulation</h2>
+<span id="howto-1"></span><h2>Restarting a simulation</h2>
 <p>There are 3 ways to continue a long LAMMPS simulation.  Multiple
 <a class="reference internal" href="run.html"><span class="doc">run</span></a> commands can be used in the same input script.  Each
 run will continue from where the previous run left off.  Or binary
 restart files can be saved to disk using the <a class="reference internal" href="restart.html"><span class="doc">restart</span></a>
 command.  At a later time, these binary files can be read via a
 <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command in a new script.  Or they can
-be converted to text data files using the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-r command-line switch</span></a> and read by a
+be converted to text data files using the <span class="xref std std-ref">-r command-line switch</span> and read by a
 <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command in a new script.</p>
 <p>Here we give examples of 2 scripts that read either a binary restart
 file or a converted data file and then issue a new run command to
@@ -320,7 +298,7 @@ but not in data files.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="d-simulations">
-<span id="howto-2"></span><h2>6.2. 2d simulations</h2>
+<span id="howto-2"></span><h2>2d simulations</h2>
 <p>Use the <a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a> command to specify a 2d simulation.</p>
 <p>Make the simulation box periodic in z via the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a>
 command.  This is the default.</p>
@@ -352,7 +330,7 @@ as in 3d.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="charmm-amber-and-dreiding-force-fields">
-<span id="howto-3"></span><h2>6.3. CHARMM, AMBER, and DREIDING force fields</h2>
+<span id="howto-3"></span><h2>CHARMM, AMBER, and DREIDING force fields</h2>
 <p>A force field has 2 parts: the formulas that define it and the
 coefficients used for a particular system.  Here we only discuss
 formulas implemented in LAMMPS that correspond to formulas commonly
@@ -414,7 +392,7 @@ documentation for the formula it computes.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="running-multiple-simulations-from-one-input-script">
-<span id="howto-4"></span><h2>6.4. Running multiple simulations from one input script</h2>
+<span id="howto-4"></span><h2>Running multiple simulations from one input script</h2>
 <p>This can be done in several ways.  See the documentation for
 individual commands for more details on how these examples work.</p>
 <p>If &#8220;multiple simulations&#8221; means continue a previous simulation for
@@ -483,7 +461,7 @@ jump in.polymer
 <p>All of the above examples work whether you are running on 1 or
 multiple processors, but assumed you are running LAMMPS on a single
 partition of processors.  LAMMPS can be run on multiple partitions via
-the &#8220;-partition&#8221; command-line switch as described in <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">this section</span></a> of the manual.</p>
+the &#8220;-partition&#8221; command-line switch as described in <span class="xref std std-ref">this section</span> of the manual.</p>
 <p>In the last 2 examples, if LAMMPS were run on 3 partitions, the same
 scripts could be used if the &#8220;index&#8221; and &#8220;loop&#8221; variables were
 replaced with <em>universe</em>-style variables, as described in the
@@ -497,7 +475,7 @@ the 4th simulation, and so forth, until all 8 were completed.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="multi-replica-simulations">
-<span id="howto-5"></span><h2>6.5. Multi-replica simulations</h2>
+<span id="howto-5"></span><h2>Multi-replica simulations</h2>
 <p>Several commands in LAMMPS run mutli-replica simulations, meaning
 that multiple instances (replicas) of your simulation are run
 simultaneously, with small amounts of data exchanged between replicas
@@ -516,16 +494,16 @@ and perform infrequent events.  Parallel tempering or replica exchange
 runs different replicas at a series of temperature to facilitate
 rare-event sampling.</p>
 <p>These commands can only be used if LAMMPS was built with the REPLICA
-package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
+package.  See the <span class="xref std std-ref">Making LAMMPS</span> section
 for more info on packages.</p>
 <p>PIMD runs different replicas whose individual particles are coupled
 together by springs to model a system or ring-polymers.</p>
 <p>This commands can only be used if LAMMPS was built with the USER-MISC
-package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
+package.  See the <span class="xref std std-ref">Making LAMMPS</span> section
 for more info on packages.</p>
 <p>In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
-run-time by using the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-partition command-line switch</span></a> to launch LAMMPS on multiple
+run-time by using the <span class="xref std std-ref">-partition command-line switch</span> to launch LAMMPS on multiple
 partitions, which in this context are the same as replicas.  E.g.
 these commands:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">16</span> <span class="n">lmp_linux</span> <span class="o">-</span><span class="n">partition</span> <span class="mi">8</span><span class="n">x2</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">temper</span>
@@ -533,7 +511,7 @@ these commands:</p>
 </pre></div>
 </div>
 <p>would each run 8 replicas, on either 16 or 8 processors.  Note the use
-of the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-in command-line switch</span></a> to specify
+of the <span class="xref std std-ref">-in command-line switch</span> to specify
 the input script which is required when running in multi-replica mode.</p>
 <p>Also note that with MPI installed on a machine (e.g. your desktop),
 you can run on more (virtual) processors than you have physical
@@ -544,7 +522,7 @@ physical processors.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="granular-models">
-<span id="howto-6"></span><h2>6.6. Granular models</h2>
+<span id="howto-6"></span><h2>Granular models</h2>
 <p>Granular system are composed of spherical particles with a diameter,
 as opposed to point particles.  This means they have an angular
 velocity and torque can be imparted to them to cause them to rotate.</p>
@@ -585,7 +563,7 @@ computations between frozen atoms by using this command:</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="tip3p-water-model">
-<span id="howto-7"></span><h2>6.7. TIP3P water model</h2>
+<span id="howto-7"></span><h2>TIP3P water model</h2>
 <p>The TIP3P water model as implemented in CHARMM
 <a class="reference internal" href="#howto-mackerell"><span class="std std-ref">(MacKerell)</span></a> specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
@@ -637,7 +615,7 @@ details:</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="tip4p-water-model">
-<span id="howto-8"></span><h2>6.8. TIP4P water model</h2>
+<span id="howto-8"></span><h2>TIP4P water model</h2>
 <p>The four-point TIP4P rigid water model extends the traditional
 three-point TIP3P model by adding an additional site, usually
 massless, where the charge associated with the oxygen atom is placed.
@@ -733,7 +711,7 @@ and Coulombic cutoffs are set in the <a class="reference internal" href="pair_lj
 <hr class="docutils" />
 </div>
 <div class="section" id="spc-water-model">
-<span id="howto-9"></span><h2>6.9. SPC water model</h2>
+<span id="howto-9"></span><h2>SPC water model</h2>
 <p>The SPC water model specifies a 3-site rigid water molecule with
 charges and Lennard-Jones parameters assigned to each of the 3 atoms.
 In LAMMPS the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> command can be used to hold
@@ -772,7 +750,7 @@ the SPC and SPC/E models.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="coupling-lammps-to-other-codes">
-<span id="howto-10"></span><h2>6.10. Coupling LAMMPS to other codes</h2>
+<span id="howto-10"></span><h2>Coupling LAMMPS to other codes</h2>
 <p>LAMMPS is designed to allow it to be coupled to other codes.  For
 example, a quantum mechanics code might compute forces on a subset of
 atoms and pass those forces to LAMMPS.  Or a continuum finite element
@@ -825,7 +803,7 @@ MD with quantum forces calculated by a density functional code</li>
 a kinetic Monte Carlo model for grain growth using MD to calculate
 strain induced across grain boundaries</li>
 </ul>
-<p><a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">This section</span></a> of the documentation
+<p><span class="xref std std-ref">This section</span> of the documentation
 describes how to build LAMMPS as a library.  Once this is done, you
 can interface with LAMMPS either via C++, C, Fortran, or Python (or
 any other language that supports a vanilla C-like interface).  For
@@ -853,7 +831,7 @@ instances of LAMMPS to perform different calculations.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="visualizing-lammps-snapshots">
-<span id="howto-11"></span><h2>6.11. Visualizing LAMMPS snapshots</h2>
+<span id="howto-11"></span><h2>Visualizing LAMMPS snapshots</h2>
 <p>LAMMPS itself does not do visualization, but snapshots from LAMMPS
 simulations can be visualized (and analyzed) in a variety of ways.</p>
 <p>LAMMPS snapshots are created by the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command which can
@@ -896,7 +874,7 @@ See the <a class="reference internal" href="dump.html"><span class="doc">dump</s
 <hr class="docutils" />
 </div>
 <div class="section" id="triclinic-non-orthogonal-simulation-boxes">
-<span id="howto-12"></span><h2>6.12. Triclinic (non-orthogonal) simulation boxes</h2>
+<span id="howto-12"></span><h2>Triclinic (non-orthogonal) simulation boxes</h2>
 <p>By default, LAMMPS uses an orthogonal simulation box to encompass the
 particles.  The <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command sets the boundary
 conditions of the box (periodic, non-periodic, etc).  The orthogonal
@@ -1074,7 +1052,7 @@ on non-equilibrium MD (NEMD) simulations.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="nemd-simulations">
-<span id="howto-13"></span><h2>6.13. NEMD simulations</h2>
+<span id="howto-13"></span><h2>NEMD simulations</h2>
 <p>Non-equilibrium molecular dynamics or NEMD simulations are typically
 used to measure a fluid&#8217;s rheological properties such as viscosity.
 In LAMMPS, such simulations can be performed by first setting up a
@@ -1104,7 +1082,7 @@ profile consistent with the applied shear strain rate.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="finite-size-spherical-and-aspherical-particles">
-<span id="howto-14"></span><h2>6.14. Finite-size spherical and aspherical particles</h2>
+<span id="howto-14"></span><h2>Finite-size spherical and aspherical particles</h2>
 <p>Typical MD models treat atoms or particles as point masses.  Sometimes
 it is desirable to have a model with finite-size particles such as
 spheroids or ellipsoids or generalized aspherical bodies.  The
@@ -1124,7 +1102,7 @@ particles.  The following aspects are discussed in turn:</p>
 colloid, dipole, ellipse, line, peri, pour, and tri directories of the
 <a class="reference internal" href="Section_example.html"><span class="doc">examples directory</span></a> in the LAMMPS distribution.</p>
 <div class="section" id="atom-styles">
-<h3>6.14.1. Atom styles</h3>
+<h3>Atom styles</h3>
 <p>There are several <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a> that allow for
 definition of finite-size particles: sphere, dipole, ellipsoid, line,
 tri, peri, and body.</p>
@@ -1194,7 +1172,7 @@ object.  When temperature is computed, the correct degrees of freedom
 are used for rotation in a 2d versus 3d system.</p>
 </div>
 <div class="section" id="pair-potentials">
-<h3>6.14.2. Pair potentials</h3>
+<h3>Pair potentials</h3>
 <p>When a system with finite-size particles is defined, the particles
 will only rotate and experience torque if the force field computes
 such interactions.  These are the various <a class="reference internal" href="pair_style.html"><span class="doc">pair styles</span></a> that generate torque:</p>
@@ -1221,7 +1199,7 @@ The line, tri, and body potentials are used with line segment,
 triangular, and body particles respectively.</p>
 </div>
 <div class="section" id="time-integration">
-<h3>6.14.3. Time integration</h3>
+<h3>Time integration</h3>
 <p>There are several fixes that perform time integration on finite-size
 spherical particles, meaning the integrators update the rotational
 orientation and angular velocity or angular momentum of the particles:</p>
@@ -1256,7 +1234,7 @@ integration fixes can only be used with <a class="reference internal" href="grou
 contain finite-size particles.</p>
 </div>
 <div class="section" id="computes-thermodynamics-and-dump-output">
-<h3>6.14.4. Computes, thermodynamics, and dump output</h3>
+<h3>Computes, thermodynamics, and dump output</h3>
 <p>There are several computes that calculate the temperature or
 rotational energy of spherical or ellipsoidal particles:</p>
 <ul class="simple">
@@ -1287,7 +1265,7 @@ corner-point coordinates (for line and tri particles), and
 sub-particle attributes of body particles.</p>
 </div>
 <div class="section" id="rigid-bodies-composed-of-finite-size-particles">
-<h3>6.14.5. Rigid bodies composed of finite-size particles</h3>
+<h3>Rigid bodies composed of finite-size particles</h3>
 <p>The <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command treats a collection of
 particles as a rigid body, computes its inertia tensor, sums the total
 force and torque on the rigid body each timestep due to forces on its
@@ -1316,7 +1294,7 @@ particles are computed via a command like <a class="reference internal" href="pa
 </div>
 </div>
 <div class="section" id="output-from-lammps-thermo-dumps-computes-fixes-variables">
-<span id="howto-15"></span><h2>6.15. Output from LAMMPS (thermo, dumps, computes, fixes, variables)</h2>
+<span id="howto-15"></span><h2>Output from LAMMPS (thermo, dumps, computes, fixes, variables)</h2>
 <p>There are four basic kinds of LAMMPS output:</p>
 <ul class="simple">
 <li><a class="reference internal" href="thermo_style.html"><span class="doc">Thermodynamic output</span></a>, which is a list
@@ -1353,7 +1331,7 @@ to output and the kind of data they operate on and produce:</p>
 <li><a class="reference internal" href="#table"><span class="std std-ref">Summary table of output options and data flow between commands</span></a></li>
 </ul>
 <div class="section" id="global-per-atom-local-data">
-<span id="global"></span><h3>6.15.1. Global/per-atom/local data</h3>
+<span id="global"></span><h3>Global/per-atom/local data</h3>
 <p>Various output-related commands work with three different styles of
 data: global, per-atom, or local.  A global datum is one or more
 system-wide values, e.g. the temperature of the system.  A per-atom
@@ -1363,7 +1341,7 @@ atoms it owns, but there may be zero or more per atom, e.g. a list of
 bond distances.</p>
 </div>
 <div class="section" id="scalar-vector-array-data">
-<span id="scalar"></span><h3>6.15.2. Scalar/vector/array data</h3>
+<span id="scalar"></span><h3>Scalar/vector/array data</h3>
 <p>Global, per-atom, and local datums can each come in three kinds: a
 single scalar value, a vector of values, or a 2d array of values.  The
 doc page for a &#8220;compute&#8221; or &#8220;fix&#8221; or &#8220;variable&#8221; that generates data
@@ -1397,7 +1375,7 @@ scalar values as input can typically also process elements of a vector
 or array.</p>
 </div>
 <div class="section" id="thermodynamic-output">
-<span id="thermo"></span><h3>6.15.3. Thermodynamic output</h3>
+<span id="thermo"></span><h3>Thermodynamic output</h3>
 <p>The frequency and format of thermodynamic output is set by the
 <a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a>, <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>, and
 <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a> commands.  The
@@ -1421,7 +1399,7 @@ formula if desired, to make an extensive calculation produce an
 intensive result.</p>
 </div>
 <div class="section" id="dump-file-output">
-<span id="dump"></span><h3>6.15.4. Dump file output</h3>
+<span id="dump"></span><h3>Dump file output</h3>
 <p>Dump file output is specified by the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> and
 <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> commands.  There are several
 pre-defined formats (dump atom, dump xtc, etc).</p>
@@ -1442,7 +1420,7 @@ must generate local values for input to the <a class="reference internal" href="
 command.</p>
 </div>
 <div class="section" id="fixes-that-write-output-files">
-<span id="fixoutput"></span><h3>6.15.5. Fixes that write output files</h3>
+<span id="fixoutput"></span><h3>Fixes that write output files</h3>
 <p>Several fixes take various quantities as input and can write output
 files: <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>, <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, <a class="reference internal" href="fix_ave_histo.html"><span class="doc">fix ave/histo</span></a>,
 <a class="reference internal" href="fix_ave_correlate.html"><span class="doc">fix ave/correlate</span></a>, and <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a>.</p>
@@ -1488,7 +1466,7 @@ command is a means to output a wide variety of quantities separate
 from normal thermodynamic or dump file output.</p>
 </div>
 <div class="section" id="computes-that-process-output-quantities">
-<span id="computeoutput"></span><h3>6.15.6. Computes that process output quantities</h3>
+<span id="computeoutput"></span><h3>Computes that process output quantities</h3>
 <p>The <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> and <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce/region</span></a> commands take one or more per-atom
 or local vector quantities as inputs and &#8220;reduce&#8221; them (sum, min, max,
 ave) to scalar quantities.  These are produced as output values which
@@ -1509,7 +1487,7 @@ are produced as output values which can be used as input to other
 output commands.</p>
 </div>
 <div class="section" id="fixes-that-process-output-quantities">
-<span id="fixprocoutput"></span><h3>6.15.7. Fixes that process output quantities</h3>
+<span id="fixprocoutput"></span><h3>Fixes that process output quantities</h3>
 <p>The <a class="reference internal" href="fix_vector.html"><span class="doc">fix vector</span></a> command can create global vectors as
 output from global scalars as input, accumulating them one element at
 a time.</p>
@@ -1529,7 +1507,7 @@ by a <a class="reference internal" href="fix.html"><span class="doc">fix</span><
 The output of this fix can be used as input to other output commands.</p>
 </div>
 <div class="section" id="computes-that-generate-values-to-output">
-<span id="compute"></span><h3>6.15.8. Computes that generate values to output</h3>
+<span id="compute"></span><h3>Computes that generate values to output</h3>
 <p>Every <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> in LAMMPS produces either global or
 per-atom or local values.  The values can be scalars or vectors or
 arrays of data.  These values can be output using the other commands
@@ -1539,7 +1517,7 @@ values have the word &#8220;atom&#8221; or &#8220;local&#8221; in their style na
 without the word &#8220;atom&#8221; or &#8220;local&#8221; produce global values.</p>
 </div>
 <div class="section" id="fixes-that-generate-values-to-output">
-<span id="fix"></span><h3>6.15.9. Fixes that generate values to output</h3>
+<span id="fix"></span><h3>Fixes that generate values to output</h3>
 <p>Some <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> in LAMMPS produces either global or per-atom or
 local values which can be accessed by other commands.  The values can
 be scalars or vectors or arrays of data.  These values can be output
@@ -1548,7 +1526,7 @@ each fix command tells whether it produces any output quantities and
 describes them.</p>
 </div>
 <div class="section" id="variables-that-generate-values-to-output">
-<span id="variable"></span><h3>6.15.10. Variables that generate values to output</h3>
+<span id="variable"></span><h3>Variables that generate values to output</h3>
 <p><a class="reference internal" href="variable.html"><span class="doc">Variables</span></a> defined in an input script can store one or
 more strings.  But equal-style, vector-style, and atom-style or
 atomfile-style variables generate a global scalar value, global vector
@@ -1560,7 +1538,7 @@ variables can be used as input to and thus output by the other
 commands described in this section.</p>
 </div>
 <div class="section" id="summary-table-of-output-options-and-data-flow-between-commands">
-<span id="table"></span><h3>6.15.11. Summary table of output options and data flow between commands</h3>
+<span id="table"></span><h3>Summary table of output options and data flow between commands</h3>
 <p>This table summarizes the various commands that can be used for
 generating output from LAMMPS.  Each command produces output data of
 some kind and/or writes data to a file.  Most of the commands can take
@@ -1666,7 +1644,7 @@ vector input could be a column of an array.</p>
 </div>
 </div>
 <div class="section" id="thermostatting-barostatting-and-computing-temperature">
-<span id="howto-16"></span><h2>6.16. Thermostatting, barostatting, and computing temperature</h2>
+<span id="howto-16"></span><h2>Thermostatting, barostatting, and computing temperature</h2>
 <p>Thermostatting means controlling the temperature of particles in an MD
 simulation.  Barostatting means controlling the pressure.  Since the
 pressure includes a kinetic component due to particle velocities, both
@@ -1801,7 +1779,7 @@ thermodynamic output.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="walls">
-<span id="howto-17"></span><h2>6.17. Walls</h2>
+<span id="howto-17"></span><h2>Walls</h2>
 <p>Walls in an MD simulation are typically used to bound particle motion,
 i.e. to serve as a boundary condition.</p>
 <p>Walls in LAMMPS can be of rough (made of particles) or idealized
@@ -1865,7 +1843,7 @@ frictional walls, as well as triangulated surfaces.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="elastic-constants">
-<span id="howto-18"></span><h2>6.18. Elastic constants</h2>
+<span id="howto-18"></span><h2>Elastic constants</h2>
 <p>Elastic constants characterize the stiffness of a material. The formal
 definition is provided by the linear relation that holds between the
 stress and strain tensors in the limit of infinitesimal deformation.
@@ -1897,8 +1875,8 @@ converge and requires careful post-processing <a class="reference internal" href
 <hr class="docutils" />
 </div>
 <div class="section" id="library-interface-to-lammps">
-<span id="howto-19"></span><h2>6.19. Library interface to LAMMPS</h2>
-<p>As described in <a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">Section_start 5</span></a>, LAMMPS
+<span id="howto-19"></span><h2>Library interface to LAMMPS</h2>
+<p>As described in <span class="xref std std-ref">Section_start 5</span>, LAMMPS
 can be built as a library, so that it can be called by another code,
 used in a <a class="reference internal" href="#howto-10"><span class="std std-ref">coupled manner</span></a> with other
 codes, or driven through a <a class="reference internal" href="Section_python.html"><span class="doc">Python interface</span></a>.</p>
@@ -1919,7 +1897,7 @@ application.</p>
 </pre></div>
 </div>
 <p>The lammps_open() function is used to initialize LAMMPS, passing in a
-list of strings as if they were <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line arguments</span></a> when LAMMPS is run in
+list of strings as if they were <span class="xref std std-ref">command-line arguments</span> when LAMMPS is run in
 stand-alone mode from the command line, and a MPI communicator for
 LAMMPS to run under.  It returns a ptr to the LAMMPS object that is
 created, and which is used in subsequent library calls.  The
@@ -1980,7 +1958,7 @@ LAMMPS.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="calculating-thermal-conductivity">
-<span id="howto-20"></span><h2>6.20. Calculating thermal conductivity</h2>
+<span id="howto-20"></span><h2>Calculating thermal conductivity</h2>
 <p>The thermal conductivity kappa of a material can be measured in at
 least 4 ways using various options in LAMMPS.  See the examples/KAPPA
 directory for scripts that implement the 4 methods discussed here for
@@ -2036,7 +2014,7 @@ formalism.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="calculating-viscosity">
-<span id="howto-21"></span><h2>6.21. Calculating viscosity</h2>
+<span id="howto-21"></span><h2>Calculating viscosity</h2>
 <p>The shear viscosity eta of a fluid can be measured in at least 5 ways
 using various options in LAMMPS.  See the examples/VISCOSITY directory
 for scripts that implement the 5 methods discussed here for a simple
@@ -2163,7 +2141,7 @@ with time at sufficiently long times.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="calculating-a-diffusion-coefficient">
-<span id="howto-22"></span><h2>6.22. Calculating a diffusion coefficient</h2>
+<span id="howto-22"></span><h2>Calculating a diffusion coefficient</h2>
 <p>The diffusion coefficient D of a material can be measured in at least
 2 ways using various options in LAMMPS.  See the examples/DIFFUSE
 directory for scripts that implement the 2 methods discussed here for
@@ -2185,7 +2163,7 @@ and thus extract D.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="using-chunks-to-calculate-system-properties">
-<span id="howto-23"></span><h2>6.23. Using chunks to calculate system properties</h2>
+<span id="howto-23"></span><h2>Using chunks to calculate system properties</h2>
 <p>In LAMMS, &#8220;chunks&#8221; are collections of atoms, as defined by the
 <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command, which assigns
 each atom to a chunk ID (or to no chunk at all).  The number of chunks
@@ -2202,7 +2180,7 @@ commands, to calculate various properties of a system:</p>
 overviewed.  Then some examples are given of how to compute different
 properties with chunk commands.</p>
 <div class="section" id="compute-chunk-atom-command">
-<h3>6.23.1. Compute chunk/atom command:</h3>
+<h3>Compute chunk/atom command:</h3>
 <p>This compute can assign atoms to chunks of various styles.  Only atoms
 in the specified group and optional specified region are assigned to a
 chunk.  Here are some possible chunk definitions:</p>
@@ -2260,7 +2238,7 @@ the input script that uses a formula to generate a chunk ID for each
 atom.</p>
 </div>
 <div class="section" id="fix-ave-chunk-command">
-<h3>6.23.2. Fix ave/chunk command:</h3>
+<h3>Fix ave/chunk command:</h3>
 <p>This fix takes the ID of a <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command as input.  For each chunk,
 it then sums one or more specified per-atom values over the atoms in
 each chunk.  The per-atom values can be any atom property, such as
@@ -2274,7 +2252,7 @@ fix produces a global array as output with one row of values per
 chunk.</p>
 </div>
 <div class="section" id="compute-chunk-commands">
-<h3>6.23.3. Compute <a href="#id71"><span class="problematic" id="id72">*</span></a>/chunk commands:</h3>
+<h3>Compute <a href="#id71"><span class="problematic" id="id72">*</span></a>/chunk commands:</h3>
 <p>Currently the following computes operate on chunks of atoms to produce
 per-chunk values.</p>
 <ul class="simple">
@@ -2311,7 +2289,7 @@ largest cluster or fastest diffusing molecule.</li>
 </ul>
 </div>
 <div class="section" id="example-calculations-with-chunks">
-<h3>6.23.4. Example calculations with chunks</h3>
+<h3>Example calculations with chunks</h3>
 <p>Here are eaxmples using chunk commands to calculate various
 properties:</p>
 <ol class="arabic simple">
@@ -2360,7 +2338,7 @@ thermo_style custom step temp v_xave v_xmax
 </div>
 </div>
 <div class="section" id="setting-parameters-for-the-kspace-style-pppm-disp-command">
-<span id="howto-24"></span><h2>6.24. Setting parameters for the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm/disp</span></a> command</h2>
+<span id="howto-24"></span><h2>Setting parameters for the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm/disp</span></a> command</h2>
 <p>The PPPM method computes interactions by splitting the pair potential
 into two parts, one of which is computed in a normal pairwise fashion,
 the so-called real-space part, and one of which is computed using the
@@ -2453,7 +2431,7 @@ to specify this command explicitly.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="polarizable-models">
-<span id="howto-25"></span><h2>6.25. Polarizable models</h2>
+<span id="howto-25"></span><h2>Polarizable models</h2>
 <p>In polarizable force fields the charge distributions in molecules and
 materials respond to their electrostatic environements. Polarizable
 systems can be simulated in LAMMPS using three methods:</p>
@@ -2523,7 +2501,7 @@ well.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="adiabatic-core-shell-model">
-<span id="howto-26"></span><h2>6.26. Adiabatic core/shell model</h2>
+<span id="howto-26"></span><h2>Adiabatic core/shell model</h2>
 <p>The adiabatic core-shell model by <a class="reference internal" href="pair_cs.html#mitchellfinchham"><span class="std std-ref">Mitchell and Finchham</span></a> is a simple method for adding
 polarizability to a system.  In order to mimic the electron shell of
 an ion, a satellite particle is attached to it. This way the ions are
@@ -2728,7 +2706,7 @@ pairs as chunks.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="drude-induced-dipoles">
-<span id="howto-27"></span><h2>6.27. Drude induced dipoles</h2>
+<span id="howto-27"></span><h2>Drude induced dipoles</h2>
 <p>The thermalized Drude model, similarly to the <a class="reference internal" href="#howto-26"><span class="std std-ref">core-shell</span></a>
 model, representes induced dipoles by a pair of charges (the core atom
 and the Drude particle) connected by a harmonic spring. The Drude
@@ -2806,15 +2784,6 @@ Phys, 79, 926 (1983).</p>
            </div>
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="Section_example.html" class="btn btn-neutral float-right" title="7. Example problems" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Section_accelerate.html" class="btn btn-neutral" title="5. Accelerating LAMMPS performance" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

@@ -58,6 +58,9 @@ class FixBondCreate : public Fix {
   int overflow;
   tagint lastcheck;
 
+  // type detector classes for inferring type from constituing atom types
+  class TypeDetector *angle_detector, *dihedral_detector, *improper_detector;
+
   int *bondcount;
   int createcount,createcounttotal;
   int nmax;

@@ -273,7 +273,7 @@ void FixBondCreate::init()
   if ((atype || angle_detector) && force->angle) {
     angleflag = 1;
     if (angle_detector) {
-      if (angle_detector->check_types(atom->nangletypes,atom->ntypes))
+      if (!angle_detector->check_types(atom->nangletypes,atom->ntypes))
         error->all(FLERR,"Fix bond/create angle type map is invalid");
     } else {
       if (atype > atom->nangletypes)
@@ -284,7 +284,7 @@ void FixBondCreate::init()
   if ((dtype || dihedral_detector) && force->dihedral) {
     dihedralflag = 1;
     if (dihedral_detector) {
-      if (dihedral_detector->check_types(atom->ndihedraltypes,atom->ntypes))
+      if (!dihedral_detector->check_types(atom->ndihedraltypes,atom->ntypes))
         error->all(FLERR,"Fix bond/create dihedral type map is invalid");
     } else {
       if (dtype > atom->ndihedraltypes)
@@ -295,7 +295,7 @@ void FixBondCreate::init()
   if ((itype || improper_detector) && force->improper) {
     improperflag = 1;
     if (improper_detector) {
-      if (improper_detector->check_types(atom->nimpropertypes,atom->ntypes))
+      if (!improper_detector->check_types(atom->nimpropertypes,atom->ntypes))
         error->all(FLERR,"Fix bond/create improper type map is invalid");
     } else {
       if (itype > atom->nimpropertypes)
@@ -890,8 +890,7 @@ void FixBondCreate::create_angles(int m)
         ang_type[0] = type[atom->map(i1)];
         ang_type[1] = type[atom->map(i2)];
         ang_type[2] = type[atom->map(i3)];
-        atype = angle_detector->get(ang_type);
-        delete[] ang_type;
+        atype = angle_detector->get(ang_type);        
       }
 
       // NOTE: this is place to check atom types of i1,i2,i3, and angle type
@@ -907,6 +906,7 @@ void FixBondCreate::create_angles(int m)
     }
   }
 
+  if (angle_detector) delete[] ang_type;
   atom->num_angle[m] = num_angle;
   if (force->newton_bond) return;
 
@@ -1029,8 +1029,7 @@ void FixBondCreate::create_dihedrals(int m)
             dih_type[1] = type[atom->map(i2)];
             dih_type[2] = type[atom->map(i3)];
             dih_type[3] = type[atom->map(i4)];
-            dtype = dihedral_detector->get(dih_type);
-            delete[] dih_type;
+            dtype = dihedral_detector->get(dih_type);            
           }
           // NOTE: this is place to check atom types of i3,i2,i1,i4 and dtype
           if (num_dihedral < atom->dihedral_per_atom) {
@@ -1088,7 +1087,8 @@ void FixBondCreate::create_dihedrals(int m)
       }
     }
   }
-
+  
+  if (dihedral_detector) delete[] dih_type;
   atom->num_dihedral[m] = num_dihedral;
   if (force->newton_bond) return;
 
@@ -1210,7 +1210,6 @@ void FixBondCreate::create_impropers(int m)
           imp_type[2] = type[atom->map(i3)];
           imp_type[3] = type[atom->map(i4)];
           itype = improper_detector->get(imp_type);
-          delete[] imp_type;
         }
         
         // NOTE: this is place to check atom types of i1,i2,i3,i4 and itype
@@ -1227,7 +1226,8 @@ void FixBondCreate::create_impropers(int m)
       }
     }
   }
-
+  
+  if (improper_detector) delete[] imp_type;
   atom->num_improper[m] = num_improper;
   if (force->newton_bond) return;
 

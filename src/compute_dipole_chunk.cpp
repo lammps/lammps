@@ -30,7 +30,9 @@ enum { MASSCENTER, GEOMCENTER };
 /* ---------------------------------------------------------------------- */
 
 ComputeDipoleChunk::ComputeDipoleChunk(LAMMPS *lmp, int narg, char **arg) : 
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idchunk(NULL), massproc(NULL), masstotal(NULL), chrgproc(NULL), chrgtotal(NULL), com(NULL),
+  comall(NULL), dipole(NULL), dipoleall(NULL)
 {
   if ((narg != 4) && (narg != 5)) error->all(FLERR,"Illegal compute dipole/chunk command");
 
@@ -60,10 +62,6 @@ ComputeDipoleChunk::ComputeDipoleChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  massproc = masstotal = NULL;
-  chrgproc = chrgtotal = NULL;
-  com = comall = NULL;
-  dipole = dipoleall = NULL;
   allocate();
 }
 

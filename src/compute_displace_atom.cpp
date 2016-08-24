@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_fix(NULL), displace(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute displace/atom command");
 
@@ -76,7 +77,6 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // per-atom displacement array
 
   nmax = 0;
-  displace = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

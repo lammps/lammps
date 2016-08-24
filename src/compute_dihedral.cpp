@@ -24,7 +24,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDihedral::ComputeDihedral(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  emine(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute dihedral command");
 

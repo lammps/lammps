@@ -35,7 +35,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  vector(NULL), array(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute improper/local command");
 
@@ -57,8 +58,6 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

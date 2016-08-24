@@ -354,21 +354,6 @@ bool colvarparse::get_keyval(std::string const &conf,
 }
 
 
-bool colvarparse::get_keyval(std::string const &conf,
-                             char const *key,
-                             colvardeps::feature_state *value,
-                             bool const &def_value,
-                             Parse_Mode const parse_mode)
-{
-  bool feature_flag = def_value;
-  bool const b_found = get_keyval(conf, key, feature_flag, def_value, parse_mode);
-  if (feature_flag) {
-    value->object()->enable(value->feature_id());
-  }
-  return b_found;
-}
-
-
 // multiple-value keyword parsers
 
 bool colvarparse::get_keyval(std::string const &conf,

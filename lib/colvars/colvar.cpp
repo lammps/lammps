@@ -374,10 +374,19 @@ colvar::colvar(std::string const &conf)
   }
 
   {
-    bool b_output_system_force;
-    get_keyval(conf, "outputSystemForce", b_output_system_force, false);
-    if (b_output_system_force) {
-      enable(f_cv_output_system_force);
+    bool temp;
+    if (get_keyval(conf, "outputSystemForce", temp, false)) {
+      cvm::error("Colvar option outputSystemForce is deprecated.\n"
+        "Please use outputTotalForce, or outputSystemForce within an ABF bias.");
+      return;
+    }
+  }
+
+  {
+    bool b_output_total_force;
+    get_keyval(conf, "outputTotalForce", b_output_total_force, false);
+    if (b_output_total_force) {
+      enable(f_cv_output_total_force);
     }
   }
 
@@ -555,8 +564,8 @@ int colvar::init_components(std::string const &conf)
 int colvar::refresh_deps()
 {
   // If enabled features are changed upstream, the features below should be refreshed
-  if (is_enabled(f_cv_system_force_calc)) {
-    cvm::request_system_force();
+  if (is_enabled(f_cv_total_force_calc)) {
+    cvm::request_total_force();
   }
   if (is_enabled(f_cv_collect_gradient) && atom_ids.size() == 0) {
     build_atom_list();
@@ -762,7 +771,7 @@ int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
 
   error_code |= calc_cvc_values(first_cvc, num_cvcs);
   error_code |= calc_cvc_gradients(first_cvc, num_cvcs);
-  error_code |= calc_cvc_sys_forces(first_cvc, num_cvcs);
+  error_code |= calc_cvc_total_force(first_cvc, num_cvcs);
   error_code |= calc_cvc_Jacobians(first_cvc, num_cvcs);
 
   if (cvm::debug())
@@ -781,7 +790,7 @@ int colvar::collect_cvc_data()
 
   error_code |= collect_cvc_values();
   error_code |= collect_cvc_gradients();
-  error_code |= collect_cvc_sys_forces();
+  error_code |= collect_cvc_total_forces();
   error_code |= collect_cvc_Jacobians();
   error_code |= calc_colvar_properties();
 
@@ -880,21 +889,22 @@ int colvar::calc_cvc_gradients(int first_cvc, size_t num_cvcs)
   size_t const cvc_max_count = num_cvcs ? num_cvcs : num_active_cvcs();
   size_t i, cvc_count;
 
-  if (is_enabled(f_cv_gradient)) {
+  if (cvm::debug())
+    cvm::log("Calculating gradients of colvar \""+this->name+"\".\n");
 
-    if (cvm::debug())
-      cvm::log("Calculating gradients of colvar \""+this->name+"\".\n");
+  // calculate the gradients of each component
+  cvm::increase_depth();
+  for (i = first_cvc, cvc_count = 0;
+      (i < cvcs.size()) && (cvc_count < cvc_max_count);
+      i++) {
+    if (!cvcs[i]->is_enabled()) continue;
+    cvc_count++;
 
-    // calculate the gradients of each component
-    cvm::increase_depth();
-    for (i = first_cvc, cvc_count = 0;
-        (i < cvcs.size()) && (cvc_count < cvc_max_count);
-        i++) {
-      if (!cvcs[i]->is_enabled()) continue;
-      cvc_count++;
+    if ((cvcs[i])->is_enabled(f_cvc_gradient)) {
       (cvcs[i])->calc_gradients();
       // if requested, propagate (via chain rule) the gradients above
       // to the atoms used to define the roto-translation
+      // This could be integrated in the CVC base class
       for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
         if (cvcs[i]->atom_groups[ig]->b_fit_gradients)
           cvcs[i]->atom_groups[ig]->calc_fit_gradients();
@@ -905,6 +915,7 @@ int colvar::calc_cvc_gradients(int first_cvc, size_t num_cvcs)
         }
       }
     }
+
     cvm::decrease_depth();
 
     if (cvm::debug())
@@ -967,22 +978,22 @@ int colvar::collect_cvc_gradients()
 }
 
 
-int colvar::calc_cvc_sys_forces(int first_cvc, size_t num_cvcs)
+int colvar::calc_cvc_total_force(int first_cvc, size_t num_cvcs)
 {
   size_t const cvc_max_count = num_cvcs ? num_cvcs : num_active_cvcs();
   size_t i, cvc_count;
 
-  if (is_enabled(f_cv_system_force_calc)) {
+  if (is_enabled(f_cv_total_force_calc)) {
     if (cvm::debug())
-      cvm::log("Calculating system force of colvar \""+this->name+"\".\n");
+      cvm::log("Calculating total force of colvar \""+this->name+"\".\n");
 
     // if (!tasks[task_extended_lagrangian] && (cvm::step_relative() > 0)) {
-   // Disabled check to allow for explicit system force calculation
+   // Disabled check to allow for explicit total force calculation
     // even with extended Lagrangian
 
     if (cvm::step_relative() > 0) {
       cvm::increase_depth();
-      // get from the cvcs the system forces from the PREVIOUS step
+      // get from the cvcs the total forces from the PREVIOUS step
       for (i = first_cvc, cvc_count = 0;
           (i < cvcs.size()) && (cvc_count < cvc_max_count);
           i++) {
@@ -994,29 +1005,29 @@ int colvar::calc_cvc_sys_forces(int first_cvc, size_t num_cvcs)
     }
 
     if (cvm::debug())
-      cvm::log("Done calculating system force of colvar \""+this->name+"\".\n");
+      cvm::log("Done calculating total force of colvar \""+this->name+"\".\n");
   }
 
   return COLVARS_OK;
 }
 
 
-int colvar::collect_cvc_sys_forces()
+int colvar::collect_cvc_total_forces()
 {
-  if (is_enabled(f_cv_system_force_calc)) {
+  if (is_enabled(f_cv_total_force_calc)) {
     ft.reset();
 
     if (cvm::step_relative() > 0) {
-      // get from the cvcs the system forces from the PREVIOUS step
+      // get from the cvcs the total forces from the PREVIOUS step
       for (size_t i = 0; i < cvcs.size();  i++) {
         if (!cvcs[i]->is_enabled()) continue;
         // linear combination is assumed
-        ft += (cvcs[i])->system_force() * (cvcs[i])->sup_coeff / active_cvc_square_norm;
+        ft += (cvcs[i])->total_force() * (cvcs[i])->sup_coeff / active_cvc_square_norm;
       }
     }
 
     if (!is_enabled(f_cv_hide_Jacobian)) {
-      // add the Jacobian force to the system force, and don't apply any silent
+      // add the Jacobian force to the total force, and don't apply any silent
       // correction internally: biases such as colvarbias_abf will handle it
       ft += fj;
     }
@@ -1088,10 +1099,8 @@ int colvar::calc_colvar_properties()
     // report the restraint center as "value"
     x_reported = xr;
     v_reported = vr;
-    // the "system force" with the extended Lagrangian is just the
-    // harmonic term acting on the extended coordinate
-    // Note: this is the force for current timestep
-    ft_reported = (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
+    // the "total force" with the extended Lagrangian is
+    // calculated in update_forces_energy() below
 
   } else {
 
@@ -1117,7 +1126,7 @@ cvm::real colvar::update_forces_energy()
   f += fb;
 
   if (is_enabled(f_cv_Jacobian)) {
-    // the instantaneous Jacobian force was not included in the reported system force;
+    // the instantaneous Jacobian force was not included in the reported total force;
     // instead, it is subtracted from the applied force (silent Jacobian correction)
     if (is_enabled(f_cv_hide_Jacobian))
       f -= fj;
@@ -1166,13 +1175,17 @@ cvm::real colvar::update_forces_energy()
 
     // the total force is applied to the fictitious mass, while the
     // atoms only feel the harmonic force
-    // fr: bias force on extended coordinate (without harmonic spring), for output in trajectory
-    // f_ext: total force on extended coordinate (including harmonic spring)
+    // fr: bias force on extended variable (without harmonic spring), for output in trajectory
+    // f_ext: total force on extended variable (including harmonic spring)
     // f: - initially, external biasing force
     //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
     fr    = f;
     f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
     f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
+
+    // The total force acting on the extended variable is f_ext
+    // This will be used in the next timestep
+    ft_reported = f_ext;
 
     // leapfrog: starting from x_i, f_i, v_(i-1/2)
     vr  += (0.5 * dt) * f_ext / ext_mass;
@@ -1482,7 +1495,7 @@ std::istream & colvar::read_traj(std::istream &is)
     }
   }
 
-  if (is_enabled(f_cv_output_system_force)) {
+  if (is_enabled(f_cv_output_total_force)) {
     is >> ft;
     ft_reported = ft;
   }
@@ -1567,8 +1580,8 @@ std::ostream & colvar::write_traj_label(std::ostream & os)
        << cvm::wrap_string(this->name, this_cv_width-3);
   }
 
-  if (is_enabled(f_cv_output_system_force)) {
-    os << " fs_"
+  if (is_enabled(f_cv_output_total_force)) {
+    os << " ft_"
        << cvm::wrap_string(this->name, this_cv_width-3);
   }
 
@@ -1620,7 +1633,7 @@ std::ostream & colvar::write_traj(std::ostream &os)
   }
 
 
-  if (is_enabled(f_cv_output_system_force)) {
+  if (is_enabled(f_cv_output_total_force)) {
     os << " "
        << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
        << ft_reported;

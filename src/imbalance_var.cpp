@@ -59,8 +59,9 @@ void ImbalanceVar::compute(double *weight)
 {
   if (_id >= 0) {
     const int all = _lmp->group->find("all");
-    const int nlocal = _lmp->atom->nlocal;
+    if (all < 0) return;
 
+    const int nlocal = _lmp->atom->nlocal;
     double *val = new double[nlocal];
     _lmp->input->variable->compute_atom(_id,all,val,1,0);
     for (int i = 0; i < nlocal; ++i) weight[i] *= val[i];

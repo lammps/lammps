@@ -805,6 +805,19 @@ int Variable::internalstyle(int ivar)
 }
 
 /* ----------------------------------------------------------------------
+   return 1 if variable is INDEX or WORLD or STRING or SCALARFILE, 0 if not
+   this is used to discriminate between variables that return a pointer to
+   the stored string and others that do evaluations or return numbers.
+------------------------------------------------------------------------- */
+
+int Variable::stringstyle(int ivar)
+{
+  if (style[ivar] == INDEX || style[ivar] == WORLD
+      || style[ivar] == STRING || style[ivar] == SCALARFILE) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    return ptr to the data text associated with a variable
    if INDEX or WORLD or UNIVERSE or STRING or SCALARFILE,
      return ptr to stored string
@@ -898,7 +911,7 @@ double Variable::compute_equal(int ivar)
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
-  double value;
+  double value = 0.0;
   if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],NULL);
   else if (style[ivar] == INTERNAL) value = dvalue[ivar];
   else if (style[ivar] == PYTHON) {

@@ -203,14 +203,14 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == X || which[i] == V || which[i] == F) kindflag = PERATOM;
     else if (which[i] == COMPUTE) {
-      Compute *compute = modify->compute[modify->find_compute(ids[0])];
+      Compute *compute = modify->compute[modify->find_compute(ids[i])];
       if (compute->scalar_flag || compute->vector_flag || compute->array_flag)
         kindflag = GLOBAL;
       else if (compute->peratom_flag) kindflag = PERATOM;
       else if (compute->local_flag) kindflag = LOCAL;
       else error->all(FLERR,"Fix ave/histo input is invalid compute");
     } else if (which[i] == FIX) {
-      Fix *fix = modify->fix[modify->find_fix(ids[0])];
+      Fix *fix = modify->fix[modify->find_fix(ids[i])];
       if (fix->scalar_flag || fix->vector_flag || fix->array_flag)
         kindflag = GLOBAL;
       else if (fix->peratom_flag) kindflag = PERATOM;

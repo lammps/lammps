@@ -71,6 +71,7 @@ class Dump : protected Pointers {
   int buffer_allow;          // 1 if style allows for buffer_flag, 0 if not
   int buffer_flag;           // 1 if buffer output as one big string, 0 if not
   int padflag;               // timestep padding in filename
+  int pbcflag;               // 1 if remap dumped atoms via PBC, 0 if not
   int singlefile_opened;     // 1 = one big file, already opened, else 0
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1
@@ -116,6 +117,10 @@ class Dump : protected Pointers {
   tagint *idsort;
   int *index,*proclist;
 
+  double **xpbc,**vpbc;
+  imageint *imagepbc;
+  int maxpbc;
+
   class Irregular *irregular;
 
   virtual void init_style() = 0;
@@ -126,7 +131,8 @@ class Dump : protected Pointers {
   virtual void pack(tagint *) = 0;
   virtual int convert_string(int, double *) {return 0;}
   virtual void write_data(int, double *) = 0;
-
+  void pbc_allocate();
+    
   void sort();
   static int idcompare(const void *, const void *);
   static int bufcompare(const void *, const void *);

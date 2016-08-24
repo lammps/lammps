@@ -248,7 +248,7 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if (subcmd == "getsystemforce") {
-    result = (cv->system_force()).to_simple_string();
+    result = (cv->total_force()).to_simple_string();
     return COLVARS_OK;
   }
 
@@ -333,6 +333,11 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
 
   if (subcmd == "getconfig") {
     result = b->get_config();
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "state") {
+    b->print_state();
     return COLVARS_OK;
   }
 

@@ -1,4 +1,3 @@
-#include "colvarmodule.h"
 #include "colvardeps.h"
 
 
@@ -30,6 +29,18 @@ void colvardeps::provide(int feature_id) {
 }
 
 
+bool colvardeps::get_keyval_feature(colvarparse *cvp,
+                        std::string const &conf, char const *key,
+                        int feature_id, bool const &def_value,
+                        colvarparse::Parse_Mode const parse_mode)
+{
+  bool value;
+  bool const found = cvp->get_keyval(conf, key, value, def_value, parse_mode);
+  if (value) enable(feature_id);
+  return found;
+}
+
+
 int colvardeps::enable(int feature_id,
                       bool dry_run /* default: false */,
                       // dry_run: fail silently, do not enable if available
@@ -48,7 +59,7 @@ int colvardeps::enable(int feature_id,
   if (cvm::debug()) {
     cvm::log("DEPS: " + description +
       (dry_run ? " testing " : " requiring ") +
-      "\"" + f->description);
+      "\"" + f->description +"\"");
   }
 
   if (fs->enabled) {
@@ -140,11 +151,7 @@ int colvardeps::enable(int feature_id,
   // 4) solve deps in children
   for (i=0; i<f->requires_children.size(); i++) {
     int g = f->requires_children[i];
-    if (cvm::debug())
-      cvm::log("requires children " + features()[g]->description);
-//     cvm::log("children " + cvm::to_str(g));
     for (j=0; j<children.size(); j++) {
-//       cvm::log("child " +  children[j]->description);
       cvm::increase_depth();
       res = children[j]->enable(g, dry_run, false);
       cvm::decrease_depth();
@@ -207,15 +214,15 @@ void colvardeps::init_cvb_requires() {
   f_description(f_cvb_apply_force, "apply force");
   f_req_children(f_cvb_apply_force, f_cv_gradient);
 
-  f_description(f_cvb_get_system_force, "obtain system force");
-  f_req_children(f_cvb_get_system_force, f_cv_system_force);
+  f_description(f_cvb_get_total_force, "obtain total force");
+  f_req_children(f_cvb_get_total_force, f_cv_total_force);
 
   f_description(f_cvb_history_dependent, "history-dependent");
 
   // Initialize feature_states for each instance
   feature_states.reserve(f_cvb_ntot);
   for (i = 0; i < f_cvb_ntot; i++) {
-    feature_states.push_back(new feature_state(this, feature_states.size(), true, false));
+    feature_states.push_back(new feature_state(true, false));
     // Most features are available, so we set them so
     // and list exceptions below
   }
@@ -247,15 +254,15 @@ void colvardeps::init_cv_requires() {
     f_description(f_cv_fdiff_velocity, "fdiff_velocity");
 
     // System force: either trivial (spring force); through extended Lagrangian, or calculated explicitly
-    f_description(f_cv_system_force, "system force");
-    f_req_alt2(f_cv_system_force, f_cv_extended_Lagrangian, f_cv_system_force_calc);
+    f_description(f_cv_total_force, "total force");
+    f_req_alt2(f_cv_total_force, f_cv_extended_Lagrangian, f_cv_total_force_calc);
 
-    // Deps for explicit system force calculation
-    f_description(f_cv_system_force_calc, "system force calculation");
-    f_req_self(f_cv_system_force_calc, f_cv_scalar);
-    f_req_self(f_cv_system_force_calc, f_cv_linear);
-    f_req_children(f_cv_system_force_calc, f_cvc_inv_gradient);
-    f_req_self(f_cv_system_force_calc, f_cv_Jacobian);
+    // Deps for explicit total force calculation
+    f_description(f_cv_total_force_calc, "total force calculation");
+    f_req_self(f_cv_total_force_calc, f_cv_scalar);
+    f_req_self(f_cv_total_force_calc, f_cv_linear);
+    f_req_children(f_cv_total_force_calc, f_cvc_inv_gradient);
+    f_req_self(f_cv_total_force_calc, f_cv_Jacobian);
 
     f_description(f_cv_Jacobian, "Jacobian derivative");
     f_req_self(f_cv_Jacobian, f_cv_scalar);
@@ -283,8 +290,8 @@ void colvardeps::init_cv_requires() {
 
     f_description(f_cv_output_applied_force, "output applied force");
 
-    f_description(f_cv_output_system_force, "output system force");
-    f_req_self(f_cv_output_system_force, f_cv_system_force);
+    f_description(f_cv_output_total_force, "output total force");
+    f_req_self(f_cv_output_total_force, f_cv_total_force);
 
     f_description(f_cv_lower_boundary, "lower boundary");
     f_req_self(f_cv_lower_boundary, f_cv_scalar);
@@ -319,7 +326,7 @@ void colvardeps::init_cv_requires() {
   // Initialize feature_states for each instance
   feature_states.reserve(f_cv_ntot);
   for (i = 0; i < f_cv_ntot; i++) {
-    feature_states.push_back(new feature_state(this, feature_states.size(), true, false));
+    feature_states.push_back(new feature_state(true, false));
     // Most features are available, so we set them so
     // and list exceptions below
    }
@@ -364,7 +371,7 @@ void colvardeps::init_cvc_requires() {
     f_description(f_cvc_debug_gradient, "debug gradient");
     f_req_self(f_cvc_debug_gradient, f_cvc_gradient);
 
-    f_description(f_cvc_Jacobian, "Jacobian");
+    f_description(f_cvc_Jacobian, "Jacobian derivative");
     f_req_self(f_cvc_Jacobian, f_cvc_inv_gradient);
 
     f_description(f_cvc_com_based, "depends on group centers of mass");
@@ -385,7 +392,7 @@ void colvardeps::init_cvc_requires() {
   // default as unavailable, not enabled
   feature_states.reserve(f_cvc_ntot);
   for (i = 0; i < colvardeps::f_cvc_ntot; i++) {
-    feature_states.push_back(new feature_state(this, feature_states.size(), false, false));
+    feature_states.push_back(new feature_state(false, false));
   }
 
   // Features that are implemented by all cvcs by default
@@ -429,7 +436,7 @@ void colvardeps::init_ag_requires() {
   // default as unavailable, not enabled
   feature_states.reserve(f_ag_ntot);
   for (i = 0; i < colvardeps::f_ag_ntot; i++) {
-    feature_states.push_back(new feature_state(this, feature_states.size(), false, false));
+    feature_states.push_back(new feature_state(false, false));
   }
 
   // Features that are implemented (or not) by all atom groups

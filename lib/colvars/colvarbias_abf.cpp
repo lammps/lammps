@@ -7,7 +7,7 @@
 
 colvarbias_abf::colvarbias_abf(char const *key)
   : colvarbias(key),
-    force(NULL),
+    system_force(NULL),
     gradients(NULL),
     samples(NULL),
     z_gradients(NULL),
@@ -31,10 +31,8 @@ int colvarbias_abf::init(std::string const &conf)
 
   // ************* parsing general ABF options ***********************
 
-  get_keyval(conf, "applyBias",  apply_bias, true);
-  if (apply_bias) {
-    enable(f_cvb_apply_force);
-  } else {
+  get_keyval_feature((colvarparse *)this, conf, "applyBias",  f_cvb_apply_force, true);
+  if (!is_enabled(f_cvb_apply_force)){
     cvm::log("WARNING: ABF biases will *not* be applied!\n");
   }
 
@@ -81,11 +79,8 @@ int colvarbias_abf::init(std::string const &conf)
   }
 
   if (update_bias) {
-  // Request calculation of system force (which also checks for availability)
-    if(enable(f_cvb_get_system_force)) return cvm::get_error();
-  }
-  if (apply_bias) {
-    if(enable(f_cvb_apply_force)) return cvm::get_error();
+  // Request calculation of total force (which also checks for availability)
+    if(enable(f_cvb_get_total_force)) return cvm::get_error();
   }
 
   bool b_extended = false;
@@ -112,7 +107,7 @@ int colvarbias_abf::init(std::string const &conf)
     if (max_force.size() != colvars.size()) {
       cvm::error("Error: Number of parameters to maxForce does not match number of colvars.");
     }
-    for (size_t i=0; i<colvars.size(); i++) {
+    for (size_t i = 0; i < colvars.size(); i++) {
       if (max_force[i] < 0.0) {
         cvm::error("Error: maxForce should be non-negative.");
       }
@@ -124,7 +119,7 @@ int colvarbias_abf::init(std::string const &conf)
 
   bin.assign(colvars.size(), 0);
   force_bin.assign(colvars.size(), 0);
-  force = new cvm::real [colvars.size()];
+  system_force = new cvm::real [colvars.size()];
 
   // Construct empty grids based on the colvars
   if (cvm::debug()) {
@@ -208,9 +203,9 @@ colvarbias_abf::~colvarbias_abf()
     last_gradients = NULL;
   }
 
-  if (force) {
-    delete [] force;
-    force = NULL;
+  if (system_force) {
+    delete [] system_force;
+    system_force = NULL;
   }
 
   if (cvm::n_abf_biases > 0)
@@ -231,35 +226,44 @@ int colvarbias_abf::update()
     // initialization stuff (file operations relying on n_abf_biases
     // compute current value of colvars
 
-    for (size_t i=0; i<colvars.size(); i++) {
+    for (size_t i = 0; i < colvars.size(); i++) {
       bin[i] = samples->current_bin_scalar(i);
     }
 
   } else {
 
-    for (size_t i=0; i<colvars.size(); i++) {
+    for (size_t i = 0; i < colvars.size(); i++) {
       bin[i] = samples->current_bin_scalar(i);
     }
 
     if ( update_bias && samples->index_ok(force_bin) ) {
       // Only if requested and within bounds of the grid...
 
-      for (size_t i=0; i<colvars.size(); i++) {	  // get forces(lagging by 1 timestep) from colvars
-        force[i] = colvars[i]->system_force();
+      for (size_t i = 0; i < colvars.size(); i++) {
+        // get total forces (lagging by 1 timestep) from colvars
+        // and subtract previous ABF force
+        system_force[i] = colvars[i]->total_force().real_value
+                        - colvar_forces[i].real_value;
+//         if (cvm::debug())
+//           cvm::log("ABF System force calc: cv " + cvm::to_str(i) +
+//                   " fs " + cvm::to_str(system_force[i]) +
+//                   " = ft " + cvm::to_str(colvars[i]->total_force().real_value) +
+//                   " - fa " + cvm::to_str(colvar_forces[i].real_value));
       }
-      gradients->acc_force(force_bin, force);
+      gradients->acc_force(force_bin, system_force);
     }
     if ( z_gradients && update_bias ) {
-      for (size_t i=0; i<colvars.size(); i++) {
+      for (size_t i = 0; i < colvars.size(); i++) {
         z_bin[i] = z_samples->current_bin_scalar(i);
       }
       if ( z_samples->index_ok(z_bin) ) {
-        for (size_t i=0; i<colvars.size(); i++) {
+        for (size_t i = 0; i < colvars.size(); i++) {
           // If we are outside the range of xi, the force has not been obtained above
           // the function is just an accessor, so cheap to call again anyway
-          force[i] = colvars[i]->system_force();
+          system_force[i] = colvars[i]->total_force().real_value
+                          - colvar_forces[i].real_value;
         }
-        z_gradients->acc_force(z_bin, force);
+        z_gradients->acc_force(z_bin, system_force);
       }
     }
   }
@@ -268,12 +272,12 @@ int colvarbias_abf::update()
   force_bin = bin;
 
   // Reset biasing forces from previous timestep
-  for (size_t i=0; i<colvars.size(); i++) {
+  for (size_t i = 0; i < colvars.size(); i++) {
     colvar_forces[i].reset();
   }
 
   // Compute and apply the new bias, if applicable
-  if ( apply_bias && samples->index_ok(bin) ) {
+  if (is_enabled(f_cvb_apply_force) && samples->index_ok(bin)) {
 
     size_t  count = samples->value(bin);
     cvm::real	fact = 1.0;
@@ -292,13 +296,13 @@ int colvarbias_abf::update()
         // in other words: boundary condition is that the biasing potential is periodic
         colvar_forces[0].real_value = fact * (grad[0] / cvm::real(count) - gradients->average());
       } else {
-        for (size_t i=0; i<colvars.size(); i++) {
+        for (size_t i = 0; i < colvars.size(); i++) {
           // subtracting the mean force (opposite of the FE gradient) means adding the gradient
           colvar_forces[i].real_value = fact * grad[i] / cvm::real(count);
         }
       }
       if (cap_force) {
-        for (size_t i=0; i<colvars.size(); i++) {
+        for (size_t i = 0; i < colvars.size(); i++) {
           if ( colvar_forces[i].real_value * colvar_forces[i].real_value > max_force[i] * max_force[i] ) {
             colvar_forces[i].real_value = (colvar_forces[i].real_value > 0 ? max_force[i] : -1.0 * max_force[i]);
           }

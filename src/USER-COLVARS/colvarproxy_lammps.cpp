@@ -73,7 +73,7 @@ colvarproxy_lammps::colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp,
   _random = new LAMMPS_NS::RanPark(lmp,seed);
 
   first_timestep=true;
-  system_force_requested=false;
+  total_force_requested=false;
   previous_step=-1;
   t_target=temp;
   do_exit=false;
@@ -154,7 +154,6 @@ void colvarproxy_lammps::init(const char *conf_file)
     log("atoms_ids = "+cvm::to_str(atoms_ids)+"\n");
     log("atoms_ncopies = "+cvm::to_str(atoms_ncopies)+"\n");
     log("atoms_positions = "+cvm::to_str(atoms_positions)+"\n");
-    log("atoms_applied_forces = "+cvm::to_str(atoms_applied_forces)+"\n");
     log(cvm::line_marker);
     log("Info: done initializing the colvars proxy object.\n");
   }
@@ -199,13 +198,8 @@ double colvarproxy_lammps::compute()
              "Updating internal data.\n");
   }
 
-  // backup applied forces if necessary to calculate system forces
-  if (system_force_requested) {
-    atoms_applied_forces = atoms_new_colvar_forces;
-  }
-
   // zero the forces on the atoms, so that they can be accumulated by the colvars
-  for (size_t i = 0; i < atoms_applied_forces.size(); i++) {
+  for (size_t i = 0; i < atoms_new_colvar_forces.size(); i++) {
     atoms_new_colvar_forces[i].reset();
   }
 

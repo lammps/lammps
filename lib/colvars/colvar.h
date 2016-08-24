@@ -54,7 +54,7 @@ public:
   /// \brief Current velocity (previously set by calc() or by read_traj())
   colvarvalue const & velocity() const;
 
-  /// \brief Current system force (previously obtained from calc() or
+  /// \brief Current total force (previously obtained from calc() or
   /// read_traj()).  Note: this is calculated using the atomic forces
   /// from the last simulation step.
   ///
@@ -62,7 +62,7 @@ public:
   /// acting on the collective variable is calculated summing those
   /// from all colvar components, the bias and walls forces are
   /// subtracted.
-  colvarvalue const & system_force() const;
+  colvarvalue const & total_force() const;
 
   /// \brief Typical fluctuation amplitude for this collective
   /// variable (e.g. local width of a free energy basin)
@@ -160,7 +160,7 @@ protected:
   /// \brief Jacobian force, when Jacobian_force is enabled
   colvarvalue fj;
 
-  /// Cached reported system force
+  /// Cached reported total force
   colvarvalue ft_reported;
 
 public:
@@ -176,7 +176,7 @@ public:
   colvarvalue f;
 
   /// \brief Total force, as derived from the atomic trajectory;
-  /// should equal the total system force plus \link f \endlink
+  /// should equal the system force plus \link f \endlink
   colvarvalue ft;
 
 
@@ -253,8 +253,8 @@ public:
   int calc_cvc_values(int first, size_t num_cvcs);
   /// \brief Same as \link colvar::calc_cvc_values \endlink but for gradients
   int calc_cvc_gradients(int first, size_t num_cvcs);
-  /// \brief Same as \link colvar::calc_cvc_values \endlink but for system forces
-  int calc_cvc_sys_forces(int first, size_t num_cvcs);
+  /// \brief Same as \link colvar::calc_cvc_values \endlink but for total forces
+  int calc_cvc_total_force(int first, size_t num_cvcs);
   /// \brief Same as \link colvar::calc_cvc_values \endlink but for Jacobian derivatives/forces
   int calc_cvc_Jacobians(int first, size_t num_cvcs);
 
@@ -265,8 +265,8 @@ public:
   int collect_cvc_values();
   /// \brief Same as \link colvar::collect_cvc_values \endlink but for gradients
   int collect_cvc_gradients();
-  /// \brief Same as \link colvar::collect_cvc_values \endlink but for system forces
-  int collect_cvc_sys_forces();
+  /// \brief Same as \link colvar::collect_cvc_values \endlink but for total forces
+  int collect_cvc_total_forces();
   /// \brief Same as \link colvar::collect_cvc_values \endlink but for Jacobian derivatives/forces
   int collect_cvc_Jacobians();
   /// \brief Calculate the quantities associated to the colvar (but not to the CVCs)
@@ -555,7 +555,7 @@ inline colvarvalue const & colvar::velocity() const
 }
 
 
-inline colvarvalue const & colvar::system_force() const
+inline colvarvalue const & colvar::total_force() const
 {
   return ft_reported;
 }

@@ -870,21 +870,21 @@ void cvm::atom_group::read_velocities()
 
 
 // TODO make this a calc function
-void cvm::atom_group::read_system_forces()
+void cvm::atom_group::read_total_forces()
 {
   if (b_dummy) return;
 
   if (b_rotate) {
 
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-      ai->read_system_force();
-      ai->system_force = rot.rotate(ai->system_force);
+      ai->read_total_force();
+      ai->total_force = rot.rotate(ai->total_force);
     }
 
   } else {
 
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-      ai->read_system_force();
+      ai->read_total_force();
     }
   }
 }
@@ -1070,15 +1070,15 @@ std::vector<cvm::rvector> cvm::atom_group::velocities() const
   return v;
 }
 
-std::vector<cvm::rvector> cvm::atom_group::system_forces() const
+std::vector<cvm::rvector> cvm::atom_group::total_forces() const
 {
   if (b_dummy) {
-    cvm::error("Error: system forces are not available "
+    cvm::error("Error: total forces are not available "
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
   if (is_enabled(f_ag_scalable)) {
-    cvm::error("Error: atomic system forces are not available "
+    cvm::error("Error: atomic total forces are not available "
                "from a scalable atom group.\n", INPUT_ERROR);
   }
 
@@ -1086,27 +1086,27 @@ std::vector<cvm::rvector> cvm::atom_group::system_forces() const
   cvm::atom_const_iter ai = this->begin();
   std::vector<cvm::atom_pos>::iterator fi = f.begin();
   for ( ; ai != this->end(); ++fi, ++ai) {
-    *fi = ai->system_force;
+    *fi = ai->total_force;
   }
   return f;
 }
 
 
 // TODO make this an accessor
-cvm::rvector cvm::atom_group::system_force() const
+cvm::rvector cvm::atom_group::total_force() const
 {
   if (b_dummy) {
-    cvm::error("Error: total system forces are not available "
+    cvm::error("Error: total total forces are not available "
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
   if (is_enabled(f_ag_scalable)) {
-    return (cvm::proxy)->get_atom_group_system_force(index);
+    return (cvm::proxy)->get_atom_group_total_force(index);
   }
 
   cvm::rvector f(0.0);
   for (cvm::atom_const_iter ai = this->begin(); ai != this->end(); ai++) {
-    f += ai->system_force;
+    f += ai->total_force;
   }
   return f;
 }

@@ -454,6 +454,7 @@ class PyLammps(object):
     else:
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")
+    self._cmd_history = []
 
   def __del__(self):
     if self.lmp: self.lmp.close()
@@ -469,8 +470,15 @@ class PyLammps(object):
   def file(self,file):
     self.lmp.file(file)
 
+  def write_script(self,filename):
+    """ Write LAMMPS script file containing all commands executed up until now """
+    with open(filename, "w") as f:
+      for cmd in self._cmd_history:
+        f.write("%s\n" % cmd)
+
   def command(self,cmd):
     self.lmp.command(cmd)
+    self._cmd_history.append(cmd)
 
   @property
   def atoms(self):
@@ -643,7 +651,7 @@ class PyLammps(object):
       cmd_args = [name] + [str(x) for x in args]
 
       with OutputCapture() as capture:
-        self.lmp.command(' '.join(cmd_args))
+        self.command(' '.join(cmd_args))
         output = capture.output
 
       if 'verbose' in kwargs and kwargs['verbose']:

@@ -42,7 +42,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  group2(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute group/group command");
 

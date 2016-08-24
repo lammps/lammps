@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 
 ComputeErotateSphereAtom::
 ComputeErotateSphereAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  erot(NULL)
 {
   if (narg != 3)
     error->all(FLERR,"Illegal compute erotate/sphere//atom command");
@@ -43,7 +44,6 @@ ComputeErotateSphereAtom(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute erotate/sphere/atom requires atom style sphere");
 
   nmax = 0;
-  erot = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

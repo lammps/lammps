@@ -71,14 +71,22 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">5.KOKKOS package</a><ul>
-<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</li>
-</ul>
-</div>
+
           
         
       </div>
@@ -237,14 +245,14 @@ mode like the USER-INTEL package supports.</p>
 <p>You must choose at build time whether to build for CPUs (OpenMP),
 GPUs, or Phi.</p>
 <p>You can do any of these in one line, using the src/Make.py script,
-described in <span class="xref std std-ref">Section 2.4</span> of the manual.
+described in <a class="reference internal" href="Section_start.html#start-4"><span class="std std-ref">Section 2.4</span></a> of the manual.
 Type &#8220;Make.py -h&#8221; for help.  If run from the src directory, these
 commands will create src/lmp_kokkos_omp, lmp_kokkos_cuda, and
 lmp_kokkos_phi.  Note that the OMP and PHI options use
 src/MAKE/Makefile.mpi as the starting Makefile.machine.  The CUDA
 option uses src/MAKE/OPTIONS/Makefile.kokkos_cuda.</p>
 <p>The latter two steps can be done using the &#8220;-k on&#8221;, &#8220;-pk kokkos&#8221; and
-&#8220;-sf kk&#8221; <span class="xref std std-ref">command-line switches</span>
+&#8220;-sf kk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switches</span></a>
 respectively.  Or the effect of the &#8220;-pk&#8221; or &#8220;-sf&#8221; switches can be
 duplicated by adding the <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a> or <a class="reference internal" href="suffix.html"><span class="doc">suffix kk</span></a> commands respectively to your input script.</p>
 <p>Or you can follow these steps:</p>
@@ -379,9 +387,9 @@ generation Xeon Phi(TM) chips, which is 60 physical cores * 4
 threads/core.  Note that with the KOKKOS package you do not need to
 specify how many Phi coprocessors there are per node; each
 coprocessors is simply treated as running some number of MPI tasks.</p>
-<p>You must use the &#8220;-k on&#8221; <span class="xref std std-ref">command-line switch</span> to enable the KOKKOS package.  It
+<p>You must use the &#8220;-k on&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> to enable the KOKKOS package.  It
 takes additional arguments for hardware settings appropriate to your
-system.  Those arguments are <span class="xref std std-ref">documented here</span>.  The two most commonly used
+system.  Those arguments are <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">documented here</span></a>.  The two most commonly used
 options are:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="n">Nt</span> <span class="n">g</span> <span class="n">Ng</span>
 </pre></div>
@@ -399,11 +407,11 @@ specified is you have 2 or more GPUs per compute node.</p>
 <p>The &#8220;-k on&#8221; switch also issues a &#8220;package kokkos&#8221; command (with no
 additional arguments) which sets various KOKKOS options to default
 values, as discussed on the <a class="reference internal" href="package.html"><span class="doc">package</span></a> command doc page.</p>
-<p>Use the &#8220;-sf kk&#8221; <span class="xref std std-ref">command-line switch</span>,
+<p>Use the &#8220;-sf kk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>,
 which will automatically append &#8220;kk&#8221; to styles that support it.  Use
-the &#8220;-pk kokkos&#8221; <span class="xref std std-ref">command-line switch</span> if
+the &#8220;-pk kokkos&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> if
 you wish to change any of the default <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a>
-optionns set by the &#8220;-k on&#8221; <span class="xref std std-ref">command-line switch</span>.</p>
+optionns set by the &#8220;-k on&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
 <p>Note that the default for the <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a> command is
 to use &#8220;full&#8221; neighbor lists and set the Newton flag to &#8220;off&#8221; for both
 pairwise and bonded interactions.  This typically gives fastest
@@ -412,12 +420,12 @@ script, it can override the Newton flag defaults.</p>
 <p>However, when running in MPI-only mode with 1 thread per MPI task, it
 will typically be faster to use &#8220;half&#8221; neighbor lists and set the
 Newton flag to &#8220;on&#8221;, just as is the case for non-accelerated pair
-styles.  You can do this with the &#8220;-pk&#8221; <span class="xref std std-ref">command-line switch</span>.</p>
+styles.  You can do this with the &#8220;-pk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
 <p><strong>Or run with the KOKKOS package by editing an input script:</strong></p>
 <p>The discussion above for the mpirun/mpiexec command and setting
 appropriate thread and GPU values for host=OMP or host=MIC or
 device=CUDA are the same.</p>
-<p>You must still use the &#8220;-k on&#8221; <span class="xref std std-ref">command-line switch</span> to enable the KOKKOS package, and
+<p>You must still use the &#8220;-k on&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> to enable the KOKKOS package, and
 specify its additional arguments for hardware options appopriate to
 your system, as documented above.</p>
 <p>Use the <a class="reference internal" href="suffix.html"><span class="doc">suffix kk</span></a> command, or you can explicitly add a
@@ -427,7 +435,7 @@ your system, as documented above.</p>
 </div>
 <p>You only need to use the <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a> command if you
 wish to change any of its option defaults, as set by the &#8220;-k on&#8221;
-<span class="xref std std-ref">command-line switch</span>.</p>
+<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
 <p><strong>Speed-ups to expect:</strong></p>
 <p>The performance of KOKKOS running in different modes is a function of
 your hardware, which KOKKOS-enable styles are used, and the problem
@@ -460,7 +468,7 @@ its options can provide a speed-up for specific calculations.</p>
 <p>If N is the number of physical cores/node, then the number of MPI
 tasks/node * number of threads/task should not exceed N, and should
 typically equal N.  Note that the default threads/task is 1, as set by
-the &#8220;t&#8221; keyword of the &#8220;-k&#8221; <span class="xref std std-ref">command-line switch</span>.  If you do not change this, no
+the &#8220;t&#8221; keyword of the &#8220;-k&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.  If you do not change this, no
 additional parallelism (beyond MPI) will be invoked on the host
 CPU(s).</p>
 <p>You can compare the performance running in different modes:</p>
@@ -484,16 +492,16 @@ environment variables to force binding.  With OpenMP 3.1 (gcc 4.7 or
 later, intel 12 or later) setting the environment variable
 OMP_PROC_BIND=true should be sufficient.  For binding threads with the
 KOKKOS pthreads option, compile LAMMPS the KOKKOS HWLOC=yes option, as
-discussed in <span class="xref std std-ref">Section 2.3.4</span> of the
+discussed in <a class="reference internal" href="Section_start.html#start-3-4"><span class="std std-ref">Section 2.3.4</span></a> of the
 manual.</p>
 <p><strong>Running on GPUs:</strong></p>
 <p>Insure the -arch setting in the machine makefile you are using,
 e.g. src/MAKE/Makefile.cuda, is correct for your GPU hardware/software
-(see <span class="xref std std-ref">this section</span> of the manual for
+(see <a class="reference internal" href="Section_start.html#start-3-4"><span class="std std-ref">this section</span></a> of the manual for
 details).</p>
 <p>The -np setting of the mpirun command should set the number of MPI
 tasks/node to be equal to the # of physical GPUs on the node.</p>
-<p>Use the &#8220;-k&#8221; <span class="xref std std-ref">command-line switch</span> to
+<p>Use the &#8220;-k&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> to
 specify the number of GPUs per node, and the number of threads per MPI
 task.  As above for multi-core CPUs (and no GPU), if N is the number
 of physical cores/node, then the number of MPI tasks/node * number of

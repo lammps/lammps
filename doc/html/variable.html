@@ -71,30 +71,22 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">variable command</a><ul>
-<li><a class="reference internal" href="#syntax">Syntax</a></li>
-<li><a class="reference internal" href="#examples">Examples</a></li>
-<li><a class="reference internal" href="#description">Description</a><ul>
-<li><a class="reference internal" href="#numers-constants-and-thermo-keywords">Numers, constants, and thermo keywords</a></li>
-<li><a class="reference internal" href="#math-operators">Math Operators</a></li>
-<li><a class="reference internal" href="#math-functions">Math Functions</a></li>
-<li><a class="reference internal" href="#group-and-region-functions">Group and Region Functions</a></li>
-<li><a class="reference internal" href="#special-functions">Special Functions</a></li>
-<li><a class="reference internal" href="#feature-functions">Feature Functions</a></li>
-<li><a class="reference internal" href="#atom-values-and-vectors">Atom Values and Vectors</a></li>
-<li><a class="reference internal" href="#compute-references">Compute References</a></li>
-<li><a class="reference internal" href="#fix-references">Fix References</a></li>
-<li><a class="reference internal" href="#variable-references">Variable References</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</li>
-<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
-<li><a class="reference internal" href="#related-commands">Related commands</a></li>
-</ul>
-</li>
-</ul>
-</div>
+
           
         
       </div>
@@ -307,7 +299,7 @@ This means variables can NOT be re-defined in an input script (with
 two exceptions, read further).  This is to allow an input script to be
 processed multiple times without resetting the variables; see the
 <a class="reference internal" href="jump.html"><span class="doc">jump</span></a> or <a class="reference internal" href="include.html"><span class="doc">include</span></a> commands.  It also means
-that using the <span class="xref std std-ref">command-line switch</span> -var
+that using the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> -var
 will override a corresponding index variable setting in the input
 script.</p>
 </div>
@@ -367,7 +359,7 @@ the 1st string is assigned to the variable.  Each time a
 string is assigned.  All processors assign the same string to the
 variable.</p>
 <p><em>Index</em> style variables with a single string value can also be set by
-using the command-line switch -var; see <span class="xref std std-ref">this section</span> for details.</p>
+using the command-line switch -var; see <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">this section</span></a> for details.</p>
 <p>The <em>loop</em> style is identical to the <em>index</em> style except that the
 strings are the integers from 1 to N inclusive, if only one argument N
 is specified.  This allows generation of a long list of runs
@@ -380,7 +372,7 @@ two arguments N1 and N2.  In this case the loop runs from N1 to N2
 inclusive, and the string N1 is initially assigned to the variable.
 N1 &lt;= N2 and N2 &gt;= 0 is required.</p>
 <p>For the <em>world</em> style, one or more strings are specified.  There must
-be one string for each processor partition or &#8220;world&#8221;.  See <span class="xref std std-ref">this section</span> of the manual for information on
+be one string for each processor partition or &#8220;world&#8221;.  See <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">this section</span></a> of the manual for information on
 running LAMMPS with multiple partitions via the &#8220;-partition&#8221;
 command-line switch.  This variable command assigns one string to each
 world.  All processors in the world are assigned the same string.  The
@@ -392,7 +384,7 @@ performing a parallel tempering simulation (see the
 different partitions.</p>
 <p>For the <em>universe</em> style, one or more strings are specified.  There
 must be at least as many strings as there are processor partitions or
-&#8220;worlds&#8221;.  See <span class="xref std std-ref">this page</span> for information
+&#8220;worlds&#8221;.  See <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">this page</span></a> for information
 on running LAMMPS with multiple partitions via the &#8220;-partition&#8221;
 command-line switch.  This variable command initially assigns one
 string to each world.  When a <a class="reference internal" href="next.html"><span class="doc">next</span></a> command is encountered

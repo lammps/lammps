@@ -74,7 +74,7 @@ class TypeDetector {
       length = 4;
 
     int ntype = len / (length + 1);
-    int *t = new int[len];
+    int *t = new int[length];
     int val = 0;
     int iarg = 0;
     for (int num = 0; num < ntype; num++) {
@@ -93,10 +93,10 @@ class TypeDetector {
     return status;        
   }
 
-  int get(int *&t1) {
+  int get(const int *t1) {
     for (std::vector<Entity *>::iterator it = values.begin();
          it != values.end(); it++) {
-      if (equals((*it), t1))
+      if (equals((*it)->types, t1))
         return (*it)->value;
     }
     return -1;
@@ -119,7 +119,7 @@ class TypeDetector {
 
  private:
 
-  void set(int *&t1, int value) {
+  void set(const int *t1, int value) {
     int i, p = 0;
     for (i = 0; i < length; ++i)
       p += (t1[i] == 0) ? 1 : 0;
@@ -127,7 +127,7 @@ class TypeDetector {
     bool equal = false;
     while (it != values.end()) {
       Entity *e = (*it);
-      if (equals(e, t1) && e->level == p) {
+      if (equals(e->types, t1) && e->level == p) {
         equal = true;
         break;
       } else if (e->level > p) {
@@ -148,8 +148,7 @@ class TypeDetector {
     }
   }
 
-  int equals(Entity *&e, int *&id) {
-    int *types = e->types;
+  int equals(const int *types, const int *id) {
     int res = 1, res_rev = 1;
     for (int i = 0; i < length; ++i) {
       res *= (types[i] == id[i] || types[i] == 0) ? 1 : 0;

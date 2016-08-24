@@ -15,6 +15,7 @@
 #include <mpi.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "fix_bond_create.h"
 #include "update.h"
 #include "respa.h"
@@ -81,7 +82,6 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   fraction = 1.0;
   int seed = 12345;
   atype = dtype = itype = 0;
-  angledynflag = dihedraldynflag = improperdynflag = 0;
   angle_detector = dihedral_detector = improper_detector = NULL;
   
   int iarg = 8;
@@ -113,10 +113,18 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"atype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
       if (isalpha(arg[iarg+1][0])) {
-        char* syntax = input->variable->retrieve(arg[iarg+1]);
-        angle_detector = new TypeDetector(TypeDetector::ANGLE);
-        bool success = angle_detector->init(syntax);
-        if (!success) error->all(FLERR, "Illegal fix bond/create command");
+        atype = 0;
+        int varidx = input->variable->find(arg[iarg+1]);
+        if (varidx < 0)
+          error->all(FLERR,"Variable name for fix bond/create does not exist");
+        if (input->variable->stringstyle(varidx)) {
+          char* vartxt = input->variable->retrieve(arg[iarg+1]);
+          angle_detector = new TypeDetector(TypeDetector::ANGLE);
+          bool success = angle_detector->init(vartxt);
+          if (!success)
+            error->all(FLERR,"Variable for bond/create has invalid format");
+        } else
+          error->all(FLERR,"Variable for fix bond/create has invalid style");
       } else {
         atype = force->inumeric(FLERR, arg[iarg+1]);
         if (atype < 0) error->all(FLERR, "Illegal fix bond/create command");
@@ -125,10 +133,18 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"dtype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
       if (isalpha(arg[iarg+1][0])) {
-        char* syntax = input->variable->retrieve(arg[iarg+1]);
-        dihedral_detector = new TypeDetector(TypeDetector::DIHEDRAL);
-        bool success = dihedral_detector->init(syntax);
-        if (!success) error->all(FLERR, "Illegal fix bond/create command");
+        dtype = 0;
+        int varidx = input->variable->find(arg[iarg+1]);
+        if (varidx < 0)
+          error->all(FLERR,"Variable name for fix bond/create does not exist");
+        if (input->variable->stringstyle(varidx)) {
+          char* vartxt = input->variable->retrieve(arg[iarg+1]);
+          dihedral_detector = new TypeDetector(TypeDetector::DIHEDRAL);
+          bool success = dihedral_detector->init(vartxt);
+          if (!success)
+            error->all(FLERR,"Variable for bond/create has invalid format");
+        } else
+          error->all(FLERR,"Variable for fix bond/create has invalid style");
       } else {
         dtype = force->inumeric(FLERR, arg[iarg+1]);
         if (dtype < 0) error->all(FLERR, "Illegal fix bond/create command");
@@ -137,10 +153,18 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"itype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
       if (isalpha(arg[iarg+1][0])) {
-        char* syntax = input->variable->retrieve(arg[iarg+1]);
-        improper_detector = new TypeDetector(TypeDetector::IMPROPER);
-        bool success = improper_detector->init(syntax);
-        if (!success) error->all(FLERR, "Illegal fix bond/create command");
+        itype = 0;
+        int varidx = input->variable->find(arg[iarg+1]);
+        if (varidx < 0)
+          error->all(FLERR,"Variable name for fix bond/create does not exist");
+        if (input->variable->stringstyle(varidx)) {
+          char* vartxt = input->variable->retrieve(arg[iarg+1]);
+          improper_detector = new TypeDetector(TypeDetector::IMPROPER);
+          bool success = dihedral_detector->init(vartxt);
+          if (!success)
+            error->all(FLERR,"Variable for bond/create has invalid format");
+        } else
+          error->all(FLERR,"Variable for fix bond/create has invalid style");
       } else {
         itype = force->inumeric(FLERR, arg[iarg+1]);
         if (itype < 0) error->all(FLERR, "Illegal fix bond/create command");
@@ -246,28 +270,37 @@ void FixBondCreate::init()
   // enable angle/dihedral/improper creation if atype/dtype/itype
   //   option was used and a force field has been specified
 
-  if ((atype || angle_detector != NULL) && force->angle) {
+  if ((atype || angle_detector) && force->angle) {
     angleflag = 1;
-    angledynflag = (angle_detector != NULL);
-    bool stat = (angledynflag) ? angle_detector->check_types(atom->nangletypes, atom->ntypes) : true;
-    if (atype > atom->nangletypes && stat)
-      error->all(FLERR,"Fix bond/create angle type is invalid");
+    if (angle_detector) {
+      if (angle_detector->check_types(atom->nangletypes,atom->ntypes))
+        error->all(FLERR,"Fix bond/create angle type map is invalid");
+    } else {
+      if (atype > atom->nangletypes)
+        error->all(FLERR,"Fix bond/create angle type is invalid");
+    }
   } else angleflag = 0;
 
-  if ((dtype || dihedral_detector != NULL) && force->dihedral) {
+  if ((dtype || dihedral_detector) && force->dihedral) {
     dihedralflag = 1;
-    dihedraldynflag = (dihedral_detector != NULL);
-    bool stat = (dihedraldynflag) ? dihedral_detector->check_types(atom->ndihedraltypes, atom->ntypes) : true;
-    if (dtype > atom->ndihedraltypes && stat)
-      error->all(FLERR,"Fix bond/create dihedral type is invalid");
+    if (dihedral_detector) {
+      if (dihedral_detector->check_types(atom->ndihedraltypes,atom->ntypes))
+        error->all(FLERR,"Fix bond/create dihedral type map is invalid");
+    } else {
+      if (dtype > atom->ndihedraltypes)
+        error->all(FLERR,"Fix bond/create dihedral type is invalid");
+    }
   } else dihedralflag = 0;
 
-  if ((itype || improper_detector != NULL) && force->improper) {
+  if ((itype || improper_detector) && force->improper) {
     improperflag = 1;
-    improperdynflag = (improper_detector != NULL);
-    bool stat = (improperdynflag) ? improper_detector->check_types(atom->nimpropertypes, atom->ntypes) : true;
-    if (itype > atom->nimpropertypes && stat)
-      error->all(FLERR,"Fix bond/create improper type is invalid");
+    if (improper_detector) {
+      if (improper_detector->check_types(atom->nimpropertypes,atom->ntypes))
+        error->all(FLERR,"Fix bond/create improper type map is invalid");
+    } else {
+      if (itype > atom->nimpropertypes)
+        error->all(FLERR,"Fix bond/create improper type is invalid");
+    }
   } else improperflag = 0;
 
   if (force->improper) {
@@ -817,13 +850,10 @@ void FixBondCreate::create_angles(int m)
   tagint *tag = atom->tag;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
+  int *type = atom->type;
 
-  int *type;
-  int *ang_type;
-  if (angledynflag) {
-    type = atom->type;
-    ang_type = new int[3];
-  }
+  int *ang_type = NULL;
+  if (angle_detector) ang_type = new int[3];
 
   int num_angle = atom->num_angle[m];
   int *angle_type = atom->angle_type[m];
@@ -856,14 +886,15 @@ void FixBondCreate::create_angles(int m)
       }
       if (n == ncreate) continue;
       
-      if (angledynflag) {
+      if (angle_detector) {
         ang_type[0] = type[atom->map(i1)];
         ang_type[1] = type[atom->map(i2)];
         ang_type[2] = type[atom->map(i3)];
         atype = angle_detector->get(ang_type);
+        delete[] ang_type;
       }
 
-      // NOTE: this is place to check atom types of i1,i2,i3
+      // NOTE: this is place to check atom types of i1,i2,i3, and angle type
 
       if (num_angle < atom->angle_per_atom) {
         angle_type[num_angle] = atype;
@@ -876,7 +907,6 @@ void FixBondCreate::create_angles(int m)
     }
   }
 
-  if (angledynflag) delete[] ang_type;
   atom->num_angle[m] = num_angle;
   if (force->newton_bond) return;
 
@@ -941,13 +971,10 @@ void FixBondCreate::create_dihedrals(int m)
   tagint *tag = atom->tag;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
+  int *type = atom->type;
 
-  int *type;
-  int *dih_type;
-  if (dihedraldynflag) {
-    type = atom->type;
-    dih_type = new int[4];
-  }
+  int *dih_type = NULL;
+  if (dihedral_detector) dih_type = new int[4];
 
   int num_dihedral = atom->num_dihedral[m];
   int *dihedral_type = atom->dihedral_type[m];
@@ -997,14 +1024,15 @@ void FixBondCreate::create_dihedrals(int m)
           if (created[n][0] == i4 && created[n][1] == i3) break;
         }
         if (n < ncreate) {
-          if (dihedraldynflag) {
+          if (dihedral_detector) {
             dih_type[0] = type[atom->map(i1)];
             dih_type[1] = type[atom->map(i2)];
             dih_type[2] = type[atom->map(i3)];
             dih_type[3] = type[atom->map(i4)];
             dtype = dihedral_detector->get(dih_type);
+            delete[] dih_type;
           }
-          // NOTE: this is place to check atom types of i3,i2,i1,i4
+          // NOTE: this is place to check atom types of i3,i2,i1,i4 and dtype
           if (num_dihedral < atom->dihedral_per_atom) {
             dihedral_type[num_dihedral] = dtype;
             dihedral_atom1[num_dihedral] = i1;
@@ -1018,8 +1046,6 @@ void FixBondCreate::create_dihedrals(int m)
       }
     }
   }
-
-  if (dihedraldynflag) delete[] dih_type;
 
   for (i = 0; i < n2; i++) {
     i1 = s2list[i];
@@ -1137,6 +1163,10 @@ void FixBondCreate::create_impropers(int m)
   tagint *tag = atom->tag;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
+  int *type = atom->type;
+
+  int *imp_type = NULL;
+  if (improper_detector) imp_type = new int[4];
 
   int num_improper = atom->num_improper[m];
   int *improper_type = atom->improper_type[m];
@@ -1144,13 +1174,6 @@ void FixBondCreate::create_impropers(int m)
   tagint *improper_atom2 = atom->improper_atom2[m];
   tagint *improper_atom3 = atom->improper_atom3[m];
   tagint *improper_atom4 = atom->improper_atom4[m];
-
-  int *type;
-  int *imp_type;
-  if (improperdynflag) {
-    type = atom->type;
-    imp_type = new int[4];
-  }
 
   // atom M is central atom in improper
   // triple loop over 1-2 neighs
@@ -1181,15 +1204,16 @@ void FixBondCreate::create_impropers(int m)
         }
         if (n == ncreate) continue;
         
-        if (improperdynflag) {
+        if (improper_detector) {
           imp_type[0] = type[atom->map(i1)];
           imp_type[1] = type[atom->map(i2)];
           imp_type[2] = type[atom->map(i3)];
           imp_type[3] = type[atom->map(i4)];
           itype = improper_detector->get(imp_type);
+          delete[] imp_type;
         }
         
-        // NOTE: this is place to check atom types of i1,i2,i3,i4
+        // NOTE: this is place to check atom types of i1,i2,i3,i4 and itype
 
         if (num_improper < atom->improper_per_atom) {
           improper_type[num_improper] = itype;
@@ -1204,7 +1228,6 @@ void FixBondCreate::create_impropers(int m)
     }
   }
 
-  if (improperdynflag) delete[] imp_type; 
   atom->num_improper[m] = num_improper;
   if (force->newton_bond) return;
 

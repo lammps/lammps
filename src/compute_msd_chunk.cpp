@@ -28,7 +28,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idchunk(NULL), id_fix(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), msd(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute msd/chunk command");
 
@@ -46,10 +47,6 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
 
   firstflag = 1;
   init();
-
-  massproc = masstotal = NULL;
-  com = comall = NULL;
-  msd = NULL;
 
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group

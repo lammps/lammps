@@ -38,7 +38,9 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  rdfpair(NULL), nrdfpair(NULL), ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL),
+  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL), duplicates(NULL)
 {
   if (narg < 4 || (narg-4) % 2) error->all(FLERR,"Illegal compute rdf command");
 

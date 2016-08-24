@@ -33,7 +33,8 @@ enum{DIST,ENG,FORCE};
 /* ---------------------------------------------------------------------- */
 
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  bstyle(NULL), vector(NULL), array(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute bond/local command");
 
@@ -62,8 +63,6 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     if (bstyle[i] != DIST) singleflag = 1;
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

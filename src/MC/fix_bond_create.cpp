@@ -851,9 +851,7 @@ void FixBondCreate::create_angles(int m)
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
-
-  int *ang_type = NULL;
-  if (angle_detector) ang_type = new int[3];
+  int *ang_type = new int[3];
 
   int num_angle = atom->num_angle[m];
   int *angle_type = atom->angle_type[m];
@@ -906,7 +904,7 @@ void FixBondCreate::create_angles(int m)
     }
   }
 
-  if (angle_detector) delete[] ang_type;
+  delete[] ang_type;
   atom->num_angle[m] = num_angle;
   if (force->newton_bond) return;
 
@@ -972,9 +970,7 @@ void FixBondCreate::create_dihedrals(int m)
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
-
-  int *dih_type = NULL;
-  if (dihedral_detector) dih_type = new int[4];
+  int *dih_type = new int[4];
 
   int num_dihedral = atom->num_dihedral[m];
   int *dihedral_type = atom->dihedral_type[m];
@@ -1087,8 +1083,8 @@ void FixBondCreate::create_dihedrals(int m)
       }
     }
   }
-  
-  if (dihedral_detector) delete[] dih_type;
+
+  delete[] dih_type;
   atom->num_dihedral[m] = num_dihedral;
   if (force->newton_bond) return;
 
@@ -1164,9 +1160,7 @@ void FixBondCreate::create_impropers(int m)
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
-
-  int *imp_type = NULL;
-  if (improper_detector) imp_type = new int[4];
+  int *imp_type = new int[4];
 
   int num_improper = atom->num_improper[m];
   int *improper_type = atom->improper_type[m];
@@ -1226,8 +1220,8 @@ void FixBondCreate::create_impropers(int m)
       }
     }
   }
-  
-  if (improper_detector) delete[] imp_type;
+
+  delete[] imp_type;
   atom->num_improper[m] = num_improper;
   if (force->newton_bond) return;
 

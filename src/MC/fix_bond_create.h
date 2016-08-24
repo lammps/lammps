@@ -57,7 +57,7 @@ class FixBondCreate : public Fix {
   int angleflag,dihedralflag,improperflag;
   int overflow;
   tagint lastcheck;
-  
+
   // type detector classes for inferring type from constituing atom types
   class TypeDetector *angle_detector, *dihedral_detector, *improper_detector;
 

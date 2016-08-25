@@ -64,7 +64,7 @@ command, for example:
 
 compute cc1 all chunk/atom molecule
 compute myChunk all omega/chunk cc1
-fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector :pre
+fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector :pre
 
 [Output info:]
 

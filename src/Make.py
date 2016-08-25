@@ -6,8 +6,6 @@
 # Notes: should be compatible with python 2.7 and 3.x thanks to 'futurize'
 
 from __future__ import print_function
-from builtins import str
-from builtins import object
 import sys,os,re,copy,subprocess,platform
 
 # switch abbrevs
@@ -37,15 +35,15 @@ gpubuildflag = 0
 # functions
 # ----------------------------------------------------------------
 
-# if flag = 1, print str and exit
-# if flag = 0, print str as warning and do not exit
+# if flag = 1, print txt and exit
+# if flag = 0, print txt as warning and do not exit
 
-def error(str,flag=1):
+def error(txt,flag=1):
   if flag:
-    print("ERROR:",str)
+    print("ERROR:",txt)
     sys.exit()
   else:
-    print("WARNING:",str)
+    print("WARNING:",txt)
 
 # store command-line args as sw = dict of key/value
 # key = switch word, value = list of following args
@@ -86,13 +84,13 @@ def switch2str(switches,switch_order):
 
 def compile_check(compiler,ccflags,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
-  str = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
-  txt = subprocess.getoutput(str)
+  tmp = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
+  txt = subprocess.getoutput(tmp)
   flag = 1
   if txt or not os.path.isfile("tmpauto.o"):
     flag = 0
     if warn:
-      print(str)
+      print(tmp)
       if txt: print(txt)
       else: print("compile produced no output")
   os.remove("tmpauto.cpp")
@@ -105,13 +103,13 @@ def compile_check(compiler,ccflags,warn):
 
 def link_check(linker,linkflags,libs,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
-  str = "%s %s -o tmpauto tmpauto.cpp %s" % (linker,linkflags,libs)
-  txt = subprocess.getoutput(str)
+  tmp = "%s %s -o tmpauto tmpauto.cpp %s" % (linker,linkflags,libs)
+  txt = subprocess.getoutput(tmp)
   flag = 1
   if txt or not os.path.isfile("tmpauto"):
     flag = 0
     if warn:
-      print(str)
+      print(tmp)
       if txt: print(txt)
       else: print("link produced no output")
   os.remove("tmpauto.cpp")
@@ -233,8 +231,8 @@ class Actions(object):
   def lib(self,suffix):
     if suffix != "all":
       print("building",suffix,"library ...")
-      str = "%s.build()" % suffix
-      exec(str)
+      txt = "%s.build()" % suffix
+      exec(txt)
     else:
       final = packages.final
       for one in packages.lib:
@@ -242,8 +240,8 @@ class Actions(object):
           if "user" in one: pkg = one[5:]
           else: pkg = one
           print("building",pkg,"library ...")
-          str = "%s.build()" % pkg
-          exec(str)
+          txt = "%s.build()" % pkg
+          exec(txt)
 
   # read Makefile.machine
   # if caller = "file", edit via switches
@@ -548,8 +546,8 @@ class Actions(object):
   # invoke "make clean-auto" to force clean before build
     
   def clean(self):
-    str = "cd %s; make clean-auto" % dir.src
-    subprocess.getoutput(str)
+    txt = "cd %s; make clean-auto" % dir.src
+    subprocess.getoutput(txt)
     print("Performed make clean-auto")
 
   # build LAMMPS using Makefile.auto and -j setting
@@ -562,8 +560,8 @@ class Actions(object):
     subprocess.getoutput("cd %s; rm -f lmp_auto" % dir.src)
     if self.stubs and not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
       print("building serial STUBS library ...")
-      str = "cd %s/STUBS; make clean; make" % dir.src
-      txt = subprocess.getoutput(str)
+      tmp = "cd %s/STUBS; make clean; make" % dir.src
+      txt = subprocess.getoutput(tmp)
       if not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
         print(txt)
         error('Unsuccessful "make stubs"')
@@ -577,15 +575,15 @@ class Actions(object):
     if "shannon" == platform.node() and packages.final["gpu"]:
       make = "srun make"
       
-    if jmake: str = "cd %s; %s -j %d auto" % (dir.src,make,jmake.n)
-    else: str = "cd %s; %s auto" % (dir.src,make)
+    if jmake: tmp = "cd %s; %s -j %d auto" % (dir.src,make,jmake.n)
+    else: tmp = "cd %s; %s auto" % (dir.src,make)
     
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(tmp,shell=True)
     else:
-      print(str)
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      print(tmp)
+      try: subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/lmp_auto" % dir.src):
@@ -808,8 +806,8 @@ class Packages(object):
     # key = package name, value = 1 if currently installed, else 0
 
     original = {}
-    str = "cd %s; make ps" % dir.src
-    output = subprocess.getoutput(str).split('\n')
+    tmp = "cd %s; make ps" % dir.src
+    output = subprocess.getoutput(tmp).split('\n')
     pattern = "Installed\s+(\w+): package (\S+)"
     for line in output:
       m = re.search(pattern,line)
@@ -1055,14 +1053,14 @@ class ATC(object):
     make.write("%s/Makefile.auto" % libdir)
     
     subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
     
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libatc.a" % libdir) or \
@@ -1106,14 +1104,14 @@ class AWPMD(object):
     make.write("%s/Makefile.auto" % libdir)
 
     subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
    
     if not os.path.isfile("%s/libawpmd.a" % libdir) or \
@@ -1157,14 +1155,14 @@ class COLVARS(object):
     make.write("%s/Makefile.auto" % libdir)
 
     subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libcolvars.a" % libdir) or \
@@ -1212,16 +1210,16 @@ class CUDA(object):
     if self.mode == "double": n = 2
     elif self.mode == "mixed": n = 3
     elif self.mode == "single": n = 1
-    if jmake: str = "cd %s; make -j %d precision=%d arch=%s" % \
+    if jmake: txt = "cd %s; make -j %d precision=%d arch=%s" % \
           (libdir,jmake.n,n,self.arch)
-    else: str = str = "cd %s; make precision=%d arch=%s" % \
+    else: txt = "cd %s; make precision=%d arch=%s" % \
           (libdir,n,self.arch)
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/liblammpscuda.a" % libdir) or \
@@ -1304,14 +1302,14 @@ class GPU(object):
     if "shannon" == platform.node(): make = "srun make"
 
     subprocess.getoutput("cd %s; %s -f Makefile.auto clean" % (libdir,make))
-    if jmake: str = "cd %s; %s -j %d -f Makefile.auto" % (libdir,make,jmake.n)
-    else: str = "cd %s; %s -f Makefile.auto" % (libdir,make)
+    if jmake: txt = "cd %s; %s -j %d -f Makefile.auto" % (libdir,make,jmake.n)
+    else: txt = "cd %s; %s -f Makefile.auto" % (libdir,make)
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libgpu.a" % libdir) or \
@@ -1355,13 +1353,13 @@ class H5MD(object):
     make.write("%s/Makefile.auto" % libdir)
 
     subprocess.getoutput("cd %s; make clean" % libdir)
-    str = "cd %s; make" % libdir
+    txt = "cd %s; make" % libdir
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libch5md.a" % libdir) or \
@@ -1406,13 +1404,13 @@ class MEAM(object):
 
     subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
     # do not use -j for MEAM build, parallel build does not work
-    str = "cd %s; make -f Makefile.auto" % libdir
+    txt = "cd %s; make -f Makefile.auto" % libdir
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libmeam.a" % libdir) or \
@@ -1456,14 +1454,14 @@ class POEMS(object):
     make.write("%s/Makefile.auto" % libdir)
 
     subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
 
     if not os.path.isfile("%s/libpoems.a" % libdir) or \
@@ -1542,14 +1540,14 @@ class QMMM(object):
     make.write("%s/Makefile.auto" % libdir)
 
     subprocess.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
 
     # if verbose, print output as build proceeds, else only print if fails
 
-    if verbose: subprocess.call(str,shell=True)
+    if verbose: subprocess.call(txt,shell=True)
     else:
-      try: subprocess.check_output(str,stderr=subprocess.STDOUT,shell=True)
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
       except Exception as e: print(e.output)
    
     if not os.path.isfile("%s/libqmmm.a" % libdir) or \

@@ -35,7 +35,8 @@ enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nwall(0)
 {
   scalar_flag = 1;
   vector_flag = 1;
@@ -47,7 +48,6 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
   // parse args
 
-  nwall = 0;
   int scaleflag = 1;
   fldflag = 0;
   int pbcflag = 0;

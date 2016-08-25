@@ -71,14 +71,22 @@
         
           
           
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">5.USER-INTEL package</a><ul>
-<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_tools.html">9. Additional tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_modify.html">10. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
 </ul>
-</li>
-</ul>
-</div>
+
           
         
       </div>
@@ -279,7 +287,7 @@ process can be as simple as:</p>
 </pre></div>
 </div>
 <p>Alternatively, the build can be accomplished with the src/Make.py
-script, described in <span class="xref std std-ref">Section 2.4</span> of the
+script, described in <a class="reference internal" href="Section_start.html#start-4"><span class="std std-ref">Section 2.4</span></a> of the
 manual. Type &#8220;Make.py -h&#8221; for help. For an example:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">p</span> <span class="n">intel</span> <span class="n">omp</span> <span class="o">-</span><span class="n">intel</span> <span class="n">cpu</span> <span class="o">-</span><span class="n">a</span> <span class="n">file</span> <span class="n">intel_cpu_intelmpi</span>
 </pre></div>
@@ -352,7 +360,7 @@ Hyper-Threading technology disabled.</p>
 <p><strong>Run with the USER-INTEL package from the command line:</strong></p>
 <p>To enable USER-INTEL optimizations for all available styles used in
 the input script, the &#8220;-sf intel&#8221;
-<span class="xref std std-ref">command-line switch</span> can be used without
+<a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> can be used without
 any requirement for editing the input script. This switch will
 automatically append &#8220;intel&#8221; to styles that support it. It also
 invokes a default command: <a class="reference internal" href="package.html"><span class="doc">package intel 1</span></a>. This
@@ -364,7 +372,7 @@ if coprocessors are present and the binary was built with offload
 support, that 1 coprocessor per node will be used with automatic
 balancing of work between the CPU and the coprocessor.</p>
 <p>You can specify different options for the USER-INTEL package by using
-the &#8220;-pk intel Nphi&#8221; <span class="xref std std-ref">command-line switch</span>
+the &#8220;-pk intel Nphi&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>
 with keyword/value pairs as specified in the documentation. Here,
 Nphi = # of Xeon Phi coprocessors/node (ignored without offload
 support). Common options to the USER-INTEL package include <em>omp</em> to
@@ -427,7 +435,7 @@ can performed automatically by using &#8220;-sf hybrid intel opt&#8221; or
 &#8220;-sf hybrid intel omp&#8221; command-line options. Alternatively, the &#8220;opt&#8221;
 and &#8220;omp&#8221; suffixes can be appended manually in the input script. For
 the latter, the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command must be in the
-input script or the &#8220;-pk omp Nt&#8221; <span class="xref std std-ref">command-line  switch</span> must be used where Nt is the
+input script or the &#8220;-pk omp Nt&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line  switch</span></a> must be used where Nt is the
 number of OpenMP threads. The number of OpenMP threads should not be
 set differently for the different packages. Note that the <a class="reference internal" href="suffix.html"><span class="doc">suffix  hybrid intel omp</span></a> command can also be used within the
 input script to automatically append the &#8220;omp&#8221; suffix to styles when
@@ -507,7 +515,7 @@ per MPI task.  Additionally, an offload timing summary is printed at
 the end of each run.  When offloading, the frequency for <a class="reference internal" href="atom_modify.html"><span class="doc">atom sorting</span></a> is changed to 1 so that the per-atom data is
 effectively sorted at every rebuild of the neighbor lists. All the
 available coprocessor threads on each Phi will be divided among MPI
-tasks, unless the <em>tptask</em> option of the &#8220;-pk intel&#8221; <span class="xref std std-ref">command-line  switch</span> is used to limit the coprocessor
+tasks, unless the <em>tptask</em> option of the &#8220;-pk intel&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line  switch</span></a> is used to limit the coprocessor
 threads per MPI task.</p>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>

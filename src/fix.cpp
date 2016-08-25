@@ -31,7 +31,8 @@ int Fix::instance_total = 0;
 
 /* ---------------------------------------------------------------------- */
 
-Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp),
+id(NULL), style(NULL), eatom(NULL), vatom(NULL)
 {
   instance_me = instance_total++;
 
@@ -92,8 +93,6 @@ Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   //   which may occur outside of timestepping
 
   maxeatom = maxvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
   vflag_atom = 0;
 
   // CUDA and KOKKOS per-fix data masks

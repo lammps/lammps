@@ -42,7 +42,10 @@ enum{SCALAR,VECTOR};
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), offcol(NULL), varlen(NULL), ids(NULL),
+  fp(NULL), offlist(NULL), format(NULL), format_user(NULL), vector(NULL), vector_total(NULL), vector_list(NULL),
+  column(NULL), array(NULL), array_total(NULL), array_list(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/time command");
 

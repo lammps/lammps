@@ -36,7 +36,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  partner(NULL), finalpartner(NULL), distsq(NULL), broken(NULL), copy(NULL), random(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 
@@ -98,11 +99,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   // allocate arrays local to this fix
 
   nmax = 0;
-  partner = finalpartner = NULL;
-  distsq = NULL;
 
   maxbreak = 0;
-  broken = NULL;
 
   // copy = special list for one atom
   // size = ms^2 + ms is sufficient

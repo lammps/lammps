@@ -34,7 +34,8 @@ enum{TYPE,RADIUS};
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  vector(NULL), array(NULL), indices(NULL), pack_choice(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/local command");
 
@@ -253,9 +254,6 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute property/local requires atom attribute radius");
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
-  indices = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

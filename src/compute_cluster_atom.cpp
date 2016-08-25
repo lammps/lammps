@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  clusterID(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cluster/atom command");
 
@@ -46,7 +47,6 @@ ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 1;
 
   nmax = 0;
-  clusterID = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

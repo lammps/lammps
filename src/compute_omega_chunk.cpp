@@ -26,7 +26,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idchunk(NULL),massproc(NULL),masstotal(NULL),com(NULL),comall(NULL),
+  inertia(NULL),inertiaall(NULL),angmom(NULL),angmomall(NULL),omega(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute omega/chunk command");
 
@@ -48,9 +50,6 @@ ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  massproc = masstotal = NULL;
-  com = comall = NULL;
-  angmom = angmomall = NULL;
   allocate();
 }
 
@@ -65,6 +64,9 @@ ComputeOmegaChunk::~ComputeOmegaChunk()
   memory->destroy(comall);
   memory->destroy(angmom);
   memory->destroy(angmomall);
+  memory->destroy(inertia);
+  memory->destroy(inertiaall);
+  memory->destroy(omega);
 }
 
 /* ---------------------------------------------------------------------- */

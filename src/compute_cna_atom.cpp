@@ -42,7 +42,8 @@ enum{NCOMMON,NBOND,MAXBOND,MINBOND};
 /* ---------------------------------------------------------------------- */
 
 ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  nearest(NULL), nnearest(NULL), pattern(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cna/atom command");
 
@@ -54,9 +55,6 @@ ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   cutsq = cutoff*cutoff;
 
   nmax = 0;
-  nearest = NULL;
-  nnearest = NULL;
-  pattern = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

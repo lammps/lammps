@@ -27,7 +27,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), rg(NULL),
+  rgall(NULL), rgt(NULL), rgtall(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute gyration/chunk command");
 
@@ -67,10 +69,6 @@ ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  massproc = masstotal = NULL;
-  com = comall = NULL;
-  rg = rgall = NULL;
-  rgt = rgtall = NULL;
   allocate();
 }
 

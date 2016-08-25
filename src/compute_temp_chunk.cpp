@@ -29,7 +29,9 @@ enum{TEMP,KECOM,INTERNAL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  which(NULL), idchunk(NULL), id_bias(NULL), sum(NULL), sumall(NULL), count(NULL), 
+  countall(NULL), massproc(NULL), masstotal(NULL), vcm(NULL), vcmall(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute temp/chunk command");
 
@@ -129,12 +131,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  sum = sumall = NULL;
-  count = countall = NULL;
-  massproc = masstotal = NULL;
-  vcm = vcmall = NULL;
-  array = NULL;
-
+  
   if (nvalues)  {
     array_flag = 1;
     size_array_cols = nvalues;

@@ -34,7 +34,8 @@ enum{COMPUTE,FIX,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute slice command");
 

@@ -36,7 +36,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  distsq(NULL), nearest(NULL), centro(NULL)
 {
   if (narg < 4 || narg > 6) error->all(FLERR,"Illegal compute centro/atom command");
 
@@ -69,11 +70,7 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   else size_peratom_cols = 10;
   
   nmax = 0;
-  centro = NULL;
   maxneigh = 0;
-  distsq = NULL;
-  nearest = NULL;
-  array_atom = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

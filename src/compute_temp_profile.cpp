@@ -31,7 +31,8 @@ enum{TENSOR,BIN};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  bin(NULL), vbin(NULL), binave(NULL), tbin(NULL), tbinall(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 
@@ -138,7 +139,6 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   }
 
   maxatom = 0;
-  bin = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

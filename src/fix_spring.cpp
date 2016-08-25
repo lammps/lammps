@@ -52,8 +52,6 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  group2 = NULL;
-
   if (strcmp(arg[3],"tether") == 0) {
     if (narg != 9) error->all(FLERR,"Illegal fix spring command");
     styleflag = TETHER;

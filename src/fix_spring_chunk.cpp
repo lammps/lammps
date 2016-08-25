@@ -34,7 +34,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  idchunk(NULL), idcom(NULL), com0(NULL), fcom(NULL)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix spring/chunk command");
 
@@ -55,7 +56,6 @@ FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
   strcpy(idcom,arg[5]);
 
   esprings = 0.0;
-  com0 = fcom = NULL;
   nchunk = 0;
 }
 

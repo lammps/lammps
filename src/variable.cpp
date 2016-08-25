@@ -710,6 +710,7 @@ int Variable::next(int narg, char **arg)
 
 int Variable::find(char *name)
 {
+  if(name==NULL) return -1;
   for (int i = 0; i < nvar; i++)
     if (strcmp(name,names[i]) == 0) return i;
   return -1;

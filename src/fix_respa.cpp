@@ -24,7 +24,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  store_torque(0), f_level(NULL), t_level(NULL)
 {
   // nlevels = # of rRESPA levels
 

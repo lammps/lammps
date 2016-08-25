@@ -29,7 +29,8 @@ enum{MOLECULE,CHARGE,RMASS,INTEGER,DOUBLE};
 /* ---------------------------------------------------------------------- */
 
 FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalue(0), style(NULL), index(NULL), astyle(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix property/atom command");
 

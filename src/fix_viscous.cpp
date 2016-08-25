@@ -27,7 +27,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  gamma(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
 

@@ -1610,6 +1610,7 @@ void Atom::add_molecule(int narg, char **arg)
 
 int Atom::find_molecule(char *id)
 {
+  if(id == NULL) return -1;
   int imol;
   for (imol = 0; imol < nmolecule; imol++)
     if (strcmp(id,molecules[imol]->id) == 0) return imol;
@@ -1936,6 +1937,8 @@ void Atom::add_callback(int flag)
 
 void Atom::delete_callback(const char *id, int flag)
 {
+  if(id==NULL) return;
+
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(id,modify->fix[ifix]->id) == 0) break;
@@ -1991,6 +1994,8 @@ void Atom::update_callback(int ifix)
 
 int Atom::find_custom(const char *name, int &flag)
 {
+  if(name == NULL) return -1;
+
   for (int i = 0; i < nivector; i++)
     if (iname[i] && strcmp(iname[i],name) == 0) {
       flag = 0;

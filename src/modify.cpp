@@ -911,6 +911,7 @@ void Modify::delete_fix(const char *id)
 
 int Modify::find_fix(const char *id)
 {
+  if(id==NULL) return -1;
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
     if (strcmp(id,fix[ifix]->id) == 0) break;
@@ -1040,6 +1041,7 @@ void Modify::delete_compute(const char *id)
 
 int Modify::find_compute(const char *id)
 {
+  if(id==NULL) return -1;
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(id,compute[icompute]->id) == 0) break;

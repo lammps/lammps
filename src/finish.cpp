@@ -33,6 +33,7 @@
 #include "neigh_request.h"
 #include "output.h"
 #include "memory.h"
+#include "error.h"
 
 #ifdef LMP_USER_OMP
 #include "modify.h"
@@ -514,6 +515,13 @@ void Finish::end(int flag)
     }
   }
 #endif
+
+  if (lmp->kokkos && lmp->kokkos->ngpu > 0)
+    if (const char* env_clb = std::getenv("CUDA_LAUNCH_BLOCKING"))
+      if (!(strcmp(env_clb,"1") == 0)) {
+        error->warning(FLERR,"Timing breakdown may not be accurate since GPU/CPU overlap is enabled. "
+          "Using 'export CUDA_LAUNCH_BLOCKING=1' will give an accurate timing breakdown but will reduce performance");
+      }
 
   // FFT timing statistics
   // time3d,time1d = total time during run for 3d and 1d FFTs

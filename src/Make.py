@@ -85,7 +85,7 @@ def switch2str(switches,switch_order):
 def compile_check(compiler,ccflags,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   tmp = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
-  txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True)
+  txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
   flag = 1
   if txt or not os.path.isfile("tmpauto.o"):
     flag = 0
@@ -104,7 +104,7 @@ def compile_check(compiler,ccflags,warn):
 def link_check(linker,linkflags,libs,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   tmp = "%s %s -o tmpauto tmpauto.cpp %s" % (linker,linkflags,libs)
-  txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True)
+  txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
   flag = 1
   if txt or not os.path.isfile("tmpauto"):
     flag = 0
@@ -527,6 +527,8 @@ class Actions(object):
     # unless caller = "exe" and "file" action already invoked
     
     if caller == "file" or "file" not in self.alist:
+      # make certain that 'MAKE/MINE' folder exists.
+      subprocess.check_output("mkdir -p %s/MAKE/MINE" % dir.src,stderr=subprocess.STDOUT,shell=True)
       make.write("%s/MAKE/MINE/Makefile.auto" % dir.src,1)
       print("Created src/MAKE/MINE/Makefile.auto")
       
@@ -561,7 +563,7 @@ class Actions(object):
     if self.stubs and not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
       print("building serial STUBS library ...")
       tmp = "cd %s/STUBS; make clean; make" % dir.src
-      txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True)
+      txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
       if not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
         print(txt)
         error('Unsuccessful "make stubs"')
@@ -807,13 +809,13 @@ class Packages(object):
 
     original = {}
     tmp = "cd %s; make ps" % dir.src
-    output = subprocess.check_output(tmp).split('\n',stderr=subprocess.STDOUT,shell=True)
+    output = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
     pattern = "Installed\s+(\w+): package (\S+)"
     for line in output:
       m = re.search(pattern,line)
       if not m: continue
       pkg = m.group(2).lower()
-      if pkg not in all: error('Package list does not math "make ps" results')
+      if pkg not in all: error('Package list does not match "make ps" results')
       if m.group(1) == "NO": original[pkg] = 0      
       elif m.group(1) == "YES": original[pkg] = 1
 
@@ -855,7 +857,7 @@ class Packages(object):
       if one == "orig": continue
       subprocess.check_output("cd %s; make %s" % (dir.src,one),stderr=subprocess.STDOUT,shell=True)
     if self.plist and verbose:
-      txt = subprocess.check_output("cd %s; make ps" % dir.src,stderr=subprocess.STDOUT,shell=True)
+      txt = subprocess.check_output("cd %s; make ps" % dir.src,stderr=subprocess.STDOUT,shell=True).decode()
       print("Package status after installation:")
       print(txt)
       
@@ -870,7 +872,7 @@ class Packages(object):
       if self.original[one]:
         subprocess.check_output("cd %s; make yes-%s" % (dir.src,one),stderr=subprocess.STDOUT,shell=True)
     if verbose:
-      txt = subprocess.check_output("cd %s; make ps" % dir.src,stderr=subprocess.STDOUT,shell=True)
+      txt = subprocess.check_output("cd %s; make ps" % dir.src,stderr=subprocess.STDOUT,shell=True).decode()
       print("Restored package status:")
       print(txt)
       
@@ -1636,7 +1638,7 @@ class VORONOI(object):
     if not self.install: return
     libdir = dir.lib + "/voronoi"
     cmd = "cd %s; python install.py %s" % (libdir,self.install)
-    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True).decode()
     if verbose: print(txt)
     print("Created lib/voronoi library")
 
@@ -2316,7 +2318,7 @@ while 1:
 
   # create copy of Makefile.auto if requested, and file or exe action performed
   # ditto for library Makefile.auto and Makefile.lammps files
-    
+
   if zoutput and actions and \
         ("file" in actions.alist or "exe" in actions.alist):
     txt = "cp %s/MAKE/MINE/Makefile.auto %s/MAKE/MINE/Makefile.%s" % \

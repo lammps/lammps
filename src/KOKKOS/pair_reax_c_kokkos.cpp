@@ -670,26 +670,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  // reallocate per-atom arrays if necessary
-
-  if (eflag_atom) {
-    if (k_eatom.dimension_0()<maxeatom) {
-      memory->destroy_kokkos(k_eatom,eatom);
-      memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-      d_eatom = k_eatom.d_view;
-      h_eatom = k_eatom.h_view;
-      v_eatom = k_eatom.view<DeviceType>();
-    }
-  }
-  if (vflag_atom) {
-    if (k_vatom.dimension_0()<maxvatom) {
-      memory->destroy_kokkos(k_vatom,vatom);
-      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-      d_vatom = k_vatom.d_view;
-      h_vatom = k_vatom.h_view;
-      v_vatom = k_vatom.view<DeviceType>();
-    }
-  }
   atomKK->sync(execution_space,datamask_read);
   k_params_sing.template sync<DeviceType>();
   k_params_twbp.template sync<DeviceType>();
@@ -727,8 +707,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT_REAX ev;
   EV_FLOAT_REAX ev_all;
-  const int teamsize = TEAMSIZE;
-  int maxtmp = 0;
 
   // Polarization (self)
   if (neighflag == HALF) {
@@ -1203,10 +1181,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTabulatedLJCoulomb<N
   // The f array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
-  F_FLOAT powr_vdw, powgi_vdw, fn13, dfn13, exp1, exp2, etmp;
-  F_FLOAT evdwl, fvdwl;
-  evdwl = fvdwl = 0.0;
-
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -1414,7 +1388,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsFull, const int &
 
   int ihb = -1;
   int jhb = -1;
-  int jhb_top = -1;
   int hb_index = i*maxhb;
 
   int hb_first_i;
@@ -1575,7 +1548,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, 
 
   int ihb = -1;
   int jhb = -1;
-  int jhb_top = -1;
 
   int hb_first_i;
   if (cut_hbsq > 0.0) {
@@ -1789,8 +1761,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
   const int itag = tag(i);
   const int jnum = d_numneigh[i];
 
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3];
-  F_FLOAT total_bo = 0.0;
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
 
   int j_index,i_index;
   d_bo_first[i] = i*maxbo;
@@ -1798,7 +1769,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxBuildListsHalf_LessAtomics<
 
   int ihb = -1;
   int jhb = -1;
-  int jhb_top = -1;
 
   int hb_first_i;
   if (cut_hbsq > 0.0) {
@@ -3115,7 +3085,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
     }
   }
 
-  F_FLOAT fitmp[3], fktmp[3];
+  F_FLOAT fitmp[3];
   for (int d = 0; d < 3; d++) fitmp[d] = 0.0;
 
   for (int kk = k_start; kk < k_end; kk++) {
@@ -3129,8 +3099,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeHydrogen<NEIGHFLAG,E
     delik[2] = x(k,2) - ztmp;
     const F_FLOAT rsqik = delik[0]*delik[0] + delik[1]*delik[1] + delik[2]*delik[2];
     const F_FLOAT rik = sqrt(rsqik);
-
-    for (int d = 0; d < 3; d++) fktmp[d] = 0.0;
 
     for (int itr = 0; itr < top; itr++) {
       const int jj = hblist[itr];
@@ -3292,8 +3260,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond1<NEIGHFLAG,EVFL
   const int j_end = j_start + d_bo_num[i];
 
   F_FLOAT CdDelta_i = 0.0;
-  F_FLOAT fitmp[3];
-  for (int j = 0; j < 3; j++) fitmp[j] = 0.0;
 
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
@@ -3415,7 +3381,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
 
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], delik[3], deljk[3], tmpvec[3];
+  F_FLOAT delij[3], delik[3], deljk[3], tmpvec[3];
   F_FLOAT dBOp_i[3], dBOp_k[3], dln_BOp_pi[3], dln_BOp_pi2[3];
 
   const int i = d_ilist[ii];
@@ -3595,7 +3561,6 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeBond2<NEIGHFLAG,EVFL
       if (EVFLAG) {
         if (vflag_either) {
           for (int d = 0; d < 3; d++) deljk[d] = x(k,d) - x(j,d);
-          const F_FLOAT rsqjk = deljk[0]*deljk[0] + deljk[1]*deljk[1] + deljk[2]*deljk[2];
           for (int d = 0; d < 3; d++) tmpvec[d] = x(i,d) - x(k,d) - deljk[d];
           this->template v_tally<NEIGHFLAG>(ev,k,temp,tmpvec);
         }
@@ -3888,6 +3853,56 @@ void *PairReaxCKokkos<DeviceType>::extract(const char *str, int &dim)
     return (void *) gamma;
   }
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   setup for energy, virial computation
+   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
+{
+  int i;
+
+  evflag = 1;
+
+  eflag_either = eflag;
+  eflag_global = eflag % 2;
+  eflag_atom = eflag / 2;
+
+  vflag_either = vflag;
+  vflag_global = vflag % 4;
+  vflag_atom = vflag / 4;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom && atom->nmax > maxeatom) {
+      memory->destroy_kokkos(k_eatom,eatom);
+      memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+      v_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom && atom->nmax > maxvatom) {
+      memory->destroy_kokkos(k_vatom,vatom);
+      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+      v_vatom = k_vatom.view<DeviceType>();
+  }
+
+  // zero accumulators
+
+  if (eflag_global) eng_vdwl = eng_coul = 0.0;
+  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+
+  // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
+  // compute global virial via (F dot r) instead of via pairwise summation
+  // unset other flags as appropriate
+
+  if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
+    vflag_fdotr = 1;
+    vflag_global = 0;
+    if (vflag_atom == 0) vflag_either = 0;
+    if (vflag_either == 0 && eflag_either == 0) evflag = 0;
+  } else vflag_fdotr = 0;
 }
 
 /* ---------------------------------------------------------------------- */

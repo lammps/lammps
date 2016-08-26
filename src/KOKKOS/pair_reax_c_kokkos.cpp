@@ -670,26 +670,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  // reallocate per-atom arrays if necessary
-
-  if (eflag_atom) {
-    if (k_eatom.dimension_0()<maxeatom) {
-      memory->destroy_kokkos(k_eatom,eatom);
-      memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-      d_eatom = k_eatom.d_view;
-      h_eatom = k_eatom.h_view;
-      v_eatom = k_eatom.view<DeviceType>();
-    }
-  }
-  if (vflag_atom) {
-    if (k_vatom.dimension_0()<maxvatom) {
-      memory->destroy_kokkos(k_vatom,vatom);
-      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-      d_vatom = k_vatom.d_view;
-      h_vatom = k_vatom.h_view;
-      v_vatom = k_vatom.view<DeviceType>();
-    }
-  }
   atomKK->sync(execution_space,datamask_read);
   k_params_sing.template sync<DeviceType>();
   k_params_twbp.template sync<DeviceType>();
@@ -3888,6 +3868,56 @@ void *PairReaxCKokkos<DeviceType>::extract(const char *str, int &dim)
     return (void *) gamma;
   }
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   setup for energy, virial computation
+   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
+{
+  int i,n;
+
+  evflag = 1;
+
+  eflag_either = eflag;
+  eflag_global = eflag % 2;
+  eflag_atom = eflag / 2;
+
+  vflag_either = vflag;
+  vflag_global = vflag % 4;
+  vflag_atom = vflag / 4;
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom && atom->nmax > maxeatom) {
+      memory->destroy_kokkos(k_eatom,eatom);
+      memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+      v_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom && atom->nmax > maxvatom) {
+      memory->destroy_kokkos(k_vatom,vatom);
+      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+      v_vatom = k_vatom.view<DeviceType>();
+  }
+
+  // zero accumulators
+
+  if (eflag_global) eng_vdwl = eng_coul = 0.0;
+  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+
+  // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
+  // compute global virial via (F dot r) instead of via pairwise summation
+  // unset other flags as appropriate
+
+  if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
+    vflag_fdotr = 1;
+    vflag_global = 0;
+    if (vflag_atom == 0) vflag_either = 0;
+    if (vflag_either == 0 && eflag_either == 0) evflag = 0;
+  } else vflag_fdotr = 0;
 }
 
 /* ---------------------------------------------------------------------- */

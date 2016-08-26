@@ -52,9 +52,11 @@ class TypeDetector {
   TypeDetector() {}
 
  public:
-  TypeDetector(enum Style t) : type(t) {}
+  TypeDetector(enum Style t) : type(t) {length = 0;}
   virtual ~TypeDetector() {
-    values.empty();
+    for (std::vector<Entity *>::iterator it = values.begin();
+         it != values.end(); ++it)
+      delete (*it);
   }
 
   bool init(const char* input) {

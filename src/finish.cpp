@@ -13,6 +13,7 @@
 
 #include <mpi.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "finish.h"
@@ -517,7 +518,7 @@ void Finish::end(int flag)
 #endif
 
   if (lmp->kokkos && lmp->kokkos->ngpu > 0)
-    if (const char* env_clb = std::getenv("CUDA_LAUNCH_BLOCKING"))
+    if (const char* env_clb = getenv("CUDA_LAUNCH_BLOCKING"))
       if (!(strcmp(env_clb,"1") == 0)) {
         error->warning(FLERR,"Timing breakdown may not be accurate since GPU/CPU overlap is enabled. "
           "Using 'export CUDA_LAUNCH_BLOCKING=1' will give an accurate timing breakdown but will reduce performance");

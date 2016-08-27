@@ -1,6 +1,10 @@
 # Depend.sh = Install/unInstall files due to package dependencies
 # this script is invoked after any package is installed/uninstalled
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 # all parent/child package dependencies should be listed below
 # parent package = has files that files in another package derive from
 # child package = has files that derive from files in another package

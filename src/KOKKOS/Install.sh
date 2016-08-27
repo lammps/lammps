@@ -3,6 +3,10 @@
 
 mode=$1
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 # arg1 = file, arg2 = file it depends on
 
 action () {
@@ -189,8 +193,12 @@ if (test $1 = 1) then
     sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
     sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \CXX = $(CC)' ../Makefile.package.settings
-    sed -i -e '5 i \include ..\/..\/lib\/kokkos\/Makefile.kokkos' ../Makefile.package.settings
+    sed -i -e '4 i \
+CXX = $(CC)
+' ../Makefile.package.settings
+    sed -i -e '5 i \
+include ..\/..\/lib\/kokkos\/Makefile.kokkos
+' ../Makefile.package.settings
   fi
 
   #  comb/omp triggers a persistent bug in nvcc. deleting it.

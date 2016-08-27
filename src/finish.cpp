@@ -13,6 +13,7 @@
 
 #include <mpi.h>
 #include <math.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "finish.h"
@@ -33,6 +34,7 @@
 #include "neigh_request.h"
 #include "output.h"
 #include "memory.h"
+#include "error.h"
 
 #ifdef LMP_USER_OMP
 #include "modify.h"
@@ -162,10 +164,17 @@ void Finish::end(int flag)
       if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
       if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
 #else
-      const char fmt2[] =
-        "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
-      if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
-      if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
+      if (lmp->kokkos) {
+        const char fmt2[] =
+          "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
+        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
+        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
+      } else {
+        const char fmt2[] =
+          "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
+        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
+        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
+      }
 #endif
 
     }
@@ -507,6 +516,13 @@ void Finish::end(int flag)
     }
   }
 #endif
+
+  if (lmp->kokkos && lmp->kokkos->ngpu > 0)
+    if (const char* env_clb = getenv("CUDA_LAUNCH_BLOCKING"))
+      if (!(strcmp(env_clb,"1") == 0)) {
+        error->warning(FLERR,"Timing breakdown may not be accurate since GPU/CPU overlap is enabled. "
+          "Using 'export CUDA_LAUNCH_BLOCKING=1' will give an accurate timing breakdown but will reduce performance");
+      }
 
   // FFT timing statistics
   // time3d,time1d = total time during run for 3d and 1d FFTs

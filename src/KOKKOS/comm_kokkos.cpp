@@ -364,8 +364,8 @@ void CommKokkos::exchange()
       if(print && comm->me==0) {
         error->warning(FLERR,"Fixes cannot send data in Kokkos communication, "
 		       "switching to classic communication");
-        print = 0;
       }
+      print = 0;
       exchange_comm_classic = true;
     }
   }

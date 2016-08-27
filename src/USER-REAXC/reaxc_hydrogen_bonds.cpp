@@ -103,6 +103,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
             type_i = system->my_atoms[i].type;
 	    if (type_i < 0) continue;
             hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
+	    if (hbp->r0_hb <= 0.0) continue;
             ++num_hb_intrs;
 
             Calculate_Theta( pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,

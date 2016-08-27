@@ -128,7 +128,8 @@ class PairReaxCKokkos : public PairReaxC {
   PairReaxCKokkos(class LAMMPS *);
   virtual ~PairReaxCKokkos();
 
-  virtual void compute(int, int);
+  void ev_setup(int, int);
+  void compute(int, int);
   void *extract(const char *, int &);
   void init_style();
   double memory_usage();
@@ -347,9 +348,7 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_float_1d_randomread q;
 
   DAT::tdual_efloat_1d k_eatom;
-  DAT::t_efloat_1d d_eatom;
   typename AT::t_efloat_1d v_eatom;
-  HAT::t_efloat_1d h_eatom;
 
   DAT::tdual_virial_array k_vatom;
   DAT::t_virial_array d_vatom;

@@ -25,6 +25,9 @@ neighbor        2.0 bin
 fix		1 all shake 0.0001 20 0 b 1 a 1
 fix		2 all nvt temp 300.0 300.0 100.0
 
+# make certain that shake constraints are satisfied
+run 0 post no
+
 group		oxy type 1
 group		hyd type 2
 

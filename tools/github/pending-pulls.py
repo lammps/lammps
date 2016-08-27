@@ -7,7 +7,7 @@ from io import BytesIO
 base = 'akohlmey/lammps'
 user = 'sjplimp'
 upstream = 'integration'
-verbose = False
+verbose = True
 
 buf = BytesIO()
 c = pycurl.Curl()

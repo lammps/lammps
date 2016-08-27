@@ -5,6 +5,10 @@ mode=$1
 
 # arg1 = file, arg2 = file it depends on
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 action () {
   if (test $mode = 0) then
     rm -f ../$1

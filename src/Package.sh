@@ -1,6 +1,10 @@
 # Package.sh = package management, called from Makefile
 # Syntax: sh Package.sh DIR status/update/overwrite/diff
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 # package is already installed if any package *.cpp or *.h file is in src
 # else not installed
 

@@ -157,7 +157,7 @@ keyword = <em>temp</em> or <em>tchain</em> or <em>every</em>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>This fix combines the RATTLE-based <a class="reference internal" href="fix_shake.html#andersen"><span class="std std-ref">(Andersen)</span></a> time integrator of <a class="reference internal" href="fix_nve_manifold_rattle.html"><span class="doc">fix nve/manifold/rattle</span></a> <a class="reference internal" href="manifolds.html#paquay"><span class="std std-ref">(Paquay)</span></a> with a Nose-Hoover-chain thermostat to sample the
+<p>This fix combines the RATTLE-based <a class="reference internal" href="fix_shake.html#andersen"><span class="std std-ref">(Andersen)</span></a> time integrator of <a class="reference internal" href="fix_nve_manifold_rattle.html"><span class="doc">fix nve/manifold/rattle</span></a> <a class="reference internal" href="#paquay"><span class="std std-ref">(Paquay)</span></a> with a Nose-Hoover-chain thermostat to sample the
 canonical ensemble of particles constrained to a curved surface (manifold). This sampling does suffer from discretization bias of O(dt).
 For a list of currently supported manifolds and their parameters, see <a class="reference internal" href="manifolds.html"><span class="doc">manifolds</span></a></p>
 </div>
@@ -176,9 +176,6 @@ This fix is not invoked during <a class="reference internal" href="minimize.html
 <p>This fix is part of the USER-MANIFOLD package. It is only enabled if LAMMPS
 was built with that package. See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a>
 section for more info.</p>
-<p>Only use this with <em>min_style hftn</em> or <em>min_style quickmin</em>. If not, the constraints
-will not be satisfied very well at all. A warning is generated if the <em>min_style</em> is
-incompatible but no error.</p>
 </div>
 <hr class="docutils" />
 <div class="section" id="related-commands">
@@ -187,7 +184,7 @@ incompatible but no error.</p>
 <strong>Default:</strong> every = 0</p>
 <hr class="docutils" />
 <p id="andersen"><strong>(Andersen)</strong> Andersen, J. Comp. Phys. 52, 24, (1983).</p>
-<p id="paquay"><strong>(Paquay)</strong> Paquay and Kusters, Biophys. J., 110, ???, (2016), to be published,
+<p id="paquay"><strong>(Paquay)</strong> Paquay and Kusters, Biophys. J., 110, 6, (2016).
 preprint available at <a class="reference external" href="http://arxiv.org/abs/1411.3019/">arXiv:1411.3019</a>.</p>
 </div>
 </div>

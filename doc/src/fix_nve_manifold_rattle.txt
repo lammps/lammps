@@ -76,6 +76,10 @@ This fix is part of the USER-MANIFOLD package. It is only enabled if LAMMPS
 was built with that package. See the "Making LAMMPS"_Section_start.html#start_3
 section for more info.
 
+Only use this with {min_style hftn} or {min_style quickmin}. If not, the constraints
+will not be satisfied very well at all. A warning is generated if the {min_style} is
+incompatible but no error.
+
 :line
 
 [Related commands:]
@@ -90,7 +94,7 @@ section for more info.
 [(Andersen)] Andersen, J. Comp. Phys. 52, 24, (1983).
 
 :link(Paquay)
-[(Paquay)] Paquay and Kusters, Biophys. J., 110, 6, (2016).
+[(Paquay)] Paquay and Kusters, Biophys. J., 110, ???, (2016), to be published,
 preprint available at "arXiv:1411.3019"_http://arxiv.org/abs/1411.3019/.
 
 

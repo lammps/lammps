@@ -159,64 +159,65 @@
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>This fix implements the Gaussian dynamics (GD) method to simulate a system at
-constant mass flux <a class="reference internal" href="#strong"><span class="std std-ref">(Strong)</span></a>. GD is a nonequilibrium molecular
-dynamics simulation method that can be used to study fluid flows through
-pores, pipes, and channels. In its original implementation GD was used to
-compute the pressure required to achieve a fixed mass flux through an opening.
-The flux can be conserved in any combination of the directions, x, y, or z,
-using xflag,yflag,zflag. This fix does not initialize a net flux through
-a system, it only conserves the center-of-mass momentum that is present
-when the fix is declared in the input script. Use the <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a>
-command to generate an initial center-of-mass momentum.</p>
-<p>GD applies an external fluctuating gravitational field that acts as a driving
-force to keep the system away from equilibrium. To maintain steady state, a
-profile-unbiased thermostat must be implemented to dissipate the heat that is
-added by the driving force. <a class="reference internal" href="compute_temp_profile.html"><span class="doc">Compute temp/profile</span></a>
-can be used to implement a profile-unbiased thermostat.</p>
-<p>A common use of this fix is to compute a pressure drop across a pipe, pore, or
-membrane. The pressure profile can be computed in LAMMPS with <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute  stress/atom</span></a> and <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>,
-or with the hardy method in <a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a>. Note that the simple
-<a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a> method is only accurate away
-from inhomogeneities in the fluid, such as fixed wall atoms. Further, the
-computed pressure profile must be corrected for the acceleration applied by
-GD before computing a pressure drop or comparing it to other methods, such as
-the pump method <a class="reference internal" href="#zhu"><span class="std std-ref">(Zhu)</span></a>. The pressure correction is discussed and
-described in <a class="reference internal" href="#strong"><span class="std std-ref">(Strong)</span></a>.</p>
+<p>This fix implements the Gaussian dynamics (GD) method to simulate a
+system at constant mass flux <a class="reference internal" href="#strong"><span class="std std-ref">(Strong)</span></a>. GD is a
+nonequilibrium molecular dynamics simulation method that can be used
+to study fluid flows through pores, pipes, and channels. In its
+original implementation GD was used to compute the pressure required
+to achieve a fixed mass flux through an opening.  The flux can be
+conserved in any combination of the directions, x, y, or z, using
+xflag,yflag,zflag. This fix does not initialize a net flux through a
+system, it only conserves the center-of-mass momentum that is present
+when the fix is declared in the input script. Use the
+<a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> command to generate an initial center-of-mass
+momentum.</p>
+<p>GD applies an external fluctuating gravitational field that acts as a
+driving force to keep the system away from equilibrium. To maintain
+steady state, a profile-unbiased thermostat must be implemented to
+dissipate the heat that is added by the driving force. <a class="reference internal" href="compute_temp_profile.html"><span class="doc">Compute temp/profile</span></a> can be used to implement a
+profile-unbiased thermostat.</p>
+<p>A common use of this fix is to compute a pressure drop across a pipe,
+pore, or membrane. The pressure profile can be computed in LAMMPS with
+<a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a> and <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, or with the hardy method in <a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a>. Note that the simple <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a> method is only accurate away
+from inhomogeneities in the fluid, such as fixed wall atoms. Further,
+the computed pressure profile must be corrected for the acceleration
+applied by GD before computing a pressure drop or comparing it to
+other methods, such as the pump method <a class="reference internal" href="#zhu"><span class="std std-ref">(Zhu)</span></a>. The pressure
+correction is discussed and described in <a class="reference internal" href="#strong"><span class="std std-ref">(Strong)</span></a>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">For a complete example including the considerations discussed above, see
-the examples/USER/flow_gauss directory.</p>
+<p class="last">For a complete example including the considerations discussed
+above, see the examples/USER/flow_gauss directory.</p>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Only the flux of the atoms in group-ID will be conserved. If the
-velocities of the group-ID atoms are coupled to the velocities of other atoms
-in the simulation, the flux will not be conserved. For example, in a
-simulation with fluid atoms and harmonically constrained wall atoms, if a
-single thermostat is applied to group <em>all</em>, the fluid atom velocities will be
-coupled to the wall atom velocities, and the flux will not be conserved. This
-issue can be avoided by thermostatting the fluid and wall groups separately.</p>
+velocities of the group-ID atoms are coupled to the velocities of
+other atoms in the simulation, the flux will not be conserved. For
+example, in a simulation with fluid atoms and harmonically constrained
+wall atoms, if a single thermostat is applied to group <em>all</em>, the
+fluid atom velocities will be coupled to the wall atom velocities, and
+the flux will not be conserved. This issue can be avoided by
+thermostatting the fluid and wall groups separately.</p>
 </div>
-<dl class="docutils">
-<dt>Adding an acceleration to atoms does work on the system. This added energy</dt>
-<dd>can be optionally subtracted from the potential energy for the thermodynamic</dd>
-</dl>
-<p>output (see below) to check that the timestep is small enough to conserve
-energy. Since the applied acceleration is fluctuating in time, the work cannot
-be computed from a potential. As a result, computing the work is slightly more
-computationally expensive than usual, so it is not performed by default. To
-invoke the work calculation, use the <em>energy</em> keyword. The
+<p>Adding an acceleration to atoms does work on the system. This added
+energy can be optionally subtracted from the potential energy for the
+thermodynamic output (see below) to check that the timestep is small
+enough to conserve energy. Since the applied acceleration is
+fluctuating in time, the work cannot be computed from a potential. As
+a result, computing the work is slightly more computationally
+expensive than usual, so it is not performed by default. To invoke the
+work calculation, use the <em>energy</em> keyword. The
 <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option also invokes the work
-calculation, and overrides an <em>energy no</em> setting here. If neither <em>energy yes</em>
-or <em>fix_modify energy yes</em> are set, the global scalar computed by the fix
-will return zero.</p>
+calculation, and overrides an <em>energy no</em> setting here. If neither
+<em>energy yes</em> or <em>fix_modify energy yes</em> are set, the global scalar
+computed by the fix will return zero.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">In order to check energy conservation, any other fixes that do work on
-the system must have <em>fix_modify energy yes</em> set as well. This includes
-thermostat fixes and any constraints that hold the positions of wall atoms
-fixed, such as <a class="reference internal" href="fix_spring_self.html"><span class="doc">fix spring/self</span></a>.</p>
+<p class="last">In order to check energy conservation, any other fixes that do
+work on the system must have <em>fix_modify energy yes</em> set as well. This
+includes thermostat fixes and any constraints that hold the positions
+of wall atoms fixed, such as <a class="reference internal" href="fix_spring_self.html"><span class="doc">fix spring/self</span></a>.</p>
 </div>
 </div>
 <hr class="docutils" />
@@ -252,7 +253,6 @@ the <a class="reference internal" href="run.html"><span class="doc">run</span></
 <p id="strong"><strong>(Strong)</strong> Strong and Eaves, J. Phys. Chem. Lett. 7, 1907 (2016).</p>
 <p id="evans"><strong>(Evans)</strong> Evans and Morriss, Phys. Rev. Lett. 56, 2172 (1986).</p>
 <p id="zhu"><strong>(Zhu)</strong> Zhu, Tajkhorshid, and Schulten, Biophys. J. 83, 154 (2002).</p>
-<hr class="docutils" />
 </div>
 </div>
 

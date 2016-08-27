@@ -24,7 +24,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  emine(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute bond command");
 

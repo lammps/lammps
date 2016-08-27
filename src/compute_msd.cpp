@@ -26,7 +26,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_fix(NULL)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute msd command");
 

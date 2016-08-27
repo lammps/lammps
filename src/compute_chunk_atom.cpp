@@ -56,7 +56,10 @@ ComputeChunkAtom *ComputeChunkAtom::cptr;
 /* ---------------------------------------------------------------------- */
 
 ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_fix(NULL), chunk(NULL), ichunk(NULL), exclude(NULL),
+  chunk_volume_vec(NULL), coord(NULL), chunkID(NULL), idregion(NULL), cfvid(NULL), 
+  hash(NULL), varatom(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute chunk/atom command");
 

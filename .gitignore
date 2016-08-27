@@ -9,6 +9,7 @@
 *.x
 *.exe
 *.dll
+*.pyc
 
 Obj_*
 log.lammps

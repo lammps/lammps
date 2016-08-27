@@ -51,7 +51,9 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, a
 
   if (narg < 6) error->all(FLERR,"Not enough input arguments");
 
-  dynamic_group_allow = 0;  //group which conserves momentum must also conserve particle number
+  // a group which conserves momentum must also conserve particle number
+  dynamic_group_allow = 0;
+
   scalar_flag = 1;
   vector_flag = 1;
   extscalar = 1;
@@ -118,6 +120,8 @@ void FixFlowGauss::setup(int vflag)
 
   //get total mass of group
   mTot=group->mass(igroup);
+  if (mTot <= 0.0)
+    error->all(FLERR,"Invalid group mass in fix flow/gauss");
 
   post_force(vflag);
 }
@@ -134,6 +138,7 @@ void FixFlowGauss::post_force(int vflag)
   int *mask    = atom->mask;
   int *type    = atom->type;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
 
   int nlocal   = atom->nlocal;
 
@@ -162,12 +167,18 @@ void FixFlowGauss::post_force(int vflag)
 
   //apply added accelleration to each atom
   double f_app[3];
-  peAdded=0.0;
+  double peAdded=0.0;
   for( ii = 0; ii<nlocal; ii++)
     if (mask[ii] & groupbit) {
-      f_app[0] = a_app[0]*mass[type[ii]];
-      f_app[1] = a_app[1]*mass[type[ii]];
-      f_app[2] = a_app[2]*mass[type[ii]];
+      if (rmass) {
+        f_app[0] = a_app[0]*rmass[ii];
+        f_app[1] = a_app[1]*rmass[ii];
+        f_app[2] = a_app[2]*rmass[ii];
+      } else {
+        f_app[0] = a_app[0]*mass[type[ii]];
+        f_app[1] = a_app[1]*mass[type[ii]];
+        f_app[2] = a_app[2]*mass[type[ii]];
+      }
 
       f[ii][0] += f_app[0]; //f_app[jj] is 0 if flow[jj] is false
       f[ii][1] += f_app[1];

@@ -41,9 +41,7 @@ FixStyle(flow/gauss,FixFlowGauss)
       double a_app[3];    //applied acceleration
       double mTot;        //total mass of constrained group
       double f_tot[3];    //total applied force
-      double peAdded;     //total added energy per proc
       double pe_tot;      //total added energy
-      bool force_flag;    //if force has been computed this timestep already
       double dt;          //timestep
       bool workflag;      //if calculate work done by fix
 

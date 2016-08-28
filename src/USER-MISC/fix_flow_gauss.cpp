@@ -86,7 +86,8 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
     if ( strcmp(arg[iarg],"energy") == 0 ) {
       if ( iarg+2 > narg ) error->all(FLERR,"Illegal energy keyword");
       if ( strcmp(arg[iarg+1],"yes") == 0 ) workflag = 1;
-      else if ( strcmp(arg[iarg+1],"no") != 0 ) error->all(FLERR,"Illegal energy keyword");
+      else if ( strcmp(arg[iarg+1],"no") != 0 )
+        error->all(FLERR,"Illegal energy keyword");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix flow/gauss command");
   }

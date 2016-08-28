@@ -28,7 +28,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idregion(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute temp/region command");
 

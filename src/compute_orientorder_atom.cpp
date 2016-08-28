@@ -45,7 +45,8 @@ using namespace std;
 /* ---------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  distsq(NULL), nearest(NULL), rlist(NULL), qlist(NULL), qnarray(NULL), qnm_r(NULL), qnm_i(NULL)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute orientorder/atom command");
 
@@ -109,13 +110,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   size_peratom_cols = ncol;
 
   nmax = 0;
-  qnarray = NULL;
   maxneigh = 0;
-  distsq = NULL;
-  nearest = NULL;
-  rlist = NULL;
-  qnm_r = NULL;
-  qnm_i = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

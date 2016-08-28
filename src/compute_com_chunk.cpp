@@ -28,7 +28,8 @@ enum{ONCE,NFREQ,EVERY};
 /* ---------------------------------------------------------------------- */
 
 ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idchunk(NULL), masstotal(NULL), massproc(NULL), com(NULL), comall(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute com/chunk command");
 
@@ -50,8 +51,6 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  massproc = masstotal = NULL;
-  com = comall = NULL;
   allocate();
 
   firstflag = massneed = 1;

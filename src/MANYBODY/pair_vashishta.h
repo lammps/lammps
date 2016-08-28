@@ -28,11 +28,13 @@ class PairVashishta : public Pair {
  public:
   PairVashishta(class LAMMPS *);
   virtual ~PairVashishta();
+  virtual void modify_params(int, char **);
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   virtual double init_one(int, int);
   virtual void init_style();
+  virtual double memory_usage();
 
  protected:
   struct Param {
@@ -46,11 +48,23 @@ class PairVashishta : public Pair {
     int ielement,jelement,kelement;
   };
 
+  bool useTable;
+  int nTablebits;
+  double deltaR2;
+  double oneOverDeltaR2;
+  double ***forceTable;          // Table containing the forces
+  double ***potentialTable;      // Table containing the potential energies
+
+  int neigh3BodyMax;            // Max size of short neighborlist
+  int *neigh3BodyCount;         // Number of neighbors in short range 3 particle forces neighbor list
+  int **neigh3Body;             // Neighborlist for short range 3 particle forces
+
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
   int ***elem2param;            // mapping from element triplets to parameters
   int *map;                     // mapping from atom types to elements
+  char estr[128];               // Char array to store error message with sprintf (i.e. twobody table)
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
@@ -58,7 +72,9 @@ class PairVashishta : public Pair {
   virtual void allocate();
   void read_file(char *);
   void setup_params();
-  void twobody(Param *, double, double &, int, double &);
+  void updateTables();
+  void validateNeigh3Body();
+  void twobody(const Param &, double, double &, int, double &, bool tabulated=false);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);
 };

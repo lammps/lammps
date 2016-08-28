@@ -181,7 +181,13 @@ two different element types, mixing is performed by LAMMPS as
 described above from values in the potential file.
 
 This pair style does not support the "pair_modify"_pair_modify.html
-shift, table, and tail options.
+{shift} and {tail} options, but it supports the {table} option.
+Turning on the {table} option will use a linear interpolation table
+for force and energy of the two-body term with {2**N} entries.
+Tabulation can reduce the computational cost by a factor of 2-3
+with 20-bit to 12-bit table sizes, respectively, at a small to
+moderate reduction in precision. It is not recommended to use
+smaller than 12-bit tables.
 
 This pair style does not write its information to "binary restart
 files"_restart.html, since it is stored in potential files.  Thus, you

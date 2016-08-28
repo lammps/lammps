@@ -44,7 +44,6 @@
 #include "citeme.h"
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
-#include "accelerator_intel.h"
 #include "timer.h"
 #include "memory.h"
 #include "error.h"

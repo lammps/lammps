@@ -3,11 +3,17 @@ import pycurl
 import json
 from io import BytesIO
 
-# settings
+#############################################################
+# settings:
+# github repository from pull requests are culled
 base = 'akohlmey/lammps'
+# github userid of pull request assignee
 user = 'sjplimp'
+# upstream branch into which pull requests are merged
 upstream = 'integration'
+# whether pull request descriptions should be printed, too.
 verbose = True
+#############################################################
 
 buf = BytesIO()
 c = pycurl.Curl()
@@ -15,7 +21,7 @@ c.setopt(c.URL,'https://api.github.com/repos/'+base+'/pulls?state=open,assignee=
 c.setopt(c.WRITEFUNCTION,buf.write)
 c.perform()
 
-result = json.loads(buf.getvalue().decode());
+result = json.loads(buf.getvalue().decode(encoding="utf-8"));
 
 print('\nPending pull requests for repository '+base+' assigned to '+user+'\n')
 
@@ -23,7 +29,6 @@ for pull in result:
     if pull['assignee']:
         num = pull['number']
         print('Pending pull request #%d' % num)
-    #    print('Assigned to %s' % pull['assignee']['login'])
         print('Submitted by: %s' % pull['head']['repo']['owner']['login'])
         print('Title: '+pull['title'])
         print('URL: https://github.com/'+base+'/pull/'+str(num))

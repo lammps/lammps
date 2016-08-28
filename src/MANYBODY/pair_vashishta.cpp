@@ -97,11 +97,10 @@ void PairVashishta::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
 
       nTablebits = force->inumeric(FLERR,arg[iarg+1]);
-      if (nTablebits > sizeof(float)*CHAR_BIT) {
-        error->all(FLERR,"Too many total bits for bitmapped lookup table");
-      }
+      if ((nTablebits < 0) || (nTablebits > sizeof(int)*CHAR_BIT-1))
+        error->all(FLERR,"Illegal interpolation table size");
 
-      if(nTablebits == 0) {
+      if (nTablebits == 0) {
         useTable = false;
       } else {
         useTable = true;
@@ -112,11 +111,12 @@ void PairVashishta::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
       
       tabinner = force->numeric(FLERR,arg[iarg+1]);
+      if (tabinner <= 0.0)
+        error->all(FLERR,"Illegal inner cutoff for tabulation");
       iarg += 2;
     }
   }
-
-  createTable();
+  updateTables();
 }
 
 void PairVashishta::validateNeigh3Body() {
@@ -129,40 +129,34 @@ void PairVashishta::validateNeigh3Body() {
     }
 }
 
-void PairVashishta::createTable()
+void PairVashishta::updateTables()
 {
-  int ntypes = atom->ntypes+1;
+  memory->destroy(forceTable);
+  memory->destroy(potentialTable);
+  forceTable = NULL;
+  potentialTable = NULL;
+
+  if (!useTable) return;
+
+  int ntable = 1<<nTablebits;
   tabinnersq = tabinner*tabinner;
-  
-  int ntable = 1;
-  for (int i = 0; i < nTablebits; i++) ntable *= 2;
 
   deltaR2 = (cutmax*cutmax - tabinnersq) / (ntable-1);
   oneOverDeltaR2 = 1.0/deltaR2;
 
-  memory->destroy(forceTable);
-  memory->destroy(potentialTable);
-  memory->create(forceTable,ntypes,ntypes,ntable+1,"pair:vashishta:forceTable");
-  memory->create(potentialTable,ntypes,ntypes,ntable+1,"pair:vashishta:potentialTable");
+  memory->create(forceTable,nelements,nelements,ntable+1,"pair:vashishta:forceTable");
+  memory->create(potentialTable,nelements,nelements,ntable+1,"pair:vashishta:potentialTable");
 
-  for (int ii = 0; ii < ntypes; ii++) {
-    int i = map[ii];
-    for (int jj = 0; jj < ntypes; jj++) {
-      int j = map[jj];
-      if (i < 0 || j < 0 || ii == 0 || jj == 0) {
-        for(int tableIndex=0; tableIndex<=ntable; tableIndex++) {
-            forceTable[ii][jj][tableIndex] = 0;
-            potentialTable[ii][jj][tableIndex] = 0;
-        }
-      } else {
-        int ijparam = elem2param[i][j][j];
-        for(int tableIndex=0; tableIndex<=ntable; tableIndex++) {
-            double rsq = tabinnersq + tableIndex*deltaR2;
-            double fpair, eng;
-            twobody(&params[ijparam], rsq, fpair, 1, eng, false /* Don't ask for tabulated since we are generating it now*/ );
-            forceTable[ii][jj][tableIndex] = fpair;
-            potentialTable[ii][jj][tableIndex] = eng;
-        }
+  for (int i = 0; i < nelements; i++) {
+    for (int j = 0; j < nelements; j++) {
+      int ijparam = elem2param[i][j][j];
+      for(int idx=0; idx <= ntable; idx++) {
+        double rsq = tabinnersq + idx*deltaR2;
+        double fpair, eng;
+        // call analytical version of two-body term function
+        twobody(&params[ijparam], rsq, fpair, 1, eng, false);
+        forceTable[i][j][idx] = fpair;
+        potentialTable[i][j][idx] = eng;
       }
     }
   }
@@ -642,7 +636,7 @@ void PairVashishta::setup_params()
     if (params[m].r0 > cutmax) cutmax = params[m].r0;
   }
 
-  createTable();
+  updateTables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -660,12 +654,12 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
     int tableIndex = (rsq - tabinnersq)*oneOverDeltaR2;
     double fraction = (rsq - tabinnersq)*oneOverDeltaR2 - tableIndex; // double - int will only keep the 0.xxxx part
 
-    double force0 = forceTable[param->ielement+1][param->jelement+1][tableIndex];
-    double force1 = forceTable[param->ielement+1][param->jelement+1][tableIndex+1];
+    double force0 = forceTable[param->ielement][param->jelement][tableIndex];
+    double force1 = forceTable[param->ielement][param->jelement][tableIndex+1];
     fforce = (1.0 - fraction)*force0 + fraction*force1; // force is linearly interpolated between the two values
     if(evflag) {
-        double energy0 = potentialTable[param->ielement+1][param->jelement+1][tableIndex];
-        double energy1 = potentialTable[param->ielement+1][param->jelement+1][tableIndex+1];
+        double energy0 = potentialTable[param->ielement][param->jelement][tableIndex];
+        double energy1 = potentialTable[param->ielement][param->jelement][tableIndex+1];
         eng = (1.0 - fraction)*energy0 + fraction*energy1;
     }
   } else {
@@ -746,4 +740,16 @@ void PairVashishta::threebody(Param *paramij, Param *paramik, Param *paramijk,
   fk[2] = delr2[2]*(frad2+csfac2)-delr1[2]*facang12;
 
   if (eflag) eng = facrad;
+}
+
+/* ----------------------------------------------------------------------
+ *  add memory usage for tabulation
+ * ---------------------------------------------------------------------- */
+
+double PairVashishta::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (useTable)
+    bytes += 2*nelements*nelements*sizeof(double)*(1<<nTablebits);
+  return bytes;
 }

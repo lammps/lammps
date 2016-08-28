@@ -154,7 +154,7 @@ void PairVashishta::updateTables()
         double rsq = tabinnersq + idx*deltaR2;
         double fpair, eng;
         // call analytical version of two-body term function
-        twobody(&params[ijparam], rsq, fpair, 1, eng, false);
+        twobody(params[ijparam], rsq, fpair, 1, eng, false);
         forceTable[i][j][idx] = fpair;
         potentialTable[i][j][idx] = eng;
       }
@@ -238,7 +238,7 @@ void PairVashishta::compute(int eflag, int vflag)
         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
-      twobody(&params[ijparam],rsq,fpair,eflag,evdwl, useTable);
+      twobody(params[ijparam],rsq,fpair,eflag,evdwl, useTable);
 
       f[i][0] += delx*fpair;
       f[i][1] += dely*fpair;
@@ -641,26 +641,27 @@ void PairVashishta::setup_params()
 
 /* ---------------------------------------------------------------------- */
 
-void PairVashishta::twobody(Param *param, double rsq, double &fforce,
+void PairVashishta::twobody(const Param &param, double rsq, double &fforce,
                      int eflag, double &eng, bool tabulated)
 {
-  if(tabulated) {
+  if (tabulated) {
     if (rsq < tabinnersq) {
       sprintf(estr,"Pair distance < table inner cutoff: " 
-              "ijtype %d %d dist %g",param->ielement+1,param->jelement+1,sqrt(rsq));
+              "ijtype %d %d dist %g",param.ielement+1,param.jelement+1,sqrt(rsq));
       error->one(FLERR,estr);
     }
 
-    int tableIndex = (rsq - tabinnersq)*oneOverDeltaR2;
-    double fraction = (rsq - tabinnersq)*oneOverDeltaR2 - tableIndex; // double - int will only keep the 0.xxxx part
+    const int tableIndex = (rsq - tabinnersq)*oneOverDeltaR2;
+    // double - int will only keep the 0.xxxx part
+    const double fraction = (rsq - tabinnersq)*oneOverDeltaR2 - tableIndex;
 
-    double force0 = forceTable[param->ielement][param->jelement][tableIndex];
-    double force1 = forceTable[param->ielement][param->jelement][tableIndex+1];
+    double force0 = forceTable[param.ielement][param.jelement][tableIndex];
+    double force1 = forceTable[param.ielement][param.jelement][tableIndex+1];
     fforce = (1.0 - fraction)*force0 + fraction*force1; // force is linearly interpolated between the two values
-    if(evflag) {
-        double energy0 = potentialTable[param->ielement][param->jelement][tableIndex];
-        double energy1 = potentialTable[param->ielement][param->jelement][tableIndex+1];
-        eng = (1.0 - fraction)*energy0 + fraction*energy1;
+    if (evflag) {
+      double energy0 = potentialTable[param.ielement][param.jelement][tableIndex];
+      double energy1 = potentialTable[param.ielement][param.jelement][tableIndex+1];
+      eng = (1.0 - fraction)*energy0 + fraction*energy1;
     }
   } else {
     double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
@@ -669,19 +670,19 @@ void PairVashishta::twobody(Param *param, double rsq, double &fforce,
     rinvsq = 1.0/rsq;
     r4inv = rinvsq*rinvsq;
     r6inv = rinvsq*r4inv;
-    reta = pow(r,-param->eta);
-    lam1r = r*param->lam1inv;
-    lam4r = r*param->lam4inv;
-    vc2 = param->zizj * exp(-lam1r)/r;
-    vc3 = param->mbigd * r4inv*exp(-lam4r);
+    reta = pow(r,-param.eta);
+    lam1r = r*param.lam1inv;
+    lam4r = r*param.lam4inv;
+    vc2 = param.zizj * exp(-lam1r)/r;
+    vc3 = param.mbigd * r4inv*exp(-lam4r);
 
-    fforce = (param->dvrc*r
-  	    - (4.0*vc3 + lam4r*vc3+param->big6w*r6inv
-  	       - param->heta*reta - vc2 - lam1r*vc2)
+    fforce = (param.dvrc*r
+  	    - (4.0*vc3 + lam4r*vc3+param.big6w*r6inv
+  	       - param.heta*reta - vc2 - lam1r*vc2)
   	    ) * rinvsq;
-    if (eflag) eng = param->bigh*reta
-  	       + vc2 - vc3 - param->bigw*r6inv
-  	       - r*param->dvrc + param->c0;
+    if (eflag) eng = param.bigh*reta
+  	       + vc2 - vc3 - param.bigw*r6inv
+  	       - r*param.dvrc + param.c0;
   }
 }
 

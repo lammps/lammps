@@ -9,10 +9,12 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+ ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
    Contributing authors: Steven E. Strong and Joel D. Eaves
    Joel.Eaves@Colorado.edu
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +47,8 @@ static const char cite_flow_gauss[] =
   "pages = {1907--1912}\n"
   "}\n\n";
 
-FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) : 
+  Fix(lmp, narg, arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_flow_gauss);
 

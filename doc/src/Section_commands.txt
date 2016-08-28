@@ -621,6 +621,7 @@ package"_Section_start.html#start_3.
 "eos/cv"_fix_eos_cv.html,
 "eos/table"_fix_eos_table.html,
 "eos/table/rx"_fix_eos_table_rx.html,
+"flow/gauss"_fix_flow_gauss.html,
 "gle"_fix_gle.html,
 "imd"_fix_imd.html,
 "ipi"_fix_ipi.html,

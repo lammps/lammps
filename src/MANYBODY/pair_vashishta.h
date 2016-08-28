@@ -74,7 +74,7 @@ class PairVashishta : public Pair {
   void setup_params();
   void updateTables();
   void validateNeigh3Body();
-  void twobody(Param *, double, double &, int, double &, bool tabulated = false);
+  void twobody(const Param &, double, double &, int, double &, bool tabulated=false);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);
 };

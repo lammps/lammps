@@ -144,7 +144,7 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
       }
 
-      twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl, useTable);
+      twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl,useTable);
 
       fxtmp += delx*fpair;
       fytmp += dely*fpair;

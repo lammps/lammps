@@ -34,6 +34,7 @@ class PairVashishta : public Pair {
   void coeff(int, char **);
   virtual double init_one(int, int);
   virtual void init_style();
+  virtual double memory_usage();
 
  protected:
   struct Param {
@@ -71,7 +72,7 @@ class PairVashishta : public Pair {
   virtual void allocate();
   void read_file(char *);
   void setup_params();
-  void createTable();
+  void updateTables();
   void validateNeigh3Body();
   void twobody(Param *, double, double &, int, double &, bool tabulated = false);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,

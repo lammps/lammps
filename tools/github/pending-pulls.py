@@ -11,19 +11,19 @@ verbose = True
 
 buf = BytesIO()
 c = pycurl.Curl()
-c.setopt(c.URL, 'https://api.github.com/repos/'+base+'/pulls?state=open')
-c.setopt(c.WRITEFUNCTION, buf.write)
+c.setopt(c.URL,'https://api.github.com/repos/'+base+'/pulls?state=open,assignee='+user)
+c.setopt(c.WRITEFUNCTION,buf.write)
 c.perform()
 
 result = json.loads(buf.getvalue().decode());
 
-print('Open pull requests for repository: '+base+'\n')
+print('\nPending pull requests for repository '+base+' assigned to '+user+'\n')
 
 for pull in result:
-    if pull['assignee'] and pull['assignee']['login'] == user:
+    if pull['assignee']:
         num = pull['number']
         print('Pending pull request #%d' % num)
-        print('Assigned to %s' % pull['assignee']['login'])
+    #    print('Assigned to %s' % pull['assignee']['login'])
         print('Submitted by: %s' % pull['head']['repo']['owner']['login'])
         print('Title: '+pull['title'])
         print('URL: https://github.com/'+base+'/pull/'+str(num))

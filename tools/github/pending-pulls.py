@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import pycurl
 import json
+import sys
 from io import BytesIO
 from datetime import datetime
 
@@ -16,6 +17,13 @@ upstream = 'integration'
 verbose = True
 #############################################################
 
+# for writing separate python 2/3 code blocks to work
+# around python's unicode vs. bytes vs. strings insanity.
+if (sys.version_info > (3, 0)):
+    pyver = 3
+else:
+    pyver = 2
+
 # set up a query to the github web API to return information about all
 # open pull requests for a given repository which are assigned to the
 # given userid and store the response in a buffer.
@@ -30,7 +38,7 @@ c.perform()
 # being dictionaries as well. The JSON data is in UTF-8 encoding.
 result = json.loads(buf.getvalue().decode(encoding="utf-8"));
 
-print('\n %d pending pull requests for repository %s assigned to %s\n' % (len(result),base,user))
+print('\n%d pending pull requests for repository %s assigned to %s\n' % (len(result),base,user))
 
 # loop over entrees
 for pull in result:
@@ -39,10 +47,13 @@ for pull in result:
     repo = pull['head']['repo']['clone_url']
     branch = pull['head']['ref']
     # print some general info
-    print('Pending pull request #%d' % num)
+    print(str('Pending pull request #%d' % num))
     print('Submitted by: %s' % pull['head']['user']['login'])
     print('Last update: %s' % datetime.strptime(pull['updated_at'],'%Y-%m-%dT%H:%M:%SZ').ctime())
-    print('Title: '+pull['title'])
+    if pyver == 2:
+        print('Title: %s' % pull['title'].encode('utf-8'))
+    else:
+        print('Title: %s' % pull['title'])
     print('URL: https://github.com/'+base+'/pull/'+str(num))
     # print command line suggestions
     print('\nCommand line instructions, step 1:\n')
@@ -53,5 +64,8 @@ for pull in result:
     print('git merge --no-ff merge-pull-%d' % num)
     # if requested, display pull request description
     if verbose:
-        print('\nDescription:\n%s' % pull['body'])
+        if pyver == 2:
+            print('\nDescription:\n%s' % pull['body'].encode('utf-8'))
+        else:
+            print('\nDescription:\n%s' % pull['body'])
         print('------------------\n')

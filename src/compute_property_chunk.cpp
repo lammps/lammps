@@ -25,7 +25,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idchunk(NULL), count_one(NULL), count_all(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute property/chunk command");
 
@@ -78,9 +79,6 @@ ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  vector = NULL;
-  array = NULL;
-  count_one = count_all = NULL;
   allocate();
 
   if (nvalues == 1) {

@@ -27,7 +27,8 @@ enum{UNKNOWN,GLOBAL,PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixStore::FixStore(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+vstore(NULL), astore(NULL), rbuf(NULL)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix store command");
 

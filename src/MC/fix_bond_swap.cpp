@@ -52,7 +52,8 @@ static const char cite_fix_bond_swap[] =
 /* ---------------------------------------------------------------------- */
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  tflag(0), alist(NULL), id_temp(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
 

@@ -34,7 +34,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  xstr(NULL), ystr(NULL), zstr(NULL), idregion(NULL), sforce(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix setforce command");
 

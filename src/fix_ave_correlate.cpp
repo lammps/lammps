@@ -44,7 +44,9 @@ enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 /* ---------------------------------------------------------------------- */
 
 FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
-  Fix (lmp, narg, arg)
+  Fix (lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL),
+  count(NULL), values(NULL), corr(NULL), save_count(NULL), save_corr(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/correlate command");
 

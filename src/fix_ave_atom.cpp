@@ -35,7 +35,8 @@ enum{X,V,F,COMPUTE,FIX,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), array(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");
 
@@ -192,7 +193,6 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  array = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 

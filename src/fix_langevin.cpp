@@ -51,7 +51,9 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
+  flangevin(NULL), tforce(NULL), franprev(NULL), id_temp(NULL), random(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -61,7 +63,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   nevery = 1;
 
-  tstr = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];

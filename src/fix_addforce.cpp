@@ -36,7 +36,9 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  xstr(NULL), ystr(NULL), zstr(NULL), estr(NULL), idregion(NULL), sforce(NULL)
+
 {
   if (narg < 6) error->all(FLERR,"Illegal fix addforce command");
 
@@ -81,8 +83,6 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = 1;
   iregion = -1;
-  idregion = NULL;
-  estr = NULL;
 
   int iarg = 6;
   while (iarg < narg) {

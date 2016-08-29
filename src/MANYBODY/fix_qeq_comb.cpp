@@ -38,7 +38,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+fp(NULL), qf(NULL), q1(NULL), q2(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb command");
 
@@ -57,8 +58,6 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   MPI_Comm_rank(world,&me);
 
   // optional args
-
-  fp = NULL;
 
   int iarg = 5;
   while (iarg < narg) {

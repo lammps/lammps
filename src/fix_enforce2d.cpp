@@ -26,12 +26,12 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEnforce2D::FixEnforce2D(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  flist(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix enforce2d command");
 
   nfixlist = 0;
-  flist = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

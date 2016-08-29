@@ -34,7 +34,8 @@ enum{NPARTNER,PERPARTNER};
 /* ---------------------------------------------------------------------- */
 
 FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  npartner(NULL), partner(NULL), shearpartner(NULL), ipage(NULL), dpage(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY commmand");
 
@@ -57,15 +58,10 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with atom class
 
-  npartner = NULL;
-  partner = NULL;
-  shearpartner = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
 
-  ipage = NULL;
-  dpage = NULL;
   pgsize = oneatom = 0;
 
   // initialize npartner to 0 so neighbor list creation is OK the 1st time

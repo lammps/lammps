@@ -32,7 +32,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  xoriginal(NULL)
 {
   if ((narg < 4) || (narg > 5))
     error->all(FLERR,"Illegal fix spring/self command");

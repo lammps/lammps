@@ -37,7 +37,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  xd(NULL), rotflag(0)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tfmc command");
 

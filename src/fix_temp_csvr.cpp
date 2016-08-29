@@ -113,7 +113,8 @@ double FixTempCSVR::resamplekin(double ekin_old, double ekin_new){
 /* ---------------------------------------------------------------------- */
 
 FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  tstr(NULL), id_temp(NULL), random(NULL)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csvr command");
 

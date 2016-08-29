@@ -34,7 +34,8 @@ enum{LJ93,LJ126,COLLOID,HARMONIC};
 /* ---------------------------------------------------------------------- */
 
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  idregion(NULL)
 {
   if (narg != 8) error->all(FLERR,"Illegal fix wall/region command");
 

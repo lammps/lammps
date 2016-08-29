@@ -58,7 +58,10 @@ enum{ATOM,MOLECULE};
 /* ---------------------------------------------------------------------- */
 
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  idregion(NULL), full_flag(0), ngroups(0), groupstrings(NULL), ngrouptypes(0), grouptypestrings(NULL),
+  grouptypebits(NULL), grouptypes(NULL), local_gas_list(NULL), atom_coord(NULL), random_equal(NULL), random_unequal(NULL), 
+  coords(NULL), imageflags(NULL), idshake(NULL)
 {
   if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
 

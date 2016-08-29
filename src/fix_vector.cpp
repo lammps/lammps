@@ -37,7 +37,8 @@ enum{SCALAR,VECTOR};
 /* ---------------------------------------------------------------------- */
 
 FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), vector(NULL), array(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix vector command");
 
@@ -294,8 +295,8 @@ void FixVector::end_of_step()
 
     // evaluate equal-style or vector-style variable
 
-    } else if (which[i] == VARIABLE)
-      if (argindex[i] == 0)
+    } else if (which[i] == VARIABLE) {
+      if (argindex[i] == 0) 
         result[i] = input->variable->compute_equal(m);
       else {
         double *varvec;
@@ -304,6 +305,7 @@ void FixVector::end_of_step()
         if (nvec < index) result[i] = 0.0;
         else result[i] = varvec[index-1];
       }
+    }
   }
 
   // trigger computes on next needed step

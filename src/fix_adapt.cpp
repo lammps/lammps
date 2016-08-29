@@ -40,7 +40,8 @@ enum{DIAMETER,CHARGE};
 
 /* ---------------------------------------------------------------------- */
 
-FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
   nevery = force->inumeric(FLERR,arg[3]);
@@ -159,8 +160,6 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   for (int m = 0; m < nadapt; m++)
     if (adapt[m].which == PAIR)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
-
-  id_fix_diam = id_fix_chg = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

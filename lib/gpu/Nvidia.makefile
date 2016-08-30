@@ -789,10 +789,10 @@ $(GPU_LIB): $(OBJS) $(CUDPP)
 	@cp $(EXTRAMAKE) Makefile.lammps
 
 clean:
-	rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CBNS) *.linkinfo
+	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CBNS) *.linkinfo
 
 veryclean: clean
-	rm -rf *~ *.linkinfo
+	-rm -rf *~ *.linkinfo
 
 cleanlib:
-	rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CBNS) *.linkinfo
+	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CBNS) *.linkinfo

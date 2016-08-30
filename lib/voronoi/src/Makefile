@@ -34,6 +34,6 @@ help: Doxyfile $(SOURCE)
 	doxygen Doxyfile
 
 clean:
-	rm -f $(objs) voro++ libvoro++.a
+	-rm -f $(objs) voro++ libvoro++.a
 
 .PHONY: all help execs depend

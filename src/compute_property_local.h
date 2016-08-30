@@ -37,8 +37,6 @@ class ComputePropertyLocal : public Compute {
   int nvalues,kindflag,cutstyle;
 
   int nmax;
-  double *vector;
-  double **array;
   double *buf;
 
   class NeighList *list;

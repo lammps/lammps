@@ -41,8 +41,6 @@ class ComputePairLocal : public Compute {
   int singleflag;
 
   int nmax;
-  double *vector;
-  double **array;
 
   class NeighList *list;
 

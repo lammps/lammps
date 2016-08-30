@@ -33,7 +33,8 @@ enum{DIST,ENG,FORCE};
 /* ---------------------------------------------------------------------- */
 
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), bstyle(NULL)
+  Compute(lmp, narg, arg),
+  bstyle(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute bond/local command");
 

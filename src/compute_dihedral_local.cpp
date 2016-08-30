@@ -34,8 +34,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  vector(NULL), array(NULL)
+  Compute(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 

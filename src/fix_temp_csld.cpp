@@ -41,7 +41,8 @@ enum{CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  vhold(NULL), tstr(NULL), id_temp(NULL), random(NULL)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 

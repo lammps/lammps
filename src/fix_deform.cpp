@@ -46,7 +46,8 @@ enum{NO_REMAP,X_REMAP,V_REMAP};
 
 /* ---------------------------------------------------------------------- */
 
-FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+rfix(NULL), irregular(NULL), set(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix deform command");
 
@@ -355,7 +356,6 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   next_reneighbor = -1;
 
   nrigid = 0;
-  rfix = NULL;
   flip = 0;
 
   if (force_reneighbor) irregular = new Irregular(lmp);
@@ -368,9 +368,11 @@ FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixDeform::~FixDeform()
 {
-  for (int i = 0; i < 6; i++) {
-    delete [] set[i].hstr;
-    delete [] set[i].hratestr;
+  if(set) {
+    for (int i = 0; i < 6; i++) {
+      delete [] set[i].hstr;
+      delete [] set[i].hratestr;
+    }
   }
   delete [] set;
   delete [] rfix;

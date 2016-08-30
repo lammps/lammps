@@ -229,12 +229,12 @@ void ComputeOmegaChunk::compute_array()
         for (int j = 0; j < 3; j++)
           inverse[i][j] /= determinant;
 
-    omega[i][0] = inverse[0][0]*angmom[i][0] + inverse[0][1]*angmom[i][1] +
-      inverse[0][2]*angmom[i][2];
-    omega[i][1] = inverse[1][0]*angmom[i][0] + inverse[1][1]*angmom[i][1] +
-      inverse[1][2]*angmom[i][2];
-    omega[i][2] = inverse[2][0]*angmom[i][0] + inverse[2][1]*angmom[i][1] +
-      inverse[2][2]*angmom[i][2];
+    omega[i][0] = inverse[0][0]*angmomall[i][0] +
+      inverse[0][1]*angmomall[i][1] + inverse[0][2]*angmomall[i][2];
+    omega[i][1] = inverse[1][0]*angmomall[i][0] +
+      inverse[1][1]*angmomall[i][1] + inverse[1][2]*angmomall[i][2];
+    omega[i][2] = inverse[2][0]*angmomall[i][0] +
+      inverse[2][1]*angmomall[i][1] + inverse[2][2]*angmomall[i][2];
   }
 }
 

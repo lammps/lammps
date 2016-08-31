@@ -23,6 +23,8 @@
 
 using namespace LAMMPS_NS;
 
+#define SMALL 1.0e-15
+
 /* ---------------------------------------------------------------------- */
 
 ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
@@ -207,27 +209,28 @@ void ComputeOmegaChunk::compute_array()
     ione[2][1] = ione[1][2];
     ione[2][0] = ione[0][2];
 
-    inverse[0][0] = ione[1][1]*ione[2][2] - ione[1][2]*ione[2][1];
-    inverse[0][1] = -(ione[0][1]*ione[2][2] - ione[0][2]*ione[2][1]);
-    inverse[0][2] = ione[0][1]*ione[1][2] - ione[0][2]*ione[1][1];
-
-    inverse[1][0] = -(ione[1][0]*ione[2][2] - ione[1][2]*ione[2][0]);
-    inverse[1][1] = ione[0][0]*ione[2][2] - ione[0][2]*ione[2][0];
-    inverse[1][2] = -(ione[0][0]*ione[1][2] - ione[0][2]*ione[1][0]);
-
-    inverse[2][0] = ione[1][0]*ione[2][1] - ione[1][1]*ione[2][0];
-    inverse[2][1] = -(ione[0][0]*ione[2][1] - ione[0][1]*ione[2][0]);
-    inverse[2][2] = ione[0][0]*ione[1][1] - ione[0][1]*ione[1][0];
-
-    double determinant = ione[0][0]*ione[1][1]*ione[2][2] +
+    double invdet = ione[0][0]*ione[1][1]*ione[2][2] +
       ione[0][1]*ione[1][2]*ione[2][0] + ione[0][2]*ione[1][0]*ione[2][1] -
       ione[0][0]*ione[1][2]*ione[2][1] - ione[0][1]*ione[1][0]*ione[2][2] -
       ione[2][0]*ione[1][1]*ione[0][2];
 
-    if (determinant > 0.0)
-      for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
-          inverse[i][j] /= determinant;
+    // avoid division by (near) zero for (near) singular matrix. inverse will be set to zero matrix instead.
+    if (fabs(invdet) < SMALL)
+      invdet = 1.0/invdet;
+    else
+      invdet = 0.0;
+
+    inverse[0][0] = invdet*(ione[1][1]*ione[2][2] - ione[1][2]*ione[2][1]);
+    inverse[0][1] = -invdet*(ione[0][1]*ione[2][2] - ione[0][2]*ione[2][1]);
+    inverse[0][2] = invdet*(ione[0][1]*ione[1][2] - ione[0][2]*ione[1][1]);
+
+    inverse[1][0] = -invdet*(ione[1][0]*ione[2][2] - ione[1][2]*ione[2][0]);
+    inverse[1][1] = invdet*(ione[0][0]*ione[2][2] - ione[0][2]*ione[2][0]);
+    inverse[1][2] = -invdet*(ione[0][0]*ione[1][2] - ione[0][2]*ione[1][0]);
+
+    inverse[2][0] = invdet*(ione[1][0]*ione[2][1] - ione[1][1]*ione[2][0]);
+    inverse[2][1] = -invdet*(ione[0][0]*ione[2][1] - ione[0][1]*ione[2][0]);
+    inverse[2][2] = invdet*(ione[0][0]*ione[1][1] - ione[0][1]*ione[1][0]);
 
     omega[i][0] = inverse[0][0]*angmomall[i][0] +
       inverse[0][1]*angmomall[i][1] + inverse[0][2]*angmomall[i][2];

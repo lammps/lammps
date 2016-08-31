@@ -4,10 +4,10 @@ SHELL=/bin/sh
 
 all:
 	$(MAKE) $(MFLAGS) mingw32-cross
-	rm -f Obj_mingw32-mpi
+	-rm -f Obj_mingw32-mpi
 	ln -s Obj_mingw32 Obj_mingw32-mpi
 
 clean:
 	$(MAKE) $(MFLAGS) clean-mingw32-cross
-	rm -f Obj_mingw32-mpi
+	-rm -f Obj_mingw32-mpi
 

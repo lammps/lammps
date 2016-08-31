@@ -14,7 +14,9 @@
 #include <mpi.h>
 #include "lammps.h"
 #include "input.h"
+#include "error.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 using namespace LAMMPS_NS;
 
@@ -26,11 +28,22 @@ int main(int argc, char **argv)
 {
   MPI_Init(&argc,&argv);
 
+#ifdef LAMMPS_EXCEPTIONS
+  try {
+    LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
+    lammps->input->file();
+    delete lammps;
+  } catch(LAMMPSAbortException & ae) {
+    MPI_Abort(ae.universe, 1);
+  } catch(LAMMPSException & e) {
+    MPI_Finalize();
+    exit(1);
+  }
+#else
   LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);
-
   lammps->input->file();
   delete lammps;
-
+#endif
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 }

@@ -47,7 +47,7 @@ static const char cite_flow_gauss[] =
   "pages = {1907--1912}\n"
   "}\n\n";
 
-FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) : 
+FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_flow_gauss);
@@ -77,7 +77,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Constraint flags must be 1 or 0");
   }
 
-  //by default, do not compute work done
+  // by default, do not compute work done
   workflag=0;
 
   // process optional keyword
@@ -86,7 +86,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
     if ( strcmp(arg[iarg],"energy") == 0 ) {
       if ( iarg+2 > narg ) error->all(FLERR,"Illegal energy keyword");
       if ( strcmp(arg[iarg+1],"yes") == 0 ) workflag = 1;
-      else if ( strcmp(arg[iarg+1],"no") == 1 ) 
+      else if ( strcmp(arg[iarg+1],"no") != 0 )
         error->all(FLERR,"Illegal energy keyword");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix flow/gauss command");
@@ -136,7 +136,6 @@ void FixFlowGauss::setup(int vflag)
 void FixFlowGauss::post_force(int vflag)
 {
   double **f   = atom->f;
-  double **x   = atom->x;
   double **v   = atom->v;
 
   int *mask    = atom->mask;

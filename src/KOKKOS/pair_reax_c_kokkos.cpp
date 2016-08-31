@@ -3878,14 +3878,16 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom && atom->nmax > maxeatom) {
-      memory->destroy_kokkos(k_eatom,eatom);
-      memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
-      v_eatom = k_eatom.view<DeviceType>();
+    maxeatom = atom->nmax;
+    memory->destroy_kokkos(k_eatom,eatom);
+    memory->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    v_eatom = k_eatom.view<DeviceType>();
   }
   if (vflag_atom && atom->nmax > maxvatom) {
-      memory->destroy_kokkos(k_vatom,vatom);
-      memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
-      v_vatom = k_vatom.view<DeviceType>();
+    maxvatom = atom->nmax;
+    memory->destroy_kokkos(k_vatom,vatom);
+    memory->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    v_vatom = k_vatom.view<DeviceType>();
   }
 
   // zero accumulators

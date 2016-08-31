@@ -16,7 +16,7 @@ KOKKOS_USE_TPLS ?= ""
 #Options: c++11
 KOKKOS_CXX_STANDARD ?= "c++11"
 #Options: aggressive_vectorization,disable_profiling
-KOKKOS_OPTIONS ?= "aggressive_vectorization"
+KOKKOS_OPTIONS ?= ""
 
 #Default settings specific options
 #Options: force_uvm,use_ldg,rdc,enable_lambda

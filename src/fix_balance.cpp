@@ -44,8 +44,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 /* ---------------------------------------------------------------------- */
 
 FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  fp(NULL), nimbalance(0), imbalance(NULL), imb_fix(NULL), balance(NULL), irregular(NULL)
+  Fix(lmp, narg, arg), fp(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 

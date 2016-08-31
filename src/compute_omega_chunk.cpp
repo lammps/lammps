@@ -83,7 +83,7 @@ void ComputeOmegaChunk::init()
 
 void ComputeOmegaChunk::compute_array()
 {
-  int i,j,index;
+  int i,j,m,index;
   double dx,dy,dz,massone;
   double unwrap[3];
 

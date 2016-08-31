@@ -42,7 +42,9 @@ html: $(OBJECTS)
 		cp -r src/* $(RSTDIR)/ ;\
 		sphinx-build -j 8 -b html -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		deactivate ;\
-	)	
+	)
+	-rm html/searchindex.js
+	-rm -rf html/_sources
 	@echo "Build finished. The HTML pages are in doc/html."
 
 pdf: utils/txt2html/txt2html.exe

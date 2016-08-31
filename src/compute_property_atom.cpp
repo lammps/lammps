@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  index(NULL), vector(NULL), array(NULL), pack_choice(NULL)
+  index(NULL), pack_choice(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/atom command");
 

@@ -36,8 +36,6 @@ class ComputePropertyAtom : public Compute {
   int nvalues;
   int nmax;
   int *index;
-  double *vector;
-  double **array;
   double *buf;
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;

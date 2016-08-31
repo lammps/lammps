@@ -389,6 +389,7 @@ within the LAMMPS code.  The options that are currently recogized are:</p>
 <li>-DLAMMPS_BIGBIG</li>
 <li>-DLAMMPS_SMALLSMALL</li>
 <li>-DLAMMPS_LONGLONG_TO_LONG</li>
+<li>-DLAMMPS_EXCEPTIONS</li>
 <li>-DPACK_ARRAY</li>
 <li>-DPACK_POINTER</li>
 <li>-DPACK_MEMCPY</li>
@@ -457,6 +458,14 @@ be compiled with the same setting, or the link will fail.</p>
 MPI version does not recognize &#8220;long long&#8221; data types.  In this case a
 &#8220;long&#8221; data type is likely already 64-bits, in which case this setting
 will convert to that data type.</p>
+<p>The -DLAMMPS_EXCEPTIONS setting can be used to activate alternative
+versions of error handling inside of LAMMPS.  This is useful for
+external codes driving LAMMPS as a library.  With this option, a
+LAMMPS error does not exit the driving process.  Instead, the call
+stack is unwound and LAMMPS can return to the caller. The library
+interface provides the lammps_has_error() and
+lammps_get_last_error_message() functions which the caller can use to
+detect and find out more about a LAMMPS error.</p>
 <p>Using one of the -DPACK_ARRAY, -DPACK_POINTER, and -DPACK_MEMCPY
 options can make for faster parallel FFTs (in the PPPM solver) on some
 platforms.  The -DPACK_ARRAY setting is the default.  See the

@@ -36,8 +36,6 @@ class ComputeSpecAtom : public Compute {
  private:
   int nvalues;
   int nmax;
-  double *vector;
-  double **array;
   double *buf;
   double *vbuf;
 

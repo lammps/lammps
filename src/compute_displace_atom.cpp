@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_fix(NULL), displace(NULL)
+  displace(NULL), id_fix(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute displace/atom command");
 

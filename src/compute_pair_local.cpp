@@ -37,7 +37,7 @@ enum{TYPE,RADIUS};
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pindex(NULL), vector(NULL), array(NULL)
+  pstyle(NULL), pindex(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair/local command");
 

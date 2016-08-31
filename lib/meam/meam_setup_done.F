@@ -438,9 +438,17 @@ c     use precomputed values
           rho0_2 = rho0_meam(b)*Z2*G2
         endif
         Gam1 = (t11av*rho11+t21av*rho21+t31av*rho31)
-        Gam1 = Gam1/(rho01*rho01)
+        if (rho01 < 1.0d-14) then
+          Gam1 = 0.0d0
+        else
+          Gam1 = Gam1/(rho01*rho01)
+        endif
         Gam2 = (t12av*rho12+t22av*rho22+t32av*rho32)
-        Gam2 = Gam2/(rho02*rho02)
+        if (rho02 < 1.0d-14) then
+          Gam2 = 0.0d0
+        else
+          Gam2 = Gam2/(rho02*rho02)
+        endif
         call G_gam(Gam1,ibar_meam(a),gsmooth_factor,G1,errorflag)
         call G_gam(Gam2,ibar_meam(b),gsmooth_factor,G2,errorflag)
         if (mix_ref_t.eq.1) then

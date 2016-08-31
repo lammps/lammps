@@ -158,7 +158,7 @@ void CreateBox::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/special/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_box command");
-      atom->maxspecial = force->inumeric(FLERR,arg[iarg+1]);
+      force->special_extra = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal create_box command");
   }

@@ -22,7 +22,6 @@ one or more keyword/value pairs may be appended :l
 keyword = {every}
   {every} values = N
     N = print info about iteration every N steps. N = 0 means no output :pre
-
 :ule
 
 [Examples:]
@@ -33,28 +32,34 @@ fix step all nve/manifold/rattle 1e-8 100 ellipsoid 2.5 2.5 5.0 every 25 :pre
 [Description:]
 
 Perform constant NVE integration to update position and velocity for
-atoms constrained to a curved surface (manifold) in the group each timestep. The constraint
-is handled by RATTLE "(Andersen)"_#Andersen written out for the special case of
-single-particle constraints as explained in "(Paquay)"_#Paquay.
-V is volume; E is energy. This way, the dynamics of particles constrained to
-curved surfaces can be studied. If combined with "fix langevin"_fix_langevin.html, this generates
-Brownian motion of particles constrained to a curved surface. For a list of currently supported
-manifolds and their parameters, see "manifolds"_manifolds.html.
+atoms constrained to a curved surface (manifold) in the group each
+timestep. The constraint is handled by RATTLE "(Andersen)"_#Andersen
+written out for the special case of single-particle constraints as
+explained in "(Paquay)"_#Paquay.  V is volume; E is energy. This way,
+the dynamics of particles constrained to curved surfaces can be
+studied. If combined with "fix langevin"_fix_langevin.html, this
+generates Brownian motion of particles constrained to a curved
+surface. For a list of currently supported manifolds and their
+parameters, see "manifolds"_manifolds.html.
 
-Note that the particles must initially be close to the manifold in question. If not, RATTLE will
-not be able to iterate until the constraint is satisfied, and an error is generated. For simple
-manifolds this can be achieved with {region} and {create_atoms} commands, but for more complex
-surfaces it might be more useful to write a script.
+Note that the particles must initially be close to the manifold in
+question. If not, RATTLE will not be able to iterate until the
+constraint is satisfied, and an error is generated. For simple
+manifolds this can be achieved with {region} and {create_atoms}
+commands, but for more complex surfaces it might be more useful to
+write a script.
 
 The manifold args may be equal-style variables, like so:
 
 variable R equal "ramp(5.0,3.0)"
 fix shrink_sphere all nve/manifold/rattle 1e-4 10 sphere v_R :pre
 
-In this case, the manifold parameter will change in time according to the variable.
-This is not a problem for the time integrator as long as the change of the manifold is slow with respect to the dynamics of the particles.
-Note that if the manifold has to exert work on the particles because of these changes, the total energy might not be conserved.
-
+In this case, the manifold parameter will change in time according to
+the variable.  This is not a problem for the time integrator as long
+as the change of the manifold is slow with respect to the dynamics of
+the particles.  Note that if the manifold has to exert work on the
+particles because of these changes, the total energy might not be
+conserved.
 
 :line
 
@@ -72,15 +77,16 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:]
 
-This fix is part of the USER-MANIFOLD package. It is only enabled if LAMMPS
-was built with that package. See the "Making LAMMPS"_Section_start.html#start_3
-section for more info.
+This fix is part of the USER-MANIFOLD package. It is only enabled if
+LAMMPS was built with that package. See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
 [Related commands:]
 
-"fix nvt/manifold/rattle"_fix_nvt_manifold_rattle.html, "fix manifoldforce"_fix_manifoldforce.html
+"fix nvt/manifold/rattle"_fix_nvt_manifold_rattle.html, "fix
+manifoldforce"_fix_manifoldforce.html
 
 [Default:] every = 0, tchain = 3
 

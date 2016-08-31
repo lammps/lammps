@@ -33,7 +33,8 @@ enum{COMPUTE,FIX,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixController::FixController(LAMMPS *lmp, int narg, char **arg) : 
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  pvID(NULL), cvID(NULL)
 {
   if (narg != 11) error->all(FLERR,"Illegal fix controller command");
 
@@ -49,8 +50,6 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   kp = force->numeric(FLERR,arg[5]);
   ki = force->numeric(FLERR,arg[6]);
   kd = force->numeric(FLERR,arg[7]);
-
-  pvID = cvID = NULL;
 
   // process variable arg
 
@@ -197,7 +196,7 @@ void FixController::end_of_step()
 
   // invoke compute if not previously invoked
 
-  double current;
+  double current = 0.0;
 
   if (pvwhich == COMPUTE) {
     if (pvindex == 0) {

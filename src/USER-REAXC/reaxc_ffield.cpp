@@ -643,6 +643,11 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
 
+  for( i = 0; i < reax->num_atom_types; ++i )
+    for( j = 0; j < reax->num_atom_types; ++j )
+      for( k = 0; k < reax->num_atom_types; ++k )
+        reax->hbp[i][j][k].r0_hb = -1.0;
+
   for( i = 0; i < l; i++ ) {
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );

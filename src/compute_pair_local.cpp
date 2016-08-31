@@ -36,7 +36,8 @@ enum{TYPE,RADIUS};
 /* ---------------------------------------------------------------------- */
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  pstyle(NULL), pindex(NULL), vector(NULL), array(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair/local command");
 
@@ -96,8 +97,6 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
     if (pstyle[i] != DIST) singleflag = 1;
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

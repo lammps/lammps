@@ -31,7 +31,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+idregion(NULL), idvar(NULL)
 {
   // dgroupbit = bitmask of dynamic group
   // group ID is last part of fix ID
@@ -46,9 +47,7 @@ FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // process optional args
 
   regionflag = 0;
-  idregion = NULL;
   varflag = 0;
-  idvar = NULL;
   nevery = 1;
 
   int iarg = 3;

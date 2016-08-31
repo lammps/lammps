@@ -151,6 +151,7 @@ void Velocity::init_external(const char *extgroup)
   rotation_flag = 0;
   loop_flag = ALL;
   scale_flag = 1;
+  bias_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

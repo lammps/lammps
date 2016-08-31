@@ -28,7 +28,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  fp(NULL), string(NULL), copy(NULL), work(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix print command");
   nevery = force->inumeric(FLERR,arg[3]);

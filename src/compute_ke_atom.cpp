@@ -26,7 +26,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  ke(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute ke/atom command");
 
@@ -34,7 +35,6 @@ ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  ke = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -509,7 +509,7 @@ void VerletKokkos::run(int n)
       Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
       Kokkos::parallel_for(atomKK->k_f.dimension_0(),
         ForceAdder<DAT::t_f_array,DAT::t_f_array>(atomKK->k_f.d_view,f_merge_copy));
-      atomKK->k_f.template modify<LMPDeviceType>();
+      atomKK->k_f.modify<LMPDeviceType>();
     }
 
 

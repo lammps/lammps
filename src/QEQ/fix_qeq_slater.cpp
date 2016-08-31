@@ -90,14 +90,6 @@ void FixQEqSlater::init()
 
 void FixQEqSlater::extract_streitz()
 {
-  int ntypes = atom->ntypes;
-
-  memory->create(chi,ntypes+1,"qeq:chi");
-  memory->create(eta,ntypes+1,"qeq:eta");
-  memory->create(gamma,ntypes+1,"qeq:gamma");
-  memory->create(zeta,ntypes+1,"qeq:zeta");
-  memory->create(zcore,ntypes+1,"qeq:zcore");
-
   Pair *pair = force->pair_match("coul/streitz",1);
   if (pair == NULL) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
   int tmp;

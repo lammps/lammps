@@ -12,7 +12,7 @@ kspace_style command :h3
 
 kspace_style style value :pre
 
-style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/stagger} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/cg} or {msm/omp} or {msm/cg/omp} :ulb,l
+style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} or {pppm/disp} or {pppm/tip4p} or {pppm/stagger} or {pppm/disp/tip4p} or {pppm/gpu} or {pppm/kk} or {pppm/omp} or {pppm/cg/omp} or {pppm/tip4p/omp} or {msm} or {msm/cg} or {msm/omp} or {msm/cg/omp} :ulb,l
   {none} value = none
   {ewald} value = accuracy
     accuracy = desired relative error in forces
@@ -32,6 +32,8 @@ style = {none} or {ewald} or {ewald/disp} or {ewald/omp} or {pppm} or {pppm/cg} 
   {pppm/disp/tip4p} value = accuracy
     accuracy = desired relative error in forces
   {pppm/gpu} value = accuracy
+    accuracy = desired relative error in forces
+  {pppm/kk} value = accuracy
     accuracy = desired relative error in forces
   {pppm/omp} value = accuracy
     accuracy = desired relative error in forces
@@ -270,6 +272,10 @@ If {pppm/gpu} is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
+
+The {pppm/kk} style also performs charge assignment and
+force interpolation calculations on the GPU while the FFTs themselves
+are calculated on the CPU in non-threaded mode.
 
 These accelerated styles are part of the GPU, USER-INTEL,
 KOKKOS, USER-OMP, and OPT packages respectively.  They are only

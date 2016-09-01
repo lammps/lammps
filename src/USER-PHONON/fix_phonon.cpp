@@ -190,7 +190,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
       sprintf(str,"Can not open output file %s",logfile);
       error->one(FLERR,str);
     }
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fprintf(flog,"# group name of the atoms under study      : %s\n", group->names[igroup]);
     fprintf(flog,"# total number of atoms in the group       : %d\n", ngroup);
     fprintf(flog,"# dimension of the system                  : %d D\n", sysdim);
@@ -200,7 +200,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
     fprintf(flog,"# frequency of the measurement             : %d\n", nevery);
     fprintf(flog,"# output result after this many measurement: %d\n", nfreq);
     fprintf(flog,"# number of processors used by this run    : %d\n", nprocs);
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fprintf(flog,"# mapping information between lattice indices and atom id\n");
     fprintf(flog,"# nx ny nz nucell\n");
     fprintf(flog,"%d %d %d %d\n", nx, ny, nz, nucell);
@@ -214,7 +214,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
       ix   = (idx/(nucell*nz*ny))%nx;
       fprintf(flog,"%d %d %d %d " TAGINT_FORMAT "\n", ix, iy, iz, iu, itag);
     }
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fflush(flog);
   }
   surf2tag.clear();

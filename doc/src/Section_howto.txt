@@ -2297,14 +2297,14 @@ fix 1 all ave/chunk 100 10 1000 cc1 temp bias vbias file tmp.out :pre
 
 compute cc1 all chunk/atom molecule
 compute myChunk all com/chunk cc1
-fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector :pre
+fix 1 all ave/time 100 1 100 c_myChunk\[*\] file tmp.out mode vector :pre
 
 (4) Total force on each molecule and ave/max across all molecules:
 
 compute cc1 all chunk/atom molecule
 fix 1 all ave/chunk 1000 1 1000 cc1 fx fy fz file tmp.out
-variable xave equal ave(f_1[2])
-variable xmax equal max(f_1[2])
+variable xave equal ave(f_1\[2\])
+variable xmax equal max(f_1\[2\])
 thermo 1000
 thermo_style custom step temp v_xave v_xmax :pre
 

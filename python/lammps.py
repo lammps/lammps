@@ -150,6 +150,11 @@ class lammps(object):
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
 
+    if self.lib.lammps_has_error(self.lmp):
+      sb = create_string_buffer(100)
+      self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
+      raise Exception(sb.value.decode().strip())
+
   def extract_global(self,name,type):
     if name: name = name.encode()
     if type == 0:

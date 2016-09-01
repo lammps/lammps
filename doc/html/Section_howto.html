@@ -2333,20 +2333,20 @@ velocity:</p>
 </ol>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">cc1</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="n">molecule</span>
 <span class="n">compute</span> <span class="n">myChunk</span> <span class="nb">all</span> <span class="n">com</span><span class="o">/</span><span class="n">chunk</span> <span class="n">cc1</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myChunk</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span> <span class="n">mode</span> <span class="n">vector</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myChunk</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span> <span class="n">mode</span> <span class="n">vector</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
 <li>Total force on each molecule and ave/max across all molecules:</li>
 </ol>
-<pre class="literal-block">
-compute cc1 all chunk/atom molecule
-fix 1 all ave/chunk 1000 1 1000 cc1 fx fy fz file tmp.out
-variable xave equal ave(f_1<strong>2</strong>)
-variable xmax equal max(f_1<strong>2</strong>)
-thermo 1000
-thermo_style custom step temp v_xave v_xmax
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">cc1</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="n">molecule</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">1000</span> <span class="mi">1</span> <span class="mi">1000</span> <span class="n">cc1</span> <span class="n">fx</span> <span class="n">fy</span> <span class="n">fz</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span>
+<span class="n">variable</span> <span class="n">xave</span> <span class="n">equal</span> <span class="n">ave</span><span class="p">(</span><span class="n">f_1</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">variable</span> <span class="n">xmax</span> <span class="n">equal</span> <span class="nb">max</span><span class="p">(</span><span class="n">f_1</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">thermo</span> <span class="mi">1000</span>
+<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">v_xave</span> <span class="n">v_xmax</span>
+</pre></div>
+</div>
 <ol class="arabic simple" start="5">
 <li>Histogram of cluster sizes:</li>
 </ol>

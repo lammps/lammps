@@ -40,7 +40,8 @@ enum{ONE,RUNNING,WINDOW};
 /* ---------------------------------------------------------------------- */
 
 FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), nvalues(0), nrepeat(0),
+  Fix(lmp, narg, arg),
+  nvalues(0), nrepeat(0),
   which(NULL), argindex(NULL), value2index(NULL), ids(NULL),
   fp(NULL), idchunk(NULL), varatom(NULL),
   count_one(NULL), count_many(NULL), count_sum(NULL),

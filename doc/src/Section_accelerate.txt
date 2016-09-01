@@ -28,8 +28,9 @@ multi-core CPUs, GPUs, and Intel Xeon Phi coprocessors.
     5.3.2 "USER-INTEL package"_accelerate_intel.html :l
     5.3.3 "KOKKOS package"_accelerate_kokkos.html :l
     5.3.4 "USER-OMP package"_accelerate_omp.html :l
-    5.3.5 "OPT package"_accelerate_opt.html :l,ule
-5.4 "Comparison of various accelerator packages"_#acc_4 :l,ule
+    5.3.5 "OPT package"_accelerate_opt.html :l
+5.4 "Comparison of various accelerator packages"_#acc_4 :l
+:ule
 
 The "Benchmark page"_http://lammps.sandia.gov/bench.html of the LAMMPS
 web site gives performance results for the various accelerator

@@ -47,7 +47,8 @@ it to be part of every patch. :l
 
 There is also a "Developer.pdf"_Developer.pdf file in the doc
 directory, which describes the internal structure and algorithms of
-LAMMPS.  :ule,l
+LAMMPS.  :l
+:ule
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.

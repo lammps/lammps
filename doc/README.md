@@ -14,8 +14,8 @@ make clean-all    # remove entire build folder and any cached data
 
 ## Installing prerequisites
 
-To run the documention build toolchain Python 3 and virtualenv have to be
-installed. Here are instructions for common setups:
+To run the documention build toolchain, Python 3 and virtualenv have
+to be installed. Here are instructions for common setups:
 
 ### Ubuntu
 
@@ -23,10 +23,16 @@ installed. Here are instructions for common setups:
 sudo apt-get install python-virtualenv
 ```
 
-### Fedora
+### Fedora (up to version 21), Red Hat Enterprise Linux or CentOS (up to version 7.x)
 
+```bash
+sudo yum install python3-virtualenv
 ```
-sudo yum install python-virtualenv
+
+### Fedora (since version 22)
+
+```bash
+sudo dnf install python3-virtualenv
 ```
 
 ### MacOS X

@@ -40,7 +40,8 @@ enum{INSIDE,OUTSIDE};
 /* ---------------------------------------------------------------------- */
 
 FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  xstr(NULL), ystr(NULL), zstr(NULL), rstr(NULL), pstr(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix indent command");
 

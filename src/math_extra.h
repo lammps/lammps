@@ -35,7 +35,8 @@ namespace MathExtra {
   inline void negate3(double *v);
   inline void scale3(double s, double *v);
   inline void add3(const double *v1, const double *v2, double *ans);
-  inline void scaleadd3(double s, const double *v1, const double *v2, double *ans);
+  inline void scaleadd3(double s, const double *v1, const double *v2, 
+                        double *ans);
   inline void sub3(const double *v1, const double *v2, double *ans);
   inline double len3(const double *v);
   inline double lensq3(const double *v);
@@ -389,8 +390,8 @@ inline void MathExtra::times3(const double m[3][3], const double m2[3][3],
    multiply the transpose of mat1 times mat2
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::transpose_times3(const double m[3][3], const double m2[3][3],
-                                 double ans[3][3])
+inline void MathExtra::transpose_times3(const double m[3][3], 
+                                        const double m2[3][3],double ans[3][3])
 {
   ans[0][0] = m[0][0]*m2[0][0] + m[1][0]*m2[1][0] + m[2][0]*m2[2][0];
   ans[0][1] = m[0][0]*m2[0][1] + m[1][0]*m2[1][1] + m[2][0]*m2[2][1];
@@ -407,8 +408,8 @@ inline void MathExtra::transpose_times3(const double m[3][3], const double m2[3]
    multiply mat1 times transpose of mat2
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::times3_transpose(const double m[3][3], const double m2[3][3],
-                                 double ans[3][3])
+inline void MathExtra::times3_transpose(const double m[3][3], 
+                                        const double m2[3][3],double ans[3][3])
 {
   ans[0][0] = m[0][0]*m2[0][0] + m[0][1]*m2[0][1] + m[0][2]*m2[0][2];
   ans[0][1] = m[0][0]*m2[1][0] + m[0][1]*m2[1][1] + m[0][2]*m2[1][2];
@@ -423,7 +424,7 @@ inline void MathExtra::times3_transpose(const double m[3][3], const double m2[3]
 
 /* ----------------------------------------------------------------------
    invert a matrix
-   does NOT checks for singular or badly scaled matrix
+   does NOT check for singular or badly scaled matrix
 ------------------------------------------------------------------------- */
 
 inline void MathExtra::invert3(const double m[3][3], double ans[3][3])
@@ -631,7 +632,7 @@ inline void MathExtra::invquatvec(double *a, double *b, double *c)
 ------------------------------------------------------------------------- */
 
 inline void MathExtra::axisangle_to_quat(const double *v, const double angle,
-                                  double *quat)
+                                         double *quat)
 {
   double halfa = 0.5*angle;
   double sina = sin(halfa);
@@ -663,7 +664,8 @@ inline void MathExtra::rotation_generator_x(const double m[3][3],
    Apply principal rotation generator about y to rotation matrix m
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::rotation_generator_y(const double m[3][3], double ans[3][3])
+inline void MathExtra::rotation_generator_y(const double m[3][3], 
+                                            double ans[3][3])
 {
   ans[0][0] = m[0][2];
   ans[0][1] = 0;
@@ -680,7 +682,8 @@ inline void MathExtra::rotation_generator_y(const double m[3][3], double ans[3][
    Apply principal rotation generator about z to rotation matrix m
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::rotation_generator_z(const double m[3][3], double ans[3][3])
+inline void MathExtra::rotation_generator_z(const double m[3][3], 
+                                            double ans[3][3])
 {
   ans[0][0] = -m[0][1];
   ans[0][1] = m[0][0];

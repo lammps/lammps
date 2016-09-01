@@ -27,7 +27,8 @@ using namespace LAMMPS_NS;
 
 ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), angmom(NULL), angmomall(NULL)
+  idchunk(NULL),massproc(NULL),masstotal(NULL),com(NULL),comall(NULL),
+  inertia(NULL),inertiaall(NULL),angmom(NULL),angmomall(NULL),omega(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute omega/chunk command");
 
@@ -63,6 +64,9 @@ ComputeOmegaChunk::~ComputeOmegaChunk()
   memory->destroy(comall);
   memory->destroy(angmom);
   memory->destroy(angmomall);
+  memory->destroy(inertia);
+  memory->destroy(inertiaall);
+  memory->destroy(omega);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,7 +86,7 @@ void ComputeOmegaChunk::init()
 
 void ComputeOmegaChunk::compute_array()
 {
-  int i,j,index;
+  int i,j,m,index;
   double dx,dy,dz,massone;
   double unwrap[3];
 
@@ -192,13 +196,13 @@ void ComputeOmegaChunk::compute_array()
 
   double ione[3][3],inverse[3][3];
 
-  for (i = 0; i < nchunk; i++) {
-    ione[0][0] = inertiaall[i][0];
-    ione[1][1] = inertiaall[i][1];
-    ione[2][2] = inertiaall[i][2];
-    ione[0][1] = inertiaall[i][3];
-    ione[1][2] = inertiaall[i][4];
-    ione[0][2] = inertiaall[i][5];
+  for (m = 0; m < nchunk; m++) {
+    ione[0][0] = inertiaall[m][0];
+    ione[1][1] = inertiaall[m][1];
+    ione[2][2] = inertiaall[m][2];
+    ione[0][1] = inertiaall[m][3];
+    ione[1][2] = inertiaall[m][4];
+    ione[0][2] = inertiaall[m][5];
     ione[1][0] = ione[0][1];
     ione[2][1] = ione[1][2];
     ione[2][0] = ione[0][2];
@@ -221,15 +225,15 @@ void ComputeOmegaChunk::compute_array()
       ione[2][0]*ione[1][1]*ione[0][2];
 
     if (determinant > 0.0)
-      for (int i = 0; i < 3; i++)
-        for (int j = 0; j < 3; j++)
+      for (i = 0; i < 3; i++)
+        for (j = 0; j < 3; j++)
           inverse[i][j] /= determinant;
 
-    omega[i][0] = inverse[0][0]*angmom[i][0] + inverse[0][1]*angmom[i][1] +
-      inverse[0][2]*angmom[i][2];
-    omega[i][1] = inverse[1][0]*angmom[i][0] + inverse[1][1]*angmom[i][1] +
-      inverse[1][2]*angmom[i][2];
-    omega[i][2] = inverse[2][0]*angmom[i][0] + inverse[2][1]*angmom[i][1] +
+    omega[m][0] = inverse[0][0]*angmom[m][0] + inverse[0][1]*angmom[m][1] +
+      inverse[0][2]*angmom[m][2];
+    omega[m][1] = inverse[1][0]*angmom[m][0] + inverse[1][1]*angmom[m][1] +
+      inverse[1][2]*angmom[m][2];
+    omega[m][2] = inverse[2][0]*angmom[m][0] + inverse[2][1]*angmom[m][1] +
       inverse[2][2]*angmom[i][2];
   }
 }

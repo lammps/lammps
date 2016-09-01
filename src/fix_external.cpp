@@ -29,7 +29,8 @@ enum{PF_CALLBACK,PF_ARRAY};
 /* ---------------------------------------------------------------------- */
 
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  fexternal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix external command");
 
@@ -56,7 +57,6 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  fexternal = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 

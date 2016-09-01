@@ -279,7 +279,7 @@ void ComputeCNAAtom::compute_peratom()
       for (n = 0; n < ncommon; n++) bonds[n] = 0;
 
       nbonds = 0;
-      for (jj = 0; jj < ncommon; jj++) {
+      for (jj = 0; jj < ncommon-1; jj++) {
         j = common[jj];
         xtmp = x[j][0];
         ytmp = x[j][1];

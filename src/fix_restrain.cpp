@@ -44,7 +44,8 @@ enum{BOND,ANGLE,DIHEDRAL};
 /* ---------------------------------------------------------------------- */
 
 FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  rstyle(NULL), ids(NULL), kstart(NULL), kstop(NULL), target(NULL), cos_target(NULL), sin_target(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix restrain command");
 
@@ -57,11 +58,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   // parse args
 
   nrestrain = maxrestrain = 0;
-  rstyle = NULL;
-  ids = NULL;
-  kstart = kstop = NULL;
-  target = cos_target = sin_target = NULL;
-
+  
   int iarg = 3;
   while (iarg < narg) {
     if (nrestrain == maxrestrain) {

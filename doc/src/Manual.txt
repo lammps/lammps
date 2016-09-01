@@ -59,14 +59,21 @@ National Laboratories, a US Department of Energy facility, with
 funding from the DOE.  It is an open-source code, distributed freely
 under the terms of the GNU Public License (GPL).
 
-The primary developers of LAMMPS are "Steve Plimpton"_sjp, Aidan
-Thompson, and Paul Crozier who can be contacted at
-sjplimp,athomps,pscrozi at sandia.gov.  The "LAMMPS WWW Site"_lws at
-http://lammps.sandia.gov has more information about the code and its
-uses.
+The core group of LAMMPS developers is at Sandia National Labs and Temple University:
+
+"Steve Plimpton"_sjp, sjplimp at sandia.gov :ulb,l
+Aidan Thompson, athomps at sandia.gov :l
+Stan Moore, stamoore at sandia.gov :l
+"Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
+:ulb
+
+Past core developers include Paul Crozier, Ray Shan and Mark Stevens, all at Sandia.
+The "LAMMPS WWW Site"_lws at "http://lammps.sandia.gov:_http://lammps.sandia.gov
+has more information about the code and its uses.
 
 :link(bug,http://lammps.sandia.gov/bug.html)
 :link(sjp,http://www.sandia.gov/~sjplimp)
+:link(ako,http://goo.gl/1wk0)
 
 :line
 

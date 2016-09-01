@@ -734,16 +734,16 @@ void FixPhonon::postprocess( )
     fclose(fp_bin);
 
     // write log file, here however, it is the dynamical matrix that is written
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog, "# Current time step                      : " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(flog, "# Total number of measurements           : %d\n", neval);
-    fprintf(flog, "# Average temperature of the measurement : %lg\n", TempAve);
-    fprintf(flog, "# Boltzmann constant under current units : %lg\n", boltz);
-    fprintf(flog, "# basis vector A1 = [%lg %lg %lg]\n", basevec[0], basevec[1], basevec[2]);
-    fprintf(flog, "# basis vector A2 = [%lg %lg %lg]\n", basevec[3], basevec[4], basevec[5]);
-    fprintf(flog, "# basis vector A3 = [%lg %lg %lg]\n", basevec[6], basevec[7], basevec[8]);
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog, "# qx\t qy \t qz \t\t Phi(q)\n");
+    fprintf(flog,"############################################################\n");
+    fprintf(flog,"# Current time step                      : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(flog,"# Total number of measurements           : %d\n", neval);
+    fprintf(flog,"# Average temperature of the measurement : %lg\n", TempAve);
+    fprintf(flog,"# Boltzmann constant under current units : %lg\n", boltz);
+    fprintf(flog,"# basis vector A1 = [%lg %lg %lg]\n", basevec[0], basevec[1], basevec[2]);
+    fprintf(flog,"# basis vector A2 = [%lg %lg %lg]\n", basevec[3], basevec[4], basevec[5]);
+    fprintf(flog,"# basis vector A3 = [%lg %lg %lg]\n", basevec[6], basevec[7], basevec[8]);
+    fprintf(flog,"############################################################\n");
+    fprintf(flog,"# qx\t qy \t qz \t\t Phi(q)\n");
 
     EnforceASR();
 

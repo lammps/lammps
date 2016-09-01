@@ -28,7 +28,10 @@ Version info: :h4
 The LAMMPS "version" is the date when it was released, such as 1 May
 2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a
 feature, we release it immediately, and post a notice on "this page of
-the WWW site"_bug.  Each dated copy of LAMMPS contains all the
+the WWW site"_bug. Every 2-4 months one of the incremental releases
+is subjected to more thorough testing and labeled as a {stable} version.
+
+Each dated copy of LAMMPS contains all the
 features and bug-fixes up to and including that version date. The
 version date is printed to the screen and logfile every time you run
 LAMMPS. It is also in the file src/version.h and in the LAMMPS
@@ -68,7 +71,7 @@ Stan Moore, stamoore at sandia.gov :l
 :ulb
 
 Past core developers include Paul Crozier, Ray Shan and Mark Stevens, all at Sandia.
-The "LAMMPS WWW Site"_lws at "http://lammps.sandia.gov:_http://lammps.sandia.gov
+The [LAMMPS home page] at "http://lammps.sandia.gov"_http://lammps.sandia.gov
 has more information about the code and its uses.
 
 :link(bug,http://lammps.sandia.gov/bug.html)

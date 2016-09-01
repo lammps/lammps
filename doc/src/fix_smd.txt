@@ -138,14 +138,14 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 :line
 
-:link(Israilev)
+:link(Izrailev)
 [(Izrailev)] Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
 Wriggers, Schulten. Computational Molecular Dynamics: Challenges,
 Methods, Ideas, volume 4 of Lecture Notes in Computational Science and
 Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.
 
-[(Park)]
-Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)
+:link(Park)
+[(Park)] Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)
 
-[(Jarzynski)]
-Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
+:link(Jarzynski)
+[(Jarzynski)] Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)

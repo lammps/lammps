@@ -138,19 +138,18 @@ dipole interactions.  The long-range portion is calculated by using
 computed at all.
 
 Atoms with dipole moments should be integrated using the "fix
-nve/sphere update dipole"_fix_nve_sphere.html command to rotate the
+nve/sphere update dipole"_fix_nve_sphere.html or the "fix
+nvt/sphere update dipole"_fix_nvt_sphere.html command to rotate the
 dipole moments.  The {omega} option on the "fix
 langevin"_fix_langevin.html command can be used to thermostat the
 rotational motion.  The "compute temp/sphere"_compute_temp_sphere.html
 command can be used to monitor the temperature, since it includes
 rotational degrees of freedom.  The "atom_style
-dipole"_atom_style.html command should be used since it defines the
-point dipoles and their rotational state.  The magnitude of the dipole
-moment for each type of particle can be defined by the
-"dipole"_dipole.html command or in the "Dipoles" section of the data
-file read in by the "read_data"_read_data.html command.  Their initial
-orientation can be defined by the "set dipole"_set.html command or in
-the "Atoms" section of the data file.
+hybrid dipole sphere"_atom_style.html command should be used since
+it defines the point dipoles and their rotational state.
+The magnitude and orientation of the dipole moment for each particle
+can be defined by the "set"_set.html command or in the "Atoms" section
+of the data file read in by the "read_data"_read_data.html command.
 
 The following coefficients must be defined for each pair of atoms
 types via the "pair_coeff"_pair_coeff.html command as in the examples
@@ -242,7 +241,8 @@ currently supported.
 
 [Related commands:]
 
-"pair_coeff"_pair_coeff.html
+"pair_coeff"_pair_coeff.html, "set"_set.html, "read_data"_read_data.html,
+"fix nve/sphere"_fix_nve_sphere.html, "fix nvt/sphere"_fix_nvt_sphere.html
 
 [Default:] none
 

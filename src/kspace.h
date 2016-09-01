@@ -126,10 +126,10 @@ class KSpace : protected Pointers {
   virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
 
-  virtual void pack_forward_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int) {};
-  virtual void unpack_forward_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int) {};
-  virtual void pack_reverse_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int) {};
-  virtual void unpack_reverse_kokkos(int, Kokkos::DualView<FFT_SCALAR*,Kokkos::LayoutRight,LMPDeviceType> &, int, DAT::tdual_int_2d &, int) {};
+  virtual void pack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void pack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
 
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}

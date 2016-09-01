@@ -2297,7 +2297,7 @@ fix 1 all ave/chunk 100 10 1000 cc1 temp bias vbias file tmp.out :pre
 
 compute cc1 all chunk/atom molecule
 compute myChunk all com/chunk cc1
-fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector :pre
+fix 1 all ave/time 100 1 100 c_myChunk\[*\] file tmp.out mode vector :pre
 
 (4) Total force on each molecule and ave/max across all molecules:
 

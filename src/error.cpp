@@ -13,6 +13,7 @@
 
 #include <mpi.h>
 #include <stdlib.h>
+#include <string.h>
 #include "error.h"
 #include "universe.h"
 #include "output.h"
@@ -21,7 +22,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(LAMMPS *lmp) : Pointers(lmp) {}
+Error::Error(LAMMPS *lmp) : Pointers(lmp), last_error_message(NULL) {}
 
 /* ----------------------------------------------------------------------
    called by all procs in universe
@@ -47,8 +48,14 @@ void Error::universe_all(const char *file, int line, const char *str)
   }
   if (universe->ulogfile) fclose(universe->ulogfile);
 
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  throw LAMMPSException(msg);
+#else
   MPI_Finalize();
   exit(1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -61,7 +68,14 @@ void Error::universe_one(const char *file, int line, const char *str)
   if (universe->uscreen)
     fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
             universe->me,str,file,line);
+
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  throw LAMMPSAbortException(msg, universe->uworld);
+#else
   MPI_Abort(universe->uworld,1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -95,6 +109,16 @@ void Error::all(const char *file, int line, const char *str)
     if (logfile) fprintf(logfile,"ERROR: %s (%s:%d)\n",str,file,line);
   }
 
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+
+  if (universe->nworlds > 1) {
+    throw LAMMPSAbortException(msg, universe->uworld);
+  }
+
+  throw LAMMPSException(msg);
+#else
   if (output) delete output;
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
@@ -102,6 +126,7 @@ void Error::all(const char *file, int line, const char *str)
   if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
   MPI_Finalize();
   exit(1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -121,7 +146,14 @@ void Error::one(const char *file, int line, const char *str)
     if (universe->uscreen)
       fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
               universe->me,str,file,line);
+
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR on proc %d: %s (%s:%d)\n", me, str, file, line);
+  throw LAMMPSAbortException(msg, world);
+#else
   MPI_Abort(world,1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -164,4 +196,32 @@ void Error::done(int status)
 
   MPI_Finalize();
   exit(status);
+}
+
+/* ----------------------------------------------------------------------
+   return the last error message reported by LAMMPS (only used if
+   compiled with -DLAMMPS_EXCEPTIONS)
+------------------------------------------------------------------------- */
+
+char * Error::get_last_error() const
+{
+  return last_error_message;
+}
+
+
+/* ----------------------------------------------------------------------
+   set the last error message (only used if compiled with
+   -DLAMMPS_EXCEPTIONS)
+------------------------------------------------------------------------- */
+
+void Error::set_last_error(const char * msg)
+{
+  delete [] last_error_message;
+
+  if(msg) {
+    last_error_message = new char[strlen(msg)+1];
+    strcpy(last_error_message, msg);
+  } else {
+    last_error_message = NULL;
+  }
 }

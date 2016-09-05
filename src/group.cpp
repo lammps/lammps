@@ -1678,9 +1678,9 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 
   // avoid division by (near) zero for (near) singular matrix. inverse will be set to zero matrix instead.
   if (fabs(invdet) < SMALL)
-    invdet = 1.0/invdet;
-  else
     invdet = 0.0;
+  else
+    invdet = 1.0/invdet;
 
   inverse[0][0] = invdet*(inertia[1][1]*inertia[2][2] - inertia[1][2]*inertia[2][1]);
   inverse[0][1] = -invdet*(inertia[0][1]*inertia[2][2] - inertia[0][2]*inertia[2][1]);

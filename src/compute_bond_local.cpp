@@ -27,8 +27,9 @@
 using namespace LAMMPS_NS;
 
 #define DELTA 10000
+#define SMALL 1.0e-15
 
-enum{DIST,ENG,FORCE};
+enum{DIST,ENG,FORCE,VELVIB,VELROT,ENGTRANS,ENGVIB,ENGROT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,6 +54,11 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
     else if (strcmp(arg[iarg],"eng") == 0) bstyle[nvalues++] = ENG;
     else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
+    else if (strcmp(arg[iarg],"velvib") == 0) bstyle[nvalues++] = VELVIB;
+    else if (strcmp(arg[iarg],"velrot") == 0) bstyle[nvalues++] = VELROT;
+    else if (strcmp(arg[iarg],"engtrans") == 0) bstyle[nvalues++] = ENGTRANS;
+    else if (strcmp(arg[iarg],"engvib") == 0) bstyle[nvalues++] = ENGVIB;
+    else if (strcmp(arg[iarg],"engrot") == 0) bstyle[nvalues++] = ENGROT;
     else error->all(FLERR,"Invalid keyword in compute bond/local command");
   }
 
@@ -118,9 +124,16 @@ int ComputeBondLocal::compute_bonds(int flag)
   int i,m,n,nb,atom1,atom2,imol,iatom,btype;
   tagint tagprev;
   double delx,dely,delz,rsq;
+  double vxdel,vydel,vzdel,vvib,vrotsq;
+  double vxcom,vycom,vzcom;
+  double total_mass,reduced_mass;
   double *ptr;
 
   double **x = atom->x;
+  double **v = atom->v;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
   tagint *tag = atom->tag;
   int *num_bond = atom->num_bond;
   tagint **bond_atom = atom->bond_atom;
@@ -136,7 +149,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   int molecular = atom->molecular;
 
   Bond *bond = force->bond;
-  double eng,fbond;
+  double eng,fbond,engtrans,engvib,engrot;
 
   m = n = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
@@ -175,6 +188,100 @@ int ComputeBondLocal::compute_bonds(int flag)
           eng = bond->single(btype,rsq,atom1,atom2,fbond);
         else eng = fbond = 0.0;
 
+        vxdel = v[atom1][0] - v[atom2][0];
+        vydel = v[atom1][1] - v[atom2][1];
+        vzdel = v[atom1][2] - v[atom2][2];
+
+        if (rmass) {
+          total_mass = rmass[atom1]+rmass[atom2];
+          vxcom = (rmass[atom1]*v[atom1][0] + rmass[atom2]*v[atom2][0]) / total_mass;
+          vycom = (rmass[atom1]*v[atom1][1] + rmass[atom2]*v[atom2][1]) / total_mass;
+          vzcom = (rmass[atom1]*v[atom1][2] + rmass[atom2]*v[atom2][2]) / total_mass;
+        }
+        else {
+          total_mass = mass[type[atom1]]+mass[type[atom2]];
+          vxcom = (mass[type[atom1]]*v[atom1][0] + mass[type[atom2]]*v[atom2][0]) / total_mass;
+          vycom = (mass[type[atom1]]*v[atom1][1] + mass[type[atom2]]*v[atom2][1]) / total_mass;
+          vzcom = (mass[type[atom1]]*v[atom1][2] + mass[type[atom2]]*v[atom2][2]) / total_mass;
+        }
+        engtrans=0.5*total_mass*(vxcom*vxcom+vycom*vycom+vzcom*vzcom)*force->mvv2e;
+
+        for (int i = 0; i < nvalues; i++) {
+          if (bstyle[i] == VELVIB || bstyle[i] == VELROT || bstyle[i] == ENGVIB || bstyle[i] == ENGROT) {
+            // compute velocity for each bond by changing basis from x,y,z to that
+            // along the bond vector from v'=inv(M)v, where the columns of M are
+            // the bond vector and two other vectors that make up an orthonormal
+            // basis
+            double ione[3][3],inverse[3][3],norm;
+            ione[0][0] = delx;
+            ione[1][0] = dely;
+            ione[2][0] = delz;
+            // normalize
+            norm = sqrt(ione[0][0]*ione[0][0] + ione[1][0]*ione[1][0] + ione[2][0]*ione[2][0]);
+            ione[0][0] /= norm;
+            ione[1][0] /= norm;
+            ione[2][0] /= norm;
+            // get vector that is perpendicular to the bond vector
+            if(fabs(delz)>=SMALL)
+              {
+                ione[0][1] = 0.0;
+                ione[1][1] = 1.0;
+                ione[2][1] = (-ione[0][0] * ione[0][1] - ione[1][0] * ione[1][1]) / ione[2][0];
+              }
+              else if(fabs(delx)>=SMALL)
+              {
+                ione[1][1] = 0.0;
+                ione[2][1] = 1.0;
+                ione[0][1] = (-ione[1][0] * ione[1][1] - ione[2][0] * ione[2][1]) / ione[0][0];
+              }
+              else if(fabs(dely)>=SMALL)
+              {
+                ione[2][1] = 0.0;
+                ione[0][1] = 1.0;
+                ione[1][1] = (-ione[2][0] * ione[2][1] - ione[0][0] * ione[0][1]) / ione[1][0];
+              }
+            // normalize
+            norm = sqrt(ione[0][1]*ione[0][1] + ione[1][1]*ione[1][1] + ione[2][1]*ione[2][1]);
+            ione[0][1] /= norm;
+            ione[1][1] /= norm;
+            ione[2][1] /= norm;
+            // find the last vector from the cross product
+            ione[0][2] = ione[1][0] * ione[2][1] - ione[1][1] * ione[2][0];
+            ione[1][2] = -(ione[0][0] * ione[2][1] - ione[0][1] * ione[2][0]);
+            ione[2][2] = ione[0][0] * ione[1][1] - ione[0][1] * ione[1][0];
+            // normalize
+            norm = sqrt(ione[0][2]*ione[0][2] + ione[1][2]*ione[1][2] + ione[2][2]*ione[2][2]);
+            ione[0][2] /= norm;
+            ione[1][2] /= norm;
+            ione[2][2] /= norm;
+            // compute inverse
+            double invdet = ione[0][0]*ione[1][1]*ione[2][2] +
+              ione[0][1]*ione[1][2]*ione[2][0] + ione[0][2]*ione[1][0]*ione[2][1] -
+              ione[0][0]*ione[1][2]*ione[2][1] - ione[0][1]*ione[1][0]*ione[2][2] -
+              ione[2][0]*ione[1][1]*ione[0][2];
+            invdet = 1.0/invdet; // determinant should always be 1, so this doesn't much matter
+            inverse[0][0] = invdet*(ione[1][1]*ione[2][2] - ione[1][2]*ione[2][1]);
+            inverse[0][1] = -invdet*(ione[0][1]*ione[2][2] - ione[0][2]*ione[2][1]);
+            inverse[0][2] = invdet*(ione[0][1]*ione[1][2] - ione[0][2]*ione[1][1]);
+            inverse[1][0] = -invdet*(ione[1][0]*ione[2][2] - ione[1][2]*ione[2][0]);
+            inverse[1][1] = invdet*(ione[0][0]*ione[2][2] - ione[0][2]*ione[2][0]);
+            inverse[1][2] = -invdet*(ione[0][0]*ione[1][2] - ione[0][2]*ione[1][0]);
+            inverse[2][0] = invdet*(ione[1][0]*ione[2][1] - ione[1][1]*ione[2][0]);
+            inverse[2][1] = -invdet*(ione[0][0]*ione[2][1] - ione[0][1]*ione[2][0]);
+            inverse[2][2] = invdet*(ione[0][0]*ione[1][1] - ione[0][1]*ione[1][0]);
+            vvib = inverse[0][0]*vxdel + inverse[0][1]*vydel + inverse[0][2]*vzdel;
+            vrotsq = (inverse[1][0]*vxdel + inverse[1][1]*vydel + inverse[1][2]*vzdel) *
+                     (inverse[1][0]*vxdel + inverse[1][1]*vydel + inverse[1][2]*vzdel) +
+                     (inverse[2][0]*vxdel + inverse[2][1]*vydel + inverse[2][2]*vzdel) *
+                     (inverse[2][0]*vxdel + inverse[2][1]*vydel + inverse[2][2]*vzdel);
+            if (rmass) reduced_mass = rmass[atom1]*rmass[atom2]/(rmass[atom1]+rmass[atom2]);
+            else reduced_mass = mass[type[atom1]]*mass[type[atom2]]/(mass[type[atom1]]+mass[type[atom2]]);
+            engvib=0.5*reduced_mass*vvib*vvib*force->mvv2e;
+            engrot=0.5*reduced_mass*vrotsq*force->mvv2e;
+            break;
+          }
+        }
+
         if (nvalues == 1) ptr = &vector[m];
         else ptr = array[m];
 
@@ -188,6 +295,21 @@ int ComputeBondLocal::compute_bonds(int flag)
             break;
           case FORCE:
             ptr[n] = sqrt(rsq)*fbond;
+            break;
+          case VELVIB:
+            ptr[n] = vvib;
+            break;
+          case VELROT:
+            ptr[n] = sqrt(vrotsq);
+            break;
+          case ENGTRANS:
+            ptr[n] = engtrans;
+            break;
+          case ENGVIB:
+            ptr[n] = engvib;
+            break;
+          case ENGROT:
+            ptr[n] = engrot;
             break;
           }
         }

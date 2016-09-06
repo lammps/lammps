@@ -1698,9 +1698,9 @@ pressure"_compute_pressure.html compute to calculate a current
 pressure.  By default, this compute is created with a simple "compute
 temp"_compute_temp.html (see the last argument of the "compute
 pressure"_compute_pressure.html command), which is used to calculated
-the kinetic componenet of the pressure.  The barostatting fixes can
+the kinetic component of the pressure.  The barostatting fixes can
 also use temperature computes that remove bias for the purpose of
-computing the kinetic componenet which contributes to the current
+computing the kinetic component which contributes to the current
 pressure.  See the doc pages for the individual fixes and for the
 "fix_modify"_fix_modify.html command for instructions on how to assign
 a temperature or pressure compute to a barostatting fix.

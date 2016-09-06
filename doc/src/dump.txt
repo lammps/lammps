@@ -441,7 +441,7 @@ from m to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 dump commands are
-equivalent, since the "compute stress/atom"_compute_stress_atom.html
+equivalent, since the "compute stress/atom"_compute_stress/atom.html
 command creates a per-atom array with 6 columns:
 
 compute myPress all stress/atom NULL

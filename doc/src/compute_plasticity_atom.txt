@@ -54,8 +54,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"compute damage/atom"_compute_damage_atom.html,
-"compute dilatation/atom"_compute_dilatation_atom.html
+"compute damage"_compute_damage.html, "compute
+dilatation"_compute_dilatation.html
 
 [Default:] none 
 

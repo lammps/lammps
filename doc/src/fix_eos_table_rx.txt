@@ -135,7 +135,7 @@ are not within the table cutoffs.
 [Related commands:]
 
 "fix rx"_fix_rx.html,
-"pair dpd/fdt"_pair_dpd_fdt.html
+"pair dpd/fdt"_dpd_fdt.html
 
 [Default:] none
 

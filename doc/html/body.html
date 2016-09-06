@@ -302,6 +302,11 @@ sphere is determined by the <em>bflag1</em> parameter for the <em>body</em> keyw
 The <em>bflag2</em> argument is ignored.</p>
 <hr class="docutils" />
 <p><strong>Specifics of body style rounded/polygon:</strong></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Aug 2016 - This body style has not yet been added to LAMMPS.
+The info below is a placeholder.</p>
+</div>
 <p>The <em>rounded/polygon</em> body style represents body particles as a convex
 polygon with a variable number N &gt; 2 of vertices, which can only be
 used for 2d models.  One example use of this body style is for 2d
@@ -359,8 +364,9 @@ particles whose edge length is sqrt(2):</p>
 <span class="mf">1.0</span>
 </pre></div>
 </div>
-<p>The <span class="xref doc">pair_style body/rounded/polygon</span> command
-can be used with this body style to compute body/body interactions.</p>
+<p>The <span class="xref doc">pair_style body/rounded/polygon</span>
+command can be used with this body style to compute body/body
+interactions.</p>
 <p>For output purposes via the <a class="reference internal" href="compute_body_local.html"><span class="doc">compute body/local</span></a> and <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a>
 commands, this body style produces one datum for each of the N
 sub-particles in a body particle.  The datum has 3 values:</p>

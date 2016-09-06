@@ -246,7 +246,7 @@ used if running with KOKKOS_DEVICES=Pthreads for pthreads.  It is not
 necessary for KOKKOS_DEVICES=OpenMP for OpenMP, because OpenMP
 provides alternative methods via environment variables for binding
 threads to hardware cores.  More info on binding threads to cores is
-given in "this section"_Section_accelerate.html#acc_3.
+given in "this section"_Section_accelerate.html#acc_8.
 
 KOKKOS_ARCH=KNC enables compiler switches needed when compling for an
 Intel Phi processor.

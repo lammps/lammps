@@ -198,6 +198,6 @@ enthalpy DPD simulation.
 
 "fix eos/table/rx"_fix_eos_table_rx.html,
 "fix shardlow"_fix_shardlow.html,
-"pair dpd/fdt/energy"_pair_dpd_fdt.html
+"pair dpd/fdt/energy"_dpd_fdt_energy.html
 
 [Default:] none

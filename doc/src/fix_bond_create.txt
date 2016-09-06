@@ -122,7 +122,7 @@ become one moleclue due to the created bond, all atoms in the new
 moleclue retain their original molecule IDs.
 
 If the {atype} keyword is used and if an angle potential is defined
-via the "angle_style"_angle_style.html command, then any new 3-body
+via the "angle_style"_angle.html command, then any new 3-body
 interactions inferred by the creation of a bond will create new angles
 of type {angletype}, with parameters assigned by the corresponding
 "angle_coeff"_angle_coeff.html command.  Likewise, the {dtype} and

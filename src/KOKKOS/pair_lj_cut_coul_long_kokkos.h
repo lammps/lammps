@@ -87,6 +87,9 @@ class PairLJCutCoulLongKokkos : public PairLJCutCoulLong {
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread q;
+  
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 

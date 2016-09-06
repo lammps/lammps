@@ -111,7 +111,7 @@ the keyword {hex} is specified.
 [Compatibility with SHAKE and RATTLE (rigid molecules)]:
 
 This fix is compatible with "fix shake"_fix_shake.html and "fix
-rattle"_fix_shake.html. If either of these constraining algorithms is
+rattle"_fix_rattle.html. If either of these constraining algorithms is
 specified in the input script and the keyword {constrain} is set, the
 bond distances will be corrected a second time at the end of the
 integration step.  It is recommended to specify the keyword {com} in
@@ -124,7 +124,7 @@ rescaling takes place if the centre of mass lies outside the region.
 NOTE: You can only use the keyword {com} along with {constrain}.
 
 To achieve the highest accuracy it is recommended to use "fix
-rattle"_fix_shake.html with the keywords {constrain} and {com} as
+rattle"_fix_rattle.html with the keywords {constrain} and {com} as
 shown in the second example. Only if RATTLE is employed, the velocity
 constraints will be satisfied.
 

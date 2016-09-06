@@ -460,7 +460,7 @@ your Python function must be able to to load the Python module in
 python/lammps.py that wraps the LAMMPS library interface.  These are
 the same steps required to use Python by itself to wrap LAMMPS.
 Details on these steps are explained in "Section
-python"_Section_python.html.  Note that it is important that the
+python"_Section.python.html.  Note that it is important that the
 stand-alone LAMMPS executable and the LAMMPS shared library be
 consistent (built from the same source code files) in order for this
 to work.  If the two have been built at different times using

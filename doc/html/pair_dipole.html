@@ -268,15 +268,17 @@ dipole interactions.  The long-range portion is calculated by using
 <em>ewald_disp</em> of the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command. If
 <em>flag_coul</em> is set to <em>off</em>, Coulombic and dipole interactions are not
 computed at all.</p>
-<p>Atoms with dipole moments should be integrated using the <a class="reference internal" href="fix_nve_sphere.html"><span class="doc">fix nve/sphere update dipole</span></a> or the <a class="reference internal" href="fix_nvt_sphere.html"><span class="doc">fix nvt/sphere update dipole</span></a> command to rotate the
+<p>Atoms with dipole moments should be integrated using the <a class="reference internal" href="fix_nve_sphere.html"><span class="doc">fix nve/sphere update dipole</span></a> command to rotate the
 dipole moments.  The <em>omega</em> option on the <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> command can be used to thermostat the
 rotational motion.  The <a class="reference internal" href="compute_temp_sphere.html"><span class="doc">compute temp/sphere</span></a>
 command can be used to monitor the temperature, since it includes
-rotational degrees of freedom.  The <a class="reference internal" href="atom_style.html"><span class="doc">atom_style hybrid dipole sphere</span></a> command should be used since
-it defines the point dipoles and their rotational state.
-The magnitude and orientation of the dipole moment for each particle
-can be defined by the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command or in the &#8220;Atoms&#8221; section
-of the data file read in by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.</p>
+rotational degrees of freedom.  The <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dipole</span></a> command should be used since it defines the
+point dipoles and their rotational state.  The magnitude of the dipole
+moment for each type of particle can be defined by the
+<span class="xref doc">dipole</span> command or in the &#8220;Dipoles&#8221; section of the data
+file read in by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.  Their initial
+orientation can be defined by the <a class="reference internal" href="set.html"><span class="doc">set dipole</span></a> command or in
+the &#8220;Atoms&#8221; section of the data file.</p>
 <p>The following coefficients must be defined for each pair of atoms
 types via the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as in the examples
 above, or in the data file or restart files read by the
@@ -346,8 +348,7 @@ currently supported.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>, <a class="reference internal" href="set.html"><span class="doc">set</span></a>, <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>,
-<a class="reference internal" href="fix_nve_sphere.html"><span class="doc">fix nve/sphere</span></a>, <a class="reference internal" href="fix_nvt_sphere.html"><span class="doc">fix nvt/sphere</span></a></p>
+<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a></p>
 <p><strong>Default:</strong> none</p>
 <hr class="docutils" />
 <p id="allen"><strong>(Allen)</strong> Allen and Tildesley, Computer Simulation of Liquids,

@@ -114,7 +114,7 @@ the list of relative probabilities.  The N values must sum to 1.0.
 
 If you wish to insert molecules via the {mol} keyword, that will be
 treated as rigid bodies, use the {rigid} keyword, specifying as its
-value the ID of a separate "fix rigid/small"_fix_rigid.html
+value the ID of a separate "fix rigid/small"_fix_rigid_small.html
 command which also appears in your input script.
 
 If you wish to insert molecules via the {mol} keyword, that will have

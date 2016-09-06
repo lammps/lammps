@@ -184,7 +184,7 @@ NOTE: Whether a section is required depends on how the molecule
 template is used by other LAMMPS commands.  For example, to add a
 molecule via the "fix deposit"_fix_deposit.html command, the Coords
 and Types sections are required.  To add a rigid body via the "fix
-pour"_fix_pour.html command, the Bonds (Angles, etc) sections are not
+pour"_fix_pout.html command, the Bonds (Angles, etc) sections are not
 required, since the molecule will be treated as a rigid body.  Some
 sections are optional.  For example, the "fix pour"_fix_pour.html
 command can be used to add "molecules" which are clusters of

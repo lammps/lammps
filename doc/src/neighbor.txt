@@ -73,7 +73,7 @@ section"_Section_start.html#start_8 for details.
 [Related commands:]
 
 "neigh_modify"_neigh_modify.html, "units"_units.html,
-"comm_modify"_comm_modify.html
+"comm_modify"_cmom_modify.html
 
 [Default:]
 

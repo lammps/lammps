@@ -251,7 +251,7 @@ asterisk means all indices from n to N (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).</p>
 <p>Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 fix ave/chunk commands are
-equivalent, since the <a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a> command creates, in this
+equivalent, since the <span class="xref doc">compute property/atom</span> command creates, in this
 case, a per-atom array with 3 columns:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myAng</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">angmomx</span> <span class="n">angmomy</span> <span class="n">angmomz</span>
 <span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">cc1</span> <span class="n">c_myAng</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">angmom</span>
@@ -262,7 +262,7 @@ case, a per-atom array with 3 columns:</p>
 <p class="first admonition-title">Note</p>
 <p class="last">This fix works by creating an array of size <em>Nchunk</em> by Nvalues
 on each processor.  <em>Nchunk</em> is the number of chunks which is defined
-by the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command.
+by the <span class="xref doc">compute chunk/atom</span> command.
 Nvalues is the number of input values specified.  Each processor loops
 over its atoms, tallying its values to the appropriate chunk.  Then
 the entire array is summed across all processors.  This means that

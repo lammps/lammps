@@ -1224,7 +1224,7 @@ styles which implement different materials models.</p>
 <p>Supporting info:
 <a class="reference external" href="PDF/PDLammps_overview.pdf">doc/PDF/PDLammps_overview.pdf</a>,
 <a class="reference external" href="PDF/PDLammps_EPS.pdf">doc/PDF/PDLammps_EPS.pdf</a>,
-<a class="reference external" href="PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</a>, <a class="reference internal" href="atom_style.html"><span class="doc">atom_style peri</span></a>, <span class="xref doc">compute damage</span>,
+<a class="reference external" href="PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</a>, <a class="reference internal" href="atom_style.html"><span class="doc">atom_style peri</span></a>, <a class="reference internal" href="compute_damage_atom.html"><span class="doc">compute damage/atom</span></a>,
 <a class="reference internal" href="pair_peri.html"><span class="doc">pair_style peri/pmb</span></a>, examples/peri</p>
 <hr class="docutils" />
 </div>
@@ -1272,9 +1272,8 @@ one step.  Type &#8220;python src/Make.py -h -poems&#8221; to see the details.</
 <span id="python"></span><h3>4.1.22. PYTHON package</h3>
 <p>Contents: A <a class="reference internal" href="python.html"><span class="doc">python</span></a> command which allow you to execute
 Python code from a LAMMPS input script.  The code can be in a separate
-file or embedded in the input script itself.  See <span class="xref std std-ref">Section python 11.2</span> for an overview of using Python from
-LAMMPS and <a class="reference external" href="Section_python.html&quot;">Section python</a> for other ways to use
-LAMMPS and Python together.</p>
+file or embedded in the input script itself.  See <a class="reference external" href="Section_python.html&quot;">Section python 11.2</a> for an overview of using Python from
+LAMMPS and for other ways to use LAMMPS and Python together.</p>
 <p>Building with the PYTHON package assumes you have a Python shared
 library available on your system, which needs to be a Python 2
 version, 2.6 or later.  Python 3 is not supported.  The build uses the
@@ -1427,7 +1426,7 @@ few large bodies or many small bodies.</p>
 </pre></div>
 </div>
 <p>Supporting info: <a class="reference internal" href="compute_erotate_rigid.html"><span class="doc">compute erotate/rigid</span></a>,
-<a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>, <span class="xref doc">fix rattle</span>, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/*</span></a>, examples/ASPHERE, examples/rigid</p>
+<a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>, <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a>, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/*</span></a>, examples/ASPHERE, examples/rigid</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="shock-package">
@@ -1475,8 +1474,8 @@ properties of the potential are also included.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">snap</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<p>Supporting info: <a class="reference internal" href="pair_snap.html"><span class="doc">pair snap</span></a>, <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>, <span class="xref doc">compute snad/atom</span>,
-<span class="xref doc">compute snav/atom</span>, examples/snap</p>
+<p>Supporting info: <a class="reference internal" href="pair_snap.html"><span class="doc">pair snap</span></a>, <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>, <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute snad/atom</span></a>,
+<a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute snav/atom</span></a>, examples/snap</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="srd-package">
@@ -1900,7 +1899,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <tr class="row-odd"><td><a class="reference internal" href="#user-tally"><span class="std std-ref">USER-TALLY</span></a></td>
 <td>Pairwise tallied computes</td>
 <td>Axel Kohlmeyer (Temple U)</td>
-<td><span class="xref doc">compute</span></td>
+<td><a class="reference internal" href="compute_tally.html"><span class="doc">compute XXX/tally</span></a></td>
 <td>USER/tally</td>
 <td><ul class="first last simple">
 <li></li>
@@ -1914,7 +1913,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <tr class="row-even"><td><a class="reference internal" href="#user-vtk"><span class="std std-ref">USER-VTK</span></a></td>
 <td>VTK-style dumps</td>
 <td>Berger and Queteschiner (6)</td>
-<td><span class="xref doc">compute custom/vtk</span></td>
+<td><a class="reference internal" href="dump_custom_vtk.html"><span class="doc">compute custom/vtk</span></a></td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
@@ -2004,7 +2003,7 @@ Dynamics.  This package implements an atom, pair, and fix style which
 allows electrons to be treated as explicit particles in an MD
 calculation.  See src/USER-AWPMD/README for more details.</p>
 <p>To build LAMMPS with this package ...</p>
-<p>Supporting info: src/USER-AWPMD/README, <span class="xref doc">fix awpmd/cut</span>, examples/USER/awpmd</p>
+<p>Supporting info: src/USER-AWPMD/README, <a class="reference internal" href="pair_awpmd.html"><span class="doc">fix awpmd/cut</span></a>, examples/USER/awpmd</p>
 <p>Author: Ilya Valuev at the JIHT in Russia (valuev at
 physik.hu-berlin.de).  Contact him directly if you have questions.</p>
 <hr class="docutils" />
@@ -2047,7 +2046,7 @@ have questions.</p>
 calculating x-ray and electron diffraction intensities based on
 kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
 more details.</p>
-<p>Supporting info: <a class="reference internal" href="compute_saed.html"><span class="doc">compute saed</span></a>, <a class="reference internal" href="compute_xrd.html"><span class="doc">compute xrd</span></a>, <a class="reference internal" href="fix_saed_vtk.html"><span class="doc">fix saed.vtk</span></a>,
+<p>Supporting info: <a class="reference internal" href="compute_saed.html"><span class="doc">compute saed</span></a>, <a class="reference internal" href="compute_xrd.html"><span class="doc">compute xrd</span></a>, <a class="reference internal" href="fix_saed_vtk.html"><span class="doc">fix saed/vtk</span></a>,
 examples/USER/diffraction</p>
 <p>Author: Shawn P. Coleman (shawn.p.coleman8.ctr at mail.mil) while at
 the University of Arkansas.  Contact him directly if you have
@@ -2065,11 +2064,13 @@ equations of motion are integrated efficiently through the Shardlow
 splitting algorithm.  See src/USER-DPD/README for more details.</p>
 <p>Supporting info: /src/USER-DPD/README, <a class="reference internal" href="compute_dpd.html"><span class="doc">compute dpd</span></a>
 <a class="reference internal" href="compute_dpd_atom.html"><span class="doc">compute dpd/atom</span></a>
-<a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/cv</span></a> <a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/table</span></a>
-<a class="reference internal" href="fix_shardlow.html"><span class="doc">fix shardlow</span></a>
-<span class="xref doc">pair_dpd/conservative</span>
-<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair_dpd/fdt</span></a>
-<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair_dpd/fdt/energy</span></a>, examples/USER/dpd</p>
+<a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/cv</span></a> <a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/table</span></a></p>
+<blockquote>
+<div><a class="reference internal" href="fix_eos_table_rx.html"><span class="doc">fix eos/table/rx</span></a> <a class="reference internal" href="fix_shardlow.html"><span class="doc">fix shardlow</span></a></div></blockquote>
+<p><a class="reference internal" href="fix_rx.html"><span class="doc">fix rx</span></a> <a class="reference internal" href="pair_table_rx.html"><span class="doc">pair table/rx</span></a>
+<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair dpd/fdt</span></a> <a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair dpd/fdt/energy</span></a>
+<a class="reference internal" href="pair_exp6_rx.html"><span class="doc">pair exp6/rx</span></a> <a class="reference internal" href="pair_multi_lucy.html"><span class="doc">pair multi/lucy</span></a>
+<a class="reference internal" href="pair_multi_lucy_rx.html"><span class="doc">pair multi/lucy/rx</span></a>, examples/USER/dpd</p>
 <p>Authors: James Larentzos (ARL) (james.p.larentzos.civ at mail.mil),
 Timothy Mattox (Engility Corp) (Timothy.Mattox at engilitycorp.com)
 and John Brennan (ARL) (john.k.brennan.civ at mail.mil).  Contact them
@@ -2144,7 +2145,7 @@ this package.  Also see src/USER-INTEL/README for more details. See
 the KOKKOS, OPT, and USER-OMP packages, which also have CPU and
 Phi-enabled styles.</p>
 <p>Supporting info: examples/accelerate, src/USER-INTEL/TEST</p>
-<p><span class="xref std std-ref">Section_accelerate</span></p>
+<p><a class="reference internal" href="Section_accelerate.html#acc-3"><span class="std std-ref">Section_accelerate</span></a></p>
 <p>Author: Mike Brown at Intel (michael.w.brown at intel.com).  Contact
 him directly if you have questions.</p>
 <p>For the USER-INTEL package, you have 2 choices when building.  You can
@@ -2261,7 +2262,7 @@ to VMD, support for new file formats can be added to LAMMPS (or VMD or
 other programs that use them) without having to recompile the
 application itself.</p>
 <p>See this doc page to get started:</p>
-<p><span class="xref std std-ref">dump molfile</span></p>
+<p><a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a></p>
 <p>The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.</p>
 <hr class="docutils" />
@@ -2273,7 +2274,7 @@ application itself.</p>
 other optimizations of various LAMMPS pair styles, dihedral
 styles, and fix styles.</p>
 <p>See this section of the manual to get started:</p>
-<p><span class="xref std std-ref">Section_accelerate</span></p>
+<p><a class="reference internal" href="Section_accelerate.html#acc-3"><span class="std std-ref">Section_accelerate</span></a></p>
 <p>The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.</p>
 <p>For the USER-OMP package, your Makefile.machine needs additional

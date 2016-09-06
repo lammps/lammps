@@ -1010,7 +1010,7 @@ system.  Fix nvt/sllod uses "compute
 temp/deform"_compute_temp_deform.html to compute a thermal temperature
 by subtracting out the streaming velocity of the shearing atoms.  The
 velocity profile or other properties of the fluid can be monitored via
-the "fix ave/spatial"_fix_ave_spatial.html command.
+the "fix ave/chunk"_fix_ave_chunk.html command.
 
 As discussed in the previous section on non-orthogonal simulation
 boxes, the amount of tilt or skew that can be applied is limited by
@@ -1970,7 +1970,7 @@ on each of two regions to add/subtract specified amounts of energy to
 both regions.  In both cases, the resulting temperatures of the two
 regions can be monitored with the "compute temp/region" command and
 the temperature profile of the intermediate region can be monitored
-with the "fix ave/spatial"_fix_ave_spatial.html and "compute
+with the "fix ave/chunk"_fix_ave_chunk.html and "compute
 ke/atom"_compute_ke_atom.html commands.
 
 The third method is to perform a reverse non-equilibrium MD simulation
@@ -1979,7 +1979,7 @@ command which implements the rNEMD algorithm of Muller-Plathe.
 Kinetic energy is swapped between atoms in two different layers of the
 simulation box.  This induces a temperature gradient between the two
 layers which can be monitored with the "fix
-ave/spatial"_fix_ave_spatial.html and "compute
+ave/chunk"_fix_ave_chunk.html and "compute
 ke/atom"_compute_ke_atom.html commands.  The fix tallies the
 cumulative energy transfer that it performs.  See the "fix
 thermal/conductivity"_fix_thermal_conductivity.html command for
@@ -2036,7 +2036,7 @@ velocity to prevent the fluid from heating up.
 
 In both cases, the velocity profile setup in the fluid by this
 procedure can be monitored by the "fix
-ave/spatial"_fix_ave_spatial.html command, which determines
+ave/chunk"_fix_ave_chunk.html command, which determines
 grad(Vstream) in the equation above.  E.g. the derivative in the
 y-direction of the Vx component of fluid motion or grad(Vstream) =
 dVx/dy.  The Pxy off-diagonal component of the pressure or stress
@@ -2050,7 +2050,7 @@ using the "fix viscosity"_fix_viscosity.html command which implements
 the rNEMD algorithm of Muller-Plathe.  Momentum in one dimension is
 swapped between atoms in two different layers of the simulation box in
 a different dimension.  This induces a velocity gradient which can be
-monitored with the "fix ave/spatial"_fix_ave_spatial.html command.
+monitored with the "fix ave/chunk"_fix_ave_chunk.html command.
 The fix tallies the cummulative momentum transfer that it performs.
 See the "fix viscosity"_fix_viscosity.html command for details.
 

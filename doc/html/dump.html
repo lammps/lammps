@@ -550,7 +550,7 @@ indices from n to N (inclusive).  A middle asterisk means all indices
 from m to n (inclusive).</p>
 <p>Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 dump commands are
-equivalent, since the <span class="xref doc">compute stress/atom</span>
+equivalent, since the <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a>
 command creates a per-atom array with 6 columns:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myPress</span> <span class="nb">all</span> <span class="n">stress</span><span class="o">/</span><span class="n">atom</span> <span class="n">NULL</span>
 <span class="n">dump</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="nb">id</span> <span class="n">myPress</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>

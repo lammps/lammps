@@ -76,7 +76,7 @@ interacts with charges in an infinite array of periodic images of the
 simulation domain.
 
 Note that using a long-range solver requires use of a matching "pair
-style"_pair.html to perform consistent short-range pairwise
+style"_pair_style.html to perform consistent short-range pairwise
 calculations.  This means that the name of the pair style contains a
 matching keyword to the name of the KSpace style, as in this table:
 

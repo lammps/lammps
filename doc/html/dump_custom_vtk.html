@@ -157,7 +157,7 @@ mol = molecule ID
 proc = ID of processor that owns atom
 procp1 = ID+1 of processor that owns atom
 type = atom type
-element = name of atom element, as defined by <span class="xref doc">dump_modify</span> command
+element = name of atom element, as defined by <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command
 mass = atom mass
 x,y,z = unscaled atom coordinates
 xs,ys,zs = scaled atom coordinates
@@ -194,7 +194,7 @@ depending on the filename extension specified. This can be either
 for the XML format; see the <a class="reference external" href="http://www.vtk.org/VTK/img/file-formats.pdf">VTK homepage</a> for a detailed
 description of these formats.  Since this naming convention conflicts
 with the way binary output is usually specified (see below),
-<span class="xref doc">dump_modify binary</span> allows to set the binary
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify binary</span></a> allows to set the binary
 flag for this dump style explicitly.</p>
 </div>
 <div class="section" id="description">
@@ -203,9 +203,9 @@ flag for this dump style explicitly.</p>
 timesteps in a format readable by the <a class="reference external" href="http://www.vtk.org">VTK visualization toolkit</a> or other visualization tools that use it,
 e.g. <a class="reference external" href="http://www.paraview.org">ParaView</a>.  The timesteps on which dump
 output is written can also be controlled by a variable; see the
-<span class="xref doc">dump_modify every</span> command for details.</p>
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command for details.</p>
 <p>Only information for atoms in the specified group is dumped.  The
-<span class="xref doc">dump_modify thresh and region</span> commands can also
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify thresh and region</span></a> commands can also
 alter what atoms are included; see details below.</p>
 <p>As described below, special characters (&#8220;*&#8221;, &#8220;%&#8221;) in the filename
 determine the kind of output.</p>
@@ -218,7 +218,7 @@ box.</p>
 </div>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last">Unless the <span class="xref doc">dump_modify sort</span>
+<p class="last">Unless the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify sort</span></a>
 option is invoked, the lines of atom information written to dump files
 will be in an indeterminate order for each snapshot.  This is even
 true when running on a single processor, if the <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify sort</span></a> option is on, which it is by default.  In this
@@ -228,7 +228,7 @@ data for a single snapshot is collected from multiple processors, each
 of which owns a subset of the atoms.</p>
 </div>
 <p>For the <em>custom/vtk</em> style, sorting is off by default. See the
-<span class="xref doc">dump_modify</span> doc page for details.</p>
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> doc page for details.</p>
 <hr class="docutils" />
 <p>The dimensions of the simulation box are written to a separate file
 for each snapshot (either in legacy VTK or XML format depending on
@@ -261,20 +261,20 @@ timestep 0) and on the last timestep of a minimization if the
 minimization converges.  Note that this means a dump will not be
 performed on the initial timestep after the dump command is invoked,
 if the current timestep is not a multiple of N.  This behavior can be
-changed via the <span class="xref doc">dump_modify first</span> command, which
+changed via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify first</span></a> command, which
 can also be useful if the dump command is invoked after a minimization
 ended on an arbitrary timestep.  N can be changed between runs by
-using the <span class="xref doc">dump_modify every</span> command.
-The <span class="xref doc">dump_modify every</span> command
+using the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command.
+The <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command
 also allows a variable to be used to determine the sequence of
 timesteps on which dump files are written.  In this mode a dump on the
 first timestep of a run will also not be written unless the
-<span class="xref doc">dump_modify first</span> command is used.</p>
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify first</span></a> command is used.</p>
 <p>Dump filenames can contain two wildcard characters.  If a &#8220;*&#8221;
 character appears in the filename, then one file per snapshot is
 written and the &#8220;*&#8221; character is replaced with the timestep value.
 For example, tmp.dump*.vtk becomes tmp.dump0.vtk, tmp.dump10000.vtk,
-tmp.dump20000.vtk, etc.  Note that the <span class="xref doc">dump_modify pad</span>
+tmp.dump20000.vtk, etc.  Note that the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify pad</span></a>
 command can be used to insure all timestep numbers are the same length
 (e.g. 00010), which can make it easier to read a series of dump files
 in order with some post-processing tools.</p>
@@ -286,7 +286,7 @@ tmp.dump_P-1.vtp, etc.  This creates smaller files and can be a fast
 mode of output on parallel machines that support parallel I/O for output.</p>
 <p>By default, P = the number of processors meaning one file per
 processor, but P can be set to a smaller value via the <em>nfile</em> or
-<em>fileper</em> keywords of the <span class="xref doc">dump_modify</span> command.
+<em>fileper</em> keywords of the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command.
 These options can be the most efficient way of writing out dump files
 when running on large numbers of processors.</p>
 <p>For the legacy VTK format &#8220;%&#8221; is ignored and P = 1, i.e., only
@@ -305,7 +305,7 @@ part of the <em>custom/vtk</em> style.</p>
 <p><em>id</em> is the atom ID.  <em>mol</em> is the molecule ID, included in the data
 file for molecular systems.  <em>type</em> is the atom type.  <em>element</em> is
 typically the chemical name of an element, which you must assign to
-each type via the <span class="xref doc">dump_modify element</span> command.
+each type via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify element</span></a> command.
 More generally, it can be any string you wish to associate with an
 atom type.  <em>mass</em> is the atom mass.  <em>vx</em>, <em>vy</em>, <em>vz</em>, <em>fx</em>, <em>fy</em>,
 <em>fz</em>, and <em>q</em> are components of atom velocity and force and atomic

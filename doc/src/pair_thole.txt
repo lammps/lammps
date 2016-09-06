@@ -60,7 +60,7 @@ it also allows for mixing pair coefficients instead of listing them all.
 The {lj/cut/thole/long} pair style is also a bit faster because it avoids an
 overlay and can benefit from OMP acceleration. Moreover, it uses a more
 precise approximation of the direct Coulomb interaction at short range similar
-to "coul/long/cs"_pair_coul_long_cs.html, which stabilizes the temperature of
+to "coul/long/cs"_pair_cs.html, which stabilizes the temperature of
 Drude particles.
 
 The {thole} pair styles compute the Coulomb interaction damped at

@@ -168,10 +168,10 @@
 <div class="section" id="description">
 <h2>Description</h2>
 <p>This fix implements several options of steered MD (SMD) as reviewed in
-<span class="xref std std-ref">(Izrailev)</span>, which allows to induce conformational changes
+<a class="reference internal" href="#izrailev"><span class="std std-ref">(Izrailev)</span></a>, which allows to induce conformational changes
 in systems and to compute the potential of mean force (PMF) along the
-assumed reaction coordinate <span class="xref std std-ref">(Park)</span> based on Jarzynski&#8217;s
-equality <span class="xref std std-ref">(Jarzynski)</span>.  This fix borrows a lot from <a class="reference internal" href="fix_spring.html"><span class="doc">fix spring</span></a> and <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a>.</p>
+assumed reaction coordinate <a class="reference internal" href="#park"><span class="std std-ref">(Park)</span></a> based on Jarzynski&#8217;s
+equality <a class="reference internal" href="#jarzynski"><span class="std std-ref">(Jarzynski)</span></a>.  This fix borrows a lot from <a class="reference internal" href="fix_spring.html"><span class="doc">fix spring</span></a> and <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a>.</p>
 <p>You can apply a moving spring force to a group of atoms (<em>tether</em>
 style) or between two groups of atoms (<em>couple</em> style).  The spring
 can then be used in either constant velocity (<em>cvel</em>) mode or in
@@ -249,14 +249,12 @@ LAMMPS was built with that package.  See the <a class="reference internal" href=
 <a class="reference internal" href="fix_spring_rg.html"><span class="doc">fix spring/rg</span></a></p>
 <p><strong>Default:</strong> none</p>
 <hr class="docutils" />
-<p id="israilev"><strong>(Izrailev)</strong> Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
+<p id="izrailev"><strong>(Izrailev)</strong> Izrailev, Stepaniants, Isralewitz, Kosztin, Lu, Molnar,
 Wriggers, Schulten. Computational Molecular Dynamics: Challenges,
 Methods, Ideas, volume 4 of Lecture Notes in Computational Science and
 Engineering, pp. 39-65. Springer-Verlag, Berlin, 1998.</p>
-<p><strong>(Park)</strong>
-Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)</p>
-<p><strong>(Jarzynski)</strong>
-Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)</p>
+<p id="park"><strong>(Park)</strong> Park, Schulten, J. Chem. Phys. 120 (13), 5946 (2004)</p>
+<p id="jarzynski"><strong>(Jarzynski)</strong> Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)</p>
 </div>
 </div>
 

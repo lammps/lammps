@@ -1665,7 +1665,6 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
 
 /* ----------------------------------------------------------------------
    compute angular velocity omega from L and I
-   really not a group/region operation, but L,I were computed for a group/region
    diagonalize I instead of inverting it, to allow for a singular matrix
 ------------------------------------------------------------------------- */
 

@@ -524,7 +524,7 @@ int colvarparse::check_keywords(std::string &conf, char const *key)
     }
   }
 
-  init();
+  clear_keyword_registry();
 
   return COLVARS_OK;
 }

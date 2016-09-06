@@ -83,7 +83,9 @@ int colvarmodule::read_config_file(char const  *config_filename)
   std::string conf = "";
   std::string line;
   while (colvarparse::getline_nocomments(config_s, line)) {
-    conf.append(line+"\n");
+    // Delete lines that contain only white space after removing comments
+    if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
+      conf.append(line+"\n");
   }
   config_s.close();
 
@@ -101,7 +103,9 @@ int colvarmodule::read_config_string(std::string const &config_str)
   std::string conf = "";
   std::string line;
   while (colvarparse::getline_nocomments(config_s, line)) {
-    conf.append(line+"\n");
+    // Delete lines that contain only white space after removing comments
+    if (line.find_first_not_of(colvarparse::white_space) != std::string::npos)
+      conf.append(line+"\n");
   }
   return parse_config(conf);
 }

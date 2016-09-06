@@ -132,7 +132,7 @@
 </pre></div>
 </div>
 <ul class="simple">
-<li>style = <em>none</em> or <em>ewald</em> or <em>ewald/disp</em> or <em>ewald/omp</em> or <em>pppm</em> or <em>pppm/cg</em> or <em>pppm/disp</em> or <em>pppm/tip4p</em> or <em>pppm/stagger</em> or <em>pppm/disp/tip4p</em> or <em>pppm/gpu</em> or <em>pppm/omp</em> or <em>pppm/cg/omp</em> or <em>pppm/tip4p/omp</em> or <em>msm</em> or <em>msm/cg</em> or <em>msm/omp</em> or <em>msm/cg/omp</em></li>
+<li>style = <em>none</em> or <em>ewald</em> or <em>ewald/disp</em> or <em>ewald/omp</em> or <em>pppm</em> or <em>pppm/cg</em> or <em>pppm/disp</em> or <em>pppm/tip4p</em> or <em>pppm/stagger</em> or <em>pppm/disp/tip4p</em> or <em>pppm/gpu</em> or <em>pppm/kk</em> or <em>pppm/omp</em> or <em>pppm/cg/omp</em> or <em>pppm/tip4p/omp</em> or <em>msm</em> or <em>msm/cg</em> or <em>msm/omp</em> or <em>msm/cg/omp</em></li>
 </ul>
 <pre class="literal-block">
 <em>none</em> value = none
@@ -154,6 +154,8 @@
 <em>pppm/disp/tip4p</em> value = accuracy
   accuracy = desired relative error in forces
 <em>pppm/gpu</em> value = accuracy
+  accuracy = desired relative error in forces
+<em>pppm/kk</em> value = accuracy
   accuracy = desired relative error in forces
 <em>pppm/omp</em> value = accuracy
   accuracy = desired relative error in forces
@@ -385,6 +387,9 @@ If <em>pppm/gpu</em> is used with a GPU-enabled pair style, part of the PPPM
 calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.</p>
+<p>The <em>pppm/kk</em> style also performs charge assignment and force
+interpolation calculations on the GPU while the FFTs themselves are
+calculated on the CPU in non-threaded mode.</p>
 <p>These accelerated styles are part of the GPU, USER-INTEL,
 KOKKOS, USER-OMP, and OPT packages respectively.  They are only
 enabled if LAMMPS was built with those packages.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
@@ -406,10 +411,10 @@ the KSPACE package is installed by default.</p>
 <p>For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, or shrink-wrapped boundaries (specified using
 the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command).</p>
-<p>For Ewald and PPPM, a simulation must be 3d and periodic in all dimensions.
-The only exception is if the slab option is set with <a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify</span></a>,
-in which case the xy dimensions must be periodic and the z dimension must be
-non-periodic.</p>
+<p>For Ewald and PPPM, a simulation must be 3d and periodic in all
+dimensions.  The only exception is if the slab option is set with
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify</span></a>, in which case the xy dimensions
+must be periodic and the z dimension must be non-periodic.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
@@ -435,9 +440,10 @@ and Computation 5, 2322 (2009)</p>
 <p id="veld"><strong>(Veld)</strong> In &#8216;t Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).</p>
 <p id="toukmaji"><strong>(Toukmaji)</strong> Toukmaji, Sagui, Board, and Darden, J Chem Phys, 113,
 10913 (2000).</p>
-<p id="isele-holder"><strong>(Isele-Holder)</strong> Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012).</p>
-<p id="isele-holder2"><strong>(Isele-Holder2)</strong> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory
-Comput 9, 5412 (2013).</p>
+<p id="isele-holder"><strong>(Isele-Holder)</strong> Isele-Holder, Mitchell, Ismail, J Chem Phys, 137,
+174107 (2012).</p>
+<p id="isele-holder2"><strong>(Isele-Holder2)</strong> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail,
+J Chem Theory Comput 9, 5412 (2013).</p>
 <p id="hardy"><strong>(Hardy)</strong> David Hardy thesis: Multilevel Summation for the Fast
 Evaluation of Forces for the Simulation of Biomolecules, University of
 Illinois at Urbana-Champaign, (2006).</p>

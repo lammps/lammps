@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 #define DELTA 10000
 #define SMALL 1.0e-15
 
-enum{DIST,ENG,FORCE,VELVIB,VELROT,ENGTRANS,ENGVIB,ENGROT};
+enum{DIST,ENGPOT,FORCE,VELVIB,VELROT,ENGTRANS,ENGVIB,ENGROT};
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,7 +52,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
   for (int iarg = 3; iarg < narg; iarg++) {
     if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
-    else if (strcmp(arg[iarg],"eng") == 0) bstyle[nvalues++] = ENG;
+    else if (strcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
     else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
     else if (strcmp(arg[iarg],"velvib") == 0) bstyle[nvalues++] = VELVIB;
     else if (strcmp(arg[iarg],"velrot") == 0) bstyle[nvalues++] = VELROT;
@@ -123,10 +123,10 @@ int ComputeBondLocal::compute_bonds(int flag)
 {
   int i,m,n,nb,atom1,atom2,imol,iatom,btype;
   tagint tagprev;
-  double delx,dely,delz,rsq;
-  double vxdel,vydel,vzdel,vvib,vrotsq;
-  double vxcom,vycom,vzcom;
-  double total_mass,reduced_mass;
+  double dx,dy,dz,rsq;
+  double dvx,dvy,dvz,vvib,vrotsq;
+  double vcmx,vcmy,vcmz;
+  double masstotal,massreduced;
   double *ptr;
 
   double **x = atom->x;
@@ -149,7 +149,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   int molecular = atom->molecular;
 
   Bond *bond = force->bond;
-  double eng,fbond,engtrans,engvib,engrot;
+  double engpot,engtrans,engvib,engrot,fbond;
 
   m = n = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
@@ -178,33 +178,33 @@ int ComputeBondLocal::compute_bonds(int flag)
       if (btype == 0) continue;
 
       if (flag) {
-        delx = x[atom1][0] - x[atom2][0];
-        dely = x[atom1][1] - x[atom2][1];
-        delz = x[atom1][2] - x[atom2][2];
-        domain->minimum_image(delx,dely,delz);
-        rsq = delx*delx + dely*dely + delz*delz;
+        dx = x[atom1][0] - x[atom2][0];
+        dy = x[atom1][1] - x[atom2][1];
+        dz = x[atom1][2] - x[atom2][2];
+        domain->minimum_image(dx,dy,dz);
+        rsq = dx*dx + dy*dy + dz*dz;
 
         if (singleflag && (btype > 0))
-          eng = bond->single(btype,rsq,atom1,atom2,fbond);
-        else eng = fbond = 0.0;
+          engpot = bond->single(btype,rsq,atom1,atom2,fbond);
+        else engpot = fbond = 0.0;
 
-        vxdel = v[atom1][0] - v[atom2][0];
-        vydel = v[atom1][1] - v[atom2][1];
-        vzdel = v[atom1][2] - v[atom2][2];
+        dvx = v[atom1][0] - v[atom2][0];
+        dvy = v[atom1][1] - v[atom2][1];
+        dvz = v[atom1][2] - v[atom2][2];
 
         if (rmass) {
-          total_mass = rmass[atom1]+rmass[atom2];
-          vxcom = (rmass[atom1]*v[atom1][0] + rmass[atom2]*v[atom2][0]) / total_mass;
-          vycom = (rmass[atom1]*v[atom1][1] + rmass[atom2]*v[atom2][1]) / total_mass;
-          vzcom = (rmass[atom1]*v[atom1][2] + rmass[atom2]*v[atom2][2]) / total_mass;
+          masstotal = rmass[atom1]+rmass[atom2];
+          vcmx = (rmass[atom1]*v[atom1][0] + rmass[atom2]*v[atom2][0]) / masstotal;
+          vcmy = (rmass[atom1]*v[atom1][1] + rmass[atom2]*v[atom2][1]) / masstotal;
+          vcmz = (rmass[atom1]*v[atom1][2] + rmass[atom2]*v[atom2][2]) / masstotal;
         }
         else {
-          total_mass = mass[type[atom1]]+mass[type[atom2]];
-          vxcom = (mass[type[atom1]]*v[atom1][0] + mass[type[atom2]]*v[atom2][0]) / total_mass;
-          vycom = (mass[type[atom1]]*v[atom1][1] + mass[type[atom2]]*v[atom2][1]) / total_mass;
-          vzcom = (mass[type[atom1]]*v[atom1][2] + mass[type[atom2]]*v[atom2][2]) / total_mass;
+          masstotal = mass[type[atom1]]+mass[type[atom2]];
+          vcmx = (mass[type[atom1]]*v[atom1][0] + mass[type[atom2]]*v[atom2][0]) / masstotal;
+          vcmy = (mass[type[atom1]]*v[atom1][1] + mass[type[atom2]]*v[atom2][1]) / masstotal;
+          vcmz = (mass[type[atom1]]*v[atom1][2] + mass[type[atom2]]*v[atom2][2]) / masstotal;
         }
-        engtrans=0.5*total_mass*(vxcom*vxcom+vycom*vycom+vzcom*vzcom)*force->mvv2e;
+        engtrans=0.5*masstotal*(vcmx*vcmx+vcmy*vcmy+vcmz*vcmz)*force->mvv2e;
 
         for (int i = 0; i < nvalues; i++) {
           if (bstyle[i] == VELVIB || bstyle[i] == VELROT || bstyle[i] == ENGVIB || bstyle[i] == ENGROT) {
@@ -213,28 +213,28 @@ int ComputeBondLocal::compute_bonds(int flag)
             // the bond vector and two other vectors that make up an orthonormal
             // basis
             double ione[3][3],inverse[3][3],norm;
-            ione[0][0] = delx;
-            ione[1][0] = dely;
-            ione[2][0] = delz;
+            ione[0][0] = dx;
+            ione[1][0] = dy;
+            ione[2][0] = dz;
             // normalize
             norm = sqrt(ione[0][0]*ione[0][0] + ione[1][0]*ione[1][0] + ione[2][0]*ione[2][0]);
             ione[0][0] /= norm;
             ione[1][0] /= norm;
             ione[2][0] /= norm;
             // get vector that is perpendicular to the bond vector
-            if(fabs(delz)>=SMALL)
+            if(fabs(dz)>=SMALL)
               {
                 ione[0][1] = 0.0;
                 ione[1][1] = 1.0;
                 ione[2][1] = (-ione[0][0] * ione[0][1] - ione[1][0] * ione[1][1]) / ione[2][0];
               }
-              else if(fabs(delx)>=SMALL)
+              else if(fabs(dx)>=SMALL)
               {
                 ione[1][1] = 0.0;
                 ione[2][1] = 1.0;
                 ione[0][1] = (-ione[1][0] * ione[1][1] - ione[2][0] * ione[2][1]) / ione[0][0];
               }
-              else if(fabs(dely)>=SMALL)
+              else if(fabs(dy)>=SMALL)
               {
                 ione[2][1] = 0.0;
                 ione[0][1] = 1.0;
@@ -259,7 +259,7 @@ int ComputeBondLocal::compute_bonds(int flag)
               ione[0][1]*ione[1][2]*ione[2][0] + ione[0][2]*ione[1][0]*ione[2][1] -
               ione[0][0]*ione[1][2]*ione[2][1] - ione[0][1]*ione[1][0]*ione[2][2] -
               ione[2][0]*ione[1][1]*ione[0][2];
-            invdet = 1.0/invdet; // determinant should always be 1, so this doesn't much matter
+            invdet = 1.0/invdet; // determinant should always be 1, so this doesn't really matter
             inverse[0][0] = invdet*(ione[1][1]*ione[2][2] - ione[1][2]*ione[2][1]);
             inverse[0][1] = -invdet*(ione[0][1]*ione[2][2] - ione[0][2]*ione[2][1]);
             inverse[0][2] = invdet*(ione[0][1]*ione[1][2] - ione[0][2]*ione[1][1]);
@@ -269,15 +269,15 @@ int ComputeBondLocal::compute_bonds(int flag)
             inverse[2][0] = invdet*(ione[1][0]*ione[2][1] - ione[1][1]*ione[2][0]);
             inverse[2][1] = -invdet*(ione[0][0]*ione[2][1] - ione[0][1]*ione[2][0]);
             inverse[2][2] = invdet*(ione[0][0]*ione[1][1] - ione[0][1]*ione[1][0]);
-            vvib = inverse[0][0]*vxdel + inverse[0][1]*vydel + inverse[0][2]*vzdel;
-            vrotsq = (inverse[1][0]*vxdel + inverse[1][1]*vydel + inverse[1][2]*vzdel) *
-                     (inverse[1][0]*vxdel + inverse[1][1]*vydel + inverse[1][2]*vzdel) +
-                     (inverse[2][0]*vxdel + inverse[2][1]*vydel + inverse[2][2]*vzdel) *
-                     (inverse[2][0]*vxdel + inverse[2][1]*vydel + inverse[2][2]*vzdel);
-            if (rmass) reduced_mass = rmass[atom1]*rmass[atom2]/(rmass[atom1]+rmass[atom2]);
-            else reduced_mass = mass[type[atom1]]*mass[type[atom2]]/(mass[type[atom1]]+mass[type[atom2]]);
-            engvib=0.5*reduced_mass*vvib*vvib*force->mvv2e;
-            engrot=0.5*reduced_mass*vrotsq*force->mvv2e;
+            vvib = inverse[0][0]*dvx + inverse[0][1]*dvy + inverse[0][2]*dvz;
+            vrotsq = (inverse[1][0]*dvx + inverse[1][1]*dvy + inverse[1][2]*dvz) *
+                     (inverse[1][0]*dvx + inverse[1][1]*dvy + inverse[1][2]*dvz) +
+                     (inverse[2][0]*dvx + inverse[2][1]*dvy + inverse[2][2]*dvz) *
+                     (inverse[2][0]*dvx + inverse[2][1]*dvy + inverse[2][2]*dvz);
+            if (rmass) massreduced = rmass[atom1]*rmass[atom2]/(rmass[atom1]+rmass[atom2]);
+            else massreduced = mass[type[atom1]]*mass[type[atom2]]/(mass[type[atom1]]+mass[type[atom2]]);
+            engvib=0.5*massreduced*vvib*vvib*force->mvv2e;
+            engrot=0.5*massreduced*vrotsq*force->mvv2e;
             break;
           }
         }
@@ -290,8 +290,8 @@ int ComputeBondLocal::compute_bonds(int flag)
           case DIST:
             ptr[n] = sqrt(rsq);
             break;
-          case ENG:
-            ptr[n] = eng;
+          case ENGPOT:
+            ptr[n] = engpot;
             break;
           case FORCE:
             ptr[n] = sqrt(rsq)*fbond;

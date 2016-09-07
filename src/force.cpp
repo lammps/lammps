@@ -95,6 +95,15 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 #include "style_bond.h"
 #undef BondStyle
 #undef BOND_CLASS
+
+  angle_map = new AngleCreatorMap();
+
+#define ANGLE_CLASS
+#define AngleStyle(key,Class) \
+  (*angle_map)[#key] = &angle_creator<Class>;
+#include "style_angle.h"
+#undef AngleStyle
+#undef ANGLE_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,6 +133,7 @@ Force::~Force()
 
   delete pair_map;
   delete bond_map;
+  delete angle_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -376,45 +386,44 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef AngleStyle
-#undef ANGLE_CLASS
+      if (angle_map->find(estyle) != angle_map->end()) {
+        AngleCreator angle_creator = (*angle_map)[estyle];
+        return angle_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef AngleStyle
-#undef ANGLE_CLASS
+      if (angle_map->find(estyle) != angle_map->end()) {
+        AngleCreator angle_creator = (*angle_map)[estyle];
+        return angle_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (angle_map->find(style) != angle_map->end()) {
+    AngleCreator angle_creator = (*angle_map)[style];
+    return angle_creator(lmp);
+  }
 
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef ANGLE_CLASS
-
-  else error->all(FLERR,"Unknown angle style");
+  error->all(FLERR,"Unknown angle style");
   return NULL;
 }
+
+/* ----------------------------------------------------------------------
+   one instance per angle style in style_angle.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Angle *Force::angle_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
 
 /* ----------------------------------------------------------------------
    return ptr to current angle class or hybrid sub-class if matches style

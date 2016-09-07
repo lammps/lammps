@@ -635,10 +635,11 @@ void Info::angle_styles(FILE * out)
   fprintf(out, "\nAngle styles:\n");
 
   vector<string> styles;
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) styles.push_back(#key);
-#include "style_angle.h"
-#undef ANGLE_CLASS
+
+  for(Force::AngleCreatorMap::iterator it = force->angle_map->begin(); it != force->angle_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

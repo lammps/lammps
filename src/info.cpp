@@ -685,10 +685,11 @@ void Info::fix_styles(FILE * out)
   fprintf(out, "\nFix styles:\n");
 
   vector<string> styles;
-#define FIX_CLASS
-#define FixStyle(key,Class) styles.push_back(#key);
-#include "style_fix.h"
-#undef FIX_CLASS
+
+  for(Modify::FixCreatorMap::iterator it = modify->fix_map->begin(); it != modify->fix_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }
@@ -698,10 +699,11 @@ void Info::compute_styles(FILE * out)
   fprintf(out, "\nCompute styles:\n");
 
   vector<string> styles;
-#define COMPUTE_CLASS
-#define ComputeStyle(key,Class) styles.push_back(#key);
-#include "style_compute.h"
-#undef COMPUTE_CLASS
+
+  for(Modify::ComputeCreatorMap::iterator it = modify->compute_map->begin(); it != modify->compute_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }
@@ -737,9 +739,11 @@ void Info::command_styles(FILE * out)
   fprintf(out, "\nCommand styles (add-on input script commands):\n");
 
   vector<string> styles;
+
   for(Input::CommandCreatorMap::iterator it = input->command_map->begin(); it != input->command_map->end(); ++it) {
     styles.push_back(it->first);
   }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

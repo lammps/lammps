@@ -56,6 +56,6 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"compute ke/rigid"_compute_erotate_ke_rigid.html
+"compute ke/rigid"_compute_ke_rigid.html
 
 [Default:] none

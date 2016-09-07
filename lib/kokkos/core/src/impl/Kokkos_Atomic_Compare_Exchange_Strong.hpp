@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -218,7 +218,17 @@ T atomic_compare_exchange( volatile T * const dest , const T compare ,
   while( !Impl::lock_address_host_space( (void*) dest ) );
   T return_val = *dest;
   if( return_val == compare ) {
-    const T tmp = *dest = val;
+    // Don't use the following line of code here:
+    //
+    //const T tmp = *dest = val;
+    //
+    // Instead, put each assignment in its own statement.  This is
+    // because the overload of T::operator= for volatile *this should
+    // return void, not volatile T&.  See Kokkos #177:
+    //
+    // https://github.com/kokkos/kokkos/issues/177
+    *dest = val;
+    const T tmp = *dest;
     #ifndef KOKKOS_COMPILER_CLANG
     (void) tmp;
     #endif
@@ -239,7 +249,7 @@ T atomic_compare_exchange( volatile T * const dest, const T compare, const T val
   {
     retval = dest[0];
     if ( retval == compare )
-  	dest[0] = val;
+        dest[0] = val;
   }
   return retval;
 }

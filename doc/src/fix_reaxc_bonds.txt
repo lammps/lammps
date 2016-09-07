@@ -28,7 +28,7 @@ specified by "pair_style reax/c"_pair_reax_c.html in the exact same
 format as the original stand-alone ReaxFF code of Adri van Duin. The
 bond information is written to {filename} on timesteps that are multiples
 of {Nevery}, including timestep 0.  For time-averaged chemical species
-analysis, please see the "fix species"_fix_species.html command.
+analysis, please see the "fix reax/c/species"_fix_reaxc_species.html command.
 
 The format of the output file should be self-explantory.
 

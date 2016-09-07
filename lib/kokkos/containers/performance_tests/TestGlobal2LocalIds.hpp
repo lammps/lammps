@@ -178,7 +178,7 @@ void test_global_to_local_ids(unsigned num_ids)
   std::cout << num_ids << ", ";
 
   double elasped_time = 0;
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
 
   local_id_view local_2_global("local_ids", num_ids);
   global_id_view global_2_local((3u*num_ids)/2u);

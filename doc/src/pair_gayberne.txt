@@ -191,7 +191,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 These pair style require that atoms store torque and a quaternion to
 represent their orientation, as defined by the
 "atom_style"_atom_style.html.  It also require they store a per-type
-"shape"_shape.html.  The particles cannot store a per-particle
+"shape"_set.html.  The particles cannot store a per-particle
 diameter.
 
 This pair style requires that atoms be ellipsoids as defined by the

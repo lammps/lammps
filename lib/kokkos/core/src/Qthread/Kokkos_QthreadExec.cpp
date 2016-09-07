@@ -104,7 +104,7 @@ namespace Kokkos {
 
 int Qthread::is_initialized()
 {
-  Impl::s_number_workers != 0 ;
+  return Impl::s_number_workers != 0 ;
 }
 
 int Qthread::concurrency()

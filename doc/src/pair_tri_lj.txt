@@ -102,7 +102,7 @@ This pair style can only be used via the {pair} keyword of the
 
 This style is part of the ASPHERE package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
-LAMMPS"_Section_start.html#2_3 section for more info.
+LAMMPS"_Section_start.html#start_3 section for more info.
 
 Defining particles to be triangles so they participate in tri/tri or
 tri/particle interactions requires the use the "atom_style

@@ -71,7 +71,7 @@ initial text must match the argument specified in the fix command.
 The next line lists the number of table entries.  The parameter "N" is
 required and its value is the number of table entries that follow.
 Note that this may be different than the {N} specified in the "fix
-eos/table"_fix_style.html command.  Let Ntable = {N} in the fix
+eos/table"_fix_eos_table.html command.  Let Ntable = {N} in the fix
 command, and Nfile = "N" in the tabulated file.  What LAMMPS does is a
 preliminary interpolation by creating splines using the Nfile
 tabulated values as nodal points.  It uses these to interpolate as
@@ -112,6 +112,6 @@ are not within the table cutoffs.
 
 [Related commands:]
 
-"fix shardlow"_fix_shardlow.html, "pair dpd/fdt"_dpd_fdt.html
+"fix shardlow"_fix_shardlow.html, "pair dpd/fdt"_pair_dpd_fdt.html
 
 [Default:] none

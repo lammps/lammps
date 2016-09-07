@@ -127,7 +127,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
 
   PerformanceData perf_data ;
 
-  Kokkos::Impl::Timer wall_clock ;
+  Kokkos::Timer wall_clock ;
 
   //------------------------------------
   // Generate fields

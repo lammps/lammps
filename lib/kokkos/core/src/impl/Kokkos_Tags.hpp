@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -46,93 +46,84 @@
 
 #include <impl/Kokkos_Traits.hpp>
 #include <Kokkos_Core_fwd.hpp>
+#include <type_traits>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-
-template< class C , class Enable = void >
-struct is_memory_space_enable
-{ typedef std::false_type type ; };
-
-template< class C >
-struct is_memory_space_enable< C ,
-  typename std::enable_if<
-    std::is_same< C , typename C::memory_space >::value
-  >::type >
-{ typedef std::true_type type ; };
-
-
-template< class C , class Enable = void >
-struct is_execution_space_enable
-{ typedef std::false_type type ; };
-
-template< class C >
-struct is_execution_space_enable< C ,
-  typename std::enable_if<
-    std::is_same< C , typename C::execution_space >::value
-  >::type >
-{ typedef std::true_type type ; };
-
-
-template< class C , class Enable = void >
-struct is_execution_policy_enable
-{ typedef std::false_type type ; };
-
-template< class C >
-struct is_execution_policy_enable< C ,
-  typename std::enable_if<
-    std::is_same< C , typename C::execution_policy >::value
-  >::type >
-{ typedef std::true_type type ; };
-
-
-template< class C , class Enable = void >
-struct is_array_layout_enable
-{ typedef std::false_type type ; };
-
-template< class C >
-struct is_array_layout_enable< C ,
-  typename std::enable_if<
-    std::is_same< C , typename C::array_layout >::value
-  >::type >
-{ typedef std::true_type type ; };
-
-
-template< class C , class Enable = void >
-struct is_memory_traits_enable
-{ typedef std::false_type type ; };
-
-template< class C >
-struct is_memory_traits_enable< C ,
-  typename std::enable_if<
-    std::is_same< C , typename C::memory_traits >::value
-  >::type >
-{ typedef std::true_type type ; };
-
-
-template< class C >
-using is_memory_space = typename is_memory_space_enable<C>::type ;
-
-template< class C >
-using is_execution_space = typename is_execution_space_enable<C>::type ;
-
-template< class C >
-using is_execution_policy = typename is_execution_policy_enable<C>::type ;
-
-template< class C >
-using is_array_layout = typename is_array_layout_enable<C>::type ;
-
-template< class C >
-using is_memory_traits = typename is_memory_traits_enable<C>::type ;
-
+/** KOKKOS_HAVE_TYPE( Type )
+ *
+ * defines a meta-function that check if a type expose an internal typedef or
+ * type alias which matches Type
+ *
+ * e.g.
+ *   KOKKOS_HAVE_TYPE( array_layout );
+ *   struct Foo { using array_layout = void; };
+ *   have_array_layout<Foo>::value == 1;
+ */
+#define KOKKOS_HAVE_TYPE( Type )                                                \
+template <typename T>                                                           \
+struct have_##Type {                                                            \
+  template <typename U> static std::false_type have_type(...);                  \
+  template <typename U> static std::true_type  have_type( typename U::Type* );  \
+  using type = decltype(have_type<T>(nullptr));                                 \
+  static constexpr bool value = type::value;                                    \
 }
+
+/** KOKKOS_IS_CONCEPT( Concept )
+ *
+ * defines a meta-function that check if a type match the given Kokkos concept
+ * type alias which matches Type
+ *
+ * e.g.
+ *   KOKKOS_IS_CONCEPT( array_layout );
+ *   struct Foo { using array_layout = Foo; };
+ *   is_array_layout<Foo>::value == 1;
+ */
+#define KOKKOS_IS_CONCEPT( Concept )                                            \
+template <typename T>                                                           \
+struct is_##Concept {                                                           \
+  template <typename U> static std::false_type have_concept(...);               \
+  template <typename U> static auto have_concept( typename U::Concept* )        \
+                          ->typename std::is_same<T, typename U::Concept>::type;\
+  using type = decltype(have_concept<T>(nullptr));                              \
+  static constexpr bool value = type::value;                                    \
 }
+
+//----------------------------------------------------------------------------
+//----------------------------------------------------------------------------
+
+namespace Kokkos { namespace Impl {
+
+template <typename T>
+using is_void = std::is_same<void,T>;
+
+// is_memory_space<T>::value
+KOKKOS_IS_CONCEPT( memory_space );
+
+// is_memory_traits<T>::value
+KOKKOS_IS_CONCEPT( memory_traits );
+
+// is_execution_space<T>::value
+KOKKOS_IS_CONCEPT( execution_space );
+
+// is_execution_policy<T>::value
+KOKKOS_IS_CONCEPT( execution_policy );
+
+// is_array_layout<T>::value
+KOKKOS_IS_CONCEPT( array_layout );
+
+// is_iteration_pattern<T>::value
+KOKKOS_IS_CONCEPT( iteration_pattern );
+
+// is_schedule_type<T>::value
+KOKKOS_IS_CONCEPT( schedule_type );
+
+// is_index_type<T>::value
+KOKKOS_IS_CONCEPT( index_type );
+
+}} // namespace Kokkos::Impl
+
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

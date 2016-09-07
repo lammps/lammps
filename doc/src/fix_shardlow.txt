@@ -26,7 +26,7 @@ integrate the DPD equations of motion.  The SSA splits the integration
 into a stochastic and deterministic integration step.  The fix
 {shardlow} performs the stochastic integration step and must be used
 in conjunction with a deterministic integrator (e.g. "fix
-nve"_fix_nve.html or "fix nph"_fix_nph.html).  The stochastic
+nve"_fix_nve.html or "fix nph"_fix_nh.html).  The stochastic
 integration of the dissipative and random forces is performed prior to
 the deterministic integration of the conservative force. Further
 details regarding the method are provided in "(Lisal)"_#Lisal and

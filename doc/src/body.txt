@@ -175,6 +175,9 @@ The {bflag2} argument is ignored.
 
 [Specifics of body style rounded/polygon:]
 
+NOTE: Aug 2016 - This body style has not yet been added to LAMMPS.
+The info below is a placeholder.
+
 The {rounded/polygon} body style represents body particles as a convex
 polygon with a variable number N > 2 of vertices, which can only be
 used for 2d models.  One example use of this body style is for 2d
@@ -235,8 +238,9 @@ particles whose edge length is sqrt(2):
 0 1 1 2 2 3 3 0
 1.0 :pre
 
-The "pair_style body/rounded/polygon"_pair_body_rounded_polygon.html command
-can be used with this body style to compute body/body interactions.
+The "pair_style body/rounded/polygon"_pair_body_rounded_polygon.html
+command can be used with this body style to compute body/body
+interactions.
 
 For output purposes via the "compute
 body/local"_compute_body_local.html and "dump local"_dump.html

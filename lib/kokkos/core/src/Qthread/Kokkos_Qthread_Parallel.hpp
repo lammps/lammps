@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -130,9 +130,10 @@ public:
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , class ... Traits >
+template< class FunctorType , class ReducerType , class ... Traits >
 class ParallelReduce< FunctorType
                     , Kokkos::RangePolicy< Traits ... >
+                    , ReducerType
                     , Kokkos::Qthread
                     >
 {
@@ -141,18 +142,24 @@ private:
   typedef Kokkos::RangePolicy< Traits ... >  Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
-  typedef typename Policy::member_type  Member ;
   typedef typename Policy::WorkRange    WorkRange ;
+  typedef typename Policy::member_type  Member ;
 
-  typedef Kokkos::Impl::FunctorValueTraits< FunctorType, WorkTag > ValueTraits ;
-  typedef Kokkos::Impl::FunctorValueInit<   FunctorType, WorkTag > ValueInit ;
+  typedef Kokkos::Impl::if_c< std::is_same<InvalidType, ReducerType>::value, FunctorType, ReducerType > ReducerConditional;
+  typedef typename ReducerConditional::type ReducerTypeFwd;
+
+  // Static Assert WorkTag void if ReducerType not InvalidType
+
+  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd, WorkTag > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit<   ReducerTypeFwd, WorkTag > ValueInit ;
 
   typedef typename ValueTraits::pointer_type    pointer_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
-  const FunctorType  m_functor ;
-  const Policy       m_policy ;
-  const pointer_type m_result_ptr ;
+  const FunctorType   m_functor ;
+  const Policy        m_policy ;
+  const ReducerType   m_reducer ;
+  const pointer_type  m_result_ptr ;
 
   template< class TagType >
   inline static
@@ -187,9 +194,10 @@ private:
 
     ParallelReduce::template exec_range< WorkTag >(
       self.m_functor, range.begin(), range.end(),
-      ValueInit::init( self.m_functor , exec.exec_all_reduce_value() ) );
+      ValueInit::init( ReducerConditional::select(self.m_functor , self.m_reducer)
+                     , exec.exec_all_reduce_value() ) );
 
-    exec.template exec_all_reduce<FunctorType, WorkTag >( self.m_functor );
+    exec.template exec_all_reduce< FunctorType, ReducerType, WorkTag >( self.m_functor, self.m_reducer );
   }
 
 public:
@@ -197,26 +205,39 @@ public:
   inline
   void execute() const
     {
-      QthreadExec::resize_worker_scratch( ValueTraits::value_size( m_functor ) , 0 );
+      QthreadExec::resize_worker_scratch( ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) ) , 0 );
       Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelReduce::exec , this );
 
       const pointer_type data = (pointer_type) QthreadExec::exec_all_reduce_result();
 
-      Kokkos::Impl::FunctorFinal< FunctorType , typename Policy::work_tag >::final( m_functor , data );
+      Kokkos::Impl::FunctorFinal< ReducerTypeFwd , WorkTag >::final( ReducerConditional::select(m_functor , m_reducer) , data );
 
       if ( m_result_ptr ) {
-        const unsigned n = ValueTraits::value_count( m_functor );
+        const unsigned n = ValueTraits::value_count( ReducerConditional::select(m_functor , m_reducer) );
         for ( unsigned i = 0 ; i < n ; ++i ) { m_result_ptr[i] = data[i]; }
       }
     }
 
-  template< class HostViewType >
+  template< class ViewType >
   ParallelReduce( const FunctorType  & arg_functor
                 , const Policy       & arg_policy
-                , const HostViewType & arg_result_view )
+                , const ViewType & arg_result_view
+                , typename std::enable_if<Kokkos::is_view< ViewType >::value &&
+                                          !Kokkos::is_reducer_type< ReducerType >::value
+                                          , void*>::type = NULL)
     : m_functor( arg_functor )
-    , m_policy(  arg_policy )
-    , m_result_ptr( arg_result_view.ptr_on_device() )
+    , m_policy( arg_policy )
+    , m_reducer( InvalidType() )
+    , m_result_ptr( arg_result_view.data() )
+    { }
+
+  ParallelReduce( const FunctorType & arg_functor
+                , Policy       arg_policy
+                , const ReducerType& reducer )
+    : m_functor( arg_functor )
+    , m_policy( arg_policy )
+    , m_reducer( reducer )
+    , m_result_ptr( reducer.result_view().data() )
     { }
 };
 
@@ -291,10 +312,12 @@ public:
 
 //----------------------------------------------------------------------------
 
-template< class FunctorType , class ... Properties >
+template< class FunctorType , class ReducerType , class ... Properties >
 class ParallelReduce< FunctorType
                     , TeamPolicy< Properties... >
-                    , Kokkos::Qthread >
+                    , ReducerType
+                    , Kokkos::Qthread
+                    >
 {
 private:
 
@@ -303,14 +326,18 @@ private:
   typedef typename Policy::work_tag     WorkTag ;
   typedef typename Policy::member_type  Member ;
 
-  typedef Kokkos::Impl::FunctorValueTraits< FunctorType, WorkTag > ValueTraits ;
-  typedef Kokkos::Impl::FunctorValueInit<   FunctorType, WorkTag > ValueInit ;
+  typedef Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, FunctorType, ReducerType> ReducerConditional;
+  typedef typename ReducerConditional::type ReducerTypeFwd;
+
+  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd , WorkTag >  ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit<   ReducerTypeFwd , WorkTag >  ValueInit ;
 
   typedef typename ValueTraits::pointer_type    pointer_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
   const FunctorType  m_functor ;
   const Policy       m_policy ;
+  const ReducerType  m_reducer ;
   const pointer_type m_result_ptr ;
 
   template< class TagType >
@@ -345,9 +372,10 @@ private:
     ParallelReduce::template exec_team< WorkTag >
       ( self.m_functor
       , Member( exec , self.m_policy )
-      , ValueInit::init( self.m_functor , exec.exec_all_reduce_value() ) );
+      , ValueInit::init( ReducerConditional::select( self.m_functor , self.m_reducer )
+                       , exec.exec_all_reduce_value() ) );
 
-    exec.template exec_all_reduce< FunctorType , WorkTag >( self.m_functor );
+    exec.template exec_all_reduce< FunctorType, ReducerType, WorkTag >( self.m_functor, self.m_reducer );
   }
 
 public:
@@ -356,29 +384,43 @@ public:
   void execute() const
     {
       QthreadExec::resize_worker_scratch
-        ( /* reduction   memory */ ValueTraits::value_size( m_functor )
+        ( /* reduction   memory */ ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) )
         , /* team shared memory */ FunctorTeamShmemSize< FunctorType >::value( m_functor , m_policy.team_size() ) );
 
       Impl::QthreadExec::exec_all( Qthread::instance() , & ParallelReduce::exec , this );
 
       const pointer_type data = (pointer_type) QthreadExec::exec_all_reduce_result();
 
-      Kokkos::Impl::FunctorFinal< FunctorType , typename Policy::work_tag >::final( m_functor , data );
+      Kokkos::Impl::FunctorFinal< ReducerTypeFwd , WorkTag >::final( ReducerConditional::select(m_functor , m_reducer), data );
 
       if ( m_result_ptr ) {
-        const unsigned n = ValueTraits::value_count( m_functor );
+        const unsigned n = ValueTraits::value_count( ReducerConditional::select(m_functor , m_reducer) );
         for ( unsigned i = 0 ; i < n ; ++i ) { m_result_ptr[i] = data[i]; }
       }
     }
 
   template< class ViewType >
-  ParallelReduce( const FunctorType & arg_functor ,
-                  const Policy      & arg_policy ,
-                  const ViewType    & arg_result )
+  ParallelReduce( const FunctorType & arg_functor
+                , const Policy      & arg_policy
+                , const ViewType    & arg_result
+                , typename std::enable_if<Kokkos::is_view< ViewType >::value &&
+                                          !Kokkos::is_reducer_type< ReducerType >::value
+                                          , void*>::type = NULL)
     : m_functor( arg_functor )
-    , m_policy(  arg_policy )
+    , m_policy( arg_policy )
+    , m_reducer( InvalidType() )
     , m_result_ptr( arg_result.ptr_on_device() )
     { }
+
+  inline
+  ParallelReduce( const FunctorType & arg_functor
+                , Policy       arg_policy
+                , const ReducerType& reducer )
+  : m_functor( arg_functor )
+  , m_policy( arg_policy )
+  , m_reducer( reducer )
+  , m_result_ptr( reducer.result_view().data() )
+  { }
 };
 
 //----------------------------------------------------------------------------
@@ -395,8 +437,8 @@ private:
   typedef Kokkos::RangePolicy< Traits ... >  Policy ;
 
   typedef typename Policy::work_tag     WorkTag ;
-  typedef typename Policy::member_type  Member ;
   typedef typename Policy::WorkRange    WorkRange ;
+  typedef typename Policy::member_type  Member ;
 
   typedef Kokkos::Impl::FunctorValueTraits< FunctorType, WorkTag > ValueTraits ;
   typedef Kokkos::Impl::FunctorValueInit<   FunctorType, WorkTag > ValueInit ;

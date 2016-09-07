@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -47,167 +47,15 @@
 #include <Kokkos_Core_fwd.hpp>
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_StaticAssert.hpp>
+#include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_Tags.hpp>
+#include <impl/Kokkos_AnalyzePolicy.hpp>
+#include <Kokkos_Concepts.hpp>
 #include <iostream>
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
 
-//Schedules for Execution Policies
-struct Static {
-};
-
-struct Dynamic {
-};
-
-//Schedule Wrapper Type
-template<class ScheduleType>
-struct Schedule {
-  static_assert(std::is_same<ScheduleType,Static>::value ||
-                std::is_same<ScheduleType,Dynamic>::value,
-                "Kokkos: Invalid Schedule<> type.");
-  typedef Schedule<ScheduleType> schedule_type;
-  typedef ScheduleType type;
-};
-
-//Specif Iteration Index Type
-template<typename iType>
-struct IndexType {
-  static_assert(std::is_integral<iType>::value,"Kokkos: Invalid IndexType<>.");
-  typedef IndexType<iType> index_type;
-  typedef iType type;
-};
-
-namespace Impl {
-
-template<class Arg>
-struct is_schedule_type {
-  enum { value = 0};
-};
-
-template<class ScheduleType>
-struct is_schedule_type<Schedule<ScheduleType> > {
-  enum {value = 1 };
-};
-
-template<class Arg>
-struct is_index_type {
-  enum { value = 0 };
-};
-
-template<typename iType>
-struct is_index_type<IndexType<iType> > {
-  enum { value = 1 };
-};
-
-template<typename Arg>
-struct is_tag_type {
-  enum { value = !(is_execution_space<Arg>::value ||
-                   is_schedule_type<Arg>::value ||
-                   is_index_type<Arg>::value ||
-                   std::is_integral<Arg>::value)};
-};
-
-//Policy Traits
-template<class ... Properties>
-struct PolicyTraits;
-
-template<>
-struct PolicyTraits<void> {
-  typedef void execution_space;
-  typedef void schedule_type;
-  typedef void index_type;
-  typedef void tag_type;
-};
-
-
-//Strip off ExecutionSpace
-template<class ExecutionSpace, class ... Props>
-struct PolicyTraits<typename std::enable_if<is_execution_space<ExecutionSpace>::value >::type,ExecutionSpace,Props ...> {
-  static_assert( std::is_same<typename PolicyTraits<void, Props ...>::execution_space, void>::value,
-                 "ExecutionPolicy: Only one execution space template argument may be used.");
-  typedef ExecutionSpace execution_space;
-  typedef typename PolicyTraits<void, Props ...>::schedule_type schedule_type;
-  typedef typename PolicyTraits<void, Props ...>::index_type index_type;
-  typedef typename PolicyTraits<void, Props ...>::tag_type tag_type;
-};
-
-//Strip off ScheduleType
-template<class ScheduleType, class ... Props>
-struct PolicyTraits<typename std::enable_if<is_schedule_type<Schedule<ScheduleType> >::value >::type,Schedule<ScheduleType>,Props ...> {
-  static_assert( std::is_same<typename PolicyTraits<void, Props ...>::schedule_type, void>::value,
-                 "ExecutionPolicy: Only one Schedule<..> template argument may be used.");
-  typedef typename PolicyTraits<void, Props ...>::execution_space execution_space;
-  typedef ScheduleType schedule_type;
-  typedef typename PolicyTraits<void, Props ...>::index_type index_type;
-  typedef typename PolicyTraits<void, Props ...>::tag_type tag_type;
-};
-
-//Strip off IndexType
-template<typename iType, class ... Props>
-struct PolicyTraits<void, IndexType<iType>,Props ...> {
-  static_assert( std::is_same<typename PolicyTraits<void, Props ...>::index_type, void>::value,
-                 "ExecutionPolicy: Only one IndexType<..> template argument may be used.");
-  typedef typename PolicyTraits<void, Props ...>::execution_space execution_space;
-  typedef typename PolicyTraits<void, Props ...>::schedule_type schedule_type;
-  typedef iType index_type;
-  typedef typename PolicyTraits<void, Props ...>::tag_type tag_type;
-};
-
-//Strip off raw IndexType
-template<typename iType, class ... Props>
-struct PolicyTraits<typename std::enable_if<std::is_integral<iType>::value>::type, iType,Props ...> {
-  static_assert( std::is_same<typename PolicyTraits<void, Props ...>::index_type, void>::value,
-                 "ExecutionPolicy: Only one IndexType<..> template argument may be used.");
-  typedef typename PolicyTraits<void, Props ...>::execution_space execution_space;
-  typedef typename PolicyTraits<void, Props ...>::schedule_type schedule_type;
-  typedef iType index_type;
-  typedef typename PolicyTraits<void, Props ...>::tag_type tag_type;
-};
-
-//Strip off TagType
-template<class TagType, class ... Props>
-struct PolicyTraits<typename std::enable_if<!is_schedule_type<TagType>::value &&
-                                            !is_execution_space<TagType>::value &&
-                                            !is_index_type<TagType>::value &&
-                                            !std::is_integral<TagType>::value 
-                                           >::type,
-                    TagType,Props ...> {
-  static_assert( std::is_same<typename PolicyTraits<void, Props ...>::tag_type, void>::value,
-                 "ExecutionPolicy: Only one tag type template argument may be used.");
-
-  typedef typename PolicyTraits<void, Props ...>::execution_space execution_space;
-  typedef typename PolicyTraits<void, Props ...>::schedule_type schedule_type;
-  typedef typename PolicyTraits<void, Props ...>::index_type index_type;
-  typedef TagType tag_type;
-};
-
-
-template<class ... Props>
-struct PolicyTraits {
-#ifdef KOKKOS_DIRECT_VARIADIC_EXPANSION
-  typedef typename std::conditional<std::is_same<void, typename PolicyTraits<void, Props ...>::execution_space>::value,
-    Kokkos::DefaultExecutionSpace, typename PolicyTraits<void,Props ...>::execution_space>::type execution_space;
-  typedef typename std::conditional<std::is_same<void, typename PolicyTraits<void, Props ...>::schedule_type>::value,
-    Kokkos::Static, typename PolicyTraits<void,Props ...>::schedule_type>::type schedule_type;
-  typedef typename std::conditional<std::is_same<void, typename PolicyTraits<void, Props ...>::index_type>::value,
-    typename execution_space::size_type, typename PolicyTraits<void,Props ...>::index_type>::type index_type;
-  typedef typename std::conditional<std::is_same<void, typename PolicyTraits<void, Props ...>::tag_type>::value, 
-    void, typename PolicyTraits<void,Props ...>::tag_type>::type work_tag;
-#else
-  typedef typename has_condition<Kokkos::DefaultExecutionSpace,is_execution_space,Props ...>::type execution_space;
-  typedef typename has_condition<Kokkos::Schedule<Kokkos::Static>,is_schedule_type,Props ...>::type schedule_type;
-  typedef typename has_condition<void,is_tag_type,Props ...>::type work_tag;
-  typedef typename has_condition<typename execution_space::size_type, std::is_integral, Props ... >::type default_index_type;
-  typedef typename has_condition<Kokkos::IndexType<default_index_type>,is_index_type,Props ...>::type::type index_type;
-#endif
-};
-
-}
-
-}
-
-namespace Kokkos {
 /** \brief  Execution policy for work over a range of an integral type.
  *
  * Valid template argument options:
@@ -230,7 +78,9 @@ namespace Kokkos {
  *  Blocking is the granularity of partitioning the range among threads.
  */
 template<class ... Properties>
-class RangePolicy: public Impl::PolicyTraits<Properties ... > {
+class RangePolicy
+  : public Impl::PolicyTraits<Properties ... >
+{
 private:
 
   typedef Impl::PolicyTraits<Properties ... > traits;
@@ -243,6 +93,7 @@ private:
 public:
 
   //! Tag this class as an execution policy
+  typedef RangePolicy execution_policy;
   typedef typename traits::index_type member_type ;
 
   KOKKOS_INLINE_FUNCTION const typename traits::execution_space & space() const { return m_space ; }
@@ -348,7 +199,7 @@ public:
       : m_begin(0), m_end(0)
       {
         if ( part_size ) {
-  
+
           // Split evenly among partitions, then round up to the granularity.
           const member_type work_part =
             ( ( ( ( range.end() - range.begin() ) + ( part_size - 1 ) ) / part_size )
@@ -356,7 +207,7 @@ public:
 
           m_begin = range.begin() + work_part * part_rank ;
           m_end   = m_begin       + work_part ;
-  
+
           if ( range.end() < m_begin ) m_begin = range.end() ;
           if ( range.end() < m_end )   m_end   = range.end() ;
         }
@@ -366,9 +217,10 @@ public:
      member_type m_end ;
      WorkRange();
      WorkRange & operator = ( const WorkRange & );
-   
+
   };
 };
+
 
 } // namespace Kokkos
 
@@ -376,38 +228,6 @@ public:
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-
-namespace Experimental {
-
-/** \brief Scratch memory request accepting per team and per thread value
- *
- * An instance of this class can be given as the last argument to a 
- * TeamPolicy constructor. It sets the amount of user requested shared
- * memory for the team.
- */
-
-template< class MemorySpace >
-class TeamScratchRequest {
-  size_t m_per_team;
-  size_t m_per_thread;
-  
-public:
-  TeamScratchRequest(size_t per_team_, size_t per_thread_ = 0):
-   m_per_team(per_team_), m_per_thread(per_thread_) {
-  } 
-
-  size_t per_team() const {
-    return m_per_team;
-  }
-  size_t per_thread() const {
-    return m_per_thread;
-  }
-  size_t total(const size_t team_size) const {
-    return m_per_team + m_per_thread * team_size;
-  }
-}; 
-
-}
 
 namespace Impl {
 
@@ -451,11 +271,9 @@ public:
 
   TeamPolicyInternal( int league_size_request , const Kokkos::AUTO_t & , int vector_length_request = 1 );
 
-  template<class MemorySpace>
-  TeamPolicyInternal( int league_size_request , int team_size_request , const Experimental::TeamScratchRequest<MemorySpace>& team_scratch_memory_request );
+/*  TeamPolicyInternal( int league_size_request , int team_size_request );
 
-  template<class MemorySpace>
-  TeamPolicyInternal( int league_size_request , const Kokkos::AUTO_t & , const Experimental::TeamScratchRequest<MemorySpace>& team_scratch_memory_request );
+  TeamPolicyInternal( int league_size_request , const Kokkos::AUTO_t & );*/
 
   /** \brief  The actual league size (number of teams) of the policy.
    *
@@ -574,12 +392,14 @@ class TeamPolicy: public
   typedef Impl::TeamPolicyInternal<
        typename Impl::PolicyTraits<Properties ... >::execution_space,
        Properties ...> internal_policy;
+
   typedef Impl::PolicyTraits<Properties ... > traits;
 
 public:
+  typedef TeamPolicy execution_policy;
 
   TeamPolicy& operator = (const TeamPolicy&) = default;
- 
+
   /** \brief  Construct policy with the given instance of the execution space */
   TeamPolicy( const typename traits::execution_space & , int league_size_request , int team_size_request , int vector_length_request = 1 )
     : internal_policy(typename traits::execution_space(),league_size_request,team_size_request, vector_length_request) {}
@@ -594,13 +414,11 @@ public:
   TeamPolicy( int league_size_request , const Kokkos::AUTO_t & , int vector_length_request = 1 )
     : internal_policy(league_size_request,Kokkos::AUTO(), vector_length_request) {}
 
-  template<class MemorySpace>
-  TeamPolicy( int league_size_request , int team_size_request , const Experimental::TeamScratchRequest<MemorySpace>& team_scratch_memory_request )
-    : internal_policy(league_size_request,team_size_request, team_scratch_memory_request) {}
+/*  TeamPolicy( int league_size_request , int team_size_request  )
+    : internal_policy(league_size_request,team_size_request) {}
 
-  template<class MemorySpace>
-  TeamPolicy( int league_size_request , const Kokkos::AUTO_t & , const Experimental::TeamScratchRequest<MemorySpace>& team_scratch_memory_request )
-    : internal_policy(league_size_request,Kokkos::AUTO(), team_scratch_memory_request) {}
+  TeamPolicy( int league_size_request , const Kokkos::AUTO_t &  )
+    : internal_policy(league_size_request,Kokkos::AUTO()) {}*/
 
 private:
   TeamPolicy(const internal_policy& p):internal_policy(p) {}
@@ -743,6 +561,7 @@ KOKKOS_INLINE_FUNCTION
 Impl::ThreadVectorRangeBoundariesStruct<iType,TeamMemberType> ThreadVectorRange(const TeamMemberType&, const iType& count);
 
 } // namespace Kokkos
+
 
 #endif /* #define KOKKOS_EXECPOLICY_HPP */
 

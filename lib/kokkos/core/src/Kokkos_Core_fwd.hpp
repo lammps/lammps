@@ -69,6 +69,9 @@ namespace {
 /**\brief Token to indicate that a parameter's value is to be automatically selected */
 constexpr AUTO_t AUTO = Kokkos::AUTO_t();
 }
+
+struct InvalidType {};
+
 }
 
 //----------------------------------------------------------------------------
@@ -205,7 +208,7 @@ namespace Impl {
 template< class Functor
         , class Policy
         , class EnableFunctor = void 
-	, class EnablePolicy = void
+	      , class EnablePolicy = void
         >
 struct FunctorPolicyExecutionSpace;
 
@@ -225,7 +228,7 @@ template< class FunctorType , class ExecPolicy , class ExecutionSpace =
 ///
 /// This is an implementation detail of parallel_reduce.  Users should
 /// skip this and go directly to the nonmember function parallel_reduce.
-template< class FunctorType , class ExecPolicy , class ExecutionSpace = 
+template< class FunctorType , class ExecPolicy , class ReducerType = InvalidType, class ExecutionSpace =
           typename Impl::FunctorPolicyExecutionSpace< FunctorType , ExecPolicy >::execution_space 
         > class ParallelReduce ;
 

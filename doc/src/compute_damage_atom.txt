@@ -57,7 +57,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"compute dilatation"_compute_dilatation.html, "compute
-plasticity"_compute_plasticity.html
+"compute dilatation/atom"_compute_dilatation_atom.html,
+"compute plasticity/atom"_compute_plasticity_atom.html
 
 [Default:] none

@@ -41,4 +41,82 @@
 //@HEADER
 */
 
-#include<impl/Kokkos_MemoryPool_Inline.hpp>
+#ifndef KOKKOS_BITOPS_HPP
+#define KOKKOS_BITOPS_HPP
+
+#include <Kokkos_Macros.hpp>
+#include <stdint.h>
+#include <climits>
+
+namespace Kokkos {
+namespace Impl {
+
+KOKKOS_FORCEINLINE_FUNCTION
+int bit_scan_forward( unsigned i )
+{
+#if defined( __CUDA_ARCH__ )
+  return __ffs(i) - 1;
+#elif defined( __GNUC__ ) || defined( __GNUG__ )
+  return __builtin_ffs(i) - 1;
+#elif defined( __INTEL_COMPILER )
+  return _bit_scan_forward(i);
+#else
+
+  unsigned t = 1u;
+  int r = 0;
+  while ( i && ( i & t == 0 ) )
+  {
+    t = t << 1;
+    ++r;
+  }
+  return r;
+#endif
+}
+
+KOKKOS_FORCEINLINE_FUNCTION
+int bit_scan_reverse( unsigned i )
+{
+  enum { shift = static_cast<int>( sizeof(unsigned) * CHAR_BIT - 1 ) };
+#if defined( __CUDA_ARCH__ )
+  return shift - __clz(i);
+#elif defined( __GNUC__ ) || defined( __GNUG__ )
+  return shift - __builtin_clz(i);
+#elif defined( __INTEL_COMPILER )
+  return _bit_scan_reverse(i);
+#else
+  unsigned t = 1u << shift;
+  int r = 0;
+  while ( i && ( i & t == 0 ) )
+  {
+    t = t >> 1;
+    ++r;
+  }
+  return r;
+#endif
+}
+
+/// Count the number of bits set.
+KOKKOS_FORCEINLINE_FUNCTION
+int bit_count( unsigned i )
+{
+#if defined( __CUDA_ARCH__ )
+  return __popc(i);
+#elif defined( __GNUC__ ) || defined( __GNUG__ )
+  return __builtin_popcount(i);
+#elif defined ( __INTEL_COMPILER )
+  return _popcnt32(i);
+#else
+  // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetNaive
+  i = i - ( ( i >> 1 ) & ~0u / 3u );                             // temp
+  i = ( i & ~0u / 15u * 3u ) + ( ( i >> 2 ) & ~0u / 15u * 3u );  // temp
+  i = ( i + ( i >> 4 ) ) & ~0u / 255u * 15u;                     // temp
+
+  // count
+  return (int)( ( i * ( ~0u / 255u ) ) >> ( sizeof(unsigned) - 1 ) * CHAR_BIT );
+#endif
+}
+
+} // namespace Impl
+} // namespace Kokkos
+
+#endif // KOKKOS_BITOPS_HPP

@@ -60,7 +60,7 @@
 
 #if (KOKKOS_ENABLE_PROFILING)
 namespace Kokkos {
-  namespace Experimental {
+  namespace Profiling {
 
     typedef void (*initFunction)(const int,
 	const uint64_t,

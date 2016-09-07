@@ -2903,31 +2903,34 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         if( arg >  1.0 ) arg =  1.0;
         if( arg < -1.0 ) arg = -1.0;
 
-        if( sin_ijk >= 0 && sin_ijk <= 1e-10 ) sin_ijk = 1e-10;
-        else if( sin_ijk <= 0 && sin_ijk >= -1e-10 ) sin_ijk = -1e-10;
-        if( sin_jil >= 0 && sin_jil <= 1e-10 ) sin_jil = 1e-10;
-        else if( sin_jil <= 0 && sin_jil >= -1e-10 ) sin_jil = -1e-10;
+        F_FLOAT sin_ijk_rnd = sin_ijk;
+        F_FLOAT sin_jil_rnd = sin_jil;
+
+        if( sin_ijk >= 0 && sin_ijk <= 1e-10 ) sin_ijk_rnd = 1e-10;
+        else if( sin_ijk <= 0 && sin_ijk >= -1e-10 ) sin_ijk_rnd = -1e-10;
+        if( sin_jil >= 0 && sin_jil <= 1e-10 ) sin_jil_rnd = 1e-10;
+        else if( sin_jil <= 0 && sin_jil >= -1e-10 ) sin_jil_rnd = -1e-10;
 
         // dcos_omega_di
         for (int d = 0; d < 3; d++) dcos_omega_dk[d] = ((htra-arg*hnra)/rik) * delik[d] - dellk[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dk[d] += (hthd-arg*hnhd)/sin_ijk * -dcos_ijk_dk[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dk[d] += (hthd-arg*hnhd)/sin_ijk_rnd * -dcos_ijk_dk[d];
         for (int d = 0; d < 3; d++) dcos_omega_dk[d] *= 2.0/poem;
 
         // dcos_omega_dj
         for (int d = 0; d < 3; d++) dcos_omega_di[d] = -((htra-arg*hnra)/rik) * delik[d] - htrb/rij * delij[d];
-        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthd-arg*hnhd)/sin_ijk * dcos_ijk_di[d];
-        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthe-arg*hnhe)/sin_jil * dcos_jil_di[d];
+        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthd-arg*hnhd)/sin_ijk_rnd * dcos_ijk_di[d];
+        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthe-arg*hnhe)/sin_jil_rnd * dcos_jil_di[d];
         for (int d = 0; d < 3; d++) dcos_omega_di[d] *= 2.0/poem;
 
         // dcos_omega_dk
         for (int d = 0; d < 3; d++) dcos_omega_dj[d] = -((htrc-arg*hnrc)/rjl) * deljl[d] + htrb/rij * delij[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthd-arg*hnhd)/sin_ijk * dcos_ijk_dj[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthe-arg*hnhe)/sin_jil * dcos_jil_dj[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthd-arg*hnhd)/sin_ijk_rnd * dcos_ijk_dj[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthe-arg*hnhe)/sin_jil_rnd * dcos_jil_dj[d];
         for (int d = 0; d < 3; d++) dcos_omega_dj[d] *= 2.0/poem;
 
         // dcos_omega_dl
         for (int d = 0; d < 3; d++) dcos_omega_dl[d] = ((htrc-arg*hnrc)/rjl) * deljl[d] + dellk[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dl[d] += (hthe-arg*hnhe)/sin_jil * -dcos_jil_dk[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dl[d] += (hthe-arg*hnhe)/sin_jil_rnd * -dcos_jil_dk[d];
         for (int d = 0; d < 3; d++) dcos_omega_dl[d] *= 2.0/poem;
 
         cos_omega = cos( omega );

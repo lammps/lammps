@@ -45,7 +45,8 @@
 
 #include <impl/Kokkos_Serial_TaskPolicy.hpp>
 
-#if defined( KOKKOS_HAVE_SERIAL )
+#if defined( KOKKOS_HAVE_SERIAL ) && defined( KOKKOS_ENABLE_TASKPOLICY )
+
 #include <stdlib.h>
 #include <stdexcept>
 #include <iostream>
@@ -252,6 +253,12 @@ void Task::schedule()
 
   if ( ok_state && ok_list ) {
 
+    if ( TASK_STATE_CONSTRUCTING == m_state ) {
+      // Initial scheduling increment,
+      // matched by decrement when task is complete.
+      ++m_ref_count ;
+    }
+
     // Will be waiting for execution upon return from this function
 
     m_state = Kokkos::Experimental::TASK_STATE_WAITING ;
@@ -286,7 +293,8 @@ void Task::execute_ready_tasks()
     // Task * task ;
     // while ( ! CAS( & s_ready , task = s_ready , s_ready->m_next ) );
 
-    Task * const task = s_ready ;
+    Task * task = s_ready ;
+
     s_ready = task->m_next ;
 
     task->m_next = 0 ;
@@ -325,6 +333,9 @@ void Task::execute_ready_tasks()
 
         x = next ;
       }
+
+      // Decrement to match the initial scheduling increment
+      assign( & task , 0 );
     }
   }
 }
@@ -333,4 +344,5 @@ void Task::execute_ready_tasks()
 } // namespace Experimental
 } // namespace Kokkos
 
-#endif // defined( KOKKOS_HAVE_SERIAL )
+#endif /* #if defined( KOKKOS_HAVE_SERIAL ) && defined( KOKKOS_ENABLE_TASKPOLICY ) */
+

@@ -62,7 +62,8 @@ int main (int narg, char* args[]) {
 
   // Set up a policy that launches 12 teams, with the maximum number
   // of threads per team.
-  const team_policy policy (12, team_policy::team_size_max ( [=]{} ));
+
+  const team_policy policy (12, Kokkos::AUTO);
 
   // This is a reduction with a team policy.  The team policy changes
   // the first argument of the lambda.  Rather than an integer index

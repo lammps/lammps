@@ -76,7 +76,7 @@ interacts with charges in an infinite array of periodic images of the
 simulation domain.
 
 Note that using a long-range solver requires use of a matching "pair
-style"_pair.html to perform consistent short-range pairwise
+style"_pair_style.html to perform consistent short-range pairwise
 calculations.  This means that the name of the pair style contains a
 matching keyword to the name of the KSpace style, as in this table:
 
@@ -273,9 +273,9 @@ calculation can be performed concurrently on the GPU while other
 calculations for non-bonded and bonded force calculation are performed
 on the CPU.
 
-The {pppm/kk} style also performs charge assignment and
-force interpolation calculations on the GPU while the FFTs themselves
-are calculated on the CPU in non-threaded mode.
+The {pppm/kk} style also performs charge assignment and force
+interpolation calculations on the GPU while the FFTs themselves are
+calculated on the CPU in non-threaded mode.
 
 These accelerated styles are part of the GPU, USER-INTEL,
 KOKKOS, USER-OMP, and OPT packages respectively.  They are only
@@ -305,10 +305,10 @@ For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, or shrink-wrapped boundaries (specified using
 the "boundary"_boundary.html command).
 
-For Ewald and PPPM, a simulation must be 3d and periodic in all dimensions.
-The only exception is if the slab option is set with "kspace_modify"_kspace_modify.html,
-in which case the xy dimensions must be periodic and the z dimension must be
-non-periodic.
+For Ewald and PPPM, a simulation must be 3d and periodic in all
+dimensions.  The only exception is if the slab option is set with
+"kspace_modify"_kspace_modify.html, in which case the xy dimensions
+must be periodic and the z dimension must be non-periodic.
 
 [Related commands:]
 
@@ -360,11 +360,12 @@ and Computation 5, 2322 (2009)
 10913 (2000).
 
 :link(Isele-Holder)
-[(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137, 174107 (2012).
+[(Isele-Holder)] Isele-Holder, Mitchell, Ismail, J Chem Phys, 137,
+174107 (2012).
 
 :link(Isele-Holder2)
-[(Isele-Holder2)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J Chem Theory
-Comput 9, 5412 (2013).
+[(Isele-Holder2)] Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail,
+J Chem Theory Comput 9, 5412 (2013).
 
 :link(Hardy)
 [(Hardy)] David Hardy thesis: Multilevel Summation for the Fast

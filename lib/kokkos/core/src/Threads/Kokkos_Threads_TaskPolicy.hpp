@@ -50,7 +50,7 @@
 #include <Kokkos_Threads.hpp>
 #include <Kokkos_TaskPolicy.hpp>
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_HAVE_PTHREAD ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
 //----------------------------------------------------------------------------
 
@@ -737,10 +737,9 @@ public:
 } /* namespace Experimental */
 } /* namespace Kokkos */
 
-#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) */
-
 //----------------------------------------------------------------------------
 
+#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) && defined( KOKKOS_ENABLE_TASKPOLICY ) */
 #endif /* #ifndef KOKKOS_THREADS_TASKPOLICY_HPP */
 
 

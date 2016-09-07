@@ -22,7 +22,7 @@ book"_http://git-scm.com/book/ to reacquaint yourself.
 
 First of all, you need a GitHub account. This is fairly simple, just
 go to "GitHub"_https://github.com and create an account by clicking
-the ``Sign up for GitHub'' button. Once your account is created, you
+the "Sign up for GitHub" button. Once your account is created, you
 can sign in by clicking the button in the top left and filling in your
 username or e-mail address and password.
 
@@ -33,7 +33,7 @@ username or e-mail address and password.
 To get changes into LAMMPS, you need to first fork the repository. At
 the time of writing, LAMMPS-ICMS is the preferred fork. Go to "LAMMPS
 on GitHub"_https://github.com/lammps/lammps and make sure branch is
-set to ``lammps-icms'', see the figure below.
+set to "lammps-icms", see the figure below.
 
 :c,image(JPG/tutorial_branch.png)
 
@@ -58,7 +58,7 @@ will contain these changes, a so-called feature branch.
 
 Since LAMMPS is such a big project and most user contributions come in
 small portions, the most ideal workflow for LAMMPS is the so-called
-``Feature branch'' workflow. It is explained in great detail here:
+"Feature branch" workflow. It is explained in great detail here:
 "feature branch
 workflow"_https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow.
 
@@ -78,7 +78,7 @@ You can find the proper url to the right of the "HTTPS" block, see figure.
 
 :c,image(JPG/tutorial_https_block.png)
 
-The above command copies (``clones'') the git repository to your local
+The above command copies ("clones") the git repository to your local
 machine. You can use this local clone to make changes and test them
 without interfering with the repository on github. First, however, it
 is recommended to make a new branch for a particular feature you would
@@ -101,7 +101,7 @@ you should switch branches!
 After everything is done, add the files to the branch and commit them:
 
   $ git add src/USER-MANIFOLD examples/USER/manifold/
-  $ git add doc/fix_nv{t,e}_manifold_rattle.txt
+  $ git add doc/fix_nv\{t,e\}_manifold_rattle.txt
   $ git add doc/fix_manifoldforce.txt doc/user_manifolds.txt :pre
 
 After the files are added, the change should be comitted:

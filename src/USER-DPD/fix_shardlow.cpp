@@ -226,7 +226,6 @@ void FixShardlow::ssa_update(
   int newton_pair = force->newton_pair;
   double randPair;
 
-  int *ssaAIR = atom->ssaAIR;
   double *uCond = atom->uCond;
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;

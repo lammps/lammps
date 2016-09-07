@@ -25,14 +25,15 @@ using namespace LAMMPS_NS;
 
 #define PGDELTA 1
 
-enum{NSQ,BIN,MULTI};     // also in neighbor.cpp
+enum{NSQ,BIN,MULTI};     // also in Neighbor
 
 /* ---------------------------------------------------------------------- */
 
-NeighList::NeighList(LAMMPS *lmp) :
-  Pointers(lmp)
+NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
 {
-  maxatoms = 0;
+  // initializations
+
+  maxatom = 0;
 
   inum = gnum = 0;
   ilist = NULL;
@@ -40,9 +41,15 @@ NeighList::NeighList(LAMMPS *lmp) :
   firstneigh = NULL;
   firstdouble = NULL;
 
+  // defaults, but may be reset by post_constructor()
+
+  occasional = 0;
+  ghost = 0;
+  ssa = 0;
+  copy = 0;
   dnum = 0;
 
-  last_build = -1;
+  // ptrs
 
   iskip = NULL;
   ijskip = NULL;
@@ -57,74 +64,117 @@ NeighList::NeighList(LAMMPS *lmp) :
   listcopy = NULL;
   listskip = NULL;
 
+  ipage = NULL;
+  dpage = NULL;
+
   // USER-DPD package
 
-  ssaflag = 0;
   ndxAIR_ssa = NULL;
   maxbin_ssa = 0;
   bins_ssa = NULL;
   maxhead_ssa = 0;
   binhead_ssa = NULL;
   gbinhead_ssa = NULL;
-
-  maxstencil = ghostflag = 0;
-  stencil = NULL;
-  stencilxyz = NULL;
-
-  maxstencil_multi = 0;
-  nstencil_multi = NULL;
-  stencil_multi = NULL;
-  distsq_multi = NULL;
-
-  ipage = NULL;
-  dpage = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 NeighList::~NeighList()
 {
-  if (!listcopy) {
+  if (!copy) {
     memory->destroy(ilist);
     memory->destroy(numneigh);
     memory->sfree(firstneigh);
     memory->sfree(firstdouble);
 
     delete [] ipage;
-    if (dnum) delete [] dpage;
+    delete [] dpage;
   }
 
   delete [] iskip;
   memory->destroy(ijskip);
 
-  if (maxstencil) memory->destroy(stencil);
-  if (ghostflag) memory->destroy(stencilxyz);
-  if (ndxAIR_ssa) memory->sfree(ndxAIR_ssa);
-  if (maxbin_ssa) memory->destroy(bins_ssa);
-  if (maxhead_ssa) {
+  if (ssa) {
+    memory->sfree(ndxAIR_ssa);
+    memory->destroy(bins_ssa);
     memory->destroy(binhead_ssa);
     memory->destroy(gbinhead_ssa);
   }
+}
 
-  if (maxstencil_multi) {
-    for (int i = 1; i <= atom->ntypes; i++) {
-      memory->destroy(stencil_multi[i]);
-      memory->destroy(distsq_multi[i]);
-    }
-    delete [] nstencil_multi;
-    delete [] stencil_multi;
-    delete [] distsq_multi;
+/* ----------------------------------------------------------------------
+   adjust settings to match corresponding NeighRequest
+   cannot do this in constructor b/c not all NeighLists are allocated yet
+   copy -> set listcopy for list to copy from
+   skip -> set listskip and create local copy of itype,ijtype
+   halffull -> preceeding list must be full
+   granhistory -> preceeding list must be gran, set its LGH and FH ptrs
+   respaouter -> preceeding list(s) must be inner or middle, set LM/LI ptrs
+------------------------------------------------------------------------- */
+
+void NeighList::post_constructor(NeighRequest *nq)
+{
+  occasional = nq->occasional;
+  ghost = nq->ghost;
+  ssa = nq->ssa;
+  copy = nq->copy;
+  dnum = nq->dnum;
+
+  if (nq->copy)
+    listcopy = neighbor->lists[nq->otherlist];
+
+  if (nq->skip) {
+    listskip = neighbor->lists[nq->otherlist];
+    int ntypes = atom->ntypes;
+    iskip = new int[ntypes+1];
+    memory->create(ijskip,ntypes+1,ntypes+1,"neigh_list:ijskip");
+    int i,j;
+    for (i = 1; i <= ntypes; i++) iskip[i] = nq->iskip[i];
+    for (i = 1; i <= ntypes; i++)
+      for (j = 1; j <= ntypes; j++)
+        ijskip[i][j] = nq->ijskip[i][j];
+  }
+
+  if (nq->half_from_full) {
+    NeighRequest *oq = neighbor->requests[nq->index-1];
+    if (oq->full != 1) 
+      error->all(FLERR,"Neighbor half-from-full list does not follow "
+                 "full list");
+    listfull = neighbor->lists[nq->index-1];
+  }
+
+  if (nq->granhistory) {
+    NeighRequest *oq = neighbor->requests[nq->index-1];
+    if (oq->gran != 1)
+      error->all(FLERR,"Neighbor granhistory list does not follow gran list");
+    neighbor->lists[nq->index-1]->listgranhistory = this;
+    neighbor->lists[nq->index-1]->fix_history = nq->fix_history;
+  }
+  
+  if (nq->respaouter) {
+    NeighRequest *oq = neighbor->requests[nq->index-1];
+    if (oq->respainner) {
+      respamiddle = 0;
+      listinner = neighbor->lists[nq->index-1];
+    } else if (oq->respamiddle) {
+      respamiddle = 1;
+      listmiddle = neighbor->lists[nq->index-1];
+      oq = neighbor->requests[nq->index-2];
+      if (!oq->respainner)
+        error->all(FLERR,"Neighbor respa outer list does not follow "
+                   "respa list");
+      listinner = neighbor->lists[nq->index-2];
+    } else
+      error->all(FLERR,"Neighbor respa outer list does not follow respa list");
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void NeighList::setup_pages(int pgsize_caller, int oneatom_caller,
-                            int dnum_caller)
+void NeighList::setup_pages(int pgsize_caller, int oneatom_caller)
 {
   pgsize = pgsize_caller;
   oneatom = oneatom_caller;
-  dnum = dnum_caller;
 
   int nmypage = comm->nthreads;
   ipage = new MyPage<int>[nmypage];
@@ -135,102 +185,54 @@ void NeighList::setup_pages(int pgsize_caller, int oneatom_caller,
     dpage = new MyPage<double>[nmypage];
     for (int i = 0; i < nmypage; i++)
       dpage[i].init(dnum*oneatom,dnum*pgsize,PGDELTA);
-  }
-  else dpage = NULL;
+  } else dpage = NULL;
 }
 
 /* ----------------------------------------------------------------------
-   grow atom arrays to allow for nmax atoms
-   triggered by more atoms on a processor
-   caller knows if this list stores neighs of local atoms or local+ghost
+   grow per-atom data to allow for nlocal/nall atoms
+   for parent lists:
+     also trigger grow in child list(s) which are not built themselves
+     gran calls grow() in granhistory
+     respaouter calls grow() in respainner, respamiddle
+   triggered by neighbor list build
 ------------------------------------------------------------------------- */
 
-void NeighList::grow(int nmax)
+void NeighList::grow(int nlocal, int nall)
 {
-  // skip if this list is already long enough to store nmax atoms
+  // trigger grow() in children before possible return
 
-  if (nmax <= maxatoms) return;
-  maxatoms = nmax;
+  if (listgranhistory) listgranhistory->grow(nlocal,nall);
+  if (listinner) listinner->grow(nlocal,nall);
+  if (listmiddle) listmiddle->grow(nlocal,nall);
+
+  // skip if data structs are already big enough
+
+  if (ghost) {
+    if (nall <= maxatom) return;
+  } else {
+    if (nlocal <= maxatom) return;
+  }
+
+  maxatom = atom->nmax;
 
   memory->destroy(ilist);
   memory->destroy(numneigh);
   memory->sfree(firstneigh);
-  memory->sfree(firstdouble);
-
-  memory->create(ilist,maxatoms,"neighlist:ilist");
-  memory->create(numneigh,maxatoms,"neighlist:numneigh");
-  firstneigh = (int **) memory->smalloc(maxatoms*sizeof(int *),
+  memory->create(ilist,maxatom,"neighlist:ilist");
+  memory->create(numneigh,maxatom,"neighlist:numneigh");
+  firstneigh = (int **) memory->smalloc(maxatom*sizeof(int *),
                                         "neighlist:firstneigh");
-  if (dnum)
-    firstdouble = (double **) memory->smalloc(maxatoms*sizeof(double *),
+  if (dnum) {
+    memory->sfree(firstdouble);
+    firstdouble = (double **) memory->smalloc(maxatom*sizeof(double *),
                                               "neighlist:firstdouble");
-  if (ssaflag) {
+  }
+
+  if (ssa) {
     if (ndxAIR_ssa) memory->sfree(ndxAIR_ssa);
-    ndxAIR_ssa = (uint16_t (*)[8]) memory->smalloc(sizeof(uint16_t)*8*maxatoms,
+    ndxAIR_ssa = (uint16_t (*)[8]) memory->smalloc(sizeof(uint16_t)*8*maxatom,
       "neighlist:ndxAIR_ssa");
   }
-}
-
-/* ----------------------------------------------------------------------
-   insure stencils are large enough for smax bins
-   style = BIN or MULTI
-------------------------------------------------------------------------- */
-
-void NeighList::stencil_allocate(int smax, int style)
-{
-  int i;
-
-  if (style == BIN) {
-    if (smax > maxstencil) {
-      maxstencil = smax;
-      memory->destroy(stencil);
-      memory->create(stencil,maxstencil,"neighlist:stencil");
-      if (ghostflag) {
-        memory->destroy(stencilxyz);
-        memory->create(stencilxyz,maxstencil,3,"neighlist:stencilxyz");
-      }
-    }
-
-  } else {
-    int n = atom->ntypes;
-    if (maxstencil_multi == 0) {
-      nstencil_multi = new int[n+1];
-      stencil_multi = new int*[n+1];
-      distsq_multi = new double*[n+1];
-      for (i = 1; i <= n; i++) {
-        nstencil_multi[i] = 0;
-        stencil_multi[i] = NULL;
-        distsq_multi[i] = NULL;
-      }
-    }
-    if (smax > maxstencil_multi) {
-      maxstencil_multi = smax;
-      for (i = 1; i <= n; i++) {
-        memory->destroy(stencil_multi[i]);
-        memory->destroy(distsq_multi[i]);
-        memory->create(stencil_multi[i],maxstencil_multi,
-                       "neighlist:stencil_multi");
-        memory->create(distsq_multi[i],maxstencil_multi,
-                       "neighlist:distsq_multi");
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   copy skip info from request rq into list's iskip,ijskip
-------------------------------------------------------------------------- */
-
-void NeighList::copy_skip_info(int *rq_iskip, int **rq_ijskip)
-{
-  int ntypes = atom->ntypes;
-  iskip = new int[ntypes+1];
-  memory->create(ijskip,ntypes+1,ntypes+1,"neigh_list:ijskip");
-  int i,j;
-  for (i = 1; i <= ntypes; i++) iskip[i] = rq_iskip[i];
-  for (i = 1; i <= ntypes; i++)
-    for (j = 1; j <= ntypes; j++)
-      ijskip[i][j] = rq_ijskip[i][j];
 }
 
 /* ----------------------------------------------------------------------
@@ -246,11 +248,11 @@ void NeighList::print_attributes()
   printf("Neighbor list/request %d:\n",index);
   printf("  %p = requestor ptr (instance %d id %d)\n",
          rq->requestor,rq->requestor_instance,rq->id);
-  printf("  %d = build flag\n",buildflag);
-  printf("  %d = grow flag\n",growflag);
-  printf("  %d = stencil flag\n",stencilflag);
-  printf("  %d = ghost flag\n",ghostflag);
-  printf("  %d = ssa flag\n",ssaflag);
+  printf("  %d = occasional\n",occasional);
+  printf("  %d = ghost flag\n",ghost);
+  printf("  %d = ssa flag\n",ssa);
+  printf("  %d = copy flag\n",copy);
+  printf("  %d = dnum\n",dnum);
   printf("\n");
   printf("  %d = pair\n",rq->pair);
   printf("  %d = fix\n",rq->fix);
@@ -266,17 +268,12 @@ void NeighList::print_attributes()
   printf("  %d = respaouter\n",rq->respaouter);
   printf("  %d = half_from_full\n",rq->half_from_full);
   printf("\n");
-  printf("  %d = occasional\n",rq->occasional);
   printf("  %d = newton\n",rq->newton);
   printf("  %d = granonesided\n",rq->granonesided);
-  printf("  %d = dnum\n",rq->dnum);
-  printf("  %d = ghost\n",rq->ghost);
   printf("  %d = omp\n",rq->omp);
   printf("  %d = intel\n",rq->intel);
   printf("  %d = kokkos host\n",rq->kokkos_host);
   printf("  %d = kokkos device\n",rq->kokkos_device);
-  printf("  %d = ssa\n",rq->ssa);
-  printf("  %d = copy\n",rq->copy);
   printf("  %d = skip\n",rq->skip);
   printf("  %d = otherlist\n",rq->otherlist);
   printf("  %p = listskip\n",(void *)listskip);
@@ -285,16 +282,16 @@ void NeighList::print_attributes()
 
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
-   if growflag = 0, maxatoms & maxpage will also be 0
+   if growflag = 0, maxatom & maxpage will also be 0
    if stencilflag = 0, maxstencil * maxstencil_multi will also be 0
 ------------------------------------------------------------------------- */
 
 bigint NeighList::memory_usage()
 {
   bigint bytes = 0;
-  bytes += memory->usage(ilist,maxatoms);
-  bytes += memory->usage(numneigh,maxatoms);
-  bytes += maxatoms * sizeof(int *);
+  bytes += memory->usage(ilist,maxatom);
+  bytes += memory->usage(numneigh,maxatom);
+  bytes += maxatom * sizeof(int *);
 
   int nmypage = comm->nthreads;
 
@@ -305,23 +302,16 @@ bigint NeighList::memory_usage()
 
   if (dnum && dpage) {
     for (int i = 0; i < nmypage; i++) {
-      bytes += maxatoms * sizeof(double *);
+      bytes += maxatom * sizeof(double *);
       bytes += dpage[i].size();
     }
   }
 
-  if (maxstencil) bytes += memory->usage(stencil,maxstencil);
-  if (ghostflag) bytes += memory->usage(stencilxyz,maxstencil,3);
-  if (ndxAIR_ssa) bytes += sizeof(uint16_t) * 8 * maxatoms;
+  if (ndxAIR_ssa) bytes += sizeof(uint16_t) * 8 * maxatom;
   if (maxbin_ssa) bytes += memory->usage(bins_ssa,maxbin_ssa);
   if (maxhead_ssa) {
     bytes += memory->usage(binhead_ssa,maxhead_ssa);
     bytes += memory->usage(gbinhead_ssa,maxhead_ssa);
-  }
-
-  if (maxstencil_multi) {
-    bytes += memory->usage(stencil_multi,atom->ntypes,maxstencil_multi);
-    bytes += memory->usage(distsq_multi,atom->ntypes,maxstencil_multi);
   }
 
   return bytes;

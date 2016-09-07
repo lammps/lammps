@@ -607,10 +607,11 @@ void Info::pair_styles(FILE * out)
   fprintf(out, "\nPair styles:\n");
 
   vector<string> styles;
-#define PAIR_CLASS
-#define PairStyle(key,Class) styles.push_back(#key);
-#include "style_pair.h"
-#undef PAIR_CLASS
+
+  for(Force::PairCreatorMap::iterator it = force->pair_map->begin(); it != force->pair_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

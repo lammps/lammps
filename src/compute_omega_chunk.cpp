@@ -18,10 +18,13 @@
 #include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+#define EPSILON 1.0e-6
 
 /* ---------------------------------------------------------------------- */
 
@@ -192,49 +195,97 @@ void ComputeOmegaChunk::compute_array()
   MPI_Allreduce(&angmom[0][0],&angmomall[0][0],3*nchunk,
                 MPI_DOUBLE,MPI_SUM,world);
 
-  // compute omega for each chunk from L = Iw, inverting I to solve for w
+  // compute omega for each chunk
 
-  double ione[3][3],inverse[3][3];
+  double determinant,invdeterminant;
+  double idiag[3],ex[3],ey[3],ez[3],cross[3];
+  double ione[3][3],inverse[3][3],evectors[3][3];
+  double *iall,*mall;
 
   for (m = 0; m < nchunk; m++) {
-    ione[0][0] = inertiaall[m][0];
-    ione[1][1] = inertiaall[m][1];
-    ione[2][2] = inertiaall[m][2];
-    ione[0][1] = inertiaall[m][3];
-    ione[1][2] = inertiaall[m][4];
-    ione[0][2] = inertiaall[m][5];
-    ione[1][0] = ione[0][1];
-    ione[2][1] = ione[1][2];
-    ione[2][0] = ione[0][2];
 
-    inverse[0][0] = ione[1][1]*ione[2][2] - ione[1][2]*ione[2][1];
-    inverse[0][1] = -(ione[0][1]*ione[2][2] - ione[0][2]*ione[2][1]);
-    inverse[0][2] = ione[0][1]*ione[1][2] - ione[0][2]*ione[1][1];
+    // determinant = triple product of rows of inertia matrix
 
-    inverse[1][0] = -(ione[1][0]*ione[2][2] - ione[1][2]*ione[2][0]);
-    inverse[1][1] = ione[0][0]*ione[2][2] - ione[0][2]*ione[2][0];
-    inverse[1][2] = -(ione[0][0]*ione[1][2] - ione[0][2]*ione[1][0]);
+    iall = &inertiaall[m][0];
+    determinant = iall[0] * (iall[1]*iall[2] - iall[4]*iall[4]) + 
+      iall[3] * (iall[4]*iall[5] - iall[3]*iall[2]) + 
+      iall[5] * (iall[3]*iall[4] - iall[1]*iall[5]);
 
-    inverse[2][0] = ione[1][0]*ione[2][1] - ione[1][1]*ione[2][0];
-    inverse[2][1] = -(ione[0][0]*ione[2][1] - ione[0][1]*ione[2][0]);
-    inverse[2][2] = ione[0][0]*ione[1][1] - ione[0][1]*ione[1][0];
+    ione[0][0] = iall[0];
+    ione[1][1] = iall[1];
+    ione[2][2] = iall[2];
+    ione[0][1] = ione[1][0] = iall[3];
+    ione[1][2] = ione[2][1] = iall[4];
+    ione[0][2] = ione[2][0] = iall[5];
 
-    double determinant = ione[0][0]*ione[1][1]*ione[2][2] +
-      ione[0][1]*ione[1][2]*ione[2][0] + ione[0][2]*ione[1][0]*ione[2][1] -
-      ione[0][0]*ione[1][2]*ione[2][1] - ione[0][1]*ione[1][0]*ione[2][2] -
-      ione[2][0]*ione[1][1]*ione[0][2];
+    // non-singular I matrix
+    // use L = Iw, inverting I to solve for w
 
-    if (determinant > 0.0)
+    if (determinant > EPSILON) {
+      inverse[0][0] = ione[1][1]*ione[2][2] - ione[1][2]*ione[2][1];
+      inverse[0][1] = -(ione[0][1]*ione[2][2] - ione[0][2]*ione[2][1]);
+      inverse[0][2] = ione[0][1]*ione[1][2] - ione[0][2]*ione[1][1];
+
+      inverse[1][0] = -(ione[1][0]*ione[2][2] - ione[1][2]*ione[2][0]);
+      inverse[1][1] = ione[0][0]*ione[2][2] - ione[0][2]*ione[2][0];
+      inverse[1][2] = -(ione[0][0]*ione[1][2] - ione[0][2]*ione[1][0]);
+
+      inverse[2][0] = ione[1][0]*ione[2][1] - ione[1][1]*ione[2][0];
+      inverse[2][1] = -(ione[0][0]*ione[2][1] - ione[0][1]*ione[2][0]);
+      inverse[2][2] = ione[0][0]*ione[1][1] - ione[0][1]*ione[1][0];
+
+      invdeterminant = 1.0/determinant;
       for (i = 0; i < 3; i++)
         for (j = 0; j < 3; j++)
-          inverse[i][j] /= determinant;
+          inverse[i][j] *= invdeterminant;
+      
+      mall = &angmomall[m][0];
+      omega[m][0] = inverse[0][0]*mall[0] + inverse[0][1]*mall[1] +
+        inverse[0][2]*mall[2];
+      omega[m][1] = inverse[1][0]*mall[0] + inverse[1][1]*mall[1] +
+        inverse[1][2]*mall[2];
+      omega[m][2] = inverse[2][0]*mall[0] + inverse[2][1]*mall[1] +
+        inverse[2][2]*mall[2];
 
-    omega[m][0] = inverse[0][0]*angmom[m][0] + inverse[0][1]*angmom[m][1] +
-      inverse[0][2]*angmom[m][2];
-    omega[m][1] = inverse[1][0]*angmom[m][0] + inverse[1][1]*angmom[m][1] +
-      inverse[1][2]*angmom[m][2];
-    omega[m][2] = inverse[2][0]*angmom[m][0] + inverse[2][1]*angmom[m][1] +
-      inverse[2][2]*angmom[i][2];
+    // handle each (nearly) singular I matrix
+    // due to 2-atom chunk or linear molecule
+    // use jacobi() and angmom_to_omega() to calculate valid omega
+
+    } else {
+      int ierror = MathExtra::jacobi(ione,idiag,evectors);
+      if (ierror) error->all(FLERR,
+                             "Insufficient Jacobi rotations for omega/chunk");
+
+      ex[0] = evectors[0][0];
+      ex[1] = evectors[1][0];
+      ex[2] = evectors[2][0];
+      ey[0] = evectors[0][1];
+      ey[1] = evectors[1][1];
+      ey[2] = evectors[2][1];
+      ez[0] = evectors[0][2];
+      ez[1] = evectors[1][2];
+      ez[2] = evectors[2][2];
+
+      // enforce 3 evectors as a right-handed coordinate system
+      // flip 3rd vector if needed
+      
+      MathExtra::cross3(ex,ey,cross);
+      if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
+
+      // if any principal moment < scaled EPSILON, set to 0.0
+      
+      double max;
+      max = MAX(idiag[0],idiag[1]);
+      max = MAX(max,idiag[2]);
+      
+      if (idiag[0] < EPSILON*max) idiag[0] = 0.0;
+      if (idiag[1] < EPSILON*max) idiag[1] = 0.0;
+      if (idiag[2] < EPSILON*max) idiag[2] = 0.0;
+
+      // calculate omega using diagonalized inertia matrix
+
+      MathExtra::angmom_to_omega(&angmomall[m][0],ex,ey,ez,idiag,&omega[m][0]);
+    }
   }
 }
 

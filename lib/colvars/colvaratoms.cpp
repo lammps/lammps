@@ -297,7 +297,7 @@ int cvm::atom_group::parse(std::string const &conf)
     std::string numbers_conf = "";
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbers", numbers_conf, pos)) {
-      cvm::combine_errors(parse_error, add_atom_numbers(numbers_conf));
+      parse_error |= add_atom_numbers(numbers_conf);
       numbers_conf = "";
     }
   }
@@ -306,7 +306,7 @@ int cvm::atom_group::parse(std::string const &conf)
     std::string index_group_name;
     if (get_keyval(group_conf, "indexGroup", index_group_name)) {
       // use an index group from the index file read globally
-      cvm::combine_errors(parse_error, add_index_group(index_group_name));
+      parse_error |= add_index_group(index_group_name);
     }
   }
 
@@ -315,7 +315,7 @@ int cvm::atom_group::parse(std::string const &conf)
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbersRange",
                       range_conf, pos)) {
-      cvm::combine_errors(parse_error, add_atom_numbers_range(range_conf));
+      parse_error |= add_atom_numbers_range(range_conf);
       range_conf = "";
     }
   }
@@ -342,8 +342,8 @@ int cvm::atom_group::parse(std::string const &conf)
         cvm::error("Error: more instances of \"atomNameResidueRange\" than "
                    "values of \"psfSegID\".\n", INPUT_ERROR);
       } else {
-        cvm::combine_errors(parse_error, add_atom_name_residue_range(psf_segids.size() ?
-        *psii : std::string(""), range_conf));
+        parse_error |= add_atom_name_residue_range(psf_segids.size() ?
+          *psii : std::string(""), range_conf);
         if (psf_segids.size()) psii++;
       }
       range_conf = "";
@@ -407,7 +407,7 @@ int cvm::atom_group::parse(std::string const &conf)
     index = (cvm::proxy)->init_atom_group(atoms_ids);
   }
 
-  cvm::combine_errors(parse_error, parse_fitting_options(group_conf));
+  parse_error |= parse_fitting_options(group_conf);
 
   // TODO move this to colvarparse object
   check_keywords(group_conf, key.c_str());

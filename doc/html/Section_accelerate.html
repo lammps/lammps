@@ -346,8 +346,8 @@ package and are explained in the individual accelerator doc pages,
 listed above:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="26%" />
-<col width="74%" />
+<col width="65%" />
+<col width="35%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>build the accelerator library</td>
@@ -356,40 +356,24 @@ listed above:</p>
 <tr class="row-even"><td>install the accelerator package</td>
 <td>make yes-opt, make yes-user-intel, etc</td>
 </tr>
-</tbody>
-</table>
-<div class="line-block">
-<div class="line">install the accelerator package             | make yes-opt, make yes-user-intel, etc                                                                                           |</div>
-</div>
-<blockquote>
-<div>only for USER-INTEL, KOKKOS, USER-OMP, OPT packages                                                          |</div></blockquote>
-<table border="1" class="docutils">
-<colgroup>
-<col width="26%" />
-<col width="74%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>re-build LAMMPS</td>
+<tr class="row-odd"><td>add compile/link flags to Makefile.machine in src/MAKE</td>
+<td>only for USER-INTEL, KOKKOS, USER-OMP, OPT packages</td>
+</tr>
+<tr class="row-even"><td>re-build LAMMPS</td>
 <td>make machine</td>
 </tr>
-</tbody>
-</table>
-<div class="line-block">
-<div class="line">re-build LAMMPS                             | make machine                                                                                                                     |</div>
-</div>
-<blockquote>
-<div>mpirun -np 32 lmp_machine -in in.script                                                          |</div></blockquote>
-<blockquote>
-<div>only for KOKKOS package                                   |</div></blockquote>
-<blockquote>
-<div><a class="reference internal" href="package.html"><span class="doc">package</span></a> command, &lt;br&gt;
-only if defaults need to be changed |</div></blockquote>
-<blockquote>
-<div><a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command                                               |</div></blockquote>
-<table border="1" class="docutils">
-<colgroup>
-</colgroup>
-<tbody valign="top">
+<tr class="row-odd"><td>prepare and test a regular LAMMPS simulation</td>
+<td>lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script</td>
+</tr>
+<tr class="row-even"><td>enable specific accelerator support via &#8216;-k on&#8217; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>,</td>
+<td>only needed for KOKKOS package</td>
+</tr>
+<tr class="row-odd"><td>set any needed options for the package via &#8220;-pk&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> or <a class="reference internal" href="package.html"><span class="doc">package</span></a> command,</td>
+<td>only if defaults need to be changed</td>
+</tr>
+<tr class="row-even"><td>use accelerated styles in your input via &#8220;-sf&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> or <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command</td>
+<td>lmp_machine -in in.script -sf gpu</td>
+</tr>
 </tbody>
 </table>
 <p>Note that the first 4 steps can be done as a single command, using the
@@ -528,7 +512,7 @@ full 16 lanes to each of the PCIe 2.0 16x slots.</li>
 <li>The GPU package accelerates only pair force, neighbor list, and PPPM
 calculations.</li>
 <li>The GPU package requires neighbor lists to be built on the CPU when using
-exclusion lists or a triclinic simulation box.</li>
+exclusion lists, hybrid pair styles, or a triclinic simulation box.</li>
 </ul>
 </div>
 </div>

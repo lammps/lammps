@@ -86,6 +86,15 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 #include "style_pair.h"
 #undef PairStyle
 #undef PAIR_CLASS
+
+  bond_map = new BondCreatorMap();
+
+#define BOND_CLASS
+#define BondStyle(key,Class) \
+  (*bond_map)[#key] = &bond_creator<Class>;
+#include "style_bond.h"
+#undef BondStyle
+#undef BOND_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,6 +123,7 @@ Force::~Force()
   kspace = NULL;
 
   delete pair_map;
+  delete bond_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -288,44 +298,42 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BondStyle
-#undef BOND_CLASS
+      if (bond_map->find(estyle) != bond_map->end()) {
+        BondCreator bond_creator = (*bond_map)[estyle];
+        return bond_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BondStyle
-#undef BOND_CLASS
+      if (bond_map->find(estyle) != bond_map->end()) {
+        BondCreator bond_creator = (*bond_map)[estyle];
+        return bond_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (bond_map->find(style) != bond_map->end()) {
+    BondCreator bond_creator = (*bond_map)[style];
+    return bond_creator(lmp);
+  }
 
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BOND_CLASS
-
-  else error->all(FLERR,"Unknown bond style");
+  error->all(FLERR,"Unknown bond style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per bond style in style_bond.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Bond *Force::bond_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

@@ -55,6 +55,10 @@ class Force : protected Pointers {
   class Bond *bond;
   char *bond_style;
 
+  typedef Bond *(*BondCreator)(LAMMPS *);
+  typedef std::map<std::string,BondCreator> BondCreatorMap;
+  BondCreatorMap *bond_map;
+
   class Angle *angle;
   char *angle_style;
 
@@ -122,6 +126,7 @@ class Force : protected Pointers {
 
  private:
   template <typename T> static Pair *pair_creator(LAMMPS *);
+  template <typename T> static Bond *bond_creator(LAMMPS *);
 };
 
 }

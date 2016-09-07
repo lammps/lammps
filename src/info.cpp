@@ -621,10 +621,11 @@ void Info::bond_styles(FILE * out)
   fprintf(out, "\nBond styles:\n");
 
   vector<string> styles;
-#define BOND_CLASS
-#define BondStyle(key,Class) styles.push_back(#key);
-#include "style_bond.h"
-#undef BOND_CLASS
+
+  for(Force::BondCreatorMap::iterator it = force->bond_map->begin(); it != force->bond_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

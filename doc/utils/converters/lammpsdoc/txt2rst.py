@@ -57,8 +57,13 @@ class RSTMarkup(Markup):
         return text
 
     def convert(self, text):
+        text = self.escape_rst_chars(text)
         text = super().convert(text)
         text = self.inline_math(text)
+        return text
+
+    def escape_rst_chars(self, text):
+        text = text.replace('*', '\\*')
         return text
 
     def inline_math(self, text):

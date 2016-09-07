@@ -75,13 +75,12 @@ int colvarbias_histogram::init(std::string const &conf)
   }
 
   grid = new colvar_grid_scalar();
+  grid->init_from_colvars(colvars);
 
   {
     std::string grid_conf;
     if (key_lookup(conf, "grid", grid_conf)) {
       grid->parse_params(grid_conf);
-    } else {
-      grid->init_from_colvars(colvars);
     }
   }
 
@@ -256,6 +255,9 @@ std::istream & colvarbias_histogram::read_restart(std::istream& is)
 
 std::ostream & colvarbias_histogram::write_restart(std::ostream& os)
 {
+  std::ios::fmtflags flags(os.flags());
+  os.setf(std::ios::fmtflags(0), std::ios::floatfield);
+
   os << "histogram {\n"
      << "  configuration {\n"
      << "    name " << this->name << "\n";
@@ -266,5 +268,6 @@ std::ostream & colvarbias_histogram::write_restart(std::ostream& os)
 
   os << "}\n\n";
 
+  os.flags(flags);
   return os;
 }

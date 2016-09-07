@@ -462,7 +462,7 @@ KOKKOS_OBJ_LINK = $(notdir $(KOKKOS_OBJ))
 include $(KOKKOS_PATH)/Makefile.targets
 
 kokkos-clean:
-	rm -f $(KOKKOS_OBJ_LINK) KokkosCore_config.h KokkosCore_config.tmp libkokkos.a
+	-rm -f $(KOKKOS_OBJ_LINK) KokkosCore_config.h KokkosCore_config.tmp libkokkos.a
 
 libkokkos.a: $(KOKKOS_OBJ_LINK) $(KOKKOS_SRC) $(KOKKOS_HEADERS)
 	ar cr libkokkos.a $(KOKKOS_OBJ_LINK)

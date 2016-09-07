@@ -77,6 +77,10 @@ class TestMarkup(unittest.TestCase):
         self.assertEqual("**bold** = [bold]\n"
                          "*italic* = {italic}\n", s)
 
+    def test_escape_rst_characters(self):
+        s = self.markup.convert("[*bold] and {italic*}")
+        self.assertEqual("**\*bold** and *italic\**", s)
+
     def test_paragraph_with_italic(self):
         self.assertEqual("A sentence with a *italic* word", self.markup.convert("A sentence with a {italic} word"))
 

@@ -21,7 +21,7 @@ and extending its source code.
 10.6 "Fix styles"_#mod_6 which include integrators, \
      temperature and pressure control, force constraints, \
      boundary conditions, diagnostic output, etc
-10.7 "Input script commands"_mod_7
+10.7 "Input script commands"_#mod_7
 10.8 "Kspace computations"_#mod_8
 10.9 "Minimization styles"_#mod_9
 10.10 "Pairwise potentials"_#mod_10

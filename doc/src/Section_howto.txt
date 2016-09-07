@@ -830,7 +830,7 @@ rotation of [A], [B], and [C] and can be computed as follows:
 
 :c,image(Eqs/transform.jpg)
 
-where A = |[A]| indicates the scalar length of [A]. The hat symbol
+where A = | [A] | indicates the scalar length of [A]. The hat symbol (^)
 indicates the corresponding unit vector. {beta} and {gamma} are angles
 between the vectors described below. Note that by construction, 
 [a], [b], and [c] have strictly positive x, y, and z components, respectively.

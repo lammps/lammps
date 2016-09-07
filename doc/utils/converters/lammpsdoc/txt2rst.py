@@ -64,6 +64,7 @@ class RSTMarkup(Markup):
 
     def escape_rst_chars(self, text):
         text = text.replace('*', '\\*')
+        text = text.replace('^', '\\^')
         return text
 
     def inline_math(self, text):
@@ -73,6 +74,8 @@ class RSTMarkup(Markup):
         while start_pos >= 0 and end_pos >= 0:
             original = text[start_pos:end_pos+2]
             formula = original[2:-2]
+            formula = formula.replace('\\*', '*')
+            formula = formula.replace('\\^', '^')
             replacement = ":math:`" + formula.replace('\n', ' ').strip() + "`"
             text = text.replace(original, replacement)
 
@@ -299,6 +302,9 @@ class RSTFormatting(Formatting):
             else:
                 start = ""
                 body = parts[0]
+
+            body = body.replace('\\*', '*')
+            body = body.replace('\\^', '^')
 
             if len(start) > 0:
                 text += start + "\n"

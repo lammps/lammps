@@ -162,7 +162,8 @@ Line 1: nr, nBOt (nr is the number of divisions the radius is broken
 into for function tables and MUST be a factor of 5; nBOt is the number 
 of divisions for the tabulated values of THETA_(S,ij) :ulb,l
 Line 2: delta_1-delta_7 (if all are not used in the particular  :l
-formulation, set unused values to 0.0) :l,ule
+formulation, set unused values to 0.0) :l
+:ule
 
 Following this N lines for e_1-e_N containing p_pi.
 
@@ -176,7 +177,8 @@ Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
 Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
-the previous section but is interaction type dependent) :l,ule
+the previous section but is interaction type dependent) :l
+:ule
 
 The next section contains a line for each three body interaction type 
 e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
@@ -185,7 +187,8 @@ Line 1: g_(sigma0), g_(sigma1), g_(sigma2) (These are coefficients for
 g_(sigma,jik)(THETA_ijk) for e_1-e_1-e_1 interaction. "Ward"_#Ward 
 contains the full expressions for the constants as functions of 
 b_(sigma,ijk), p_(sigma,ijk), u_(sigma,ijk)) :ulb,l
-Line 2: g_(sigma0), g_(sigma1), g_(sigma2) (for e_1-e_1-e_2) :l,ule
+Line 2: g_(sigma0), g_(sigma1), g_(sigma2) (for e_1-e_1-e_2) :l
+:ule
 
 The next section contains a block for each interaction type for the 
 phi_ij(r_ij).  Each block has nr entries with 5 entries per line.
@@ -196,7 +199,8 @@ Line 2: phi(r6), phi(r7), phi(r8), phi(r9), phi(r10) (this continues
 until nr) :l
 ... :l
 Line nr/5_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the 
-e_1-e_1 interaction type) :l,ule
+e_1-e_1 interaction type) :l
+:ule
 
 The next section contains a block for each interaction type for the 
 beta_(sigma,ij)(r_ij).  Each block has nr entries with 5 entries per 
@@ -208,7 +212,8 @@ Line 2: beta_sigma(r6), beta_sigma(r7), beta_sigma(r8), beta_sigma(r9),
 beta_sigma(r10) (this continues until nr) :l
 ... :l
 Line nr/5+1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), 
-beta_sigma(r4), beta_sigma(r5) (for the e_1-e_2 interaction type) :l,ule
+beta_sigma(r4), beta_sigma(r5) (for the e_1-e_2 interaction type) :l
+:ule
 
 The next section contains a block for each interaction type for 
 beta_(pi,ij)(r_ij).  Each block has nr entries with 5 entries per line.
@@ -219,7 +224,8 @@ Line 2: beta_pi(r6), beta_pi(r7), beta_pi(r8), beta_pi(r9),
 beta_pi(r10) (this continues until nr) :l
 ... :l
 Line nr/5+1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), 
-beta_pi(r5) (for the e_1-e_2 interaction type) :l,ule
+beta_pi(r5) (for the e_1-e_2 interaction type) :l
+:ule
 
 The next section contains a block for each interaction type for the 
 THETA_(S,ij)((THETA_(sigma,ij))^(1/2), f_(sigma,ij)).  Each block has 
@@ -231,7 +237,8 @@ Line 2: THETA_(S,ij)(r6), THETA_(S,ij)(r7), THETA_(S,ij)(r8),
 THETA_(S,ij)(r9), THETA_(S,ij)(r10) (this continues until nBOt) :l
 ... :l
 Line nBOt/5+1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3), 
-THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) :l,ule
+THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) :l
+:ule
 
 The next section contains a block of N lines for e_1-e_N
 
@@ -266,7 +273,8 @@ into for function tables and MUST be a factor of 5; ntheta is the power of the
 power of the spline used to fit the angular function; nBOt is the number 
 of divisions for the tabulated values of THETA_(S,ij) :ulb,l
 Line 2: delta_1-delta_7 (if all are not used in the particular  :l
-formulation, set unused values to 0.0) :l,ule
+formulation, set unused values to 0.0) :l
+:ule
 
 Following this N lines for e_1-e_N containing p_pi.
 
@@ -280,7 +288,8 @@ Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
 Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
-the previous section but is interaction type dependent) :l,ule
+the previous section but is interaction type dependent) :l
+:ule
 
 The next section contains a line for each three body interaction type 
 e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
@@ -292,7 +301,8 @@ can contain up to five constants.  If the spline has more than five
 terms the second line will contain the remaining constants The
 following lines will then contain the constants for the remainaing g0,
 g1, g2... (for e_1-e_1-e_2) and the other three body
-interactions :l,ule
+interactions :l
+:ule
 
 The rest of the table has the same structure as the previous section
 (see above).
@@ -319,7 +329,8 @@ into for function tables and MUST be a factor of 5; ntheta is the number of
 divisions for the tabulated values of the g angular function; nBOt is the number 
 of divisions for the tabulated values of THETA_(S,ij) :ulb,l
 Line 2: delta_1-delta_7 (if all are not used in the particular  :l
-formulation, set unused values to 0.0) :l,ule
+formulation, set unused values to 0.0) :l
+:ule
 
 Following this N lines for e_1-e_N containing p_pi.
 
@@ -333,7 +344,8 @@ Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
 Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
-the previous section but is interaction type dependent) :l,ule
+the previous section but is interaction type dependent) :l
+:ule
 
 The next section contains a line for each three body interaction type 
 e_j-e_i-e_k with i=0->N, j=0->N, k=j->N
@@ -344,7 +356,8 @@ Line 2: g(theta6), g(theta7), g(theta8), g(theta9), g(theta10) (this continues
 until ntheta) :l
 ... :l
 Line ntheta/5+1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5), (for the 
-e_1-e_1-e_2 interaction type) :l,ule
+e_1-e_1-e_2 interaction type) :l
+:ule
 
 The rest of the table has the same structure as the previous section (see above).
 

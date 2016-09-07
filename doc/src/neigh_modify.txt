@@ -123,7 +123,8 @@ to freeze a wall or portion of a bio-molecule. :l
 
 When one or more rigid bodies are specified, interactions within each
 body can be turned off to save needless computation.  See the "fix
-rigid"_fix_rigid.html command for more details. :l,ule
+rigid"_fix_rigid.html command for more details. :l
+:ule
 
 The {exclude type} option turns off the pairwise interaction if one
 atom is of type M and the other of type N.  M can equal N.  The

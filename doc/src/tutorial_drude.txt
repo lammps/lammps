@@ -332,8 +332,8 @@ For the {thole} pair style the coefficients are
 the atom polarizability in units of cubic length :olb,l
 the screening factor of the Thole function (optional, default value
 specified by the pair_style command) :l
-the cutoff (optional, default value defined by the pair_style command)
-:l,ole
+the cutoff (optional, default value defined by the pair_style command) :l
+:ole
 
 The special neighbors have charge-charge and charge-dipole
 interactions screened by the {coul} factors of the {special_bonds}

@@ -761,7 +761,8 @@ Add a wrapper method to python/lammps.py for this interface
 function. :l
 
 You should now be able to invoke the new interface function from a
-Python script.  Isn't ctypes amazing? :l,ule
+Python script.  Isn't ctypes amazing? :l
+:ule
 
 :line
 :line

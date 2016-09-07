@@ -241,7 +241,8 @@ Our group has also written and released a separate toolkit called
 "Pizza.py"_pizza which provides tools for doing setup, analysis,
 plotting, and visualization for LAMMPS simulations.  Pizza.py is
 written in "Python"_python and is available for download from "the
-Pizza.py WWW site"_pizza. :l,ule
+Pizza.py WWW site"_pizza. :l
+:ule
 
 :link(pizza,http://www.sandia.gov/~sjplimp/pizza.html)
 :link(python,http://www.python.org)

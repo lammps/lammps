@@ -232,7 +232,8 @@ so Npair = N*(N+1)/2. :l
 
 If {type} is set to {full} then each input value is correlated with
 itself and every other value.  I.e. Cij = Vi*Vj, for i,j = 1,N so
-Npair = N^2. :l,ule
+Npair = N^2. :l
+:ule
 
 The {ave} keyword determines what happens to the accumulation of
 correlation samples every {Nfreq} timesteps.  If the {ave} setting is
@@ -342,7 +343,8 @@ CNN. :l
 
 For {type} = {full}, the Npair = N^2 columns are ordered: C11, C12,
 ..., C1N, C21, C22, ..., C2N, C31, ..., C3N, ..., CN1, ..., CNN-1,
-CNN. :l,ule
+CNN. :l
+:ule
 
 The array values calculated by this fix are treated as intensive.  If
 you need to divide them by the number of atoms, you must do this in a

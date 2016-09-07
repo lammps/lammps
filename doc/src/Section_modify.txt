@@ -130,7 +130,8 @@ If you add something you think is truly useful and doesn't impact
 LAMMPS performance when it isn't used, send an email to the
 "developers"_http://lammps.sandia.gov/authors.html.  We might be
 interested in adding it to the LAMMPS distribution.  See further
-details on this at the bottom of this page. :l,ule
+details on this at the bottom of this page. :l
+:ule
 
 :line
 :line

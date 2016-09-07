@@ -42,7 +42,6 @@ enum{TYPE,MOLECULE,ID};
 enum{LT,LE,GT,GE,EQ,NEQ,BETWEEN};
 
 #define BIG 1.0e20
-#define SMALL 1.0e-15
 
 // allocate space for static class variable
 
@@ -1671,28 +1670,29 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 {
   double inverse[3][3];
 
-  double invdet = inertia[0][0]*inertia[1][1]*inertia[2][2] +
-    inertia[0][1]*inertia[1][2]*inertia[2][0] + inertia[0][2]*inertia[1][0]*inertia[2][1] -
-    inertia[0][0]*inertia[1][2]*inertia[2][1] - inertia[0][1]*inertia[1][0]*inertia[2][2] -
+  inverse[0][0] = inertia[1][1]*inertia[2][2] - inertia[1][2]*inertia[2][1];
+  inverse[0][1] = -(inertia[0][1]*inertia[2][2] - inertia[0][2]*inertia[2][1]);
+  inverse[0][2] = inertia[0][1]*inertia[1][2] - inertia[0][2]*inertia[1][1];
+
+  inverse[1][0] = -(inertia[1][0]*inertia[2][2] - inertia[1][2]*inertia[2][0]);
+  inverse[1][1] = inertia[0][0]*inertia[2][2] - inertia[0][2]*inertia[2][0];
+  inverse[1][2] = -(inertia[0][0]*inertia[1][2] - inertia[0][2]*inertia[1][0]);
+
+  inverse[2][0] = inertia[1][0]*inertia[2][1] - inertia[1][1]*inertia[2][0];
+  inverse[2][1] = -(inertia[0][0]*inertia[2][1] - inertia[0][1]*inertia[2][0]);
+  inverse[2][2] = inertia[0][0]*inertia[1][1] - inertia[0][1]*inertia[1][0];
+
+  double determinant = inertia[0][0]*inertia[1][1]*inertia[2][2] +
+    inertia[0][1]*inertia[1][2]*inertia[2][0] +
+    inertia[0][2]*inertia[1][0]*inertia[2][1] -
+    inertia[0][0]*inertia[1][2]*inertia[2][1] -
+    inertia[0][1]*inertia[1][0]*inertia[2][2] -
     inertia[2][0]*inertia[1][1]*inertia[0][2];
 
-  // avoid division by (near) zero for (near) singular matrix. inverse will be set to zero matrix instead.
-  if (fabs(invdet) < SMALL)
-    invdet = 0.0;
-  else
-    invdet = 1.0/invdet;
-
-  inverse[0][0] = invdet*(inertia[1][1]*inertia[2][2] - inertia[1][2]*inertia[2][1]);
-  inverse[0][1] = -invdet*(inertia[0][1]*inertia[2][2] - inertia[0][2]*inertia[2][1]);
-  inverse[0][2] = invdet*(inertia[0][1]*inertia[1][2] - inertia[0][2]*inertia[1][1]);
-
-  inverse[1][0] = -invdet*(inertia[1][0]*inertia[2][2] - inertia[1][2]*inertia[2][0]);
-  inverse[1][1] = invdet*(inertia[0][0]*inertia[2][2] - inertia[0][2]*inertia[2][0]);
-  inverse[1][2] = -invdet*(inertia[0][0]*inertia[1][2] - inertia[0][2]*inertia[1][0]);
-
-  inverse[2][0] = invdet*(inertia[1][0]*inertia[2][1] - inertia[1][1]*inertia[2][0]);
-  inverse[2][1] = -invdet*(inertia[0][0]*inertia[2][1] - inertia[0][1]*inertia[2][0]);
-  inverse[2][2] = invdet*(inertia[0][0]*inertia[1][1] - inertia[0][1]*inertia[1][0]);
+  if (determinant > 0.0)
+    for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
+        inverse[i][j] /= determinant;
 
   w[0] = inverse[0][0]*angmom[0] + inverse[0][1]*angmom[1] +
     inverse[0][2]*angmom[2];

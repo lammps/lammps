@@ -85,6 +85,10 @@ class TestMarkup(unittest.TestCase):
         s = self.markup.convert("x^2")
         self.assertEqual("x\^2", s)
 
+    def test_escape_underscore(self):
+        s = self.markup.convert("x_")
+        self.assertEqual("x\_", s)
+
     def test_paragraph_with_italic(self):
         self.assertEqual("A sentence with a *italic* word", self.markup.convert("A sentence with a {italic} word"))
 

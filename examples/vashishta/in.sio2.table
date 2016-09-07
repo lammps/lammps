@@ -11,9 +11,8 @@ replicate       4 4 4
 velocity	all create 2000.0 277387 mom yes
 displace_atoms	all move 0.05 0.9 0.4 units box
 
-pair_style 	vashishta
+pair_style 	vashishta/table 100000 0.2
 pair_coeff	* *  SiO.1990.vashishta Si O
-pair_modify	table 16
 
 neighbor	0.3 bin
 neigh_modify	delay 10

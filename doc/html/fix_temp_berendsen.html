@@ -192,9 +192,9 @@ thermostatting.</p>
 <p>This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style &#8220;temp&#8221;, as if this command had been
 issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute fix-ID_temp group-ID temp
+</pre>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> command for details.  Note
 that the ID of the new compute is the fix-ID + underscore + &#8220;temp&#8221;,
 and the group for the new compute is the same as the fix group.</p>
@@ -219,10 +219,8 @@ this case, the thermostat works in the following manner: the current
 temperature is calculated taking the bias into account, bias is
 removed from each atom, thermostatting is performed on the remaining
 thermal degrees of freedom, and the bias is added back in.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>temp</em> option is supported by this
 fix.  You can use it to assign a temperature <a class="reference internal" href="compute.html"><span class="doc">compute</span></a>

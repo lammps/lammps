@@ -168,11 +168,11 @@ keyword = <em>mol</em>, <em>region</em>, <em>maxangle</em>, <em>pressure</em>, <
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">2</span> <span class="n">gas</span> <span class="n">gcmc</span> <span class="mi">10</span> <span class="mi">1000</span> <span class="mi">1000</span> <span class="mi">2</span> <span class="mi">29494</span> <span class="mf">298.0</span> <span class="o">-</span><span class="mf">0.5</span> <span class="mf">0.01</span>
-<span class="n">fix</span> <span class="mi">3</span> <span class="n">water</span> <span class="n">gcmc</span> <span class="mi">10</span> <span class="mi">100</span> <span class="mi">100</span> <span class="mi">0</span> <span class="mi">3456543</span> <span class="mf">3.0</span> <span class="o">-</span><span class="mf">2.5</span> <span class="mf">0.1</span> <span class="n">mol</span> <span class="n">my_one_water</span> <span class="n">maxangle</span> <span class="mi">180</span> <span class="n">full_energy</span>
-<span class="n">fix</span> <span class="mi">4</span> <span class="n">my_gas</span> <span class="n">gcmc</span> <span class="mi">1</span> <span class="mi">10</span> <span class="mi">10</span> <span class="mi">1</span> <span class="mi">123456543</span> <span class="mf">300.0</span> <span class="o">-</span><span class="mf">12.5</span> <span class="mf">1.0</span> <span class="n">region</span> <span class="n">disk</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 2 gas gcmc 10 1000 1000 2 29494 298.0 -0.5 0.01
+fix 3 water gcmc 10 100 100 0 3456543 3.0 -2.5 0.1 mol my_one_water maxangle 180 full_energy
+fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -239,12 +239,12 @@ used in fix nvt. Otherwise, the imaginary reservoir
 will not be in thermal equilibrium with the simulation cell. Also,
 it is important that the temperature used by fix nvt be dynamic,
 which can be achieved as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">mdtemp</span> <span class="n">mdatoms</span> <span class="n">temp</span>
-<span class="n">compute_modify</span> <span class="n">mdtemp</span> <span class="n">dynamic</span> <span class="n">yes</span>
-<span class="n">fix</span> <span class="n">mdnvt</span> <span class="n">mdatoms</span> <span class="n">nvt</span> <span class="n">temp</span> <span class="mf">300.0</span> <span class="mf">300.0</span> <span class="mf">10.0</span>
-<span class="n">fix_modify</span> <span class="n">mdnvt</span> <span class="n">temp</span> <span class="n">mdtemp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute mdtemp mdatoms temp
+compute_modify mdtemp dynamic yes
+fix mdnvt mdatoms nvt temp 300.0 300.0 10.0
+fix_modify mdnvt temp mdtemp
+</pre>
 <p>Note that neighbor lists are re-built every timestep that this fix is
 invoked, so you should not set N to be too small.  However, periodic
 rebuilds are necessary in order to avoid dangerous rebuilds and missed
@@ -363,9 +363,9 @@ therefore, you will want to use the
 <a class="reference internal" href="compute_modify.html"><span class="doc">compute_modify</span></a> command to insure that the
 current number of atoms is used as a normalizing factor each time
 temperature is computed.  Here is the necessary command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute_modify</span> <span class="n">thermo_temp</span> <span class="n">dynamic</span> <span class="n">yes</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute_modify thermo_temp dynamic yes
+</pre>
 <p>If LJ units are used, note that a value of 0.18292026 is used by this
 fix as the reduced value for Planck&#8217;s constant.  This value was
 derived from LJ parameters for argon, where h* = h/sqrt(sigma^2 *
@@ -375,9 +375,7 @@ mass = 39.948 amu.</p>
 of the group-ID value. The <em>grouptype</em> keyword assigns all
 inserted atoms of the specified type to the <a class="reference internal" href="group.html"><span class="doc">group</span></a>
 of the group-ID value.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>This fix writes the state of the fix to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  This includes information about the random
 number generator seed, the next timestep for MC exchanges, etc.  See
 the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to

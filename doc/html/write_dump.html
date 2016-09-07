@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>write_dump command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">write_dump</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">style</span> <span class="n">file</span> <span class="n">dump</span><span class="o">-</span><span class="n">args</span> <span class="n">modify</span> <span class="n">dump_modify</span><span class="o">-</span><span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+write_dump group-ID style file dump-args modify dump_modify-args
+</pre>
 <ul class="simple">
 <li>group-ID = ID of the group of atoms to be dumped</li>
 <li>style = any of the supported <a class="reference internal" href="dump.html"><span class="doc">dump styles</span></a></li>
@@ -142,17 +142,17 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">write_dump</span> <span class="nb">all</span> <span class="n">atom</span> <span class="n">dump</span><span class="o">.</span><span class="n">atom</span>
-<span class="n">write_dump</span> <span class="n">subgroup</span> <span class="n">atom</span> <span class="n">dump</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">bin</span>
-<span class="n">write_dump</span> <span class="nb">all</span> <span class="n">custom</span> <span class="n">dump</span><span class="o">.</span><span class="n">myforce</span><span class="o">.*</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">x</span> <span class="n">y</span> <span class="n">vx</span> <span class="n">fx</span>
-<span class="n">write_dump</span> <span class="n">flow</span> <span class="n">custom</span> <span class="n">dump</span><span class="o">.%.</span><span class="n">myforce</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_myF</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">v_ke</span> <span class="n">modify</span> <span class="n">sort</span> <span class="nb">id</span>
-<span class="n">write_dump</span> <span class="nb">all</span> <span class="n">xyz</span> <span class="n">system</span><span class="o">.</span><span class="n">xyz</span> <span class="n">modify</span> <span class="n">sort</span> <span class="nb">id</span> <span class="n">elements</span> <span class="n">O</span> <span class="n">H</span>
-<span class="n">write_dump</span> <span class="nb">all</span> <span class="n">image</span> <span class="n">snap</span><span class="o">*.</span><span class="n">jpg</span> <span class="nb">type</span> <span class="nb">type</span> <span class="n">size</span> <span class="mi">960</span> <span class="mi">960</span> <span class="n">modify</span> <span class="n">backcolor</span> <span class="n">white</span>
-<span class="n">write_dump</span> <span class="nb">all</span> <span class="n">image</span> <span class="n">snap</span><span class="o">*.</span><span class="n">jpg</span> <span class="n">element</span> <span class="n">element</span> <span class="o">&amp;</span>
-   <span class="n">bond</span> <span class="n">atom</span> <span class="mf">0.3</span> <span class="n">shiny</span> <span class="mf">0.1</span> <span class="n">ssao</span> <span class="n">yes</span> <span class="mi">6345</span> <span class="mf">0.2</span> <span class="n">size</span> <span class="mi">1600</span> <span class="mi">1600</span>  <span class="o">&amp;</span>
-   <span class="n">modify</span> <span class="n">backcolor</span> <span class="n">white</span> <span class="n">element</span> <span class="n">C</span> <span class="n">C</span> <span class="n">O</span> <span class="n">H</span> <span class="n">N</span> <span class="n">C</span> <span class="n">C</span> <span class="n">C</span> <span class="n">O</span> <span class="n">H</span> <span class="n">H</span> <span class="n">S</span> <span class="n">O</span> <span class="n">H</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+write_dump all atom dump.atom
+write_dump subgroup atom dump.run.bin
+write_dump all custom dump.myforce.* id type x y vx fx
+write_dump flow custom dump.%.myforce id type c_myF[3] v_ke modify sort id
+write_dump all xyz system.xyz modify sort id elements O H
+write_dump all image snap*.jpg type type size 960 960 modify backcolor white
+write_dump all image snap*.jpg element element &amp;
+   bond atom 0.3 shiny 0.1 ssao yes 6345 0.2 size 1600 1600  &amp;
+   modify backcolor white element C C O H N C C C O H H S O H
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

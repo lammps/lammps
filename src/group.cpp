@@ -1684,6 +1684,7 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 
   // non-singular I matrix
   // use L = Iw, inverting I to solve for w
+  // this should give exact zeroing of omega by velocity command
 
   if (determinant > EPSILON) {
 
@@ -1715,7 +1716,7 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
       inverse[2][2]*angmom[2];
 
   // handle (nearly) singular I matrix
-  // due to 2-atom group or linear molecule
+  // typically due to 2-atom group or linear molecule
   // use jacobi() and angmom_to_omega() to calculate valid omega
 
   } else {

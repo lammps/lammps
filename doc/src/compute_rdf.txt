@@ -110,7 +110,7 @@ to a file is to use the "fix ave/time"_fix_ave_time.html command, for
 example:
 
 compute myRDF all rdf 50
-fix 1 all ave/time 100 1 100 c_myRDF file tmp.rdf mode vector :pre
+fix 1 all ave/time 100 1 100 c_myRDF\[*\] file tmp.rdf mode vector :pre
 
 [Output info:]
 

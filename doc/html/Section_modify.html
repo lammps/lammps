@@ -1057,11 +1057,35 @@ then be accessed by variables) was discussed
 </div>
 <div class="section" id="submitting-new-features-for-inclusion-in-lammps">
 <span id="mod-15"></span><h2>10.15. Submitting new features for inclusion in LAMMPS</h2>
-<p>We encourage users to submit new features to <a class="reference external" href="http://lammps.sandia.gov/authors.html">the developers</a> that they add to
-LAMMPS, especially if you think they will be of interest to other
-users.  The preferred way to do this is via GitHub.  Once you have
-prepared the content described below, see <a class="reference internal" href="tutorial_github.html"><span class="doc">this tutorial</span></a> for instructions on how to submit
-your changes or new files.</p>
+<p>We encourage users to submit new features or modifications for
+LAMMPS to <a class="reference external" href="http://lammps.sandia.gov/authors.html">the core developers</a>
+so they can be added to the LAMMPS distribution. The preferred way to
+manage and coordinate this is as of Fall 2016 via the LAMMPS project on
+<a class="reference external" href="https://github.com/lammps/lammps">GitHub</a>. An alternative is to contact
+the LAMMPS developers or the indicated developer of a package or feature
+directly and send in your contribution via e-mail.</p>
+<p>For any larger modifications or programming project, you are encouraged
+to contact the LAMMPS developers ahead of time, in order to discuss
+implementation strategies and coding guidelines, that will make it
+easier to integrate your contribution and result in less work for
+everybody involved. You are also encouraged to search through the list
+of <a class="reference external" href="https://github.com/lammps/lammps/issues">open issues on GitHub</a> and
+submit a new issue for a planned feature, so you would not duplicate
+the work of others (and possibly get scooped by them) or have your work
+duplicated by others.</p>
+<p>How quickly your contribution will be integrated
+depends largely on how much effort it will cause to integrate and test
+it, how much it requires changes to the core codebase, and of how much
+interest it is to the larger LAMMPS community.  Please see below for a
+checklist of typical requirements. Once you have prepared everything,
+see <a class="reference internal" href="tutorial_github.html"><span class="doc">this tutorial</span></a> for instructions on how to
+submit your changes or new files through a GitHub pull request. If you
+prefer to submit patches or full files, you should first make certain,
+that your code works correctly with the latest patch-level version of
+LAMMPS and contains all bugfixes from it. Then create a gzipped tar
+file of all changed or added files or a corresponding patch file using
+&#8216;diff -u&#8217; or &#8216;diff -c&#8217; and compress it with gzip. Please only use
+gzip compression, as this works well on all platforms.</p>
 <p>If the new features/files are broadly useful we may add them as core
 files to LAMMPS or as part of a <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">standard package</span></a>.  Else we will add them as a
 user-contributed file or package.  Examples of user packages are in
@@ -1104,20 +1128,34 @@ changes in core LAMMPS files, you&#8217;ll need to <a class="reference external"
 not want to make those changes.  An example of a trivial change is
 making a parent-class method &#8220;virtual&#8221; when you derive a new child
 class from it.</p>
-<p>Here are the steps you need to follow to submit a single file or user
-package for our consideration.  Following these steps will save both
-you and us time.  See existing files in packages in the src dir for
-examples.</p>
+<p>Here is a checklist of steps you need to follow to submit a single file
+or user package for our consideration.  Following these steps will save
+both you and us time. See existing files in packages in the src dir for
+examples. If you are uncertain, please ask.</p>
 <ul class="simple">
 <li>All source files you provide must compile with the most current
-version of LAMMPS.</li>
-<li>If you want your file(s) to be added to main LAMMPS or one of its
-standard packages, then it needs to be written in a style compatible
-with other LAMMPS source files.  This is so the developers can
-understand it and hopefully maintain it.  This basically means that
-the code accesses data structures, performs its operations, and is
-formatted similar to other LAMMPS source files, including the use of
-the error class for error and warning messages.</li>
+version of LAMMPS with multiple configurations. In particular you
+need to test compiling LAMMPS from scratch with -DLAMMPS_BIGBIG
+set in addition to the default -DLAMMPS_SMALLBIG setting. Your code
+will need to work correctly in serial and in parallel using MPI.</li>
+<li>For consistency with the rest of LAMMPS and especially, if you want
+your contribution(s) to be added to main LAMMPS code or one of its
+standard packages, it needs to be written in a style compatible with
+other LAMMPS source files. This means: 2-character indentation per
+level, <strong>no tabs</strong>, no lines over 80 characters. I/O is done via
+the C-style stdio library, class header files should not import any
+system headers outside &lt;stdio.h&gt;, STL containers should be avoided
+in headers, and forward declarations used where possible or needed.
+All added code should be placed into the LAMMPS_NS namespace or a
+sub-namespace; global or static variables should be avoided, as they
+conflict with the modular nature of LAMMPS and the C++ class structure.
+Header files must <strong>not</strong> import namespaces with <em>using</em>.
+This all is so the developers can more easily understand, integrate,
+and maintain your contribution and reduce conflicts with other parts
+of LAMMPS.  This basically means that the code accesses data
+structures, performs its operations, and is formatted similar to other
+LAMMPS source files, including the use of the error class for error
+and warning messages.</li>
 <li>If you want your contribution to be added as a user-contributed
 feature, and it&#8217;s a single file (actually a <a href="#id8"><span class="problematic" id="id9">*</span></a>.cpp and <a href="#id10"><span class="problematic" id="id11">*</span></a>.h file) it can
 rapidly be added to the USER-MISC directory.  Send us the one-line
@@ -1144,13 +1182,21 @@ coding style (see above).  I.e. the files do not need to be in the
 same stylistic format and syntax as other LAMMPS files, though that
 would be nice for developers as well as users who try to read your
 code.</li>
-<li>You must also create a documentation file for each new command or
-style you are adding to LAMMPS.  This will be one file for a
-single-file feature.  For a package, it might be several files.  These
-are simple text files which we auto-convert to HTML.  Thus they must
-be in the same format as other <em>.txt files in the lammps/doc directory
-for similar commands and styles; use one or more of them as a starting
-point.  As appropriate, the text files can include links to equations
+<li>You <strong>must</strong> also create a <strong>documentation</strong> file for each new command or
+style you are adding to LAMMPS. For simplicity and convenience, the
+documentation of groups of closely related commands or styles may be
+combined into a single file.  This will be one file for a single-file
+feature.  For a package, it might be several files.  These are simple
+text files with a specific markup language, that are then auto-converted
+to HTML and PDF. The tools for this conversion are included in the
+source distribution, and the translation can be as simple as doing
+&#8220;make html pdf&#8221; in the doc folder.
+Thus the documentation source files must be in the same format and
+style as other <em>.txt files in the lammps/doc/src directory for similar
+commands and styles; use one or more of them as a starting point.
+A description of the markup can also be found in
+lammps/doc/utils/txt2html/README.html
+As appropriate, the text files can include links to equations
 (see doc/Eqs/</em>.tex for examples, we auto-create the associated JPG
 files), or figures (see doc/JPG for examples), or even additional PDF
 files with further details (see doc/PDF for examples).  The doc page
@@ -1159,14 +1205,19 @@ bottom of doc/fix_nh.txt for examples and the earlier part of the same
 file for how to format the cite itself.  The &#8220;Restrictions&#8221; section of
 the doc page should indicate that your command is only available if
 LAMMPS is built with the appropriate USER-MISC or USER-FOO package.
-See other user package doc files for examples of how to do this.  The
-txt2html tool we use to convert to HTML can be downloaded from <a class="reference external" href="http://www.sandia.gov/~sjplimp/download.html">this site</a>, so you can perform
-the HTML conversion yourself to proofread your doc page.</li>
-<li>For a new package (or even a single command) you can include one or
-more example scripts.  These should run in no more than 1 minute, even
-on a single processor, and not require large data files as input.  See
-directories under examples/USER for examples of input scripts other
-users provided for their packages.</li>
+See other user package doc files for examples of how to do this. The
+prerequiste for building the HTML format files are Python 3.x and
+virtualenv, the requirement for generating the PDF format manual
+is the <a class="reference external" href="http://www.htmldoc.org/">htmldoc</a> software. Please run at least
+&#8220;make html&#8221; and carefully inspect and proofread the resuling HTML format
+doc page before submitting your code.</li>
+<li>For a new package (or even a single command) you should include one or
+more example scripts demonstrating its use.  These should run in no
+more than a couple minutes, even on a single processor, and not require
+large data files as input.  See directories under examples/USER for
+examples of input scripts other users provided for their packages.
+These example inputs are also required for validating memory accesses
+and testing for memory leaks with valgrind</li>
 <li>If there is a paper of yours describing your feature (either the
 algorithm/science behind the feature itself, or its initial usage, or
 its implementation in LAMMPS), you can add the citation to the <a href="#id12"><span class="problematic" id="id13">*</span></a>.cpp
@@ -1183,10 +1234,9 @@ usage.  That kind of citation should just be in the doc page you
 provide.</li>
 </ul>
 <p>Finally, as a general rule-of-thumb, the more clear and
-self-explanatory you make your doc and README files, and the easier
-you make it for people to get started, e.g. by providing example
-scripts, the more likely it is that users will try out your new
-feature.</p>
+self-explanatory you make your documentation and README files, and the
+easier you make it for people to get started, e.g. by providing example
+scripts, the more likely it is that users will try out your new feature.</p>
 <p id="foo"><strong>(Foo)</strong> Foo, Morefoo, and Maxfoo, J of Classic Potentials, 75, 345 (1997).</p>
 </div>
 </div>

@@ -347,6 +347,14 @@ class Txt2Rst(TxtParser):
     def is_raw_textblock_end(self, line):
         return line.startswith('END_RST -->')
 
+    def order_commands(self, commands):
+        if 'ule' in commands and 'l' in commands and commands.index('ule') >  commands.index('l'):
+            return commands
+        elif 'ole' in commands and 'l' in commands and commands.index('ole') > commands.index('l'):
+            return commands
+        return super().order_commands(commands)
+
+
 class Txt2RstConverter(TxtConverter):
     def get_argument_parser(self):
         parser = argparse.ArgumentParser(description='converts a text file with simple formatting & markup into '

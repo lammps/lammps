@@ -518,6 +518,9 @@ class TxtParser(object):
     def last_word(self, text):
         return text.split()[-1]
 
+    def order_commands(self, commands):
+        return list(reversed(commands))
+
     def do_formatting(self, paragraph):
         last_word = self.last_word(paragraph)
         format_str = paragraph[paragraph.rfind(last_word):]
@@ -529,7 +532,7 @@ class TxtParser(object):
 
         commands = [x[0] for x in command_pattern.findall(commands)]
 
-        for command in reversed(commands):
+        for command in self.order_commands(commands):
             paragraph = self.format.convert(command, paragraph, commands)
 
         return paragraph + '\n'

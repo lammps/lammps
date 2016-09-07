@@ -236,6 +236,14 @@ class TestListFormatting(unittest.TestCase):
                          "* two\n"
                          "* three\n\n", s)
 
+    def test_elementwise_unordered_list_reverse(self):
+        s = self.txt2rst.convert("one :ulb,l\n"
+                                 "two :l\n"
+                                 "three :l,ule\n")
+        self.assertEqual("* one\n"
+                         "* two\n"
+                         "* three\n\n", s)
+
     def test_multi_line_unordered_list_elements(self):
         s = self.txt2rst.convert("one :ulb,l\n"
                                  "two\n"

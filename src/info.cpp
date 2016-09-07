@@ -737,10 +737,9 @@ void Info::command_styles(FILE * out)
   fprintf(out, "\nCommand styles (add-on input script commands):\n");
 
   vector<string> styles;
-#define COMMAND_CLASS
-#define CommandStyle(key,Class) styles.push_back(#key);
-#include "style_command.h"
-#undef COMMAND_CLASS
+  for(Input::CommandCreatorMap::iterator it = input->command_map->begin(); it != input->command_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

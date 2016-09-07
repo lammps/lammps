@@ -49,7 +49,8 @@ class Force : protected Pointers {
   char *pair_style;
 
   typedef Pair *(*PairCreator)(LAMMPS *);
-  std::map<std::string,PairCreator> *pair_map;
+  typedef std::map<std::string,PairCreator> PairCreatorMap;
+  PairCreatorMap *pair_map;
 
   class Bond *bond;
   char *bond_style;

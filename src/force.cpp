@@ -78,7 +78,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 
   // fill pair map with pair styles listed in style_pair.h
 
-  pair_map = new std::map<std::string,PairCreator>();
+  pair_map = new PairCreatorMap();
 
 #define PAIR_CLASS
 #define PairStyle(key,Class) \

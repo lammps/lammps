@@ -62,6 +62,10 @@ class Force : protected Pointers {
   class Angle *angle;
   char *angle_style;
 
+  typedef Angle *(*AngleCreator)(LAMMPS *);
+  typedef std::map<std::string,AngleCreator> AngleCreatorMap;
+  AngleCreatorMap *angle_map;
+
   class Dihedral *dihedral;
   char *dihedral_style;
 
@@ -127,6 +131,7 @@ class Force : protected Pointers {
  private:
   template <typename T> static Pair *pair_creator(LAMMPS *);
   template <typename T> static Bond *bond_creator(LAMMPS *);
+  template <typename T> static Angle *angle_creator(LAMMPS *);
 };
 
 }

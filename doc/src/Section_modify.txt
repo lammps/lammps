@@ -598,7 +598,7 @@ compute values = c_mytemp\[0\], c_thermo_press\[3\], ... :pre
 
 Adding keywords for the "thermo_style custom"_thermo_style.html command
 (which can then be accessed by variables) was discussed
-"here"_Section_modify.html#thermo on this page.
+"here"_Section_modify.html#mod_13 on this page.
 
 Adding a new math function of one or two arguments can be done by
 editing one section of the Variable::evaulate() method.  Search for
@@ -615,7 +615,7 @@ to find the appropriate location.
 
 Adding new "compute styles"_compute.html (whose calculated values can
 then be accessed by variables) was discussed
-"here"_Section_modify.html#compute on this page.
+"here"_Section_modify.html#mod_3 on this page.
 
 :line
 :line

@@ -28,7 +28,6 @@ class NStencil : protected Pointers {
   bigint last_copy_bin;
 
   int nstencil;                    // # of bins in stencil
-  int nstencil_ssa;                // # of total bins in SSA stencil
   int *stencil;                    // list of bin offsets
   int **stencilxyz;                // bin offsets in xyz dims
   int *nstencil_multi;             // # bins in each type-based multi stencil

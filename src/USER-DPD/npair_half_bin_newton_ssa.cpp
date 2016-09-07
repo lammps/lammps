@@ -18,6 +18,7 @@
 
 #include "npair_half_bin_newton_ssa.h"
 #include "neighbor.h"
+#include "nstencil_ssa.h"
 #include "nbin_ssa.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -78,6 +79,11 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
+
+  NStencilSSA *ns_ssa = dynamic_cast<NStencilSSA*>(ns);
+  if (!ns_ssa) error->one(FLERR, "NStencil wasn't a NStencilSSA object");
+  int nstencil_half = ns_ssa->nstencil_half;
+  int nstencil_full = ns_ssa->nstencil;
 
   NBinSSA *nb_ssa = dynamic_cast<NBinSSA*>(nb);
   if (!nb_ssa) error->one(FLERR, "NBin wasn't a NBinSSA object");
@@ -140,7 +146,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
 
     // loop over all local atoms in other bins in "half" stencil
 
-    for (k = 0; k < nstencil; k++) {
+    for (k = 0; k < nstencil_half; k++) {
       for (j = binhead_ssa[ibin+stencil[k]]; j >= 0; 
            j = bins_ssa[j]) {
 
@@ -176,7 +182,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
     // That is a significant time savings because of the "full" stencil
     // Note2: only non-pure locals can have ghosts as neighbors
 
-    if (ssaAIR[i] == 1) for (k = 0; k < nstencil_ssa; k++) {
+    if (ssaAIR[i] == 1) for (k = 0; k < nstencil_full; k++) {
       for (j = gbinhead_ssa[ibin+stencil[k]]; j >= 0; 
            j = bins_ssa[j]) {
 

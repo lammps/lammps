@@ -11,31 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NSTENCIL_CLASS
+#ifndef LMP_NSTENCIL_SSA_H
+#define LMP_NSTENCIL_SSA_H
 
-NStencilStyle(half/bin/2d/newton/ssa,
-              NStencilHalfBin2dNewtonSSA,
-              NS_HALF | NS_BIN | NS_2D | NS_NEWTON | NS_SSA | NS_ORTHO)
-
-#else
-
-#ifndef LMP_NSTENCIL_HALF_BIN_2D_NEWTON_SSA_H
-#define LMP_NSTENCIL_HALF_BIN_2D_NEWTON_SSA_H
-
-#include "nstencil_ssa.h"
+#include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NStencilHalfBin2dNewtonSSA : public NStencilSSA {
+class NStencilSSA : public NStencil {
  public:
-  NStencilHalfBin2dNewtonSSA(class LAMMPS *);
-  ~NStencilHalfBin2dNewtonSSA() {}
-  void create();
+  NStencilSSA(class LAMMPS *lmp) : NStencil(lmp) { }
+  ~NStencilSSA() {}
+  virtual void create() = 0;
+
+  int nstencil_half;   // where the half stencil ends
 };
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

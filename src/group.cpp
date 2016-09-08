@@ -1665,7 +1665,6 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
 
 /* ----------------------------------------------------------------------
    compute angular velocity omega from L and I
-   diagonalize I instead of inverting it, to allow for a singular matrix
 ------------------------------------------------------------------------- */
 
 void Group::omega(double *angmom, double inertia[3][3], double *w)
@@ -1684,6 +1683,7 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 
   // non-singular I matrix
   // use L = Iw, inverting I to solve for w
+  // this should give exact zeroing of angular momentum by velocity command
 
   if (determinant > EPSILON) {
 
@@ -1715,8 +1715,9 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
       inverse[2][2]*angmom[2];
 
   // handle (nearly) singular I matrix
-  // due to 2-atom group or linear molecule
+  // typically due to 2-atom group or linear molecule
   // use jacobi() and angmom_to_omega() to calculate valid omega
+  // less exact answer than matrix inversion, due to iterative Jacobi method
 
   } else {
     int ierror = MathExtra::jacobi(inertia,idiag,evectors);

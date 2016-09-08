@@ -32,7 +32,7 @@ class PairVashishtaTable : public PairVashishta {
   void settings(int, char **);
   double memory_usage();
 
- private:
+ protected:
   int ntable;
   double deltaR2;
   double oneOverDeltaR2;

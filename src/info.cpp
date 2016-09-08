@@ -722,10 +722,11 @@ void Info::region_styles(FILE * out)
   fprintf(out, "\nRegion styles:\n");
 
   vector<string> styles;
-#define REGION_CLASS
-#define RegionStyle(key,Class) styles.push_back(#key);
-#include "style_region.h"
-#undef REGION_CLASS
+
+  for(Domain::RegionCreatorMap::iterator it = domain->region_map->begin(); it != domain->region_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

@@ -568,10 +568,11 @@ void Info::atom_styles(FILE * out)
   fprintf(out, "\nAtom styles:\n");
 
   vector<string> styles;
-#define ATOM_CLASS
-#define AtomStyle(key,Class) styles.push_back(#key);
-#include "style_atom.h"
-#undef ATOM_CLASS
+
+  for(Atom::AtomVecCreatorMap::iterator it = atom->avec_map->begin(); it != atom->avec_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

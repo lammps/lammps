@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix langevin/drude command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">langevin</span><span class="o">/</span><span class="n">drude</span> <span class="n">Tcom</span> <span class="n">damp_com</span> <span class="n">seed_com</span> <span class="n">Tdrude</span> <span class="n">damp_drude</span> <span class="n">seed_drude</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ...
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>langevin/drude = style name of this fix command</li>
@@ -236,9 +236,9 @@ partner (electron).</p>
 correctly.  You must use the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify</span></a> command to
 enable this, e.g.</p>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">comm_modify</span> <span class="n">vel</span> <span class="n">yes</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+comm_modify vel yes
+</pre>
 <hr class="docutils" />
 <p><em>Tcom</em> is the target temperature of the centers of mass, which would
 be used to thermostate the non-polarizable atoms.  <em>Tdrude</em> is the
@@ -299,14 +299,14 @@ calculated using the <a class="reference internal" href="compute_temp_drude.html
 command.</p>
 <hr class="docutils" />
 <p>Usage example for rigid bodies in the NPT ensemble:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">comm_modify</span> <span class="n">vel</span> <span class="n">yes</span>
-<span class="n">fix</span> <span class="n">TEMP</span> <span class="nb">all</span> <span class="n">langevin</span><span class="o">/</span><span class="n">drude</span> <span class="mf">300.</span> <span class="mf">100.</span> <span class="mi">1256</span> <span class="mf">1.</span> <span class="mf">20.</span> <span class="mi">13977</span> <span class="n">zero</span> <span class="n">yes</span>
-<span class="n">fix</span> <span class="n">NPH</span> <span class="n">ATOMS</span> <span class="n">rigid</span><span class="o">/</span><span class="n">nph</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span> <span class="n">iso</span> <span class="mf">1.</span> <span class="mf">1.</span> <span class="mf">500.</span>
-<span class="n">fix</span> <span class="n">NVE</span> <span class="n">DRUDES</span> <span class="n">nve</span>
-<span class="n">compute</span> <span class="n">TDRUDE</span> <span class="nb">all</span> <span class="n">temp</span><span class="o">/</span><span class="n">drude</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">cpu</span> <span class="n">etotal</span> <span class="n">ke</span> <span class="n">pe</span> <span class="n">ebond</span> <span class="n">ecoul</span> <span class="n">elong</span> <span class="n">press</span> <span class="n">vol</span> <span class="n">temp</span> <span class="n">c_TDRUDE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_TDRUDE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+comm_modify vel yes
+fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
+fix NVE DRUDES nve
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE[1] c_TDRUDE[2]
+</pre>
 <p>Comments:</p>
 <ul class="simple">
 <li>Drude particles should not be in the rigid group, otherwise the Drude
@@ -332,10 +332,8 @@ should be the global one, but the temperature should be only that of
 the cores. That&#8217;s why the command <em>fix_modify</em> should be called in
 that case.</li>
 </ul>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do &#8220;exact&#8221;
 restarts with this fix, where the simulation continues on the same as

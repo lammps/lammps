@@ -203,7 +203,7 @@ cvm::real colvarbias::energy_difference(std::string const &conf)
 }
 
 
-// So far, these are only implemented in colvarsbias_abf
+// So far, these are only implemented in colvarbias_abf
 int colvarbias::bin_num()
 {
   cvm::error("Error: bin_num() not implemented.\n");
@@ -246,4 +246,4 @@ std::ostream & colvarbias::write_traj(std::ostream &os)
 
 // Static members
 
-std::vector<cvm::deps::feature *> colvarbias::cvb_features;
+std::vector<colvardeps::feature *> colvarbias::cvb_features;

@@ -175,10 +175,10 @@ unchanged and controlling the pressure of a surrounding fluid.</p>
 <p>This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style &#8220;temp/asphere&#8221; and
 &#8220;pressure&#8221;, as if these commands had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="nb">all</span> <span class="n">temp</span><span class="o">/</span><span class="n">asphere</span>
-<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute fix-ID_temp all temp/asphere
+compute fix-ID_press all pressure fix-ID_temp
+</pre>
 <p>See the <a class="reference internal" href="compute_temp_asphere.html"><span class="doc">compute temp/asphere</span></a> and <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
 + underscore + &#8220;press&#8221;, and the group for the new computes is &#8220;all&#8221;
@@ -207,9 +207,7 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>This fix writes the state of the Nose/Hoover barostat to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an

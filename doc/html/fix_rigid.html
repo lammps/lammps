@@ -211,19 +211,19 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="n">clump</span> <span class="n">rigid</span> <span class="n">single</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">clump</span> <span class="n">rigid</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">clump</span> <span class="n">rigid</span> <span class="n">single</span> <span class="n">force</span> <span class="mi">1</span> <span class="n">off</span> <span class="n">off</span> <span class="n">on</span> <span class="n">langevin</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">428984</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">polychains</span> <span class="n">rigid</span><span class="o">/</span><span class="n">nvt</span> <span class="n">molecule</span> <span class="n">temp</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">5.0</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">polychains</span> <span class="n">rigid</span> <span class="n">molecule</span> <span class="n">force</span> <span class="mi">1</span><span class="o">*</span><span class="mi">5</span> <span class="n">off</span> <span class="n">off</span> <span class="n">off</span> <span class="n">force</span> <span class="mi">6</span><span class="o">*</span><span class="mi">10</span> <span class="n">off</span> <span class="n">off</span> <span class="n">on</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">polychains</span> <span class="n">rigid</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span> <span class="n">langevin</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">428984</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="n">fluid</span> <span class="n">rigid</span> <span class="n">group</span> <span class="mi">3</span> <span class="n">clump1</span> <span class="n">clump2</span> <span class="n">clump3</span> <span class="n">torque</span> <span class="o">*</span> <span class="n">off</span> <span class="n">off</span> <span class="n">off</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">rods</span> <span class="n">rigid</span><span class="o">/</span><span class="n">npt</span> <span class="n">molecule</span> <span class="n">temp</span> <span class="mf">300.0</span> <span class="mf">300.0</span> <span class="mf">100.0</span> <span class="n">iso</span> <span class="mf">0.5</span> <span class="mf">0.5</span> <span class="mf">10.0</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">particles</span> <span class="n">rigid</span><span class="o">/</span><span class="n">npt</span> <span class="n">molecule</span> <span class="n">temp</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">5.0</span> <span class="n">x</span> <span class="mf">0.5</span> <span class="mf">0.5</span> <span class="mf">1.0</span> <span class="n">z</span> <span class="mf">0.5</span> <span class="mf">0.5</span> <span class="mf">1.0</span> <span class="n">couple</span> <span class="n">xz</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">water</span> <span class="n">rigid</span><span class="o">/</span><span class="n">nph</span> <span class="n">molecule</span> <span class="n">iso</span> <span class="mf">0.5</span> <span class="mf">0.5</span> <span class="mf">1.0</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">particles</span> <span class="n">rigid</span><span class="o">/</span><span class="n">npt</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span> <span class="n">temp</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="n">iso</span> <span class="mf">0.5</span> <span class="mf">0.5</span> <span class="mf">1.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 clump rigid single
+fix 1 clump rigid/small molecule
+fix 1 clump rigid single force 1 off off on langevin 1.0 1.0 1.0 428984
+fix 1 polychains rigid/nvt molecule temp 1.0 1.0 5.0
+fix 1 polychains rigid molecule force 1*5 off off off force 6*10 off off on
+fix 1 polychains rigid/small molecule langevin 1.0 1.0 1.0 428984
+fix 2 fluid rigid group 3 clump1 clump2 clump3 torque * off off off
+fix 1 rods rigid/npt molecule temp 300.0 300.0 100.0 iso 0.5 0.5 10.0
+fix 1 particles rigid/npt molecule temp 1.0 1.0 5.0 x 0.5 0.5 1.0 z 0.5 0.5 1.0 couple xz
+fix 1 water rigid/nph molecule iso 0.5 0.5 1.0
+fix 1 particles rigid/npt/small molecule temp 1.0 1.0 1.0 iso 0.5 0.5 1.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -385,8 +385,8 @@ apply to is determined by the first argument of the <em>force</em> and
 <em>torque</em> keywords.  It can be an integer M from 1 to Nbody, where
 Nbody is the number of rigid bodies defined.  A wild-card asterisk can
 be used in place of, or in conjunction with, the M argument to set the
-flags for multiple rigid bodies.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or
-&#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of rigid bodies, then an asterisk
+flags for multiple rigid bodies.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or
+&#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the number of rigid bodies, then an asterisk
 with no numeric values means all bodies from 1 to N.  A leading
 asterisk means all bodies from 1 to n (inclusive).  A trailing
 asterisk means all bodies from n to N (inclusive).  A middle asterisk
@@ -745,10 +745,8 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about the 4 NVE rigid styles is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  The exception is if the <em>infile</em> or
 <em>mol</em> keyword is used, in which case an auxiliary file is written out
 with rigid body information each time a restart file is written, as

@@ -149,13 +149,16 @@ class Modify : protected Pointers {
   void list_init_dofflag(int &, int *&);
   void list_init_compute();
 
- protected:
+ public:
   typedef Compute *(*ComputeCreator)(LAMMPS *, int, char **);
-  std::map<std::string,ComputeCreator> *compute_map;
+  typedef std::map<std::string,ComputeCreator> ComputeCreatorMap;
+  ComputeCreatorMap *compute_map;
 
   typedef Fix *(*FixCreator)(LAMMPS *, int, char **);
-  std::map<std::string,FixCreator> *fix_map;
+  typedef std::map<std::string,FixCreator> FixCreatorMap;
+  FixCreatorMap *fix_map;
 
+ protected:
   template <typename T> static Compute *compute_creator(LAMMPS *, int, char **);
   template <typename T> static Fix *fix_creator(LAMMPS *, int, char **);
 };

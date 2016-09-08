@@ -524,7 +524,7 @@ int colvarparse::check_keywords(std::string &conf, char const *key)
     }
   }
 
-  init();
+  clear_keyword_registry();
 
   return COLVARS_OK;
 }
@@ -548,6 +548,10 @@ bool colvarparse::key_lookup(std::string const &conf,
                              std::string &data,
                              size_t &save_pos)
 {
+  if (cvm::debug()) {
+    cvm::log("Looking for the keyword \""+std::string(key_in)+"\" and its value.\n");
+  }
+
   // add this keyword to the register (in its camelCase version)
   add_keyword(key_in);
 
@@ -568,11 +572,14 @@ bool colvarparse::key_lookup(std::string const &conf,
   // start from the first occurrence of key
   size_t pos = conf_lower.find(key, save_pos);
 
-  // iterate over all instances until it finds the isolated keyword
+  // iterate over all instances of the substring until it finds it as isolated keyword
   while (true) {
 
     if (pos == std::string::npos) {
       // no valid instance of the keyword has been found
+      if (cvm::debug()) {
+        cvm::log("Keyword \""+std::string(key_in)+"\" not found.\n");
+      }
       return false;
     }
 
@@ -625,25 +632,46 @@ bool colvarparse::key_lookup(std::string const &conf,
   size_t data_begin = (to_lower_cppstr(line)).find(key) + key.size();
   data_begin = line.find_first_not_of(white_space, data_begin+1);
 
-  //   size_t data_begin_absolute = data_begin + line_begin;
-  //   size_t data_end_absolute   = data_begin;
-
   if (data_begin != std::string::npos) {
 
     size_t data_end = line.find_last_not_of(white_space) + 1;
     data_end = (data_end == std::string::npos) ? line.size() : data_end;
-    //     data_end_absolute = data_end + line_begin;
 
-    if (line.find('{', data_begin) != std::string::npos) {
+    size_t brace = line.find('{', data_begin);  // look for an opening brace
+    size_t brace_last = brace;
 
-      size_t brace_count = 1;
-      size_t brace = line.find('{', data_begin);  // start from the first opening brace
+    if (brace != std::string::npos) {
+
+      // find the matching closing brace
+
+      if (cvm::debug()) {
+        cvm::log("Multi-line value, config is now \""+line+"\".\n");
+      }
+
+      int brace_count = 1;
 
       while (brace_count > 0) {
 
-        // find the matching closing brace
-        brace = line.find_first_of("{}", brace+1);
-        while (brace == std::string::npos) {
+        brace = line.find_first_of("{}", brace_last+1);
+        // find all braces within this line
+        while (brace < std::string::npos) {
+          brace_last = brace;
+          if (line[brace] == '{') brace_count++;
+          if (line[brace] == '}') brace_count--;
+          if (brace_count == 0) {
+            data_end = brace+1;
+            break;
+          }
+          brace = line.find_first_of("{}", brace+1);
+        }
+
+        if (brace_count == 0) {
+          data_end = brace+1;
+          break;
+        }
+
+        if (brace == std::string::npos) {
+
           // add a new line
           if (line_end >= conf.size()) {
             cvm::error("Parse error: reached the end while "
@@ -652,8 +680,6 @@ bool colvarparse::key_lookup(std::string const &conf,
                        line+"\".\n", INPUT_ERROR);
             return false;
           }
-          size_t const old_end = line.size();
-          //           data_end_absolute += old_end+1;
 
           line_begin = line_end;
           nl = conf.find('\n', line_begin+1);
@@ -663,36 +689,35 @@ bool colvarparse::key_lookup(std::string const &conf,
             line_end = nl;
           line.append(conf, line_begin, (line_end-line_begin));
 
-          brace = line.find_first_of("{}", old_end);
+          if (cvm::debug()) {
+            cvm::log("Added a new line, config is now \""+line+"\".\n");
+          }
         }
 
-        if (line[brace] == '{') brace_count++;
-        if (line[brace] == '}') brace_count--;
+        if (brace_count < 0) {
+          cvm::error("Error: found closing brace without opening brace.\n", INPUT_ERROR);
+        }
       }
 
-      // set data_begin after the opening brace
-      data_begin = line.find_first_of('{', data_begin) + 1;
+      // strip the leading and trailing braces
+      data_begin = line.find_first_of('{') + 1;
       data_begin = line.find_first_not_of(white_space,
                                           data_begin);
-      // set data_end before the closing brace
-      data_end = brace;
-      data_end = line.find_last_not_of(white_space+"}",
-                                       data_end) + 1;
-      //       data_end_absolute = line_end;
 
-      if (data_end > line.size())
-        data_end = line.size();
+      data_end = line.find_last_of('}', line.size()) - 1;
+      data_end = line.find_last_not_of(white_space,
+                                       data_end) + 1;
     }
 
     data.append(line, data_begin, (data_end-data_begin));
 
+    if (cvm::debug()) {
+      cvm::log("Keyword value = \""+data+"\".\n");
+    }
+
     if (data.size() && save_delimiters) {
       data_begin_pos.push_back(conf.find(data, pos+key.size()));
       data_end_pos.push_back(data_begin_pos.back()+data.size());
-      //       std::cerr << "key = " << key << ", data = \""
-      //                 << data << "\", data_begin, data_end = "
-      //                 << data_begin_pos.back() << ", " << data_end_pos.back()
-      //                 << "\n";
     }
   }
 

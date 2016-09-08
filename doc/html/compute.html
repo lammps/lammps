@@ -186,8 +186,8 @@ discussed below, it can be referenced via the following bracket
 notation, where ID is the ID of the compute:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="21%" />
-<col width="79%" />
+<col width="23%" />
+<col width="77%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>c_ID</td>
@@ -245,11 +245,11 @@ computes for further info.</p>
 Three computes are always created, named &#8220;thermo_temp&#8221;,
 &#8220;thermo_press&#8221;, and &#8220;thermo_pe&#8221;, as if these commands had been invoked
 in the input script:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">thermo_temp</span> <span class="nb">all</span> <span class="n">temp</span>
-<span class="n">compute</span> <span class="n">thermo_press</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">thermo_temp</span>
-<span class="n">compute</span> <span class="n">thermo_pe</span> <span class="nb">all</span> <span class="n">pe</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute thermo_temp all temp
+compute thermo_press all pressure thermo_temp
+compute thermo_pe all pe
+</pre>
 <p>Additional computes for other quantities are created if the thermo
 style requires it.  See the documentation for the
 <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command.</p>

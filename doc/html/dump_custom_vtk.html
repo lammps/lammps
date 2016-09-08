@@ -182,15 +182,15 @@ v_name = per-atom vector calculated by an atom-style variable with name
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump</span> <span class="n">dmpvtk</span> <span class="nb">all</span> <span class="n">custom</span><span class="o">/</span><span class="n">vtk</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">*.</span><span class="n">myforce</span><span class="o">.</span><span class="n">vtk</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">vx</span> <span class="n">fx</span>
-<span class="n">dump</span> <span class="n">dmpvtp</span> <span class="n">flow</span> <span class="n">custom</span><span class="o">/</span><span class="n">vtk</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">*.%.</span><span class="n">displace</span><span class="o">.</span><span class="n">vtp</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_myD</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myD</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myD</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">v_ke</span>
-<span class="n">dump</span> <span class="n">e_data</span> <span class="nb">all</span> <span class="n">custom</span><span class="o">/</span><span class="n">vtk</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">*.</span><span class="n">vtu</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">spin</span> <span class="n">eradius</span> <span class="n">fx</span> <span class="n">fy</span> <span class="n">fz</span> <span class="n">eforce</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+dump dmpvtk all custom/vtk 100 dump*.myforce.vtk id type vx fx
+dump dmpvtp flow custom/vtk 100 dump*.%.displace.vtp id type c_myD[1] c_myD[2] c_myD[3] v_ke
+dump e_data all custom/vtk 100 dump*.vtu id type spin eradius fx fy fz eforce
+</pre>
 <p>The style <em>custom/vtk</em> is similar to the <a class="reference internal" href="dump.html"><span class="doc">custom</span></a> style but
 uses the VTK library to write data to VTK simple legacy or XML format
 depending on the filename extension specified. This can be either
-<a href="#id1"><span class="problematic" id="id2">**</span></a>.vtk* for the legacy format or <a href="#id3"><span class="problematic" id="id4">**</span></a>.vtp* and <a href="#id5"><span class="problematic" id="id6">**</span></a>.vtu*, respectively,
+<em>*.vtk</em> for the legacy format or <em>*.vtp</em> and <em>*.vtu</em>, respectively,
 for the XML format; see the <a class="reference external" href="http://www.vtk.org/VTK/img/file-formats.pdf">VTK homepage</a> for a detailed
 description of these formats.  Since this naming convention conflicts
 with the way binary output is usually specified (see below),

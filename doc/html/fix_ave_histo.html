@@ -145,15 +145,15 @@
 <li>one or more input values can be listed</li>
 <li>value = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">vx</span><span class="p">,</span><span class="n">vy</span><span class="p">,</span><span class="n">vz</span><span class="p">,</span><span class="n">fx</span><span class="p">,</span><span class="n">fy</span><span class="p">,</span><span class="n">fz</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">attribute</span> <span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="n">velocity</span><span class="p">,</span> <span class="n">force</span> <span class="n">component</span><span class="p">)</span>
-<span class="n">c_ID</span> <span class="o">=</span> <span class="n">scalar</span> <span class="ow">or</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="n">vector</span> <span class="ow">or</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
-<span class="n">f_ID</span> <span class="o">=</span> <span class="n">scalar</span> <span class="ow">or</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="n">vector</span> <span class="ow">or</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
-<span class="n">v_name</span> <span class="o">=</span> <span class="n">value</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">equal</span><span class="o">-</span><span class="n">style</span> <span class="ow">or</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="ow">or</span> <span class="n">atom</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-<span class="n">v_name</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
+c_ID = scalar or vector calculated by a compute with ID
+c_ID[I] = Ith component of vector or Ith column of array calculated by a compute with ID, I can include wildcard (see below)
+f_ID = scalar or vector calculated by a fix with ID
+f_ID[I] = Ith component of vector or Ith column of array calculated by a fix with ID, I can include wildcard (see below)
+v_name = value(s) calculated by an equal-style or vector-style or atom-style variable with name
+v_name[I] = value calculated by a vector-style variable with name
+</pre>
 <ul class="simple">
 <li>zero or more keyword/arg pairs may be appended</li>
 <li>keyword = <em>mode</em> or <em>file</em> or <em>ave</em> or <em>start</em> or <em>beyond</em> or <em>overwrite</em> or <em>title1</em> or <em>title2</em> or <em>title3</em></li>
@@ -185,13 +185,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="mf">0.5</span> <span class="mf">1.5</span> <span class="mi">50</span> <span class="n">c_myTemp</span> <span class="n">file</span> <span class="n">temp</span><span class="o">.</span><span class="n">histo</span> <span class="n">ave</span> <span class="n">running</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="o">-</span><span class="mi">5</span> <span class="mi">5</span> <span class="mi">100</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">title1</span> <span class="s2">&quot;My output values&quot;</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="o">-</span><span class="mi">5</span> <span class="mi">5</span> <span class="mi">100</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span> <span class="mi">1</span> <span class="mi">100</span> <span class="mi">1000</span> <span class="o">-</span><span class="mf">2.0</span> <span class="mf">2.0</span> <span class="mi">18</span> <span class="n">vx</span> <span class="n">vy</span> <span class="n">vz</span> <span class="n">mode</span> <span class="n">vector</span> <span class="n">ave</span> <span class="n">running</span> <span class="n">beyond</span> <span class="n">extra</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span><span class="o">/</span><span class="n">weight</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">10</span> <span class="mi">100</span> <span class="mi">2000</span> <span class="n">c_XRD</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_XRD</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all ave/histo 100 5 1000 0.5 1.5 50 c_myTemp file temp.histo ave running
+fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[2] c_thermo_press[3] title1 &quot;My output values&quot;
+fix 1 all ave/histo 100 5 1000 -5 5 100 c_thermo_press[*]
+fix 1 all ave/histo 1 100 1000 -2.0 2.0 18 vx vy vz mode vector ave running beyond extra
+fix 1 all ave/histo/weight 1 1 1 10 100 2000 c_XRD[1] c_XRD[2]
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -232,7 +232,7 @@ with a bracketed term appended, indicating the Ith column of the array
 is used.</p>
 <p>Note that for values from a compute or fix, the bracketed index I can
 be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or
+specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or
 &#8220;m*n&#8221;.  If N = the size of the vector (for <em>mode</em> = scalar) or the
 number of columns in the array (for <em>mode</em> = vector), then an asterisk
 with no numeric values means all indices from 1 to N.  A leading
@@ -243,11 +243,11 @@ means all indices from m to n (inclusive).</p>
 vector or columns of the array had been listed one by one.  E.g. these
 2 fix ave/histo commands are equivalent, since the <a class="reference internal" href="compute_com_chunk.html"><span class="doc">compute com/chunk</span></a> command creates a global array with
 3 columns:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myCOM</span> <span class="nb">all</span> <span class="n">com</span><span class="o">/</span><span class="n">chunk</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myCOM</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp1</span><span class="o">.</span><span class="n">com</span> <span class="n">mode</span> <span class="n">vector</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myCOM</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myCOM</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myCOM</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp2</span><span class="o">.</span><span class="n">com</span> <span class="n">mode</span> <span class="n">vector</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute myCOM all com/chunk
+fix 1 all ave/histo 100 1 100 c_myCOM[*] file tmp1.com mode vector
+fix 2 all ave/histo 100 1 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
+</pre>
 <p>If the fix ave/histo/weight command is used, exactly two values must
 be specified.  If the values are vectors, they must be the same
 length.  The first value (a scalar or vector) is what is histogrammed
@@ -278,7 +278,7 @@ simply generated on timesteps 100,200,etc.</p>
 self-explanatory.  Note that other atom attributes can be used as
 inputs to this fix by using the <a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a> command and then specifying
 an input value from that compute.</p>
-<p>If a value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
+<p>If a value begins with &#8220;c_&#8221;, a compute ID must follow which has been
 previously defined in the input script.  If <em>mode</em> = scalar, then if
 no bracketed term is appended, the global scalar calculated by the
 compute is used.  If a bracketed term is appended, the Ith element of
@@ -295,7 +295,7 @@ can thus be accessed by fix ave/histo.  Or it can be a compute defined
 not in your input script, but by <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a> or other fixes such as <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a>.  See
 the doc pages for these commands which give the IDs of these computes.
 Users can also write code for their own compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
+<p>If a value begins with &#8220;f_&#8221;, a fix ID must follow which has been
 previously defined in the input script.  If <em>mode</em> = scalar, then if
 no bracketed term is appended, the global scalar calculated by the fix
 is used.  If a bracketed term is appended, the Ith element of the
@@ -309,7 +309,7 @@ values.</p>
 <p>Note that some fixes only produce their values on certain timesteps,
 which must be compatible with <em>Nevery</em>, else an error will result.
 Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
+<p>If a value begins with &#8220;v_&#8221;, a variable name must follow which has
 been previously defined in the input script.  If <em>mode</em> = scalar, then
 only equal-style or vector-style variables can be used, which both
 produce global values.  In this mode, a vector-style variable requires
@@ -399,10 +399,8 @@ values for each of these, so they do not need to be specified.</p>
 describes the six values that are printed at the first of each section
 of output.  The third describes the 4 values printed for each bin in
 the histogram.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>This fix produces a global vector and global array which can be

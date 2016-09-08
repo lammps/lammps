@@ -154,12 +154,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">holdem</span> <span class="nb">all</span> <span class="n">restrain</span> <span class="n">bond</span> <span class="mi">45</span> <span class="mi">48</span> <span class="mf">2000.0</span> <span class="mf">2000.0</span> <span class="mf">2.75</span>
-<span class="n">fix</span> <span class="n">holdem</span> <span class="nb">all</span> <span class="n">restrain</span> <span class="n">dihedral</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mf">2000.0</span> <span class="mf">2000.0</span> <span class="mf">120.0</span>
-<span class="n">fix</span> <span class="n">holdem</span> <span class="nb">all</span> <span class="n">restrain</span> <span class="n">bond</span> <span class="mi">45</span> <span class="mi">48</span> <span class="mf">2000.0</span> <span class="mf">2000.0</span> <span class="mf">2.75</span> <span class="n">dihedral</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mf">2000.0</span> <span class="mf">2000.0</span> <span class="mf">120.0</span>
-<span class="n">fix</span> <span class="n">texas_holdem</span> <span class="nb">all</span> <span class="n">restrain</span> <span class="n">dihedral</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mf">0.0</span> <span class="mf">2000.0</span> <span class="mf">120.0</span> <span class="n">dihedral</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">5</span> <span class="mf">0.0</span> <span class="mf">2000.0</span> <span class="o">-</span><span class="mf">120.0</span> <span class="n">dihedral</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">6</span> <span class="mf">0.0</span> <span class="mf">2000.0</span> <span class="mf">0.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix holdem all restrain bond 45 48 2000.0 2000.0 2.75
+fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 120.0
+fix holdem all restrain bond 45 48 2000.0 2000.0 2.75 dihedral 1 2 3 4 2000.0 2000.0 120.0
+fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5 0.0 2000.0 -120.0 dihedral 1 2 3 6 0.0 2000.0 0.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -202,7 +202,8 @@ works best for a given application.</p>
 molecule with particular restratins (e.g. for fitting forcefield
 parameters or constructing a potential energy surface), commands such
 as the following may be useful:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span># minimize molecule energy with restraints
+<pre class="literal-block">
+# minimize molecule energy with restraints
 velocity all create 600.0 8675309 mom yes rot yes dist gaussian
 fix NVE all nve
 fix TFIX all langevin 600.0 0.0 100 24601
@@ -218,8 +219,7 @@ minimize 1e-6 1e-9 1000 100000
 # report unrestrained energies
 unfix REST
 run 0
-</pre></div>
-</div>
+</pre>
 <hr class="docutils" />
 <p>The <em>bond</em> keyword applies a bond restraint to the specified atoms
 using the same functional form used by the <a class="reference internal" href="bond_harmonic.html"><span class="doc">bond_style harmonic</span></a> command.  The potential associated with
@@ -259,10 +259,8 @@ associated with the restraint is</p>
 <p>K and phi0 are specified with the fix.  Note that the value of n is
 hard-wired to 1.  Also note that the energy will be a minimum when the
 current dihedral angle phi is equal to phi0.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the potential energy associated with this fix to the

@@ -162,13 +162,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">qeq</span><span class="o">/</span><span class="n">point</span> <span class="mi">1</span> <span class="mi">10</span> <span class="mf">1.0e-6</span> <span class="mi">200</span> <span class="n">param</span><span class="o">.</span><span class="n">qeq1</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">qeq</span> <span class="n">qeq</span><span class="o">/</span><span class="n">shielded</span> <span class="mi">1</span> <span class="mi">8</span> <span class="mf">1.0e-6</span> <span class="mi">100</span> <span class="n">param</span><span class="o">.</span><span class="n">qeq2</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">qeq</span><span class="o">/</span><span class="n">slater</span> <span class="mi">5</span> <span class="mi">10</span> <span class="mf">1.0e-6</span> <span class="mi">100</span> <span class="n">params</span> <span class="n">alpha</span> <span class="mf">0.2</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">qeq</span> <span class="n">qeq</span><span class="o">/</span><span class="n">dynamic</span> <span class="mi">1</span> <span class="mi">12</span> <span class="mf">1.0e-3</span> <span class="mi">100</span> <span class="n">my_qeq</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">qeq</span><span class="o">/</span><span class="n">fire</span> <span class="mi">1</span> <span class="mi">10</span> <span class="mf">1.0e-3</span> <span class="mi">100</span> <span class="n">my_qeq</span> <span class="n">qdamp</span> <span class="mf">0.2</span> <span class="n">qstep</span> <span class="mf">0.1</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all qeq/point 1 10 1.0e-6 200 param.qeq1
+fix 1 qeq qeq/shielded 1 8 1.0e-6 100 param.qeq2
+fix 1 all qeq/slater 5 10 1.0e-6 100 params alpha 0.2
+fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq
+fix 1 all qeq/fire 1 10 1.0e-3 100 my_qeq qdamp 0.2 qstep 0.1
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -292,9 +292,7 @@ non-trivial.  Charges on atoms are not guaranteed to equilibrate with
 arbitrary choices of these parameters.  We do not develop these QEq
 paramters.  See the examples/qeq directory for some examples.</p>
 </div>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about these fixes is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  No global scalar or vector or per-atom
 quantities are stored by these fixes for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of these fixes
 can be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a>

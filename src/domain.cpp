@@ -105,6 +105,15 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   regions = NULL;
 
   copymode = 0;
+
+  region_map = new RegionCreatorMap();
+
+#define REGION_CLASS
+#define RegionStyle(key,Class) \
+  (*region_map)[#key] = &region_creator<Class>;
+#include "style_region.h"
+#undef RegionStyle
+#undef REGION_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,6 +125,8 @@ Domain::~Domain()
   delete lattice;
   for (int i = 0; i < nregion; i++) delete regions[i];
   memory->sfree(regions);
+
+  delete region_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1524,51 +1535,33 @@ void Domain::add_region(int narg, char **arg)
     if (lmp->suffix) {
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[1],lmp->suffix);
-
-      if (0) return;
-
-#define REGION_CLASS
-#define RegionStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) { \
-            regions[nregion] = new Class(lmp,narg,arg); \
-            regions[nregion]->init(); \
-            nregion++; \
-            return; \
+      if (region_map->find(estyle) != region_map->end()) {
+        RegionCreator region_creator = (*region_map)[estyle];
+        regions[nregion] = region_creator(lmp, narg, arg);
+        regions[nregion]->init();
+        nregion++;
+        return;
       }
-#include "style_region.h"
-#undef RegionStyle
-#undef REGION_CLASS
     }
 
     if (lmp->suffix2) {
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[1],lmp->suffix2);
-
-      if (0) return;
-
-#define REGION_CLASS
-#define RegionStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) { \
-            regions[nregion] = new Class(lmp,narg,arg); \
-            regions[nregion]->init(); \
-            nregion++; \
-            return; \
+      if (region_map->find(estyle) != region_map->end()) {
+        RegionCreator region_creator = (*region_map)[estyle];
+        regions[nregion] = region_creator(lmp, narg, arg);
+        regions[nregion]->init();
+        nregion++;
+        return;
       }
-#include "style_region.h"
-#undef RegionStyle
-#undef REGION_CLASS
     }
   }
 
   if (strcmp(arg[1],"none") == 0) error->all(FLERR,"Unknown region style");
-
-#define REGION_CLASS
-#define RegionStyle(key,Class) \
-  else if (strcmp(arg[1],#key) == 0) \
-    regions[nregion] = new Class(lmp,narg,arg);
-#include "style_region.h"
-#undef REGION_CLASS
-
+  if (region_map->find(arg[1]) != region_map->end()) {
+    RegionCreator region_creator = (*region_map)[arg[1]];
+    regions[nregion] = region_creator(lmp, narg, arg);
+  }
   else error->all(FLERR,"Unknown region style");
 
   // initialize any region variables via init()
@@ -1576,6 +1569,16 @@ void Domain::add_region(int narg, char **arg)
 
   regions[nregion]->init();
   nregion++;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per region style in style_region.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Region *Domain::region_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
 }
 
 /* ----------------------------------------------------------------------

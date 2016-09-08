@@ -143,7 +143,8 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span>if &quot;${steps} &gt; 1000&quot; then quit
+<pre class="literal-block">
+if &quot;${steps} &gt; 1000&quot; then quit
 if &quot;${myString} == a10&quot; then quit
 if &quot;$x &lt;= $y&quot; then &quot;print X is smaller = $x&quot; else &quot;print Y is smaller = $y&quot;
 if &quot;(${eng} &gt; 0.0) || ($n &lt; 1000)&quot; then &amp;
@@ -152,10 +153,9 @@ elif $n&lt;10000 &amp;
   &quot;timestep 0.01&quot; &amp;
 else &amp;
   &quot;timestep 0.02&quot; &amp;
-  &quot;print &#39;Max step reached&#39;&quot;
+  &quot;print 'Max step reached'&quot;
 if &quot;${eng} &gt; ${eng_previous}&quot; then &quot;jump file1&quot; else &quot;jump file2&quot;
-</pre></div>
-</div>
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -249,10 +249,10 @@ clarity, you must enclose the entire expression in quotes.</p>
 <p>An expression is built out of numbers (which start with a digit or
 period or minus sign) or strings (which start with a letter and can
 contain alphanumeric characters or underscores):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">0.2</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mf">1.0e20</span><span class="p">,</span> <span class="o">-</span><span class="mf">15.4</span><span class="p">,</span> <span class="n">etc</span>
-<span class="n">InP</span><span class="p">,</span> <span class="n">myString</span><span class="p">,</span> <span class="n">a123</span><span class="p">,</span> <span class="n">ab_23_cd</span><span class="p">,</span> <span class="n">etc</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+0.2, 100, 1.0e20, -15.4, etc
+InP, myString, a123, ab_23_cd, etc
+</pre>
 <p>and Boolean operators:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>A == B, A != B, A &lt; B, A &lt;= B, A &gt; B, A &gt;= B, A &amp;&amp; B, A || B, !A
 </pre></div>

@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>atom_style command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom_style</span> <span class="n">style</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+atom_style style args
+</pre>
 <ul class="simple">
 <li>style = <em>angle</em> or <em>atomic</em> or <em>body</em> or <em>bond</em> or <em>charge</em> or <em>dipole</em> or         <em>dpd</em> or <em>electron</em> or <em>ellipsoid</em> or <em>full</em> or <em>line</em> or <em>meso</em> or        <em>molecular</em> or <em>peri</em> or <em>smd</em> or <em>sphere</em> or <em>tri</em> or         <em>template</em> or <em>hybrid</em></li>
 </ul>
@@ -150,15 +150,15 @@ args = none for any style except the following
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom_style</span> <span class="n">atomic</span>
-<span class="n">atom_style</span> <span class="n">bond</span>
-<span class="n">atom_style</span> <span class="n">full</span>
-<span class="n">atom_style</span> <span class="n">body</span> <span class="n">nparticle</span> <span class="mi">2</span> <span class="mi">10</span>
-<span class="n">atom_style</span> <span class="n">hybrid</span> <span class="n">charge</span> <span class="n">bond</span>
-<span class="n">atom_style</span> <span class="n">hybrid</span> <span class="n">charge</span> <span class="n">body</span> <span class="n">nparticle</span> <span class="mi">2</span> <span class="mi">5</span>
-<span class="n">atom_style</span> <span class="n">template</span> <span class="n">myMols</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+atom_style atomic
+atom_style bond
+atom_style full
+atom_style body nparticle 2 10
+atom_style hybrid charge bond
+atom_style hybrid charge body nparticle 2 5
+atom_style template myMols
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

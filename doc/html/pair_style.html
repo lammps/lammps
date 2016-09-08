@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_style command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style args
+</pre>
 <ul class="simple">
 <li>style = one of the styles from the list below</li>
 <li>args = arguments used by a particular style</li>
@@ -138,13 +138,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">2.5</span>
-<span class="n">pair_style</span> <span class="n">eam</span><span class="o">/</span><span class="n">alloy</span>
-<span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span> <span class="n">eam</span>
-<span class="n">pair_style</span> <span class="n">table</span> <span class="n">linear</span> <span class="mi">1000</span>
-<span class="n">pair_style</span> <span class="n">none</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut 2.5
+pair_style eam/alloy
+pair_style hybrid lj/charmm/coul/long 10.0 eam
+pair_style table linear 1000
+pair_style none
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -338,9 +338,9 @@ package.</p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">none</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style none
+</pre>
 </div>
 </div>
 

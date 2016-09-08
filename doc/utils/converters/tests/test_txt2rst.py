@@ -77,6 +77,18 @@ class TestMarkup(unittest.TestCase):
         self.assertEqual("**bold** = [bold]\n"
                          "*italic* = {italic}\n", s)
 
+    def test_escape_rst_characters(self):
+        s = self.markup.convert("[*bold] and {italic*}")
+        self.assertEqual("**\*bold** and *italic\**", s)
+
+    def test_escape_hat_character(self):
+        s = self.markup.convert("x^2")
+        self.assertEqual("x\^2", s)
+
+    def test_escape_underscore(self):
+        s = self.markup.convert("x_")
+        self.assertEqual("x\_", s)
+
     def test_paragraph_with_italic(self):
         self.assertEqual("A sentence with a *italic* word", self.markup.convert("A sentence with a {italic} word"))
 
@@ -220,6 +232,14 @@ class TestListFormatting(unittest.TestCase):
         s = self.txt2rst.convert("one :ulb,l\n"
                                  "two :l\n"
                                  "three :ule,l\n")
+        self.assertEqual("* one\n"
+                         "* two\n"
+                         "* three\n\n", s)
+
+    def test_elementwise_unordered_list_reverse(self):
+        s = self.txt2rst.convert("one :ulb,l\n"
+                                 "two :l\n"
+                                 "three :l,ule\n")
         self.assertEqual("* one\n"
                          "* two\n"
                          "* three\n\n", s)
@@ -407,6 +427,16 @@ class TestMathMarkup(unittest.TestCase):
                          "   \\frac{s_{ij} r_{ij} }{2} \\right)\n"
                          "   \\exp \\left( - s_{ij} r_{ij} \\right) \\end{equation}\n\n", s)
 
+    def test_detect_latex_equation_with_mult(self):
+        s = self.txt2rst.convert("\\begin\\{equation\\} a = b * c \\end\\{equation\\}\n")
+        self.assertEqual("\n.. math::\n\n"
+                         "   \\begin{equation} a = b * c \\end{equation}\n\n", s)
+
+    def test_detect_latex_equation_with_pow(self):
+        s = self.txt2rst.convert("\\begin\\{equation\\} a = b^c \\end\\{equation\\}\n")
+        self.assertEqual("\n.. math::\n\n"
+                         "   \\begin{equation} a = b^c \\end{equation}\n\n", s)
+
     def test_detect_inline_latex_equation(self):
         s = self.txt2rst.convert("Masses: \\begin\\{equation\\} M' = M + m \\end\\{equation\\}\n"
                                  "\\begin\\{equation\\} m' = \\frac \\{M\\, m \\} \\{M'\\} \\end\\{equation\\}\n")
@@ -421,6 +451,9 @@ class TestMathMarkup(unittest.TestCase):
 
     def test_detect_inline_math(self):
         self.assertEqual(":math:`x^2`", self.markup.convert("\\( x^2 \\)"))
+
+    def test_detect_inline_math_mult(self):
+        self.assertEqual(":math:`x * 2`", self.markup.convert("\\( x * 2 \\)"))
 
     def test_detect_multiline_inline_math(self):
         line = "\\(\\sqrt \\{ \\frac \\{2\, k_B \\mathtt\\{Tcom\\}\, m'\\}\n" \

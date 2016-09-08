@@ -147,12 +147,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">nve</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">qtb</span> <span class="n">temp</span> <span class="mi">110</span> <span class="n">damp</span> <span class="mi">200</span> <span class="n">seed</span> <span class="mi">35082</span> <span class="n">f_max</span> <span class="mf">0.3</span> <span class="n">N_f</span> <span class="mi">100</span> <span class="p">(</span><span class="n">liquid</span> <span class="n">methane</span> <span class="n">modeled</span> <span class="k">with</span> <span class="n">the</span> <span class="n">REAX</span> <span class="n">force</span> <span class="n">field</span><span class="p">,</span> <span class="n">real</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">nph</span> <span class="n">iso</span> <span class="mf">1.01325</span> <span class="mf">1.01325</span> <span class="mi">1</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">qtb</span> <span class="n">temp</span> <span class="mi">300</span> <span class="n">damp</span> <span class="mi">1</span> <span class="n">seed</span> <span class="mi">47508</span> <span class="n">f_max</span> <span class="mf">120.0</span> <span class="n">N_f</span> <span class="mi">100</span> <span class="p">(</span><span class="n">quartz</span> <span class="n">modeled</span> <span class="k">with</span> <span class="n">the</span> <span class="n">BKS</span> <span class="n">force</span> <span class="n">field</span><span class="p">,</span> <span class="n">metal</span> <span class="n">units</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all nve
+fix 1 all qtb temp 110 damp 200 seed 35082 f_max 0.3 N_f 100 (liquid methane modeled with the REAX force field, real units)
+fix 2 all nph iso 1.01325 1.01325 1
+fix 2 all qtb temp 300 damp 1 seed 47508 f_max 120.0 N_f 100 (quartz modeled with the BKS force field, metal units)
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -219,7 +219,7 @@ runs on different numbers of processors.</p>
 vibrational modes with frequencies higher than <em>f_max</em> will not be
 modulated. If we denote &amp;Delta;&lt;i&gt;t&lt;/i&gt; as the time interval for the
 MD integration, <em>f_max</em> is always reset by the code to make
-&lt;i&gt;&amp;alpha;&lt;/i&gt; = (int)(2<em>f_max</em>&amp;Delta;&lt;i&gt;t&lt;/i&gt;)&lt;sup&gt;&lt;i&gt;-1&lt;/i&gt;&lt;/sup&gt; a
+&lt;i&gt;&amp;alpha;&lt;/i&gt; = (int)(2*f_max*&amp;Delta;&lt;i&gt;t&lt;/i&gt;)&lt;sup&gt;&lt;i&gt;-1&lt;/i&gt;&lt;/sup&gt; a
 positive integer and print out relative information. An appropriate
 value for the cutoff frequency <em>f_max</em> would be around 2~3
 &lt;i&gt;f&lt;/i&gt;&lt;sub&gt;D&lt;/sub&gt;, where &lt;i&gt;f&lt;/i&gt;&lt;sub&gt;D&lt;/sub&gt; is the Debye

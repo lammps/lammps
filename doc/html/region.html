@@ -193,14 +193,14 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">region</span> <span class="mi">1</span> <span class="n">block</span> <span class="o">-</span><span class="mf">3.0</span> <span class="mf">5.0</span> <span class="n">INF</span> <span class="mf">10.0</span> <span class="n">INF</span> <span class="n">INF</span>
-<span class="n">region</span> <span class="mi">2</span> <span class="n">sphere</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mi">5</span> <span class="n">side</span> <span class="n">out</span>
-<span class="n">region</span> <span class="n">void</span> <span class="n">cylinder</span> <span class="n">y</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">5</span> <span class="o">-</span><span class="mf">5.0</span> <span class="n">EDGE</span> <span class="n">units</span> <span class="n">box</span>
-<span class="n">region</span> <span class="mi">1</span> <span class="n">prism</span> <span class="mi">0</span> <span class="mi">10</span> <span class="mi">0</span> <span class="mi">10</span> <span class="mi">0</span> <span class="mi">10</span> <span class="mi">2</span> <span class="mi">0</span> <span class="mi">0</span>
-<span class="n">region</span> <span class="n">outside</span> <span class="n">union</span> <span class="mi">4</span> <span class="n">side1</span> <span class="n">side2</span> <span class="n">side3</span> <span class="n">side4</span>
-<span class="n">region</span> <span class="mi">2</span> <span class="n">sphere</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mi">5</span> <span class="n">side</span> <span class="n">out</span> <span class="n">move</span> <span class="n">v_left</span> <span class="n">v_up</span> <span class="n">NULL</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+region 1 block -3.0 5.0 INF 10.0 INF INF
+region 2 sphere 0.0 0.0 0.0 5 side out
+region void cylinder y 2 3 5 -5.0 EDGE units box
+region 1 prism 0 10 0 10 0 10 2 0 0
+region outside union 4 side1 side2 side3 side4
+region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -380,18 +380,18 @@ fashion.  For the latter, see the <em>start</em> and <em>stop</em> keywords of t
 <p>For example, these commands would displace a region from its initial
 position, in the positive x direction, effectively at a constant
 velocity:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">dx</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">region</span> <span class="mi">2</span> <span class="n">sphere</span> <span class="mf">10.0</span> <span class="mf">10.0</span> <span class="mf">0.0</span> <span class="mi">5</span> <span class="n">move</span> <span class="n">v_dx</span> <span class="n">NULL</span> <span class="n">NULL</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable dx equal ramp(0,10)
+region 2 sphere 10.0 10.0 0.0 5 move v_dx NULL NULL
+</pre>
 <p>Note that the initial displacemet is 0.0, though that is not required.</p>
 <p>Either of these varaibles would &#8220;wiggle&#8221; the region back and forth in
 the y direction:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">dy</span> <span class="n">equal</span> <span class="n">swiggle</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">variable</span> <span class="n">dysame</span> <span class="n">equal</span> <span class="mi">5</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">PI</span><span class="o">*</span><span class="n">elaplong</span><span class="o">*</span><span class="n">dt</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span>
-<span class="n">region</span> <span class="mi">2</span> <span class="n">sphere</span> <span class="mf">10.0</span> <span class="mf">10.0</span> <span class="mf">0.0</span> <span class="mi">5</span> <span class="n">move</span> <span class="n">NULL</span> <span class="n">v_dy</span> <span class="n">NULL</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable dy equal swiggle(0,5,100)
+variable dysame equal 5*sin(2*PI*elaplong*dt/100)
+region 2 sphere 10.0 10.0 0.0 5 move NULL v_dy NULL
+</pre>
 <p>The <em>rotate</em> keyword rotates the region around a rotation axis <em>R</em> =
 (Rx,Ry,Rz) that goes thru a point <em>P</em> = (Px,Py,Pz).  The rotation
 angle is calculated, presumably as a function of time, by a variable

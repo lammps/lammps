@@ -45,7 +45,8 @@ in some force fields trans = 0 degrees. :ulb,l
 Some force fields reverse the sign convention on {d}. :l
 
 Some force fields let {n} be positive or negative which corresponds to
-{d} = 1 or -1 for the harmonic style. :ule,l
+{d} = 1 or -1 for the harmonic style. :l
+:ule
 
 :line
 

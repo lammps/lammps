@@ -61,6 +61,24 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   minimize_style = NULL;
   minimize = NULL;
 
+  integrate_map = new IntegrateCreatorMap();
+
+#define INTEGRATE_CLASS
+#define IntegrateStyle(key,Class) \
+  (*integrate_map)[#key] = &integrate_creator<Class>;
+#include "style_integrate.h"
+#undef IntegrateStyle
+#undef INTEGRATE_CLASS
+
+  minimize_map = new MinimizeCreatorMap();
+
+#define MINIMIZE_CLASS
+#define MinimizeStyle(key,Class) \
+  (*minimize_map)[#key] = &minimize_creator<Class>;
+#include "style_minimize.h"
+#undef MinimizeStyle
+#undef MINIMIZE_CLASS
+
   str = (char *) "verlet";
   create_integrate(1,&str,1);
 
@@ -79,6 +97,9 @@ Update::~Update()
 
   delete [] minimize_style;
   delete minimize;
+
+  delete integrate_map;
+  delete minimize_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -319,52 +340,43 @@ void Update::new_integrate(char *style, int narg, char **arg,
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      int success = 1;
-
-      if (0) return;
-
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) integrate = new Class(lmp,narg,arg);
-#include "style_integrate.h"
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
-
-      else success = 0;
-      if (success) return;
+      if (integrate_map->find(estyle) != integrate_map->end()) {
+        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        integrate = integrate_creator(lmp, narg, arg);
+        return;
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-      int success = 1;
-
-      if (0) return;
-
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) integrate = new Class(lmp,narg,arg);
-#include "style_integrate.h"
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
-
-      else success = 0;
-      if (success) return;
+      if (integrate_map->find(estyle) != integrate_map->end()) {
+        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        integrate = integrate_creator(lmp, narg, arg);
+        return;
+      }
     }
   }
 
   sflag = 0;
-  if (0) return;
+  if (integrate_map->find(style) != integrate_map->end()) {
+    IntegrateCreator integrate_creator = (*integrate_map)[style];
+    integrate = integrate_creator(lmp, narg, arg);
+    return;
+  }
 
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) integrate = new Class(lmp,narg,arg);
-#include "style_integrate.h"
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
+  error->all(FLERR,"Illegal integrate style");
+}
 
-  else error->all(FLERR,"Illegal integrate style");
+/* ----------------------------------------------------------------------
+   one instance per integrate style in style_integrate.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Integrate *Update::integrate_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -376,19 +388,25 @@ void Update::create_minimize(int narg, char **arg)
   delete [] minimize_style;
   delete minimize;
 
-  if (0) return;      // dummy line to enable else-if macro expansion
-
-#define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) minimize = new Class(lmp);
-#include "style_minimize.h"
-#undef MINIMIZE_CLASS
-
+  if (minimize_map->find(arg[0]) != minimize_map->end()) {
+    MinimizeCreator minimize_creator = (*minimize_map)[arg[0]];
+    minimize = minimize_creator(lmp);
+  }
   else error->all(FLERR,"Illegal min_style command");
 
   int n = strlen(arg[0]) + 1;
   minimize_style = new char[n];
   strcpy(minimize_style,arg[0]);
+}
+
+/* ----------------------------------------------------------------------
+   one instance per minimize style in style_minimize.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Min *Update::minimize_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

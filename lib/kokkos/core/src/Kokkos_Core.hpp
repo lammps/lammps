@@ -159,8 +159,6 @@ void * kokkos_realloc( void * arg_alloc , const size_t arg_alloc_size )
 } // namespace Kokkos
 
 
-#if KOKKOS_USING_EXP_VIEW
-
 namespace Kokkos {
 
 using Kokkos::Experimental::kokkos_malloc ;
@@ -168,76 +166,6 @@ using Kokkos::Experimental::kokkos_realloc ;
 using Kokkos::Experimental::kokkos_free ;
 
 }
-
-#else
-
-namespace Kokkos {
-
-namespace Impl {
-// should only by used by kokkos_malloc and kokkos_free
-struct MallocHelper
-{
-  static void increment_ref_count( AllocationTracker const & tracker )
-  {
-    tracker.increment_ref_count();
-  }
-
-  static void decrement_ref_count( AllocationTracker const & tracker )
-  {
-    tracker.decrement_ref_count();
-  }
-};
-} // namespace Impl
-
-/* Allocate memory from a memory space.
- * The allocation is tracked in Kokkos memory tracking system, so
- * leaked memory can be identified.
- */
-template< class Arg = DefaultExecutionSpace>
-void* kokkos_malloc(const std::string label, size_t count) {
-  if(count == 0) return NULL;
-  typedef typename Arg::memory_space MemorySpace;
-  Impl::AllocationTracker tracker = MemorySpace::allocate_and_track(label,count);;
-  Impl::MallocHelper::increment_ref_count( tracker );
-  return tracker.alloc_ptr();
-}
-
-template< class Arg = DefaultExecutionSpace>
-void* kokkos_malloc(const size_t& count) {
-  return kokkos_malloc<Arg>("DefaultLabel",count);
-}
-
-
-/* Free memory from a memory space.
- */
-template< class Arg = DefaultExecutionSpace>
-void kokkos_free(const void* ptr) {
-  typedef typename Arg::memory_space MemorySpace;
-  typedef typename MemorySpace::allocator allocator;
-  Impl::AllocationTracker tracker = Impl::AllocationTracker::find<allocator>(ptr);
-  if (tracker.is_valid()) {
-    Impl::MallocHelper::decrement_ref_count( tracker );
-  }
-}
-
-
-template< class Arg = DefaultExecutionSpace>
-void* kokkos_realloc(const void* old_ptr, size_t size) {
-  if(old_ptr == NULL)
-    return kokkos_malloc<Arg>(size);
-
-  typedef typename Arg::memory_space MemorySpace;
-  typedef typename MemorySpace::allocator allocator;
-  Impl::AllocationTracker tracker = Impl::AllocationTracker::find<allocator>(old_ptr);
-
-  tracker.reallocate(size);
-
-  return tracker.alloc_ptr();
-}
-
-} // namespace Kokkos
-
-#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

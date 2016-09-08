@@ -541,7 +541,7 @@ void PairVashishta::setup_params()
 /* ---------------------------------------------------------------------- */
 
 void PairVashishta::twobody(Param *param, double rsq, double &fforce,
-                     int eflag, double &eng)
+                            int eflag, double &eng)
 {
   double r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
 

@@ -84,10 +84,9 @@ struct SuperScalar {
   }
 
   KOKKOS_INLINE_FUNCTION
-  volatile SuperScalar& operator = (const SuperScalar& src) volatile  {
+  void operator = (const SuperScalar& src) volatile  {
     for(int i=0; i<N; i++)
       val[i] = src.val[i];
-    return *this;
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -208,6 +207,10 @@ T AddLoopSerial(int loop) {
   return val;
 }
 
+//------------------------------------------------------
+//--------------atomic_compare_exchange-----------------
+//------------------------------------------------------
+
 template<class T,class DEVICE_TYPE>
 struct CASFunctor{
   typedef DEVICE_TYPE execution_space;
@@ -269,6 +272,10 @@ T CASLoopSerial(int loop) {
   delete [] data;
   return val;
 }
+
+//----------------------------------------------
+//--------------atomic_exchange-----------------
+//----------------------------------------------
 
 template<class T,class DEVICE_TYPE>
 struct ExchFunctor{

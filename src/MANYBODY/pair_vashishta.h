@@ -17,8 +17,8 @@ PairStyle(vashishta,PairVashishta)
 
 #else
 
-#ifndef LMP_PAIR_Vashishta_H
-#define LMP_PAIR_Vashishta_H
+#ifndef LMP_PAIR_VASHISHITA_H
+#define LMP_PAIR_VASHISHITA_H
 
 #include "pair.h"
 
@@ -29,10 +29,10 @@ class PairVashishta : public Pair {
   PairVashishta(class LAMMPS *);
   virtual ~PairVashishta();
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
+  double init_one(int, int);
+  void init_style();
 
  protected:
   struct Param {
@@ -55,9 +55,9 @@ class PairVashishta : public Pair {
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
 
-  virtual void allocate();
+  void allocate();
   void read_file(char *);
-  void setup_params();
+  virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);

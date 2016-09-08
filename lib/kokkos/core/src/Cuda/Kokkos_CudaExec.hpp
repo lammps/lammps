@@ -124,14 +124,30 @@ unsigned long kokkos_impl_cuda_constant_memory_buffer[ Kokkos::Impl::CudaTraits:
 
 #endif
 
+
+namespace Kokkos {
+namespace Impl {
+  struct CudaLockArraysStruct {
+    int* atomic;
+    int* scratch;
+    int* threadid;
+  };
+}
+}
 __device__ __constant__
 #ifdef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
 extern
 #endif
-int* kokkos_impl_cuda_atomic_lock_array ;
+Kokkos::Impl::CudaLockArraysStruct kokkos_impl_cuda_lock_arrays ;
 
 #define CUDA_SPACE_ATOMIC_MASK 0x1FFFF
 #define CUDA_SPACE_ATOMIC_XOR_MASK 0x15A39
+
+namespace Kokkos {
+namespace Impl {
+  void* cuda_resize_scratch_space(size_t bytes, bool force_shrink = false);
+}
+}
 
 namespace Kokkos {
 namespace Impl {
@@ -140,8 +156,7 @@ bool lock_address_cuda_space(void* ptr) {
   size_t offset = size_t(ptr);
   offset = offset >> 2;
   offset = offset & CUDA_SPACE_ATOMIC_MASK;
-  //offset = offset xor CUDA_SPACE_ATOMIC_XOR_MASK;
-  return (0 == atomicCAS(&kokkos_impl_cuda_atomic_lock_array[offset],0,1));
+  return (0 == atomicCAS(&kokkos_impl_cuda_lock_arrays.atomic[offset],0,1));
 }
 
 __device__ inline
@@ -149,8 +164,7 @@ void unlock_address_cuda_space(void* ptr) {
   size_t offset = size_t(ptr);
   offset = offset >> 2;
   offset = offset & CUDA_SPACE_ATOMIC_MASK;
-  //offset = offset xor CUDA_SPACE_ATOMIC_XOR_MASK;
-  atomicExch( &kokkos_impl_cuda_atomic_lock_array[ offset ], 0);
+  atomicExch( &kokkos_impl_cuda_lock_arrays.atomic[ offset ], 0);
 }
 
 }
@@ -232,8 +246,11 @@ struct CudaParallelLaunch< DriverType , true > {
       cudaMemcpyToSymbol( kokkos_impl_cuda_constant_memory_buffer , & driver , sizeof(DriverType) );
 
       #ifndef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
-      int* lock_array_ptr = lock_array_cuda_space_ptr();
-      cudaMemcpyToSymbol( kokkos_impl_cuda_atomic_lock_array , & lock_array_ptr , sizeof(int*) );
+      Kokkos::Impl::CudaLockArraysStruct locks;
+      locks.atomic = atomic_lock_array_cuda_space_ptr(false);
+      locks.scratch = scratch_lock_array_cuda_space_ptr(false);
+      locks.threadid = threadid_lock_array_cuda_space_ptr(false);
+      cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
       #endif
 
       // Invoke the driver function on the device
@@ -271,8 +288,11 @@ struct CudaParallelLaunch< DriverType , false > {
       #endif
 
       #ifndef KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE
-      int* lock_array_ptr = lock_array_cuda_space_ptr();
-      cudaMemcpyToSymbol( kokkos_impl_cuda_atomic_lock_array , & lock_array_ptr , sizeof(int*) );
+      Kokkos::Impl::CudaLockArraysStruct locks;
+      locks.atomic = atomic_lock_array_cuda_space_ptr(false);
+      locks.scratch = scratch_lock_array_cuda_space_ptr(false);
+      locks.threadid = threadid_lock_array_cuda_space_ptr(false);
+      cudaMemcpyToSymbol( kokkos_impl_cuda_lock_arrays , & locks , sizeof(CudaLockArraysStruct) );
       #endif
 
       cuda_parallel_launch_local_memory< DriverType ><<< grid , block , shmem , stream >>>( driver );

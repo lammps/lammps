@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -66,6 +66,7 @@
 #include <TestViewOfClass.hpp>
 #include <TestViewSubview.hpp>
 #include <TestAtomic.hpp>
+#include <TestAtomicOperations.hpp>
 #include <TestRange.hpp>
 #include <TestTeam.hpp>
 #include <TestReduce.hpp>
@@ -85,6 +86,8 @@
 
 #include <TestPolicyConstruction.hpp>
 
+#include <TestMDRange.hpp>
+
 namespace Test {
 
 class serial : public ::testing::Test {
@@ -98,6 +101,12 @@ protected:
       Kokkos::HostSpace::execution_space::finalize();
     }
 };
+
+TEST_F( serial , md_range ) {
+  TestMDRange_2D< Kokkos::Serial >::test_for2(100,100);
+
+  TestMDRange_3D< Kokkos::Serial >::test_for3(100,100,100);
+}
 
 TEST_F( serial , impl_shared_alloc ) {
   test_shared_alloc< Kokkos::HostSpace , Kokkos::Serial >();
@@ -199,6 +208,14 @@ TEST_F( serial, double_reduce) {
   TestReduce< double ,   Kokkos::Serial >( 1000000 );
 }
 
+TEST_F( serial , reducers )
+{
+  TestReducers<int, Kokkos::Serial>::execute_integer();
+  TestReducers<size_t, Kokkos::Serial>::execute_integer();
+  TestReducers<double, Kokkos::Serial>::execute_float();
+  TestReducers<Kokkos::complex<double>, Kokkos::Serial>::execute_basic();
+}
+
 TEST_F( serial, long_reduce_dynamic ) {
   TestReduceDynamic< long ,   Kokkos::Serial >( 1000000 );
 }
@@ -237,12 +254,16 @@ TEST_F( serial , team_shared_request) {
   TestSharedTeam< Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA) 
+#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
 TEST_F( serial , team_lambda_shared_request) {
   TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Serial , Kokkos::Schedule<Kokkos::Static> >();
   TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::Serial , Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 #endif
+
+TEST_F( serial, shmem_size) {
+  TestShmemSize< Kokkos::Serial >();
+}
 
 TEST_F( serial  , team_scan )
 {
@@ -345,6 +366,74 @@ TEST_F( serial , atomics )
   ASSERT_TRUE( ( TestAtomic::Loop<TestAtomic::SuperScalar<4> ,Kokkos::Serial>(100,3) ) );
 }
 
+TEST_F( serial , atomic_operations )
+{
+  const int start = 1; //Avoid zero for division
+  const int end = 11;
+  for (int i = start; i < end; ++i)
+  {
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<int,Kokkos::Serial>(start, end-i, 9 ) ) );
+
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned int,Kokkos::Serial>(start, end-i, 9 ) ) );
+
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long int,Kokkos::Serial>(start, end-i, 9 ) ) );
+
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<unsigned long int,Kokkos::Serial>(start, end-i, 9 ) ) );
+
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 4 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 5 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 6 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 7 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 8 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestIntegralType<long long int,Kokkos::Serial>(start, end-i, 9 ) ) );
+
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::Serial>(start, end-i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::Serial>(start, end-i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::Serial>(start, end-i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<double,Kokkos::Serial>(start, end-i, 4 ) ) );
+
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::Serial>(start, end-i, 1 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::Serial>(start, end-i, 2 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::Serial>(start, end-i, 3 ) ) );
+    ASSERT_TRUE( ( TestAtomicOperations::AtomicOperationsTestNonIntegralType<float,Kokkos::Serial>(start, end-i, 4 ) ) );
+  }
+
+}
 //----------------------------------------------------------------------------
 
 TEST_F( serial, tile_layout )
@@ -391,12 +480,36 @@ TEST_F( serial , memory_pool )
   bool val = TestMemoryPool::test_mempool< Kokkos::Serial >( 128, 128000000 );
   ASSERT_TRUE( val );
 
-  TestMemoryPool::test_mempool2< Kokkos::Serial >( 128, 128000000 );
+  TestMemoryPool::test_mempool2< Kokkos::Serial >( 64, 4, 1000000, 2000000 );
+
+  TestMemoryPool::test_memory_exhaustion< Kokkos::Serial >();
 }
 
 //----------------------------------------------------------------------------
 
-TEST_F( serial , task_policy )
+#if defined( KOKKOS_ENABLE_TASKPOLICY )
+
+TEST_F( serial , task_fib )
+{
+  for ( int i = 0 ; i < 25 ; ++i ) {
+    TestTaskPolicy::TestFib< Kokkos::Serial >::run(i);
+  }
+}
+
+TEST_F( serial , task_depend )
+{
+  for ( int i = 0 ; i < 25 ; ++i ) {
+    TestTaskPolicy::TestTaskDependence< Kokkos::Serial >::run(i);
+  }
+}
+
+TEST_F( serial , task_team )
+{
+  TestTaskPolicy::TestTaskTeam< Kokkos::Serial >::run(1000);
+  //TestTaskPolicy::TestTaskTeamValue< Kokkos::Serial >::run(1000); //put back after testing
+}
+
+TEST_F( serial , old_task_policy )
 {
   TestTaskPolicy::test_task_dep< Kokkos::Serial >( 10 );
   // TestTaskPolicy::test_norm2< Kokkos::Serial >( 1000 );
@@ -406,10 +519,12 @@ TEST_F( serial , task_policy )
   for ( long i = 0 ; i < 25 ; ++i ) TestTaskPolicy::test_fib2< Kokkos::Serial >(i);
 }
 
-TEST_F( serial , task_team )
+TEST_F( serial , old_task_team )
 {
   TestTaskPolicy::test_task_team< Kokkos::Serial >(1000);
 }
+
+#endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
 
 //----------------------------------------------------------------------------
 

@@ -55,9 +55,6 @@
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_Error.hpp>
 
-#include <impl/Kokkos_AllocationTracker.hpp>
-#include <impl/Kokkos_BasicAllocators.hpp>
-
 #include <impl/KokkosExp_SharedAlloc.hpp>
 
 /*--------------------------------------------------------------------------*/
@@ -127,25 +124,6 @@ public:
 
   //! This memory space preferred device_type
   typedef Kokkos::Device<execution_space,memory_space> device_type;
-
-  /*--------------------------------*/
-#if ! KOKKOS_USING_EXP_VIEW
-
-#if defined( KOKKOS_USE_PAGE_ALIGNED_HOST_MEMORY )
-  typedef Impl::PageAlignedAllocator allocator ;
-#else
-  typedef Impl::AlignedAllocator allocator ;
-#endif
-
-  /** \brief  Allocate a contiguous block of memory.
-   *
-   *  The input label is associated with the block of memory.
-   *  The block of memory is tracked via reference counting where
-   *  allocation gives it a reference count of one.
-   */
-  static Impl::AllocationTracker allocate_and_track( const std::string & label, const size_t size );
-
-#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
   /*--------------------------------*/
   /* Functions unique to the HostSpace */

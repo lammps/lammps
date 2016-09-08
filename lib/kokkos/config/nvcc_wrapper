@@ -1,17 +1,12 @@
 #!/bin/bash
 #
 # This shell script (nvcc_wrapper) wraps both the host compiler and
-# NVCC, if you are building Trilinos with CUDA enabled.  The script
-# remedies some differences between the interface of NVCC and that of
-# the host compiler, in particular for linking.  It also means that
-# Trilinos doesn't need separate .cu files; it can just use .cpp
-# files.
+# NVCC, if you are building legacy C or C++ code with CUDA enabled.
+# The script remedies some differences between the interface of NVCC
+# and that of the host compiler, in particular for linking.
+# It also means that a legacy code doesn't need separate .cu files;
+# it can just use .cpp files.
 #
-# Hopefully, at some point, NVIDIA may fix NVCC so as to make this
-# script obsolete.  For now, this script exists and if you want to
-# build Trilinos with CUDA enabled, you must use this script as your
-# compiler.
-
 # Default settings: change those according to your machine.  For
 # example, you may have have two different wrappers with either icpc
 # or g++ as their back-end compiler.  The defaults can be overwritten
@@ -53,6 +48,10 @@ object_files=""
 # Link objects for the host linker only
 object_files_xlinker=""
 
+# Shared libraries with version numbers are not handled correctly by NVCC
+shared_versioned_libraries_host=""
+shared_versioned_libraries=""
+
 # Does the User set the architecture 
 arch_set=0
 
@@ -76,6 +75,9 @@ first_xcompiler_arg=1
 
 temp_dir=${TMPDIR:-/tmp}
 
+# Check if we have an optimization argument already
+optimization_applied=0
+
 #echo "Arguments: $# $@"
 
 while [ $# -gt 0 ]
@@ -97,8 +99,17 @@ do
   *.cpp|*.cxx|*.cc|*.C|*.c++|*.cu)
     cpp_files="$cpp_files $1"
     ;;
+   # Ensure we only have one optimization flag because NVCC doesn't allow muliple
+  -O*)
+    if [ $optimization_applied -eq 1 ]; then
+       echo "nvcc_wrapper - *warning* you have set multiple optimization flags (-O*), only the first is used because nvcc can only accept a single optimization setting."
+    else
+       shared_args="$shared_args $1"
+       optimization_applied=1
+    fi
+    ;;
   #Handle shared args (valid for both nvcc and the host compiler)
-  -O*|-D*|-c|-I*|-L*|-l*|-g|--help|--version|-E|-M|-shared)
+  -D*|-c|-I*|-L*|-l*|-g|--help|--version|-E|-M|-shared)
     shared_args="$shared_args $1"
     ;;
   #Handle shared args that have an argument
@@ -107,7 +118,7 @@ do
     shift
     ;;
   #Handle known nvcc args
-  -gencode*|--dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|--resource-usage)
+  -gencode*|--dryrun|--verbose|--keep|--keep-dir*|-G|--relocatable-device-code*|-lineinfo|-expt-extended-lambda|--resource-usage|-Xptxas*)
     cuda_args="$cuda_args $1"
     ;;
   #Handle known nvcc args that have an argument
@@ -175,10 +186,15 @@ do
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;
   #Handle object files which always need to use "-Xlinker": -x cu applies to all input files, so give them to linker, except if only linking
-  *.so.*|*.dylib)
+  *.dylib)
     object_files="$object_files -Xlinker $1"
     object_files_xlinker="$object_files_xlinker -Xlinker $1"
     ;;
+  #Handle shared libraries with *.so.* names which nvcc can't do.
+  *.so.*)
+    shared_versioned_libraries_host="$shared_versioned_libraries_host $1"
+    shared_versioned_libraries="$shared_versioned_libraries -Xlinker $1"
+  ;;
   #All other args are sent to the host compiler
   *)
     if [ $first_xcompiler_arg -eq 1 ]; then
@@ -204,13 +220,13 @@ if [ $arch_set -ne 1 ]; then
 fi
 
 #Compose compilation command
-nvcc_command="nvcc $cuda_args $shared_args $xlinker_args"
+nvcc_command="nvcc $cuda_args $shared_args $xlinker_args $shared_versioned_libraries"
 if [ $first_xcompiler_arg -eq 0 ]; then
   nvcc_command="$nvcc_command -Xcompiler $xcompiler_args"
 fi
 
 #Compose host only command
-host_command="$host_compiler $shared_args $xcompiler_args $host_linker_args"
+host_command="$host_compiler $shared_args $xcompiler_args $host_linker_args $shared_versioned_libraries_host"
 
 #nvcc does not accept '#pragma ident SOME_MACRO_STRING' but it does accept '#ident SOME_MACRO_STRING'
 if [ $replace_pragma_ident -eq 1 ]; then

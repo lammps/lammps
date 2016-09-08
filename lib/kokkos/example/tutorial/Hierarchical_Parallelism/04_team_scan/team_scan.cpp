@@ -117,7 +117,7 @@ int main(int narg, char* args[]) {
   Kokkos::DualView<int**> histogram("histogram",TEAM_SIZE,TEAM_SIZE);
 
 
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
   // threads/team is automatically limited to maximum supported by the device.
   Kokkos::parallel_for( team_policy( nchunks , TEAM_SIZE )
                       , find_2_tuples(chunk_size,data,histogram) );

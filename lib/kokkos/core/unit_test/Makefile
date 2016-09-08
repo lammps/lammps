@@ -61,17 +61,16 @@ OBJ_HWLOC = TestHWLOC.o UnitTestMain.o gtest-all.o
 TARGETS += KokkosCore_UnitTest_HWLOC
 TEST_TARGETS += test-hwloc
 
-OBJ_ALLOCATIONTRACKER = TestAllocationTracker.o UnitTestMain.o gtest-all.o
-TARGETS += KokkosCore_UnitTest_AllocationTracker
-TEST_TARGETS += test-allocationtracker
-
-OBJ_DEFAULT = TestDefaultDeviceType.o UnitTestMain.o gtest-all.o
+OBJ_DEFAULT = TestDefaultDeviceType.o TestDefaultDeviceType_a.o UnitTestMain.o gtest-all.o
 TARGETS += KokkosCore_UnitTest_Default
 TEST_TARGETS += test-default
 
-OBJ_DEFAULTINIT = TestDefaultDeviceTypeInit.o UnitTestMain.o gtest-all.o
-TARGETS += KokkosCore_UnitTest_DefaultInit
-TEST_TARGETS += test-default-init
+NUM_INITTESTS = 16
+INITTESTS_NUMBERS := $(shell seq 1 ${NUM_INITTESTS})
+INITTESTS_TARGETS := $(addprefix KokkosCore_UnitTest_DefaultDeviceTypeInit_,${INITTESTS_NUMBERS})
+TARGETS += ${INITTESTS_TARGETS}
+INITTESTS_TEST_TARGETS := $(addprefix test-default-init-,${INITTESTS_NUMBERS})
+TEST_TARGETS += ${INITTESTS_TEST_TARGETS}
 
 OBJ_SYNCHRONIC = TestSynchronic.o UnitTestMain.o gtest-all.o
 TARGETS += KokkosCore_UnitTest_Synchronic
@@ -101,8 +100,8 @@ KokkosCore_UnitTest_AllocationTracker: $(OBJ_ALLOCATIONTRACKER) $(KOKKOS_LINK_DE
 KokkosCore_UnitTest_Default: $(OBJ_DEFAULT) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_DEFAULT) $(KOKKOS_LIBS) $(LIB) -o KokkosCore_UnitTest_Default
 
-KokkosCore_UnitTest_DefaultInit: $(OBJ_DEFAULTINIT) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_DEFAULTINIT) $(KOKKOS_LIBS) $(LIB) -o KokkosCore_UnitTest_DefaultInit
+${INITTESTS_TARGETS}: KokkosCore_UnitTest_DefaultDeviceTypeInit_%: TestDefaultDeviceTypeInit_%.o UnitTestMain.o gtest-all.o $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) TestDefaultDeviceTypeInit_$*.o UnitTestMain.o gtest-all.o $(KOKKOS_LIBS) $(LIB) -o KokkosCore_UnitTest_DefaultDeviceTypeInit_$*
 
 KokkosCore_UnitTest_Synchronic: $(OBJ_SYNCHRONIC) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_SYNCHRONIC) $(KOKKOS_LIBS) $(LIB) -o KokkosCore_UnitTest_Synchronic
@@ -131,8 +130,8 @@ test-allocationtracker: KokkosCore_UnitTest_AllocationTracker
 test-default: KokkosCore_UnitTest_Default
 	./KokkosCore_UnitTest_Default
 
-test-default-init: KokkosCore_UnitTest_DefaultInit
-	./KokkosCore_UnitTest_DefaultInit
+${INITTESTS_TEST_TARGETS}: test-default-init-%: KokkosCore_UnitTest_DefaultDeviceTypeInit_%
+	./KokkosCore_UnitTest_DefaultDeviceTypeInit_$*
 
 test-synchronic: KokkosCore_UnitTest_Synchronic
 	./KokkosCore_UnitTest_Synchronic

@@ -252,7 +252,7 @@ struct HexGrad
     execution_space::fence();
 
     for ( int i = 0 ; i < iter ; ++i ) {
-      Kokkos::Impl::Timer timer ;
+      Kokkos::Timer timer ;
       Kokkos::parallel_for( count , HexGrad<execution_space>( coord , grad ) );
       execution_space::fence();
       const double dt = timer.seconds();

@@ -116,7 +116,7 @@ void sort_array( const size_t array_length /* length of spans of array to sort *
 
 #endif
 
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
 
   const device_array_type  work_array("work_array" , array_length );
   const host_array_type    host_array("host_array" , total_length );

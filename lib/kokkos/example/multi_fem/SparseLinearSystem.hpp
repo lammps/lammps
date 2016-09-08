@@ -243,7 +243,7 @@ void cgsolve(
   normr     = sqrt( old_rdot );
   iteration = 0 ;
 
-  Kokkos::Impl::Timer wall_clock ;
+  Kokkos::Timer wall_clock ;
 
   while ( tolerance < normr && iteration < maximum_iteration ) {
 

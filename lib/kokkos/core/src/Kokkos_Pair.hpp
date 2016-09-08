@@ -1,12 +1,12 @@
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,7 +35,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 
@@ -125,17 +125,26 @@ struct pair
     return *this;
   }
 
-  /// \brief Assignment operator.
+
+  /// \brief Assignment operator, for volatile <tt>*this</tt>.
   ///
-  /// This calls the assignment operators of T1 and T2.  It won't
+  /// \param p [in] Input; right-hand side of the assignment.
+  ///
+  /// This calls the assignment operators of T1 and T2.  It will not
   /// compile if the assignment operators are not defined and public.
+  ///
+  /// This operator returns \c void instead of <tt>volatile pair<T1,
+  /// T2>& </tt>.  See Kokkos Issue #177 for the explanation.  In
+  /// practice, this means that you should not chain assignments with
+  /// volatile lvalues.
   template <class U, class V>
   KOKKOS_FORCEINLINE_FUNCTION
-  volatile pair<T1, T2> & operator=(const volatile pair<U,V> &p) volatile
+  void operator=(const volatile pair<U,V> &p) volatile
   {
     first = p.first;
     second = p.second;
-    return *this;
+    // We deliberately do not return anything here.  See explanation
+    // in public documentation above.
   }
 
   // from std::pair<U,V>

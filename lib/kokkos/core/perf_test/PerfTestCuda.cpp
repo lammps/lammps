@@ -159,7 +159,7 @@ struct TextureFetch
 
     Kokkos::Cuda::fence();
 
-    Kokkos::Impl::Timer timer;
+    Kokkos::Timer timer;
     for (int j=0; j<10; ++j) {
       RandomReduce f(array,indexes);
       f.apply(reduce);

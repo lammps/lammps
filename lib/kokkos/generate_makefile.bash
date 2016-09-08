@@ -107,7 +107,7 @@ case $key in
     exit 0
     ;;
     *)
-            # unknown option
+    echo "warning: ignoring unknown option $key"
     ;;
 esac
 shift

@@ -9,15 +9,20 @@
 pair_style vashishta command :h3
 pair_style vashishta/omp command :h3
 pair_style vashishta/table command :h3
+pair_style vashishta/table/omp command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {vashishta} or {vashishta/table}
+style = {vashishta} or {vashishta/table} or {vashishta/omp} or {vashishta/table/omp}
 args = list of arguments for a particular style :ul
   {vashishta} args = none
+  {vashishta/omp} args = none
   {vashishta/table} args = Ntable cutinner
+    Ntable = # of tabulation points
+    cutinner = tablulate from cutinner to cutoff
+  {vashishta/table/omp} args = Ntable cutinner
     Ntable = # of tabulation points
     cutinner = tablulate from cutinner to cutoff :pre
 
@@ -60,7 +65,9 @@ equally spaced in R^2 space from cutinner^2 to cutoff^2.  For the
 two-body term in the above equation, a linear interpolation for each
 pairwise distance between adjacent points in the table.  In practice
 the tabulated version can run 3-5x faster than the analytic version
-with little loss of accuracy for Ntable = ???.
+with with moderate to little loss of accuracy for Ntable values
+between 10000 and 1000000. It is not recommended to use less than
+5000 tabulation points.
 
 Only a single pair_coeff command is used with either style which
 specifies a Vashishta potential file with parameters for all needed

@@ -48,43 +48,40 @@ class Force : protected Pointers {
   class Pair *pair;
   char *pair_style;
 
-  typedef Pair *(*PairCreator)(LAMMPS *);
-  typedef std::map<std::string,PairCreator> PairCreatorMap;
-  PairCreatorMap *pair_map;
-
   class Bond *bond;
   char *bond_style;
-
-  typedef Bond *(*BondCreator)(LAMMPS *);
-  typedef std::map<std::string,BondCreator> BondCreatorMap;
-  BondCreatorMap *bond_map;
 
   class Angle *angle;
   char *angle_style;
 
-  typedef Angle *(*AngleCreator)(LAMMPS *);
-  typedef std::map<std::string,AngleCreator> AngleCreatorMap;
-  AngleCreatorMap *angle_map;
-
   class Dihedral *dihedral;
   char *dihedral_style;
-
-  typedef Dihedral *(*DihedralCreator)(LAMMPS *);
-  typedef std::map<std::string,DihedralCreator> DihedralCreatorMap;
-  DihedralCreatorMap *dihedral_map;
 
   class Improper *improper;
   char *improper_style;
 
-  typedef Improper *(*ImproperCreator)(LAMMPS *);
-  typedef std::map<std::string,ImproperCreator> ImproperCreatorMap;
-  ImproperCreatorMap *improper_map;
-
   class KSpace *kspace;
   char *kspace_style;
 
+  typedef Pair *(*PairCreator)(LAMMPS *);
+  typedef Bond *(*BondCreator)(LAMMPS *);
+  typedef Angle *(*AngleCreator)(LAMMPS *);
+  typedef Dihedral *(*DihedralCreator)(LAMMPS *);
+  typedef Improper *(*ImproperCreator)(LAMMPS *);
   typedef KSpace *(*KSpaceCreator)(LAMMPS *,int,char**);
+
+  typedef std::map<std::string,PairCreator> PairCreatorMap;
+  typedef std::map<std::string,BondCreator> BondCreatorMap;
+  typedef std::map<std::string,AngleCreator> AngleCreatorMap;
+  typedef std::map<std::string,DihedralCreator> DihedralCreatorMap;
+  typedef std::map<std::string,ImproperCreator> ImproperCreatorMap;
   typedef std::map<std::string,KSpaceCreator> KSpaceCreatorMap;
+
+  PairCreatorMap *pair_map;
+  BondCreatorMap *bond_map;
+  AngleCreatorMap *angle_map;
+  DihedralCreatorMap *dihedral_map;
+  ImproperCreatorMap *improper_map;
   KSpaceCreatorMap *kspace_map;
 
                              // index [0] is not used in these arrays

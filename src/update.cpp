@@ -70,6 +70,15 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
 #undef IntegrateStyle
 #undef INTEGRATE_CLASS
 
+  minimize_map = new MinimizeCreatorMap();
+
+#define MINIMIZE_CLASS
+#define MinimizeStyle(key,Class) \
+  (*minimize_map)[#key] = &minimize_creator<Class>;
+#include "style_minimize.h"
+#undef MinimizeStyle
+#undef MINIMIZE_CLASS
+
   str = (char *) "verlet";
   create_integrate(1,&str,1);
 
@@ -90,6 +99,7 @@ Update::~Update()
   delete minimize;
 
   delete integrate_map;
+  delete minimize_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -378,19 +388,25 @@ void Update::create_minimize(int narg, char **arg)
   delete [] minimize_style;
   delete minimize;
 
-  if (0) return;      // dummy line to enable else-if macro expansion
-
-#define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) minimize = new Class(lmp);
-#include "style_minimize.h"
-#undef MINIMIZE_CLASS
-
+  if (minimize_map->find(arg[0]) != minimize_map->end()) {
+    MinimizeCreator minimize_creator = (*minimize_map)[arg[0]];
+    minimize = minimize_creator(lmp);
+  }
   else error->all(FLERR,"Illegal min_style command");
 
   int n = strlen(arg[0]) + 1;
   minimize_style = new char[n];
   strcpy(minimize_style,arg[0]);
+}
+
+/* ----------------------------------------------------------------------
+   one instance per minimize style in style_minimize.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Min *Update::minimize_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

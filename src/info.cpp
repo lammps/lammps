@@ -596,10 +596,11 @@ void Info::minimize_styles(FILE * out)
   fprintf(out, "\nMinimize styles:\n");
 
   vector<string> styles;
-#define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) styles.push_back(#key);
-#include "style_minimize.h"
-#undef MINIMIZE_CLASS
+
+  for(Update::MinimizeCreatorMap::iterator it = update->minimize_map->begin(); it != update->minimize_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

@@ -52,8 +52,13 @@ class Update : protected Pointers {
   int rng_seed;                   // global seed for pRNGs
 
   typedef Integrate *(*IntegrateCreator)(LAMMPS *,int,char**);
+  typedef Min *(*MinimizeCreator)(LAMMPS *);
+
   typedef std::map<std::string,IntegrateCreator> IntegrateCreatorMap;
+  typedef std::map<std::string,MinimizeCreator> MinimizeCreatorMap;
+
   IntegrateCreatorMap *integrate_map;
+  MinimizeCreatorMap *minimize_map;
 
   Update(class LAMMPS *);
   ~Update();
@@ -71,6 +76,7 @@ class Update : protected Pointers {
   void new_integrate(char *, int, char **, int, int &);
 
   template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
+  template <typename T> static Min *minimize_creator(LAMMPS *);
 };
 
 }

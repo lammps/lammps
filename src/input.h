@@ -53,10 +53,12 @@ class Input : protected Pointers {
 
   FILE **infiles;              // list of open input files
 
- protected:
+ public:
   typedef void (*CommandCreator)(LAMMPS *, int, char **);
-  std::map<std::string,CommandCreator> *command_map;
+  typedef std::map<std::string,CommandCreator> CommandCreatorMap;
+  CommandCreatorMap *command_map;
 
+ protected:
   template <typename T> static void command_creator(LAMMPS *, int, char **);
 
  private:

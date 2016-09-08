@@ -219,6 +219,15 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   datamask = ALL_MASK;
   datamask_ext = ALL_MASK;
+
+  avec_map = new AtomVecCreatorMap();
+
+#define ATOM_CLASS
+#define AtomStyle(key,Class) \
+  (*avec_map)[#key] = &avec_creator<Class>;
+#include "style_atom.h"
+#undef AtomStyle
+#undef ATOM_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -227,6 +236,7 @@ Atom::~Atom()
 {
   delete [] atom_style;
   delete avec;
+  delete avec_map;
 
   delete [] firstgroupname;
   memory->destroy(binhead);
@@ -466,44 +476,41 @@ AtomVec *Atom::new_avec(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define ATOM_CLASS
-#define AtomStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_atom.h"
-#undef AtomStyle
-#undef ATOM_CLASS
+      if (avec_map->find(estyle) != avec_map->end()) {
+        AtomVecCreator avec_creator = (*avec_map)[estyle];
+        return avec_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define ATOM_CLASS
-#define AtomStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_atom.h"
-#undef AtomStyle
-#undef ATOM_CLASS
+      if (avec_map->find(estyle) != avec_map->end()) {
+        AtomVecCreator avec_creator = (*avec_map)[estyle];
+        return avec_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
-  if (0) return NULL;
+  if (avec_map->find(style) != avec_map->end()) {
+    AtomVecCreator avec_creator = (*avec_map)[style];
+    return avec_creator(lmp);
+  }
 
-#define ATOM_CLASS
-#define AtomStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_atom.h"
-#undef ATOM_CLASS
-
-  else error->all(FLERR,"Unknown atom style");
+  error->all(FLERR,"Unknown atom style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per AtomVec style in style_atom.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+AtomVec *Atom::avec_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */

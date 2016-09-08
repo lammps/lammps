@@ -93,7 +93,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 
   // fill map with commands listed in style_command.h
 
-  command_map = new std::map<std::string,CommandCreator>();
+  command_map = new CommandCreatorMap();
 
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) \

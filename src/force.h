@@ -82,6 +82,11 @@ class Force : protected Pointers {
 
   class KSpace *kspace;
   char *kspace_style;
+
+  typedef KSpace *(*KSpaceCreator)(LAMMPS *,int,char**);
+  typedef std::map<std::string,KSpaceCreator> KSpaceCreatorMap;
+  KSpaceCreatorMap *kspace_map;
+
                              // index [0] is not used in these arrays
   double special_lj[4];      // 1-2, 1-3, 1-4 prefactors for LJ
   double special_coul[4];    // 1-2, 1-3, 1-4 prefactors for Coulombics
@@ -142,6 +147,7 @@ class Force : protected Pointers {
   template <typename T> static Angle *angle_creator(LAMMPS *);
   template <typename T> static Dihedral *dihedral_creator(LAMMPS *);
   template <typename T> static Improper *improper_creator(LAMMPS *);
+  template <typename T> static KSpace *kspace_creator(LAMMPS *, int, char **);
 };
 
 }

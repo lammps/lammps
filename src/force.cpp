@@ -163,6 +163,7 @@ Force::~Force()
   delete angle_map;
   delete dihedral_map;
   delete improper_map;
+  delete kspace_map;
 }
 
 /* ---------------------------------------------------------------------- */

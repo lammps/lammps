@@ -61,6 +61,15 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   minimize_style = NULL;
   minimize = NULL;
 
+  integrate_map = new IntegrateCreatorMap();
+
+#define INTEGRATE_CLASS
+#define IntegrateStyle(key,Class) \
+  (*integrate_map)[#key] = &integrate_creator<Class>;
+#include "style_integrate.h"
+#undef IntegrateStyle
+#undef INTEGRATE_CLASS
+
   str = (char *) "verlet";
   create_integrate(1,&str,1);
 
@@ -79,6 +88,8 @@ Update::~Update()
 
   delete [] minimize_style;
   delete minimize;
+
+  delete integrate_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -319,52 +330,43 @@ void Update::new_integrate(char *style, int narg, char **arg,
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      int success = 1;
-
-      if (0) return;
-
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) integrate = new Class(lmp,narg,arg);
-#include "style_integrate.h"
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
-
-      else success = 0;
-      if (success) return;
+      if (integrate_map->find(estyle) != integrate_map->end()) {
+        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        integrate = integrate_creator(lmp, narg, arg);
+        return;
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-      int success = 1;
-
-      if (0) return;
-
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) integrate = new Class(lmp,narg,arg);
-#include "style_integrate.h"
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
-
-      else success = 0;
-      if (success) return;
+      if (integrate_map->find(estyle) != integrate_map->end()) {
+        IntegrateCreator integrate_creator = (*integrate_map)[estyle];
+        integrate = integrate_creator(lmp, narg, arg);
+        return;
+      }
     }
   }
 
   sflag = 0;
-  if (0) return;
+  if (integrate_map->find(style) != integrate_map->end()) {
+    IntegrateCreator integrate_creator = (*integrate_map)[style];
+    integrate = integrate_creator(lmp, narg, arg);
+    return;
+  }
 
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) integrate = new Class(lmp,narg,arg);
-#include "style_integrate.h"
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
+  error->all(FLERR,"Illegal integrate style");
+}
 
-  else error->all(FLERR,"Illegal integrate style");
+/* ----------------------------------------------------------------------
+   one instance per integrate style in style_integrate.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Integrate *Update::integrate_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
 }
 
 /* ---------------------------------------------------------------------- */

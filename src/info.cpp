@@ -735,10 +735,11 @@ void Info::dump_styles(FILE * out)
   fprintf(out, "\nDump styles:\n");
 
   vector<string> styles;
-#define DUMP_CLASS
-#define DumpStyle(key,Class) styles.push_back(#key);
-#include "style_dump.h"
-#undef DUMP_CLASS
+
+  for(Output::DumpCreatorMap::iterator it = output->dump_map->begin(); it != output->dump_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

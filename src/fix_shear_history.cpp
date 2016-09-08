@@ -29,13 +29,13 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NPARTNER,PERPARTNER};
+enum{DEFAULT,NPARTNER,PERPARTNER};
 
 /* ---------------------------------------------------------------------- */
 
 FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  npartner(NULL), partner(NULL), shearpartner(NULL), ipage(NULL), dpage(NULL)
+  npartner(NULL), partner(NULL), shearpartner(NULL), pair(NULL), ipage(NULL), dpage(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY commmand");
 
@@ -71,6 +71,7 @@ FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   maxtouch = 0;
 
   nlocal_neigh = nall_neigh = 0;
+  commflag = DEFAULT;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,6 +88,14 @@ FixShearHistory::~FixShearHistory()
   memory->destroy(npartner);
   memory->sfree(partner);
   memory->sfree(shearpartner);
+
+  // to better detect use-after-delete errors
+
+  pair = NULL;
+  npartner = NULL;
+  partner = NULL;
+  shearpartner = NULL;
+
   delete [] ipage;
   delete [] dpage;
 }
@@ -609,7 +618,7 @@ int FixShearHistory::pack_reverse_comm(int n, int first, double *buf)
         m += dnum;
       }
     }
-  }
+  } else error->all(FLERR,"Unsupported comm mode in shear history");
 
   return m;
 }
@@ -640,7 +649,7 @@ void FixShearHistory::unpack_reverse_comm(int n, int *list, double *buf)
         m += dnum;
       }
     }
-  }
+  } else error->all(FLERR,"Unsupported comm mode in shear history");
 }
 
 /* ----------------------------------------------------------------------

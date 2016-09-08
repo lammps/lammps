@@ -79,8 +79,7 @@ must be of type m (shrink/minimum).
 
 E: Bad fix ID in fix append/atoms command
 
-The value of the fix_id for keyword spatial must start with the suffix
-f_.
+The value of the fix_id for keyword spatial must start with 'f_'.
 
 E: Invalid basis setting in fix append/atoms command
 

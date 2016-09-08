@@ -69,6 +69,10 @@ class Force : protected Pointers {
   class Dihedral *dihedral;
   char *dihedral_style;
 
+  typedef Dihedral *(*DihedralCreator)(LAMMPS *);
+  typedef std::map<std::string,DihedralCreator> DihedralCreatorMap;
+  DihedralCreatorMap *dihedral_map;
+
   class Improper *improper;
   char *improper_style;
 
@@ -132,6 +136,7 @@ class Force : protected Pointers {
   template <typename T> static Pair *pair_creator(LAMMPS *);
   template <typename T> static Bond *bond_creator(LAMMPS *);
   template <typename T> static Angle *angle_creator(LAMMPS *);
+  template <typename T> static Dihedral *dihedral_creator(LAMMPS *);
 };
 
 }

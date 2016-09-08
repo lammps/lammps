@@ -649,10 +649,11 @@ void Info::dihedral_styles(FILE * out)
   fprintf(out, "\nDihedral styles:\n");
 
   vector<string> styles;
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) styles.push_back(#key);
-#include "style_dihedral.h"
-#undef DIHEDRAL_CLASS
+
+  for(Force::DihedralCreatorMap::iterator it = force->dihedral_map->begin(); it != force->dihedral_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

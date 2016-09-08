@@ -12,15 +12,18 @@ info command :h3
 
 info args :pre
 
-args = one or more of the following keywords: {out}, {all}, {system}, {communication}, {computes}, {dumps}, {fixes}, {groups}, {regions}, {variables}, {time}, or {configuration}
-     {out} values = {screen}, {log}, {append} filename, {overwrite} filename:ul
+args = one or more of the following keywords: {out}, {all}, {system}, {communication}, {computes}, {dumps}, {fixes}, {groups}, {regions}, {variables}, {styles}, {time}, or {configuration}
+     {out} values = {screen}, {log}, {append} filename, {overwrite} filename
+     {styles} values = {all}, {angle}, {atom}, {bond}, {compute}, {command}, {dump}, {dihedral}, {fix}, {improper}, {integrate}, {kspace}, {minimize}, {region} :ul
 
 [Examples:]
 
 info system
 info groups computes variables
 info all out log
-info all out append info.txt :pre
+info all out append info.txt
+info styles all
+info styles atom :pre
 
 [Description:]
 
@@ -67,6 +70,24 @@ The {variables} category prints a list of all currently defined
 variables, their names, styles, definition and last computed value, if
 available.
 
+The {styles} category prints the list of styles available in LAMMPS. It
+supports one of the following options to control what is printed out:
+
+all
+angle
+atom
+bond
+compute
+command
+dump
+dihedral
+fix
+improper
+integrate
+kspace
+minimize
+region :ul
+
 The {time} category prints the accumulated CPU and wall time for the
 process that writes output (usually MPI rank 0).
 
@@ -84,3 +105,5 @@ reported.
 [Default:]
 
 The {out} option has the default {screen}.
+
+The {styles} option has the default {all}.

@@ -677,10 +677,11 @@ void Info::kspace_styles(FILE * out)
   fprintf(out, "\nKSpace styles:\n");
 
   vector<string> styles;
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) styles.push_back(#key);
-#include "style_kspace.h"
-#undef KSPACE_CLASS
+
+  for(Force::KSpaceCreatorMap::iterator it = force->kspace_map->begin(); it != force->kspace_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

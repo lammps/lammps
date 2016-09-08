@@ -122,6 +122,15 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 #include "style_improper.h"
 #undef ImproperStyle
 #undef IMPROPER_CLASS
+
+  kspace_map = new KSpaceCreatorMap();
+
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class) \
+  (*kspace_map)[#key] = &kspace_creator<Class>;
+#include "style_kspace.h"
+#undef KSpaceStyle
+#undef KSPACE_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -645,44 +654,42 @@ KSpace *Force::new_kspace(int narg, char **arg, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
-
-      if (0) return NULL;
-
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSpaceStyle
-#undef KSPACE_CLASS
+      if (kspace_map->find(estyle) != kspace_map->end()) {
+        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        return kspace_creator(lmp, narg-1, &arg[1]);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
-
-      if (0) return NULL;
-
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSpaceStyle
-#undef KSPACE_CLASS
+      if (kspace_map->find(estyle) != kspace_map->end()) {
+        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        return kspace_creator(lmp, narg-1, &arg[1]);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(arg[0],"none") == 0) return NULL;
+  if (kspace_map->find(arg[0]) != kspace_map->end()) {
+    KSpaceCreator kspace_creator = (*kspace_map)[arg[0]];
+    return kspace_creator(lmp, narg-1, &arg[1]);
+  }
 
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) return  new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSPACE_CLASS
-
-  else error->all(FLERR,"Unknown kspace style");
+  error->all(FLERR,"Unknown kspace style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per kspace style in style_kspace.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+KSpace *Force::kspace_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
 }
 
 /* ----------------------------------------------------------------------

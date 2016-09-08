@@ -13,54 +13,40 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(vashishta,PairVashishta)
+PairStyle(vashishta/table,PairVashishtaTable)
 
 #else
 
-#ifndef LMP_PAIR_VASHISHITA_H
-#define LMP_PAIR_VASHISHITA_H
+#ifndef LMP_PAIR_VASHISHITA_TABLE_H
+#define LMP_PAIR_VASHISHITA_TABLE_H
 
-#include "pair.h"
+#include "pair_vashishta.h"
 
 namespace LAMMPS_NS {
 
-class PairVashishta : public Pair {
+class PairVashishtaTable : public PairVashishta {
  public:
-  PairVashishta(class LAMMPS *);
-  virtual ~PairVashishta();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  PairVashishtaTable(class LAMMPS *);
+  ~PairVashishtaTable();
+  void compute(int, int);
+  void settings(int, char **);
+  double memory_usage();
 
- protected:
-  struct Param {
-    double bigb,gamma,r0,bigc,costheta;
-    double bigh,eta,zi,zj;
-    double lambda1,bigd,mbigd,lambda4,bigw,cut;
-    double lam1inv,lam4inv,zizj,heta,big2b,big6w;
-    double rcinv,rc2inv,rc4inv,rc6inv,rceta;
-    double cutsq2,cutsq;
-    double lam1rc,lam4rc,vrcc2,vrcc3,vrc,dvrc,c0;
-    int ielement,jelement,kelement;
-  };
+ private:
+  int ntable;
+  double deltaR2;
+  double oneOverDeltaR2;
+  double ***forceTable;         // table of forces per element pair
+  double ***potentialTable;     // table of potential energies
 
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
-  Param *params;                // parameter set for an I-J-K interaction
+  int neigh3BodyMax;            // max size of short neighborlist
+  int *neigh3BodyCount;         // # of neighbors in short range 
+                                // 3 particle forces neighbor list
+  int **neigh3Body;             // neighlist for short range 3 particle forces
 
-  void allocate();
-  void read_file(char *);
-  virtual void setup_params();
-  void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *,
-                 double *, double *, int, double &);
+  void twobody_table(const Param &, double, double &, int, double &);
+  void setup_params();
+  void create_tables();
 };
 
 }

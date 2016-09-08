@@ -42,9 +42,8 @@ mass 		2 30.98
 
 # choose potential
 
-pair_style	vashishta
+pair_style 	vashishta/table 100000 0.2
 pair_coeff 	* * InP.vashishta In P
-pair_modify     table 16
 
 # setup neighbor style
 

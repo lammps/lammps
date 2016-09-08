@@ -76,6 +76,10 @@ class Force : protected Pointers {
   class Improper *improper;
   char *improper_style;
 
+  typedef Improper *(*ImproperCreator)(LAMMPS *);
+  typedef std::map<std::string,ImproperCreator> ImproperCreatorMap;
+  ImproperCreatorMap *improper_map;
+
   class KSpace *kspace;
   char *kspace_style;
                              // index [0] is not used in these arrays
@@ -137,6 +141,7 @@ class Force : protected Pointers {
   template <typename T> static Bond *bond_creator(LAMMPS *);
   template <typename T> static Angle *angle_creator(LAMMPS *);
   template <typename T> static Dihedral *dihedral_creator(LAMMPS *);
+  template <typename T> static Improper *improper_creator(LAMMPS *);
 };
 
 }

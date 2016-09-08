@@ -150,48 +150,6 @@ void Info::command(int narg, char **arg)
       if ((out != screen) && (out != logfile)) fclose(out);
       out = fopen(arg[idx+2],"w");
       idx += 3;
-    } else if (strncmp(arg[idx],"atom_styles",3) == 0) {
-      flags |= ATOM_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"integrate_styles",3) == 0) {
-      flags |= INTEGRATE_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"minimize_styles",3) == 0) {
-      flags |= MINIMIZE_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"pair_styles",3) == 0) {
-      flags |= PAIR_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"bond_styles",3) == 0) {
-      flags |= BOND_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"angle_styles",3) == 0) {
-      flags |= ANGLE_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"dihedral_styles",3) == 0) {
-      flags |= DIHEDRAL_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"improper_styles",3) == 0) {
-      flags |= IMPROPER_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"kspace_styles",3) == 0) {
-      flags |= KSPACE_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"fix_styles",3) == 0) {
-      flags |= FIX_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"compute_styles",5) == 0) {
-      flags |= COMPUTE_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"region_styles",3) == 0) {
-      flags |= REGION_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"dump_styles",3) == 0) {
-      flags |= DUMP_STYLES;
-      ++idx;
-    } else if (strncmp(arg[idx],"command_styles",5) == 0) {
-      flags |= COMMAND_STYLES;
-      ++idx;
     } else if (strncmp(arg[idx],"communication",5) == 0) {
       flags |= COMM;
       ++idx;
@@ -223,8 +181,60 @@ void Info::command(int narg, char **arg)
       flags |= SYSTEM;
       ++idx;
     } else if (strncmp(arg[idx],"styles",3) == 0) {
-      flags |= STYLES;
-      ++idx;
+      if (idx+1 < narg) {
+        ++idx;
+        if (strncmp(arg[idx],"all",3) == 0) {
+          flags |= STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"atom",3) == 0) {
+          flags |= ATOM_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"integrate",3) == 0) {
+          flags |= INTEGRATE_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"minimize",3) == 0) {
+          flags |= MINIMIZE_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"pair",3) == 0) {
+          flags |= PAIR_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"bond",3) == 0) {
+          flags |= BOND_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"angle",3) == 0) {
+          flags |= ANGLE_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"dihedral",3) == 0) {
+          flags |= DIHEDRAL_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"improper",3) == 0) {
+          flags |= IMPROPER_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"kspace",3) == 0) {
+          flags |= KSPACE_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"fix",3) == 0) {
+          flags |= FIX_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"compute",4) == 0) {
+          flags |= COMPUTE_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"region",3) == 0) {
+          flags |= REGION_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"dump",3) == 0) {
+          flags |= DUMP_STYLES;
+          ++idx;
+        } else if (strncmp(arg[idx],"command",4) == 0) {
+          flags |= COMMAND_STYLES;
+          ++idx;
+        } else {
+          flags |= STYLES;
+        }
+      } else {
+        flags |= STYLES;
+        ++idx;
+      }
     } else {
       error->warning(FLERR,"Ignoring unknown or incorrect info command flag");
       ++idx;

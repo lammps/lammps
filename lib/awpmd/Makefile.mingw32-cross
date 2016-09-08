@@ -77,4 +77,4 @@ DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 
 clean:
-	rm *.d *~ $(OBJ) $(LIB)
+	-rm *.d *~ $(OBJ) $(LIB)

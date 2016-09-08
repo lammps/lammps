@@ -62,7 +62,7 @@ DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 
 clean:
-	rm $(DIR)*.o $(DIR)*.d *~ $(LIB)
+	-rm $(DIR)*.o $(DIR)*.d *~ $(LIB)
 
 $(DEPENDS) : $(DIR)
 sinclude $(DEPENDS)

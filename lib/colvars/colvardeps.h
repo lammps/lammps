@@ -1,9 +1,10 @@
 // -*- c++ -*-
 
-#include "colvarmodule.h"
-
 #ifndef COLVARDEPS_H
 #define COLVARDEPS_H
+
+#include "colvarmodule.h"
+#include "colvarparse.h"
 
 /// Parent class for a member object of a bias, cv or cvc etc. containing dependencies
 /// (features) and handling dependency resolution
@@ -16,11 +17,11 @@
 
 // It seems important to have available default to false (for safety) and enabled to false (for efficiency)
 
-class cvm::deps {
+class colvardeps {
 public:
 
-  deps() {}
-  virtual ~deps();
+  colvardeps() {}
+  virtual ~colvardeps();
 
   // Subclasses should initialize the following members:
 
@@ -84,9 +85,9 @@ public:
   // implement this as virtual to allow overriding
   virtual std::vector<feature *>&features() = 0;
 
-  void add_child(deps *child);
+  void add_child(colvardeps *child);
 
-  void remove_child(deps *child);
+  void remove_child(colvardeps *child);
 
   /// Used before deleting an object, if not handled by that object's destructor
   /// (useful for cvcs because their children are member objects)
@@ -98,11 +99,11 @@ private:
   // pointers to objects this object depends on
   // list should be maintained by any code that modifies the object
   // this could be secured by making lists of colvars / cvcs / atom groups private and modified through accessor functions
-  std::vector<deps *> children;
+  std::vector<colvardeps *> children;
 
   // pointers to objects that depend on this object
   // the size of this array is in effect a reference counter
-  std::vector<deps *> parents;
+  std::vector<colvardeps *> parents;
 
 public:
   // disabling a feature f:
@@ -115,7 +116,7 @@ public:
 //
 //   }
 
-  // std::vector<deps *> parents; // Needed to trigger a refresh if capabilities of this object change
+  // std::vector<colvardeps *> parents; // Needed to trigger a refresh if capabilities of this object change
 
   // End of members to be initialized by subclasses
 
@@ -133,6 +134,12 @@ public:
 
   void provide(int feature_id); // set the feature's flag to available in local object
 
+  /// Parse a keyword and enable a feature accordingly
+  bool get_keyval_feature(colvarparse *cvp,
+                          std::string const &conf, char const *key,
+                          int feature_id, bool const &def_value,
+                          colvarparse::Parse_Mode const parse_mode = colvarparse::parse_normal);
+
   int enable(int f, bool dry_run = false, bool toplevel = true);  // enable a feature and recursively solve its dependencies
   // dry_run is set to true to recursively test if a feature is available, without enabling it
 //     int disable(int f);
@@ -148,7 +155,7 @@ public:
     /// \brief Bias is active
     f_cvb_active,
     f_cvb_apply_force, // will apply forces
-    f_cvb_get_system_force, // requires system forces
+    f_cvb_get_total_force, // requires total forces
     f_cvb_history_dependent, // depends on simulation history
     f_cvb_ntot
   };
@@ -164,14 +171,14 @@ public:
     f_cv_collect_gradient,
     /// \brief Calculate the velocity with finite differences
     f_cv_fdiff_velocity,
-    /// \brief The system force is calculated, projecting the atomic
+    /// \brief The total force is calculated, projecting the atomic
     /// forces on the inverse gradient
-    f_cv_system_force,
-    /// \brief Calculate system force from atomic forces
-    f_cv_system_force_calc,
+    f_cv_total_force,
+    /// \brief Calculate total force from atomic forces
+    f_cv_total_force_calc,
     /// \brief Estimate Jacobian derivative
     f_cv_Jacobian,
-    /// \brief Do not report the Jacobian force as part of the system force
+    /// \brief Do not report the Jacobian force as part of the total force
     /// instead, apply a correction internally to cancel it
     f_cv_hide_Jacobian,
     /// \brief The variable has a harmonic restraint around a moving
@@ -189,8 +196,8 @@ public:
     f_cv_output_velocity,
     /// \brief Output the applied force to the trajectory file
     f_cv_output_applied_force,
-    /// \brief Output the system force to the trajectory file
-    f_cv_output_system_force,
+    /// \brief Output the total force to the trajectory file
+    f_cv_output_total_force,
     /// \brief A lower boundary is defined
     f_cv_lower_boundary,
     /// \brief An upper boundary is defined

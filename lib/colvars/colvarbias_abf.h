@@ -27,12 +27,11 @@ public:
 private:
 
   /// Filename prefix for human-readable gradient/sample count output
-  std::string	output_prefix;
+  std::string  output_prefix;
 
   /// Base filename(s) for reading previous gradient data (replaces data from restart file)
   std::vector<std::string> input_prefix;
 
-  bool		apply_bias;
   bool		update_bias;
   bool		hide_Jacobian;
   size_t	full_samples;
@@ -50,7 +49,7 @@ private:
   // Internal data and methods
 
   std::vector<int>  bin, force_bin, z_bin;
-  gradient_t	    force;
+  gradient_t    system_force, applied_force;
 
   /// n-dim grid of free energy gradients
   colvar_grid_gradient  *gradients;
@@ -60,6 +59,8 @@ private:
   colvar_grid_gradient  *z_gradients;
   /// n-dim grid of number of samples on "real" coordinate for eABF z-based estimator
   colvar_grid_count     *z_samples;
+  /// n-dim grid contining CZAR estimator of "real" free energy gradients
+  colvar_grid_gradient  *czar_gradients;
 
   // shared ABF
   bool     shared_on;

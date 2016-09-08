@@ -9,7 +9,7 @@
 
 
 /// \brief Collective variable bias, base class
-class colvarbias : public colvarparse, public cvm::deps {
+class colvarbias : public colvarparse, public colvardeps {
 public:
 
   /// Name of this bias

@@ -766,7 +766,7 @@ void FixColvars::post_force(int vflag)
   // call our workhorse and retrieve additional information.
   if (me == 0) {
     energy = proxy->compute();
-    store_forces = proxy->need_system_forces();
+    store_forces = proxy->need_total_forces();
   }
   ////////////////////////////////////////////////////////////////////////
 

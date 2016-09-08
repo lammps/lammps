@@ -15,6 +15,8 @@
 #define LMP_UPDATE_H
 
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -49,6 +51,10 @@ class Update : protected Pointers {
   int rng_style;                  // default style for pRNGs
   int rng_seed;                   // global seed for pRNGs
 
+  typedef Integrate *(*IntegrateCreator)(LAMMPS *,int,char**);
+  typedef std::map<std::string,IntegrateCreator> IntegrateCreatorMap;
+  IntegrateCreatorMap *integrate_map;
+
   Update(class LAMMPS *);
   ~Update();
   void init();
@@ -64,6 +70,7 @@ class Update : protected Pointers {
  private:
   void new_integrate(char *, int, char **, int, int &);
 
+  template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
 };
 
 }

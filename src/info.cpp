@@ -582,10 +582,11 @@ void Info::integrate_styles(FILE * out)
   fprintf(out, "\nIntegrate styles:\n");
 
   vector<string> styles;
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) styles.push_back(#key);
-#include "style_integrate.h"
-#undef INTEGRATE_CLASS
+
+  for(Update::IntegrateCreatorMap::iterator it = update->integrate_map->begin(); it != update->integrate_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

@@ -131,9 +131,9 @@
 <h1>pair_style buck/long/coul/long/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">buck</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">flag_buck</span> <span class="n">flag_coul</span> <span class="n">cutoff</span> <span class="p">(</span><span class="n">cutoff2</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style buck/long/coul/long flag_buck flag_coul cutoff (cutoff2)
+</pre>
 <ul class="simple">
 <li>flag_buck = <em>long</em> or <em>cut</em></li>
 </ul>
@@ -155,13 +155,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">buck</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">cut</span> <span class="n">off</span> <span class="mf">2.5</span>
-<span class="n">pair_style</span> <span class="n">buck</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">cut</span> <span class="n">long</span> <span class="mf">2.5</span> <span class="mf">4.0</span>
-<span class="n">pair_style</span> <span class="n">buck</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">long</span> <span class="n">long</span> <span class="mf">4.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mi">1</span> <span class="mi">1</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">3</span> <span class="mi">4</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style buck/long/coul/long cut off 2.5
+pair_style buck/long/coul/long cut long 2.5 4.0
+pair_style buck/long/coul/long long long 4.0
+pair_coeff * * 1 1
+pair_coeff 1 1 1 3 4
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

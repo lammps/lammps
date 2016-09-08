@@ -381,7 +381,8 @@ When running large number of atoms per GPU, KOKKOS is typically faster
 than the GPU package. :l
 
 When running on Intel Xeon Phi, KOKKOS is not as fast as
-the USER-INTEL package, which is optimized for that hardware. :l,ule
+the USER-INTEL package, which is optimized for that hardware. :l
+:ule
 
 See the "Benchmark page"_http://lammps.sandia.gov/bench.html of the
 LAMMPS web site for performance of the KOKKOS package on different

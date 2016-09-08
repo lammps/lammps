@@ -272,9 +272,9 @@ e.g. picoseconds for &#8220;metal&#8221; units).  Tensile strain is unitless and
 is defined as delta/L0, where L0 is the original box length and delta
 is the change relative to the original length.  The box length L as a
 function of time will change as</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">L0</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">erate</span><span class="o">*</span><span class="n">dt</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+L(t) = L0 (1 + erate*dt)
+</pre>
 <p>where dt is the elapsed time (in time units).  Thus if <em>erate</em> R is
 specified as 0.1 and time units are picoseconds, this means the box
 length will increase by 10% of its original length every picosecond.
@@ -295,9 +295,9 @@ e.g. picoseconds for &#8220;metal&#8221; units).  Tensile strain is unitless and
 is defined as delta/L0, where L0 is the original box length and delta
 is the change relative to the original length.</p>
 <p>The box length L as a function of time will change as</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">L0</span> <span class="n">exp</span><span class="p">(</span><span class="n">trate</span><span class="o">*</span><span class="n">dt</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+L(t) = L0 exp(trate*dt)
+</pre>
 <p>where dt is the elapsed time (in time units).  Thus if <em>trate</em> R is
 specified as ln(1.1) and time units are picoseconds, this means the
 box length will increase by 10% of its current (not original) length
@@ -341,9 +341,9 @@ dimensions, so that they respond to the tensile strain dynamically.</p>
 <p>The <em>wiggle</em> style oscillates the specified box length dimension
 sinusoidally with the specified amplitude and period.  I.e. the box
 length L as a function of time is given by</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">L</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">L0</span> <span class="o">+</span> <span class="n">A</span> <span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span> <span class="n">t</span><span class="o">/</span><span class="n">Tp</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+L(t) = L0 + A sin(2*pi t/Tp)
+</pre>
 <p>where L0 is its initial length.  If the amplitude A is a positive
 number the box initially expands, then contracts, etc.  If A is
 negative then the box initially contracts, then expands, etc.  The
@@ -370,13 +370,13 @@ arbitrary variable.</p>
 <p>Here is an example of using the <em>variable</em> style to perform the same
 box deformation as the <em>wiggle</em> style formula listed above, where we
 assume that the current timestep = 0.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">A</span> <span class="n">equal</span> <span class="mf">5.0</span>
-<span class="n">variable</span> <span class="n">Tp</span> <span class="n">equal</span> <span class="mf">10.0</span>
-<span class="n">variable</span> <span class="n">displace</span> <span class="n">equal</span> <span class="s2">&quot;v_A * sin(2*PI * step*dt/v_Tp)&quot;</span>
-<span class="n">variable</span> <span class="n">rate</span> <span class="n">equal</span> <span class="s2">&quot;2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)&quot;</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">deform</span> <span class="mi">1</span> <span class="n">x</span> <span class="n">variable</span> <span class="n">v_displace</span> <span class="n">v_rate</span> <span class="n">remap</span> <span class="n">v</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable A equal 5.0
+variable Tp equal 10.0
+variable displace equal &quot;v_A * sin(2*PI * step*dt/v_Tp)&quot;
+variable rate equal &quot;2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)&quot;
+fix 2 all deform 1 x variable v_displace v_rate remap v
+</pre>
 <p>For the <em>scale</em>, <em>vel</em>, <em>erate</em>, <em>trate</em>, <em>volume</em>, <em>wiggle</em>, and
 <em>variable</em> styles, the box length is expanded or compressed around its
 mid point.</p>
@@ -413,9 +413,9 @@ to the shear direction (e.g. y box length for xy deformation) and
 offset is the displacement distance in the shear direction (e.g. x
 direction for xy deformation) from the unstrained orientation.</p>
 <p>The tilt factor T as a function of time will change as</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">T</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">T0</span> <span class="o">+</span> <span class="n">L0</span><span class="o">*</span><span class="n">erate</span><span class="o">*</span><span class="n">dt</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+T(t) = T0 + L0*erate*dt
+</pre>
 <p>where T0 is the initial tilt factor, L0 is the original length of the
 box perpendicular to the shear direction (e.g. y box length for xy
 deformation), and dt is the elapsed time (in time units).  Thus if
@@ -441,9 +441,9 @@ where length is the box length perpendicular to the shear direction
 distance in the shear direction (e.g. x direction for xy deformation)
 from the unstrained orientation.</p>
 <p>The tilt factor T as a function of time will change as</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">T</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">T0</span> <span class="n">exp</span><span class="p">(</span><span class="n">trate</span><span class="o">*</span><span class="n">dt</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+T(t) = T0 exp(trate*dt)
+</pre>
 <p>where T0 is the initial tilt factor and dt is the elapsed time (in
 time units).  Thus if <em>trate</em> R is specified as ln(1.1) and time units
 are picoseconds, this means the shear strain or tilt factor will
@@ -464,9 +464,9 @@ parameter), then this effect on the shear strain is ignored.</p>
 <p>The <em>wiggle</em> style oscillates the specified tilt factor sinusoidally
 with the specified amplitude and period.  I.e. the tilt factor T as a
 function of time is given by</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">T</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">T0</span> <span class="o">+</span> <span class="n">A</span> <span class="n">sin</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">pi</span> <span class="n">t</span><span class="o">/</span><span class="n">Tp</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+T(t) = T0 + A sin(2*pi t/Tp)
+</pre>
 <p>where T0 is its initial value.  If the amplitude A is a positive
 number the tilt factor initially becomes more positive, then more
 negative, etc.  If A is negative then the tilt factor initially
@@ -492,13 +492,13 @@ arbitrary variable.</p>
 <p>Here is an example of using the <em>variable</em> style to perform the same
 box deformation as the <em>wiggle</em> style formula listed above, where we
 assume that the current timestep = 0.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">A</span> <span class="n">equal</span> <span class="mf">5.0</span>
-<span class="n">variable</span> <span class="n">Tp</span> <span class="n">equal</span> <span class="mf">10.0</span>
-<span class="n">variable</span> <span class="n">displace</span> <span class="n">equal</span> <span class="s2">&quot;v_A * sin(2*PI * step*dt/v_Tp)&quot;</span>
-<span class="n">variable</span> <span class="n">rate</span> <span class="n">equal</span> <span class="s2">&quot;2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)&quot;</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">deform</span> <span class="mi">1</span> <span class="n">xy</span> <span class="n">variable</span> <span class="n">v_displace</span> <span class="n">v_rate</span> <span class="n">remap</span> <span class="n">v</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable A equal 5.0
+variable Tp equal 10.0
+variable displace equal &quot;v_A * sin(2*PI * step*dt/v_Tp)&quot;
+variable rate equal &quot;2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)&quot;
+fix 2 all deform 1 xy variable v_displace v_rate remap v
+</pre>
 <hr class="docutils" />
 <p>All of the tilt styles change the xy, xz, yz tilt factors during a
 simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes
@@ -633,9 +633,7 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.</p>

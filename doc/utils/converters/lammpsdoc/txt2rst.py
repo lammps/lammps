@@ -57,8 +57,21 @@ class RSTMarkup(Markup):
         return text
 
     def convert(self, text):
+        text = self.escape_rst_chars(text)
         text = super().convert(text)
         text = self.inline_math(text)
+        return text
+
+    def escape_rst_chars(self, text):
+        text = text.replace('*', '\\*')
+        text = text.replace('^', '\\^')
+        text = re.sub(r'([^"])_', r'\1\\_', text)
+        return text
+
+    def unescape_rst_chars(self, text):
+        text = text.replace('\\*', '*')
+        text = text.replace('\\^', '^')
+        text = text.replace('\\_', '_')
         return text
 
     def inline_math(self, text):
@@ -68,6 +81,7 @@ class RSTMarkup(Markup):
         while start_pos >= 0 and end_pos >= 0:
             original = text[start_pos:end_pos+2]
             formula = original[2:-2]
+            formula = self.unescape_rst_chars(formula)
             replacement = ":math:`" + formula.replace('\n', ' ').strip() + "`"
             text = text.replace(original, replacement)
 
@@ -79,6 +93,8 @@ class RSTMarkup(Markup):
     def create_link(self, content, href):
         content = content.strip()
         content = content.replace('\n', ' ')
+
+        href = self.unescape_rst_chars(href)
 
         anchor_pos = href.find('#')
 
@@ -122,11 +138,11 @@ class RSTFormatting(Formatting):
                          link.lower().endswith('.jpeg') or
                          link.lower().endswith('.png') or
                          link.lower().endswith('.gif')):
-            converted = ".. thumbnail:: " + link + "\n"
+            converted = ".. thumbnail:: " + self.markup.unescape_rst_chars(link) + "\n"
         else:
-            converted = ".. image:: " + file + "\n"
+            converted = ".. image:: " + self.markup.unescape_rst_chars(file) + "\n"
             if link:
-                converted += "   :target: " + link + "\n"
+                converted += "   :target: " + self.markup.unescape_rst_chars(link) + "\n"
 
         if "c" in self.current_command_list:
             converted += "   :align: center\n"
@@ -295,6 +311,8 @@ class RSTFormatting(Formatting):
                 start = ""
                 body = parts[0]
 
+            body = self.markup.unescape_rst_chars(body)
+
             if len(start) > 0:
                 text += start + "\n"
             text += "\n.. math::\n\n"
@@ -328,6 +346,14 @@ class Txt2Rst(TxtParser):
 
     def is_raw_textblock_end(self, line):
         return line.startswith('END_RST -->')
+
+    def order_commands(self, commands):
+        if 'ule' in commands and 'l' in commands and commands.index('ule') >  commands.index('l'):
+            return commands
+        elif 'ole' in commands and 'l' in commands and commands.index('ole') > commands.index('l'):
+            return commands
+        return super().order_commands(commands)
+
 
 class Txt2RstConverter(TxtConverter):
     def get_argument_parser(self):

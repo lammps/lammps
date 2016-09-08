@@ -128,19 +128,19 @@
 <span id="index-0"></span><h1>pair_style line/lj command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">line</span><span class="o">/</span><span class="n">lj</span> <span class="n">cutoff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style line/lj cutoff
+</pre>
 <p>cutoff = global cutoff for interactions (distance units)</p>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">line</span><span class="o">/</span><span class="n">lj</span> <span class="mf">3.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">0.8</span> <span class="mf">1.12</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mf">1.0</span> <span class="mf">2.0</span> <span class="mf">1.0</span> <span class="mf">1.5</span> <span class="mf">1.12</span> <span class="mf">5.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style line/lj 3.0
+pair_coeff * * 1.0 1.0 1.0 0.8 1.12
+pair_coeff 1 2 1.0 2.0 1.0 1.5 1.12 5.0
+pair_coeff 1 2 1.0 0.0 1.0 1.0 2.5
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

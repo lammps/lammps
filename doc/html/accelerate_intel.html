@@ -268,30 +268,30 @@ this information can normally be obtained with:</p>
 </div>
 <p>Several example Makefiles for building with the Intel compiler are
 included with LAMMPS in the src/MAKE/OPTIONS/ directory:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Makefile</span><span class="o">.</span><span class="n">intel_cpu_intelmpi</span> <span class="c1"># Intel Compiler, Intel MPI, No Offload</span>
-<span class="n">Makefile</span><span class="o">.</span><span class="n">knl</span>                <span class="c1"># Intel Compiler, Intel MPI, No Offload</span>
-<span class="n">Makefile</span><span class="o">.</span><span class="n">intel_cpu_mpich</span>    <span class="c1"># Intel Compiler, MPICH, No Offload</span>
-<span class="n">Makefile</span><span class="o">.</span><span class="n">intel_cpu_openpmi</span>  <span class="c1"># Intel Compiler, OpenMPI, No Offload</span>
-<span class="n">Makefile</span><span class="o">.</span><span class="n">intel_coprocessor</span>  <span class="c1"># Intel Compiler, Intel MPI, Offload</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Makefile.intel_cpu_intelmpi # Intel Compiler, Intel MPI, No Offload
+Makefile.knl                # Intel Compiler, Intel MPI, No Offload
+Makefile.intel_cpu_mpich    # Intel Compiler, MPICH, No Offload
+Makefile.intel_cpu_openpmi  # Intel Compiler, OpenMPI, No Offload
+Makefile.intel_coprocessor  # Intel Compiler, Intel MPI, Offload
+</pre>
 <p>Makefile.knl is identical to Makefile.intel_cpu_intelmpi except that
 it explicitly specifies that vectorization should be for Intel
 Xeon Phi x200 processors making it easier to cross-compile. For
 users with recent installations of Intel Parallel Studio, the
 process can be as simple as:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">user</span><span class="o">-</span><span class="n">intel</span>
-<span class="n">source</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">intel</span><span class="o">/</span><span class="n">parallel_studio_xe_2016</span><span class="o">.</span><span class="mf">3.067</span><span class="o">/</span><span class="n">psxevars</span><span class="o">.</span><span class="n">sh</span>
-<span class="c1"># or psxevars.csh for C-shell</span>
-<span class="n">make</span> <span class="n">intel_cpu_intelmpi</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+make yes-user-intel
+source /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
+# or psxevars.csh for C-shell
+make intel_cpu_intelmpi
+</pre>
 <p>Alternatively, the build can be accomplished with the src/Make.py
 script, described in <a class="reference internal" href="Section_start.html#start-4"><span class="std std-ref">Section 2.4</span></a> of the
 manual. Type &#8220;Make.py -h&#8221; for help. For an example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">p</span> <span class="n">intel</span> <span class="n">omp</span> <span class="o">-</span><span class="n">intel</span> <span class="n">cpu</span> <span class="o">-</span><span class="n">a</span> <span class="n">file</span> <span class="n">intel_cpu_intelmpi</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -v -p intel omp -intel cpu -a file intel_cpu_intelmpi
+</pre>
 <p>Note that if you build with support for a Phi coprocessor, the same
 binary can be used on nodes with or without coprocessors installed.
 However, if you do not have coprocessors on your system, building
@@ -385,10 +385,10 @@ set the number of OpenMP threads via the OMP_NUM_THREADS environment
 variable if desired.</p>
 <p>Examples (see documentation for your MPI/Machine for differences in
 launching MPI applications):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">72</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">36</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">intel</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>                                 <span class="c1"># 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">72</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">36</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">intel</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span> <span class="o">-</span><span class="n">pk</span> <span class="n">intel</span> <span class="mi">0</span> <span class="n">omp</span> <span class="mi">2</span> <span class="n">mode</span> <span class="n">double</span>   <span class="c1"># Don&#39;t use any coprocessors that might be available, use 2 OpenMP threads for each task, use double precision</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script                                 # 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads
+mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script -pk intel 0 omp 2 mode double   # Don't use any coprocessors that might be available, use 2 OpenMP threads for each task, use double precision
+</pre>
 <p><strong>Or run with the USER-INTEL package by editing an input script:</strong></p>
 <p>As an alternative to adding command-line arguments, the input script
 can be edited to enable the USER-INTEL package. This requires adding
@@ -399,9 +399,9 @@ script. For the second example above, this would be:</p>
 </div>
 <p>To enable the USER-INTEL package only for individual styles, you can
 add an &#8220;intel&#8221; suffix to the individual style, e.g.:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">intel</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/intel 2.5
+</pre>
 <p>Alternatively, the <a class="reference internal" href="suffix.html"><span class="doc">suffix intel</span></a> command can be added to
 the input script to enable USER-INTEL styles for the commands that
 follow in the input script.</p>

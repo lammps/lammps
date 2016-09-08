@@ -111,7 +111,8 @@ Make sure that your tabulated forces and tabulated energies are consistent
 (dE/dr = -F) along the entire range of r values. :l
 
 Use as large an inner cutoff as possible.  This avoids fitting splines
-to very steep parts of the potential. :l,ule
+to very steep parts of the potential. :l
+:ule
 
 :line
 

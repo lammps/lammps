@@ -140,14 +140,14 @@
 <li>one or more input values can be listed</li>
 <li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
-<span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
-<span class="n">v_name</span> <span class="o">=</span> <span class="k">global</span> <span class="n">value</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">equal</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-<span class="n">v_name</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="n">a</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+c_ID = global scalar calculated by a compute with ID
+c_ID[I] = Ith component of global vector calculated by a compute with ID, I can include wildcard (see below)
+f_ID = global scalar calculated by a fix with ID
+f_ID[I] = Ith component of global vector calculated by a fix with ID, I can include wildcard (see below)
+v_name = global value calculated by an equal-style variable with name
+v_name[I] = Ith component of a vector-style variable with name
+</pre>
 <ul class="simple">
 <li>zero or more keyword/arg pairs may be appended</li>
 <li>keyword = <em>type</em> or <em>ave</em> or <em>start</em> or <em>prefactor</em> or <em>file</em> or <em>overwrite</em> or <em>title1</em> or <em>title2</em> or <em>title3</em></li>
@@ -180,12 +180,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span> <span class="mi">5</span> <span class="mi">100</span> <span class="mi">1000</span> <span class="n">c_myTemp</span> <span class="n">file</span> <span class="n">temp</span><span class="o">.</span><span class="n">correlate</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span> <span class="mi">1</span> <span class="mi">50</span> <span class="mi">10000</span> <span class="o">&amp;</span>
-          <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
-       <span class="nb">type</span> <span class="n">upper</span> <span class="n">ave</span> <span class="n">running</span> <span class="n">title1</span> <span class="s2">&quot;My correlation data&quot;</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all ave/correlate 5 100 1000 c_myTemp file temp.correlate
+fix 1 all ave/correlate 1 50 10000 &amp;
+          c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &amp;
+       type upper ave running title1 &quot;My correlation data&quot;
+</pre>
 <p>fix 1 all ave/correlate 1 50 10000 c_thermo_press[*]</p>
 </div>
 <div class="section" id="description">
@@ -221,7 +221,7 @@ ones that can be used with this fix.  Variables of style <em>atom</em> cannot
 be used, since they produce per-atom values.</p>
 <p>Note that for values from a compute or fix, the bracketed index I can
 be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or
+specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or
 &#8220;m*n&#8221;.  If N = the size of the vector (for <em>mode</em> = scalar) or the
 number of columns in the array (for <em>mode</em> = vector), then an asterisk
 with no numeric values means all indices from 1 to N.  A leading
@@ -232,13 +232,13 @@ means all indices from m to n (inclusive).</p>
 vector had been listed one by one.  E.g. these 2 fix ave/correlate
 commands are equivalent, since the <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> command creates a global vector with 6
 values.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myPress</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">NULL</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span> <span class="mi">1</span> <span class="mi">50</span> <span class="mi">10000</span> <span class="n">c_myPress</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span> <span class="mi">1</span> <span class="mi">50</span> <span class="mi">10000</span> <span class="o">&amp;</span>
-          <span class="n">c_myPress</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
-          <span class="n">c_myPress</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">c_myPress</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute myPress all pressure NULL
+fix 1 all ave/correlate 1 50 10000 c_myPress[*]
+fix 1 all ave/correlate 1 50 10000 &amp;
+          c_myPress[1] c_myPress[2] c_myPress[3] &amp;
+          c_myPress[4] c_myPress[5] c_myPress[6]
+</pre>
 <hr class="docutils" />
 <p>The <em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> arguments specify on what
 timesteps the input values will be used to calculate correlation data.
@@ -249,9 +249,9 @@ initial time up to an output timestep.  The initial time could be the
 beginning of the simulation or the last output time; see the <em>ave</em>
 keyword for options.  For the set of samples, the correlation value
 Cij is calculated as:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cij</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span> <span class="o">=</span> <span class="n">ave</span><span class="p">(</span><span class="n">Vi</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">*</span><span class="n">Vj</span><span class="p">(</span><span class="n">t</span><span class="o">+</span><span class="n">delta</span><span class="p">))</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Cij(delta) = ave(Vi(t)*Vj(t+delta))
+</pre>
 <p>which is the correlation value between input values Vi and Vj,
 separated by time delta.  Note that the second value Vj in the pair is
 always the one sampled at the later time.  The ave() represents an
@@ -259,9 +259,9 @@ average over every pair of samples in the set that are separated by
 time delta.  The maximum delta used is of size (<em>Nrepeat</em>-1)*<em>Nevery</em>.
 Thus the correlation between a pair of input values yields <em>Nrepeat</em>
 correlation datums:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Cij</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">Cij</span><span class="p">(</span><span class="n">Nevery</span><span class="p">),</span> <span class="n">Cij</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">Nevery</span><span class="p">),</span> <span class="o">...</span><span class="p">,</span> <span class="n">Cij</span><span class="p">((</span><span class="n">Nrepeat</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">Nevery</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Cij(0), Cij(Nevery), Cij(2*Nevery), ..., Cij((Nrepeat-1)*Nevery)
+</pre>
 <p>For example, if Nevery=5, Nrepeat=6, and Nfreq=100, then values on
 timesteps 0,5,10,15,...,100 will be used to compute the final averages
 on timestep 100.  Six averages will be computed: Cij(0), Cij(5),
@@ -272,7 +272,7 @@ Vi(10)*V j20), Vi(15)*Vj(25), ..., Vi(85)*Vj(95), Vi(90)*Vj(100).</p>
 non-zero.  Also, if the <em>ave</em> keyword is set to <em>one</em> which is the
 default, then <em>Nfreq</em> &gt;= (<em>Nrepeat</em>-1)*<em>Nevery</em> is required.</p>
 <hr class="docutils" />
-<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">c_</span></a>&#8221;, a compute ID must follow which has been
+<p>If a value begins with &#8220;c_&#8221;, a compute ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the compute is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -286,7 +286,7 @@ defined not in your input script, but by <a class="reference internal" href="the
 or <a class="reference internal" href="fix_temp_rescale.html"><span class="doc">fix temp/rescale</span></a>.  See the doc pages for
 these commands which give the IDs of these computes.  Users can also
 write code for their own compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">f_</span></a>&#8221;, a fix ID must follow which has been
+<p>If a value begins with &#8220;f_&#8221;, a fix ID must follow which has been
 previously defined in the input script.  If no bracketed term is
 appended, the global scalar calculated by the fix is used.  If a
 bracketed term is appended, the Ith element of the global vector
@@ -296,7 +296,7 @@ values.</p>
 <p>Note that some fixes only produce their values on certain timesteps,
 which must be compatible with <em>Nevery</em>, else an error will result.
 Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If a value begins with &#8220;<a href="#id7"><span class="problematic" id="id8">v_</span></a>&#8221;, a variable name must follow which has
+<p>If a value begins with &#8220;v_&#8221;, a variable name must follow which has
 been previously defined in the input script.  Only equal-style or
 vector-style variables can be referenced; the latter requires a
 bracketed term to specify the Ith element of the vector calculated by
@@ -366,11 +366,11 @@ the strings that will be printed as the first 3 lines of the output
 file, assuming the <em>file</em> keyword was used.  LAMMPS uses default
 values for each of these, so they do not need to be specified.</p>
 <p>By default, these header lines are as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Time-correlated data for fix ID</span>
-<span class="c1"># TimeStep Number-of-time-windows</span>
-<span class="c1"># Index TimeDelta Ncount valueI*valueJ valueI*valueJ ...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+# Time-correlated data for fix ID
+# TimeStep Number-of-time-windows
+# Index TimeDelta Ncount valueI*valueJ valueI*valueJ ...
+</pre>
 <p>In the first line, ID is replaced with the fix-ID.  The second line
 describes the two values that are printed at the first of each section
 of output.  In the third line the value pairs are replaced with the
@@ -378,9 +378,9 @@ appropriate fields from the fix ave/correlate command.</p>
 <hr class="docutils" />
 <p>Let Sij = a set of time correlation data for input values I and J,
 namely the <em>Nrepeat</em> values:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Sij</span> <span class="o">=</span> <span class="n">Cij</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">Cij</span><span class="p">(</span><span class="n">Nevery</span><span class="p">),</span> <span class="n">Cij</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">Nevery</span><span class="p">),</span> <span class="o">...</span><span class="p">,</span> <span class="n">Cij</span><span class="p">(</span><span class="o">*</span><span class="n">Nrepeat</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">Nevery</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Sij = Cij(0), Cij(Nevery), Cij(2*Nevery), ..., Cij(*Nrepeat-1)*Nevery)
+</pre>
 <p>As explained below, these datums are output as one column of a global
 array, which is effectively the correlation matrix.</p>
 <p>The <em>trap</em> function defined for <a class="reference internal" href="variable.html"><span class="doc">equal-style variables</span></a>
@@ -389,10 +389,8 @@ using a trapezoidal rule.  This is useful for calculating various
 quantities which can be derived from time correlation data.  If a
 normalization factor is needed for the time integration, it can be
 included in the variable formula or via the <em>prefactor</em> keyword.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>This fix computes a global array of values which can be accessed by

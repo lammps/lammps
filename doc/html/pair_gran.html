@@ -143,9 +143,9 @@
 <h1>pair_style gran/hertz/history/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">Kn</span> <span class="n">Kt</span> <span class="n">gamma_n</span> <span class="n">gamma_t</span> <span class="n">xmu</span> <span class="n">dampflag</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style Kn Kt gamma_n gamma_t xmu dampflag
+</pre>
 <ul class="simple">
 <li>style = <em>gran/hooke</em> or <em>gran/hooke/history</em> or <em>gran/hertz/history</em></li>
 <li>Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)</li>
@@ -169,10 +169,10 @@ for details.</p>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">gran</span><span class="o">/</span><span class="n">hooke</span><span class="o">/</span><span class="n">history</span> <span class="mf">200000.0</span> <span class="n">NULL</span> <span class="mf">50.0</span> <span class="n">NULL</span> <span class="mf">0.5</span> <span class="mi">1</span>
-<span class="n">pair_style</span> <span class="n">gran</span><span class="o">/</span><span class="n">hooke</span> <span class="mf">200000.0</span> <span class="mf">70000.0</span> <span class="mf">50.0</span> <span class="mf">30.0</span> <span class="mf">0.5</span> <span class="mi">0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 1
+pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -287,9 +287,9 @@ each pair of atom types via the <a class="reference internal" href="pair_coeff.h
 All settings are global and are made via the pair_style command.
 However you must still use the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> for all
 pairs of granular atom types.  For example the command</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * *
+</pre>
 <p>should be used if all atoms in the simulation interact via a granular
 potential (i.e. one of the pair styles above is used).  If a granular
 potential is used as a sub-style of <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a>, then specific atom types can be used in the

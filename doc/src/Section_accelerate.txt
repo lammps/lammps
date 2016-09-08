@@ -28,8 +28,9 @@ multi-core CPUs, GPUs, and Intel Xeon Phi coprocessors.
     5.3.2 "USER-INTEL package"_accelerate_intel.html :l
     5.3.3 "KOKKOS package"_accelerate_kokkos.html :l
     5.3.4 "USER-OMP package"_accelerate_omp.html :l
-    5.3.5 "OPT package"_accelerate_opt.html :l,ule
-5.4 "Comparison of various accelerator packages"_#acc_4 :l,ule
+    5.3.5 "OPT package"_accelerate_opt.html :l
+5.4 "Comparison of various accelerator packages"_#acc_4 :l
+:ule
 
 The "Benchmark page"_http://lammps.sandia.gov/bench.html of the LAMMPS
 web site gives performance results for the various accelerator
@@ -205,24 +206,18 @@ build the accelerator library |
   only for GPU package |
 install the accelerator package |
   make yes-opt, make yes-user-intel, etc |
-add compile/link flags to Makefile.machine |
-  in src/MAKE, <br>
+add compile/link flags to Makefile.machine in src/MAKE |
   only for USER-INTEL, KOKKOS, USER-OMP, OPT packages |
 re-build LAMMPS |
   make machine |
-run a LAMMPS simulation |
-  lmp_machine < in.script <br> 
-  mpirun -np 32 lmp_machine -in in.script |
-enable the accelerator package |
-  via "-c on" and "-k on" "command-line switches"_Section_start.html#start_7, <br>
-  only for KOKKOS package |
-set any needed options for the package |
-  via "-pk" "command-line switch"_Section_start.html#start_7 or
-  "package"_package.html command, <br>
+prepare and test a regular LAMMPS simulation |
+  lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script |
+enable specific accelerator support via '-k on' "command-line switch"_Section_start.html#start_7, |
+  only needed for KOKKOS package |
+set any needed options for the package via "-pk" "command-line switch"_Section_start.html#start_7 or "package"_package.html command, |
   only if defaults need to be changed |
-use accelerated styles in your input script |
-  via "-sf" "command-line switch"_Section_start.html#start_7 or
-  "suffix"_suffix.html command :tb(c=2,s=|)
+use accelerated styles in your input via "-sf" "command-line switch"_Section_start.html#start_7 or "suffix"_suffix.html command | lmp_machine -in in.script -sf gpu
+:tb(c=2,s=|)
 
 Note that the first 4 steps can be done as a single command, using the
 src/Make.py tool.  This tool is discussed in "Section
@@ -302,7 +297,8 @@ overload the available bandwidth for communication. :l
 
 Styles with an "opt" suffix are part of the OPT package and typically
 speed-up the pairwise calculations of your simulation by 5-25% on a
-CPU. :l,ule
+CPU. :l
+:ule
 
 The individual accelerator package doc pages explain:
 
@@ -368,7 +364,8 @@ and the GPU.  Hence its performance is affected if full 16 PCIe lanes
 are not available for each GPU.  In HPC environments this can be the
 case if S2050/70 servers are used, where two devices generally share
 one PCIe 2.0 16x slot.  Also many multi-GPU mainboards do not provide
-full 16 lanes to each of the PCIe 2.0 16x slots. :l,ule
+full 16 lanes to each of the PCIe 2.0 16x slots. :l
+:ule
 
 [Differences between the two packages:]
 
@@ -376,4 +373,5 @@ The GPU package accelerates only pair force, neighbor list, and PPPM
 calculations. :ulb,l
 
 The GPU package requires neighbor lists to be built on the CPU when using
-exclusion lists or a triclinic simulation box. :l,ule
+exclusion lists, hybrid pair styles, or a triclinic simulation box. :l
+:ule

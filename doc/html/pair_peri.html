@@ -143,31 +143,31 @@
 <h1>pair_style peri/eps command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style
+</pre>
 <ul class="simple">
 <li>style = <em>peri/pmb</em> or <em>peri/lps</em> or <em>peri/ves</em> or <em>peri/eps</em></li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">peri</span><span class="o">/</span><span class="n">pmb</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.6863e22</span> <span class="mf">0.0015001</span> <span class="mf">0.0005</span> <span class="mf">0.25</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">peri</span><span class="o">/</span><span class="n">lps</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">14.9e9</span> <span class="mf">14.9e9</span> <span class="mf">0.0015001</span> <span class="mf">0.0005</span> <span class="mf">0.25</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">peri</span><span class="o">/</span><span class="n">ves</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">14.9e9</span> <span class="mf">14.9e9</span> <span class="mf">0.0015001</span> <span class="mf">0.0005</span> <span class="mf">0.25</span> <span class="mf">0.5</span> <span class="mf">0.001</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">peri</span><span class="o">/</span><span class="n">eps</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">14.9e9</span> <span class="mf">14.9e9</span> <span class="mf">0.0015001</span> <span class="mf">0.0005</span> <span class="mf">0.25</span> <span class="mf">118.43</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style peri/pmb
+pair_coeff * * 1.6863e22 0.0015001 0.0005 0.25
+</pre>
+<pre class="literal-block">
+pair_style peri/lps
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25
+</pre>
+<pre class="literal-block">
+pair_style peri/ves
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 0.5 0.001
+</pre>
+<pre class="literal-block">
+pair_style peri/eps
+pair_coeff * * 14.9e9 14.9e9 0.0015001 0.0005 0.25 118.43
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

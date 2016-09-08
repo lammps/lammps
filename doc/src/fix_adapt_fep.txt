@@ -61,7 +61,8 @@ It is possible to modify the charges of chosen atom types only,
 instead of scaling all the charges in the system. :ulb,l
 
 There is a new option {after} for better compatibility with "fix
-ave/time". :l,ule
+ave/time". :l
+:ule
 
 This version is suited for free energy calculations using
 "compute ti"_compute_ti.html or "compute fep"_compute_fep.html.

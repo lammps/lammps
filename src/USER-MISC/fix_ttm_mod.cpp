@@ -282,7 +282,6 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (me == 0) read_initial_electron_temperatures(fpr);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
   fclose(fpr);
-  fclose(fpr_2);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -113,6 +113,15 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 #include "style_dihedral.h"
 #undef DihedralStyle
 #undef DIHEDRAL_CLASS
+
+  improper_map = new ImproperCreatorMap();
+
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class) \
+  (*improper_map)[#key] = &improper_creator<Class>;
+#include "style_improper.h"
+#undef ImproperStyle
+#undef IMPROPER_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,6 +153,7 @@ Force::~Force()
   delete bond_map;
   delete angle_map;
   delete dihedral_map;
+  delete improper_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -553,44 +563,42 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef ImproperStyle
-#undef IMPROPER_CLASS
+      if (improper_map->find(estyle) != improper_map->end()) {
+        ImproperCreator improper_creator = (*improper_map)[estyle];
+        return improper_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef ImproperStyle
-#undef IMPROPER_CLASS
+      if (improper_map->find(estyle) != improper_map->end()) {
+        ImproperCreator improper_creator = (*improper_map)[estyle];
+        return improper_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (improper_map->find(style) != improper_map->end()) {
+    ImproperCreator improper_creator = (*improper_map)[style];
+    return improper_creator(lmp);
+  }
 
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef IMPROPER_CLASS
-
-  else error->all(FLERR,"Unknown improper style");
+  error->all(FLERR,"Unknown improper style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per improper style in style_improper.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Improper *Force::improper_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

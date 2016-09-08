@@ -663,10 +663,11 @@ void Info::improper_styles(FILE * out)
   fprintf(out, "\nImproper styles:\n");
 
   vector<string> styles;
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) styles.push_back(#key);
-#include "style_improper.h"
-#undef IMPROPER_CLASS
+
+  for(Force::ImproperCreatorMap::iterator it = force->improper_map->begin(); it != force->improper_map->end(); ++it) {
+    styles.push_back(it->first);
+  }
+
   print_columns(out, styles);
   fprintf(out, "\n\n\n");
 }

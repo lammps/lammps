@@ -3,6 +3,8 @@
 units		metal
 boundary	p p p
 
+variable	ntable index 100000
+
 atom_style	atomic
 
 read_data	data.quartz
@@ -11,7 +13,7 @@ replicate       4 4 4
 velocity	all create 2000.0 277387 mom yes
 displace_atoms	all move 0.05 0.9 0.4 units box
 
-pair_style 	vashishta/table 100000 0.2
+pair_style 	vashishta/table ${ntable} 0.2
 pair_coeff	* *  SiO.1990.vashishta Si O
 
 neighbor	0.3 bin

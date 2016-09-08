@@ -48,9 +48,6 @@ class Force : protected Pointers {
   class Pair *pair;
   char *pair_style;
 
-  typedef Pair *(*PairCreator)(LAMMPS *);
-  std::map<std::string,PairCreator> *pair_map;
-
   class Bond *bond;
   char *bond_style;
 
@@ -65,6 +62,28 @@ class Force : protected Pointers {
 
   class KSpace *kspace;
   char *kspace_style;
+
+  typedef Pair *(*PairCreator)(LAMMPS *);
+  typedef Bond *(*BondCreator)(LAMMPS *);
+  typedef Angle *(*AngleCreator)(LAMMPS *);
+  typedef Dihedral *(*DihedralCreator)(LAMMPS *);
+  typedef Improper *(*ImproperCreator)(LAMMPS *);
+  typedef KSpace *(*KSpaceCreator)(LAMMPS *,int,char**);
+
+  typedef std::map<std::string,PairCreator> PairCreatorMap;
+  typedef std::map<std::string,BondCreator> BondCreatorMap;
+  typedef std::map<std::string,AngleCreator> AngleCreatorMap;
+  typedef std::map<std::string,DihedralCreator> DihedralCreatorMap;
+  typedef std::map<std::string,ImproperCreator> ImproperCreatorMap;
+  typedef std::map<std::string,KSpaceCreator> KSpaceCreatorMap;
+
+  PairCreatorMap *pair_map;
+  BondCreatorMap *bond_map;
+  AngleCreatorMap *angle_map;
+  DihedralCreatorMap *dihedral_map;
+  ImproperCreatorMap *improper_map;
+  KSpaceCreatorMap *kspace_map;
+
                              // index [0] is not used in these arrays
   double special_lj[4];      // 1-2, 1-3, 1-4 prefactors for LJ
   double special_coul[4];    // 1-2, 1-3, 1-4 prefactors for Coulombics
@@ -121,6 +140,11 @@ class Force : protected Pointers {
 
  private:
   template <typename T> static Pair *pair_creator(LAMMPS *);
+  template <typename T> static Bond *bond_creator(LAMMPS *);
+  template <typename T> static Angle *angle_creator(LAMMPS *);
+  template <typename T> static Dihedral *dihedral_creator(LAMMPS *);
+  template <typename T> static Improper *improper_creator(LAMMPS *);
+  template <typename T> static KSpace *kspace_creator(LAMMPS *, int, char **);
 };
 
 }

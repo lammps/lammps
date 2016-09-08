@@ -89,6 +89,15 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
   restart1 = restart2a = restart2b = NULL;
   var_restart_single = var_restart_double = NULL;
   restart = NULL;
+
+  dump_map = new DumpCreatorMap();
+
+#define DUMP_CLASS
+#define DumpStyle(key,Class) \
+  (*dump_map)[#key] = &dump_creator<Class>;
+#include "style_dump.h"
+#undef DumpStyle
+#undef DUMP_CLASS
 }
 
 /* ----------------------------------------------------------------------
@@ -115,6 +124,8 @@ Output::~Output()
   delete [] var_restart_single;
   delete [] var_restart_double;
   delete restart;
+
+  delete dump_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -571,14 +582,10 @@ void Output::add_dump(int narg, char **arg)
 
   // create the Dump
 
-  if (0) return;         // dummy line to enable else-if macro expansion
-
-#define DUMP_CLASS
-#define DumpStyle(key,Class) \
-  else if (strcmp(arg[2],#key) == 0) dump[ndump] = new Class(lmp,narg,arg);
-#include "style_dump.h"
-#undef DUMP_CLASS
-
+  if (dump_map->find(arg[2]) != dump_map->end()) {
+    DumpCreator dump_creator = (*dump_map)[arg[2]];
+    dump[ndump] = dump_creator(lmp, narg, arg);
+  }
   else error->all(FLERR,"Unknown dump style");
 
   every_dump[ndump] = force->inumeric(FLERR,arg[3]);
@@ -586,6 +593,16 @@ void Output::add_dump(int narg, char **arg)
   last_dump[ndump] = -1;
   var_dump[ndump] = NULL;
   ndump++;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per dump style in style_dump.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Dump *Output::dump_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
 }
 
 /* ----------------------------------------------------------------------

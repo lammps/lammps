@@ -67,7 +67,8 @@ for all Drude particles, and to calculate the force constant for each \
 type of core-Drude bond from equation (1). The timesteps used by these \
 authors are between 0.5 and 2 fs, with the degrees of freedom of the \
 Drude oscillators kept cold at 1 K. :l
-In both these force fields hydrogen atoms are treated as non-polarizable. :ule,l
+In both these force fields hydrogen atoms are treated as non-polarizable. :l
+:ule
 
 
 The motion of of the Drude particles can be calculated by minimizing
@@ -104,7 +105,8 @@ due to the short distances, so an atom may capture the Drude particle \
 (shell) of a neighbor, or the induced dipoles within the same molecule \
 may align too much.  To avoid this, damping at short of the \
 interactions between the point charges composing the induced dipole \
-can be done by "Thole"_#Thole functions. :ole,l
+can be done by "Thole"_#Thole functions. :l
+:ole
 
 
 :line
@@ -330,8 +332,8 @@ For the {thole} pair style the coefficients are
 the atom polarizability in units of cubic length :olb,l
 the screening factor of the Thole function (optional, default value
 specified by the pair_style command) :l
-the cutoff (optional, default value defined by the pair_style command)
-:l,ole
+the cutoff (optional, default value defined by the pair_style command) :l
+:ole
 
 The special neighbors have charge-charge and charge-dipole
 interactions screened by the {coul} factors of the {special_bonds}

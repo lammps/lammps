@@ -17,7 +17,8 @@ style = any of the supported "dump styles"_dump.html :l
 file = name of file to write dump info to :l
 dump-args = any additional args needed for a particular "dump style"_dump.html :l
 modify = all args after this keyword are passed to "dump_modify"_dump_modify.html (optional) :l
-dump-modify-args = args for "dump_modify"_dump_modify.html (optional) :l,ule
+dump-modify-args = args for "dump_modify"_dump_modify.html (optional) :l
+:ule
 
 [Examples:]
 

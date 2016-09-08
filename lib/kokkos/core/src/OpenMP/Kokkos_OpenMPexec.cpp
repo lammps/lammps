@@ -49,6 +49,7 @@
 #include <impl/Kokkos_Error.hpp>
 #include <iostream>
 #include <impl/Kokkos_CPUDiscovery.hpp>
+#include <impl/Kokkos_Profiling_Interface.hpp>
 
 #ifdef KOKKOS_HAVE_OPENMP
 
@@ -85,15 +86,7 @@ int OpenMPexec::m_map_rank[ OpenMPexec::MAX_THREAD_COUNT ] = { 0 };
 
 int OpenMPexec::m_pool_topo[ 4 ] = { 0 };
 
-#if ! KOKKOS_USING_EXP_VIEW
-
-OpenMPexec::Pool OpenMPexec::m_pool;
-
-#else
-
 OpenMPexec * OpenMPexec::m_pool[ OpenMPexec::MAX_THREAD_COUNT ] = { 0 };
-
-#endif
 
 void OpenMPexec::verify_is_process( const char * const label )
 {
@@ -125,16 +118,12 @@ void OpenMPexec::clear_scratch()
 #pragma omp parallel
   {
     const int rank_rev = m_map_rank[ omp_get_thread_num() ];
-#if KOKKOS_USING_EXP_VIEW
     typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
     if ( m_pool[ rank_rev ] ) {
       Record * const r = Record::get_record( m_pool[ rank_rev ] );
       m_pool[ rank_rev ] = 0 ;
       Record::decrement( r );
     }
-#else
-    m_pool.at(rank_rev).clear();
-#endif
   }
 /* END #pragma omp parallel */
 }
@@ -172,8 +161,6 @@ void OpenMPexec::resize_scratch( size_t reduce_size , size_t thread_size )
       const int rank_rev = m_map_rank[ omp_get_thread_num() ];
       const int rank     = pool_size - ( rank_rev + 1 );
 
-#if KOKKOS_USING_EXP_VIEW
-
       typedef Kokkos::Experimental::Impl::SharedAllocationRecord< Kokkos::HostSpace , void > Record ;
 
       Record * const r = Record::allocate( Kokkos::HostSpace()
@@ -183,15 +170,6 @@ void OpenMPexec::resize_scratch( size_t reduce_size , size_t thread_size )
       Record::increment( r );
 
       m_pool[ rank_rev ] = reinterpret_cast<OpenMPexec*>( r->data() );
-
-#else
-
-      #pragma omp critical
-      {
-        m_pool.at(rank_rev) = HostSpace::allocate_and_track( "openmp_scratch", alloc_size );
-      }
-
-#endif
 
       new ( m_pool[ rank_rev ] ) OpenMPexec( rank , ALLOC_EXEC , reduce_size , thread_size );
     }
@@ -330,6 +308,10 @@ void OpenMP::initialize( unsigned thread_count ,
   }
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
+
+  #if (KOKKOS_ENABLE_PROFILING)
+    Kokkos::Profiling::initialize();
+  #endif
 }
 
 //----------------------------------------------------------------------------
@@ -350,6 +332,10 @@ void OpenMP::finalize()
   if ( Impl::s_using_hwloc && Kokkos::hwloc::can_bind_threads() ) {
     hwloc::unbind_this_thread();
   }
+
+  #if (KOKKOS_ENABLE_PROFILING)
+    Kokkos::Profiling::finalize();
+  #endif
 }
 
 //----------------------------------------------------------------------------

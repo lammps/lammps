@@ -153,7 +153,7 @@ struct ModifiedGramSchmidt
 
     Kokkos::deep_copy( one , (Scalar) 1 );
 
-    Kokkos::Impl::Timer timer ;
+    Kokkos::Timer timer ;
 
     for ( size_type j = 0 ; j < count ; ++j ) {
       // Reduction   : tmp = dot( Q(:,j) , Q(:,j) );

@@ -135,14 +135,14 @@ git. You may want to have a look at the <a class="reference external" href="http
 <p><strong>Making an account</strong></p>
 <p>First of all, you need a GitHub account. This is fairly simple, just
 go to <a class="reference external" href="https://github.com">GitHub</a> and create an account by clicking
-the <a href="#id1"><span class="problematic" id="id2">``</span></a>Sign up for GitHub&#8217;&#8217; button. Once your account is created, you
+the &#8220;Sign up for GitHub&#8221; button. Once your account is created, you
 can sign in by clicking the button in the top left and filling in your
 username or e-mail address and password.</p>
 <hr class="docutils" />
 <p><strong>Forking the repository</strong></p>
 <p>To get changes into LAMMPS, you need to first fork the repository. At
 the time of writing, LAMMPS-ICMS is the preferred fork. Go to <a class="reference external" href="https://github.com/lammps/lammps">LAMMPS on GitHub</a> and make sure branch is
-set to <a href="#id3"><span class="problematic" id="id4">``</span></a>lammps-icms&#8217;&#8216;, see the figure below.</p>
+set to &#8220;lammps-icms&#8221;, see the figure below.</p>
 <img alt="_images/tutorial_branch.png" class="align-center" src="_images/tutorial_branch.png" />
 <p>Now, click on fork in the top right corner:</p>
 <img alt="_images/tutorial_fork.png" class="align-center" src="_images/tutorial_fork.png" />
@@ -158,7 +158,7 @@ will contain these changes, a so-called feature branch.</p>
 <p><strong>Feature branches</strong></p>
 <p>Since LAMMPS is such a big project and most user contributions come in
 small portions, the most ideal workflow for LAMMPS is the so-called
-<a href="#id5"><span class="problematic" id="id6">``</span></a>Feature branch&#8217;&#8217; workflow. It is explained in great detail here:
+&#8220;Feature branch&#8221; workflow. It is explained in great detail here:
 <a class="reference external" href="https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow">feature branch workflow</a>.</p>
 <p>The idea is that every new feature for LAMMPS gets its own
 branch. This way, it is fairly painless to incorporate new features
@@ -172,7 +172,7 @@ to use a command line.</p>
 </div>
 <p>You can find the proper url to the right of the &#8220;HTTPS&#8221; block, see figure.</p>
 <img alt="_images/tutorial_https_block.png" class="align-center" src="_images/tutorial_https_block.png" />
-<p>The above command copies (<a href="#id7"><span class="problematic" id="id8">``</span></a>clones&#8217;&#8216;) the git repository to your local
+<p>The above command copies (&#8220;clones&#8221;) the git repository to your local
 machine. You can use this local clone to make changes and test them
 without interfering with the repository on github. First, however, it
 is recommended to make a new branch for a particular feature you would
@@ -192,7 +192,7 @@ you should switch branches!</p>
 <p>After everything is done, add the files to the branch and commit them:</p>
 <pre class="literal-block">
 $ git add src/USER-MANIFOLD examples/USER/manifold/
-$ git add doc/fix_nv<em>t,e</em>_manifold_rattle.txt
+$ git add doc/fix_nv{t,e}_manifold_rattle.txt
 $ git add doc/fix_manifoldforce.txt doc/user_manifolds.txt
 </pre>
 <p>After the files are added, the change should be comitted:</p>
@@ -203,14 +203,14 @@ $ git add doc/fix_manifoldforce.txt doc/user_manifolds.txt
 indicate what type of change was commited.</p>
 <p><strong>Wisdom by Axel</strong></p>
 <p><em>&#8220;Do not use &#8220;git commit -a&#8221;.  the -a flag will automatically include
-*all</em> modified or new files.  mercurial does that and it find it
+*all* modified or new files.  mercurial does that and it find it
 hugely annoying and often leading to accidental commits of files you
 don&#8217;t want.  use git add, git rm, git mv for adding, removing,
 renaming and then git commit to finalize the commit.  personally, i
 find it very convenient to use the bundled gui for commits, i.e. git
 gui.  typically, i will do git add and other operations, but then
 verify and review them with git gui.  git gui also allows to do
-line-by-line unstaging and other convenient operations.&#8221;*</p>
+line-by-line unstaging and other convenient operations.&#8221;</em></p>
 <p>After the commit, the changes can be pushed to the same branch on GitHub:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>$ git push
 </pre></div>
@@ -234,7 +234,7 @@ branch. GitHub will now look like this:</p>
 this case, is &#8220;add-user-manifold&#8221;. Now click &#8220;New pull request&#8221;. If
 done correctly, the only changes you will see are those that were made
 on this branch, so in my case, I will see nothing related to
-$mathrm*pair_dzugatov*.$</p>
+$mathrm*pair\_dzugatov*.$</p>
 <p>This will open up a new window that lists changes made to the
 repository. If you are just adding new files, there is not much to do,
 but I suppose merge conflicts are to be resolved here if there are

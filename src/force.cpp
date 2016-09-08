@@ -78,7 +78,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 
   // fill pair map with pair styles listed in style_pair.h
 
-  pair_map = new std::map<std::string,PairCreator>();
+  pair_map = new PairCreatorMap();
 
 #define PAIR_CLASS
 #define PairStyle(key,Class) \
@@ -86,6 +86,51 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 #include "style_pair.h"
 #undef PairStyle
 #undef PAIR_CLASS
+
+  bond_map = new BondCreatorMap();
+
+#define BOND_CLASS
+#define BondStyle(key,Class) \
+  (*bond_map)[#key] = &bond_creator<Class>;
+#include "style_bond.h"
+#undef BondStyle
+#undef BOND_CLASS
+
+  angle_map = new AngleCreatorMap();
+
+#define ANGLE_CLASS
+#define AngleStyle(key,Class) \
+  (*angle_map)[#key] = &angle_creator<Class>;
+#include "style_angle.h"
+#undef AngleStyle
+#undef ANGLE_CLASS
+
+  dihedral_map = new DihedralCreatorMap();
+
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class) \
+  (*dihedral_map)[#key] = &dihedral_creator<Class>;
+#include "style_dihedral.h"
+#undef DihedralStyle
+#undef DIHEDRAL_CLASS
+
+  improper_map = new ImproperCreatorMap();
+
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class) \
+  (*improper_map)[#key] = &improper_creator<Class>;
+#include "style_improper.h"
+#undef ImproperStyle
+#undef IMPROPER_CLASS
+
+  kspace_map = new KSpaceCreatorMap();
+
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class) \
+  (*kspace_map)[#key] = &kspace_creator<Class>;
+#include "style_kspace.h"
+#undef KSpaceStyle
+#undef KSPACE_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,6 +159,11 @@ Force::~Force()
   kspace = NULL;
 
   delete pair_map;
+  delete bond_map;
+  delete angle_map;
+  delete dihedral_map;
+  delete improper_map;
+  delete kspace_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -288,44 +338,42 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BondStyle
-#undef BOND_CLASS
+      if (bond_map->find(estyle) != bond_map->end()) {
+        BondCreator bond_creator = (*bond_map)[estyle];
+        return bond_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BondStyle
-#undef BOND_CLASS
+      if (bond_map->find(estyle) != bond_map->end()) {
+        BondCreator bond_creator = (*bond_map)[estyle];
+        return bond_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (bond_map->find(style) != bond_map->end()) {
+    BondCreator bond_creator = (*bond_map)[style];
+    return bond_creator(lmp);
+  }
 
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BOND_CLASS
-
-  else error->all(FLERR,"Unknown bond style");
+  error->all(FLERR,"Unknown bond style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per bond style in style_bond.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Bond *Force::bond_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -368,45 +416,44 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef AngleStyle
-#undef ANGLE_CLASS
+      if (angle_map->find(estyle) != angle_map->end()) {
+        AngleCreator angle_creator = (*angle_map)[estyle];
+        return angle_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef AngleStyle
-#undef ANGLE_CLASS
+      if (angle_map->find(estyle) != angle_map->end()) {
+        AngleCreator angle_creator = (*angle_map)[estyle];
+        return angle_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (angle_map->find(style) != angle_map->end()) {
+    AngleCreator angle_creator = (*angle_map)[style];
+    return angle_creator(lmp);
+  }
 
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef ANGLE_CLASS
-
-  else error->all(FLERR,"Unknown angle style");
+  error->all(FLERR,"Unknown angle style");
   return NULL;
 }
+
+/* ----------------------------------------------------------------------
+   one instance per angle style in style_angle.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Angle *Force::angle_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
 
 /* ----------------------------------------------------------------------
    return ptr to current angle class or hybrid sub-class if matches style
@@ -448,45 +495,42 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
+      if (dihedral_map->find(estyle) != dihedral_map->end()) {
+        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        return dihedral_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
+      if (dihedral_map->find(estyle) != dihedral_map->end()) {
+        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        return dihedral_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (dihedral_map->find(style) != dihedral_map->end()) {
+    DihedralCreator dihedral_creator = (*dihedral_map)[style];
+    return dihedral_creator(lmp);
+  }
 
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
-
-  else error->all(FLERR,"Unknown dihedral style");
+  error->all(FLERR,"Unknown dihedral style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per dihedral style in style_dihedral.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Dihedral *Force::dihedral_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -529,44 +573,42 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef ImproperStyle
-#undef IMPROPER_CLASS
+      if (improper_map->find(estyle) != improper_map->end()) {
+        ImproperCreator improper_creator = (*improper_map)[estyle];
+        return improper_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef ImproperStyle
-#undef IMPROPER_CLASS
+      if (improper_map->find(estyle) != improper_map->end()) {
+        ImproperCreator improper_creator = (*improper_map)[estyle];
+        return improper_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (improper_map->find(style) != improper_map->end()) {
+    ImproperCreator improper_creator = (*improper_map)[style];
+    return improper_creator(lmp);
+  }
 
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef IMPROPER_CLASS
-
-  else error->all(FLERR,"Unknown improper style");
+  error->all(FLERR,"Unknown improper style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per improper style in style_improper.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Improper *Force::improper_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -613,44 +655,42 @@ KSpace *Force::new_kspace(int narg, char **arg, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
-
-      if (0) return NULL;
-
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSpaceStyle
-#undef KSPACE_CLASS
+      if (kspace_map->find(estyle) != kspace_map->end()) {
+        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        return kspace_creator(lmp, narg-1, &arg[1]);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
-
-      if (0) return NULL;
-
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSpaceStyle
-#undef KSPACE_CLASS
+      if (kspace_map->find(estyle) != kspace_map->end()) {
+        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        return kspace_creator(lmp, narg-1, &arg[1]);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(arg[0],"none") == 0) return NULL;
+  if (kspace_map->find(arg[0]) != kspace_map->end()) {
+    KSpaceCreator kspace_creator = (*kspace_map)[arg[0]];
+    return kspace_creator(lmp, narg-1, &arg[1]);
+  }
 
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) return  new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSPACE_CLASS
-
-  else error->all(FLERR,"Unknown kspace style");
+  error->all(FLERR,"Unknown kspace style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per kspace style in style_kspace.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+KSpace *Force::kspace_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
 }
 
 /* ----------------------------------------------------------------------

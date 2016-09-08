@@ -133,10 +133,22 @@
 // still identifies as 7.0
 #error "Cuda version 7.5 or greater required for host-to-device Lambda support"
 #endif
+#if ( CUDA_VERSION < 8000 )
 #define KOKKOS_LAMBDA [=]__device__
+#else
+#define KOKKOS_LAMBDA [=]__host__ __device__
+#endif
 #define KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA 1
 #endif
 #endif /* #if defined( KOKKOS_HAVE_CUDA ) && defined( __CUDACC__ ) */
+
+
+#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
+   // Cuda version 8.0 still needs the functor wrapper
+   #if (KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA /* && (CUDA_VERSION < 8000) */ )
+      #define KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
+   #endif
+#endif
 
 /*--------------------------------------------------------------------------*/
 /* Language info: C++, CUDA, OPENMP */
@@ -440,27 +452,16 @@
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
-/* Transitional macro to change between old and new View,
- * default to use new View.
+/* Transitional macro to change between old and new View
+ * are no longer supported.
  */
 
-#if ! defined( KOKKOS_USING_EXP_VIEW )
 #if defined( KOKKOS_USING_DEPRECATED_VIEW )
-#define KOKKOS_USING_EXP_VIEW 0
-#else
-#define KOKKOS_USING_EXP_VIEW 1
-#endif
+#error "Kokkos deprecated View has been removed"
 #endif
 
-#if KOKKOS_USING_EXP_VIEW
-#if ! defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
+#define KOKKOS_USING_EXP_VIEW 1
 #define KOKKOS_USING_EXPERIMENTAL_VIEW
-#endif
-#else /* ! KOKKOS_USING_EXP_VIEW */
-#if defined( KOKKOS_USING_EXPERIMENTAL_VIEW )
-#error "KOKKOS_USING_EXP_VIEW and KOKKOS_USING_EXPERIMENAL_VIEW are both defined and are incompatible"
-#endif
-#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

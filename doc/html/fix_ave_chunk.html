@@ -141,16 +141,16 @@
 <li>one or more input values can be listed</li>
 <li>value = vx, vy, vz, fx, fy, fz, density/mass, density/number, temp, c_ID, c_ID[I], f_ID, f_ID[I], v_name</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">vx</span><span class="p">,</span><span class="n">vy</span><span class="p">,</span><span class="n">vz</span><span class="p">,</span><span class="n">fx</span><span class="p">,</span><span class="n">fy</span><span class="p">,</span><span class="n">fz</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">attribute</span> <span class="p">(</span><span class="n">velocity</span><span class="p">,</span> <span class="n">force</span> <span class="n">component</span><span class="p">)</span>
-<span class="n">density</span><span class="o">/</span><span class="n">number</span><span class="p">,</span> <span class="n">density</span><span class="o">/</span><span class="n">mass</span> <span class="o">=</span> <span class="n">number</span> <span class="ow">or</span> <span class="n">mass</span> <span class="n">density</span>
-<span class="n">temp</span> <span class="o">=</span> <span class="n">temperature</span>
-<span class="n">c_ID</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
-<span class="n">f_ID</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span><span class="p">,</span> <span class="n">I</span> <span class="n">can</span> <span class="n">include</span> <span class="n">wildcard</span> <span class="p">(</span><span class="n">see</span> <span class="n">below</span><span class="p">)</span>
-<span class="n">v_name</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">atom</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+vx,vy,vz,fx,fy,fz = atom attribute (velocity, force component)
+density/number, density/mass = number or mass density
+temp = temperature
+c_ID = per-atom vector calculated by a compute with ID
+c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
+f_ID = per-atom vector calculated by a fix with ID
+f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
+v_name = per-atom vector calculated by an atom-style variable with name
+</pre>
 <ul class="simple">
 <li>zero or more keyword/arg pairs may be appended</li>
 <li>keyword = <em>norm</em> or <em>ave</em> or <em>bias</em> or <em>adof</em> or <em>cdof</em> or <em>file</em> or <em>overwrite</em> or <em>title1</em> or <em>title2</em> or <em>title3</em></li>
@@ -185,12 +185,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">10000</span> <span class="mi">1</span> <span class="mi">10000</span> <span class="n">binchunk</span> <span class="n">c_myCentro</span> <span class="n">title1</span> <span class="s2">&quot;My output values&quot;</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">flow</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">10</span> <span class="mi">1000</span> <span class="n">molchunk</span> <span class="n">vx</span> <span class="n">vz</span> <span class="n">norm</span> <span class="n">sample</span> <span class="n">file</span> <span class="n">vel</span><span class="o">.</span><span class="n">profile</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">flow</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="n">binchunk</span> <span class="n">density</span><span class="o">/</span><span class="n">mass</span> <span class="n">ave</span> <span class="n">running</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">flow</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="n">binchunk</span> <span class="n">density</span><span class="o">/</span><span class="n">mass</span> <span class="n">ave</span> <span class="n">running</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all ave/chunk 10000 1 10000 binchunk c_myCentro title1 &quot;My output values&quot;
+fix 1 flow ave/chunk 100 10 1000 molchunk vx vz norm sample file vel.profile
+fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
+fix 1 flow ave/chunk 100 5 1000 binchunk density/mass ave running
+</pre>
 <p><strong>NOTE:</strong></p>
 <p>If you are trying to replace a deprectated fix ave/spatial command
 with the newer, more flexible fix ave/chunk and <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> commands, you simply need to split
@@ -242,7 +242,7 @@ ones that can be used with this fix since all other styles of variable
 produce global quantities.</p>
 <p>Note that for values from a compute or fix, the bracketed index I can
 be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or
+specify multiple values.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or
 &#8220;m*n&#8221;.  If N = the size of the vector (for <em>mode</em> = scalar) or the
 number of columns in the array (for <em>mode</em> = vector), then an asterisk
 with no numeric values means all indices from 1 to N.  A leading
@@ -251,18 +251,18 @@ asterisk means all indices from n to N (inclusive).  A middle asterisk
 means all indices from m to n (inclusive).</p>
 <p>Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 fix ave/chunk commands are
-equivalent, since the <span class="xref doc">compute property/atom</span> command creates, in this
+equivalent, since the <a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a> command creates, in this
 case, a per-atom array with 3 columns:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myAng</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">angmomx</span> <span class="n">angmomy</span> <span class="n">angmomz</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">cc1</span> <span class="n">c_myAng</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">angmom</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">chunk</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">cc1</span> <span class="n">c_myAng</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myAng</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myAng</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">angmom</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute myAng all property/atom angmomx angmomy angmomz
+fix 1 all ave/chunk 100 1 100 cc1 c_myAng[*] file tmp.angmom
+fix 2 all ave/chunk 100 1 100 cc1 c_myAng[1] c_myAng[2] c_myAng[3] file tmp.angmom
+</pre>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">This fix works by creating an array of size <em>Nchunk</em> by Nvalues
 on each processor.  <em>Nchunk</em> is the number of chunks which is defined
-by the <span class="xref doc">compute chunk/atom</span> command.
+by the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command.
 Nvalues is the number of input values specified.  Each processor loops
 over its atoms, tallying its values to the appropriate chunk.  Then
 the entire array is summed across all processors.  This means that
@@ -349,7 +349,7 @@ in the chunk on different timesteps were collected together as one set
 of atoms to calculate their temperature.  The compute allows the
 center-of-mass velocity of each chunk to be subtracted before
 calculating the temperature; this fix does not.</p>
-<p>If a value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
+<p>If a value begins with &#8220;c_&#8221;, a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -357,7 +357,7 @@ calculated by the compute is used.  Users can also write code for
 their own compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.
 See the discussion above for how I can be specified with a wildcard
 asterisk to effectively specify multiple values.</p>
-<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
+<p>If a value begins with &#8220;f_&#8221;, a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -367,7 +367,7 @@ their values on certain timesteps, which must be compatible with
 own fix styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.  See the
 discussion above for how I can be specified with a wildcard asterisk
 to effectively specify multiple values.</p>
-<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has
+<p>If a value begins with &#8220;v_&#8221;, a variable name must follow which has
 been previously defined in the input script.  Variables of style
 <em>atom</em> can reference thermodynamic keywords and various per-atom
 attributes, or invoke other computes, fixes, or variables when they
@@ -502,10 +502,8 @@ value of the <em>units</em> keyword is <em>reduced</em>, the coordinate values w
 be in unitless reduced units (0-1).  This is not true for the Coord1 value
 of style <em>bin/sphere</em> or <em>bin/cylinder</em> which both represent radial
 dimensions.  Those values are always in distance <a class="reference internal" href="units.html"><span class="doc">units</span></a>.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>This fix computes a global array of values which can be accessed by

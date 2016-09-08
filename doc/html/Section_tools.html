@@ -218,7 +218,7 @@ own sub-directories with their own Makefiles.</p>
 <li><a class="reference internal" href="#polybond"><span class="std std-ref">polymer bonding</span></a></li>
 <li><span class="xref std std-ref">pymol_asphere</span></li>
 <li><a class="reference internal" href="#pythontools"><span class="std std-ref">python</span></a></li>
-<li><a class="reference internal" href="#reax"><span class="std std-ref">reax</span></a></li>
+<li><a class="reference internal" href="#reax-tool"><span class="std std-ref">reax</span></a></li>
 <li><a class="reference internal" href="#restart"><span class="std std-ref">restart2data</span></a></li>
 <li><a class="reference internal" href="#vim"><span class="std std-ref">vim</span></a></li>
 <li><a class="reference internal" href="#xmgrace"><span class="std std-ref">xmgrace</span></a></li>
@@ -289,9 +289,9 @@ at: <a class="reference external" href="https://github.com/colvars/colvars/issue
 <p>abf_integrate:</p>
 <p>MC-based integration of multidimensional free energy gradient
 Version 20110511</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Syntax</span><span class="p">:</span> <span class="o">./</span><span class="n">abf_integrate</span> <span class="o">&lt;</span> <span class="n">filename</span> <span class="o">&gt;</span> <span class="p">[</span><span class="o">-</span><span class="n">n</span> <span class="o">&lt;</span> <span class="n">nsteps</span> <span class="o">&gt;</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="o">&lt;</span> <span class="n">temp</span> <span class="o">&gt;</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="p">[</span><span class="mi">0</span><span class="o">|</span><span class="mi">1</span><span class="p">]</span> <span class="p">(</span><span class="n">metadynamics</span><span class="p">)]</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span> <span class="o">&lt;</span> <span class="n">hill_height</span> <span class="o">&gt;</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="o">&lt;</span> <span class="n">variable_hill_factor</span> <span class="o">&gt;</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Syntax: ./abf_integrate &lt; filename &gt; [-n &lt; nsteps &gt;] [-t &lt; temp &gt;] [-m [0|1] (metadynamics)] [-h &lt; hill_height &gt;] [-f &lt; variable_hill_factor &gt;]
+</pre>
 <p>The LAMMPS interface to the colvars collective variable library, as
 well as these tools, were created by Axel Kohlmeyer (akohlmey at
 gmail.com) at ICTP, Italy.</p>
@@ -419,7 +419,7 @@ Greathouse at Sandia (jagreat at sandia.gov).</p>
 <div class="section" id="lmp2cfg-tool">
 <span id="cfg"></span><h2>9.17. lmp2cfg tool</h2>
 <p>The lmp2cfg sub-directory contains a tool for converting LAMMPS output
-files into a series of <a href="#id1"><span class="problematic" id="id2">*</span></a>.cfg files which can be read into the
+files into a series of *.cfg files which can be read into the
 <a class="reference external" href="http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</a> visualizer.  See
 the README file for more information.</p>
 <p>This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).</p>
@@ -538,7 +538,7 @@ README for more info on Pizza.py and how to use these scripts.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="reax-tool">
-<span id="reax"></span><h2>9.27. reax tool</h2>
+<span id="id4"></span><h2>9.27. reax tool</h2>
 <p>The reax sub-directory contains stand-alond codes that can
 post-process the output of the <a class="reference internal" href="fix_reax_bonds.html"><span class="doc">fix reax/bonds</span></a>
 command from a LAMMPS simulation using <a class="reference internal" href="pair_reax.html"><span class="doc">ReaxFF</span></a>.  See

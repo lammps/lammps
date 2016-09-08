@@ -46,9 +46,10 @@
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
+#include <Kokkos_Core.hpp>
 #include <Threads/Kokkos_Threads_TaskPolicy.hpp>
 
-#if defined( KOKKOS_HAVE_PTHREAD )
+#if defined( KOKKOS_HAVE_PTHREAD ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
 #define QLOCK   (reinterpret_cast<void*>( ~((uintptr_t)0) ))
 #define QDENIED (reinterpret_cast<void*>( ~((uintptr_t)0) - 1 ))
@@ -87,9 +88,8 @@ ThreadsTaskPolicyQueue::ThreadsTaskPolicyQueue
   , const unsigned arg_task_team_size
   )
   : m_space( Kokkos::Threads::memory_space()
-           , arg_task_max_size
-           , arg_task_max_size * arg_task_max_count
-           , 1 /* only one level of memory pool */
+           , arg_task_max_size * arg_task_max_count * 1.2
+           , 16 /* log2(superblock size) */
            )
   , m_team { 0 , 0 , 0 }
   , m_serial { 0 , 0 , 0 }
@@ -624,10 +624,10 @@ ThreadsTaskPolicyQueue::allocate_task
   // User created task memory pool with an estimate,
   // if estimate is to low then report and throw exception.
 
-  if ( m_space.get_min_chunk_size() < size_alloc ) {
+  if ( m_space.get_min_block_size() < size_alloc ) {
     fprintf(stderr,"TaskPolicy<Threads> task allocation requires %d bytes on memory pool with %d byte chunk size\n"
            , int(size_alloc)
-           , int(m_space.get_min_chunk_size())
+           , int(m_space.get_min_block_size())
            );
     fflush(stderr);
     Kokkos::Impl::throw_runtime_exception("TaskMember< Threads >::task_allocate");
@@ -926,5 +926,5 @@ void Task::clear_dependence()
 } /* namespace Experimental */
 } /* namespace Kokkos */
 
-#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) */
+#endif /* #if defined( KOKKOS_HAVE_PTHREAD ) && defined( KOKKOS_ENABLE_TASKPOLICY ) */
 

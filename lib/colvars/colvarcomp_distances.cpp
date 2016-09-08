@@ -22,7 +22,7 @@ colvar::distance::distance(std::string const &conf)
     cvm::log("Computing distance using absolute positions (not minimal-image)");
   }
   if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
-    cvm::log("Computing system force on group 1 only");
+    cvm::log("Computing total force on group 1 only");
   }
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
@@ -66,12 +66,12 @@ void colvar::distance::calc_gradients()
 
 void colvar::distance::calc_force_invgrads()
 {
-  group1->read_system_forces();
+  group1->read_total_forces();
   if ( b_1site_force ) {
-    ft.real_value = -1.0 * (group1->system_force() * dist_v.unit());
+    ft.real_value = -1.0 * (group1->total_force() * dist_v.unit());
   } else {
-    group2->read_system_forces();
-    ft.real_value = 0.5 * ((group2->system_force() - group1->system_force()) * dist_v.unit());
+    group2->read_total_forces();
+    ft.real_value = 0.5 * ((group2->total_force() - group1->total_force()) * dist_v.unit());
   }
 }
 
@@ -186,7 +186,7 @@ colvar::distance_z::distance_z(std::string const &conf)
     cvm::log("Computing distance using absolute positions (not minimal-image)");
   }
   if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
-    cvm::log("Computing system force on group \"main\" only");
+    cvm::log("Computing total force on group \"main\" only");
   }
 }
 
@@ -249,13 +249,13 @@ void colvar::distance_z::calc_gradients()
 
 void colvar::distance_z::calc_force_invgrads()
 {
-  main->read_system_forces();
+  main->read_total_forces();
 
   if (fixed_axis && !b_1site_force) {
-    ref1->read_system_forces();
-    ft.real_value = 0.5 * ((main->system_force() - ref1->system_force()) * axis);
+    ref1->read_total_forces();
+    ft.real_value = 0.5 * ((main->total_force() - ref1->total_force()) * axis);
   } else {
-    ft.real_value = main->system_force() * axis;
+    ft.real_value = main->total_force() * axis;
   }
 }
 
@@ -349,13 +349,13 @@ void colvar::distance_xy::calc_gradients()
 
 void colvar::distance_xy::calc_force_invgrads()
 {
-  main->read_system_forces();
+  main->read_total_forces();
 
   if (fixed_axis && !b_1site_force) {
-    ref1->read_system_forces();
-    ft.real_value = 0.5 / x.real_value * ((main->system_force() - ref1->system_force()) * dist_v_ortho);
+    ref1->read_total_forces();
+    ft.real_value = 0.5 / x.real_value * ((main->total_force() - ref1->total_force()) * dist_v_ortho);
   } else {
-    ft.real_value = 1.0 / x.real_value * main->system_force() * dist_v_ortho;
+    ft.real_value = 1.0 / x.real_value * main->total_force() * dist_v_ortho;
   }
 }
 
@@ -655,13 +655,13 @@ void colvar::gyration::calc_gradients()
 
 void colvar::gyration::calc_force_invgrads()
 {
-  atoms->read_system_forces();
+  atoms->read_total_forces();
 
   cvm::real const dxdr = 1.0/x.real_value;
   ft.real_value = 0.0;
 
   for (cvm::atom_iter ai = atoms->begin(); ai != atoms->end(); ai++) {
-    ft.real_value += dxdr * ai->pos * ai->system_force;
+    ft.real_value += dxdr * ai->pos * ai->total_force;
   }
 }
 
@@ -903,13 +903,13 @@ void colvar::rmsd::apply_force(colvarvalue const &force)
 
 void colvar::rmsd::calc_force_invgrads()
 {
-  atoms->read_system_forces();
+  atoms->read_total_forces();
   ft.real_value = 0.0;
 
   // Note: gradient square norm is 1/N_atoms
 
   for (size_t ia = 0; ia < atoms->size(); ia++) {
-    ft.real_value += (*atoms)[ia].grad * (*atoms)[ia].system_force;
+    ft.real_value += (*atoms)[ia].grad * (*atoms)[ia].total_force;
   }
   ft.real_value *= atoms->size();
 }
@@ -1191,12 +1191,12 @@ void colvar::eigenvector::apply_force(colvarvalue const &force)
 
 void colvar::eigenvector::calc_force_invgrads()
 {
-  atoms->read_system_forces();
+  atoms->read_total_forces();
   ft.real_value = 0.0;
 
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     ft.real_value += eigenvec_invnorm2 * (*atoms)[ia].grad *
-      (*atoms)[ia].system_force;
+      (*atoms)[ia].total_force;
   }
 }
 

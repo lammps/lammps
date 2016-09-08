@@ -42,7 +42,8 @@ LAMMPS-specific code is in the GPU package.  It makes calls to a
 generic GPU library in the lib/gpu directory.  This library provides
 NVIDIA support as well as more general OpenCL support, so that the
 same functionality can eventually be supported on a variety of GPU
-hardware. :l,ule
+hardware. :l
+:ule
 
 Here is a quick overview of how to enable and use the GPU package:
 
@@ -245,7 +246,8 @@ regardless of asynchronous CPU calculations. :l
 
 The output section "GPU Time Info (average)" reports "Max Mem / Proc".
 This is the maximum memory used at one time on the GPU for data
-storage by a single MPI process. :l,ule
+storage by a single MPI process. :l
+:ule
 
 [Restrictions:]
 

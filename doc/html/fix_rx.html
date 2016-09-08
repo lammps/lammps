@@ -147,13 +147,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">dense</span> <span class="n">lammps_rk4</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">sparse</span> <span class="n">lammps_rk4</span> <span class="mi">1</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">lucy</span> <span class="n">sparse</span> <span class="n">lammps_rk4</span> <span class="mi">10</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">dense</span> <span class="n">rkf45</span> <span class="mi">1</span> <span class="mi">100</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rx</span> <span class="n">kinetics</span><span class="o">.</span><span class="n">rx</span> <span class="n">none</span> <span class="n">dense</span> <span class="n">rkf45</span> <span class="mi">1</span> <span class="mi">100</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span> <span class="o">-</span><span class="mi">1</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all rx kinetics.rx none dense lammps_rk4
+fix 1 all rx kinetics.rx none sparse lammps_rk4 1
+fix 1 all rx kinetics.rx lucy sparse lammps_rk4 10
+fix 1 all rx kinetics.rx none dense rkf45 1 100 1e-6 1e-8
+fix 1 all rx kinetics.rx none dense rkf45 1 100 1e-6 1e-8 -1
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -271,7 +271,7 @@ temperature exponent <em>n</em>, and the activation energy <em>Ea</em>.</p>
 are used by the <a class="reference internal" href="fix_eos_table_rx.html"><span class="doc">fix eos/table/rx</span></a> command to
 define the thermodynamic properties of each species.  Furthermore, the
 number of species molecules (i.e., concentration) can be specified
-either with the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command using the &#8220;<a href="#id3"><span class="problematic" id="id4">d_</span></a>&#8221; prefix or by
+either with the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command using the &#8220;d_&#8221; prefix or by
 reading directly the concentrations from a data file.  For the latter
 case, the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command with the fix keyword
 should be specified, where the fix-ID will be the &#8220;fix rx`ID with a &lt;SPECIES&#8221;&gt;`_ suffix, e.g.</p>
@@ -292,7 +292,7 @@ enthalpy DPD simulation.</p>
 <h2>Related commands</h2>
 <p><a class="reference internal" href="fix_eos_table_rx.html"><span class="doc">fix eos/table/rx</span></a>,
 <a class="reference internal" href="fix_shardlow.html"><span class="doc">fix shardlow</span></a>,
-<span class="xref doc">pair dpd/fdt/energy</span></p>
+<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair dpd/fdt/energy</span></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>

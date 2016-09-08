@@ -128,21 +128,21 @@
 <span id="index-0"></span><h1>pair_style exp6/rx command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">exp6</span><span class="o">/</span><span class="n">rx</span> <span class="n">cutoff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style exp6/rx cutoff
+</pre>
 <ul class="simple">
 <li>cutoff = global cutoff for DPD interactions (distance units)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">exp6</span><span class="o">/</span><span class="n">rx</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">exp6</span><span class="o">.</span><span class="n">params</span> <span class="n">h2o</span> <span class="n">h2o</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">exp6</span><span class="o">.</span><span class="n">params</span> <span class="n">h2o</span> <span class="mi">1</span><span class="n">fluid</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">exp6</span><span class="o">.</span><span class="n">params</span> <span class="mi">1</span><span class="n">fluid</span> <span class="mi">1</span><span class="n">fluid</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">10.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style exp6/rx 10.0
+pair_coeff * * exp6.params h2o h2o 1.0 1.0 10.0
+pair_coeff * * exp6.params h2o 1fluid 1.0 1.0 10.0
+pair_coeff * * exp6.params 1fluid 1fluid 1.0 1.0 10.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

@@ -118,7 +118,8 @@ consistent (dE/dr = -F) over the entire range of r values.  LAMMPS
 will warn if this is not the case. :l
 
 Use as large an inner cutoff as possible.  This avoids fitting splines
-to very steep parts of the potential. :l,ule
+to very steep parts of the potential. :l
+:ule
 
 :line
 

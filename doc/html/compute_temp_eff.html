@@ -148,7 +148,7 @@
 <p>Define a computation that calculates the temperature of a group of
 nuclei and electrons in the <a class="reference internal" href="pair_eff.html"><span class="doc">electron force field</span></a>
 model.  A compute of this style can be used by commands that compute a
-temperature, e.g. <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a>, <span class="xref doc">fix npt/eff</span>, etc.</p>
+temperature, e.g. <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a>, <a class="reference internal" href="fix_nh_eff.html"><span class="doc">fix npt/eff</span></a>, etc.</p>
 <p>The temperature is calculated by the formula KE = dim/2 N k T, where
 KE = total kinetic energy of the group of atoms (sum of 1/2 m v^2 for
 nuclei and sum of 1/2 (m v^2 + 3/4 m s^2) for electrons, where s
@@ -170,11 +170,11 @@ reported by LAMMPS in the thermodynamic quantities reported via the
 <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a> command, as shown in the following
 example:</p>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>         <span class="n">effTemp</span> <span class="nb">all</span> <span class="n">temp</span><span class="o">/</span><span class="n">eff</span>
-<span class="n">thermo_style</span>    <span class="n">custom</span> <span class="n">step</span> <span class="n">etotal</span> <span class="n">pe</span> <span class="n">ke</span> <span class="n">temp</span> <span class="n">press</span>
-<span class="n">thermo_modify</span>   <span class="n">temp</span> <span class="n">effTemp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute         effTemp all temp/eff
+thermo_style    custom step etotal pe ke temp press
+thermo_modify   temp effTemp
+</pre>
 <p>A 6-component kinetic energy tensor is also calculated by this compute
 for use in the computation of a pressure tensor.  The formula for the
 components of the tensor is the same as the above formula, except that

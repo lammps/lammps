@@ -154,7 +154,7 @@ PerformanceData run( const typename FixtureType::FEMeshType & mesh ,
 
   typename graph_factory::element_map_type element_map ;
 
-  Kokkos::Impl::Timer wall_clock ;
+  Kokkos::Timer wall_clock ;
 
   //------------------------------------
   // Generate sparse matrix graph and element->graph map.

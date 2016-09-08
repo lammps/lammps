@@ -141,7 +141,7 @@ means all indices from m to n (inclusive).
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 fix ave/chunk commands are
 equivalent, since the "compute
-property/atom"_compute_property/atom.html command creates, in this
+property/atom"_compute_property_atom.html command creates, in this
 case, a per-atom array with 3 columns:
 
 compute myAng all property/atom angmomx angmomy angmomz
@@ -150,7 +150,7 @@ fix 2 all ave/chunk 100 1 100 cc1 c_myAng\[1\] c_myAng\[2\] c_myAng\[3\] file tm
 
 NOTE: This fix works by creating an array of size {Nchunk} by Nvalues
 on each processor.  {Nchunk} is the number of chunks which is defined
-by the "compute chunk/atom"_doc/compute_chunk_atom.html command.
+by the "compute chunk/atom"_compute_chunk_atom.html command.
 Nvalues is the number of input values specified.  Each processor loops
 over its atoms, tallying its values to the appropriate chunk.  Then
 the entire array is summed across all processors.  This means that

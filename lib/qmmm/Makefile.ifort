@@ -58,7 +58,7 @@ tldeps:
 	$(MAKE) -C ../../src $(MFLAGS) mode=lib $(LAMMPSCFG)
 
 clean :
-	- /bin/rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L
+	-rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L
 
 # explicit dependencies
 

@@ -202,11 +202,11 @@ attention to 3 settings in this makefile.</p>
 <p>See lib/gpu/Makefile.linux.double for examples of the ARCH settings
 for different GPU choices, e.g. Fermi vs Kepler.  It also lists the
 possible precision settings:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CUDA_PREC</span> <span class="o">=</span> <span class="o">-</span><span class="n">D_SINGLE_SINGLE</span>  <span class="c1"># single precision for all calculations</span>
-<span class="n">CUDA_PREC</span> <span class="o">=</span> <span class="o">-</span><span class="n">D_DOUBLE_DOUBLE</span>  <span class="c1"># double precision for all calculations</span>
-<span class="n">CUDA_PREC</span> <span class="o">=</span> <span class="o">-</span><span class="n">D_SINGLE_DOUBLE</span>  <span class="c1"># accumulation of forces, etc, in double</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+CUDA_PREC = -D_SINGLE_SINGLE  # single precision for all calculations
+CUDA_PREC = -D_DOUBLE_DOUBLE  # double precision for all calculations
+CUDA_PREC = -D_SINGLE_DOUBLE  # accumulation of forces, etc, in double
+</pre>
 <p>The last setting is the mixed mode referred to above.  Note that your
 GPU must support double precision to use either the 2nd or 3rd of
 these settings.</p>
@@ -253,11 +253,11 @@ shared by 4 MPI tasks.</p>
 which will automatically append &#8220;gpu&#8221; to styles that support it.  Use
 the &#8220;-pk gpu Ng&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a> to
 set Ng = # of GPUs/node to use.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">gpu</span> <span class="o">-</span><span class="n">pk</span> <span class="n">gpu</span> <span class="mi">1</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>                         <span class="c1"># 1 MPI task uses 1 GPU</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">12</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">gpu</span> <span class="o">-</span><span class="n">pk</span> <span class="n">gpu</span> <span class="mi">2</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>           <span class="c1"># 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">48</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">12</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">gpu</span> <span class="o">-</span><span class="n">pk</span> <span class="n">gpu</span> <span class="mi">2</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>   <span class="c1"># ditto on 4 16-core nodes</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_machine -sf gpu -pk gpu 1 -in in.script                         # 1 MPI task uses 1 GPU
+mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script           # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
+mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script   # ditto on 4 16-core nodes
+</pre>
 <p>Note that if the &#8220;-sf gpu&#8221; switch is used, it also issues a default
 <a class="reference internal" href="package.html"><span class="doc">package gpu 1</span></a> command, which sets the number of
 GPUs/node to 1.</p>
@@ -276,9 +276,9 @@ GPU package pair styles.</p>
 and use of multiple MPI tasks/GPU is the same.</p>
 <p>Use the <a class="reference internal" href="suffix.html"><span class="doc">suffix gpu</span></a> command, or you can explicitly add an
 &#8220;gpu&#8221; suffix to individual styles in your input script, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">gpu</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/gpu 2.5
+</pre>
 <p>You must also use the <a class="reference internal" href="package.html"><span class="doc">package gpu</span></a> command to enable the
 GPU package, unless the &#8220;-sf gpu&#8221; or &#8220;-pk gpu&#8221; <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switches</span></a> were used.  It specifies the
 number of GPUs/node to use, as well as other options.</p>

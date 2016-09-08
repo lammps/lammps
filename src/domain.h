@@ -16,6 +16,8 @@
 
 #include <math.h>
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -92,6 +94,10 @@ class Domain : protected Pointers {
 
   int copymode;
 
+  typedef Region *(*RegionCreator)(LAMMPS *,int,char**);
+  typedef std::map<std::string,RegionCreator> RegionCreatorMap;
+  RegionCreatorMap *region_map;
+
   Domain(class LAMMPS *);
   virtual ~Domain();
   virtual void init();
@@ -151,6 +157,9 @@ class Domain : protected Pointers {
 
  protected:
   double small[3];                  // fractions of box lengths
+
+ private:
+  template <typename T> static Region *region_creator(LAMMPS *,int,char**);
 };
 
 }

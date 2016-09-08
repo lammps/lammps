@@ -695,7 +695,8 @@ MD with quantum forces calculated by a density functional code :l
 
 lammps_spparks: coupling of LAMMPS and "SPPARKS"_spparks, to couple
 a kinetic Monte Carlo model for grain growth using MD to calculate
-strain induced across grain boundaries :l,ule
+strain induced across grain boundaries :l
+:ule
 
 :link(quest,http://dft.sandia.gov/Quest)
 :link(spparks,http://www.sandia.gov/~sjplimp/spparks.html)
@@ -829,7 +830,7 @@ rotation of [A], [B], and [C] and can be computed as follows:
 
 :c,image(Eqs/transform.jpg)
 
-where A = |[A]| indicates the scalar length of [A]. The ^ hat symbol
+where A = | [A] | indicates the scalar length of [A]. The hat symbol (^)
 indicates the corresponding unit vector. {beta} and {gamma} are angles
 between the vectors described below. Note that by construction, 
 [a], [b], and [c] have strictly positive x, y, and z components, respectively.
@@ -1010,7 +1011,7 @@ system.  Fix nvt/sllod uses "compute
 temp/deform"_compute_temp_deform.html to compute a thermal temperature
 by subtracting out the streaming velocity of the shearing atoms.  The
 velocity profile or other properties of the fluid can be monitored via
-the "fix ave/spatial"_fix_ave_spatial.html command.
+the "fix ave/chunk"_fix_ave_chunk.html command.
 
 As discussed in the previous section on non-orthogonal simulation
 boxes, the amount of tilt or skew that can be applied is limited by
@@ -1286,7 +1287,8 @@ print"_fix_print.html for single-line output of
 "variables"_variable.html.  Fix print can also output to the
 screen. :l
 
-"Restart files"_restart.html. :l,ule
+"Restart files"_restart.html. :l
+:ule
 
 A simulation prints one set of thermodynamic output and (optionally)
 restart files.  It can generate any number of dump files and fix
@@ -1698,9 +1700,9 @@ pressure"_compute_pressure.html compute to calculate a current
 pressure.  By default, this compute is created with a simple "compute
 temp"_compute_temp.html (see the last argument of the "compute
 pressure"_compute_pressure.html command), which is used to calculated
-the kinetic componenet of the pressure.  The barostatting fixes can
+the kinetic component of the pressure.  The barostatting fixes can
 also use temperature computes that remove bias for the purpose of
-computing the kinetic componenet which contributes to the current
+computing the kinetic component which contributes to the current
 pressure.  See the doc pages for the individual fixes and for the
 "fix_modify"_fix_modify.html command for instructions on how to assign
 a temperature or pressure compute to a barostatting fix.
@@ -1970,7 +1972,7 @@ on each of two regions to add/subtract specified amounts of energy to
 both regions.  In both cases, the resulting temperatures of the two
 regions can be monitored with the "compute temp/region" command and
 the temperature profile of the intermediate region can be monitored
-with the "fix ave/spatial"_fix_ave_spatial.html and "compute
+with the "fix ave/chunk"_fix_ave_chunk.html and "compute
 ke/atom"_compute_ke_atom.html commands.
 
 The third method is to perform a reverse non-equilibrium MD simulation
@@ -1979,7 +1981,7 @@ command which implements the rNEMD algorithm of Muller-Plathe.
 Kinetic energy is swapped between atoms in two different layers of the
 simulation box.  This induces a temperature gradient between the two
 layers which can be monitored with the "fix
-ave/spatial"_fix_ave_spatial.html and "compute
+ave/chunk"_fix_ave_chunk.html and "compute
 ke/atom"_compute_ke_atom.html commands.  The fix tallies the
 cumulative energy transfer that it performs.  See the "fix
 thermal/conductivity"_fix_thermal_conductivity.html command for
@@ -2036,7 +2038,7 @@ velocity to prevent the fluid from heating up.
 
 In both cases, the velocity profile setup in the fluid by this
 procedure can be monitored by the "fix
-ave/spatial"_fix_ave_spatial.html command, which determines
+ave/chunk"_fix_ave_chunk.html command, which determines
 grad(Vstream) in the equation above.  E.g. the derivative in the
 y-direction of the Vx component of fluid motion or grad(Vstream) =
 dVx/dy.  The Pxy off-diagonal component of the pressure or stress
@@ -2050,7 +2052,7 @@ using the "fix viscosity"_fix_viscosity.html command which implements
 the rNEMD algorithm of Muller-Plathe.  Momentum in one dimension is
 swapped between atoms in two different layers of the simulation box in
 a different dimension.  This induces a velocity gradient which can be
-monitored with the "fix ave/spatial"_fix_ave_spatial.html command.
+monitored with the "fix ave/chunk"_fix_ave_chunk.html command.
 The fix tallies the cummulative momentum transfer that it performs.
 See the "fix viscosity"_fix_viscosity.html command for details.
 
@@ -2274,7 +2276,8 @@ molecule diffusion rates. :l
 
 As input to special functions of "equal-style
 variables"_variable.html, like sum() and max().  E.g. to find the
-largest cluster or fastest diffusing molecule. :l,ule
+largest cluster or fastest diffusing molecule. :l
+:ule
 
 Example calculations with chunks :h5
 
@@ -2430,7 +2433,8 @@ package, :ulb,l
 the adiabatic core-shell method, implemented in the
 "CORESHELL"_#howto_26 package, :l
 the thermalized Drude dipole method, implemented in the
-"USER-DRUDE"_#howto_27 package. :l,ule
+"USER-DRUDE"_#howto_27 package. :l
+:ule
 
 The fluctuating charge method calculates instantaneous charges on
 interacting atoms based on the electronegativity equalization
@@ -2737,7 +2741,8 @@ too much. To avoid this, damping at short range can be done by Thole
 functions (for which there are physical grounds). This Thole damping
 is applied to the point charges composing the induced dipole (the
 charge of the Drude particle and the opposite charge on the core, not
-to the total charge of the core atom). :l,ule
+to the total charge of the core atom). :l
+:ule
 
 A detailed tutorial covering the usage of Drude induced dipoles in
 LAMMPS is "available here"_tutorial_drude.html.

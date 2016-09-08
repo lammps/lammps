@@ -84,6 +84,10 @@ struct PairReaxBuildListsHalf_LessAtomics{};
 
 struct PairReaxZero{};
 
+struct PairReaxZeroEAtom{};
+
+struct PairReaxZeroVAtom{};
+
 struct PairReaxBondOrder1{};
 
 struct PairReaxBondOrder1_LessAtomics{};
@@ -171,6 +175,12 @@ class PairReaxCKokkos : public PairReaxC {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxZero, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxZeroEAtom, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxZeroVAtom, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBondOrder1, const int&) const;

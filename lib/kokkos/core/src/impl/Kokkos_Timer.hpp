@@ -109,6 +109,9 @@ public:
 };
 
 } // namespace Impl
+
+  using Kokkos::Impl::Timer ;
+
 } // namespace Kokkos
 
 #endif /* #ifndef KOKKOS_IMPLWALLTIME_HPP */

@@ -141,11 +141,11 @@ one or more 16-core nodes.  More details follow.</p>
 <span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">p</span> <span class="n">omp</span> <span class="o">-</span><span class="n">o</span> <span class="n">mpi</span> <span class="o">-</span><span class="n">a</span> <span class="n">file</span> <span class="n">mpi</span>       <span class="c1"># or one-line build via Make.py</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">sf</span> <span class="n">omp</span> <span class="o">-</span><span class="n">pk</span> <span class="n">omp</span> <span class="mi">16</span> <span class="o">&lt;</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>                         <span class="c1"># 1 MPI task, 16 threads</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">sf</span> <span class="n">omp</span> <span class="o">-</span><span class="n">pk</span> <span class="n">omp</span> <span class="mi">4</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>           <span class="c1"># 4 MPI tasks, 4 threads/task</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">32</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">4</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">sf</span> <span class="n">omp</span> <span class="o">-</span><span class="n">pk</span> <span class="n">omp</span> <span class="mi">4</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>   <span class="c1"># 8 nodes, 4 MPI tasks/node, 4 threads/task</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_mpi -sf omp -pk omp 16 &lt; in.script                         # 1 MPI task, 16 threads
+mpirun -np 4 lmp_mpi -sf omp -pk omp 4 -in in.script           # 4 MPI tasks, 4 threads/task
+mpirun -np 32 -ppn 4 lmp_mpi -sf omp -pk omp 4 -in in.script   # 8 nodes, 4 MPI tasks/node, 4 threads/task
+</pre>
 <p><strong>Required hardware/software:</strong></p>
 <p>Your compiler must support the OpenMP interface.  You should have one
 or more multi-core CPUs so that multiple threads can be launched by
@@ -184,9 +184,9 @@ threads via the OMP_NUM_THREADS environment variable.</p>
 and threads/MPI task is the same.</p>
 <p>Use the <a class="reference internal" href="suffix.html"><span class="doc">suffix omp</span></a> command, or you can explicitly add an
 &#8220;omp&#8221; suffix to individual styles in your input script, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">omp</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/omp 2.5
+</pre>
 <p>You must also use the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command to enable the
 USER-OMP package.  When you do this you also specify how many threads
 per MPI task to use.  The command doc page explains other options and

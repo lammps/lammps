@@ -20,7 +20,8 @@ flag_coul = {long} or {off} :l
   {long} = use Kspace long-range summation for the Coulombic term 1/r
   {off} = omit the Coulombic term :pre
 cutoff = global cutoff for Buckingham (and Coulombic if only 1 cutoff) (distance units) :l
-cutoff2 = global cutoff for Coulombic (optional) (distance units) :l,ule
+cutoff2 = global cutoff for Coulombic (optional) (distance units) :l
+:ule
 
 [Examples:]
 

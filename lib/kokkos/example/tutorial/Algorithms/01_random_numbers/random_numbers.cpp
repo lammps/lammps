@@ -122,7 +122,7 @@ int main(int argc, char* args[]) {
   Kokkos::DualView<uint64_t*> vals("Vals",size*samples);
 
   // Run some performance comparisons
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
   Kokkos::parallel_for(size,generate_random<Kokkos::Random_XorShift64_Pool<> >(vals.d_view,rand_pool64,samples));
   Kokkos::fence();
 

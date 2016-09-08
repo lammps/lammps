@@ -388,6 +388,9 @@ objects to be drawn.  An example is the "fix
 surface/global"_fix_surface_global.html command which can draw lines
 or triangles for 2d/3d simulations.
 
+NOTE: Aug 2016 - The fix surface/global command is not yet added to
+LAMMPS.
+
 The {fflag1} and {fflag2} settings are numerical values which are
 passed to the fix to affect how the drawing of its objects is done.
 See the individual fix doc page for a description of what these
@@ -598,7 +601,8 @@ obviously play movie files directly. Similarly for corresponding tools
 bundled with Linux desktop environments.  However, due to licensing
 issues with some file formats, the formats may require installing
 additional libraries, purchasing a license, or may not be
-supported. :ule,l
+supported. :l
+:ule
 
 :line
 

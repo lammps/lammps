@@ -493,7 +493,7 @@ name links to a sub-section below with more details.</p>
 <td>python</td>
 <td>lib/python</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="Section_tools.html#reax"><span class="std std-ref">REAX</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="#reax"><span class="std std-ref">REAX</span></a></td>
 <td>ReaxFF potential</td>
 <td>Aidan Thompson (Sandia)</td>
 <td><a class="reference internal" href="pair_reax.html"><span class="doc">pair_style reax</span></a></td>
@@ -630,9 +630,9 @@ for aspherical particle models: ellipsoids, 2d lines, 3d triangles.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">asphere</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^asphere -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-14"><span class="std std-ref">Section howto 6.14</span></a>,
 <a class="reference internal" href="pair_gayberne.html"><span class="doc">pair_style gayberne</span></a>, <a class="reference internal" href="pair_resquared.html"><span class="doc">pair_style resquared</span></a>,
 <a class="reference external" href="PDF/pair_gayberne_extra.pdf">doc/PDF/pair_gayberne_extra.pdf</a>,
@@ -658,9 +658,9 @@ themselves.  See the <a class="reference internal" href="body.html"><span class=
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">body</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^body -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="atom_style.html"><span class="doc">atom_style body</span></a>, <a class="reference internal" href="body.html"><span class="doc">body</span></a>,
 <a class="reference internal" href="pair_body.html"><span class="doc">pair_style body</span></a>, examples/body</p>
 <hr class="docutils" />
@@ -682,9 +682,9 @@ COMPASS CLASS2 molecular force field.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">class2</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^class2 -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="bond_class2.html"><span class="doc">bond_style class2</span></a>, <a class="reference internal" href="angle_class2.html"><span class="doc">angle_style class2</span></a>, <a class="reference internal" href="dihedral_class2.html"><span class="doc">dihedral_style class2</span></a>, <a class="reference internal" href="improper_class2.html"><span class="doc">improper_style class2</span></a>, <a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2</span></a></p>
 <hr class="docutils" />
 </div>
@@ -708,9 +708,9 @@ approximation to Stokesian dynamics.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">colloid</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^colloid -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/colloid</span></a>, <a class="reference internal" href="pair_colloid.html"><span class="doc">pair_style colloid</span></a>, <a class="reference internal" href="pair_yukawa_colloid.html"><span class="doc">pair_style yukawa/colloid</span></a>, <a class="reference internal" href="pair_brownian.html"><span class="doc">pair_style brownian</span></a>, <a class="reference internal" href="pair_lubricate.html"><span class="doc">pair_style lubricate</span></a>, <a class="reference internal" href="pair_lubricateU.html"><span class="doc">pair_style lubricateU</span></a>, examples/colloid, examples/srd</p>
 <hr class="docutils" />
 </div>
@@ -737,9 +737,9 @@ zlib info it specifies.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">compress</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^compress -a machine
+</pre>
 <p>Supporting info: src/COMPRESS/README, lib/compress/README, <a class="reference internal" href="dump.html"><span class="doc">dump atom/gz</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump cfg/gz</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump custom/gz</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump xyz/gz</span></a></p>
 <hr class="docutils" />
 </div>
@@ -764,9 +764,9 @@ package.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">coreshell</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^coreshell -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-26"><span class="std std-ref">Section howto 6.26</span></a>, <a class="reference internal" href="compute_temp_cs.html"><span class="doc">compute temp/cs</span></a>,
 <a class="reference internal" href="pair_cs.html"><span class="doc">pair_style born/coul/long/cs</span></a>, <a class="reference internal" href="pair_cs.html"><span class="doc">pair_style buck/coul/long/cs</span></a>, pair_style
 lj/cut/coul/long/cs&#8221;_pair_lj.html, examples/coreshell</p>
@@ -789,9 +789,9 @@ dipole models with short-range or long-range interactions.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">dipole</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^dipole -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dipole</span></a>, <a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style lj/cut/dipole/cut</span></a>, <a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style lj/cut/dipole/long</span></a>, <a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style lj/long/dipole/long</span></a>, examples/dipole</p>
 <hr class="docutils" />
 </div>
@@ -841,9 +841,9 @@ one step, with Type &#8220;python src/Make.py -h -gpu&#8221; to see the details.
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">gpu</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^gpu -a machine
+</pre>
 <p>Supporting info: src/GPU/README, lib/gpu/README, <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section acclerate</span></a>, <a class="reference internal" href="accelerate_gpu.html"><span class="doc">Section accelerate gpu</span></a>, Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a> for any pair style listed with a (g),
 <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>, <a class="reference internal" href="package.html"><span class="doc">package gpu</span></a>,
 examples/accelerate, bench/FERMI, bench/KEPLER</p>
@@ -867,9 +867,9 @@ frictional and dissipative potentials.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">granular</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^granular -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-6"><span class="std std-ref">Section howto 6.6</span></a>, <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, <a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a>, <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hooke</span></a>, <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hertz/history</span></a>, examples/pour, bench/in.chute</p>
 <hr class="docutils" />
 </div>
@@ -896,9 +896,9 @@ process.  You should not need to edit this file.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">kim</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^kim -a machine
+</pre>
 <p>Supporting info: src/KIM/README, lib/kim/README, <a class="reference internal" href="pair_kim.html"><span class="doc">pair_style kim</span></a>, examples/kim</p>
 <hr class="docutils" />
 </div>
@@ -928,12 +928,12 @@ choose which hardware to build for.  Type &#8220;python src/Make.py -h
 system, you will need to read the <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">Section accelerate kokkos</span></a> doc page for details of what
 Makefile.machine settings are needed.</p>
 <p>To install via make or Make.py for each of 3 hardware options:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
-<span class="n">make</span> <span class="n">kokkos_omp</span>    <span class="c1"># for CPUs with OpenMP</span>
-<span class="n">make</span> <span class="n">kokkos_cuda</span>   <span class="c1"># for GPUs, check the KOKKOS_ARCH setting in Makefile.kokkos_cuda</span>
-<span class="n">make</span> <span class="n">kokkos_phi</span>    <span class="c1"># for Xeon Phis</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+make yes-kokkos
+make kokkos_omp    # for CPUs with OpenMP
+make kokkos_cuda   # for GPUs, check the KOKKOS_ARCH setting in Makefile.kokkos_cuda
+make kokkos_phi    # for Xeon Phis
+</pre>
 <p>Make.py -p kokkos -kokkos omp -a machine           # for CPUs with OpenMP
 Make.py -p kokkos -kokkos cuda arch=35 -a machine  # for GPUs of style arch
 Make.py -p kokkos -kokkos phi -a machine           # for Xeon Phis</p>
@@ -942,9 +942,9 @@ Make.py -p kokkos -kokkos phi -a machine           # for Xeon Phis</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">kokkos</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^kokkos -a machine
+</pre>
 <p>Supporting info: src/KOKKOS/README, lib/kokkos/README, <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section acclerate</span></a>, <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">Section accelerate kokkos</span></a>, Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a> for any pair style listed
 with a (k), <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a>,
 examples/accelerate, bench/FERMI, bench/KEPLER</p>
@@ -977,9 +977,9 @@ see the details.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">kspace</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^kspace -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>,
 <a class="reference external" href="PDF/kspace.pdf">doc/PDF/kspace.pdf</a>, <a class="reference internal" href="Section_howto.html#howto-7"><span class="std std-ref">Section howto 6.7</span></a>, <a class="reference internal" href="Section_howto.html#howto-8"><span class="std std-ref">Section howto 6.8</span></a>, <a class="reference internal" href="Section_howto.html#howto-9"><span class="std std-ref">Section howto 6.9</span></a>, <a class="reference internal" href="pair_coul.html"><span class="doc">pair_style coul</span></a>,
 other pair style command doc pages which have &#8220;long&#8221; or &#8220;msm&#8221; in their
@@ -1005,9 +1005,9 @@ the full list.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">manybody</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^manybody -a machine
+</pre>
 <p>Supporting info:</p>
 <p>Examples: Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a>, examples/comb, examples/eim,
 examples/nb3d, examples/vashishta</p>
@@ -1032,9 +1032,9 @@ in conjuction with dynamics.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">mc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^mc -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="fix_atom_swap.html"><span class="doc">fix atom/swap</span></a>, <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a>, <a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create</span></a>, <a class="reference internal" href="fix_bond_swap.html"><span class="doc">fix bond/swap</span></a>,
 <a class="reference internal" href="fix_gcmc.html"><span class="doc">fix gcmc</span></a>, <a class="reference internal" href="pair_dsmc.html"><span class="doc">pair_style dsmc</span></a></p>
 <hr class="docutils" />
@@ -1079,9 +1079,9 @@ Intel Fortran compiler, rather than the GNU Fortran compiler.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">meam</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^meam -a machine
+</pre>
 <p>Supporting info: lib/meam/README, <a class="reference internal" href="pair_meam.html"><span class="doc">pair_style meam</span></a>,
 examples/meam</p>
 <hr class="docutils" />
@@ -1104,9 +1104,9 @@ listing, &#8220;ls src/MISC&#8221;, to see the list of commands.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">misc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^misc -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="compute_ti.html"><span class="doc">compute ti</span></a>, <a class="reference internal" href="fix_evaporate.html"><span class="doc">fix evaporate</span></a>, <a class="reference internal" href="fix_ttm.html"><span class="doc">fix tmm</span></a>, <a class="reference internal" href="fix_viscosity.html"><span class="doc">fix viscosity</span></a>, examples/misc</p>
 <hr class="docutils" />
 </div>
@@ -1129,9 +1129,9 @@ covalent bonds.  The pair styles include terms for the Dreiding
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">molecule</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^molecule -a machine
+</pre>
 <p>Supporting info:<a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>,
 <a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a>, <a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a>,
 <a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a>,
@@ -1159,9 +1159,9 @@ are also written and read in parallel.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">mpiio</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^mpiio -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, <a class="reference internal" href="restart.html"><span class="doc">restart</span></a>,
 <a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a>, <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a></p>
 <hr class="docutils" />
@@ -1192,9 +1192,9 @@ creates and uses.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">opt</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^opt -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section acclerate</span></a>, <a class="reference internal" href="accelerate_opt.html"><span class="doc">Section accelerate opt</span></a>, Pair Styles section of <a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section commands 3.5</span></a> for any pair style listed
 with an (o), examples/accelerate, bench/KEPLER</p>
 <hr class="docutils" />
@@ -1218,13 +1218,13 @@ styles which implement different materials models.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">peri</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^peri -a machine
+</pre>
 <p>Supporting info:
 <a class="reference external" href="PDF/PDLammps_overview.pdf">doc/PDF/PDLammps_overview.pdf</a>,
 <a class="reference external" href="PDF/PDLammps_EPS.pdf">doc/PDF/PDLammps_EPS.pdf</a>,
-<a class="reference external" href="PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</a>, <a class="reference internal" href="atom_style.html"><span class="doc">atom_style peri</span></a>, <span class="xref doc">compute damage</span>,
+<a class="reference external" href="PDF/PDLammps_VES.pdf">doc/PDF/PDLammps_VES.pdf</a>, <a class="reference internal" href="atom_style.html"><span class="doc">atom_style peri</span></a>, <a class="reference internal" href="compute_damage_atom.html"><span class="doc">compute damage/atom</span></a>,
 <a class="reference internal" href="pair_peri.html"><span class="doc">pair_style peri/pmb</span></a>, examples/peri</p>
 <hr class="docutils" />
 </div>
@@ -1261,9 +1261,9 @@ one step.  Type &#8220;python src/Make.py -h -poems&#8221; to see the details.</
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">meam</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^meam -a machine
+</pre>
 <p>Supporting info: src/POEMS/README, lib/poems/README,
 <a class="reference internal" href="fix_poems.html"><span class="doc">fix poems</span></a>, examples/rigid</p>
 <hr class="docutils" />
@@ -1272,9 +1272,8 @@ one step.  Type &#8220;python src/Make.py -h -poems&#8221; to see the details.</
 <span id="python"></span><h3>4.1.22. PYTHON package</h3>
 <p>Contents: A <a class="reference internal" href="python.html"><span class="doc">python</span></a> command which allow you to execute
 Python code from a LAMMPS input script.  The code can be in a separate
-file or embedded in the input script itself.  See <span class="xref std std-ref">Section python 11.2</span> for an overview of using Python from
-LAMMPS and <a class="reference external" href="Section_python.html&quot;">Section python</a> for other ways to use
-LAMMPS and Python together.</p>
+file or embedded in the input script itself.  See <a class="reference external" href="Section_python.html&quot;">Section python 11.2</a> for an overview of using Python from
+LAMMPS and for other ways to use LAMMPS and Python together.</p>
 <p>Building with the PYTHON package assumes you have a Python shared
 library available on your system, which needs to be a Python 2
 version, 2.6 or later.  Python 3 is not supported.  The build uses the
@@ -1297,9 +1296,9 @@ in one step.  Type &#8220;python src/Make.py -h -python&#8221; to see the detail
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">python</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^python -a machine
+</pre>
 <p>Supporting info: examples/python</p>
 <hr class="docutils" />
 </div>
@@ -1321,9 +1320,9 @@ that use QEq as part of their formulation.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">qeq</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^qeq -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="fix_qeq.html"><span class="doc">fix qeq/*</span></a>, examples/qeq</p>
 <hr class="docutils" />
 </div>
@@ -1363,9 +1362,9 @@ one step.  Type &#8220;python src/Make.py -h -reax&#8221; to see the details.</p
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">reax</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^reax -a machine
+</pre>
 <p>Supporting info: lib/reax/README, <a class="reference internal" href="pair_reax.html"><span class="doc">pair_style reax</span></a>,
 <a class="reference internal" href="fix_reax_bonds.html"><span class="doc">fix reax/bonds</span></a>, examples/reax</p>
 <hr class="docutils" />
@@ -1395,9 +1394,9 @@ field calcalation on another set.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">replica</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^replica -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="Section_howto.html#howto-5"><span class="std std-ref">Section howto 6.5</span></a>,
 <a class="reference internal" href="neb.html"><span class="doc">neb</span></a>, <a class="reference internal" href="prd.html"><span class="doc">prd</span></a>, <a class="reference internal" href="tad.html"><span class="doc">tad</span></a>, <a class="reference internal" href="temper.html"><span class="doc">temper</span></a>,
 <a class="reference internal" href="run_style.html"><span class="doc">run_style verlet/split</span></a>, examples/neb, examples/prd,
@@ -1423,11 +1422,11 @@ few large bodies or many small bodies.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">rigid</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^rigid -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="compute_erotate_rigid.html"><span class="doc">compute erotate/rigid</span></a>,
-<a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>, <span class="xref doc">fix rattle</span>, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/*</span></a>, examples/ASPHERE, examples/rigid</p>
+<a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>, <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a>, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/*</span></a>, examples/ASPHERE, examples/rigid</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="shock-package">
@@ -1447,9 +1446,9 @@ simulations where a shock-wave passes through a material.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">shock</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^shock -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="fix_append_atoms.html"><span class="doc">fix append/atoms</span></a>, <a class="reference internal" href="fix_msst.html"><span class="doc">fix msst</span></a>, <a class="reference internal" href="fix_nphug.html"><span class="doc">fix nphug</span></a>, <a class="reference internal" href="fix_wall_piston.html"><span class="doc">fix wall/piston</span></a>, examples/hugoniostat, examples/msst</p>
 <hr class="docutils" />
 </div>
@@ -1472,11 +1471,11 @@ properties of the potential are also included.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">snap</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
-<p>Supporting info: <a class="reference internal" href="pair_snap.html"><span class="doc">pair snap</span></a>, <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>, <span class="xref doc">compute snad/atom</span>,
-<span class="xref doc">compute snav/atom</span>, examples/snap</p>
+<pre class="literal-block">
+Make.py -p ^snap -a machine
+</pre>
+<p>Supporting info: <a class="reference internal" href="pair_snap.html"><span class="doc">pair snap</span></a>, <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute sna/atom</span></a>, <a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute snad/atom</span></a>,
+<a class="reference internal" href="compute_sna_atom.html"><span class="doc">compute snav/atom</span></a>, examples/snap</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="srd-package">
@@ -1497,9 +1496,9 @@ colloidal-scale particles.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">srd</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^srd -a machine
+</pre>
 <p>Supporting info: <a class="reference internal" href="fix_srd.html"><span class="doc">fix srd</span></a>, <a class="reference internal" href="fix_wall_srd.html"><span class="doc">fix wall/srd</span></a>, examples/srd, examples/ASPHERE</p>
 <hr class="docutils" />
 </div>
@@ -1542,9 +1541,9 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">voronoi</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^voronoi -a machine
+</pre>
 <p>Supporting info: src/VORONOI/README, lib/voronoi/README, <a class="reference internal" href="compute_voronoi_atom.html"><span class="doc">compute voronoi/atom</span></a>, examples/voronoi</p>
 <hr class="docutils" />
 </div>
@@ -1861,7 +1860,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <tr class="row-even"><td><a class="reference internal" href="#user-smd"><span class="std std-ref">USER-SMD</span></a></td>
 <td>smoothed Mach dynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
-<td><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">userguide.pdf</a></td>
+<td><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">SMD User Guide</a></td>
 <td>USER/smd</td>
 <td><ul class="first last simple">
 <li></li>
@@ -1889,7 +1888,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <tr class="row-even"><td><a class="reference internal" href="#user-sph"><span class="std std-ref">USER-SPH</span></a></td>
 <td>smoothed particle hydrodynamics</td>
 <td>Georg Ganzenmuller (EMI)</td>
-<td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">userguide.pdf</a></td>
+<td><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">SPH User Guide</a></td>
 <td>USER/sph</td>
 <td><a class="reference external" href="http://lammps.sandia.gov/movies.html#sph">sph</a></td>
 <td><ul class="first last simple">
@@ -1900,7 +1899,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <tr class="row-odd"><td><a class="reference internal" href="#user-tally"><span class="std std-ref">USER-TALLY</span></a></td>
 <td>Pairwise tallied computes</td>
 <td>Axel Kohlmeyer (Temple U)</td>
-<td><span class="xref doc">compute</span></td>
+<td><a class="reference internal" href="compute_tally.html"><span class="doc">compute XXX/tally</span></a></td>
 <td>USER/tally</td>
 <td><ul class="first last simple">
 <li></li>
@@ -1914,7 +1913,7 @@ src/Make.py -h -voronoi&#8221; to see the details.</p>
 <tr class="row-even"><td><a class="reference internal" href="#user-vtk"><span class="std std-ref">USER-VTK</span></a></td>
 <td>VTK-style dumps</td>
 <td>Berger and Queteschiner (6)</td>
-<td><span class="xref doc">compute custom/vtk</span></td>
+<td><a class="reference internal" href="dump_custom_vtk.html"><span class="doc">compute custom/vtk</span></a></td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
@@ -1987,9 +1986,9 @@ more details.</p>
 <span class="n">make</span> <span class="n">machine</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="o">^</span><span class="n">atc</span> <span class="o">-</span><span class="n">a</span> <span class="n">machine</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Make.py -p ^atc -a machine
+</pre>
 <p>Supporting <a class="reference external" href="info:src/USER-ATC/README">info:src/USER-ATC/README</a>, <a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a>,
 examples/USER/atc</p>
 <p>Authors: Reese Jones (rjones at sandia.gov), Jeremy Templeton (jatempl
@@ -2004,7 +2003,7 @@ Dynamics.  This package implements an atom, pair, and fix style which
 allows electrons to be treated as explicit particles in an MD
 calculation.  See src/USER-AWPMD/README for more details.</p>
 <p>To build LAMMPS with this package ...</p>
-<p>Supporting info: src/USER-AWPMD/README, <span class="xref doc">fix awpmd/cut</span>, examples/USER/awpmd</p>
+<p>Supporting info: src/USER-AWPMD/README, <a class="reference internal" href="pair_awpmd.html"><span class="doc">fix awpmd/cut</span></a>, examples/USER/awpmd</p>
 <p>Author: Ilya Valuev at the JIHT in Russia (valuev at
 physik.hu-berlin.de).  Contact him directly if you have questions.</p>
 <hr class="docutils" />
@@ -2047,7 +2046,7 @@ have questions.</p>
 calculating x-ray and electron diffraction intensities based on
 kinematic diffraction theory.  See src/USER-DIFFRACTION/README for
 more details.</p>
-<p>Supporting info: <a class="reference internal" href="compute_saed.html"><span class="doc">compute saed</span></a>, <a class="reference internal" href="compute_xrd.html"><span class="doc">compute xrd</span></a>, <a class="reference internal" href="fix_saed_vtk.html"><span class="doc">fix saed.vtk</span></a>,
+<p>Supporting info: <a class="reference internal" href="compute_saed.html"><span class="doc">compute saed</span></a>, <a class="reference internal" href="compute_xrd.html"><span class="doc">compute xrd</span></a>, <a class="reference internal" href="fix_saed_vtk.html"><span class="doc">fix saed/vtk</span></a>,
 examples/USER/diffraction</p>
 <p>Author: Shawn P. Coleman (shawn.p.coleman8.ctr at mail.mil) while at
 the University of Arkansas.  Contact him directly if you have
@@ -2066,10 +2065,11 @@ splitting algorithm.  See src/USER-DPD/README for more details.</p>
 <p>Supporting info: /src/USER-DPD/README, <a class="reference internal" href="compute_dpd.html"><span class="doc">compute dpd</span></a>
 <a class="reference internal" href="compute_dpd_atom.html"><span class="doc">compute dpd/atom</span></a>
 <a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/cv</span></a> <a class="reference internal" href="fix_eos_table.html"><span class="doc">fix eos/table</span></a>
-<a class="reference internal" href="fix_shardlow.html"><span class="doc">fix shardlow</span></a>
-<span class="xref doc">pair_dpd/conservative</span>
-<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair_dpd/fdt</span></a>
-<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair_dpd/fdt/energy</span></a>, examples/USER/dpd</p>
+<a class="reference internal" href="fix_eos_table_rx.html"><span class="doc">fix eos/table/rx</span></a> <a class="reference internal" href="fix_shardlow.html"><span class="doc">fix shardlow</span></a>
+<a class="reference internal" href="fix_rx.html"><span class="doc">fix rx</span></a> <a class="reference internal" href="pair_table_rx.html"><span class="doc">pair table/rx</span></a>
+<a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair dpd/fdt</span></a> <a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">pair dpd/fdt/energy</span></a>
+<a class="reference internal" href="pair_exp6_rx.html"><span class="doc">pair exp6/rx</span></a> <a class="reference internal" href="pair_multi_lucy.html"><span class="doc">pair multi/lucy</span></a>
+<a class="reference internal" href="pair_multi_lucy_rx.html"><span class="doc">pair multi/lucy/rx</span></a>, examples/USER/dpd</p>
 <p>Authors: James Larentzos (ARL) (james.p.larentzos.civ at mail.mil),
 Timothy Mattox (Engility Corp) (Timothy.Mattox at engilitycorp.com)
 and John Brennan (ARL) (john.k.brennan.civ at mail.mil).  Contact them
@@ -2144,7 +2144,7 @@ this package.  Also see src/USER-INTEL/README for more details. See
 the KOKKOS, OPT, and USER-OMP packages, which also have CPU and
 Phi-enabled styles.</p>
 <p>Supporting info: examples/accelerate, src/USER-INTEL/TEST</p>
-<p><span class="xref std std-ref">Section_accelerate</span></p>
+<p><a class="reference internal" href="Section_accelerate.html#acc-3"><span class="std std-ref">Section_accelerate</span></a></p>
 <p>Author: Mike Brown at Intel (michael.w.brown at intel.com).  Contact
 him directly if you have questions.</p>
 <p>For the USER-INTEL package, you have 2 choices when building.  You can
@@ -2212,7 +2212,7 @@ Contact them directly if you have any questions.</p>
 <p>Supporting info:</p>
 <p>The files in this package are a potpourri of (mostly) unrelated
 features contributed to LAMMPS by users.  Each feature is a single
-pair of files (<a href="#id2"><span class="problematic" id="id3">*</span></a>.cpp and <a href="#id4"><span class="problematic" id="id5">*</span></a>.h).</p>
+pair of files (*.cpp and *.h).</p>
 <p>More information about each feature can be found by reading its doc
 page in the LAMMPS doc directory.  The doc page which lists all LAMMPS
 input script commands is as follows:</p>
@@ -2261,7 +2261,7 @@ to VMD, support for new file formats can be added to LAMMPS (or VMD or
 other programs that use them) without having to recompile the
 application itself.</p>
 <p>See this doc page to get started:</p>
-<p><span class="xref std std-ref">dump molfile</span></p>
+<p><a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a></p>
 <p>The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.</p>
 <hr class="docutils" />
@@ -2273,7 +2273,7 @@ application itself.</p>
 other optimizations of various LAMMPS pair styles, dihedral
 styles, and fix styles.</p>
 <p>See this section of the manual to get started:</p>
-<p><span class="xref std std-ref">Section_accelerate</span></p>
+<p><a class="reference internal" href="Section_accelerate.html#acc-3"><span class="std std-ref">Section_accelerate</span></a></p>
 <p>The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.</p>
 <p>For the USER-OMP package, your Makefile.machine needs additional
@@ -2381,18 +2381,18 @@ questions.</p>
 <p>Supporting info:</p>
 <p>This package implements smoothed Mach dynamics (SMD) in
 LAMMPS.  Currently, the package has the following features:</p>
-<ul class="simple">
-<li>Does liquids via traditional Smooth Particle Hydrodynamics (SPH)</li>
-<li>Also solves solids mechanics problems via a state of the art
-stabilized meshless method with hourglass control.</li>
-<li>Can specify hydrostatic interactions independently from material
-strength models, i.e. pressure and deviatoric stresses are separated.</li>
-<li>Many material models available (Johnson-Cook, plasticity with
-hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new
-material models.</li>
-<li>Rigid boundary conditions (walls) can be loaded as surface geometries
-from <a href="#id8"><span class="problematic" id="id9">*</span></a>.STL files.</li>
-</ul>
+<p>* Does liquids via traditional Smooth Particle Hydrodynamics (SPH)</p>
+<dl class="docutils">
+<dt>* Also solves solids mechanics problems via a state of the art</dt>
+<dd>stabilized meshless method with hourglass control.</dd>
+<dt>* Can specify hydrostatic interactions independently from material</dt>
+<dd>strength models, i.e. pressure and deviatoric stresses are separated.</dd>
+<dt>* Many material models available (Johnson-Cook, plasticity with</dt>
+<dd>hardening, Mie-Grueneisen, Polynomial EOS).  Easy to add new
+material models.</dd>
+<dt>* Rigid boundary conditions (walls) can be loaded as surface geometries</dt>
+<dd>from *.STL files.</dd>
+</dl>
 <p>See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.</p>
 <p>There are example scripts for using this package in examples/USER/smd.</p>
 <p>The person who created this package is Georg Ganzenmuller at the
@@ -2423,16 +2423,18 @@ them directly if you have any questions.</p>
 <p>Supporting info:</p>
 <p>This package implements smoothed particle hydrodynamics (SPH) in
 LAMMPS.  Currently, the package has the following features:</p>
-<ul class="simple">
-<li>Tait, ideal gas, Lennard-Jones equation of states, full support for
-complete (i.e. internal-energy dependent) equations of state</li>
-<li>Plain or Monaghans XSPH integration of the equations of motion</li>
-<li>Density continuity or density summation to propagate the density field</li>
-<li>Commands to set internal energy and density of particles from the
-input script</li>
-<li>Output commands to access internal energy and density for dumping and
-thermo output</li>
-</ul>
+<dl class="docutils">
+<dt>* Tait, ideal gas, Lennard-Jones equation of states, full support for</dt>
+<dd>complete (i.e. internal-energy dependent) equations of state</dd>
+</dl>
+<p>* Plain or Monaghans XSPH integration of the equations of motion</p>
+<p>* Density continuity or density summation to propagate the density field</p>
+<dl class="docutils">
+<dt>* Commands to set internal energy and density of particles from the</dt>
+<dd>input script</dd>
+<dt>* Output commands to access internal energy and density for dumping and</dt>
+<dd>thermo output</dd>
+</dl>
 <p>See the file doc/PDF/SPH_LAMMPS_userguide.pdf to get started.</p>
 <p>There are example scripts for using this package in examples/USER/sph.</p>
 <p>The person who created this package is Georg Ganzenmuller at the

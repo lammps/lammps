@@ -45,7 +45,7 @@ public:
 
   /// \brief System force at the previous step (copied from the
   /// program, can be modified if necessary)
-  cvm::rvector    system_force;
+  cvm::rvector    total_force;
 
   /// \brief Gradient of a scalar collective variable with respect
   /// to this atom
@@ -86,7 +86,7 @@ public:
   inline void reset_data()
   {
     pos = cvm::atom_pos(0.0);
-    vel = grad = system_force = cvm::rvector(0.0);
+    vel = grad = total_force = cvm::rvector(0.0);
   }
 
   /// Get the latest value of the mass
@@ -113,10 +113,10 @@ public:
     vel = (cvm::proxy)->get_atom_velocity(index);
   }
 
-  /// Get the system force
-  inline void read_system_force()
+  /// Get the total force
+  inline void read_total_force()
   {
-    system_force = (cvm::proxy)->get_atom_system_force(index);
+    total_force = (cvm::proxy)->get_atom_total_force(index);
   }
 
   /// \brief Apply a force to the atom
@@ -139,7 +139,7 @@ public:
 /// \brief Group of \link atom \endlink objects, mostly used by a
 /// \link cvc \endlink object to gather all atomic data
 class colvarmodule::atom_group
-  : public colvarparse, public cvm::deps
+  : public colvarparse, public colvardeps
 {
 public:
 
@@ -336,10 +336,10 @@ public:
   /// rotation applied to the coordinates will be used
   void read_velocities();
 
-  /// \brief Get the current system_forces; this must be called always
+  /// \brief Get the current total_forces; this must be called always
   /// *after* read_positions(); if b_rotate is defined, the same
   /// rotation applied to the coordinates will be used
-  void read_system_forces();
+  void read_total_forces();
 
   /// Call reset_data() for each atom
   inline void reset_atoms_data()
@@ -410,11 +410,11 @@ public:
     return dip;
   }
 
-  /// \brief Return a copy of the system forces
-  std::vector<cvm::rvector> system_forces() const;
+  /// \brief Return a copy of the total forces
+  std::vector<cvm::rvector> total_forces() const;
 
   /// \brief Return a copy of the aggregated total force on the group
-  cvm::rvector system_force() const;
+  cvm::rvector total_force() const;
 
 
   /// \brief Shorthand: save the specified gradient on each atom,

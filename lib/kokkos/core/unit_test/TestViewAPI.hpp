@@ -63,7 +63,9 @@ size_t allocation_count( const Kokkos::View<T,P...> & view )
   const size_t card  = view.size();
   const size_t alloc = view.span();
 
-  return card <= alloc ? alloc : 0 ;
+  const int memory_span = Kokkos::View<int*>::required_allocation_size(100);
+
+  return (card <= alloc && memory_span == 400) ? alloc : 0 ;
 }
 
 #else

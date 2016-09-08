@@ -75,7 +75,7 @@ doc page), are performed with computes that include the eFF contribution
 to the temperature or kinetic energy from the electron radial velocity.
 
 NOTE: there are two different pressures that can be reported for eFF
-when defining the pair_style (see "pair eff/cut"_pair_eff_cut.html to
+when defining the pair_style (see "pair eff/cut"_pair_eff.html to
 understand these settings), one (default) that considers electrons do
 not contribute radial virial components (i.e. electrons treated as
 incompressible 'rigid' spheres) and one that does.  The radial

@@ -18,7 +18,8 @@ N = perform rescaling every N steps  :l
 Tstart,Tstop = desired temperature at start/end of run (temperature units) :l
   Tstart can be a variable (see below) :pre
 window = only rescale if temperature is outside this window (temperature units) :l
-fraction = rescale to target temperature by this fraction :l,ule
+fraction = rescale to target temperature by this fraction :l
+:ule
 
 [Examples:]
 

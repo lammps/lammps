@@ -54,6 +54,8 @@
 
 #if defined( KOKKOS_HAVE_CUDA )
 
+#include <TestDynRankView.hpp>
+
 #include <Kokkos_UnorderedMap.hpp>
 
 #include <TestGlobal2LocalIds.hpp>
@@ -76,6 +78,13 @@ protected:
     Kokkos::HostSpace::execution_space::finalize();
   }
 };
+
+TEST_F( cuda, dynrankview_perf ) 
+{
+  std::cout << "Cuda" << std::endl;
+  std::cout << " DynRankView vs View: Initialization Only " << std::endl;
+  test_dynrankview_op_perf<Kokkos::Cuda>( 4096 );
+}
 
 TEST_F( cuda, global_2_local)
 {

@@ -104,6 +104,15 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 #include "style_angle.h"
 #undef AngleStyle
 #undef ANGLE_CLASS
+
+  dihedral_map = new DihedralCreatorMap();
+
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class) \
+  (*dihedral_map)[#key] = &dihedral_creator<Class>;
+#include "style_dihedral.h"
+#undef DihedralStyle
+#undef DIHEDRAL_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,6 +143,7 @@ Force::~Force()
   delete pair_map;
   delete bond_map;
   delete angle_map;
+  delete dihedral_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -465,45 +475,42 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
+      if (dihedral_map->find(estyle) != dihedral_map->end()) {
+        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        return dihedral_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
+      if (dihedral_map->find(estyle) != dihedral_map->end()) {
+        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        return dihedral_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (dihedral_map->find(style) != dihedral_map->end()) {
+    DihedralCreator dihedral_creator = (*dihedral_map)[style];
+    return dihedral_creator(lmp);
+  }
 
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
-
-  else error->all(FLERR,"Unknown dihedral style");
+  error->all(FLERR,"Unknown dihedral style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per dihedral style in style_dihedral.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Dihedral *Force::dihedral_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

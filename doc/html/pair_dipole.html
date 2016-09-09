@@ -183,6 +183,7 @@ pair_coeff 2 3 1.0 1.0 2.5 4.0
 <pre class="literal-block">
 pair_style lj/sf/dipole/sf 9.0
 pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
 pair_coeff 2 3 1.0 1.0 2.5 4.0
 </pre>
 <pre class="literal-block">
@@ -242,7 +243,10 @@ C.3 of <a class="reference internal" href="pair_gayberne.html#allen"><span class
 <p>If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
-respectively.</p>
+respectively. This pair style also supports an optional <em>scale</em> keyword
+as part of a pair_coeff statement, where the interactions can be
+scaled according to this factor. This scale factor is also made available
+for use with fix adapt.</p>
 <p>Style <em>lj/cut/dipole/long</em> computes long-range point-dipole
 interactions as discussed in <a class="reference internal" href="#toukmaji"><span class="std std-ref">(Toukmaji)</span></a>. Dipole-dipole,
 dipole-charge, and charge-charge interactions are all supported, along

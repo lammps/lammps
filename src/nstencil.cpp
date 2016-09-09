@@ -77,7 +77,6 @@ NStencil::~NStencil()
 {
   memory->destroy(stencil);
   memory->destroy(stencilxyz);
-  memory->destroy(nstencil_multi);
 
   if (!stencil_multi) return;
 
@@ -86,6 +85,7 @@ NStencil::~NStencil()
     memory->destroy(stencil_multi[i]);
     memory->destroy(distsq_multi[i]);
   }
+  delete [] nstencil_multi;
   delete [] stencil_multi;
   delete [] distsq_multi;
 }

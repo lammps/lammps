@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 NStencilHalfBin2dNewtonSSA::NStencilHalfBin2dNewtonSSA(LAMMPS *lmp) : 
-  NStencil(lmp) {}
+  NStencilSSA(lmp) {}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
@@ -49,7 +49,7 @@ void NStencilHalfBin2dNewtonSSA::create()
         if (bin_distance(i,j,0) < cutneighmaxsq)
           stencil[pos++] = j*mbinx + i;
 
-  nstencil = pos; // record where normal half stencil ends
+  nstencil_half = pos; // record where normal half stencil ends
 
   // include additional bins for AIR ghosts only
 
@@ -60,5 +60,5 @@ void NStencilHalfBin2dNewtonSSA::create()
         stencil[pos++] = j*mbinx + i;
     }
 
-  nstencil_ssa = pos; // record where full stencil ends
+  nstencil = pos; // record where full stencil ends
 }

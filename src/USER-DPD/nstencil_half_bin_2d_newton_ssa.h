@@ -22,11 +22,11 @@ NStencilStyle(half/bin/2d/newton/ssa,
 #ifndef LMP_NSTENCIL_HALF_BIN_2D_NEWTON_SSA_H
 #define LMP_NSTENCIL_HALF_BIN_2D_NEWTON_SSA_H
 
-#include "nstencil.h"
+#include "nstencil_ssa.h"
 
 namespace LAMMPS_NS {
 
-class NStencilHalfBin2dNewtonSSA : public NStencil {
+class NStencilHalfBin2dNewtonSSA : public NStencilSSA {
  public:
   NStencilHalfBin2dNewtonSSA(class LAMMPS *);
   ~NStencilHalfBin2dNewtonSSA() {}

@@ -81,7 +81,6 @@ class NPair : protected Pointers {
   // data from NStencil class
 
   int nstencil;
-  int nstencil_ssa;
   int *stencil;
   int **stencilxyz;
   int *nstencil_multi;

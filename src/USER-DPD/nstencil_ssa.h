@@ -11,31 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NPAIR_CLASS
+#ifndef LMP_NSTENCIL_SSA_H
+#define LMP_NSTENCIL_SSA_H
 
-NPairStyle(half/bin/newton/ssa,
-           NPairHalfBinNewtonSSA,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA)
-
-#else
-
-#ifndef LMP_NPAIR_HALF_BIN_NEWTON_SSA_H
-#define LMP_NPAIR_HALF_BIN_NEWTON_SSA_H
-
-#include "npair.h"
+#include "nstencil.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalfBinNewtonSSA : public NPair {
+class NStencilSSA : public NStencil {
  public:
-  NPairHalfBinNewtonSSA(class LAMMPS *);
-  ~NPairHalfBinNewtonSSA() {}
-  void build(class NeighList *);
+  NStencilSSA(class LAMMPS *lmp) : NStencil(lmp) { }
+  ~NStencilSSA() {}
+  virtual void create() = 0;
+
+  int nstencil_half;   // where the half stencil ends
 };
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

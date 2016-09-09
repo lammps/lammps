@@ -11,26 +11,37 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef NPAIR_CLASS
+#ifdef NBIN_CLASS
 
-NPairStyle(half/bin/newton/ssa,
-           NPairHalfBinNewtonSSA,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA)
+NBinStyle(ssa,
+          NBinSSA,
+          NB_SSA)
 
 #else
 
-#ifndef LMP_NPAIR_HALF_BIN_NEWTON_SSA_H
-#define LMP_NPAIR_HALF_BIN_NEWTON_SSA_H
+#ifndef LMP_NBIN_SSA_H
+#define LMP_NBIN_SSA_H
 
-#include "npair.h"
+#include "nbin_standard.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalfBinNewtonSSA : public NPair {
+class NBinSSA : public NBinStandard {
  public:
-  NPairHalfBinNewtonSSA(class LAMMPS *);
-  ~NPairHalfBinNewtonSSA() {}
-  void build(class NeighList *);
+
+  int *bins_ssa;             // index of next atom in each bin
+  int maxbin_ssa;            // size of bins_ssa array
+  int *binhead_ssa;          // index of 1st local atom in each bin
+  int *gbinhead_ssa;         // index of 1st ghost atom in each bin
+  int maxhead_ssa;           // size of binhead_ssa and gbinhead_ssa arrays
+
+  NBinSSA(class LAMMPS *);
+  ~NBinSSA();
+
+  void bin_atoms_setup(int);
+  void bin_atoms();
+
+  bigint memory_usage();
 };
 
 }

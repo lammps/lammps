@@ -243,7 +243,8 @@ to yz. :l
 
 For style {sphere}, the lattice spacing in dimensions x,y,z are
 applied to the sphere center x,y,z.  The spacing in dimension x is
-applied to the sphere radius. :l,ule
+applied to the sphere radius. :l
+:ule
 
 :line
 

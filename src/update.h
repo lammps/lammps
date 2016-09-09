@@ -15,6 +15,8 @@
 #define LMP_UPDATE_H
 
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -46,8 +48,14 @@ class Update : protected Pointers {
   class Min *minimize;
   char *minimize_style;
 
-  int rng_style;                  // default style for pRNGs
-  int rng_seed;                   // global seed for pRNGs
+  typedef Integrate *(*IntegrateCreator)(LAMMPS *,int,char**);
+  typedef Min *(*MinimizeCreator)(LAMMPS *);
+
+  typedef std::map<std::string,IntegrateCreator> IntegrateCreatorMap;
+  typedef std::map<std::string,MinimizeCreator> MinimizeCreatorMap;
+
+  IntegrateCreatorMap *integrate_map;
+  MinimizeCreatorMap *minimize_map;
 
   Update(class LAMMPS *);
   ~Update();
@@ -58,12 +66,13 @@ class Update : protected Pointers {
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
   void update_time();
-
   bigint memory_usage();
 
  private:
   void new_integrate(char *, int, char **, int, int &);
 
+  template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
+  template <typename T> static Min *minimize_creator(LAMMPS *);
 };
 
 }

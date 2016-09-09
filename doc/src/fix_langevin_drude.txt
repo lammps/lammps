@@ -229,7 +229,8 @@ computes the global pressure even if its group is {ATOMS}. This is
 what we want. If we thermostated {ATOMS} using {npt}, the pressure
 should be the global one, but the temperature should be only that of
 the cores. That's why the command {fix_modify} should be called in
-that case. :l,ule
+that case. :l
+:ule
 
 
 :line

@@ -28,8 +28,6 @@
 #include "memory.h"
 #include "error.h"
 
-#include <map>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -80,7 +78,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   // fill map with fixes listed in style_fix.h
 
-  fix_map = new std::map<std::string,FixCreator>();
+  fix_map = new FixCreatorMap();
 
 #define FIX_CLASS
 #define FixStyle(key,Class) \
@@ -91,7 +89,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   // fill map with computes listed in style_compute.h
 
-  compute_map = new std::map<std::string,ComputeCreator>();
+  compute_map = new ComputeCreatorMap();
 
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \

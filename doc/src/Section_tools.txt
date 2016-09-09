@@ -65,7 +65,7 @@ own sub-directories with their own Makefiles.
 "polymer bonding"_#polybond
 "pymol_asphere"_#pymol
 "python"_#pythontools
-"reax"_#reax
+"reax"_#reax_tool
 "restart2data"_#restart
 "vim"_#vim
 "xmgrace"_#xmgrace
@@ -455,7 +455,7 @@ README for more info on Pizza.py and how to use these scripts.
 
 :line
 
-reax tool :h4,link(reax)
+reax tool :h4,link(reax_tool)
 
 The reax sub-directory contains stand-alond codes that can
 post-process the output of the "fix reax/bonds"_fix_reax_bonds.html

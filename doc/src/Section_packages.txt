@@ -1159,9 +1159,9 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-QTB"_#USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix qbmsst"_fix_qbmsst.html, qtb, -, -
 "USER-QUIP"_#USER-QUIP, QUIP/libatoms interface, Albert Bartok-Partay (U Cambridge), "pair_style quip"_pair_quip.html, USER/quip, -, lib/quip
 "USER-REAXC"_#USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
-"USER-SMD"_#USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, -, -
+"USER-SMD"_#USER-SMD, smoothed Mach dynamics, Georg Ganzenmuller (EMI), "SMD User Guide"_PDF/SMD_LAMMPS_userguide.pdf, USER/smd, -, -
 "USER-SMTBQ"_#USER-SMTBQ, Second Moment Tight Binding - QEq potential, Salles & Maras & Politano & Tetot (4), "pair_style smtbq"_pair_smtbq.html, USER/smtbq, -, -
-"USER-SPH"_#USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
+"USER-SPH"_#USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "SPH User Guide"_PDF/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
 "USER-TALLY"_#USER-TALLY, Pairwise tallied computes, Axel Kohlmeyer (Temple U), "compute XXX/tally"_compute_tally.html, USER/tally, -, -
 "USER-VTK"_#USER-VTK, VTK-style dumps, Berger and Queteschiner (6), "compute custom/vtk"_dump_custom_vtk.html, -, -, lib/vtk
 :tb(ea=c)
@@ -1335,7 +1335,7 @@ splitting algorithm.  See src/USER-DPD/README for more details.
 Supporting info: /src/USER-DPD/README, "compute dpd"_compute_dpd.html
 "compute dpd/atom"_compute_dpd_atom.html
 "fix eos/cv"_fix_eos_table.html "fix eos/table"_fix_eos_table.html
- "fix eos/table/rx"_fix_eos_table_rx.html "fix shardlow"_fix_shardlow.html
+"fix eos/table/rx"_fix_eos_table_rx.html "fix shardlow"_fix_shardlow.html
 "fix rx"_fix_rx.html "pair table/rx"_pair_table_rx.html
 "pair dpd/fdt"_pair_dpd_fdt.html "pair dpd/fdt/energy"_pair_dpd_fdt.html
 "pair exp6/rx"_pair_exp6_rx.html "pair multi/lucy"_pair_multi_lucy.html

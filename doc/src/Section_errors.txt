@@ -535,8 +535,7 @@ Specified bond type is not valid. :dd
 
 {Bad fix ID in fix append/atoms command} :dt
 
-The value of the fix_id for keyword spatial must start with the suffix
-f_. :dd
+The value of the fix_id for keyword spatial must start with 'f_'. :dd
 
 {Bad grid of processors} :dt
 
@@ -11352,19 +11351,19 @@ have fully consistent image flags, since some bonds will cross
 periodic boundaries and connect two atoms with the same image
 flag. :dd
 
-{KIM Model does not provide `energy'; Potential energy will be zero} :dt
+{KIM Model does not provide 'energy'; Potential energy will be zero} :dt
 
 Self-explanatory. :dd
 
-{KIM Model does not provide `forces'; Forces will be zero} :dt
+{KIM Model does not provide 'forces'; Forces will be zero} :dt
 
 Self-explanatory. :dd
 
-{KIM Model does not provide `particleEnergy'; energy per atom will be zero} :dt
+{KIM Model does not provide 'particleEnergy'; energy per atom will be zero} :dt
 
 Self-explanatory. :dd
 
-{KIM Model does not provide `particleVirial'; virial per atom will be zero} :dt
+{KIM Model does not provide 'particleVirial'; virial per atom will be zero} :dt
 
 Self-explanatory. :dd
 

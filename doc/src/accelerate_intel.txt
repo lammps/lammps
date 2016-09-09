@@ -31,7 +31,8 @@ Fixes: nve, npt, nvt, nvt/sllod :l
 Improper Styles: cvff, harmonic :l
 Pair Styles: buck/coul/cut, buck/coul/long, buck, gayberne,
 charmm/coul/long, lj/cut, lj/cut/coul/long, sw, tersoff :l
-K-Space Styles: pppm :l,ule
+K-Space Styles: pppm :l
+:ule
 
 [Speed-ups to expect:]
 
@@ -70,16 +71,18 @@ For Intel Xeon CPUs:
 Edit src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi as necessary. :ulb,l
 If using {kspace_style pppm} in the input script, add "neigh_modify binsize 3" and "kspace_modify diff ad" to the input script for better
 performance. :l
-"-pk intel 0 omp 2 -sf intel" added to LAMMPS command-line :l,ule
+"-pk intel 0 omp 2 -sf intel" added to LAMMPS command-line :l
+:ule
 
 For Intel Xeon Phi CPUs for simulations without {kspace_style
 pppm} in the input script :
 
 Edit src/MAKE/OPTIONS/Makefile.knl as necessary. :ulb,l
 Runs should be performed using MCDRAM. :l
-"-pk intel 0 omp 2 -sf intel" {or} "-pk intel 0 omp 4 -sf intel"
-should be added to the LAMMPS command-line. Choice for best
-performance will depend on the simulation. :l,ule
+"-pk intel 0 omp 2 -sf intel" {or} "-pk intel 0 omp 4 -sf intel" 
+should be added to the LAMMPS command-line. Choice for best 
+performance will depend on the simulation. :l
+:ule
 
 For Intel Xeon Phi CPUs for simulations with {kspace_style
 pppm} in the input script:
@@ -92,14 +95,16 @@ Add "kspace_modify diff ad" to the input script for better
 performance. :l
 export KMP_AFFINITY=none :l
 "-pk intel 0 omp 3 lrt yes -sf intel" or "-pk intel 0 omp 1 lrt yes
--sf intel" added to LAMMPS command-line. Choice for best performance
-will depend on the simulation. :l,ule
+-sf intel" added to LAMMPS command-line. Choice for best performance 
+will depend on the simulation. :l
+:ule
 
 For Intel Xeon Phi coprocessors (Offload):
 
 Edit src/MAKE/OPTIONS/Makefile.intel_coprocessor as necessary :ulb,l
-"-pk intel N omp 1" added to command-line where N is the number of
-coprocessors per node. :l,ule
+"-pk intel N omp 1" added to command-line where N is the number of 
+coprocessors per node. :l
+:ule
 
 :line
 
@@ -463,7 +468,8 @@ Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakker, F.M., De Krake
 
 Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency. 2016 International Conference for High Performance Computing. In press. :l
 
-Brown, W.M., Carrillo, J.-M.Y., Gavhane, N., Thakkar, F.M., Plimpton, S.J. Optimizing Legacy Molecular Dynamics Software with Directive-Based Offload. Computer Physics Communications. 2015. 195: p. 95-101. :l,ule
+Brown, W.M., Carrillo, J.-M.Y., Gavhane, N., Thakkar, F.M., Plimpton, S.J. Optimizing Legacy Molecular Dynamics Software with Directive-Based Offload. Computer Physics Communications. 2015. 195: p. 95-101. :l
+:ule
 
 
 

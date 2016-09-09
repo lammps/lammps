@@ -601,7 +601,8 @@ obviously play movie files directly. Similarly for corresponding tools
 bundled with Linux desktop environments.  However, due to licensing
 issues with some file formats, the formats may require installing
 additional libraries, purchasing a license, or may not be
-supported. :ule,l
+supported. :l
+:ule
 
 :line
 

@@ -219,14 +219,14 @@ Nose-Hoover thermostating fixes.  The <em>fix drude/transform/inverse</em>
 command must appear after any Nose-Hoover thermostating fixes.</p>
 </div>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">fDIRECT</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">direct</span>
-<span class="n">fix</span> <span class="n">fNVT</span> <span class="n">gCORES</span> <span class="n">nvt</span> <span class="n">temp</span> <span class="mf">300.0</span> <span class="mf">300.0</span> <span class="mi">100</span>
-<span class="n">fix</span> <span class="n">fNVT</span> <span class="n">gDRUDES</span> <span class="n">nvt</span> <span class="n">temp</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">100</span>
-<span class="n">fix</span> <span class="n">fINVERSE</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">inverse</span>
-<span class="n">compute</span> <span class="n">TDRUDE</span> <span class="nb">all</span> <span class="n">temp</span><span class="o">/</span><span class="n">drude</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">cpu</span> <span class="n">etotal</span> <span class="n">ke</span> <span class="n">pe</span> <span class="n">ebond</span> <span class="n">ecoul</span> <span class="n">elong</span> <span class="n">press</span> <span class="n">vol</span> <span class="n">temp</span> <span class="n">c_TDRUDE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_TDRUDE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix fDIRECT all drude/transform/direct
+fix fNVT gCORES nvt temp 300.0 300.0 100
+fix fNVT gDRUDES nvt temp 1.0 1.0 100
+fix fINVERSE all drude/transform/inverse
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE[1] c_TDRUDE[2]
+</pre>
 <p>In this example, <em>gCORES</em> is the group of the atom cores and <em>gDRUDES</em>
 is the group of the Drude particles (electrons). The centers of mass
 of the Drude oscillators will be thermostated at 300.0 and the
@@ -240,14 +240,14 @@ the other one should be <em>nvt</em>. You must add a <em>compute temp/com</em> a
 that of its group (the Drude cores) but the pressure be the overall
 pressure <em>thermo_press</em>.</p>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">cTEMP_CORE</span> <span class="n">gCORES</span> <span class="n">temp</span><span class="o">/</span><span class="n">com</span>
-<span class="n">fix</span> <span class="n">fDIRECT</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">direct</span>
-<span class="n">fix</span> <span class="n">fNPT</span> <span class="n">gCORES</span> <span class="n">npt</span> <span class="n">temp</span> <span class="mf">298.0</span> <span class="mf">298.0</span> <span class="mi">100</span> <span class="n">iso</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">500</span>
-<span class="n">fix_modify</span> <span class="n">fNPT</span> <span class="n">temp</span> <span class="n">cTEMP_CORE</span> <span class="n">press</span> <span class="n">thermo_press</span>
-<span class="n">fix</span> <span class="n">fNVT</span> <span class="n">gDRUDES</span> <span class="n">nvt</span> <span class="n">temp</span> <span class="mf">5.0</span> <span class="mf">5.0</span> <span class="mi">100</span>
-<span class="n">fix</span> <span class="n">fINVERSE</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">inverse</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute cTEMP_CORE gCORES temp/com
+fix fDIRECT all drude/transform/direct
+fix fNPT gCORES npt temp 298.0 298.0 100 iso 1.0 1.0 500
+fix_modify fNPT temp cTEMP_CORE press thermo_press
+fix fNVT gDRUDES nvt temp 5.0 5.0 100
+fix fINVERSE all drude/transform/inverse
+</pre>
 <p>In this example, <em>gCORES</em> is the group of the atom cores and <em>gDRUDES</em>
 is the group of the Drude particles. The centers of mass of the Drude
 oscillators will be thermostated at 298.0 and the internal degrees of
@@ -259,10 +259,8 @@ to add a <em>fix momentum</em> command:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">fMOMENTUM</span> <span class="nb">all</span> <span class="n">momentum</span> <span class="mi">100</span> <span class="n">linear</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span>
 </pre></div>
 </div>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 </div>
 <div class="section" id="restrictions">

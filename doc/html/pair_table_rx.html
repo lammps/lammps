@@ -128,22 +128,22 @@
 <span id="index-0"></span><h1>pair_style table/rx command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">table</span> <span class="n">style</span> <span class="n">N</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style table style N
+</pre>
 <p>style = <em>lookup</em> or <em>linear</em> or <em>spline</em> or <em>bitmap</em> = method of interpolation
 N = use N values in <em>lookup</em>, <em>linear</em>, <em>spline</em> tables
 N = use 2^N values in <em>bitmap</em> tables</p>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">table</span><span class="o">/</span><span class="n">rx</span> <span class="n">linear</span> <span class="mi">1000</span>
-<span class="n">pair_style</span> <span class="n">table</span><span class="o">/</span><span class="n">rx</span> <span class="n">bitmap</span> <span class="mi">12</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">table</span> <span class="n">ENTRY1</span> <span class="n">h2o</span> <span class="n">h2o</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">rxn</span><span class="o">.</span><span class="n">table</span> <span class="n">ENTRY1</span> <span class="mi">1</span><span class="n">fluid</span> <span class="mi">1</span><span class="n">fluid</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="mi">3</span> <span class="n">rxn</span><span class="o">.</span><span class="n">table</span> <span class="n">ENTRY1</span> <span class="n">h2o</span> <span class="n">no2</span> <span class="mf">10.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style table/rx linear 1000
+pair_style table/rx bitmap 12
+pair_coeff * * rxn.table ENTRY1 h2o h2o 10.0
+pair_coeff * * rxn.table ENTRY1 1fluid 1fluid 10.0
+pair_coeff * 3 rxn.table ENTRY1 h2o no2 10.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -226,15 +226,15 @@ defined as follows (without the parenthesized comments):</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Morse potential for Fe   (one or more comment or blank lines)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MORSE_FE</span>                   <span class="p">(</span><span class="n">keyword</span> <span class="ow">is</span> <span class="n">first</span> <span class="n">text</span> <span class="n">on</span> <span class="n">line</span><span class="p">)</span>
-<span class="n">N</span> <span class="mi">500</span> <span class="n">R</span> <span class="mf">1.0</span> <span class="mf">10.0</span>           <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">RSQ</span><span class="p">,</span> <span class="n">BITMAP</span><span class="p">,</span> <span class="n">FPRIME</span> <span class="n">parameters</span><span class="p">)</span>
-                           <span class="p">(</span><span class="n">blank</span><span class="p">)</span>
-<span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">25.5</span> <span class="mf">102.34</span>          <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span>
-<span class="mi">2</span> <span class="mf">1.02</span> <span class="mf">23.4</span> <span class="mf">98.5</span>
-<span class="o">...</span>
-<span class="mi">500</span> <span class="mf">10.0</span> <span class="mf">0.001</span> <span class="mf">0.003</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+MORSE_FE                   (keyword is first text on line)
+N 500 R 1.0 10.0           (N, R, RSQ, BITMAP, FPRIME parameters)
+                           (blank)
+1 1.0 25.5 102.34          (index, r, energy, force)
+2 1.02 23.4 98.5
+...
+500 10.0 0.001 0.003
+</pre>
 <p>A section begins with a non-blank line whose 1st character is not a
 &#8220;#&#8221;; blank lines or lines starting with &#8220;#&#8221; can be used as comments
 between sections.  The first line begins with a keyword which

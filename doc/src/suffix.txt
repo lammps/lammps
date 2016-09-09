@@ -59,7 +59,8 @@ multi-threading :l
 OPT = a handful of pair styles, cache-optimized for faster CPU
 performance :l
 
-HYBRID = a combination of two packages can be specified (see below) :ule,l
+HYBRID = a combination of two packages can be specified (see below) :l
+:ule
 
 As an example, all of the packages provide a "pair_style
 lj/cut"_pair_lj.html variant, with style names lj/cut/opt, lj/cut/omp,

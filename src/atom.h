@@ -15,6 +15,8 @@
 #define LMP_ATOM_H
 
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -209,6 +211,12 @@ class Atom : protected Pointers {
 
   int *sametag;      // sametag[I] = next atom with same ID, -1 if no more
 
+  // AtomVec factory types and map
+
+  typedef AtomVec *(*AtomVecCreator)(LAMMPS *);
+  typedef std::map<std::string,AtomVecCreator> AtomVecCreatorMap;
+  AtomVecCreatorMap *avec_map;
+
   // functions
 
   Atom(class LAMMPS *);
@@ -334,6 +342,9 @@ class Atom : protected Pointers {
 
   void setup_sort_bins();
   int next_prime(int);
+
+ private:
+  template <typename T> static AtomVec *avec_creator(LAMMPS *);
 };
 
 }

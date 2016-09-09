@@ -343,10 +343,10 @@ described above.</p>
 <p>If you set the paths to these files as environment variables, you only
 have to do it once.  For the csh or tcsh shells, add something like
 this to your ~/.cshrc file, one line for each of the two files:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
+<pre class="literal-block">
+setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/lammps/python
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src
-</pre></div>
-</div>
+</pre>
 <p>If you use the python/install.py script, you need to invoke it every
 time you rebuild LAMMPS (as a shared library) or make changes to the
 python/lammps.py file.</p>
@@ -393,39 +393,21 @@ environment variable as described above.</p>
 your Python with an interface to MPI.  This also allows you to
 make MPI calls directly from Python in your script, if you desire.</p>
 <p>There are several Python packages available that purport to wrap MPI
-as a library and allow MPI functions to be called from Python.</p>
-<p>These include</p>
+as a library and allow MPI functions to be called from Python. However,
+development on most of them seems to be halted except on:</p>
 <ul class="simple">
-<li><a class="reference external" href="http://pympi.sourceforge.net/">pyMPI</a></li>
-<li><a class="reference external" href="http://code.google.com/p/maroonmpi/">maroonmpi</a></li>
-<li><a class="reference external" href="http://code.google.com/p/mpi4py/">mpi4py</a></li>
-<li><a class="reference external" href="http://nbcr.sdsc.edu/forum/viewtopic.php?t=89&amp;sid=c997fefc3933bd66204875b436940f16">myMPI</a></li>
-<li><a class="reference external" href="http://code.google.com/p/pypar">Pypar</a></li>
+<li><a class="reference external" href="https://bitbucket.org/mpi4py/mpi4py">mpi4py</a></li>
+<li><a class="reference external" href="https://github.com/daleroberts/pypar">PyPar</a></li>
 </ul>
-<p>All of these except pyMPI work by wrapping the MPI library and
-exposing (some portion of) its interface to your Python script.  This
-means Python cannot be used interactively in parallel, since they do
-not address the issue of interactive input to multiple instances of
-Python running on different processors.  The one exception is pyMPI,
-which alters the Python interpreter to address this issue, and (I
-believe) creates a new alternate executable (in place of &#8220;python&#8221;
-itself) as a result.</p>
-<p>In principle any of these Python/MPI packages should work to invoke
-LAMMPS in parallel and to make MPI calls themselves from a Python
-script which is itself running in parallel.  However, when I
-downloaded and looked at a few of them, their documentation was
-incomplete and I had trouble with their installation.  It&#8217;s not clear
-if some of the packages are still being actively developed and
-supported.</p>
-<p>The packages Pypar and mpi4py have both been successfully tested with
-LAMMPS.  Pypar is simpler and easy to set up and use, but supports
+<p>Both packages, PyPar and mpi4py have been successfully tested with
+LAMMPS.  PyPar is simpler and easy to set up and use, but supports
 only a subset of MPI.  Mpi4py is more MPI-feature complete, but also a
 bit more complex to use.  As of version 2.0.0, mpi4py is the only
 python MPI wrapper that allows passing a custom MPI communicator to
 the LAMMPS constructor, which means one can easily run one or more
 LAMMPS instances on subsets of the total MPI ranks.</p>
 <hr class="docutils" />
-<p>Pypar requires the ubiquitous <a class="reference external" href="http://numpy.scipy.org">Numpy package</a>
+<p>PyPar requires the ubiquitous <a class="reference external" href="http://numpy.scipy.org">Numpy package</a>
 be installed in your Python.  After launching Python, type</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
 </pre></div>
@@ -439,15 +421,15 @@ top-level directory, type</p>
 </div>
 <p>The &#8220;sudo&#8221; is only needed if required to copy Numpy files into your
 Python distribution&#8217;s site-packages directory.</p>
-<p>To install Pypar (version pypar-2.1.4_94 as of Aug 2012), unpack it
+<p>To install PyPar (version pypar-2.1.4_94 as of Aug 2012), unpack it
 and from its &#8220;source&#8221; directory, type</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build</span>
 <span class="n">sudo</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
-<p>Again, the &#8220;sudo&#8221; is only needed if required to copy Pypar files into
+<p>Again, the &#8220;sudo&#8221; is only needed if required to copy PyPar files into
 your Python distribution&#8217;s site-packages directory.</p>
-<p>If you have successully installed Pypar, you should be able to run
+<p>If you have successully installed PyPar, you should be able to run
 Python and type</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pypar</span>
 </pre></div>
@@ -465,17 +447,17 @@ on a simple test script</p>
 <p>and see one line of output for each processor you run on.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">To use Pypar and LAMMPS in parallel from Python, you must insure
+<p class="last">To use PyPar and LAMMPS in parallel from Python, you must insure
 both are using the same version of MPI.  If you only have one MPI
 installed on your system, this is not an issue, but it can be if you
 have multiple MPIs.  Your LAMMPS build is explicit about which MPI it
 is using, since you specify the details in your lo-level
-src/MAKE/Makefile.foo file.  Pypar uses the &#8220;mpicc&#8221; command to find
+src/MAKE/Makefile.foo file.  PyPar uses the &#8220;mpicc&#8221; command to find
 information about the MPI it uses to build against.  And it tries to
 load &#8220;libmpi.so&#8221; from the LD_LIBRARY_PATH.  This may or may not find
 the MPI library that LAMMPS is using.  If you have problems running
-both Pypar and LAMMPS together, this is an issue you may need to
-address, e.g. by moving other MPI installations so that Pypar finds
+both PyPar and LAMMPS together, this is an issue you may need to
+address, e.g. by moving other MPI installations so that PyPar finds
 the right one.</p>
 </div>
 <hr class="docutils" />
@@ -502,11 +484,11 @@ on a simple test script</p>
 </pre></div>
 </div>
 <p>where test.py contains the lines</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
-<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
-<span class="nb">print</span> <span class="s2">&quot;Proc </span><span class="si">%d</span><span class="s2"> out of </span><span class="si">%d</span><span class="s2"> procs&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">(),</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">())</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
+print &quot;Proc %d out of %d procs&quot; % (comm.Get_rank(),comm.Get_size())
+</pre>
 <p>and see one line of output for each processor you run on.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -568,15 +550,15 @@ interactively from the bench directory:</p>
 <p>Either way, you should see the results of running the in.lj benchmark
 on a single processor appear on the screen, the same as if you had
 typed something like:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_g++ -in in.lj
+</pre>
 </div>
 <div class="section" id="test-lammps-and-python-in-parallel">
 <h3>11.6.2. <strong>Test LAMMPS and Python in parallel:</strong></h3>
 <p>To run LAMMPS in parallel, assuming you have installed the
-<a class="reference external" href="Pypar">Pypar</a> package as discussed above, create a test.py file
-containing these lines:</p>
+<a class="reference external" href="https://github.com/daleroberts/pypar">PyPar</a> package as discussed
+above, create a test.py file containing these lines:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pypar</span>
 <span class="kn">from</span> <span class="nn">lammps</span> <span class="k">import</span> <span class="n">lammps</span>
 <span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
@@ -586,36 +568,36 @@ containing these lines:</p>
 </pre></div>
 </div>
 <p>To run LAMMPS in parallel, assuming you have installed the
-<a class="reference external" href="mpi4py">mpi4py</a> package as discussed above, create a test.py file
-containing these lines:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
-<span class="kn">from</span> <span class="nn">lammps</span> <span class="k">import</span> <span class="n">lammps</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
-<span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s2">&quot;in.lj&quot;</span><span class="p">)</span>
-<span class="n">me</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
-<span class="n">nprocs</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
-<span class="nb">print</span> <span class="s2">&quot;Proc </span><span class="si">%d</span><span class="s2"> out of </span><span class="si">%d</span><span class="s2"> procs has&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">me</span><span class="p">,</span><span class="n">nprocs</span><span class="p">),</span><span class="n">lmp</span>
-<span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
-</pre></div>
-</div>
+<a class="reference external" href="https://bitbucket.org/mpi4py/mpi4py">mpi4py</a> package as discussed
+above, create a test.py file containing these lines:</p>
+<pre class="literal-block">
+from mpi4py import MPI
+from lammps import lammps
+lmp = lammps()
+lmp.file(&quot;in.lj&quot;)
+me = MPI.COMM_WORLD.Get_rank()
+nprocs = MPI.COMM_WORLD.Get_size()
+print &quot;Proc %d out of %d procs has&quot; % (me,nprocs),lmp
+MPI.Finalize()
+</pre>
 <p>You can either script in parallel as:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="n">python</span> <span class="n">test</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
 <p>and you should see the same output as if you had typed</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>
-</pre></div>
-</div>
-<p>Note that if you leave out the 3 lines from test.py that specify Pypar
+<pre class="literal-block">
+% mpirun -np 4 lmp_g++ -in in.lj
+</pre>
+<p>Note that if you leave out the 3 lines from test.py that specify PyPar
 commands you will instantiate and run LAMMPS independently on each of
 the P processors specified in the mpirun command.  In this case you
 should get 4 sets of output, each showing that a LAMMPS run was made
 on a single processor, instead of one set of output showing that
 LAMMPS ran on 4 processors.  If the 1-processor outputs occur, it
-means that Pypar is not working correctly.</p>
-<p>Also note that once you import the PyPar module, Pypar initializes MPI
+means that PyPar is not working correctly.</p>
+<p>Also note that once you import the PyPar module, PyPar initializes MPI
 for you, and you can use MPI calls directly in your Python script, as
-described in the Pypar documentation.  The last line of your Python
+described in the PyPar documentation.  The last line of your Python
 script should be pypar.finalize(), to insure MPI is shut down
 correctly.</p>
 </div>
@@ -661,14 +643,14 @@ Python script, as follows:</p>
 the files src/library.cpp and src/library.h you will see that they
 correspond one-to-one with calls you can make to the LAMMPS library
 from a C++ or C or Fortran program.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>           <span class="c1"># create a LAMMPS object using the default liblammps.so library</span>
-                         <span class="mi">4</span> <span class="n">optional</span> <span class="n">args</span> <span class="n">are</span> <span class="n">allowed</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="n">cmdargs</span><span class="p">,</span> <span class="n">ptr</span><span class="p">,</span> <span class="n">comm</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">ptr</span><span class="o">=</span><span class="n">lmpptr</span><span class="p">)</span> <span class="c1"># use lmpptr as previously created LAMMPS object</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">split</span><span class="p">)</span> <span class="c1"># create a LAMMPS object with a custom communicator, requires mpi4py 2.0.0 or later</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;g++&quot;</span><span class="p">)</span>   <span class="c1"># create a LAMMPS object using the liblammps_g++.so library</span>
-<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;g++&quot;</span><span class="p">,</span><span class="n">cmdargs</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>    <span class="c1"># add LAMMPS command-line args, e.g. list = [&quot;-echo&quot;,&quot;screen&quot;]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
+                         4 optional args are allowed: name, cmdargs, ptr, comm
+lmp = lammps(ptr=lmpptr) # use lmpptr as previously created LAMMPS object
+lmp = lammps(comm=split) # create a LAMMPS object with a custom communicator, requires mpi4py 2.0.0 or later
+lmp = lammps(name=&quot;g++&quot;)   # create a LAMMPS object using the liblammps_g++.so library
+lmp = lammps(name=&quot;g++&quot;,cmdargs=list)    # add LAMMPS command-line args, e.g. list = [&quot;-echo&quot;,&quot;screen&quot;]
+</pre>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>              <span class="c1"># destroy a LAMMPS object</span>
 </pre></div>
 </div>
@@ -677,49 +659,49 @@ from a C++ or C or Fortran program.</p>
 <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>         <span class="c1"># invoke a single LAMMPS command, cmd = &quot;run 100&quot;</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">xlo</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">extract_global</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="nb">type</span><span class="p">)</span>  <span class="c1"># extract a global quantity</span>
-                                     <span class="c1"># name = &quot;boxxlo&quot;, &quot;nlocal&quot;, etc</span>
-                                  <span class="c1"># type = 0 = int</span>
-                                  <span class="c1">#        1 = double</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">coords</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="nb">type</span><span class="p">)</span>      <span class="c1"># extract a per-atom quantity</span>
-                                          <span class="c1"># name = &quot;x&quot;, &quot;type&quot;, etc</span>
-                                       <span class="c1"># type = 0 = vector of ints</span>
-                                       <span class="c1">#        1 = array of ints</span>
-                                       <span class="c1">#        2 = vector of doubles</span>
-                                       <span class="c1">#        3 = array of doubles</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">eng</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">extract_compute</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span><span class="n">style</span><span class="p">,</span><span class="nb">type</span><span class="p">)</span>  <span class="c1"># extract value(s) from a compute</span>
-<span class="n">v3</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">extract_fix</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span><span class="n">style</span><span class="p">,</span><span class="nb">type</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>   <span class="c1"># extract value(s) from a fix</span>
-                                          <span class="c1"># id = ID of compute or fix</span>
-                                       <span class="c1"># style = 0 = global data</span>
-                                       <span class="c1">#         1 = per-atom data</span>
-                                       <span class="c1">#         2 = local data</span>
-                                       <span class="c1"># type = 0 = scalar</span>
-                                       <span class="c1">#        1 = vector</span>
-                                       <span class="c1">#        2 = array</span>
-                                       <span class="c1"># i,j = indices of value in global vector or array</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">var</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">extract_variable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">group</span><span class="p">,</span><span class="n">flag</span><span class="p">)</span>  <span class="c1"># extract value(s) from a variable</span>
-                                          <span class="c1"># name = name of variable</span>
-                                          <span class="c1"># group = group ID (ignored for equal-style variables)</span>
-                                          <span class="c1"># flag = 0 = equal-style variable</span>
-                                          <span class="c1">#        1 = atom-style variable</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">flag</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">)</span>       <span class="c1"># set existing named string-style variable to value, flag = 0 if successful</span>
-<span class="n">natoms</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">get_natoms</span><span class="p">()</span>                 <span class="c1"># total # of atoms as int</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">gather_atoms</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="nb">type</span><span class="p">,</span><span class="n">count</span><span class="p">)</span>  <span class="c1"># return atom attribute of all atoms gathered into data, ordered by atom ID</span>
-                                          <span class="c1"># name = &quot;x&quot;, &quot;charge&quot;, &quot;type&quot;, etc</span>
-                                          <span class="c1"># count = # of per-atom values, 1 or 3, etc</span>
-<span class="n">lmp</span><span class="o">.</span><span class="n">scatter_atoms</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="nb">type</span><span class="p">,</span><span class="n">count</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>   <span class="c1"># scatter atom attribute of all atoms from data, ordered by atom ID</span>
-                                          <span class="c1"># name = &quot;x&quot;, &quot;charge&quot;, &quot;type&quot;, etc</span>
-                                          <span class="c1"># count = # of per-atom values, 1 or 3, etc</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+xlo = lmp.extract_global(name,type)  # extract a global quantity
+                                     # name = &quot;boxxlo&quot;, &quot;nlocal&quot;, etc
+                                  # type = 0 = int
+                                  #        1 = double
+</pre>
+<pre class="literal-block">
+coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
+                                          # name = &quot;x&quot;, &quot;type&quot;, etc
+                                       # type = 0 = vector of ints
+                                       #        1 = array of ints
+                                       #        2 = vector of doubles
+                                       #        3 = array of doubles
+</pre>
+<pre class="literal-block">
+eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
+v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
+                                          # id = ID of compute or fix
+                                       # style = 0 = global data
+                                       #         1 = per-atom data
+                                       #         2 = local data
+                                       # type = 0 = scalar
+                                       #        1 = vector
+                                       #        2 = array
+                                       # i,j = indices of value in global vector or array
+</pre>
+<pre class="literal-block">
+var = lmp.extract_variable(name,group,flag)  # extract value(s) from a variable
+                                          # name = name of variable
+                                          # group = group ID (ignored for equal-style variables)
+                                          # flag = 0 = equal-style variable
+                                          #        1 = atom-style variable
+</pre>
+<pre class="literal-block">
+flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
+natoms = lmp.get_natoms()                 # total # of atoms as int
+data = lmp.gather_atoms(name,type,count)  # return atom attribute of all atoms gathered into data, ordered by atom ID
+                                          # name = &quot;x&quot;, &quot;charge&quot;, &quot;type&quot;, etc
+                                          # count = # of per-atom values, 1 or 3, etc
+lmp.scatter_atoms(name,type,count,data)   # scatter atom attribute of all atoms from data, ordered by atom ID
+                                          # name = &quot;x&quot;, &quot;charge&quot;, &quot;type&quot;, etc
+                                          # count = # of per-atom values, 1 or 3, etc
+</pre>
 <hr class="docutils" />
 <p>The lines</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="k">import</span> <span class="n">lammps</span>
@@ -767,8 +749,8 @@ argument.</p>
 returned, which you can use via normal Python subscripting.  See the
 extract() method in the src/atom.cpp file for a list of valid names.
 Again, new names could easily be added.  A pointer to a vector of
-doubles or integers, or a pointer to an array of doubles (double <a href="#id3"><span class="problematic" id="id4">**</span></a>)
-or integers (int <a href="#id5"><span class="problematic" id="id6">**</span></a>) is returned.  You need to specify the appropriate
+doubles or integers, or a pointer to an array of doubles (double **)
+or integers (int **) is returned.  You need to specify the appropriate
 data type via the type argument.</p>
 <p>For extract_compute() and extract_fix(), the global, per-atom, or
 local data calulated by the compute or fix can be accessed.  What is
@@ -824,19 +806,19 @@ consecutively ordered, no coordinates are reset.</p>
 <p>The array of coordinates passed to scatter_atoms() must be a ctypes
 vector of ints or doubles, allocated and initialized something like
 this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">ctypes</span> <span class="k">import</span> <span class="o">*</span>
-<span class="n">natoms</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">get_natoms</span><span class="p">()</span>
-<span class="n">n3</span> <span class="o">=</span> <span class="mi">3</span><span class="o">*</span><span class="n">natoms</span>
-<span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">n3</span><span class="o">*</span><span class="n">c_double</span><span class="p">)()</span>
-<span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="n">coord</span> <span class="n">of</span> <span class="n">atom</span> <span class="k">with</span> <span class="n">ID</span> <span class="mi">1</span>
-<span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span> <span class="n">coord</span> <span class="n">of</span> <span class="n">atom</span> <span class="k">with</span> <span class="n">ID</span> <span class="mi">1</span>
-<span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="n">coord</span> <span class="n">of</span> <span class="n">atom</span> <span class="k">with</span> <span class="n">ID</span> <span class="mi">1</span>
-<span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span> <span class="n">coord</span> <span class="n">of</span> <span class="n">atom</span> <span class="k">with</span> <span class="n">ID</span> <span class="mi">2</span>
-<span class="o">...</span>
-<span class="n">x</span><span class="p">[</span><span class="n">n3</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span> <span class="n">coord</span> <span class="n">of</span> <span class="n">atom</span> <span class="k">with</span> <span class="n">ID</span> <span class="n">natoms</span>
-<span class="n">lmp</span><span class="o">.</span><span class="n">scatter_coords</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="n">x</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+from ctypes import *
+natoms = lmp.get_natoms()
+n3 = 3*natoms
+x = (n3*c_double)()
+x[0] = x coord of atom with ID 1
+x[1] = y coord of atom with ID 1
+x[2] = z coord of atom with ID 1
+x[3] = x coord of atom with ID 2
+...
+x[n3-1] = z coord of atom with ID natoms
+lmp.scatter_coords(&quot;x&quot;,1,3,x)
+</pre>
 <p>Alternatively, you can just change values in the vector returned by
 gather_atoms(&#8220;x&#8221;,1,3), since it is a ctypes vector of doubles.</p>
 <hr class="docutils" />
@@ -915,10 +897,10 @@ capability needed by these Python scripts.</p>
 open-source version of PyMol in your Python, so that you can import it
 from a Python script.  See the PyMol WWW pages <a class="reference external" href="http://www.pymol.org">here</a> or
 <a class="reference external" href="http://sourceforge.net/scm/?type=svn&amp;group_id=4546">here</a> for more details:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>http://www.pymol.org
-http://sourceforge.net/scm/?type=svn&amp;group_id=4546
-</pre></div>
-</div>
+<pre class="literal-block">
+<a class="reference external" href="http://www.pymol.org">http://www.pymol.org</a>
+<a class="reference external" href="http://sourceforge.net/scm/?type=svn&amp;group_id=4546">http://sourceforge.net/scm/?type=svn&amp;group_id=4546</a>
+</pre>
 <p>The latter link is to the open-source version.</p>
 <p>Note that for VMD, you need a fairly current version (1.8.7 works for
 me) and there are some lines in the pizza/vmd.py script for 4 PIZZA

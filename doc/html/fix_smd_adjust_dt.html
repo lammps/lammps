@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix smd/adjust_dt command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">smd</span><span class="o">/</span><span class="n">adjust_dt</span> <span class="n">arg</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID smd/adjust_dt arg
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>smd/adjust_dt = style name of this fix command</li>
@@ -142,9 +142,9 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">smd</span><span class="o">/</span><span class="n">adjust_dt</span> <span class="mf">0.1</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all smd/adjust_dt 0.1
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -157,9 +157,7 @@ stable maximum time step.</p>
 <p>This fix inquires the minimum stable time increment across all particles contained in the group for which this
 fix is defined. An additional safety factor <em>s_fact</em> is applied to the time increment.</p>
 <p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth Mach Dynamics in LAMMPS.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>Currently, no part of USER-SMD supports restarting nor minimization.</p>
 </div>
 <div class="section" id="restrictions">

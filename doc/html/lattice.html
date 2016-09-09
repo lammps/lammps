@@ -135,10 +135,10 @@
 <li>style = <em>none</em> or <em>sc</em> or <em>bcc</em> or <em>fcc</em> or <em>hcp</em> or <em>diamond</em> or         <em>sq</em> or <em>sq2</em> or <em>hex</em> or <em>custom</em></li>
 <li>scale = scale factor between lattice and simulation box</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scale</span> <span class="o">=</span> <span class="n">reduced</span> <span class="n">density</span> <span class="n">rho</span><span class="o">*</span> <span class="p">(</span><span class="k">for</span> <span class="n">LJ</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">scale</span> <span class="o">=</span> <span class="n">lattice</span> <span class="n">constant</span> <span class="ow">in</span> <span class="n">distance</span> <span class="n">units</span> <span class="p">(</span><span class="k">for</span> <span class="nb">all</span> <span class="n">other</span> <span class="n">units</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+scale = reduced density rho* (for LJ units)
+scale = lattice constant in distance units (for all other units)
+</pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
 <li>keyword = <em>origin</em> or <em>orient</em> or <em>spacing</em> or <em>a1</em> or <em>a2</em> or <em>a3</em> or <em>basis</em></li>
@@ -349,20 +349,21 @@ in commands that use the spacings should be decipherable.</p>
 <hr class="docutils" />
 <p>Example commands for generating a Wurtzite crystal (courtesy
 of Aidan Thompson), with its 8 atom unit cell.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>variable a equal  4.340330
+<pre class="literal-block">
+variable a equal  4.340330
 variable b equal  $a*sqrt(3.0)
 variable c equal  $a*sqrt(8.0/3.0)
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="mi">1</span><span class="n">_3</span> <span class="n">equal</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">3.0</span>
-<span class="n">variable</span> <span class="mi">2</span><span class="n">_3</span> <span class="n">equal</span> <span class="mf">2.0</span><span class="o">/</span><span class="mf">3.0</span>
-<span class="n">variable</span> <span class="mi">1</span><span class="n">_6</span> <span class="n">equal</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">6.0</span>
-<span class="n">variable</span> <span class="mi">5</span><span class="n">_6</span> <span class="n">equal</span> <span class="mf">5.0</span><span class="o">/</span><span class="mf">6.0</span>
-<span class="n">variable</span> <span class="mi">1</span><span class="n">_12</span> <span class="n">equal</span> <span class="mf">1.0</span><span class="o">/</span><span class="mf">12.0</span>
-<span class="n">variable</span> <span class="mi">5</span><span class="n">_12</span> <span class="n">equal</span> <span class="mf">5.0</span><span class="o">/</span><span class="mf">12.0</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>lattice custom    1.0     &amp;
+</pre>
+<pre class="literal-block">
+variable 1_3 equal 1.0/3.0
+variable 2_3 equal 2.0/3.0
+variable 1_6 equal 1.0/6.0
+variable 5_6 equal 5.0/6.0
+variable 1_12 equal 1.0/12.0
+variable 5_12 equal 5.0/12.0
+</pre>
+<pre class="literal-block">
+lattice custom    1.0     &amp;
         a1      $a      0.0     0.0     &amp;
         a2      0.0     $b      0.0     &amp;
         a3      0.0     0.0     $c      &amp;
@@ -374,17 +375,16 @@ variable c equal  $a*sqrt(8.0/3.0)
         basis   0.5     0.5     0.625   &amp;
         basis   ${1_3}  0.0     0.125   &amp;
         basis   ${5_6}  0.5     0.125
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">region</span> <span class="n">myreg</span> <span class="n">block</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span>
-<span class="n">create_box</span>      <span class="mi">2</span> <span class="n">myreg</span>
-<span class="n">create_atoms</span>    <span class="mi">1</span> <span class="n">box</span>      <span class="o">&amp;</span>
-        <span class="n">basis</span>   <span class="mi">5</span>       <span class="mi">2</span>       <span class="o">&amp;</span>
-        <span class="n">basis</span>   <span class="mi">6</span>       <span class="mi">2</span>       <span class="o">&amp;</span>
-        <span class="n">basis</span>   <span class="mi">7</span>       <span class="mi">2</span>       <span class="o">&amp;</span>
-        <span class="n">basis</span>   <span class="mi">8</span>       <span class="mi">2</span>
-</pre></div>
-</div>
+</pre>
+<pre class="literal-block">
+region myreg block 0 1 0 1 0 1
+create_box      2 myreg
+create_atoms    1 box      &amp;
+        basis   5       2       &amp;
+        basis   6       2       &amp;
+        basis   7       2       &amp;
+        basis   8       2
+</pre>
 </div>
 <hr class="docutils" />
 <div class="section" id="restrictions">

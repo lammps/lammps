@@ -130,7 +130,8 @@ variable"_variable.html. :l
 
 Local values can be reduced by the "compute
 reduce"_compute_reduce.html command, or histogrammed by the "fix
-ave/histo"_fix_ave_histo.html command. :l,ule
+ave/histo"_fix_ave_histo.html command. :l
+:ule
 
 See this "howto section"_Section_howto.html#howto_15 for a summary of
 various LAMMPS output options, many of which involve fixes.

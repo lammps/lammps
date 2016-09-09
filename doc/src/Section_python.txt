@@ -277,35 +277,14 @@ your Python with an interface to MPI.  This also allows you to
 make MPI calls directly from Python in your script, if you desire.
 
 There are several Python packages available that purport to wrap MPI
-as a library and allow MPI functions to be called from Python.
+as a library and allow MPI functions to be called from Python. However,
+development on most of them seems to be halted except on:
 
-These include
+"mpi4py"_https://bitbucket.org/mpi4py/mpi4py
+"PyPar"_https://github.com/daleroberts/pypar :ul
 
-"pyMPI"_http://pympi.sourceforge.net/
-"maroonmpi"_http://code.google.com/p/maroonmpi/
-"mpi4py"_http://code.google.com/p/mpi4py/
-"myMPI"_http://nbcr.sdsc.edu/forum/viewtopic.php?t=89&sid=c997fefc3933bd66204875b436940f16
-"Pypar"_http://code.google.com/p/pypar :ul
-
-All of these except pyMPI work by wrapping the MPI library and
-exposing (some portion of) its interface to your Python script.  This
-means Python cannot be used interactively in parallel, since they do
-not address the issue of interactive input to multiple instances of
-Python running on different processors.  The one exception is pyMPI,
-which alters the Python interpreter to address this issue, and (I
-believe) creates a new alternate executable (in place of "python"
-itself) as a result.
-
-In principle any of these Python/MPI packages should work to invoke
-LAMMPS in parallel and to make MPI calls themselves from a Python
-script which is itself running in parallel.  However, when I
-downloaded and looked at a few of them, their documentation was
-incomplete and I had trouble with their installation.  It's not clear
-if some of the packages are still being actively developed and
-supported.
-
-The packages Pypar and mpi4py have both been successfully tested with
-LAMMPS.  Pypar is simpler and easy to set up and use, but supports
+Both packages, PyPar and mpi4py have been successfully tested with
+LAMMPS.  PyPar is simpler and easy to set up and use, but supports
 only a subset of MPI.  Mpi4py is more MPI-feature complete, but also a
 bit more complex to use.  As of version 2.0.0, mpi4py is the only
 python MPI wrapper that allows passing a custom MPI communicator to
@@ -314,7 +293,7 @@ LAMMPS instances on subsets of the total MPI ranks.
 
 :line
 
-Pypar requires the ubiquitous "Numpy package"_http://numpy.scipy.org
+PyPar requires the ubiquitous "Numpy package"_http://numpy.scipy.org
 be installed in your Python.  After launching Python, type
 
 import numpy :pre
@@ -329,16 +308,16 @@ sudo python setup.py install :pre
 The "sudo" is only needed if required to copy Numpy files into your
 Python distribution's site-packages directory.
 
-To install Pypar (version pypar-2.1.4_94 as of Aug 2012), unpack it
+To install PyPar (version pypar-2.1.4_94 as of Aug 2012), unpack it
 and from its "source" directory, type
 
 python setup.py build
 sudo python setup.py install :pre
 
-Again, the "sudo" is only needed if required to copy Pypar files into
+Again, the "sudo" is only needed if required to copy PyPar files into
 your Python distribution's site-packages directory.
 
-If you have successully installed Pypar, you should be able to run
+If you have successully installed PyPar, you should be able to run
 Python and type
 
 import pypar :pre
@@ -355,17 +334,17 @@ print "Proc %d out of %d procs" % (pypar.rank(),pypar.size()) :pre
 
 and see one line of output for each processor you run on.
 
-NOTE: To use Pypar and LAMMPS in parallel from Python, you must insure
+NOTE: To use PyPar and LAMMPS in parallel from Python, you must insure
 both are using the same version of MPI.  If you only have one MPI
 installed on your system, this is not an issue, but it can be if you
 have multiple MPIs.  Your LAMMPS build is explicit about which MPI it
 is using, since you specify the details in your lo-level
-src/MAKE/Makefile.foo file.  Pypar uses the "mpicc" command to find
+src/MAKE/Makefile.foo file.  PyPar uses the "mpicc" command to find
 information about the MPI it uses to build against.  And it tries to
 load "libmpi.so" from the LD_LIBRARY_PATH.  This may or may not find
 the MPI library that LAMMPS is using.  If you have problems running
-both Pypar and LAMMPS together, this is an issue you may need to
-address, e.g. by moving other MPI installations so that Pypar finds
+both PyPar and LAMMPS together, this is an issue you may need to
+address, e.g. by moving other MPI installations so that PyPar finds
 the right one.
 
 :line
@@ -467,8 +446,8 @@ lmp_g++ -in in.lj :pre
 [Test LAMMPS and Python in parallel:] :h5
 
 To run LAMMPS in parallel, assuming you have installed the
-"Pypar"_Pypar package as discussed above, create a test.py file
-containing these lines:
+"PyPar"_https://github.com/daleroberts/pypar package as discussed
+above, create a test.py file containing these lines:
 
 import pypar
 from lammps import lammps
@@ -478,8 +457,8 @@ print "Proc %d out of %d procs has" % (pypar.rank(),pypar.size()),lmp
 pypar.finalize() :pre
 
 To run LAMMPS in parallel, assuming you have installed the
-"mpi4py"_mpi4py package as discussed above, create a test.py file
-containing these lines:
+"mpi4py"_https://bitbucket.org/mpi4py/mpi4py package as discussed
+above, create a test.py file containing these lines:
 
 from mpi4py import MPI
 from lammps import lammps
@@ -498,17 +477,17 @@ and you should see the same output as if you had typed
 
 % mpirun -np 4 lmp_g++ -in in.lj :pre
 
-Note that if you leave out the 3 lines from test.py that specify Pypar
+Note that if you leave out the 3 lines from test.py that specify PyPar
 commands you will instantiate and run LAMMPS independently on each of
 the P processors specified in the mpirun command.  In this case you
 should get 4 sets of output, each showing that a LAMMPS run was made
 on a single processor, instead of one set of output showing that
 LAMMPS ran on 4 processors.  If the 1-processor outputs occur, it
-means that Pypar is not working correctly.
+means that PyPar is not working correctly.
 
-Also note that once you import the PyPar module, Pypar initializes MPI
+Also note that once you import the PyPar module, PyPar initializes MPI
 for you, and you can use MPI calls directly in your Python script, as
-described in the Pypar documentation.  The last line of your Python
+described in the PyPar documentation.  The last line of your Python
 script should be pypar.finalize(), to insure MPI is shut down
 correctly.
 
@@ -761,7 +740,8 @@ Add a wrapper method to python/lammps.py for this interface
 function. :l
 
 You should now be able to invoke the new interface function from a
-Python script.  Isn't ctypes amazing? :l,ule
+Python script.  Isn't ctypes amazing? :l
+:ule
 
 :line
 :line

@@ -146,12 +146,10 @@
 <h2>Description</h2>
 <p>Update the positions and velocities of the individual particles
 described by <em>group-ID</em>, experiencing velocity-dependent hydrodynamic
-forces, using the integration algorithm described in <a class="reference internal" href="#mackay"><span class="std std-ref">Mackay et al.</span></a>.  This integration algorithm should only be used if a
+forces, using the integration algorithm described in <a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a>.  This integration algorithm should only be used if a
 user-specified value for the force-coupling constant used in <a class="reference internal" href="fix_lb_fluid.html"><span class="doc">fix lb/fluid</span></a> has been set; do not use this integration
 algorithm if the force coupling constant has been set by default.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can be

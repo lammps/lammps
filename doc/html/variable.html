@@ -965,11 +965,24 @@ if $(is_active(pair,respa)) then &quot;run_style respa 4 3 2 2  improper 1 inner
 <p>The <em>is_defined()</em> function allows to query categories like <em>compute</em>,
 <em>dump</em>, <em>fix</em>, <em>group</em>, <em>region</em>, and <em>variable</em> whether an entry
 with the provided name or id is defined.</p>
-<p>The <em>is_available()</em> function allows to query whether a specific
-optional feature is available, i.e. compiled in. This currently
-works for the following categories: <em>command</em>, <em>compute</em>, <em>fix</em>,
-and <em>pair_style</em>. For all categories except <em>command</em> also appending
-active suffixes is tried before reporting failure.</p>
+<p>The <em>is_available(category,name)</em> function allows to query whether
+a specific optional feature is available, i.e. compiled in.
+This currently works for the following categories: <em>command</em>,
+<em>compute</em>, <em>fix</em>, <em>pair_style</em> and <em>feature</em>. For all categories
+except <em>command</em> and <em>feature</em> also appending active suffixes is
+tried before reporting failure.</p>
+<p>The <em>feature</em> category is used to check the availability of compiled in
+features such as GZIP support, PNG support, JPEG support, FFMPEG support,
+and C++ exceptions for error handling. Corresponding values for name are
+<em>gzip</em>, <em>png</em>, <em>jpeg</em>, <em>ffmpeg</em> and <em>exceptions</em>.</p>
+<p>This enables writing input scripts which only dump using a given format if
+the compiled binary supports it.</p>
+<pre class="literal-block">
+if &quot;$(is_available(feature,png))&quot; then &quot;print 'PNG supported'&quot; else &quot;print 'PNG not supported'&quot;
+</pre>
+<pre class="literal-block">
+if &quot;$(is_available(feature,ffmpeg)&quot; then &quot;dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0&quot;
+</pre>
 </div>
 <hr class="docutils" />
 <div class="section" id="atom-values-and-vectors">

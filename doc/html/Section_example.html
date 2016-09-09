@@ -303,11 +303,11 @@ longer times, e.g. to measure a particular quantity.</p>
 </tbody>
 </table>
 <p>Here is how you can run and visualize one of the sample problems:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">indent</span>
-<span class="n">cp</span> <span class="o">../../</span><span class="n">src</span><span class="o">/</span><span class="n">lmp_linux</span> <span class="o">.</span>           <span class="c1"># copy LAMMPS executable to this dir</span>
-<span class="n">lmp_linux</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">indent</span>            <span class="c1"># run the problem</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+cd indent
+cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
+lmp_linux -in in.indent            # run the problem
+</pre>
 <p>Running the simulation produces the files <em>dump.indent</em> and
 <em>log.lammps</em>.  You can visualize the dump file of snapshots with a
 variety of 3rd-party tools highlighted on the
@@ -321,17 +321,17 @@ ImageMagick or QuickTime or various Windows-based tools.  See the
 <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> doc page for more details.  E.g. this
 Imagemagick command would create a GIF file suitable for viewing in a
 browser.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">convert</span> <span class="o">-</span><span class="n">loop</span> <span class="mi">1</span> <span class="o">*.</span><span class="n">jpg</span> <span class="n">foo</span><span class="o">.</span><span class="n">gif</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+% convert -loop 1 *.jpg foo.gif
+</pre>
 </div>
 <hr class="docutils" />
 <div class="section" id="uppercase-directories">
 <h2>7.2. Uppercase directories</h2>
 <table border="1" class="docutils">
 <colgroup>
-<col width="10%" />
-<col width="90%" />
+<col width="11%" />
+<col width="89%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>ASPHERE</td>

@@ -71,6 +71,7 @@
 #include <TestAggregateReduction.hpp>
 #include <TestCompilerMacros.hpp>
 #include <TestMemoryPool.hpp>
+#include <TestTaskPolicy.hpp>
 
 
 #include <TestCXX11.hpp>
@@ -86,27 +87,8 @@ namespace Test {
 
 class openmp : public ::testing::Test {
 protected:
-  static void SetUpTestCase()
-  {
-    const unsigned numa_count       = Kokkos::hwloc::get_available_numa_count();
-    const unsigned cores_per_numa   = Kokkos::hwloc::get_available_cores_per_numa();
-    const unsigned threads_per_core = Kokkos::hwloc::get_available_threads_per_core();
-
-    const unsigned threads_count = std::max( 1u , numa_count ) *
-                                   std::max( 2u , ( cores_per_numa * threads_per_core ) / 2 );
-
-    Kokkos::OpenMP::initialize( threads_count );
-    Kokkos::OpenMP::print_configuration( std::cout , true );
-  }
-
-  static void TearDownTestCase()
-  {
-    Kokkos::OpenMP::finalize();
-
-    omp_set_num_threads(1);
-
-    ASSERT_EQ( 1 , omp_get_max_threads() );
-  }
+  static void SetUpTestCase();
+  static void TearDownTestCase();
 };
 
 TEST_F( openmp , view_remap )
@@ -197,7 +179,9 @@ TEST_F( openmp , memory_pool )
   bool val = TestMemoryPool::test_mempool< Kokkos::OpenMP >( 128, 128000000 );
   ASSERT_TRUE( val );
 
-  TestMemoryPool::test_mempool2< Kokkos::OpenMP >( 128, 128000000 );
+  TestMemoryPool::test_mempool2< Kokkos::OpenMP >( 64, 4, 1000000, 2000000 );
+
+  TestMemoryPool::test_memory_exhaustion< Kokkos::OpenMP >();
 }
 
 //----------------------------------------------------------------------------
@@ -240,5 +224,39 @@ TEST_F( openmp , team_vector )
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(9) ) );
   ASSERT_TRUE( ( TestTeamVector::Test< Kokkos::OpenMP >(10) ) );
 }
+
+//----------------------------------------------------------------------------
+
+#if defined( KOKKOS_ENABLE_TASKPOLICY )
+
+TEST_F( openmp , task_fib )
+{
+  for ( int i = 0 ; i < 25 ; ++i ) {
+    TestTaskPolicy::TestFib< Kokkos::OpenMP >::run(i, (i+1)*1000000 );
+  }
+}
+
+TEST_F( openmp , task_depend )
+{
+  for ( int i = 0 ; i < 25 ; ++i ) {
+    TestTaskPolicy::TestTaskDependence< Kokkos::OpenMP >::run(i);
+  }
+}
+
+TEST_F( openmp , task_team )
+{
+  TestTaskPolicy::TestTaskTeam< Kokkos::OpenMP >::run(1000);
+  //TestTaskPolicy::TestTaskTeamValue< Kokkos::OpenMP >::run(1000); //TODO put back after testing
+}
+
+
+#endif /* #if defined( KOKKOS_ENABLE_TASKPOLICY ) */
+
+
 } // namespace test
+
+
+
+
+
 

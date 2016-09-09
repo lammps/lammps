@@ -124,12 +124,12 @@ int main(int narg, char* arg[]) {
   // Run the localsum functor using the RandomAccess trait. On CPUs there should
   // not be any different in performance to not using the RandomAccess trait.
   // On GPUs where can be a dramatic difference
-  Kokkos::Impl::Timer time1;
+  Kokkos::Timer time1;
   Kokkos::parallel_for(size,localsum<view_type,view_type_rnd>(idx,dest,src));
   Kokkos::fence();
   double sec1 = time1.seconds();
 
-  Kokkos::Impl::Timer time2;
+  Kokkos::Timer time2;
   Kokkos::parallel_for(size,localsum<view_type,view_type>(idx,dest,src));
   Kokkos::fence();
   double sec2 = time2.seconds();

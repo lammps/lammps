@@ -246,8 +246,8 @@ private:
   enum : uintptr_t { DO_NOT_DEREF_FLAG = 0x01ul };
 
   // The allocation record resides in Host memory space
-  Record  * m_record ;
   uintptr_t m_record_bits ;
+  Record  * m_record ;
 
 public:
 

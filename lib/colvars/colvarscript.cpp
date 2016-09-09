@@ -55,14 +55,14 @@ int colvarscript::run(int argc, char const *argv[]) {
   if (cmd == "delete") {
     // Note: the delete bit may be ignored by some backends
     // it is mostly useful in VMD
-    colvars->set_error_bit(DELETE_COLVARS);
+    colvars->set_error_bits(DELETE_COLVARS);
     return COLVARS_OK;
   }
 
   if (cmd == "update") {
-    cvm::combine_errors(error_code, proxy->update_input());
-    cvm::combine_errors(error_code, colvars->calc());
-    cvm::combine_errors(error_code, proxy->update_output());
+    error_code |= proxy->update_input();
+    error_code |= colvars->calc();
+    error_code |= proxy->update_output();
     if (error_code) {
       result += "Error updating the colvars module.\n";
     }
@@ -142,8 +142,8 @@ int colvarscript::run(int argc, char const *argv[]) {
     }
     proxy->output_prefix_str = argv[2];
     int error = 0;
-    cvm::combine_errors(error, colvars->setup_output());
-    cvm::combine_errors(error, colvars->write_output_files());
+    error |= colvars->setup_output();
+    error |= colvars->write_output_files();
     return error ? COLVARSCRIPT_ERROR : COLVARS_OK;
   }
 
@@ -163,8 +163,9 @@ int colvarscript::run(int argc, char const *argv[]) {
 
   if (cmd == "frame") {
     if (argc == 2) {
-      int f = proxy->frame();
-      if (f >= 0) {
+      long int f;
+      int error = proxy->get_frame(f);
+      if (error == COLVARS_OK) {
         result = cvm::to_str(f);
         return COLVARS_OK;
       } else {
@@ -173,10 +174,9 @@ int colvarscript::run(int argc, char const *argv[]) {
       }
     } else if (argc == 3) {
       // Failure of this function does not trigger an error, but
-      // returns the plain result to let scripts detect available frames
-      long int f = proxy->frame(strtol(argv[2], NULL, 10));
-      colvars->it = proxy->frame();
-      result = cvm::to_str(f);
+      // returns nonzero, to let scripts detect available frames
+      int error = proxy->set_frame(strtol(argv[2], NULL, 10));
+      result = cvm::to_str(error == COLVARS_OK ? 0 : -1);
       return COLVARS_OK;
     } else {
       result = "Wrong arguments to command \"frame\"\n" + help_string();
@@ -248,7 +248,7 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if (subcmd == "getsystemforce") {
-    result = (cv->system_force()).to_simple_string();
+    result = (cv->total_force()).to_simple_string();
     return COLVARS_OK;
   }
 
@@ -336,6 +336,11 @@ int colvarscript::proc_bias(int argc, char const *argv[]) {
     return COLVARS_OK;
   }
 
+  if (subcmd == "state") {
+    b->print_state();
+    return COLVARS_OK;
+  }
+
   // Subcommands for MW ABF
   if (subcmd == "bin") {
     int r = b->current_bin();
@@ -414,7 +419,8 @@ Input and output:\n\
   printframe                  -- return a summary of the current frame\n\
   printframelabels            -- return labels to annotate printframe's output\n";
 
-  if (proxy->frame() != COLVARS_NOT_IMPLEMENTED) {
+  long int tmp;
+  if (proxy->get_frame(tmp) != COLVARS_NOT_IMPLEMENTED) {
       buf += "\
   frame                       -- return current frame number\n\
   frame <new_frame>           -- set frame number\n";

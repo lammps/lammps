@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -86,27 +86,8 @@ namespace Test {
 
 class openmp : public ::testing::Test {
 protected:
-  static void SetUpTestCase()
-  {
-    const unsigned numa_count       = Kokkos::hwloc::get_available_numa_count();
-    const unsigned cores_per_numa   = Kokkos::hwloc::get_available_cores_per_numa();
-    const unsigned threads_per_core = Kokkos::hwloc::get_available_threads_per_core();
-
-    const unsigned threads_count = std::max( 1u , numa_count ) *
-                                   std::max( 2u , ( cores_per_numa * threads_per_core ) / 2 );
-
-    Kokkos::OpenMP::initialize( threads_count );
-    Kokkos::OpenMP::print_configuration( std::cout , true );
-  }
-
-  static void TearDownTestCase()
-  {
-    Kokkos::OpenMP::finalize();
-
-    omp_set_num_threads(1);
-
-    ASSERT_EQ( 1 , omp_get_max_threads() );
-  }
+  static void SetUpTestCase();
+  static void TearDownTestCase();
 };
 
 TEST_F( openmp , range_tag )
@@ -122,6 +103,10 @@ TEST_F( openmp , range_tag )
 
 TEST_F( openmp , team_tag )
 {
+  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_for(2);
+  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_reduce(2);
+  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(2);
+  TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_reduce(2);
   TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_for(1000);
   TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >::test_reduce(1000);
   TestTeamPolicy< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >::test_for(1000);
@@ -148,6 +133,14 @@ TEST_F( openmp, long_reduce_dynamic_view ) {
   TestReduceDynamicView< long ,   Kokkos::OpenMP >( 1000000 );
 }
 
+TEST_F( openmp , reducers )
+{
+  TestReducers<int, Kokkos::OpenMP>::execute_integer();
+  TestReducers<size_t, Kokkos::OpenMP>::execute_integer();
+  TestReducers<double, Kokkos::OpenMP>::execute_float();
+  TestReducers<Kokkos::complex<double>, Kokkos::OpenMP>::execute_basic();
+}
+
 TEST_F( openmp, team_long_reduce) {
   TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >( 3 );
   TestReduceTeam< long ,   Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >( 3 );
@@ -172,12 +165,21 @@ TEST_F( openmp, team_scratch_request) {
   TestScratchTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 
-#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA) 
+#if defined(KOKKOS_HAVE_CXX11_DISPATCH_LAMBDA)
 TEST_F( openmp, team_lambda_shared_request) {
   TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >();
   TestLambdaSharedTeam< Kokkos::HostSpace, Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >();
 }
 #endif
+
+TEST_F( openmp, shmem_size) {
+  TestShmemSize< Kokkos::OpenMP >();
+}
+
+TEST_F( openmp, multi_level_scratch) {
+  TestMultiLevelScratchTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Static> >();
+  TestMultiLevelScratchTeam< Kokkos::OpenMP , Kokkos::Schedule<Kokkos::Dynamic> >();
+}
 
 } // namespace test
 

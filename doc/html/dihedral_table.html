@@ -131,9 +131,9 @@
 <h1>dihedral_style table/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dihedral_style</span> <span class="n">table</span> <span class="n">style</span> <span class="n">Ntable</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+dihedral_style table style Ntable
+</pre>
 <ul class="simple">
 <li>style = <em>linear</em> or <em>spline</em> = method of interpolation</li>
 <li>Ntable = size of the internal lookup table</li>
@@ -141,12 +141,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dihedral_style</span> <span class="n">table</span> <span class="n">spline</span> <span class="mi">400</span>
-<span class="n">dihedral_style</span> <span class="n">table</span> <span class="n">linear</span> <span class="mi">1000</span>
-<span class="n">dihedral_coeff</span> <span class="mi">1</span> <span class="n">file</span><span class="o">.</span><span class="n">table</span> <span class="n">DIH_TABLE1</span>
-<span class="n">dihedral_coeff</span> <span class="mi">2</span> <span class="n">file</span><span class="o">.</span><span class="n">table</span> <span class="n">DIH_TABLE2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+dihedral_style table spline 400
+dihedral_style table linear 1000
+dihedral_coeff 1 file.table DIH_TABLE1
+dihedral_coeff 2 file.table DIH_TABLE2
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -185,23 +185,23 @@ or blank lines.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Table of the potential and its negative derivative</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">DIH_TABLE1</span>                   <span class="p">(</span><span class="n">keyword</span> <span class="ow">is</span> <span class="n">the</span> <span class="n">first</span> <span class="n">text</span> <span class="n">on</span> <span class="n">line</span><span class="p">)</span>
-<span class="n">N</span> <span class="mi">30</span> <span class="n">DEGREES</span>                 <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">NOF</span><span class="p">,</span> <span class="n">DEGREES</span><span class="p">,</span> <span class="n">RADIANS</span><span class="p">,</span> <span class="n">CHECKU</span><span class="o">/</span><span class="n">F</span><span class="p">)</span>
-                             <span class="p">(</span><span class="n">blank</span> <span class="n">line</span><span class="p">)</span>
-<span class="mi">1</span> <span class="o">-</span><span class="mf">168.0</span> <span class="o">-</span><span class="mf">1.40351172223</span> <span class="mf">0.0423346818422</span>
-<span class="mi">2</span> <span class="o">-</span><span class="mf">156.0</span> <span class="o">-</span><span class="mf">1.70447981034</span> <span class="mf">0.00811786522531</span>
-<span class="mi">3</span> <span class="o">-</span><span class="mf">144.0</span> <span class="o">-</span><span class="mf">1.62956100432</span> <span class="o">-</span><span class="mf">0.0184129719987</span>
-<span class="o">...</span>
-<span class="mi">30</span> <span class="mf">180.0</span> <span class="o">-</span><span class="mf">0.707106781187</span> <span class="mf">0.0719306095245</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+DIH_TABLE1                   (keyword is the first text on line)
+N 30 DEGREES                 (N, NOF, DEGREES, RADIANS, CHECKU/F)
+                             (blank line)
+1 -168.0 -1.40351172223 0.0423346818422
+2 -156.0 -1.70447981034 0.00811786522531
+3 -144.0 -1.62956100432 -0.0184129719987
+...
+30 180.0 -0.707106781187 0.0719306095245
+</pre>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Example 2: table of the potential. Forces omitted</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">DIH_TABLE2</span>
-<span class="n">N</span> <span class="mi">30</span> <span class="n">NOF</span> <span class="n">CHECKU</span> <span class="n">testU</span><span class="o">.</span><span class="n">dat</span> <span class="n">CHECKF</span> <span class="n">testF</span><span class="o">.</span><span class="n">dat</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+DIH_TABLE2
+N 30 NOF CHECKU testU.dat CHECKF testF.dat
+</pre>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">1</span> <span class="o">-</span><span class="mf">168.0</span> <span class="o">-</span><span class="mf">1.40351172223</span>
 <span class="mi">2</span> <span class="o">-</span><span class="mf">156.0</span> <span class="o">-</span><span class="mf">1.70447981034</span>
 <span class="mi">3</span> <span class="o">-</span><span class="mf">144.0</span> <span class="o">-</span><span class="mf">1.62956100432</span>

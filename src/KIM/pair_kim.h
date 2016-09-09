@@ -197,19 +197,19 @@ E: Unknown unit_style
 
 Self-explanatory. Check the input script or data file.
 
-W: KIM Model does not provide `energy'; Potential energy will be zero
+W: KIM Model does not provide 'energy'; Potential energy will be zero
 
 Self-explanatory.
 
-W: KIM Model does not provide `forces'; Forces will be zero
+W: KIM Model does not provide 'forces'; Forces will be zero
 
 Self-explanatory.
 
-W: KIM Model does not provide `particleEnergy'; energy per atom will be zero
+W: KIM Model does not provide 'particleEnergy'; energy per atom will be zero
 
 Self-explanatory.
 
-W: KIM Model does not provide `particleVirial'; virial per atom will be zero
+W: KIM Model does not provide 'particleVirial'; virial per atom will be zero
 
 Self-explanatory.
 

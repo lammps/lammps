@@ -141,11 +141,11 @@ int main(int narg, char* args[]) {
 
   // Each team handles a slice of the data
   // Set up TeamPolicy with 512 teams with maximum number of threads per team and 16 vector lanes.
-  // The team_size_max function will determine the maximum number of threads taking into account
-  // shared memory requirements of the Functor.
+  // Kokkos::AUTO will determine the number of threads
   // The maximum vector length is hardware dependent but can always be smaller than the hardware allows.
   // The vector length must be a power of 2.
-  const Kokkos::TeamPolicy<> policy( 512 , Kokkos::TeamPolicy<>::team_size_max(SomeCorrelation(data,gsum)) , 16);
+
+  const Kokkos::TeamPolicy<> policy( 512 , Kokkos::AUTO , 16);
 
   Kokkos::parallel_for( policy , SomeCorrelation(data,gsum) );
 

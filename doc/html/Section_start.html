@@ -173,10 +173,10 @@ experienced users.</p>
 <p>When you download a LAMMPS tarball you will need to unzip and untar
 the downloaded file with the following commands, after placing the
 tarball in an appropriate directory.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">gunzip</span> <span class="n">lammps</span><span class="o">*.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">tar</span> <span class="n">xvf</span> <span class="n">lammps</span><span class="o">*.</span><span class="n">tar</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+gunzip lammps*.tar.gz
+tar xvf lammps*.tar
+</pre>
 <p>This will create a LAMMPS directory containing two files and several
 sub-directories:</p>
 <table border="1" class="docutils">
@@ -315,13 +315,13 @@ it will be never be touched by any LAMMPS updates.</p>
 a list of available choices from src/MAKE and all of its
 sub-directories.  If one of those has the options you want or is the
 machine you want, you can type a command like:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">mpi</span>
-<span class="ow">or</span>
-<span class="n">make</span> <span class="n">serial_icc</span>
-<span class="ow">or</span>
-<span class="n">gmake</span> <span class="n">mac</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+make mpi
+or
+make serial_icc
+or
+gmake mac
+</pre>
 <p>Note that the corresponding Makefile.machine can exist in src/MAKE or
 any of its sub-directories.  If a file with the same name appears in
 multiple places (not a good idea), the order they are used is as
@@ -362,13 +362,13 @@ then you should list them as part of the LIB variable.  You should
 not need to do this if you use mpicxx.</p>
 <p>The DEPFLAGS setting is what triggers the C++ compiler to create a
 dependency list for a source file.  This speeds re-compilation when
-source (<em>.cpp) or header (</em>.h) files are edited.  Some compilers do
+source (*.cpp) or header (*.h) files are edited.  Some compilers do
 not support dependency file creation, or may use a different switch
 than -D.  GNU g++ and Intel icc works with -D.  If your compiler can&#8217;t
 create dependency files, then you&#8217;ll need to create a Makefile.foo
 patterned after Makefile.storm, which uses different rules that do not
 involve dependency files.  Note that when you build LAMMPS for the
-first time on a new platform, a long list of <a href="#id5"><span class="problematic" id="id6">*</span></a>.d files will be printed
+first time on a new platform, a long list of *.d files will be printed
 out rapidly.  This is not an error; it is the Makefile doing its
 normal creation of dependencies.</p>
 <p><strong>Step 4</strong></p>
@@ -598,7 +598,7 @@ faster, depending on how many cores your compilation machine has.  N
 is the number of cores the build runs on.</p>
 <p>You should get the executable lmp_foo when the build is complete.</p>
 <hr class="docutils" />
-<p id="start-2-3"><a href="#id7"><span class="problematic" id="id8">**</span></a><em>Errors that can occur when making LAMMPS:</em>**</p>
+<p id="start-2-3"><a href="#id5"><span class="problematic" id="id6">**</span></a><em>Errors that can occur when making LAMMPS:</em>**</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If an error occurs when building LAMMPS, the compiler or linker
@@ -632,17 +632,17 @@ is undefined&#8217;, then your machine does not support &#8220;long long&#8221;
 integers.  Try using the -DLAMMPS_LONGLONG_TO_LONG setting described
 above in Step 4.</p>
 <hr class="docutils" />
-<p id="start-2-4"><a href="#id9"><span class="problematic" id="id10">**</span></a><em>Additional build tips:</em>**</p>
+<p id="start-2-4"><a href="#id7"><span class="problematic" id="id8">**</span></a><em>Additional build tips:</em>**</p>
 <ol class="arabic simple">
 <li>Building LAMMPS for multiple platforms.</li>
 </ol>
 <p>You can make LAMMPS for multiple platforms from the same src
 directory.  Each target creates its own object sub-directory called
-Obj_target where it stores the system-specific <a href="#id11"><span class="problematic" id="id12">*</span></a>.o files.</p>
+Obj_target where it stores the system-specific *.o files.</p>
 <ol class="arabic simple" start="2">
 <li>Cleaning up.</li>
 </ol>
-<p>Typing &#8220;make clean-all&#8221; or &#8220;make clean-machine&#8221; will delete <a href="#id13"><span class="problematic" id="id14">*</span></a>.o object
+<p>Typing &#8220;make clean-all&#8221; or &#8220;make clean-machine&#8221; will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
 particular machine.</p>
 <p>(3) Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
@@ -686,11 +686,11 @@ basis is limited by 4-byte integer storage to 2^31 atoms per processor
 a problem would have a huge per-processor memory footprint due to
 neighbor lists and would run very slowly in terms of CPU secs/timestep.</p>
 <hr class="docutils" />
-<p id="start-2-5"><a href="#id15"><span class="problematic" id="id16">**</span></a><em>Building for a Mac:</em>**</p>
+<p id="start-2-5"><a href="#id9"><span class="problematic" id="id10">**</span></a><em>Building for a Mac:</em>**</p>
 <p>OS X is BSD Unix, so it should just work.  See the
 src/MAKE/MACHINES/Makefile.mac and Makefile.mac_mpi files.</p>
 <hr class="docutils" />
-<p id="start-2-6"><a href="#id17"><span class="problematic" id="id18">**</span></a><em>Building for Windows:</em>**</p>
+<p id="start-2-6"><a href="#id11"><span class="problematic" id="id12">**</span></a><em>Building for Windows:</em>**</p>
 <p>The LAMMPS download page has an option to download both a serial and
 parallel pre-built Windows executable.  See the <a class="reference internal" href="#start-6"><span class="std std-ref">Running LAMMPS</span></a> section for instructions on running these executables
 on a Windows box.</p>
@@ -725,7 +725,7 @@ tool which can be used to install/un-install packages and build the
 auxiliary libraries which some of them use.  It can also auto-edit a
 Makefile.machine to add settings needed by some packages.</p>
 <hr class="docutils" />
-<p id="start-3-1"><a href="#id19"><span class="problematic" id="id20">**</span></a><em>Package basics:</em>**</p>
+<p id="start-3-1"><a href="#id13"><span class="problematic" id="id14">**</span></a><em>Package basics:</em>**</p>
 <p>The source code for LAMMPS is structured as a set of core files which
 are always included, plus optional packages.  Packages are groups of
 files that enable a specific set of features.  For example, force
@@ -742,9 +742,9 @@ package, you must have built LAMMPS with that package, else you will
 get an error that the style is invalid or the command is unknown.
 Every command&#8217;s doc page specfies if it is part of a package.  You can
 also type</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_machine</span> <span class="o">-</span><span class="n">h</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_machine -h
+</pre>
 <p>to run your executable with the optional <a class="reference internal" href="#start-7"><span class="std std-ref">-h command-line switch</span></a> for &#8220;help&#8221;, which will simply list the styles and
 commands known to your executable, and immediately exit.</p>
 <p>There are two kinds of packages in LAMMPS, standard and user packages.
@@ -768,7 +768,7 @@ Information on how to submit additions you make to LAMMPS as single
 files or either a standard or user-contributed package are given in
 <a class="reference internal" href="Section_modify.html#mod-15"><span class="std std-ref">this section</span></a> of the documentation.</p>
 <hr class="docutils" />
-<p id="start-3-2"><a href="#id21"><span class="problematic" id="id22">**</span></a><em>Including/excluding packages:</em>**</p>
+<p id="start-3-2"><a href="#id15"><span class="problematic" id="id16">**</span></a><em>Including/excluding packages:</em>**</p>
 <p>To use (or not use) a package you must include it (or exclude it)
 before building LAMMPS.  From the src directory, this is typically as
 simple as:</p>
@@ -837,7 +837,7 @@ sub-directory.  Typing &#8220;make package-diff&#8221; lists all differences
 between these files.  Again, type &#8220;make package&#8221; to see all of the
 package-related make options.</p>
 <hr class="docutils" />
-<p id="start-3-3"><a href="#id23"><span class="problematic" id="id24">**</span></a><em>Packages that require extra libraries:</em>**</p>
+<p id="start-3-3"><a href="#id17"><span class="problematic" id="id18">**</span></a><em>Packages that require extra libraries:</em>**</p>
 <p>A few of the standard and user packages require additional auxiliary
 libraries.  Many of them are provided with LAMMPS, in which case they
 must be compiled first, before LAMMPS is built, if you wish to include
@@ -908,7 +908,7 @@ needed soft links.  Type &#8220;python install.py&#8221; for further instruction
 or settings in the lib/package/Makefile.lammps files are not correct,
 the LAMMPS build will typically fail.</p>
 <hr class="docutils" />
-<p id="start-3-4"><a href="#id25"><span class="problematic" id="id26">**</span></a><em>Packages that require Makefile.machine settings</em>**</p>
+<p id="start-3-4"><a href="#id19"><span class="problematic" id="id20">**</span></a><em>Packages that require Makefile.machine settings</em>**</p>
 <p>A few packages require specific settings in Makefile.machine, to
 either build or use the package effectively.  These are the
 USER-INTEL, KOKKOS, USER-OMP, and OPT packages, used for accelerating
@@ -1081,7 +1081,7 @@ LAMMPS to other codes.  See <a class="reference internal" href="Section_python.h
 more info on wrapping and running LAMMPS from Python.</p>
 <div class="section" id="static-library">
 <h3>2.5.1. <strong>Static library:</strong></h3>
-<p>To build LAMMPS as a static library (<a href="#id27"><span class="problematic" id="id28">*</span></a>.a file on Linux), type</p>
+<p>To build LAMMPS as a static library (*.a file on Linux), type</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">foo</span> <span class="n">mode</span><span class="o">=</span><span class="n">lib</span>
 </pre></div>
 </div>
@@ -1095,7 +1095,7 @@ point to the most recently built static library.</p>
 </div>
 <div class="section" id="shared-library">
 <h3>2.5.2. <strong>Shared library:</strong></h3>
-<p>To build LAMMPS as a shared library (<a href="#id29"><span class="problematic" id="id30">*</span></a>.so file on Linux), which can be
+<p>To build LAMMPS as a shared library (*.so file on Linux), which can be
 dynamically loaded, e.g. from Python, type</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">foo</span> <span class="n">mode</span><span class="o">=</span><span class="n">shlib</span>
 </pre></div>
@@ -1122,18 +1122,18 @@ of the auxiliary library.  The build instructions for the library
 should tell you how to do this.</p>
 <p>Here is an example of such errors when the system FFTW or provided
 lib/colvars library have not been built as shared libraries:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>/usr/bin/ld: /usr/local/lib/libfftw3.a(mapflags.o): relocation
-R_X86_64_32 against `.rodata&#39; can not be used when making a shared
+<pre class="literal-block">
+/usr/bin/ld: /usr/local/lib/libfftw3.a(mapflags.o): relocation
+R_X86_64_32 against '.rodata' can not be used when making a shared
 object; recompile with -fPIC
 /usr/local/lib/libfftw3.a: could not read symbols: Bad value
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>/usr/bin/ld: ../../lib/colvars/libcolvars.a(colvarmodule.o):
-relocation R_X86_64_32 against `__pthread_key_create&#39; can not be used
+</pre>
+<pre class="literal-block">
+/usr/bin/ld: ../../lib/colvars/libcolvars.a(colvarmodule.o):
+relocation R_X86_64_32 against '__pthread_key_create' can not be used
 when making a shared object; recompile with -fPIC
 ../../lib/colvars/libcolvars.a: error adding symbols: Bad value
-</pre></div>
-</div>
+</pre>
 <p>As an example, here is how to build and install the <a class="reference external" href="http://www-unix.mcs.anl.gov/mpi">MPICH library</a>, a popular open-source version of MPI, distributed by
 Argonne National Labs, as a shared library in the default
 /usr/local/lib location:</p>
@@ -1157,9 +1157,9 @@ current version of the shared library is always available to programs
 that use it.</p>
 <p>For the csh or tcsh shells, you would add something like this to your
 ~/.cshrc file:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src
-</pre></div>
-</div>
+<pre class="literal-block">
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src
+</pre>
 </div>
 <div class="section" id="calling-the-lammps-library">
 <h3>2.5.4. <strong>Calling the LAMMPS library:</strong></h3>
@@ -1188,20 +1188,20 @@ interface and how to extend it for your needs.</p>
 <span id="start-6"></span><h2>2.6. Running LAMMPS</h2>
 <p>By default, LAMMPS runs by reading commands from standard input.  Thus
 if you run the LAMMPS executable by itself, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_linux</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_linux
+</pre>
 <p>it will simply wait, expecting commands from the keyboard.  Typically
 you should put commands in an input script and use I/O redirection,
 e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_linux</span> <span class="o">&lt;</span> <span class="ow">in</span><span class="o">.</span><span class="n">file</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_linux &lt; in.file
+</pre>
 <p>For parallel environments this should also work.  If it does not, use
 the &#8216;-in&#8217; command-line switch, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_linux</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">file</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_linux -in in.file
+</pre>
 <p><a class="reference internal" href="Section_commands.html"><span class="doc">This section</span></a> describes how input scripts are
 structured and what commands they contain.</p>
 <p>You can test LAMMPS on any of the sample inputs provided in the
@@ -1210,13 +1210,13 @@ outputs are named log.*.name.P where name is a machine and P is the
 number of processors it was run on.</p>
 <p>Here is how you might run a standard Lennard-Jones benchmark on a
 Linux box, using mpirun to launch a parallel job:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">src</span>
-<span class="n">make</span> <span class="n">linux</span>
-<span class="n">cp</span> <span class="n">lmp_linux</span> <span class="o">../</span><span class="n">bench</span>
-<span class="n">cd</span> <span class="o">../</span><span class="n">bench</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="n">lmp_linux</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+cd src
+make linux
+cp lmp_linux ../bench
+cd ../bench
+mpirun -np 4 lmp_linux -in in.lj
+</pre>
 <p>See <a class="reference external" href="http://lammps.sandia.gov/bench.html">this page</a> for timings for this and the other benchmarks on
 various platforms.  Note that some of the example scripts require
 LAMMPS to be built with one or more of its optional packages.</p>
@@ -1256,7 +1256,7 @@ in.lj&#8221;, replacing in.lj with the name of your LAMMPS input script.</li>
 matter what you type).</li>
 <li>In this mode, output may not immediately show up on the screen, so if
 your input script takes a long time to execute, you may need to be
-patient before the output shows up. :l Alternatively, you can still
+patient before the output shows up.  Alternatively, you can still
 use this executable to run on a single processor by typing something
 like: &#8220;lmp_win_mpi -in in.lj&#8221;.</li>
 </ul>
@@ -1309,10 +1309,10 @@ letter abbreviation can be used:</p>
 <li>-v or -var</li>
 </ul>
 <p>For example, lmp_ibm might be launched as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">16</span> <span class="n">lmp_ibm</span> <span class="o">-</span><span class="n">v</span> <span class="n">f</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span> <span class="o">-</span><span class="n">l</span> <span class="n">my</span><span class="o">.</span><span class="n">log</span> <span class="o">-</span><span class="n">sc</span> <span class="n">none</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">alloy</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">16</span> <span class="n">lmp_ibm</span> <span class="o">-</span><span class="n">var</span> <span class="n">f</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span> <span class="o">-</span><span class="n">log</span> <span class="n">my</span><span class="o">.</span><span class="n">log</span> <span class="o">-</span><span class="n">screen</span> <span class="n">none</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">alloy</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+mpirun -np 16 lmp_ibm -v f tmp.out -l my.log -sc none -in in.alloy
+mpirun -np 16 lmp_ibm -var f tmp.out -log my.log -screen none -in in.alloy
+</pre>
 <p>Here are the details on the options:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">echo</span> <span class="n">style</span>
 </pre></div>
@@ -1395,11 +1395,11 @@ are intended for computational work like running LAMMPS.  By default
 Ng = 1 and Ns is not set.</p>
 <p>Depending on which flavor of MPI you are running, LAMMPS will look for
 one of these 3 environment variables</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SLURM_LOCALID</span> <span class="p">(</span><span class="n">various</span> <span class="n">MPI</span> <span class="n">variants</span> <span class="n">compiled</span> <span class="k">with</span> <span class="n">SLURM</span> <span class="n">support</span><span class="p">)</span>
-<span class="n">MV2_COMM_WORLD_LOCAL_RANK</span> <span class="p">(</span><span class="n">Mvapich</span><span class="p">)</span>
-<span class="n">OMPI_COMM_WORLD_LOCAL_RANK</span> <span class="p">(</span><span class="n">OpenMPI</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+SLURM_LOCALID (various MPI variants compiled with SLURM support)
+MV2_COMM_WORLD_LOCAL_RANK (Mvapich)
+OMPI_COMM_WORLD_LOCAL_RANK (OpenMPI)
+</pre>
 <p>which are initialized by the &#8220;srun&#8221;, &#8220;mpirun&#8221; or &#8220;mpiexec&#8221; commands.
 The environment variable setting for each MPI rank is used to assign a
 unique GPU ID to the MPI task.</p>

@@ -61,7 +61,7 @@
 /// call to e.g. apply_force().
 
 class colvar::cvc
-  : public colvarparse, public cvm::deps
+  : public colvarparse, public colvardeps
 {
 public:
 
@@ -153,8 +153,8 @@ public:
   // /// \brief Return const pointer to the previously calculated value
   // virtual const colvarvalue *p_value() const;
 
-  /// \brief Return the previously calculated system force
-  virtual colvarvalue const & system_force() const;
+  /// \brief Return the previously calculated total force
+  virtual colvarvalue const & total_force() const;
 
   /// \brief Return the previously calculated divergence of the
   /// inverse atomic gradients
@@ -232,7 +232,7 @@ protected:
   /// \brief Value at the previous step
   colvarvalue x_old;
 
-  /// \brief Calculated system force (\b Note: this is calculated from
+  /// \brief Calculated total force (\b Note: this is calculated from
   /// the total atomic forces read from the program, subtracting fromt
   /// the "internal" forces of the system the "external" forces from
   /// the colvar biases)
@@ -256,7 +256,7 @@ inline colvarvalue const & colvar::cvc::value() const
 //   return &x;
 // }
 
-inline colvarvalue const & colvar::cvc::system_force() const
+inline colvarvalue const & colvar::cvc::total_force() const
 {
   return ft;
 }
@@ -306,7 +306,7 @@ protected:
   cvm::rvector     dist_v;
   /// Use absolute positions, ignoring PBCs when present
   bool b_no_PBC;
-  /// Compute system force on first site only to avoid unwanted
+  /// Compute total force on first site only to avoid unwanted
   /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
   bool b_1site_force;
 public:
@@ -388,7 +388,7 @@ protected:
   cvm::atom_group  *ref2;
   /// Use absolute positions, ignoring PBCs when present
   bool b_no_PBC;
-  /// Compute system force on one site only to avoid unwanted
+  /// Compute total force on one site only to avoid unwanted
   /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
   bool b_1site_force;
   /// Vector on which the distance vector is projected
@@ -637,7 +637,7 @@ protected:
   /// Derivatives wrt group centers of mass
   cvm::rvector dxdr1, dxdr3;
 
-  /// Compute system force on first site only to avoid unwanted
+  /// Compute total force on first site only to avoid unwanted
   /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
   /// (or to allow dummy atoms)
   bool b_1site_force;
@@ -683,7 +683,7 @@ protected:
   /// Derivatives wrt group centers of mass
   cvm::rvector dxdr1, dxdr3;
 
-  /// Compute system force on first site only to avoid unwanted
+  /// Compute total force on first site only to avoid unwanted
   /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
   /// (or to allow dummy atoms)
   bool b_1site_force;
@@ -724,7 +724,7 @@ protected:
   /// Inter site vectors
   cvm::rvector r12, r23, r34;
 
-  /// \brief Compute system force on first site only to avoid unwanted
+  /// \brief Compute total force on first site only to avoid unwanted
   /// coupling to other colvars (see e.g. Ciccotti et al., 2005)
   bool b_1site_force;
 

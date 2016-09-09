@@ -621,7 +621,8 @@ rigid styles for the rigid bodies. :l
 Use "fix press/berendsen"_fix_press_berendsen.html to compute the
 pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
 rigid styles for the rigid bodies.  Use "fix nvt"_fix_nh.thml (or any
-other thermostat) for the non-rigid particles. :l,ule
+other thermostat) for the non-rigid particles. :l
+:ule
 
 In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the

@@ -695,7 +695,8 @@ MD with quantum forces calculated by a density functional code :l
 
 lammps_spparks: coupling of LAMMPS and "SPPARKS"_spparks, to couple
 a kinetic Monte Carlo model for grain growth using MD to calculate
-strain induced across grain boundaries :l,ule
+strain induced across grain boundaries :l
+:ule
 
 :link(quest,http://dft.sandia.gov/Quest)
 :link(spparks,http://www.sandia.gov/~sjplimp/spparks.html)
@@ -829,7 +830,7 @@ rotation of [A], [B], and [C] and can be computed as follows:
 
 :c,image(Eqs/transform.jpg)
 
-where A = |[A]| indicates the scalar length of [A]. The ^ hat symbol
+where A = | [A] | indicates the scalar length of [A]. The hat symbol (^)
 indicates the corresponding unit vector. {beta} and {gamma} are angles
 between the vectors described below. Note that by construction, 
 [a], [b], and [c] have strictly positive x, y, and z components, respectively.
@@ -1286,7 +1287,8 @@ print"_fix_print.html for single-line output of
 "variables"_variable.html.  Fix print can also output to the
 screen. :l
 
-"Restart files"_restart.html. :l,ule
+"Restart files"_restart.html. :l
+:ule
 
 A simulation prints one set of thermodynamic output and (optionally)
 restart files.  It can generate any number of dump files and fix
@@ -2274,7 +2276,8 @@ molecule diffusion rates. :l
 
 As input to special functions of "equal-style
 variables"_variable.html, like sum() and max().  E.g. to find the
-largest cluster or fastest diffusing molecule. :l,ule
+largest cluster or fastest diffusing molecule. :l
+:ule
 
 Example calculations with chunks :h5
 
@@ -2430,7 +2433,8 @@ package, :ulb,l
 the adiabatic core-shell method, implemented in the
 "CORESHELL"_#howto_26 package, :l
 the thermalized Drude dipole method, implemented in the
-"USER-DRUDE"_#howto_27 package. :l,ule
+"USER-DRUDE"_#howto_27 package. :l
+:ule
 
 The fluctuating charge method calculates instantaneous charges on
 interacting atoms based on the electronegativity equalization
@@ -2737,7 +2741,8 @@ too much. To avoid this, damping at short range can be done by Thole
 functions (for which there are physical grounds). This Thole damping
 is applied to the point charges composing the induced dipole (the
 charge of the Drude particle and the opposite charge on the core, not
-to the total charge of the core atom). :l,ule
+to the total charge of the core atom). :l
+:ule
 
 A detailed tutorial covering the usage of Drude induced dipoles in
 LAMMPS is "available here"_tutorial_drude.html.

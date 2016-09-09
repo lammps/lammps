@@ -698,7 +698,8 @@ atoms in such a bond. :l
 If you plan to "dump"_dump.html image flags and perform post-analysis
 that will unwrap atom coordinates, it may be important that a
 continued run (restarted from a data file) begins with image flags
-that are consistent with the previous run. :l,ule
+that are consistent with the previous run. :l
+:ule
 
 NOTE: If your system is an infinite periodic crystal with bonds then
 it is impossible to have fully consistent image flags.  This is because

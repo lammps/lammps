@@ -142,7 +142,7 @@ int main (int narg, char* arg[]) {
   // Measure time to execute the contraction kernel when giving it a
   // LayoutLeft view for v1 and a LayoutRight view for v2. This should be
   // fast on GPUs and slow on CPUs
-  Kokkos::Impl::Timer time1;
+  Kokkos::Timer time1;
   Kokkos::parallel_for(size,contraction<left_type,right_type>(a,l,r));
   Kokkos::fence();
   double sec1 = time1.seconds();
@@ -154,7 +154,7 @@ int main (int narg, char* arg[]) {
   // Measure time to execute the contraction kernel when giving it a
   // LayoutRight view for v1 and a LayoutLeft view for v2. This should be
   // fast on CPUs and slow on GPUs
-  Kokkos::Impl::Timer time2;
+  Kokkos::Timer time2;
   Kokkos::parallel_for(size,contraction<right_type,left_type>(a,r,l));
   Kokkos::fence();
   double sec2 = time2.seconds();

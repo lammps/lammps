@@ -141,13 +141,13 @@
 <li>Kd = derivative gain in PID equation (unitless)</li>
 <li>pvar = process variable of form c_ID, c_ID[I], f_ID, f_ID[I], or v_name</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">v_name</span> <span class="o">=</span> <span class="n">value</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">equal</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+c_ID = global scalar calculated by a compute with ID
+c_ID[I] = Ith component of global vector calculated by a compute with ID
+f_ID = global scalar calculated by a fix with ID
+f_ID[I] = Ith component of global vector calculated by a fix with ID
+v_name = value calculated by an equal-style variable with name
+</pre>
 <ul class="simple">
 <li>setpoint = desired value of process variable (same units as process variable)</li>
 <li>cvar = name of control variable</li>
@@ -155,11 +155,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">controller</span> <span class="mi">100</span> <span class="mf">1.0</span> <span class="mf">0.5</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="n">c_thermo_temp</span> <span class="mf">1.5</span> <span class="n">tcontrol</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">controller</span> <span class="mi">100</span> <span class="mf">0.2</span> <span class="mf">0.5</span> <span class="mi">0</span> <span class="mf">100.0</span> <span class="n">v_pxxwall</span> <span class="mf">1.01325</span> <span class="n">xwall</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">controller</span> <span class="mi">10000</span> <span class="mf">0.2</span> <span class="mf">0.5</span> <span class="mi">0</span> <span class="mi">2000</span> <span class="n">v_avpe</span> <span class="o">-</span><span class="mf">3.785</span> <span class="n">tcontrol</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all controller 100 1.0 0.5 0.0 0.0 c_thermo_temp 1.5 tcontrol
+fix 1 all controller 100 0.2 0.5 0 100.0 v_pxxwall 1.01325 xwall
+fix 1 all controller 10000 0.2 0.5 0 2000 v_avpe -3.785 tcontrol
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -269,14 +269,14 @@ because the value of <em>e_n-1</em> is not yet defined.</p>
 <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> or <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> or the evaluation of a
 <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>.  In each case, the compute, fix, or variable
 must produce a global quantity, not a per-atom or local quantity.</p>
-<p>If <em>pvar</em> begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
+<p>If <em>pvar</em> begins with &#8220;c_&#8221;, a compute ID must follow which has been
 previously defined in the input script and which generates a global
 scalar or vector.  See the individual <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> doc page
 for details.  If no bracketed integer is appended, the scalar
 calculated by the compute is used.  If a bracketed integer is
 appended, the Ith value of the vector calculated by the compute is
 used.  Users can also write code for their own compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If <em>pvar</em> begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
+<p>If <em>pvar</em> begins with &#8220;f_&#8221;, a fix ID must follow which has been
 previously defined in the input script and which generates a global
 scalar or vector.  See the individual <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> doc page for
 details.  Note that some fixes only produce their values on certain
@@ -285,7 +285,7 @@ references the values, or else an error results.  If no bracketed integer
 is appended, the scalar calculated by the fix is used.  If a bracketed
 integer is appended, the Ith value of the vector calculated by the fix
 is used.  Users can also write code for their own fix style and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If <em>pvar</em> begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which has been
+<p>If <em>pvar</em> begins with &#8220;v_&#8221;, a variable name must follow which has been
 previously defined in the input script.  Only equal-style variables
 can be referenced.  See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command for
 details.  Note that variables of style <em>equal</em> define a formula which
@@ -296,14 +296,12 @@ variable.</p>
 <p>The target value <em>setpoint</em> for the process variable must be a numeric
 value, in whatever units <em>pvar</em> is defined for.</p>
 <p>The control variable <em>cvar</em> must be the name of an <a class="reference internal" href="variable.html"><span class="doc">internal-style variable</span></a> previously defined in the input script.  Note
-that it is not specified with a &#8220;<a href="#id7"><span class="problematic" id="id8">v_</span></a>&#8221; prefix, just the name of the
+that it is not specified with a &#8220;v_&#8221; prefix, just the name of the
 variable.  It must be an internal-style variable, because this fix
 updates its value directly.  Note that other commands can use an
 equal-style versus internal-style variable interchangeably.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>Currenlty, no information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>This fix produces a global vector with 3 values which can be accessed

@@ -145,7 +145,7 @@
 <dd><p class="first"><em>noneq</em> Cmatrix  = file to read the non-equilibrium covariance matrix from
 <em>every</em> stride   = apply the GLE once every time steps. Reduces the accuracy</p>
 <blockquote class="last">
-<div>of the integration of the GLE, but has <em>no effect</em> on the accuracy of equilibrium
+<div>of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
 sampling. It might change sampling properties when used together with <em>noneq</em>.</div></blockquote>
 </dd>
 </dl>
@@ -207,9 +207,7 @@ Prony series form of the memory kernel used by GLD into an appropriate
 input matrix for <a class="reference internal" href="#"><span class="doc">fix gle</span></a>. While the GLE scheme is more
 general, the form used by <a class="reference internal" href="fix_gld.html"><span class="doc">fix gld</span></a> can be more directly
 related to the representation of an implicit solvent environment.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>The instantaneous values of the extended variables are written to
 <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  Because the state of the random
 number generator is not saved in restart files, this means you cannot

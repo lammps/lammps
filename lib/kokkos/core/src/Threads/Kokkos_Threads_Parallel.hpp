@@ -264,7 +264,7 @@ public:
              , const Policy      & arg_policy )
     : m_functor( arg_functor )
     , m_policy(  arg_policy )
-    , m_shared( arg_policy.scratch_size() + FunctorTeamShmemSize< FunctorType >::value( arg_functor , arg_policy.team_size() ) )
+    , m_shared( arg_policy.scratch_size(0) + arg_policy.scratch_size(1) + FunctorTeamShmemSize< FunctorType >::value( arg_functor , arg_policy.team_size() ) )
     { }
 };
 
@@ -272,9 +272,10 @@ public:
 //----------------------------------------------------------------------------
 /* ParallelReduce with Kokkos::Threads and RangePolicy */
 
-template< class FunctorType , class ... Traits >
+template< class FunctorType , class ReducerType, class ... Traits >
 class ParallelReduce< FunctorType
                     , Kokkos::RangePolicy< Traits ... >
+                    , ReducerType
                     , Kokkos::Threads
                     >
 {
@@ -286,14 +287,18 @@ private:
   typedef typename Policy::WorkRange   WorkRange ;
   typedef typename Policy::member_type Member ;
 
-  typedef Kokkos::Impl::FunctorValueTraits< FunctorType, WorkTag > ValueTraits ;
-  typedef Kokkos::Impl::FunctorValueInit<   FunctorType, WorkTag > ValueInit ;
+  typedef Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, FunctorType, ReducerType> ReducerConditional;
+  typedef typename ReducerConditional::type ReducerTypeFwd;
+
+  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd, WorkTag > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit<   ReducerTypeFwd, WorkTag > ValueInit ;
 
   typedef typename ValueTraits::pointer_type    pointer_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
   const FunctorType  m_functor ;
   const Policy       m_policy ;
+  const ReducerType   m_reducer ;
   const pointer_type m_result_ptr ;
 
   template< class TagType >
@@ -344,9 +349,9 @@ private:
 
     ParallelReduce::template exec_range< WorkTag >
       ( self.m_functor , range.begin() , range.end() 
-      , ValueInit::init( self.m_functor , exec.reduce_memory() ) );
+      , ValueInit::init( ReducerConditional::select(self.m_functor , self.m_reducer) , exec.reduce_memory() ) );
 
-    exec.template fan_in_reduce< FunctorType , WorkTag >( self.m_functor );
+    exec.template fan_in_reduce< ReducerTypeFwd , WorkTag >( ReducerConditional::select(self.m_functor , self.m_reducer) );
   }
 
   template<class Schedule>
@@ -362,7 +367,7 @@ private:
     exec.barrier();
 
     long work_index = exec.get_work_index();
-    reference_type update = ValueInit::init( self.m_functor , exec.reduce_memory() );
+    reference_type update = ValueInit::init( ReducerConditional::select(self.m_functor , self.m_reducer) , exec.reduce_memory() );
     while(work_index != -1) {
       const Member begin = static_cast<Member>(work_index) * self.m_policy.chunk_size();
       const Member end = begin + self.m_policy.chunk_size() < self.m_policy.end()?begin+self.m_policy.chunk_size():self.m_policy.end();
@@ -372,7 +377,7 @@ private:
       work_index = exec.get_work_index();
     }
 
-    exec.template fan_in_reduce< FunctorType , WorkTag >( self.m_functor );
+    exec.template fan_in_reduce< ReducerTypeFwd , WorkTag >( ReducerConditional::select(self.m_functor , self.m_reducer) );
   }
 
 public:
@@ -380,7 +385,7 @@ public:
   inline
   void execute() const
     {
-      ThreadsExec::resize_scratch( ValueTraits::value_size( m_functor ) , 0 );
+      ThreadsExec::resize_scratch( ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) ) , 0 );
 
       ThreadsExec::start( & ParallelReduce::exec , this );
 
@@ -391,7 +396,7 @@ public:
         const pointer_type data =
           (pointer_type) ThreadsExec::root_reduce_scratch();
 
-        const unsigned n = ValueTraits::value_count( m_functor );
+        const unsigned n = ValueTraits::value_count( ReducerConditional::select(m_functor , m_reducer) );
         for ( unsigned i = 0 ; i < n ; ++i ) { m_result_ptr[i] = data[i]; }
       }
     }
@@ -399,9 +404,14 @@ public:
   template< class HostViewType >
   ParallelReduce( const FunctorType  & arg_functor ,
                   const Policy       & arg_policy ,
-                  const HostViewType & arg_result_view )
+                  const HostViewType & arg_result_view ,
+                  typename std::enable_if<
+                               Kokkos::is_view< HostViewType >::value &&
+                              !Kokkos::is_reducer_type<ReducerType>::value
+                  ,void*>::type = NULL)
     : m_functor( arg_functor )
     , m_policy( arg_policy )
+    , m_reducer( InvalidType() )
     , m_result_ptr( arg_result_view.ptr_on_device() )
     {
       static_assert( Kokkos::is_view< HostViewType >::value
@@ -410,14 +420,30 @@ public:
       static_assert( std::is_same< typename HostViewType::memory_space , HostSpace >::value
         , "Kokkos::Threads reduce result must be a View in HostSpace" );
     }
+
+  inline
+  ParallelReduce( const FunctorType & arg_functor
+                , Policy       arg_policy
+                , const ReducerType& reducer )
+    : m_functor( arg_functor )
+    , m_policy(  arg_policy )
+    , m_reducer( reducer )
+    , m_result_ptr(  reducer.result_view().data() )
+    {
+      /*static_assert( std::is_same< typename ViewType::memory_space
+                                      , Kokkos::HostSpace >::value
+        , "Reduction result on Kokkos::OpenMP must be a Kokkos::View in HostSpace" );*/
+    }
+
 };
 
 //----------------------------------------------------------------------------
 /* ParallelReduce with Kokkos::Threads and TeamPolicy */
 
-template< class FunctorType , class ... Properties >
+template< class FunctorType , class ReducerType, class ... Properties >
 class ParallelReduce< FunctorType
                     , Kokkos::TeamPolicy< Properties ... >
+                    , ReducerType
                     , Kokkos::Threads
                     >
 {
@@ -426,14 +452,19 @@ private:
   typedef Kokkos::Impl::TeamPolicyInternal< Kokkos::Threads, Properties ... >              Policy ;
   typedef typename Policy::work_tag                                WorkTag ;
   typedef typename Policy::member_type                             Member ;
-  typedef Kokkos::Impl::FunctorValueTraits< FunctorType, WorkTag > ValueTraits ;
-  typedef Kokkos::Impl::FunctorValueInit<   FunctorType, WorkTag > ValueInit ;
+
+  typedef Kokkos::Impl::if_c< std::is_same<InvalidType,ReducerType>::value, FunctorType, ReducerType> ReducerConditional;
+  typedef typename ReducerConditional::type ReducerTypeFwd;
+
+  typedef Kokkos::Impl::FunctorValueTraits< ReducerTypeFwd, WorkTag > ValueTraits ;
+  typedef Kokkos::Impl::FunctorValueInit<   ReducerTypeFwd, WorkTag > ValueInit ;
 
   typedef typename ValueTraits::pointer_type    pointer_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
   const FunctorType  m_functor ;
   const Policy       m_policy ;
+  const ReducerType  m_reducer ;
   const pointer_type m_result_ptr ;
   const int          m_shared ;
 
@@ -464,9 +495,9 @@ private:
 
     ParallelReduce::template exec_team< WorkTag >
       ( self.m_functor , Member( & exec , self.m_policy , self.m_shared )
-      , ValueInit::init( self.m_functor , exec.reduce_memory() ) );
+      , ValueInit::init( ReducerConditional::select(self.m_functor , self.m_reducer) , exec.reduce_memory() ) );
 
-    exec.template fan_in_reduce< FunctorType , WorkTag >( self.m_functor );
+    exec.template fan_in_reduce< ReducerTypeFwd , WorkTag >( ReducerConditional::select(self.m_functor , self.m_reducer) );
   }
 
 public:
@@ -474,7 +505,7 @@ public:
   inline
   void execute() const
     {
-      ThreadsExec::resize_scratch( ValueTraits::value_size( m_functor ) , Policy::member_type::team_reduce_size() + m_shared );
+      ThreadsExec::resize_scratch( ValueTraits::value_size( ReducerConditional::select(m_functor , m_reducer) ) , Policy::member_type::team_reduce_size() + m_shared );
 
       ThreadsExec::start( & ParallelReduce::exec , this );
 
@@ -484,20 +515,41 @@ public:
 
         const pointer_type data = (pointer_type) ThreadsExec::root_reduce_scratch();
 
-        const unsigned n = ValueTraits::value_count( m_functor );
+        const unsigned n = ValueTraits::value_count( ReducerConditional::select(m_functor , m_reducer) );
         for ( unsigned i = 0 ; i < n ; ++i ) { m_result_ptr[i] = data[i]; }
       }
     }
 
   template< class ViewType >
-  ParallelReduce( const FunctorType & arg_functor
-                , const Policy      & arg_policy
-                , const ViewType    & arg_result )
+  inline
+  ParallelReduce( const FunctorType  & arg_functor ,
+                  const Policy       & arg_policy ,
+                  const ViewType     & arg_result ,
+                  typename std::enable_if<
+                    Kokkos::is_view< ViewType >::value &&
+                    !Kokkos::is_reducer_type<ReducerType>::value
+                    ,void*>::type = NULL)
     : m_functor( arg_functor )
-    , m_policy( arg_policy )
+    , m_policy(  arg_policy )
+    , m_reducer( InvalidType() )
     , m_result_ptr( arg_result.ptr_on_device() )
-    , m_shared( arg_policy.scratch_size() + FunctorTeamShmemSize< FunctorType >::value( arg_functor , arg_policy.team_size() ) )
-    { }
+    , m_shared( arg_policy.scratch_size(0) + arg_policy.scratch_size(1) + FunctorTeamShmemSize< FunctorType >::value( arg_functor , arg_policy.team_size() ) )
+    {}
+
+  inline
+  ParallelReduce( const FunctorType & arg_functor
+    , Policy       arg_policy
+    , const ReducerType& reducer )
+  : m_functor( arg_functor )
+  , m_policy(  arg_policy )
+  , m_reducer( reducer )
+  , m_result_ptr(  reducer.result_view().data() )
+  , m_shared( arg_policy.scratch_size(0) + arg_policy.scratch_size(1) + FunctorTeamShmemSize< FunctorType >::value( arg_functor , arg_policy.team_size() ) )
+  {
+  /*static_assert( std::is_same< typename ViewType::memory_space
+                          , Kokkos::HostSpace >::value
+  , "Reduction result on Kokkos::OpenMP must be a Kokkos::View in HostSpace" );*/
+  }
 };
 
 //----------------------------------------------------------------------------

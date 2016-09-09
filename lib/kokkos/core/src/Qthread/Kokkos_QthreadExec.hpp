@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -113,7 +113,7 @@ public:
         m_worker_state = QthreadExec::Inactive ;
         Impl::spinwait( m_worker_state , QthreadExec::Inactive );
       }
-    
+
       for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < m_worker_size ) ; n <<= 1 ) {
         m_worker_base[j]->m_worker_state = QthreadExec::Active ;
       }
@@ -136,7 +136,7 @@ public:
           m_worker_state = QthreadExec::Inactive ;
           Impl::spinwait( m_worker_state , QthreadExec::Inactive );
         }
-    
+
         for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < team_size ) ; n <<= 1 ) {
           m_shepherd_base[j]->m_worker_state = QthreadExec::Active ;
         }
@@ -145,11 +145,13 @@ public:
 
   //----------------------------------------
   /** Reduce across all workers participating in the 'exec_all' */
-  template< class FunctorType , class ArgTag >
+  template< class FunctorType , class ReducerType , class ArgTag >
   inline
-  void exec_all_reduce( const FunctorType & func ) const
+  void exec_all_reduce( const FunctorType & func, const ReducerType & reduce ) const
     {
-      typedef Kokkos::Impl::FunctorValueJoin< FunctorType , ArgTag > ValueJoin ;
+      typedef Kokkos::Impl::if_c< std::is_same<InvalidType, ReducerType>::value, FunctorType, ReducerType > ReducerConditional;
+      typedef typename ReducerConditional::type ReducerTypeFwd;
+      typedef Kokkos::Impl::FunctorValueJoin< ReducerTypeFwd, ArgTag > ValueJoin ;
 
       const int rev_rank = m_worker_size - ( m_worker_rank + 1 );
 
@@ -160,14 +162,14 @@ public:
 
         Impl::spinwait( fan.m_worker_state , QthreadExec::Active );
 
-        ValueJoin::join( func , m_scratch_alloc , fan.m_scratch_alloc );
+        ValueJoin::join( ReducerConditional::select(func , reduce) , m_scratch_alloc , fan.m_scratch_alloc );
       }
 
       if ( rev_rank ) {
         m_worker_state = QthreadExec::Inactive ;
         Impl::spinwait( m_worker_state , QthreadExec::Inactive );
       }
-    
+
       for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < m_worker_size ) ; n <<= 1 ) {
         m_worker_base[j]->m_worker_state = QthreadExec::Active ;
       }
@@ -197,7 +199,7 @@ public:
       }
       else {
         // Root thread scans across values before releasing threads
-        // Worker data is in reverse order, so m_worker_base[0] is the 
+        // Worker data is in reverse order, so m_worker_base[0] is the
         // highest ranking thread.
 
         // Copy from lower ranking to higher ranking worker.
@@ -216,7 +218,7 @@ public:
           ValueJoin::join( func , m_worker_base[i-1]->m_scratch_alloc , m_worker_base[i]->m_scratch_alloc );
         }
       }
-    
+
       for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < m_worker_size ) ; n <<= 1 ) {
         m_worker_base[j]->m_worker_state = QthreadExec::Active ;
       }
@@ -349,7 +351,7 @@ public:
       }
       else {
         // Root thread scans across values before releasing threads
-        // Worker data is in reverse order, so m_shepherd_base[0] is the 
+        // Worker data is in reverse order, so m_shepherd_base[0] is the
         // highest ranking thread.
 
         // Copy from lower ranking to higher ranking worker.
@@ -371,7 +373,7 @@ public:
 
         memory_fence();
       }
-    
+
       for ( n = 1 ; ( ! ( rev_rank & n ) ) && ( ( j = rev_rank + n ) < team_size ) ; n <<= 1 ) {
         m_shepherd_base[j]->m_worker_state = QthreadExec::Active ;
       }

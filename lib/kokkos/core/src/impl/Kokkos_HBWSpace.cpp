@@ -56,7 +56,6 @@
 #include <algorithm>
 
 #include <Kokkos_HBWSpace.hpp>
-#include <impl/Kokkos_BasicAllocators.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Kokkos_Atomic.hpp>
 #ifdef KOKKOS_HAVE_HBWSPACE
@@ -123,23 +122,6 @@ int HBWSpace::in_parallel()
 
 } // namespace Experiemtal
 } // namespace Kokkos
-
-/*--------------------------------------------------------------------------*/
-
-#if ! KOKKOS_USING_EXP_VIEW
-
-namespace Kokkos {
-namespace Experimental {
-
-Kokkos::Impl::AllocationTracker HBWSpace::allocate_and_track( const std::string & label, const size_t size )
-{
-  return Kokkos::Impl::AllocationTracker( allocator(), size, label );
-}
-
-} // namespace Experimental
-} // namespace Kokkos
-
-#endif /* #if ! KOKKOS_USING_EXP_VIEW */
 
 /*--------------------------------------------------------------------------*/
 

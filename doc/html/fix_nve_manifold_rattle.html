@@ -159,7 +159,7 @@ keyword = <em>every</em>
 atoms constrained to a curved surface (manifold) in the group each
 timestep. The constraint is handled by RATTLE <a class="reference internal" href="fix_shake.html#andersen"><span class="std std-ref">(Andersen)</span></a>
 written out for the special case of single-particle constraints as
-explained in <a class="reference internal" href="manifolds.html#paquay"><span class="std std-ref">(Paquay)</span></a>.  V is volume; E is energy. This way,
+explained in <a class="reference internal" href="#paquay"><span class="std std-ref">(Paquay)</span></a>.  V is volume; E is energy. This way,
 the dynamics of particles constrained to curved surfaces can be
 studied. If combined with <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, this
 generates Brownian motion of particles constrained to a curved
@@ -172,20 +172,18 @@ manifolds this can be achieved with <em>region</em> and <em>create_atoms</em>
 commands, but for more complex surfaces it might be more useful to
 write a script.</p>
 <p>The manifold args may be equal-style variables, like so:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">R</span> <span class="n">equal</span> <span class="s2">&quot;ramp(5.0,3.0)&quot;</span>
-<span class="n">fix</span> <span class="n">shrink_sphere</span> <span class="nb">all</span> <span class="n">nve</span><span class="o">/</span><span class="n">manifold</span><span class="o">/</span><span class="n">rattle</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">4</span> <span class="mi">10</span> <span class="n">sphere</span> <span class="n">v_R</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable R equal &quot;ramp(5.0,3.0)&quot;
+fix shrink_sphere all nve/manifold/rattle 1e-4 10 sphere v_R
+</pre>
 <p>In this case, the manifold parameter will change in time according to
 the variable.  This is not a problem for the time integrator as long
 as the change of the manifold is slow with respect to the dynamics of
 the particles.  Note that if the manifold has to exert work on the
 particles because of these changes, the total energy might not be
 conserved.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can

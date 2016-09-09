@@ -297,7 +297,7 @@ int cvm::atom_group::parse(std::string const &conf)
     std::string numbers_conf = "";
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbers", numbers_conf, pos)) {
-      cvm::combine_errors(parse_error, add_atom_numbers(numbers_conf));
+      parse_error |= add_atom_numbers(numbers_conf);
       numbers_conf = "";
     }
   }
@@ -306,7 +306,7 @@ int cvm::atom_group::parse(std::string const &conf)
     std::string index_group_name;
     if (get_keyval(group_conf, "indexGroup", index_group_name)) {
       // use an index group from the index file read globally
-      cvm::combine_errors(parse_error, add_index_group(index_group_name));
+      parse_error |= add_index_group(index_group_name);
     }
   }
 
@@ -315,7 +315,7 @@ int cvm::atom_group::parse(std::string const &conf)
     size_t pos = 0;
     while (key_lookup(group_conf, "atomNumbersRange",
                       range_conf, pos)) {
-      cvm::combine_errors(parse_error, add_atom_numbers_range(range_conf));
+      parse_error |= add_atom_numbers_range(range_conf);
       range_conf = "";
     }
   }
@@ -342,8 +342,8 @@ int cvm::atom_group::parse(std::string const &conf)
         cvm::error("Error: more instances of \"atomNameResidueRange\" than "
                    "values of \"psfSegID\".\n", INPUT_ERROR);
       } else {
-        cvm::combine_errors(parse_error, add_atom_name_residue_range(psf_segids.size() ?
-        *psii : std::string(""), range_conf));
+        parse_error |= add_atom_name_residue_range(psf_segids.size() ?
+          *psii : std::string(""), range_conf);
         if (psf_segids.size()) psii++;
       }
       range_conf = "";
@@ -407,7 +407,7 @@ int cvm::atom_group::parse(std::string const &conf)
     index = (cvm::proxy)->init_atom_group(atoms_ids);
   }
 
-  cvm::combine_errors(parse_error, parse_fitting_options(group_conf));
+  parse_error |= parse_fitting_options(group_conf);
 
   // TODO move this to colvarparse object
   check_keywords(group_conf, key.c_str());
@@ -870,21 +870,21 @@ void cvm::atom_group::read_velocities()
 
 
 // TODO make this a calc function
-void cvm::atom_group::read_system_forces()
+void cvm::atom_group::read_total_forces()
 {
   if (b_dummy) return;
 
   if (b_rotate) {
 
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-      ai->read_system_force();
-      ai->system_force = rot.rotate(ai->system_force);
+      ai->read_total_force();
+      ai->total_force = rot.rotate(ai->total_force);
     }
 
   } else {
 
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
-      ai->read_system_force();
+      ai->read_total_force();
     }
   }
 }
@@ -1070,15 +1070,15 @@ std::vector<cvm::rvector> cvm::atom_group::velocities() const
   return v;
 }
 
-std::vector<cvm::rvector> cvm::atom_group::system_forces() const
+std::vector<cvm::rvector> cvm::atom_group::total_forces() const
 {
   if (b_dummy) {
-    cvm::error("Error: system forces are not available "
+    cvm::error("Error: total forces are not available "
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
   if (is_enabled(f_ag_scalable)) {
-    cvm::error("Error: atomic system forces are not available "
+    cvm::error("Error: atomic total forces are not available "
                "from a scalable atom group.\n", INPUT_ERROR);
   }
 
@@ -1086,27 +1086,27 @@ std::vector<cvm::rvector> cvm::atom_group::system_forces() const
   cvm::atom_const_iter ai = this->begin();
   std::vector<cvm::atom_pos>::iterator fi = f.begin();
   for ( ; ai != this->end(); ++fi, ++ai) {
-    *fi = ai->system_force;
+    *fi = ai->total_force;
   }
   return f;
 }
 
 
 // TODO make this an accessor
-cvm::rvector cvm::atom_group::system_force() const
+cvm::rvector cvm::atom_group::total_force() const
 {
   if (b_dummy) {
-    cvm::error("Error: total system forces are not available "
+    cvm::error("Error: total total forces are not available "
                "from a dummy atom group.\n", INPUT_ERROR);
   }
 
   if (is_enabled(f_ag_scalable)) {
-    return (cvm::proxy)->get_atom_group_system_force(index);
+    return (cvm::proxy)->get_atom_group_total_force(index);
   }
 
   cvm::rvector f(0.0);
   for (cvm::atom_const_iter ai = this->begin(); ai != this->end(); ai++) {
-    f += ai->system_force;
+    f += ai->total_force;
   }
   return f;
 }
@@ -1192,6 +1192,6 @@ void cvm::atom_group::apply_force(cvm::rvector const &force)
 
 // Static members
 
-std::vector<cvm::deps::feature *> cvm::atom_group::ag_features;
+std::vector<colvardeps::feature *> cvm::atom_group::ag_features;
 
 

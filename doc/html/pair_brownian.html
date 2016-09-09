@@ -137,9 +137,9 @@
 <h1>pair_style brownian/poly/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">mu</span> <span class="n">flaglog</span> <span class="n">flagfld</span> <span class="n">cutinner</span> <span class="n">cutoff</span> <span class="n">t_target</span> <span class="n">seed</span> <span class="n">flagHI</span> <span class="n">flagVF</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style mu flaglog flagfld cutinner cutoff t_target seed flagHI flagVF
+</pre>
 <ul class="simple">
 <li>style = <em>brownian</em> or <em>brownian/poly</em></li>
 <li>mu = dynamic viscosity (dynamic viscosity units)</li>
@@ -155,11 +155,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">brownian</span> <span class="mf">1.5</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">2.01</span> <span class="mf">2.5</span> <span class="mf">2.0</span> <span class="mi">5878567</span> <span class="p">(</span><span class="n">assuming</span> <span class="n">radius</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">2.05</span> <span class="mf">2.8</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style brownian 1.5 1 1 2.01 2.5 2.0 5878567 (assuming radius = 1)
+pair_coeff 1 1 2.05 2.8
+pair_coeff * *
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

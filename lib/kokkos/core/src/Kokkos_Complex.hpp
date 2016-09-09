@@ -121,13 +121,22 @@ public:
     return *this;
   }
 
-  //! Assignment operator.
+  /// \brief Assignment operator, for volatile <tt>*this</tt> and
+  ///   nonvolatile input.
+  ///
+  /// \param src [in] Input; right-hand side of the assignment.
+  ///
+  /// This operator returns \c void instead of <tt>volatile
+  /// complex<RealType>& </tt>.  See Kokkos Issue #177 for the
+  /// explanation.  In practice, this means that you should not chain
+  /// assignments with volatile lvalues.
   template<class InputRealType>
   KOKKOS_INLINE_FUNCTION
-  volatile complex<RealType>& operator= (const complex<InputRealType>& src) volatile {
+  void operator= (const complex<InputRealType>& src) volatile {
     re_ = src.re_;
     im_ = src.im_;
-    return *this;
+    // We deliberately do not return anything here.  See explanation
+    // in public documentation above.
   }
 
   //! Assignment operator.

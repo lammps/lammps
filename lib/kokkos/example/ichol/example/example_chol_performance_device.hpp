@@ -76,7 +76,7 @@ namespace Tacho {
 
     int r_val = 0;
 
-    Kokkos::Impl::Timer timer;
+    Kokkos::Timer timer;
     double
       t_import = 0.0,
       t_reorder = 0.0,

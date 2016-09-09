@@ -1012,6 +1012,6 @@
 /pair_morse_smooth_linear.h
 /pair_smtbq.cpp
 /pair_smtbq.h
-/pair_vashishta.cpp
-/pair_vashishta.h
+/pair_vashishta*.cpp
+/pair_vashishta*.h
 

@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>create_atoms command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">create_atoms</span> <span class="nb">type</span> <span class="n">style</span> <span class="n">args</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+create_atoms type style args keyword values ...
+</pre>
 <ul class="simple">
 <li>type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)</li>
 <li>style = <em>box</em> or <em>region</em> or <em>single</em> or <em>random</em></li>
@@ -172,12 +172,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">create_atoms</span> <span class="mi">1</span> <span class="n">box</span>
-<span class="n">create_atoms</span> <span class="mi">3</span> <span class="n">region</span> <span class="n">regsphere</span> <span class="n">basis</span> <span class="mi">2</span> <span class="mi">3</span>
-<span class="n">create_atoms</span> <span class="mi">3</span> <span class="n">single</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">5</span>
-<span class="n">create_atoms</span> <span class="mi">1</span> <span class="n">box</span> <span class="n">var</span> <span class="n">v</span> <span class="nb">set</span> <span class="n">x</span> <span class="n">xpos</span> <span class="nb">set</span> <span class="n">y</span> <span class="n">ypos</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+create_atoms 1 box
+create_atoms 3 region regsphere basis 2 3
+create_atoms 3 single 0 0 5
+create_atoms 1 box var v set x xpos set y ypos
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -328,19 +328,19 @@ the sinusoid would appear to be &#8220;smoother&#8221;.  Also note the use of th
 &#8220;xlat&#8221; and &#8220;ylat&#8221; <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> keywords which
 converts lattice spacings to distance.  Click on the image for a
 larger version.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>variable        x equal 100
+<pre class="literal-block">
+variable        x equal 100
 variable        y equal 25
 lattice              hex 0.8442
 region               box block 0 $x 0 $y -0.5 0.5
-create_box   1 box
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>        <span class="n">xx</span> <span class="n">equal</span> <span class="mf">0.0</span>
-<span class="n">variable</span>        <span class="n">yy</span> <span class="n">equal</span> <span class="mf">0.0</span>
-<span class="n">variable</span>        <span class="n">v</span> <span class="n">equal</span> <span class="s2">&quot;(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) &gt; 0.0&quot;</span>
-<span class="n">create_atoms</span> <span class="mi">1</span> <span class="n">box</span> <span class="n">var</span> <span class="n">v</span> <span class="nb">set</span> <span class="n">x</span> <span class="n">xx</span> <span class="nb">set</span> <span class="n">y</span> <span class="n">yy</span>
-</pre></div>
-</div>
+create_box  1 box
+</pre>
+<pre class="literal-block">
+variable        xx equal 0.0
+variable        yy equal 0.0
+variable        v equal &quot;(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) &gt; 0.0&quot;
+create_atoms        1 box var v set x xx set y yy
+</pre>
 <a class=""
                data-lightbox="group-default"
                href="_images/sinusoid.jpg"

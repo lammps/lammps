@@ -21,7 +21,7 @@ and extending its source code.
 10.6 "Fix styles"_#mod_6 which include integrators, \
      temperature and pressure control, force constraints, \
      boundary conditions, diagnostic output, etc
-10.7 "Input script commands"_mod_7
+10.7 "Input script commands"_#mod_7
 10.8 "Kspace computations"_#mod_8
 10.9 "Minimization styles"_#mod_9
 10.10 "Pairwise potentials"_#mod_10
@@ -130,7 +130,8 @@ If you add something you think is truly useful and doesn't impact
 LAMMPS performance when it isn't used, send an email to the
 "developers"_http://lammps.sandia.gov/authors.html.  We might be
 interested in adding it to the LAMMPS distribution.  See further
-details on this at the bottom of this page. :l,ule
+details on this at the bottom of this page. :l
+:ule
 
 :line
 :line
@@ -597,7 +598,7 @@ compute values = c_mytemp\[0\], c_thermo_press\[3\], ... :pre
 
 Adding keywords for the "thermo_style custom"_thermo_style.html command
 (which can then be accessed by variables) was discussed
-"here"_Section_modify.html#thermo on this page.
+"here"_Section_modify.html#mod_13 on this page.
 
 Adding a new math function of one or two arguments can be done by
 editing one section of the Variable::evaulate() method.  Search for
@@ -614,7 +615,7 @@ to find the appropriate location.
 
 Adding new "compute styles"_compute.html (whose calculated values can
 then be accessed by variables) was discussed
-"here"_Section_modify.html#compute on this page.
+"here"_Section_modify.html#mod_3 on this page.
 
 :line
 :line

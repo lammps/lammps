@@ -163,7 +163,8 @@ sometimes be achived by increasing the length of the Coulombic cutoff
 and thus reducing the work done by the long-range solver.  Using the
 "run_style verlet/split"_run_style.html command, which is compatible
 with the USER-OMP package, is an alternative way to reduce the number
-of MPI tasks assigned to the KSpace calculation. :l,ule
+of MPI tasks assigned to the KSpace calculation. :l
+:ule
 
 Additional performance tips are as follows:
 
@@ -178,7 +179,8 @@ NOTE: By default, several current MPI implementations use a processor
 affinity setting that restricts each MPI task to a single CPU core.
 Using multi-threading in this mode will force all threads to share the
 one core and thus is likely to be counterproductive.  Instead, binding
-MPI tasks to a (multi-core) socket, should solve this issue. :l,ule
+MPI tasks to a (multi-core) socket, should solve this issue. :l
+:ule
 
 [Restrictions:]
 

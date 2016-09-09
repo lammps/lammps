@@ -80,7 +80,7 @@ struct UnorderedMapTest
     , map(capacity)
     , histogram(map.get_histogram())
   {
-    Kokkos::Impl::Timer wall_clock ;
+    Kokkos::Timer wall_clock ;
     wall_clock.reset();
 
     value_type v = {};
@@ -228,7 +228,7 @@ void run_performance_tests(std::string const & base_file_name)
   distance_out << "\b\b\b   " << std::endl;
   block_distance_out << "\b\b\b   " << std::endl;
 
-  Kokkos::Impl::Timer wall_clock ;
+  Kokkos::Timer wall_clock ;
   for (int i=0;  i < num_collisions ; ++i) {
     wall_clock.reset();
     std::cout << "Collisions: " << collisions[i] << std::endl;

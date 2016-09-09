@@ -60,7 +60,8 @@ Calculate the portion of per-atom forces resulting from a subset of
 the potential.  E.g. compute only Coulombic forces.  This can be done
 by only defining only a Coulombic pair style in the rerun script.
 Doing this in the original script would result in different (bad)
-dynamics.  :l,ule
+dynamics.  :l
+:ule
 
 Conceptually, using the rerun command is like running an input script
 that has a loop in it (see the "next"_next.html and "jump"_jump.html

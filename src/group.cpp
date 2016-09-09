@@ -1665,46 +1665,93 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], int iregion)
 
 /* ----------------------------------------------------------------------
    compute angular velocity omega from L and I
-   really not a group/region operation, but L,I were computed for a group/region
-   diagonalize I instead of inverting it, to allow for a singular matrix
 ------------------------------------------------------------------------- */
 
 void Group::omega(double *angmom, double inertia[3][3], double *w)
 {
   double idiag[3],ex[3],ey[3],ez[3],cross[3];
-  double evectors[3][3];
-  
-  int ierror = MathExtra::jacobi(inertia,idiag,evectors);
-  if (ierror) error->all(FLERR,
-                         "Insufficient Jacobi rotations for group::omega");
+  double evectors[3][3],inverse[3][3];
 
-  ex[0] = evectors[0][0];
-  ex[1] = evectors[1][0];
-  ex[2] = evectors[2][0];
-  ey[0] = evectors[0][1];
-  ey[1] = evectors[1][1];
-  ey[2] = evectors[2][1];
-  ez[0] = evectors[0][2];
-  ez[1] = evectors[1][2];
-  ez[2] = evectors[2][2];
+  // determinant = triple product of rows of inertia matrix
+
+  double determinant = inertia[0][0]*inertia[1][1]*inertia[2][2] +
+    inertia[0][1]*inertia[1][2]*inertia[2][0] +
+    inertia[0][2]*inertia[1][0]*inertia[2][1] -
+    inertia[0][0]*inertia[1][2]*inertia[2][1] -
+    inertia[0][1]*inertia[1][0]*inertia[2][2] -
+    inertia[2][0]*inertia[1][1]*inertia[0][2];
+
+  // non-singular I matrix
+  // use L = Iw, inverting I to solve for w
+  // this should give exact zeroing of angular momentum by velocity command
+
+  if (determinant > EPSILON) {
+
+    inverse[0][0] = inertia[1][1]*inertia[2][2] - inertia[1][2]*inertia[2][1];
+    inverse[0][1] = -(inertia[0][1]*inertia[2][2] - 
+                      inertia[0][2]*inertia[2][1]);
+    inverse[0][2] = inertia[0][1]*inertia[1][2] - inertia[0][2]*inertia[1][1];
+
+    inverse[1][0] = -(inertia[1][0]*inertia[2][2] - 
+                      inertia[1][2]*inertia[2][0]);
+    inverse[1][1] = inertia[0][0]*inertia[2][2] - inertia[0][2]*inertia[2][0];
+    inverse[1][2] = -(inertia[0][0]*inertia[1][2] - 
+                      inertia[0][2]*inertia[1][0]);
+
+    inverse[2][0] = inertia[1][0]*inertia[2][1] - inertia[1][1]*inertia[2][0];
+    inverse[2][1] = -(inertia[0][0]*inertia[2][1] - 
+                      inertia[0][1]*inertia[2][0]);
+    inverse[2][2] = inertia[0][0]*inertia[1][1] - inertia[0][1]*inertia[1][0];
+
+    for (int i = 0; i < 3; i++)
+      for (int j = 0; j < 3; j++)
+        inverse[i][j] /= determinant;
+
+    w[0] = inverse[0][0]*angmom[0] + inverse[0][1]*angmom[1] +
+      inverse[0][2]*angmom[2];
+    w[1] = inverse[1][0]*angmom[0] + inverse[1][1]*angmom[1] +
+      inverse[1][2]*angmom[2];
+    w[2] = inverse[2][0]*angmom[0] + inverse[2][1]*angmom[1] +
+      inverse[2][2]*angmom[2];
+
+  // handle (nearly) singular I matrix
+  // typically due to 2-atom group or linear molecule
+  // use jacobi() and angmom_to_omega() to calculate valid omega
+  // less exact answer than matrix inversion, due to iterative Jacobi method
+
+  } else {
+    int ierror = MathExtra::jacobi(inertia,idiag,evectors);
+    if (ierror) error->all(FLERR,
+                           "Insufficient Jacobi rotations for group::omega");
+
+    ex[0] = evectors[0][0];
+    ex[1] = evectors[1][0];
+    ex[2] = evectors[2][0];
+    ey[0] = evectors[0][1];
+    ey[1] = evectors[1][1];
+    ey[2] = evectors[2][1];
+    ez[0] = evectors[0][2];
+    ez[1] = evectors[1][2];
+    ez[2] = evectors[2][2];
   
-  // enforce 3 evectors as a right-handed coordinate system
-  // flip 3rd vector if needed
+    // enforce 3 evectors as a right-handed coordinate system
+    // flip 3rd vector if needed
   
-  MathExtra::cross3(ex,ey,cross);
-  if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
+    MathExtra::cross3(ex,ey,cross);
+    if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
   
-  // if any principal moment < scaled EPSILON, set to 0.0
+    // if any principal moment < scaled EPSILON, set to 0.0
   
-  double max;
-  max = MAX(idiag[0],idiag[1]);
-  max = MAX(max,idiag[2]);
-  
-  if (idiag[0] < EPSILON*max) idiag[0] = 0.0;
-  if (idiag[1] < EPSILON*max) idiag[1] = 0.0;
-  if (idiag[2] < EPSILON*max) idiag[2] = 0.0;
-  
-  // calculate omega using diagonalized inertia matrix
-  
-  MathExtra::angmom_to_omega(angmom,ex,ey,ez,idiag,w);
+    double max;
+    max = MAX(idiag[0],idiag[1]);
+    max = MAX(max,idiag[2]);
+    
+    if (idiag[0] < EPSILON*max) idiag[0] = 0.0;
+    if (idiag[1] < EPSILON*max) idiag[1] = 0.0;
+    if (idiag[2] < EPSILON*max) idiag[2] = 0.0;
+    
+    // calculate omega using diagonalized inertia matrix
+    
+    MathExtra::angmom_to_omega(angmom,ex,ey,ez,idiag,w);
+  }
 }

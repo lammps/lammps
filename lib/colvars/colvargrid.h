@@ -1160,6 +1160,50 @@ public:
     }
     has_data = true;
   }
+
+  /// \brief Return the log-gradient from finite differences
+  /// on the *same* grid for dimension n
+  inline const cvm::real log_gradient_finite_diff( const std::vector<int> &ix0,
+    int n = 0)
+  {
+    cvm::real A0, A1;
+    std::vector<int> ix;
+
+    // factor for mesh width, 2.0 for central finite difference
+    // but only 1.0 on edges for non-PBC coordinates
+    cvm::real factor;
+
+    if (periodic[n]) {
+      factor = 2.;
+      ix = ix0;
+      ix[n]--; wrap(ix);
+      A0 = data[address(ix)];
+      ix = ix0;
+      ix[n]++; wrap(ix);
+      A1 = data[address(ix)];
+    } else {
+      factor = 0.;
+      ix = ix0;
+      if (ix[n] > 0) { // not left edge
+        ix[n]--;
+        factor += 1.;
+      }
+      A0 = data[address(ix)];
+      ix = ix0;
+      if (ix[n]+1 < nx[n]) { // not right edge
+        ix[n]++;
+        factor += 1.;
+      }
+      A1 = data[address(ix)];
+    }
+    if (A0 == 0 || A1 == 0) {
+      // can't handle empty bins
+      return 0.;
+    } else {
+      return (std::log((cvm::real)A1) - std::log((cvm::real)A0))
+        / (widths[n] * factor);
+    }
+  }
 };
 
 

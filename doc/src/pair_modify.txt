@@ -187,7 +187,8 @@ enabled will not be thermodynamically consistent with the truncated
 force-field that was used.  In other words, atoms do not feel any LJ
 pair interactions beyond the cutoff, but the energy and pressure
 reported by the simulation include an estimated contribution from
-those interactions. :l,ule
+those interactions. :l
+:ule
 
 The {compute} keyword allows pairwise computations to be turned off,
 even though a "pair_style"_pair_style.html is defined.  This is not

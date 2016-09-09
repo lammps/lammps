@@ -131,10 +131,11 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">info</span> <span class="n">args</span>
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>args = one or more of the following keywords: <em>out</em>, <em>all</em>, <em>system</em>, <em>communication</em>, <em>computes</em>, <em>dumps</em>, <em>fixes</em>, <em>groups</em>, <em>regions</em>, <em>variables</em>, <em>time</em>, or <em>configuration</em></dt>
-<dd><em>out</em> values = <em>screen</em>, <em>log</em>, <em>append</em> filename, <em>overwrite</em> filename:ul</dd>
-</dl>
+<ul class="simple">
+<li>args = one or more of the following keywords: <em>out</em>, <em>all</em>, <em>system</em>, <em>communication</em>, <em>computes</em>, <em>dumps</em>, <em>fixes</em>, <em>groups</em>, <em>regions</em>, <em>variables</em>, <em>styles</em>, <em>time</em>, or <em>configuration</em></li>
+<li><em>out</em> values = <em>screen</em>, <em>log</em>, <em>append</em> filename, <em>overwrite</em> filename</li>
+<li><em>styles</em> values = <em>all</em>, <em>angle</em>, <em>atom</em>, <em>bond</em>, <em>compute</em>, <em>command</em>, <em>dump</em>, <em>dihedral</em>, <em>fix</em>, <em>improper</em>, <em>integrate</em>, <em>kspace</em>, <em>minimize</em>, <em>region</em></li>
+</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
@@ -142,6 +143,8 @@
 <span class="n">info</span> <span class="n">groups</span> <span class="n">computes</span> <span class="n">variables</span>
 <span class="n">info</span> <span class="nb">all</span> <span class="n">out</span> <span class="n">log</span>
 <span class="n">info</span> <span class="nb">all</span> <span class="n">out</span> <span class="n">append</span> <span class="n">info</span><span class="o">.</span><span class="n">txt</span>
+<span class="n">info</span> <span class="n">styles</span> <span class="nb">all</span>
+<span class="n">info</span> <span class="n">styles</span> <span class="n">atom</span>
 </pre></div>
 </div>
 </div>
@@ -179,6 +182,24 @@ selected.</p>
 <p>The <em>variables</em> category prints a list of all currently defined
 variables, their names, styles, definition and last computed value, if
 available.</p>
+<p>The <em>styles</em> category prints the list of styles available in LAMMPS. It
+supports one of the following options to control what is printed out:</p>
+<ul class="simple">
+<li>all</li>
+<li>angle</li>
+<li>atom</li>
+<li>bond</li>
+<li>compute</li>
+<li>command</li>
+<li>dump</li>
+<li>dihedral</li>
+<li>fix</li>
+<li>improper</li>
+<li>integrate</li>
+<li>kspace</li>
+<li>minimize</li>
+<li>region</li>
+</ul>
 <p>The <em>time</em> category prints the accumulated CPU and wall time for the
 process that writes output (usually MPI rank 0).</p>
 <p>The <em>configuration</em> command prints some information about the LAMMPS
@@ -198,6 +219,7 @@ reported.</p>
 <div class="section" id="default">
 <h2>Default</h2>
 <p>The <em>out</em> option has the default <em>screen</em>.</p>
+<p>The <em>styles</em> option has the default <em>all</em>.</p>
 </div>
 </div>
 

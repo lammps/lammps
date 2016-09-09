@@ -32,7 +32,8 @@ the components of the total torque applied on the group (around its
 center of mass) are Tx,Ty,Tz :ulb,l
 
 the group would move as a rigid body in the absence of other
-forces. :l,ule
+forces. :l
+:ule
 
 This command can be used to drive a group of atoms into rotation.
 

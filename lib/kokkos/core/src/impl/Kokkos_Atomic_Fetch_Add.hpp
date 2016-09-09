@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
@@ -93,7 +93,7 @@ T atomic_fetch_add( volatile T * const dest ,
     assume.i = oldval.i ;
     newval.t = assume.t + val ;
     oldval.i = atomicCAS( (int*)dest , assume.i , newval.i );
-  } while ( assumed.i != oldval.i );
+  } while ( assume.i != oldval.i );
 
   return oldval.t ;
 }
@@ -156,9 +156,26 @@ T atomic_fetch_add( volatile T * const dest ,
 
 #elif defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
 
+#if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_USE_ISA_X86_64 )
+KOKKOS_INLINE_FUNCTION
+int atomic_fetch_add( volatile int * dest , const int val )
+{
+        int original = val;
+
+        __asm__ __volatile__(
+                "lock xadd %1, %0"
+                : "+m" (*dest), "+r" (original)
+                : "m" (*dest), "r" (original)
+                : "memory"
+        );
+
+        return original;
+}
+#else
 KOKKOS_INLINE_FUNCTION
 int atomic_fetch_add( volatile int * const dest , const int val )
-{ return __sync_fetch_and_add(dest,val); }
+{ return __sync_fetch_and_add(dest, val); }
+#endif
 
 KOKKOS_INLINE_FUNCTION
 long int atomic_fetch_add( volatile long int * const dest , const long int val )
@@ -276,7 +293,17 @@ T atomic_fetch_add( volatile T * const dest ,
 {
   while( !Impl::lock_address_host_space( (void*) dest ) );
   T return_val = *dest;
-  const T tmp = *dest = return_val + val;
+  // Don't use the following line of code here:
+  //
+  //const T tmp = *dest = return_val + val;
+  //
+  // Instead, put each assignment in its own statement.  This is
+  // because the overload of T::operator= for volatile *this should
+  // return void, not volatile T&.  See Kokkos #177:
+  //
+  // https://github.com/kokkos/kokkos/issues/177
+  *dest = return_val + val;
+  const T tmp = *dest;
   (void) tmp;
   Impl::unlock_address_host_space( (void*) dest );
   return return_val;

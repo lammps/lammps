@@ -128,20 +128,20 @@
 <span id="index-0"></span><h1>pair_style mgpt command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">mgpt</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style mgpt
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">mgpt</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Ta6</span><span class="o">.</span><span class="mi">8</span><span class="n">x</span><span class="o">.</span><span class="n">mgpt</span><span class="o">.</span><span class="n">parmin</span> <span class="n">Ta6</span><span class="o">.</span><span class="mi">8</span><span class="n">x</span><span class="o">.</span><span class="n">mgpt</span><span class="o">.</span><span class="n">potin</span> <span class="n">Omega</span>
-<span class="n">cp</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">potentials</span><span class="o">/</span><span class="n">Ta6</span><span class="o">.</span><span class="mi">8</span><span class="n">x</span><span class="o">.</span><span class="n">mgpt</span><span class="o">.</span><span class="n">parmin</span> <span class="n">parmin</span>
-<span class="n">cp</span> <span class="o">~/</span><span class="n">lammps</span><span class="o">/</span><span class="n">potentials</span><span class="o">/</span><span class="n">Ta6</span><span class="o">.</span><span class="mi">8</span><span class="n">x</span><span class="o">.</span><span class="n">mgpt</span><span class="o">.</span><span class="n">potin</span> <span class="n">potin</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">parmin</span> <span class="n">potin</span> <span class="n">Omega</span> <span class="n">volpress</span> <span class="n">yes</span> <span class="n">nbody</span> <span class="mi">1234</span> <span class="n">precision</span> <span class="n">double</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">parmin</span> <span class="n">potin</span> <span class="n">Omega</span> <span class="n">volpress</span> <span class="n">yes</span> <span class="n">nbody</span> <span class="mi">12</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style mgpt
+pair_coeff * * Ta6.8x.mgpt.parmin Ta6.8x.mgpt.potin Omega
+cp ~/lammps/potentials/Ta6.8x.mgpt.parmin parmin
+cp ~/lammps/potentials/Ta6.8x.mgpt.potin potin
+pair_coeff * * parmin potin Omega volpress yes nbody 1234 precision double
+pair_coeff * * parmin potin Omega volpress yes nbody 12
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

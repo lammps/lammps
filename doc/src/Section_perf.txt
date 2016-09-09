@@ -36,7 +36,8 @@ sigma cutoff (7 neighbors per atom), NVE integration :l
 Rhodo = rhodopsin protein in solvated lipid bilayer, CHARMM force
 field with a 10 Angstrom LJ cutoff (440 neighbors per atom),
 particle-particle particle-mesh (PPPM) for long-range Coulombics, NPT
-integration :ole,l
+integration :l
+:ole
 
 Input files for these 5 problems are provided in the bench directory
 of the LAMMPS distribution.  Each has 32,000 atoms and runs for 100

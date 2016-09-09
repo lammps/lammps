@@ -55,7 +55,7 @@ class colvarproxy_lammps : public colvarproxy {
   int  previous_step;
 
   bool first_timestep;
-  bool system_force_requested;
+  bool total_force_requested;
   bool do_exit;
 
   // std::vector<int>          colvars_atoms;
@@ -86,7 +86,7 @@ class colvarproxy_lammps : public colvarproxy {
   // methods for lammps to move data or trigger actions in the proxy
  public:
   void set_temperature(double t) { t_target = t; };
-  bool need_system_forces() const { return  system_force_requested; };
+  bool need_total_forces() const { return  total_force_requested; };
   bool want_exit() const { return do_exit; };
 
   // perform colvars computation. returns biasing energy
@@ -109,7 +109,7 @@ class colvarproxy_lammps : public colvarproxy {
   inline size_t restart_frequency() { return restart_every; };
 
   void add_energy(cvm::real energy) { bias_energy += energy; };
-  void request_system_force(bool yesno) { system_force_requested = yesno; };
+  void request_total_force(bool yesno) { total_force_requested = yesno; };
 
   void log(std::string const &message);
   void error(std::string const &message);

@@ -425,42 +425,6 @@ struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<8> {
   typedef int64_t type;
 };
 
-#if ! KOKKOS_USING_EXP_VIEW
-
-class AllocationTracker;
-
-// Must be non-const, atomic access trait, and 32 or 64 bit type for true atomics.
-template<class ViewTraits>
-class ViewDataHandle<
-  ViewTraits ,
-  typename enable_if<
-    ( ! is_same<typename ViewTraits::const_value_type,typename ViewTraits::value_type>::value) &&
-    ( ViewTraits::memory_traits::Atomic )
-  >::type >
-{
-private:
-//  typedef typename if_c<(sizeof(typename ViewTraits::const_value_type)==4) ||
-//                        (sizeof(typename ViewTraits::const_value_type)==8),
-//                         int, Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars >::type
-//                   atomic_view_possible;
-  typedef typename Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<sizeof(typename ViewTraits::const_value_type)>::type enable_atomic_type;
-  typedef ViewDataHandle self_type;
-
-public:
-  enum {  ReturnTypeIsReference = false };
-
-  typedef Impl::AtomicViewDataHandle<ViewTraits> handle_type;
-  typedef Impl::AtomicDataElement<ViewTraits>    return_type;
-
-  KOKKOS_INLINE_FUNCTION
-  static handle_type create_handle( typename ViewTraits::value_type * arg_data_ptr, AllocationTracker const & /*arg_tracker*/ )
-  {
-    return handle_type(arg_data_ptr);
-  }
-};
-
-#endif /* #if ! KOKKOS_USING_EXP_VIEW */
-
 }} // namespace Kokkos::Impl
 
 #endif

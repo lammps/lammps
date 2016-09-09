@@ -43,7 +43,8 @@ colvar::colvar(std::string const &conf)
   kinetic_energy = 0.0;
   potential_energy = 0.0;
 
-  cvm::combine_errors(error_code, init_components(conf));
+  error_code |= init_components(conf);
+  if (error_code != COLVARS_OK) return;
 
   size_t i;
 
@@ -373,10 +374,19 @@ colvar::colvar(std::string const &conf)
   }
 
   {
-    bool b_output_system_force;
-    get_keyval(conf, "outputSystemForce", b_output_system_force, false);
-    if (b_output_system_force) {
-      enable(f_cv_output_system_force);
+    bool temp;
+    if (get_keyval(conf, "outputSystemForce", temp, false)) {
+      cvm::error("Colvar option outputSystemForce is deprecated.\n"
+        "Please use outputTotalForce, or outputSystemForce within an ABF bias.");
+      return;
+    }
+  }
+
+  {
+    bool b_output_total_force;
+    get_keyval(conf, "outputTotalForce", b_output_total_force, false);
+    if (b_output_total_force) {
+      enable(f_cv_output_total_force);
     }
   }
 
@@ -492,110 +502,44 @@ int colvar::init_components(std::string const &conf)
 {
   int error_code = COLVARS_OK;
 
-  cvm::combine_errors(error_code,
-                      init_components_type<distance>(conf,
-                                                     "distance", "distance"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_vec>(conf,
-                                                         "distance vector", "distanceVec"));
-  cvm::combine_errors(error_code,
-                      init_components_type<cartesian>(conf,
-                                                      "Cartesian coordinates", "cartesian"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_dir>(conf,
-                                                         "distance vector "
-                                                         "direction", "distanceDir"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_z>(conf,
-                                                       "distance projection "
-                                                       "on an axis", "distanceZ"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_xy>(conf,
-                                                        "distance projection "
-                                                        "on a plane", "distanceXY"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_inv>(conf,
-                                                         "average distance "
-                                                         "weighted by inverse power",
-                                                         "distanceInv"));
-  cvm::combine_errors(error_code,
-                      init_components_type<distance_pairs>(conf,
-                                                           "N1xN2-long vector "
-                                                           "of pairwise distances",
-                                                           "distancePairs"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<coordnum>(conf,
-                                                     "coordination "
-                                                     "number", "coordNum"));
-  cvm::combine_errors(error_code,
-                      init_components_type<selfcoordnum>(conf,
-                                                         "self-coordination "
-                                                         "number", "selfCoordNum"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<angle>(conf,
-                                                  "angle", "angle"));
-  cvm::combine_errors(error_code,
-                      init_components_type<dipole_angle>(conf,
-                                                         "dipole angle", "dipoleAngle"));
-  cvm::combine_errors(error_code,
-                      init_components_type<dihedral>(conf,
-                                                     "dihedral", "dihedral"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<h_bond>(conf,
-                                                   "hydrogen bond", "hBond"));
-
-  //    cvm::combine_errors(error_code, init_components_type<alpha_dihedrals>(conf,  "alpha helix", "alphaDihedrals"));
-  cvm::combine_errors(error_code,
-                      init_components_type<alpha_angles>(conf,
-                                                         "alpha helix", "alpha"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<dihedPC>(conf,
-                                                    "dihedral "
-                                                    "principal component", "dihedralPC"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<orientation>(conf,
-                                                        "orientation", "orientation"));
-  cvm::combine_errors(error_code,
-                      init_components_type<orientation_angle>(conf,
-                                                              "orientation "
-                                                              "angle", "orientationAngle"));
-  cvm::combine_errors(error_code,
-                      init_components_type<orientation_proj>(conf,
-                                                             "orientation "
-                                                             "projection", "orientationProj"));
-  cvm::combine_errors(error_code,
-                      init_components_type<tilt>(conf,
-                                                 "tilt", "tilt"));
-  cvm::combine_errors(error_code,
-                      init_components_type<spin_angle>(conf,
-                                                       "spin angle", "spinAngle"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<rmsd>(conf,
-                                                 "RMSD", "rmsd"));
-
-  //  cvm::combine_errors(error_code, init_components_type <logmsd>(conf,"logarithm of MSD", "logmsd"));
-
-  cvm::combine_errors(error_code,
-                      init_components_type<gyration>(conf,
-                                                     "radius of "
-                                                     "gyration", "gyration"));
-  cvm::combine_errors(error_code,
-                      init_components_type<inertia>(conf,
-                                                    "moment of "
-                                                    "inertia", "inertia"));
-  cvm::combine_errors(error_code,
-                      init_components_type<inertia_z>(conf,
-                                                      "moment of inertia around an axis",
-                                                      "inertiaZ"));
-  cvm::combine_errors(error_code,
-                      init_components_type<eigenvector>(conf,
-                                                        "eigenvector", "eigenvector"));
+  error_code |= init_components_type<distance>(conf, "distance", "distance");
+  error_code |= init_components_type<distance_vec>(conf, "distance vector", "distanceVec");
+  error_code |= init_components_type<cartesian>(conf, "Cartesian coordinates", "cartesian");
+  error_code |= init_components_type<distance_dir>(conf, "distance vector "
+    "direction", "distanceDir");
+  error_code |= init_components_type<distance_z>(conf, "distance projection "
+    "on an axis", "distanceZ");
+  error_code |= init_components_type<distance_xy>(conf, "distance projection "
+    "on a plane", "distanceXY");
+  error_code |= init_components_type<distance_inv>(conf, "average distance "
+    "weighted by inverse power", "distanceInv");
+  error_code |= init_components_type<distance_pairs>(conf, "N1xN2-long vector "
+    "of pairwise distances", "distancePairs");
+  error_code |= init_components_type<coordnum>(conf, "coordination "
+    "number", "coordNum");
+  error_code |= init_components_type<selfcoordnum>(conf, "self-coordination "
+    "number", "selfCoordNum");
+  error_code |= init_components_type<angle>(conf, "angle", "angle");
+  error_code |= init_components_type<dipole_angle>(conf, "dipole angle", "dipoleAngle");
+  error_code |= init_components_type<dihedral>(conf, "dihedral", "dihedral");
+  error_code |= init_components_type<h_bond>(conf, "hydrogen bond", "hBond");
+  error_code |= init_components_type<alpha_angles>(conf, "alpha helix", "alpha");
+  error_code |= init_components_type<dihedPC>(conf, "dihedral "
+    "principal component", "dihedralPC");
+  error_code |= init_components_type<orientation>(conf, "orientation", "orientation");
+  error_code |= init_components_type<orientation_angle>(conf, "orientation "
+    "angle", "orientationAngle");
+  error_code |= init_components_type<orientation_proj>(conf, "orientation "
+    "projection", "orientationProj");
+  error_code |= init_components_type<tilt>(conf, "tilt", "tilt");
+  error_code |= init_components_type<spin_angle>(conf, "spin angle", "spinAngle");
+  error_code |= init_components_type<rmsd>(conf, "RMSD", "rmsd");
+  error_code |= init_components_type<gyration>(conf, "radius of "
+    "gyration", "gyration");
+  error_code |= init_components_type<inertia>(conf, "moment of "
+    "inertia", "inertia");
+  error_code |= init_components_type<inertia_z>(conf, "moment of inertia around an axis", "inertiaZ");
+  error_code |= init_components_type<eigenvector>(conf, "eigenvector", "eigenvector");
 
   if (!cvcs.size() || (error_code != COLVARS_OK)) {
     cvm::error("Error: no valid components were provided "
@@ -620,8 +564,8 @@ int colvar::init_components(std::string const &conf)
 int colvar::refresh_deps()
 {
   // If enabled features are changed upstream, the features below should be refreshed
-  if (is_enabled(f_cv_system_force_calc)) {
-    cvm::request_system_force();
+  if (is_enabled(f_cv_total_force_calc)) {
+    cvm::request_total_force();
   }
   if (is_enabled(f_cv_collect_gradient) && atom_ids.size() == 0) {
     build_atom_list();
@@ -732,7 +676,7 @@ int colvar::parse_analysis(std::string const &conf)
     } else {
       cvm::log("Unknown type of correlation function, \""+
                         acf_type_str+"\".\n");
-      cvm::set_error_bit(INPUT_ERROR);
+      cvm::set_error_bits(INPUT_ERROR);
     }
 
     get_keyval(conf, "corrFuncOffset", acf_offset, 0);
@@ -803,9 +747,11 @@ int colvar::calc()
   // Note: if anything is added here, it should be added also in the SMP block of calc_colvars()
   int error_code = COLVARS_OK;
   if (is_enabled(f_cv_active)) {
-    cvm::combine_errors(error_code, update_cvc_flags());
-    cvm::combine_errors(error_code, calc_cvcs());
-    cvm::combine_errors(error_code, collect_cvc_data());
+    error_code |= update_cvc_flags();
+    if (error_code != COLVARS_OK) return error_code;
+    error_code |= calc_cvcs();
+    if (error_code != COLVARS_OK) return error_code;
+    error_code |= collect_cvc_data();
   }
   return error_code;
 }
@@ -818,15 +764,15 @@ int colvar::calc_cvcs(int first_cvc, size_t num_cvcs)
     cvm::log("Calculating colvar \""+this->name+"\", components "+
              cvm::to_str(first_cvc)+" through "+cvm::to_str(first_cvc+num_cvcs)+".\n");
 
-  cvm::combine_errors(error_code, check_cvc_range(first_cvc, num_cvcs));
+  error_code |= check_cvc_range(first_cvc, num_cvcs);
   if (error_code != COLVARS_OK) {
     return error_code;
   }
 
-  cvm::combine_errors(error_code, calc_cvc_values(first_cvc, num_cvcs));
-  cvm::combine_errors(error_code, calc_cvc_gradients(first_cvc, num_cvcs));
-  cvm::combine_errors(error_code, calc_cvc_sys_forces(first_cvc, num_cvcs));
-  cvm::combine_errors(error_code, calc_cvc_Jacobians(first_cvc, num_cvcs));
+  error_code |= calc_cvc_values(first_cvc, num_cvcs);
+  error_code |= calc_cvc_gradients(first_cvc, num_cvcs);
+  error_code |= calc_cvc_total_force(first_cvc, num_cvcs);
+  error_code |= calc_cvc_Jacobians(first_cvc, num_cvcs);
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\".\n");
@@ -842,12 +788,11 @@ int colvar::collect_cvc_data()
 
   int error_code = COLVARS_OK;
 
-  cvm::combine_errors(error_code, collect_cvc_values());
-  cvm::combine_errors(error_code, collect_cvc_gradients());
-  cvm::combine_errors(error_code, collect_cvc_sys_forces());
-  cvm::combine_errors(error_code, collect_cvc_Jacobians());
-
-  cvm::combine_errors(error_code, calc_colvar_properties());
+  error_code |= collect_cvc_values();
+  error_code |= collect_cvc_gradients();
+  error_code |= collect_cvc_total_forces();
+  error_code |= collect_cvc_Jacobians();
+  error_code |= calc_colvar_properties();
 
   if (cvm::debug())
     cvm::log("Done calculating colvar \""+this->name+"\"'s properties.\n");
@@ -944,21 +889,22 @@ int colvar::calc_cvc_gradients(int first_cvc, size_t num_cvcs)
   size_t const cvc_max_count = num_cvcs ? num_cvcs : num_active_cvcs();
   size_t i, cvc_count;
 
-  if (is_enabled(f_cv_gradient)) {
+  if (cvm::debug())
+    cvm::log("Calculating gradients of colvar \""+this->name+"\".\n");
 
-    if (cvm::debug())
-      cvm::log("Calculating gradients of colvar \""+this->name+"\".\n");
+  // calculate the gradients of each component
+  cvm::increase_depth();
+  for (i = first_cvc, cvc_count = 0;
+      (i < cvcs.size()) && (cvc_count < cvc_max_count);
+      i++) {
+    if (!cvcs[i]->is_enabled()) continue;
+    cvc_count++;
 
-    // calculate the gradients of each component
-    cvm::increase_depth();
-    for (i = first_cvc, cvc_count = 0;
-        (i < cvcs.size()) && (cvc_count < cvc_max_count);
-        i++) {
-      if (!cvcs[i]->is_enabled()) continue;
-      cvc_count++;
+    if ((cvcs[i])->is_enabled(f_cvc_gradient)) {
       (cvcs[i])->calc_gradients();
       // if requested, propagate (via chain rule) the gradients above
       // to the atoms used to define the roto-translation
+      // This could be integrated in the CVC base class
       for (size_t ig = 0; ig < cvcs[i]->atom_groups.size(); ig++) {
         if (cvcs[i]->atom_groups[ig]->b_fit_gradients)
           cvcs[i]->atom_groups[ig]->calc_fit_gradients();
@@ -969,6 +915,7 @@ int colvar::calc_cvc_gradients(int first_cvc, size_t num_cvcs)
         }
       }
     }
+
     cvm::decrease_depth();
 
     if (cvm::debug())
@@ -1031,22 +978,22 @@ int colvar::collect_cvc_gradients()
 }
 
 
-int colvar::calc_cvc_sys_forces(int first_cvc, size_t num_cvcs)
+int colvar::calc_cvc_total_force(int first_cvc, size_t num_cvcs)
 {
   size_t const cvc_max_count = num_cvcs ? num_cvcs : num_active_cvcs();
   size_t i, cvc_count;
 
-  if (is_enabled(f_cv_system_force_calc)) {
+  if (is_enabled(f_cv_total_force_calc)) {
     if (cvm::debug())
-      cvm::log("Calculating system force of colvar \""+this->name+"\".\n");
+      cvm::log("Calculating total force of colvar \""+this->name+"\".\n");
 
     // if (!tasks[task_extended_lagrangian] && (cvm::step_relative() > 0)) {
-   // Disabled check to allow for explicit system force calculation
+   // Disabled check to allow for explicit total force calculation
     // even with extended Lagrangian
 
     if (cvm::step_relative() > 0) {
       cvm::increase_depth();
-      // get from the cvcs the system forces from the PREVIOUS step
+      // get from the cvcs the total forces from the PREVIOUS step
       for (i = first_cvc, cvc_count = 0;
           (i < cvcs.size()) && (cvc_count < cvc_max_count);
           i++) {
@@ -1058,29 +1005,29 @@ int colvar::calc_cvc_sys_forces(int first_cvc, size_t num_cvcs)
     }
 
     if (cvm::debug())
-      cvm::log("Done calculating system force of colvar \""+this->name+"\".\n");
+      cvm::log("Done calculating total force of colvar \""+this->name+"\".\n");
   }
 
   return COLVARS_OK;
 }
 
 
-int colvar::collect_cvc_sys_forces()
+int colvar::collect_cvc_total_forces()
 {
-  if (is_enabled(f_cv_system_force_calc)) {
+  if (is_enabled(f_cv_total_force_calc)) {
     ft.reset();
 
     if (cvm::step_relative() > 0) {
-      // get from the cvcs the system forces from the PREVIOUS step
+      // get from the cvcs the total forces from the PREVIOUS step
       for (size_t i = 0; i < cvcs.size();  i++) {
         if (!cvcs[i]->is_enabled()) continue;
         // linear combination is assumed
-        ft += (cvcs[i])->system_force() * (cvcs[i])->sup_coeff / active_cvc_square_norm;
+        ft += (cvcs[i])->total_force() * (cvcs[i])->sup_coeff / active_cvc_square_norm;
       }
     }
 
     if (!is_enabled(f_cv_hide_Jacobian)) {
-      // add the Jacobian force to the system force, and don't apply any silent
+      // add the Jacobian force to the total force, and don't apply any silent
       // correction internally: biases such as colvarbias_abf will handle it
       ft += fj;
     }
@@ -1152,10 +1099,8 @@ int colvar::calc_colvar_properties()
     // report the restraint center as "value"
     x_reported = xr;
     v_reported = vr;
-    // the "system force" with the extended Lagrangian is just the
-    // harmonic term acting on the extended coordinate
-    // Note: this is the force for current timestep
-    ft_reported = (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
+    // the "total force" with the extended Lagrangian is
+    // calculated in update_forces_energy() below
 
   } else {
 
@@ -1181,46 +1126,12 @@ cvm::real colvar::update_forces_energy()
   f += fb;
 
   if (is_enabled(f_cv_Jacobian)) {
-    // the instantaneous Jacobian force was not included in the reported system force;
+    // the instantaneous Jacobian force was not included in the reported total force;
     // instead, it is subtracted from the applied force (silent Jacobian correction)
     if (is_enabled(f_cv_hide_Jacobian))
       f -= fj;
   }
 
-  if (is_enabled(f_cv_extended_Lagrangian)) {
-
-    cvm::real dt = cvm::dt();
-    cvm::real f_ext;
-
-    // the total force is applied to the fictitious mass, while the
-    // atoms only feel the harmonic force
-    // fr: bias force on extended coordinate (without harmonic spring), for output in trajectory
-    // f_ext: total force on extended coordinate (including harmonic spring)
-    // f: - initially, external biasing force
-    //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
-    //      (note: wall potential is added to f after this block)
-    fr    = f;
-    f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
-    f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
-
-    // leapfrog: starting from x_i, f_i, v_(i-1/2)
-    vr  += (0.5 * dt) * f_ext / ext_mass;
-    // Because of leapfrog, kinetic energy at time i is approximate
-    kinetic_energy = 0.5 * ext_mass * vr * vr;
-    potential_energy = 0.5 * ext_force_k * this->dist2(xr, x);
-    // leap to v_(i+1/2)
-    if (is_enabled(f_cv_Langevin)) {
-      vr -= dt * ext_gamma * vr.real_value;
-      vr += dt * ext_sigma * cvm::rand_gaussian() / ext_mass;
-    }
-    vr  += (0.5 * dt) * f_ext / ext_mass;
-    xr  += dt * vr;
-    xr.apply_constraints();
-    if (this->b_periodic) this->wrap(xr);
-  }
-
-
-  // Adding wall potential to "true" colvar force, whether or not an extended coordinate is in use
   if (is_enabled(f_cv_lower_wall) || is_enabled(f_cv_upper_wall)) {
 
     // Wall force
@@ -1255,6 +1166,41 @@ cvm::real colvar::update_forces_energy()
                     cvm::to_str(fw)+") to \""+this->name+"\".\n");
       }
     }
+  }
+
+  if (is_enabled(f_cv_extended_Lagrangian)) {
+
+    cvm::real dt = cvm::dt();
+    cvm::real f_ext;
+
+    // the total force is applied to the fictitious mass, while the
+    // atoms only feel the harmonic force
+    // fr: bias force on extended variable (without harmonic spring), for output in trajectory
+    // f_ext: total force on extended variable (including harmonic spring)
+    // f: - initially, external biasing force
+    //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
+    fr    = f;
+    f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
+    f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
+
+    // The total force acting on the extended variable is f_ext
+    // This will be used in the next timestep
+    ft_reported = f_ext;
+
+    // leapfrog: starting from x_i, f_i, v_(i-1/2)
+    vr  += (0.5 * dt) * f_ext / ext_mass;
+    // Because of leapfrog, kinetic energy at time i is approximate
+    kinetic_energy = 0.5 * ext_mass * vr * vr;
+    potential_energy = 0.5 * ext_force_k * this->dist2(xr, x);
+    // leap to v_(i+1/2)
+    if (is_enabled(f_cv_Langevin)) {
+      vr -= dt * ext_gamma * vr.real_value;
+      vr += dt * ext_sigma * cvm::rand_gaussian() / ext_mass;
+    }
+    vr  += (0.5 * dt) * f_ext / ext_mass;
+    xr  += dt * vr;
+    xr.apply_constraints();
+    if (this->b_periodic) this->wrap(xr);
   }
 
   f_accumulated += f;
@@ -1377,7 +1323,7 @@ bool colvar::periodic_boundaries(colvarvalue const &lb, colvarvalue const &ub) c
   if ( (!is_enabled(f_cv_lower_boundary)) || (!is_enabled(f_cv_upper_boundary)) ) {
     cvm::log("Error: checking periodicity for collective variable \""+this->name+"\" "
                     "requires lower and upper boundaries to be defined.\n");
-    cvm::set_error_bit(INPUT_ERROR);
+    cvm::set_error_bits(INPUT_ERROR);
   }
 
   if (period > 0.0) {
@@ -1549,7 +1495,7 @@ std::istream & colvar::read_traj(std::istream &is)
     }
   }
 
-  if (is_enabled(f_cv_output_system_force)) {
+  if (is_enabled(f_cv_output_total_force)) {
     is >> ft;
     ft_reported = ft;
   }
@@ -1634,8 +1580,8 @@ std::ostream & colvar::write_traj_label(std::ostream & os)
        << cvm::wrap_string(this->name, this_cv_width-3);
   }
 
-  if (is_enabled(f_cv_output_system_force)) {
-    os << " fs_"
+  if (is_enabled(f_cv_output_total_force)) {
+    os << " ft_"
        << cvm::wrap_string(this->name, this_cv_width-3);
   }
 
@@ -1687,7 +1633,7 @@ std::ostream & colvar::write_traj(std::ostream &os)
   }
 
 
-  if (is_enabled(f_cv_output_system_force)) {
+  if (is_enabled(f_cv_output_total_force)) {
     os << " "
        << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
        << ft_reported;
@@ -2019,4 +1965,4 @@ void colvar::calc_runave()
 
 // Static members
 
-std::vector<cvm::deps::feature *> colvar::cv_features;
+std::vector<colvardeps::feature *> colvar::cv_features;

@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>run_style command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run_style</span> <span class="n">style</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+run_style style args
+</pre>
 <ul class="simple">
 <li>style = <em>verlet</em> or <em>verlet/split</em> or <em>respa</em> or <em>respa/omp</em></li>
 </ul>
@@ -175,14 +175,14 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run_style</span> <span class="n">verlet</span>
-<span class="n">run_style</span> <span class="n">respa</span> <span class="mi">4</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">bond</span> <span class="mi">1</span> <span class="n">dihedral</span> <span class="mi">2</span> <span class="n">pair</span> <span class="mi">3</span> <span class="n">kspace</span> <span class="mi">4</span>
-<span class="n">run_style</span> <span class="n">respa</span> <span class="mi">4</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">bond</span> <span class="mi">1</span> <span class="n">dihedral</span> <span class="mi">2</span> <span class="n">inner</span> <span class="mi">3</span> <span class="mf">5.0</span> <span class="mf">6.0</span> <span class="n">outer</span> <span class="mi">4</span> <span class="n">kspace</span> <span class="mi">4</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run_style</span> <span class="n">respa</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">2</span> <span class="n">bond</span> <span class="mi">1</span> <span class="n">hybrid</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mi">1</span> <span class="n">kspace</span> <span class="mi">3</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+run_style verlet
+run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
+run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4
+</pre>
+<pre class="literal-block">
+run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -219,9 +219,9 @@ its onn optimal layout, then require the 2nd partition&#8217;s layout to
 match the integer multiple constraint.  See the
 <a class="reference internal" href="processors.html"><span class="doc">processors</span></a> command with its <em>part</em> keyword for a way
 to control this, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">procssors</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">part</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">multiple</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+procssors * * * part 1 2 multiple
+</pre>
 <p>You can also use the <a class="reference internal" href="partition.html"><span class="doc">partition</span></a> command to explicitly
 specity the processor layout on each partition.  E.g. for 2 partitions
 of 60 and 15 processors each:</p>
@@ -314,10 +314,10 @@ angstrom &#8220;healing distance&#8221; (the distance between the outer and inne
 cutoffs) works reasonably well.  We thus recommend the following
 settings for use of the <em>respa</em> style without SHAKE in biomolecular
 simulations:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">timestep</span>  <span class="mf">4.0</span>
-<span class="n">run_style</span> <span class="n">respa</span> <span class="mi">4</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">inner</span> <span class="mi">2</span> <span class="mf">4.5</span> <span class="mf">6.0</span> <span class="n">middle</span> <span class="mi">3</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="n">outer</span> <span class="mi">4</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+timestep  4.0
+run_style respa 4 2 2 2 inner 2 4.5 6.0 middle 3 8.0 10.0 outer 4
+</pre>
 <p>With these settings, users can expect good energy conservation and
 roughly a 2.5 fold speedup over the <em>verlet</em> style with a 0.5 fmsec
 timestep.</p>
@@ -332,11 +332,11 @@ respa in order to freeze out these high frequency motions and increase
 the size of the time steps in the respa hierarchy.  The following
 settings can be used for biomolecular simulations with SHAKE and
 rRESPA:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span>             <span class="mi">2</span> <span class="nb">all</span> <span class="n">shake</span> <span class="mf">0.000001</span> <span class="mi">500</span> <span class="mi">0</span> <span class="n">m</span> <span class="mf">1.0</span> <span class="n">a</span> <span class="mi">1</span>
-<span class="n">timestep</span>        <span class="mf">4.0</span>
-<span class="n">run_style</span>    <span class="n">respa</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">inner</span> <span class="mi">1</span> <span class="mf">4.0</span> <span class="mf">5.0</span> <span class="n">outer</span> <span class="mi">2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix             2 all shake 0.000001 500 0 m 1.0 a 1
+timestep        4.0
+run_style   respa 2 2 inner 1 4.0 5.0 outer 2
+</pre>
 <p>With these settings, users can expect good energy conservation and
 roughly a 1.5 fold speedup over the <em>verlet</em> style with SHAKE and a
 2.0 fmsec timestep.</p>
@@ -348,10 +348,10 @@ keywords.  A 2-fold or more speedup can be obtained while maintaining
 good energy conservation.  In real units, for a pure LJ fluid at
 liquid density, with a sigma of 3.0 angstroms, and epsilon of 0.1
 Kcal/mol, the following settings seem to work well:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">timestep</span>  <span class="mf">36.0</span>
-<span class="n">run_style</span> <span class="n">respa</span> <span class="mi">3</span> <span class="mi">3</span> <span class="mi">4</span> <span class="n">inner</span> <span class="mi">1</span> <span class="mf">3.0</span> <span class="mf">4.0</span> <span class="n">middle</span> <span class="mi">2</span> <span class="mf">6.0</span> <span class="mf">7.0</span> <span class="n">outer</span> <span class="mi">3</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+timestep  36.0
+run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3
+</pre>
 <hr class="docutils" />
 <p>The <em>respa/omp</em> styles is a variant of <em>respa</em> adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an <em>omp</em>
@@ -384,9 +384,9 @@ conserving energy to adequate precision.</p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run_style</span> <span class="n">verlet</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+run_style verlet
+</pre>
 <hr class="docutils" />
 <p id="tuckerman"><strong>(Tuckerman)</strong> Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).</p>

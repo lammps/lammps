@@ -134,26 +134,26 @@
 <h1>pair_style soft/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style soft cutoff
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">soft</span> <span class="n">cutoff</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>cutoff = global cutoff for soft interactions (distance units)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style soft 1.0
-pair_coeff * * 10.0
-pair_coeff 1 1 10.0 3.0
-</pre>
-<pre class="literal-block">
-pair_style soft 1.0
-pair_coeff * * 0.0
-variable prefactor equal ramp(0,30)
-fix 1 all adapt 1 pair soft a * * v_prefactor
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">soft</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">10.0</span> <span class="mf">3.0</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">soft</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.0</span>
+<span class="n">variable</span> <span class="n">prefactor</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">1</span> <span class="n">pair</span> <span class="n">soft</span> <span class="n">a</span> <span class="o">*</span> <span class="o">*</span> <span class="n">v_prefactor</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -193,10 +193,10 @@ pair_coeff settings for A must still be specified, but will be
 overridden.  For example these commands will vary the prefactor A for
 all pairwise interactions from 0.0 at the beginning to 30.0 at the end
 of a run:</p>
-<pre class="literal-block">
-variable prefactor equal ramp(0,30)
-fix 1 all adapt 1 pair soft a * * v_prefactor
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">prefactor</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">1</span> <span class="n">pair</span> <span class="n">soft</span> <span class="n">a</span> <span class="o">*</span> <span class="o">*</span> <span class="n">v_prefactor</span>
+</pre></div>
+</div>
 <p>Note that a formula defined by an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>
 can use the current timestep, elapsed time in the current run, elapsed
 time since the beginning of a series of runs, as well as access other

@@ -134,9 +134,9 @@
 <h1>pair_style lennard/mdf command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style args
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style = <em>lj/mdf</em> or <em>buck/mdf</em> or <em>lennard/mdf</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -155,21 +155,21 @@ pair_style style args
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style lj/mdf 2.5 3.0
-pair_coeff * * 1 1
-pair_coeff 1 1 1 1.1 2.8 3.0 3.2
-</pre>
-<pre class="literal-block">
-pair_style buck 2.5 3.0
-pair_coeff * * 100.0 1.5 200.0
-pair_coeff * * 100.0 1.5 200.0 3.0 3.5
-</pre>
-<pre class="literal-block">
-pair_style lennard/mdf 2.5 3.0
-pair_coeff * * 1 1
-pair_coeff 1 1 1 1.1 2.8 3.0 3.2
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">mdf</span> <span class="mf">2.5</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.1</span> <span class="mf">2.8</span> <span class="mf">3.0</span> <span class="mf">3.2</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">buck</span> <span class="mf">2.5</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">1.5</span> <span class="mf">200.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">1.5</span> <span class="mf">200.0</span> <span class="mf">3.0</span> <span class="mf">3.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lennard</span><span class="o">/</span><span class="n">mdf</span> <span class="mf">2.5</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.1</span> <span class="mf">2.8</span> <span class="mf">3.0</span> <span class="mf">3.2</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -198,7 +198,7 @@ below:</p>
 <li>epsilon (energy units)</li>
 <li>sigma (distance units)</li>
 <li>r_m (distance units)</li>
-<li>r_<em>cut</em> (distance units)</li>
+<li><a href="#id1"><span class="problematic" id="id2">r_</span></a><em>cut</em> (distance units)</li>
 </ul>
 <hr class="docutils" />
 <p>For the <em>buck/mdf</em> pair_style, the potential energy, <em>E(r)</em>, is the
@@ -209,7 +209,7 @@ standard Buckingham potential:</p>
 <li>rho (distance units)</li>
 <li>C (energy-distance^6 units)</li>
 <li>r_m (distance units)</li>
-<li>r_<em>cut</em>$ (distance units)</li>
+<li><a href="#id3"><span class="problematic" id="id4">r_</span></a><em>cut</em>$ (distance units)</li>
 </ul>
 <hr class="docutils" />
 <p>For the <em>lennard/mdf</em> pair_style, the potential energy, <em>E(r)</em>, is the
@@ -223,7 +223,7 @@ commands, or by mixing as described below:</p>
 <li>A (energy-distance^12 units)</li>
 <li>B (energy-distance^6 units)</li>
 <li>r_m (distance units)</li>
-<li>r_<em>cut</em> (distance units)</li>
+<li><a href="#id5"><span class="problematic" id="id6">r_</span></a><em>cut</em> (distance units)</li>
 </ul>
 <hr class="docutils" />
 <p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>

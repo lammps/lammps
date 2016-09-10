@@ -41,15 +41,26 @@ fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5
 
 Restrain the motion of the specified sets of atoms by making them part
 of a bond or angle or dihedral interaction whose strength can vary
-over time during a simulation.  This is functionally equivalent to
+over time during a simulation.  This is functionally similar to
 creating a bond or angle or dihedral for the same atoms in a data
 file, as specified by the "read_data"_read_data.html command, albeit
-with a time-varying pre-factor coefficient.  For the purpose of
-forcefield parameter-fitting or mapping a molecular potential energy
-surface, this fix reduces the hassle and risk associated with
-modifying data files.  In other words, use this fix to temporarily
-force a molecule to adopt a particular conformation.  To create a
-permanent bond or angle or dihedral, you should modify the data file.
+with a time-varying pre-factor coefficient, and except for exclusion
+rules, as explained below.
+
+For the purpose of forcefield parameter-fitting or mapping a molecular
+potential energy surface, this fix reduces the hassle and risk
+associated with modifying data files.  In other words, use this fix to
+temporarily force a molecule to adopt a particular conformation.  To
+create a permanent bond or angle or dihedral, you should modify the
+data file.
+
+NOTE: Adding a bond/angle/dihedral with this command does not apply
+the exclusion rules and weighting factors specified by the
+"special_bonds"_special_bonds.html command to atoms in the restraint
+that are now bonded (1-2,1-3,1-4 neighbors) as a result.  If they are
+close enough to interact in a "pair_style"_pair_style.html sense
+(non-bonded interaction), then the bond/angle/dihedral restraint
+interaction will simply be superposed on top of that interaction.
 
 The group-ID specified by this fix is ignored.
 

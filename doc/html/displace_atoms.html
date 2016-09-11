@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>displace_atoms command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">displace_atoms</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">style</span> <span class="n">args</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+displace_atoms group-ID style args keyword value ...
+</pre>
 <ul class="simple">
 <li>group-ID = ID of group of atoms to displace</li>
 <li>style = <em>move</em> or <em>ramp</em> or <em>random</em> or <em>rotate</em></li>
@@ -162,10 +162,10 @@ keyword = <em>units</em>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">displace_atoms</span> <span class="n">top</span> <span class="n">move</span> <span class="mi">0</span> <span class="o">-</span><span class="mi">5</span> <span class="mi">0</span> <span class="n">units</span> <span class="n">box</span>
-<span class="n">displace_atoms</span> <span class="n">flow</span> <span class="n">ramp</span> <span class="n">x</span> <span class="mf">0.0</span> <span class="mf">5.0</span> <span class="n">y</span> <span class="mf">2.0</span> <span class="mf">20.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+displace_atoms top move 0 -5 0 units box
+displace_atoms flow ramp x 0.0 5.0 y 2.0 20.5
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

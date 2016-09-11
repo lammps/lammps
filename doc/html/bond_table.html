@@ -131,9 +131,9 @@
 <h1>bond_style table/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">table</span> <span class="n">style</span> <span class="n">N</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_style table style N
+</pre>
 <ul class="simple">
 <li>style = <em>linear</em> or <em>spline</em> = method of interpolation</li>
 <li>N = use N values in table</li>
@@ -141,10 +141,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">table</span> <span class="n">linear</span> <span class="mi">1000</span>
-<span class="n">bond_coeff</span> <span class="mi">1</span> <span class="n">file</span><span class="o">.</span><span class="n">table</span> <span class="n">ENTRY1</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_style table linear 1000
+bond_coeff 1 file.table ENTRY1
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -233,7 +233,7 @@ one that matches the specified keyword.</p>
 <p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.</p>
@@ -243,7 +243,7 @@ LAMMPS was built with those packages.  See the <a class="reference internal" hre
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
 </div>
 <hr class="docutils" />

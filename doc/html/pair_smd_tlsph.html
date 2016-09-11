@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_style smd/tlsph command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">smd</span><span class="o">/</span><span class="n">tlsph</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style smd/tlsph args
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
@@ -140,11 +140,11 @@
 <h2>Description</h2>
 <p>The <em>smd/tlsph</em> style computes particle interactions according to continuum mechanics constitutive laws and a Total-Lagrangian Smooth-Particle Hydrodynamics algorithm.</p>
 <p>This pair style is invoked with the following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">smd</span><span class="o">/</span><span class="n">tlsph</span>
-<span class="n">pair_coeff</span> <span class="n">i</span> <span class="n">j</span> <span class="o">*</span><span class="n">COMMON</span> <span class="n">rho0</span> <span class="n">E</span> <span class="n">nu</span> <span class="n">Q1</span> <span class="n">Q2</span> <span class="n">hg</span> <span class="n">Cp</span> <span class="o">&amp;</span>
-               <span class="o">*</span><span class="n">END</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style smd/tlsph
+pair_coeff i j *COMMON rho0 E nu Q1 Q2 hg Cp &amp;
+               *END
+</pre>
 <p>Here, <em>i</em> and <em>j</em> denote the <em>LAMMPS</em> particle types for which this pair style is
 defined. Note that <em>i</em> and <em>j</em> must be equal, i.e., no <em>tlsph</em> cross interactions
 between different particle types are allowed.
@@ -152,7 +152,7 @@ In contrast to the usual <em>LAMMPS</em> <em>pair coeff</em> definitions, which 
 number of floats and integers, the <em>tlsph</em> <em>pair coeff</em> definition is organised using
 keywords. These keywords mark the beginning of different sets of parameters for particle properties,
 material constitutive models, and damage models. The <em>pair coeff</em> line must be terminated with
-the <a href="#id5"><span class="problematic" id="id6">**</span></a>END* keyword. The use the line continuation operator <em>&amp;</em> is recommended. A typical
+the <em>*END</em> keyword. The use the line continuation operator <em>&amp;</em> is recommended. A typical
 invocation of the <em>tlsph</em> for a solid body would consist of an equation of state for computing
 the pressure (the diagonal components of the stress tensor), and a material model to compute shear
 stresses (the off-diagonal components of the stress tensor). Damage and failure models can also be added.</p>

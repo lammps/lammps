@@ -192,7 +192,7 @@ simulations performed by LAMMPS.</p>
 <hr class="docutils" />
 <p>The <em>verlet/split</em> style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
-processors.  See <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">Section_start 6</span></a> for an
+processors.  See <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">Section 2.7</span></a> for an
 explanation of the -partition command-line switch.</p>
 <p>Specifically, this style performs all computation except the
 <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> portion of the force field on the 1st
@@ -232,17 +232,16 @@ of 60 and 15 processors each:</p>
 <p>When you run in 2-partition mode with the <em>verlet/split</em> style, the
 thermodyanmic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
-screen.0 by default; see the &#8220;-plog and -pscreen command-line
-switches&#8221;Section_start.html#start_7 to change this.  The log and
+screen.0 by default; see the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-plog and -pscreen command-line switches</span></a> to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
 output beyone the 1st timestep of the run.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual for
 performance details of the speed-up offered by the <em>verlet/split</em>
 style.  One important performance consideration is the assignemnt of
 logical processors in the 2 partitions to the physical cores of a
 parallel machine.  The <a class="reference internal" href="processors.html"><span class="doc">processors</span></a> command has
 options to support this, and strategies are discussed in
-<a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual.</p>
+<a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual.</p>
 <hr class="docutils" />
 <p>The <em>respa</em> style implements the rRESPA multi-timescale integrator
 <a class="reference internal" href="#tuckerman"><span class="std std-ref">(Tuckerman)</span></a> with N hierarchical levels, where level 1 is
@@ -357,14 +356,14 @@ run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3
 pair, bond, angle, dihedral, improper, or kspace styles with an <em>omp</em>
 suffix. It is functionally equivalent to <em>respa</em> but performs additional
 operations required for managing <em>omp</em> styles. For more on <em>omp</em> styles
-see the <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual.
+see the <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual.
 Accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.</p>
 <p>You can specify <em>respa/omp</em> explicitly in your input script, or
 you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a>
 when you invoke LAMMPS, or you can use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a>
 command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
 </div>
 <hr class="docutils" />

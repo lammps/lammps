@@ -174,11 +174,11 @@ For example, angle output from the <a class="reference internal" href="compute_p
 with data from this command and output by the <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a>
 command in a consistent way.</p>
 <p>Here is an example of how to do this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">local</span> <span class="n">atype</span> <span class="n">aatom1</span> <span class="n">aatom2</span> <span class="n">aatom3</span>
-<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">angle</span><span class="o">/</span><span class="n">local</span> <span class="n">theta</span> <span class="n">eng</span>
-<span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">1000</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="n">index</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all property/local atype aatom1 aatom2 aatom3
+compute 2 all angle/local theta eng
+dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4] c_2[1] c_2[2]
+</pre>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a local vector or local array depending on the
 number of keywords.  The length of the vector or number of rows in the

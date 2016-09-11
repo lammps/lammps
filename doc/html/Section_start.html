@@ -749,7 +749,7 @@ lmp_machine -h
 commands known to your executable, and immediately exit.</p>
 <p>There are two kinds of packages in LAMMPS, standard and user packages.
 More information about the contents of standard and user packages is
-given in <a class="reference internal" href="Section_packages.html"><span class="doc">Section_packages</span></a> of the manual.  The
+given in <a class="reference internal" href="Section_packages.html"><span class="doc">Section 4</span></a> of the manual.  The
 difference between standard and user packages is as follows:</p>
 <p>Standard packages, such as molecule or kspace, are supported by the
 LAMMPS developers and are written in a syntax and style consistent
@@ -843,7 +843,7 @@ libraries.  Many of them are provided with LAMMPS, in which case they
 must be compiled first, before LAMMPS is built, if you wish to include
 that package.  If you get a LAMMPS build error about a missing
 library, this is likely the reason.  See the
-<a class="reference internal" href="Section_packages.html"><span class="doc">Section_packages</span></a> doc page for a list of
+<a class="reference internal" href="Section_packages.html"><span class="doc">Section 4</span></a> doc page for a list of
 packages that have these kinds of auxiliary libraries.</p>
 <p>The lib directory in the distribution has sub-directories with package
 names that correspond to the needed auxiliary libs, e.g. lib/gpu.
@@ -1101,7 +1101,7 @@ dynamically loaded, e.g. from Python, type</p>
 </pre></div>
 </div>
 <p>where foo is the machine name.  This kind of library is required when
-wrapping LAMMPS with Python; see <a class="reference internal" href="Section_python.html"><span class="doc">Section_python</span></a>
+wrapping LAMMPS with Python; see <a class="reference internal" href="Section_python.html"><span class="doc">Section 11</span></a>
 for details.  This will use the SHFLAGS and SHLIBFLAGS settings in
 src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
@@ -1174,8 +1174,8 @@ src/library.cpp and src/library.h.</p>
 <p>See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the COUPLE directory which are
-discussed in <a class="reference internal" href="Section_howto.html#howto-10"><span class="std std-ref">Section_howto 10</span></a> of the
-manual.  See <a class="reference internal" href="Section_python.html"><span class="doc">Section_python</span></a> of the manual for a
+discussed in <a class="reference internal" href="Section_howto.html#howto-10"><span class="std std-ref">Section 6.10</span></a> of the
+manual.  See <a class="reference internal" href="Section_python.html"><span class="doc">Section 11</span></a> of the manual for a
 description of the Python wrapper provided with LAMMPS that operates
 through the LAMMPS library interface.</p>
 <p>The files src/library.cpp and library.h define the C-style API for
@@ -1273,7 +1273,7 @@ files and write its output files to the executable directory, rather
 than your working directory, which is probably not what you want.</p>
 <p>If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See <a class="reference internal" href="Section_errors.html"><span class="doc">Section_errors</span></a> for a
+message and continue.  See <a class="reference internal" href="Section_errors.html"><span class="doc">Section 12</span></a> for a
 discussion of the various kinds of errors LAMMPS can or can&#8217;t detect,
 a list of all ERROR and WARNING messages, and what to do about them.</p>
 <p>LAMMPS can run a problem on any number of processors, including a
@@ -1480,7 +1480,7 @@ replica runs on on one or a few processors.  Note that with MPI
 installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.</p>
 <p>To run multiple independent simulatoins from one input script, using
-multiple partitions, see <a class="reference internal" href="Section_howto.html#howto-4"><span class="std std-ref">Section_howto 4</span></a>
+multiple partitions, see <a class="reference internal" href="Section_howto.html#howto-4"><span class="std std-ref">Section 6.4</span></a>
 of the manual.  World- and universe-style <a class="reference internal" href="variable.html"><span class="doc">variables</span></a>
 are useful in this context.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">plog</span> <span class="n">file</span>
@@ -1544,7 +1544,7 @@ cores within each node are ranked in a desired order.  Or when using
 the <a class="reference internal" href="run_style.html"><span class="doc">run_style verlet/split</span></a> command with 2 partitions
 to insure that a specific Kspace processor (in the 2nd partition) is
 matched up with a specific set of processors in the 1st partition.
-See the <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> doc pages for
+See the <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> doc pages for
 more details.</p>
 <p>If the keyword <em>nth</em> is used with a setting <em>N</em>, then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
@@ -1849,7 +1849,7 @@ communication, roughly 75% in the example above.</p>
 <span id="start-9"></span><h2>2.9. Tips for users of previous LAMMPS versions</h2>
 <p>The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed
-in <a class="reference internal" href="Section_history.html"><span class="doc">Section_history</span></a>.  The F90 and F77 versions
+in <a class="reference internal" href="Section_history.html"><span class="doc">Section 13</span></a>.  The F90 and F77 versions
 (2001 and 99) are also freely distributed as open-source codes; check
 the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a> for distribution information if you prefer
 those versions.  The 99 and 2001 versions are no longer under active

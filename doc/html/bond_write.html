@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>bond_write command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_write</span> <span class="n">btype</span> <span class="n">N</span> <span class="n">inner</span> <span class="n">outer</span> <span class="n">file</span> <span class="n">keyword</span> <span class="n">itype</span> <span class="n">jtype</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_write btype N inner outer file keyword itype jtype
+</pre>
 <ul class="simple">
 <li>btype = bond types</li>
 <li>N = # of values</li>
@@ -143,10 +143,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_write</span> <span class="mi">1</span> <span class="mi">500</span> <span class="mf">0.5</span> <span class="mf">3.5</span> <span class="n">table</span><span class="o">.</span><span class="n">txt</span> <span class="n">Harmonic_1</span>
-<span class="n">bond_write</span> <span class="mi">3</span> <span class="mi">1000</span> <span class="mf">0.1</span> <span class="mf">6.0</span> <span class="n">table</span><span class="o">.</span><span class="n">txt</span> <span class="n">Morse</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_write 1 500 0.5 3.5 table.txt Harmonic_1
+bond_write 3 1000 0.1 6.0 table.txt Morse
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

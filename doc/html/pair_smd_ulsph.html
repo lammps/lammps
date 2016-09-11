@@ -128,27 +128,27 @@
 <span id="index-0"></span><h1>pair_style smd/ulsph command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">smd</span><span class="o">/</span><span class="n">ulsph</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style smd/ulsph args
+</pre>
 <ul class="simple">
 <li>these keywords must be given</li>
 </ul>
-<p>keyword = <a href="#id1"><span class="problematic" id="id2">**</span></a>DENSITY_SUMMATION* or <a href="#id3"><span class="problematic" id="id4">**</span></a>DENSITY_CONTINUITY* and <a href="#id5"><span class="problematic" id="id6">**</span></a>VELOCITY_GRADIENT* or <a href="#id7"><span class="problematic" id="id8">**</span></a>NO_VELOCITY_GRADIENT* and <a href="#id9"><span class="problematic" id="id10">**</span></a>GRADIENT_CORRECTION* or <a href="#id11"><span class="problematic" id="id12">**</span></a>NO_GRADIENT_CORRECTION*</p>
+<p>keyword = <em>*DENSITY_SUMMATION</em> or <em>*DENSITY_CONTINUITY</em> and <em>*VELOCITY_GRADIENT</em> or <em>*NO_VELOCITY_GRADIENT</em> and <em>*GRADIENT_CORRECTION</em> or <em>*NO_GRADIENT_CORRECTION</em></p>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<p>pair_style smd/ulsph <a href="#id13"><span class="problematic" id="id14">*</span></a>DENSITY_CONTINUITY <a href="#id15"><span class="problematic" id="id16">*</span></a>VELOCITY_GRADIENT <a href="#id17"><span class="problematic" id="id18">*</span></a>NO_GRADIENT_CORRECTION</p>
+<p>pair_style smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION</p>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
 <p>The <em>smd/ulsph</em> style computes particle interactions according to continuum mechanics constitutive laws and an updated Lagrangian Smooth-Particle Hydrodynamics algorithm.</p>
 <p>This pair style is invoked similar to the following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">smd</span><span class="o">/</span><span class="n">ulsph</span> <span class="o">*</span><span class="n">DENSITY_CONTINUITY</span> <span class="o">*</span><span class="n">VELOCITY_GRADIENT</span> <span class="o">*</span><span class="n">NO_GRADIENT_CORRECTION</span>
-<span class="n">pair_coeff</span> <span class="n">i</span> <span class="n">j</span> <span class="o">*</span><span class="n">COMMON</span> <span class="n">rho0</span> <span class="n">c0</span> <span class="n">Q1</span> <span class="n">Cp</span> <span class="n">hg</span> <span class="o">&amp;</span>
-               <span class="o">*</span><span class="n">END</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
+pair_coeff i j *COMMON rho0 c0 Q1 Cp hg &amp;
+               *END
+</pre>
 <p>Here, <em>i</em> and <em>j</em> denote the <em>LAMMPS</em> particle types for which this pair style is
 defined. Note that <em>i</em> and <em>j</em> can be different, i.e., <em>ulsph</em> cross interactions
 between different particle types are allowed. However, <em>i</em>&#8211;<em>i</em> respectively <em>j</em>&#8211;<em>j</em> pair_coeff lines have to preceed a cross interaction.
@@ -156,11 +156,11 @@ In contrast to the usual <em>LAMMPS</em> <em>pair coeff</em> definitions, which 
 number of floats and integers, the <em>ulsph</em> <em>pair coeff</em> definition is organised using
 keywords. These keywords mark the beginning of different sets of parameters for particle properties,
 material constitutive models, and damage models. The <em>pair coeff</em> line must be terminated with
-the <a href="#id29"><span class="problematic" id="id30">**</span></a>END* keyword. The use the line continuation operator <em>&amp;</em> is recommended. A typical
+the <em>*END</em> keyword. The use the line continuation operator <em>&amp;</em> is recommended. A typical
 invocation of the <em>ulsph</em> for a solid body would consist of an equation of state for computing
 the pressure (the diagonal components of the stress tensor), and a material model to compute shear
 stresses (the off-diagonal components of the stress tensor).</p>
-<p>Note that the use of <a href="#id31"><span class="problematic" id="id32">*</span></a>GRADIENT_CORRECTION can lead to severe numerical instabilities. For a general fluid simulation, <a href="#id33"><span class="problematic" id="id34">*</span></a>NO_GRADIENT_CORRECTION is recommended.</p>
+<p>Note that the use of *GRADIENT_CORRECTION can lead to severe numerical instabilities. For a general fluid simulation, *NO_GRADIENT_CORRECTION is recommended.</p>
 <p>Please see the <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">SMD user guide</a> for a complete listing of the possible keywords and material models.</p>
 <hr class="docutils" />
 <p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>

@@ -177,17 +177,17 @@ how they are set for each atom.  You can reset the image flags
 <p>The simplest way to output the results of the compute torque/chunk
 calculation to a file is to use the <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>
 command, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">cc1</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="n">molecule</span>
-<span class="n">compute</span> <span class="n">myChunk</span> <span class="nb">all</span> <span class="n">torque</span><span class="o">/</span><span class="n">chunk</span> <span class="n">cc1</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myChunk</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span> <span class="n">mode</span> <span class="n">vector</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute cc1 all chunk/atom molecule
+compute myChunk all torque/chunk cc1
+fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
+</pre>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a global array where the number of rows = the
 number of chunks <em>Nchunk</em> as calculated by the specified <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command.  The number of columns =
 3 for the 3 xyz components of the torque for each chunk.  These values
 can be accessed by any command that uses global array values from a
-compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section_howto 15</span></a>
+compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section 6.15</span></a>
 for an overview of LAMMPS output options.</p>
 <p>The array values are &#8220;intensive&#8221;.  The array values will be in
 force-distance <a class="reference internal" href="units.html"><span class="doc">units</span></a>.</p>

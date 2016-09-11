@@ -182,7 +182,7 @@ drive a program through its library interface, or to hook multiple
 pieces of software together, such as a simulation package plus a
 visualization package, or to run a coupled multiscale or multiphysics
 model.</p>
-<p>See <a class="reference internal" href="Section_howto.html#howto-10"><span class="std std-ref">Section_howto 10</span></a> of the manual and
+<p>See <a class="reference internal" href="Section_howto.html#howto-10"><span class="std std-ref">Section 6.10</span></a> of the manual and
 the couple directory of the distribution for more ideas about coupling
 LAMMPS to other codes.  See <a class="reference internal" href="Section_howto.html#howto-19"><span class="std std-ref">Section_howto 19</span></a> for a description of the LAMMPS
 library interface provided in src/library.cpp and src/library.h, and
@@ -302,7 +302,7 @@ file and the shared library.</p>
 <div class="section" id="building-lammps-as-a-shared-library">
 <span id="py-3"></span><h2>11.3. Building LAMMPS as a shared library</h2>
 <p>Instructions on how to build LAMMPS as a shared library are given in
-<a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">Section_start 5</span></a>.  A shared library is one
+<a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">Section 2.5</span></a>.  A shared library is one
 that is dynamically loadable, which is what Python requires to wrap
 LAMMPS.  On Linux this is a library file that ends in &#8221;.so&#8221;, not &#8221;.a&#8221;.</p>
 <p>From the src directory, type</p>
@@ -321,7 +321,7 @@ most recently built version.</p>
 auxiliary libraries (used by various packages), then all of these
 extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
-<a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">Section_start 5</span></a> for more details.</p>
+<a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">Section 2.5</span></a> for more details.</p>
 </div>
 <hr class="docutils" />
 </div>
@@ -531,7 +531,7 @@ first importing from the lammps.py file:</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">CDLL</span><span class="p">(</span><span class="s2">&quot;liblammps.so&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If an error occurs, carefully go thru the steps in <a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">Section_start 5</span></a> and above about building a shared
+<p>If an error occurs, carefully go thru the steps in <a class="reference internal" href="Section_start.html#start-5"><span class="std std-ref">Section 2.5</span></a> and above about building a shared
 library and about insuring Python can find the necessary two files
 it needs.</p>
 <div class="section" id="test-lammps-and-python-in-serial">
@@ -762,7 +762,7 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section_howto 15</span></a> of the manual for a
+See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section 6.15</span></a> of the manual for a
 discussion of global, per-atom, and local data, and of scalar, vector,
 and array data types.  See the doc pages for individual
 <a class="reference internal" href="compute.html"><span class="doc">computes</span></a> and <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> for a description of what

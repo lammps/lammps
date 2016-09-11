@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>create_box command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">create_box</span> <span class="n">N</span> <span class="n">region</span><span class="o">-</span><span class="n">ID</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+create_box N region-ID keyword value ...
+</pre>
 <ul class="simple">
 <li>N = # of atom types to use in this simulation</li>
 <li>region-ID = ID of region to use as simulation domain</li>
@@ -151,10 +151,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">create_box</span> <span class="mi">2</span> <span class="n">mybox</span>
-<span class="n">create_box</span> <span class="mi">2</span> <span class="n">mybox</span> <span class="n">bond</span><span class="o">/</span><span class="n">types</span> <span class="mi">2</span> <span class="n">extra</span><span class="o">/</span><span class="n">bond</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span> <span class="mi">1</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+create_box 2 mybox
+create_box 2 mybox bond/types 2 extra/bond/per/atom 1
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -191,7 +191,7 @@ geometrically equivalent.  If you wish to define a box with tilt
 factors that exceed these limits, you can use the <a class="reference internal" href="box.html"><span class="doc">box tilt</span></a>
 command, with a setting of <em>large</em>; a setting of <em>small</em> is the
 default.</p>
-<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span class="std std-ref">Section_howto 12</span></a> of the doc pages
+<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span class="std std-ref">Section 6.12</span></a> of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
 triclinic representations.</p>

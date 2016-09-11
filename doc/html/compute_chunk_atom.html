@@ -225,7 +225,7 @@ computes with &#8220;chunk&#8221; in their style name, such as <a class="referen
 variety of per-atom properties over the atoms in each chunk.  Or they
 can simply be accessed by any command that uses per-atom values from a
 compute as input, as discussed in <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section_howto 15</span></a>.</p>
-<p>See <a class="reference internal" href="Section_howto.html#howto-23"><span class="std std-ref">Section_howto 23</span></a> for an overview of
+<p>See <a class="reference internal" href="Section_howto.html#howto-23"><span class="std std-ref">Section 6.23</span></a> for an overview of
 how this compute can be used with a variety of other commands to
 tabulate properties of a simulation.  The howto section gives several
 examples of input script commands that can be used to calculate
@@ -361,13 +361,13 @@ is assigned to the atom.  If the integer value is &gt; 0, it becomes the
 chunk ID to the atom.  <em>Nchunk</em> is set to the largest chunk ID.  Note
 that this excludes atoms which are not in the specified group or
 optional region.</p>
-<p>If the style begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has been
+<p>If the style begins with &#8220;c_&#8221;, a compute ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
 calculated by the compute is used.  Users can also write code for
 their own compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If the style begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
+<p>If the style begins with &#8220;f_&#8221;, a fix ID must follow which has been
 previously defined in the input script.  If no bracketed integer is
 appended, the per-atom vector calculated by the fix is used.  If a
 bracketed integer is appended, the Ith column of the per-atom array
@@ -375,7 +375,7 @@ calculated by the fix is used.  Note that some fixes only produce
 their values on certain timesteps, which must be compatible with the
 timestep on which this compute accesses the fix, else an error
 results.  Users can also write code for their own fix styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If a value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name for an <em>atom</em> or
+<p>If a value begins with &#8220;v_&#8221;, a variable name for an <em>atom</em> or
 <em>atomfile</em> style <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> must follow which has been
 previously defined in the input script.  Variables of style <em>atom</em> can
 reference thermodynamic keywords and various per-atom attributes, or
@@ -662,7 +662,7 @@ cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.</p>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section_howto 15</span></a> for an overview of
+<a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section 6.15</span></a> for an overview of
 LAMMPS output options.</p>
 <p>The per-atom vector values are unitless chunk IDs, ranging from 1 to
 <em>Nchunk</em> (inclusive) for atoms assigned to chunks, and 0 for atoms not

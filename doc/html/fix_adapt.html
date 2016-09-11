@@ -165,12 +165,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">1</span> <span class="n">pair</span> <span class="n">soft</span> <span class="n">a</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">v_prefactor</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">1</span> <span class="n">pair</span> <span class="n">soft</span> <span class="n">a</span> <span class="mi">2</span><span class="o">*</span> <span class="mi">3</span> <span class="n">v_prefactor</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">1</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="n">epsilon</span> <span class="o">*</span> <span class="o">*</span> <span class="n">v_scale1</span> <span class="n">coul</span><span class="o">/</span><span class="n">cut</span> <span class="n">scale</span> <span class="mi">3</span> <span class="mi">3</span> <span class="n">v_scale2</span> <span class="n">scale</span> <span class="n">yes</span> <span class="n">reset</span> <span class="n">yes</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">10</span> <span class="n">atom</span> <span class="n">diameter</span> <span class="n">v_size</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all adapt 1 pair soft a 1 1 v_prefactor
+fix 1 all adapt 1 pair soft a 2* 3 v_prefactor
+fix 1 all adapt 1 pair lj/cut epsilon * * v_scale1 coul/cut scale 3 3 v_scale2 scale yes reset yes
+fix 1 all adapt 10 atom diameter v_size
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -224,9 +224,9 @@ pages for individual pair styles and their energy formulas for the
 meaning of these parameters:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="49%" />
-<col width="35%" />
-<col width="17%" />
+<col width="47%" />
+<col width="37%" />
+<col width="16%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="pair_born.html"><span class="doc">born</span></a></td>
@@ -315,7 +315,7 @@ each, as in the 1st example above.  I &lt;= J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same values.</p>
 <p>A wild-card asterisk can be used in place of or in conjunction with
 the I,J arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
+types.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the
 number of atom types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
@@ -341,10 +341,10 @@ details.</p>
 <p>For example, these commands would change the prefactor coefficient of
 the <a class="reference internal" href="pair_soft.html"><span class="doc">pair_style soft</span></a> potential from 10.0 to 30.0 in a
 linear fashion over the course of a simulation:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">prefactor</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">30</span><span class="p">)</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">1</span> <span class="n">pair</span> <span class="n">soft</span> <span class="n">a</span> <span class="o">*</span> <span class="o">*</span> <span class="n">v_prefactor</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable prefactor equal ramp(10,30)
+fix 1 all adapt 1 pair soft a * * v_prefactor
+</pre>
 <hr class="docutils" />
 <p>The <em>kspace</em> keyword used the specified variable as a scale factor on
 the energy, forces, virial calculated by whatever K-Space solver is
@@ -380,14 +380,12 @@ constant).</p>
 <p>For example, these commands would shrink the diameter of all granular
 particles in the &#8220;center&#8221; group from 1.0 to 0.1 in a linear fashion
 over the course of a 1000-step simulation:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">size</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span><span class="mf">0.1</span><span class="p">)</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="n">center</span> <span class="n">adapt</span> <span class="mi">10</span> <span class="n">atom</span> <span class="n">diameter</span> <span class="n">v_size</span>
-</pre></div>
-</div>
-</div>
+<pre class="literal-block">
+variable size equal ramp(1.0,0.1)
+fix 1 center adapt 10 atom diameter v_size
+</pre>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can

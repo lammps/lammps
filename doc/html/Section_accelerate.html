@@ -81,7 +81,14 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">5. Accelerating LAMMPS performance</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#measuring-performance">5.1. Measuring performance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#general-strategies">5.2. General strategies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#packages-with-optimized-styles">5.3. Packages with optimized styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#packages-with-optimized-styles">5.3. Packages with optimized styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gpu-package-with-cuda-and-opencl-support-for-nvidia-gpus-and-others">5.3.1. <code class="docutils literal"><span class="pre">GPU</span> <span class="pre">Package</span></code> with CUDA and OpenCL support for Nvidia GPUs and others</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-intel-package-for-intel-cpus-and-intel-xeon-phi">5.3.2. <code class="docutils literal"><span class="pre">USER-INTEL</span> <span class="pre">Package</span></code> for Intel CPUs and Intel Xeon Phi</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kokkos-package-for-nvidia-gpus-intel-xeon-phi-and-openmp-threading">5.3.3. <code class="docutils literal"><span class="pre">KOKKOS</span> <span class="pre">Package</span></code> for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-omp-package-for-openmp-threading-and-generic-cpu-optimizations">5.3.4. <code class="docutils literal"><span class="pre">USER-OMP</span> <span class="pre">Package</span></code> for OpenMP threading and generic CPU optimizations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#opt-package-generic-cpu-optimizations">5.3.5. <code class="docutils literal"><span class="pre">OPT</span> <span class="pre">Package</span></code> generic CPU optimizations</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#comparison-of-various-accelerator-packages">5.4. Comparison of various accelerator packages</a></li>
 </ul>
 </li>
@@ -274,29 +281,20 @@ coprocessors.</p>
 overview of packages is give in <a class="reference internal" href="Section_packages.html"><span class="doc">Section packages</span></a>.</p>
 <p>These are the accelerator packages
 currently in LAMMPS, either as standard or user packages:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="44%" />
-<col width="56%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU</span></a></td>
-<td>for NVIDIA GPUs as well as OpenCL support</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL</span></a></td>
-<td>for Intel CPUs and Intel Xeon Phi</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a></td>
-<td>for GPUs, Intel Xeon Phi, and OpenMP threading</td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP</span></a></td>
-<td>for OpenMP threading</td>
-</tr>
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT</span></a></td>
-<td>generic CPU optimizations</td>
-</tr>
-</tbody>
-</table>
+<div class="section" id="gpu-package-with-cuda-and-opencl-support-for-nvidia-gpus-and-others">
+<h3>5.3.1. <a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU Package</span></a> with CUDA and OpenCL support for Nvidia GPUs and others</h3>
+</div>
+<div class="section" id="user-intel-package-for-intel-cpus-and-intel-xeon-phi">
+<h3>5.3.2. <a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL Package</span></a> for Intel CPUs and Intel Xeon Phi</h3>
+</div>
+<div class="section" id="kokkos-package-for-nvidia-gpus-intel-xeon-phi-and-openmp-threading">
+<h3>5.3.3. <a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS Package</span></a> for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading</h3>
+</div>
+<div class="section" id="user-omp-package-for-openmp-threading-and-generic-cpu-optimizations">
+<h3>5.3.4. <a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP Package</span></a> for OpenMP threading and generic CPU optimizations</h3>
+</div>
+<div class="section" id="opt-package-generic-cpu-optimizations">
+<h3>5.3.5. <a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT Package</span></a> generic CPU optimizations</h3>
 <p>Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:</p>
 <table border="1" class="docutils">
@@ -336,7 +334,7 @@ Lennard-Jones <a class="reference internal" href="pair_lj.html"><span class="doc
 <li><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut/opt</span></a></li>
 </ul>
 <p>To see what accelerate styles are currently available, see
-<a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section_commands 5</span></a> of the manual.  The
+<a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section 3.5</span></a> of the manual.  The
 doc pages for individual commands (e.g. <a class="reference internal" href="pair_lj.html"><span class="doc">pair lj/cut</span></a> or
 <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>) also list any accelerated variants available
 for that style.</p>
@@ -456,6 +454,7 @@ CPU.</li>
 <li>restrictions</li>
 </ul>
 <hr class="docutils" />
+</div>
 </div>
 <div class="section" id="comparison-of-various-accelerator-packages">
 <span id="acc-4"></span><h2>5.4. Comparison of various accelerator packages</h2>

@@ -790,13 +790,13 @@ capability needed by these Python scripts.
 
 Note that for PyMol, you need to have built and installed the
 open-source version of PyMol in your Python, so that you can import it
-from a Python script.  See the PyMol WWW pages "here"_pymol or
+from a Python script.  See the PyMol WWW pages "here"_pymolhome or
 "here"_pymolopen for more details:
 
 http://www.pymol.org
 http://sourceforge.net/scm/?type=svn&group_id=4546 :pre
 
-:link(pymol,http://www.pymol.org)
+:link(pymolhome,http://www.pymol.org)
 :link(pymolopen,http://sourceforge.net/scm/?type=svn&group_id=4546)
 
 The latter link is to the open-source version.

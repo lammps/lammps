@@ -347,7 +347,7 @@ following packages:
 
 "VMD"_http://www.ks.uiuc.edu/Research/vmd
 "AtomEye"_http://mt.seas.upenn.edu/Archive/Graphics/A
-"PyMol"_http://pymol.sourceforge.net
+"PyMol"_http://www.pymol.org
 "Raster3d"_http://www.bmsc.washington.edu/raster3d/raster3d.html
 "RasMol"_http://www.openrasmol.org :ul
 

@@ -608,39 +608,43 @@ neighbor lists and would run very slowly in terms of CPU secs/timestep.
 
 :line
 
-[{Building for a Mac:}] :link(start_2_5)
+Building for a Mac :h5 :link(start_2_5)
 
 OS X is BSD Unix, so it should just work.  See the
 src/MAKE/MACHINES/Makefile.mac and Makefile.mac_mpi files.
 
 :line
 
-[{Building for Windows:}] :link(start_2_6)
+Building for Windows :h5 :link(start_2_6)
 
-The LAMMPS download page has an option to download both a serial and
-parallel pre-built Windows executable.  See the "Running
-LAMMPS"_#start_6 section for instructions on running these executables
-on a Windows box.
+If you want to build a Windows version of LAMMPS, you can build it
+yourself, but it may require some effort. LAMMPS expects a Unix-like
+build environment for the default build procedure. This can be done
+using either Cygwin or MinGW; the latter also exists as a ready-to-use
+Linux-to-Windows cross-compiler in several Linux distributions. In
+these cases, you can do the installation after installing several
+unix-style commands like make, grep, sed and bash with some shell
+utilities.
 
-The pre-built executables hosted on the "LAMMPS download
-page"_http://lammps.sandia.gov/download.html are built with a subset
-of the available packages; see the download page for the list. These
-are single executable files.  No examples or documentation in
-included. You will need to download the full source code package to
-obtain those.
+For Cygwin and the MinGW cross-compilers, suitable makefiles are
+provided in src/MAKE/MACHINES. When using other compilers, like
+Visual C++ or Intel compilers for Windows, you may have to implement
+your own build system. Since none of the current LAMMPS core developers
+has significant experience building executables on Windows, we are
+happy to distribute contributed instructions and modifications, but
+we cannot provide support for those.
+
+With the so-called "Anniversary Update" to Windows 10, there is a
+Ubuntu subsystem available for Windows, that can be installed and
+then it can be used to compile/install LAMMPS as if you are running
+on a Ubuntu Linux system.
 
 As an alternative, you can download "daily builds" (and some older
 versions) of the installer packages from
 "rpm.lammps.org/windows.html"_http://rpm.lammps.org/windows.html.
 These executables are built with most optional packages and the
-download includes documentation, some tools and most examples.
-
-If you want a Windows version with specific packages included and
-excluded, you can build it yourself.
-
-One way to do this is install and use cygwin to build LAMMPS with a
-standard unix style make program, just as you would on a Linux box;
-see src/MAKE/MACHINES/Makefile.cygwin.
+download includes documentation, potential files, some tools and
+many examples, but no source code.
 
 :line
 

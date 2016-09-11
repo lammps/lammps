@@ -54,7 +54,15 @@ allow for lost atoms.
 
 For style {s}, the position of the face is set so as to encompass the
 atoms in that dimension (shrink-wrapping), no matter how far they
-move.
+move. Note that when the difference between the current box dimensions
+and the shrink-wrap box dimensions is large, this can lead to lost
+atoms at the beginning of a run when running in parallel. This is due
+to the large change in the (global) box dimensions also causing
+significant changes in the individual sub-domain sizes. If these
+changes are farther than the communication cutoff, atoms will be lost.
+This is best addressed by setting initial box dimensions to match the
+shrink-wrapped dimensions more closely, by using {m} style boundaries
+(see below).
 
 For style {m}, shrink-wrapping occurs, but is bounded by the value
 specified in the data or restart file or set by the

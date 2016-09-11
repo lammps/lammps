@@ -87,7 +87,8 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
+  if (seed <= 0) 
+    error->all(FLERR,"Invalid random number seed in fix ttm command");
   if (electronic_specific_heat <= 0.0)
     error->all(FLERR,"Fix ttm electronic_specific_heat must be > 0.0");
   if (electronic_density <= 0.0)
@@ -342,7 +343,8 @@ void FixTTM::read_initial_electron_temperatures()
   while (1) {
     if (fgets(line,MAXLINE,fpr) == NULL) break;
     sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
+    if (T_tmp < 0.0) 
+      error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }

@@ -143,9 +143,9 @@
 <h1>pair_style rebo/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style cutoff LJ_flag TORSION_flag
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">cutoff</span> <span class="n">LJ_flag</span> <span class="n">TORSION_flag</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style = <em>airebo</em> or <em>airebo/morse</em> or <em>rebo</em></li>
 <li>cutoff = LJ or Morse cutoff (sigma scale factor) (AIREBO and AIREBO-M only)</li>
@@ -155,19 +155,19 @@ pair_style style cutoff LJ_flag TORSION_flag
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style airebo 3.0
-pair_style airebo 2.5 1 0
-pair_coeff * * ../potentials/CH.airebo H C
-</pre>
-<pre class="literal-block">
-pair_style airebo/morse 3.0
-pair_coeff * * ../potentials/CH.airebo-m H C
-</pre>
-<pre class="literal-block">
-pair_style rebo
-pair_coeff * * ../potentials/CH.airebo H C
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">airebo</span> <span class="mf">3.0</span>
+<span class="n">pair_style</span> <span class="n">airebo</span> <span class="mf">2.5</span> <span class="mi">1</span> <span class="mi">0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">CH</span><span class="o">.</span><span class="n">airebo</span> <span class="n">H</span> <span class="n">C</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">airebo</span><span class="o">/</span><span class="n">morse</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">CH</span><span class="o">.</span><span class="n">airebo</span><span class="o">-</span><span class="n">m</span> <span class="n">H</span> <span class="n">C</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">rebo</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">CH</span><span class="o">.</span><span class="n">airebo</span> <span class="n">H</span> <span class="n">C</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -242,9 +242,9 @@ to specify the path for the potential file.</p>
 <p>As an example, if your LAMMPS simulation has 4 atom types and you want
 the 1st 3 to be C, and the 4th to be H, you would use the following
 pair_coeff command:</p>
-<pre class="literal-block">
-pair_coeff * * CH.airebo C C C H
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">CH</span><span class="o">.</span><span class="n">airebo</span> <span class="n">C</span> <span class="n">C</span> <span class="n">C</span> <span class="n">H</span>
+</pre></div>
+</div>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three C arguments map LAMMPS atom types 1,2,3 to the C
 element in the AIREBO file.  The final H argument maps LAMMPS atom
@@ -273,13 +273,13 @@ The 3 values correspond to the following sub-categories:</p>
 </ol>
 <p>To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:</p>
-<pre class="literal-block">
-compute 0 all pair airebo
-variable REBO     equal c_0[1]
-variable LJ       equal c_0[2]
-variable TORSION  equal c_0[3]
-thermo_style custom step temp epair v_REBO v_LJ v_TORSION
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">0</span> <span class="nb">all</span> <span class="n">pair</span> <span class="n">airebo</span>
+<span class="n">variable</span> <span class="n">REBO</span>     <span class="n">equal</span> <span class="n">c_0</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">LJ</span>       <span class="n">equal</span> <span class="n">c_0</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">TORSION</span>  <span class="n">equal</span> <span class="n">c_0</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">epair</span> <span class="n">v_REBO</span> <span class="n">v_LJ</span> <span class="n">v_TORSION</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.

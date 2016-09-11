@@ -143,24 +143,24 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 1 mid exclude yes
-pair_coeff 1 1 dpd 60.0 4.5 1.0
-pair_coeff 1 2 none
-pair_coeff 2 2 srp 100.0 0.8
-</pre>
-<pre class="literal-block">
-pair_style hybrid dpd 1.0 1.0 12345 srp 0.8 * min exclude yes
-pair_coeff 1 1 dpd 60.0 50 1.0
-pair_coeff 1 2 none
-pair_coeff 2 2 srp 40.0
-</pre>
-<pre class="literal-block">
-pair_style hybrid srp 0.8 2 mid
-pair_coeff 1 1 none
-pair_coeff 1 2 none
-pair_coeff 2 2 srp 100.0 0.8
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">dpd</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">12345</span> <span class="n">srp</span> <span class="mf">0.8</span> <span class="mi">1</span> <span class="n">mid</span> <span class="n">exclude</span> <span class="n">yes</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">dpd</span> <span class="mf">60.0</span> <span class="mf">4.5</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">srp</span> <span class="mf">100.0</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">dpd</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">12345</span> <span class="n">srp</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="nb">min</span> <span class="n">exclude</span> <span class="n">yes</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">dpd</span> <span class="mf">60.0</span> <span class="mi">50</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">srp</span> <span class="mf">40.0</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">srp</span> <span class="mf">0.8</span> <span class="mi">2</span> <span class="n">mid</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">none</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">srp</span> <span class="mf">100.0</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

@@ -195,7 +195,7 @@ allowed, but that should be sufficient for most use cases.
 This section describes the structure of a typical LAMMPS input script.
 The "examples" directory in the LAMMPS distribution contains many
 sample input scripts; the corresponding problems are discussed in
-"Section_example"_Section_example.html, and animated on the "LAMMPS
+"Section 7"_Section_example.html, and animated on the "LAMMPS
 WWW Site"_lws.
 
 A LAMMPS input script typically has 4 parts:

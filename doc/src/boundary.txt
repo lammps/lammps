@@ -74,7 +74,7 @@ and xhi faces of the box are planes tilting in the +y direction as y
 increases.  These tilted planes are shrink-wrapped around the atoms to
 determine the x extent of the box.
 
-See "Section_howto 12"_Section_howto.html#howto_12 of the doc pages
+See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
 triclinic representations.

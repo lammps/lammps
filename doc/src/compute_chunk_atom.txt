@@ -104,7 +104,7 @@ can simply be accessed by any command that uses per-atom values from a
 compute as input, as discussed in "Section_howto
 15"_Section_howto.html#howto_15.
 
-See "Section_howto 23"_Section_howto.html#howto_23 for an overview of
+See "Section 6.23"_Section_howto.html#howto_23 for an overview of
 how this compute can be used with a variety of other commands to
 tabulate properties of a simulation.  The howto section gives several
 examples of input script commands that can be used to calculate
@@ -624,7 +624,7 @@ cylinder, x for a y-axis cylinder, and x for a z-axis cylinder.
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-"Section_howto 15"_Section_howto.html#howto_15 for an overview of
+"Section 6.15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
 The per-atom vector values are unitless chunk IDs, ranging from 1 to

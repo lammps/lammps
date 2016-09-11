@@ -27,7 +27,7 @@ partition yes 6* fix all nvt temp 1.0 1.0 0.1 :pre
 
 This command invokes the specified command on a subset of the
 partitions of processors you have defined via the -partition
-command-line switch.  See "Section_start 6"_Section_start.html#start_7
+command-line switch.  See "Section 2.6"_Section_start.html#start_7
 for an explanation of the switch.
 
 Normally, every input script command in your script is invoked by

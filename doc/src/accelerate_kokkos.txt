@@ -9,7 +9,7 @@
 
 "Return to Section accelerate overview"_Section_accelerate.html
 
-5.3.3 KOKKOS package :h4
+5.3.3 KOKKOS package :h5
 
 The KOKKOS package was developed primarily by Christian Trott (Sandia)
 with contributions of various styles by others, including Sikandar

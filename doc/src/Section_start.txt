@@ -690,7 +690,7 @@ commands known to your executable, and immediately exit.
 
 There are two kinds of packages in LAMMPS, standard and user packages.
 More information about the contents of standard and user packages is
-given in "Section_packages"_Section_packages.html of the manual.  The
+given in "Section 4"_Section_packages.html of the manual.  The
 difference between standard and user packages is as follows:
 
 Standard packages, such as molecule or kspace, are supported by the
@@ -795,7 +795,7 @@ libraries.  Many of them are provided with LAMMPS, in which case they
 must be compiled first, before LAMMPS is built, if you wish to include
 that package.  If you get a LAMMPS build error about a missing
 library, this is likely the reason.  See the
-"Section_packages"_Section_packages.html doc page for a list of
+"Section 4"_Section_packages.html doc page for a list of
 packages that have these kinds of auxiliary libraries.
 
 The lib directory in the distribution has sub-directories with package
@@ -1055,7 +1055,7 @@ dynamically loaded, e.g. from Python, type
 make foo mode=shlib :pre
 
 where foo is the machine name.  This kind of library is required when
-wrapping LAMMPS with Python; see "Section_python"_Section_python.html
+wrapping LAMMPS with Python; see "Section 11"_Section_python.html
 for details.  This will use the SHFLAGS and SHLIBFLAGS settings in
 src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
@@ -1135,8 +1135,8 @@ src/library.cpp and src/library.h.
 See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the COUPLE directory which are
-discussed in "Section_howto 10"_Section_howto.html#howto_10 of the
-manual.  See "Section_python"_Section_python.html of the manual for a
+discussed in "Section 6.10"_Section_howto.html#howto_10 of the
+manual.  See "Section 11"_Section_python.html of the manual for a
 description of the Python wrapper provided with LAMMPS that operates
 through the LAMMPS library interface.
 
@@ -1257,7 +1257,7 @@ than your working directory, which is probably not what you want.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See "Section_errors"_Section_errors.html for a
+message and continue.  See "Section 12"_Section_errors.html for a
 discussion of the various kinds of errors LAMMPS can or can't detect,
 a list of all ERROR and WARNING messages, and what to do about them.
 
@@ -1473,7 +1473,7 @@ installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.
 
 To run multiple independent simulatoins from one input script, using
-multiple partitions, see "Section_howto 4"_Section_howto.html#howto_4
+multiple partitions, see "Section 6.4"_Section_howto.html#howto_4
 of the manual.  World- and universe-style "variables"_variable.html
 are useful in this context.
 
@@ -1539,7 +1539,7 @@ cores within each node are ranked in a desired order.  Or when using
 the "run_style verlet/split"_run_style.html command with 2 partitions
 to insure that a specific Kspace processor (in the 2nd partition) is
 matched up with a specific set of processors in the 1st partition.
-See the "Section_accelerate"_Section_accelerate.html doc pages for
+See the "Section 5"_Section_accelerate.html doc pages for
 more details.
 
 If the keyword {nth} is used with a setting {N}, then it means every
@@ -1863,7 +1863,7 @@ communication, roughly 75% in the example above.
 
 The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed
-in "Section_history"_Section_history.html.  The F90 and F77 versions
+in "Section 13"_Section_history.html.  The F90 and F77 versions
 (2001 and 99) are also freely distributed as open-source codes; check
 the "LAMMPS WWW Site"_lws for distribution information if you prefer
 those versions.  The 99 and 2001 versions are no longer under active

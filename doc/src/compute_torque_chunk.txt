@@ -72,7 +72,7 @@ number of chunks {Nchunk} as calculated by the specified "compute
 chunk/atom"_compute_chunk_atom.html command.  The number of columns =
 3 for the 3 xyz components of the torque for each chunk.  These values
 can be accessed by any command that uses global array values from a
-compute as input.  See "Section_howto 15"_Section_howto.html#howto_15
+compute as input.  See "Section 6.15"_Section_howto.html#howto_15
 for an overview of LAMMPS output options.
 
 The array values are "intensive".  The array values will be in

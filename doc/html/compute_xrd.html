@@ -225,69 +225,269 @@ The analytic approximation is computed using the formula
 <p>Coefficients parameterized by <a class="reference internal" href="#peng"><span class="std std-ref">(Peng)</span></a> are assigned for each
 atom type designating the chemical symbol and charge of each atom
 type. Valid chemical symbols for compute xrd are:</p>
-<dl class="docutils">
-<dt>H:    He1-:      He:      Li:    Li1+:</dt>
-<dd><blockquote class="first">
-<div><blockquote>
-<div><dl class="docutils">
-<dt>Be:    Be2+:       B:       C:    Cval:</dt>
-<dd>N:       O:     O1-:       F:     F1-:</dd>
-</dl>
-<p>Ne:      Na:    Na1+:      Mg:    Mg2+:
-Al:    Al3+:      Si:    Sival:   Si4+:</p>
-<blockquote>
-<div>P:       S:      Cl:    Cl1-:      Ar:
-K:      Ca:    Ca2+:      Sc:    Sc3+:</div></blockquote>
-<p>Ti:    Ti2+:    Ti3+:    Ti4+:       V:</p>
-</div></blockquote>
-<p>V2+:     V3+:     V5+:      Cr:    Cr2+:</p>
-</div></blockquote>
-<dl class="docutils">
-<dt>Cr3+:      Mn:    Mn2+:    Mn3+:    Mn4+:</dt>
-<dd>Fe:    Fe2+:    Fe3+:      Co:    Co2+:
-Co:      Ni:    Ni2+:    Ni3+:      Cu:</dd>
-</dl>
-<p>Cu1+:    Cu2+:      Zn:    Zn2+:      Ga:
-Ga3+:      Ge:    Ge4+:      As:      Se:</p>
-<blockquote>
-<div>Br:    Br1-:      Kr:      Rb:    Rb1+:
-Sr:    Sr2+:       Y:     Y3+:      Zr:</div></blockquote>
-<p>Zr4+:      Nb:    Nb3+:    Nb5+:      Mo:
-Mo3+:    Mo5+:    Mo6+:      Tc:      Ru:
-Ru3+:    Ru4+:      Rh:    Rh3+:    Rh4+:</p>
-<blockquote>
-<div>Pd:    Pd2+:    Pd4+:      Ag:    Ag1+:</div></blockquote>
-<dl class="docutils">
-<dt>Ag2+:      Cd:    Cd2+:      In:    In3+:</dt>
-<dd>Sn:    Sn2+:    Sn4+:      Sb:    Sb3+:</dd>
-<dt>Sb5+:      Te:       I:     I1-:      Xe:</dt>
-<dd>Cs:    Cs1+:      Ba:    Ba2+:      La:</dd>
-</dl>
-<p>La3+:      Ce:    Ce3+:    Ce4+:      Pr:
-Pr3+:    Pr4+:      Nd:    Nd3+:      Pm:
-Pm3+:      Sm:    Sm3+:      Eu:    Eu2+:
-Eu3+:      Gd:    Gd3+:      Tb:    Tb3+:</p>
-<blockquote>
-<div>Dy:    Dy3+:      Ho:    Ho3+:      Er:</div></blockquote>
-<p>Er3+:      Tm:    Tm3+:      Yb:    Yb2+:
-Yb3+:      Lu:    Lu3+:      Hf:    Hf4+:</p>
-<blockquote>
-<div>Ta:    Ta5+:       W:     W6+:      Re:
-Os:    Os4+:      Ir:    Ir3+:    Ir4+:
-Pt:    Pt2+:    Pt4+:      Au:    Au1+:</div></blockquote>
-<p>Au3+:      Hg:    Hg1+:    Hg2+:      Tl:
-Tl1+:    Tl3+:      Pb:    Pb2+:    Pb4+:</p>
-<blockquote>
-<div>Bi:    Bi3+:    Bi5+:      Po:      At:
-Rn:      Fr:      Ra:    Ra2+:      Ac:</div></blockquote>
-<dl class="docutils">
-<dt>Ac3+:      Th:    Th4+:      Pa:       U:</dt>
-<dd>U3+:     U4+:     U6+:      Np:    Np3+:</dd>
-</dl>
-<p class="last">Np4+:    Np6+:      Pu:    Pu3+:    Pu4+:
-Pu6+:      Am:      Cm:      Bk:      Cf:tb(c=5,s=:)</p>
-</dd>
-</dl>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="19%" />
+<col width="19%" />
+<col width="23%" />
+<col width="19%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>H</td>
+<td>He1-</td>
+<td>He</td>
+<td>Li</td>
+<td>Li1+</td>
+</tr>
+<tr class="row-even"><td>Be</td>
+<td>Be2+</td>
+<td>B</td>
+<td>C</td>
+<td>Cval</td>
+</tr>
+<tr class="row-odd"><td>N</td>
+<td>O</td>
+<td>O1-</td>
+<td>F</td>
+<td>F1-</td>
+</tr>
+<tr class="row-even"><td>Ne</td>
+<td>Na</td>
+<td>Na1+</td>
+<td>Mg</td>
+<td>Mg2+</td>
+</tr>
+<tr class="row-odd"><td>Al</td>
+<td>Al3+</td>
+<td>Si</td>
+<td>Sival</td>
+<td>Si4+</td>
+</tr>
+<tr class="row-even"><td>P</td>
+<td>S</td>
+<td>Cl</td>
+<td>Cl1-</td>
+<td>Ar</td>
+</tr>
+<tr class="row-odd"><td>K</td>
+<td>Ca</td>
+<td>Ca2+</td>
+<td>Sc</td>
+<td>Sc3+</td>
+</tr>
+<tr class="row-even"><td>Ti</td>
+<td>Ti2+</td>
+<td>Ti3+</td>
+<td>Ti4+</td>
+<td>V</td>
+</tr>
+<tr class="row-odd"><td>V2+</td>
+<td>V3+</td>
+<td>V5+</td>
+<td>Cr</td>
+<td>Cr2+</td>
+</tr>
+<tr class="row-even"><td>Cr3+</td>
+<td>Mn</td>
+<td>Mn2+</td>
+<td>Mn3+</td>
+<td>Mn4+</td>
+</tr>
+<tr class="row-odd"><td>Fe</td>
+<td>Fe2+</td>
+<td>Fe3+</td>
+<td>Co</td>
+<td>Co2+</td>
+</tr>
+<tr class="row-even"><td>Co</td>
+<td>Ni</td>
+<td>Ni2+</td>
+<td>Ni3+</td>
+<td>Cu</td>
+</tr>
+<tr class="row-odd"><td>Cu1+</td>
+<td>Cu2+</td>
+<td>Zn</td>
+<td>Zn2+</td>
+<td>Ga</td>
+</tr>
+<tr class="row-even"><td>Ga3+</td>
+<td>Ge</td>
+<td>Ge4+</td>
+<td>As</td>
+<td>Se</td>
+</tr>
+<tr class="row-odd"><td>Br</td>
+<td>Br1-</td>
+<td>Kr</td>
+<td>Rb</td>
+<td>Rb1+</td>
+</tr>
+<tr class="row-even"><td>Sr</td>
+<td>Sr2+</td>
+<td>Y</td>
+<td>Y3+</td>
+<td>Zr</td>
+</tr>
+<tr class="row-odd"><td>Zr4+</td>
+<td>Nb</td>
+<td>Nb3+</td>
+<td>Nb5+</td>
+<td>Mo</td>
+</tr>
+<tr class="row-even"><td>Mo3+</td>
+<td>Mo5+</td>
+<td>Mo6+</td>
+<td>Tc</td>
+<td>Ru</td>
+</tr>
+<tr class="row-odd"><td>Ru3+</td>
+<td>Ru4+</td>
+<td>Rh</td>
+<td>Rh3+</td>
+<td>Rh4+</td>
+</tr>
+<tr class="row-even"><td>Pd</td>
+<td>Pd2+</td>
+<td>Pd4+</td>
+<td>Ag</td>
+<td>Ag1+</td>
+</tr>
+<tr class="row-odd"><td>Ag2+</td>
+<td>Cd</td>
+<td>Cd2+</td>
+<td>In</td>
+<td>In3+</td>
+</tr>
+<tr class="row-even"><td>Sn</td>
+<td>Sn2+</td>
+<td>Sn4+</td>
+<td>Sb</td>
+<td>Sb3+</td>
+</tr>
+<tr class="row-odd"><td>Sb5+</td>
+<td>Te</td>
+<td>I</td>
+<td>I1-</td>
+<td>Xe</td>
+</tr>
+<tr class="row-even"><td>Cs</td>
+<td>Cs1+</td>
+<td>Ba</td>
+<td>Ba2+</td>
+<td>La</td>
+</tr>
+<tr class="row-odd"><td>La3+</td>
+<td>Ce</td>
+<td>Ce3+</td>
+<td>Ce4+</td>
+<td>Pr</td>
+</tr>
+<tr class="row-even"><td>Pr3+</td>
+<td>Pr4+</td>
+<td>Nd</td>
+<td>Nd3+</td>
+<td>Pm</td>
+</tr>
+<tr class="row-odd"><td>Pm3+</td>
+<td>Sm</td>
+<td>Sm3+</td>
+<td>Eu</td>
+<td>Eu2+</td>
+</tr>
+<tr class="row-even"><td>Eu3+</td>
+<td>Gd</td>
+<td>Gd3+</td>
+<td>Tb</td>
+<td>Tb3+</td>
+</tr>
+<tr class="row-odd"><td>Dy</td>
+<td>Dy3+</td>
+<td>Ho</td>
+<td>Ho3+</td>
+<td>Er</td>
+</tr>
+<tr class="row-even"><td>Er3+</td>
+<td>Tm</td>
+<td>Tm3+</td>
+<td>Yb</td>
+<td>Yb2+</td>
+</tr>
+<tr class="row-odd"><td>Yb3+</td>
+<td>Lu</td>
+<td>Lu3+</td>
+<td>Hf</td>
+<td>Hf4+</td>
+</tr>
+<tr class="row-even"><td>Ta</td>
+<td>Ta5+</td>
+<td>W</td>
+<td>W6+</td>
+<td>Re</td>
+</tr>
+<tr class="row-odd"><td>Os</td>
+<td>Os4+</td>
+<td>Ir</td>
+<td>Ir3+</td>
+<td>Ir4+</td>
+</tr>
+<tr class="row-even"><td>Pt</td>
+<td>Pt2+</td>
+<td>Pt4+</td>
+<td>Au</td>
+<td>Au1+</td>
+</tr>
+<tr class="row-odd"><td>Au3+</td>
+<td>Hg</td>
+<td>Hg1+</td>
+<td>Hg2+</td>
+<td>Tl</td>
+</tr>
+<tr class="row-even"><td>Tl1+</td>
+<td>Tl3+</td>
+<td>Pb</td>
+<td>Pb2+</td>
+<td>Pb4+</td>
+</tr>
+<tr class="row-odd"><td>Bi</td>
+<td>Bi3+</td>
+<td>Bi5+</td>
+<td>Po</td>
+<td>At</td>
+</tr>
+<tr class="row-even"><td>Rn</td>
+<td>Fr</td>
+<td>Ra</td>
+<td>Ra2+</td>
+<td>Ac</td>
+</tr>
+<tr class="row-odd"><td>Ac3+</td>
+<td>Th</td>
+<td>Th4+</td>
+<td>Pa</td>
+<td>U</td>
+</tr>
+<tr class="row-even"><td>U3+</td>
+<td>U4+</td>
+<td>U6+</td>
+<td>Np</td>
+<td>Np3+</td>
+</tr>
+<tr class="row-odd"><td>Np4+</td>
+<td>Np6+</td>
+<td>Pu</td>
+<td>Pu3+</td>
+<td>Pu4+</td>
+</tr>
+<tr class="row-even"><td>Pu6+</td>
+<td>Am</td>
+<td>Cm</td>
+<td>Bk</td>
+<td>Cf</td>
+</tr>
+</tbody>
+</table>
 <p>If the <em>echo</em> keyword is specified, compute xrd will provide extra
 reporting information to the screen.</p>
 <p><strong>Output info:</strong></p>

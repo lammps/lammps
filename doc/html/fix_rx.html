@@ -190,7 +190,7 @@ Note that more than min_steps ODE steps may be taken depending upon the ODE stif
 but no more than max_steps will be taken. If max_steps is reached, an error warning
 is printed and the simulation is stopped.</p>
 <p>After each ODE step, the solution error <em>e</em> is tested and weighted using the absTol
-and relTol values. The error vector is weighted as <em>e</em> / (relTol * <a href="#id1"><span class="problematic" id="id2">|</span></a><em>u</em>| + absTol)
+and relTol values. The error vector is weighted as <em>e</em> / (relTol * | <em>u</em> | + absTol)
 where <em>u</em> is the solution vector. If the norm of the error is &lt;= 1, the solution is
 accepted, <em>h</em> is increased by a proportional amount, and the next ODE step is begun.
 Otherwise, <em>h</em> is shrunk and the ODE step is repeated.</p>

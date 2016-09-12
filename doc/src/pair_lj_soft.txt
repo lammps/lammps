@@ -134,7 +134,8 @@ coefficients alpha_LJ = 0.5 and alpha_C = 10 Angstrom^2 are
 appropriate choices. Plots of the LJ and Coulomb terms are shown
 below, for lambda ranging from 1 to 0 every 0.1.
 
-:c,image(JPG/lj_soft.jpg),image(JPG/coul_soft.jpg)
+:image(JPG/lj_soft.jpg),image(JPG/coul_soft.jpg)
+:c
 
 For the {lj/cut/coul/cut/soft} or {lj/cut/coul/long/soft} pair styles,
 the following coefficients must be defined for each pair of atoms

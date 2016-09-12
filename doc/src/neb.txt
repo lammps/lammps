@@ -319,10 +319,9 @@ this case), the print-out to the screen and master log.lammps file
 contains a line of output, printed once every {Nevery} timesteps.  It
 contains the timestep, the maximum force per replica, the maximum
 force per atom (in any replica), potential gradients in the initial,
- final, and climbing replicas,  
-the forward and backward energy barriers, 
-the total reaction coordinate (RDT), and
-the normalized reaction coordinate and potential energy of each replica.
+final, and climbing replicas, the forward and backward energy barriers, 
+the total reaction coordinate (RDT), and the normalized reaction
+coordinate and potential energy of each replica.
   
 The "maximum force per replica" is
 the two-norm of the 3N-length force vector for the atoms in each

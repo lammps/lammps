@@ -30,8 +30,7 @@ When you download a LAMMPS tarball you will need to unzip and untar
 the downloaded file with the following commands, after placing the
 tarball in an appropriate directory.
 
-gunzip lammps*.tar.gz 
-tar xvf lammps*.tar :pre
+tar -xzvf lammps*.tar.gz :pre
 
 This will create a LAMMPS directory containing two files and several
 sub-directories:
@@ -46,16 +45,17 @@ src: source files
 tools: pre- and post-processing tools :tb(s=:)
 
 Note that the "download page"_download also has links to download
-Windows exectubles and installers, as well as pre-built executables
-for a few specific Linux distributions.  It also has instructions for
-how to download/install LAMMPS for Macs (via Homebrew), and to
+pre-build Windows installers, as well as pre-built packages for
+several widely used Linux distributions.  It also has instructions
+for how to download/install LAMMPS for Macs (via Homebrew), and to
 download and update LAMMPS from SVN and Git repositories, which gives
-you the same files that are in the download tarball.
+you access to the up-to-date sources that are used by the LAMMPS
+core developers.
 
 :link(download,http://lammps.sandia.gov/download.html)
 
-The Windows and Linux executables for serial or parallel only include
-certain packages and bug-fixes/upgrades listed on "this
+The Windows and Linux packages for serial or parallel include
+only selected packages and bug-fixes/upgrades listed on "this
 page"_http://lammps.sandia.gov/bug.html up to a certain date, as
 stated on the download page.  If you want an executable with
 non-included packages or that is more current, then you'll need to
@@ -1197,23 +1197,17 @@ LAMMPS to be built with one or more of its optional packages.
 :line
 
 On a Windows box, you can skip making LAMMPS and simply download an
-executable, as described above, though the pre-packaged executables
-include only certain packages.
+installer package from "here"_http://rpm.lammps.org/windows.html
 
-To run a LAMMPS executable on a Windows machine, first decide whether
-you want to download the non-MPI (serial) or the MPI (parallel)
-version of the executable. Download and save the version you have
-chosen.
-
-For the non-MPI version, follow these steps:
+For running the non-MPI executable, follow these steps:
 
 Get a command prompt by going to Start->Run... , 
 then typing "cmd". :ulb,l
 
-Move to the directory where you have saved lmp_win_no-mpi.exe
-(e.g. by typing: cd "Documents"). :l
+Move to the directory where you have your input, e.g. a copy of
+the [in.lj] input from the bench folder. (e.g. by typing: cd "Documents"). :l
 
-At the command prompt, type "lmp_win_no-mpi -in in.lj", replacing in.lj
+At the command prompt, type "lmp_serial -in in.lj", replacing [in.lj]
 with the name of your LAMMPS input script. :l
 :ule
 
@@ -1224,27 +1218,39 @@ Download and install
 "MPICH2"_http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads
 for Windows. :ulb,l
 
-You'll need to use the mpiexec.exe and smpd.exe files from the MPICH2
-package. Put them in same directory (or path) as the LAMMPS Windows
-executable. :l
+The LAMMPS Windows installer packages will automatically adjust your
+path for the default location of this MPI package. After the installation
+of the MPICH software, it needs to be integrated into the system.
+For this you need to start a Command Prompt in {Administrator Mode}
+(right click on the icon and select it). Change into the MPICH2
+installation directory, then into the subdirectory [bin] and execute
+[smpd.exe -install]. Exit the command window.
 
-Get a command prompt by going to Start->Run... , 
+Get a new, regular command prompt by going to Start->Run... , 
 then typing "cmd". :l
 
-Move to the directory where you have saved lmp_win_mpi.exe
+Move to the directory where you have your input file
 (e.g. by typing: cd "Documents"). :l
 
-Then type something like this: "mpiexec -localonly 4 lmp_win_mpi -in
-in.lj", replacing in.lj with the name of your LAMMPS input script. :l
+Then type something like this:
 
-Note that you may need to provide smpd with a passphrase (it doesn't
-matter what you type). :l
+mpiexec -localonly 4 lmp_mpi -in in.lj :pre
+or
+
+mpiexec -np 4 lmp_mpi -in in.lj :pre
+
+replacing in.lj with the name of your LAMMPS input script. For the latter
+case, you may be prompted to enter your password. :l
 
 In this mode, output may not immediately show up on the screen, so if
 your input script takes a long time to execute, you may need to be
-patient before the output shows up. :l Alternatively, you can still
-use this executable to run on a single processor by typing something
-like: "lmp_win_mpi -in in.lj". :l
+patient before the output shows up. :l
+
+The parallel executable can also run on a single processor by typing
+something like:
+
+lmp_mpi -in in.lj :pre
+
 :ule
 
 :line

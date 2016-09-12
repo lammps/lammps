@@ -53,14 +53,14 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
   nvalues = 0;
   for (int iarg = 3; iarg < narg; iarg++) {
-    if (stxcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
-    else if (stxcmp(arg[iarg],"velvib") == 0) bstyle[nvalues++] = VELVIB;
-    else if (stxcmp(arg[iarg],"omega") == 0) bstyle[nvalues++] = OMEGA;
-    else if (stxcmp(arg[iarg],"engtrans") == 0) bstyle[nvalues++] = ENGTRANS;
-    else if (stxcmp(arg[iarg],"engvib") == 0) bstyle[nvalues++] = ENGVIB;
-    else if (stxcmp(arg[iarg],"engrot") == 0) bstyle[nvalues++] = ENGROT;
-    else if (stxcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
-    else if (stxcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
+    if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
+    else if (strcmp(arg[iarg],"velvib") == 0) bstyle[nvalues++] = VELVIB;
+    else if (strcmp(arg[iarg],"omega") == 0) bstyle[nvalues++] = OMEGA;
+    else if (strcmp(arg[iarg],"engtrans") == 0) bstyle[nvalues++] = ENGTRANS;
+    else if (strcmp(arg[iarg],"engvib") == 0) bstyle[nvalues++] = ENGVIB;
+    else if (strcmp(arg[iarg],"engrot") == 0) bstyle[nvalues++] = ENGROT;
+    else if (strcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
+    else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
     else error->all(FLERR,"Invalid keyword in compute bond/local command");
   }
 

@@ -130,7 +130,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   double dx,dy,dz,rsq;
   double mass1,mass2,masstotal,invmasstotal;
   double xcm[3],vcm[3];
-  double delr1[3],delr2[3],delv1[3],delv2[3],delv12[3];
+  double delr1[3],delr2[3],delv1[3],delv2[3];
   double r12[3],vpar1,vpar2;
   double vvib,vrotsq;
   double inertia,omegasq;

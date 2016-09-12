@@ -52,14 +52,14 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
 
   nvalues = 0;
   for (int iarg = 3; iarg < narg; iarg++) {
-    if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
-    else if (strcmp(arg[iarg],"velvib") == 0) bstyle[nvalues++] = VELVIB;
-    else if (strcmp(arg[iarg],"omega") == 0) bstyle[nvalues++] = OMEGA;
-    else if (strcmp(arg[iarg],"engtrans") == 0) bstyle[nvalues++] = ENGTRANS;
-    else if (strcmp(arg[iarg],"engvib") == 0) bstyle[nvalues++] = ENGVIB;
-    else if (strcmp(arg[iarg],"engrot") == 0) bstyle[nvalues++] = ENGROT;
-    else if (strcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
-    else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
+    if (stxcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
+    else if (stxcmp(arg[iarg],"velvib") == 0) bstyle[nvalues++] = VELVIB;
+    else if (stxcmp(arg[iarg],"omega") == 0) bstyle[nvalues++] = OMEGA;
+    else if (stxcmp(arg[iarg],"engtrans") == 0) bstyle[nvalues++] = ENGTRANS;
+    else if (stxcmp(arg[iarg],"engvib") == 0) bstyle[nvalues++] = ENGVIB;
+    else if (stxcmp(arg[iarg],"engrot") == 0) bstyle[nvalues++] = ENGROT;
+    else if (stxcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
+    else if (stxcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
     else error->all(FLERR,"Invalid keyword in compute bond/local command");
   }
 
@@ -126,7 +126,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   tagint tagprev;
   double dx,dy,dz,rsq;
   double mass1,mass2,masstotal,invmasstotal;
-  double rcm[3],vcm[3];
+  double xcm[3],vcm[3];
   double delr1[3],delr2[3],delv1[3],delv2[3],delv12[3];
   double r12[3],vpar1,vpar2;
   double vvib,vrotsq;
@@ -203,23 +203,27 @@ int ComputeBondLocal::compute_bonds(int flag)
         }
         masstotal = mass1+mass2;
         invmasstotal = 1.0 / (masstotal);
-        rcm[0] = (mass1*x[atom1][0] + mass2*x[atom2][0]) * invmasstotal;
-        rcm[1] = (mass1*x[atom1][1] + mass2*x[atom2][1]) * invmasstotal;
-        rcm[2] = (mass1*x[atom1][2] + mass2*x[atom2][2]) * invmasstotal;
+        xcm[0] = (mass1*x[atom1][0] + mass2*x[atom2][0]) * invmasstotal;
+        xcm[1] = (mass1*x[atom1][1] + mass2*x[atom2][1]) * invmasstotal;
+        xcm[2] = (mass1*x[atom1][2] + mass2*x[atom2][2]) * invmasstotal;
         vcm[0] = (mass1*v[atom1][0] + mass2*v[atom2][0]) * invmasstotal;
         vcm[1] = (mass1*v[atom1][1] + mass2*v[atom2][1]) * invmasstotal;
         vcm[2] = (mass1*v[atom1][2] + mass2*v[atom2][2]) * invmasstotal;
 
         engtrans= 0.5 * masstotal * MathExtra::lensq3(vcm);
 
+        // r12 = unit bond vector from atom1 to atom2
         MathExtra::sub3(x[atom2],x[atom1],r12);
         MathExtra::norm3(r12);
 
-        MathExtra::sub3(x[atom1],rcm,delr1);
-        MathExtra::sub3(x[atom2],rcm,delr2);
+        // delr = vector from COM to each atom
+        // delv = velocity of each atom relative to COM
+        MathExtra::sub3(x[atom1],xcm,delr1);
+        MathExtra::sub3(x[atom2],xcm,delr2);
         MathExtra::sub3(v[atom1],vcm,delv1);
         MathExtra::sub3(v[atom2],vcm,delv2);
 
+        // vpar = component of delv parallel to bond vector
         vpar1 = MathExtra::dot3(delv1,r12);
         vpar2 = MathExtra::dot3(delv2,r12);
 
@@ -227,12 +231,15 @@ int ComputeBondLocal::compute_bonds(int flag)
 
         engvib = 0.5 * (mass1*vpar1*vpar1 + mass2*vpar2*vpar2);
 
+        // vrotsq = tangential speed squared of atom1 only
+        // omegasq = omega squared, and is the same for atom1 and atom2
         inertia = mass1*MathExtra::lensq3(delr1) + mass2*MathExtra::lensq3(delr2);
         vrotsq = MathExtra::lensq3(delv1) - vpar1*vpar1;
         omegasq = vrotsq / MathExtra::lensq3(delr1);
 
         engrot = 0.5 * inertia * omegasq;
 
+        // sanity check: engtotal = engtrans + engvib + engrot
         engtot = 0.5 * (mass1*MathExtra::lensq3(v[atom1]) + mass2*MathExtra::lensq3(v[atom2]));
         if (fabs(engtot-engtrans-engvib-engrot) > EPSILON)
           error->one(FLERR,"Sanity check on 3 energy components failed");

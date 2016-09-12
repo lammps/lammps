@@ -36,7 +36,7 @@ class ComputeBondLocal : public Compute {
   int nvalues;
   int ncount;
   int *bstyle;
-  int singleflag;
+  int singleflag,ghostvelflag;
 
   int nmax;
 

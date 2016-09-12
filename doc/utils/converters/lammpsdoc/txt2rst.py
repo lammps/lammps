@@ -65,6 +65,7 @@ class RSTMarkup(Markup):
     def escape_rst_chars(self, text):
         text = text.replace('*', '\\*')
         text = text.replace('^', '\\^')
+        text = text.replace('|', '\\|')
         text = re.sub(r'([^"])_', r'\1\\_', text)
         return text
 
@@ -72,6 +73,7 @@ class RSTMarkup(Markup):
         text = text.replace('\\*', '*')
         text = text.replace('\\^', '^')
         text = text.replace('\\_', '_')
+        text = text.replace('\\|', '|')
         return text
 
     def inline_math(self, text):

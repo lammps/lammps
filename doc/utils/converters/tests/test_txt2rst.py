@@ -81,6 +81,10 @@ class TestMarkup(unittest.TestCase):
         s = self.markup.convert("[*bold] and {italic*}")
         self.assertEqual("**\*bold** and *italic\**", s)
 
+    def test_escape_rst_characters(self):
+      s = self.markup.convert("[|bold|] and {|italic|}")
+      self.assertEqual("**\|bold\|** and *\|italic\|*", s)
+
     def test_escape_hat_character(self):
         s = self.markup.convert("x^2")
         self.assertEqual("x\^2", s)

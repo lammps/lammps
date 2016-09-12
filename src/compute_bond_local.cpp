@@ -65,10 +65,19 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // set singleflag if need to call bond->single()
-
+  // set ghostvelflag if need to call atom->v
+  // check that 'comm_modify vel yes' is set if ghostvelflag is 1
   singleflag = 0;
-  for (int i = 0; i < nvalues; i++)
-    if (bstyle[i] != DIST) singleflag = 1;
+  ghostvelflag = 0;
+  for (int i = 0; i < nvalues; i++) {
+    if (bstyle[i] == ENGPOT || bstyle[i] == FORCE) singleflag = 1;
+    if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||
+        bstyle[i] == ENGVIB || bstyle[i] == ENGROT) {
+      ghostvelflag = 1;
+      if (comm->ghost_velocity == 0)
+        error->all(FLERR,"Compute bond/local keyword requires ghost atoms store velocity");
+    }
+  }
 
   nmax = 0;
 }
@@ -88,8 +97,6 @@ void ComputeBondLocal::init()
 {
   if (force->bond == NULL)
     error->all(FLERR,"No bond style is defined for compute bond/local");
-  if (comm->ghost_velocity == 0)
-    error->all(FLERR,"Compute bond/local requires ghost atoms store velocity");
 
   // do initial memory allocation so that memory_usage() is correct
 
@@ -196,61 +203,64 @@ int ComputeBondLocal::compute_bonds(int flag)
           engpot = bond->single(btype,rsq,atom1,atom2,fbond);
         else engpot = fbond = 0.0;
 
-        if (rmass) {
-          mass1 = rmass[atom1];
-          mass2 = rmass[atom2];
+        if (ghostvelflag) {
+          if (rmass) {
+            mass1 = rmass[atom1];
+            mass2 = rmass[atom2];
+          }
+          else {
+            mass1 = mass[type[atom1]];
+            mass2 = mass[type[atom2]];
+          }
+          masstotal = mass1+mass2;
+          invmasstotal = 1.0 / (masstotal);
+          xcm[0] = (mass1*x[atom1][0] + mass2*x[atom2][0]) * invmasstotal;
+          xcm[1] = (mass1*x[atom1][1] + mass2*x[atom2][1]) * invmasstotal;
+          xcm[2] = (mass1*x[atom1][2] + mass2*x[atom2][2]) * invmasstotal;
+          vcm[0] = (mass1*v[atom1][0] + mass2*v[atom2][0]) * invmasstotal;
+          vcm[1] = (mass1*v[atom1][1] + mass2*v[atom2][1]) * invmasstotal;
+          vcm[2] = (mass1*v[atom1][2] + mass2*v[atom2][2]) * invmasstotal;
+
+          engtrans= 0.5 * masstotal * MathExtra::lensq3(vcm);
+
+          // r12 = unit bond vector from atom1 to atom2
+          MathExtra::sub3(x[atom2],x[atom1],r12);
+          MathExtra::norm3(r12);
+
+          // delr = vector from COM to each atom
+          // delv = velocity of each atom relative to COM
+          MathExtra::sub3(x[atom1],xcm,delr1);
+          MathExtra::sub3(x[atom2],xcm,delr2);
+          MathExtra::sub3(v[atom1],vcm,delv1);
+          MathExtra::sub3(v[atom2],vcm,delv2);
+
+          // vpar = component of delv parallel to bond vector
+          vpar1 = MathExtra::dot3(delv1,r12);
+          vpar2 = MathExtra::dot3(delv2,r12);
+
+          vvib = vpar2 - vpar1;
+
+          engvib = 0.5 * (mass1*vpar1*vpar1 + mass2*vpar2*vpar2);
+
+          // vrotsq = tangential speed squared of atom1 only
+          // omegasq = omega squared, and is the same for atom1 and atom2
+          inertia = mass1*MathExtra::lensq3(delr1) + mass2*MathExtra::lensq3(delr2);
+          vrotsq = MathExtra::lensq3(delv1) - vpar1*vpar1;
+          omegasq = vrotsq / MathExtra::lensq3(delr1);
+
+          engrot = 0.5 * inertia * omegasq;
+
+          // sanity check: engtotal = engtrans + engvib + engrot
+          engtot = 0.5 * (mass1*MathExtra::lensq3(v[atom1]) + mass2*MathExtra::lensq3(v[atom2]));
+          if (fabs(engtot-engtrans-engvib-engrot) > EPSILON)
+            error->one(FLERR,"Sanity check on 3 energy components failed");
+
+          mvv2e = force->mvv2e;
+          engtrans *= mvv2e;
+          engvib *= mvv2e;
+          engrot *= mvv2e;
         }
-        else {
-          mass1 = mass[type[atom1]];
-          mass2 = mass[type[atom2]];
-        }
-        masstotal = mass1+mass2;
-        invmasstotal = 1.0 / (masstotal);
-        xcm[0] = (mass1*x[atom1][0] + mass2*x[atom2][0]) * invmasstotal;
-        xcm[1] = (mass1*x[atom1][1] + mass2*x[atom2][1]) * invmasstotal;
-        xcm[2] = (mass1*x[atom1][2] + mass2*x[atom2][2]) * invmasstotal;
-        vcm[0] = (mass1*v[atom1][0] + mass2*v[atom2][0]) * invmasstotal;
-        vcm[1] = (mass1*v[atom1][1] + mass2*v[atom2][1]) * invmasstotal;
-        vcm[2] = (mass1*v[atom1][2] + mass2*v[atom2][2]) * invmasstotal;
-
-        engtrans= 0.5 * masstotal * MathExtra::lensq3(vcm);
-
-        // r12 = unit bond vector from atom1 to atom2
-        MathExtra::sub3(x[atom2],x[atom1],r12);
-        MathExtra::norm3(r12);
-
-        // delr = vector from COM to each atom
-        // delv = velocity of each atom relative to COM
-        MathExtra::sub3(x[atom1],xcm,delr1);
-        MathExtra::sub3(x[atom2],xcm,delr2);
-        MathExtra::sub3(v[atom1],vcm,delv1);
-        MathExtra::sub3(v[atom2],vcm,delv2);
-
-        // vpar = component of delv parallel to bond vector
-        vpar1 = MathExtra::dot3(delv1,r12);
-        vpar2 = MathExtra::dot3(delv2,r12);
-
-        vvib = vpar2 - vpar1;
-
-        engvib = 0.5 * (mass1*vpar1*vpar1 + mass2*vpar2*vpar2);
-
-        // vrotsq = tangential speed squared of atom1 only
-        // omegasq = omega squared, and is the same for atom1 and atom2
-        inertia = mass1*MathExtra::lensq3(delr1) + mass2*MathExtra::lensq3(delr2);
-        vrotsq = MathExtra::lensq3(delv1) - vpar1*vpar1;
-        omegasq = vrotsq / MathExtra::lensq3(delr1);
-
-        engrot = 0.5 * inertia * omegasq;
-
-        // sanity check: engtotal = engtrans + engvib + engrot
-        engtot = 0.5 * (mass1*MathExtra::lensq3(v[atom1]) + mass2*MathExtra::lensq3(v[atom2]));
-        if (fabs(engtot-engtrans-engvib-engrot) > EPSILON)
-          error->one(FLERR,"Sanity check on 3 energy components failed");
-
-        mvv2e = force->mvv2e;
-        engtrans *= mvv2e;
-        engvib *= mvv2e;
-        engrot *= mvv2e;
+        else vvib = omegasq = engtrans = engvib = engrot = 0.0;
 
         if (nvalues == 1) ptr = &vector[m];
         else ptr = array[m];

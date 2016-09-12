@@ -98,9 +98,9 @@ for more info on packages.
 
 [Default:] none
 
-:link(Henkelman)
+:link(Henkelman1)
 [(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
-:link(Henkelman)
+:link(Henkelman2)
 [(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).

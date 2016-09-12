@@ -43,8 +43,8 @@ NEB is a method for finding both the atomic configurations and height
 of the energy barrier associated with a transition state, e.g. for an
 atom to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 3 papers: "(Henkelman1)"_#Henkelman1,
-"(Henkelman2)"_#Henkelman2, and "(Nakano)"_#Nakano.
+follows the discussion in these 3 papers: "(HenkelmanA)"_#HenkelmanA,
+"(HenkelmanB)"_#HenkelmanB, and "(Nakano)"_#Nakano.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
@@ -235,7 +235,7 @@ In the second stage of NEB, the replica with the highest energy
 is selected and the inter-replica forces on it are converted to a
 force that drives its atom coordinates to the top or saddle point of
 the barrier, via the barrier-climbing calculation described in
-"(Henkelman2)"_#Henkelman2.  As before, the other replicas rearrange
+"(HenkelmanB)"_#HenkelmanB.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
 When both stages are complete, if the NEB calculation was successful,
@@ -414,11 +414,11 @@ langevin"_fix_langevin.html, "fix viscous"_fix_viscous.html
 
 :line
 
-:link(Henkelman1)
-[(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
+:link(HenkelmanA)
+[(HenkelmanA)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
-:link(Henkelman2)
-[(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+:link(HenkelmanB)
+[(HenkelmanB)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
 :link(Nakano)

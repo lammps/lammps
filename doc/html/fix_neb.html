@@ -157,7 +157,7 @@ Atoms in the two end-point replicas do not experience these forces,
 but those in intermediate replicas do.  During the initial stage of
 NEB, the 3N-length vector of interatomic forces Fi = -Grad(V) acting
 on the atoms of each intermediate replica I is altered, as described
-in the <a class="reference internal" href="neb.html#henkelman1"><span class="std std-ref">(Henkelman1)</span></a> paper, to become:</p>
+in the <a class="reference internal" href="#henkelman1"><span class="std std-ref">(Henkelman1)</span></a> paper, to become:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Fi</span> <span class="o">=</span> <span class="o">-</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="n">dot</span> <span class="n">That</span><span class="p">)</span> <span class="n">That</span> <span class="o">+</span> <span class="n">Kspring</span> <span class="p">(</span><span class="o">|</span> <span class="n">Ri</span><span class="o">+</span><span class="n">i</span> <span class="o">-</span> <span class="n">Ri</span> <span class="o">|</span> <span class="o">-</span> <span class="o">|</span> <span class="n">Ri</span> <span class="o">-</span> <span class="n">Ri</span><span class="o">-</span><span class="mi">1</span> <span class="o">|</span><span class="p">)</span> <span class="n">That</span>
 </pre></div>
 </div>
@@ -166,7 +166,7 @@ coordinates of its neighbor replicas.  That (t with a hat over it) is
 the unit &#8220;tangent&#8221; vector for replica I which is a function of Ri,
 Ri-1, Ri+1, and the potential energy of the 3 replicas; it points
 roughly in the direction of (Ri+i - Ri-1); see the
-<a class="reference internal" href="neb.html#henkelman1"><span class="std std-ref">(Henkelman1)</span></a> paper for details.</p>
+<a class="reference internal" href="#henkelman1"><span class="std std-ref">(Henkelman1)</span></a> paper for details.</p>
 <p>The first two terms in the above equation are the component of the
 interatomic forces perpendicular to the tangent vector.  The last term
 is a spring force between replica I and its neighbors, parallel to the
@@ -184,7 +184,7 @@ states are equidistant from each other.</p>
 replica nearest the top of the energy barrier are altered so that it
 climbs to the top of the barrier and finds the saddle point.  The
 forces on atoms in this replica are described in the
-<a class="reference internal" href="neb.html#henkelman2"><span class="std std-ref">(Henkelman2)</span></a> paper, and become:</p>
+<a class="reference internal" href="#henkelman2"><span class="std std-ref">(Henkelman2)</span></a> paper, and become:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Fi</span> <span class="o">=</span> <span class="o">-</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">(</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="n">dot</span> <span class="n">That</span><span class="p">)</span> <span class="n">That</span>
 </pre></div>
 </div>
@@ -209,8 +209,8 @@ for more info on packages.</p>
 <h2>Related commands</h2>
 <p><a class="reference internal" href="neb.html"><span class="doc">neb</span></a></p>
 <p><strong>Default:</strong> none</p>
-<p id="henkelman"><strong>(Henkelman1)</strong> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).</p>
-<p id="id3"><strong>(Henkelman2)</strong> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+<p id="henkelman1"><strong>(Henkelman1)</strong> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).</p>
+<p id="henkelman2"><strong>(Henkelman2)</strong> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).</p>
 </div>
 </div>

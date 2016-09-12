@@ -166,8 +166,8 @@ and last are the end points of the transition path.</p>
 of the energy barrier associated with a transition state, e.g. for an
 atom to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 3 papers: <a class="reference internal" href="#henkelman1"><span class="std std-ref">(Henkelman1)</span></a>,
-<a class="reference internal" href="#henkelman2"><span class="std std-ref">(Henkelman2)</span></a>, and <a class="reference internal" href="#nakano"><span class="std std-ref">(Nakano)</span></a>.</p>
+follows the discussion in these 3 papers: <a class="reference internal" href="#henkelmana"><span class="std std-ref">(HenkelmanA)</span></a>,
+<a class="reference internal" href="#henkelmanb"><span class="std std-ref">(HenkelmanB)</span></a>, and <a class="reference internal" href="#nakano"><span class="std std-ref">(Nakano)</span></a>.</p>
 <p>Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
 switch; see <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">Section 2.7</span></a> of the
@@ -346,7 +346,7 @@ due to the inter-replica spring force added by the <a class="reference internal"
 is selected and the inter-replica forces on it are converted to a
 force that drives its atom coordinates to the top or saddle point of
 the barrier, via the barrier-climbing calculation described in
-<a class="reference internal" href="#henkelman2"><span class="std std-ref">(Henkelman2)</span></a>.  As before, the other replicas rearrange
+<a class="reference internal" href="#henkelmanb"><span class="std std-ref">(HenkelmanB)</span></a>.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.</p>
 <p>When both stages are complete, if the NEB calculation was successful,
 one of the replicas should be an atomic configuration at the top or
@@ -510,8 +510,8 @@ for more info on packages.</p>
 <p><a class="reference internal" href="prd.html"><span class="doc">prd</span></a>, <a class="reference internal" href="temper.html"><span class="doc">temper</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, <a class="reference internal" href="fix_viscous.html"><span class="doc">fix viscous</span></a></p>
 <p><strong>Default:</strong> none</p>
 <hr class="docutils" />
-<p id="henkelman1"><strong>(Henkelman1)</strong> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).</p>
-<p id="henkelman2"><strong>(Henkelman2)</strong> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+<p id="henkelmana"><strong>(HenkelmanA)</strong> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).</p>
+<p id="henkelmanb"><strong>(HenkelmanB)</strong> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).</p>
 <p id="nakano"><strong>(Nakano)</strong> Nakano, Comp Phys Comm, 178, 280-289 (2008).</p>
 </div>

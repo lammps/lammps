@@ -64,8 +64,8 @@ See the "thermo_style" command for more details.
 
 This compute calculates a global scalar (the potential energy).  This
 value can be used by any command that uses a global scalar value from
-a compute as input.  See "Section_howto
-15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+a compute as input.  See "Section
+6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The scalar value calculated by this compute is "extensive".  The

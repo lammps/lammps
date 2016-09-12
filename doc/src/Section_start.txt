@@ -1147,8 +1147,8 @@ description of the Python wrapper provided with LAMMPS that operates
 through the LAMMPS library interface.
 
 The files src/library.cpp and library.h define the C-style API for
-using LAMMPS as a library.  See "Section_howto
-19"_Section_howto.html#howto_19 of the manual for a description of the
+using LAMMPS as a library.  See "Section
+6.19"_Section_howto.html#howto_19 of the manual for a description of the
 interface and how to extend it for your needs.
 
 :line

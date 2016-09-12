@@ -150,7 +150,7 @@ multiple chunks of atoms.</p>
 <p>In LAMMPS, chunks are collections of atoms defined by a <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> doc page and &#8220;<a class="reference internal" href="Section_howto.html#howto-23"><span class="std std-ref">Section_howto 23</span></a> for details of how chunks can be
+molecule or atoms in a spatial bin.  See the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> doc page and <a class="reference internal" href="Section_howto.html#howto-23"><span class="std std-ref">Section 6.23</span></a> for details of how chunks can be
 defined and examples of how they can be used to measure properties of
 a system.</p>
 <p>This compute calculates the x,y,z components of the center-of-mass
@@ -177,7 +177,7 @@ fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 number of chunks <em>Nchunk</em> as calculated by the specified <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command.  The number of columns =
 3 for the x,y,z center-of-mass velocity coordinates of each chunk.
 These values can be accessed by any command that uses global array
-values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section_howto 15</span></a> for an overview of LAMMPS output
+values from a compute as input.  See <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">Section 6.15</span></a> for an overview of LAMMPS output
 options.</p>
 <p>The array values are &#8220;intensive&#8221;.  The array values will be in
 velocity <a class="reference internal" href="units.html"><span class="doc">units</span></a>.</p>

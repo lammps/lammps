@@ -101,8 +101,8 @@ msd/chunk"_compute_msd_chunk.html.  Or they can be used by the "fix
 ave/chunk"_fix_ave_chunk.html command to sum and time average a
 variety of per-atom properties over the atoms in each chunk.  Or they
 can simply be accessed by any command that uses per-atom values from a
-compute as input, as discussed in "Section_howto
-15"_Section_howto.html#howto_15.
+compute as input, as discussed in "Section
+6.15"_Section_howto.html#howto_15.
 
 See "Section 6.23"_Section_howto.html#howto_23 for an overview of
 how this compute can be used with a variety of other commands to

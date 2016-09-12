@@ -48,7 +48,7 @@ and Coulombic terms respectively.
 The purpose of this pair style is to capture long-range interactions
 resulting from both attractive 1/r^6 Buckingham and Coulombic 1/r
 interactions.  This is done by use of the {flag_buck} and {flag_coul}
-settings.  The ""Ismail"_#Ismail paper has more details on when it is
+settings.  The "Ismail"_#Ismail paper has more details on when it is
 appropriate to include long-range 1/r^6 interactions, using this
 potential.
 

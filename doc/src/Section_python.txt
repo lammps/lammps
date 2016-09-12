@@ -44,8 +44,8 @@ model.
 
 See "Section 6.10"_Section_howto.html#howto_10 of the manual and
 the couple directory of the distribution for more ideas about coupling
-LAMMPS to other codes.  See "Section_howto
-19"_Section_howto.html#howto_19 for a description of the LAMMPS
+LAMMPS to other codes.  See "Section
+6.19"_Section_howto.html#howto_19 for a description of the LAMMPS
 library interface provided in src/library.cpp and src/library.h, and
 how to extend it for your needs.  As described below, that interface
 is what is exposed to Python either when calling LAMMPS from Python or

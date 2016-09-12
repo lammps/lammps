@@ -98,8 +98,8 @@ output the custom values.
 
 All of the above styles define point particles, except the {sphere},
 {ellipsoid}, {electron}, {peri}, {wavepacket}, {line}, {tri}, and
-{body} styles, which define finite-size particles.  See "Section_howto
-14"_Section_howto.html#howto_14 for an overview of using finite-size
+{body} styles, which define finite-size particles.  See "Section
+6.14"_Section_howto.html#howto_14 for an overview of using finite-size
 particle models with LAMMPS.
 
 All of the point-particle styles assign mass to particles on a

@@ -140,20 +140,20 @@
 <li>seed = random number seed to use for generating noise (positive integer)</li>
 <li>zero or more keyword/value pairs may be appended</li>
 </ul>
-<dl class="docutils">
-<dt>keyword = <em>noneq</em> and/or <em>every</em></dt>
-<dd><p class="first"><em>noneq</em> Cmatrix  = file to read the non-equilibrium covariance matrix from
-<em>every</em> stride   = apply the GLE once every time steps. Reduces the accuracy</p>
-<blockquote class="last">
-<div>of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
-sampling. It might change sampling properties when used together with <em>noneq</em>.</div></blockquote>
-</dd>
-</dl>
+<pre class="literal-block">
+keyword = <em>noneq</em> or <em>every</em>
+  <em>noneq</em> Cmatrix  = file to read the non-equilibrium covariance matrix from
+  <em>every</em> stride   = apply the GLE once every time steps. Reduces the accuracy
+      of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
+      sampling. It might change sampling properties when used together with <em>noneq</em>.
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<p>fix 3 boundary gle 6 300 300 31415 smart.A
-fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">3</span> <span class="n">boundary</span> <span class="n">gle</span> <span class="mi">6</span> <span class="mi">300</span> <span class="mi">300</span> <span class="mi">31415</span> <span class="n">smart</span><span class="o">.</span><span class="n">A</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">gle</span> <span class="mi">6</span> <span class="mi">300</span> <span class="mi">300</span> <span class="mi">31415</span> <span class="n">qt</span><span class="o">-</span><span class="mi">300</span><span class="n">k</span><span class="o">.</span><span class="n">A</span> <span class="n">noneq</span> <span class="n">qt</span><span class="o">-</span><span class="mi">300</span><span class="n">k</span><span class="o">.</span><span class="n">C</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -169,8 +169,10 @@ on the same atom groups.</p>
 <p>Each degree of freedom in the thermostatted group is supplemented
 with Ns additional degrees of freedom s, and the equations of motion
 become</p>
-<p>dq/dt=p/m
-d(p,s)/dt=(F,0) - A(p,s) + B dW/dt</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dq</span><span class="o">/</span><span class="n">dt</span><span class="o">=</span><span class="n">p</span><span class="o">/</span><span class="n">m</span>
+<span class="n">d</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">s</span><span class="p">)</span><span class="o">/</span><span class="n">dt</span><span class="o">=</span><span class="p">(</span><span class="n">F</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">A</span><span class="p">(</span><span class="n">p</span><span class="p">,</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="n">B</span> <span class="n">dW</span><span class="o">/</span><span class="n">dt</span>
+</pre></div>
+</div>
 <p>where F is the physical force, A is the drift matrix (that generalizes
 the friction in Langevin dynamics), B is the diffusion term and dW/dt
 un-correlated Gaussian random forces. The A matrix couples the physical

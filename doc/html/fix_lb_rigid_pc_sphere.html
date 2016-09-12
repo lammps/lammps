@@ -131,26 +131,20 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">lb</span><span class="o">/</span><span class="n">rigid</span><span class="o">/</span><span class="n">pc</span><span class="o">/</span><span class="n">sphere</span> <span class="n">bodystyle</span> <span class="n">args</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
 </pre></div>
 </div>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">lb/rigid/pc/sphere = style name of this fix command</p>
-</li>
-<li><p class="first">bodystyle = <em>single</em> or <em>molecule</em> or <em>group</em></p>
-</li>
-<li><dl class="first docutils">
-<dt><em>single</em> args = none</dt>
-<dd><p class="first"><em>molecule</em> args = none
-<em>group</em> args = N groupID1 groupID2 ...</p>
-<blockquote class="last">
-<div><p>N = # of groups</p>
-</div></blockquote>
-</dd>
-</dl>
-<p>zero or more keyword/value pairs may be appended</p>
-</li>
-<li><p class="first">keyword = <em>force</em> or <em>torque</em> or <em>innerNodes</em></p>
-</li>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>lb/rigid/pc/sphere = style name of this fix command</li>
+<li>bodystyle = <em>single</em> or <em>molecule</em> or <em>group</em></li>
+</ul>
+<pre class="literal-block">
+<em>single</em> args = none
+<em>molecule</em> args = none
+<em>group</em> args = N groupID1 groupID2 ...
+  N = # of groups
+</pre>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>force</em> or <em>torque</em> or <em>innerNodes</em></li>
 </ul>
 <pre class="literal-block">
 <em>force</em> values = M xflag yflag zflag
@@ -176,7 +170,7 @@
 created to be used in place of that fix, to integrate the equations of
 motion of spherical rigid bodies when a lattice-Boltzmann fluid is
 present with a user-specified value of the force-coupling constant.
-The fix uses the integration algorithm described in <a class="reference internal" href="fix_lb_viscous.html#mackay"><span class="std std-ref">Mackay et al.</span></a> to update the positions, velocities, and orientations of
+The fix uses the integration algorithm described in <a class="reference internal" href="#mackay"><span class="std std-ref">Mackay et al.</span></a> to update the positions, velocities, and orientations of
 a set of spherical rigid bodies experiencing velocity dependent
 hydrodynamic forces.  The spherical bodies are assumed to rotate as
 solid, uniform density spheres, with moments of inertia calculated

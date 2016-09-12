@@ -37,7 +37,7 @@ NEB, the 3N-length vector of interatomic forces Fi = -Grad(V) acting
 on the atoms of each intermediate replica I is altered, as described
 in the "(Henkelman1)"_#Henkelman1 paper, to become:
 
-Fi = -Grad(V) + (Grad(V) dot That) That + Kspring (|Ri+i - Ri| - |Ri - Ri-1|) That :pre
+Fi = -Grad(V) + (Grad(V) dot That) That + Kspring (| Ri+i - Ri | - | Ri - Ri-1 |) That :pre
 
 Ri are the atomic coordinates of replica I; Ri-1 and Ri+1 are the
 coordinates of its neighbor replicas.  That (t with a hat over it) is

@@ -158,7 +158,7 @@ but those in intermediate replicas do.  During the initial stage of
 NEB, the 3N-length vector of interatomic forces Fi = -Grad(V) acting
 on the atoms of each intermediate replica I is altered, as described
 in the <a class="reference internal" href="neb.html#henkelman1"><span class="std std-ref">(Henkelman1)</span></a> paper, to become:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Fi</span> <span class="o">=</span> <span class="o">-</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="n">dot</span> <span class="n">That</span><span class="p">)</span> <span class="n">That</span> <span class="o">+</span> <span class="n">Kspring</span> <span class="p">(</span><span class="o">|</span><span class="n">Ri</span><span class="o">+</span><span class="n">i</span> <span class="o">-</span> <span class="n">Ri</span><span class="o">|</span> <span class="o">-</span> <span class="o">|</span><span class="n">Ri</span> <span class="o">-</span> <span class="n">Ri</span><span class="o">-</span><span class="mi">1</span><span class="o">|</span><span class="p">)</span> <span class="n">That</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Fi</span> <span class="o">=</span> <span class="o">-</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Grad</span><span class="p">(</span><span class="n">V</span><span class="p">)</span> <span class="n">dot</span> <span class="n">That</span><span class="p">)</span> <span class="n">That</span> <span class="o">+</span> <span class="n">Kspring</span> <span class="p">(</span><span class="o">|</span> <span class="n">Ri</span><span class="o">+</span><span class="n">i</span> <span class="o">-</span> <span class="n">Ri</span> <span class="o">|</span> <span class="o">-</span> <span class="o">|</span> <span class="n">Ri</span> <span class="o">-</span> <span class="n">Ri</span><span class="o">-</span><span class="mi">1</span> <span class="o">|</span><span class="p">)</span> <span class="n">That</span>
 </pre></div>
 </div>
 <p>Ri are the atomic coordinates of replica I; Ri-1 and Ri+1 are the
@@ -210,7 +210,7 @@ for more info on packages.</p>
 <p><a class="reference internal" href="neb.html"><span class="doc">neb</span></a></p>
 <p><strong>Default:</strong> none</p>
 <p id="henkelman"><strong>(Henkelman1)</strong> Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).</p>
-<p id="id1"><strong>(Henkelman2)</strong> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+<p id="id3"><strong>(Henkelman2)</strong> Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).</p>
 </div>
 </div>

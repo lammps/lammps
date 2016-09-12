@@ -237,8 +237,8 @@ nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
 regarding the bonded interactions. (default value = 5.0)
 
 hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
-bond interactions.(default value = 7.5. Value of 0.0 turns off hydrogen 
-		bonds)
+bond interactions.(default value = 7.5. Value of 0.0 turns off
+hydrogen bonds)
 
 bond_graph_cutoff: is the threshold used in determining what is a
 physical bond, what is not. Bonds and angles reported in the

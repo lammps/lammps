@@ -165,7 +165,7 @@ headings) the following commands could be included in an input script:
 compute reax all pair reax/c
 variable eb  	 equal c_reax\[1\]
 variable ea  	 equal c_reax\[2\] 
-...
+\[...\]
 variable eqeq 	 equal c_reax\[14\]
 thermo_style custom step temp epair v_eb v_ea ... v_eqeq :pre
 

@@ -2617,6 +2617,10 @@ The style of the specified compute is not chunk/atom. :dd
 
 Self-explanatory. :dd
 
+{Compute bond/local requires ghost atoms store velocity} :dt
+
+Use the comm_modify vel yes command to enable this. :dd
+
 {Compute bond/local used when bonds are not allowed} :dt
 
 The atom style does not support bonds. :dd

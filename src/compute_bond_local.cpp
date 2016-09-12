@@ -22,6 +22,7 @@
 #include "force.h"
 #include "bond.h"
 #include "math_extra.h"
+#include "comm.h"
 #include "memory.h"
 #include "error.h"
 
@@ -87,6 +88,8 @@ void ComputeBondLocal::init()
 {
   if (force->bond == NULL)
     error->all(FLERR,"No bond style is defined for compute bond/local");
+  if (comm->ghost_velocity == 0)
+    error->all(FLERR,"Compute bond/local requires ghost atoms store velocity");
 
   // do initial memory allocation so that memory_usage() is correct
 

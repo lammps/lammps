@@ -72,11 +72,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nvalues; i++) {
     if (bstyle[i] == ENGPOT || bstyle[i] == FORCE) singleflag = 1;
     if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||
-        bstyle[i] == ENGVIB || bstyle[i] == ENGROT) {
-      ghostvelflag = 1;
-      if (comm->ghost_velocity == 0)
-        error->all(FLERR,"Compute bond/local keyword requires ghost atoms store velocity");
-    }
+        bstyle[i] == ENGVIB || bstyle[i] == ENGROT) ghostvelflag = 1;
   }
 
   nmax = 0;
@@ -97,6 +93,8 @@ void ComputeBondLocal::init()
 {
   if (force->bond == NULL)
     error->all(FLERR,"No bond style is defined for compute bond/local");
+  if (ghostvelflag && (comm->ghost_velocity == 0))
+    error->all(FLERR,"Compute bond/local keyword requires ghost atoms store velocity");
 
   // do initial memory allocation so that memory_usage() is correct
 

@@ -200,6 +200,11 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual("Level\n"
                          "#####\n\n", s)
 
+    def test_filter_header_numbers_deep(self):
+        s = self.txt2rst.convert("1.1.1.1.1 Level :h1\n")
+        self.assertEqual("Level\n"
+                         "#####\n\n", s)
+
     def test_all_breaks(self):
         s = self.txt2rst.convert("one\n"
                                   "two\n"

@@ -161,7 +161,7 @@ class RSTFormatting(Formatting):
 
     def header(self, content, level):
         header_content = content.strip()
-        header_content = re.sub(r'[0-9]+\.[0-9]*\s+', '', header_content)
+        header_content = re.sub(r'[0-9]+(\.[0-9]*)*\s+', '', header_content)
         header_underline = RSTFormatting.RST_HEADER_TYPES[level-1] * len(header_content)
         return header_content + "\n" + header_underline + "\n"
 

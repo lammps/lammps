@@ -119,8 +119,12 @@ class RSTFormatting(Formatting):
 
     def __init__(self, markup):
         super().__init__(markup)
+        self.indent_level = 0
 
     def paragraph(self, content):
+        if self.indent_level > 0:
+            return '\n' + self.list_indent(content.strip(), self.indent_level)
+
         return content.strip() + "\n"
 
     def center(self, content):
@@ -130,7 +134,9 @@ class RSTFormatting(Formatting):
         return content.strip()
 
     def preformat(self, content):
-        return ".. parsed-literal::\n\n" + self.indent(content.rstrip())
+        if self.indent_level > 0:
+            return self.list_indent("\n.. parsed-literal::\n\n" + self.indent(content.rstrip()), self.indent_level)
+        return "\n.. parsed-literal::\n\n" + self.indent(content.rstrip())
 
     def horizontal_rule(self, content):
         return "\n----------\n\n" + content.strip()
@@ -180,14 +186,17 @@ class RSTFormatting(Formatting):
         return self.indent(paragraph.strip())
 
     def unordered_list_begin(self, paragraph):
+        self.indent_level += 1
         return paragraph
 
     def unordered_list_end(self, paragraph):
+        self.indent_level -= 1
         return paragraph.rstrip() + '\n'
 
     def ordered_list_begin(self, paragraph):
         if paragraph.startswith('* '):
             paragraph = '#. ' + paragraph[2:]
+        self.indent_level += 1
         return paragraph
 
     def definition_list_begin(self, paragraph):
@@ -197,6 +206,7 @@ class RSTFormatting(Formatting):
         return paragraph
 
     def ordered_list_end(self, paragraph):
+        self.indent_level -= 1
         return paragraph.rstrip() + '\n'
 
     def ordered_list(self, paragraph):
@@ -228,6 +238,12 @@ class RSTFormatting(Formatting):
         indented = ""
         for line in content.splitlines():
             indented += "   %s\n" % line
+        return indented
+
+    def list_indent(self, content, level=1):
+        indented = ""
+        for line in content.splitlines():
+            indented += "  " * level + ("%s\n" % line)
         return indented
 
     def get_max_column_widths(self, rows):

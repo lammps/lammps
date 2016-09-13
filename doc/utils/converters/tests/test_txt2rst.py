@@ -317,8 +317,6 @@ class TestListFormatting(unittest.TestCase):
                          "* third\n"
                          "  paragraph\n\n", s)
 
-
-
     def test_definition_list(self):
         s = self.txt2rst.convert("A\n"
                                   "first\n"
@@ -330,6 +328,39 @@ class TestListFormatting(unittest.TestCase):
                          "B\n"
                          "   second\n"
                          "\n\n", s)
+
+    def test_multi_paragraph_lists(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph of first bullet :ulb,l\n\n"
+                                 "second paragraph of first bullet\n\n"
+                                 "first paragraph of second bullet :l\n\n"
+                                 ":ule\n")
+        self.assertEqual("* first\n"
+                         "  paragraph of first bullet\n"
+                         "\n"
+                         "  second paragraph of first bullet\n"
+                         "\n"
+                         "* first paragraph of second bullet\n\n\n", s)
+
+    def test_multi_paragraph_lists_with_listing(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph of first bullet :ulb,l\n\n"
+                                 "code1 :pre\n"
+                                 "or\n"
+                                 "\n"
+                                 "first paragraph of second bullet :l\n\n"
+                                 ":ule\n")
+        self.assertEqual("* first\n"
+                         "  paragraph of first bullet\n"
+                         "  \n"
+                         "  .. parsed-literal::\n"
+                         "  \n"
+                         "     code1\n"
+                         "\n\n"
+                         "  or\n"
+                         "\n"
+                         "* first paragraph of second bullet\n\n\n", s)
+
 
 class TestSpecialCommands(unittest.TestCase):
     def setUp(self):

@@ -57,6 +57,7 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = NULL;
 
   maxneigh = 0;
+  allocated = 0;
   scrfcn = dscrfcn = fcpair = NULL;
 
   nelements = 0;

@@ -179,12 +179,12 @@ args = coord epsilon sigma cutoff
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix wallhi all wall/lj93 xlo -1.0 1.0 1.0 2.5 units box
-fix wallhi all wall/lj93 xhi EDGE 1.0 1.0 2.5
-fix wallhi all wall/lj126 v_wiggle 23.2 1.0 1.0 2.5
-fix zwalls all wall/colloid zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">wallhi</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">lj93</span> <span class="n">xlo</span> <span class="o">-</span><span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span> <span class="n">units</span> <span class="n">box</span>
+<span class="n">fix</span> <span class="n">wallhi</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">lj93</span> <span class="n">xhi</span> <span class="n">EDGE</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+<span class="n">fix</span> <span class="n">wallhi</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">lj126</span> <span class="n">v_wiggle</span> <span class="mf">23.2</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+<span class="n">fix</span> <span class="n">zwalls</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">colloid</span> <span class="n">zlo</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">0.858</span> <span class="n">zhi</span> <span class="mf">40.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">0.858</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -321,22 +321,22 @@ want.</p>
 in a time-dependent fashion using equal-style
 <a class="reference internal" href="variable.html"><span class="doc">variables</span></a>.  The wall interaction parameters (epsilon,
 sigma) could be varied with additional variable definitions.</p>
-<pre class="literal-block">
-variable ramp equal ramp(0,10)
-fix 1 all wall xlo v_ramp 1.0 1.0 2.5
-</pre>
-<pre class="literal-block">
-variable linear equal vdisplace(0,20)
-fix 1 all wall xlo v_linear 1.0 1.0 2.5
-</pre>
-<pre class="literal-block">
-variable wiggle equal swiggle(0.0,5.0,3.0)
-fix 1 all wall xlo v_wiggle 1.0 1.0 2.5
-</pre>
-<pre class="literal-block">
-variable wiggle equal cwiggle(0.0,5.0,3.0)
-fix 1 all wall xlo v_wiggle 1.0 1.0 2.5
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">ramp</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span> <span class="n">xlo</span> <span class="n">v_ramp</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">linear</span> <span class="n">equal</span> <span class="n">vdisplace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span> <span class="n">xlo</span> <span class="n">v_linear</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">wiggle</span> <span class="n">equal</span> <span class="n">swiggle</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">5.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span> <span class="n">xlo</span> <span class="n">v_wiggle</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">wiggle</span> <span class="n">equal</span> <span class="n">cwiggle</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">5.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span> <span class="n">xlo</span> <span class="n">v_wiggle</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+</pre></div>
+</div>
 <p>The ramp(lo,hi) function adjusts the wall position linearly from lo to
 hi over the course of a run.  The vdisplace(c0,velocity) function does
 something similar using the equation position = c0 + velocity*delta,
@@ -344,18 +344,20 @@ where delta is the elapsed time.</p>
 <p>The swiggle(c0,A,period) function causes the wall position to
 oscillate sinusoidally according to this equation, where omega = 2 PI
 / period:</p>
-<pre class="literal-block">
-position = c0 + A sin(omega*delta)
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">position</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">+</span> <span class="n">A</span> <span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The cwiggle(c0,A,period) function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:</p>
-<pre class="literal-block">
-position = c0 + A (1 - cos(omega*delta))
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">position</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">+</span> <span class="n">A</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">delta</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
 <hr class="docutils" />
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the energy of interaction between atoms and each wall to

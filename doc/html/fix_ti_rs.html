@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix ti/rs command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-fix ID group-ID ti/rs lambda_initial lambda_final t_switch t_equil keyword value ...
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">ti</span><span class="o">/</span><span class="n">rs</span> <span class="n">lambda_initial</span> <span class="n">lambda_final</span> <span class="n">t_switch</span> <span class="n">t_equil</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>ti/rs = style name of this fix command</li>
@@ -198,7 +198,9 @@ scaling is faster at temperatures closer to the initial temperature of
 the procedure.</p>
 <p>An example script using this command is provided in the
 examples/USER/misc/ti directory.</p>
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>This fix computes a global vector quantitie which can be accessed by
 various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>. The vector has

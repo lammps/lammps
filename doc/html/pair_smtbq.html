@@ -128,16 +128,16 @@
 <span id="index-0"></span><h1>pair_style smtbq command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style smtbq
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">smtbq</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style smtbq
-pair_coeff * * ffield.smtbq.Al2O3 O Al
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">smtbq</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">ffield</span><span class="o">.</span><span class="n">smtbq</span><span class="o">.</span><span class="n">Al2O3</span> <span class="n">O</span> <span class="n">Al</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -164,9 +164,9 @@ filename in the pair_coeff command. Note that atom type 1 must always
 correspond to oxygen atoms. As an example, to simulate a TiO2 system,
 atom type 1 has to be oxygen and atom type 2 Ti. The following
 pair_coeff command should then be used:</p>
-<pre class="literal-block">
-pair_coeff * * PathToLammps/potentials/ffield.smtbq.TiO2 O Ti
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">PathToLammps</span><span class="o">/</span><span class="n">potentials</span><span class="o">/</span><span class="n">ffield</span><span class="o">.</span><span class="n">smtbq</span><span class="o">.</span><span class="n">TiO2</span> <span class="n">O</span> <span class="n">Ti</span>
+</pre></div>
+</div>
 <p>The electrostatic part of the energy consists of two components</p>
 <p>self-energy of atom <em>i</em> in the form of a second order charge dependent
 polynomial and a long-range Coulombic electrostatic interaction. The
@@ -271,7 +271,7 @@ quotation marks (&#8216;&#8217;).</p>
 </ol>
 <ul class="simple">
 <li>Keyword for element1, element2 and interaction potential (&#8216;second_moment&#8217; or &#8216;buck&#8217; or &#8216;buckPlusAttr&#8217;) between element 1 and 2.  If the potential is &#8216;second_moment&#8217;, specify &#8216;oxide&#8217; or &#8216;metal&#8217; for metal-oxygen or metal-metal interactions respectively.</li>
-<li>Potential parameter: &lt;pre&gt;&lt;br/&gt;       If type of potential is &#8216;second_moment&#8217; : <em>A (eV)</em>, <em>p</em>, <em>&amp;#958&lt;sup&gt;0&lt;/sup&gt;</em> (eV) and <em>q</em> &lt;br/&gt;                                              <em>r&lt;sub&gt;c1&lt;/sub&gt;</em> (&amp;#197), <em>r&lt;sub&gt;c2&lt;/sub&gt;</em> (&amp;#197) and <em>r&lt;sub&gt;0&lt;/sub&gt;</em> (&amp;#197) &lt;br/&gt;  If type of potential is &#8216;buck&#8217; : <em>C</em> (eV) and <em>&amp;#961</em> (&amp;#197) &lt;br/&gt;     If type of potential is &#8216;buckPlusAttr&#8217; : <em>C</em> (eV) and <em>&amp;#961</em> (&amp;#197) &lt;br/&gt;                                              <em>D</em> (eV), <em>B</em> (&amp;#197&lt;sup&gt;-1&lt;/sup&gt;), <em>r&lt;sub&gt;1&lt;/sub&gt;&lt;sup&gt;OO&lt;/sup&gt;</em> (&amp;#197) and <em>r&lt;sub&gt;2&lt;/sub&gt;&lt;sup&gt;OO&lt;/sup&gt;</em> (&amp;#197) &lt;/pre&gt;</li>
+<li>Potential parameter: &lt;pre&gt;&lt;br/&gt;       If type of potential is &#8216;second_moment&#8217; : <em>A (eV)</em>, <em>p</em>, <em>&amp;#958&lt;sup&gt;0&lt;/sup&gt;</em> (eV) and <em>q</em> &lt;br/&gt;                                               <em>r&lt;sub&gt;c1&lt;/sub&gt;</em> (&amp;#197), <em>r&lt;sub&gt;c2&lt;/sub&gt;</em> (&amp;#197) and <em>r&lt;sub&gt;0&lt;/sub&gt;</em> (&amp;#197) &lt;br/&gt;  If type of potential is &#8216;buck&#8217; : <em>C</em> (eV) and <em>&amp;#961</em> (&amp;#197) &lt;br/&gt;     If type of potential is &#8216;buckPlusAttr&#8217; : <em>C</em> (eV) and <em>&amp;#961</em> (&amp;#197) &lt;br/&gt;                                              <em>D</em> (eV), <em>B</em> (&amp;#197&lt;sup&gt;-1&lt;/sup&gt;), <em>r&lt;sub&gt;1&lt;/sub&gt;&lt;sup&gt;OO&lt;/sup&gt;</em> (&amp;#197) and <em>r&lt;sub&gt;2&lt;/sub&gt;&lt;sup&gt;OO&lt;/sup&gt;</em> (&amp;#197) &lt;/pre&gt;</li>
 <li>Divided line</li>
 </ul>
 <ol class="arabic simple" start="4">

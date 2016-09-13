@@ -165,15 +165,27 @@ fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5
 <h2>Description</h2>
 <p>Restrain the motion of the specified sets of atoms by making them part
 of a bond or angle or dihedral interaction whose strength can vary
-over time during a simulation.  This is functionally equivalent to
+over time during a simulation.  This is functionally similar to
 creating a bond or angle or dihedral for the same atoms in a data
 file, as specified by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command, albeit
-with a time-varying pre-factor coefficient.  For the purpose of
-forcefield parameter-fitting or mapping a molecular potential energy
-surface, this fix reduces the hassle and risk associated with
-modifying data files.  In other words, use this fix to temporarily
-force a molecule to adopt a particular conformation.  To create a
-permanent bond or angle or dihedral, you should modify the data file.</p>
+with a time-varying pre-factor coefficient, and except for exclusion
+rules, as explained below.</p>
+<p>For the purpose of forcefield parameter-fitting or mapping a molecular
+potential energy surface, this fix reduces the hassle and risk
+associated with modifying data files.  In other words, use this fix to
+temporarily force a molecule to adopt a particular conformation.  To
+create a permanent bond or angle or dihedral, you should modify the
+data file.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Adding a bond/angle/dihedral with this command does not apply
+the exclusion rules and weighting factors specified by the
+<a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command to atoms in the restraint
+that are now bonded (1-2,1-3,1-4 neighbors) as a result.  If they are
+close enough to interact in a <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> sense
+(non-bonded interaction), then the bond/angle/dihedral restraint
+interaction will simply be superposed on top of that interaction.</p>
+</div>
 <p>The group-ID specified by this fix is ignored.</p>
 <p>The second example above applies a restraint to hold the dihedral
 angle formed by atoms 1, 2, 3, and 4 near 120 degrees using a constant

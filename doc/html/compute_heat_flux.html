@@ -237,30 +237,29 @@ energy/area/time <a class="reference internal" href="units.html"><span class="do
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Sample LAMMPS input script for thermal conductivity of solid Ar</span>
 </pre></div>
 </div>
-<pre class="literal-block">
-units       real
+<div class="highlight-default"><div class="highlight"><pre><span></span>units       real
 variable    T equal 70
 variable    V equal vol
 variable    dt equal 4.0
 variable    p equal 200     # correlation length
 variable    s equal 10      # sample interval
 variable    d equal $p*$s   # dump interval
-</pre>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># convert from LAMMPS real units to SI</span>
 </pre></div>
 </div>
-<pre class="literal-block">
-variable    kB equal 1.3806504e-23    # [J/K] Boltzmann
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable    kB equal 1.3806504e-23    # [J/K] Boltzmann
 variable    kCal2J equal 4186.0/6.02214e23
 variable    A2m equal 1.0e-10
 variable    fs2s equal 1.0e-15
 variable    convert equal ${kCal2J}*${kCal2J}/${fs2s}/${A2m}
-</pre>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># setup problem</span>
 </pre></div>
 </div>
-<pre class="literal-block">
-dimension    3
+<div class="highlight-default"><div class="highlight"><pre><span></span>dimension    3
 boundary     p p p
 lattice      fcc 5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 region       box block 0 4 0 4 0 4
@@ -271,7 +270,8 @@ pair_style   lj/cut 13.0
 pair_coeff   * * 0.2381 3.405
 timestep     ${dt}
 thermo            $d
-</pre>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># equilibration and thermalization</span>
 </pre></div>
 </div>
@@ -287,8 +287,7 @@ run          8000
 <span class="c1">#fix         NVE all nve</span>
 </pre></div>
 </div>
-<pre class="literal-block">
-reset_timestep 0
+<div class="highlight-default"><div class="highlight"><pre><span></span>reset_timestep 0
 compute      myKE all ke/atom
 compute      myPE all pe/atom
 compute      myStress all stress/atom NULL virial
@@ -306,8 +305,9 @@ thermo_style custom step temp v_Jx v_Jy v_Jz v_k11 v_k22 v_k33
 run          100000
 variable     k equal (v_k11+v_k22+v_k33)/3.0
 variable     ndens equal count(all)/vol
-print        &quot;average conductivity: $k[W/mK] &#64; $T K, ${ndens} /A^3&quot;
-</pre>
+print        &quot;average conductivity: $k[W/mK] @ $T K, ${ndens} /A^3&quot;
+</pre></div>
+</div>
 </div>
 </div>
 

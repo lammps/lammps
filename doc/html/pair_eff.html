@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_style eff/cut command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style eff/cut cutoff keyword args ...
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">eff</span><span class="o">/</span><span class="n">cut</span> <span class="n">cutoff</span> <span class="n">keyword</span> <span class="n">args</span> <span class="o">...</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>cutoff = global cutoff for Coulombic interactions</li>
 <li>zero or more keyword/value pairs may be appended</li>
@@ -146,16 +146,16 @@ keyword = <em>limit/eradius</em> or <em>pressure/evirials</em> or <em>ecp</em>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style eff/cut 39.7
-pair_style eff/cut 40.0 limit/eradius
-pair_style eff/cut 40.0 limit/eradius pressure/evirials
-pair_style eff/cut 40.0 ecp 1 Si 3 C
-pair_coeff * *
-pair_coeff 2 2 20.0
-pair_coeff 1 s 0.320852 2.283269 0.814857
-pair_coeff 3 p 22.721015 0.728733 1.103199 17.695345 6.693621
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">eff</span><span class="o">/</span><span class="n">cut</span> <span class="mf">39.7</span>
+<span class="n">pair_style</span> <span class="n">eff</span><span class="o">/</span><span class="n">cut</span> <span class="mf">40.0</span> <span class="n">limit</span><span class="o">/</span><span class="n">eradius</span>
+<span class="n">pair_style</span> <span class="n">eff</span><span class="o">/</span><span class="n">cut</span> <span class="mf">40.0</span> <span class="n">limit</span><span class="o">/</span><span class="n">eradius</span> <span class="n">pressure</span><span class="o">/</span><span class="n">evirials</span>
+<span class="n">pair_style</span> <span class="n">eff</span><span class="o">/</span><span class="n">cut</span> <span class="mf">40.0</span> <span class="n">ecp</span> <span class="mi">1</span> <span class="n">Si</span> <span class="mi">3</span> <span class="n">C</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mf">20.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="n">s</span> <span class="mf">0.320852</span> <span class="mf">2.283269</span> <span class="mf">0.814857</span>
+<span class="n">pair_coeff</span> <span class="mi">3</span> <span class="n">p</span> <span class="mf">22.721015</span> <span class="mf">0.728733</span> <span class="mf">1.103199</span> <span class="mf">17.695345</span> <span class="mf">6.693621</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

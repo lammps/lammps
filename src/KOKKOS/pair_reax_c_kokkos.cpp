@@ -370,43 +370,43 @@ void PairReaxCKokkos<DeviceType>::init_md()
         k_LR.h_view(i,j).a      = LR[i][j].a;
         k_LR.h_view(i,j).m      = LR[i][j].m;
         k_LR.h_view(i,j).c      = LR[i][j].c;
+
+        tdual_LR_data_1d           k_y      = tdual_LR_data_1d("lookup:LR[i,j].y",n);
+        tdual_cubic_spline_coef_1d k_H      = tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
+        tdual_cubic_spline_coef_1d k_vdW    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
+        tdual_cubic_spline_coef_1d k_CEvd   = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
+        tdual_cubic_spline_coef_1d k_ele    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
+        tdual_cubic_spline_coef_1d k_CEclmb = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
     
-        k_LR.h_view(i,j).k_y      = tdual_LR_data_1d("lookup:LR[i,j].y",n);
-        k_LR.h_view(i,j).k_H      = tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
-        k_LR.h_view(i,j).k_vdW    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
-        k_LR.h_view(i,j).k_CEvd   = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
-        k_LR.h_view(i,j).k_ele    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
-        k_LR.h_view(i,j).k_CEclmb = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
-    
-        k_LR.h_view(i,j).d_y      = k_LR.h_view(i,j).k_y.d_view;
-        k_LR.h_view(i,j).d_H      = k_LR.h_view(i,j).k_H.d_view;
-        k_LR.h_view(i,j).d_vdW    = k_LR.h_view(i,j).k_vdW.d_view;
-        k_LR.h_view(i,j).d_CEvd   = k_LR.h_view(i,j).k_CEvd.d_view;
-        k_LR.h_view(i,j).d_ele    = k_LR.h_view(i,j).k_ele.d_view;
-        k_LR.h_view(i,j).d_CEclmb = k_LR.h_view(i,j).k_CEclmb.d_view;
+        k_LR.h_view(i,j).d_y      = k_y.d_view;
+        k_LR.h_view(i,j).d_H      = k_H.d_view;
+        k_LR.h_view(i,j).d_vdW    = k_vdW.d_view;
+        k_LR.h_view(i,j).d_CEvd   = k_CEvd.d_view;
+        k_LR.h_view(i,j).d_ele    = k_ele.d_view;
+        k_LR.h_view(i,j).d_CEclmb = k_CEclmb.d_view;
     
         for (int k = 0; k < n; k++) {
-          k_LR.h_view(i,j).k_y.h_view(k)      = LR[i][j].y[k];
-          k_LR.h_view(i,j).k_H.h_view(k)      = LR[i][j].H[k];
-          k_LR.h_view(i,j).k_vdW.h_view(k)    = LR[i][j].vdW[k];
-          k_LR.h_view(i,j).k_CEvd.h_view(k)   = LR[i][j].CEvd[k];
-          k_LR.h_view(i,j).k_ele.h_view(k)    = LR[i][j].ele[k];
-          k_LR.h_view(i,j).k_CEclmb.h_view(k) = LR[i][j].CEclmb[k];
+          k_y.h_view(k)      = LR[i][j].y[k];
+          k_H.h_view(k)      = LR[i][j].H[k];
+          k_vdW.h_view(k)    = LR[i][j].vdW[k];
+          k_CEvd.h_view(k)   = LR[i][j].CEvd[k];
+          k_ele.h_view(k)    = LR[i][j].ele[k];
+          k_CEclmb.h_view(k) = LR[i][j].CEclmb[k];
         }
     
-        k_LR.h_view(i,j).k_y.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_H.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_vdW.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_CEvd.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_ele.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_CEclmb.template modify<LMPHostType>();
+        k_y.template modify<LMPHostType>();
+        k_H.template modify<LMPHostType>();
+        k_vdW.template modify<LMPHostType>();
+        k_CEvd.template modify<LMPHostType>();
+        k_ele.template modify<LMPHostType>();
+        k_CEclmb.template modify<LMPHostType>();
     
-        k_LR.h_view(i,j).k_y.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_H.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_vdW.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_CEvd.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_ele.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_CEclmb.template sync<DeviceType>();
+        k_y.template sync<DeviceType>();
+        k_H.template sync<DeviceType>();
+        k_vdW.template sync<DeviceType>();
+        k_CEvd.template sync<DeviceType>();
+        k_ele.template sync<DeviceType>();
+        k_CEclmb.template sync<DeviceType>();
       }
     }
     k_LR.template modify<LMPHostType>();

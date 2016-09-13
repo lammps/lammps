@@ -157,10 +157,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix 1 all qbmsst z 0.122 q 25 mu 0.9 tscale 0.01 damp 200 seed 35082 f_max 0.3 N_f 100 eta 1 beta 400 T_init 110 (liquid methane modeled with the REAX force field, real units)
-fix 2 all qbmsst z 72 q 40 tscale 0.05 damp 1 seed 47508 f_max 120.0 N_f 100 eta 1.0 beta 500 T_init 300 (quartz modeled with the BKS force field, metal units)
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">qbmsst</span> <span class="n">z</span> <span class="mf">0.122</span> <span class="n">q</span> <span class="mi">25</span> <span class="n">mu</span> <span class="mf">0.9</span> <span class="n">tscale</span> <span class="mf">0.01</span> <span class="n">damp</span> <span class="mi">200</span> <span class="n">seed</span> <span class="mi">35082</span> <span class="n">f_max</span> <span class="mf">0.3</span> <span class="n">N_f</span> <span class="mi">100</span> <span class="n">eta</span> <span class="mi">1</span> <span class="n">beta</span> <span class="mi">400</span> <span class="n">T_init</span> <span class="mi">110</span> <span class="p">(</span><span class="n">liquid</span> <span class="n">methane</span> <span class="n">modeled</span> <span class="k">with</span> <span class="n">the</span> <span class="n">REAX</span> <span class="n">force</span> <span class="n">field</span><span class="p">,</span> <span class="n">real</span> <span class="n">units</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">qbmsst</span> <span class="n">z</span> <span class="mi">72</span> <span class="n">q</span> <span class="mi">40</span> <span class="n">tscale</span> <span class="mf">0.05</span> <span class="n">damp</span> <span class="mi">1</span> <span class="n">seed</span> <span class="mi">47508</span> <span class="n">f_max</span> <span class="mf">120.0</span> <span class="n">N_f</span> <span class="mi">100</span> <span class="n">eta</span> <span class="mf">1.0</span> <span class="n">beta</span> <span class="mi">500</span> <span class="n">T_init</span> <span class="mi">300</span> <span class="p">(</span><span class="n">quartz</span> <span class="n">modeled</span> <span class="k">with</span> <span class="n">the</span> <span class="n">BKS</span> <span class="n">force</span> <span class="n">field</span><span class="p">,</span> <span class="n">metal</span> <span class="n">units</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>Two example input scripts are given, including shocked alpha quartz
 and shocked liquid methane. The input script first equilibrate an
 initial state with the quantum thermal bath at the target temperature
@@ -242,8 +242,10 @@ thermal bath and the system before shock loading.</p>
 <p>For all pressure styles, the simulation box stays orthorhombic in
 shape. Parrinello-Rahman boundary conditions (tilted box) are
 supported by LAMMPS, but are not implemented for QBMSST.</p>
+</div>
 <hr class="docutils" />
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>Because the state of the random number generator is not written to
 <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, this fix cannot be restarted
 &#8220;exactly&#8221; in an uninterrupted fashion. However, in a statistical
@@ -269,16 +271,16 @@ headers, the following LAMMPS commands are suggested. Here the
 <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> energy command is also enabled to allow
 the thermo keyword <em>etotal</em> to print the quantity &lt;i&gt;etot&lt;/i&gt;.  See
 also the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command.</p>
-<pre class="literal-block">
-fix          fix_id all msst z
-fix_modify  fix_id energy yes
-variable     dhug    equal f_fix_id[1]
-variable     dray    equal f_fix_id[2]
-variable     lgr_vel        equal f_fix_id[3]
-variable     lgr_pos        equal f_fix_id[4]
-variable     T_qm   equal f_fix_id[5]
-thermo_style        custom  step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span>          <span class="n">fix_id</span> <span class="nb">all</span> <span class="n">msst</span> <span class="n">z</span>
+<span class="n">fix_modify</span>   <span class="n">fix_id</span> <span class="n">energy</span> <span class="n">yes</span>
+<span class="n">variable</span>     <span class="n">dhug</span>    <span class="n">equal</span> <span class="n">f_fix_id</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">variable</span>     <span class="n">dray</span>    <span class="n">equal</span> <span class="n">f_fix_id</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">variable</span>     <span class="n">lgr_vel</span> <span class="n">equal</span> <span class="n">f_fix_id</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">variable</span>     <span class="n">lgr_pos</span> <span class="n">equal</span> <span class="n">f_fix_id</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="n">variable</span>     <span class="n">T_qm</span>    <span class="n">equal</span> <span class="n">f_fix_id</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">thermo_style</span> <span class="n">custom</span>  <span class="n">step</span> <span class="n">temp</span> <span class="n">ke</span> <span class="n">pe</span> <span class="n">lz</span> <span class="n">pzz</span> <span class="n">etotal</span> <span class="n">v_dhug</span> <span class="n">v_dray</span> <span class="n">v_lgr_vel</span> <span class="n">v_lgr_pos</span> <span class="n">v_T_qm</span> <span class="n">f_fix_id</span>
+</pre></div>
+</div>
 <p>The global scalar under the entry f_fix_id is the quantity of thermo
 energy as an extra part of &lt;i&gt;etot&lt;/i&gt;. This global scalar and the
 vector of 5 quantities can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>. It is worth noting that the

@@ -132,7 +132,9 @@ class FixQEqReaxKokkos : public FixQEqReax {
   double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
 
   struct params_qeq{
+    KOKKOS_INLINE_FUNCTION
     params_qeq(){chi=0;eta=0;gamma=0;};
+    KOKKOS_INLINE_FUNCTION
     params_qeq(int i){chi=0;eta=0;gamma=0;};
     F_FLOAT chi, eta, gamma;
   };

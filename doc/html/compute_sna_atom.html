@@ -134,11 +134,11 @@
 <h1>compute snav/atom command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-compute ID group-ID sna/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
-compute ID group-ID snad/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
-compute ID group-ID snav/atom rcutfac rfac0 twojmax R_1 R_2 ... w_1 w_2 ... keyword values ...
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">sna</span><span class="o">/</span><span class="n">atom</span> <span class="n">rcutfac</span> <span class="n">rfac0</span> <span class="n">twojmax</span> <span class="n">R_1</span> <span class="n">R_2</span> <span class="o">...</span> <span class="n">w_1</span> <span class="n">w_2</span> <span class="o">...</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+<span class="n">compute</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">snad</span><span class="o">/</span><span class="n">atom</span> <span class="n">rcutfac</span> <span class="n">rfac0</span> <span class="n">twojmax</span> <span class="n">R_1</span> <span class="n">R_2</span> <span class="o">...</span> <span class="n">w_1</span> <span class="n">w_2</span> <span class="o">...</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+<span class="n">compute</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">snav</span><span class="o">/</span><span class="n">atom</span> <span class="n">rcutfac</span> <span class="n">rfac0</span> <span class="n">twojmax</span> <span class="n">R_1</span> <span class="n">R_2</span> <span class="o">...</span> <span class="n">w_1</span> <span class="n">w_2</span> <span class="o">...</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</li>
 <li>sna/atom = style name of this compute command</li>
@@ -276,22 +276,22 @@ corresponding to a particular bispectrum component.  The total number
 of columns and the identities of the bispectrum component contained in
 each column depend on the values of <em>twojmax</em> and <em>diagonal</em>, as
 described by the following piece of python code:</p>
-<pre class="literal-block">
-for j1 in range(0,twojmax+1):
-    if(diagonal==2):
-        print j1/2.,j1/2.,j1/2.
-    elif(diagonal==1):
-        for j in range(0,min(twojmax,2*j1)+1,2):
-            print j1/2.,j1/2.,j/2.
-    elif(diagonal==0):
-        for j2 in range(0,j1+1):
-            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
-                print j1/2.,j2/2.,j/2.
-    elif(diagonal==3):
-        for j2 in range(0,j1+1):
-            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
-                if (j&gt;=j1): print j1/2.,j2/2.,j/2.
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">j1</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">twojmax</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">diagonal</span><span class="o">==</span><span class="mi">2</span><span class="p">):</span>
+        <span class="nb">print</span> <span class="n">j1</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j1</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j1</span><span class="o">/</span><span class="mf">2.</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">diagonal</span><span class="o">==</span><span class="mi">1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">min</span><span class="p">(</span><span class="n">twojmax</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="n">j1</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span>
+            <span class="nb">print</span> <span class="n">j1</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j1</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j</span><span class="o">/</span><span class="mf">2.</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">diagonal</span><span class="o">==</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">j1</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j1</span><span class="o">-</span><span class="n">j2</span><span class="p">,</span><span class="nb">min</span><span class="p">(</span><span class="n">twojmax</span><span class="p">,</span><span class="n">j1</span><span class="o">+</span><span class="n">j2</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span>
+                <span class="nb">print</span> <span class="n">j1</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j2</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j</span><span class="o">/</span><span class="mf">2.</span>
+    <span class="k">elif</span><span class="p">(</span><span class="n">diagonal</span><span class="o">==</span><span class="mi">3</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j2</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">j1</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j1</span><span class="o">-</span><span class="n">j2</span><span class="p">,</span><span class="nb">min</span><span class="p">(</span><span class="n">twojmax</span><span class="p">,</span><span class="n">j1</span><span class="o">+</span><span class="n">j2</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">j</span><span class="o">&gt;=</span><span class="n">j1</span><span class="p">):</span> <span class="nb">print</span> <span class="n">j1</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j2</span><span class="o">/</span><span class="mf">2.</span><span class="p">,</span><span class="n">j</span><span class="o">/</span><span class="mf">2.</span>
+</pre></div>
+</div>
 <p>Compute <em>snad/atom</em> evaluates a per-atom array. The columns are
 arranged into <em>ntypes</em> blocks, listed in order of atom type <em>I</em>.  Each
 block contains three sub-blocks corresponding to the <em>x</em>, <em>y</em>, and <em>z</em>

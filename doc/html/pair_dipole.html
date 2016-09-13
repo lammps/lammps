@@ -149,12 +149,12 @@
 <h1>pair_style lj/long/dipole/long command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">cut</span> <span class="n">cutoff</span> <span class="p">(</span><span class="n">cutoff2</span><span class="p">)</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">sf</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">sf</span> <span class="n">cutoff</span> <span class="p">(</span><span class="n">cutoff2</span><span class="p">)</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">long</span> <span class="n">cutoff</span> <span class="p">(</span><span class="n">cutoff2</span><span class="p">)</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">long</span> <span class="n">flag_lj</span> <span class="n">flag_coul</span> <span class="n">cutoff</span> <span class="p">(</span><span class="n">cutoff2</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/dipole/cut cutoff (cutoff2)
+pair_style lj/sf/dipole/sf cutoff (cutoff2)
+pair_style lj/cut/dipole/long cutoff (cutoff2)
+pair_style lj/long/dipole/long flag_lj flag_coul cutoff (cutoff2)
+</pre>
 <ul class="simple">
 <li>cutoff = global cutoff LJ (and Coulombic if only 1 arg) (distance units)</li>
 <li>cutoff2 = global cutoff for Coulombic and dipole (optional) (distance units)</li>
@@ -175,26 +175,27 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">cut</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span> <span class="mf">4.0</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">sf</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">sf</span> <span class="mf">9.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span> <span class="mf">4.0</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span> <span class="mf">4.0</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">dipole</span><span class="o">/</span><span class="n">long</span> <span class="n">long</span> <span class="n">long</span> <span class="mf">3.5</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span> <span class="mf">4.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/dipole/cut 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre>
+<pre class="literal-block">
+pair_style lj/sf/dipole/sf 9.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre>
+<pre class="literal-block">
+pair_style lj/cut/dipole/long 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre>
+<pre class="literal-block">
+pair_style lj/long/dipole/long long long 3.5 10.0
+pair_coeff * * 1.0 1.0
+pair_coeff 2 3 1.0 1.0 2.5 4.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -242,7 +243,10 @@ C.3 of <a class="reference internal" href="pair_gayberne.html#allen"><span class
 <p>If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
-respectively.</p>
+respectively. This pair style also supports an optional <em>scale</em> keyword
+as part of a pair_coeff statement, where the interactions can be
+scaled according to this factor. This scale factor is also made available
+for use with fix adapt.</p>
 <p>Style <em>lj/cut/dipole/long</em> computes long-range point-dipole
 interactions as discussed in <a class="reference internal" href="#toukmaji"><span class="std std-ref">(Toukmaji)</span></a>. Dipole-dipole,
 dipole-charge, and charge-charge interactions are all supported, along

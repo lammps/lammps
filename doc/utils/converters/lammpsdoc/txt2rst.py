@@ -114,6 +114,7 @@ class RSTMarkup(Markup):
 
         return "`%s <%s>`_" % (content, href)
 
+
 class RSTFormatting(Formatting):
     RST_HEADER_TYPES = '#*=-^"'
 

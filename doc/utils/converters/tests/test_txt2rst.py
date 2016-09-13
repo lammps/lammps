@@ -159,13 +159,13 @@ class TestFormatting(unittest.TestCase):
 
     def test_preformat_formatting(self):
         s = self.txt2rst.convert("Hello :pre\n")
-        self.assertEqual(".. parsed-literal::\n\n"
+        self.assertEqual("\n.. parsed-literal::\n\n"
                          "   Hello\n\n", s)
 
     def test_preformat_formatting_with_indentation(self):
         s = self.txt2rst.convert("    Hello\n"
                                  "    World :pre\n")
-        self.assertEqual(".. parsed-literal::\n\n"
+        self.assertEqual("\n.. parsed-literal::\n\n"
                          "       Hello\n"
                          "       World\n\n", s)
 

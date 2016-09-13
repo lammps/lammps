@@ -124,7 +124,6 @@ Fixes :h1
    fix_smd_integrate_ulsph
    fix_smd_move_triangulated_surface
    fix_smd_setvel
-   fix_smd_tlsph_reference_configuration
    fix_smd_wall_surface
    fix_spring
    fix_spring_chunk

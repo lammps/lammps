@@ -190,7 +190,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
       sprintf(str,"Can not open output file %s",logfile);
       error->one(FLERR,str);
     }
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fprintf(flog,"# group name of the atoms under study      : %s\n", group->names[igroup]);
     fprintf(flog,"# total number of atoms in the group       : %d\n", ngroup);
     fprintf(flog,"# dimension of the system                  : %d D\n", sysdim);
@@ -200,7 +200,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
     fprintf(flog,"# frequency of the measurement             : %d\n", nevery);
     fprintf(flog,"# output result after this many measurement: %d\n", nfreq);
     fprintf(flog,"# number of processors used by this run    : %d\n", nprocs);
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fprintf(flog,"# mapping information between lattice indices and atom id\n");
     fprintf(flog,"# nx ny nz nucell\n");
     fprintf(flog,"%d %d %d %d\n", nx, ny, nz, nucell);
@@ -214,7 +214,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
       ix   = (idx/(nucell*nz*ny))%nx;
       fprintf(flog,"%d %d %d %d " TAGINT_FORMAT "\n", ix, iy, iz, iu, itag);
     }
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fflush(flog);
   }
   surf2tag.clear();
@@ -734,16 +734,16 @@ void FixPhonon::postprocess( )
     fclose(fp_bin);
 
     // write log file, here however, it is the dynamical matrix that is written
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog, "# Current time step                      : " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(flog, "# Total number of measurements           : %d\n", neval);
-    fprintf(flog, "# Average temperature of the measurement : %lg\n", TempAve);
-    fprintf(flog, "# Boltzmann constant under current units : %lg\n", boltz);
-    fprintf(flog, "# basis vector A1 = [%lg %lg %lg]\n", basevec[0], basevec[1], basevec[2]);
-    fprintf(flog, "# basis vector A2 = [%lg %lg %lg]\n", basevec[3], basevec[4], basevec[5]);
-    fprintf(flog, "# basis vector A3 = [%lg %lg %lg]\n", basevec[6], basevec[7], basevec[8]);
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog, "# qx\t qy \t qz \t\t Phi(q)\n");
+    fprintf(flog,"############################################################\n");
+    fprintf(flog,"# Current time step                      : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(flog,"# Total number of measurements           : %d\n", neval);
+    fprintf(flog,"# Average temperature of the measurement : %lg\n", TempAve);
+    fprintf(flog,"# Boltzmann constant under current units : %lg\n", boltz);
+    fprintf(flog,"# basis vector A1 = [%lg %lg %lg]\n", basevec[0], basevec[1], basevec[2]);
+    fprintf(flog,"# basis vector A2 = [%lg %lg %lg]\n", basevec[3], basevec[4], basevec[5]);
+    fprintf(flog,"# basis vector A3 = [%lg %lg %lg]\n", basevec[6], basevec[7], basevec[8]);
+    fprintf(flog,"############################################################\n");
+    fprintf(flog,"# qx\t qy \t qz \t\t Phi(q)\n");
 
     EnforceASR();
 

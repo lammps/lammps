@@ -41,6 +41,7 @@ pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 pair_style lj/sf/dipole/sf 9.0
 pair_coeff * * 1.0 1.0 
+pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 pair_style lj/cut/dipole/long 10.0
@@ -103,7 +104,10 @@ C.3 of "(Allen)"_#Allen.
 If one cutoff is specified in the pair_style command, it is used for
 both the LJ and Coulombic (q,p) terms.  If two cutoffs are specified,
 they are used as cutoffs for the LJ and Coulombic (q,p) terms
-respectively.
+respectively. This pair style also supports an optional {scale} keyword
+as part of a pair_coeff statement, where the interactions can be
+scaled according to this factor. This scale factor is also made available
+for use with fix adapt.
 
 Style {lj/cut/dipole/long} computes long-range point-dipole
 interactions as discussed in "(Toukmaji)"_#Toukmaji. Dipole-dipole,

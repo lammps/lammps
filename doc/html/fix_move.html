@@ -160,11 +160,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix 1 boundary move wiggle 3.0 0.0 0.0 1.0 units box
-fix 2 boundary move rotate 0.0 0.0 0.0 0.0 0.0 1.0 5.0
-fix 2 boundary move variable v_myx v_myy NULL v_VX v_VY NULL
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="n">boundary</span> <span class="n">move</span> <span class="n">wiggle</span> <span class="mf">3.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="n">units</span> <span class="n">box</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="n">boundary</span> <span class="n">move</span> <span class="n">rotate</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">1.0</span> <span class="mf">5.0</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="n">boundary</span> <span class="n">move</span> <span class="n">variable</span> <span class="n">v_myx</span> <span class="n">v_myy</span> <span class="n">NULL</span> <span class="n">v_VX</span> <span class="n">v_VY</span> <span class="n">NULL</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -202,9 +202,9 @@ command.</p>
 <p>The <em>linear</em> style moves atoms at a constant velocity, so that their
 position <em>X</em> = (x,y,z) as a function of time is given in vector
 notation as</p>
-<pre class="literal-block">
-X(t) = X0 + V * delta
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">X</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">X0</span> <span class="o">+</span> <span class="n">V</span> <span class="o">*</span> <span class="n">delta</span>
+</pre></div>
+</div>
 <p>where <em>X0</em> = (x0,y0,z0) is their position at the time the fix is
 specified, <em>V</em> is the specified velocity vector with components
 (Vx,Vy,Vz), and <em>delta</em> is the time elapsed since the fix was
@@ -216,17 +216,17 @@ the corresponding force component on the atom.</p>
 <p>Note that the <em>linear</em> style is identical to using the <em>variable</em>
 style with an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> that uses the
 vdisplace() function.  E.g.</p>
-<pre class="literal-block">
-variable V equal 10.0
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable V equal 10.0
 variable x equal vdisplace(0.0,$V)
 fix 1 boundary move variable v_x NULL NULL v_V NULL NULL
-</pre>
+</pre></div>
+</div>
 <p>The <em>wiggle</em> style moves atoms in an oscillatory fashion, so that
 their position <em>X</em> = (x,y,z) as a function of time is given in vector
 notation as</p>
-<pre class="literal-block">
-X(t) = X0 + A sin(omega*delta)
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">X</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="o">=</span> <span class="n">X0</span> <span class="o">+</span> <span class="n">A</span> <span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>where <em>X0</em> = (x0,y0,z0) is their position at the time the fix is
 specified, <em>A</em> is the specified amplitude vector with components
 (Ax,Ay,Az), <em>omega</em> is 2 PI / <em>period</em>, and <em>delta</em> is the time
@@ -239,14 +239,14 @@ corresponding force component on the atom.</p>
 <p>Note that the <em>wiggle</em> style is identical to using the <em>variable</em>
 style with <a class="reference internal" href="variable.html"><span class="doc">equal-style variables</span></a> that use the
 swiggle() and cwiggle() functions.  E.g.</p>
-<pre class="literal-block">
-variable A equal 10.0
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable A equal 10.0
 variable T equal 5.0
 variable omega equal 2.0*PI/$T
 variable x equal swiggle(0.0,$A,$T)
 variable v equal v_omega*($A-cwiggle(0.0,$A,$T))
 fix 1 boundary move variable v_x NULL NULL v_v NULL NULL
-</pre>
+</pre></div>
+</div>
 <p>The <em>rotate</em> style rotates atoms around a rotation axis <em>R</em> =
 (Rx,Ry,Rz) that goes thru a point <em>P</em> = (Px,Py,Pz).  The <em>period</em> of
 the rotation is also specified.  The direction of rotation for the
@@ -302,8 +302,10 @@ are in lattice spacings.  The <a class="reference internal" href="lattice.html">
 been previously used to define the lattice spacing.  Each of these 3
 quantities may be dependent on the x,y,z dimension, since the lattice
 spacings can be different in x,y,z.</p>
+</div>
 <hr class="docutils" />
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>This fix writes the original coordinates of moving atoms to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, as well as the initial timestep, so that
 the motion can be continuous in a restarted simulation.  See the
 <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to re-specify

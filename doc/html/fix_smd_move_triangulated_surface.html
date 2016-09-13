@@ -128,53 +128,55 @@
 <span id="index-0"></span><h1>fix smd/move_tri_surf command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-fix ID group-ID smd/move_tri_surf keyword
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="n">keyword</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>smd/move_tri_surf keyword = style name of this fix command</li>
-<li>keyword = <em>*LINEAR</em> or <em>*WIGGLE</em> or <em>*ROTATE</em></li>
+<li>keyword = <a href="#id1"><span class="problematic" id="id2">**</span></a>LINEAR* or <a href="#id3"><span class="problematic" id="id4">**</span></a>WIGGLE* or <a href="#id5"><span class="problematic" id="id6">**</span></a>ROTATE*</li>
 </ul>
-<pre class="literal-block">
-<em>*LINEAR</em> args = Vx Vy Vz
-   Vx,Vy,Vz = components of velocity vector (velocity units), any component can be specified as NULL
-<em>*WIGGLE</em> args = Vx Vy Vz max_travel
-   vx,vy,vz = components of velocity vector (velocity units), any component can be specified as NULL
-   max_travel = wiggle amplitude
-<em>*ROTATE</em> args = Px Py Pz Rx Ry Rz period
-   Px,Py,Pz = origin point of axis of rotation (distance units)
-   Rx,Ry,Rz = axis of rotation vector
-   period = period of rotation (time units)
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">**</span><span class="n">LINEAR</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="n">Vx</span> <span class="n">Vy</span> <span class="n">Vz</span>
+   <span class="n">Vx</span><span class="p">,</span><span class="n">Vy</span><span class="p">,</span><span class="n">Vz</span> <span class="o">=</span> <span class="n">components</span> <span class="n">of</span> <span class="n">velocity</span> <span class="n">vector</span> <span class="p">(</span><span class="n">velocity</span> <span class="n">units</span><span class="p">),</span> <span class="nb">any</span> <span class="n">component</span> <span class="n">can</span> <span class="n">be</span> <span class="n">specified</span> <span class="k">as</span> <span class="n">NULL</span>
+<span class="o">**</span><span class="n">WIGGLE</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="n">Vx</span> <span class="n">Vy</span> <span class="n">Vz</span> <span class="n">max_travel</span>
+   <span class="n">vx</span><span class="p">,</span><span class="n">vy</span><span class="p">,</span><span class="n">vz</span> <span class="o">=</span> <span class="n">components</span> <span class="n">of</span> <span class="n">velocity</span> <span class="n">vector</span> <span class="p">(</span><span class="n">velocity</span> <span class="n">units</span><span class="p">),</span> <span class="nb">any</span> <span class="n">component</span> <span class="n">can</span> <span class="n">be</span> <span class="n">specified</span> <span class="k">as</span> <span class="n">NULL</span>
+   <span class="n">max_travel</span> <span class="o">=</span> <span class="n">wiggle</span> <span class="n">amplitude</span>
+<span class="o">**</span><span class="n">ROTATE</span><span class="o">*</span> <span class="n">args</span> <span class="o">=</span> <span class="n">Px</span> <span class="n">Py</span> <span class="n">Pz</span> <span class="n">Rx</span> <span class="n">Ry</span> <span class="n">Rz</span> <span class="n">period</span>
+   <span class="n">Px</span><span class="p">,</span><span class="n">Py</span><span class="p">,</span><span class="n">Pz</span> <span class="o">=</span> <span class="n">origin</span> <span class="n">point</span> <span class="n">of</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">rotation</span> <span class="p">(</span><span class="n">distance</span> <span class="n">units</span><span class="p">)</span>
+   <span class="n">Rx</span><span class="p">,</span><span class="n">Ry</span><span class="p">,</span><span class="n">Rz</span> <span class="o">=</span> <span class="n">axis</span> <span class="n">of</span> <span class="n">rotation</span> <span class="n">vector</span>
+   <span class="n">period</span> <span class="o">=</span> <span class="n">period</span> <span class="n">of</span> <span class="n">rotation</span> <span class="p">(</span><span class="n">time</span> <span class="n">units</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix 1 tool smd/move_tri_surf *LINEAR 20 20 10
-fix 2 tool smd/move_tri_surf *WIGGLE 20 20 10
-fix 2 tool smd/move_tri_surf *ROTATE 0 0 0 5 2 1
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="n">tool</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="o">*</span><span class="n">LINEAR</span> <span class="mi">20</span> <span class="mi">20</span> <span class="mi">10</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="n">tool</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="o">*</span><span class="n">WIGGLE</span> <span class="mi">20</span> <span class="mi">20</span> <span class="mi">10</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="n">tool</span> <span class="n">smd</span><span class="o">/</span><span class="n">move_tri_surf</span> <span class="o">*</span><span class="n">ROTATE</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">5</span> <span class="mi">2</span> <span class="mi">1</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
 <p>This fix applies only to rigid surfaces read from .STL files via fix <a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">smd/wall_surface</span></a> .
 It updates position and velocity for the particles in the group each timestep without regard to forces on the particles.
 The rigid surfaces can thus be moved along simple trajectories during the simulation.</p>
-<p>The <em>*LINEAR</em> style moves particles with the specified constant velocity
+<p>The <a href="#id19"><span class="problematic" id="id20">**</span></a>LINEAR* style moves particles with the specified constant velocity
 vector V = (Vx,Vy,Vz). This style also sets the velocity of each particle
 to V = (Vx,Vy,Vz).</p>
-<p>The <em>*WIGGLE</em> style moves particles in an oscillatory fashion.
+<p>The <a href="#id21"><span class="problematic" id="id22">**</span></a>WIGGLE* style moves particles in an oscillatory fashion.
 Particles are moved along (vx, vy, vz) with constant velocity until a
 displacement of max_travel is reached. Then, the velocity vector is
 reversed. This process is repeated.</p>
-<p>The <em>*ROTATE</em> style rotates particles around a rotation axis R = (Rx,Ry,Rz) that
+<p>The <a href="#id23"><span class="problematic" id="id24">**</span></a>ROTATE* style rotates particles around a rotation axis R = (Rx,Ry,Rz) that
 goes through a point P = (Px,Py,Pz). The period of the rotation is also
 specified. This style also sets the velocity of each particle to (omega cross
 Rperp) where omega is its angular velocity around the rotation axis and
 Rperp is a perpendicular vector from the rotation axis to the particle.</p>
 <p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to using Smooth Mach Dynamics in LAMMPS.</p>
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.</p>
 </div>
 <div class="section" id="restrictions">

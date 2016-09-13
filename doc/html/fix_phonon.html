@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix phonon command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-fix ID group-ID phonon N Noutput Nwait map_file prefix keyword values ...
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">phonon</span> <span class="n">N</span> <span class="n">Noutput</span> <span class="n">Nwait</span> <span class="n">map_file</span> <span class="n">prefix</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>phonon = style name of this fix command</li>
@@ -239,7 +239,9 @@ even degrade the performance of lammps in case the unit cell is too large.</p>
 <a class="reference internal" href="units.html"><span class="doc">energy/distance^2/mass</span></a> units.  The coordinates for <em>q</em>
 points in the log file is in the units of the basis vectors of the
 corresponding reciprocal lattice.</p>
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>temp</em> option is supported by this
 fix. You can use it to change the temperature compute from thermo_temp

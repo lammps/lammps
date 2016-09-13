@@ -185,11 +185,11 @@ command.</p>
 <p>As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:</p>
-<pre class="literal-block">
-compute              peratom all pe/atom
-compute              pe all reduce sum c_peratom
-thermo_style        custom step temp etotal press pe c_pe
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>              <span class="n">peratom</span> <span class="nb">all</span> <span class="n">pe</span><span class="o">/</span><span class="n">atom</span>
+<span class="n">compute</span>              <span class="n">pe</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">sum</span> <span class="n">c_peratom</span>
+<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="n">press</span> <span class="n">pe</span> <span class="n">c_pe</span>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The per-atom energy does not any Lennard-Jones tail corrections

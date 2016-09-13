@@ -139,13 +139,13 @@
 <li>one or more input values can be listed</li>
 <li>value = c_ID, c_ID[N], f_ID, f_ID[N], v_name</li>
 </ul>
-<pre class="literal-block">
-c_ID = global scalar calculated by a compute with ID
-c_ID[I] = Ith component of global vector calculated by a compute with ID
-f_ID = global scalar calculated by a fix with ID
-f_ID[I] = Ith component of global vector calculated by a fix with ID
-v_name = global value calculated by an equal-style variable with name
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">scalar</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">component</span> <span class="n">of</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
+<span class="n">v_name</span> <span class="o">=</span> <span class="k">global</span> <span class="n">value</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">equal</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>zero or more keyword/arg pairs may be appended</li>
 <li>keyword = <em>type</em> or <em>start</em> or <em>file</em> or <em>overwrite</em> or <em>title1</em> or <em>title2</em> or <em>ncorr</em> or <em>p</em> or <em>m</em></li>
@@ -177,12 +177,12 @@ v_name = global value calculated by an equal-style variable with name
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix 1 all ave/correlate/long 5 1000 c_myTemp file temp.correlate
-fix 1 all ave/correlate/long 1 10000 &amp;
-          c_thermo_press[1] c_thermo_press[2] c_thermo_press[3] &amp;
-       type upper title1 &quot;My correlation data&quot; nlen 15 ncount 3
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span><span class="o">/</span><span class="n">long</span> <span class="mi">5</span> <span class="mi">1000</span> <span class="n">c_myTemp</span> <span class="n">file</span> <span class="n">temp</span><span class="o">.</span><span class="n">correlate</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">correlate</span><span class="o">/</span><span class="n">long</span> <span class="mi">1</span> <span class="mi">10000</span> <span class="o">&amp;</span>
+          <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_thermo_press</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
+       <span class="nb">type</span> <span class="n">upper</span> <span class="n">title1</span> <span class="s2">&quot;My correlation data&quot;</span> <span class="n">nlen</span> <span class="mi">15</span> <span class="n">ncount</span> <span class="mi">3</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -221,7 +221,9 @@ steps can be calculated.</p>
 4*ncorr*nlen*8 bytes. With the default values of the parameters, this
 corresponds to about 10 KB.</p>
 <p>For the meaning of the additional optional keywords, see the <a class="reference internal" href="fix_ave_correlate.html"><span class="doc">fix ave/correlate</span></a> doc page.</p>
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>Since this fix in intended for the calculation of time correlation
 functions over very long MD simulations, the information about this
 fix is written automatically to binary restart files, so that the time

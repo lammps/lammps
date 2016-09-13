@@ -202,10 +202,10 @@ there will be no consistent ordering of the entries within the local
 vector or array from one timestep to the next.</p>
 <p>Here is an example of how to use this compute to dump rigid body info
 to a file:</p>
-<pre class="literal-block">
-compute 1 all rigid/local myRigid mol x y z fx fy fz
-dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4] c_1[5] c_1[6] c_1[7]
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">rigid</span><span class="o">/</span><span class="n">local</span> <span class="n">myRigid</span> <span class="n">mol</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span> <span class="n">fx</span> <span class="n">fy</span> <span class="n">fz</span>
+<span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">1000</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="n">index</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p>This section explains the rigid body attributes that can be specified.</p>
 <p>The <em>id</em> attribute is the atomID of the atom which owns the rigid body, which is

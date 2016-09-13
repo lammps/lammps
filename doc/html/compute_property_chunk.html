@@ -192,12 +192,12 @@ will be in unitless reduced units (0-1).</p>
 <p>The simplest way to output the results of the compute property/chunk
 calculation to a file is to use the <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>
 command, for example:</p>
-<pre class="literal-block">
-compute cc1 all chunk/atom molecule
-compute myChunk1 all property/chunk cc1 count
-compute myChunk2 all com/chunk cc1
-fix 1 all ave/time 100 1 100 c_myChunk1 c_myChunk2[*] file tmp.out mode vector
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">cc1</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="n">molecule</span>
+<span class="n">compute</span> <span class="n">myChunk1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">chunk</span> <span class="n">cc1</span> <span class="n">count</span>
+<span class="n">compute</span> <span class="n">myChunk2</span> <span class="nb">all</span> <span class="n">com</span><span class="o">/</span><span class="n">chunk</span> <span class="n">cc1</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myChunk1</span> <span class="n">c_myChunk2</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span> <span class="n">mode</span> <span class="n">vector</span>
+</pre></div>
+</div>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a global vector or global array depending on
 the number of input values.  The length of the vector or number of

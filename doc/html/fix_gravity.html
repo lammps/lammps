@@ -156,13 +156,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix 1 all gravity 1.0 chute 24.0
-fix 1 all gravity v_increase chute 24.0
-fix 1 all gravity 1.0 spherical 0.0 -180.0
-fix 1 all gravity 10.0 spherical v_phi v_theta
-fix 1 all gravity 100.0 vector 1 1 0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">gravity</span> <span class="mf">1.0</span> <span class="n">chute</span> <span class="mf">24.0</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">gravity</span> <span class="n">v_increase</span> <span class="n">chute</span> <span class="mf">24.0</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">gravity</span> <span class="mf">1.0</span> <span class="n">spherical</span> <span class="mf">0.0</span> <span class="o">-</span><span class="mf">180.0</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">gravity</span> <span class="mf">10.0</span> <span class="n">spherical</span> <span class="n">v_phi</span> <span class="n">v_theta</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">gravity</span> <span class="mf">100.0</span> <span class="n">vector</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -220,8 +220,10 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
+</div>
 <hr class="docutils" />
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the gravitational potential energy of the system to the

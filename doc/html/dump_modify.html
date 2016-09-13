@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>dump_modify command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-dump_modify dump-ID keyword values ...
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump_modify</span> <span class="n">dump</span><span class="o">-</span><span class="n">ID</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>dump-ID = ID of dump to modify</li>
 <li>one or more keyword/value pairs may be appended</li>
@@ -228,16 +228,16 @@ dump_modify dump-ID keyword values ...
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-dump_modify 1 format line &quot;%d %d %20.15g %g %g&quot; scale yes
-dump_modify 1 format float %20.15g scale yes
-dump_modify myDump image yes scale no flush yes
-dump_modify 1 region mySphere thresh x &lt; 0.0 thresh epair &gt;= 3.2
-dump_modify xtcdump precision 10000 sfactor 0.1
-dump_modify 1 every 1000 nfile 20
-dump_modify 1 every v_myVar
-dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump_modify</span> <span class="mi">1</span> <span class="nb">format</span> <span class="n">line</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%20.15g</span><span class="s2"> </span><span class="si">%g</span><span class="s2"> </span><span class="si">%g</span><span class="s2">&quot;</span> <span class="n">scale</span> <span class="n">yes</span>
+<span class="n">dump_modify</span> <span class="mi">1</span> <span class="nb">format</span> <span class="nb">float</span> <span class="o">%</span><span class="mf">20.15</span><span class="n">g</span> <span class="n">scale</span> <span class="n">yes</span>
+<span class="n">dump_modify</span> <span class="n">myDump</span> <span class="n">image</span> <span class="n">yes</span> <span class="n">scale</span> <span class="n">no</span> <span class="n">flush</span> <span class="n">yes</span>
+<span class="n">dump_modify</span> <span class="mi">1</span> <span class="n">region</span> <span class="n">mySphere</span> <span class="n">thresh</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="n">thresh</span> <span class="n">epair</span> <span class="o">&gt;=</span> <span class="mf">3.2</span>
+<span class="n">dump_modify</span> <span class="n">xtcdump</span> <span class="n">precision</span> <span class="mi">10000</span> <span class="n">sfactor</span> <span class="mf">0.1</span>
+<span class="n">dump_modify</span> <span class="mi">1</span> <span class="n">every</span> <span class="mi">1000</span> <span class="n">nfile</span> <span class="mi">20</span>
+<span class="n">dump_modify</span> <span class="mi">1</span> <span class="n">every</span> <span class="n">v_myVar</span>
+<span class="n">dump_modify</span> <span class="mi">1</span> <span class="n">amap</span> <span class="nb">min</span> <span class="nb">max</span> <span class="n">cf</span> <span class="mf">0.0</span> <span class="mi">3</span> <span class="nb">min</span> <span class="n">green</span> <span class="mf">0.5</span> <span class="n">yellow</span> <span class="nb">max</span> <span class="n">blue</span> <span class="n">boxcolor</span> <span class="n">red</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -318,19 +318,19 @@ to the dump file.  The <em>every</em> keyword cannot be used with the dump
 <em>dcd</em> style.</p>
 <p>For example, the following commands will
 write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:</p>
-<pre class="literal-block">
-variable     s equal logfreq(10,3,10)
-dump         1 all atom 100 tmp.dump
-dump_modify 1 every v_s first yes
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>     <span class="n">s</span> <span class="n">equal</span> <span class="n">logfreq</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">dump</span>         <span class="mi">1</span> <span class="nb">all</span> <span class="n">atom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span>
+<span class="n">dump_modify</span>  <span class="mi">1</span> <span class="n">every</span> <span class="n">v_s</span> <span class="n">first</span> <span class="n">yes</span>
+</pre></div>
+</div>
 <p>The following commands would write snapshots at the timesteps listed
 in file tmp.times:</p>
-<pre class="literal-block">
-variable        f file tmp.times
-variable     s equal next(f)
-dump         1 all atom 100 tmp.dump
-dump_modify 1 every v_s
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>        <span class="n">f</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">times</span>
+<span class="n">variable</span>     <span class="n">s</span> <span class="n">equal</span> <span class="nb">next</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="n">dump</span>         <span class="mi">1</span> <span class="nb">all</span> <span class="n">atom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span>
+<span class="n">dump_modify</span>  <span class="mi">1</span> <span class="n">every</span> <span class="n">v_s</span>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">When using a file-style variable with the <em>every</em> keyword, the
@@ -406,11 +406,11 @@ an integer and you wish it to appear in the text dump file as a
 (large) integer, then you need to use an appropriate format.  For
 example, these commands:</p>
 </div>
-<pre class="literal-block">
-compute     1 all property/local batom1 batom2
-dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
-dump_modify 1 format &quot;%d %0.0f %0.0f&quot;
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>     <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">local</span> <span class="n">batom1</span> <span class="n">batom2</span>
+<span class="n">dump</span>        <span class="mi">1</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">bonds</span> <span class="n">index</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">dump_modify</span> <span class="mi">1</span> <span class="nb">format</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> </span><span class="si">%0.0f</span><span class="s2"> </span><span class="si">%0.0f</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
 <p>will output the two atom IDs for atoms in each bond as integers.  If
 the dump_modify command were omitted, they would appear as
 floating-point values, assuming they were large integers (more than 6
@@ -566,7 +566,7 @@ atoms of each type will be drawn in the image.</p>
 <p>The specified <em>type</em> should be an integer from 1 to Ntypes = the
 number of atom types.  A wildcard asterisk can be used in place of or
 in conjunction with the <em>type</em> argument to specify a range of atom
-types.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the
+types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
 number of atom types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
@@ -689,15 +689,15 @@ color map without having to specify where all the bin boundaries are.</p>
 atoms in individual molecules with a different color.  See the
 examples/pour/in.pour.2d.molecule input script for an example of how
 this is used.</p>
-<pre class="literal-block">
-variable        colors string &amp;
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable        colors string &amp;
                 &quot;red green blue yellow white &amp;
                 purple pink orange lime gray&quot;
 variable     mol atom mol%10
 dump         1 all image 250 image.*.jpg v_mol type &amp;
              zoom 1.6 adiam 1.5
-dump_modify 1 pad 5 amap 0 10 sa 1 10 ${colors}
-</pre>
+dump_modify  1 pad 5 amap 0 10 sa 1 10 ${colors}
+</pre></div>
+</div>
 <p>In this case, 10 colors are defined, and molecule IDs are
 mapped to one of the colors, even if there are 1000s of molecules.</p>
 <hr class="docutils" />
@@ -711,7 +711,7 @@ set the color that bonds of each type will be drawn in the image.</p>
 <p>The specified <em>type</em> should be an integer from 1 to Nbondtypes = the
 number of bond types.  A wildcard asterisk can be used in place of or
 in conjunction with the <em>type</em> argument to specify a range of bond
-types.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the
+types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
 number of bond types, then an asterisk with no numeric values means
 all types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N

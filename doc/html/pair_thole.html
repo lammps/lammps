@@ -134,9 +134,9 @@
 <h1>pair_style lj/cut/thole/long/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style args
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style = <em>thole</em> or <em>lj/cut/thole/long</em> or <em>lj/cut/thole/long/omp</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -153,15 +153,15 @@ pair_style style args
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style hybrid/overlay ... thole 2.6 12.0
-pair_coeff 1 1 thole 1.0
-pair_coeff 1 2 thole 1.0 2.6 10.0
-pair_coeff * 2 thole 1.0 2.6
-</pre>
-<pre class="literal-block">
-pair_style lj/cut/thole/long 2.6 12.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="o">...</span> <span class="n">thole</span> <span class="mf">2.6</span> <span class="mf">12.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">thole</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">thole</span> <span class="mf">1.0</span> <span class="mf">2.6</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="mi">2</span> <span class="n">thole</span> <span class="mf">1.0</span> <span class="mf">2.6</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">thole</span><span class="o">/</span><span class="n">long</span> <span class="mf">2.6</span> <span class="mf">12.0</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

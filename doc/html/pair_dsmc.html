@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_style dsmc command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style dsmc max_cell_size seed weighting Tref Nrecompute Nsample
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">dsmc</span> <span class="n">max_cell_size</span> <span class="n">seed</span> <span class="n">weighting</span> <span class="n">Tref</span> <span class="n">Nrecompute</span> <span class="n">Nsample</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>max_cell_size = global maximum cell size for DSMC interactions (distance units)</li>
 <li>seed = random # seed (positive integer)</li>
@@ -142,11 +142,11 @@ pair_style dsmc max_cell_size seed weighting Tref Nrecompute Nsample
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style dsmc 2.5 34387 10 1.0 100 20
-pair_coeff * * 1.0
-pair_coeff 1 1 1.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">dsmc</span> <span class="mf">2.5</span> <span class="mi">34387</span> <span class="mi">10</span> <span class="mf">1.0</span> <span class="mi">100</span> <span class="mi">20</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -191,12 +191,12 @@ neighboring processors every timestep as they move.  This makes it
 possible to perform all collisions between pairs of particles that are
 on the same processor.  To ensure this occurs, you should use
 these commands:</p>
-<pre class="literal-block">
-neighbor 0.0 bin
-neigh_modify every 1 delay 0 check no
-atom_modify sort 0 0.0
-communicate single cutoff 0.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">neighbor</span> <span class="mf">0.0</span> <span class="nb">bin</span>
+<span class="n">neigh_modify</span> <span class="n">every</span> <span class="mi">1</span> <span class="n">delay</span> <span class="mi">0</span> <span class="n">check</span> <span class="n">no</span>
+<span class="n">atom_modify</span> <span class="n">sort</span> <span class="mi">0</span> <span class="mf">0.0</span>
+<span class="n">communicate</span> <span class="n">single</span> <span class="n">cutoff</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
 <p>These commands ensure that LAMMPS communicates particles to
 neighboring processors every timestep and that no ghost atoms are
 created.  The output statistics for a simulation run should indicate

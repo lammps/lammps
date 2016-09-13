@@ -197,14 +197,16 @@ LAMMPS, but are not implemented for MSST.</p>
 <p>This fix computes a temperature and pressure each timestep. To do
 this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
 as if these commands had been issued:</p>
-<pre class="literal-block">
-compute fix-ID_temp group-ID temp
-compute fix-ID_press group-ID pressure fix-ID_temp
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span>
+<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span>
+</pre></div>
+</div>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> and <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
 + underscore + &#8220;press&#8221;.  The group for the new computes is &#8220;all&#8221;.</p>
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>This fix writes the state of all internal variables to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
@@ -228,15 +230,15 @@ equations. See also <a class="reference internal" href="thermo_style.html"><span
 </ol>
 <p>To print these quantities to the log file with descriptive column
 headers, the following LAMMPS commands are suggested:</p>
-<pre class="literal-block">
-fix           msst all msst z
-fix_modify       msst energy yes
-variable dhug    equal f_msst[1]
-variable dray    equal f_msst[2]
-variable lgr_vel equal f_msst[3]
-variable lgr_pos equal f_msst[4]
-thermo_style     custom step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span>           <span class="n">msst</span> <span class="nb">all</span> <span class="n">msst</span> <span class="n">z</span>
+<span class="n">fix_modify</span>       <span class="n">msst</span> <span class="n">energy</span> <span class="n">yes</span>
+<span class="n">variable</span> <span class="n">dhug</span>    <span class="n">equal</span> <span class="n">f_msst</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">dray</span>    <span class="n">equal</span> <span class="n">f_msst</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">lgr_vel</span> <span class="n">equal</span> <span class="n">f_msst</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">lgr_pos</span> <span class="n">equal</span> <span class="n">f_msst</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+<span class="n">thermo_style</span>     <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">ke</span> <span class="n">pe</span> <span class="n">lz</span> <span class="n">pzz</span> <span class="n">etotal</span> <span class="n">v_dhug</span> <span class="n">v_dray</span> <span class="n">v_lgr_vel</span> <span class="n">v_lgr_pos</span> <span class="n">f_msst</span>
+</pre></div>
+</div>
 <p>These fixes compute a global scalar and a global vector of 4
 quantities, which can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar values calculated
 by this fix are &#8220;extensive&#8221;; the vector values are &#8220;intensive&#8221;.</p>

@@ -17,12 +17,8 @@ pair_style style args :pre
 
 style = {vashishta} or {vashishta/table} or {vashishta/omp} or {vashishta/table/omp}
 args = list of arguments for a particular style :ul
-  {vashishta} args = none
-  {vashishta/omp} args = none
-  {vashishta/table} args = Ntable cutinner
-    Ntable = # of tabulation points
-    cutinner = tablulate from cutinner to cutoff
-  {vashishta/table/omp} args = Ntable cutinner
+  {vashishta} or {vashishta/omp} args = none
+  {vashishta/table} or {vashishta/table/omp} args = Ntable cutinner
     Ntable = # of tabulation points
     cutinner = tablulate from cutinner to cutoff :pre
 
@@ -37,13 +33,13 @@ pair_coeff * * SiC.vashishta Si C :pre
 [Description:]
 
 The {vashishta} and {vashishta/table} styles compute the combined
-2-body and 3-body family of potentials developed in the group of
-Vashishta and co-workers. By combining repulsive, screened Coulombic,
-screened charge-dipole, and dispersion interactions with a bond-angle
-energy based on the Stillinger-Weber potential, this potential has
-been used to describe a variety of inorganic compounds, including SiO2
-"Vashishta1990"_#Vashishta1990, SiC "Vashishta2007"_#Vashishta2007,
-and InP "Branicio2009"_#Branicio2009.
+2-body and 3-body family of potentials developed in the group of Priya
+Vashishta and collaborators.  By combining repulsive, screened
+Coulombic, screened charge-dipole, and dispersion interactions with a
+bond-angle energy based on the Stillinger-Weber potential, this
+potential has been used to describe a variety of inorganic compounds,
+including SiO2 "Vashishta1990"_#Vashishta1990, SiC
+"Vashishta2007"_#Vashishta2007, and InP "Branicio2009"_#Branicio2009.
 
 The potential for the energy U of a system of atoms is
 
@@ -215,18 +211,19 @@ This pair style can only be used via the {pair} keyword of the
 
 [Restrictions:]
 
-This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package (which it is by default).  See
-the "Making LAMMPS"_Section_start.html#start_3 section for more info.
+These pair style are part of the MANYBODY package.  They is only
+enabled if LAMMPS was built with that package (which it is by
+default).  See the "Making LAMMPS"_Section_start.html#start_3 section
+for more info.
 
-This pair style requires the "newton"_newton.html setting to be "on"
+These pair styles requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 
 The Vashishta potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal "units"_units.html.  You can
 use the Vashishta potential with any LAMMPS units, but you would need
-to create your own Vashishta potential file with coefficients listed
-in the appropriate units if your simulation doesn't use "metal" units.
+to create your own potential file with coefficients listed in the
+appropriate units if your simulation doesn't use "metal" units.
 
 [Related commands:]
 
@@ -247,4 +244,3 @@ J. P. Rino. J. Appl. Phys. 101, 103515 (2007).
 :link(Branicio2009)
 [(Branicio2009)] Branicio, Rino, Gan and Tsuzuki, J. Phys Condensed
 Matter 21 (2009) 095002
-

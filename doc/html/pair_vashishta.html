@@ -145,12 +145,8 @@ pair_style style args
 <li>args = list of arguments for a particular style</li>
 </ul>
 <pre class="literal-block">
-<em>vashishta</em> args = none
-<em>vashishta/omp</em> args = none
-<em>vashishta/table</em> args = Ntable cutinner
-  Ntable = # of tabulation points
-  cutinner = tablulate from cutinner to cutoff
-<em>vashishta/table/omp</em> args = Ntable cutinner
+<em>vashishta</em> or <em>vashishta/omp</em> args = none
+<em>vashishta/table</em> or <em>vashishta/table/omp</em> args = Ntable cutinner
   Ntable = # of tabulation points
   cutinner = tablulate from cutinner to cutoff
 </pre>
@@ -169,13 +165,13 @@ pair_coeff * * SiC.vashishta Si C
 <div class="section" id="description">
 <h2>Description</h2>
 <p>The <em>vashishta</em> and <em>vashishta/table</em> styles compute the combined
-2-body and 3-body family of potentials developed in the group of
-Vashishta and co-workers. By combining repulsive, screened Coulombic,
-screened charge-dipole, and dispersion interactions with a bond-angle
-energy based on the Stillinger-Weber potential, this potential has
-been used to describe a variety of inorganic compounds, including SiO2
-<a class="reference internal" href="#vashishta1990"><span class="std std-ref">Vashishta1990</span></a>, SiC <a class="reference internal" href="#vashishta2007"><span class="std std-ref">Vashishta2007</span></a>,
-and InP <a class="reference internal" href="#branicio2009"><span class="std std-ref">Branicio2009</span></a>.</p>
+2-body and 3-body family of potentials developed in the group of Priya
+Vashishta and collaborators.  By combining repulsive, screened
+Coulombic, screened charge-dipole, and dispersion interactions with a
+bond-angle energy based on the Stillinger-Weber potential, this
+potential has been used to describe a variety of inorganic compounds,
+including SiO2 <a class="reference internal" href="#vashishta1990"><span class="std std-ref">Vashishta1990</span></a>, SiC
+<a class="reference internal" href="#vashishta2007"><span class="std std-ref">Vashishta2007</span></a>, and InP <a class="reference internal" href="#branicio2009"><span class="std std-ref">Branicio2009</span></a>.</p>
 <p>The potential for the energy U of a system of atoms is</p>
 <img alt="_images/pair_vashishta.jpg" class="align-center" src="_images/pair_vashishta.jpg" />
 <p>where we follow the notation used in <a class="reference internal" href="#branicio2009"><span class="std std-ref">Branicio2009</span></a>.
@@ -323,16 +319,17 @@ script that reads a restart file.</p>
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package (which it is by default).  See
-the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
-<p>This pair style requires the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> setting to be &#8220;on&#8221;
+<p>These pair style are part of the MANYBODY package.  They is only
+enabled if LAMMPS was built with that package (which it is by
+default).  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section
+for more info.</p>
+<p>These pair styles requires the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> setting to be &#8220;on&#8221;
 for pair interactions.</p>
 <p>The Vashishta potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal <a class="reference internal" href="units.html"><span class="doc">units</span></a>.  You can
 use the Vashishta potential with any LAMMPS units, but you would need
-to create your own Vashishta potential file with coefficients listed
-in the appropriate units if your simulation doesn&#8217;t use &#8220;metal&#8221; units.</p>
+to create your own potential file with coefficients listed in the
+appropriate units if your simulation doesn&#8217;t use &#8220;metal&#8221; units.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>

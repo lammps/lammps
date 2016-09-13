@@ -106,6 +106,9 @@ it gives quick access to documentation for all LAMMPS commands.
 .. toctree::
    :maxdepth: 2
    :numbered:
+   :caption: User Documentation
+   :name: userdoc
+   :includehidden:
    
    Section_intro
    Section_start
@@ -121,6 +124,20 @@ it gives quick access to documentation for all LAMMPS commands.
    Section_errors
    Section_history
 
+.. toctree::
+   :caption: Index
+   :name: index
+   :hidden:
+
+   tutorials
+   commands
+   fixes
+   computes
+   pairs
+   bonds
+   angles
+   dihedrals
+   impropers
 
 Indices and tables
 ==================

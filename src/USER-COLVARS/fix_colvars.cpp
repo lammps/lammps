@@ -383,7 +383,7 @@ void FixColvars::init()
     error->all(FLERR,"Cannot use fix colvars without atom IDs");
 
   if (atom->map_style == 0)
-    error->all(FLERR,"Fix colvars requires an atom map");
+    error->all(FLERR,"Fix colvars requires an atom map, see atom_modify");
 
   if ((me == 0) && (update->whichflag == 2))
     error->warning(FLERR,"Using fix colvars with minimization");

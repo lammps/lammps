@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_style smd/hertz command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style smd/hertz scale_factor
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">smd</span><span class="o">/</span><span class="n">hertz</span> <span class="n">scale_factor</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
@@ -146,7 +146,7 @@ The effect is that a particles cannot penetrate into each other.
 The parameter &lt;contact_stiffness&gt; has units of pressure and should equal roughly one half
 of the Young&#8217;s modulus (or bulk modulus in the case of fluids) of the material model associated with the SPH particles.</p>
 <p>The parameter <em>scale_factor</em> can be used to scale the particles&#8217; contact radii. This can be useful to control how close
-particles can approach each other. Usually, <a href="#id1"><span class="problematic" id="id2">*</span></a>scale_factor*=1.0.</p>
+particles can approach each other. Usually, <em>scale_factor</em>=1.0.</p>
 <hr class="docutils" />
 <p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
 <p>No mixing is performed automatically.

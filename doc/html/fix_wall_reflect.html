@@ -162,11 +162,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix xwalls all wall/reflect xlo EDGE xhi EDGE
-fix walls all wall/reflect xlo 0.0 ylo 10.0 units box
-fix top all wall/reflect zhi v_pressdown
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">xwalls</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">reflect</span> <span class="n">xlo</span> <span class="n">EDGE</span> <span class="n">xhi</span> <span class="n">EDGE</span>
+<span class="n">fix</span> <span class="n">walls</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">reflect</span> <span class="n">xlo</span> <span class="mf">0.0</span> <span class="n">ylo</span> <span class="mf">10.0</span> <span class="n">units</span> <span class="n">box</span>
+<span class="n">fix</span> <span class="n">top</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">reflect</span> <span class="n">zhi</span> <span class="n">v_pressdown</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -215,22 +215,22 @@ define the lattice spacings.</p>
 <p>Here are examples of variable definitions that move the wall position
 in a time-dependent fashion using equal-style
 <a class="reference internal" href="variable.html"><span class="doc">variables</span></a>.</p>
-<pre class="literal-block">
-variable ramp equal ramp(0,10)
-fix 1 all wall/reflect xlo v_ramp
-</pre>
-<pre class="literal-block">
-variable linear equal vdisplace(0,20)
-fix 1 all wall/reflect xlo v_linear
-</pre>
-<pre class="literal-block">
-variable wiggle equal swiggle(0.0,5.0,3.0)
-fix 1 all wall/reflect xlo v_wiggle
-</pre>
-<pre class="literal-block">
-variable wiggle equal cwiggle(0.0,5.0,3.0)
-fix 1 all wall/reflect xlo v_wiggle
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">ramp</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">reflect</span> <span class="n">xlo</span> <span class="n">v_ramp</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">linear</span> <span class="n">equal</span> <span class="n">vdisplace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">reflect</span> <span class="n">xlo</span> <span class="n">v_linear</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">wiggle</span> <span class="n">equal</span> <span class="n">swiggle</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">5.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">reflect</span> <span class="n">xlo</span> <span class="n">v_wiggle</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">wiggle</span> <span class="n">equal</span> <span class="n">cwiggle</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">5.0</span><span class="p">,</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">wall</span><span class="o">/</span><span class="n">reflect</span> <span class="n">xlo</span> <span class="n">v_wiggle</span>
+</pre></div>
+</div>
 <p>The ramp(lo,hi) function adjusts the wall position linearly from lo to
 hi over the course of a run.  The vdisplace(c0,velocity) function does
 something similar using the equation position = c0 + velocity*delta,
@@ -238,16 +238,16 @@ where delta is the elapsed time.</p>
 <p>The swiggle(c0,A,period) function causes the wall position to
 oscillate sinusoidally according to this equation, where omega = 2 PI
 / period:</p>
-<pre class="literal-block">
-position = c0 + A sin(omega*delta)
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">position</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">+</span> <span class="n">A</span> <span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">delta</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>The cwiggle(c0,A,period) function causes the wall position to
 oscillate sinusoidally according to this equation, which will have an
 initial wall velocity of 0.0, and thus may impose a gentler
 perturbation on the particles:</p>
-<pre class="literal-block">
-position = c0 + A (1 - cos(omega*delta))
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">position</span> <span class="o">=</span> <span class="n">c0</span> <span class="o">+</span> <span class="n">A</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="n">delta</span><span class="p">))</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
@@ -264,8 +264,10 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
+</div>
 <hr class="docutils" />
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can

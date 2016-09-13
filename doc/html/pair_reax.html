@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_style reax command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style reax hbcut hbnewflag tripflag precision
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">reax</span> <span class="n">hbcut</span> <span class="n">hbnewflag</span> <span class="n">tripflag</span> <span class="n">precision</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>hbcut = hydrogen-bond cutoff (optional) (distance units)</li>
 <li>hbnewflag = use old or new hbond function style (0 or 1) (optional)</li>
@@ -140,12 +140,12 @@ pair_style reax hbcut hbnewflag tripflag precision
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style reax
-pair_style reax 10.0 0 1 1.0e-5
-pair_coeff * * ffield.reax 3 1 2 2
-pair_coeff * * ffield.reax 3 NULL NULL 3
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">reax</span>
+<span class="n">pair_style</span> <span class="n">reax</span> <span class="mf">10.0</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mf">1.0e-5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">ffield</span><span class="o">.</span><span class="n">reax</span> <span class="mi">3</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">2</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">ffield</span><span class="o">.</span><span class="n">reax</span> <span class="mi">3</span> <span class="n">NULL</span> <span class="n">NULL</span> <span class="mi">3</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -238,14 +238,14 @@ names in italics match those used in the ReaxFF FORTRAN library):</p>
 </ol>
 <p>To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:</p>
-<pre class="literal-block">
-compute reax all pair reax
-variable eb           equal c_reax[1]
-variable ea           equal c_reax[2]
-...
-variable eqeq         equal c_reax[14]
-thermo_style custom step temp epair v_eb v_ea ... v_eqeq
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">reax</span> <span class="nb">all</span> <span class="n">pair</span> <span class="n">reax</span>
+<span class="n">variable</span> <span class="n">eb</span>           <span class="n">equal</span> <span class="n">c_reax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">variable</span> <span class="n">ea</span>           <span class="n">equal</span> <span class="n">c_reax</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+<span class="o">...</span>
+<span class="n">variable</span> <span class="n">eqeq</span>         <span class="n">equal</span> <span class="n">c_reax</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
+<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">epair</span> <span class="n">v_eb</span> <span class="n">v_ea</span> <span class="o">...</span> <span class="n">v_eqeq</span>
+</pre></div>
+</div>
 <p>Only a single pair_coeff command is used with the <em>reax</em> style which
 specifies a ReaxFF potential file with parameters for all needed
 elements.  These are mapped to LAMMPS atom types by specifying N
@@ -286,9 +286,9 @@ enable this.</p>
 elements are ordered as C, H, O, N in the <em>ffield</em> file.  If you want
 the LAMMPS atom type 1 and 2 to be C, type 3 to be N, and type 4 to be
 H, you would use the following pair_coeff command:</p>
-<pre class="literal-block">
-pair_coeff * * ffield.reax 1 1 4 2
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">ffield</span><span class="o">.</span><span class="n">reax</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mi">2</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p><strong>Mixing, shift, table, tail correction, restart, rRESPA info</strong>:</p>
 <p>This pair style does not support the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>

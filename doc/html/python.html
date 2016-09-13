@@ -161,35 +161,35 @@ keyword = <em>invoke</em> or <em>input</em> or <em>return</em> or <em>format</em
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-python pForce input 2 v_x 20.0 return v_f format fff file force.py
-python pForce invoke
-</pre>
-<pre class="literal-block">
-python factorial input 1 myN return v_fac format ii here &quot;&quot;&quot;
-def factorial(n):
-  if n == 1: return n
-  return n * factorial(n-1)
- &quot;&quot;&quot;
-</pre>
-<pre class="literal-block">
-python loop input 1 SELF return v_value format -f here &quot;&quot;&quot;
-def loop(lmpptr,N,cut0):
-  from lammps import lammps
-  lmp = lammps(ptr=lmpptr)
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">pForce</span> <span class="nb">input</span> <span class="mi">2</span> <span class="n">v_x</span> <span class="mf">20.0</span> <span class="k">return</span> <span class="n">v_f</span> <span class="nb">format</span> <span class="n">fff</span> <span class="n">file</span> <span class="n">force</span><span class="o">.</span><span class="n">py</span>
+<span class="n">python</span> <span class="n">pForce</span> <span class="n">invoke</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">factorial</span> <span class="nb">input</span> <span class="mi">1</span> <span class="n">myN</span> <span class="k">return</span> <span class="n">v_fac</span> <span class="nb">format</span> <span class="n">ii</span> <span class="n">here</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">def factorial(n):</span>
+<span class="s2">  if n == 1: return n</span>
+<span class="s2">  return n * factorial(n-1)</span>
+<span class="s2"> &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">loop</span> <span class="nb">input</span> <span class="mi">1</span> <span class="n">SELF</span> <span class="k">return</span> <span class="n">v_value</span> <span class="nb">format</span> <span class="o">-</span><span class="n">f</span> <span class="n">here</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">def loop(lmpptr,N,cut0):</span>
+<span class="s2">  from lammps import lammps</span>
+<span class="s2">  lmp = lammps(ptr=lmpptr)</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># loop N times, increasing cutoff each time</span>
 </pre></div>
 </div>
-<pre class="literal-block">
- for i in range(N):
-   cut = cut0 + i*0.1
-   lmp.set_variable(&quot;cut&quot;,cut)               # set a variable in LAMMPS
-   lmp.command(&quot;pair_style lj/cut ${cut}&quot;)   # LAMMPS commands
-   lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)
-   lmp.command(&quot;run 100&quot;)
-&quot;&quot;&quot;
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+   <span class="n">cut</span> <span class="o">=</span> <span class="n">cut0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.1</span>
+   <span class="n">lmp</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s2">&quot;cut&quot;</span><span class="p">,</span><span class="n">cut</span><span class="p">)</span>               <span class="c1"># set a variable in LAMMPS</span>
+   <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;pair_style lj/cut $</span><span class="si">{cut}</span><span class="s2">&quot;</span><span class="p">)</span>   <span class="c1"># LAMMPS commands</span>
+   <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;pair_coeff * * 1.0 1.0&quot;</span><span class="p">)</span>
+   <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;run 100&quot;</span><span class="p">)</span>
+<span class="s2">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -263,10 +263,10 @@ numeric or string value, as specified by the <em>format</em> keyword.</p>
 of a python-style variable associates a Python function name with the
 variable.  This must match the <em>func</em> setting for this command.  For
 exampe these two commands would be self-consistent:</p>
-<pre class="literal-block">
-variable foo python myMultiply
-python myMultiply return v_foo format f file funcs.py
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">foo</span> <span class="n">python</span> <span class="n">myMultiply</span>
+<span class="n">python</span> <span class="n">myMultiply</span> <span class="k">return</span> <span class="n">v_foo</span> <span class="nb">format</span> <span class="n">f</span> <span class="n">file</span> <span class="n">funcs</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
 <p>The two commands can appear in either order in the input script so
 long as both are specified before the Python function is invoked for
 the first time.</p>
@@ -417,29 +417,29 @@ Python wraps the various functions included in the LAMMPS library
 interface.</p>
 <p>A more interesting example is in the examples/python/in.python script
 which loads and runs the following function from examples/python/funcs.py:</p>
-<pre class="literal-block">
-def loop(N,cut0,thresh,lmpptr):
-  print &quot;LOOP ARGS&quot;,N,cut0,thresh,lmpptr
-  from lammps import lammps
-  lmp = lammps(ptr=lmpptr)
-  natoms = lmp.get_natoms()
-</pre>
-<pre class="literal-block">
-for i in range(N):
-  cut = cut0 + i*0.1
-</pre>
-<pre class="literal-block">
-lmp.set_variable(&quot;cut&quot;,cut)                 # set a variable in LAMMPS
-lmp.command(&quot;pair_style lj/cut ${cut}&quot;)     # LAMMPS command
-#lmp.command(&quot;pair_style lj/cut %d&quot; % cut)  # LAMMPS command option
-</pre>
-<pre class="literal-block">
-lmp.command(&quot;pair_coeff * * 1.0 1.0&quot;)       # ditto
-lmp.command(&quot;run 10&quot;)                       # ditto
-pe = lmp.extract_compute(&quot;thermo_pe&quot;,0,0)   # extract total PE from LAMMPS
-print &quot;PE&quot;,pe/natoms,thresh
-if pe/natoms &lt; thresh: return
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loop</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">cut0</span><span class="p">,</span><span class="n">thresh</span><span class="p">,</span><span class="n">lmpptr</span><span class="p">):</span>
+  <span class="nb">print</span> <span class="s2">&quot;LOOP ARGS&quot;</span><span class="p">,</span><span class="n">N</span><span class="p">,</span><span class="n">cut0</span><span class="p">,</span><span class="n">thresh</span><span class="p">,</span><span class="n">lmpptr</span>
+  <span class="kn">from</span> <span class="nn">lammps</span> <span class="k">import</span> <span class="n">lammps</span>
+  <span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">ptr</span><span class="o">=</span><span class="n">lmpptr</span><span class="p">)</span>
+  <span class="n">natoms</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">get_natoms</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+  <span class="n">cut</span> <span class="o">=</span> <span class="n">cut0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.1</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s2">&quot;cut&quot;</span><span class="p">,</span><span class="n">cut</span><span class="p">)</span>                 <span class="c1"># set a variable in LAMMPS</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;pair_style lj/cut $</span><span class="si">{cut}</span><span class="s2">&quot;</span><span class="p">)</span>     <span class="c1"># LAMMPS command</span>
+<span class="c1">#lmp.command(&quot;pair_style lj/cut %d&quot; % cut)  # LAMMPS command option</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;pair_coeff * * 1.0 1.0&quot;</span><span class="p">)</span>       <span class="c1"># ditto</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;run 10&quot;</span><span class="p">)</span>                       <span class="c1"># ditto</span>
+<span class="n">pe</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">extract_compute</span><span class="p">(</span><span class="s2">&quot;thermo_pe&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>   <span class="c1"># extract total PE from LAMMPS</span>
+<span class="nb">print</span> <span class="s2">&quot;PE&quot;</span><span class="p">,</span><span class="n">pe</span><span class="o">/</span><span class="n">natoms</span><span class="p">,</span><span class="n">thresh</span>
+<span class="k">if</span> <span class="n">pe</span><span class="o">/</span><span class="n">natoms</span> <span class="o">&lt;</span> <span class="n">thresh</span><span class="p">:</span> <span class="k">return</span>
+</pre></div>
+</div>
 <p>with these input script commands:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span>          <span class="n">loop</span> <span class="nb">input</span> <span class="mi">4</span> <span class="mi">10</span> <span class="mf">1.0</span> <span class="o">-</span><span class="mf">4.0</span> <span class="n">SELF</span> <span class="nb">format</span> <span class="n">iffp</span> <span class="n">file</span> <span class="n">funcs</span><span class="o">.</span><span class="n">py</span>
 <span class="n">python</span>          <span class="n">loop</span> <span class="n">invoke</span>

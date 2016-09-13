@@ -154,10 +154,10 @@ pair style args = atype v_name1 v_name2
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-compute 1 all ti lj/cut 1 v_lj v_dlj coul/long 2 v_c v_dc kspace 1 v_ks v_dks
-compute 1 all ti lj/cut 1*3 v_lj v_dlj coul/long * v_c v_dc kspace * v_ks v_dks
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ti</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mi">1</span> <span class="n">v_lj</span> <span class="n">v_dlj</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mi">2</span> <span class="n">v_c</span> <span class="n">v_dc</span> <span class="n">kspace</span> <span class="mi">1</span> <span class="n">v_ks</span> <span class="n">v_dks</span>
+<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ti</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mi">1</span><span class="o">*</span><span class="mi">3</span> <span class="n">v_lj</span> <span class="n">v_dlj</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="o">*</span> <span class="n">v_c</span> <span class="n">v_dc</span> <span class="n">kspace</span> <span class="o">*</span> <span class="n">v_ks</span> <span class="n">v_dks</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -192,7 +192,7 @@ with respect to <em>lambda</em>.</p>
 numeric values can be used, as in the 1st example above.  Or a
 wildcard asterisk can be used in place of or in conjunction with the
 <em>atype</em> argument to select multiple atom types.  This takes the form
-&#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the number of atom types, then
+&#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of atom types, then
 an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk

@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix smd/wall_surface command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-fix ID group-ID smd/wall_surface arg type mol-ID
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">smd</span><span class="o">/</span><span class="n">wall_surface</span> <span class="n">arg</span> <span class="nb">type</span> <span class="n">mol</span><span class="o">-</span><span class="n">ID</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>smd/wall_surface = style name of this fix command</li>
@@ -146,9 +146,9 @@ fix ID group-ID smd/wall_surface arg type mol-ID
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix stl_surf all smd/wall_surface tool.stl 2 65535
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">stl_surf</span> <span class="nb">all</span> <span class="n">smd</span><span class="o">/</span><span class="n">wall_surface</span> <span class="n">tool</span><span class="o">.</span><span class="n">stl</span> <span class="mi">2</span> <span class="mi">65535</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -160,7 +160,9 @@ It is possible to move the triangulated surface via the <a class="reference inte
 <p>Immediately after a .STL file has been read, the simulation needs to be run for 0 timesteps in order to properly register the new particles
 in the system. See the &#8220;funnel_flow&#8221; example in the USER-SMD examples directory.</p>
 <p>See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to use Smooth Mach Dynamics in LAMMPS.</p>
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.</p>
 </div>
 <div class="section" id="restrictions">

@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>comm_modify command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">comm_modify</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+comm_modify keyword value ...
+</pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
 <li>keyword = <em>mode</em> or <em>cutoff</em> or <em>cutoff/multi</em> or <em>group</em> or <em>vel</em></li>
@@ -147,14 +147,14 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">comm_modify</span> <span class="n">mode</span> <span class="n">multi</span>
-<span class="n">comm_modify</span> <span class="n">mode</span> <span class="n">multi</span> <span class="n">group</span> <span class="n">solvent</span>
-<span class="n">comm_modift</span> <span class="n">mode</span> <span class="n">multi</span> <span class="n">cutoff</span><span class="o">/</span><span class="n">multi</span> <span class="mi">1</span> <span class="mf">10.0</span> <span class="n">cutoff</span><span class="o">/</span><span class="n">multi</span> <span class="mi">2</span><span class="o">*</span><span class="mi">4</span> <span class="mf">15.0</span>
-<span class="n">comm_modify</span> <span class="n">vel</span> <span class="n">yes</span>
-<span class="n">comm_modify</span> <span class="n">mode</span> <span class="n">single</span> <span class="n">cutoff</span> <span class="mf">5.0</span> <span class="n">vel</span> <span class="n">yes</span>
-<span class="n">comm_modify</span> <span class="n">cutoff</span><span class="o">/</span><span class="n">multi</span> <span class="o">*</span> <span class="mf">0.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+comm_modify mode multi
+comm_modify mode multi group solvent
+comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
+comm_modify vel yes
+comm_modify mode single cutoff 5.0 vel yes
+comm_modify cutoff/multi * 0.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

@@ -24,6 +24,7 @@ import argparse
 from lammpsdoc import lammps_filters
 from lammpsdoc.txt2html import Markup, Formatting, TxtParser, TxtConverter
 
+
 class RSTMarkup(Markup):
     def __init__(self):
         super().__init__()
@@ -340,6 +341,7 @@ class RSTFormatting(Formatting):
 
         return text + post
 
+
 class Txt2Rst(TxtParser):
     def __init__(self):
         super().__init__()
@@ -373,6 +375,11 @@ class Txt2Rst(TxtParser):
             return commands
         return super().order_commands(commands)
 
+    def transform_paragraphs(self, content):
+        if self.format.indent_level > 0:
+            raise Exception("unbalanced number of ulb,ule or olb,ole pairs!")
+        return super().transform_paragraphs(content)
+
 
 class Txt2RstConverter(TxtConverter):
     def get_argument_parser(self):
@@ -388,6 +395,7 @@ class Txt2RstConverter(TxtConverter):
     def get_output_filename(self, path):
         filename, ext = os.path.splitext(path)
         return filename + ".rst"
+
 
 def main():
     app = Txt2RstConverter()

@@ -275,10 +275,10 @@ these 4 keywords:</p>
 <p>This fix computes a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
 as if these commands had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span>
-<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp
+</pre>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> and <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
 + underscore + &#8220;press&#8221;, and the group for the new computes is the same
@@ -291,9 +291,7 @@ fix&#8217;s temperature or pressure via the
 or pressure during thermodynamic output via the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command using the appropriate compute-ID.
 It also means that changing attributes of <em>thermo_temp</em> or
 <em>thermo_press</em> will have no effect on this fix.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>temp</em> and <em>press</em> options are
 supported by this fix.  You can use them to assign a

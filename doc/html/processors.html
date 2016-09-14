@@ -162,15 +162,15 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">processors</span> <span class="o">*</span> <span class="o">*</span> <span class="mi">5</span>
-<span class="n">processors</span> <span class="mi">2</span> <span class="mi">4</span> <span class="mi">4</span>
-<span class="n">processors</span> <span class="o">*</span> <span class="o">*</span> <span class="mi">8</span> <span class="nb">map</span> <span class="n">xyz</span>
-<span class="n">processors</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">grid</span> <span class="n">numa</span>
-<span class="n">processors</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">grid</span> <span class="n">twolevel</span> <span class="mi">4</span> <span class="o">*</span> <span class="o">*</span> <span class="mi">1</span>
-<span class="n">processors</span> <span class="mi">4</span> <span class="mi">8</span> <span class="mi">16</span> <span class="n">grid</span> <span class="n">custom</span> <span class="n">myfile</span>
-<span class="n">processors</span> <span class="o">*</span> <span class="o">*</span> <span class="o">*</span> <span class="n">part</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">multiple</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+processors * * 5
+processors 2 4 4
+processors * * 8 map xyz
+processors * * * grid numa
+processors * * * grid twolevel 4 * * 1
+processors 4 8 16 grid custom myfile
+processors * * * part 1 2 multiple
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -428,7 +428,7 @@ option.</p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>
-<p>The option defaults are Px Py Pz = * * <a href="#id1"><span class="problematic" id="id2">*</span></a>, grid = onelevel, and map =
+<p>The option defaults are Px Py Pz = * * *, grid = onelevel, and map =
 cart.</p>
 </div>
 </div>

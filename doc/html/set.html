@@ -214,17 +214,17 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">set</span> <span class="n">group</span> <span class="n">solvent</span> <span class="nb">type</span> <span class="mi">2</span>
-<span class="nb">set</span> <span class="n">group</span> <span class="n">solvent</span> <span class="nb">type</span><span class="o">/</span><span class="n">fraction</span> <span class="mi">2</span> <span class="mf">0.5</span> <span class="mi">12393</span>
-<span class="nb">set</span> <span class="n">group</span> <span class="n">edge</span> <span class="n">bond</span> <span class="mi">4</span>
-<span class="nb">set</span> <span class="n">region</span> <span class="n">half</span> <span class="n">charge</span> <span class="mf">0.5</span>
-<span class="nb">set</span> <span class="nb">type</span> <span class="mi">3</span> <span class="n">charge</span> <span class="mf">0.5</span>
-<span class="nb">set</span> <span class="nb">type</span> <span class="mi">1</span><span class="o">*</span><span class="mi">3</span> <span class="n">charge</span> <span class="mf">0.5</span>
-<span class="nb">set</span> <span class="n">atom</span> <span class="o">*</span> <span class="n">charge</span> <span class="n">v_atomfile</span>
-<span class="nb">set</span> <span class="n">atom</span> <span class="mi">100</span><span class="o">*</span><span class="mi">200</span> <span class="n">x</span> <span class="mf">0.5</span> <span class="n">y</span> <span class="mf">1.0</span>
-<span class="nb">set</span> <span class="n">atom</span> <span class="mi">1492</span> <span class="nb">type</span> <span class="mi">3</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+set group solvent type 2
+set group solvent type/fraction 2 0.5 12393
+set group edge bond 4
+set region half charge 0.5
+set type 3 charge 0.5
+set type 1*3 charge 0.5
+set atom * charge v_atomfile
+set atom 100*200 x 0.5 y 1.0
+set atom 1492 type 3
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -252,7 +252,7 @@ style <em>type</em> selects all the atoms in a range of types.  The style
 <em>mol</em> selects all the atoms in a range of molecule IDs.</p>
 <p>In each of the range cases, the range can be specified as a single
 numeric value, or a wildcard asterisk can be used to specify a range
-of values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  For
+of values.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  For
 example, for the style <em>type</em>, if N = the number of atom types, then
 an asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing

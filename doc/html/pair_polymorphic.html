@@ -128,20 +128,20 @@
 <span id="index-0"></span><h1>pair_style polymorphic command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">polymorphic</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style polymorphic
+</pre>
 <p>style = <em>polymorphic</em></p>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">polymorphic</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">TlBr_msw</span><span class="o">.</span><span class="n">polymorphic</span> <span class="n">Tl</span> <span class="n">Br</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">AlCu_eam</span><span class="o">.</span><span class="n">polymorphic</span> <span class="n">Al</span> <span class="n">Cu</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">GaN_tersoff</span><span class="o">.</span><span class="n">polymorphic</span> <span class="n">Ga</span> <span class="n">N</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">GaN_sw</span><span class="o">.</span><span class="n">polymorphic</span> <span class="n">GaN</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style polymorphic
+pair_coeff * * TlBr_msw.polymorphic Tl Br
+pair_coeff * * AlCu_eam.polymorphic Al Cu
+pair_coeff * * GaN_tersoff.polymorphic Ga N
+pair_coeff * * GaN_sw.polymorphic GaN
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -210,9 +210,9 @@ included in the potentials dir of the LAMMPS distro.  They have a
 functions for Si-C tersoff potential. If your LAMMPS simulation has 4
 atoms types and you want the 1st 3 to be Si, and the 4th to be C, you
 would use the following pair_coeff command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">SiC_tersoff</span><span class="o">.</span><span class="n">polymorphic</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">C</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * * SiC_tersoff.polymorphic Si Si Si C
+</pre>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom
 types. The first three Si arguments map LAMMPS atom types 1,2,3 to the
 Si element in the polymorphic file. The final C argument maps LAMMPS
@@ -235,19 +235,19 @@ eta_ij defined in the potential functions above is set to 1 -
 delta_ij, otherwise eta_ij is set to delta_ij. The next ntypes lines
 each lists two numbers and a character string representing atomic
 number, atomic mass, and name of the species of the ntypes elements:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atomic_number</span> <span class="n">atomic</span><span class="o">-</span><span class="n">mass</span> <span class="n">element</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">atomic_number</span> <span class="n">atomic</span><span class="o">-</span><span class="n">mass</span> <span class="n">element</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="o">...</span>
-<span class="n">atomic_number</span> <span class="n">atomic</span><span class="o">-</span><span class="n">mass</span> <span class="n">element</span> <span class="p">(</span><span class="n">ntypes</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+atomic_number atomic-mass element (1)
+atomic_number atomic-mass element (2)
+...
+atomic_number atomic-mass element (ntypes)
+</pre>
 <p>The next ntypes*(ntypes+1)/2 lines contain two numbers:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cut</span> <span class="n">xi</span> <span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">cut</span> <span class="n">xi</span> <span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="o">...</span>
-<span class="n">cut</span> <span class="n">xi</span> <span class="p">(</span><span class="n">ntypes</span><span class="o">*</span><span class="p">(</span><span class="n">ntypes</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+cut xi (1)
+cut xi (2)
+...
+cut xi (ntypes*(ntypes+1)/2)
+</pre>
 <p>Here cut means the cutoff distance of the pair functions, xi is the
 same as defined in the potential functions above. The
 ntypes*(ntypes+1)/2 lines are related to the pairs according to the

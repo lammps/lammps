@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix smd/integrate_ulsph command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">smd</span><span class="o">/</span><span class="n">integrate_ulsph</span> <span class="n">keyword</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID smd/integrate_ulsph keyword
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>smd/integrate_ulsph = style name of this fix command</li>
@@ -148,12 +148,12 @@ max_nn = maximum number of neighbors</dd>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">smd</span><span class="o">/</span><span class="n">integrate_ulsph</span> <span class="n">adjust_radius</span> <span class="mf">1.02</span> <span class="mi">25</span> <span class="mi">50</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">smd</span><span class="o">/</span><span class="n">integrate_ulsph</span> <span class="n">limit_velocity</span> <span class="mi">1000</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all smd/integrate_ulsph adjust_radius 1.02 25 50
+</pre>
+<pre class="literal-block">
+fix 1 all smd/integrate_ulsph limit_velocity 1000
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -161,12 +161,10 @@ max_nn = maximum number of neighbors</dd>
 See <a class="reference external" href="USER/smd/SMD_LAMMPS_userguide.pdf">this PDF guide</a> to using Smooth Mach Dynamics in LAMMPS.</p>
 <p>The <em>adjust_radius</em> keyword activates dynamic adjustment of the per-particle SPH smoothing kernel radius such that the number of neighbors per particles remains
 within the interval <em>min_nn</em> to <em>max_nn</em>. The parameter <em>adjust_radius_factor</em> determines the amount of adjustment per timestep. Typical values are
-<em>adjust_radius_factor</em>=1.02, <em>min_nn</em>=15, and <em>max_nn</em>=20.</p>
+<a href="#id1"><span class="problematic" id="id2">*</span></a>adjust_radius_factor*=1.02, <a href="#id3"><span class="problematic" id="id4">*</span></a>min_nn*=15, and <a href="#id5"><span class="problematic" id="id6">*</span></a>max_nn*=20.</p>
 <p>The <em>limit_velocity</em> keyword will control the velocity, scaling the norm of
 the velocity vector to max_vel in case it exceeds this velocity limit.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>Currently, no part of USER-SMD supports restarting nor minimization. This fix has no outputs.</p>
 </div>
 <div class="section" id="restrictions">

@@ -134,9 +134,9 @@
 <h1>pair_style yukawa/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">yukawa</span> <span class="n">kappa</span> <span class="n">cutoff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style yukawa kappa cutoff
+</pre>
 <ul class="simple">
 <li>kappa = screening length (inverse distance units)</li>
 <li>cutoff = global cutoff for Yukawa interactions (distance units)</li>
@@ -144,11 +144,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">yukawa</span> <span class="mf">2.0</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">2.3</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style yukawa 2.0 2.5
+pair_coeff 1 1 100.0 2.3
+pair_coeff * * 100.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

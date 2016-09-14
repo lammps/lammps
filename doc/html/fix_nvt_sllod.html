@@ -194,9 +194,9 @@ keywords.</p>
 <p>This fix computes a temperature each timestep.  To do this, the fix
 creates its own compute of style &#8220;temp/deform&#8221;, as if this command had
 been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span><span class="o">/</span><span class="n">deform</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute fix-ID_temp group-ID temp/deform
+</pre>
 <p>See the <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a> command for
 details.  Note that the ID of the new compute is the fix-ID +
 underscore + &#8220;temp&#8221;, and the group for the new compute is the same as
@@ -238,9 +238,7 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>This fix writes the state of the Nose/Hoover thermostat to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
 command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an

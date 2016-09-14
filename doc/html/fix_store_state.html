@@ -137,43 +137,43 @@
 <li>N = store atom attributes every N steps, N = 0 for initial store only</li>
 <li>input = one or more atom attributes</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">possible</span> <span class="n">attributes</span> <span class="o">=</span> <span class="nb">id</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span>
-                   <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">zs</span><span class="p">,</span> <span class="n">xu</span><span class="p">,</span> <span class="n">yu</span><span class="p">,</span> <span class="n">zu</span><span class="p">,</span> <span class="n">xsu</span><span class="p">,</span> <span class="n">ysu</span><span class="p">,</span> <span class="n">zsu</span><span class="p">,</span> <span class="n">ix</span><span class="p">,</span> <span class="n">iy</span><span class="p">,</span> <span class="n">iz</span><span class="p">,</span>
-                   <span class="n">vx</span><span class="p">,</span> <span class="n">vy</span><span class="p">,</span> <span class="n">vz</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">,</span> <span class="n">fz</span><span class="p">,</span>
-                      <span class="n">q</span><span class="p">,</span> <span class="n">mux</span><span class="p">,</span> <span class="n">muy</span><span class="p">,</span> <span class="n">muz</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span>
-                      <span class="n">radius</span><span class="p">,</span> <span class="n">diameter</span><span class="p">,</span> <span class="n">omegax</span><span class="p">,</span> <span class="n">omegay</span><span class="p">,</span> <span class="n">omegaz</span><span class="p">,</span>
-                      <span class="n">angmomx</span><span class="p">,</span> <span class="n">angmomy</span><span class="p">,</span> <span class="n">angmomz</span><span class="p">,</span> <span class="n">tqx</span><span class="p">,</span> <span class="n">tqy</span><span class="p">,</span> <span class="n">tqz</span><span class="p">,</span>
-                      <span class="n">c_ID</span><span class="p">,</span> <span class="n">c_ID</span><span class="p">[</span><span class="n">N</span><span class="p">],</span> <span class="n">f_ID</span><span class="p">,</span> <span class="n">f_ID</span><span class="p">[</span><span class="n">N</span><span class="p">],</span> <span class="n">v_name</span><span class="p">,</span>
-                      <span class="n">d_name</span><span class="p">,</span> <span class="n">i_name</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">id</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">ID</span>
-<span class="n">mol</span> <span class="o">=</span> <span class="n">molecule</span> <span class="n">ID</span>
-<span class="nb">type</span> <span class="o">=</span> <span class="n">atom</span> <span class="nb">type</span>
-<span class="n">mass</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">mass</span>
-<span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">unscaled</span> <span class="n">atom</span> <span class="n">coordinates</span>
-<span class="n">xs</span><span class="p">,</span><span class="n">ys</span><span class="p">,</span><span class="n">zs</span> <span class="o">=</span> <span class="n">scaled</span> <span class="n">atom</span> <span class="n">coordinates</span>
-<span class="n">xu</span><span class="p">,</span><span class="n">yu</span><span class="p">,</span><span class="n">zu</span> <span class="o">=</span> <span class="n">unwrapped</span> <span class="n">atom</span> <span class="n">coordinates</span>
-<span class="n">xsu</span><span class="p">,</span><span class="n">ysu</span><span class="p">,</span><span class="n">zsu</span> <span class="o">=</span> <span class="n">scaled</span> <span class="n">unwrapped</span> <span class="n">atom</span> <span class="n">coordinates</span>
-<span class="n">ix</span><span class="p">,</span><span class="n">iy</span><span class="p">,</span><span class="n">iz</span> <span class="o">=</span> <span class="n">box</span> <span class="n">image</span> <span class="n">that</span> <span class="n">the</span> <span class="n">atom</span> <span class="ow">is</span> <span class="ow">in</span>
-<span class="n">vx</span><span class="p">,</span><span class="n">vy</span><span class="p">,</span><span class="n">vz</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">velocities</span>
-<span class="n">fx</span><span class="p">,</span><span class="n">fy</span><span class="p">,</span><span class="n">fz</span> <span class="o">=</span> <span class="n">forces</span> <span class="n">on</span> <span class="n">atoms</span>
-<span class="n">q</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">charge</span>
-<span class="n">mux</span><span class="p">,</span><span class="n">muy</span><span class="p">,</span><span class="n">muz</span> <span class="o">=</span> <span class="n">orientation</span> <span class="n">of</span> <span class="n">dipolar</span> <span class="n">atom</span>
-<span class="n">mu</span> <span class="o">=</span> <span class="n">magnitued</span> <span class="n">of</span> <span class="n">dipole</span> <span class="n">moment</span> <span class="n">of</span> <span class="n">atom</span>
-<span class="n">radius</span><span class="p">,</span><span class="n">diameter</span> <span class="o">=</span> <span class="n">radius</span><span class="o">.</span><span class="n">diameter</span> <span class="n">of</span> <span class="n">spherical</span> <span class="n">particle</span>
-<span class="n">omegax</span><span class="p">,</span><span class="n">omegay</span><span class="p">,</span><span class="n">omegaz</span> <span class="o">=</span> <span class="n">angular</span> <span class="n">velocity</span> <span class="n">of</span> <span class="n">spherical</span> <span class="n">particle</span>
-<span class="n">angmomx</span><span class="p">,</span><span class="n">angmomy</span><span class="p">,</span><span class="n">angmomz</span> <span class="o">=</span> <span class="n">angular</span> <span class="n">momentum</span> <span class="n">of</span> <span class="n">aspherical</span> <span class="n">particle</span>
-<span class="n">tqx</span><span class="p">,</span><span class="n">tqy</span><span class="p">,</span><span class="n">tqz</span> <span class="o">=</span> <span class="n">torque</span> <span class="n">on</span> <span class="n">finite</span><span class="o">-</span><span class="n">size</span> <span class="n">particles</span>
-<span class="n">c_ID</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">v_name</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">atom</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-<span class="n">d_name</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">floating</span> <span class="n">point</span> <span class="n">vector</span> <span class="n">name</span><span class="p">,</span> <span class="n">managed</span> <span class="n">by</span> <span class="n">fix</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span>
-<span class="n">i_name</span> <span class="o">=</span> <span class="n">per</span><span class="o">-</span><span class="n">atom</span> <span class="n">integer</span> <span class="n">vector</span> <span class="n">name</span><span class="p">,</span> <span class="n">managed</span> <span class="n">by</span> <span class="n">fix</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+possible attributes = id, mol, type, mass,
+                   x, y, z, xs, ys, zs, xu, yu, zu, xsu, ysu, zsu, ix, iy, iz,
+                   vx, vy, vz, fx, fy, fz,
+                      q, mux, muy, muz, mu,
+                      radius, diameter, omegax, omegay, omegaz,
+                      angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                      c_ID, c_ID[N], f_ID, f_ID[N], v_name,
+                      d_name, i_name
+</pre>
+<pre class="literal-block">
+id = atom ID
+mol = molecule ID
+type = atom type
+mass = atom mass
+x,y,z = unscaled atom coordinates
+xs,ys,zs = scaled atom coordinates
+xu,yu,zu = unwrapped atom coordinates
+xsu,ysu,zsu = scaled unwrapped atom coordinates
+ix,iy,iz = box image that the atom is in
+vx,vy,vz = atom velocities
+fx,fy,fz = forces on atoms
+q = atom charge
+mux,muy,muz = orientation of dipolar atom
+mu = magnitued of dipole moment of atom
+radius,diameter = radius.diameter of spherical particle
+omegax,omegay,omegaz = angular velocity of spherical particle
+angmomx,angmomy,angmomz = angular momentum of aspherical particle
+tqx,tqy,tqz = torque on finite-size particles
+c_ID = per-atom vector calculated by a compute with ID
+c_ID[I] = Ith column of per-atom array calculated by a compute with ID
+f_ID = per-atom vector calculated by a fix with ID
+f_ID[I] = Ith column of per-atom array calculated by a fix with ID
+v_name = per-atom vector calculated by an atom-style variable with name
+d_name = per-atom floating point vector name, managed by fix property/atom
+i_name = per-atom integer vector name, managed by fix property/atom
+</pre>
 <ul class="simple">
 <li>zero or more keyword/value pairs may be appended</li>
 <li>keyword = <em>com</em></li>
@@ -217,9 +217,7 @@ of the group of atoms, instead of storing the absolute position.</p>
 <p>The requested values are stored in a per-atom vector or array as
 discussed below.  Zeroes are stored for atoms not in the specified
 group.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>This fix writes the per-atom values it stores to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, so that the values can be restored when a
 simulation is restarted.  See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
 command for info on how to re-specify a fix in an input script that

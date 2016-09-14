@@ -134,9 +134,9 @@
 <h1>pair_style zbl/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">zbl</span> <span class="n">inner</span> <span class="n">outer</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style zbl inner outer
+</pre>
 <ul class="simple">
 <li>inner = distance where switching function begins</li>
 <li>outer = global cutoff for ZBL interaction</li>
@@ -144,11 +144,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">zbl</span> <span class="mf">3.0</span> <span class="mf">4.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">73.0</span> <span class="mf">73.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">14.0</span> <span class="mf">14.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style zbl 3.0 4.0
+pair_coeff * * 73.0 73.0
+pair_coeff 1 1 14.0 14.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

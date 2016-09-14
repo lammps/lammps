@@ -139,12 +139,12 @@ nocoeff = ignore all pair_coeff parameters (optional)</li>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">zero</span> <span class="mf">10.0</span>
-<span class="n">pair_style</span> <span class="n">zero</span> <span class="mf">5.0</span> <span class="n">nocoeff</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span><span class="o">*</span><span class="mi">4</span> <span class="mf">3.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style zero 10.0
+pair_style zero 5.0 nocoeff
+pair_coeff * *
+pair_coeff 1 2*4 3.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

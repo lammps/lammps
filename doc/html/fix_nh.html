@@ -158,9 +158,9 @@
 <h1>fix nph/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">style_name</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID style_name keyword value ...
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>style_name = <em>nvt</em> or <em>npt</em> or <em>nph</em></li>
@@ -508,14 +508,14 @@ thermostatting and barostatting.</p>
 <p>These fixes compute a temperature and pressure each timestep.  To do
 this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
 as if one of these two sets of commands had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span>
-<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="nb">all</span> <span class="n">temp</span>
-<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp
+</pre>
+<pre class="literal-block">
+compute fix-ID_temp all temp
+compute fix-ID_press all pressure fix-ID_temp
+</pre>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> and <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
 + underscore + &#8220;press&#8221;.  For fix nvt, the group for the new computes
@@ -606,10 +606,8 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>These fixes writes the state of all the thermostat and barostat
 variables to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the
 <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to re-specify

@@ -239,19 +239,19 @@ i_name = per-atom integer vector with name, managed by fix property/atom
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump</span> <span class="n">myDump</span> <span class="nb">all</span> <span class="n">atom</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">atom</span>
-<span class="n">dump</span> <span class="n">myDump</span> <span class="nb">all</span> <span class="n">atom</span><span class="o">/</span><span class="n">mpiio</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">mpiio</span>
-<span class="n">dump</span> <span class="n">myDump</span> <span class="nb">all</span> <span class="n">atom</span><span class="o">/</span><span class="n">gz</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">dump</span> <span class="mi">2</span> <span class="n">subgroup</span> <span class="n">atom</span> <span class="mi">50</span> <span class="n">dump</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">bin</span>
-<span class="n">dump</span> <span class="mi">2</span> <span class="n">subgroup</span> <span class="n">atom</span> <span class="mi">50</span> <span class="n">dump</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">mpiio</span><span class="o">.</span><span class="n">bin</span>
-<span class="n">dump</span> <span class="mi">4</span><span class="n">a</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">myforce</span><span class="o">.*</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">x</span> <span class="n">y</span> <span class="n">vx</span> <span class="n">fx</span>
-<span class="n">dump</span> <span class="mi">4</span><span class="n">b</span> <span class="n">flow</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.%.</span><span class="n">myforce</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_myF</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">v_ke</span>
-<span class="n">dump</span> <span class="mi">4</span><span class="n">b</span> <span class="n">flow</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.%.</span><span class="n">myforce</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_myF</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">v_ke</span>
-<span class="n">dump</span> <span class="mi">2</span> <span class="n">inner</span> <span class="n">cfg</span> <span class="mi">10</span> <span class="n">dump</span><span class="o">.</span><span class="n">snap</span><span class="o">.*.</span><span class="n">cfg</span> <span class="n">mass</span> <span class="nb">type</span> <span class="n">xs</span> <span class="n">ys</span> <span class="n">zs</span> <span class="n">vx</span> <span class="n">vy</span> <span class="n">vz</span>
-<span class="n">dump</span> <span class="n">snap</span> <span class="nb">all</span> <span class="n">cfg</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">config</span><span class="o">.*.</span><span class="n">cfg</span> <span class="n">mass</span> <span class="nb">type</span> <span class="n">xs</span> <span class="n">ys</span> <span class="n">zs</span> <span class="nb">id</span> <span class="nb">type</span> <span class="n">c_Stress</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-<span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">xtc</span> <span class="mi">1000</span> <span class="n">file</span><span class="o">.</span><span class="n">xtc</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+dump myDump all atom 100 dump.atom
+dump myDump all atom/mpiio 100 dump.atom.mpiio
+dump myDump all atom/gz 100 dump.atom.gz
+dump 2 subgroup atom 50 dump.run.bin
+dump 2 subgroup atom 50 dump.run.mpiio.bin
+dump 4a all custom 100 dump.myforce.* id type x y vx fx
+dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
+dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
+dump 2 inner cfg 10 dump.snap.*.cfg mass type xs ys zs vx vy vz
+dump snap all cfg 100 dump.config.*.cfg mass type xs ys zs id type c_Stress[2]
+dump 1 all xtc 1000 file.xtc
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -347,12 +347,12 @@ or m = shrink wrapped with a minimum value.  See the
 bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ITEM</span><span class="p">:</span> <span class="n">BOX</span> <span class="n">BOUNDS</span> <span class="n">xy</span> <span class="n">xz</span> <span class="n">yz</span> <span class="n">xx</span> <span class="n">yy</span> <span class="n">zz</span>
-<span class="n">xlo_bound</span> <span class="n">xhi_bound</span> <span class="n">xy</span>
-<span class="n">ylo_bound</span> <span class="n">yhi_bound</span> <span class="n">xz</span>
-<span class="n">zlo_bound</span> <span class="n">zhi_bound</span> <span class="n">yz</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+ITEM: BOX BOUNDS xy xz yz xx yy zz
+xlo_bound xhi_bound xy
+ylo_bound yhi_bound xz
+zlo_bound zhi_bound yz
+</pre>
 <p>The presence of the text &#8220;xy xz yz&#8221; in the ITEM line indicates that
 the 3 tilt factors will be included on each of the 3 following lines.
 This bounding box is convenient for many visualization programs.  The
@@ -541,7 +541,7 @@ styles.</p>
 reference values from a compute or fix, like the <em>custom</em>, <em>cfg</em>, or
 <em>local</em> styles, the bracketed index I can be specified using a
 wildcard asterisk with the index to effectively specify multiple
-values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
+values.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the
 size of the vector (for <em>mode</em> = scalar) or the number of columns in
 the array (for <em>mode</em> = vector), then an asterisk with no numeric
 values means all indices from 1 to N.  A leading asterisk means all
@@ -552,12 +552,12 @@ from m to n (inclusive).</p>
 had been listed one by one.  E.g. these 2 dump commands are
 equivalent, since the <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a>
 command creates a per-atom array with 6 columns:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myPress</span> <span class="nb">all</span> <span class="n">stress</span><span class="o">/</span><span class="n">atom</span> <span class="n">NULL</span>
-<span class="n">dump</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="nb">id</span> <span class="n">myPress</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
-<span class="n">dump</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="nb">id</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
-                                  <span class="n">myPress</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">myPress</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute myPress all stress/atom NULL
+dump 2 all custom 100 tmp.dump id myPress[*]
+dump 2 all custom 100 tmp.dump id myPress[1] myPress[2] myPress[3] &amp;
+                                  myPress[4] myPress[5] myPress[6]
+</pre>
 <hr class="docutils" />
 <p>This section explains the local attributes that can be specified as
 part of the <em>local</em> style.</p>
@@ -598,11 +598,11 @@ be specified with a wildcard asterisk to effectively specify multiple
 values.</p>
 <p>Here is an example of how to dump bond info for a system, including
 the distance and energy of each bond:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">local</span> <span class="n">batom1</span> <span class="n">batom2</span> <span class="n">btype</span>
-<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">bond</span><span class="o">/</span><span class="n">local</span> <span class="n">dist</span> <span class="n">eng</span>
-<span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">1000</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="n">index</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all property/local batom1 batom2 btype
+compute 2 all bond/local dist eng
+dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
+</pre>
 <hr class="docutils" />
 <p>This section explains the atom attributes that can be specified as
 part of the <em>custom</em> and <em>cfg</em> styles.</p>

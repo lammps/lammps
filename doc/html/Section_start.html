@@ -73,7 +73,8 @@
         
           
           
-              <ul class="current">
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-s-in-the-lammps-distribution">2.1. What&#8217;s in the LAMMPS distribution</a></li>
@@ -133,6 +134,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -1313,11 +1326,10 @@ with the name of your LAMMPS input script.</li>
 </ul>
 <p>For the MPI version, which allows you to run LAMMPS under Windows on
 multiple processors, follow these steps:</p>
-<ul class="simple">
-<li>Download and install
+<ul>
+<li><p class="first">Download and install
 <a class="reference external" href="http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads">MPICH2</a>
-for Windows.</li>
-</ul>
+for Windows.</p>
 <p>The LAMMPS Windows installer packages will automatically adjust your
 path for the default location of this MPI package. After the installation
 of the MPICH software, it needs to be integrated into the system.
@@ -1325,12 +1337,12 @@ For this you need to start a Command Prompt in <em>Administrator Mode</em>
 (right click on the icon and select it). Change into the MPICH2
 installation directory, then into the subdirectory <strong>bin</strong> and execute
 <strong>smpd.exe -install</strong>. Exit the command window.</p>
-<ul class="simple">
-<li>Get a new, regular command prompt by going to Start-&gt;Run... ,
-then typing &#8220;cmd&#8221;.</li>
-<li>Move to the directory where you have your input file
-(e.g. by typing: cd &#8220;Documents&#8221;).</li>
-</ul>
+</li>
+<li><p class="first">Get a new, regular command prompt by going to Start-&gt;Run... ,
+then typing &#8220;cmd&#8221;.</p>
+</li>
+<li><p class="first">Move to the directory where you have your input file
+(e.g. by typing: cd &#8220;Documents&#8221;).</p>
 <p>Then type something like this:</p>
 <pre class="literal-block">
 mpiexec -localonly 4 lmp_mpi -in in.lj
@@ -1339,18 +1351,20 @@ mpiexec -localonly 4 lmp_mpi -in in.lj
 <pre class="literal-block">
 mpiexec -np 4 lmp_mpi -in in.lj
 </pre>
-<ul class="simple">
-<li>replacing in.lj with the name of your LAMMPS input script. For the latter
-case, you may be prompted to enter your password.</li>
-<li>In this mode, output may not immediately show up on the screen, so if
+</li>
+<li><p class="first">replacing in.lj with the name of your LAMMPS input script. For the latter
+case, you may be prompted to enter your password.</p>
+</li>
+<li><p class="first">In this mode, output may not immediately show up on the screen, so if
 your input script takes a long time to execute, you may need to be
-patient before the output shows up.</li>
-</ul>
+patient before the output shows up.</p>
 <p>The parallel executable can also run on a single processor by typing
 something like:</p>
 <pre class="literal-block">
 lmp_mpi -in in.lj
 </pre>
+</li>
+</ul>
 <hr class="docutils" />
 <p>The screen output from LAMMPS is described in a section below.  As it
 runs, LAMMPS also writes a log.lammps file with the same information.</p>
@@ -1802,19 +1816,19 @@ simulation.  An example set of statistics is shown here:</p>
 <span class="mf">97.0</span><span class="o">%</span> <span class="n">CPU</span> <span class="n">use</span> <span class="k">with</span> <span class="mi">4</span> <span class="n">MPI</span> <span class="n">tasks</span> <span class="n">x</span> <span class="n">no</span> <span class="n">OpenMP</span> <span class="n">threads</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MPI</span> <span class="n">task</span> <span class="n">timings</span> <span class="n">breakdown</span><span class="p">:</span>
-<span class="n">Section</span> <span class="o">|</span>  <span class="nb">min</span> <span class="n">time</span>  <span class="o">|</span>  <span class="n">avg</span> <span class="n">time</span>  <span class="o">|</span>  <span class="nb">max</span> <span class="n">time</span>  <span class="o">|%</span><span class="n">varavg</span><span class="o">|</span> <span class="o">%</span><span class="n">total</span>
-<span class="o">---------------------------------------------------------------</span>
-<span class="n">Pair</span>    <span class="o">|</span> <span class="mf">1.9808</span>     <span class="o">|</span> <span class="mf">2.0134</span>     <span class="o">|</span> <span class="mf">2.0318</span>     <span class="o">|</span>   <span class="mf">1.4</span> <span class="o">|</span> <span class="mf">71.60</span>
-<span class="n">Bond</span>    <span class="o">|</span> <span class="mf">0.0021894</span>  <span class="o">|</span> <span class="mf">0.0060319</span>  <span class="o">|</span> <span class="mf">0.010058</span>   <span class="o">|</span>   <span class="mf">4.7</span> <span class="o">|</span>  <span class="mf">0.21</span>
-<span class="n">Kspace</span>  <span class="o">|</span> <span class="mf">0.3207</span>     <span class="o">|</span> <span class="mf">0.3366</span>     <span class="o">|</span> <span class="mf">0.36616</span>    <span class="o">|</span>   <span class="mf">3.1</span> <span class="o">|</span> <span class="mf">11.97</span>
-<span class="n">Neigh</span>   <span class="o">|</span> <span class="mf">0.28411</span>    <span class="o">|</span> <span class="mf">0.28464</span>    <span class="o">|</span> <span class="mf">0.28516</span>    <span class="o">|</span>   <span class="mf">0.1</span> <span class="o">|</span> <span class="mf">10.12</span>
-<span class="n">Comm</span>    <span class="o">|</span> <span class="mf">0.075732</span>   <span class="o">|</span> <span class="mf">0.077018</span>   <span class="o">|</span> <span class="mf">0.07883</span>    <span class="o">|</span>   <span class="mf">0.4</span> <span class="o">|</span>  <span class="mf">2.74</span>
-<span class="n">Output</span>  <span class="o">|</span> <span class="mf">0.00030518</span> <span class="o">|</span> <span class="mf">0.00042665</span> <span class="o">|</span> <span class="mf">0.00078821</span> <span class="o">|</span>   <span class="mf">1.0</span> <span class="o">|</span>  <span class="mf">0.02</span>
-<span class="n">Modify</span>  <span class="o">|</span> <span class="mf">0.086606</span>   <span class="o">|</span> <span class="mf">0.086631</span>   <span class="o">|</span> <span class="mf">0.086668</span>   <span class="o">|</span>   <span class="mf">0.0</span> <span class="o">|</span>  <span class="mf">3.08</span>
-<span class="n">Other</span>   <span class="o">|</span>            <span class="o">|</span> <span class="mf">0.007178</span>   <span class="o">|</span>            <span class="o">|</span>       <span class="o">|</span>  <span class="mf">0.26</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.9808     | 2.0134     | 2.0318     |   1.4 | 71.60
+Bond    | 0.0021894  | 0.0060319  | 0.010058   |   4.7 |  0.21
+Kspace  | 0.3207     | 0.3366     | 0.36616    |   3.1 | 11.97
+Neigh   | 0.28411    | 0.28464    | 0.28516    |   0.1 | 10.12
+Comm    | 0.075732   | 0.077018   | 0.07883    |   0.4 |  2.74
+Output  | 0.00030518 | 0.00042665 | 0.00078821 |   1.0 |  0.02
+Modify  | 0.086606   | 0.086631   | 0.086668   |   0.0 |  3.08
+Other   |            | 0.007178   |            |       |  0.26
+</pre>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Nlocal</span><span class="p">:</span>    <span class="mi">501</span> <span class="n">ave</span> <span class="mi">508</span> <span class="nb">max</span> <span class="mi">490</span> <span class="nb">min</span>
 <span class="n">Histogram</span><span class="p">:</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span>
 <span class="n">Nghost</span><span class="p">:</span>    <span class="mf">6586.25</span> <span class="n">ave</span> <span class="mi">6628</span> <span class="nb">max</span> <span class="mi">6548</span> <span class="nb">min</span>
@@ -1868,17 +1882,17 @@ computation. These thread timings are taking from the first MPI rank
 only and and thus, as the breakdown for MPI tasks can change from MPI
 rank to MPI rank, this breakdown can be very different for individual
 ranks. Here is an example output for this section:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Thread</span> <span class="n">timings</span> <span class="n">breakdown</span> <span class="p">(</span><span class="n">MPI</span> <span class="n">rank</span> <span class="mi">0</span><span class="p">):</span>
-<span class="n">Total</span> <span class="n">threaded</span> <span class="n">time</span> <span class="mf">0.6846</span> <span class="o">/</span> <span class="mf">90.6</span><span class="o">%</span>
-<span class="n">Section</span> <span class="o">|</span>  <span class="nb">min</span> <span class="n">time</span>  <span class="o">|</span>  <span class="n">avg</span> <span class="n">time</span>  <span class="o">|</span>  <span class="nb">max</span> <span class="n">time</span>  <span class="o">|%</span><span class="n">varavg</span><span class="o">|</span> <span class="o">%</span><span class="n">total</span>
-<span class="o">---------------------------------------------------------------</span>
-<span class="n">Pair</span>    <span class="o">|</span> <span class="mf">0.5127</span>     <span class="o">|</span> <span class="mf">0.5147</span>     <span class="o">|</span> <span class="mf">0.5167</span>     <span class="o">|</span>   <span class="mf">0.3</span> <span class="o">|</span> <span class="mf">75.18</span>
-<span class="n">Bond</span>    <span class="o">|</span> <span class="mf">0.0043139</span>  <span class="o">|</span> <span class="mf">0.0046779</span>  <span class="o">|</span> <span class="mf">0.0050418</span>  <span class="o">|</span>   <span class="mf">0.5</span> <span class="o">|</span>  <span class="mf">0.68</span>
-<span class="n">Kspace</span>  <span class="o">|</span> <span class="mf">0.070572</span>   <span class="o">|</span> <span class="mf">0.074541</span>   <span class="o">|</span> <span class="mf">0.07851</span>    <span class="o">|</span>   <span class="mf">1.5</span> <span class="o">|</span> <span class="mf">10.89</span>
-<span class="n">Neigh</span>   <span class="o">|</span> <span class="mf">0.084778</span>   <span class="o">|</span> <span class="mf">0.086969</span>   <span class="o">|</span> <span class="mf">0.089161</span>   <span class="o">|</span>   <span class="mf">0.7</span> <span class="o">|</span> <span class="mf">12.70</span>
-<span class="n">Reduce</span>  <span class="o">|</span> <span class="mf">0.0036485</span>  <span class="o">|</span> <span class="mf">0.003737</span>   <span class="o">|</span> <span class="mf">0.0038254</span>  <span class="o">|</span>   <span class="mf">0.1</span> <span class="o">|</span>  <span class="mf">0.55</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Thread timings breakdown (MPI rank 0):
+Total threaded time 0.6846 / 90.6%
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.5127     | 0.5147     | 0.5167     |   0.3 | 75.18
+Bond    | 0.0043139  | 0.0046779  | 0.0050418  |   0.5 |  0.68
+Kspace  | 0.070572   | 0.074541   | 0.07851    |   1.5 | 10.89
+Neigh   | 0.084778   | 0.086969   | 0.089161   |   0.7 | 12.70
+Reduce  | 0.0036485  | 0.003737   | 0.0038254  |   0.1 |  0.55
+</pre>
 <p>The third section lists the number of owned atoms (Nlocal), ghost atoms
 (Nghost), and pair-wise neighbors stored per processor.  The max and min
 values give the spread of these values across processors with a 10-bin

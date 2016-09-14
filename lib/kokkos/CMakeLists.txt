@@ -1,4 +1,15 @@
 
+IF(COMMAND TRIBITS_PACKAGE_DECL)
+  SET(KOKKOS_HAS_TRILINOS ON CACHE BOOL "")
+ELSE()
+  SET(KOKKOS_HAS_TRILINOS OFF CACHE BOOL "")
+ENDIF()
+
+IF(NOT KOKKOS_HAS_TRILINOS)
+  CMAKE_MINIMUM_REQUIRED(VERSION 2.8.11 FATAL_ERROR)
+  INCLUDE(cmake/tribits.cmake)
+ENDIF()
+
 #
 # A) Forward delcare the package so that certain options are also defined for
 # subpackages
@@ -12,7 +23,22 @@ TRIBITS_PACKAGE_DECL(Kokkos) # ENABLE_SHADOWING_WARNINGS)
 # subpackages as well.
 #
 
-TRIBITS_ADD_DEBUG_OPTION()
+
+
+# mfh 01 Aug 2016: See Issue #61:
+#
+# https://github.com/kokkos/kokkos/issues/61
+#
+# Don't use TRIBITS_ADD_DEBUG_OPTION() here, because that defines
+# HAVE_KOKKOS_DEBUG.  We define KOKKOS_HAVE_DEBUG here instead,
+# for compatibility with Kokkos' Makefile build system.
+
+TRIBITS_ADD_OPTION_AND_DEFINE(
+  ${PACKAGE_NAME}_ENABLE_DEBUG
+  ${PACKAGE_NAME_UC}_HAVE_DEBUG
+  "Enable run-time debug checks.  These checks may be expensive, so they are disabled by default in a release build."
+  ${${PROJECT_NAME}_ENABLE_DEBUG}
+)
 
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_SIERRA_BUILD
@@ -82,11 +108,33 @@ TRIBITS_ADD_OPTION_AND_DEFINE(
   "${TPL_ENABLE_MPI}"
   )
 
+# Set default value of Kokkos_ENABLE_Debug_Bounds_Check option
+#
+# CMake is case sensitive.  The Kokkos_ENABLE_Debug_Bounds_Check
+# option (defined below) is annoyingly not all caps, but we need to
+# keep it that way for backwards compatibility.  If users forget and
+# try using an all-caps variable, then make it count by using the
+# all-caps version as the default value of the original, not-all-caps
+# option.  Otherwise, the default value of this option comes from
+# Kokkos_ENABLE_DEBUG (see Issue #367).
+
+ASSERT_DEFINED(${PACKAGE_NAME}_ENABLE_DEBUG)
+IF(DEFINED Kokkos_ENABLE_DEBUG_BOUNDS_CHECK)
+  IF(Kokkos_ENABLE_DEBUG_BOUNDS_CHECK)
+    SET(Kokkos_ENABLE_Debug_Bounds_Check_DEFAULT ON)
+  ELSE()
+    SET(Kokkos_ENABLE_Debug_Bounds_Check_DEFAULT "${${PACKAGE_NAME}_ENABLE_DEBUG}")
+  ENDIF()
+ELSE()
+  SET(Kokkos_ENABLE_Debug_Bounds_Check_DEFAULT "${${PACKAGE_NAME}_ENABLE_DEBUG}")
+ENDIF()
+ASSERT_DEFINED(Kokkos_ENABLE_Debug_Bounds_Check_DEFAULT)
+
 TRIBITS_ADD_OPTION_AND_DEFINE(
   Kokkos_ENABLE_Debug_Bounds_Check
   KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
-  "Enable bounds checking support in Kokkos."
-  OFF
+  "Enable Kokkos::View run-time bounds checking."
+  "${Kokkos_ENABLE_Debug_Bounds_Check_DEFAULT}"
   )
 
 TRIBITS_ADD_OPTION_AND_DEFINE(

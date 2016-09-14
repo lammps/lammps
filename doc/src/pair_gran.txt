@@ -23,7 +23,8 @@ Kt = elastic constant for tangential contact (force/distance units or pressure u
 gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below) :l
 gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below) :l
 xmu = static yield criterion (unitless value between 0.0 and 1.0e4) :l
-dampflag = 0 or 1 if tangential damping force is excluded or included :l,ule
+dampflag = 0 or 1 if tangential damping force is excluded or included :l
+:ule
 
 NOTE: Versions of LAMMPS before 9Jan09 had different style names for
 granular force fields.  This is to emphasize the fact that the

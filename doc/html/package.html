@@ -572,11 +572,11 @@ compilers is to use one thread for each available CPU core when
 performance.</p>
 <p>Here are examples of how to set the environment variable when
 launching LAMMPS:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">env</span> <span class="n">OMP_NUM_THREADS</span><span class="o">=</span><span class="mi">4</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">omp</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
-<span class="n">env</span> <span class="n">OMP_NUM_THREADS</span><span class="o">=</span><span class="mi">2</span> <span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">omp</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">x</span> <span class="n">OMP_NUM_THREADS</span><span class="o">=</span><span class="mi">2</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="n">lmp_machine</span> <span class="o">-</span><span class="n">sf</span> <span class="n">omp</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
+env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
+mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script
+</pre>
 <p>or you can set it permanently in your shell&#8217;s start-up script.
 All three of these examples use a total of 4 CPU cores.</p>
 <p>Note that different MPI implementations have different ways of passing

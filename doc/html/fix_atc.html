@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix atc command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="o">&lt;</span><span class="n">fixID</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">group</span><span class="o">&gt;</span> <span class="n">atc</span> <span class="o">&lt;</span><span class="nb">type</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">parameter_file</span><span class="o">&gt;</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix &lt;fixID&gt; &lt;group&gt; atc &lt;type&gt; &lt;parameter_file&gt;
+</pre>
 <ul class="simple">
 <li>fixID = name of fix</li>
 <li>group = name of group fix is to be applied</li>
@@ -148,12 +148,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">thermal</span> <span class="n">Ar_thermal</span><span class="o">.</span><span class="n">dat</span>
-<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">two_temperature</span> <span class="n">Ar_ttm</span><span class="o">.</span><span class="n">mat</span>
-<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">hardy</span>
-<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">field</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix AtC internal atc thermal Ar_thermal.dat
+fix AtC internal atc two_temperature Ar_ttm.mat
+fix AtC internal atc hardy
+fix AtC internal atc field
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -163,31 +163,31 @@
  <span class="c1"># ... commands to create and initialize the MD system</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># initial fix to designate coupling type and group to apply it to</span>
-<span class="c1"># tag group physics material_file</span>
-<span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">thermal</span> <span class="n">Ar_thermal</span><span class="o">.</span><span class="n">mat</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create a uniform 12 x 2 x 2 mesh that covers region contain the group</span>
-<span class="c1"># nx ny nz region periodicity</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">mesh</span> <span class="n">create</span> <span class="mi">12</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">mdRegion</span> <span class="n">f</span> <span class="n">p</span> <span class="n">p</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># specify the control method for the type of coupling</span>
-<span class="c1"># physics control_type</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">thermal</span> <span class="n">control</span> <span class="n">flux</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># specify the initial values for the empirical field &quot;temperature&quot;</span>
-<span class="c1"># field node_group value</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">initial</span> <span class="n">temperature</span> <span class="nb">all</span> <span class="mi">30</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create an output stream for nodal fields</span>
-<span class="c1"># filename output_frequency</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">output</span> <span class="n">atc_fe_output</span> <span class="mi">100</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+# initial fix to designate coupling type and group to apply it to
+# tag group physics material_file
+fix AtC internal atc thermal Ar_thermal.mat
+</pre>
+<pre class="literal-block">
+# create a uniform 12 x 2 x 2 mesh that covers region contain the group
+# nx ny nz region periodicity
+fix_modify AtC mesh create 12 2 2 mdRegion f p p
+</pre>
+<pre class="literal-block">
+# specify the control method for the type of coupling
+# physics control_type
+fix_modify AtC thermal control flux
+</pre>
+<pre class="literal-block">
+# specify the initial values for the empirical field &quot;temperature&quot;
+# field node_group value
+fix_modify AtC initial temperature all 30
+</pre>
+<pre class="literal-block">
+# create an output stream for nodal fields
+# filename output_frequency
+fix_modify AtC output atc_fe_output 100
+</pre>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="mi">1000</span>
 </pre></div>
 </div>
@@ -200,30 +200,30 @@
 <span class="n">fix</span> <span class="n">AtC</span> <span class="n">internal</span> <span class="n">atc</span> <span class="n">hardy</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># for hardy fix, specific kernel function (function type and range) to # be used as a localization function</span>
-<span class="n">fix</span> <span class="n">AtC</span> <span class="n">kernel</span> <span class="n">quartic_sphere</span> <span class="mf">10.0</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create a uniform 1 x 1 x 1 mesh that covers region contain the group</span>
-<span class="c1"># with periodicity this effectively creats a system average</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">mesh</span> <span class="n">create</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">box</span> <span class="n">p</span> <span class="n">p</span> <span class="n">p</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># change from default lagrangian map to eulerian</span>
-<span class="c1"># refreshed every 100 steps</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">atom_element_map</span> <span class="n">eulerian</span> <span class="mi">100</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># start with no field defined</span>
-<span class="c1"># add mass density, potential energy density, stress and temperature</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">fields</span> <span class="n">add</span> <span class="n">density</span> <span class="n">energy</span> <span class="n">stress</span> <span class="n">temperature</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># create an output stream for nodal fields</span>
-<span class="c1"># filename output_frequency</span>
-<span class="n">fix_modify</span> <span class="n">AtC</span> <span class="n">output</span> <span class="n">nvtFE</span> <span class="mi">100</span> <span class="n">text</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+# for hardy fix, specific kernel function (function type and range) to # be used as a localization function
+fix AtC kernel quartic_sphere 10.0
+</pre>
+<pre class="literal-block">
+# create a uniform 1 x 1 x 1 mesh that covers region contain the group
+# with periodicity this effectively creats a system average
+fix_modify AtC mesh create 1 1 1 box p p p
+</pre>
+<pre class="literal-block">
+# change from default lagrangian map to eulerian
+# refreshed every 100 steps
+fix_modify AtC atom_element_map eulerian 100
+</pre>
+<pre class="literal-block">
+# start with no field defined
+# add mass density, potential energy density, stress and temperature
+fix_modify AtC fields add density energy stress temperature
+</pre>
+<pre class="literal-block">
+# create an output stream for nodal fields
+# filename output_frequency
+fix_modify AtC output nvtFE 100 text
+</pre>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">run</span> <span class="mi">1000</span>
 </pre></div>
 </div>
@@ -235,10 +235,8 @@
 <p>fix_modify AtC mesh create 1 1 1 box p p p</p>
 <p>...</p>
 <p>Note coupling and post-processing can be combined in the same simulations using separate fixes.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options relevant to this fix are listed below.  No global scalar or vector or per-atom quantities are stored by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can be used with the <em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
 </div>
 <div class="section" id="restrictions">

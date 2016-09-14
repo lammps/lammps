@@ -131,9 +131,9 @@
 <h1>pair_style dpd/fdt/energy command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style args
+</pre>
 <ul class="simple">
 <li>style = <em>dpd/fdt</em> or <em>dpd/fdt/energy</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -150,14 +150,14 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">dpd</span><span class="o">/</span><span class="n">fdt</span> <span class="mf">300.0</span> <span class="mf">2.5</span> <span class="mi">34387</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">3.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">dpd</span><span class="o">/</span><span class="n">fdt</span><span class="o">/</span><span class="n">energy</span> <span class="mf">2.5</span> <span class="mi">34387</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">3.0</span> <span class="mf">1.0</span> <span class="mf">0.1</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style dpd/fdt 300.0 2.5 34387
+pair_coeff * * 3.0 1.0 2.5
+</pre>
+<pre class="literal-block">
+pair_style dpd/fdt/energy 2.5 34387
+pair_coeff * * 3.0 1.0 0.1 2.5
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -230,7 +230,7 @@ specified.</p>
 <p>These commands are part of the USER-DPD package.  They are only
 enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>Pair styles <em>dpd/fdt</em> and <em>dpd/fdt/energy</em> require use of the
-<span class="xref doc">communicate vel yes</span> option so that velocites are
+<a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel yes</span></a> option so that velocites are
 stored by ghost atoms.</p>
 <p>Pair style <em>dpd/fdt/energy</em> requires <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dpd</span></a>
 to be used in order to properly account for the particle internal

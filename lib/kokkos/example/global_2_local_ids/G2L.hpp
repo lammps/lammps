@@ -186,7 +186,7 @@ size_t test_global_to_local_ids(unsigned num_ids, unsigned capacity, unsigned nu
   typedef Kokkos::UnorderedMap<uint32_t,size_type,execution_space> global_id_view;
 
   double elasped_time = 0;
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
 
   local_id_view local_2_global("local_ids", num_ids);
   global_id_view global_2_local(capacity);

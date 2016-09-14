@@ -204,14 +204,14 @@ The masses and charges of DCs and DPs are computed
 from <em>phenol.dff</em>, as well as the DC-DP bond constants.  The file
 <em>phenol.dff</em> contains the polarizabilities of the atom types
 and the mass of the Drude particles, for instance:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># units: kJ/mol, A, deg</span>
-<span class="c1"># kforce is in the form k/2 r_D^2</span>
-<span class="c1"># type  m_D/u   q_D/e    k_D   alpha/A3  thole</span>
-<span class="n">OH</span>      <span class="mf">0.4</span>    <span class="o">-</span><span class="mf">1.0</span>    <span class="mf">4184.0</span>   <span class="mf">0.63</span>     <span class="mf">0.67</span>
-<span class="n">CA</span>      <span class="mf">0.4</span>    <span class="o">-</span><span class="mf">1.0</span>    <span class="mf">4184.0</span>   <span class="mf">1.36</span>     <span class="mf">2.51</span>
-<span class="n">CAI</span>     <span class="mf">0.4</span>    <span class="o">-</span><span class="mf">1.0</span>    <span class="mf">4184.0</span>   <span class="mf">1.09</span>     <span class="mf">2.51</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+# units: kJ/mol, A, deg
+# kforce is in the form k/2 r_D^2
+# type  m_D/u   q_D/e    k_D   alpha/A3  thole
+OH      0.4    -1.0    4184.0   0.63     0.67
+CA      0.4    -1.0    4184.0   1.36     2.51
+CAI     0.4    -1.0    4184.0   1.09     2.51
+</pre>
 <p>The hydrogen atoms are absent from this file, so they will be treated
 as non-polarizable atoms.  In the non-polarizable data file
 <em>data.102494.lmp</em>, atom names corresponding to the atom type numbers
@@ -252,9 +252,9 @@ be reserved by using the <em>extra</em> keyword of the <em>special_bonds</em>
 command.  With our phenol, there is 1 more special neighbor for which
 space is required.  Otherwise LAMMPS crashes and gives the required
 value.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.5</span> <span class="n">extra</span> <span class="mi">1</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+special_bonds lj/coul 0.0 0.0 0.5 extra 1
+</pre>
 <p>Let us assume we want to run a simple NVT simulation at 300 K.  Note
 that Drude oscillators need to be thermalized at a low temperature in
 order to approximate a self-consistent field (SCF), therefore it is not
@@ -263,17 +263,17 @@ are approximated by a charged DC-DP pair, the <em>pair_style</em> must
 include Coulomb interactions, for instance <em>lj/cut/coul/long</em> with
 <em>kspace_style pppm</em>. For example, with a cutoff of 10. and a precision
 1.e-4:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span>
-<span class="n">kspace_style</span> <span class="n">pppm</span> <span class="mf">1.0e-4</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/coul/long 10.0
+kspace_style pppm 1.0e-4
+</pre>
 <p>As compared to the non-polarizable input file, <em>pair_coeff</em> lines need
 to be added for the DPs.  Since the DPs have no Lennard-Jones
 interactions, their <em>epsilon</em> is 0. so the only <em>pair_coeff</em> line
 that needs to be added is</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="mi">6</span><span class="o">*</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="c1"># All-DPs</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * 6* 0.0 0.0 # All-DPs
+</pre>
 <p>Now for the thermalization, the simplest choice is to use the <a class="reference internal" href="fix_langevin_drude.html"><span class="doc">fix langevin/drude</span></a>.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">LANG</span> <span class="nb">all</span> <span class="n">langevin</span><span class="o">/</span><span class="n">drude</span> <span class="mf">300.</span> <span class="mi">100</span> <span class="mi">12435</span> <span class="mf">1.</span> <span class="mi">20</span> <span class="mi">13977</span>
 </pre></div>
@@ -286,9 +286,9 @@ time 20 and random seed 13977.  Only the DCs and non-polarizable
 atoms need to be in this fix&#8217;s group.  LAMMPS will thermostate the DPs
 together with their DC.  For this, ghost atoms need to know their
 velocities. Thus you need to add the following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">comm_modify</span> <span class="n">vel</span> <span class="n">yes</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+comm_modify vel yes
+</pre>
 <p>In order to avoid that the center of mass of the whole system
 drifts due to the random forces of the Langevin thermostat on DCs, you
 can add the <em>zero yes</em> option at the end of the fix line.</p>
@@ -311,10 +311,10 @@ modification of forces but no position/velocity updates), the fix
 <p>Finally, do not forget to update the atom type elements if you use
 them in a <em>dump_modify ... element ...</em> command, by adding the element
 type of the DPs. Here for instance</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump</span> <span class="n">DUMP</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">10</span> <span class="n">dump</span><span class="o">.</span><span class="n">lammpstrj</span> <span class="nb">id</span> <span class="n">mol</span> <span class="nb">type</span> <span class="n">element</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span> <span class="n">ix</span> <span class="n">iy</span> <span class="n">iz</span>
-<span class="n">dump_modify</span> <span class="n">DUMP</span> <span class="n">element</span> <span class="n">C</span> <span class="n">C</span> <span class="n">O</span> <span class="n">H</span> <span class="n">H</span> <span class="n">D</span> <span class="n">D</span> <span class="n">D</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+dump DUMP all custom 10 dump.lammpstrj id mol type element x y z ix iy iz
+dump_modify DUMP element C C O H H D D D
+</pre>
 <p>The input file should now be ready for use!</p>
 <p>You will notice that the global temperature <em>thermo_temp</em> computed by
 LAMMPS is not 300. K as wanted.  This is because LAMMPS treats DPs as
@@ -327,9 +327,9 @@ to their DCs, you should use the <a class="reference internal" href="compute_tem
 <p>And then output the correct temperatures of the Drude oscillators
 using <em>thermo_style custom</em> with respectively <em>c_TDRUDE[1]</em> and
 <em>c_TDRUDE[2]</em>. These should be close to 300.0 and 1.0 on average.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">c_TDRUDE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_TDRUDE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+thermo_style custom step temp c_TDRUDE[1] c_TDRUDE[2]
+</pre>
 <hr class="docutils" />
 <p><strong>Thole screening</strong></p>
 <p>Dipolar interactions represented by point charges on springs may not
@@ -346,9 +346,9 @@ correction to the Coulomb pair_styles, which dampens at short distance
 the interactions between the charges representing the induced dipoles.
 It is to be used as <em>hybrid/overlay</em> with any standard <em>coul</em> pair
 style.  In our example, we would use</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span> <span class="n">thole</span> <span class="mf">2.6</span> <span class="mf">10.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0
+</pre>
 <p>This tells LAMMPS that we are using two pair_styles.  The first one is
 as above (<em>lj/cut/coul/long 10.0</em>).  The second one is a <em>thole</em>
 pair_style with default screening factor 2.6 (<a class="reference internal" href="#noskov"><span class="std std-ref">Noskov</span></a>) and
@@ -358,50 +358,48 @@ coefficients of all the pairs of atom types with i &lt; j should be
 explicitly defined.  The output of the <em>polarizer</em> script can be used
 to complete the <em>pair_coeff</em> section of the input file.  In our
 example, this will look like:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">1</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0700</span>   <span class="mf">3.550</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">2</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0700</span>   <span class="mf">3.550</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">3</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.1091</span>   <span class="mf">3.310</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">4</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0458</span>   <span class="mf">2.985</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">2</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0700</span>   <span class="mf">3.550</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">3</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.1091</span>   <span class="mf">3.310</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">4</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0458</span>   <span class="mf">2.985</span>
-<span class="n">pair_coeff</span>    <span class="mi">3</span>    <span class="mi">3</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.1700</span>   <span class="mf">3.070</span>
-<span class="n">pair_coeff</span>    <span class="mi">3</span>    <span class="mi">4</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0714</span>   <span class="mf">2.745</span>
-<span class="n">pair_coeff</span>    <span class="mi">4</span>    <span class="mi">4</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0300</span>   <span class="mf">2.420</span>
-<span class="n">pair_coeff</span>    <span class="o">*</span>    <span class="mi">5</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0000</span>   <span class="mf">0.000</span>
-<span class="n">pair_coeff</span>    <span class="o">*</span>   <span class="mi">6</span><span class="o">*</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span>    <span class="mf">0.0000</span>   <span class="mf">0.000</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">1</span> <span class="n">thole</span>   <span class="mf">1.090</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">2</span> <span class="n">thole</span>   <span class="mf">1.218</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">3</span> <span class="n">thole</span>   <span class="mf">0.829</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">6</span> <span class="n">thole</span>   <span class="mf">1.090</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">7</span> <span class="n">thole</span>   <span class="mf">1.218</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">1</span>    <span class="mi">8</span> <span class="n">thole</span>   <span class="mf">0.829</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">2</span> <span class="n">thole</span>   <span class="mf">1.360</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">3</span> <span class="n">thole</span>   <span class="mf">0.926</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">6</span> <span class="n">thole</span>   <span class="mf">1.218</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">7</span> <span class="n">thole</span>   <span class="mf">1.360</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">2</span>    <span class="mi">8</span> <span class="n">thole</span>   <span class="mf">0.926</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">3</span>    <span class="mi">3</span> <span class="n">thole</span>   <span class="mf">0.630</span>   <span class="mf">0.670</span>
-<span class="n">pair_coeff</span>    <span class="mi">3</span>    <span class="mi">6</span> <span class="n">thole</span>   <span class="mf">0.829</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">3</span>    <span class="mi">7</span> <span class="n">thole</span>   <span class="mf">0.926</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">3</span>    <span class="mi">8</span> <span class="n">thole</span>   <span class="mf">0.630</span>   <span class="mf">0.670</span>
-<span class="n">pair_coeff</span>    <span class="mi">6</span>    <span class="mi">6</span> <span class="n">thole</span>   <span class="mf">1.090</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">6</span>    <span class="mi">7</span> <span class="n">thole</span>   <span class="mf">1.218</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">6</span>    <span class="mi">8</span> <span class="n">thole</span>   <span class="mf">0.829</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">7</span>    <span class="mi">7</span> <span class="n">thole</span>   <span class="mf">1.360</span>   <span class="mf">2.510</span>
-<span class="n">pair_coeff</span>    <span class="mi">7</span>    <span class="mi">8</span> <span class="n">thole</span>   <span class="mf">0.926</span>   <span class="mf">1.590</span>
-<span class="n">pair_coeff</span>    <span class="mi">8</span>    <span class="mi">8</span> <span class="n">thole</span>   <span class="mf">0.630</span>   <span class="mf">0.670</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff    1    1 lj/cut/coul/long    0.0700   3.550
+pair_coeff    1    2 lj/cut/coul/long    0.0700   3.550
+pair_coeff    1    3 lj/cut/coul/long    0.1091   3.310
+pair_coeff    1    4 lj/cut/coul/long    0.0458   2.985
+pair_coeff    2    2 lj/cut/coul/long    0.0700   3.550
+pair_coeff    2    3 lj/cut/coul/long    0.1091   3.310
+pair_coeff    2    4 lj/cut/coul/long    0.0458   2.985
+pair_coeff    3    3 lj/cut/coul/long    0.1700   3.070
+pair_coeff    3    4 lj/cut/coul/long    0.0714   2.745
+pair_coeff    4    4 lj/cut/coul/long    0.0300   2.420
+pair_coeff    *    5 lj/cut/coul/long    0.0000   0.000
+pair_coeff    *   6* lj/cut/coul/long    0.0000   0.000
+pair_coeff    1    1 thole   1.090   2.510
+pair_coeff    1    2 thole   1.218   2.510
+pair_coeff    1    3 thole   0.829   1.590
+pair_coeff    1    6 thole   1.090   2.510
+pair_coeff    1    7 thole   1.218   2.510
+pair_coeff    1    8 thole   0.829   1.590
+pair_coeff    2    2 thole   1.360   2.510
+pair_coeff    2    3 thole   0.926   1.590
+pair_coeff    2    6 thole   1.218   2.510
+pair_coeff    2    7 thole   1.360   2.510
+pair_coeff    2    8 thole   0.926   1.590
+pair_coeff    3    3 thole   0.630   0.670
+pair_coeff    3    6 thole   0.829   1.590
+pair_coeff    3    7 thole   0.926   1.590
+pair_coeff    3    8 thole   0.630   0.670
+pair_coeff    6    6 thole   1.090   2.510
+pair_coeff    6    7 thole   1.218   2.510
+pair_coeff    6    8 thole   0.829   1.590
+pair_coeff    7    7 thole   1.360   2.510
+pair_coeff    7    8 thole   0.926   1.590
+pair_coeff    8    8 thole   0.630   0.670
+</pre>
 <p>For the <em>thole</em> pair style the coefficients are</p>
 <ol class="arabic simple">
 <li>the atom polarizability in units of cubic length</li>
 <li>the screening factor of the Thole function (optional, default value
 specified by the pair_style command)</li>
-</ol>
-<ul class="simple">
 <li>the cutoff (optional, default value defined by the pair_style command)</li>
-</ul>
+</ol>
 <p>The special neighbors have charge-charge and charge-dipole
 interactions screened by the <em>coul</em> factors of the <em>special_bonds</em>
 command (0.0, 0.0, and 0.5 in the example above).  Without using the
@@ -458,14 +456,14 @@ We do want the pressure to correspond to the whole system, but we want
 the temperature to correspond to the fix group only.  We must then use
 the <em>fix_modify</em> command for this.  In the end, the block of
 instructions for thermostating and barostating will look like</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">TATOMS</span> <span class="n">ATOMS</span> <span class="n">temp</span>
-<span class="n">fix</span> <span class="n">DIRECT</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">direct</span>
-<span class="n">fix</span> <span class="n">NPT</span> <span class="n">ATOMS</span> <span class="n">npt</span> <span class="n">temp</span> <span class="mf">300.</span> <span class="mf">300.</span> <span class="mi">100</span> <span class="n">iso</span> <span class="mf">1.</span> <span class="mf">1.</span> <span class="mi">500</span>
-<span class="n">fix_modify</span> <span class="n">NPT</span> <span class="n">temp</span> <span class="n">TATOMS</span> <span class="n">press</span> <span class="n">thermo_press</span>
-<span class="n">fix</span> <span class="n">NVT</span> <span class="n">DRUDES</span> <span class="n">nvt</span> <span class="n">temp</span> <span class="mf">1.</span> <span class="mf">1.</span> <span class="mi">20</span>
-<span class="n">fix</span> <span class="n">INVERSE</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">inverse</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute TATOMS ATOMS temp
+fix DIRECT all drude/transform/direct
+fix NPT ATOMS npt temp 300. 300. 100 iso 1. 1. 500
+fix_modify NPT temp TATOMS press thermo_press
+fix NVT DRUDES nvt temp 1. 1. 20
+fix INVERSE all drude/transform/inverse
+</pre>
 <hr class="docutils" />
 <p><strong>Rigid bodies</strong></p>
 <p>You may want to simulate molecules as rigid bodies (but polarizable).
@@ -474,12 +472,12 @@ kind of polarizable TIP4P water.  The rigid bodies and the DPs should
 be integrated separately, even with the Langevin thermostat.  Let us
 review the different thermostats and ensemble combinations.</p>
 <p>NVT ensemble using Langevin thermostat:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">comm_modify</span> <span class="n">vel</span> <span class="n">yes</span>
-<span class="n">fix</span> <span class="n">LANG</span> <span class="nb">all</span> <span class="n">langevin</span><span class="o">/</span><span class="n">drude</span> <span class="mf">300.</span> <span class="mi">100</span> <span class="mi">12435</span> <span class="mf">1.</span> <span class="mi">20</span> <span class="mi">13977</span>
-<span class="n">fix</span> <span class="n">RIGID</span> <span class="n">ATOMS</span> <span class="n">rigid</span><span class="o">/</span><span class="n">nve</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span>
-<span class="n">fix</span> <span class="n">NVE</span> <span class="n">DRUDES</span> <span class="n">nve</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+comm_modify vel yes
+fix LANG all langevin/drude 300. 100 12435 1. 20 13977
+fix RIGID ATOMS rigid/nve/small molecule
+fix NVE DRUDES nve
+</pre>
 <p>NVT ensemble using Nose-Hoover thermostat:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">DIRECT</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">direct</span>
 <span class="n">fix</span> <span class="n">RIGID</span> <span class="n">ATOMS</span> <span class="n">rigid</span><span class="o">/</span><span class="n">nvt</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span> <span class="n">temp</span> <span class="mf">300.</span> <span class="mf">300.</span> <span class="mi">100</span>
@@ -488,21 +486,21 @@ review the different thermostats and ensemble combinations.</p>
 </pre></div>
 </div>
 <p>NPT ensemble with Langevin thermostat:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">comm_modify</span> <span class="n">vel</span> <span class="n">yes</span>
-<span class="n">fix</span> <span class="n">LANG</span> <span class="nb">all</span> <span class="n">langevin</span><span class="o">/</span><span class="n">drude</span> <span class="mf">300.</span> <span class="mi">100</span> <span class="mi">12435</span> <span class="mf">1.</span> <span class="mi">20</span> <span class="mi">13977</span>
-<span class="n">fix</span> <span class="n">RIGID</span> <span class="n">ATOMS</span> <span class="n">rigid</span><span class="o">/</span><span class="n">nph</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span> <span class="n">iso</span> <span class="mf">1.</span> <span class="mf">1.</span> <span class="mi">500</span>
-<span class="n">fix</span> <span class="n">NVE</span> <span class="n">DRUDES</span> <span class="n">nve</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+comm_modify vel yes
+fix LANG all langevin/drude 300. 100 12435 1. 20 13977
+fix RIGID ATOMS rigid/nph/small molecule iso 1. 1. 500
+fix NVE DRUDES nve
+</pre>
 <p>NPT ensemble using Nose-Hoover thermostat:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">TATOM</span> <span class="n">ATOMS</span> <span class="n">temp</span>
-<span class="n">fix</span> <span class="n">DIRECT</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">direct</span>
-<span class="n">fix</span> <span class="n">RIGID</span> <span class="n">ATOMS</span> <span class="n">rigid</span><span class="o">/</span><span class="n">npt</span><span class="o">/</span><span class="n">small</span> <span class="n">molecule</span> <span class="n">temp</span> <span class="mf">300.</span> <span class="mf">300.</span> <span class="mi">100</span> <span class="n">iso</span> <span class="mf">1.</span> <span class="mf">1.</span> <span class="mi">500</span>
-<span class="n">fix_modify</span> <span class="n">RIGID</span> <span class="n">temp</span> <span class="n">TATOM</span> <span class="n">press</span> <span class="n">thermo_press</span>
-<span class="n">fix</span> <span class="n">NVT</span> <span class="n">DRUDES</span> <span class="n">nvt</span> <span class="n">temp</span> <span class="mf">1.</span> <span class="mf">1.</span> <span class="mi">20</span>
-<span class="n">fix</span> <span class="n">INVERSE</span> <span class="nb">all</span> <span class="n">drude</span><span class="o">/</span><span class="n">transform</span><span class="o">/</span><span class="n">inverse</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute TATOM ATOMS temp
+fix DIRECT all drude/transform/direct
+fix RIGID ATOMS rigid/npt/small molecule temp 300. 300. 100 iso 1. 1. 500
+fix_modify RIGID temp TATOM press thermo_press
+fix NVT DRUDES nvt temp 1. 1. 20
+fix INVERSE all drude/transform/inverse
+</pre>
 <hr class="docutils" />
 <p id="lamoureux"><strong>(Lamoureux)</strong> Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)</p>
 <p id="schroeder"><strong>(Schroeder)</strong>  Schroeder and Steinhauser, J Chem Phys, 133,

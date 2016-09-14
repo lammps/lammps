@@ -232,7 +232,7 @@ time a molecule is inserted, a random number is used to sample from
 the list of relative probabilities.  The N values must sum to 1.0.</p>
 <p>If you wish to insert molecules via the <em>mol</em> keyword, that will be
 treated as rigid bodies, use the <em>rigid</em> keyword, specifying as its
-value the ID of a separate <span class="xref doc">fix rigid/small</span>
+value the ID of a separate <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/small</span></a>
 command which also appears in your input script.</p>
 <p>If you wish to insert molecules via the <em>mol</em> keyword, that will have
 their bonds or angles constrained via SHAKE, use the <em>shake</em> keyword,
@@ -316,10 +316,8 @@ can prevent particles from being inserted.  The <em>ignore</em> keyword
 causes the overlap check to skip any line or triangle particles.
 Obviously you should only use it if there is in fact no overlap of the
 line or triangle particles with the insertion region.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  This means you must be careful when restarting a
 pouring simulation, when the restart file was written in the middle of
 the pouring operation.  Specifically, you should use a new fix pour

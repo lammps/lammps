@@ -108,7 +108,8 @@ variable"_variable.html. :l
 Local values can be reduced by the "compute
 reduce"_compute_reduce.html command, or histogrammed by the "fix
 ave/histo"_fix_ave_histo.html command, or output by the "dump
-local"_dump.html command. :l,ule
+local"_dump.html command. :l
+:ule
 
 The results of computes that calculate global quantities can be either
 "intensive" or "extensive" values.  Intensive means the value is

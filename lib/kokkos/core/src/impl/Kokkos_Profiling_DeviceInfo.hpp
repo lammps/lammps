@@ -45,7 +45,7 @@
 #define KOKKOSP_DEVICE_INFO_HPP
 
 namespace Kokkos {
-namespace Experimental {
+namespace Profiling {
 
     struct KokkosPDeviceInfo {
         uint32_t deviceID;

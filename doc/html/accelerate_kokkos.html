@@ -166,19 +166,19 @@ produce an executable compatible with specific hardware.</p>
 <p>Here is a quick overview of how to use the KOKKOS package
 for CPU acceleration, assuming one or more 16-core nodes.
 More details follow.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">a</span> <span class="n">C</span><span class="o">++</span><span class="mi">11</span> <span class="n">compatible</span> <span class="n">compiler</span>
-<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
-<span class="n">make</span> <span class="n">mpi</span> <span class="n">KOKKOS_DEVICES</span><span class="o">=</span><span class="n">OpenMP</span>                 <span class="c1"># build with the KOKKOS package</span>
-<span class="n">make</span> <span class="n">kokkos_omp</span>                                <span class="c1"># or Makefile.kokkos_omp already has variable set</span>
-<span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">p</span> <span class="n">kokkos</span> <span class="o">-</span><span class="n">kokkos</span> <span class="n">omp</span> <span class="o">-</span><span class="n">o</span> <span class="n">mpi</span> <span class="o">-</span><span class="n">a</span> <span class="n">file</span> <span class="n">mpi</span>   <span class="c1"># or one-line build via Make.py</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">16</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>              <span class="c1"># 1 node, 16 MPI tasks/node, no threads</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">1</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">16</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>   <span class="c1"># 2 nodes, 1 MPI task/node, 16 threads/task</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">8</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>           <span class="c1"># 1 node, 2 MPI tasks/node, 8 threads/task</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">32</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">4</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">4</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>   <span class="c1"># 8 nodes, 4 MPI tasks/node, 4 threads/task</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+use a C++11 compatible compiler
+make yes-kokkos
+make mpi KOKKOS_DEVICES=OpenMP                 # build with the KOKKOS package
+make kokkos_omp                                # or Makefile.kokkos_omp already has variable set
+Make.py -v -p kokkos -kokkos omp -o mpi -a file mpi   # or one-line build via Make.py
+</pre>
+<pre class="literal-block">
+mpirun -np 16 lmp_mpi -k on -sf kk -in in.lj              # 1 node, 16 MPI tasks/node, no threads
+mpirun -np 2 -ppn 1 lmp_mpi -k on t 16 -sf kk -in in.lj   # 2 nodes, 1 MPI task/node, 16 threads/task
+mpirun -np 2 lmp_mpi -k on t 8 -sf kk -in in.lj           # 1 node, 2 MPI tasks/node, 8 threads/task
+mpirun -np 32 -ppn 4 lmp_mpi -k on t 4 -sf kk -in in.lj   # 8 nodes, 4 MPI tasks/node, 4 threads/task
+</pre>
 <ul class="simple">
 <li>specify variables and settings in your Makefile.machine that enable OpenMP, GPU, or Phi support</li>
 <li>include the KOKKOS package and build LAMMPS</li>
@@ -188,39 +188,39 @@ More details follow.</p>
 assuming one or more nodes, each with 16 cores and a GPU.  More
 details follow.</p>
 <p>discuss use of NVCC, which Makefiles to examine</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">a</span> <span class="n">C</span><span class="o">++</span><span class="mi">11</span> <span class="n">compatible</span> <span class="n">compiler</span>
-<span class="n">KOKKOS_DEVICES</span> <span class="o">=</span> <span class="n">Cuda</span><span class="p">,</span> <span class="n">OpenMP</span>
-<span class="n">KOKKOS_ARCH</span> <span class="o">=</span> <span class="n">Kepler35</span>
-<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
-<span class="n">make</span> <span class="n">machine</span>
-<span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">kokkos</span> <span class="o">-</span><span class="n">kokkos</span> <span class="n">cuda</span> <span class="n">arch</span><span class="o">=</span><span class="mi">31</span> <span class="o">-</span><span class="n">o</span> <span class="n">kokkos_cuda</span> <span class="o">-</span><span class="n">a</span> <span class="n">file</span> <span class="n">kokkos_cuda</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">1</span> <span class="n">lmp_cuda</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">6</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>          <span class="c1"># one MPI task, 6 threads on CPU</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">1</span> <span class="n">lmp_cuda</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">6</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>   <span class="c1"># ditto on 4 nodes</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="n">lmp_cuda</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">8</span> <span class="n">g</span> <span class="mi">2</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>           <span class="c1"># two MPI tasks, 8 threads per CPU</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">32</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">2</span> <span class="n">lmp_cuda</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">8</span> <span class="n">g</span> <span class="mi">2</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>   <span class="c1"># ditto on 16 nodes</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+use a C++11 compatible compiler
+KOKKOS_DEVICES = Cuda, OpenMP
+KOKKOS_ARCH = Kepler35
+make yes-kokkos
+make machine
+Make.py -p kokkos -kokkos cuda arch=31 -o kokkos_cuda -a file kokkos_cuda
+</pre>
+<pre class="literal-block">
+mpirun -np 1 lmp_cuda -k on t 6 -sf kk -in in.lj          # one MPI task, 6 threads on CPU
+mpirun -np 4 -ppn 1 lmp_cuda -k on t 6 -sf kk -in in.lj   # ditto on 4 nodes
+</pre>
+<pre class="literal-block">
+mpirun -np 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj           # two MPI tasks, 8 threads per CPU
+mpirun -np 32 -ppn 2 lmp_cuda -k on t 8 g 2 -sf kk -in in.lj   # ditto on 16 nodes
+</pre>
 <p>Here is a quick overview of how to use the KOKKOS package
 for the Intel Phi:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">use</span> <span class="n">a</span> <span class="n">C</span><span class="o">++</span><span class="mi">11</span> <span class="n">compatible</span> <span class="n">compiler</span>
-<span class="n">KOKKOS_DEVICES</span> <span class="o">=</span> <span class="n">OpenMP</span>
-<span class="n">KOKKOS_ARCH</span> <span class="o">=</span> <span class="n">KNC</span>
-<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
-<span class="n">make</span> <span class="n">machine</span>
-<span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">p</span> <span class="n">kokkos</span> <span class="o">-</span><span class="n">kokkos</span> <span class="n">phi</span> <span class="o">-</span><span class="n">o</span> <span class="n">kokkos_phi</span> <span class="o">-</span><span class="n">a</span> <span class="n">file</span> <span class="n">mpi</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">host</span><span class="o">=</span><span class="n">MIC</span><span class="p">,</span> <span class="n">Intel</span> <span class="n">Phi</span> <span class="k">with</span> <span class="mi">61</span> <span class="n">cores</span> <span class="p">(</span><span class="mi">240</span> <span class="n">threads</span><span class="o">/</span><span class="n">phi</span> <span class="n">via</span> <span class="mi">4</span><span class="n">x</span> <span class="n">hardware</span> <span class="n">threading</span><span class="p">):</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">1</span> <span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">240</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>           <span class="c1"># 1 MPI task on 1 Phi, 1*240 = 240</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">30</span> <span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">8</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>            <span class="c1"># 30 MPI tasks on 1 Phi, 30*8 = 240</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">12</span> <span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">20</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>           <span class="c1"># 12 MPI tasks on 1 Phi, 12*20 = 240</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">96</span> <span class="o">-</span><span class="n">ppn</span> <span class="mi">12</span> <span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="n">k</span> <span class="n">on</span> <span class="n">t</span> <span class="mi">20</span> <span class="o">-</span><span class="n">sf</span> <span class="n">kk</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">lj</span>   <span class="c1"># ditto on 8 Phis</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+use a C++11 compatible compiler
+KOKKOS_DEVICES = OpenMP
+KOKKOS_ARCH = KNC
+make yes-kokkos
+make machine
+Make.py -p kokkos -kokkos phi -o kokkos_phi -a file mpi
+</pre>
+<pre class="literal-block">
+host=MIC, Intel Phi with 61 cores (240 threads/phi via 4x hardware threading):
+mpirun -np 1 lmp_g++ -k on t 240 -sf kk -in in.lj           # 1 MPI task on 1 Phi, 1*240 = 240
+mpirun -np 30 lmp_g++ -k on t 8 -sf kk -in in.lj            # 30 MPI tasks on 1 Phi, 30*8 = 240
+mpirun -np 12 lmp_g++ -k on t 20 -sf kk -in in.lj           # 12 MPI tasks on 1 Phi, 12*20 = 240
+mpirun -np 96 -ppn 12 lmp_g++ -k on t 20 -sf kk -in in.lj   # ditto on 8 Phis
+</pre>
 <p><strong>Required hardware/software:</strong></p>
 <p>Kokkos support within LAMMPS must be built with a C++11 compatible
 compiler.  If using gcc, version 4.8.1 or later is required.</p>
@@ -257,40 +257,40 @@ respectively.  Or the effect of the &#8220;-pk&#8221; or &#8220;-sf&#8221; switc
 duplicated by adding the <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a> or <a class="reference internal" href="suffix.html"><span class="doc">suffix kk</span></a> commands respectively to your input script.</p>
 <p>Or you can follow these steps:</p>
 <p>CPU-only (run all-MPI or with OpenMP threading):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
-<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
-<span class="n">make</span> <span class="n">g</span><span class="o">++</span> <span class="n">KOKKOS_DEVICES</span><span class="o">=</span><span class="n">OpenMP</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+cd lammps/src
+make yes-kokkos
+make g++ KOKKOS_DEVICES=OpenMP
+</pre>
 <p>Intel Xeon Phi:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
-<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
-<span class="n">make</span> <span class="n">g</span><span class="o">++</span> <span class="n">KOKKOS_DEVICES</span><span class="o">=</span><span class="n">OpenMP</span> <span class="n">KOKKOS_ARCH</span><span class="o">=</span><span class="n">KNC</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+cd lammps/src
+make yes-kokkos
+make g++ KOKKOS_DEVICES=OpenMP KOKKOS_ARCH=KNC
+</pre>
 <p>CPUs and GPUs:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">lammps</span><span class="o">/</span><span class="n">src</span>
-<span class="n">make</span> <span class="n">yes</span><span class="o">-</span><span class="n">kokkos</span>
-<span class="n">make</span> <span class="n">cuda</span> <span class="n">KOKKOS_DEVICES</span><span class="o">=</span><span class="n">Cuda</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+cd lammps/src
+make yes-kokkos
+make cuda KOKKOS_DEVICES=Cuda
+</pre>
 <p>These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
 make command line which requires a GNU-compatible make command.  Try
 &#8220;gmake&#8221; if your system&#8217;s standard make complains.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you build using make line variables and re-build LAMMPS twice
-with different KOKKOS options and the <em>same</em> target, e.g. g++ in the
-first two examples above, then you <em>must</em> perform a &#8220;make clean-all&#8221;
+with different KOKKOS options and the *same* target, e.g. g++ in the
+first two examples above, then you *must* perform a &#8220;make clean-all&#8221;
 or &#8220;make clean-machine&#8221; before each build.  This is to force all the
 KOKKOS-dependent files to be re-compiled with the new options.</p>
 </div>
 <p>You can also hardwire these make variables in the specified machine
 makefile, e.g. src/MAKE/Makefile.g++ in the first two examples above,
 with a line like:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">KOKKOS_ARCH</span> <span class="o">=</span> <span class="n">KNC</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+KOKKOS_ARCH = KNC
+</pre>
 <p>Note that if you build LAMMPS multiple times in this manner, using
 different KOKKOS options (defined in different machine makefiles), you
 do not have to worry about doing a &#8220;clean&#8221; in between.  This is
@@ -342,7 +342,7 @@ with compute capability 3.x.  For the LINK setting, &#8220;nvcc&#8221; should no
 be used; instead use g++ or another compiler suitable for linking C++
 applications.  Often you will want to use your MPI compiler wrapper
 for this setting (i.e. mpicxx).  Finally, the lo-level Makefile must
-also have a &#8220;Compilation rule&#8221; for creating <a href="#id1"><span class="problematic" id="id2">*</span></a>.o files from <a href="#id3"><span class="problematic" id="id4">*</span></a>.cu files.
+also have a &#8220;Compilation rule&#8221; for creating *.o files from *.cu files.
 See src/Makefile.cuda for an example of a lo-level Makefile with all
 of these settings.</p>
 <p>KOKKOS_USE_TPLS=hwloc binds threads to hardware cores, so they do not
@@ -351,7 +351,7 @@ used if running with KOKKOS_DEVICES=Pthreads for pthreads.  It is not
 necessary for KOKKOS_DEVICES=OpenMP for OpenMP, because OpenMP
 provides alternative methods via environment variables for binding
 threads to hardware cores.  More info on binding threads to cores is
-given in <span class="xref std std-ref">this section</span>.</p>
+given in <a class="reference internal" href="Section_accelerate.html#acc-3"><span class="std std-ref">this section</span></a>.</p>
 <p>KOKKOS_ARCH=KNC enables compiler switches needed when compling for an
 Intel Phi processor.</p>
 <p>KOKKOS_USE_TPLS=librt enables use of a more accurate timer mechanism
@@ -430,9 +430,9 @@ specify its additional arguments for hardware options appopriate to
 your system, as documented above.</p>
 <p>Use the <a class="reference internal" href="suffix.html"><span class="doc">suffix kk</span></a> command, or you can explicitly add a
 &#8220;kk&#8221; suffix to individual styles in your input script, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">kk</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/kk 2.5
+</pre>
 <p>You only need to use the <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a> command if you
 wish to change any of its option defaults, as set by the &#8220;-k on&#8221;
 <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">command-line switch</span></a>.</p>
@@ -483,10 +483,10 @@ performance to bind both MPI tasks to physical cores, and threads to
 physical cores, so they do not migrate during a simulation.</p>
 <p>If you are not certain MPI tasks are being bound (check the defaults
 for your MPI installation), binding can be forced with these flags:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">OpenMPI</span> <span class="mf">1.8</span><span class="p">:</span> <span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="o">-</span><span class="n">bind</span><span class="o">-</span><span class="n">to</span> <span class="n">socket</span> <span class="o">-</span><span class="nb">map</span><span class="o">-</span><span class="n">by</span> <span class="n">socket</span> <span class="o">./</span><span class="n">lmp_openmpi</span> <span class="o">...</span>
-<span class="n">Mvapich2</span> <span class="mf">2.0</span><span class="p">:</span> <span class="n">mpiexec</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="o">-</span><span class="n">bind</span><span class="o">-</span><span class="n">to</span> <span class="n">socket</span> <span class="o">-</span><span class="nb">map</span><span class="o">-</span><span class="n">by</span> <span class="n">socket</span> <span class="o">./</span><span class="n">lmp_mvapich</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+OpenMPI 1.8: mpirun -np 2 -bind-to socket -map-by socket ./lmp_openmpi ...
+Mvapich2 2.0: mpiexec -np 2 -bind-to socket -map-by socket ./lmp_mvapich ...
+</pre>
 <p>For binding threads with the KOKKOS OMP option, use thread affinity
 environment variables to force binding.  With OpenMP 3.1 (gcc 4.7 or
 later, intel 12 or later) setting the environment variable

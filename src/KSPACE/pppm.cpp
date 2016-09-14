@@ -152,6 +152,8 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
 PPPM::~PPPM()
 {
+  if (copymode) return;
+
   delete [] factors;
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();

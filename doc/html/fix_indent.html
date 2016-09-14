@@ -163,11 +163,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">indent</span> <span class="mf">10.0</span> <span class="n">sphere</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">15.0</span> <span class="mf">3.0</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">indent</span> <span class="mf">10.0</span> <span class="n">sphere</span> <span class="n">v_x</span> <span class="n">v_y</span> <span class="mf">0.0</span> <span class="n">v_radius</span> <span class="n">side</span> <span class="ow">in</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="n">flow</span> <span class="n">indent</span> <span class="mf">10.0</span> <span class="n">cylinder</span> <span class="n">z</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">10.0</span> <span class="n">units</span> <span class="n">box</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all indent 10.0 sphere 0.0 0.0 15.0 3.0
+fix 1 all indent 10.0 sphere v_x v_y 0.0 v_radius side in
+fix 2 flow indent 10.0 cylinder z 0.0 0.0 10.0 units box
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -179,9 +179,9 @@ constraining wall around a simulation; see the discussion of the
 <p>The indenter can either be spherical or cylindrical or planar.  You
 must set one of those 3 keywords.</p>
 <p>A spherical indenter exerts a force of magnitude</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">F</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">=</span> <span class="o">-</span> <span class="n">K</span> <span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">R</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+F(r) = - K (r - R)^2
+</pre>
 <p>on each atom where <em>K</em> is the specified force constant, <em>r</em> is the
 distance from the atom to the center of the indenter, and <em>R</em> is the
 radius of the indenter.  The force is repulsive and F(r) = 0 for <em>r</em> &gt;
@@ -226,23 +226,23 @@ fashion.  For the latter, see the <em>start</em> and <em>stop</em> keywords of t
 then this variable definition will keep it&#8217;s center at a relative
 position in the simulation box, 1/4 of the way from the left edge to
 the right edge, even if the box size changes:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">x</span> <span class="n">equal</span> <span class="s2">&quot;xlo + 0.25*lx&quot;</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable x equal &quot;xlo + 0.25*lx&quot;
+</pre>
 <p>Similarly, either of these variable definitions will move the indenter
 from an initial position at 2.5 at a constant velocity of 5:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">x</span> <span class="n">equal</span> <span class="s2">&quot;2.5 + 5*elaplong*dt&quot;</span>
-<span class="n">variable</span> <span class="n">x</span> <span class="n">equal</span> <span class="n">vdisplace</span><span class="p">(</span><span class="mf">2.5</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable x equal &quot;2.5 + 5*elaplong*dt&quot;
+variable x equal vdisplace(2.5,5)
+</pre>
 <p>If a spherical indenter&#8217;s radius is specified as v_r, then these
 variable definitions will grow the size of the indenter at a specfied
 rate.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">r0</span> <span class="n">equal</span> <span class="mf">0.0</span>
-<span class="n">variable</span> <span class="n">rate</span> <span class="n">equal</span> <span class="mf">1.0</span>
-<span class="n">variable</span> <span class="n">r</span> <span class="n">equal</span> <span class="s2">&quot;v_r0 + step*dt*v_rate&quot;</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable r0 equal 0.0
+variable rate equal 1.0
+variable r equal &quot;v_r0 + step*dt*v_rate&quot;
+</pre>
 <p>If the <em>side</em> keyword is specified as <em>out</em>, which is the default,
 then particles outside the indenter are pushded away from its outer
 surface, as described above.  This only applies to spherical or
@@ -275,9 +275,7 @@ contains <em>xlat</em>, <em>ylat</em>, <em>zlat</em> keywords of the
 fix 1 all indent $k sphere ...
 </pre></div>
 </div>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the energy of interaction between atoms and the indenter to

@@ -44,7 +44,7 @@ ENDIF()
 IF(Kokkos_ENABLE_OpenMP)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_OpenMP
-    SOURCES UnitTestMain.cpp TestOpenMP.cpp
+    SOURCES UnitTestMain.cpp TestOpenMP.cpp TestOpenMP_a.cpp TestOpenMP_b.cpp TestOpenMP_c.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -66,7 +66,7 @@ ENDIF()
 IF(Kokkos_ENABLE_Cuda)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_Cuda
-    SOURCES UnitTestMain.cpp TestCuda.cpp
+    SOURCES UnitTestMain.cpp TestCuda.cpp TestCuda_a.cpp TestCuda_b.cpp TestCuda_c.cpp
     COMM serial mpi
     NUM_MPI_PROCS 1
     FAIL_REGULAR_EXPRESSION "  FAILED  "
@@ -76,12 +76,23 @@ ENDIF()
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   UnitTest_Default
-  SOURCES UnitTestMain.cpp TestDefaultDeviceType.cpp TestDefaultDeviceTypeInit.cpp
+  SOURCES UnitTestMain.cpp TestDefaultDeviceType.cpp TestDefaultDeviceType_a.cpp
   COMM serial mpi
   NUM_MPI_PROCS 1
   FAIL_REGULAR_EXPRESSION "  FAILED  "
     TESTONLYLIBS kokkos_gtest
 )
+
+foreach(INITTESTS_NUM RANGE 1 16)
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  UnitTest_DefaultInit_${INITTESTS_NUM}
+  SOURCES UnitTestMain.cpp TestDefaultDeviceTypeInit_${INITTESTS_NUM}.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  FAIL_REGULAR_EXPRESSION "  FAILED  "
+    TESTONLYLIBS kokkos_gtest
+)
+endforeach(INITTESTS_NUM)
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   UnitTest_HWLOC
@@ -92,11 +103,3 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
     TESTONLYLIBS kokkos_gtest
 )
 
-TRIBITS_ADD_EXECUTABLE_AND_TEST(
-  UnitTest_AllocationTracker
-  SOURCES UnitTestMain.cpp  TestAllocationTracker.cpp
-  COMM serial mpi
-  NUM_MPI_PROCS 1
-  FAIL_REGULAR_EXPRESSION "  FAILED  "
-  TESTONLYLIBS kokkos_gtest
-)

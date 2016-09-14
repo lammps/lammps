@@ -94,6 +94,7 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+  copymode = 0;
 
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;
@@ -149,6 +150,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 KSpace::~KSpace()
 {
+  if (copymode) return;
+
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(gcons);

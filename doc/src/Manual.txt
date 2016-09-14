@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="27 Aug 2016 version">
+<META NAME="docnumber" CONTENT="13 Sep 2016 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,14 +21,17 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-27 Aug 2016 version :c,h4
+13 Sep 2016 version :c,h4
 
 Version info: :h4
 
 The LAMMPS "version" is the date when it was released, such as 1 May
 2010. LAMMPS is updated continuously.  Whenever we fix a bug or add a
 feature, we release it immediately, and post a notice on "this page of
-the WWW site"_bug.  Each dated copy of LAMMPS contains all the
+the WWW site"_bug. Every 2-4 months one of the incremental releases
+is subjected to more thorough testing and labeled as a {stable} version.
+
+Each dated copy of LAMMPS contains all the
 features and bug-fixes up to and including that version date. The
 version date is printed to the screen and logfile every time you run
 LAMMPS. It is also in the file src/version.h and in the LAMMPS
@@ -47,7 +50,8 @@ it to be part of every patch. :l
 
 There is also a "Developer.pdf"_Developer.pdf file in the doc
 directory, which describes the internal structure and algorithms of
-LAMMPS.  :ule,l
+LAMMPS.  :l
+:ule
 
 LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
 Simulator.
@@ -58,14 +62,25 @@ National Laboratories, a US Department of Energy facility, with
 funding from the DOE.  It is an open-source code, distributed freely
 under the terms of the GNU Public License (GPL).
 
-The primary developers of LAMMPS are "Steve Plimpton"_sjp, Aidan
-Thompson, and Paul Crozier who can be contacted at
-sjplimp,athomps,pscrozi at sandia.gov.  The "LAMMPS WWW Site"_lws at
-http://lammps.sandia.gov has more information about the code and its
-uses.
+The current core group of LAMMPS developers is at Sandia National
+Labs and Temple University:
+
+"Steve Plimpton"_sjp, sjplimp at sandia.gov :ulb,l
+Aidan Thompson, athomps at sandia.gov :l
+Stan Moore, stamoore at sandia.gov :l
+"Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
+:ulb
+
+Past core developers include Paul Crozier, Ray Shan and Mark Stevens,
+all at Sandia. The [LAMMPS home page] at
+"http://lammps.sandia.gov"_http://lammps.sandia.gov has more information
+about the code and its uses. Interaction with external LAMMPS developers,
+bug reports and feature requests are mainly coordinated through the
+"LAMMPS project on GitHub."_https://github.com/lammps/lammps
 
 :link(bug,http://lammps.sandia.gov/bug.html)
 :link(sjp,http://www.sandia.gov/~sjplimp)
+:link(ako,http://goo.gl/1wk0)
 
 :line
 

@@ -21,6 +21,7 @@
 #include "compute.h"
 #include "domain.h"
 #include "update.h"
+#include "input.h"
 #include "memory.h"
 #include "error.h"
 #include "force.h"
@@ -45,7 +46,18 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal dump local command");
 
-  size_one = nfield = narg-5;
+  nfield = narg - 5;
+
+  // expand args if any have wildcard character "*"
+
+  int expand = 0;
+  char **earg;
+  nfield = input->expand_args(nfield,&arg[5],1,earg);
+
+  if (earg != &arg[5]) expand = 1;
+
+  // allocate field vectors
+
   pack_choice = new FnPtrPack[nfield];
   vtype = new int[nfield];
 
@@ -67,7 +79,8 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   // process attributes
 
-  parse_fields(narg,arg);
+  parse_fields(nfield,earg);
+  size_one = nfield;
 
   // setup format strings
 
@@ -88,11 +101,11 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   // setup column string
 
   int n = 0;
-  for (int iarg = 5; iarg < narg; iarg++) n += strlen(arg[iarg]) + 2;
+  for (int iarg = 0; iarg < nfield; iarg++) n += strlen(earg[iarg]) + 2;
   columns = new char[n];
   columns[0] = '\0';
-  for (int iarg = 5; iarg < narg; iarg++) {
-    strcat(columns,arg[iarg]);
+  for (int iarg = 0; iarg < nfield; iarg++) {
+    strcat(columns,earg[iarg]);
     strcat(columns," ");
   }
 
@@ -102,6 +115,13 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   n = strlen(str) + 1;
   label = new char[n];
   strcpy(label,str);
+
+  // if wildcard expansion occurred, free earg memory from exapnd_args()
+
+  if (expand) {
+    for (int i = 0; i < nfield; i++) delete [] earg[i];
+    memory->sfree(earg);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -376,8 +396,8 @@ void DumpLocal::parse_fields(int narg, char **arg)
   // customize by adding to if statement
 
   int i;
-  for (int iarg = 5; iarg < narg; iarg++) {
-    i = iarg-5;
+  for (int iarg = 0; iarg < narg; iarg++) {
+    i = iarg;
 
     if (strcmp(arg[iarg],"index") == 0) {
       pack_choice[i] = &DumpLocal::pack_index;

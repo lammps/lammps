@@ -34,6 +34,7 @@
 #cmakedefine KOKKOS_HAVE_Winthread
 #cmakedefine KOKKOS_HAVE_OPENMP
 #cmakedefine KOKKOS_HAVE_HWLOC
+#cmakedefine KOKKOS_HAVE_DEBUG
 #cmakedefine KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 #cmakedefine KOKKOS_HAVE_CXX11
 #cmakedefine KOKKOS_HAVE_CUSPARSE

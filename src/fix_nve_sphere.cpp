@@ -133,12 +133,13 @@ void FixNVESphere::initial_integrate(int vflag)
   
   // update mu for dipoles
   
-
   if (extra == DIPOLE) {
     double **mu = atom->mu;
     if (dlm == NODLM) {
+
       // d_mu/dt = omega cross mu
       // renormalize mu to dipole length
+
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
           if (mu[i][3] > 0.0) {
@@ -152,7 +153,9 @@ void FixNVESphere::initial_integrate(int vflag)
             mu[i][2] = g[2]*scale;
           }
     } else {
-      // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
+
+      // integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
+
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && mu[i][3] > 0.0) {
           
@@ -160,8 +163,9 @@ void FixNVESphere::initial_integrate(int vflag)
           // Q is the rotation matrix from space frame to body frame
           // i.e. v_b = Q.v_s
           
-          // Define mu to lie along the z axis in the body frame
-          // We take the unit dipole to avoid getting a scaling matrix
+          // define mu to lie along the z axis in the body frame
+          // take the unit dipole to avoid getting a scaling matrix
+
           inv_len_mu = 1.0/mu[i][3];
           a[0] = mu[i][0]*inv_len_mu;
           a[1] = mu[i][1]*inv_len_mu;
@@ -180,9 +184,15 @@ void FixNVESphere::initial_integrate(int vflag)
           if (s2 != 0.0){ // i.e. the vectors are not parallel
             scale = (1.0 - a[2])/s2;
             
-            Q[0][0] = 1.0 - scale*a[0]*a[0]; Q[0][1] = -scale*a[0]*a[1];      Q[0][2] = -a[0];
-            Q[1][0] = -scale*a[0]*a[1];      Q[1][1] = 1.0 - scale*a[1]*a[1]; Q[1][2] = -a[1];
-            Q[2][0] = a[0];                  Q[2][1] = a[1];                  Q[2][2] = 1.0 - scale*(a[0]*a[0] + a[1]*a[1]);
+            Q[0][0] = 1.0 - scale*a[0]*a[0]; 
+            Q[0][1] = -scale*a[0]*a[1];
+            Q[0][2] = -a[0];
+            Q[1][0] = -scale*a[0]*a[1];
+            Q[1][1] = 1.0 - scale*a[1]*a[1];
+            Q[1][2] = -a[1];
+            Q[2][0] = a[0];
+            Q[2][1] = a[1];
+            Q[2][2] = 1.0 - scale*(a[0]*a[0] + a[1]*a[1]);
           } else { // if parallel then we just have I or -I
             Q[0][0] = 1.0/a[2];  Q[0][1] = 0.0;       Q[0][2] = 0.0;
             Q[1][0] = 0.0;       Q[1][1] = 1.0/a[2];  Q[1][2] = 0.0;
@@ -242,7 +252,9 @@ void FixNVESphere::initial_integrate(int vflag)
           
           // Transform w back into space frame w_temp = Q^T.w
           transpose_matvec(Q_temp,w,w_temp);
-          omega[i][0] = w_temp[0]; omega[i][1] = w_temp[1]; omega[i][2] = w_temp[2];
+          omega[i][0] = w_temp[0]; 
+          omega[i][1] = w_temp[1];
+          omega[i][2] = w_temp[2];
           
           // Set dipole according to updated Q: mu = Q^T.[0 0 1] * |mu|
           mu[i][0] = Q_temp[2][0] * mu[i][3];
@@ -289,7 +301,8 @@ void FixNVESphere::final_integrate()
       omega[i][0] += dtirotate * torque[i][0];
       omega[i][1] += dtirotate * torque[i][1];
       omega[i][2] += dtirotate * torque[i][2];
-      rke += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + omega[i][2]*omega[i][2])*radius[i]*radius[i]*rmass[i];
+      rke += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] + 
+              omega[i][2]*omega[i][2])*radius[i]*radius[i]*rmass[i];
     }
   
 }

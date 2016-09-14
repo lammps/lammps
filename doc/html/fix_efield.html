@@ -148,10 +148,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">kick</span> <span class="n">external</span><span class="o">-</span><span class="n">field</span> <span class="n">efield</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>
-<span class="n">fix</span> <span class="n">kick</span> <span class="n">external</span><span class="o">-</span><span class="n">field</span> <span class="n">efield</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="n">v_oscillate</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix kick external-field efield 1.0 0.0 0.0
+fix kick external-field efield 0.0 0.0 v_oscillate
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -218,10 +218,8 @@ variable formulas, i.e. that -Grad(E) = F.  For example, if the force
 due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx^2.  If you don&#8217;t do this correctly, the
 minimization will not converge properly.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the potential &#8220;energy&#8221; inferred by the added force due to

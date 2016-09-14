@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix_modify command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix_modify</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix_modify fix-ID keyword value ...
+</pre>
 <ul class="simple">
 <li>fix-ID = ID of the fix to modify</li>
 <li>one or more keyword/value pairs may be appended</li>
@@ -145,11 +145,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix_modify</span> <span class="mi">3</span> <span class="n">temp</span> <span class="n">myTemp</span> <span class="n">press</span> <span class="n">myPress</span>
-<span class="n">fix_modify</span> <span class="mi">1</span> <span class="n">energy</span> <span class="n">yes</span>
-<span class="n">fix_modify</span> <span class="n">tether</span> <span class="n">respa</span> <span class="mi">2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix_modify 3 temp myTemp press myPress
+fix_modify 1 energy yes
+fix_modify tether respa 2
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

@@ -231,7 +231,7 @@ resulting temperature profile will therefore be the same.</p>
 the keyword <em>hex</em> is specified.</p>
 <hr class="docutils" />
 <p><strong>Compatibility with SHAKE and RATTLE (rigid molecules)</strong>:</p>
-<p>This fix is compatible with <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> and <span class="xref doc">fix rattle</span>. If either of these constraining algorithms is
+<p>This fix is compatible with <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> and <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a>. If either of these constraining algorithms is
 specified in the input script and the keyword <em>constrain</em> is set, the
 bond distances will be corrected a second time at the end of the
 integration step.  It is recommended to specify the keyword <em>com</em> in
@@ -244,7 +244,7 @@ rescaling takes place if the centre of mass lies outside the region.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">You can only use the keyword <em>com</em> along with <em>constrain</em>.</p>
 </div>
-<p>To achieve the highest accuracy it is recommended to use <span class="xref doc">fix rattle</span> with the keywords <em>constrain</em> and <em>com</em> as
+<p>To achieve the highest accuracy it is recommended to use <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a> with the keywords <em>constrain</em> and <em>com</em> as
 shown in the second example. Only if RATTLE is employed, the velocity
 constraints will be satisfied.</p>
 <div class="admonition note">
@@ -262,10 +262,8 @@ be on the order of <span class="math">\(10^{-7}\)</span> for relatively large
 temperature gradients.  A higher precision can be achieved by
 decreasing the timestep.</p>
 </div>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>No parameter of this fix can be used with the <em>start/stop</em> keywords of

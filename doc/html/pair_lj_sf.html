@@ -131,20 +131,20 @@
 <h1>pair_style lj/sf/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">sf</span> <span class="n">cutoff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/sf cutoff
+</pre>
 <ul class="simple">
 <li>cutoff = global cutoff for Lennard-Jones interactions (distance units)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">sf</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">3.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/sf 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.0 1.0 3.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

@@ -37,6 +37,8 @@ class PairLJSFDipoleSF : public Pair {
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
+  virtual double single(int, int, int, int, double, double, double, double &);
+  void *extract(const char *, int &);
 
  protected:
   double cut_lj_global,cut_coul_global;
@@ -44,6 +46,7 @@ class PairLJSFDipoleSF : public Pair {
   double **cut_coul,**cut_coulsq;
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4;
+  double **scale;
 
   void allocate();
 };

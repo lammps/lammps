@@ -228,7 +228,8 @@ inline void MathExtra::add3(const double *v1, const double *v2, double *ans)
    ans = s*v1 + v2
 ------------------------------------------------------------------------- */
 
-inline void MathExtra::scaleadd3(double s, const double *v1, const double *v2, double *ans)
+inline void MathExtra::scaleadd3(double s, const double *v1, 
+                                 const double *v2, double *ans)
 {
   ans[0] = s*v1[0] + v2[0];
   ans[1] = s*v1[1] + v2[1];

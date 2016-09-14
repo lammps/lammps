@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>improper_coeff command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">improper_coeff</span> <span class="n">N</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+improper_coeff N args
+</pre>
 <ul class="simple">
 <li>N = improper type (see asterisk form below)</li>
 <li>args = coefficients for one or more improper types</li>
@@ -138,11 +138,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">improper_coeff</span> <span class="mi">1</span> <span class="mf">300.0</span> <span class="mf">0.0</span>
-<span class="n">improper_coeff</span> <span class="o">*</span> <span class="mf">80.2</span> <span class="o">-</span><span class="mi">1</span> <span class="mi">2</span>
-<span class="n">improper_coeff</span> <span class="o">*</span><span class="mi">4</span> <span class="mf">80.2</span> <span class="o">-</span><span class="mi">1</span> <span class="mi">2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+improper_coeff 1 300.0 0.0
+improper_coeff * 80.2 -1 2
+improper_coeff *4 80.2 -1 2
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -154,7 +154,7 @@ file.</p>
 <p>N can be specified in one of two ways.  An explicit numeric value can
 be used, as in the 1st example above.  Or a wild-card asterisk can be
 used to set the coefficients for multiple improper types.  This takes
-the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of improper
+the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the number of improper
 types, then an asterisk with no numeric values means all types from 1
 to N.  A leading asterisk means all types from 1 to n (inclusive).  A
 trailing asterisk means all types from n to N (inclusive).  A middle
@@ -163,10 +163,10 @@ asterisk means all types from m to n (inclusive).</p>
 setting for the same improper type.  For example, these commands set
 the coeffs for all improper types, then overwrite the coeffs for just
 improper type 2:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">improper_coeff</span> <span class="o">*</span> <span class="mf">300.0</span> <span class="mf">0.0</span>
-<span class="n">improper_coeff</span> <span class="mi">2</span> <span class="mf">50.0</span> <span class="mf">0.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+improper_coeff * 300.0 0.0
+improper_coeff 2 50.0 0.0
+</pre>
 <p>A line in a data file that specifies improper coefficients uses the
 exact same format as the arguments of the improper_coeff command in an
 input script, except that wild-card asterisks should not be used since

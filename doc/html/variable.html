@@ -197,7 +197,8 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span>variable x index run1 run2 run3 run4 run5 run6 run7 run8
+<pre class="literal-block">
+variable x index run1 run2 run3 run4 run5 run6 run7 run8
 variable LoopVar loop $n
 variable beta equal temp/3.0
 variable b1 equal x[234]+0.5*vol
@@ -214,8 +215,7 @@ variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
 variable x uloop 15 pad
 variable str format x %.6g
 variable x delete
-</pre></div>
-</div>
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -470,10 +470,10 @@ appear in the set, will remain 0.0.</p>
 to match a function name specified in a <a class="reference internal" href="python.html"><span class="doc">python</span></a> command
 which returns a value to this variable as defined by its <em>return</em>
 keyword.  For example these two commands would be self-consistent:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">foo</span> <span class="n">python</span> <span class="n">myMultiply</span>
-<span class="n">python</span> <span class="n">myMultiply</span> <span class="k">return</span> <span class="n">v_foo</span> <span class="nb">format</span> <span class="n">f</span> <span class="n">file</span> <span class="n">funcs</span><span class="o">.</span><span class="n">py</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable foo python myMultiply
+python myMultiply return v_foo format f file funcs.py
+</pre>
 <p>The two commands can appear in either order so long as both are
 specified before the Python function is invoked for the first time.</p>
 <p>Each time the variable is evaluated, the associated Python function is
@@ -527,9 +527,9 @@ variety of quantities.  The syntax for each kind of quantity is
 simple, but multiple quantities can be nested and combined in various
 ways to build up formulas of arbitrary complexity.  For example, this
 is a valid (though strange) variable formula:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">x</span> <span class="n">equal</span> <span class="s2">&quot;pe + c_MyTemp / vol^(1/3)&quot;</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable x equal &quot;pe + c_MyTemp / vol^(1/3)&quot;
+</pre>
 <p>Specifically, a formula can contain numbers, constants, thermo
 keywords, math operators, math functions, group functions, region
 functions, atom values, atom vectors, compute references, fix
@@ -618,9 +618,9 @@ of LAMMPS will be smaller. This can be used to have input scripts
 adapt automatically to LAMMPS versions, when non-backwards compatible
 syntax changes are introduced. Here is an illustrative example (which
 will not work, since the <em>version</em> has been introduced more recently):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>if $(version&lt;20140513) then &quot;communicate vel yes&quot; else &quot;comm_modify vel yes&quot;
-</pre></div>
-</div>
+<pre class="literal-block">
+if $(version&lt;20140513) then &quot;communicate vel yes&quot; else &quot;comm_modify vel yes&quot;
+</pre>
 <p>The thermo keywords allowed in a formula are those defined by the
 <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command.  Thermo keywords that
 require a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> to calculate their values such as
@@ -719,9 +719,9 @@ is the nearest integer to its argument.</p>
 <p>The ramp(x,y) function uses the current timestep to generate a value
 linearly intepolated between the specified x,y values over the course
 of a run, according to this formula:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">value</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span><span class="o">-</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">timestep</span><span class="o">-</span><span class="n">startstep</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">stopstep</span><span class="o">-</span><span class="n">startstep</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+value = x + (y-x) * (timestep-startstep) / (stopstep-startstep)
+</pre>
 <p>The run begins on startstep and ends on stopstep.  Startstep and
 stopstep can span multiple runs, using the <em>start</em> and <em>stop</em> keywords
 of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command for
@@ -790,9 +790,9 @@ sequence of output timesteps:</p>
 velocity, and uses the elapsed time to change the value by a linear
 displacement due to the applied velocity over the course of a run,
 according to this formula:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">value</span> <span class="o">=</span> <span class="n">value0</span> <span class="o">+</span> <span class="n">velocity</span><span class="o">*</span><span class="p">(</span><span class="n">timestep</span><span class="o">-</span><span class="n">startstep</span><span class="p">)</span><span class="o">*</span><span class="n">dt</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+value = value0 + velocity*(timestep-startstep)*dt
+</pre>
 <p>where dt = the timestep size.</p>
 <p>The run begins on startstep.  Startstep can span multiple runs, using
 the <em>start</em> keyword of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the
@@ -803,10 +803,10 @@ timestep-startstep.</p>
 x = value0, y = amplitude, z = period.  They use the elapsed time to
 oscillate the value by a sin() or cos() function over the course of a
 run, according to one of these formulas, where omega = 2 PI / period:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">value</span> <span class="o">=</span> <span class="n">value0</span> <span class="o">+</span> <span class="n">Amplitude</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="p">(</span><span class="n">timestep</span><span class="o">-</span><span class="n">startstep</span><span class="p">)</span><span class="o">*</span><span class="n">dt</span><span class="p">)</span>
-<span class="n">value</span> <span class="o">=</span> <span class="n">value0</span> <span class="o">+</span> <span class="n">Amplitude</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cos</span><span class="p">(</span><span class="n">omega</span><span class="o">*</span><span class="p">(</span><span class="n">timestep</span><span class="o">-</span><span class="n">startstep</span><span class="p">)</span><span class="o">*</span><span class="n">dt</span><span class="p">))</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+value = value0 + Amplitude * sin(omega*(timestep-startstep)*dt)
+value = value0 + Amplitude * (1 - cos(omega*(timestep-startstep)*dt))
+</pre>
 <p>where dt = the timestep size.</p>
 <p>The run begins on startstep.  Startstep can span multiple runs, using
 the <em>start</em> keyword of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the
@@ -952,24 +952,37 @@ features or LAMMPS, <em>respa</em> allows to check whether the inner/middle/oute
 mode of r-RESPA is supported. In the various style categories,
 the checking is also done using suffix flags, if available and enabled.</p>
 <p>Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>pair_style lj/cut/coul/long 14.0
+<pre class="literal-block">
+pair_style lj/cut/coul/long 14.0
 if $(is_active(package,gpu)) then &quot;suffix off&quot;
 kspace_style pppm
-</pre></div>
-</div>
+</pre>
 <p>Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>timestep $(2.0*(1.0+*is_active(pair,respa))
+<pre class="literal-block">
+timestep $(2.0*(1.0+*is_active(pair,respa))
 if $(is_active(pair,respa)) then &quot;run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4&quot; else &quot;run_style respa 3 3 2  improper 1 pair 2 kspace 3&quot;
-</pre></div>
-</div>
+</pre>
 <p>The <em>is_defined()</em> function allows to query categories like <em>compute</em>,
 <em>dump</em>, <em>fix</em>, <em>group</em>, <em>region</em>, and <em>variable</em> whether an entry
 with the provided name or id is defined.</p>
-<p>The <em>is_available()</em> function allows to query whether a specific
-optional feature is available, i.e. compiled in. This currently
-works for the following categories: <em>command</em>, <em>compute</em>, <em>fix</em>,
-and <em>pair_style</em>. For all categories except <em>command</em> also appending
-active suffixes is tried before reporting failure.</p>
+<p>The <em>is_available(category,name)</em> function allows to query whether
+a specific optional feature is available, i.e. compiled in.
+This currently works for the following categories: <em>command</em>,
+<em>compute</em>, <em>fix</em>, <em>pair_style</em> and <em>feature</em>. For all categories
+except <em>command</em> and <em>feature</em> also appending active suffixes is
+tried before reporting failure.</p>
+<p>The <em>feature</em> category is used to check the availability of compiled in
+features such as GZIP support, PNG support, JPEG support, FFMPEG support,
+and C++ exceptions for error handling. Corresponding values for name are
+<em>gzip</em>, <em>png</em>, <em>jpeg</em>, <em>ffmpeg</em> and <em>exceptions</em>.</p>
+<p>This enables writing input scripts which only dump using a given format if
+the compiled binary supports it.</p>
+<pre class="literal-block">
+if &quot;$(is_available(feature,png))&quot; then &quot;print 'PNG supported'&quot; else &quot;print 'PNG not supported'&quot;
+</pre>
+<pre class="literal-block">
+if &quot;$(is_available(feature,ffmpeg)&quot; then &quot;dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0&quot;
+</pre>
 </div>
 <hr class="docutils" />
 <div class="section" id="atom-values-and-vectors">
@@ -1022,8 +1035,8 @@ reference means, since computes only produce either global or per-atom
 quantities, never both.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="10%" />
-<col width="90%" />
+<col width="11%" />
+<col width="89%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>c_ID</td>
@@ -1046,9 +1059,9 @@ variable refers to a compute that produces both a global scalar and a
 global vector.  Consider a compute with ID &#8220;foo&#8221; that does this,
 referenced as follows by variable &#8220;a&#8221;, where &#8220;myVec&#8221; is another
 vector-style variable:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">a</span> <span class="n">vector</span> <span class="n">c_foo</span><span class="o">*</span><span class="n">v_myVec</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable a vector c_foo*v_myVec
+</pre>
 <p>The reference &#8220;c_foo&#8221; could refer to either the global scalar or
 global vector produced by compute &#8220;foo&#8221;.  In this case, &#8220;c_foo&#8221; will
 always refer to the global scalar, and &#8220;C_foo&#8221; can be used to
@@ -1077,14 +1090,14 @@ vector values.  A vector value can be a per-atom vector itself, or a
 column of an per-atom array.  See the doc pages for individual fixes
 to see what kind of values they produce.</p>
 <p>The different kinds of fix references are exactly the same as the
-compute references listed in the above table, where &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221; is replaced
-by &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;.  Again, there is typically no ambiguity (see exception below)
+compute references listed in the above table, where &#8220;c_&#8221; is replaced
+by &#8220;f_&#8221;.  Again, there is typically no ambiguity (see exception below)
 as to what a reference means, since fixes only produce either global
 or per-atom quantities, never both.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="10%" />
-<col width="90%" />
+<col width="11%" />
+<col width="89%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>f_ID</td>
@@ -1152,8 +1165,8 @@ There is no ambiguity as to what a reference means, since variables
 produce only a global scalar or global vector or per-atom vector.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
-<col width="86%" />
+<col width="15%" />
+<col width="85%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td>v_name</td>
@@ -1188,16 +1201,16 @@ same syntax as equal-style variables described on this page.  This
 effectively evaluates a formula immediately without using the variable
 command to define a named variable.</p>
 <p>More generally, there is a difference between referencing a variable
-with a leading $ sign (e.g. $x or ${abc}) versus with a leading &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;
+with a leading $ sign (e.g. $x or ${abc}) versus with a leading &#8220;v_&#8221;
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained in <span class="xref std std-ref">Section commands 3.2</span> for &#8220;Parsing rules&#8221;, you can also use
+into the command.  As explained in <a class="reference internal" href="Section_commands.html#cmd-2"><span class="std std-ref">Section commands 3.2</span></a> for &#8220;Parsing rules&#8221;, you can also use
 un-named &#8220;immediate&#8221; variables for this purpose.  For example, a
 string like this $((xlo+xhi)/2+sqrt(v_area)) in an input script
 command evaluates the string between the parenthesis as an equal-style
 variable formula.</p>
-<p>Referencing a variable with a leading &#8220;<a href="#id7"><span class="problematic" id="id8">v_</span></a>&#8221; is an optional or required
+<p>Referencing a variable with a leading &#8220;v_&#8221; is an optional or required
 kind of argument for some commands (e.g. the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a> or <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> or
 <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> commands) if you wish it to evaluate
 a variable periodically during a run.  It can also be used in a
@@ -1224,9 +1237,9 @@ variable v0 equal $v
 <p>The second command will force &#8220;v&#8221; to be evaluated (yielding the
 initial volume) and assign that value to the variable &#8220;v0&#8221;.  Thus the
 command</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">v_v</span> <span class="n">v_v0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+thermo_style custom step v_v v_v0
+</pre>
 <p>would print out both the current and initial volume periodically
 during the run.</p>
 <p>Note that it is a mistake to enclose a variable formula in double
@@ -1317,13 +1330,13 @@ a 0-timestep run before printing the variable has the desired effect.</p>
 <p>(3) The variable may be evaluated incorrectly and LAMMPS may have no
 way to detect this has occurred.  Consider the following sequence of
 commands:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">run</span> <span class="mi">1000</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.5</span> <span class="mf">1.0</span>
-<span class="n">variable</span> <span class="n">e</span> <span class="n">equal</span> <span class="n">pe</span>
-<span class="nb">print</span> <span class="s2">&quot;Final potential energy = $e&quot;</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff 1 1 1.0 1.0
+run 1000
+pair_coeff 1 1 1.5 1.0
+variable e equal pe
+print &quot;Final potential energy = $e&quot;
+</pre>
 <p>The first run is performed using one setting for the pairwise
 potential defined by the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> and
 <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> commands.  The potential energy is
@@ -1340,14 +1353,14 @@ perform a 0-timestep run before the variable is evaluated to insure
 the system is up-to-date.  For example, this sequence of commands
 would print a potential energy that reflected the changed pairwise
 coefficient:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">run</span> <span class="mi">1000</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.5</span> <span class="mf">1.0</span>
-<span class="n">run</span> <span class="mi">0</span>
-<span class="n">variable</span> <span class="n">e</span> <span class="n">equal</span> <span class="n">pe</span>
-<span class="nb">print</span> <span class="s2">&quot;Final potential energy = $e&quot;</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff 1 1 1.0 1.0
+run 1000
+pair_coeff 1 1 1.5 1.0
+run 0
+variable e equal pe
+print &quot;Final potential energy = $e&quot;
+</pre>
 </div>
 </div>
 <hr class="docutils" />

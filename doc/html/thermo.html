@@ -162,10 +162,10 @@ this context.  Other similar math functions could easily be added as
 options for <a class="reference internal" href="variable.html"><span class="doc">equal-style variables</span></a>.</p>
 <p>For example, the following commands will output thermodynamic info at
 timesteps 0,10,20,30,100,200,300,1000,2000,etc:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>     <span class="n">s</span> <span class="n">equal</span> <span class="n">logfreq</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">10</span><span class="p">)</span>
-<span class="n">thermo</span>               <span class="n">v_s</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable     s equal logfreq(10,3,10)
+thermo               v_s
+</pre>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>

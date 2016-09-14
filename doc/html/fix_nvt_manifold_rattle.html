@@ -157,13 +157,11 @@ keyword = <em>temp</em> or <em>tchain</em> or <em>every</em>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>This fix combines the RATTLE-based <a class="reference internal" href="fix_shake.html#andersen"><span class="std std-ref">(Andersen)</span></a> time integrator of <a class="reference internal" href="fix_nve_manifold_rattle.html"><span class="doc">fix nve/manifold/rattle</span></a> <a class="reference internal" href="#paquay"><span class="std std-ref">(Paquay)</span></a> with a Nose-Hoover-chain thermostat to sample the
+<p>This fix combines the RATTLE-based <a class="reference internal" href="fix_shake.html#andersen"><span class="std std-ref">(Andersen)</span></a> time integrator of <a class="reference internal" href="fix_nve_manifold_rattle.html"><span class="doc">fix nve/manifold/rattle</span></a> <a class="reference internal" href="manifolds.html#paquay"><span class="std std-ref">(Paquay)</span></a> with a Nose-Hoover-chain thermostat to sample the
 canonical ensemble of particles constrained to a curved surface (manifold). This sampling does suffer from discretization bias of O(dt).
 For a list of currently supported manifolds and their parameters, see <a class="reference internal" href="manifolds.html"><span class="doc">manifolds</span></a></p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  No parameter of this fix can

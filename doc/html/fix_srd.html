@@ -207,9 +207,9 @@ rotations every N timesteps.</p>
 <p>SRD particles have a mass, temperature, characteristic timestep
 dt_SRD, and mean free path between collisions (lamda).  The
 fundamental equation relating these 4 quantities is</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lamda</span> <span class="o">=</span> <span class="n">dt_SRD</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">Kboltz</span> <span class="o">*</span> <span class="n">Tsrd</span> <span class="o">/</span> <span class="n">mass</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lamda = dt_SRD * sqrt(Kboltz * Tsrd / mass)
+</pre>
 <p>The mass of SRD particles is set by the <a class="reference internal" href="mass.html"><span class="doc">mass</span></a> command
 elsewhere in the input script.  The SRD timestep dt_SRD is N times the
 step dt defined by the <a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a> command.  Big
@@ -419,10 +419,8 @@ epsilon or cutoff length to 0.0.</p>
 <p>The &#8220;delete_atoms overlap&#8221; command may be useful in setting up an SRD
 simulation to insure there are no initial overlaps between big and SRD
 particles.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>This fix tabulates several SRD statistics which are stored in a vector

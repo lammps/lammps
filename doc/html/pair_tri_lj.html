@@ -128,18 +128,18 @@
 <span id="index-0"></span><h1>pair_style tri/lj command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tri</span><span class="o">/</span><span class="n">lj</span> <span class="n">cutoff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style tri/lj cutoff
+</pre>
 <p>cutoff = global cutoff for interactions (distance units)</p>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tri</span><span class="o">/</span><span class="n">lj</span> <span class="mf">3.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">1.5</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style tri/lj 3.0
+pair_coeff * * 1.0 1.0
+pair_coeff 1 1 1.0 1.5 2.5
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -210,7 +210,7 @@ shift, table, and tail options.</p>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
 <p>This style is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the <span class="xref std std-ref">Making LAMMPS</span> section for more info.</p>
+LAMMPS was built with that package.  See the <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">Making LAMMPS</span></a> section for more info.</p>
 <p>Defining particles to be triangles so they participate in tri/tri or
 tri/particle interactions requires the use the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style tri</span></a> command.</p>
 </div>

@@ -128,20 +128,20 @@
 <span id="index-0"></span><h1>bond_style hybrid command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">hybrid</span> <span class="n">style1</span> <span class="n">style2</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_style hybrid style1 style2 ...
+</pre>
 <ul class="simple">
 <li>style1,style2 = list of one or more bond styles</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">hybrid</span> <span class="n">harmonic</span> <span class="n">fene</span>
-<span class="n">bond_coeff</span> <span class="mi">1</span> <span class="n">harmonic</span> <span class="mf">80.0</span> <span class="mf">1.2</span>
-<span class="n">bond_coeff</span> <span class="mi">2</span><span class="o">*</span> <span class="n">fene</span> <span class="mf">30.0</span> <span class="mf">1.5</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_style hybrid harmonic fene
+bond_coeff 1 harmonic 80.0 1.2
+bond_coeff 2* fene 30.0 1.5 1.0 1.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

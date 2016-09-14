@@ -37,7 +37,7 @@ hcedwar(at)sandia.gov and crtrott(at)sandia.gov
 ====Requirements============================================================
 ============================================================================
 
-Primary tested compilers are:
+Primary tested compilers on X86 are:
   GCC 4.7.2
   GCC 4.8.4
   GCC 4.9.2
@@ -48,26 +48,43 @@ Primary tested compilers are:
   Clang 3.5.2
   Clang 3.6.1
 
+Primary tested compilers on Power 8 are:
+  IBM XL 13.1.3 (OpenMP,Serial)
+  GCC 4.9.2 (OpenMP,Serial)
+  GCC 5.3.0 (OpenMP,Serial)
+
 Secondary tested compilers are:
   CUDA 6.5 (with gcc 4.7.2)
   CUDA 7.0 (with gcc 4.7.2)
   CUDA 7.5 (with gcc 4.8.4)
 
 Other compilers working:
-  PGI 15.4
-  IBM XL 13.1.2
-  Cygwin 2.1.0 64bit with gcc 4.9.3
+  X86:
+   Intel 17.0.042 (the FENL example causes internal compiler error)
+   PGI 15.4
+   Cygwin 2.1.0 64bit with gcc 4.9.3
+  KNL:
+   Intel 16.2.181 (the FENL example causes internal compiler error)
+   Intel 17.0.042 (the FENL example causes internal compiler error)
+
+Known non-working combinations:
+  Power8:
+   GCC 6.1.0
+   Pthreads backend
+
 
 Primary tested compiler are passing in release mode
-with warnings as errors. We are using the following set
-of flags:
+with warnings as errors. They also are tested with a comprehensive set of 
+backend combinations (i.e. OpenMP, Pthreads, Serial, OpenMP+Serial, ...).
+We are using the following set of flags:
 GCC:   -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits
        -Wignored-qualifiers -Wempty-body -Wclobbered -Wuninitialized
 Intel: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 Clang: -Wall -Wshadow -pedantic -Werror -Wsign-compare -Wtype-limits -Wuninitialized
 
 Secondary compilers are passing without -Werror.
-Other compilers are tested occasionally.
+Other compilers are tested occasionally, in particular when pushing from develop to 
+master branch, without -Werror and only for a select set of backends.
 
 ============================================================================
 ====Getting started=========================================================

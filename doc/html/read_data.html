@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>read_data command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">read_data</span> <span class="n">file</span> <span class="n">keyword</span> <span class="n">args</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+read_data file keyword args ...
+</pre>
 <ul class="simple">
 <li>file = name of data file to read in</li>
 <li>zero or more keyword/arg pairs may be appended</li>
@@ -165,13 +165,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">read_data</span> <span class="n">data</span><span class="o">.</span><span class="n">lj</span>
-<span class="n">read_data</span> <span class="o">../</span><span class="n">run7</span><span class="o">/</span><span class="n">data</span><span class="o">.</span><span class="n">polymer</span><span class="o">.</span><span class="n">gz</span>
-<span class="n">read_data</span> <span class="n">data</span><span class="o">.</span><span class="n">protein</span> <span class="n">fix</span> <span class="n">mycmap</span> <span class="n">crossterm</span> <span class="n">CMAP</span>
-<span class="n">read_data</span> <span class="n">data</span><span class="o">.</span><span class="n">water</span> <span class="n">add</span> <span class="n">append</span> <span class="n">offset</span> <span class="mi">3</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">shift</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">50.0</span>
-<span class="n">read_data</span> <span class="n">data</span><span class="o">.</span><span class="n">water</span> <span class="n">add</span> <span class="n">merge</span> <span class="mi">1</span> <span class="n">group</span> <span class="n">solvent</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+read_data data.lj
+read_data ../run7/data.polymer.gz
+read_data data.protein fix mycmap crossterm CMAP
+read_data data.water add append offset 3 1 1 1 1 shift 0.0 0.0 50.0
+read_data data.water add merge 1 group solvent
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -764,9 +764,9 @@ are those that are not the 5 standard ones (ID,type,x,y,z).  For
 example, for the &#8220;charge&#8221; sub-style, a &#8220;q&#8221; value would appear.  For
 the &#8220;full&#8221; sub-style, a &#8220;molecule-ID&#8221; and &#8220;q&#8221; would appear.  These are
 listed in the same order they appear as listed above.  Thus if</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom_style</span> <span class="n">hybrid</span> <span class="n">charge</span> <span class="n">sphere</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+atom_style hybrid charge sphere
+</pre>
 <p>were used in the input script, each atom line would have these fields:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom</span><span class="o">-</span><span class="n">ID</span> <span class="n">atom</span><span class="o">-</span><span class="nb">type</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span> <span class="n">q</span> <span class="n">diameter</span> <span class="n">density</span>
 </pre></div>
@@ -1260,9 +1260,9 @@ are those that are not the 5 standard ones (ID,vx,vy,vz).  For
 example, for the &#8220;sphere&#8221; sub-style, &#8220;wx&#8221;, &#8220;wy&#8221;, &#8220;wz&#8221; values would
 appear.  These are listed in the same order they appear as listed
 above.  Thus if</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom_style</span> <span class="n">hybrid</span> <span class="n">electron</span> <span class="n">sphere</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+atom_style hybrid electron sphere
+</pre>
 <p>were used in the input script, each velocity line would have these
 fields:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom</span><span class="o">-</span><span class="n">ID</span> <span class="n">vx</span> <span class="n">vy</span> <span class="n">vz</span> <span class="n">ervel</span> <span class="n">wx</span> <span class="n">wy</span> <span class="n">wz</span>

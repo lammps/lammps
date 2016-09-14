@@ -142,8 +142,8 @@
 <pre class="literal-block">
 partition yes 1 processors 4 10 6
 partition no 5 print &quot;Active partition&quot;
-partition yes <em>5 fix all nve
-partition yes 6</em> fix all nvt temp 1.0 1.0 0.1
+partition yes *5 fix all nve
+partition yes 6* fix all nvt temp 1.0 1.0 0.1
 </pre>
 </div>
 <div class="section" id="description">
@@ -171,7 +171,7 @@ partitions specified by the <a class="reference internal" href="Section_start.ht
 <p><em>N</em> can be specified in one of two ways.  An explicit numeric value
 can be used, as in the 1st example above.  Or a wild-card asterisk can
 be used to span a range of partition numbers.  This takes the form &#8220;*&#8221;
-or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  An asterisk with no numeric values means
+or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  An asterisk with no numeric values means
 all partitions from 1 to Np.  A leading asterisk means all partitions
 from 1 to n (inclusive).  A trailing asterisk means all partitions
 from n to Np (inclusive).  A middle asterisk means all partitions from

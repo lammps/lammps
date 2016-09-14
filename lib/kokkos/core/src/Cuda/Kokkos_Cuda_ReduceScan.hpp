@@ -130,16 +130,17 @@ inline void cuda_intra_block_reduction( ValueType& value,
   cuda_inter_warp_reduction(value,join,max_active_thread);
 }
 
-template< class FunctorType , class JoinOp>
+template< class FunctorType , class JoinOp , class ArgTag = void >
 __device__
-bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , void >::reference_type  value,
+bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , ArgTag >::reference_type  value,
+                                 typename FunctorValueTraits< FunctorType , ArgTag >::reference_type  neutral,
                                  const JoinOp& join,
                                  Cuda::size_type * const m_scratch_space,
-                                 typename FunctorValueTraits< FunctorType , void >::pointer_type const result,
+                                 typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type const result,
                                  Cuda::size_type * const m_scratch_flags,
                                  const int max_active_thread = blockDim.y) {
-  typedef typename FunctorValueTraits< FunctorType , void >::pointer_type pointer_type;
-  typedef typename FunctorValueTraits< FunctorType , void >::value_type value_type;
+  typedef typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type pointer_type;
+  typedef typename FunctorValueTraits< FunctorType , ArgTag >::value_type value_type;
 
   //Do the intra-block reduction with shfl operations and static shared memory
   cuda_intra_block_reduction(value,join,max_active_thread);
@@ -170,7 +171,7 @@ bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , void
       if(id == 0)
         *m_scratch_flags = 0;
       last_block = true;
-      value = 0;
+      value = neutral;
 
       pointer_type const volatile global = (pointer_type) m_scratch_space ;
 
@@ -366,7 +367,12 @@ bool cuda_single_inter_block_reduce_scan( const FunctorType     & functor ,
     size_type * const shared = shared_data + word_count.value * BlockSizeMask ;
     size_type * const global = global_data + word_count.value * block_id ;
 
+#if (__CUDA_ARCH__ < 500)
     for ( size_type i = threadIdx.y ; i < word_count.value ; i += blockDim.y ) { global[i] = shared[i] ; }
+#else
+    for ( size_type i = 0 ; i < word_count.value ; i += 1 ) { global[i] = shared[i] ; }
+#endif
+
   }
 
   // Contributing blocks note that their contribution has been completed via an atomic-increment flag

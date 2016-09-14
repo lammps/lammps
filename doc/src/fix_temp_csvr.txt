@@ -19,7 +19,8 @@ temp/csvr or temp/csld = style name of this fix command :l
 Tstart,Tstop = desired temperature at start/end of run :l
   Tstart can be a variable (see below) :pre
 Tdamp = temperature damping parameter (time units) :l
-seed = random number seed to use for white noise (positive integer) :l,ule
+seed = random number seed to use for white noise (positive integer) :l
+:ule
 
 [Examples:]
 

@@ -183,10 +183,10 @@ details of the different styles.</p>
 body sub-particles are x,y,z coordinates, then the dump file will be
 formatted similar to the output of a <a class="reference internal" href="dump.html"><span class="doc">dump atom or custom</span></a>
 command.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">body</span><span class="o">/</span><span class="n">local</span> <span class="nb">type</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span>
-<span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">1000</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="n">index</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all body/local type 1 2 3
+dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4]
+</pre>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a local vector or local array depending on the
 number of keywords.  The length of the vector or number of rows in the

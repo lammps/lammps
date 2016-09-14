@@ -47,18 +47,10 @@
 #define KOKKOS_CUDA_TASKPOLICY_HPP
 
 #include <Kokkos_Core_fwd.hpp>
-
-#if defined( KOKKOS_HAVE_CUDA ) && \
-    defined( KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE )
-
-#define KOKKOS_ENABLE_CUDA_TASK_POLICY
-
-/* The TaskPolicy< Cuda > capability requires nvcc using the option:
- *    --relocatable-device-code=true
- */
-
 #include <Kokkos_Cuda.hpp>
 #include <Kokkos_TaskPolicy.hpp>
+
+#if defined( KOKKOS_HAVE_CUDA ) && defined( KOKKOS_ENABLE_TASKPOLICY )
 
 //----------------------------------------------------------------------------
 
@@ -80,8 +72,6 @@ public:
   typedef void (* function_team_type)   ( TaskMember * , Kokkos::Impl::CudaTeamMember & );
 
 private:
-
-  friend struct CudaTaskPolicyQueue ;
 
   CudaTaskPolicyQueue   * m_policy ;
   TaskMember * volatile * m_queue ;
@@ -819,9 +809,11 @@ public:
   static member_type member_single()
     {
       return
-        member_type( 0 /* shared memory */
-                   , 0 /* shared memory begin */
-                   , 0 /* shared memory size */
+        member_type( 0 /* shared memory pointer */
+                   , 0 /* shared memory begin offset */
+                   , 0 /* shared memory end offset */
+                   , 0 /* scratch level_1 pointer */
+                   , 0 /* scratch level_1 size */
                    , 0 /* league rank */
                    , 1 /* league size */ );
     }
@@ -832,10 +824,10 @@ public:
 } /* namespace Experimental */
 } /* namespace Kokkos */
 
-#endif /* #if defined( KOKKOS_HAVE_CUDA ) && defined( KOKKOS_CUDA_USE_RELOCATABLE_DEVICE_CODE ) */
 
 //----------------------------------------------------------------------------
 
+#endif /* #if defined( KOKKOS_HAVE_CUDA ) && defined( KOKKOS_ENABLE_TASKPOLICY ) */
 #endif /* #ifndef KOKKOS_CUDA_TASKPOLICY_HPP */
 
 

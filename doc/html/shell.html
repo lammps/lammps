@@ -153,17 +153,17 @@ anything else is passed as a command to the shell for direct execution
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">shell</span> <span class="n">cd</span> <span class="n">sub1</span>
-<span class="n">shell</span> <span class="n">cd</span> <span class="o">..</span>
-<span class="n">shell</span> <span class="n">mkdir</span> <span class="n">tmp1</span> <span class="n">tmp2</span> <span class="n">tmp3</span>
-<span class="n">shell</span> <span class="n">rmdir</span> <span class="n">tmp1</span>
-<span class="n">shell</span> <span class="n">mv</span> <span class="n">log</span><span class="o">.</span><span class="n">lammps</span> <span class="n">hold</span><span class="o">/</span><span class="n">log</span><span class="o">.</span><span class="mi">1</span>
-<span class="n">shell</span> <span class="n">rm</span> <span class="n">TMP</span><span class="o">/</span><span class="n">file1</span> <span class="n">TMP</span><span class="o">/</span><span class="n">file2</span>
-<span class="n">shell</span> <span class="n">putenv</span> <span class="n">LAMMPS_POTENTIALS</span><span class="o">=../../</span><span class="n">potentials</span>
-<span class="n">shell</span> <span class="n">my_setup</span> <span class="n">file1</span> <span class="mi">10</span> <span class="n">file2</span>
-<span class="n">shell</span> <span class="n">my_post_process</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.</span><span class="n">out</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+shell cd sub1
+shell cd ..
+shell mkdir tmp1 tmp2 tmp3
+shell rmdir tmp1
+shell mv log.lammps hold/log.1
+shell rm TMP/file1 TMP/file2
+shell putenv LAMMPS_POTENTIALS=../../potentials
+shell my_setup file1 10 file2
+shell my_post_process 100 dump.out
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -199,15 +199,15 @@ performed.  The resulting string is then used literally.</p>
 <p>Any other cmd is passed as-is to the shell along with its arguments as
 one string, invoked by the C-library system() call.  For example,
 these lines in your input script:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>variable n equal 10
+<pre class="literal-block">
+variable n equal 10
 variable foo string file2
 shell my_setup file1 $n ${foo}
-</pre></div>
-</div>
+</pre>
 <p>would be the same as invoking</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">my_setup</span> <span class="n">file1</span> <span class="mi">10</span> <span class="n">file2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+% my_setup file1 10 file2
+</pre>
 <p>from a command-line prompt.  The executable program &#8220;my_setup&#8221; is run
 with 3 arguments: file1 10 file2.</p>
 </div>

@@ -50,6 +50,8 @@
 #include <TestGlobal2LocalIds.hpp>
 #include <TestUnorderedMapPerformance.hpp>
 
+#include <TestDynRankView.hpp>
+
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -90,6 +92,13 @@ protected:
     ASSERT_EQ( 1 , omp_get_max_threads() );
   }
 };
+
+TEST_F( openmp, dynrankview_perf ) 
+{
+  std::cout << "OpenMP" << std::endl;
+  std::cout << " DynRankView vs View: Initialization Only " << std::endl;
+  test_dynrankview_op_perf<Kokkos::OpenMP>( 8192 );
+}
 
 TEST_F( openmp, global_2_local)
 {

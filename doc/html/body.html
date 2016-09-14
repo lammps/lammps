@@ -247,11 +247,11 @@ mentioned above, the <a class="reference internal" href="fix_rigid.html"><span c
 duplicates its functionality.</p>
 <p>The atom_style body command for this body style takes two additional
 arguments:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom_style</span> <span class="n">body</span> <span class="n">nparticle</span> <span class="n">Nmin</span> <span class="n">Nmax</span>
-<span class="n">Nmin</span> <span class="o">=</span> <span class="n">minimum</span> <span class="c1"># of sub-particles in any body in the system</span>
-<span class="n">Nmax</span> <span class="o">=</span> <span class="n">maximum</span> <span class="c1"># of sub-particles in any body in the system</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+atom_style body nparticle Nmin Nmax
+Nmin = minimum # of sub-particles in any body in the system
+Nmax = maximum # of sub-particles in any body in the system
+</pre>
 <p>The Nmin and Nmax arguments are used to bound the size of data
 structures used internally by each particle.</p>
 <p>When the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command reads a data file for this
@@ -302,17 +302,22 @@ sphere is determined by the <em>bflag1</em> parameter for the <em>body</em> keyw
 The <em>bflag2</em> argument is ignored.</p>
 <hr class="docutils" />
 <p><strong>Specifics of body style rounded/polygon:</strong></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Aug 2016 - This body style has not yet been added to LAMMPS.
+The info below is a placeholder.</p>
+</div>
 <p>The <em>rounded/polygon</em> body style represents body particles as a convex
 polygon with a variable number N &gt; 2 of vertices, which can only be
 used for 2d models.  One example use of this body style is for 2d
 discrete element models, as described in <a class="reference internal" href="#fraige"><span class="std std-ref">Fraige</span></a>.  Similar to
 body style <em>nparticle</em>, the atom_style body command for this body
 style takes two additional arguments:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">atom_style</span> <span class="n">body</span> <span class="n">rounded</span><span class="o">/</span><span class="n">polygon</span> <span class="n">Nmin</span> <span class="n">Nmax</span>
-<span class="n">Nmin</span> <span class="o">=</span> <span class="n">minimum</span> <span class="c1"># of vertices in any body in the system</span>
-<span class="n">Nmax</span> <span class="o">=</span> <span class="n">maximum</span> <span class="c1"># of vertices in any body in the system</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+atom_style body rounded/polygon Nmin Nmax
+Nmin = minimum # of vertices in any body in the system
+Nmax = maximum # of vertices in any body in the system
+</pre>
 <p>The Nmin and Nmax arguments are used to bound the size of data
 structures used internally by each particle.</p>
 <p>When the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command reads a data file for this
@@ -359,8 +364,9 @@ particles whose edge length is sqrt(2):</p>
 <span class="mf">1.0</span>
 </pre></div>
 </div>
-<p>The <span class="xref doc">pair_style body/rounded/polygon</span> command
-can be used with this body style to compute body/body interactions.</p>
+<p>The <span class="xref doc">pair_style body/rounded/polygon</span>
+command can be used with this body style to compute body/body
+interactions.</p>
 <p>For output purposes via the <a class="reference internal" href="compute_body_local.html"><span class="doc">compute body/local</span></a> and <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a>
 commands, this body style produces one datum for each of the N
 sub-particles in a body particle.  The datum has 3 values:</p>

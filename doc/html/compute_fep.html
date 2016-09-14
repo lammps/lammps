@@ -164,10 +164,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">fep</span> <span class="mi">298</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="n">epsilon</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">v_delta</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="n">sigma</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">v_delta</span> <span class="n">volume</span> <span class="n">yes</span>
-<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">fep</span> <span class="mi">300</span> <span class="n">atom</span> <span class="n">charge</span> <span class="mi">2</span> <span class="n">v_delta</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all fep 298 pair lj/cut epsilon 1 * v_delta pair lj/cut sigma 1 * v_delta volume yes
+compute 1 all fep 300 atom charge 2 v_delta
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -307,7 +307,7 @@ each, as in the 1st example above.  I &lt;= J is required.  LAMMPS sets
 the coefficients for the symmetric J,I interaction to the same
 values. A wild-card asterisk can be used in place of or in conjunction
 with the I,J arguments to set the coefficients for multiple pairs of
-atom types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N =
+atom types.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N =
 the number of atom types, then an asterisk with no numeric values
 means all types from 1 to N.  A leading asterisk means all types from
 1 to n (inclusive).  A trailing asterisk means all types from n to N

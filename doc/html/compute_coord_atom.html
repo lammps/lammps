@@ -140,11 +140,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">coord</span><span class="o">/</span><span class="n">atom</span> <span class="mf">2.0</span>
-<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">coord</span><span class="o">/</span><span class="n">atom</span> <span class="mf">6.0</span> <span class="mi">1</span> <span class="mi">2</span>
-<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">coord</span><span class="o">/</span><span class="n">atom</span> <span class="mf">6.0</span> <span class="mi">2</span><span class="o">*</span><span class="mi">4</span> <span class="mi">5</span><span class="o">*</span><span class="mi">8</span> <span class="o">*</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all coord/atom 2.0
+compute 1 all coord/atom 6.0 1 2
+compute 1 all coord/atom 6.0 2*4 5*8 *
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -162,7 +162,7 @@ atoms of all types (same as the &#8220;*&#8221; format, see below).</p>
 <p>The <em>typeN</em> keywords can be specified in one of two ways.  An explicit
 numeric value can be used, as in the 2nd example above.  Or a
 wild-card asterisk can be used to specify a range of atom types.  This
-takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of
+takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the number of
 atom types, then an asterisk with no numeric values means all types
 from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N

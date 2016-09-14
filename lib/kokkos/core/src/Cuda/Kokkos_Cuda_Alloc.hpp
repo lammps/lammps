@@ -50,7 +50,6 @@
 #ifdef KOKKOS_HAVE_CUDA
 
 #include <impl/Kokkos_Traits.hpp>
-#include <impl/Kokkos_AllocationTracker.hpp> // AllocatorAttributeBase
 
 namespace Kokkos {
 namespace Impl {

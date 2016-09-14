@@ -87,9 +87,9 @@ struct localsum {
   // For example, the const_data_type version of double** is const
   // double**.
   Kokkos::View<idx_type::const_data_type, idx_type::array_layout, memory_space> idx;
-  // "array_intrinsic_type" is a typedef in ViewTraits (and DualView) which is the
+  // "scalar_array_type" is a typedef in ViewTraits (and DualView) which is the
   // array version of the value(s) stored in the View.
-  Kokkos::View<view_type::array_intrinsic_type, view_type::array_layout, memory_space> dest;
+  Kokkos::View<view_type::scalar_array_type, view_type::array_layout, memory_space> dest;
   Kokkos::View<view_type::const_data_type, view_type::array_layout,
                memory_space, Kokkos::MemoryRandomAccess> src;
 
@@ -150,6 +150,9 @@ protected:
 int main (int narg, char* arg[]) {
   Kokkos::initialize (narg, arg);
 
+// If View is non-trivial constructible type then add braces so it is out of scope
+// before Kokkos::finalize() call
+{
   ParticleTypes test("Test");
   Kokkos::fence();
   test.h_view(0) = ParticleType(-1e4,1);
@@ -182,7 +185,7 @@ int main (int narg, char* arg[]) {
 
   // Run on the device.  This will cause a sync of idx to the device,
   // since it was marked as modified on the host.
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
   Kokkos::parallel_for(size,localsum<view_type::execution_space>(idx,dest,src));
   Kokkos::fence();
   double sec1_dev = timer.seconds();
@@ -208,6 +211,7 @@ int main (int narg, char* arg[]) {
 
   printf("Device Time with Sync: %f without Sync: %f \n",sec1_dev,sec2_dev);
   printf("Host   Time with Sync: %f without Sync: %f \n",sec1_host,sec2_host);
+}
 
   Kokkos::finalize();
 }

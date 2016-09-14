@@ -1080,12 +1080,12 @@ Here is an example of such errors when the system FFTW or provided
 lib/colvars library have not been built as shared libraries:
 
 /usr/bin/ld: /usr/local/lib/libfftw3.a(mapflags.o): relocation
-R_X86_64_32 against `.rodata' can not be used when making a shared
+R_X86_64_32 against '.rodata' can not be used when making a shared
 object; recompile with -fPIC
 /usr/local/lib/libfftw3.a: could not read symbols: Bad value :pre
 
 /usr/bin/ld: ../../lib/colvars/libcolvars.a(colvarmodule.o):
-relocation R_X86_64_32 against `__pthread_key_create' can not be used
+relocation R_X86_64_32 against '__pthread_key_create' can not be used
 when making a shared object; recompile with -fPIC
 ../../lib/colvars/libcolvars.a: error adding symbols: Bad value :pre
 
@@ -1208,7 +1208,8 @@ Move to the directory where you have saved lmp_win_no-mpi.exe
 (e.g. by typing: cd "Documents"). :l
 
 At the command prompt, type "lmp_win_no-mpi -in in.lj", replacing in.lj
-with the name of your LAMMPS input script. :l,ule
+with the name of your LAMMPS input script. :l
+:ule
 
 For the MPI version, which allows you to run LAMMPS under Windows on 
 multiple processors, follow these steps:
@@ -1237,7 +1238,8 @@ In this mode, output may not immediately show up on the screen, so if
 your input script takes a long time to execute, you may need to be
 patient before the output shows up. :l Alternatively, you can still
 use this executable to run on a single processor by typing something
-like: "lmp_win_mpi -in in.lj". :l,ule
+like: "lmp_win_mpi -in in.lj". :l
+:ule
 
 :line
 
@@ -1353,7 +1355,7 @@ Note that the keywords do not use a leading minus sign.  I.e. the
 keyword is "t", not "-t".  Also note that each of the keywords has a
 default setting.  Example of when to use these options and what
 settings to use on different platforms is given in "Section
-5.8"_Section_accelerate.html#acc_8.
+5.8"_Section_accelerate.html#acc_3.
 
 d or device
 g or gpus

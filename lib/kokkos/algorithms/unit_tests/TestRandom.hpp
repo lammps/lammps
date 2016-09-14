@@ -50,6 +50,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 #include <cmath>
+#include <chrono>
 
 namespace Test {
 
@@ -207,7 +208,6 @@ struct test_histogram1d_functor {
     density_1d (d1d),
     mean (1.0*num_draws/HIST_DIM1D*3)
   {
-    printf ("Mean: %e\n", mean);
   }
 
   KOKKOS_INLINE_FUNCTION void
@@ -295,7 +295,7 @@ struct test_random_scalar {
       parallel_reduce (num_draws/1024, functor_type (pool, density_1d, density_3d), result);
 
       //printf("Result: %lf %lf %lf\n",result.mean/num_draws/3,result.variance/num_draws/3,result.covariance/num_draws/2);
-      double tolerance = 2.0*sqrt(1.0/num_draws);
+      double tolerance = 1.6*sqrt(1.0/num_draws);
       double mean_expect = 0.5*Kokkos::rand<rnd_type,Scalar>::max();
       double variance_expect = 1.0/3.0*mean_expect*mean_expect;
       double mean_eps = mean_expect/(result.mean/num_draws/3)-1.0;
@@ -303,10 +303,10 @@ struct test_random_scalar {
       double covariance_eps = result.covariance/num_draws/2/variance_expect;
       pass_mean  = ((-tolerance < mean_eps) &&
                     ( tolerance > mean_eps)) ? 1:0;
-      pass_var   = ((-tolerance < variance_eps) &&
-                    ( tolerance > variance_eps)) ? 1:0;
-      pass_covar = ((-1.4*tolerance < covariance_eps) &&
-                    ( 1.4*tolerance > covariance_eps)) ? 1:0;
+      pass_var   = ((-1.5*tolerance < variance_eps) &&
+                    ( 1.5*tolerance > variance_eps)) ? 1:0;
+      pass_covar = ((-2.0*tolerance < covariance_eps) &&
+                    ( 2.0*tolerance > covariance_eps)) ? 1:0;
       cerr << "Pass: " << pass_mean
            << " " << pass_var
            << " " << mean_eps
@@ -328,12 +328,12 @@ struct test_random_scalar {
       double mean_eps = mean_expect/(result.mean/HIST_DIM1D)-1.0;
       double variance_eps = variance_expect/(result.variance/HIST_DIM1D)-1.0;
       double covariance_eps = (result.covariance/HIST_DIM1D - covariance_expect)/mean_expect;
-      pass_hist1d_mean  = ((-tolerance < mean_eps) &&
-                           ( tolerance > mean_eps)) ? 1:0;
-      pass_hist1d_var   = ((-tolerance < variance_eps) &&
-                           ( tolerance > variance_eps)) ? 1:0;
-      pass_hist1d_covar = ((-tolerance < covariance_eps) &&
-                           ( tolerance > covariance_eps)) ? 1:0;
+      pass_hist1d_mean  = ((-0.0001 < mean_eps) &&
+                           ( 0.0001 > mean_eps)) ? 1:0;
+      pass_hist1d_var   = ((-0.07 < variance_eps) &&
+                           ( 0.07 > variance_eps)) ? 1:0;
+      pass_hist1d_covar = ((-0.06 < covariance_eps) &&
+                           ( 0.06 > covariance_eps)) ? 1:0;
 
       cerr << "Density 1D: " << mean_eps
            << " " << variance_eps
@@ -363,8 +363,8 @@ struct test_random_scalar {
       double covariance_eps = (result.covariance/HIST_DIM1D - covariance_expect)/mean_expect;
       pass_hist3d_mean  = ((-tolerance < mean_eps) &&
                            ( tolerance > mean_eps)) ? 1:0;
-      pass_hist3d_var   = ((-tolerance < variance_eps) &&
-                           ( tolerance > variance_eps)) ? 1:0;
+      pass_hist3d_var   = ((-1.2*tolerance < variance_eps) &&
+                           ( 1.2*tolerance > variance_eps)) ? 1:0;
       pass_hist3d_covar = ((-tolerance < covariance_eps) &&
                            ( tolerance > covariance_eps)) ? 1:0;
 
@@ -386,8 +386,13 @@ void test_random(unsigned int num_draws)
   typename test_random_functor<RandomGenerator,int>::type_1d density_1d("D1d");
   typename test_random_functor<RandomGenerator,int>::type_3d density_3d("D3d");
 
+
+  uint64_t ticks = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+  cerr << "Test Seed:" << ticks << endl;
+
+  RandomGenerator pool(ticks);
+
   cerr << "Test Scalar=int" << endl;
-  RandomGenerator pool(31891);
   test_random_scalar<RandomGenerator,int> test_int(density_1d,density_3d,pool,num_draws);
   ASSERT_EQ( test_int.pass_mean,1);
   ASSERT_EQ( test_int.pass_var,1);

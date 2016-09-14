@@ -206,14 +206,14 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump</span> <span class="n">d0</span> <span class="nb">all</span> <span class="n">image</span> <span class="mi">100</span> <span class="n">dump</span><span class="o">.*.</span><span class="n">jpg</span> <span class="nb">type</span> <span class="nb">type</span>
-<span class="n">dump</span> <span class="n">d1</span> <span class="n">mobile</span> <span class="n">image</span> <span class="mi">500</span> <span class="n">snap</span><span class="o">.*.</span><span class="n">png</span> <span class="n">element</span> <span class="n">element</span> <span class="n">ssao</span> <span class="n">yes</span> <span class="mi">4539</span> <span class="mf">0.6</span>
-<span class="n">dump</span> <span class="n">d2</span> <span class="nb">all</span> <span class="n">image</span> <span class="mi">200</span> <span class="n">img</span><span class="o">-*.</span><span class="n">ppm</span> <span class="nb">type</span> <span class="nb">type</span> <span class="n">zoom</span> <span class="mf">2.5</span> <span class="n">adiam</span> <span class="mf">1.5</span> <span class="n">size</span> <span class="mi">1280</span> <span class="mi">720</span>
-<span class="n">dump</span> <span class="n">m0</span> <span class="nb">all</span> <span class="n">movie</span> <span class="mi">1000</span> <span class="n">movie</span><span class="o">.</span><span class="n">mpg</span> <span class="nb">type</span> <span class="nb">type</span> <span class="n">size</span> <span class="mi">640</span> <span class="mi">480</span>
-<span class="n">dump</span> <span class="n">m1</span> <span class="nb">all</span> <span class="n">movie</span> <span class="mi">1000</span> <span class="n">movie</span><span class="o">.</span><span class="n">avi</span> <span class="nb">type</span> <span class="nb">type</span> <span class="n">size</span> <span class="mi">640</span> <span class="mi">480</span>
-<span class="n">dump</span> <span class="n">m2</span> <span class="nb">all</span> <span class="n">movie</span> <span class="mi">100</span> <span class="n">movie</span><span class="o">.</span><span class="n">m4v</span> <span class="nb">type</span> <span class="nb">type</span> <span class="n">zoom</span> <span class="mf">1.8</span> <span class="n">adiam</span> <span class="n">v_value</span> <span class="n">size</span> <span class="mi">1280</span> <span class="mi">720</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+dump d0 all image 100 dump.*.jpg type type
+dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6
+dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720
+dump m0 all movie 1000 movie.mpg type type size 640 480
+dump m1 all movie 1000 movie.avi type type size 640 480
+dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -310,7 +310,7 @@ atoms rendered in the image.  They can be any atom attribute defined
 for the <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command, including <em>type</em> and
 <em>element</em>.  This includes per-atom quantities calculated by a
 <a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, <a class="reference internal" href="fix.html"><span class="doc">fix</span></a>, or <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>,
-which are prefixed by &#8220;<a href="#id9"><span class="problematic" id="id10">c_</span></a>&#8221;, &#8220;<a href="#id11"><span class="problematic" id="id12">f_</span></a>&#8221;, or &#8220;<a href="#id13"><span class="problematic" id="id14">v_</span></a>&#8221; respectively.  Note that the
+which are prefixed by &#8220;c_&#8221;, &#8220;f_&#8221;, or &#8220;v_&#8221; respectively.  Note that the
 <em>diameter</em> setting can be overridden with a numeric value applied to
 all atoms by the optional <em>adiam</em> keyword.</p>
 <p>If <em>type</em> is specified for the <em>color</em> setting, then the color of each
@@ -481,6 +481,11 @@ change this via the <a class="reference internal" href="dump_modify.html"><span 
 <p>The <em>fix</em> keyword can be used with a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> that produces
 objects to be drawn.  An example is the <span class="xref doc">fix surface/global</span> command which can draw lines
 or triangles for 2d/3d simulations.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Aug 2016 - The fix surface/global command is not yet added to
+LAMMPS.</p>
+</div>
 <p>The <em>fflag1</em> and <em>fflag2</em> settings are numerical values which are
 passed to the fix to affect how the drawing of its objects is done.
 See the individual fix doc page for a description of what these
@@ -540,9 +545,9 @@ plane perpendicular to the view vector implied by the <em>theta</em> and
 <em>pni</em> values, and which is also in the plane defined by the view
 vector and user-specified up vector.  Thus this internal vector is
 computed from the user-specified <em>up</em> vector as</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">up_internal</span> <span class="o">=</span> <span class="n">view</span> <span class="n">cross</span> <span class="p">(</span><span class="n">up</span> <span class="n">cross</span> <span class="n">view</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+up_internal = view cross (up cross view)
+</pre>
 <p>This means the only restriction on the specified <em>up</em> vector is that
 it cannot be parallel to the <em>view</em> vector, implied by the <em>theta</em> and
 <em>phi</em> values.</p>
@@ -614,10 +619,10 @@ MPEG or other movie file you can use:</p>
 </ol>
 </li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">convert</span> <span class="o">*.</span><span class="n">jpg</span> <span class="n">foo</span><span class="o">.</span><span class="n">gif</span>
-<span class="o">%</span> <span class="n">convert</span> <span class="o">-</span><span class="n">loop</span> <span class="mi">1</span> <span class="o">*.</span><span class="n">ppm</span> <span class="n">foo</span><span class="o">.</span><span class="n">mpg</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+% convert *.jpg foo.gif
+% convert -loop 1 *.ppm foo.mpg
+</pre>
 <p>Animated GIF files from ImageMagick are unoptimized. You can use a
 program like gifsicle to optimize and massively shrink them.
 MPEG files created by ImageMagick are in MPEG-1 format with rather
@@ -630,7 +635,7 @@ inefficient compression and low quality.</p>
 </ul>
 <p>Select &#8220;Open Image Sequence&#8221; under the File menu Load the images into
 QuickTime to animate them Select &#8220;Export&#8221; under the File menu Save the
-movie as a QuickTime movie (<a href="#id7"><span class="problematic" id="id8">*</span></a>.mov) or in another format.  QuickTime
+movie as a QuickTime movie (*.mov) or in another format.  QuickTime
 can generate very high quality and efficiently compressed movie
 files. Some of the supported formats require to buy a license and some
 are not readable on all platforms until specific runtime libraries are
@@ -643,10 +648,10 @@ installed.</p>
 </ul>
 <p>FFmpeg is a command line tool that is available on many platforms and
 allows extremely flexible encoding and decoding of movies.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">snap</span><span class="o">.*.</span><span class="n">jpg</span> <span class="o">|</span> <span class="n">ffmpeg</span> <span class="o">-</span><span class="n">y</span> <span class="o">-</span><span class="n">f</span> <span class="n">image2pipe</span> <span class="o">-</span><span class="n">c</span><span class="p">:</span><span class="n">v</span> <span class="n">mjpeg</span> <span class="o">-</span><span class="n">i</span> <span class="o">-</span> <span class="o">-</span><span class="n">b</span><span class="p">:</span><span class="n">v</span> <span class="mi">2000</span><span class="n">k</span> <span class="n">movie</span><span class="o">.</span><span class="n">m4v</span>
-<span class="n">cat</span> <span class="n">snap</span><span class="o">.*.</span><span class="n">ppm</span> <span class="o">|</span> <span class="n">ffmpeg</span> <span class="o">-</span><span class="n">y</span> <span class="o">-</span><span class="n">f</span> <span class="n">image2pipe</span> <span class="o">-</span><span class="n">c</span><span class="p">:</span><span class="n">v</span> <span class="n">ppm</span> <span class="o">-</span><span class="n">i</span> <span class="o">-</span> <span class="o">-</span><span class="n">b</span><span class="p">:</span><span class="n">v</span> <span class="mi">2400</span><span class="n">k</span> <span class="n">movie</span><span class="o">.</span><span class="n">avi</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+cat snap.*.jpg | ffmpeg -y -f image2pipe -c:v mjpeg -i - -b:v 2000k movie.m4v
+cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
+</pre>
 <p>Frontends for FFmpeg exist for multiple platforms. For more
 information see the <a class="reference external" href="http://www.ffmpeg.org/">FFmpeg homepage</a></p>
 <hr class="docutils" />
@@ -673,9 +678,9 @@ variety of file formats and decoders.</li>
 <a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza/doc/animate.html">animate tool</a>,
 which works directly on a series of image files.</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">animate</span><span class="p">(</span><span class="s2">&quot;foo*.jpg&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+a = animate(&quot;foo*.jpg&quot;)
+</pre>
 <ul class="simple">
 <li>d) QuickTime and other Windows- or MacOS-based media players can
 obviously play movie files directly. Similarly for corresponding tools

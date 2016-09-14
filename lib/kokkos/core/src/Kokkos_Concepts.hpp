@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-// 
+//
 //                        Kokkos v. 2.0
 //              Copyright (2014) Sandia Corporation
-// 
+//
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,86 +36,43 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-// 
+//
 // ************************************************************************
 //@HEADER
 */
 
-#ifndef KOKKOS_BASIC_ALLOCATORS_HPP
-#define KOKKOS_BASIC_ALLOCATORS_HPP
+#ifndef KOKKOS_CORE_CONCEPTS_HPP
+#define KOKKOS_CORE_CONCEPTS_HPP
 
-#if ! KOKKOS_USING_EXP_VIEW
+#include <type_traits>
 
-namespace Kokkos { namespace Impl {
+namespace Kokkos {
+//Schedules for Execution Policies
+struct Static {};
+struct Dynamic {};
 
-/// class UnmanagedAllocator
-/// does nothing when deallocate(ptr,size) is called
-class UnmanagedAllocator
+//Schedule Wrapper Type
+template<class T>
+struct Schedule
 {
-public:
-  static const char * name() { return "Unmanaged Allocator"; }
-
-  static void deallocate(void * /*ptr*/, size_t /*size*/) {}
+  static_assert(  std::is_same<T,Static>::value
+               || std::is_same<T,Dynamic>::value
+               , "Kokkos: Invalid Schedule<> type."
+               );
+  using schedule_type = Schedule<T>;
+  using type = T;
 };
 
-
-/// class MallocAllocator
-class MallocAllocator
+//Specify Iteration Index Type
+template<typename T>
+struct IndexType
 {
-public:
-  static const char * name()
-  {
-    return "Malloc Allocator";
-  }
-
-  static void* allocate(size_t size);
-
-  static void deallocate(void * ptr, size_t size);
-
-  static void * reallocate(void * old_ptr, size_t old_size, size_t new_size);
+  static_assert(std::is_integral<T>::value,"Kokkos: Invalid IndexType<>.");
+  using index_type = IndexType<T>;
+  using type = T;
 };
 
+} // namespace Kokkos
 
-/// class AlignedAllocator
-/// memory aligned to Kokkos::Impl::MEMORY_ALIGNMENT
-class AlignedAllocator
-{
-public:
-  static const char * name()
-  {
-    return "Aligned Allocator";
-  }
-
-  static void* allocate(size_t size);
-
-  static void deallocate(void * ptr, size_t size);
-
-  static void * reallocate(void * old_ptr, size_t old_size, size_t new_size);
-};
-
-
-/// class PageAlignedAllocator
-/// memory aligned to PAGE_SIZE
-class PageAlignedAllocator
-{
-public:
-  static const char * name()
-  {
-    return "Page Aligned Allocator";
-  }
-
-  static void* allocate(size_t size);
-
-  static void deallocate(void * ptr, size_t size);
-
-  static void * reallocate(void * old_ptr, size_t old_size, size_t new_size);
-};
-
-
-}} // namespace Kokkos::Impl
-
-#endif /* #if ! KOKKOS_USING_EXP_VIEW */
-
-#endif //KOKKOS_BASIC_ALLOCATORS_HPP
-
+#endif // KOKKOS_CORE_CONCEPTS_HPP
 

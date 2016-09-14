@@ -131,50 +131,50 @@
 <h1>fix ttm/mod command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">ttm</span> <span class="n">seed</span> <span class="n">C_e</span> <span class="n">rho_e</span> <span class="n">kappa_e</span> <span class="n">gamma_p</span> <span class="n">gamma_s</span> <span class="n">v_0</span> <span class="n">Nx</span> <span class="n">Ny</span> <span class="n">Nz</span> <span class="n">T_infile</span> <span class="n">N</span> <span class="n">T_outfile</span>
-<span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">ttm</span><span class="o">/</span><span class="n">mod</span> <span class="n">seed</span> <span class="n">init_file</span> <span class="n">Nx</span> <span class="n">Ny</span> <span class="n">Nz</span> <span class="n">T_infile</span> <span class="n">N</span> <span class="n">T_outfile</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile
+fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>style = <em>ttm</em> or <em>ttm_mod</em></li>
 <li>seed = random number seed to use for white noise (positive integer)</li>
 <li>remaining arguments for fix ttm:</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">C_e</span>  <span class="o">=</span> <span class="n">electronic</span> <span class="n">specific</span> <span class="n">heat</span> <span class="p">(</span><span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">electron</span><span class="o">*</span><span class="n">temperature</span><span class="p">)</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">rho_e</span> <span class="o">=</span> <span class="n">electronic</span> <span class="n">density</span> <span class="p">(</span><span class="n">electrons</span><span class="o">/</span><span class="n">volume</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">kappa_e</span> <span class="o">=</span> <span class="n">electronic</span> <span class="n">thermal</span> <span class="n">conductivity</span> <span class="p">(</span><span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">time</span><span class="o">*</span><span class="n">distance</span><span class="o">*</span><span class="n">temperature</span><span class="p">)</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">gamma_p</span> <span class="o">=</span> <span class="n">friction</span> <span class="n">coefficient</span> <span class="n">due</span> <span class="n">to</span> <span class="n">electron</span><span class="o">-</span><span class="n">ion</span> <span class="n">interactions</span> <span class="p">(</span><span class="n">mass</span><span class="o">/</span><span class="n">time</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">gamma_s</span> <span class="o">=</span> <span class="n">friction</span> <span class="n">coefficient</span> <span class="n">due</span> <span class="n">to</span> <span class="n">electronic</span> <span class="n">stopping</span> <span class="p">(</span><span class="n">mass</span><span class="o">/</span><span class="n">time</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">v_0</span> <span class="o">=</span> <span class="n">electronic</span> <span class="n">stopping</span> <span class="n">critical</span> <span class="n">velocity</span> <span class="p">(</span><span class="n">velocity</span> <span class="n">units</span><span class="p">)</span>
-<span class="n">Nx</span> <span class="o">=</span> <span class="n">number</span> <span class="n">of</span> <span class="n">thermal</span> <span class="n">solve</span> <span class="n">grid</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">x</span><span class="o">-</span><span class="n">direction</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">Ny</span> <span class="o">=</span> <span class="n">number</span> <span class="n">of</span> <span class="n">thermal</span> <span class="n">solve</span> <span class="n">grid</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">y</span><span class="o">-</span><span class="n">direction</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">Nz</span> <span class="o">=</span> <span class="n">number</span> <span class="n">of</span> <span class="n">thermal</span> <span class="n">solve</span> <span class="n">grid</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">z</span><span class="o">-</span><span class="n">direction</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">T_infile</span> <span class="o">=</span> <span class="n">filename</span> <span class="n">to</span> <span class="n">read</span> <span class="n">initial</span> <span class="n">electronic</span> <span class="n">temperature</span> <span class="kn">from</span>
-<span class="nn">N</span> <span class="o">=</span> <span class="n">dump</span> <span class="n">TTM</span> <span class="n">temperatures</span> <span class="n">every</span> <span class="n">this</span> <span class="n">many</span> <span class="n">timesteps</span><span class="p">,</span> <span class="mi">0</span> <span class="o">=</span> <span class="n">no</span> <span class="n">dump</span>
-<span class="n">T_outfile</span> <span class="o">=</span> <span class="n">filename</span> <span class="n">to</span> <span class="n">write</span> <span class="n">TTM</span> <span class="n">temperatures</span> <span class="n">to</span> <span class="p">(</span><span class="n">only</span> <span class="n">needed</span> <span class="k">if</span> <span class="n">N</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+C_e  = electronic specific heat (energy/(electron*temperature) units)
+rho_e = electronic density (electrons/volume units)
+kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
+gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
+gamma_s = friction coefficient due to electronic stopping (mass/time units)
+v_0 = electronic stopping critical velocity (velocity units)
+Nx = number of thermal solve grid points in the x-direction (positive integer)
+Ny = number of thermal solve grid points in the y-direction (positive integer)
+Nz = number of thermal solve grid points in the z-direction (positive integer)
+T_infile = filename to read initial electronic temperature from
+N = dump TTM temperatures every this many timesteps, 0 = no dump
+T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
+</pre>
 <ul class="simple">
 <li>remaining arguments for fix ttm/mod:</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">init_file</span> <span class="o">=</span> <span class="n">file</span> <span class="k">with</span> <span class="n">the</span> <span class="n">parameters</span> <span class="n">to</span> <span class="n">TTM</span>
-<span class="n">Nx</span> <span class="o">=</span> <span class="n">number</span> <span class="n">of</span> <span class="n">thermal</span> <span class="n">solve</span> <span class="n">grid</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">x</span><span class="o">-</span><span class="n">direction</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">Ny</span> <span class="o">=</span> <span class="n">number</span> <span class="n">of</span> <span class="n">thermal</span> <span class="n">solve</span> <span class="n">grid</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">y</span><span class="o">-</span><span class="n">direction</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">Nz</span> <span class="o">=</span> <span class="n">number</span> <span class="n">of</span> <span class="n">thermal</span> <span class="n">solve</span> <span class="n">grid</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">z</span><span class="o">-</span><span class="n">direction</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">T_infile</span> <span class="o">=</span> <span class="n">filename</span> <span class="n">to</span> <span class="n">read</span> <span class="n">initial</span> <span class="n">electronic</span> <span class="n">temperature</span> <span class="kn">from</span>
-<span class="nn">N</span> <span class="o">=</span> <span class="n">dump</span> <span class="n">TTM</span> <span class="n">temperatures</span> <span class="n">every</span> <span class="n">this</span> <span class="n">many</span> <span class="n">timesteps</span><span class="p">,</span> <span class="mi">0</span> <span class="o">=</span> <span class="n">no</span> <span class="n">dump</span>
-<span class="n">T_outfile</span> <span class="o">=</span> <span class="n">filename</span> <span class="n">to</span> <span class="n">write</span> <span class="n">TTM</span> <span class="n">temperatures</span> <span class="n">to</span> <span class="p">(</span><span class="n">only</span> <span class="n">needed</span> <span class="k">if</span> <span class="n">N</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+init_file = file with the parameters to TTM
+Nx = number of thermal solve grid points in the x-direction (positive integer)
+Ny = number of thermal solve grid points in the y-direction (positive integer)
+Nz = number of thermal solve grid points in the z-direction (positive integer)
+T_infile = filename to read initial electronic temperature from
+N = dump TTM temperatures every this many timesteps, 0 = no dump
+T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ttm</span> <span class="mi">699489</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mi">10</span> <span class="mf">0.1</span> <span class="mf">0.0</span> <span class="mf">2.0</span> <span class="mi">1</span> <span class="mi">12</span> <span class="mi">1</span> <span class="n">initialTs</span> <span class="mi">1000</span> <span class="n">T</span><span class="o">.</span><span class="n">out</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ttm</span> <span class="mi">123456</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">5.0</span> <span class="mi">5</span> <span class="mi">5</span> <span class="mi">5</span> <span class="n">Te</span><span class="o">.</span><span class="ow">in</span> <span class="mi">1</span> <span class="n">Te</span><span class="o">.</span><span class="n">out</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ttm</span><span class="o">/</span><span class="n">mod</span> <span class="mi">34277</span> <span class="n">parameters</span><span class="o">.</span><span class="n">txt</span> <span class="mi">5</span> <span class="mi">5</span> <span class="mi">5</span> <span class="n">T_init</span> <span class="mi">10</span> <span class="n">T_out</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 2 all ttm 699489 1.0 1.0 10 0.1 0.0 2.0 1 12 1 initialTs 1000 T.out
+fix 2 all ttm 123456 1.0 1.0 1.0 1.0 1.0 5.0 5 5 5 Te.in 1 Te.out
+fix 2 all ttm/mod 34277 parameters.txt 5 5 5 T_init 10 T_out
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -330,34 +330,32 @@ is calculated as</p>
 <p>The fix ttm/mod parameter file <em>init_file</em> has the following syntax/
 Every line with the odd number is considered as a comment and
 ignored. The lines with the even numbers are treated as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">a_0</span><span class="p">,</span> <span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">temperature</span><span class="o">*</span><span class="n">electron</span><span class="p">)</span> <span class="n">units</span>
-<span class="n">a_1</span><span class="p">,</span> <span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">temperature</span><span class="o">^</span><span class="mi">2</span><span class="o">*</span><span class="n">electron</span><span class="p">)</span> <span class="n">units</span>
-<span class="n">a_2</span><span class="p">,</span> <span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">temperature</span><span class="o">^</span><span class="mi">3</span><span class="o">*</span><span class="n">electron</span><span class="p">)</span> <span class="n">units</span>
-<span class="n">a_3</span><span class="p">,</span> <span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">temperature</span><span class="o">^</span><span class="mi">4</span><span class="o">*</span><span class="n">electron</span><span class="p">)</span> <span class="n">units</span>
-<span class="n">a_4</span><span class="p">,</span> <span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">temperature</span><span class="o">^</span><span class="mi">5</span><span class="o">*</span><span class="n">electron</span><span class="p">)</span> <span class="n">units</span>
-<span class="n">C_0</span><span class="p">,</span> <span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">temperature</span><span class="o">*</span><span class="n">electron</span><span class="p">)</span> <span class="n">units</span>
-<span class="n">A</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">temperature</span> <span class="n">units</span>
-<span class="n">rho_e</span><span class="p">,</span> <span class="n">electrons</span><span class="o">/</span><span class="n">volume</span> <span class="n">units</span>
-<span class="n">D_e</span><span class="p">,</span> <span class="n">length</span><span class="o">^</span><span class="mi">2</span><span class="o">/</span><span class="n">time</span> <span class="n">units</span>
-<span class="n">gamma_p</span><span class="p">,</span> <span class="n">mass</span><span class="o">/</span><span class="n">time</span> <span class="n">units</span>
-<span class="n">gamma_s</span><span class="p">,</span> <span class="n">mass</span><span class="o">/</span><span class="n">time</span> <span class="n">units</span>
-<span class="n">v_0</span><span class="p">,</span> <span class="n">length</span><span class="o">/</span><span class="n">time</span> <span class="n">units</span>
-<span class="n">I_0</span><span class="p">,</span> <span class="n">energy</span><span class="o">/</span><span class="p">(</span><span class="n">time</span><span class="o">*</span><span class="n">length</span><span class="o">^</span><span class="mi">2</span><span class="p">)</span> <span class="n">units</span>
-<span class="n">lsurface</span><span class="p">,</span> <span class="n">electron</span> <span class="n">grid</span> <span class="n">units</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">rsurface</span><span class="p">,</span> <span class="n">electron</span> <span class="n">grid</span> <span class="n">units</span> <span class="p">(</span><span class="n">positive</span> <span class="n">integer</span><span class="p">)</span>
-<span class="n">l_skin</span><span class="p">,</span> <span class="n">length</span> <span class="n">units</span>
-<span class="n">tau</span><span class="p">,</span> <span class="n">time</span> <span class="n">units</span>
-<span class="n">B</span><span class="p">,</span> <span class="n">dimensionless</span>
-<span class="k">lambda</span><span class="p">,</span> <span class="n">length</span> <span class="n">units</span>
-<span class="n">n_ion</span><span class="p">,</span> <span class="n">ions</span><span class="o">/</span><span class="n">volume</span> <span class="n">units</span>
-<span class="n">surface_movement</span><span class="p">:</span> <span class="mi">0</span> <span class="n">to</span> <span class="n">disable</span> <span class="n">tracking</span> <span class="n">of</span> <span class="n">surface</span> <span class="n">motion</span><span class="p">,</span> <span class="mi">1</span> <span class="n">to</span> <span class="n">enable</span>
-<span class="n">T_e_min</span><span class="p">,</span> <span class="n">temperature</span> <span class="n">units</span>
-</pre></div>
-</div>
-</div>
+<pre class="literal-block">
+a_0, energy/(temperature*electron) units
+a_1, energy/(temperature^2*electron) units
+a_2, energy/(temperature^3*electron) units
+a_3, energy/(temperature^4*electron) units
+a_4, energy/(temperature^5*electron) units
+C_0, energy/(temperature*electron) units
+A, 1/temperature units
+rho_e, electrons/volume units
+D_e, length^2/time units
+gamma_p, mass/time units
+gamma_s, mass/time units
+v_0, length/time units
+I_0, energy/(time*length^2) units
+lsurface, electron grid units (positive integer)
+rsurface, electron grid units (positive integer)
+l_skin, length units
+tau, time units
+B, dimensionless
+lambda, length units
+n_ion, ions/volume units
+surface_movement: 0 to disable tracking of surface motion, 1 to enable
+T_e_min, temperature units
+</pre>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>These fixes write the state of the electronic subsystem and the energy
 exchange between the subsystems to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command
 for info on how to re-specify a fix in an input script that reads a

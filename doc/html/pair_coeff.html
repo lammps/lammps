@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_coeff command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="n">I</span> <span class="n">J</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff I J args
+</pre>
 <ul class="simple">
 <li>I,J = atom types (see asterisk form below)</li>
 <li>args = coefficients for one or more pairs of atom types</li>
@@ -138,15 +138,15 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">3</span><span class="o">*</span> <span class="mi">1</span><span class="o">*</span><span class="mi">2</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">nialhjea</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">2</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="mi">3</span> <span class="n">morse</span><span class="o">.</span><span class="n">table</span> <span class="n">ENTRY1</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span> <span class="p">(</span><span class="k">for</span> <span class="n">pair_style</span> <span class="n">hybrid</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff 1 2 1.0 1.0 2.5
+pair_coeff 2 * 1.0 1.0
+pair_coeff 3* 1*2 1.0 1.0 2.5
+pair_coeff * * 1.0 1.0
+pair_coeff * * nialhjea 1 1 2
+pair_coeff * 3 morse.table ENTRY1
+pair_coeff 1 2 lj/cut 1.0 1.0 2.5 (for pair_style hybrid)
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -160,7 +160,7 @@ required.  LAMMPS sets the coefficients for the symmetric J,I
 interaction to the same values.</p>
 <p>A wildcard asterisk can be used in place of or in conjunction with the
 I,J arguments to set the coefficients for multiple pairs of atom
-types.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the
+types.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the
 number of atom types, then an asterisk with no numeric values means all
 types from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N
@@ -170,10 +170,10 @@ asterisks imply type pairs where J &lt; I, they are ignored.</p>
 <p>Note that a pair_coeff command can override a previous setting for the
 same I,J pair.  For example, these commands set the coeffs for all I,J
 pairs, then overwrite the coeffs for just the I,J = 2,3 pair:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mf">2.0</span> <span class="mf">1.0</span> <span class="mf">1.12</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * * 1.0 1.0 2.5
+pair_coeff 2 3 2.0 1.0 1.12
+</pre>
 <p>A line in a data file that specifies pair coefficients uses the exact
 same format as the arguments of the pair_coeff command in an input
 script, with the exception of the I,J type arguments.  In each line of
@@ -214,13 +214,13 @@ copying them into your working directory.  Environment variables are
 set in different ways for different shells.  Here are example settings
 for</p>
 <p>csh, tcsh:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">setenv</span> <span class="n">LAMMPS_POTENTIALS</span> <span class="o">/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">lammps</span><span class="o">/</span><span class="n">potentials</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+% setenv LAMMPS_POTENTIALS /path/to/lammps/potentials
+</pre>
 <p>bash:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">export</span> <span class="n">LAMMPS_POTENTIALS</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">lammps</span><span class="o">/</span><span class="n">potentials</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+% export LAMMPS_POTENTIALS=/path/to/lammps/potentials
+</pre>
 <p>Windows:</p>
 <pre class="literal-block">
 % set LAMMPS_POTENTIALS=&quot;C:\Path to LAMMPS\Potentials&quot;

@@ -577,8 +577,8 @@ $(OCL_LIB): $(OBJS) $(PTXS)
 opencl: $(OCL_EXECS)
 
 clean:
-	rm -rf $(EXECS) $(OCL_EXECS) $(OCL_LIB) $(OBJS) $(KERS) *.linkinfo
+	-rm -rf $(EXECS) $(OCL_EXECS) $(OCL_LIB) $(OBJS) $(KERS) *.linkinfo
 
 veryclean: clean
-	rm -rf *~ *.linkinfo
+	-rm -rf *~ *.linkinfo
 

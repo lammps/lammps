@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>pair_modify command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_modify</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_modify keyword values ...
+</pre>
 <ul class="simple">
 <li>one or more keyword/value pairs may be listed</li>
 <li>keyword = <em>pair</em> or <em>shift</em> or <em>mix</em> or <em>table</em> or <em>table/disp</em> or <em>tabinner</em> or <em>tabinner/disp</em> or <em>tail</em> or <em>compute</em></li>
@@ -158,13 +158,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_modify</span> <span class="n">shift</span> <span class="n">yes</span> <span class="n">mix</span> <span class="n">geometric</span>
-<span class="n">pair_modify</span> <span class="n">tail</span> <span class="n">yes</span>
-<span class="n">pair_modify</span> <span class="n">table</span> <span class="mi">12</span>
-<span class="n">pair_modify</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="n">compute</span> <span class="n">no</span>
-<span class="n">pair_modify</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mi">1</span> <span class="n">special</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_modify shift yes mix geometric
+pair_modify tail yes
+pair_modify table 12
+pair_modify pair lj/cut compute no
+pair_modify pair lj/cut/coul/long 1 special lj/coul 0.0 0.0 0.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -201,21 +201,21 @@ individual pair styles for those restrictions.  Note also that the
 coefficients for a specific I != J pairing, in which case no mixing is
 performed.</p>
 <p>mix <em>geometric</em></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">epsilon_ij</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">epsilon_i</span> <span class="o">*</span> <span class="n">epsilon_j</span><span class="p">)</span>
-<span class="n">sigma_ij</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">sigma_i</span> <span class="o">*</span> <span class="n">sigma_j</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+epsilon_ij = sqrt(epsilon_i * epsilon_j)
+sigma_ij = sqrt(sigma_i * sigma_j)
+</pre>
 <p>mix <em>arithmetic</em></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">epsilon_ij</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">epsilon_i</span> <span class="o">*</span> <span class="n">epsilon_j</span><span class="p">)</span>
-<span class="n">sigma_ij</span> <span class="o">=</span> <span class="p">(</span><span class="n">sigma_i</span> <span class="o">+</span> <span class="n">sigma_j</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+epsilon_ij = sqrt(epsilon_i * epsilon_j)
+sigma_ij = (sigma_i + sigma_j) / 2
+</pre>
 <p>mix <em>sixthpower</em></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">epsilon_ij</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">epsilon_i</span><span class="o">*</span><span class="n">epsilon_j</span><span class="p">)</span> <span class="o">*</span> <span class="n">sigma_i</span><span class="o">^</span><span class="mi">3</span> <span class="o">*</span> <span class="n">sigma_j</span><span class="o">^</span><span class="mi">3</span><span class="p">)</span> <span class="o">/</span>
-             <span class="p">(</span><span class="n">sigma_i</span><span class="o">^</span><span class="mi">6</span> <span class="o">+</span> <span class="n">sigma_j</span><span class="o">^</span><span class="mi">6</span><span class="p">)</span>
-<span class="n">sigma_ij</span> <span class="o">=</span> <span class="p">((</span><span class="n">sigma_i</span><span class="o">**</span><span class="mi">6</span> <span class="o">+</span> <span class="n">sigma_j</span><span class="o">**</span><span class="mi">6</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">^</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="mi">6</span><span class="p">)</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+epsilon_ij = (2 * sqrt(epsilon_i*epsilon_j) * sigma_i^3 * sigma_j^3) /
+             (sigma_i^6 + sigma_j^6)
+sigma_ij = ((sigma_i**6 + sigma_j**6) / 2) ^ (1/6)
+</pre>
 <p>The <em>shift</em> keyword determines whether a Lennard-Jones potential is
 shifted at its cutoff to 0.0.  If so, this adds an energy term to each
 pairwise interaction which will be included in the thermodynamic

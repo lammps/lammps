@@ -180,7 +180,6 @@ public:
                   bool &value,
                   bool const &def_value = false,
                   Parse_Mode const parse_mode = parse_normal);
-
   bool get_keyval(std::string const &conf,
                   char const *key,
                   std::vector<int> &values,

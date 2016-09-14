@@ -370,43 +370,43 @@ void PairReaxCKokkos<DeviceType>::init_md()
         k_LR.h_view(i,j).a      = LR[i][j].a;
         k_LR.h_view(i,j).m      = LR[i][j].m;
         k_LR.h_view(i,j).c      = LR[i][j].c;
+
+        tdual_LR_data_1d           k_y      = tdual_LR_data_1d("lookup:LR[i,j].y",n);
+        tdual_cubic_spline_coef_1d k_H      = tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
+        tdual_cubic_spline_coef_1d k_vdW    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
+        tdual_cubic_spline_coef_1d k_CEvd   = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
+        tdual_cubic_spline_coef_1d k_ele    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
+        tdual_cubic_spline_coef_1d k_CEclmb = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
     
-        k_LR.h_view(i,j).k_y      = tdual_LR_data_1d("lookup:LR[i,j].y",n);
-        k_LR.h_view(i,j).k_H      = tdual_cubic_spline_coef_1d("lookup:LR[i,j].H",n);
-        k_LR.h_view(i,j).k_vdW    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].vdW",n);
-        k_LR.h_view(i,j).k_CEvd   = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEvd",n);
-        k_LR.h_view(i,j).k_ele    = tdual_cubic_spline_coef_1d("lookup:LR[i,j].ele",n);
-        k_LR.h_view(i,j).k_CEclmb = tdual_cubic_spline_coef_1d("lookup:LR[i,j].CEclmb",n);
-    
-        k_LR.h_view(i,j).d_y      = k_LR.h_view(i,j).k_y.d_view;
-        k_LR.h_view(i,j).d_H      = k_LR.h_view(i,j).k_H.d_view;
-        k_LR.h_view(i,j).d_vdW    = k_LR.h_view(i,j).k_vdW.d_view;
-        k_LR.h_view(i,j).d_CEvd   = k_LR.h_view(i,j).k_CEvd.d_view;
-        k_LR.h_view(i,j).d_ele    = k_LR.h_view(i,j).k_ele.d_view;
-        k_LR.h_view(i,j).d_CEclmb = k_LR.h_view(i,j).k_CEclmb.d_view;
+        k_LR.h_view(i,j).d_y      = k_y.d_view;
+        k_LR.h_view(i,j).d_H      = k_H.d_view;
+        k_LR.h_view(i,j).d_vdW    = k_vdW.d_view;
+        k_LR.h_view(i,j).d_CEvd   = k_CEvd.d_view;
+        k_LR.h_view(i,j).d_ele    = k_ele.d_view;
+        k_LR.h_view(i,j).d_CEclmb = k_CEclmb.d_view;
     
         for (int k = 0; k < n; k++) {
-          k_LR.h_view(i,j).k_y.h_view(k)      = LR[i][j].y[k];
-          k_LR.h_view(i,j).k_H.h_view(k)      = LR[i][j].H[k];
-          k_LR.h_view(i,j).k_vdW.h_view(k)    = LR[i][j].vdW[k];
-          k_LR.h_view(i,j).k_CEvd.h_view(k)   = LR[i][j].CEvd[k];
-          k_LR.h_view(i,j).k_ele.h_view(k)    = LR[i][j].ele[k];
-          k_LR.h_view(i,j).k_CEclmb.h_view(k) = LR[i][j].CEclmb[k];
+          k_y.h_view(k)      = LR[i][j].y[k];
+          k_H.h_view(k)      = LR[i][j].H[k];
+          k_vdW.h_view(k)    = LR[i][j].vdW[k];
+          k_CEvd.h_view(k)   = LR[i][j].CEvd[k];
+          k_ele.h_view(k)    = LR[i][j].ele[k];
+          k_CEclmb.h_view(k) = LR[i][j].CEclmb[k];
         }
     
-        k_LR.h_view(i,j).k_y.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_H.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_vdW.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_CEvd.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_ele.template modify<LMPHostType>();
-        k_LR.h_view(i,j).k_CEclmb.template modify<LMPHostType>();
+        k_y.template modify<LMPHostType>();
+        k_H.template modify<LMPHostType>();
+        k_vdW.template modify<LMPHostType>();
+        k_CEvd.template modify<LMPHostType>();
+        k_ele.template modify<LMPHostType>();
+        k_CEclmb.template modify<LMPHostType>();
     
-        k_LR.h_view(i,j).k_y.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_H.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_vdW.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_CEvd.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_ele.template sync<DeviceType>();
-        k_LR.h_view(i,j).k_CEclmb.template sync<DeviceType>();
+        k_y.template sync<DeviceType>();
+        k_H.template sync<DeviceType>();
+        k_vdW.template sync<DeviceType>();
+        k_CEvd.template sync<DeviceType>();
+        k_ele.template sync<DeviceType>();
+        k_CEclmb.template sync<DeviceType>();
       }
     }
     k_LR.template modify<LMPHostType>();
@@ -660,6 +660,8 @@ void PairReaxCKokkos<DeviceType>::LR_vdW_Coulomb( int i, int j, double r_ij, LR_
 template<class DeviceType>
 void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
+  copymode = 1;
+
   bocnt = hbcnt = 0;
 
   eflag = eflag_in;
@@ -702,8 +704,6 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     for (int i = 0; i < 14; i++)
       pvector[i] = 0.0;
   }
-
-  copymode = 1;
 
   EV_FLOAT_REAX ev;
   EV_FLOAT_REAX ev_all;
@@ -1361,6 +1361,23 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxZero, const int &n) const {
   }
   for (int j = 0; j < 3; j++)
     d_dDeltap_self(n,j) = 0.0;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxCKokkos<DeviceType>::operator()(PairReaxZeroEAtom, const int &i) const {
+  v_eatom(i) = 0.0;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxCKokkos<DeviceType>::operator()(PairReaxZeroVAtom, const int &i) const {
+  v_vatom(i,0) = 0.0;
+  v_vatom(i,1) = 0.0;
+  v_vatom(i,2) = 0.0;
+  v_vatom(i,3) = 0.0;
+  v_vatom(i,4) = 0.0;
+  v_vatom(i,5) = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2398,7 +2415,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
   F_FLOAT BOA_ij, BOA_ik, rij, bo_ij, bo_ik;
   F_FLOAT dcos_theta_di[3], dcos_theta_dj[3], dcos_theta_dk[3];
   F_FLOAT eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
-  F_FLOAT delij[3], delik[3];
+  F_FLOAT delij[3], delik[3], delji[3], delki[3];
 
   p_val6 = gp[14];
   p_val8 = gp[33];
@@ -2648,8 +2665,10 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
       if (EVFLAG) {
         eng_tmp = e_ang + e_pen + e_coa;
         //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,eng_tmp,0.0,0.0,0.0,0.0);
+        for (int d = 0; d < 3; d++) delki[d] = -1.0 * delik[d];
+        for (int d = 0; d < 3; d++) delji[d] = -1.0 * delij[d];
         if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,eng_tmp);
-        if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj_tmp,fk_tmp,delij,delik);
+        if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj_tmp,fk_tmp,delji,delki);
       }
 
     }
@@ -2884,31 +2903,34 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeTorsion<NEIGHFLAG,EV
         if( arg >  1.0 ) arg =  1.0;
         if( arg < -1.0 ) arg = -1.0;
 
-        if( sin_ijk >= 0 && sin_ijk <= 1e-10 ) sin_ijk = 1e-10;
-        else if( sin_ijk <= 0 && sin_ijk >= -1e-10 ) sin_ijk = -1e-10;
-        if( sin_jil >= 0 && sin_jil <= 1e-10 ) sin_jil = 1e-10;
-        else if( sin_jil <= 0 && sin_jil >= -1e-10 ) sin_jil = -1e-10;
+        F_FLOAT sin_ijk_rnd = sin_ijk;
+        F_FLOAT sin_jil_rnd = sin_jil;
+
+        if( sin_ijk >= 0 && sin_ijk <= 1e-10 ) sin_ijk_rnd = 1e-10;
+        else if( sin_ijk <= 0 && sin_ijk >= -1e-10 ) sin_ijk_rnd = -1e-10;
+        if( sin_jil >= 0 && sin_jil <= 1e-10 ) sin_jil_rnd = 1e-10;
+        else if( sin_jil <= 0 && sin_jil >= -1e-10 ) sin_jil_rnd = -1e-10;
 
         // dcos_omega_di
         for (int d = 0; d < 3; d++) dcos_omega_dk[d] = ((htra-arg*hnra)/rik) * delik[d] - dellk[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dk[d] += (hthd-arg*hnhd)/sin_ijk * -dcos_ijk_dk[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dk[d] += (hthd-arg*hnhd)/sin_ijk_rnd * -dcos_ijk_dk[d];
         for (int d = 0; d < 3; d++) dcos_omega_dk[d] *= 2.0/poem;
 
         // dcos_omega_dj
         for (int d = 0; d < 3; d++) dcos_omega_di[d] = -((htra-arg*hnra)/rik) * delik[d] - htrb/rij * delij[d];
-        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthd-arg*hnhd)/sin_ijk * dcos_ijk_di[d];
-        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthe-arg*hnhe)/sin_jil * dcos_jil_di[d];
+        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthd-arg*hnhd)/sin_ijk_rnd * dcos_ijk_di[d];
+        for (int d = 0; d < 3; d++) dcos_omega_di[d] += -(hthe-arg*hnhe)/sin_jil_rnd * dcos_jil_di[d];
         for (int d = 0; d < 3; d++) dcos_omega_di[d] *= 2.0/poem;
 
         // dcos_omega_dk
         for (int d = 0; d < 3; d++) dcos_omega_dj[d] = -((htrc-arg*hnrc)/rjl) * deljl[d] + htrb/rij * delij[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthd-arg*hnhd)/sin_ijk * dcos_ijk_dj[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthe-arg*hnhe)/sin_jil * dcos_jil_dj[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthd-arg*hnhd)/sin_ijk_rnd * dcos_ijk_dj[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dj[d] += -(hthe-arg*hnhe)/sin_jil_rnd * dcos_jil_dj[d];
         for (int d = 0; d < 3; d++) dcos_omega_dj[d] *= 2.0/poem;
 
         // dcos_omega_dl
         for (int d = 0; d < 3; d++) dcos_omega_dl[d] = ((htrc-arg*hnrc)/rjl) * deljl[d] + dellk[d];
-        for (int d = 0; d < 3; d++) dcos_omega_dl[d] += (hthe-arg*hnhe)/sin_jil * -dcos_jil_dk[d];
+        for (int d = 0; d < 3; d++) dcos_omega_dl[d] += (hthe-arg*hnhe)/sin_jil_rnd * -dcos_jil_dk[d];
         for (int d = 0; d < 3; d++) dcos_omega_dl[d] *= 2.0/poem;
 
         cos_omega = cos( omega );
@@ -3728,12 +3750,12 @@ void PairReaxCKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, cons
 
   F_FLOAT v[6];
 
-  v[0] = (drij[0]*fj[0] + drik[0]*fk[0]);
-  v[1] = (drij[1]*fj[1] + drik[1]*fk[1]);
-  v[2] = (drij[2]*fj[2] + drik[2]*fk[2]);
-  v[3] = (drij[0]*fj[1] + drik[0]*fk[1]);
-  v[4] = (drij[0]*fj[2] + drik[0]*fk[2]);
-  v[5] = (drij[1]*fj[2] + drik[1]*fk[2]);
+  v[0] = drij[0]*fj[0] + drik[0]*fk[0];
+  v[1] = drij[1]*fj[1] + drik[1]*fk[1];
+  v[2] = drij[2]*fj[2] + drik[2]*fk[2];
+  v[3] = drij[0]*fj[1] + drik[0]*fk[1];
+  v[4] = drij[0]*fj[2] + drik[0]*fk[2];
+  v[5] = drij[1]*fj[2] + drik[1]*fk[2];
 
   if (vflag_global) {
     ev.v[0] += v[0];
@@ -3745,12 +3767,12 @@ void PairReaxCKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, cons
   }
 
   if (vflag_atom) {
-    a_vatom(i,0) += THIRD*v[0]; a_vatom(i,1) += THIRD*v[1]; a_vatom(i,2) += THIRD*v[2];
-    a_vatom(i,3) += THIRD*v[3]; a_vatom(i,4) += THIRD*v[4]; a_vatom(i,5) += THIRD*v[5];
-    a_vatom(j,0) += THIRD*v[0]; a_vatom(j,1) += THIRD*v[1]; a_vatom(j,2) += THIRD*v[2];
-    a_vatom(j,3) += THIRD*v[3]; a_vatom(j,4) += THIRD*v[4]; a_vatom(j,5) += THIRD*v[5];
-    a_vatom(k,0) += THIRD*v[0]; a_vatom(k,1) += THIRD*v[1]; a_vatom(k,2) += THIRD*v[2];
-    a_vatom(k,3) += THIRD*v[3]; a_vatom(k,4) += THIRD*v[4]; a_vatom(k,5) += THIRD*v[5];
+    a_vatom(i,0) += THIRD * v[0]; a_vatom(i,1) += THIRD * v[1]; a_vatom(i,2) += THIRD * v[2];
+    a_vatom(i,3) += THIRD * v[3]; a_vatom(i,4) += THIRD * v[4]; a_vatom(i,5) += THIRD * v[5];
+    a_vatom(j,0) += THIRD * v[0]; a_vatom(j,1) += THIRD * v[1]; a_vatom(j,2) += THIRD * v[2];
+    a_vatom(j,3) += THIRD * v[3]; a_vatom(j,4) += THIRD * v[4]; a_vatom(j,5) += THIRD * v[5];
+    a_vatom(k,0) += THIRD * v[0]; a_vatom(k,1) += THIRD * v[1]; a_vatom(k,2) += THIRD * v[2];
+    a_vatom(k,3) += THIRD * v[3]; a_vatom(k,4) += THIRD * v[4]; a_vatom(k,5) += THIRD * v[5];
   }
 
 }
@@ -3767,12 +3789,12 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
   // The vatom array is atomic for Half/Thread neighbor style
   F_FLOAT v[6];
 
-  v[0] = 0.25 * (dril[0]*fi[0] + drjl[0]*fj[0] + drkl[0]*fk[0]);
-  v[1] = 0.25 * (dril[1]*fi[1] + drjl[1]*fj[1] + drkl[1]*fk[1]);
-  v[2] = 0.25 * (dril[2]*fi[2] + drjl[2]*fj[2] + drkl[2]*fk[2]);
-  v[3] = 0.25 * (dril[0]*fi[1] + drjl[0]*fj[1] + drkl[0]*fk[1]);
-  v[4] = 0.25 * (dril[0]*fi[2] + drjl[0]*fj[2] + drkl[0]*fk[2]);
-  v[5] = 0.25 * (dril[1]*fi[2] + drjl[1]*fj[2] + drkl[1]*fk[2]);
+  v[0] = dril[0]*fi[0] + drjl[0]*fj[0] + drkl[0]*fk[0];
+  v[1] = dril[1]*fi[1] + drjl[1]*fj[1] + drkl[1]*fk[1];
+  v[2] = dril[2]*fi[2] + drjl[2]*fj[2] + drkl[2]*fk[2];
+  v[3] = dril[0]*fi[1] + drjl[0]*fj[1] + drkl[0]*fk[1];
+  v[4] = dril[0]*fi[2] + drjl[0]*fj[2] + drkl[0]*fk[2];
+  v[5] = dril[1]*fi[2] + drjl[1]*fj[2] + drkl[1]*fk[2];
 
   if (vflag_global) {
     ev.v[0] += v[0];
@@ -3785,14 +3807,14 @@ void PairReaxCKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, cons
 
   if (vflag_atom) {
     Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_vatom = v_vatom;
-    a_vatom(i,0) += v[0]; a_vatom(i,1) += v[1]; a_vatom(i,2) += v[2];
-    a_vatom(i,3) += v[3]; a_vatom(i,4) += v[4]; a_vatom(i,5) += v[5];
-    a_vatom(j,0) += v[0]; a_vatom(j,1) += v[1]; a_vatom(j,2) += v[2];
-    a_vatom(j,3) += v[3]; a_vatom(j,4) += v[4]; a_vatom(j,5) += v[5];
-    a_vatom(k,0) += v[0]; a_vatom(k,1) += v[1]; a_vatom(k,2) += v[2];
-    a_vatom(k,3) += v[3]; a_vatom(k,4) += v[4]; a_vatom(k,5) += v[5];
-    a_vatom(l,0) += v[0]; a_vatom(l,1) += v[1]; a_vatom(l,2) += v[2];
-    a_vatom(l,3) += v[3]; a_vatom(l,4) += v[4]; a_vatom(l,5) += v[5];
+    a_vatom(i,0) += 0.25 * v[0]; a_vatom(i,1) += 0.25 * v[1]; a_vatom(i,2) += 0.25 * v[2];
+    a_vatom(i,3) += 0.25 * v[3]; a_vatom(i,4) += 0.25 * v[4]; a_vatom(i,5) += 0.25 * v[5];
+    a_vatom(j,0) += 0.25 * v[0]; a_vatom(j,1) += 0.25 * v[1]; a_vatom(j,2) += 0.25 * v[2];
+    a_vatom(j,3) += 0.25 * v[3]; a_vatom(j,4) += 0.25 * v[4]; a_vatom(j,5) += 0.25 * v[5];
+    a_vatom(k,0) += 0.25 * v[0]; a_vatom(k,1) += 0.25 * v[1]; a_vatom(k,2) += 0.25 * v[2];
+    a_vatom(k,3) += 0.25 * v[3]; a_vatom(k,4) += 0.25 * v[4]; a_vatom(k,5) += 0.25 * v[5];
+    a_vatom(l,0) += 0.25 * v[0]; a_vatom(l,1) += 0.25 * v[1]; a_vatom(l,2) += 0.25 * v[2];
+    a_vatom(l,3) += 0.25 * v[3]; a_vatom(l,4) += 0.25 * v[4]; a_vatom(l,5) += 0.25 * v[5];
   }
 
 }
@@ -3894,6 +3916,14 @@ void PairReaxCKokkos<DeviceType>::ev_setup(int eflag, int vflag)
 
   if (eflag_global) eng_vdwl = eng_coul = 0.0;
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (eflag_atom) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroEAtom>(0,maxeatom),*this);
+    DeviceType::fence();
+  }
+  if (vflag_atom) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZeroVAtom>(0,maxvatom),*this);
+    DeviceType::fence();
+  }
 
   // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation

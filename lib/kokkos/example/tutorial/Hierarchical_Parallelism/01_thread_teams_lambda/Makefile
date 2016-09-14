@@ -5,13 +5,14 @@ default: build
 	echo "Start Build"
 
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-CXX = nvcc_wrapper
+CXX = ../../../../config/nvcc_wrapper
 CXXFLAGS = -O3
 LINK = ${CXX}
 LINKFLAGS = 
 EXE = $(SRC:.cpp=.cuda)
 KOKKOS_DEVICES = "Cuda,OpenMP"
 KOKKOS_ARCH = "SNB,Kepler35"
+KOKKOS_CUDA_OPTIONS = "enable_lambda"
 else
 CXX = g++
 CXXFLAGS = -O3

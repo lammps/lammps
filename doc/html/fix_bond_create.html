@@ -237,7 +237,7 @@ become one moleclue due to the created bond, all atoms in the new
 moleclue retain their original molecule IDs.</p>
 </div>
 <p>If the <em>atype</em> keyword is used and if an angle potential is defined
-via the <span class="xref doc">angle_style</span> command, then any new 3-body
+via the <a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a> command, then any new 3-body
 interactions inferred by the creation of a bond will create new angles
 of type <em>angletype</em>, with parameters assigned by the corresponding
 <a class="reference internal" href="angle_coeff.html"><span class="doc">angle_coeff</span></a> command.  Likewise, the <em>dtype</em> and
@@ -265,7 +265,7 @@ percolation simulation.</p>
 1st, 2nd, and 3rd neighbors of each atom (within the bond topology of
 the system) for use in weighting pairwise interactions for bonded
 atoms.  Note that adding a single bond always adds a new 1st neighbor
-but may also induce <em>many</em> new 2nd and 3rd neighbors, depending on the
+but may also induce *many* new 2nd and 3rd neighbors, depending on the
 molecular topology of your system.  The &#8220;extra special per atom&#8221;
 parameter must typically be set to allow for the new maximum total
 size (1st + 2nd + 3rd neighbors) of this per-atom list.  There are 3
@@ -320,10 +320,8 @@ dramatically when the bond is formed.  More generally, you may need to
 thermostat your system to compensate for energy changes resulting from
 created bonds (and angles, dihedrals, impropers).</p>
 </div>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>This fix computes two statistics which it stores in a global vector of

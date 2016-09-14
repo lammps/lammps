@@ -128,7 +128,7 @@ E: Cannot use fix colvars without atom IDs
 
 Atom IDs are not defined, but fix colvars needs them to identify an atom.
 
-E: Fix colvars requires an atom map
+E: Fix colvars requires an atom map, see atom_modify
 
 Use the atom_modify command to create an atom map.
 

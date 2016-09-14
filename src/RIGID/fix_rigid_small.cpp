@@ -2192,7 +2192,7 @@ void FixRigidSmall::setup_bodies_static()
   commflag = ITENSOR;
   comm->reverse_comm_fix(this,6);
 
-  // error check that re-computed momemts of inertia match diagonalized ones
+  // error check that re-computed moments of inertia match diagonalized ones
   // do not do test for bodies with params read from infile
 
   double norm;

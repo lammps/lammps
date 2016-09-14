@@ -601,18 +601,18 @@
 <h1>pair_style tip4p/long/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style coul/cut cutoff
-pair_style coul/debye kappa cutoff
-pair_style coul/dsf alpha cutoff
-pair_style coul/long cutoff
-pair_style coul/long/cs cutoff
-pair_style coul/long/gpu cutoff
-pair_style coul/wolf alpha cutoff
-pair_style coul/streitz cutoff keyword alpha
-pair_style tip4p/cut otype htype btype atype qdist cutoff
-pair_style tip4p/long otype htype btype atype qdist cutoff
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">cut</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">debye</span> <span class="n">kappa</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">dsf</span> <span class="n">alpha</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">cs</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">gpu</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">wolf</span> <span class="n">alpha</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">streitz</span> <span class="n">cutoff</span> <span class="n">keyword</span> <span class="n">alpha</span>
+<span class="n">pair_style</span> <span class="n">tip4p</span><span class="o">/</span><span class="n">cut</span> <span class="n">otype</span> <span class="n">htype</span> <span class="n">btype</span> <span class="n">atype</span> <span class="n">qdist</span> <span class="n">cutoff</span>
+<span class="n">pair_style</span> <span class="n">tip4p</span><span class="o">/</span><span class="n">long</span> <span class="n">otype</span> <span class="n">htype</span> <span class="n">btype</span> <span class="n">atype</span> <span class="n">qdist</span> <span class="n">cutoff</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>cutoff = global cutoff for Coulombic interactions</li>
 <li>kappa = Debye length (inverse distance units)</li>
@@ -621,46 +621,46 @@ pair_style tip4p/long otype htype btype atype qdist cutoff
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style coul/cut 2.5
-pair_coeff * *
-pair_coeff 2 2 3.5
-</pre>
-<pre class="literal-block">
-pair_style coul/debye 1.4 3.0
-pair_coeff * *
-pair_coeff 2 2 3.5
-</pre>
-<pre class="literal-block">
-pair_style coul/dsf 0.05 10.0
-pair_coeff * *
-</pre>
-<pre class="literal-block">
-pair_style coul/long 10.0
-pair_style coul/long/cs 10.0
-pair_coeff * *
-</pre>
-<pre class="literal-block">
-pair_style coul/msm 10.0
-pair_coeff * *
-</pre>
-<pre class="literal-block">
-pair_style coul/wolf 0.2 9.0
-pair_coeff * *
-</pre>
-<pre class="literal-block">
-pair_style coul/streitz 12.0 ewald
-pair_style coul/streitz 12.0 wolf 0.30
-pair_coeff * * AlO.streitz Al O
-</pre>
-<pre class="literal-block">
-pair_style tip4p/cut 1 2 7 8 0.15 12.0
-pair_coeff * *
-</pre>
-<pre class="literal-block">
-pair_style tip4p/long 1 2 7 8 0.15 10.0
-pair_coeff * *
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">cut</span> <span class="mf">2.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mf">3.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">debye</span> <span class="mf">1.4</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mf">3.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">dsf</span> <span class="mf">0.05</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">cs</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">msm</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">wolf</span> <span class="mf">0.2</span> <span class="mf">9.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">streitz</span> <span class="mf">12.0</span> <span class="n">ewald</span>
+<span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">streitz</span> <span class="mf">12.0</span> <span class="n">wolf</span> <span class="mf">0.30</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">AlO</span><span class="o">.</span><span class="n">streitz</span> <span class="n">Al</span> <span class="n">O</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tip4p</span><span class="o">/</span><span class="n">cut</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">12.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tip4p</span><span class="o">/</span><span class="n">long</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -712,21 +712,21 @@ used with <a class="reference internal" href="pair_eam.html"><span class="doc">p
 short-range potential that has been parameterized appropriately) via
 the <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid/overlay</span></a> command.  Likewise,
 charge equilibration must be performed via the <a class="reference internal" href="fix_qeq.html"><span class="doc">fix qeq/slater</span></a> command. For example:</p>
-<pre class="literal-block">
-pair_style hybrid/overlay coul/streitz 12.0 wolf 0.31 eam/alloy
-pair_coeff * * coul/streitz AlO.streitz Al O
-pair_coeff * * eam/alloy AlO.eam.alloy Al O
-fix 1 all qeq/slater 1 12.0 1.0e-6 100 coul/streitz
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">coul</span><span class="o">/</span><span class="n">streitz</span> <span class="mf">12.0</span> <span class="n">wolf</span> <span class="mf">0.31</span> <span class="n">eam</span><span class="o">/</span><span class="n">alloy</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">coul</span><span class="o">/</span><span class="n">streitz</span> <span class="n">AlO</span><span class="o">.</span><span class="n">streitz</span> <span class="n">Al</span> <span class="n">O</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">eam</span><span class="o">/</span><span class="n">alloy</span> <span class="n">AlO</span><span class="o">.</span><span class="n">eam</span><span class="o">.</span><span class="n">alloy</span> <span class="n">Al</span> <span class="n">O</span>
+<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">qeq</span><span class="o">/</span><span class="n">slater</span> <span class="mi">1</span> <span class="mf">12.0</span> <span class="mf">1.0e-6</span> <span class="mi">100</span> <span class="n">coul</span><span class="o">/</span><span class="n">streitz</span>
+</pre></div>
+</div>
 <p>The keyword <em>wolf</em> in the coul/streitz command denotes computing
 Coulombic interactions via Wolf summation.  An additional damping
 parameter is required for the Wolf summation, as described for the
 coul/wolf potential above.  Alternatively, Coulombic interactions can
 be computed via an Ewald summation.  For example:</p>
-<pre class="literal-block">
-pair_style hybrid/overlay coul/streitz 12.0 ewald eam/alloy
-kspace_style ewald 1e-6
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">coul</span><span class="o">/</span><span class="n">streitz</span> <span class="mf">12.0</span> <span class="n">ewald</span> <span class="n">eam</span><span class="o">/</span><span class="n">alloy</span>
+<span class="n">kspace_style</span> <span class="n">ewald</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">6</span>
+</pre></div>
+</div>
 <p>Keyword <em>ewald</em> does not need a damping parameter, but a
 <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> must be defined, which can be style
 <em>ewald</em> or <em>pppm</em>.  The Ewald method was used in Streitz and

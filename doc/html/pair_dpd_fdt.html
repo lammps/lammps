@@ -526,9 +526,9 @@
 <h1>pair_style dpd/fdt/energy command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style args
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style = <em>dpd/fdt</em> or <em>dpd/fdt/energy</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -545,14 +545,14 @@ pair_style style args
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style dpd/fdt 300.0 2.5 34387
-pair_coeff * * 3.0 1.0 2.5
-</pre>
-<pre class="literal-block">
-pair_style dpd/fdt/energy 2.5 34387
-pair_coeff * * 3.0 1.0 0.1 2.5
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">dpd</span><span class="o">/</span><span class="n">fdt</span> <span class="mf">300.0</span> <span class="mf">2.5</span> <span class="mi">34387</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">3.0</span> <span class="mf">1.0</span> <span class="mf">2.5</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">dpd</span><span class="o">/</span><span class="n">fdt</span><span class="o">/</span><span class="n">energy</span> <span class="mf">2.5</span> <span class="mi">34387</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">3.0</span> <span class="mf">1.0</span> <span class="mf">0.1</span> <span class="mf">2.5</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

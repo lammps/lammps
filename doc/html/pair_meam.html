@@ -523,17 +523,17 @@
 <span id="index-0"></span><h1>pair_style meam command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style meam
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">meam</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style meam
-pair_coeff * * ../potentials/library.meam Si ../potentials/si.meam Si
-pair_coeff * * ../potentials/library.meam Ni Al NULL Ni Al Ni Ni
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">meam</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">library</span><span class="o">.</span><span class="n">meam</span> <span class="n">Si</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">si</span><span class="o">.</span><span class="n">meam</span> <span class="n">Si</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">library</span><span class="o">.</span><span class="n">meam</span> <span class="n">Ni</span> <span class="n">Al</span> <span class="n">NULL</span> <span class="n">Ni</span> <span class="n">Al</span> <span class="n">Ni</span> <span class="n">Ni</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -589,9 +589,9 @@ settings for a variety of elements.  The potentials/sic.meam file has
 specific parameter settings for a Si and C alloy system.  If your
 LAMMPS simulation has 4 atoms types and you want the 1st 3 to be Si,
 and the 4th to be C, you would use the following pair_coeff command:</p>
-<pre class="literal-block">
-pair_coeff * * library.meam Si C sic.meam Si Si Si C
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">library</span><span class="o">.</span><span class="n">meam</span> <span class="n">Si</span> <span class="n">C</span> <span class="n">sic</span><span class="o">.</span><span class="n">meam</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">C</span>
+</pre></div>
+</div>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The two filenames are for the library and parameter file respectively.
 The Si and C arguments (between the file names) are the two elements
@@ -785,14 +785,14 @@ parameter erose_form, can be used to modify the Rose energy function
 used to compute the pair potential.  This function gives the energy of
 the reference state as a function of interatomic spacing.  The form of
 this function is:</p>
-<pre class="literal-block">
-astar = alpha * (r/re - 1.d0)
-if erose_form = 0: erose = -Ec*(1+astar+a3*(astar**3)/(r/re))*exp(-astar)
-if erose_form = 1: erose = -Ec*(1+astar+(-attrac+repuls/r)*(astar**3))*exp(-astar)
-if erose_form = 2: erose = -Ec*(1 +astar + a3*(astar**3))*exp(-astar)
-a3 = repuls, astar &lt; 0
-a3 = attrac, astar &gt;= 0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">astar</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="n">re</span> <span class="o">-</span> <span class="mf">1.</span><span class="n">d0</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">erose_form</span> <span class="o">=</span> <span class="mi">0</span><span class="p">:</span> <span class="n">erose</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ec</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">astar</span><span class="o">+</span><span class="n">a3</span><span class="o">*</span><span class="p">(</span><span class="n">astar</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">r</span><span class="o">/</span><span class="n">re</span><span class="p">))</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">astar</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">erose_form</span> <span class="o">=</span> <span class="mi">1</span><span class="p">:</span> <span class="n">erose</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ec</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">astar</span><span class="o">+</span><span class="p">(</span><span class="o">-</span><span class="n">attrac</span><span class="o">+</span><span class="n">repuls</span><span class="o">/</span><span class="n">r</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">astar</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">astar</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">erose_form</span> <span class="o">=</span> <span class="mi">2</span><span class="p">:</span> <span class="n">erose</span> <span class="o">=</span> <span class="o">-</span><span class="n">Ec</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span><span class="n">astar</span> <span class="o">+</span> <span class="n">a3</span><span class="o">*</span><span class="p">(</span><span class="n">astar</span><span class="o">**</span><span class="mi">3</span><span class="p">))</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">astar</span><span class="p">)</span>
+<span class="n">a3</span> <span class="o">=</span> <span class="n">repuls</span><span class="p">,</span> <span class="n">astar</span> <span class="o">&lt;</span> <span class="mi">0</span>
+<span class="n">a3</span> <span class="o">=</span> <span class="n">attrac</span><span class="p">,</span> <span class="n">astar</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+</pre></div>
+</div>
 <p>Most published MEAM parameter sets use the default values attrac=repulse=0.
 Setting repuls=attrac=delta corresponds to the form used in several
 recent published MEAM parameter sets, such as <a class="reference internal" href="#valone"><span class="std std-ref">(Valone)</span></a></p>

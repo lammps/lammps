@@ -318,7 +318,15 @@ you have set the <a class="reference internal" href="thermo_modify.html"><span c
 allow for lost atoms.</p>
 <p>For style <em>s</em>, the position of the face is set so as to encompass the
 atoms in that dimension (shrink-wrapping), no matter how far they
-move.</p>
+move. Note that when the difference between the current box dimensions
+and the shrink-wrap box dimensions is large, this can lead to lost
+atoms at the beginning of a run when running in parallel. This is due
+to the large change in the (global) box dimensions also causing
+significant changes in the individual sub-domain sizes. If these
+changes are farther than the communication cutoff, atoms will be lost.
+This is best addressed by setting initial box dimensions to match the
+shrink-wrapped dimensions more closely, by using <em>m</em> style boundaries
+(see below).</p>
 <p>For style <em>m</em>, shrink-wrapping occurs, but is bounded by the value
 specified in the data or restart file or set by the
 <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command.  For example, if the upper z

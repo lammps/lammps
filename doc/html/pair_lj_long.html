@@ -532,9 +532,9 @@
 <h1>pair_style lj/long/tip4p/long command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style args
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style = <em>lj/long/coul/long</em> or <em>lj/long/tip4p/long</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -566,19 +566,19 @@ pair_style style args
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style lj/long/coul/long cut off 2.5
-pair_style lj/long/coul/long cut long 2.5 4.0
-pair_style lj/long/coul/long long long 2.5 4.0
-pair_coeff * * 1 1
-pair_coeff 1 1 1 3 4
-</pre>
-<pre class="literal-block">
-pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0
-pair_style lj/long/tip4p/long long long 1 2 7 8 0.15 12.0 10.0
-pair_coeff * * 100.0 3.0
-pair_coeff 1 1 100.0 3.5 9.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">cut</span> <span class="n">off</span> <span class="mf">2.5</span>
+<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">cut</span> <span class="n">long</span> <span class="mf">2.5</span> <span class="mf">4.0</span>
+<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">long</span> <span class="n">long</span> <span class="mf">2.5</span> <span class="mf">4.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mi">1</span> <span class="mi">1</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">3</span> <span class="mi">4</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">long</span> <span class="n">long</span> <span class="n">long</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">12.0</span>
+<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">long</span> <span class="n">long</span> <span class="n">long</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">12.0</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">3.5</span> <span class="mf">9.0</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

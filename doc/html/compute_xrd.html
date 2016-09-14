@@ -321,10 +321,10 @@
 <span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">xrd</span> <span class="mf">1.541838</span> <span class="n">Al</span> <span class="n">O</span> <span class="mi">2</span><span class="n">Theta</span> <span class="mi">10</span> <span class="mi">100</span> <span class="n">c</span> <span class="mf">0.05</span> <span class="mf">0.05</span> <span class="mf">0.05</span> <span class="n">LP</span> <span class="mi">1</span> <span class="n">manual</span>
 </pre></div>
 </div>
-<pre class="literal-block">
-fix 1 all ave/histo/weight 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
-fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span><span class="o">/</span><span class="n">weight</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.087</span> <span class="mf">0.87</span> <span class="mi">250</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">mode</span> <span class="n">vector</span> <span class="n">file</span> <span class="n">Rad2Theta</span><span class="o">.</span><span class="n">xrd</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">histo</span><span class="o">/</span><span class="n">weight</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">10</span> <span class="mi">100</span> <span class="mi">250</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">mode</span> <span class="n">vector</span> <span class="n">file</span> <span class="n">Deg2Theta</span><span class="o">.</span><span class="n">xrd</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -358,7 +358,7 @@ shown in the 2D diagram below.</p>
                      height="auto"
                      alt=""/>
                 </a><p>For a mesh defined by the simulation domain, a rectilinear grid is
-constructed with spacing <em>c</em>*inv(A) along each reciprocal lattice
+constructed with spacing <em>c</em><a href="#id1"><span class="problematic" id="id2">*</span></a>inv(A) along each reciprocal lattice
 axis. Where A are the vectors corresponding to the edges of the
 simulation cell. If one or two directions has non-periodic boundary
 conditions, then the spacing in these directions is defined from the

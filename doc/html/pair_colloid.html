@@ -529,22 +529,22 @@
 <h1>pair_style colloid/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style colloid cutoff
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">colloid</span> <span class="n">cutoff</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>cutoff = global cutoff for colloidal interactions (distance units)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style colloid 10.0
-pair_coeff * *  25 1.0 10.0 10.0
-pair_coeff 1 1 144 1.0 0.0 0.0 3.0
-pair_coeff 1 2  75.398 1.0 0.0 10.0 9.0
-pair_coeff 2 2  39.478 1.0 10.0 10.0 25.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">colloid</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>  <span class="mi">25</span> <span class="mf">1.0</span> <span class="mf">10.0</span> <span class="mf">10.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">144</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span>  <span class="mf">75.398</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">10.0</span> <span class="mf">9.0</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span>  <span class="mf">39.478</span> <span class="mf">1.0</span> <span class="mf">10.0</span> <span class="mf">10.0</span> <span class="mf">25.0</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

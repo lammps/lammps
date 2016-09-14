@@ -469,9 +469,9 @@ quantities or the printing of unwrapped coordinates to a dump file.</p>
 <p>This fix computes a temperature each time it is invoked for use by the
 Boltzmann criterion.  To do this, the fix creates its own compute of
 style <em>temp</em>, as if this command had been issued:</p>
-<pre class="literal-block">
-compute fix-ID_temp all temp
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="nb">all</span> <span class="n">temp</span>
+</pre></div>
+</div>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> command for details.  Note
 that the ID of the new compute is the fix-ID with underscore + &#8220;temp&#8221;
 appended and the group for the new compute is &#8220;all&#8221;, so that the

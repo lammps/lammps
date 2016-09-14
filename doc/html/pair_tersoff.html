@@ -541,22 +541,22 @@
 <h1>pair_style tersoff/table/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span>
+</pre></div>
+</div>
 <p>style = <em>tersoff</em> or <em>tersoff/table</em> or <em>tersoff/gpu</em> or <em>tersoff/omp</em> or <em>tersoff/table/omp</em></p>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style tersoff
-pair_coeff * * Si.tersoff Si
-pair_coeff * * SiC.tersoff Si C Si
-</pre>
-<pre class="literal-block">
-pair_style tersoff/table
-pair_coeff * * SiCGe.tersoff Si(D)
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tersoff</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Si</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">Si</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">SiC</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">Si</span> <span class="n">C</span> <span class="n">Si</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tersoff</span><span class="o">/</span><span class="n">table</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">SiCGe</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">Si</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -586,9 +586,9 @@ to specify the path for the potential file.</p>
 and C.  If your LAMMPS simulation has 4 atoms types and you want the
 1st 3 to be Si, and the 4th to be C, you would use the following
 pair_coeff command:</p>
-<pre class="literal-block">
-pair_coeff * * SiC.tersoff Si Si Si C
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">SiC</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">C</span>
+</pre></div>
+</div>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the Tersoff file.  The final C argument maps LAMMPS atom

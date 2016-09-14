@@ -526,9 +526,9 @@
 <h1>pair_style buck/coul/long/cs command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style args
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style = <em>born/coul/long/cs</em> or <em>buck/coul/long/cs</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -544,16 +544,16 @@ pair_style style args
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style born/coul/long/cs 10.0 8.0
-pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51
-</pre>
-<pre class="literal-block">
-pair_style buck/coul/long/cs 10.0
-pair_style buck/coul/long/cs 10.0 8.0
-pair_coeff * * 100.0 1.5 200.0
-pair_coeff 1 1 100.0 1.5 200.0 9.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">born</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">cs</span> <span class="mf">10.0</span> <span class="mf">8.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">6.08</span> <span class="mf">0.317</span> <span class="mf">2.340</span> <span class="mf">24.18</span> <span class="mf">11.51</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">buck</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">cs</span> <span class="mf">10.0</span>
+<span class="n">pair_style</span> <span class="n">buck</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">cs</span> <span class="mf">10.0</span> <span class="mf">8.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">1.5</span> <span class="mf">200.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">1.5</span> <span class="mf">200.0</span> <span class="mf">9.0</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

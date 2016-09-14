@@ -526,21 +526,21 @@
 <h1>pair_style eim/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style style
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style = <em>eim</em></li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style eim
-pair_coeff * * Na Cl ../potentials/ffield.eim Na Cl
-pair_coeff * * Na Cl ffield.eim  Na Na Na Cl
-pair_coeff * * Na Cl ../potentials/ffield.eim Cl NULL Na
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">eim</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Na</span> <span class="n">Cl</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">ffield</span><span class="o">.</span><span class="n">eim</span> <span class="n">Na</span> <span class="n">Cl</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Na</span> <span class="n">Cl</span> <span class="n">ffield</span><span class="o">.</span><span class="n">eim</span>  <span class="n">Na</span> <span class="n">Na</span> <span class="n">Na</span> <span class="n">Cl</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Na</span> <span class="n">Cl</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">ffield</span><span class="o">.</span><span class="n">eim</span> <span class="n">Cl</span> <span class="n">NULL</span> <span class="n">Na</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -602,9 +602,9 @@ to specify the path for the potential file.</p>
 system with Na and Cl atoms.  If your LAMMPS simulation has 4 atoms
 types and you want the 1st 3 to be Na, and the 4th to be Cl, you would
 use the following pair_coeff command:</p>
-<pre class="literal-block">
-pair_coeff * * Na Cl ffield.eim Na Na Na Cl
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Na</span> <span class="n">Cl</span> <span class="n">ffield</span><span class="o">.</span><span class="n">eim</span> <span class="n">Na</span> <span class="n">Na</span> <span class="n">Na</span> <span class="n">Cl</span>
+</pre></div>
+</div>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The filename is the EIM potential file.  The Na and Cl arguments
 (before the file name) are the two elements for which info will be

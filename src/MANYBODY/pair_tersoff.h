@@ -59,6 +59,9 @@ class PairTersoff : public Pair {
   int nelements;                // # of unique elements
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
+  int neigh3BodyMax;            // max size of short neighborlist
+  int *neigh3BodyCount;         // # of neighbors in short range 
+  int **neigh3Body;             // neighlist for short range 3 particle forces
 
   virtual void allocate();
   virtual void read_file(char *);

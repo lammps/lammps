@@ -55,6 +55,9 @@ class PairSW : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
+  int neigh3BodyMax;            // max size of short neighborlist
+  int *neigh3BodyCount;         // # of neighbors in short range 
+  int **neigh3Body;             // neighlist for short range 3 particle forces
 
   virtual void allocate();
   void read_file(char *);

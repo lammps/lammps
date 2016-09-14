@@ -13,6 +13,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL)
+                        Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -52,6 +53,9 @@ PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
   params = NULL;
   elem2param = NULL;
   map = NULL;
+  neigh3BodyMax = 0;
+  neigh3BodyCount = NULL; 
+  neigh3Body = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -73,6 +77,9 @@ PairTersoff::~PairTersoff()
     memory->destroy(cutsq);
     delete [] map;
   }
+
+  memory->destroy(neigh3BodyCount);
+  memory->destroy(neigh3Body);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,6 +111,16 @@ void PairTersoff::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  if (nlocal > neigh3BodyMax) {
+    neigh3BodyMax = atom->nmax;
+    memory->destroy(neigh3BodyCount);
+    memory->destroy(neigh3Body);
+    memory->create(neigh3BodyCount,neigh3BodyMax,
+                   "pair:sw:neigh3BodyCount");
+    memory->create(neigh3Body,neigh3BodyMax,1000,
+                   "pair:sw:neigh3Body");
+  }
+
   // loop over full neighbor list of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -113,6 +130,10 @@ void PairTersoff::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+
+    // reset the 3-body neighbor list
+
+    neigh3BodyCount[i] = 0;
 
     // two-body interactions, skip half of them
 
@@ -124,6 +145,21 @@ void PairTersoff::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtag = tag[j];
 
+      jtype = map[type[j]];
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      iparam_ij = elem2param[itype][jtype][jtype];
+      
+      if (rsq < params[iparam_ij].cutsq) {
+        neigh3Body[i][neigh3BodyCount[i]] = j;
+        neigh3BodyCount[i]++;
+      }
+
+      if (rsq > params[iparam_ij].cutsq) continue;
+
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -133,16 +169,6 @@ void PairTersoff::compute(int eflag, int vflag)
         if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
-
-      jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      iparam_ij = elem2param[itype][jtype][jtype];
-      if (rsq > params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
 
@@ -160,6 +186,9 @@ void PairTersoff::compute(int eflag, int vflag)
     // three-body interactions
     // skip immediately if I-J is not within cutoff
 
+    jlist = neigh3Body[i];
+    jnum = neigh3BodyCount[i];
+    
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;

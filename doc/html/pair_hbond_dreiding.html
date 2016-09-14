@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -532,9 +534,9 @@
 <h1>pair_style hbond/dreiding/morse/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">N</span> <span class="n">inner_distance_cutoff</span> <span class="n">outer_distance_cutoff</span> <span class="n">angle_cutof</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof
+</pre>
 <ul class="simple">
 <li>style = <em>hbond/dreiding/lj</em> or <em>hbond/dreiding/morse</em></li>
 <li>n = cosine angle periodicity</li>
@@ -546,14 +548,14 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">10.0</span> <span class="n">hbond</span><span class="o">/</span><span class="n">dreiding</span><span class="o">/</span><span class="n">lj</span> <span class="mi">4</span> <span class="mf">9.0</span> <span class="mf">11.0</span> <span class="mi">90</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">hbond</span><span class="o">/</span><span class="n">dreiding</span><span class="o">/</span><span class="n">lj</span> <span class="mi">3</span> <span class="n">i</span> <span class="mf">9.5</span> <span class="mf">2.75</span> <span class="mi">4</span> <span class="mf">9.0</span> <span class="mf">11.0</span> <span class="mf">90.0</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">10.0</span> <span class="n">hbond</span><span class="o">/</span><span class="n">dreiding</span><span class="o">/</span><span class="n">morse</span> <span class="mi">2</span> <span class="mf">9.0</span> <span class="mf">11.0</span> <span class="mi">90</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">hbond</span><span class="o">/</span><span class="n">dreiding</span><span class="o">/</span><span class="n">morse</span> <span class="mi">3</span> <span class="n">i</span> <span class="mf">3.88</span> <span class="mf">1.7241379</span> <span class="mf">2.9</span> <span class="mi">2</span> <span class="mi">9</span> <span class="mi">11</span> <span class="mi">90</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/lj 4 9.0 11.0 90
+pair_coeff 1 2 hbond/dreiding/lj 3 i 9.5 2.75 4 9.0 11.0 90.0
+</pre>
+<pre class="literal-block">
+pair_style hybrid/overlay lj/cut 10.0 hbond/dreiding/morse 2 9.0 11.0 90
+pair_coeff 1 2 hbond/dreiding/morse 3 i 3.88 1.7241379 2.9 2 9 11 90
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -660,7 +662,7 @@ follows:</p>
 <p>A single hydrogen atom type K can be specified, or a wild-card
 asterisk can be used in place of or in conjunction with the K
 arguments to select multiple types as hydrogens.  This takes the form
-&#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  See the <a class="reference external" href="pair_coeff">pair_coeff</a> command
+&#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  See the <a class="reference external" href="pair_coeff">pair_coeff</a> command
 doc page for details.</p>
 <p>If the donor flag is <em>i</em>, then the atom of type I in the pair_coeff
 command is treated as the donor, and J is the acceptor.  If the donor
@@ -716,12 +718,12 @@ quantities can be accessed via the <a class="reference internal" href="compute_p
 command as a vector of values of length 2.</p>
 <p>To print these quantities to the log file (with a descriptive column
 heading) the following commands could be included in an input script:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">hb</span> <span class="nb">all</span> <span class="n">pair</span> <span class="n">hbond</span><span class="o">/</span><span class="n">dreiding</span><span class="o">/</span><span class="n">lj</span>
-<span class="n">variable</span> <span class="n">n_hbond</span> <span class="n">equal</span> <span class="n">c_hb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="c1">#number hbonds</span>
-<span class="n">variable</span> <span class="n">E_hbond</span> <span class="n">equal</span> <span class="n">c_hb</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="c1">#hbond energy</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">epair</span> <span class="n">v_E_hbond</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute hb all pair hbond/dreiding/lj
+variable n_hbond equal c_hb[1] #number hbonds
+variable E_hbond equal c_hb[2] #hbond energy
+thermo_style custom step temp epair v_E_hbond
+</pre>
 </div>
 <hr class="docutils" />
 <div class="section" id="restrictions">

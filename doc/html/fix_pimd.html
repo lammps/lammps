@@ -476,9 +476,9 @@ ring.</p>
 <p>To run a PIMD simulation with M quasi-beads in each ring polymer using
 N MPI tasks for each partition&#8217;s domain-decomposition, you would use P
 = MxN processors (cores) and run the simulation as follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="n">P</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">partition</span> <span class="n">MxN</span> <span class="o">-</span><span class="ow">in</span> <span class="n">script</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+mpirun -np P lmp_mpi -partition MxN -in script
+</pre>
 <p>Note that in the LAMMPS input script for a multi-partition simulation,
 it is often very useful to define a <a class="reference internal" href="variable.html"><span class="doc">uloop-style variable</span></a> such as</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">ibead</span> <span class="n">uloop</span> <span class="n">M</span> <span class="n">pad</span>
@@ -487,11 +487,11 @@ it is often very useful to define a <a class="reference internal" href="variable
 <p>where M is the number of quasi-beads (partitions) used in the
 calculation.  The uloop variable can then be used to manage I/O
 related tasks for each of the partitions, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>dump dcd all dcd 10 system_${ibead}.dcd
+<pre class="literal-block">
+dump dcd all dcd 10 system_${ibead}.dcd
 restart 1000 system_${ibead}.restart1 system_${ibead}.restart2
 read_restart system_${ibead}.restart2
-</pre></div>
-</div>
+</pre>
 </div>
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>

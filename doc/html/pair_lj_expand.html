@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -529,20 +531,20 @@
 <h1>pair_style lj/expand/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">expand</span> <span class="n">cutoff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/expand cutoff
+</pre>
 <ul class="simple">
 <li>cutoff = global cutoff for lj/expand interactions (distance units)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">expand</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">0.5</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="o">-</span><span class="mf">0.2</span> <span class="mf">2.0</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/expand 2.5
+pair_coeff * * 1.0 1.0 0.5
+pair_coeff 1 1 1.0 1.0 -0.2 2.0
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

@@ -389,12 +389,12 @@ d = dimension and V is the volume of the system, the result should be
 -P, where P is the total pressure of the system.</p>
 <p>These lines in an input script for a 3d system should yield that
 result.  I.e. the last 2 columns of thermo output will be the same:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>              <span class="n">peratom</span> <span class="nb">all</span> <span class="n">stress</span><span class="o">/</span><span class="n">atom</span> <span class="n">NULL</span>
-<span class="n">compute</span>              <span class="n">p</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">sum</span> <span class="n">c_peratom</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_peratom</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_peratom</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-<span class="n">variable</span>     <span class="n">press</span> <span class="n">equal</span> <span class="o">-</span><span class="p">(</span><span class="n">c_p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="n">c_p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="n">c_p</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">vol</span><span class="p">)</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="n">press</span> <span class="n">v_press</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute              peratom all stress/atom NULL
+compute              p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable     press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+thermo_style        custom step temp etotal press v_press
+</pre>
 <p><strong>Output info:</strong></p>
 <p>This compute calculates a per-atom array with 6 columns, which can be
 accessed by indices 1-6 by any command that uses per-atom values from

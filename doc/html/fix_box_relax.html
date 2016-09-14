@@ -614,10 +614,10 @@ temperature is used to compute the kinetic contribution to the
 pressure, even though this is subsequently ignored by default.  To do
 this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
 as if these commands had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span>
-<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">virial</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp virial
+</pre>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> and <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
 + underscore + &#8220;press&#8221;, and the group for the new computes is the same
@@ -631,10 +631,8 @@ fix&#8217;s temperature or pressure via the
 or pressure during thermodynamic output via the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command using the appropriate compute-ID.
 It also means that changing attributes of <em>thermo_temp</em> or
 <em>thermo_press</em> will have no effect on this fix.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>temp</em> and <em>press</em> options are
 supported by this fix.  You can use them to assign a
@@ -668,12 +666,12 @@ potential energy. This fix does not support the
 because that would result in double-counting of the fix energy in the
 minimization energy. Instead, the fix energy can be explicitly
 added to the potential energy using one of these two variants:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">emin</span> <span class="n">equal</span> <span class="n">pe</span><span class="o">+</span><span class="n">f_1</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">emin</span> <span class="n">equal</span> <span class="n">pe</span><span class="o">+</span><span class="n">f_1</span><span class="o">/</span><span class="n">atoms</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+variable emin equal pe+f_1
+</pre>
+<pre class="literal-block">
+variable emin equal pe+f_1/atoms
+</pre>
 <p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
 the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.</p>
 <p>This fix is invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>, but

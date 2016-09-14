@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -532,16 +534,16 @@
 <h1>pair_style tersoff/mod/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tersoff</span><span class="o">/</span><span class="n">mod</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style tersoff/mod
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tersoff</span><span class="o">/</span><span class="n">mod</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Si</span><span class="o">.</span><span class="n">tersoff</span><span class="o">.</span><span class="n">mod</span> <span class="n">Si</span> <span class="n">Si</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style tersoff/mod
+pair_coeff * * Si.tersoff.mod Si Si
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -575,9 +577,9 @@ where N is the number of LAMMPS atom types:</p>
 <p>As an example, imagine the Si.tersoff_mod file has Tersoff values for Si.
 If your LAMMPS simulation has 3 Si atoms types, you would use the following
 pair_coeff command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Si</span><span class="o">.</span><span class="n">tersoff_mod</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">Si</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * * Si.tersoff_mod Si Si Si
+</pre>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The three Si arguments map LAMMPS atom types 1,2,3 to the Si element
 in the Tersoff/MOD file. If a mapping value is specified as NULL, the

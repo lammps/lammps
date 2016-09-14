@@ -296,10 +296,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">thermo_temp</span>
-<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">NULL</span> <span class="n">pair</span> <span class="n">bond</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all pressure thermo_temp
+compute 1 all pressure NULL pair bond
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -351,9 +351,9 @@ degrees-of-freedom divided by d = dimensionality, where the DOF value
 is calcluated by the temperature compute.  See the various <a class="reference internal" href="compute.html"><span class="doc">compute temperature</span></a> styles for details.</p>
 <p>A compute of this style with the ID of &#8220;thermo_press&#8221; is created when
 LAMMPS starts up, as if this command were in the input script:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">thermo_press</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">thermo_temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute thermo_press all pressure thermo_temp
+</pre>
 <p>where &#8220;thermo_temp&#8221; is the ID of a similarly defined compute of style
 &#8220;temp&#8221;.  See the &#8220;thermo_style&#8221; command for more details.</p>
 <hr class="docutils" />

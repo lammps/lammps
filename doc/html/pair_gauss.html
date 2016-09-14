@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -535,25 +537,25 @@
 <h1>pair_style gauss/cut/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">gauss</span> <span class="n">cutoff</span>
-<span class="n">pair_style</span> <span class="n">gauss</span><span class="o">/</span><span class="n">cut</span> <span class="n">cutoff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style gauss cutoff
+pair_style gauss/cut cutoff
+</pre>
 <ul class="simple">
 <li>cutoff = global cutoff for Gauss interactions (distance units)</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">gauss</span> <span class="mf">12.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">0.9</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mf">1.0</span> <span class="mf">0.9</span> <span class="mf">10.0</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">gauss</span><span class="o">/</span><span class="n">cut</span> <span class="mf">3.5</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">4</span> <span class="mf">0.2805</span> <span class="mf">1.45</span> <span class="mf">0.112</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style gauss 12.0
+pair_coeff * * 1.0 0.9
+pair_coeff 1 4 1.0 0.9 10.0
+</pre>
+<pre class="literal-block">
+pair_style gauss/cut 3.5
+pair_coeff 1 4 0.2805 1.45 0.112
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -634,11 +636,11 @@ sites have an atom within the distance at which the force is a maximum
 = sqrt(0.5/b).  This quantity can be accessed via the <a class="reference internal" href="compute_pair.html"><span class="doc">compute pair</span></a> command as a vector of values of length 1.</p>
 <p>To print this quantity to the log file (with a descriptive column
 heading) the following commands could be included in an input script:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">gauss</span> <span class="nb">all</span> <span class="n">pair</span> <span class="n">gauss</span>
-<span class="n">variable</span> <span class="n">occ</span> <span class="n">equal</span> <span class="n">c_gauss</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">epair</span> <span class="n">v_occ</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute gauss all pair gauss
+variable occ equal c_gauss[1]
+thermo_style custom step temp epair v_occ
+</pre>
 </div>
 <hr class="docutils" />
 <div class="section" id="restrictions">

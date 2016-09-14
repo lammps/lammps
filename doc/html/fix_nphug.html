@@ -471,14 +471,14 @@ controlled by another fix - e.g. by <a class="reference internal" href="fix_nh.h
 <p>This fix computes a temperature and pressure at each timestep.  To do
 this, the fix creates its own computes of style &#8220;temp&#8221; and &#8220;pressure&#8221;,
 as if one of these two sets of commands had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span>
-<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span> <span class="nb">all</span> <span class="n">temp</span>
-<span class="n">compute</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_press</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">fix</span><span class="o">-</span><span class="n">ID_temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute fix-ID_temp group-ID temp
+compute fix-ID_press group-ID pressure fix-ID_temp
+</pre>
+<pre class="literal-block">
+compute fix-ID_temp all temp
+compute fix-ID_press all pressure fix-ID_temp
+</pre>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> and <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> commands for details.  Note that the
 IDs of the new computes are the fix-ID + underscore + &#8220;temp&#8221; or fix_ID
 + underscore + &#8220;press&#8221;.  The group for
@@ -508,10 +508,8 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>This fix writes the values of E0, V0, and P0, as well as the
 state of all the thermostat and barostat
 variables to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the
@@ -535,7 +533,7 @@ compute temperature on a subset of atoms.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by these
 fixes to add the energy change induced by Nose/Hoover thermostatting
 and barostatting to the system&#8217;s potential energy as part of
-<a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>. Either way, this energy is <em>not</em>
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>. Either way, this energy is *not*
 included in the definition of internal energy E when calculating the value
 of Delta in the above equation.</p>
 <p>These fixes compute a global scalar and a global vector of quantities,

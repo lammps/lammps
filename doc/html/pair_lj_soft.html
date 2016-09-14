@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -568,9 +570,9 @@
 <h1>pair_style tip4p/long/soft/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style args
+</pre>
 <ul class="simple">
 <li>style = <em>lj/cut/soft</em> or <em>lj/cut/coul/cut/soft</em> or <em>lj/cut/coul/long/soft</em> or <em>lj/cut/tip4p/long/soft</em> or <em>lj/charmm/coul/long/soft</em> or <em>coul/cut/soft</em> or <em>coul/long/soft</em> or <em>tip4p/long/soft</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -614,47 +616,47 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">9.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span> <span class="mf">9.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.5</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.5</span> <span class="mf">9.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.0</span> <span class="mf">10.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">0.0</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.8</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.8</span> <span class="mf">9.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.155</span> <span class="mf">3.1536</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.155</span> <span class="mf">3.1536</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">8.0</span> <span class="mf">10.0</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="mf">9.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">0.28</span> <span class="mf">3.1</span> <span class="mf">1.0</span> <span class="mf">0.14</span> <span class="mf">3.1</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mf">1.0</span> <span class="mf">10.0</span> <span class="mf">9.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tip4p</span><span class="o">/</span><span class="n">long</span><span class="o">/</span><span class="n">soft</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">7</span> <span class="mi">8</span> <span class="mf">0.15</span> <span class="mf">2.0</span> <span class="mf">0.5</span> <span class="mf">10.0</span> <span class="mf">9.8</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">9.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/soft 2.0 0.5 9.5
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 1.0 9.5
+</pre>
+<pre class="literal-block">
+pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5
+pair_style lj/cut/coul/cut/soft 2.0 0.5 10.0 9.5 9.5
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 0.5 10.0
+pair_coeff 1 1 0.28 3.1 0.5 10.0 9.5
+</pre>
+<pre class="literal-block">
+pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5
+pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5 9.5
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 0.0 10.0
+pair_coeff 1 1 0.28 3.1 0.0 10.0 9.5
+</pre>
+<pre class="literal-block">
+pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
+pair_style lj/cut/tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8 9.5
+pair_coeff * * 0.155 3.1536 1.0
+pair_coeff 1 1 0.155 3.1536 1.0 9.5
+</pre>
+<pre class="literal-block">
+pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0
+pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0 9.0
+pair_coeff * * 0.28 3.1 1.0
+pair_coeff 1 1 0.28 3.1 1.0 0.14 3.1
+</pre>
+<pre class="literal-block">
+pair_style coul/long/soft 1.0 10.0 9.5
+pair_coeff * * 1.0
+pair_coeff 1 1 1.0 9.5
+</pre>
+<pre class="literal-block">
+pair_style tip4p/long/soft 1 2 7 8 0.15 2.0 0.5 10.0 9.8
+pair_coeff * * 1.0
+pair_coeff 1 1 1.0 9.5
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

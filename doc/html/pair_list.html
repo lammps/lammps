@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -523,9 +525,9 @@
 <span id="index-0"></span><h1>pair_style list command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="nb">list</span> <span class="n">listfile</span> <span class="n">cutoff</span> <span class="n">keyword</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style list listfile cutoff keyword
+</pre>
 <ul class="simple">
 <li>listfile = name of file with list of pairwise interactions</li>
 <li>cutoff = global cutoff (distance units)</li>
@@ -534,15 +536,15 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="nb">list</span> <span class="n">restraints</span><span class="o">.</span><span class="n">txt</span> <span class="mf">200.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.1225</span> <span class="nb">list</span> <span class="n">pair_list</span><span class="o">.</span><span class="n">txt</span> <span class="mf">300.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
-<span class="n">pair_coeff</span> <span class="mi">3</span><span class="o">*</span> <span class="mi">3</span><span class="o">*</span> <span class="nb">list</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style list restraints.txt 200.0
+pair_coeff * *
+</pre>
+<pre class="literal-block">
+pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
+pair_coeff * * lj/cut 1.0 1.0
+pair_coeff 3* 3* list
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

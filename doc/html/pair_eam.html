@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -571,32 +573,32 @@
 <h1>pair_style eam/fs/opt command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style
+</pre>
 <ul class="simple">
 <li>style = <em>eam</em> or <em>eam/alloy</em> or <em>eam/cd</em> or <em>eam/fs</em></li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">eam</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">cuu3</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span><span class="o">*</span><span class="mi">3</span> <span class="mi">1</span><span class="o">*</span><span class="mi">3</span> <span class="n">niu3</span><span class="o">.</span><span class="n">eam</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">eam</span><span class="o">/</span><span class="n">alloy</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">NiAlH_jea</span><span class="o">.</span><span class="n">eam</span><span class="o">.</span><span class="n">alloy</span> <span class="n">Ni</span> <span class="n">Al</span> <span class="n">Ni</span> <span class="n">Ni</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">eam</span><span class="o">/</span><span class="n">cd</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">FeCr</span><span class="o">.</span><span class="n">cdeam</span> <span class="n">Fe</span> <span class="n">Cr</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">eam</span><span class="o">/</span><span class="n">fs</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">NiAlH_jea</span><span class="o">.</span><span class="n">eam</span><span class="o">.</span><span class="n">fs</span> <span class="n">Ni</span> <span class="n">Al</span> <span class="n">Ni</span> <span class="n">Ni</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style eam
+pair_coeff * * cuu3
+pair_coeff 1*3 1*3 niu3.eam
+</pre>
+<pre class="literal-block">
+pair_style eam/alloy
+pair_coeff * * ../potentials/NiAlH_jea.eam.alloy Ni Al Ni Ni
+</pre>
+<pre class="literal-block">
+pair_style eam/cd
+pair_coeff * * ../potentials/FeCr.cdeam Fe Cr
+</pre>
+<pre class="literal-block">
+pair_style eam/fs
+pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -665,9 +667,9 @@ single argument:</p>
 <li>filename</li>
 </ul>
 <p>Thus the following command</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span><span class="mi">2</span> <span class="mi">1</span><span class="o">*</span><span class="mi">2</span> <span class="n">cuu3</span><span class="o">.</span><span class="n">eam</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff *2 1*2 cuu3.eam
+</pre>
 <p>will read the cuu3 potential file and use the tabulated Cu values for
 F, phi, rho that it contains for type pairs 1,1 and 2,2 (type pairs
 1,2 and 2,1 are ignored).  See the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> doc
@@ -710,9 +712,9 @@ density).  The units for the effective charge Z are &#8220;atomic charge&#8221; 
 sqrt(Hartree * Bohr-radii).  For two interacting atoms i,j this is used
 by LAMMPS to compute the pair potential term in the EAM energy
 expression as r*phi, in units of eV-Angstroms, via the formula</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">r</span><span class="o">*</span><span class="n">phi</span> <span class="o">=</span> <span class="mf">27.2</span> <span class="o">*</span> <span class="mf">0.529</span> <span class="o">*</span> <span class="n">Zi</span> <span class="o">*</span> <span class="n">Zj</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+r*phi = 27.2 * 0.529 * Zi * Zj
+</pre>
 <p>where 1 Hartree = 27.2 eV and 1 Bohr = 0.529 Angstroms.</p>
 <hr class="docutils" />
 <p>Style <em>eam/alloy</em> computes pairwise interactions using the same
@@ -745,9 +747,9 @@ page for alternate ways to specify the path for the potential file.
 If your LAMMPS simulation has 4 atoms types and you want the 1st 3 to
 be Ni, and the 4th to be Al, you would use the following pair_coeff
 command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">NiAlH_jea</span><span class="o">.</span><span class="n">eam</span><span class="o">.</span><span class="n">alloy</span> <span class="n">Ni</span> <span class="n">Ni</span> <span class="n">Ni</span> <span class="n">Al</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * * NiAlH_jea.eam.alloy Ni Ni Ni Al
+</pre>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Ni arguments map LAMMPS atom types 1,2,3 to the Ni
 element in the <em>setfl</em> file.  The final Al argument maps LAMMPS atom
@@ -841,9 +843,9 @@ require that; the user can tabulate any functional form desired in the
 FS potential files.</p>
 <p>For style <em>eam/fs</em>, the form of the pair_coeff command is exactly the
 same as for style <em>eam/alloy</em>, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">NiAlH_jea</span><span class="o">.</span><span class="n">eam</span><span class="o">.</span><span class="n">fs</span> <span class="n">Ni</span> <span class="n">Ni</span> <span class="n">Ni</span> <span class="n">Al</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al
+</pre>
 <p>where there are N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  See the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>
 doc page for alternate ways to specify the path for the potential

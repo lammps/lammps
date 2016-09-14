@@ -453,6 +453,8 @@
 <li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-omp-command">pair_style vashishta/table/omp command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
@@ -526,17 +528,17 @@
 <h1>pair_style adp/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">adp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style adp
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">adp</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">Ta</span><span class="o">.</span><span class="n">adp</span> <span class="n">Ta</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="o">../</span><span class="n">potentials</span><span class="o">/</span><span class="n">AlCu</span><span class="o">.</span><span class="n">adp</span> <span class="n">Al</span> <span class="n">Al</span> <span class="n">Cu</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style adp
+pair_coeff * * Ta.adp Ta
+pair_coeff * * ../potentials/AlCu.adp Al Al Cu
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -583,9 +585,9 @@ file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
 and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
 the following pair_coeff command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">AlCu</span><span class="o">.</span><span class="n">adp</span> <span class="n">Al</span> <span class="n">Al</span> <span class="n">Al</span> <span class="n">Cu</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * * AlCu.adp Al Al Al Cu
+</pre>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Al arguments map LAMMPS atom types 1,2,3 to the Al
 element in the extended <em>setfl</em> file.  The final Cu argument maps

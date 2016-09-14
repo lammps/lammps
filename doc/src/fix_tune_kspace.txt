@@ -98,5 +98,3 @@ lj/long/coul/long"_pair_lj_long.html,
 
 [Default:]
 
-:line
-

@@ -73,7 +73,8 @@
         
           
           
-              <ul class="current">
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">1. Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-lammps">1.1. What is LAMMPS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#lammps-features">1.2. LAMMPS features</a><ul>
@@ -107,6 +108,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -183,7 +196,7 @@ parallel machine that compiles C++ and supports the <a class="reference external
 message-passing library.  This includes distributed- or shared-memory
 parallel machines and Beowulf-style clusters.</p>
 <p>LAMMPS can model systems with only a few particles up to millions or
-billions.  See <a class="reference internal" href="Section_perf.html"><span class="doc">Section_perf</span></a> for information on
+billions.  See <a class="reference internal" href="Section_perf.html"><span class="doc">Section 8</span></a> for information on
 LAMMPS performance and scalability, or the Benchmarks section of the
 <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a>.</p>
 <p>LAMMPS is a freely-available open-source code, distributed under the
@@ -192,11 +205,11 @@ modify the code however you wish.  See <a class="reference internal" href="#intr
 brief discussion of the open-source philosophy.</p>
 <p>LAMMPS is designed to be easy to modify or extend with new
 capabilities, such as new force fields, atom types, boundary
-conditions, or diagnostics.  See <a class="reference internal" href="Section_modify.html"><span class="doc">Section_modify</span></a>
+conditions, or diagnostics.  See <a class="reference internal" href="Section_modify.html"><span class="doc">Section 10</span></a>
 for more details.</p>
 <p>The current version of LAMMPS is written in C++.  Earlier versions
 were written in F77 and F90.  See
-<a class="reference internal" href="Section_history.html"><span class="doc">Section_history</span></a> for more information on
+<a class="reference internal" href="Section_history.html"><span class="doc">Section 13</span></a> for more information on
 different versions.  All versions can be downloaded from the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a>.</p>
 <p>LAMMPS was originally developed under a US Department of Energy CRADA
 (Cooperative Research and Development Agreement) between two DOE labs
@@ -225,7 +238,7 @@ LAMMPS are listed in <a class="reference internal" href="#intro-5"><span class="
 <p>This section highlights LAMMPS features, with pointers to specific
 commands which give more details.  If LAMMPS doesn&#8217;t have your
 favorite interatomic potential, boundary condition, or atom type, see
-<a class="reference internal" href="Section_modify.html"><span class="doc">Section_modify</span></a>, which describes how you can add
+<a class="reference internal" href="Section_modify.html"><span class="doc">Section 10</span></a>, which describes how you can add
 it to LAMMPS.</p>
 <div class="section" id="general-features">
 <h3>1.2.1. General features</h3>
@@ -452,7 +465,7 @@ reformat the file as LAMMPS input.  Some of the tools in <a class="reference int
 post-process these files with their own analysis tools or re-format
 them for input into other programs, including visualization packages.
 If you are convinced you need to compute something on-the-fly as
-LAMMPS runs, see <a class="reference internal" href="Section_modify.html"><span class="doc">Section_modify</span></a> for a discussion
+LAMMPS runs, see <a class="reference internal" href="Section_modify.html"><span class="doc">Section 10</span></a> for a discussion
 of how you can use the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> and <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> and
 <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> commands to print out data of your choosing.  Keep in
 mind that complicated computations can slow down the molecular
@@ -467,12 +480,12 @@ following packages:</p>
 <ul class="simple">
 <li><a class="reference external" href="http://www.ks.uiuc.edu/Research/vmd">VMD</a></li>
 <li><a class="reference external" href="http://mt.seas.upenn.edu/Archive/Graphics/A">AtomEye</a></li>
-<li><a class="reference external" href="http://pymol.sourceforge.net">PyMol</a></li>
+<li><a class="reference external" href="http://www.pymol.org">PyMol</a></li>
 <li><a class="reference external" href="http://www.bmsc.washington.edu/raster3d/raster3d.html">Raster3d</a></li>
 <li><a class="reference external" href="http://www.openrasmol.org">RasMol</a></li>
 </ul>
 <p>Other features that LAMMPS does not yet (and may never) support are
-discussed in <a class="reference internal" href="Section_history.html"><span class="doc">Section_history</span></a>.</p>
+discussed in <a class="reference internal" href="Section_history.html"><span class="doc">Section 13</span></a>.</p>
 <p>Finally, these are freely-available molecular dynamics codes, most of
 them parallel, which may be well-suited to the problems you want to
 model.  They can also be used in conjunction with LAMMPS to perform
@@ -526,7 +539,7 @@ talks or link to it from your WWW site.</li>
 <li>If you find an error or omission in this manual or on the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a>, or have a suggestion for something to clarify or include,
 send an email to the
 <a class="reference external" href="http://lammps.sandia.gov/authors.html">developers</a>.</li>
-<li>If you find a bug, <a class="reference internal" href="Section_errors.html#err-2"><span class="std std-ref">Section_errors 2</span></a>
+<li>If you find a bug, <a class="reference internal" href="Section_errors.html#err-2"><span class="std std-ref">Section 12.2</span></a>
 describes how to report it.</li>
 <li>If you publish a paper using LAMMPS results, send the citation (and
 any cool pictures or movies if you like) to add to the Publications,
@@ -536,7 +549,7 @@ and attributions back to you.</li>
 directory.</li>
 <li>The tools sub-directory of the LAMMPS distribution has various
 stand-alone codes for pre- and post-processing of LAMMPS data.  More
-details are given in <a class="reference internal" href="Section_tools.html"><span class="doc">Section_tools</span></a>.  If you write
+details are given in <a class="reference internal" href="Section_tools.html"><span class="doc">Section 9</span></a>.  If you write
 a new tool that users will find useful, it can be added to the LAMMPS
 distribution.</li>
 <li>LAMMPS is designed to be easy to extend with new code for features
@@ -608,7 +621,7 @@ and efforts.</p>
 <li>Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF</li>
 <li>Georg Gunzenmuller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SPH package</li>
 </ul>
-<p>As discussed in <a class="reference internal" href="Section_history.html"><span class="doc">Section_history</span></a>, LAMMPS
+<p>As discussed in <a class="reference internal" href="Section_history.html"><span class="doc">Section 13</span></a>, LAMMPS
 originated as a cooperative project between DOE labs and industrial
 partners. Folks involved in the design and testing of the original
 version of LAMMPS were the following:</p>

@@ -97,8 +97,8 @@ too frequently or to have multiple compute/dump commands, each with a
 
 By default, this compute calculates the centrosymmetry value for each
 atom as a per-atom vector, which can be accessed by any command that
-uses per-atom values from a compute as input.  See "Section_howto
-15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+uses per-atom values from a compute as input.  See "Section
+6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 If the {axes} keyword setting is {yes}, then a per-atom array is

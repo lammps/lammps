@@ -129,7 +129,7 @@ void PairSWTable::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       ijparam = elem2param[itype][jtype][jtype];
 
-      if (rsq <= params[ijparam].cutsq) {
+      if (rsq < params[ijparam].cutsq) {
         neigh3Body[i][neigh3BodyCount[i]] = j;
         neigh3BodyCount[i]++;
       }

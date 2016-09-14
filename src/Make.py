@@ -26,7 +26,7 @@ libclasses = ("atc","awpmd","colvars","cuda","gpu","h5md",
 buildclasses = ("intel","kokkos")
 makeclasses = ("cc","flags","mpi","fft","jpg","png")
 
-setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall")
+setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall","exceptions","#exceptions")
 actionargs = ("lib-all","file","clean","exe")
 
 gpubuildflag = 0
@@ -459,6 +459,8 @@ class Actions(object):
             make.delvar("LMP_INC","-DLAMMPS_SMALLBIG")
             make.delvar("LMP_INC","-DLAMMPS_BIGBIG")
             make.addvar("LMP_INC","-DLAMMPS_SMALLSMALL")
+          elif one == "exceptions": make.addvar("LMP_INC","-DLAMMPS_EXCEPTIONS")
+          elif one == "#exception": make.delvar("LMP_INC","-DLAMMPS_EXCEPTIONS")
           
       # add FFT, JPG, PNG settings
 

@@ -809,7 +809,7 @@ class Packages(object):
 
     original = {}
     tmp = "cd %s; make ps" % dir.src
-    output = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
+    output = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode().split('\n')
     pattern = "Installed\s+(\w+): package (\S+)"
     for line in output:
       m = re.search(pattern,line)

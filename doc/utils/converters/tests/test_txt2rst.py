@@ -205,6 +205,11 @@ class TestFormatting(unittest.TestCase):
         self.assertEqual("Level\n"
                          "#####\n\n", s)
 
+    def test_no_filter_date(self):
+        s = self.txt2rst.convert("9 Sept 2016 version :h1\n")
+        self.assertEqual("9 Sept 2016 version\n"
+                         "###################\n\n", s)
+
     def test_all_breaks(self):
         s = self.txt2rst.convert("one\n"
                                   "two\n"

@@ -92,8 +92,8 @@ restricts you to having exactly one processor per replica. For more
 information, see the documentation for the "neb"_neb.html command.  In
 the current LAMMPS implementation of TAD, all the non-NEB TAD
 operations are performed on the first partition, while the other
-partitions remain idle. See "Section_howto
-5"_Section_howto.html#howto_5 of the manual for further discussion of
+partitions remain idle. See "Section
+6.5"_Section_howto.html#howto_5 of the manual for further discussion of
 multi-replica simulations.
 
 A TAD run has several stages, which are repeated each time an event is

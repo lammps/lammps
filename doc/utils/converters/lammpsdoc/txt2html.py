@@ -25,6 +25,7 @@ import re
 import sys
 import argparse
 
+
 class Markup(object):
     BOLD_START = "["
     BOLD_END = "]"
@@ -77,6 +78,7 @@ class Markup(object):
             text = text.replace('\"%s\"_%s' % (name, link), href, 1)
         return text
 
+
 class HTMLMarkup(Markup):
     def __init__(self):
         super().__init__()
@@ -100,6 +102,7 @@ class HTMLMarkup(Markup):
             href = link
 
         return "<A HREF = \"" + href + "\">" + content + "</A>"
+
 
 class Formatting(object):
     UNORDERED_LIST_MODE = "unordered-list"
@@ -435,6 +438,7 @@ class Formatting(object):
 
         return rows
 
+
 class HTMLFormatting(Formatting):
     def __init__(self, markup):
         super().__init__(markup)
@@ -447,6 +451,7 @@ class HTMLFormatting(Formatting):
 
     def raw_html(self, content):
         return content
+
 
 class TxtParser(object):
     def __init__(self):
@@ -630,6 +635,7 @@ class TxtParser(object):
 
             i += 1
 
+
 class Txt2Html(TxtParser):
     def __init__(self):
         super().__init__()
@@ -640,6 +646,7 @@ class Txt2Html(TxtParser):
         return line.startswith(".. HTML_ONLY") or \
                line.startswith(".. END_HTML_ONLY") or \
                super().is_paragraph_separator(line)
+
 
 class TxtConverter:
     def get_argument_parser(self):
@@ -665,7 +672,15 @@ class TxtConverter:
                 print("Converting", filename, "...", file=err)
                 content = f.read()
                 converter = self.create_converter(parsed_args)
-                result = converter.convert(content)
+
+                try:
+                    result = converter.convert(content)
+                except Exception as e:
+                    msg = "###########################################################################\n" \
+                          " ERROR: " + e.args[0] + "\n" \
+                          "###########################################################################\n"
+                    print(msg, file=err)
+                    result = msg
 
                 if write_to_files:
                     output_filename = self.get_output_filename(filename)
@@ -673,6 +688,7 @@ class TxtConverter:
                         outfile.write(result)
                 else:
                     print(result, end='', file=out)
+
 
 class Txt2HtmlConverter(TxtConverter):
     def get_argument_parser(self):

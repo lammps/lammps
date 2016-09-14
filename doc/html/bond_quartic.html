@@ -32,7 +32,10 @@
   
 
   
-    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
+        <link rel="up" title="Bond Styles" href="bonds.html"/>
+        <link rel="next" title="bond_style table command" href="bond_table.html"/>
+        <link rel="prev" title="bond_style nonlinear command" href="bond_nonlinear.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,7 +74,8 @@
         
           
           
-              <ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
@@ -85,6 +89,54 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="bonds.html">Bond Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bond_class2.html">bond_style class2 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_class2.html#bond-style-class2-omp-command">bond_style class2/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene.html">bond_style fene command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene.html#bond-style-fene-intel-command">bond_style fene/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene.html#bond-style-fene-kk-command">bond_style fene/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene.html#bond-style-fene-omp-command">bond_style fene/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene_expand.html">bond_style fene/expand command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene_expand.html#bond-style-fene-expand-omp-command">bond_style fene/expand/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic.html">bond_style harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic.html#bond-style-harmonic-intel-command">bond_style harmonic/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic.html#bond-style-harmonic-kk-command">bond_style harmonic/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic.html#bond-style-harmonic-omp-command">bond_style harmonic/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic_shift.html">bond_style harmonic/shift command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic_shift.html#bond-style-harmonic-shift-omp-command">bond_style harmonic/shift/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic_shift_cut.html">bond_style harmonic/shift/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic_shift_cut.html#bond-style-harmonic-shift-cut-omp-command">bond_style harmonic/shift/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_hybrid.html">bond_style hybrid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_morse.html">bond_style morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_morse.html#bond-style-morse-omp-command">bond_style morse/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_none.html">bond_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_nonlinear.html">bond_style nonlinear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_nonlinear.html#bond-style-nonlinear-omp-command">bond_style nonlinear/omp command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">bond_style quartic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bond-style-quartic-omp-command">bond_style quartic/omp command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bond_table.html">bond_style table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_table.html#bond-style-table-omp-command">bond_style table/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_zero.html">bond_style zero command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -109,6 +161,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
+          <li><a href="bonds.html">Bond Styles</a> &raquo;</li>
+      
     <li>bond_style quartic command</li>
       <li class="wy-breadcrumbs-aside">
         
@@ -119,6 +173,15 @@
       </li>
   </ul>
   <hr/>
+  
+    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
+      
+        <a href="bond_table.html" class="btn btn-neutral float-right" title="bond_style table command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="bond_nonlinear.html" class="btn btn-neutral" title="bond_style nonlinear command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -192,7 +255,7 @@ delete_bonds all bond 0 remove
 <p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a>
+hardware, as discussed in <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a>
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.</p>
@@ -202,7 +265,7 @@ LAMMPS was built with those packages.  See the <a class="reference internal" hre
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
 </div>
 <hr class="docutils" />
@@ -225,6 +288,15 @@ dihedral, etc) cannot be used with <em>quartic</em> bonds.</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="bond_table.html" class="btn btn-neutral float-right" title="bond_style table command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="bond_nonlinear.html" class="btn btn-neutral" title="bond_style nonlinear command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

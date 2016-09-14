@@ -968,13 +968,14 @@ class Settings(object):
   def help(self):
     return """
 -s set1 set2 ...
-  possible settings = gzip #gzip ffmpeg #ffmpeg smallbig bigbig smallsmall
+  possible settings = gzip #gzip ffmpeg #ffmpeg smallbig bigbig smallsmall exceptions #exceptions
   alter LAMMPS ifdef settings in Makefile.auto
     only happens if new Makefile.auto is created by use of "file" action
   gzip and #gzip turn on/off LAMMPS_GZIP setting
   ffmpeg and #ffmpeg turn on/off LAMMPS_FFMPEG setting
   smallbig, bigbig, smallsmall turn on LAMMPS_SMALLBIG, etc
     and turn off other two
+  exceptions and #exceptions turn on/off LAMMPS_EXCEPTIONS setting
 """
   
   def check(self):

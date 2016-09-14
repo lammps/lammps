@@ -158,14 +158,14 @@ or <em>face_threshold</em> or <em>neighbors</em> or <em>peratom</em></li>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-compute 1 all voronoi/atom
-compute 2 precipitate voronoi/atom surface matrix
-compute 3b precipitate voronoi/atom radius v_r
-compute 4 solute voronoi/atom only_group
-compute 5 defects voronoi/atom occupation
-compute 6 all voronoi/atom neighbors yes
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">voronoi</span><span class="o">/</span><span class="n">atom</span>
+<span class="n">compute</span> <span class="mi">2</span> <span class="n">precipitate</span> <span class="n">voronoi</span><span class="o">/</span><span class="n">atom</span> <span class="n">surface</span> <span class="n">matrix</span>
+<span class="n">compute</span> <span class="mi">3</span><span class="n">b</span> <span class="n">precipitate</span> <span class="n">voronoi</span><span class="o">/</span><span class="n">atom</span> <span class="n">radius</span> <span class="n">v_r</span>
+<span class="n">compute</span> <span class="mi">4</span> <span class="n">solute</span> <span class="n">voronoi</span><span class="o">/</span><span class="n">atom</span> <span class="n">only_group</span>
+<span class="n">compute</span> <span class="mi">5</span> <span class="n">defects</span> <span class="n">voronoi</span><span class="o">/</span><span class="n">atom</span> <span class="n">occupation</span>
+<span class="n">compute</span> <span class="mi">6</span> <span class="nb">all</span> <span class="n">voronoi</span><span class="o">/</span><span class="n">atom</span> <span class="n">neighbors</span> <span class="n">yes</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -199,11 +199,11 @@ can be obtained by running a &#8220;reduce sum&#8221; compute on c_2[3]</p>
 <p>If the <em>radius</em> keyword is specified with an atom style variable as
 the argument, a poly-disperse Voronoi tessellation is
 performed. Examples for radius variables are</p>
-<pre class="literal-block">
-variable r1 atom (type==1)*0.1+(type==2)*0.4
-compute radius all property/atom radius
-variable r2 atom c_radius
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span> <span class="n">r1</span> <span class="n">atom</span> <span class="p">(</span><span class="nb">type</span><span class="o">==</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="mf">0.1</span><span class="o">+</span><span class="p">(</span><span class="nb">type</span><span class="o">==</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="mf">0.4</span>
+<span class="n">compute</span> <span class="n">radius</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">radius</span>
+<span class="n">variable</span> <span class="n">r2</span> <span class="n">atom</span> <span class="n">c_radius</span>
+</pre></div>
+</div>
 <p>Here v_r1 specifies a per-type radius of 0.1 units for type 1 atoms
 and 0.4 units for type 2 atoms, and v_r2 accesses the radius property
 present in atom_style sphere for granular models.</p>
@@ -247,10 +247,10 @@ uses local values from a compute as input.  See <a class="reference internal" hr
 options. More specifically, the array can be accessed by a
 <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a> command to write a file containing
 all the Voronoi neighbors in a system:</p>
-<pre class="literal-block">
-compute 6 all voronoi/atom neighbors yes
-dump d2 all local 1 dump.neighbors index c_6[1] c_6[2] c_6[3]
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">6</span> <span class="nb">all</span> <span class="n">voronoi</span><span class="o">/</span><span class="n">atom</span> <span class="n">neighbors</span> <span class="n">yes</span>
+<span class="n">dump</span> <span class="n">d2</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">1</span> <span class="n">dump</span><span class="o">.</span><span class="n">neighbors</span> <span class="n">index</span> <span class="n">c_6</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_6</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_6</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+</pre></div>
+</div>
 <p>If the <em>face_threshold</em> keyword is used, then only faces
 with areas greater than the threshold are stored.</p>
 <hr class="docutils" />

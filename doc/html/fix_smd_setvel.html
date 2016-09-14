@@ -146,9 +146,9 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-fix top_velocity top_group setvel 1.0 0.0 0.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">top_velocity</span> <span class="n">top_group</span> <span class="n">setvel</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -174,8 +174,10 @@ coordinates.  Thus it is easy to specify a spatially-dependent velocity
 field with optional time-dependence as well.</p>
 <p>If the <em>region</em> keyword is used, the particle must also be in the
 specified geometric <a class="reference internal" href="region.html"><span class="doc">region</span></a> in order to have its velocity set by this command.</p>
+</div>
 <hr class="docutils" />
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>Currently, no part of USER-SMD supports restarting nor minimization
 None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>

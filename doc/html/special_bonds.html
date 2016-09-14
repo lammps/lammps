@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>special_bonds command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-special_bonds keyword values ...
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>one or more keyword/value pairs may be appended</li>
 <li>keyword = <em>amber</em> or <em>charmm</em> or <em>dreiding</em> or <em>fene</em> or <em>lj/coul</em> or <em>lj</em> or <em>coul</em> or <em>angle</em> or <em>dihedral</em> or <em>extra</em></li>
@@ -152,14 +152,14 @@ special_bonds keyword values ...
   N = number of extra 1-2,1-3,1-4 interactions to save space for
 </pre>
 <p>Examples:</p>
-<pre class="literal-block">
-special_bonds amber
-special_bonds charmm
-special_bonds fene dihedral no
-special_bonds lj/coul 0.0 0.0 0.5 angle yes dihedral yes
-special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.0 dihedral yes
-special_bonds lj/coul 0 1 1 extra 2
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="n">amber</span>
+<span class="n">special_bonds</span> <span class="n">charmm</span>
+<span class="n">special_bonds</span> <span class="n">fene</span> <span class="n">dihedral</span> <span class="n">no</span>
+<span class="n">special_bonds</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.5</span> <span class="n">angle</span> <span class="n">yes</span> <span class="n">dihedral</span> <span class="n">yes</span>
+<span class="n">special_bonds</span> <span class="n">lj</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.5</span> <span class="n">coul</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="n">dihedral</span> <span class="n">yes</span>
+<span class="n">special_bonds</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">extra</span> <span class="mi">2</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -301,7 +301,7 @@ current system has.</p>
 the system).  If new bonds are created (or molecules added containing
 atoms with more special neighbors), the size of this list needs to
 grow.  Note that adding a single bond always adds a new 1st neighbor
-but may also induce *many* new 2nd and 3rd neighbors, depending on the
+but may also induce <em>many</em> new 2nd and 3rd neighbors, depending on the
 molecular topology of your system.  Using the <em>extra</em> keyword leaves
 empty space in the list for this N additional 1st, 2nd, or 3rd
 neighbors to be added.  If you do not do this, you may get an error
@@ -325,14 +325,14 @@ Coul: coul 0.0 0.0 1.0</p>
 <p>because the LJ settings are reset to their default values
 each time the command is issued.</p>
 <p>Likewise</p>
-<pre class="literal-block">
-special_bonds amber
-special_bonds extra 2
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="n">amber</span>
+<span class="n">special_bonds</span> <span class="n">extra</span> <span class="mi">2</span>
+</pre></div>
+</div>
 <p>is not the same as this single command:</p>
-<pre class="literal-block">
-special_bonds amber extra 2
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="n">amber</span> <span class="n">extra</span> <span class="mi">2</span>
+</pre></div>
+</div>
 <p>since in the former case, the 2nd command will reset all the LJ and
 Coulombic weights to 0.0 (the default).</p>
 <p>One exception to this rule is the <em>extra</em> option itself.  It is not

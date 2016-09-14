@@ -196,8 +196,7 @@ see in your directory during and after such a LAMMPS run.</p>
 command with an <em>index</em>-style variable.  If this input script is named
 in.polymer, 8 simulations would be run using data files from
 directories run1 thru run8.</p>
-<pre class="literal-block">
-variable d index run1 run2 run3 run4 run5 run6 run7 run8
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable d index run1 run2 run3 run4 run5 run6 run7 run8
 shell cd $d
 read_data data.polymer
 run 10000
@@ -205,7 +204,8 @@ shell cd ..
 clear
 next d
 jump in.polymer
-</pre>
+</pre></div>
+</div>
 <p>If the variable &#8220;d&#8221; were of style <em>universe</em>, and the same in.polymer
 input script were run on 3 partitions of processors, then the first 3
 simulations would begin, one on each set of processors.  Whichever
@@ -214,8 +214,7 @@ and run another simulation, and so forth until all 8 simulations were
 finished.</p>
 <p>Jump and next commands can also be nested to enable multi-level loops.
 For example, this script will run 15 simulations in a double loop.</p>
-<pre class="literal-block">
-variable i loop 3
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable i loop 3
   variable j loop 5
   clear
   ...
@@ -226,7 +225,8 @@ variable i loop 3
   jump in.script
 next i
 jump in.script
-</pre>
+</pre></div>
+</div>
 <p>Here is an example of a double loop which uses the <a class="reference internal" href="if.html"><span class="doc">if</span></a> and
 <a class="reference internal" href="jump.html"><span class="doc">jump</span></a> commands to break out of the inner loop when a
 condition is met, then continues iterating thru the outer loop.</p>

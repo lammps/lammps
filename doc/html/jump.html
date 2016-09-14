@@ -158,22 +158,22 @@ script is re-opened and read again.</p>
 <p class="last">The SELF option is not guaranteed to work when the current input
 script is being read through stdin (standard input), e.g.</p>
 </div>
-<pre class="literal-block">
-lmp_g++ &lt; in.script
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_g</span><span class="o">++</span> <span class="o">&lt;</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
+</pre></div>
+</div>
 <p>since the SELF option invokes the C-library rewind() call, which may
 not be supported for stdin on some systems or by some MPI
 implementations.  This can be worked around by using the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-in command-line argument</span></a>, e.g.</p>
-<pre class="literal-block">
-lmp_g++ -in in.script
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
+</pre></div>
+</div>
 <p>or by using the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-var command-line argument</span></a> to pass the script name as a
 variable to the input script.  In the latter case, a
 <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> called &#8220;fname&#8221; could be used in place of
 SELF, e.g.</p>
-<pre class="literal-block">
-lmp_g++ -var fname in.script &lt; in.script
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_g</span><span class="o">++</span> <span class="o">-</span><span class="n">var</span> <span class="n">fname</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span> <span class="o">&lt;</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>
+</pre></div>
+</div>
 <p>The 2nd argument to the jump command is optional.  If specified, it is
 treated as a label and the new file is scanned (without executing
 commands) until the label is found, and commands are executed from
@@ -198,9 +198,9 @@ scripts.  In this example, LAMMPS is run on 40 processors, with 4
 partitions of 10 procs each.  An in.file containing the example
 variable and jump command will cause each partition to run a different
 simulation.</p>
-<pre class="literal-block">
-mpirun -np 40 lmp_ibm -partition 4x10 -in in.file
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">40</span> <span class="n">lmp_ibm</span> <span class="o">-</span><span class="n">partition</span> <span class="mi">4</span><span class="n">x10</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">file</span>
+</pre></div>
+</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span>variable f world script.1 script.2 script.3 script.4
 jump $f
 </pre></div>

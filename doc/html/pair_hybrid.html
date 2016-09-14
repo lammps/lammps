@@ -137,27 +137,27 @@
 <h1>pair_style hybrid/overlay/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<pre class="literal-block">
-pair_style hybrid style1 args style2 args ...
-pair_style hybrid/overlay style1 args style2 args ...
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">style1</span> <span class="n">args</span> <span class="n">style2</span> <span class="n">args</span> <span class="o">...</span>
+<span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">style1</span> <span class="n">args</span> <span class="n">style2</span> <span class="n">args</span> <span class="o">...</span>
+</pre></div>
+</div>
 <ul class="simple">
 <li>style1,style2 = list of one or more pair styles and their arguments</li>
 </ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-pair_style hybrid lj/cut/coul/cut 10.0 eam lj/cut 5.0
-pair_coeff 1*2 1*2 eam niu3
-pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-pair_coeff 1*2 3 lj/cut 0.5 1.2
-</pre>
-<pre class="literal-block">
-pair_style hybrid/overlay lj/cut 2.5 coul/long 2.0
-pair_coeff * * lj/cut 1.0 1.0
-pair_coeff * * coul/long
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span> <span class="mf">10.0</span> <span class="n">eam</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">5.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span><span class="o">*</span><span class="mi">2</span> <span class="mi">1</span><span class="o">*</span><span class="mi">2</span> <span class="n">eam</span> <span class="n">niu3</span>
+<span class="n">pair_coeff</span> <span class="mi">3</span> <span class="mi">3</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span><span class="o">*</span><span class="mi">2</span> <span class="mi">3</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">0.5</span> <span class="mf">1.2</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">2.5</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">2.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">coul</span><span class="o">/</span><span class="n">long</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -218,22 +218,22 @@ these coefficients apply to.</p>
 <p>For example, consider a simulation with 3 atom types: types 1 and 2
 are Ni atoms, type 3 are LJ atoms with charges.  The following
 commands would set up a hybrid simulation:</p>
-<pre class="literal-block">
-pair_style hybrid eam/alloy lj/cut/coul/cut 10.0 lj/cut 8.0
-pair_coeff * * eam/alloy nialhjea Ni Ni NULL
-pair_coeff 3 3 lj/cut/coul/cut 1.0 1.0
-pair_coeff 1*2 3 lj/cut 0.8 1.3
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">eam</span><span class="o">/</span><span class="n">alloy</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span> <span class="mf">10.0</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">8.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">eam</span><span class="o">/</span><span class="n">alloy</span> <span class="n">nialhjea</span> <span class="n">Ni</span> <span class="n">Ni</span> <span class="n">NULL</span>
+<span class="n">pair_coeff</span> <span class="mi">3</span> <span class="mi">3</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span><span class="o">*</span><span class="mi">2</span> <span class="mi">3</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">0.8</span> <span class="mf">1.3</span>
+</pre></div>
+</div>
 <p>As an example of using the same pair style multiple times, consider a
 simulation with 2 atom types.  Type 1 is Si, type 2 is C.  The
 following commands would model the Si atoms with Tersoff, the C atoms
 with Tersoff, and the cross-interactions with Lennard-Jones:</p>
-<pre class="literal-block">
-pair_style hybrid lj/cut 2.5 tersoff tersoff
-pair_coeff * * tersoff 1 Si.tersoff Si NULL
-pair_coeff * * tersoff 2 C.tersoff NULL C
-pair_coeff 1 2 lj/cut 1.0 1.5
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">2.5</span> <span class="n">tersoff</span> <span class="n">tersoff</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">tersoff</span> <span class="mi">1</span> <span class="n">Si</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">Si</span> <span class="n">NULL</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">tersoff</span> <span class="mi">2</span> <span class="n">C</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">NULL</span> <span class="n">C</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.0</span> <span class="mf">1.5</span>
+</pre></div>
+</div>
 <p>If pair coefficients are specified in the data file read via the
 <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command, then the same rule applies.
 E.g. &#8220;eam/alloy&#8221; or &#8220;lj/cut&#8221; must be added after the atom type, for
@@ -266,16 +266,16 @@ sub-style that has already been defined for that pair of atoms, then
 the new pair coefficients simply override the previous ones, as in the
 normal usage of the pair_coeff command.  E.g. these two sets of
 commands are the same:</p>
-<pre class="literal-block">
-pair_style lj/cut 2.5
-pair_coeff * * 1.0 1.0
-pair_coeff 2 2 1.5 0.8
-</pre>
-<pre class="literal-block">
-pair_style hybrid/overlay lj/cut 2.5
-pair_coeff * * lj/cut 1.0 1.0
-pair_coeff 2 2 lj/cut 1.5 0.8
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">2.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="mf">1.5</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">2.5</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+<span class="n">pair_coeff</span> <span class="mi">2</span> <span class="mi">2</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span> <span class="mf">1.5</span> <span class="mf">0.8</span>
+</pre></div>
+</div>
 <p>Coefficients must be defined for each pair of atoms types via the
 <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command as described above, or in the
 data file or restart files read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or
@@ -293,9 +293,9 @@ command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for <em>hybrid</em> and <em>hybrid/overlay</em> simulations, you
 can use this form of the pair_coeff command in your input script:</p>
-<pre class="literal-block">
-pair_coeff  2 3 none
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span>   <span class="mi">2</span> <span class="mi">3</span> <span class="n">none</span>
+</pre></div>
+</div>
 <p>or this form in the &#8220;Pair Coeffs&#8221; section of the data file:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">3</span> <span class="n">none</span>
 </pre></div>
@@ -321,29 +321,29 @@ described by the different force fields do not mix.</p>
 <p>Here is an example for mixing CHARMM and AMBER: The global <em>amber</em>
 setting sets the 1-4 interactions to non-zero scaling factors and
 then overrides them with 0.0 only for CHARMM:</p>
-<pre class="literal-block">
-special_bonds amber
-pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
-pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="n">amber</span>
+<span class="n">pair_hybrid</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span>
+<span class="n">pair_modify</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">special</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
 <p>The this input achieves the same effect:</p>
-<pre class="literal-block">
-special_bonds 0.0 0.0 0.1
-pair_hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
-pair_modify pair lj/cut/coul/long special lj 0.0 0.0 0.5
-pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333
-pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.1</span>
+<span class="n">pair_hybrid</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">10.0</span>
+<span class="n">pair_modify</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">special</span> <span class="n">lj</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.5</span>
+<span class="n">pair_modify</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">special</span> <span class="n">coul</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.83333333</span>
+<span class="n">pair_modify</span> <span class="n">pair</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="n">special</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>
+</pre></div>
+</div>
 <p>Here is an example for mixing Tersoff with OPLS/AA based on
 a data file that defines bonds for all atoms where for the
 Tersoff part of the system the force constants for the bonded
 interactions have been set to 0. Note the global settings are
 effectively <em>lj/coul 0.0 0.0 0.5</em> as required for OPLS/AA:</p>
-<pre class="literal-block">
-special_bonds lj/coul 1e-20 1e-20 0.5
-pair_hybrid tersoff lj/cut/coul/long 12.0
-pair_modify pair tersoff special lj/coul 1.0 1.0 1.0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">special_bonds</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">20</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">20</span> <span class="mf">0.5</span>
+<span class="n">pair_hybrid</span> <span class="n">tersoff</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">12.0</span>
+<span class="n">pair_modify</span> <span class="n">pair</span> <span class="n">tersoff</span> <span class="n">special</span> <span class="n">lj</span><span class="o">/</span><span class="n">coul</span> <span class="mf">1.0</span> <span class="mf">1.0</span> <span class="mf">1.0</span>
+</pre></div>
+</div>
 <p>See the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> doc page for details on
 the specific syntax, requirements and restrictions.</p>
 <hr class="docutils" />
@@ -358,7 +358,7 @@ ReaxFF, etc.  The way to think about using these potentials in a
 hybrid setting is as follows.</p>
 </div>
 <p>A subset of atom types is assigned to the many-body potential with a
-single <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command, using &#8220;* *&#8221; to include
+single <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command, using &#8220;* <a href="#id1"><span class="problematic" id="id2">*</span></a>&#8221; to include
 all types and the NULL keywords described above to exclude specific
 types not assigned to that potential.  If types 1,3,4 were assigned in
 that way (but not type 2), this means that all many-body interactions
@@ -388,16 +388,16 @@ atoms in one surface, and type 2 for atoms in the other, and you wish
 to use a Tersoff potential to compute interactions within each
 surface, but not between surfaces.  Then either of these two command
 sequences would implement that model:</p>
-<pre class="literal-block">
-pair_style hybrid tersoff
-pair_coeff * * tersoff SiC.tersoff C C
-pair_coeff 1 2 none
-</pre>
-<pre class="literal-block">
-pair_style tersoff
-pair_coeff * * SiC.tersoff C C
-neigh_modify exclude type 1 2
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span> <span class="n">tersoff</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">tersoff</span> <span class="n">SiC</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">C</span> <span class="n">C</span>
+<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">2</span> <span class="n">none</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">tersoff</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">SiC</span><span class="o">.</span><span class="n">tersoff</span> <span class="n">C</span> <span class="n">C</span>
+<span class="n">neigh_modify</span> <span class="n">exclude</span> <span class="nb">type</span> <span class="mi">1</span> <span class="mi">2</span>
+</pre></div>
+</div>
 <p>Either way, only neighbor lists with 1-1 or 2-2 interactions would be
 passed to the Tersoff potential, which means it would compute no
 3-body interactions containing both type 1 and 2 atoms.</p>
@@ -406,11 +406,11 @@ potentials together, in an overlapping manner.  Imagine you have CNT
 (C atoms) on a Si surface.  You want to use Tersoff for Si/Si and Si/C
 interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
 atoms are type 2.  Something like this will work:</p>
-<pre class="literal-block">
-pair_style hybrid/overlay tersoff airebo 3.0
-pair_coeff * * tersoff SiC.tersoff.custom Si C
-pair_coeff * * airebo CH.airebo NULL C
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span> <span class="n">tersoff</span> <span class="n">airebo</span> <span class="mf">3.0</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">tersoff</span> <span class="n">SiC</span><span class="o">.</span><span class="n">tersoff</span><span class="o">.</span><span class="n">custom</span> <span class="n">Si</span> <span class="n">C</span>
+<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">airebo</span> <span class="n">CH</span><span class="o">.</span><span class="n">airebo</span> <span class="n">NULL</span> <span class="n">C</span>
+</pre></div>
+</div>
 <p>Note that to prevent the Tersoff potential from computing C/C
 interactions, you would need to modify the SiC.tersoff file to turn
 off C/C interaction, i.e. by setting the appropriate coefficients to

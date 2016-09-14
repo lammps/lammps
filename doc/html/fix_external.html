@@ -167,9 +167,9 @@ in the group, once every <em>Napply</em> steps, similar to the way the <a class=
 <em>Napply</em>, the force values produced by one callback will persist, and
 be used multiple times to update atom forces.</p>
 <p>The callback function &#8220;foo&#8221; is invoked by the fix as:</p>
-<pre class="literal-block">
-foo(void *ptr, bigint timestep, int nlocal, int *ids, double **x, double **fexternal);
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">foo</span><span class="p">(</span><span class="n">void</span> <span class="o">*</span><span class="n">ptr</span><span class="p">,</span> <span class="n">bigint</span> <span class="n">timestep</span><span class="p">,</span> <span class="nb">int</span> <span class="n">nlocal</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">ids</span><span class="p">,</span> <span class="n">double</span> <span class="o">**</span><span class="n">x</span><span class="p">,</span> <span class="n">double</span> <span class="o">**</span><span class="n">fexternal</span><span class="p">);</span>
+</pre></div>
+</div>
 <p>The arguments are as follows:</p>
 <ul class="simple">
 <li>ptr = pointer provided by and simply passed back to external driver</li>
@@ -194,9 +194,9 @@ array.  The fix adds these forces to each atom in the group, once
 every <em>Napply</em> steps, similar to the way the <a class="reference internal" href="fix_addforce.html"><span class="doc">fix addforce</span></a> command works.</p>
 <p>The name of the public force array provided by the FixExternal
 class is</p>
-<pre class="literal-block">
-double **fexternal;
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">double</span> <span class="o">**</span><span class="n">fexternal</span><span class="p">;</span>
+</pre></div>
+</div>
 <p>It is allocated by the FixExternal class as an (N,3) array where N is
 the number of atoms owned by a processor.  The 3 corresponds to the
 fx, fy, fz components of force.</p>
@@ -212,16 +212,18 @@ to the added forces must also be set so as to be consistent with the
 added forces.  Otherwise the minimization will not converge correctly.</p>
 <p>This can be done from the external driver by calling this public
 method of the FixExternal class:</p>
-<pre class="literal-block">
-void set_energy(double eng);
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">set_energy</span><span class="p">(</span><span class="n">double</span> <span class="n">eng</span><span class="p">);</span>
+</pre></div>
+</div>
 <p>where eng is the potential energy.  Eng is an extensive quantity,
 meaning it should be the sum over per-atom energies of all affected
 atoms.  It should also be provided in <a class="reference internal" href="units.html"><span class="doc">energy units</span></a>
 consistent with the simulation.  See the details below for how to
 insure this energy setting is used appropriately in a minimization.</p>
+</div>
 <hr class="docutils" />
-<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the potential &#8220;energy&#8221; set by the external driver to the

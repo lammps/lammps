@@ -150,14 +150,14 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<pre class="literal-block">
-restart 0
-restart 1000 poly.restart
-restart 1000 poly.restart.mpiio
-restart 1000 restart.*.equil
-restart 10000 poly.%.1 poly.%.2 nfile 10
-restart v_mystep poly.restart
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">restart</span> <span class="mi">0</span>
+<span class="n">restart</span> <span class="mi">1000</span> <span class="n">poly</span><span class="o">.</span><span class="n">restart</span>
+<span class="n">restart</span> <span class="mi">1000</span> <span class="n">poly</span><span class="o">.</span><span class="n">restart</span><span class="o">.</span><span class="n">mpiio</span>
+<span class="n">restart</span> <span class="mi">1000</span> <span class="n">restart</span><span class="o">.*.</span><span class="n">equil</span>
+<span class="n">restart</span> <span class="mi">10000</span> <span class="n">poly</span><span class="o">.%.</span><span class="mi">1</span> <span class="n">poly</span><span class="o">.%.</span><span class="mi">2</span> <span class="n">nfile</span> <span class="mi">10</span>
+<span class="n">restart</span> <span class="n">v_mystep</span> <span class="n">poly</span><span class="o">.</span><span class="n">restart</span>
+</pre></div>
+</div>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -226,10 +226,10 @@ options for <a class="reference internal" href="variable.html"><span class="doc"
 <p>For example, the following commands will write restart files
 every step from 1100 to 1200, and could be useful for debugging
 a simulation where something goes wrong at step 1163:</p>
-<pre class="literal-block">
-variable     s equal stride(1100,1200,1)
-restart              v_s tmp.restart
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>     <span class="n">s</span> <span class="n">equal</span> <span class="n">stride</span><span class="p">(</span><span class="mi">1100</span><span class="p">,</span><span class="mi">1200</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">restart</span>              <span class="n">v_s</span> <span class="n">tmp</span><span class="o">.</span><span class="n">restart</span>
+</pre></div>
+</div>
 <hr class="docutils" />
 <p>See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for information about
 what is stored in a restart file.</p>

@@ -257,22 +257,22 @@ or exclude from a group.</p>
 <p>For example, these lines define a variable &#8220;eatom&#8221; that calculates the
 potential energy of each atom and includes it in the group if its
 potential energy is above the threshhold value -3.0.</p>
-<pre class="literal-block">
-compute         1 all pe/atom
-compute         2 all reduce sum c_1
-thermo_style    custom step temp pe c_2
-run             0
-</pre>
-<pre class="literal-block">
-variable        eatom atom &quot;c_1 &gt; -3.0&quot;
-group           hienergy variable eatom
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>         <span class="mi">1</span> <span class="nb">all</span> <span class="n">pe</span><span class="o">/</span><span class="n">atom</span>
+<span class="n">compute</span>         <span class="mi">2</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">sum</span> <span class="n">c_1</span>
+<span class="n">thermo_style</span>    <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">pe</span> <span class="n">c_2</span>
+<span class="n">run</span>             <span class="mi">0</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">variable</span>        <span class="n">eatom</span> <span class="n">atom</span> <span class="s2">&quot;c_1 &gt; -3.0&quot;</span>
+<span class="n">group</span>           <span class="n">hienergy</span> <span class="n">variable</span> <span class="n">eatom</span>
+</pre></div>
+</div>
 <p>Note that these lines</p>
-<pre class="literal-block">
-compute         2 all reduce sum c_1
-thermo_style    custom step temp pe c_2
-run             0
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>         <span class="mi">2</span> <span class="nb">all</span> <span class="n">reduce</span> <span class="nb">sum</span> <span class="n">c_1</span>
+<span class="n">thermo_style</span>    <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">pe</span> <span class="n">c_2</span>
+<span class="n">run</span>             <span class="mi">0</span>
+</pre></div>
+</div>
 <p>are necessary to insure that the &#8220;eatom&#8221; variable is current when the
 group command invokes it.  Because the eatom variable computes the
 per-atom energy via the pe/atom compute, it will only be current if a
@@ -353,8 +353,7 @@ being integrated by using a spherical region with a variable radius
 used to model a quench of the system, freezing atoms outside the
 shrinking sphere, then converting the remaining atoms to a static
 group and running further.</p>
-<pre class="literal-block">
-variable        nsteps equal 5000
+<div class="highlight-default"><div class="highlight"><pre><span></span>variable        nsteps equal 5000
 variable        rad equal 18-(step/v_nsteps)*(18-5)
 region          ss sphere 20 20 0 v_rad
 group           mobile dynamic all region ss
@@ -362,7 +361,8 @@ fix             1 mobile nve
 run             ${nsteps}
 group           mobile static
 run          ${nsteps}
-</pre>
+</pre></div>
+</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">All fixes and computes take a group ID as an argument, but they

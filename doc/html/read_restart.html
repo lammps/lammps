@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>read_restart command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">read_restart</span> <span class="n">file</span> <span class="n">flag</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+read_restart file flag
+</pre>
 <ul class="simple">
 <li>file = name of binary restart file to read in</li>
 <li>flag = remap (optional)</li>
@@ -138,13 +138,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">read_restart</span> <span class="n">save</span><span class="o">.</span><span class="mi">10000</span>
-<span class="n">read_restart</span> <span class="n">save</span><span class="o">.</span><span class="mi">10000</span> <span class="n">remap</span>
-<span class="n">read_restart</span> <span class="n">restart</span><span class="o">.*</span>
-<span class="n">read_restart</span> <span class="n">restart</span><span class="o">.*.</span><span class="n">mpiio</span>
-<span class="n">read_restart</span> <span class="n">poly</span><span class="o">.*.%</span> <span class="n">remap</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+read_restart save.10000
+read_restart save.10000 remap
+read_restart restart.*
+read_restart restart.*.mpiio
+read_restart poly.*.% remap
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

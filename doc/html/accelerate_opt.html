@@ -139,10 +139,10 @@ follow.</p>
 <span class="n">Make</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span> <span class="o">-</span><span class="n">p</span> <span class="n">opt</span> <span class="o">-</span><span class="n">o</span> <span class="n">mpi</span> <span class="o">-</span><span class="n">a</span> <span class="n">file</span> <span class="n">mpi</span>   <span class="c1"># or one-line build via Make.py</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">sf</span> <span class="n">opt</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>                <span class="c1"># run in serial</span>
-<span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="n">lmp_mpi</span> <span class="o">-</span><span class="n">sf</span> <span class="n">opt</span> <span class="o">-</span><span class="ow">in</span> <span class="ow">in</span><span class="o">.</span><span class="n">script</span>   <span class="c1"># run in parallel</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+lmp_mpi -sf opt -in in.script                # run in serial
+mpirun -np 4 lmp_mpi -sf opt -in in.script   # run in parallel
+</pre>
 <p><strong>Required hardware/software:</strong></p>
 <p>None.</p>
 <p><strong>Building LAMMPS with the OPT package:</strong></p>
@@ -159,9 +159,9 @@ The Make.py command will add this automatically.</p>
 <p><strong>Or run with the OPT package by editing an input script:</strong></p>
 <p>Use the <a class="reference internal" href="suffix.html"><span class="doc">suffix opt</span></a> command, or you can explicitly add an
 &#8220;opt&#8221; suffix to individual styles in your input script, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">opt</span> <span class="mf">2.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/cut/opt 2.5
+</pre>
 <p><strong>Speed-ups to expect:</strong></p>
 <p>You should see a reduction in the &#8220;Pair time&#8221; value printed at the end
 of a run.  On most machines for reasonable problem sizes, it will be a

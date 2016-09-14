@@ -159,12 +159,12 @@ averaged over atoms in the group.</p>
 <p>The integral of the VACF versus time is proportional to the diffusion
 coefficient of the diffusing atoms.  This can be computed in the
 following manner, using the <a class="reference internal" href="variable.html"><span class="doc">variable trap()</span></a> function:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span>         <span class="mi">2</span> <span class="nb">all</span> <span class="n">vacf</span>
-<span class="n">fix</span>             <span class="mi">5</span> <span class="nb">all</span> <span class="n">vector</span> <span class="mi">1</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
-<span class="n">variable</span>        <span class="n">diff</span> <span class="n">equal</span> <span class="n">dt</span><span class="o">*</span><span class="n">trap</span><span class="p">(</span><span class="n">f_5</span><span class="p">)</span>
-<span class="n">thermo_style</span>    <span class="n">custom</span> <span class="n">step</span> <span class="n">v_diff</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute         2 all vacf
+fix             5 all vector 1 c_2[4]
+variable        diff equal dt*trap(f_5)
+thermo_style    custom step v_diff
+</pre>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If you want the quantities calculated by this compute to be

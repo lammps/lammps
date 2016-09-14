@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>kspace_style command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">kspace_style</span> <span class="n">style</span> <span class="n">value</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+kspace_style style value
+</pre>
 <ul class="simple">
 <li>style = <em>none</em> or <em>ewald</em> or <em>ewald/disp</em> or <em>ewald/omp</em> or <em>pppm</em> or <em>pppm/cg</em> or <em>pppm/disp</em> or <em>pppm/tip4p</em> or <em>pppm/stagger</em> or <em>pppm/disp/tip4p</em> or <em>pppm/gpu</em> or <em>pppm/kk</em> or <em>pppm/omp</em> or <em>pppm/cg/omp</em> or <em>pppm/tip4p/omp</em> or <em>msm</em> or <em>msm/cg</em> or <em>msm/omp</em> or <em>msm/cg/omp</em></li>
 </ul>
@@ -179,12 +179,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">kspace_style</span> <span class="n">pppm</span> <span class="mf">1.0e-4</span>
-<span class="n">kspace_style</span> <span class="n">pppm</span><span class="o">/</span><span class="n">cg</span> <span class="mf">1.0e-5</span> <span class="mf">1.0e-6</span>
-<span class="n">kspace</span> <span class="n">style</span> <span class="n">msm</span> <span class="mf">1.0e-4</span>
-<span class="n">kspace_style</span> <span class="n">none</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+kspace_style pppm 1.0e-4
+kspace_style pppm/cg 1.0e-5 1.0e-6
+kspace style msm 1.0e-4
+kspace_style none
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -422,9 +422,9 @@ must be periodic and the z dimension must be non-periodic.</p>
 </div>
 <div class="section" id="default">
 <h2>Default</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">kspace_style</span> <span class="n">none</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+kspace_style none
+</pre>
 <hr class="docutils" />
 <p id="darden"><strong>(Darden)</strong> Darden, York, Pedersen, J Chem Phys, 98, 10089 (1993).</p>
 <p id="deserno"><strong>(Deserno)</strong> Deserno and Holm, J Chem Phys, 109, 7694 (1998).</p>

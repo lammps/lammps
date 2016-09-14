@@ -206,11 +206,11 @@ For example, pair output from the <a class="reference internal" href="compute_pr
 with data from this command and output by the <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a>
 command in a consistent way.</p>
 <p>Here is an example of how to do this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">local</span> <span class="n">patom1</span> <span class="n">patom2</span>
-<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">pair</span><span class="o">/</span><span class="n">local</span> <span class="n">dist</span> <span class="n">eng</span> <span class="n">force</span>
-<span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">local</span> <span class="mi">1000</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="n">index</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_2</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all property/local patom1 patom2
+compute 2 all pair/local dist eng force
+dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_2[1] c_2[2] c_2[3]
+</pre>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For pairs, if two atoms I,J are involved in 1-2, 1-3, 1-4

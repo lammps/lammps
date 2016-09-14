@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix tmd command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">tmd</span> <span class="n">rho_final</span> <span class="n">file1</span> <span class="n">N</span> <span class="n">file2</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID tmd rho_final file1 N file2
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>tmd = style name of this fix command</li>
@@ -142,10 +142,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">nve</span>
-<span class="n">fix</span> <span class="mi">2</span> <span class="n">tmdatoms</span> <span class="n">tmd</span> <span class="mf">1.0</span> <span class="n">target_file</span> <span class="mi">100</span> <span class="n">tmd_dump_file</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all nve
+fix 2 tmdatoms tmd 1.0 target_file 100 tmd_dump_file
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -199,9 +199,7 @@ restarted runs, the name of the TMD statistics file should be changed
 to prevent it being overwritten.</p>
 <p>For more information about TMD, see <a class="reference internal" href="#schlitter1"><span class="std std-ref">(Schlitter1)</span></a> and
 <a class="reference internal" href="#schlitter2"><span class="std std-ref">(Schlitter2)</span></a>.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.</p>

@@ -158,9 +158,9 @@
 <h1>pair_style lj/charmm/coul/msm/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style args
+</pre>
 <ul class="simple">
 <li>style = <em>lj/charmm/coul/charmm</em> or <em>lj/charmm/coul/charmm/implicit</em> or <em>lj/charmm/coul/long</em> or <em>lj/charmm/coul/msm</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -182,30 +182,30 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">charmm</span> <span class="mf">8.0</span> <span class="mf">10.0</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">charmm</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="mf">7.0</span> <span class="mf">9.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">2.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">150.0</span> <span class="mf">3.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">implicit</span> <span class="mf">8.0</span> <span class="mf">10.0</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">implicit</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="mf">7.0</span> <span class="mf">9.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">2.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">150.0</span> <span class="mf">3.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">8.0</span> <span class="mf">10.0</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="mf">9.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">2.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">150.0</span> <span class="mf">3.5</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">msm</span> <span class="mf">8.0</span> <span class="mf">10.0</span>
-<span class="n">pair_style</span> <span class="n">lj</span><span class="o">/</span><span class="n">charmm</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">msm</span> <span class="mf">8.0</span> <span class="mf">10.0</span> <span class="mf">9.0</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="mf">100.0</span> <span class="mf">2.0</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">100.0</span> <span class="mf">2.0</span> <span class="mf">150.0</span> <span class="mf">3.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lj/charmm/coul/charmm 8.0 10.0
+pair_style lj/charmm/coul/charmm 8.0 10.0 7.0 9.0
+pair_coeff * * 100.0 2.0
+pair_coeff 1 1 100.0 2.0 150.0 3.5
+</pre>
+<pre class="literal-block">
+pair_style lj/charmm/coul/charmm/implicit 8.0 10.0
+pair_style lj/charmm/coul/charmm/implicit 8.0 10.0 7.0 9.0
+pair_coeff * * 100.0 2.0
+pair_coeff 1 1 100.0 2.0 150.0 3.5
+</pre>
+<pre class="literal-block">
+pair_style lj/charmm/coul/long 8.0 10.0
+pair_style lj/charmm/coul/long 8.0 10.0 9.0
+pair_coeff * * 100.0 2.0
+pair_coeff 1 1 100.0 2.0 150.0 3.5
+</pre>
+<pre class="literal-block">
+pair_style lj/charmm/coul/msm 8.0 10.0
+pair_style lj/charmm/coul/msm 8.0 10.0 9.0
+pair_coeff * * 100.0 2.0
+pair_coeff 1 1 100.0 2.0 150.0 3.5
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>thermo_style command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thermo_style</span> <span class="n">style</span> <span class="n">args</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+thermo_style style args
+</pre>
 <ul class="simple">
 <li>style = <em>one</em> or <em>multi</em> or <em>custom</em></li>
 <li>args = list of arguments for a particular style</li>
@@ -207,12 +207,12 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thermo_style</span> <span class="n">multi</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">pe</span> <span class="n">etotal</span> <span class="n">press</span> <span class="n">vol</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="n">c_myTemp</span> <span class="n">v_abc</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="o">*</span><span class="p">]</span> <span class="n">v_abc</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+thermo_style multi
+thermo_style custom step temp pe etotal press vol
+thermo_style custom step temp etotal c_myTemp v_abc
+thermo_style custom step temp etotal c_myTemp[*] v_abc
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -260,9 +260,9 @@ the thermo_modify command after it.</p>
 computed: &#8220;temp&#8221;, &#8220;press&#8221;, &#8220;ke&#8221;, &#8220;etotal&#8221;, &#8220;enthalpy&#8221;, &#8220;pxx&#8221;, etc.  By
 default this is done by using a <em>temperature</em> compute which is created
 when LAMMPS starts up, as if this command had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">thermo_temp</span> <span class="nb">all</span> <span class="n">temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute thermo_temp all temp
+</pre>
 <p>See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> command for details.  Note
 that the ID of this compute is <em>thermo_temp</em> and the group is <em>all</em>.
 You can change the attributes of this temperature (e.g. its
@@ -275,9 +275,9 @@ This is done via the <a class="reference internal" href="thermo_modify.html"><sp
 computed: &#8220;press&#8221;, &#8220;enthalpy&#8221;, &#8220;pxx&#8221;, etc.  By default this is done by
 using a <em>pressure</em> compute which is created when LAMMPS starts up, as
 if this command had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">thermo_press</span> <span class="nb">all</span> <span class="n">pressure</span> <span class="n">thermo_temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute thermo_press all pressure thermo_temp
+</pre>
 <p>See the <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> command for details.
 Note that the ID of this compute is <em>thermo_press</em> and the group is
 <em>all</em>.  You can change the attributes of this pressure via the
@@ -290,9 +290,9 @@ that requires a pressure.  This is done via the
 be computed: &#8220;pe&#8221;, &#8220;etotal&#8221;, &#8220;ebond&#8221;, etc.  This is done by using a
 <em>pe</em> compute which is created when LAMMPS starts up, as if this
 command had been issued:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">thermo_pe</span> <span class="nb">all</span> <span class="n">pe</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute thermo_pe all pe
+</pre>
 <p>See the <a class="reference internal" href="compute_pe.html"><span class="doc">compute pe</span></a> command for details.  Note that
 the ID of this compute is <em>thermo_pe</em> and the group is <em>all</em>.  You can
 change the attributes of this potential energy via the
@@ -394,7 +394,7 @@ of these quantities in terms of the internal LAMMPS cell dimensions
 <p>For output values from a compute or fix, the bracketed index I used to
 index a vector, as in <em>c_ID[I]</em> or <em>f_ID[I]</em>, can be specified
 using a wildcard asterisk with the index to effectively specify
-multiple values.  This takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.
+multiple values.  This takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.
 If N = the size of the vector (for <em>mode</em> = scalar) or the number of
 columns in the array (for <em>mode</em> = vector), then an asterisk with no
 numeric values means all indices from 1 to N.  A leading asterisk
@@ -405,13 +405,13 @@ indices from m to n (inclusive).</p>
 vector had been listed one by one.  E.g. these 2 thermo_style commands
 are equivalent, since the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> command
 creates a global vector with 6 values.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">myTemp</span> <span class="nb">all</span> <span class="n">temp</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="o">*</span><span class="p">]</span>
-<span class="n">thermo_style</span> <span class="n">custom</span> <span class="n">step</span> <span class="n">temp</span> <span class="n">etotal</span> <span class="o">&amp;</span>
-             <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&amp;</span>
-             <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="n">c_myTemp</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute myTemp all temp
+thermo_style custom step temp etotal c_myTemp[*]
+thermo_style custom step temp etotal &amp;
+             c_myTemp[1] c_myTemp[2] c_myTemp[3] &amp;
+             c_myTemp[4] c_myTemp[5] c_myTemp[6]
+</pre>
 <hr class="docutils" />
 <p>The <em>c_ID</em> and <em>c_ID[I]</em> and <em>c_ID[I][J]</em> keywords allow global
 values calculated by a compute to be output.  As discussed on the
@@ -490,9 +490,9 @@ division by &#8220;natoms&#8221; in the variable formula if this is not the case
 </div>
 <div class="section" id="default">
 <h2>Default</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">thermo_style</span> <span class="n">one</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+thermo_style one
+</pre>
 </div>
 </div>
 

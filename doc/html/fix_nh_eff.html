@@ -134,9 +134,9 @@
 <h1>fix nph/eff command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">style_name</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID style_name keyword value ...
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>style_name = <em>nvt/eff</em> or <em>npt/eff</em> or <em>nph/eff</em></li>
@@ -223,9 +223,7 @@ degrees of freedom with the <a class="reference internal" href="velocity.html"><
 the user must allow for these degrees of freedom to equilibrate
 (i.e. equi-partitioning of energy) through time integration.</p>
 </div>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>See the doc page for the <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt, npt, and nph</span></a> commands
 for details.</p>
 </div>

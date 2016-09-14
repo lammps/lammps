@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>create_bonds command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">create_bonds</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">group2</span><span class="o">-</span><span class="n">ID</span> <span class="n">btype</span> <span class="n">rmin</span> <span class="n">rmax</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+create_bonds group-ID group2-ID btype rmin rmax
+</pre>
 <ul class="simple">
 <li>group-ID = ID of first group</li>
 <li>group2-ID = ID of second group, bonds will be between atoms in the 2 groups</li>
@@ -141,10 +141,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">create_bonds</span> <span class="nb">all</span> <span class="nb">all</span> <span class="mi">1</span> <span class="mf">1.0</span> <span class="mf">1.2</span>
-<span class="n">create_bonds</span> <span class="n">surf</span> <span class="n">solvent</span> <span class="mi">3</span> <span class="mf">2.0</span> <span class="mf">2.4</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+create_bonds all all 1 1.0 1.2
+create_bonds surf solvent 3 2.0 2.4
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

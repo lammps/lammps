@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>write_restart command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">write_restart</span> <span class="n">file</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+write_restart file keyword value ...
+</pre>
 <ul class="simple">
 <li>file = name of file to write restart information to</li>
 <li>zero or more keyword/value pairs may be appended</li>
@@ -145,11 +145,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">write_restart</span> <span class="n">restart</span><span class="o">.</span><span class="n">equil</span>
-<span class="n">write_restart</span> <span class="n">restart</span><span class="o">.</span><span class="n">equil</span><span class="o">.</span><span class="n">mpiio</span>
-<span class="n">write_restart</span> <span class="n">poly</span><span class="o">.%.*</span> <span class="n">nfile</span> <span class="mi">10</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+write_restart restart.equil
+write_restart restart.equil.mpiio
+write_restart poly.%.* nfile 10
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

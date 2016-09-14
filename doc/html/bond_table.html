@@ -131,9 +131,9 @@
 <h1>bond_style table/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">table</span> <span class="n">style</span> <span class="n">N</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_style table style N
+</pre>
 <ul class="simple">
 <li>style = <em>linear</em> or <em>spline</em> = method of interpolation</li>
 <li>N = use N values in table</li>
@@ -141,10 +141,10 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bond_style</span> <span class="n">table</span> <span class="n">linear</span> <span class="mi">1000</span>
-<span class="n">bond_coeff</span> <span class="mi">1</span> <span class="n">file</span><span class="o">.</span><span class="n">table</span> <span class="n">ENTRY1</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+bond_style table linear 1000
+bond_coeff 1 file.table ENTRY1
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

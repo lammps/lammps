@@ -32,7 +32,10 @@
   
 
   
-    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
+        <link rel="up" title="Commands" href="commands.html"/>
+        <link rel="next" title="dump_modify command" href="dump_modify.html"/>
+        <link rel="prev" title="dump h5md command" href="dump_h5md.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,7 +74,8 @@
         
           
           
-              <ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
@@ -85,6 +89,135 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="commands.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="box.html">box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html">dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-custom-vtk-command"><code class="docutils literal"><span class="pre">dump</span> <span class="pre">custom/vtk</span></code> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-h5md-command"><code class="docutils literal"><span class="pre">dump</span> <span class="pre">h5md</span></code> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-image-command"><code class="docutils literal"><span class="pre">dump</span> <span class="pre">image</span></code> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-movie-command"><code class="docutils literal"><span class="pre">dump</span> <span class="pre">movie</span></code> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-molfile-command"><code class="docutils literal"><span class="pre">dump</span> <span class="pre">molfile</span></code> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_custom_vtk.html">dump custom/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_h5md.html">dump h5md command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">dump image command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-movie-command">dump movie command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html">dump_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_molfile.html">dump molfile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -109,6 +242,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
+          <li><a href="commands.html">Commands</a> &raquo;</li>
+      
     <li>dump image command</li>
       <li class="wy-breadcrumbs-aside">
         
@@ -119,6 +254,15 @@
       </li>
   </ul>
   <hr/>
+  
+    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
+      
+        <a href="dump_modify.html" class="btn btn-neutral float-right" title="dump_modify command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dump_h5md.html" class="btn btn-neutral" title="dump h5md command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -134,17 +278,24 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dump</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">style</span> <span class="n">N</span> <span class="n">file</span> <span class="n">color</span> <span class="n">diameter</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li>ID = user-assigned name for the dump</li>
-<li>group-ID = ID of the group of atoms to be imaged</li>
-<li>style = <em>image</em> or <em>movie</em> = style of dump command (other styles <em>atom</em> or <em>cfg</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>local</em> or <em>custom</em> are discussed on the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> doc page)</li>
-<li>N = dump every this many timesteps</li>
-<li>file = name of file to write image to</li>
-<li>color = atom attribute that determines color of each atom</li>
-<li>diameter = atom attribute that determines size of each atom</li>
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>atom</em> or <em>adiam</em> or <em>bond</em> or <em>line</em> or <em>tri</em> or <em>body</em> or <em>fix</em> or <em>size</em> or <em>view</em> or <em>center</em> or <em>up</em> or <em>zoom</em> or <em>persp</em> or <em>box</em> or <em>axes</em> or <em>subbox</em> or <em>shiny</em> or <em>ssao</em></li>
-</ul>
+<ul>
+<li><p class="first">ID = user-assigned name for the dump</p>
+</li>
+<li><p class="first">group-ID = ID of the group of atoms to be imaged</p>
+</li>
+<li><p class="first">style = <em>image</em> or <em>movie</em> = style of dump command (other styles <em>atom</em> or <em>cfg</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>local</em> or <em>custom</em> are discussed on the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> doc page)</p>
+</li>
+<li><p class="first">N = dump every this many timesteps</p>
+</li>
+<li><p class="first">file = name of file to write image to</p>
+</li>
+<li><p class="first">color = atom attribute that determines color of each atom</p>
+</li>
+<li><p class="first">diameter = atom attribute that determines size of each atom</p>
+</li>
+<li><p class="first">zero or more keyword/value pairs may be appended</p>
+</li>
+<li><p class="first">keyword = <em>atom</em> or <em>adiam</em> or <em>bond</em> or <em>line</em> or <em>tri</em> or <em>body</em> or <em>fix</em> or <em>size</em> or <em>view</em> or <em>center</em> or <em>up</em> or <em>zoom</em> or <em>persp</em> or <em>box</em> or <em>axes</em> or <em>subbox</em> or <em>shiny</em> or <em>ssao</em></p>
 <pre class="literal-block">
 <em>atom</em> = yes/no = do or do not draw atoms
 <em>adiam</em> size = numeric value for atom diameter (distance units)
@@ -203,6 +354,8 @@
   seed = random # seed (positive integer)
   dfactor = strength of shading from 0.0 to 1.0
 </pre>
+</li>
+</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
@@ -613,12 +766,10 @@ compiled with -DLAMMPS_FFMPEG and an FFmpeg executable have to be
 installed.</p>
 <p>To manually convert JPEG, PNG or PPM files into an animated GIF or
 MPEG or other movie file you can use:</p>
-<ul class="simple">
-<li><ol class="first loweralpha">
+<ul>
+<li><ol class="first loweralpha simple">
 <li>Use the ImageMagick convert program.</li>
 </ol>
-</li>
-</ul>
 <pre class="literal-block">
 % convert *.jpg foo.gif
 % convert -loop 1 *.ppm foo.mpg
@@ -627,12 +778,10 @@ MPEG or other movie file you can use:</p>
 program like gifsicle to optimize and massively shrink them.
 MPEG files created by ImageMagick are in MPEG-1 format with rather
 inefficient compression and low quality.</p>
-<ul class="simple">
-<li><ol class="first loweralpha" start="2">
+</li>
+<li><ol class="first loweralpha simple" start="2">
 <li>Use QuickTime.</li>
 </ol>
-</li>
-</ul>
 <p>Select &#8220;Open Image Sequence&#8221; under the File menu Load the images into
 QuickTime to animate them Select &#8220;Export&#8221; under the File menu Save the
 movie as a QuickTime movie (*.mov) or in another format.  QuickTime
@@ -640,12 +789,10 @@ can generate very high quality and efficiently compressed movie
 files. Some of the supported formats require to buy a license and some
 are not readable on all platforms until specific runtime libraries are
 installed.</p>
-<ul class="simple">
-<li><ol class="first loweralpha" start="3">
+</li>
+<li><ol class="first loweralpha simple" start="3">
 <li>Use FFmpeg</li>
 </ol>
-</li>
-</ul>
 <p>FFmpeg is a command line tool that is available on many platforms and
 allows extremely flexible encoding and decoding of movies.</p>
 <pre class="literal-block">
@@ -654,40 +801,39 @@ cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 </pre>
 <p>Frontends for FFmpeg exist for multiple platforms. For more
 information see the <a class="reference external" href="http://www.ffmpeg.org/">FFmpeg homepage</a></p>
-<hr class="docutils" />
-<p>Play the movie:</p>
-<ul class="simple">
-<li><ol class="first loweralpha">
-<li>Use your browser to view an animated GIF movie.</li>
-</ol>
 </li>
 </ul>
+<hr class="docutils" />
+<p>Play the movie:</p>
+<ul>
+<li><ol class="first loweralpha simple">
+<li>Use your browser to view an animated GIF movie.</li>
+</ol>
 <p>Select &#8220;Open File&#8221; under the File menu
 Load the animated GIF file</p>
-<ul class="simple">
-<li>b) Use the freely available mplayer or ffplay tool to view a
+</li>
+<li><p class="first">b) Use the freely available mplayer or ffplay tool to view a
 movie. Both are available for multiple OSes and support a large
-variety of file formats and decoders.</li>
-</ul>
+variety of file formats and decoders.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span> <span class="n">mplayer</span> <span class="n">foo</span><span class="o">.</span><span class="n">mpg</span>
 <span class="o">%</span> <span class="n">ffplay</span> <span class="n">bar</span><span class="o">.</span><span class="n">avi</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li>c) Use the <a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</a>
+</li>
+<li><p class="first">c) Use the <a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza.html">Pizza.py</a>
 <a class="reference external" href="http://www.sandia.gov/~sjplimp/pizza/doc/animate.html">animate tool</a>,
-which works directly on a series of image files.</li>
-</ul>
+which works directly on a series of image files.</p>
 <pre class="literal-block">
 a = animate(&quot;foo*.jpg&quot;)
 </pre>
-<ul class="simple">
-<li>d) QuickTime and other Windows- or MacOS-based media players can
+</li>
+<li><p class="first">d) QuickTime and other Windows- or MacOS-based media players can
 obviously play movie files directly. Similarly for corresponding tools
 bundled with Linux desktop environments.  However, due to licensing
 issues with some file formats, the formats may require installing
 additional libraries, purchasing a license, or may not be
-supported.</li>
+supported.</p>
+</li>
 </ul>
 <hr class="docutils" />
 <p>See <a class="reference internal" href="Section_modify.html"><span class="doc">Section 10</span></a> of the manual for information
@@ -764,6 +910,15 @@ mp4).</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dump_modify.html" class="btn btn-neutral float-right" title="dump_modify command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dump_h5md.html" class="btn btn-neutral" title="dump h5md command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

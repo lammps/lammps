@@ -32,7 +32,10 @@
   
 
   
-    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
+        <link rel="up" title="Improper Styles" href="impropers.html"/>
+        <link rel="next" title="improper_style fourier command" href="improper_fourier.html"/>
+        <link rel="prev" title="improper_style cvff command" href="improper_cvff.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,7 +74,8 @@
         
           
           
-              <ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
@@ -85,6 +89,48 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="impropers.html">Improper Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="improper_class2.html">improper_style class2 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_class2.html#improper-style-class2-omp-command">improper_style class2/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_cossq.html">improper_style cossq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_cossq.html#improper-style-cossq-omp-command">improper_style cossq/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_cvff.html">improper_style cvff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_cvff.html#improper-style-cvff-intel-command">improper_style cvff/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_cvff.html#improper-style-cvff-omp-command">improper_style cvff/omp command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">improper_style distance command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="improper_fourier.html">improper_style fourier command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_fourier.html#improper-style-fourier-omp-command">improper_style fourier/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_harmonic.html">improper_style harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_harmonic.html#improper-style-harmonic-intel-command">improper_style harmonic/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_harmonic.html#improper-style-harmonic-kk-command">improper_style harmonic/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_harmonic.html#improper-style-harmonic-omp-command">improper_style harmonic/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_hybrid.html">improper_style hybrid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_none.html">improper_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_ring.html">improper_style ring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_ring.html#improper-style-ring-omp-command">improper_style ring/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_umbrella.html">improper_style umbrella command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_umbrella.html#improper-style-umbrella-omp-command">improper_style umbrella/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_zero.html">improper_style zero command</a></li>
+</ul>
+</li>
 </ul>
 
           
@@ -109,6 +155,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
+          <li><a href="impropers.html">Improper Styles</a> &raquo;</li>
+      
     <li>improper_style distance command</li>
       <li class="wy-breadcrumbs-aside">
         
@@ -119,6 +167,15 @@
       </li>
   </ul>
   <hr/>
+  
+    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
+      
+        <a href="improper_fourier.html" class="btn btn-neutral float-right" title="improper_style fourier command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="improper_cvff.html" class="btn btn-neutral" title="improper_style cvff command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -177,6 +234,15 @@ section for more info on packages.</p>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="improper_fourier.html" class="btn btn-neutral float-right" title="improper_style fourier command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="improper_cvff.html" class="btn btn-neutral" title="improper_style cvff command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

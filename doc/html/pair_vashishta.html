@@ -32,7 +32,10 @@
   
 
   
-    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
+        <link rel="up" title="Pair Styles" href="pairs.html"/>
+        <link rel="next" title="pair_style yukawa command" href="pair_yukawa.html"/>
+        <link rel="prev" title="pair_style tri/lj command" href="pair_tri_lj.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,7 +74,8 @@
         
           
           
-              <ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
@@ -85,6 +89,386 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pairs.html">Pair Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pair_adp.html">pair_style adp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_adp.html#pair-style-adp-omp-command">pair_style adp/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html">pair_style airebo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-airebo-omp-command">pair_style airebo/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-airebo-morse-command">pair_style airebo/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-airebo-morse-omp-command">pair_style airebo/morse/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-rebo-command">pair_style rebo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-rebo-omp-command">pair_style rebo/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_awpmd.html">pair_style awpmd/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_beck.html">pair_style beck command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_beck.html#pair-style-beck-gpu-command">pair_style beck/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_beck.html#pair-style-beck-omp-command">pair_style beck/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_body.html">pair_style body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bop.html">pair_style bop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html">pair_style born command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-omp-command">pair_style born/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-gpu-command">pair_style born/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-long-command">pair_style born/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-long-cs-command">pair_style born/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-long-gpu-command">pair_style born/coul/long/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-long-omp-command">pair_style born/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-msm-command">pair_style born/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-msm-omp-command">pair_style born/coul/msm/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-wolf-command">pair_style born/coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-wolf-gpu-command">pair_style born/coul/wolf/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-wolf-omp-command">pair_style born/coul/wolf/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html">pair_style brownian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html#pair-style-brownian-omp-command">pair_style brownian/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html#pair-style-brownian-poly-command">pair_style brownian/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html#pair-style-brownian-poly-omp-command">pair_style brownian/poly/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html">pair_style buck command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-gpu-command">pair_style buck/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-intel-command">pair_style buck/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-kk-command">pair_style buck/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-omp-command">pair_style buck/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-cut-command">pair_style buck/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-cut-gpu-command">pair_style buck/coul/cut/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-cut-intel-command">pair_style buck/coul/cut/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-cut-kk-command">pair_style buck/coul/cut/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-cut-omp-command">pair_style buck/coul/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-command">pair_style buck/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-cs-command">pair_style buck/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-gpu-command">pair_style buck/coul/long/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-intel-command">pair_style buck/coul/long/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-kk-command">pair_style buck/coul/long/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-omp-command">pair_style buck/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-msm-command">pair_style buck/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-msm-omp-command">pair_style buck/coul/msm/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck_long.html">pair_style buck/long/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck_long.html#pair-style-buck-long-coul-long-omp-command">pair_style buck/long/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html">pair_style lj/charmm/coul/charmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-charmm-omp-command">pair_style lj/charmm/coul/charmm/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-charmm-implicit-command">pair_style lj/charmm/coul/charmm/implicit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-charmm-implicit-omp-command">pair_style lj/charmm/coul/charmm/implicit/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-long-command">pair_style lj/charmm/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-long-gpu-command">pair_style lj/charmm/coul/long/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-long-intel-command">pair_style lj/charmm/coul/long/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-long-opt-command">pair_style lj/charmm/coul/long/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-long-omp-command">pair_style lj/charmm/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-msm-command">pair_style lj/charmm/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-msm-omp-command">pair_style lj/charmm/coul/msm/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html">pair_style lj/class2 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-gpu-command">pair_style lj/class2/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-kk-command">pair_style lj/class2/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-omp-command">pair_style lj/class2/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-cut-command">pair_style lj/class2/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-cut-kk-command">pair_style lj/class2/coul/cut/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-cut-omp-command">pair_style lj/class2/coul/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-long-command">pair_style lj/class2/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-long-gpu-command">pair_style lj/class2/coul/long/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-long-kk-command">pair_style lj/class2/coul/long/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-long-omp-command">pair_style lj/class2/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_colloid.html">pair_style colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_colloid.html#pair-style-colloid-gpu-command">pair_style colloid/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_colloid.html#pair-style-colloid-omp-command">pair_style colloid/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_comb.html">pair_style comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_comb.html#pair-style-comb-omp-command">pair_style comb/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_comb.html#pair-style-comb3-command">pair_style comb3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html">pair_style coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-cut-gpu-command">pair_style coul/cut/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-cut-kk-command">pair_style coul/cut/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-cut-omp-command">pair_style coul/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-debye-command">pair_style coul/debye command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-debye-gpu-command">pair_style coul/debye/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-debye-kk-command">pair_style coul/debye/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-debye-omp-command">pair_style coul/debye/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-dsf-command">pair_style coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-dsf-gpu-command">pair_style coul/dsf/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-dsf-kk-command">pair_style coul/dsf/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-dsf-omp-command">pair_style coul/dsf/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-long-command">pair_style coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-long-cs-command">pair_style coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-long-omp-command">pair_style coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-long-gpu-command">pair_style coul/long/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-long-kk-command">pair_style coul/long/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-msm-command">pair_style coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-msm-omp-command">pair_style coul/msm/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-streitz-command">pair_style coul/streitz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-wolf-command">pair_style coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-wolf-kk-command">pair_style coul/wolf/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-wolf-omp-command">pair_style coul/wolf/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-cut-command">pair_style tip4p/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-long-command">pair_style tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-cut-omp-command">pair_style tip4p/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-long-omp-command">pair_style tip4p/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_diel.html">pair_style coul/diel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_diel.html#pair-style-coul-diel-omp-command">pair_style coul/diel/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html">pair_style born/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-buck-coul-long-cs-command">pair_style buck/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html">pair_style lj/cut/dipole/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-cut-dipole-cut-gpu-command">pair_style lj/cut/dipole/cut/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-cut-dipole-cut-omp-command">pair_style lj/cut/dipole/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-sf-dipole-sf-command">pair_style lj/sf/dipole/sf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-sf-dipole-sf-gpu-command">pair_style lj/sf/dipole/sf/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-sf-dipole-sf-omp-command">pair_style lj/sf/dipole/sf/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-cut-dipole-long-command">pair_style lj/cut/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-long-dipole-long-command">pair_style lj/long/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html">pair_style dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html#pair-style-dpd-gpu-command">pair_style dpd/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html#pair-style-dpd-omp-command">pair_style dpd/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html#pair-style-dpd-tstat-command">pair_style dpd/tstat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html#pair-style-dpd-tstat-gpu-command">pair_style dpd/tstat/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html#pair-style-dpd-tstat-omp-command">pair_style dpd/tstat/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_fdt.html">pair_style dpd/fdt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_fdt.html#pair-style-dpd-fdt-energy-command">pair_style dpd/fdt/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dsmc.html">pair_style dsmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html">pair_style eam command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-gpu-command">pair_style eam/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-kk-command">pair_style eam/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-omp-command">pair_style eam/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-opt-command">pair_style eam/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-alloy-command">pair_style eam/alloy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-alloy-gpu-command">pair_style eam/alloy/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-alloy-kk-command">pair_style eam/alloy/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-alloy-omp-command">pair_style eam/alloy/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-alloy-opt-command">pair_style eam/alloy/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-cd-command">pair_style eam/cd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-cd-omp-command">pair_style eam/cd/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-fs-command">pair_style eam/fs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-fs-gpu-command">pair_style eam/fs/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-fs-kk-command">pair_style eam/fs/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-fs-omp-command">pair_style eam/fs/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-fs-opt-command">pair_style eam/fs/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_edip.html">pair_style edip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eff.html">pair_style eff/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eim.html">pair_style eim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eim.html#pair-style-eim-omp-command">pair_style eim/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_exp6_rx.html">pair_style exp6/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html">pair_style gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html#pair-style-gauss-gpu-command">pair_style gauss/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html#pair-style-gauss-omp-command">pair_style gauss/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html#pair-style-gauss-cut-command">pair_style gauss/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html#pair-style-gauss-cut-omp-command">pair_style gauss/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gayberne.html">pair_style gayberne command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gayberne.html#pair-style-gayberne-gpu-command">pair_style gayberne/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gayberne.html#pair-style-gayberne-intel-command">pair_style gayberne/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gayberne.html#pair-style-gayberne-omp-command">pair_style gayberne/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html">pair_style gran/hooke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-omp-command">pair_style gran/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hooke-history-command">pair_style gran/hooke/history command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hooke-history-omp-command">pair_style gran/hooke/history/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hertz-history-command">pair_style gran/hertz/history command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hertz-history-omp-command">pair_style gran/hertz/history/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html">pair_style lj/gromacs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html#pair-style-lj-gromacs-gpu-command">pair_style lj/gromacs/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html#pair-style-lj-gromacs-omp-command">pair_style lj/gromacs/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html#pair-style-lj-gromacs-coul-gromacs-command">pair_style lj/gromacs/coul/gromacs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html#pair-style-lj-gromacs-coul-gromacs-omp-command">pair_style lj/gromacs/coul/gromacs/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html">pair_style hbond/dreiding/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-lj-omp-command">pair_style hbond/dreiding/lj/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-morse-command">pair_style hbond/dreiding/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-morse-omp-command">pair_style hbond/dreiding/morse/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html">pair_style hybrid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-omp-command">pair_style hybrid/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-overlay-command">pair_style hybrid/overlay command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-overlay-omp-command">pair_style hybrid/overlay/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_kim.html">pair_style kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lcbop.html">pair_style lcbop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_line_lj.html">pair_style line/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_list.html">pair_style list command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html">pair_style lj/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-gpu-command">pair_style lj/cut/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-intel-command">pair_style lj/cut/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-kk-command">pair_style lj/cut/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-opt-command">pair_style lj/cut/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-omp-command">pair_style lj/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-cut-command">pair_style lj/cut/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-cut-gpu-command">pair_style lj/cut/coul/cut/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-cut-omp-command">pair_style lj/cut/coul/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-debye-command">pair_style lj/cut/coul/debye command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-debye-gpu-command">pair_style lj/cut/coul/debye/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-debye-kk-command">pair_style lj/cut/coul/debye/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-debye-omp-command">pair_style lj/cut/coul/debye/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-dsf-command">pair_style lj/cut/coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-dsf-gpu-command">pair_style lj/cut/coul/dsf/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-dsf-kk-command">pair_style lj/cut/coul/dsf/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-dsf-omp-command">pair_style lj/cut/coul/dsf/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-long-command">pair_style lj/cut/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-long-cs-command">pair_style lj/cut/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-long-gpu-command">pair_style lj/cut/coul/long/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-long-intel-command">pair_style lj/cut/coul/long/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-long-opt-command">pair_style lj/cut/coul/long/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-long-omp-command">pair_style lj/cut/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-msm-command">pair_style lj/cut/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-msm-gpu-command">pair_style lj/cut/coul/msm/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-coul-msm-omp-command">pair_style lj/cut/coul/msm/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-tip4p-cut-command">pair_style lj/cut/tip4p/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-tip4p-cut-omp-command">pair_style lj/cut/tip4p/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-tip4p-long-command">pair_style lj/cut/tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-tip4p-long-omp-command">pair_style lj/cut/tip4p/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html#pair-style-lj-cut-tip4p-long-opt-command">pair_style lj/cut/tip4p/long/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj96.html">pair_style lj96/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj96.html#pair-style-lj96-cut-gpu-command">pair_style lj96/cut/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj96.html#pair-style-lj96-cut-omp-command">pair_style lj96/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cubic.html">pair_style lj/cubic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cubic.html#pair-style-lj-cubic-gpu-command">pair_style lj/cubic/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cubic.html#pair-style-lj-cubic-omp-command">pair_style lj/cubic/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand.html">pair_style lj/expand command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand.html#pair-style-lj-expand-gpu-command">pair_style lj/expand/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand.html#pair-style-lj-expand-omp-command">pair_style lj/expand/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html">pair_style lj/long/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html#pair-style-lj-long-coul-long-omp-command">pair_style lj/long/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html#pair-style-lj-long-coul-long-opt-command">pair_style lj/long/coul/long/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html#pair-style-lj-long-tip4p-long-command">pair_style lj/long/tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_sf.html">pair_style lj/sf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_sf.html#pair-style-lj-sf-omp-command">pair_style lj/sf/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth.html">pair_style lj/smooth command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth.html#pair-style-lj-smooth-omp-command">pair_style lj/smooth/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth_linear.html">pair_style lj/smooth/linear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth_linear.html#pair-style-lj-smooth-linear-omp-command">pair_style lj/smooth/linear/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html">pair_style lj/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-cut-soft-omp-command">pair_style lj/cut/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-cut-coul-cut-soft-command">pair_style lj/cut/coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-cut-coul-cut-soft-omp-command">pair_style lj/cut/coul/cut/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-cut-coul-long-soft-command">pair_style lj/cut/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-cut-coul-long-soft-omp-command">pair_style lj/cut/coul/long/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-cut-tip4p-long-soft-command">pair_style lj/cut/tip4p/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-cut-tip4p-long-soft-omp-command">pair_style lj/cut/tip4p/long/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-charmm-coul-long-soft-command">pair_style lj/charmm/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-lj-charmm-coul-long-soft-omp-command">pair_style lj/charmm/coul/long/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-coul-cut-soft-command">pair_style coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-coul-cut-soft-omp-command">pair_style coul/cut/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-coul-long-soft-command">pair_style coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-coul-long-soft-omp-command">pair_style coul/long/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-tip4p-long-soft-command">pair_style tip4p/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_soft.html#pair-style-tip4p-long-soft-omp-command">pair_style tip4p/long/soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html">pair_style lubricate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html#pair-style-lubricate-omp-command">pair_style lubricate/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html#pair-style-lubricate-poly-command">pair_style lubricate/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html#pair-style-lubricate-poly-omp-command">pair_style lubricate/poly/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricateU.html">pair_style lubricateU command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricateU.html#pair-style-lubricateu-poly-command">pair_style lubricateU/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html">pair_style lj/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html#pair-style-buck-mdf-command">pair_style buck/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html#pair-style-lennard-mdf-command">pair_style lennard/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam.html">pair_style meam command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_spline.html">pair_style meam/spline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_spline.html#pair-style-meam-spline-omp">pair_style meam/spline/omp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_sw_spline.html">pair_style meam/sw/spline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_sw_spline.html#pair-style-meam-sw-spline-omp">pair_style meam/sw/spline/omp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mgpt.html">pair_style mgpt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mie.html">pair_style mie/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mie.html#pair-style-mie-cut-gpu-command">pair_style mie/cut/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html">pair_style morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-gpu-command">pair_style morse/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-omp-command">pair_style morse/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-opt-command">pair_style morse/opt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-smooth-linear-command">pair_style morse/smooth/linear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-smooth-linear-omp-command">pair_style morse/smooth/linear/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-soft-command">pair_style morse/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_multi_lucy.html">pair_style multi/lucy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_multi_lucy_rx.html">pair_style multi/lucy/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nb3b_harmonic.html">pair_style nb3b/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nb3b_harmonic.html#pair-style-nb3b-harmonic-omp-command">pair_style nb3b/harmonic/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html">pair_style nm/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-cut-command">pair_style nm/cut/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-long-command">pair_style nm/cut/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-omp-command">pair_style nm/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-cut-omp-command">pair_style nm/cut/coul/cut/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-long-omp-command">pair_style nm/cut/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_none.html">pair_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html">pair_style peri/pmb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-pmb-omp-command">pair_style peri/pmb/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-lps-command">pair_style peri/lps command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-lps-omp-command">pair_style peri/lps/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-ves-command">pair_style peri/ves command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-eps-command">pair_style peri/eps command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_polymorphic.html">pair_style polymorphic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_quip.html">pair_style quip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_reax.html">pair_style reax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_reax_c.html">pair_style reax/c command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_reax_c.html#pair-style-reax-c-kk-command">pair_style reax/c/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_resquared.html">pair_style resquared command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_resquared.html#pair-style-resquared-gpu-command">pair_style resquared/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_resquared.html#pair-style-resquared-omp-command">pair_style resquared/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdk.html">pair_style lj/sdk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdk.html#pair-style-lj-sdk-gpu-command">pair_style lj/sdk/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdk.html#pair-style-lj-sdk-kk-command">pair_style lj/sdk/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdk.html#pair-style-lj-sdk-omp-command">pair_style lj/sdk/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdk.html#pair-style-lj-sdk-coul-long-command">pair_style lj/sdk/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdk.html#pair-style-lj-sdk-coul-long-gpu-command">pair_style lj/sdk/coul/long/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdk.html#pair-style-lj-sdk-coul-long-omp-command">pair_style lj/sdk/coul/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_hertz.html">pair_style smd/hertz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_tlsph.html">pair_style smd/tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_triangulated_surface.html">pair_style smd/tri_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_ulsph.html">pair_style smd/ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smtbq.html">pair_style smtbq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_snap.html">pair_style snap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_soft.html">pair_style soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_soft.html#pair-style-soft-gpu-command">pair_style soft/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_soft.html#pair-style-soft-omp-command">pair_style soft/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_heatconduction.html">pair_style sph/heatconduction command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_idealgas.html">pair_style sph/idealgas command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_lj.html">pair_style sph/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_rhosum.html">pair_style sph/rhosum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_taitwater.html">pair_style sph/taitwater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_taitwater_morris.html">pair_style sph/taitwater/morris command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_srp.html">pair_style srp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html">pair_style sw command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html#pair-style-sw-gpu-command">pair_style sw/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html#pair-style-sw-intel-command">pair_style sw/intel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html#pair-style-sw-kk-command">pair_style sw/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html#pair-style-sw-omp-command">pair_style sw/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table.html">pair_style table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table.html#pair-style-table-gpu-command">pair_style table/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table.html#pair-style-table-kk-command">pair_style table/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table.html#pair-style-table-omp-command">pair_style table/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table_rx.html">pair_style table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html">pair_style tersoff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-table-command">pair_style tersoff/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-gpu">pair_style tersoff/gpu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-intel">pair_style tersoff/intel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-kk">pair_style tersoff/kk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-omp">pair_style tersoff/omp</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-table-omp-command">pair_style tersoff/table/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html">pair_style tersoff/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html#pair-style-tersoff-mod-gpu-command">pair_style tersoff/mod/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html#pair-style-tersoff-mod-kk-command">pair_style tersoff/mod/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html#pair-style-tersoff-mod-omp-command">pair_style tersoff/mod/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_zbl.html">pair_style tersoff/zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_zbl.html#pair-style-tersoff-zbl-gpu-command">pair_style tersoff/zbl/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_zbl.html#pair-style-tersoff-zbl-kk-command">pair_style tersoff/zbl/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_zbl.html#pair-style-tersoff-zbl-omp-command">pair_style tersoff/zbl/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_thole.html">pair_style thole command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_thole.html#pair-style-lj-cut-thole-long-command">pair_style lj/cut/thole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_thole.html#pair-style-lj-cut-thole-long-omp-command">pair_style lj/cut/thole/long/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pair_style vashishta command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-vashishta-omp-command">pair_style vashishta/omp command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-gpu-command">pair_style yukawa/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html#pair-style-yukawa-omp-command">pair_style yukawa/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa_colloid.html">pair_style yukawa/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa_colloid.html#pair-style-yukawa-colloid-gpu-command">pair_style yukawa/colloid/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa_colloid.html#pair-style-yukawa-colloid-omp-command">pair_style yukawa/colloid/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zbl.html">pair_style zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zbl.html#pair-style-zbl-gpu-command">pair_style zbl/gpu command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zbl.html#pair-style-zbl-omp-command">pair_style zbl/omp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zero.html">pair_style zero command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -109,6 +493,8 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
+          <li><a href="pairs.html">Pair Styles</a> &raquo;</li>
+      
     <li>pair_style vashishta command</li>
       <li class="wy-breadcrumbs-aside">
         
@@ -119,6 +505,15 @@
       </li>
   </ul>
   <hr/>
+  
+    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
+      
+        <a href="pair_yukawa.html" class="btn btn-neutral float-right" title="pair_style yukawa command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pair_tri_lj.html" class="btn btn-neutral" title="pair_style tri/lj command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -323,6 +718,15 @@ appropriate units if your simulation doesn&#8217;t use &#8220;metal&#8221; units
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pair_yukawa.html" class="btn btn-neutral float-right" title="pair_style yukawa command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pair_tri_lj.html" class="btn btn-neutral" title="pair_style tri/lj command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

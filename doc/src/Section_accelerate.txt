@@ -157,11 +157,25 @@ packages"_Section_packages.html.
 These are the accelerator packages
 currently in LAMMPS, either as standard or user packages:
 
-"GPU Package"_accelerate_gpu.html with CUDA and OpenCL support for Nvidia GPUs and others :h5
-"USER-INTEL Package"_accelerate_intel.html for Intel CPUs and Intel Xeon Phi :h5
-"KOKKOS Package"_accelerate_kokkos.html for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading :h5
-"USER-OMP Package "_accelerate_omp.html for OpenMP threading and generic CPU optimizations :h5
-"OPT Package"_accelerate_opt.html generic CPU optimizations :h5
+"GPU Package"_accelerate_gpu.html : for NVIDIA GPUs as well as OpenCL support
+"USER-INTEL Package"_accelerate_intel.html : for Intel CPUs and Intel Xeon Phi
+"KOKKOS Package"_accelerate_kokkos.html : for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading
+"USER-OMP Package"_accelerate_omp.html : for OpenMP threading and generic CPU optimizations
+"OPT Package"_accelerate_opt.html : generic CPU optimizations :tb(s=:)
+
+<!-- RST
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   accelerate_gpu
+   accelerate_intel
+   accelerate_kokkos
+   accelerate_omp
+   accelerate_opt
+
+END_RST -->
 
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:

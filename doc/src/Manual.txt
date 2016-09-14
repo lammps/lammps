@@ -69,7 +69,7 @@ Labs and Temple University:
 Aidan Thompson, athomps at sandia.gov :l
 Stan Moore, stamoore at sandia.gov :l
 "Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
-:ulb
+:ule
 
 Past core developers include Paul Crozier, Ray Shan and Mark Stevens,
 all at Sandia. The [LAMMPS home page] at
@@ -106,6 +106,9 @@ it gives quick access to documentation for all LAMMPS commands.
 .. toctree::
    :maxdepth: 2
    :numbered:
+   :caption: User Documentation
+   :name: userdoc
+   :includehidden:
    
    Section_intro
    Section_start
@@ -121,6 +124,20 @@ it gives quick access to documentation for all LAMMPS commands.
    Section_errors
    Section_history
 
+.. toctree::
+   :caption: Index
+   :name: index
+   :hidden:
+
+   tutorials
+   commands
+   fixes
+   computes
+   pairs
+   bonds
+   angles
+   dihedrals
+   impropers
 
 Indices and tables
 ==================

@@ -138,26 +138,43 @@
 <li>thresh = imbalance threshhold that must be exceeded to perform a re-balance</li>
 <li>style = <em>shift</em> or <em>rcb</em></li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">shift</span> <span class="n">args</span> <span class="o">=</span> <span class="n">dimstr</span> <span class="n">Niter</span> <span class="n">stopthresh</span>
-  <span class="n">dimstr</span> <span class="o">=</span> <span class="n">sequence</span> <span class="n">of</span> <span class="n">letters</span> <span class="n">containing</span> <span class="s2">&quot;x&quot;</span> <span class="ow">or</span> <span class="s2">&quot;y&quot;</span> <span class="ow">or</span> <span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">each</span> <span class="ow">not</span> <span class="n">more</span> <span class="n">than</span> <span class="n">once</span>
-  <span class="n">Niter</span> <span class="o">=</span> <span class="c1"># of times to iterate within each dimension of dimstr sequence</span>
-  <span class="n">stopthresh</span> <span class="o">=</span> <span class="n">stop</span> <span class="n">balancing</span> <span class="n">when</span> <span class="n">this</span> <span class="n">imbalance</span> <span class="n">threshhold</span> <span class="ow">is</span> <span class="n">reached</span>
-<span class="n">rcb</span> <span class="n">args</span> <span class="o">=</span> <span class="n">none</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+shift args = dimstr Niter stopthresh
+  dimstr = sequence of letters containing &quot;x&quot; or &quot;y&quot; or &quot;z&quot;, each not more than once
+  Niter = # of times to iterate within each dimension of dimstr sequence
+  stopthresh = stop balancing when this imbalance threshhold is reached
+<em>rcb</em> args = none
+</pre>
 <ul class="simple">
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>out</em></li>
+<li>zero or more optional keywords with their respective arguments may be appended</li>
+<li>keyword = <em>out</em> or <em>weight</em></li>
 </ul>
 <pre class="literal-block">
-<em>out</em> value = filename
-  filename = write each processor's sub-domain to a file, at each re-balancing
+<em>out</em> arg = filename
+  filename = write each processor's sub-domain to a file
+<em>weight</em> style args = use weighted atom counts to compute the per processor load
+  <em>style</em> = <em>group</em> or <em>neigh</em> or <em>time</em> or <em>var</em> or <em>store</em>
+    <em>group</em> args = Ngroup groupID-1 weight-1 groupID-2 weight-2...
+      Ngroup = number of groups with assigned weights
+      groupID-1, groupID-2, ... = group names
+      weight-1, weight-2, ...   = corresponding weight factors
+    <em>neigh</em> factor = compute weight based on number of neighbors
+      factor = scaling factor (&gt; 0)
+    <em>time</em> factor = compute weight based on time spend computing
+      factor = scaling factor (&gt; 0)
+    <em>var</em> name = take weight from atom-style variable
+      name = name of the atom style variable
+    <em>store</em> name = store weight in custom atom property
+      name = name of the atom property (without d_ prefix)
 </pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">balance</span> <span class="mi">1000</span> <span class="mf">1.05</span> <span class="n">shift</span> <span class="n">x</span> <span class="mi">10</span> <span class="mf">1.05</span>
 <span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">balance</span> <span class="mi">100</span> <span class="mf">0.9</span> <span class="n">shift</span> <span class="n">xy</span> <span class="mi">20</span> <span class="mf">1.1</span> <span class="n">out</span> <span class="n">tmp</span><span class="o">.</span><span class="n">balance</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">balance</span> <span class="mi">100</span> <span class="mf">0.9</span> <span class="n">shift</span> <span class="n">xy</span> <span class="mi">20</span> <span class="mf">1.1</span> <span class="n">weight</span> <span class="n">group</span> <span class="mi">3</span> <span class="n">substrate</span> <span class="mf">3.0</span> <span class="n">solvent</span> <span class="mf">1.0</span> <span class="n">solute</span> <span class="mf">0.8</span> <span class="n">out</span> <span class="n">tmp</span><span class="o">.</span><span class="n">balance</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">balance</span> <span class="mi">100</span> <span class="mf">1.0</span> <span class="n">shift</span> <span class="n">x</span> <span class="mi">10</span> <span class="mf">1.1</span> <span class="n">weight</span> <span class="n">time</span> <span class="mf">0.8</span>
+<span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">balance</span> <span class="mi">100</span> <span class="mf">1.0</span> <span class="n">shift</span> <span class="n">xy</span> <span class="mi">5</span> <span class="mf">1.1</span> <span class="n">weight</span> <span class="n">var</span> <span class="n">myweight</span> <span class="n">weight</span> <span class="n">neigh</span> <span class="mf">0.6</span> <span class="n">weight</span> <span class="n">store</span> <span class="n">allweight</span>
 <span class="n">fix</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">balance</span> <span class="mi">1000</span> <span class="mf">1.1</span> <span class="n">rcb</span>
 </pre></div>
 </div>
@@ -171,14 +188,54 @@ processors.  The load balancing is &#8220;dynamic&#8221; in the sense that
 rebalancing is performed periodically during the simulation.  To
 perform &#8220;static&#8221; balancing, before or between runs, see the
 <a class="reference internal" href="balance.html"><span class="doc">balance</span></a> command.</p>
-<p>Load-balancing is typically only useful if the particles in the
-simulation box have a spatially-varying density distribution.  E.g. a
-model of a vapor/liquid interface, or a solid with an irregular-shaped
-geometry containing void regions.  In this case, the LAMMPS default of
-dividing the simulation box volume into a regular-spaced grid of 3d
-bricks, with one equal-volume sub-domain per processor, may assign
-very different numbers of particles per processor.  This can lead to
-poor performance when the simulation is run in parallel.</p>
+<p>With the optional <em>weight</em> keyword different weight factors can be
+assigned to particles according several styles and balancing will
+be performed on the weighted particle counts. Multiple weight
+styles may be given and they are processed in order by multiplying
+the existing weight factor, which defaults to 1.0 with the newly
+computed weight factor. The <em>store</em> weight style is an exception,
+as does not compute a weight, but instead stores the current
+accumulated weights in a custom per-atom property defined with
+<a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>.</p>
+<p>The <em>group</em> weight style assigns fixed weight factors according
+to which group atoms belong to. The <em>group</em> style keyword is
+followed by the number of groups with custom weights
+(default weight is 1.0) and pairs of group ID and the corresponding
+weight factor. The final weight for each atom is the product of
+all individual weight factors from the groups it belongs to.
+An atom with a total weight of 5 then be will be considered to
+have 5x the computational cost than an atom with the default weight
+of 1.0.</p>
+<p>The <em>neigh</em> weight style assigns weights computed from the number
+of neighbors divided by the avergage number of neighbors. The
+scaling factor argument determines the relative impact of this
+weight factor. This weight style will use the first suitable neighbor
+list that is internally available and by inactive and print a
+warning, if there is not suitable list available. This is typically
+the case before the first <a class="reference internal" href="run.html"><span class="doc">run</span></a> or <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a>
+command is issued.</p>
+<p>The <em>time</em> weight style allows to incorporate <a class="reference internal" href="timer.html"><span class="doc">timer data</span></a>
+into the load balancing cost function. The required weight factor
+rgument (a number &gt; 0) determines to which degree timing information
+is included. The timer information is taken from the preceding run.
+If no such information is available, e.g. at the beginning of an input,
+of when the <a class="reference internal" href="timer.html"><span class="doc">timer</span></a> level is set to either <em>loop</em> or <em>off</em>,
+this style is ignored.</p>
+<p>The <em>var</em> weight style allows to set per-atom weights from an
+atom-style <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> into the load balancing cost
+function.</p>
+<p>Load-balancing is typically most useful if the particles in the
+simulation box have a spatially-varying density distribution or
+where the computational cost varies signficantly between different
+atoms. E.g. a model of a vapor/liquid interface, or a solid with
+an irregular-shaped geometry containing void regions, or
+<a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid pair style simulations</span></a> which combine
+pair styles with different computational cost.  In these cases, the
+LAMMPS default of dividing the simulation box volume into a
+regular-spaced grid of 3d bricks, with one equal-volume sub-domain
+per procesor, may assign numbers of particles per processor in a
+way that the computational effort varies significantly.  This can
+lead to poor performance when the simulation is run in parallel.</p>
 <p>Note that the <a class="reference internal" href="processors.html"><span class="doc">processors</span></a> command allows some control
 over how the box volume is split across processors.  Specifically, for
 a Px by Py by Pz grid of processors, it allows choice of Px, Py, and
@@ -268,8 +325,9 @@ applied.</p>
                 </a><p>The <em>rcb</em> style is a &#8220;tiling&#8221; method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
 rectangular sub-boxes of varying size and shape in an irregular
-fashion so as to have equal numbers of particles in each sub-box, as
-in the rightmost diagram above.</p>
+fashion so as to have equal numbers of particles (or an equal
+load in case weighted load-balancing is requested) in each sub-box,
+as in the rightmost diagram above.</p>
 <p>The &#8220;grid&#8221; methods can be used with either of the
 <a class="reference internal" href="comm_style.html"><span class="doc">comm_style</span></a> command options, <em>brick</em> or <em>tiled</em>.  The
 &#8220;tiling&#8221; methods can only be used with <a class="reference internal" href="comm_style.html"><span class="doc">comm_style tiled</span></a>.</p>
@@ -284,12 +342,10 @@ for the balancing operation.</p>
 (&#8220;grid&#8221; or &#8220;tiled&#8221;) is ignored, and a new partitioning is computed
 from scratch.</p>
 <hr class="docutils" />
-<p>The <em>group-ID</em> is currently ignored.  In the future it may be used to
-determine what particles are considered for balancing.  Normally it
-would only makes sense to use the <em>all</em> group.  But in some cases it
-may be useful to balance on a subset of the particles, e.g. when
-modeling large nanoparticles in a background of small solvent
-particles.</p>
+<p>The <em>group-ID</em> is currently ignored. Load-balancing will always affect
+all atoms. However the different impact of different groups of atoms in
+a simulation can be considered through the <em>group</em> weight style and
+assigning different weight factors != 1.0 to atoms in these groups.</p>
 <p>The <em>Nfreq</em> setting determines how often a rebalance is performed.  If
 <em>Nfreq</em> &gt; 0, then rebalancing will occur every <em>Nfreq</em> steps.  Each
 time a rebalance occurs, a reneighboring is triggered, so <em>Nfreq</em>
@@ -361,7 +417,7 @@ than <em>Niter</em> and exit early.</p>
 <hr class="docutils" />
 <p>The <em>rcb</em> style invokes a &#8220;tiled&#8221; method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
-simulation domain.  The basic idea is as follows.</p>
+simulation domain. The basic idea is as follows.</p>
 <p>The simulation domain is cut into 2 boxes by an axis-aligned cut in
 the longest dimension, leaving one new box on either side of the cut.
 All the processors are also partitioned into 2 groups, half assigned
@@ -446,8 +502,8 @@ values in the vector are as follows:</p>
 <li>3 = imbalance factor right before the last rebalance was performed</li>
 </ul>
 <p>As explained above, the imbalance factor is the ratio of the maximum
-number of particles on any processor to the average number of
-particles per processor.</p>
+number of particles (or total weight) on any processor to the average
+number of particles (or total weight) per processor.</p>
 <p>These quantities can be accessed by various <a class="reference internal" href="Section_howto.html#howto-15"><span class="std std-ref">output commands</span></a>.  The scalar and vector values
 calculated by this fix are &#8220;intensive&#8221;.</p>
 <p>No parameter of this fix can be used with the <em>start/stop</em> keywords of
@@ -456,12 +512,12 @@ the <a class="reference internal" href="run.html"><span class="doc">run</span></
 <hr class="docutils" />
 <div class="section" id="restrictions">
 <h2>Restrictions</h2>
-<p>For 2d simulations, a &#8220;z&#8221; cannot appear in <em>dimstr</em> for the <em>shift</em>
-style.</p>
+<p>For 2d simulations, the <em>z</em> style cannot be used.  Nor can a &#8220;z&#8221;
+appear in <em>dimstr</em> for the <em>shift</em> style.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="processors.html"><span class="doc">processors</span></a>, <a class="reference internal" href="balance.html"><span class="doc">balance</span></a></p>
+<p><a class="reference internal" href="group.html"><span class="doc">group</span></a>, <a class="reference internal" href="processors.html"><span class="doc">processors</span></a>, <a class="reference internal" href="balance.html"><span class="doc">balance</span></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>

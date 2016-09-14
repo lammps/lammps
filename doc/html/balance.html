@@ -156,12 +156,26 @@
 <em>rcb</em> args = none
 </pre>
 <ul class="simple">
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>out</em></li>
+<li>zero or more optional keywords with their respective arguments may be appended</li>
+<li>keyword = <em>out</em> or <em>weight</em></li>
 </ul>
 <pre class="literal-block">
-<em>out</em> value = filename
+<em>out</em> arg = filename
   filename = write each processor's sub-domain to a file
+<em>weight</em> style args = use weighted atom counts to compute the per processor load
+  <em>style</em> = <em>group</em> or <em>neigh</em> or <em>time</em> or <em>var</em> or <em>store</em>
+    <em>group</em> args = Ngroup groupID-1 weight-1 groupID-2 weight-2...
+      Ngroup = number of groups with assigned weights
+      groupID-1, groupID-2, ... = group names
+      weight-1, weight-2, ...   = corresponding weight factors
+    <em>neigh</em> factor = compute weight based on number of neighbors
+      factor = scaling factor (&gt; 0)
+    <em>time</em> factor = compute weight based on time spend computing
+      factor = scaling factor (&gt; 0)
+    <em>var</em> name = take weight from atom-style variable
+      name = name of the atom style variable
+    <em>store</em> name = store weight in custom atom property
+      name = name of the atom property (without d_ prefix)
 </pre>
 </div>
 <div class="section" id="examples">
@@ -170,6 +184,8 @@
 <span class="n">balance</span> <span class="mf">1.2</span> <span class="n">shift</span> <span class="n">xz</span> <span class="mi">5</span> <span class="mf">1.1</span>
 <span class="n">balance</span> <span class="mf">1.0</span> <span class="n">shift</span> <span class="n">xz</span> <span class="mi">5</span> <span class="mf">1.1</span>
 <span class="n">balance</span> <span class="mf">1.1</span> <span class="n">rcb</span>
+<span class="n">balance</span> <span class="mf">1.0</span> <span class="n">shift</span> <span class="n">x</span> <span class="mi">10</span> <span class="mf">1.1</span> <span class="n">weight</span> <span class="n">group</span> <span class="mi">2</span> <span class="n">fast</span> <span class="mf">0.5</span> <span class="n">slow</span> <span class="mf">2.0</span>
+<span class="n">balance</span> <span class="mf">1.0</span> <span class="n">shift</span> <span class="n">x</span> <span class="mi">10</span> <span class="mf">1.1</span> <span class="n">weight</span> <span class="n">time</span> <span class="mf">0.8</span> <span class="n">weight</span> <span class="n">neigh</span> <span class="mf">0.5</span> <span class="n">weight</span> <span class="n">store</span> <span class="n">balance</span>
 <span class="n">balance</span> <span class="mf">1.0</span> <span class="n">shift</span> <span class="n">x</span> <span class="mi">20</span> <span class="mf">1.0</span> <span class="n">out</span> <span class="n">tmp</span><span class="o">.</span><span class="n">balance</span>
 </pre></div>
 </div>
@@ -178,20 +194,61 @@
 <h2>Description</h2>
 <p>This command adjusts the size and shape of processor sub-domains
 within the simulation box, to attempt to balance the number of
-particles and thus the computational cost (load) evenly across
-processors.  The load balancing is &#8220;static&#8221; in the sense that this
-command performs the balancing once, before or between simulations.
+particles and thus indirectly the computational cost (load)
+more evenly across processors.  The load balancing is &#8220;static&#8221;
+in the sense that this command performs the balancing once, before
+or between simulations.
 The processor sub-domains will then remain static during the
 subsequent run.  To perform &#8220;dynamic&#8221; balancing, see the <a class="reference internal" href="fix_balance.html"><span class="doc">fix balance</span></a> command, which can adjust processor
 sub-domain sizes and shapes on-the-fly during a <a class="reference internal" href="run.html"><span class="doc">run</span></a>.</p>
-<p>Load-balancing is typically only useful if the particles in the
-simulation box have a spatially-varying density distribution.  E.g. a
-model of a vapor/liquid interface, or a solid with an irregular-shaped
-geometry containing void regions.  In this case, the LAMMPS default of
-dividing the simulation box volume into a regular-spaced grid of 3d
-bricks, with one equal-volume sub-domain per procesor, may assign very
-different numbers of particles per processor.  This can lead to poor
-performance when the simulation is run in parallel.</p>
+<p>With the optional <em>weight</em> keyword different weight factors can be
+assigned to particles according several styles and balancing will
+be performed on the weighted particle counts. Multiple weight
+styles may be given and they are processed in order by multiplying
+the existing weight factor, which defaults to 1.0 with the newly
+computed weight factor. The <em>store</em> weight style is an exception,
+as does not compute a weight, but instead stores the current
+accumulated weights in a custom per-atom property defined with
+<a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>.</p>
+<p>The <em>group</em> weight style assigns fixed weight factors according
+to which group atoms belong to. The <em>group</em> style keyword is
+followed by the number of groups with custom weights
+(default weight is 1.0) and pairs of group ID and the corresponding
+weight factor. The final weight for each atom is the product of
+all individual weight factors from the groups it belongs to.
+An atom with a total weight of 5 then be will be considered to
+have 5x the computational cost than an atom with the default weight
+of 1.0.</p>
+<p>The <em>neigh</em> weight style assigns weights computed from the number
+of neighbors divided by the avergage number of neighbors. The
+scaling factor argument determines the relative impact of this
+weight factor. This weight style will use the first suitable neighbor
+list that is internally available and by inactive and print a
+warning, if there is not suitable list available. This is typically
+the case before the first <a class="reference internal" href="run.html"><span class="doc">run</span></a> or <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a>
+command is issued.</p>
+<p>The <em>time</em> weight style allows to incorporate <a class="reference internal" href="timer.html"><span class="doc">timer data</span></a>
+into the load balancing cost function. The required weight factor
+rgument (a number &gt; 0) determines to which degree timing information
+is included. The timer information is taken from the preceding run.
+If no such information is available, e.g. at the beginning of an input,
+of when the <a class="reference internal" href="timer.html"><span class="doc">timer</span></a> level is set to either <em>loop</em> or <em>off</em>,
+this style is ignored.</p>
+<p>The <em>var</em> weight style allows to set per-atom weights from an
+atom-style <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> into the load balancing cost
+function.</p>
+<p>Load-balancing is typically most useful if the particles in the
+simulation box have a spatially-varying density distribution or
+where the computational cost varies signficantly between different
+atoms. E.g. a model of a vapor/liquid interface, or a solid with
+an irregular-shaped geometry containing void regions, or
+<a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid pair style simulations</span></a> which combine
+pair styles with different computational cost.  In these cases, the
+LAMMPS default of dividing the simulation box volume into a
+regular-spaced grid of 3d bricks, with one equal-volume sub-domain
+per procesor, may assign numbers of particles per processor in a
+way that the computational effort varies significantly.  This can
+lead to poor performance when the simulation is run in parallel.</p>
 <p>Note that the <a class="reference internal" href="processors.html"><span class="doc">processors</span></a> command allows some control
 over how the box volume is split across processors.  Specifically, for
 a Px by Py by Pz grid of processors, it allows choice of Px, Py, and
@@ -233,7 +290,7 @@ defined above.  But depending on the method a perfect balance (1.0)
 may not be achieved.  For example, &#8220;grid&#8221; methods (defined below) that
 create a logical 3d grid cannot achieve perfect balance for many
 irregular distributions of particles.  Likewise, if a portion of the
-system is a perfect lattice, e.g. the intiial system is generated by
+system is a perfect lattice, e.g. the initial system is generated by
 the <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> command, then &#8220;grid&#8221; methods may
 be unable to achieve exact balance.  This is because entire lattice
 planes will be owned or not owned by a single processor.</p>
@@ -297,8 +354,9 @@ has been applied.</p>
                 </a><p>The <em>rcb</em> style is a &#8220;tiling&#8221; method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
 rectangular sub-boxes of varying size and shape in an irregular
-fashion so as to have equal numbers of particles in each sub-box, as
-in the rightmost diagram above.</p>
+fashion so as to have equal numbers of particles (or an equal
+load in case weighted load-balancing is requested) in each sub-box,
+as in the rightmost diagram above.</p>
 <p>The &#8220;grid&#8221; methods can be used with either of the
 <a class="reference internal" href="comm_style.html"><span class="doc">comm_style</span></a> command options, <em>brick</em> or <em>tiled</em>.  The
 &#8220;tiling&#8221; methods can only be used with <a class="reference internal" href="comm_style.html"><span class="doc">comm_style tiled</span></a>.  Note that it can be useful to use a &#8220;grid&#8221;
@@ -368,7 +426,7 @@ counts do not match the target value for the plane, the position of
 the cut is adjusted to be halfway between a low and high bound.  The
 low and high bounds are adjusted on each iteration, using new count
 information, so that they become closer together over time.  Thus as
-the recustion progresses, the count of particles on either side of the
+the recursion progresses, the count of particles on either side of the
 plane gets closer to the target value.</p>
 <p>Once the rebalancing is complete and final processor sub-domains
 assigned, particles are migrated to their new owning processor, and
@@ -472,7 +530,8 @@ appear in <em>dimstr</em> for the <em>shift</em> style.</p>
 </div>
 <div class="section" id="related-commands">
 <h2>Related commands</h2>
-<p><a class="reference internal" href="processors.html"><span class="doc">processors</span></a>, <a class="reference internal" href="fix_balance.html"><span class="doc">fix balance</span></a></p>
+<p><a class="reference internal" href="group.html"><span class="doc">group</span></a>, <a class="reference internal" href="processors.html"><span class="doc">processors</span></a>,
+<a class="reference internal" href="fix_balance.html"><span class="doc">fix balance</span></a></p>
 <p><strong>Default:</strong> none</p>
 </div>
 </div>

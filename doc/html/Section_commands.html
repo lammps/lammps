@@ -247,15 +247,15 @@ inside the parenthesis is treated as an &#8220;immediate&#8221; variable and
 evaluated as an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>.  This is a way
 to use numeric formulas in an input script without having to assign
 them to variable names.  For example, these 3 input script lines:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>variable X equal (xlo+xhi)/2+sqrt(v_area)
+<pre class="literal-block">
+variable X equal (xlo+xhi)/2+sqrt(v_area)
 region 1 block $X 2 INF INF EDGE EDGE
 variable X delete
-</pre></div>
-</div>
+</pre>
 <p>can be replaced by</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE
-</pre></div>
-</div>
+<pre class="literal-block">
+region 1 block $((xlo+xhi)/2+sqrt(v_area)) 2 INF INF EDGE EDGE
+</pre>
 <p>so that you do not have to define (or discard) a temporary variable X.</p>
 <p>Note that neither the curly-bracket or immediate form of variables can
 contain nested $ characters for other variables to substitute for.

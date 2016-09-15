@@ -153,11 +153,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">mol</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">i_myflag1</span> <span class="n">i_myflag2</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">d_sx</span> <span class="n">d_sy</span> <span class="n">d_sz</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix 1 all property/atom mol
+fix 1 all property/atom i_myflag1 i_myflag2
+fix 1 all property/atom d_sx d_sy d_sz
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -246,10 +246,10 @@ you need to initialize them explicitly.  This can be done by the
 <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command, using its <em>fix</em> keyword and
 passing it the fix-ID of this fix.</p>
 <p>Thus these commands:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">prop</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">mol</span> <span class="n">d_flag</span>
-<span class="n">read_data</span> <span class="n">data</span><span class="o">.</span><span class="n">txt</span> <span class="n">fix</span> <span class="n">prop</span> <span class="n">NULL</span> <span class="n">Molecules</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix prop all property/atom mol d_flag
+read_data data.txt fix prop NULL Molecules
+</pre>
 <p>would allow a data file to have a section like this:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Molecules</span>
 </pre></div>
@@ -271,11 +271,11 @@ per-atom properties can be in any order.</p>
 <a class="reference internal" href="set.html"><span class="doc">set</span></a> command.  For example, if you wanted molecules
 defined for every set of 10 atoms, based on their atom-IDs,
 these commands could be used:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">prop</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">mol</span>
-<span class="n">variable</span> <span class="n">cluster</span> <span class="n">atom</span> <span class="p">((</span><span class="nb">id</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">10</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
-<span class="nb">set</span> <span class="nb">id</span> <span class="o">*</span> <span class="n">mol</span> <span class="n">v_cluster</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix prop all property/atom mol
+variable cluster atom ((id-1)/10)+1
+set id * mol v_cluster
+</pre>
 <p>The <a class="reference internal" href="variable.html"><span class="doc">atom-style variable</span></a> will create values for atoms
 with IDs 31,32,33,...40 that are 4.0,4.1,4.2,...,4.9.  When the
 <a class="reference internal" href="set.html"><span class="doc">set</span></a> commands assigns them to the molecule ID for each atom,
@@ -292,11 +292,11 @@ properties in a completely general fashion.</p>
 their values.  This means that the values can be output via the <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command, accessed by fixes like <a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a>, accessed by other computes like <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a>, or used in <a class="reference external" href="variables">atom-style variables</a>.</p>
 <p>For example, these commands will output two new properties to a custom
 dump file:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">prop</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">i_flag1</span> <span class="n">d_flag2</span>
-<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">i_flag1</span> <span class="n">d_flag2</span>
-<span class="n">dump</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">custom</span> <span class="mi">100</span> <span class="n">tmp</span><span class="o">.</span><span class="n">dump</span> <span class="nb">id</span> <span class="n">x</span> <span class="n">y</span> <span class="n">z</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="n">c_1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix prop all property/atom i_flag1 d_flag2
+compute 1 all property/atom i_flag1 d_flag2
+dump 1 all custom 100 tmp.dump id x y z c_1[1] c_1[2]
+</pre>
 <hr class="docutils" />
 <p>If you wish to add new <a class="reference internal" href="pair_style.html"><span class="doc">pair styles</span></a>,
 <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a>, or <a class="reference internal" href="compute.html"><span class="doc">computes</span></a> that use the per-atom
@@ -324,10 +324,10 @@ command, there will be a new section named with the fix-ID
 existing data file and just add this <em>Isotopes</em> section with
 one line per atom containing atom-ID and mass. Either way, the
 extended data file can be read back with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">Isotopes</span> <span class="nb">all</span> <span class="nb">property</span><span class="o">/</span><span class="n">atom</span> <span class="n">rmass</span> <span class="n">ghost</span> <span class="n">yes</span>
-<span class="n">read_data</span> <span class="n">tip4p</span><span class="o">-</span><span class="n">isotopes</span><span class="o">.</span><span class="n">data</span> <span class="n">fix</span> <span class="n">Isotopes</span> <span class="n">NULL</span> <span class="n">Isotopes</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix Isotopes all property/atom rmass ghost yes
+read_data tip4p-isotopes.data fix Isotopes NULL Isotopes
+</pre>
 <p>Please note that the first <em>Isotopes</em> refers to the fix-ID
 and the second to the name of the section. The following input
 script code will now change the first 100 water molecules in this
@@ -337,10 +337,8 @@ example to heavy water:</p>
 <span class="nb">set</span> <span class="n">group</span> <span class="n">hwat</span> <span class="n">mass</span> <span class="mf">2.0141018</span>
 </pre></div>
 </div>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>This fix writes the per-atom values it stores to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, so that the values can be restored when a
 simulation is restarted.  See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
 command for info on how to re-specify a fix in an input script that

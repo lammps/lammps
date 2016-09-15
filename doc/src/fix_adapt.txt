@@ -110,6 +110,7 @@ meaning of these parameters:
 "coul/long"_pair_coul.html: scale: type pairs:
 "lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
 "lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
+"lj/sf/dipole/sf"_pair_dipole.html: epsilon,sigma,scale: type pairs:
 "lubricate"_pair_lubricate.html: mu: global:
 "gauss"_pair_gauss.html: a: type pairs:
 "morse"_pair_morse.html: d0,r0,alpha: type pairs:

@@ -172,13 +172,13 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">velocity</span> <span class="nb">all</span> <span class="n">create</span> <span class="mf">300.0</span> <span class="mi">4928459</span> <span class="n">rot</span> <span class="n">yes</span> <span class="n">dist</span> <span class="n">gaussian</span>
-<span class="n">velocity</span> <span class="n">border</span> <span class="nb">set</span> <span class="n">NULL</span> <span class="mf">4.0</span> <span class="n">v_vz</span> <span class="nb">sum</span> <span class="n">yes</span> <span class="n">units</span> <span class="n">box</span>
-<span class="n">velocity</span> <span class="n">flow</span> <span class="n">scale</span> <span class="mf">300.0</span>
-<span class="n">velocity</span> <span class="n">flow</span> <span class="n">ramp</span> <span class="n">vx</span> <span class="mf">0.0</span> <span class="mf">5.0</span> <span class="n">y</span> <span class="mi">5</span> <span class="mi">25</span> <span class="n">temp</span> <span class="n">mytemp</span>
-<span class="n">velocity</span> <span class="nb">all</span> <span class="n">zero</span> <span class="n">linear</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+velocity all create 300.0 4928459 rot yes dist gaussian
+velocity border set NULL 4.0 v_vz sum yes units box
+velocity flow scale 300.0
+velocity flow ramp vx 0.0 5.0 y 5 25 temp mytemp
+velocity all zero linear
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -244,7 +244,7 @@ replace them if sum = no.</p>
 <p>The <em>mom</em> and <em>rot</em> keywords are used by <em>create</em>.  If mom = yes, the
 linear momentum of the newly created ensemble of velocities is zeroed;
 if rot = yes, the angular momentum is zeroed.</p>
-<p><a href="#id1"><span class="problematic" id="id2">*</span></a>line</p>
+<p>*line</p>
 <p>If specified, the <em>temp</em> keyword is used by <em>create</em> and <em>scale</em> to
 specify a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> that calculates temperature in a
 desired way, e.g. by first subtracting out a velocity bias, as
@@ -252,9 +252,9 @@ discussed in <a class="reference internal" href="Section_howto.html#howto-15"><s
 pages.  If this keyword is not specified, <em>create</em> and <em>scale</em>
 calculate temperature using a compute that is defined internally as
 follows:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">velocity_temp</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">temp</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute velocity_temp group-ID temp
+</pre>
 <p>where group-ID is the same ID used in the velocity command. i.e. the
 group of atoms whose velocity is being altered.  This compute is
 deleted when the velocity command is finished.  See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute temp</span></a> command for details.  If the calculated

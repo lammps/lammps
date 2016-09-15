@@ -137,9 +137,9 @@
 <h1>pair_style lubricate/poly/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">style</span> <span class="n">mu</span> <span class="n">flaglog</span> <span class="n">flagfld</span> <span class="n">cutinner</span> <span class="n">cutoff</span> <span class="n">flagHI</span> <span class="n">flagVF</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style style mu flaglog flagfld cutinner cutoff flagHI flagVF
+</pre>
 <ul class="simple">
 <li>style = <em>lubricate</em> or <em>lubricate/poly</em></li>
 <li>mu = dynamic viscosity (dynamic viscosity units)</li>
@@ -151,17 +151,17 @@
 <li>flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms</li>
 </ul>
 <p><strong>Examples:</strong> (all assume radius = 1)</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lubricate</span> <span class="mf">1.5</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">2.01</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">2.05</span> <span class="mf">2.8</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">lubricate</span> <span class="mf">1.5</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mf">2.01</span> <span class="mf">2.5</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span>
-<span class="n">variable</span> <span class="n">mu</span> <span class="n">equal</span> <span class="n">ramp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">adapt</span> <span class="mi">1</span> <span class="n">pair</span> <span class="n">lubricate</span> <span class="n">mu</span> <span class="o">*</span> <span class="o">*</span> <span class="n">v_mu</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style lubricate 1.5 1 1 2.01 2.5
+pair_coeff 1 1 2.05 2.8
+pair_coeff * *
+</pre>
+<pre class="literal-block">
+pair_style lubricate 1.5 1 1 2.01 2.5
+pair_coeff * *
+variable mu equal ramp(1,2)
+fix 1 all adapt 1 pair lubricate mu * * v_mu
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>

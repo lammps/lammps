@@ -131,16 +131,16 @@
 <h1>pair_style nb3b/harmonic/omp command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">nb3b</span><span class="o">/</span><span class="n">harmonic</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style nb3b/harmonic
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_style</span> <span class="n">nb3b</span><span class="o">/</span><span class="n">harmonic</span>
-<span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">MgOH</span><span class="o">.</span><span class="n">nb3bharmonic</span> <span class="n">Mg</span> <span class="n">O</span> <span class="n">H</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_style nb3b/harmonic
+pair_coeff * * MgOH.nb3bharmonic Mg O H
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -166,9 +166,9 @@ to specify the path for the potential file.</p>
 for Si and C.  If your LAMMPS simulation has 4 atoms types and you
 want the 1st 3 to be Si, and the 4th to be C, you would use the
 following pair_coeff command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pair_coeff</span> <span class="o">*</span> <span class="o">*</span> <span class="n">SiC</span><span class="o">.</span><span class="n">nb3b</span><span class="o">.</span><span class="n">harmonic</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">Si</span> <span class="n">C</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+pair_coeff * * SiC.nb3b.harmonic Si Si Si C
+</pre>
 <p>The 1st 2 arguments must be * * so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the potential file.  The final C argument maps LAMMPS atom

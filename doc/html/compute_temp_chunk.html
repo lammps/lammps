@@ -254,11 +254,11 @@ IDs.</p>
 </div>
 <p>The simplest way to output the per-chunk results of the compute
 temp/chunk calculation to a file is to use the <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a> command, for example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">cc1</span> <span class="nb">all</span> <span class="n">chunk</span><span class="o">/</span><span class="n">atom</span> <span class="n">molecule</span>
-<span class="n">compute</span> <span class="n">myChunk</span> <span class="nb">all</span> <span class="n">temp</span><span class="o">/</span><span class="n">chunk</span> <span class="n">cc1</span> <span class="n">temp</span>
-<span class="n">fix</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">ave</span><span class="o">/</span><span class="n">time</span> <span class="mi">100</span> <span class="mi">1</span> <span class="mi">100</span> <span class="n">c_myChunk</span> <span class="n">file</span> <span class="n">tmp</span><span class="o">.</span><span class="n">out</span> <span class="n">mode</span> <span class="n">vector</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute cc1 all chunk/atom molecule
+compute myChunk all temp/chunk cc1 temp
+fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector
+</pre>
 <hr class="docutils" />
 <p>The keyword/value option pairs are used in the following ways.</p>
 <p>The <em>com</em> keyword can be used with a value of <em>yes</em> to subtract the

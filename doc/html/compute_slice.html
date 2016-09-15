@@ -139,20 +139,20 @@
 <li>Nskip = extract every Nskip elements from input vector(s)</li>
 <li>input = c_ID, c_ID[N], f_ID, f_ID[N]</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">c_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">c_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="k">global</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">compute</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span> <span class="o">=</span> <span class="k">global</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">f_ID</span><span class="p">[</span><span class="n">I</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ith</span> <span class="n">column</span> <span class="n">of</span> <span class="k">global</span> <span class="n">array</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">fix</span> <span class="k">with</span> <span class="n">ID</span>
-<span class="n">v_name</span> <span class="o">=</span> <span class="n">vector</span> <span class="n">calculated</span> <span class="n">by</span> <span class="n">an</span> <span class="n">vector</span><span class="o">-</span><span class="n">style</span> <span class="n">variable</span> <span class="k">with</span> <span class="n">name</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+c_ID = global vector calculated by a compute with ID
+c_ID[I] = Ith column of global array calculated by a compute with ID
+f_ID = global vector calculated by a fix with ID
+f_ID[I] = Ith column of global array calculated by a fix with ID
+v_name = vector calculated by an vector-style variable with name
+</pre>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">slice</span> <span class="mi">1</span> <span class="mi">100</span> <span class="mi">10</span> <span class="n">c_msdmol</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
-<span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="nb">slice</span> <span class="mi">301</span> <span class="mi">400</span> <span class="mi">1</span> <span class="n">c_msdmol</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="n">v_myVec</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all slice 1 100 10 c_msdmol[4]
+compute 1 all slice 301 400 1 c_msdmol[4] v_myVec
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -172,14 +172,14 @@ vector, which is typically shorter than the input vector.</p>
 vector.  Each listed input must be a global vector or column of a
 global array calculated by another <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> or
 <a class="reference internal" href="fix.html"><span class="doc">fix</span></a>.</p>
-<p>If an input value begins with &#8220;<a href="#id1"><span class="problematic" id="id2">c_</span></a>&#8221;, a compute ID must follow which has
+<p>If an input value begins with &#8220;c_&#8221;, a compute ID must follow which has
 been previously defined in the input script and which generates a
 global vector or array.  See the individual <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> doc
 page for details.  If no bracketed integer is appended, the vector
 calculated by the compute is used.  If a bracketed integer is
 appended, the Ith column of the array calculated by the compute is
 used.  Users can also write code for their own compute styles and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If a value begins with &#8220;<a href="#id3"><span class="problematic" id="id4">f_</span></a>&#8221;, a fix ID must follow which has been
+<p>If a value begins with &#8220;f_&#8221;, a fix ID must follow which has been
 previously defined in the input script and which generates a global
 vector or array.  See the individual <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> doc page for
 details.  Note that some fixes only produce their values on certain
@@ -188,7 +188,7 @@ the values, else an error results.  If no bracketed integer is
 appended, the vector calculated by the fix is used.  If a bracketed
 integer is appended, the Ith column of the array calculated by the fix
 is used.  Users can also write code for their own fix style and <a class="reference internal" href="Section_modify.html"><span class="doc">add them to LAMMPS</span></a>.</p>
-<p>If an input value begins with &#8220;<a href="#id5"><span class="problematic" id="id6">v_</span></a>&#8221;, a variable name must follow which
+<p>If an input value begins with &#8220;v_&#8221;, a variable name must follow which
 has been previously defined in the input script.  Only vector-style
 variables can be referenced.  See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command
 for details.  Note that variables of style <em>vector</em> define a formula

@@ -128,9 +128,9 @@
 <span id="index-0"></span><h1>fix saed/vtk command</h1>
 <div class="section" id="syntax">
 <h2>Syntax</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">saed</span><span class="o">/</span><span class="n">vtk</span> <span class="n">Nevery</span> <span class="n">Nrepeat</span> <span class="n">Nfreak</span> <span class="n">c_ID</span> <span class="n">attribute</span> <span class="n">args</span> <span class="o">...</span> <span class="n">keyword</span> <span class="n">args</span> <span class="o">...</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix ID group-ID saed/vtk Nevery Nrepeat Nfreak c_ID attribute args ... keyword args ...
+</pre>
 <ul class="simple">
 <li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
 <li>saed/vtk = style name of this fix command</li>
@@ -154,14 +154,14 @@ keyword = <em>file</em> or <em>ave</em> or <em>start</em> or <em>file</em> or <e
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">1</span> <span class="nb">all</span> <span class="n">saed</span> <span class="mf">0.0251</span> <span class="n">Al</span> <span class="n">O</span> <span class="n">Kmax</span> <span class="mf">1.70</span> <span class="n">Zone</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span> <span class="n">dR_Ewald</span> <span class="mf">0.01</span> <span class="n">c</span> <span class="mf">0.5</span> <span class="mf">0.5</span> <span class="mf">0.5</span>
-<span class="n">compute</span> <span class="mi">2</span> <span class="nb">all</span> <span class="n">saed</span> <span class="mf">0.0251</span> <span class="n">Ni</span> <span class="n">Kmax</span> <span class="mf">1.70</span> <span class="n">Zone</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="n">c</span> <span class="mf">0.05</span> <span class="mf">0.05</span> <span class="mf">0.05</span> <span class="n">manual</span> <span class="n">echo</span>
-</pre></div>
-</div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">saed</span><span class="o">/</span><span class="n">vtk</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">c_1</span> <span class="n">file</span> <span class="n">Al2O3_001</span><span class="o">.</span><span class="n">saed</span>
-<span class="n">fix</span> <span class="n">saed</span><span class="o">/</span><span class="n">vtk</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">c_2</span> <span class="n">file</span> <span class="n">Ni_000</span><span class="o">.</span><span class="n">saed</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 1 all saed 0.0251 Al O Kmax 1.70 Zone 0 0 1 dR_Ewald 0.01 c 0.5 0.5 0.5
+compute 2 all saed 0.0251 Ni Kmax 1.70 Zone 0 0 0 c 0.05 0.05 0.05 manual echo
+</pre>
+<pre class="literal-block">
+fix saed/vtk 1 1 1 c_1 file Al2O3_001.saed
+fix saed/vtk 1 1 1 c_2 file Ni_000.saed
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -182,10 +182,10 @@ specified values may represent calculations performed by saed computes
 which store their own &#8220;group&#8221; definitions.</p>
 <p>Fix saed/vtk is designed to work only with <a class="reference internal" href="compute_saed.html"><span class="doc">compute saed</span></a>
 values, e.g.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="mi">3</span> <span class="n">top</span> <span class="n">saed</span> <span class="mf">0.0251</span> <span class="n">Al</span> <span class="n">O</span>
-<span class="n">fix</span> <span class="n">saed</span><span class="o">/</span><span class="n">vtk</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">1</span> <span class="n">c_3</span> <span class="n">file</span> <span class="n">Al2O3_001</span><span class="o">.</span><span class="n">saed</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+compute 3 top saed 0.0251 Al O
+fix saed/vtk 1 1 1 c_3 file Al2O3_001.saed
+</pre>
 <hr class="docutils" />
 <p>The <em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> arguments specify on what
 timesteps the input values will be used in order to contribute to the
@@ -209,19 +209,19 @@ vtk image data formatting.  The filename assigned by the <em>file</em> keyword i
 appended with _N.vtk where N is an index (0,1,2...) to account for multiple
 diffraction intensity outputs.</p>
 <p>By default the header contains the following information (with example data):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># vtk DataFile Version 3.0 c_SAED</span>
-<span class="n">Image</span> <span class="n">data</span> <span class="nb">set</span>
-<span class="n">ASCII</span>
-<span class="n">DATASET</span> <span class="n">STRUCTURED_POINTS</span>
-<span class="n">DIMENSIONS</span> <span class="mi">337</span> <span class="mi">219</span> <span class="mi">209</span>
-<span class="n">ASPECT_RATIO</span> <span class="mf">0.00507953</span> <span class="mf">0.00785161</span> <span class="mf">0.00821458</span>
-<span class="n">ORIGIN</span> <span class="o">-</span><span class="mf">0.853361</span> <span class="o">-</span><span class="mf">0.855826</span> <span class="o">-</span><span class="mf">0.854316</span>
-<span class="n">POINT_DATA</span> <span class="mi">15424827</span>
-<span class="n">SCALARS</span> <span class="n">intensity</span> <span class="nb">float</span>
-<span class="n">LOOKUP_TABLE</span> <span class="n">default</span>
-<span class="o">...</span><span class="n">data</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+# vtk DataFile Version 3.0 c_SAED
+Image data set
+ASCII
+DATASET STRUCTURED_POINTS
+DIMENSIONS 337 219 209
+ASPECT_RATIO 0.00507953 0.00785161 0.00821458
+ORIGIN -0.853361 -0.855826 -0.854316
+POINT_DATA 15424827
+SCALARS intensity float
+LOOKUP_TABLE default
+...data
+</pre>
 <p>In this example, kspace is sampled across a 337 x 219 x 209 point mesh
 where the mesh spacing is approximately 0.005, 0.007, and 0.008
 inv(length) units in the k1, k2, and k3 directions, respectively.
@@ -264,9 +264,7 @@ intensity outputs.</p>
 <p>The <em>overwrite</em> keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
 output.  This option can only be used with the <em>ave running</em> setting.</p>
-</div>
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
 are relevant to this fix.</p>
 <p>No parameter of this fix can be used with the <em>start/stop</em> keywords of

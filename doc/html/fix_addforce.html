@@ -154,11 +154,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">kick</span> <span class="n">flow</span> <span class="n">addforce</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="mf">0.0</span>
-<span class="n">fix</span> <span class="n">kick</span> <span class="n">flow</span> <span class="n">addforce</span> <span class="mf">1.0</span> <span class="mf">0.0</span> <span class="n">v_oscillate</span>
-<span class="n">fix</span> <span class="n">ff</span> <span class="n">boundary</span> <span class="n">addforce</span> <span class="mf">0.0</span> <span class="mf">0.0</span> <span class="n">v_push</span> <span class="n">energy</span> <span class="n">v_espace</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+fix kick flow addforce 1.0 0.0 0.0
+fix kick flow addforce 1.0 0.0 v_oscillate
+fix ff boundary addforce 0.0 0.0 v_push energy v_espace
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -232,10 +232,8 @@ by including their suffix, or you can use the <a class="reference internal" href
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
 <p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
-</div>
 <hr class="docutils" />
-<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
-<h2>Restart, fix_modify, output, run start/stop, minimize info</h2>
+<p><strong>Restart, fix_modify, output, run start/stop, minimize info:</strong></p>
 <p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
 <p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by this
 fix to add the potential &#8220;energy&#8221; inferred by the added force to the

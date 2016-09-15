@@ -138,11 +138,11 @@
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mass</span> <span class="mi">1</span> <span class="mf">1.0</span>
-<span class="n">mass</span> <span class="o">*</span> <span class="mf">62.5</span>
-<span class="n">mass</span> <span class="mi">2</span><span class="o">*</span> <span class="mf">62.5</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+mass 1 1.0
+mass * 62.5
+mass 2* 62.5
+</pre>
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
@@ -153,7 +153,7 @@ what mass units to use.</p>
 <p>The I index can be specified in one of two ways.  An explicit numeric
 value can be used, as in the 1st example above.  Or a wild-card
 asterisk can be used to set the mass for multiple atom types.  This
-takes the form &#8220;*&#8221; or &#8220;<em>n&#8221; or &#8220;n</em>&#8221; or &#8220;m*n&#8221;.  If N = the number of
+takes the form &#8220;*&#8221; or &#8220;*n&#8221; or &#8220;n*&#8221; or &#8220;m*n&#8221;.  If N = the number of
 atom types, then an asterisk with no numeric values means all types
 from 1 to N.  A leading asterisk means all types from 1 to n
 (inclusive).  A trailing asterisk means all types from n to N

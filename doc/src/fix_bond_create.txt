@@ -30,11 +30,11 @@ keyword = {iparam} or {jparam} or {prob} or {atype} or {dtype} or {itype} :l
     fraction = create a bond with this probability if otherwise eligible
     seed = random number seed (positive integer)
   {atype} value = angletype
-    angletype = type of created angles
+    angletype = type of created angles or variable with type patterns
   {dtype} value = dihedraltype
-    dihedraltype = type of created dihedrals
+    dihedraltype = type of created dihedrals or variable with type patterns
   {itype} value = impropertype
-    impropertype = type of created impropers :pre
+    impropertype = type of created impropers or variable with type patterns :pre
 :ule
 
 [Examples:]
@@ -42,9 +42,9 @@ keyword = {iparam} or {jparam} or {prob} or {atype} or {dtype} or {itype} :l
 fix 5 all bond/create 10 1 2 0.8 1
 fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3
 
-varialbe  ang_type string "1 2 1 1 ; 2 1 2 2 ; 3 3 1 3 ; 1 3 1 4 ; 2 1 3 5 ; * * * 6"
-variable dtype_type string "1 2 1 2 1 , * * * * 2"
-fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype ang_type dtype dtype_type :pre
+variable ang_type string "1 2 1 1 ; 2 1 2 2 ; 3 3 1 3 ; 1 3 1 4 ; 2 1 3 5 ; * * * 6"
+variable dih_type string "1 2 1 2 1 , * * * * 2"
+fix 5 all bond/create 1 3 3 0.8 1 prob 0.5 85784 iparam 2 3 atype ang_type dtype dih_type :pre
 
 [Description:]
 
@@ -54,12 +54,11 @@ polymers, the formation of a percolation network, etc.  In this
 context, a bond means an interaction between a pair of atoms computed
 by the "bond_style"_bond_style.html command.  Once the bond is created
 it will be permanently in place.  Optionally, the creation of a bond
-can also create several angles, dihedral, and improper dihedral angles interactions that bond
-is part of.  Type of angle, proper/improper dihedrals can be specified with 
-a number, or with an "angle_type", "dihedral_type", or "improper_type" class 
-which determines types of newly created angles, dihedrals based on the type of 
-atoms in the angle or dihedral. See the discussion of the {atype}, {dtype}, and {itype}
-keywords below.
+can also create angle, dihedral, and improper interactions that the bond
+is part of.  The type of angle, proper/improper dihedrals can be specified
+with a number, or with a set of patterns, which determines the type of the
+created interactions based on the type of the constituent atoms. For details,
+see the discussion of the {atype}, {dtype}, and {itype} keywords below.
 
 This is different than a "pairwise"_pair_style.html bond-order
 potential such as Tersoff or AIREBO which infers bonds and many-body
@@ -107,7 +106,7 @@ fashion with other atoms in a different way by specifying different
 "pair_coeff"_pair_coeff.html coefficients.  If you do not wish the
 atom type to change, simply specify {newtype} as {itype} or {jtype}.
 
-The {prob} keyword can also affect whether an eligible bond is
+The {prob} keyword can also influence whether an eligible bond is
 actually created.  The {fraction} setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number < fraction.
@@ -133,10 +132,11 @@ interactions inferred by the creation of a bond will create new angles
 of type {angletype}, with parameters assigned by the corresponding
 "angle_coeff"_angle_coeff.html command.  Likewise, the {dtype} and
 {itype} keywords will create new dihedrals and impropers of type
-{dihedraltype} and {impropertype}. Type of angles, proper/improper dihedrals created
-due to the formation of the bond can be specified with a number, or with an "angle_type", 
-"dihedral_type", or "improper_type" variable which determines types of 
-newly created angles, dihedrals based on the type of atoms in the angle or dihedral.
+{dihedraltype} and {impropertype}. The type of angles, dihedrals and
+impropers created indirectly due to the formation of the bond can be
+determined with a single number, or with a string pattern given in a
+variable, which determines types of the newly created interactions
+based on the type of atoms in the angle or dihedral.
 
 NOTE: To create a new bond, the internal LAMMPS data structures that
 store this information must have space for it.  When LAMMPS is
@@ -145,7 +145,7 @@ maximum number of bonds per atom is tallied.  If some atom will
 acquire more bonds than this limit as this fix operates, then the
 "extra bond per atom" parameter must be set to allow for it.  Ditto
 for "extra angle per atom", "extra dihedral per atom", and "extra
-improper per atom" if angles, dihedral, or improper dihedral angles are being added
+improper per atom" if angles, dihedrals, or impropers are being added
 when bonds are created.  See the "read_data"_read_data.html or
 "create_box"_create_box.html command for more details.  Note that a
 data file with no atoms can be used if you wish to add unbonded atoms
@@ -176,8 +176,8 @@ be potentially turned off or weighted by the 1-3 weighting specified
 by the "special_bonds"_special_bonds.html command.  This is the case
 even if the "angle yes" option was used with that command.  The same
 is true for 3rd neighbors (1-4 interactions), the {dtype} keyword, and
-the "dihedral yes" option used with the "special_bonds"_special_bonds.html 
-command.
+the "dihedral yes" option used with the
+"special_bonds"_special_bonds.html command.
 
 Note that even if your simulation starts with no bonds, you must
 define a "bond_style"_bond_style.html and use the
@@ -192,7 +192,7 @@ neighbor lists and computes distances between pairs of atoms in the
 list.  It also communicates between neighboring processors to
 coordinate which bonds are created.  Moreover, if any bonds are
 created, neighbor lists must be immediately updated on the same
-timestep.  This is to ensure that any pairwise interactions that
+timestep.  This is to insure that any pairwise interactions that
 should be turned "off" due to a bond creation, because they are now
 excluded by the presence of the bond and the settings of the
 "special_bonds"_special_bonds.html command, will be immediately

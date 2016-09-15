@@ -18,7 +18,7 @@ namespace LAMMPS_NS {
 
 namespace MathConst {
   static const double THIRD  = 1.0/3.0;
-  static const double TWOTHIRD  = 2.0/3.0;
+  static const double TWOTHIRDS  = 2.0/3.0;
   static const double MY_PI  = 3.14159265358979323846; // pi
   static const double MY_2PI = 6.28318530717958647692; // 2pi
   static const double MY_3PI = 9.42477796076937971538; // 3pi

@@ -372,18 +372,14 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">qbmsst</span> <span class="nb">dir</span> <span class="n">shockvel</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
 </pre></div>
 </div>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">qbmsst = style name of this fix</p>
-</li>
-<li><p class="first">dir = <em>x</em> or <em>y</em> or <em>z</em></p>
-</li>
-<li><p class="first">shockvel = shock velocity (strictly positive, velocity units)</p>
-</li>
-<li><p class="first">zero or more keyword/value pairs may be appended</p>
-</li>
-<li><p class="first">keyword = <em>q</em> or <em>mu</em> or <em>p0</em> or <em>v0</em> or <em>e0</em> or <em>tscale</em> or <em>damp</em> or <em>seed</em>or <em>f_max</em> or <em>N_f</em> or <em>eta</em> or <em>beta</em> or <em>T_init</em></p>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>qbmsst = style name of this fix</li>
+<li>dir = <em>x</em> or <em>y</em> or <em>z</em></li>
+<li>shockvel = shock velocity (strictly positive, velocity units)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>q</em> or <em>mu</em> or <em>p0</em> or <em>v0</em> or <em>e0</em> or <em>tscale</em> or <em>damp</em> or <em>seed</em>or <em>f_max</em> or <em>N_f</em> or <em>eta</em> or <em>beta</em> or <em>T_init</em></li>
+</ul>
 <pre class="literal-block">
 <em>q</em> value = cell mass-like parameter (mass^2/distance^4 units)
 <em>mu</em> value = artificial viscosity (mass/distance/time units)
@@ -399,8 +395,6 @@
 <em>beta</em> value = the quantum temperature is updated every beta time steps (positive integer)
 <em>T_init</em> value = quantum temperature for the initial state (temperature units)
 </pre>
-</li>
-</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

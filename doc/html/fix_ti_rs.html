@@ -371,22 +371,17 @@
 <pre class="literal-block">
 fix ID group-ID ti/rs lambda_initial lambda_final t_switch t_equil keyword value ...
 </pre>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">ti/rs = style name of this fix command</p>
-</li>
-<li><p class="first">lambda_initial/lambda_final = initial/final values of the coupling parameter</p>
-</li>
-<li><p class="first">t_switch/t_equil = number of steps of the switching/equilibration procedure</p>
-</li>
-<li><p class="first">keyword = <em>function</em></p>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>ti/rs = style name of this fix command</li>
+<li>lambda_initial/lambda_final = initial/final values of the coupling parameter</li>
+<li>t_switch/t_equil = number of steps of the switching/equilibration procedure</li>
+<li>keyword = <em>function</em></li>
+</ul>
 <pre class="literal-block">
 <em>function</em> value = function-ID
   function-ID = ID of the switching function (1, 2 or 3)
 </pre>
-</li>
-</ul>
 <p><strong>Example:</strong></p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ref</span> <span class="nb">all</span> <span class="n">ti</span><span class="o">/</span><span class="n">rs</span> <span class="mf">50.0</span> <span class="mi">2000</span> <span class="mi">1000</span>
 <span class="n">fix</span> <span class="n">vf</span> <span class="n">vacancy</span> <span class="n">ti</span><span class="o">/</span><span class="n">rs</span> <span class="mf">10.0</span> <span class="mi">70000</span> <span class="mi">50000</span> <span class="n">function</span> <span class="mi">2</span>

@@ -275,10 +275,10 @@
 <pre class="literal-block">
 create_atoms type style args keyword values ...
 </pre>
-<ul>
-<li><p class="first">type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)</p>
-</li>
-<li><p class="first">style = <em>box</em> or <em>region</em> or <em>single</em> or <em>random</em></p>
+<ul class="simple">
+<li>type = atom type (1-Ntypes) of atoms to create (offset for molecule creation)</li>
+<li>style = <em>box</em> or <em>region</em> or <em>single</em> or <em>random</em></li>
+</ul>
 <pre class="literal-block">
 <em>box</em> args = none
 <em>region</em> args = region-ID
@@ -290,10 +290,10 @@ create_atoms type style args keyword values ...
   seed = random # seed (positive integer)
   region-ID = create atoms within this region, use NULL for entire simulation box
 </pre>
-</li>
-<li><p class="first">zero or more keyword/value pairs may be appended</p>
-</li>
-<li><p class="first">keyword = <em>mol</em> or <em>basis</em> or <em>remap</em> or <em>var</em> or <em>set</em> or <em>units</em></p>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>mol</em> or <em>basis</em> or <em>remap</em> or <em>var</em> or <em>set</em> or <em>units</em></li>
+</ul>
 <pre class="literal-block">
 <em>mol</em> value = template-ID seed
   template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command
@@ -313,8 +313,6 @@ create_atoms type style args keyword values ...
   <em>lattice</em> = the geometry is defined in lattice units
   <em>box</em> = the geometry is defined in simulation box units
 </pre>
-</li>
-</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

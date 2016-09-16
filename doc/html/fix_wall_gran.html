@@ -310,7 +310,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
@@ -369,7 +369,7 @@
 <div class="section" id="syntax">
 <h2>Syntax</h2>
 <pre class="literal-block">
-fix ID group-ID wall/gran Kn Kt fstyle gamma_n gamma_t xmu dampflag wallstyle args keyword values ...
+fix ID group-ID wall/gran fstyle Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ...
 </pre>
 <ul>
 <li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
@@ -438,20 +438,21 @@ close enough to touch it.</p>
 force between the wall and particles touching it is the same as the
 corresponding equation on the <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> doc
 page, in the limit of one of the two particles going to infinite
-radius and mass (flat wall).  I.e. delta = radius - r = overlap of
-particle with wall, m_eff = mass of particle, and sqrt(RiRj/Ri+Rj)
-becomes sqrt(radius of particle).  The units for Kn, Kt, gamma_n, and
-gamma_t are as described on that doc page.  The meaning of xmu and
-dampflag are also as described on that page.  Note that you can choose
-a different force styles and/or different values for the 6
-wall/particle coefficients than for particle/particle interactions.
-E.g. if you wish to model the wall as a different material.</p>
+radius and mass (flat wall).  Specifically, delta = radius - r =
+overlap of particle with wall, m_eff = mass of particle, and the
+effective radius of contact = RiRj/Ri+Rj is just the radius of the
+particle.</p>
 <p>The parameters <em>Kn</em>, <em>Kt</em>, <em>gamma_n</em>, <em>gamma_t</em>, <em>xmu</em> and <em>dampflag</em>
-have the same meaning as those specified with the <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> commands.  This means a NULL can be used for
-either <em>Kt</em> or <em>gamma_t</em> as described on that page.  If a NULL is used
-for <em>Kt</em>, then a default value is used where <em>Kt</em> = 2/7 <em>Kn</em>.  If a
-NULL is used for <em>gamma_t</em>, then a default value is used where
-<em>gamma_t</em> = 1/2 <em>gamma_n</em>.</p>
+have the same meaning and units as those specified with the
+<a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> commands.  This means a NULL can
+be used for either <em>Kt</em> or <em>gamma_t</em> as described on that page.  If a
+NULL is used for <em>Kt</em>, then a default value is used where <em>Kt</em> = 2/7
+<em>Kn</em>.  If a NULL is used for <em>gamma_t</em>, then a default value is used
+where <em>gamma_t</em> = 1/2 <em>gamma_n</em>.</p>
+<p>Note that you can choose a different force styles and/or different
+values for the 6 wall/particle coefficients than for particle/particle
+interactions.  E.g. if you wish to model the wall as a different
+material.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">As discussed on the doc page for <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a>, versions of LAMMPS before 9Jan09 used a

@@ -384,14 +384,12 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">style</span> <span class="n">face</span> <span class="n">args</span> <span class="o">...</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
 </pre></div>
 </div>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">style = <em>wall/lj93</em> or <em>wall/lj126</em> or <em>wall/lj1043</em> or <em>wall/colloid</em> or <em>wall/harmonic</em></p>
-</li>
-<li><p class="first">one or more face/arg pairs may be appended</p>
-</li>
-<li><p class="first">face = <em>xlo</em> or <em>xhi</em> or <em>ylo</em> or <em>yhi</em> or <em>zlo</em> or <em>zhi</em></p>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>style = <em>wall/lj93</em> or <em>wall/lj126</em> or <em>wall/lj1043</em> or <em>wall/colloid</em> or <em>wall/harmonic</em></li>
+<li>one or more face/arg pairs may be appended</li>
+<li>face = <em>xlo</em> or <em>xhi</em> or <em>ylo</em> or <em>yhi</em> or <em>zlo</em> or <em>zhi</em></li>
+</ul>
 <pre class="literal-block">
 args = coord epsilon sigma cutoff
   coord = position of wall = EDGE or constant or variable
@@ -404,10 +402,10 @@ args = coord epsilon sigma cutoff
     sigma can be a variable (see below)
   cutoff = distance from wall at which wall-particle interaction is cut off (distance units)
 </pre>
-</li>
-<li><p class="first">zero or more keyword/value pairs may be appended</p>
-</li>
-<li><p class="first">keyword = <em>units</em> or <em>fld</em></p>
+<ul class="simple">
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>units</em> or <em>fld</em></li>
+</ul>
 <pre class="literal-block">
 <em>units</em> value = <em>lattice</em> or <em>box</em>
   <em>lattice</em> = the wall position is defined in lattice units
@@ -419,8 +417,6 @@ args = coord epsilon sigma cutoff
   <em>yes</em> = allow periodic boundary in a wall dimension
   <em>no</em> = require non-perioidic boundaries in any wall dimension
 </pre>
-</li>
-</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

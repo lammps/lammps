@@ -372,23 +372,17 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">lb</span><span class="o">/</span><span class="n">fluid</span> <span class="n">nevery</span> <span class="n">LBtype</span> <span class="n">viscosity</span> <span class="n">density</span> <span class="n">keyword</span> <span class="n">values</span> <span class="o">...</span>
 </pre></div>
 </div>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">lb/fluid = style name of this fix command</p>
-</li>
-<li><p class="first">nevery = update the lattice-Boltzmann fluid every this many timesteps</p>
-</li>
-<li><p class="first">LBtype = 1 to use the standard finite difference LB integrator,
-2 to use the LB integrator of <a class="reference internal" href="#ollila"><span class="std std-ref">Ollila et al.</span></a></p>
-</li>
-<li><p class="first">viscosity = the fluid viscosity (units of mass/(time*length)).</p>
-</li>
-<li><p class="first">density = the fluid density.</p>
-</li>
-<li><p class="first">zero or more keyword/value pairs may be appended</p>
-</li>
-<li><p class="first">keyword = <em>setArea</em> or <em>setGamma</em> or <em>scaleGamma</em> or <em>dx</em> or <em>dm</em> or <em>a0</em> or <em>noise</em> or <em>calcforce</em> or <em>trilinear</em> or <em>D3Q19</em> or <em>read_restart</em> or <em>write_restart</em> or <em>zwall_velocity</em> or <em>bodyforce</em> or <em>printfluid</em></p>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>lb/fluid = style name of this fix command</li>
+<li>nevery = update the lattice-Boltzmann fluid every this many timesteps</li>
+<li>LBtype = 1 to use the standard finite difference LB integrator,
+2 to use the LB integrator of <a class="reference internal" href="#ollila"><span class="std std-ref">Ollila et al.</span></a></li>
+<li>viscosity = the fluid viscosity (units of mass/(time*length)).</li>
+<li>density = the fluid density.</li>
+<li>zero or more keyword/value pairs may be appended</li>
+<li>keyword = <em>setArea</em> or <em>setGamma</em> or <em>scaleGamma</em> or <em>dx</em> or <em>dm</em> or <em>a0</em> or <em>noise</em> or <em>calcforce</em> or <em>trilinear</em> or <em>D3Q19</em> or <em>read_restart</em> or <em>write_restart</em> or <em>zwall_velocity</em> or <em>bodyforce</em> or <em>printfluid</em></li>
+</ul>
 <pre class="literal-block">
 <em>setArea</em> values = type node_area
     type = atom type (1-N)
@@ -415,8 +409,6 @@
 <em>bodyforce</em> values = bodyforcex bodyforcey bodyforcez = the x,y and z components of a constant body force added to the fluid.
 <em>printfluid</em> values = N = print the fluid density and velocity at each grid point every N timesteps.
 </pre>
-</li>
-</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

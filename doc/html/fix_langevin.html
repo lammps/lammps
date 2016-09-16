@@ -311,7 +311,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
@@ -424,7 +424,7 @@
 </div>
 <div class="section" id="description">
 <h2>Description</h2>
-<p>Apply a Langevin thermostat as described in <a class="reference internal" href="fix_langevin_eff.html#schneider"><span class="std std-ref">(Schneider)</span></a>
+<p>Apply a Langevin thermostat as described in <a class="reference internal" href="#schneider"><span class="std std-ref">(Schneider)</span></a>
 to a group of atoms which models an interaction with a background
 implicit solvent.  Used with <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, this command
 performs Brownian dynamics (BD), since the total force on each atom
@@ -452,7 +452,7 @@ dt damp), where Kb is the Boltzmann constant, T is the desired
 temperature, m is the mass of the particle, dt is the timestep size,
 and damp is the damping factor.  Random numbers are used to randomize
 the direction and magnitude of this force as described in
-<a class="reference internal" href="fix_langevin_eff.html#dunweg"><span class="std std-ref">(Dunweg)</span></a>, where a uniform random number is used (instead of
+<a class="reference internal" href="#dunweg"><span class="std std-ref">(Dunweg)</span></a>, where a uniform random number is used (instead of
 a Gaussian random number) for speed.</p>
 <p>Note that unless you use the <em>omega</em> or <em>angmom</em> keywords, the
 thermostat effect of this fix is applied to only the translational

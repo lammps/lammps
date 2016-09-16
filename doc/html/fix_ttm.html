@@ -375,14 +375,12 @@
 fix ID group-ID ttm seed C_e rho_e kappa_e gamma_p gamma_s v_0 Nx Ny Nz T_infile N T_outfile
 fix ID group-ID ttm/mod seed init_file Nx Ny Nz T_infile N T_outfile
 </pre>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">style = <em>ttm</em> or <em>ttm_mod</em></p>
-</li>
-<li><p class="first">seed = random number seed to use for white noise (positive integer)</p>
-</li>
-<li><p class="first">remaining arguments for fix ttm:</p>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>style = <em>ttm</em> or <em>ttm_mod</em></li>
+<li>seed = random number seed to use for white noise (positive integer)</li>
+<li>remaining arguments for fix ttm:</li>
+</ul>
 <pre class="literal-block">
 C_e  = electronic specific heat (energy/(electron*temperature) units)
 rho_e = electronic density (electrons/volume units)
@@ -397,8 +395,9 @@ T_infile = filename to read initial electronic temperature from
 N = dump TTM temperatures every this many timesteps, 0 = no dump
 T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
 </pre>
-</li>
-<li><p class="first">remaining arguments for fix ttm/mod:</p>
+<ul class="simple">
+<li>remaining arguments for fix ttm/mod:</li>
+</ul>
 <pre class="literal-block">
 init_file = file with the parameters to TTM
 Nx = number of thermal solve grid points in the x-direction (positive integer)
@@ -408,8 +407,6 @@ T_infile = filename to read initial electronic temperature from
 N = dump TTM temperatures every this many timesteps, 0 = no dump
 T_outfile = filename to write TTM temperatures to (only needed if N &gt; 0)
 </pre>
-</li>
-</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

@@ -49,7 +49,12 @@ double FixTempCSVR::gamdev(const int ia)
     x=1.0;
     for (j=1; j<=ia; j++)
       x *= random->uniform();
-    x = -log(x);
+
+    // make certain, that -log() doesn't overflow.
+    if (x < 2.2250759805e-308)
+      x = 708.4;
+    else
+      x = -log(x);
   } else {
   restart:
     do {

@@ -79,7 +79,7 @@ int main(int argc, char **argv)
         const char *msg;
 
         msg = check_qmmm_config(&qmmmcfg);
-        
+
         if ((nqm < 1) || (qmmmcfg.nmm < 2)) {
             msg = "Need at least 2 MM and 1 QM processes";
         }
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
             }
         }
 
-        /* parse additional support command line flags for LAMMPS */  
+        /* parse additional support command line flags for LAMMPS */
 
         if (qmmmcfg.maarg != NULL) {
             char *ptr = strtok(qmmmcfg.maarg,delim);
@@ -308,7 +308,7 @@ int main(int argc, char **argv)
             }
         }
 
-        /* parse additional support command line flags for LAMMPS */  
+        /* parse additional support command line flags for LAMMPS */
 
         if (qmmmcfg.slarg != NULL) {
             char *ptr = strtok(qmmmcfg.maarg,delim);

@@ -84,7 +84,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   int seed = 12345;
   atype = dtype = itype = 0;
   angle_detector = dihedral_detector = improper_detector = NULL;
-  
+
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iparam") == 0) {
@@ -884,12 +884,12 @@ void FixBondCreate::create_angles(int m)
         if (created[n][0] == i3 && created[n][1] == i2) break;
       }
       if (n == ncreate) continue;
-      
+
       if (angle_detector) {
         ang_type[0] = type[atom->map(i1)];
         ang_type[1] = type[atom->map(i2)];
         ang_type[2] = type[atom->map(i3)];
-        atype = angle_detector->get(ang_type);        
+        atype = angle_detector->get(ang_type);
       }
 
       // NOTE: this is place to check atom types of i1,i2,i3, and angle type
@@ -1026,7 +1026,7 @@ void FixBondCreate::create_dihedrals(int m)
             dih_type[1] = type[atom->map(i2)];
             dih_type[2] = type[atom->map(i3)];
             dih_type[3] = type[atom->map(i4)];
-            dtype = dihedral_detector->get(dih_type);            
+            dtype = dihedral_detector->get(dih_type);
           }
           // NOTE: this is place to check atom types of i3,i2,i1,i4 and dtype
           if (num_dihedral < atom->dihedral_per_atom) {
@@ -1198,7 +1198,7 @@ void FixBondCreate::create_impropers(int m)
           if (created[n][0] == i4 && created[n][1] == i1) break;
         }
         if (n == ncreate) continue;
-        
+
         if (improper_detector) {
           imp_type[0] = type[atom->map(i1)];
           imp_type[1] = type[atom->map(i2)];
@@ -1206,7 +1206,7 @@ void FixBondCreate::create_impropers(int m)
           imp_type[3] = type[atom->map(i4)];
           itype = improper_detector->get(imp_type);
         }
-        
+
         // NOTE: this is place to check atom types of i1,i2,i3,i4 and itype
 
         if (num_improper < atom->improper_per_atom) {

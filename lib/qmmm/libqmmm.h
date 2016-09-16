@@ -52,7 +52,7 @@ typedef struct {
 
 /* declare a global variable for the QM/MM setup.
    thus there can be only one QM/MM coupling currently */
-extern qmmm_config_t qmmmcfg;    
+extern qmmm_config_t qmmmcfg;
 
 /* read and parse global QM/MM configuration file and
  * store the result in a qmmm_config_t struct */

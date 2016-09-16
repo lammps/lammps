@@ -45,7 +45,7 @@ class TypeDetector {
  public:
   enum Style {BOND,ANGLE,DIHEDRAL,IMPROPER};
 
-  int type; 
+  int type;
   int length;
 
  private:
@@ -86,13 +86,13 @@ class TypeDetector {
         else status = false;
         iarg++;
       }
-      val = atoi(args[iarg++]);			
+      val = atoi(args[iarg++]);
       if (!status) break;
       this->set(t, val);
     }
     delete[] t;
     delete[] s;
-    return status;        
+    return status;
   }
 
   int get(const int *t1) {

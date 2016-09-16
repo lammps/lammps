@@ -33,7 +33,7 @@
 
   
     <link rel="top" title="LAMMPS documentation" href="index.html"/>
-        <link rel="next" title="6. How-to discussions" href="Section_howto.html"/>
+        <link rel="next" title="5.3.1. GPU package" href="accelerate_gpu.html"/>
         <link rel="prev" title="4. Packages" href="Section_packages.html"/> 
 
   
@@ -73,7 +73,8 @@
         
           
           
-              <ul class="current">
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
@@ -81,7 +82,14 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">5. Accelerating LAMMPS performance</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#measuring-performance">5.1. Measuring performance</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#general-strategies">5.2. General strategies</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#packages-with-optimized-styles">5.3. Packages with optimized styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#packages-with-optimized-styles">5.3. Packages with optimized styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_gpu.html">5.3.1. GPU package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_intel.html">5.3.2. USER-INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_kokkos.html">5.3.3. KOKKOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_omp.html">5.3.4. USER-OMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_opt.html">5.3.5. OPT package</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#comparison-of-various-accelerator-packages">5.4. Comparison of various accelerator packages</a></li>
 </ul>
 </li>
@@ -93,6 +101,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -130,7 +150,7 @@
   
     <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
       
-        <a href="Section_howto.html" class="btn btn-neutral float-right" title="6. How-to discussions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="accelerate_gpu.html" class="btn btn-neutral float-right" title="5.3.1. GPU package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Section_packages.html" class="btn btn-neutral" title="4. Packages" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -276,27 +296,29 @@ overview of packages is give in <a class="reference internal" href="Section_pack
 currently in LAMMPS, either as standard or user packages:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="44%" />
-<col width="56%" />
+<col width="46%" />
+<col width="54%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="accelerate_gpu.html"><span class="doc">GPU Package</span></a></td>
 <td>for NVIDIA GPUs as well as OpenCL support</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL</span></a></td>
+<tr class="row-even"><td><a class="reference internal" href="accelerate_intel.html"><span class="doc">USER-INTEL Package</span></a></td>
 <td>for Intel CPUs and Intel Xeon Phi</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS</span></a></td>
-<td>for GPUs, Intel Xeon Phi, and OpenMP threading</td>
+<tr class="row-odd"><td><a class="reference internal" href="accelerate_kokkos.html"><span class="doc">KOKKOS Package</span></a></td>
+<td>for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP</span></a></td>
-<td>for OpenMP threading</td>
+<tr class="row-even"><td><a class="reference internal" href="accelerate_omp.html"><span class="doc">USER-OMP Package</span></a></td>
+<td>for OpenMP threading and generic CPU optimizations</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="accelerate_opt.html"><span class="doc">OPT Package</span></a></td>
 <td>generic CPU optimizations</td>
 </tr>
 </tbody>
 </table>
+<div class="toctree-wrapper compound">
+</div>
 <p>Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:</p>
 <table border="1" class="docutils">
@@ -336,7 +358,7 @@ Lennard-Jones <a class="reference internal" href="pair_lj.html"><span class="doc
 <li><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut/opt</span></a></li>
 </ul>
 <p>To see what accelerate styles are currently available, see
-<a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section_commands 5</span></a> of the manual.  The
+<a class="reference internal" href="Section_commands.html#cmd-5"><span class="std std-ref">Section 3.5</span></a> of the manual.  The
 doc pages for individual commands (e.g. <a class="reference internal" href="pair_lj.html"><span class="doc">pair lj/cut</span></a> or
 <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>) also list any accelerated variants available
 for that style.</p>
@@ -524,7 +546,7 @@ exclusion lists, hybrid pair styles, or a triclinic simulation box.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Section_howto.html" class="btn btn-neutral float-right" title="6. How-to discussions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="accelerate_gpu.html" class="btn btn-neutral float-right" title="5.3.1. GPU package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Section_packages.html" class="btn btn-neutral" title="4. Packages" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -73,7 +73,8 @@
         
           
           
-              <ul class="current">
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
@@ -120,6 +121,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -210,13 +223,13 @@ own sub-directories with their own Makefiles.</p>
 <li><a class="reference internal" href="#arc"><span class="std std-ref">lmp2arc</span></a></li>
 <li><a class="reference internal" href="#cfg"><span class="std std-ref">lmp2cfg</span></a></li>
 <li><a class="reference internal" href="#vmd"><span class="std std-ref">lmp2vmd</span></a></li>
-<li><span class="xref std std-ref">matlab</span></li>
+<li><a class="reference internal" href="#matlab"><span class="std std-ref">matlab</span></a></li>
 <li><a class="reference internal" href="#micelle"><span class="std std-ref">micelle2d</span></a></li>
 <li><a class="reference internal" href="#moltemplate"><span class="std std-ref">moltemplate</span></a></li>
 <li><a class="reference internal" href="#msi"><span class="std std-ref">msi2lmp</span></a></li>
 <li><a class="reference internal" href="#phonon"><span class="std std-ref">phonon</span></a></li>
 <li><a class="reference internal" href="#polybond"><span class="std std-ref">polymer bonding</span></a></li>
-<li><span class="xref std std-ref">pymol_asphere</span></li>
+<li><a class="reference internal" href="#pymol"><span class="std std-ref">pymol_asphere</span></a></li>
 <li><a class="reference internal" href="#pythontools"><span class="std std-ref">python</span></a></li>
 <li><a class="reference internal" href="#reax-tool"><span class="std std-ref">reax</span></a></li>
 <li><a class="reference internal" href="#restart"><span class="std std-ref">restart2data</span></a></li>
@@ -436,7 +449,7 @@ Kohlmeyer (akohlmey at cmm.chem.upenn.edu) at U Penn.</p>
 </div>
 <div class="section" id="matlab-tool">
 <span id="matlab"></span><h2>9.19. matlab tool</h2>
-<p>The matlab sub-directory contains several <span class="xref std std-ref">MATLAB</span> scripts for
+<p>The matlab sub-directory contains several <a class="reference external" href="http://www.mathworks.com">MATLAB</a> scripts for
 post-processing LAMMPS output.  The scripts include readers for log
 and dump files, a reader for EAM potential files, and a converter that
 reads LAMMPS dump files and produces CFG files that can be visualized
@@ -515,7 +528,7 @@ complex bonding topologies.</p>
 <span id="pymol"></span><h2>9.25. pymol_asphere tool</h2>
 <p>The pymol_asphere sub-directory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
-particles into an input file for the <span class="xref std std-ref">PyMol visualization package</span>.</p>
+particles into an input file for the <a class="reference external" href="http://www.pymol.org">PyMol visualization package</a> or its <a class="reference external" href="http://sourceforge.net/scm/?type=svn&amp;group_id=4546">open source variant</a>.</p>
 <p>Specifically, the tool triangulates the ellipsoids so they can be
 viewed as true ellipsoidal particles within PyMol.  See the README and
 examples directory within pymol_asphere for more information.</p>
@@ -538,7 +551,7 @@ README for more info on Pizza.py and how to use these scripts.</p>
 <hr class="docutils" />
 </div>
 <div class="section" id="reax-tool">
-<span id="id4"></span><h2>9.27. reax tool</h2>
+<span id="id2"></span><h2>9.27. reax tool</h2>
 <p>The reax sub-directory contains stand-alond codes that can
 post-process the output of the <a class="reference internal" href="fix_reax_bonds.html"><span class="doc">fix reax/bonds</span></a>
 command from a LAMMPS simulation using <a class="reference internal" href="pair_reax.html"><span class="doc">ReaxFF</span></a>.  See

@@ -73,18 +73,48 @@
         
           
           
-              <ul class="current">
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">2. Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#what-s-in-the-lammps-distribution">2.1. What&#8217;s in the LAMMPS distribution</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#making-lammps">2.2. Making LAMMPS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#making-lammps-with-optional-packages">2.3. Making LAMMPS with optional packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#making-lammps">2.2. Making LAMMPS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#read-this-first">2.2.1. Read this first</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#steps-to-build-a-lammps-executable">2.2.2. Steps to build a LAMMPS executable</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#step-0">2.2.2.1. Step 0</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-1">2.2.2.2. Step 1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-2">2.2.2.3. Step 2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-3">2.2.2.4. Step 3</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-4">2.2.2.5. Step 4</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-5">2.2.2.6. Step 5</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-6">2.2.2.7. Step 6</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-7">2.2.2.8. Step 7</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-8">2.2.2.9. Step 8</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#step-9">2.2.2.10. Step 9</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#additional-build-tips">2.2.3. Additional build tips</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#building-lammps-for-multiple-platforms">2.2.3.1. Building LAMMPS for multiple platforms.</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cleaning-up">2.2.3.2. Cleaning up.</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#building-for-a-mac">2.2.4. Building for a Mac</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-for-windows">2.2.5. Building for Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#making-lammps-with-optional-packages">2.3. Making LAMMPS with optional packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#package-basics">2.3.1. Package basics:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#including-excluding-packages">2.3.2. Including/excluding packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#packages-that-require-extra-libraries">2.3.3. Packages that require extra libraries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#packages-that-require-makefile-machine-settings">2.3.4. Packages that require Makefile.machine settings</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#building-lammps-via-the-make-py-tool">2.4. Building LAMMPS via the Make.py tool</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#building-lammps-as-a-library">2.5. Building LAMMPS as a library</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#static-library">2.5.1. <strong>Static library:</strong></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#shared-library">2.5.2. <strong>Shared library:</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#static-library">2.5.1. Static library</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shared-library">2.5.2. Shared library</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#additional-requirement-for-using-a-shared-library">2.5.3. <strong>Additional requirement for using a shared library:</strong></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#calling-the-lammps-library">2.5.4. <strong>Calling the LAMMPS library:</strong></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calling-the-lammps-library">2.5.4. Calling the LAMMPS library</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#running-lammps">2.6. Running LAMMPS</a></li>
@@ -104,6 +134,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -174,8 +216,7 @@ experienced users.</p>
 the downloaded file with the following commands, after placing the
 tarball in an appropriate directory.</p>
 <pre class="literal-block">
-gunzip lammps*.tar.gz
-tar xvf lammps*.tar
+tar -xzvf lammps*.tar.gz
 </pre>
 <p>This will create a LAMMPS directory containing two files and several
 sub-directories:</p>
@@ -212,13 +253,14 @@ sub-directories:</p>
 </tbody>
 </table>
 <p>Note that the <a class="reference external" href="http://lammps.sandia.gov/download.html">download page</a> also has links to download
-Windows exectubles and installers, as well as pre-built executables
-for a few specific Linux distributions.  It also has instructions for
-how to download/install LAMMPS for Macs (via Homebrew), and to
+pre-build Windows installers, as well as pre-built packages for
+several widely used Linux distributions.  It also has instructions
+for how to download/install LAMMPS for Macs (via Homebrew), and to
 download and update LAMMPS from SVN and Git repositories, which gives
-you the same files that are in the download tarball.</p>
-<p>The Windows and Linux executables for serial or parallel only include
-certain packages and bug-fixes/upgrades listed on <a class="reference external" href="http://lammps.sandia.gov/bug.html">this page</a> up to a certain date, as
+you access to the up-to-date sources that are used by the LAMMPS
+core developers.</p>
+<p>The Windows and Linux packages for serial or parallel include
+only selected packages and bug-fixes/upgrades listed on <a class="reference external" href="http://lammps.sandia.gov/bug.html">this page</a> up to a certain date, as
 stated on the download page.  If you want an executable with
 non-included packages or that is more current, then you&#8217;ll need to
 build LAMMPS yourself, as discussed in the next section.</p>
@@ -238,7 +280,8 @@ launch a LAMMPS Windows executable on a Windows box.</p>
 <li><a class="reference internal" href="#start-2-6"><span class="std std-ref">Building for Windows</span></a></li>
 </ul>
 <hr class="docutils" />
-<p id="start-2-1"><a href="#id1"><span class="problematic" id="id2">**</span></a><em>Read this first:</em>**</p>
+<div class="section" id="read-this-first">
+<span id="start-2-1"></span><h3>2.2.1. Read this first</h3>
 <p>If you want to avoid building LAMMPS yourself, read the preceeding
 section about options available for downloading and installing
 executables.  Details are discussed on the <a class="reference external" href="http://lammps.sandia.gov/download.html">download</a> page.</p>
@@ -296,8 +339,11 @@ there isn&#8217;t a similar machine Makefile included in the
 src/MAKE/MACHINES directory, then send it to the developers and we can
 include it in the LAMMPS distribution.</p>
 <hr class="docutils" />
-<p id="start-2-2"><a href="#id3"><span class="problematic" id="id4">**</span></a><em>Steps to build a LAMMPS executable:</em>**</p>
-<p><strong>Step 0</strong></p>
+</div>
+<div class="section" id="steps-to-build-a-lammps-executable">
+<span id="start-2-2"></span><h3>2.2.2. Steps to build a LAMMPS executable</h3>
+<div class="section" id="step-0">
+<h4>2.2.2.1. Step 0</h4>
 <p>The src directory contains the C++ source and header files for LAMMPS.
 It also contains a top-level Makefile and a MAKE sub-directory with
 low-level Makefile.* files for many systems and machines.  See the
@@ -315,13 +361,17 @@ it will be never be touched by any LAMMPS updates.</p>
 a list of available choices from src/MAKE and all of its
 sub-directories.  If one of those has the options you want or is the
 machine you want, you can type a command like:</p>
-<pre class="literal-block">
-make mpi
-or
-make serial_icc
-or
-gmake mac
-</pre>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">mpi</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">serial</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">gmake</span> <span class="n">mac</span>
+</pre></div>
+</div>
 <p>Note that the corresponding Makefile.machine can exist in src/MAKE or
 any of its sub-directories.  If a file with the same name appears in
 multiple places (not a good idea), the order they are used is as
@@ -331,11 +381,13 @@ src/MAKE/MINE.</p>
 <p>Note that on a multi-processor or multi-core platform you can launch a
 parallel make, by using the &#8220;-j&#8221; switch with the make command, which
 will build LAMMPS more quickly.</p>
-<p>If you get no errors and an executable like lmp_mpi or lmp_g++_serial
-or lmp_mac is produced, then you&#8217;re done; it&#8217;s your lucky day.</p>
+<p>If you get no errors and an executable like <strong>lmp_mpi</strong> or <strong>lmp_serial</strong>
+or <strong>lmp_mac</strong> is produced, then you&#8217;re done; it&#8217;s your lucky day.</p>
 <p>Note that by default only a few of LAMMPS optional packages are
 installed.  To build LAMMPS with optional packages, see <a class="reference internal" href="#start-3"><span class="std std-ref">this section</span></a> below.</p>
-<p><strong>Step 1</strong></p>
+</div>
+<div class="section" id="step-1">
+<h4>2.2.2.2. Step 1</h4>
 <p>If Step 0 did not work, you will need to create a low-level Makefile
 for your machine, like Makefile.foo.  You should make a copy of an
 existing Makefile.* in src/MAKE or one of its sub-directories as a
@@ -344,11 +396,15 @@ the first line, the &#8220;compiler/linker settings&#8221; section, and the
 &#8220;LAMMPS-specific settings&#8221; section.  When it works, put the edited
 file in src/MAKE/MINE and it will not be altered by any future LAMMPS
 updates.</p>
-<p><strong>Step 2</strong></p>
+</div>
+<div class="section" id="step-2">
+<h4>2.2.2.3. Step 2</h4>
 <p>Change the first line of Makefile.foo to list the word &#8220;foo&#8221; after the
 &#8220;#&#8221;, and whatever other options it will set.  This is the line you
 will see if you just type &#8220;make&#8221;.</p>
-<p><strong>Step 3</strong></p>
+</div>
+<div class="section" id="step-3">
+<h4>2.2.2.4. Step 3</h4>
 <p>The &#8220;compiler/linker settings&#8221; section lists compiler and linker
 settings for your C++ compiler, including optimization flags.  You can
 use g++, the open-source GNU compiler, which is available on all Unix
@@ -371,7 +427,9 @@ involve dependency files.  Note that when you build LAMMPS for the
 first time on a new platform, a long list of *.d files will be printed
 out rapidly.  This is not an error; it is the Makefile doing its
 normal creation of dependencies.</p>
-<p><strong>Step 4</strong></p>
+</div>
+<div class="section" id="step-4">
+<h4>2.2.2.5. Step 4</h4>
 <p>The &#8220;system-specific settings&#8221; section has several parts.  Note that
 if you change any -D setting in this section, you should do a full
 re-compile, after typing &#8220;make clean&#8221; (which will describe different
@@ -470,7 +528,9 @@ options can make for faster parallel FFTs (in the PPPM solver) on some
 platforms.  The -DPACK_ARRAY setting is the default.  See the
 <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command for info about PPPM.  See
 Step 6 below for info about building LAMMPS with an FFT library.</p>
-<p><strong>Step 5</strong></p>
+</div>
+<div class="section" id="step-5">
+<h4>2.2.2.6. Step 5</h4>
 <p>The 3 MPI variables are used to specify an MPI library to build LAMMPS
 with.  Note that you do not need to set these if you use the MPI
 compiler mpicxx for your CC and LINK setting in the section above.
@@ -517,7 +577,9 @@ gettimeofday() , you&#8217;ll need to insert code to call another timer.
 Note that the ANSI-standard function clock() rolls over after an hour
 or so, and is therefore insufficient for timing long LAMMPS
 simulations.</p>
-<p><strong>Step 6</strong></p>
+</div>
+<div class="section" id="step-6">
+<h4>2.2.2.7. Step 6</h4>
 <p>The 3 FFT variables allow you to specify an FFT library which LAMMPS
 uses (for performing 1d FFTs) when running the particle-particle
 particle-mesh (PPPM) option for long-range Coulombics via the
@@ -563,7 +625,9 @@ double precision.  Using the -DFFT_SINGLE setting trades off a little
 accuracy for reduced memory use and parallel communication costs for
 transposing 3d FFT data.  Note that single precision FFTs have only
 been tested with the FFTW3, FFTW2, MKL, and KISS FFT options.</p>
-<p><strong>Step 7</strong></p>
+</div>
+<div class="section" id="step-7">
+<h4>2.2.2.8. Step 7</h4>
 <p>The 3 JPG variables allow you to specify a JPEG and/or PNG library
 which LAMMPS uses when writing out JPEG or PNG files via the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command.  These can be left blank if you do not
 use the -DLAMMPS_JPEG or -DLAMMPS_PNG switches discussed above in Step
@@ -580,10 +644,14 @@ JPG_PATH, and JPG_LIB variables, so that the compiler and linker can
 find it.</p>
 <p>As before, if these header and library files are in the usual place on
 your machine, you may not need to set these variables.</p>
-<p><strong>Step 8</strong></p>
+</div>
+<div class="section" id="step-8">
+<h4>2.2.2.9. Step 8</h4>
 <p>Note that by default only a few of LAMMPS optional packages are
 installed.  To build LAMMPS with optional packages, see <a class="reference internal" href="#start-3"><span class="std std-ref">this section</span></a> below, before proceeding to Step 9.</p>
-<p><strong>Step 9</strong></p>
+</div>
+<div class="section" id="step-9">
+<h4>2.2.2.10. Step 9</h4>
 <p>That&#8217;s it.  Once you have a correct Makefile.foo, and you have
 pre-built any other needed libraries (e.g. MPI, FFT, etc) all you need
 to do from the src directory is type something like this:</p>
@@ -598,7 +666,7 @@ faster, depending on how many cores your compilation machine has.  N
 is the number of cores the build runs on.</p>
 <p>You should get the executable lmp_foo when the build is complete.</p>
 <hr class="docutils" />
-<p id="start-2-3"><a href="#id5"><span class="problematic" id="id6">**</span></a><em>Errors that can occur when making LAMMPS:</em>**</p>
+<p id="start-2-3">Errors that can occur when making LAMMPS: h5</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">If an error occurs when building LAMMPS, the compiler or linker
@@ -632,21 +700,24 @@ is undefined&#8217;, then your machine does not support &#8220;long long&#8221;
 integers.  Try using the -DLAMMPS_LONGLONG_TO_LONG setting described
 above in Step 4.</p>
 <hr class="docutils" />
-<p id="start-2-4"><a href="#id7"><span class="problematic" id="id8">**</span></a><em>Additional build tips:</em>**</p>
-<ol class="arabic simple">
-<li>Building LAMMPS for multiple platforms.</li>
-</ol>
+</div>
+</div>
+<div class="section" id="additional-build-tips">
+<span id="start-2-4"></span><h3>2.2.3. Additional build tips</h3>
+<div class="section" id="building-lammps-for-multiple-platforms">
+<h4>2.2.3.1. Building LAMMPS for multiple platforms.</h4>
 <p>You can make LAMMPS for multiple platforms from the same src
 directory.  Each target creates its own object sub-directory called
 Obj_target where it stores the system-specific *.o files.</p>
-<ol class="arabic simple" start="2">
-<li>Cleaning up.</li>
-</ol>
+</div>
+<div class="section" id="cleaning-up">
+<h4>2.2.3.2. Cleaning up.</h4>
 <p>Typing &#8220;make clean-all&#8221; or &#8220;make clean-machine&#8221; will delete *.o object
 files created when LAMMPS is built, for either all builds or for a
 particular machine.</p>
-<p>(3) Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
--DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL</p>
+<p>Changing the LAMMPS size limits via -DLAMMPS_SMALLBIG or
+-DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
+&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;&#8220;&#8221;</p>
 <p>As explained above, any of these 3 settings can be specified on the
 LMP_INC line in your low-level src/MAKE/Makefile.foo.</p>
 <p>The default is -DLAMMPS_SMALLBIG which allows for systems with up to
@@ -686,30 +757,43 @@ basis is limited by 4-byte integer storage to 2^31 atoms per processor
 a problem would have a huge per-processor memory footprint due to
 neighbor lists and would run very slowly in terms of CPU secs/timestep.</p>
 <hr class="docutils" />
-<p id="start-2-5"><a href="#id9"><span class="problematic" id="id10">**</span></a><em>Building for a Mac:</em>**</p>
+</div>
+</div>
+<div class="section" id="building-for-a-mac">
+<span id="start-2-5"></span><h3>2.2.4. Building for a Mac</h3>
 <p>OS X is BSD Unix, so it should just work.  See the
 src/MAKE/MACHINES/Makefile.mac and Makefile.mac_mpi files.</p>
 <hr class="docutils" />
-<p id="start-2-6"><a href="#id11"><span class="problematic" id="id12">**</span></a><em>Building for Windows:</em>**</p>
-<p>The LAMMPS download page has an option to download both a serial and
-parallel pre-built Windows executable.  See the <a class="reference internal" href="#start-6"><span class="std std-ref">Running LAMMPS</span></a> section for instructions on running these executables
-on a Windows box.</p>
-<p>The pre-built executables hosted on the <a class="reference external" href="http://lammps.sandia.gov/download.html">LAMMPS download page</a> are built with a subset
-of the available packages; see the download page for the list. These
-are single executable files.  No examples or documentation in
-included. You will need to download the full source code package to
-obtain those.</p>
+</div>
+<div class="section" id="building-for-windows">
+<span id="start-2-6"></span><h3>2.2.5. Building for Windows</h3>
+<p>If you want to build a Windows version of LAMMPS, you can build it
+yourself, but it may require some effort. LAMMPS expects a Unix-like
+build environment for the default build procedure. This can be done
+using either Cygwin or MinGW; the latter also exists as a ready-to-use
+Linux-to-Windows cross-compiler in several Linux distributions. In
+these cases, you can do the installation after installing several
+unix-style commands like make, grep, sed and bash with some shell
+utilities.</p>
+<p>For Cygwin and the MinGW cross-compilers, suitable makefiles are
+provided in src/MAKE/MACHINES. When using other compilers, like
+Visual C++ or Intel compilers for Windows, you may have to implement
+your own build system. Since none of the current LAMMPS core developers
+has significant experience building executables on Windows, we are
+happy to distribute contributed instructions and modifications, but
+we cannot provide support for those.</p>
+<p>With the so-called &#8220;Anniversary Update&#8221; to Windows 10, there is a
+Ubuntu subsystem available for Windows, that can be installed and
+then it can be used to compile/install LAMMPS as if you are running
+on a Ubuntu Linux system.</p>
 <p>As an alternative, you can download &#8220;daily builds&#8221; (and some older
 versions) of the installer packages from
 <a class="reference external" href="http://rpm.lammps.org/windows.html">rpm.lammps.org/windows.html</a>.
 These executables are built with most optional packages and the
-download includes documentation, some tools and most examples.</p>
-<p>If you want a Windows version with specific packages included and
-excluded, you can build it yourself.</p>
-<p>One way to do this is install and use cygwin to build LAMMPS with a
-standard unix style make program, just as you would on a Linux box;
-see src/MAKE/MACHINES/Makefile.cygwin.</p>
+download includes documentation, potential files, some tools and
+many examples, but no source code.</p>
 <hr class="docutils" />
+</div>
 </div>
 <div class="section" id="making-lammps-with-optional-packages">
 <span id="start-3"></span><h2>2.3. Making LAMMPS with optional packages</h2>
@@ -725,7 +809,8 @@ tool which can be used to install/un-install packages and build the
 auxiliary libraries which some of them use.  It can also auto-edit a
 Makefile.machine to add settings needed by some packages.</p>
 <hr class="docutils" />
-<p id="start-3-1"><a href="#id13"><span class="problematic" id="id14">**</span></a><em>Package basics:</em>**</p>
+<div class="section" id="package-basics">
+<span id="start-3-1"></span><h3>2.3.1. Package basics:</h3>
 <p>The source code for LAMMPS is structured as a set of core files which
 are always included, plus optional packages.  Packages are groups of
 files that enable a specific set of features.  For example, force
@@ -749,7 +834,7 @@ lmp_machine -h
 commands known to your executable, and immediately exit.</p>
 <p>There are two kinds of packages in LAMMPS, standard and user packages.
 More information about the contents of standard and user packages is
-given in <a class="reference internal" href="Section_packages.html"><span class="doc">Section_packages</span></a> of the manual.  The
+given in <a class="reference internal" href="Section_packages.html"><span class="doc">Section 4</span></a> of the manual.  The
 difference between standard and user packages is as follows:</p>
 <p>Standard packages, such as molecule or kspace, are supported by the
 LAMMPS developers and are written in a syntax and style consistent
@@ -768,7 +853,9 @@ Information on how to submit additions you make to LAMMPS as single
 files or either a standard or user-contributed package are given in
 <a class="reference internal" href="Section_modify.html#mod-15"><span class="std std-ref">this section</span></a> of the documentation.</p>
 <hr class="docutils" />
-<p id="start-3-2"><a href="#id15"><span class="problematic" id="id16">**</span></a><em>Including/excluding packages:</em>**</p>
+</div>
+<div class="section" id="including-excluding-packages">
+<span id="start-3-2"></span><h3>2.3.2. Including/excluding packages</h3>
 <p>To use (or not use) a package you must include it (or exclude it)
 before building LAMMPS.  From the src directory, this is typically as
 simple as:</p>
@@ -837,13 +924,15 @@ sub-directory.  Typing &#8220;make package-diff&#8221; lists all differences
 between these files.  Again, type &#8220;make package&#8221; to see all of the
 package-related make options.</p>
 <hr class="docutils" />
-<p id="start-3-3"><a href="#id17"><span class="problematic" id="id18">**</span></a><em>Packages that require extra libraries:</em>**</p>
+</div>
+<div class="section" id="packages-that-require-extra-libraries">
+<span id="start-3-3"></span><h3>2.3.3. Packages that require extra libraries</h3>
 <p>A few of the standard and user packages require additional auxiliary
 libraries.  Many of them are provided with LAMMPS, in which case they
 must be compiled first, before LAMMPS is built, if you wish to include
 that package.  If you get a LAMMPS build error about a missing
 library, this is likely the reason.  See the
-<a class="reference internal" href="Section_packages.html"><span class="doc">Section_packages</span></a> doc page for a list of
+<a class="reference internal" href="Section_packages.html"><span class="doc">Section 4</span></a> doc page for a list of
 packages that have these kinds of auxiliary libraries.</p>
 <p>The lib directory in the distribution has sub-directories with package
 names that correspond to the needed auxiliary libs, e.g. lib/gpu.
@@ -908,7 +997,9 @@ needed soft links.  Type &#8220;python install.py&#8221; for further instruction
 or settings in the lib/package/Makefile.lammps files are not correct,
 the LAMMPS build will typically fail.</p>
 <hr class="docutils" />
-<p id="start-3-4"><a href="#id19"><span class="problematic" id="id20">**</span></a><em>Packages that require Makefile.machine settings</em>**</p>
+</div>
+<div class="section" id="packages-that-require-makefile-machine-settings">
+<span id="start-3-4"></span><h3>2.3.4. Packages that require Makefile.machine settings</h3>
 <p>A few packages require specific settings in Makefile.machine, to
 either build or use the package effectively.  These are the
 USER-INTEL, KOKKOS, USER-OMP, and OPT packages, used for accelerating
@@ -940,6 +1031,7 @@ KOKKOS package builds for OpenMP, GPUs (Cuda), and the Xeon Phi.</p>
 <p>Also note that the Make.py tool, described in the next <a class="reference internal" href="#start-4"><span class="std std-ref">Section 2.4</span></a> can automatically add the needed info to an existing
 machine Makefile, using simple command-line arguments.</p>
 <hr class="docutils" />
+</div>
 </div>
 <div class="section" id="building-lammps-via-the-make-py-tool">
 <span id="start-4"></span><h2>2.4. Building LAMMPS via the Make.py tool</h2>
@@ -1080,7 +1172,7 @@ then be called from another application or a scripting language.  See
 LAMMPS to other codes.  See <a class="reference internal" href="Section_python.html"><span class="doc">this section</span></a> for
 more info on wrapping and running LAMMPS from Python.</p>
 <div class="section" id="static-library">
-<h3>2.5.1. <strong>Static library:</strong></h3>
+<h3>2.5.1. Static library</h3>
 <p>To build LAMMPS as a static library (*.a file on Linux), type</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">foo</span> <span class="n">mode</span><span class="o">=</span><span class="n">lib</span>
 </pre></div>
@@ -1094,14 +1186,14 @@ link to.  It will also create a soft link liblammps.a, which will
 point to the most recently built static library.</p>
 </div>
 <div class="section" id="shared-library">
-<h3>2.5.2. <strong>Shared library:</strong></h3>
+<h3>2.5.2. Shared library</h3>
 <p>To build LAMMPS as a shared library (*.so file on Linux), which can be
 dynamically loaded, e.g. from Python, type</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">foo</span> <span class="n">mode</span><span class="o">=</span><span class="n">shlib</span>
 </pre></div>
 </div>
 <p>where foo is the machine name.  This kind of library is required when
-wrapping LAMMPS with Python; see <a class="reference internal" href="Section_python.html"><span class="doc">Section_python</span></a>
+wrapping LAMMPS with Python; see <a class="reference internal" href="Section_python.html"><span class="doc">Section 11</span></a>
 for details.  This will use the SHFLAGS and SHLIBFLAGS settings in
 src/MAKE/Makefile.foo and perform the build in the directory
 Obj_shared_foo.  This is so that each file can be compiled with the
@@ -1162,7 +1254,7 @@ setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/lammps/src
 </pre>
 </div>
 <div class="section" id="calling-the-lammps-library">
-<h3>2.5.4. <strong>Calling the LAMMPS library:</strong></h3>
+<h3>2.5.4. Calling the LAMMPS library</h3>
 <p>Either flavor of library (static or shared) allows one or more LAMMPS
 objects to be instantiated from the calling program.</p>
 <p>When used from a C++ program, all of LAMMPS is wrapped in a LAMMPS_NS
@@ -1174,12 +1266,12 @@ src/library.cpp and src/library.h.</p>
 <p>See the sample codes in examples/COUPLE/simple for examples of C++ and
 C and Fortran codes that invoke LAMMPS thru its library interface.
 There are other examples as well in the COUPLE directory which are
-discussed in <a class="reference internal" href="Section_howto.html#howto-10"><span class="std std-ref">Section_howto 10</span></a> of the
-manual.  See <a class="reference internal" href="Section_python.html"><span class="doc">Section_python</span></a> of the manual for a
+discussed in <a class="reference internal" href="Section_howto.html#howto-10"><span class="std std-ref">Section 6.10</span></a> of the
+manual.  See <a class="reference internal" href="Section_python.html"><span class="doc">Section 11</span></a> of the manual for a
 description of the Python wrapper provided with LAMMPS that operates
 through the LAMMPS library interface.</p>
 <p>The files src/library.cpp and library.h define the C-style API for
-using LAMMPS as a library.  See <a class="reference internal" href="Section_howto.html#howto-19"><span class="std std-ref">Section_howto 19</span></a> of the manual for a description of the
+using LAMMPS as a library.  See <a class="reference internal" href="Section_howto.html#howto-19"><span class="std std-ref">Section 6.19</span></a> of the manual for a description of the
 interface and how to extend it for your needs.</p>
 <hr class="docutils" />
 </div>
@@ -1222,43 +1314,56 @@ various platforms.  Note that some of the example scripts require
 LAMMPS to be built with one or more of its optional packages.</p>
 <hr class="docutils" />
 <p>On a Windows box, you can skip making LAMMPS and simply download an
-executable, as described above, though the pre-packaged executables
-include only certain packages.</p>
-<p>To run a LAMMPS executable on a Windows machine, first decide whether
-you want to download the non-MPI (serial) or the MPI (parallel)
-version of the executable. Download and save the version you have
-chosen.</p>
-<p>For the non-MPI version, follow these steps:</p>
+installer package from <a class="reference external" href="http://rpm.lammps.org/windows.html">here</a></p>
+<p>For running the non-MPI executable, follow these steps:</p>
 <ul class="simple">
 <li>Get a command prompt by going to Start-&gt;Run... ,
 then typing &#8220;cmd&#8221;.</li>
-<li>Move to the directory where you have saved lmp_win_no-mpi.exe
-(e.g. by typing: cd &#8220;Documents&#8221;).</li>
-<li>At the command prompt, type &#8220;lmp_win_no-mpi -in in.lj&#8221;, replacing in.lj
+<li>Move to the directory where you have your input, e.g. a copy of
+the <strong>in.lj</strong> input from the bench folder. (e.g. by typing: cd &#8220;Documents&#8221;).</li>
+<li>At the command prompt, type &#8220;lmp_serial -in in.lj&#8221;, replacing <strong>in.lj</strong>
 with the name of your LAMMPS input script.</li>
 </ul>
 <p>For the MPI version, which allows you to run LAMMPS under Windows on
 multiple processors, follow these steps:</p>
-<ul class="simple">
-<li>Download and install
+<ul>
+<li><p class="first">Download and install
 <a class="reference external" href="http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=downloads">MPICH2</a>
-for Windows.</li>
-<li>You&#8217;ll need to use the mpiexec.exe and smpd.exe files from the MPICH2
-package. Put them in same directory (or path) as the LAMMPS Windows
-executable.</li>
-<li>Get a command prompt by going to Start-&gt;Run... ,
-then typing &#8220;cmd&#8221;.</li>
-<li>Move to the directory where you have saved lmp_win_mpi.exe
-(e.g. by typing: cd &#8220;Documents&#8221;).</li>
-<li>Then type something like this: &#8220;mpiexec -localonly 4 lmp_win_mpi -in
-in.lj&#8221;, replacing in.lj with the name of your LAMMPS input script.</li>
-<li>Note that you may need to provide smpd with a passphrase (it doesn&#8217;t
-matter what you type).</li>
-<li>In this mode, output may not immediately show up on the screen, so if
+for Windows.</p>
+<p>The LAMMPS Windows installer packages will automatically adjust your
+path for the default location of this MPI package. After the installation
+of the MPICH software, it needs to be integrated into the system.
+For this you need to start a Command Prompt in <em>Administrator Mode</em>
+(right click on the icon and select it). Change into the MPICH2
+installation directory, then into the subdirectory <strong>bin</strong> and execute
+<strong>smpd.exe -install</strong>. Exit the command window.</p>
+</li>
+<li><p class="first">Get a new, regular command prompt by going to Start-&gt;Run... ,
+then typing &#8220;cmd&#8221;.</p>
+</li>
+<li><p class="first">Move to the directory where you have your input file
+(e.g. by typing: cd &#8220;Documents&#8221;).</p>
+<p>Then type something like this:</p>
+<pre class="literal-block">
+mpiexec -localonly 4 lmp_mpi -in in.lj
+</pre>
+<p>or</p>
+<pre class="literal-block">
+mpiexec -np 4 lmp_mpi -in in.lj
+</pre>
+</li>
+<li><p class="first">replacing in.lj with the name of your LAMMPS input script. For the latter
+case, you may be prompted to enter your password.</p>
+</li>
+<li><p class="first">In this mode, output may not immediately show up on the screen, so if
 your input script takes a long time to execute, you may need to be
-patient before the output shows up.  Alternatively, you can still
-use this executable to run on a single processor by typing something
-like: &#8220;lmp_win_mpi -in in.lj&#8221;.</li>
+patient before the output shows up.</p>
+<p>The parallel executable can also run on a single processor by typing
+something like:</p>
+<pre class="literal-block">
+lmp_mpi -in in.lj
+</pre>
+</li>
 </ul>
 <hr class="docutils" />
 <p>The screen output from LAMMPS is described in a section below.  As it
@@ -1273,7 +1378,7 @@ files and write its output files to the executable directory, rather
 than your working directory, which is probably not what you want.</p>
 <p>If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
-message and continue.  See <a class="reference internal" href="Section_errors.html"><span class="doc">Section_errors</span></a> for a
+message and continue.  See <a class="reference internal" href="Section_errors.html"><span class="doc">Section 12</span></a> for a
 discussion of the various kinds of errors LAMMPS can or can&#8217;t detect,
 a list of all ERROR and WARNING messages, and what to do about them.</p>
 <p>LAMMPS can run a problem on any number of processors, including a
@@ -1480,7 +1585,7 @@ replica runs on on one or a few processors.  Note that with MPI
 installed on a machine (e.g. your desktop), you can run on more
 (virtual) processors than you have physical processors.</p>
 <p>To run multiple independent simulatoins from one input script, using
-multiple partitions, see <a class="reference internal" href="Section_howto.html#howto-4"><span class="std std-ref">Section_howto 4</span></a>
+multiple partitions, see <a class="reference internal" href="Section_howto.html#howto-4"><span class="std std-ref">Section 6.4</span></a>
 of the manual.  World- and universe-style <a class="reference internal" href="variable.html"><span class="doc">variables</span></a>
 are useful in this context.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-</span><span class="n">plog</span> <span class="n">file</span>
@@ -1544,7 +1649,7 @@ cores within each node are ranked in a desired order.  Or when using
 the <a class="reference internal" href="run_style.html"><span class="doc">run_style verlet/split</span></a> command with 2 partitions
 to insure that a specific Kspace processor (in the 2nd partition) is
 matched up with a specific set of processors in the 1st partition.
-See the <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> doc pages for
+See the <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> doc pages for
 more details.</p>
 <p>If the keyword <em>nth</em> is used with a setting <em>N</em>, then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
@@ -1711,19 +1816,19 @@ simulation.  An example set of statistics is shown here:</p>
 <span class="mf">97.0</span><span class="o">%</span> <span class="n">CPU</span> <span class="n">use</span> <span class="k">with</span> <span class="mi">4</span> <span class="n">MPI</span> <span class="n">tasks</span> <span class="n">x</span> <span class="n">no</span> <span class="n">OpenMP</span> <span class="n">threads</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MPI</span> <span class="n">task</span> <span class="n">timings</span> <span class="n">breakdown</span><span class="p">:</span>
-<span class="n">Section</span> <span class="o">|</span>  <span class="nb">min</span> <span class="n">time</span>  <span class="o">|</span>  <span class="n">avg</span> <span class="n">time</span>  <span class="o">|</span>  <span class="nb">max</span> <span class="n">time</span>  <span class="o">|%</span><span class="n">varavg</span><span class="o">|</span> <span class="o">%</span><span class="n">total</span>
-<span class="o">---------------------------------------------------------------</span>
-<span class="n">Pair</span>    <span class="o">|</span> <span class="mf">1.9808</span>     <span class="o">|</span> <span class="mf">2.0134</span>     <span class="o">|</span> <span class="mf">2.0318</span>     <span class="o">|</span>   <span class="mf">1.4</span> <span class="o">|</span> <span class="mf">71.60</span>
-<span class="n">Bond</span>    <span class="o">|</span> <span class="mf">0.0021894</span>  <span class="o">|</span> <span class="mf">0.0060319</span>  <span class="o">|</span> <span class="mf">0.010058</span>   <span class="o">|</span>   <span class="mf">4.7</span> <span class="o">|</span>  <span class="mf">0.21</span>
-<span class="n">Kspace</span>  <span class="o">|</span> <span class="mf">0.3207</span>     <span class="o">|</span> <span class="mf">0.3366</span>     <span class="o">|</span> <span class="mf">0.36616</span>    <span class="o">|</span>   <span class="mf">3.1</span> <span class="o">|</span> <span class="mf">11.97</span>
-<span class="n">Neigh</span>   <span class="o">|</span> <span class="mf">0.28411</span>    <span class="o">|</span> <span class="mf">0.28464</span>    <span class="o">|</span> <span class="mf">0.28516</span>    <span class="o">|</span>   <span class="mf">0.1</span> <span class="o">|</span> <span class="mf">10.12</span>
-<span class="n">Comm</span>    <span class="o">|</span> <span class="mf">0.075732</span>   <span class="o">|</span> <span class="mf">0.077018</span>   <span class="o">|</span> <span class="mf">0.07883</span>    <span class="o">|</span>   <span class="mf">0.4</span> <span class="o">|</span>  <span class="mf">2.74</span>
-<span class="n">Output</span>  <span class="o">|</span> <span class="mf">0.00030518</span> <span class="o">|</span> <span class="mf">0.00042665</span> <span class="o">|</span> <span class="mf">0.00078821</span> <span class="o">|</span>   <span class="mf">1.0</span> <span class="o">|</span>  <span class="mf">0.02</span>
-<span class="n">Modify</span>  <span class="o">|</span> <span class="mf">0.086606</span>   <span class="o">|</span> <span class="mf">0.086631</span>   <span class="o">|</span> <span class="mf">0.086668</span>   <span class="o">|</span>   <span class="mf">0.0</span> <span class="o">|</span>  <span class="mf">3.08</span>
-<span class="n">Other</span>   <span class="o">|</span>            <span class="o">|</span> <span class="mf">0.007178</span>   <span class="o">|</span>            <span class="o">|</span>       <span class="o">|</span>  <span class="mf">0.26</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.9808     | 2.0134     | 2.0318     |   1.4 | 71.60
+Bond    | 0.0021894  | 0.0060319  | 0.010058   |   4.7 |  0.21
+Kspace  | 0.3207     | 0.3366     | 0.36616    |   3.1 | 11.97
+Neigh   | 0.28411    | 0.28464    | 0.28516    |   0.1 | 10.12
+Comm    | 0.075732   | 0.077018   | 0.07883    |   0.4 |  2.74
+Output  | 0.00030518 | 0.00042665 | 0.00078821 |   1.0 |  0.02
+Modify  | 0.086606   | 0.086631   | 0.086668   |   0.0 |  3.08
+Other   |            | 0.007178   |            |       |  0.26
+</pre>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Nlocal</span><span class="p">:</span>    <span class="mi">501</span> <span class="n">ave</span> <span class="mi">508</span> <span class="nb">max</span> <span class="mi">490</span> <span class="nb">min</span>
 <span class="n">Histogram</span><span class="p">:</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">1</span>
 <span class="n">Nghost</span><span class="p">:</span>    <span class="mf">6586.25</span> <span class="n">ave</span> <span class="mi">6628</span> <span class="nb">max</span> <span class="mi">6548</span> <span class="nb">min</span>
@@ -1777,17 +1882,17 @@ computation. These thread timings are taking from the first MPI rank
 only and and thus, as the breakdown for MPI tasks can change from MPI
 rank to MPI rank, this breakdown can be very different for individual
 ranks. Here is an example output for this section:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Thread</span> <span class="n">timings</span> <span class="n">breakdown</span> <span class="p">(</span><span class="n">MPI</span> <span class="n">rank</span> <span class="mi">0</span><span class="p">):</span>
-<span class="n">Total</span> <span class="n">threaded</span> <span class="n">time</span> <span class="mf">0.6846</span> <span class="o">/</span> <span class="mf">90.6</span><span class="o">%</span>
-<span class="n">Section</span> <span class="o">|</span>  <span class="nb">min</span> <span class="n">time</span>  <span class="o">|</span>  <span class="n">avg</span> <span class="n">time</span>  <span class="o">|</span>  <span class="nb">max</span> <span class="n">time</span>  <span class="o">|%</span><span class="n">varavg</span><span class="o">|</span> <span class="o">%</span><span class="n">total</span>
-<span class="o">---------------------------------------------------------------</span>
-<span class="n">Pair</span>    <span class="o">|</span> <span class="mf">0.5127</span>     <span class="o">|</span> <span class="mf">0.5147</span>     <span class="o">|</span> <span class="mf">0.5167</span>     <span class="o">|</span>   <span class="mf">0.3</span> <span class="o">|</span> <span class="mf">75.18</span>
-<span class="n">Bond</span>    <span class="o">|</span> <span class="mf">0.0043139</span>  <span class="o">|</span> <span class="mf">0.0046779</span>  <span class="o">|</span> <span class="mf">0.0050418</span>  <span class="o">|</span>   <span class="mf">0.5</span> <span class="o">|</span>  <span class="mf">0.68</span>
-<span class="n">Kspace</span>  <span class="o">|</span> <span class="mf">0.070572</span>   <span class="o">|</span> <span class="mf">0.074541</span>   <span class="o">|</span> <span class="mf">0.07851</span>    <span class="o">|</span>   <span class="mf">1.5</span> <span class="o">|</span> <span class="mf">10.89</span>
-<span class="n">Neigh</span>   <span class="o">|</span> <span class="mf">0.084778</span>   <span class="o">|</span> <span class="mf">0.086969</span>   <span class="o">|</span> <span class="mf">0.089161</span>   <span class="o">|</span>   <span class="mf">0.7</span> <span class="o">|</span> <span class="mf">12.70</span>
-<span class="n">Reduce</span>  <span class="o">|</span> <span class="mf">0.0036485</span>  <span class="o">|</span> <span class="mf">0.003737</span>   <span class="o">|</span> <span class="mf">0.0038254</span>  <span class="o">|</span>   <span class="mf">0.1</span> <span class="o">|</span>  <span class="mf">0.55</span>
-</pre></div>
-</div>
+<pre class="literal-block">
+Thread timings breakdown (MPI rank 0):
+Total threaded time 0.6846 / 90.6%
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.5127     | 0.5147     | 0.5167     |   0.3 | 75.18
+Bond    | 0.0043139  | 0.0046779  | 0.0050418  |   0.5 |  0.68
+Kspace  | 0.070572   | 0.074541   | 0.07851    |   1.5 | 10.89
+Neigh   | 0.084778   | 0.086969   | 0.089161   |   0.7 | 12.70
+Reduce  | 0.0036485  | 0.003737   | 0.0038254  |   0.1 |  0.55
+</pre>
 <p>The third section lists the number of owned atoms (Nlocal), ghost atoms
 (Nghost), and pair-wise neighbors stored per processor.  The max and min
 values give the spread of these values across processors with a 10-bin
@@ -1849,7 +1954,7 @@ communication, roughly 75% in the example above.</p>
 <span id="start-9"></span><h2>2.9. Tips for users of previous LAMMPS versions</h2>
 <p>The current C++ began with a complete rewrite of LAMMPS 2001, which
 was written in F90.  Features of earlier versions of LAMMPS are listed
-in <a class="reference internal" href="Section_history.html"><span class="doc">Section_history</span></a>.  The F90 and F77 versions
+in <a class="reference internal" href="Section_history.html"><span class="doc">Section 13</span></a>.  The F90 and F77 versions
 (2001 and 99) are also freely distributed as open-source codes; check
 the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a> for distribution information if you prefer
 those versions.  The 99 and 2001 versions are no longer under active

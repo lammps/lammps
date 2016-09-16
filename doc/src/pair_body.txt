@@ -24,7 +24,7 @@ pair_coeff 1 1 1.0 1.5 2.5 :pre
 
 Style {body} is for use with body particles and calculates pairwise
 body/body interactions as well as interactions between body and
-point-particles.  See "Section_howto 14"_Section_howto.html#howto_14
+point-particles.  See "Section 6.14"_Section_howto.html#howto_14
 of the manual and the "body"_body.html doc page for more details on
 using body particles.
 

@@ -110,7 +110,7 @@ thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to "computes"_compute.html, "fixes"_fix.html, and
 equal-style "variables"_variable.html" that have been defined
 elsewhere in the input script or can even be new styles which users
-have added to LAMMPS (see the "Section_modify"_Section_modify.html
+have added to LAMMPS (see the "Section 10"_Section_modify.html
 section of the documentation).  Thus the {custom} style provides a
 flexible means of outputting essentially any desired quantity as a
 simulation proceeds.
@@ -254,9 +254,9 @@ proceed for the maximum number of allowed iterations.
 The {part} keyword is useful for multi-replica or multi-partition
 simulations to indicate which partition this output and this file
 corresponds to, or for use in a "variable"_variable.html to append to
-a filename for output specific to this partition.  See "Section_start
-7"_Section_start.html#start_7 of the manual for details on running in
-multi-partition mode.
+a filename for output specific to this partition.  See "Section
+2.7"_Section_start.html#start_7 of the manual for details on running
+in multi-partition mode.
 
 The {timeremain} keyword returns the remaining seconds when a
 timeout has been configured via the "timer timeout"_timer.html command.

@@ -43,12 +43,12 @@ NEB is a method for finding both the atomic configurations and height
 of the energy barrier associated with a transition state, e.g. for an
 atom to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 3 papers: "(Henkelman1)"_#Henkelman1,
-"(Henkelman2)"_#Henkelman2, and "(Nakano)"_#Nakano.
+follows the discussion in these 3 papers: "(HenkelmanA)"_#HenkelmanA,
+"(HenkelmanB)"_#HenkelmanB, and "(Nakano)"_#Nakano.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section_start 7"_Section_start.html#start_7 of the
+switch; see "Section 2.7"_Section_start.html#start_7 of the
 manual.  Note that if you have MPI installed, you can run a
 multi-replica simulation with more replicas (partitions) than you have
 physical processors, e.g you can run a 10-replica simulation on just
@@ -235,7 +235,7 @@ In the second stage of NEB, the replica with the highest energy
 is selected and the inter-replica forces on it are converted to a
 force that drives its atom coordinates to the top or saddle point of
 the barrier, via the barrier-climbing calculation described in
-"(Henkelman2)"_#Henkelman2.  As before, the other replicas rearrange
+"(HenkelmanB)"_#HenkelmanB.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
 When both stages are complete, if the NEB calculation was successful,
@@ -319,10 +319,9 @@ this case), the print-out to the screen and master log.lammps file
 contains a line of output, printed once every {Nevery} timesteps.  It
 contains the timestep, the maximum force per replica, the maximum
 force per atom (in any replica), potential gradients in the initial,
- final, and climbing replicas,  
-the forward and backward energy barriers, 
-the total reaction coordinate (RDT), and
-the normalized reaction coordinate and potential energy of each replica.
+final, and climbing replicas, the forward and backward energy barriers, 
+the total reaction coordinate (RDT), and the normalized reaction
+coordinate and potential energy of each replica.
   
 The "maximum force per replica" is
 the two-norm of the 3N-length force vector for the atoms in each
@@ -415,11 +414,11 @@ langevin"_fix_langevin.html, "fix viscous"_fix_viscous.html
 
 :line
 
-:link(Henkelman1)
-[(Henkelman1)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
+:link(HenkelmanA)
+[(HenkelmanA)] Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
-:link(Henkelman2)
-[(Henkelman2)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+:link(HenkelmanB)
+[(HenkelmanB)] Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
 :link(Nakano)

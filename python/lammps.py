@@ -43,6 +43,7 @@ class lammps(object):
   # create instance of LAMMPS
 
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+    self.comm = comm
 
     # determine module location
 
@@ -152,8 +153,15 @@ class lammps(object):
 
     if self.lib.lammps_has_error(self.lmp):
       sb = create_string_buffer(100)
-      self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
-      raise Exception(sb.value.decode().strip())
+      error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
+      error_msg = sb.value.decode().strip()
+
+      if error_type == 2 and lammps.has_mpi4py_v2 and self.comm != None and self.comm.Get_size() > 1:
+        print(error_msg, file=sys.stderr)
+        print("Aborting...", file=sys.stderr)
+        sys.stderr.flush()
+        self.comm.Abort()
+      raise Exception(error_msg)
 
   def extract_global(self,name,type):
     if name: name = name.encode()

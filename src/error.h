@@ -47,8 +47,15 @@ public:
   }
 };
 
+enum ErrorType {
+   ERROR_NONE   = 0,
+   ERROR_NORMAL = 1,
+   ERROR_ABORT  = 2
+};
+
 class Error : protected Pointers {
   char * last_error_message;
+  ErrorType last_error_type;
 
  public:
   Error(class LAMMPS *);
@@ -63,8 +70,9 @@ class Error : protected Pointers {
   void message(const char *, int, const char *, int = 1);
   void done(int = 0); // 1 would be fully backwards compatible
 
-  char * get_last_error() const;
-  void   set_last_error(const char * msg);
+  char *    get_last_error() const;
+  ErrorType get_last_error_type() const;
+  void   set_last_error(const char * msg, ErrorType type = ERROR_NORMAL);
 };
 
 }

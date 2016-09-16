@@ -113,8 +113,18 @@ char *lammps_command(void *ptr, char *str)
 
   try {
     return lmp->input->one(str);
+  } catch(LAMMPSAbortException & ae) {
+    int nprocs = 0;
+    MPI_Comm_size(ae.universe, &nprocs );
+
+    if (nprocs > 1) {
+      error->set_last_error(ae.message.c_str(), ERROR_ABORT);
+    } else {
+      error->set_last_error(ae.message.c_str(), ERROR_NORMAL);
+    }
+    return NULL;
   } catch(LAMMPSException & e) {
-    error->set_last_error(e.message.c_str());
+    error->set_last_error(e.message.c_str(), ERROR_NORMAL);
     return NULL;
   }
 }
@@ -613,6 +623,9 @@ int lammps_has_error(void *ptr) {
 
 /* ----------------------------------------------------------------------
    Copy the last error message of LAMMPS into a character buffer
+   The return value encodes which type of error it is.
+   1 = normal error (recoverable)
+   2 = abort error (non-recoverable)
 ------------------------------------------------------------------------- */
 
 int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
@@ -620,9 +633,10 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
   Error * error = lmp->error;
 
   if(error->get_last_error()) {
+    int error_type = error->get_last_error_type();
     strncpy(buffer, error->get_last_error(), buffer_size-1);
-    error->set_last_error(NULL);
-    return 1;
+    error->set_last_error(NULL, ERROR_NONE);
+    return error_type;
   }
   return 0;
 }

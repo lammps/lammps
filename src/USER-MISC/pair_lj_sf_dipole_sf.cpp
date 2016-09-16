@@ -31,6 +31,8 @@
 
 using namespace LAMMPS_NS;
 
+static int warn_single = 0;
+
 /* ---------------------------------------------------------------------- */
 
 PairLJSFDipoleSF::PairLJSFDipoleSF(LAMMPS *lmp) : Pair(lmp)
@@ -87,7 +89,6 @@ void PairLJSFDipoleSF::compute(int eflag, int vflag)
   double **torque = atom->torque;
   int *type = atom->type;
   int nlocal = atom->nlocal;
-// The global scaling parameters aren't used anymore
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
@@ -355,7 +356,7 @@ void PairLJSFDipoleSF::settings(int narg, char **arg)
 
 void PairLJSFDipoleSF::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 7)
+  if (narg < 4 || narg > 8)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -366,13 +367,27 @@ void PairLJSFDipoleSF::coeff(int narg, char **arg)
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
 
-  double scale_one = 1.0;
-  if (narg >= 5) scale_one = force->numeric(FLERR,arg[4]);
-
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
-  if (narg >= 6) cut_coul_one = cut_lj_one = force->numeric(FLERR,arg[5]);
-  if (narg == 7) cut_coul_one = force->numeric(FLERR,arg[6]);
+  double scale_one = 1.0;
+  int iarg = 4;
+
+  if ((narg > iarg) && (strcmp(arg[iarg],"scale") != 0)) {
+    cut_coul_one = cut_lj_one = force->numeric(FLERR,arg[iarg]);
+    ++iarg;
+  }
+  if ((narg > iarg) && (strcmp(arg[iarg],"scale") != 0)) {
+    cut_coul_one = force->numeric(FLERR,arg[iarg]);
+    ++iarg;
+  }
+  if (narg > iarg) {
+    if (strcmp(arg[iarg],"scale") == 0) {
+      scale_one = force->numeric(FLERR,arg[iarg+1]);
+      iarg += 2;
+    } else error->all(FLERR,"Incorrect args for pair coefficients");
+  }
+  if (iarg != narg)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -532,6 +547,12 @@ double PairLJSFDipoleSF::single(int i, int j, int itype, int jtype, double rsq,
   double *q = atom->q;
   double **mu = atom->mu;
 
+  if (!warn_single) {
+    warn_single = 1;
+    if (comm->me == 0) {
+      error->warning(FLERR,"Single method for lj/sf/dipole/sf does not compute forces");
+    }
+  }
   qtmp = q[i];
   xtmp = x[i][0];
   ytmp = x[i][1];

@@ -371,18 +371,14 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">ehex</span> <span class="n">nevery</span> <span class="n">F</span> <span class="n">keyword</span> <span class="n">value</span>
 </pre></div>
 </div>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">ehex  = style name of this fix command</p>
-</li>
-<li><p class="first">nevery = add/subtract heat every this many timesteps</p>
-</li>
-<li><p class="first">F = energy flux into the reservoir (energy/time units)</p>
-</li>
-<li><p class="first">zero or more keyword/value pairs may be appended to args</p>
-</li>
-<li><p class="first">keyword = <em>region</em> or <em>constrain</em> or <em>com</em> or <em>hex</em></p>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>ehex  = style name of this fix command</li>
+<li>nevery = add/subtract heat every this many timesteps</li>
+<li>F = energy flux into the reservoir (energy/time units)</li>
+<li>zero or more keyword/value pairs may be appended to args</li>
+<li>keyword = <em>region</em> or <em>constrain</em> or <em>com</em> or <em>hex</em></li>
+</ul>
 <pre class="literal-block">
 <em>region</em> value = region-ID
   region-ID = ID of region (reservoir) atoms must be in for added thermostatting force
@@ -393,8 +389,6 @@
 <em>hex</em> value = none
   omit the coordinate correction to recover the HEX algorithm
 </pre>
-</li>
-</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

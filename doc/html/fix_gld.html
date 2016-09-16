@@ -372,24 +372,17 @@
 <pre class="literal-block">
 fix ID group-ID gld Tstart Tstop N_k seed series c_1 tau_1 ... c_N_k tau_N_k keyword values ...
 </pre>
-<ul>
-<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
-</li>
-<li><p class="first">gld = style name of this fix command</p>
-</li>
-<li><p class="first">Tstart,Tstop = desired temperature at start/end of run (temperature units)</p>
-</li>
-<li><p class="first">N_k = number of terms in the Prony series representation of the memory kernel</p>
-</li>
-<li><p class="first">seed = random number seed to use for white noise (positive integer)</p>
-</li>
-<li><p class="first">series = <em>pprony</em> is presently the only available option</p>
-</li>
-<li><p class="first">c_k = the weight of the kth term in the Prony series (mass per time units)</p>
-</li>
-<li><p class="first">tau_k = the time constant of the kth term in the Prony series (time units)</p>
-</li>
-<li><p class="first">zero or more keyword/value pairs may be appended</p>
+<ul class="simple">
+<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
+<li>gld = style name of this fix command</li>
+<li>Tstart,Tstop = desired temperature at start/end of run (temperature units)</li>
+<li>N_k = number of terms in the Prony series representation of the memory kernel</li>
+<li>seed = random number seed to use for white noise (positive integer)</li>
+<li>series = <em>pprony</em> is presently the only available option</li>
+<li>c_k = the weight of the kth term in the Prony series (mass per time units)</li>
+<li>tau_k = the time constant of the kth term in the Prony series (time units)</li>
+<li>zero or more keyword/value pairs may be appended</li>
+</ul>
 <pre class="literal-block">
 keyword = <em>frozen</em> or <em>zero</em>
   <em>frozen</em> value = <em>no</em> or <em>yes</em>
@@ -399,8 +392,6 @@ keyword = <em>frozen</em> or <em>zero</em>
     <em>no</em> = do not set total random force to zero
     <em>yes</em> = set total random force to zero
 </pre>
-</li>
-</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

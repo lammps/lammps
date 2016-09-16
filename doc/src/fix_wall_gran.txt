@@ -10,7 +10,7 @@ fix wall/gran command :h3
 
 [Syntax:]
 
-fix ID group-ID wall/gran Kn Kt fstyle gamma_n gamma_t xmu dampflag wallstyle args keyword values ... :pre
+fix ID group-ID wall/gran fstyle Kn Kt gamma_n gamma_t xmu dampflag wallstyle args keyword values ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 wall/gran = style name of this fix command :l
@@ -58,22 +58,23 @@ The nature of the wall/particle interactions are determined by the
 force between the wall and particles touching it is the same as the
 corresponding equation on the "pair_style granular"_pair_gran.html doc
 page, in the limit of one of the two particles going to infinite
-radius and mass (flat wall).  I.e. delta = radius - r = overlap of
-particle with wall, m_eff = mass of particle, and sqrt(RiRj/Ri+Rj)
-becomes sqrt(radius of particle).  The units for Kn, Kt, gamma_n, and
-gamma_t are as described on that doc page.  The meaning of xmu and
-dampflag are also as described on that page.  Note that you can choose
-a different force styles and/or different values for the 6
-wall/particle coefficients than for particle/particle interactions.
-E.g. if you wish to model the wall as a different material.
+radius and mass (flat wall).  Specifically, delta = radius - r =
+overlap of particle with wall, m_eff = mass of particle, and the
+effective radius of contact = RiRj/Ri+Rj is just the radius of the
+particle.
 
 The parameters {Kn}, {Kt}, {gamma_n}, {gamma_t}, {xmu} and {dampflag}
-have the same meaning as those specified with the "pair_style
-granular"_pair_gran.html commands.  This means a NULL can be used for
-either {Kt} or {gamma_t} as described on that page.  If a NULL is used
-for {Kt}, then a default value is used where {Kt} = 2/7 {Kn}.  If a
-NULL is used for {gamma_t}, then a default value is used where
-{gamma_t} = 1/2 {gamma_n}.
+have the same meaning and units as those specified with the
+"pair_style granular"_pair_gran.html commands.  This means a NULL can
+be used for either {Kt} or {gamma_t} as described on that page.  If a
+NULL is used for {Kt}, then a default value is used where {Kt} = 2/7
+{Kn}.  If a NULL is used for {gamma_t}, then a default value is used
+where {gamma_t} = 1/2 {gamma_n}.
+
+Note that you can choose a different force styles and/or different
+values for the 6 wall/particle coefficients than for particle/particle
+interactions.  E.g. if you wish to model the wall as a different
+material.
 
 NOTE: As discussed on the doc page for "pair_style
 granular"_pair_gran.html, versions of LAMMPS before 9Jan09 used a

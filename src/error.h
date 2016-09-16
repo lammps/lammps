@@ -15,48 +15,14 @@
 #define LMP_ERROR_H
 
 #include "pointers.h"
-#include <string>
-#include <exception>
+
+#ifdef LAMMPS_EXCEPTIONS
+#include "exceptions.h"
+#endif
 
 namespace LAMMPS_NS {
 
-class LAMMPSException : public std::exception
-{
-public:
-  std::string message;
-
-  LAMMPSException(std::string msg) : message(msg) {
-  }
-
-  ~LAMMPSException() throw() {
-  }
-
-  virtual const char * what() const throw() {
-    return message.c_str();
-  }
-};
-
-class LAMMPSAbortException : public LAMMPSException {
-public:
-  MPI_Comm universe;
-
-  LAMMPSAbortException(std::string msg, MPI_Comm universe) :
-    LAMMPSException(msg),
-    universe(universe)
-  {
-  }
-};
-
-enum ErrorType {
-   ERROR_NONE   = 0,
-   ERROR_NORMAL = 1,
-   ERROR_ABORT  = 2
-};
-
 class Error : protected Pointers {
-  char * last_error_message;
-  ErrorType last_error_type;
-
  public:
   Error(class LAMMPS *);
 
@@ -70,9 +36,15 @@ class Error : protected Pointers {
   void message(const char *, int, const char *, int = 1);
   void done(int = 0); // 1 would be fully backwards compatible
 
+#ifdef LAMMPS_EXCEPTIONS
   char *    get_last_error() const;
   ErrorType get_last_error_type() const;
   void   set_last_error(const char * msg, ErrorType type = ERROR_NORMAL);
+
+ private:
+  char * last_error_message;
+  ErrorType last_error_type;
+#endif
 };
 
 }

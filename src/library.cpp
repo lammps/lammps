@@ -109,6 +109,8 @@ void lammps_file(void *ptr, char *str)
 char *lammps_command(void *ptr, char *str)
 {
   LAMMPS *  lmp = (LAMMPS *) ptr;
+
+#ifdef LAMMPS_EXCEPTIONS
   Error * error = lmp->error;
 
   try {
@@ -127,6 +129,9 @@ char *lammps_command(void *ptr, char *str)
     error->set_last_error(e.message.c_str(), ERROR_NORMAL);
     return NULL;
   }
+#else
+  return lmp->input->one(str);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -611,6 +616,7 @@ void lammps_scatter_atoms(void *ptr, char *name,
   }
 }
 
+#ifdef LAMMPS_EXCEPTIONS
 /* ----------------------------------------------------------------------
    Check if a new error message
 ------------------------------------------------------------------------- */
@@ -640,3 +646,4 @@ int lammps_get_last_error_message(void *ptr, char * buffer, int buffer_size) {
   }
   return 0;
 }
+#endif

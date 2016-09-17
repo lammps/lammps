@@ -59,7 +59,7 @@ v1 (typically 0.0 or 1.0)
 M1 (typically an integer)
 c1 (degrees, typically 0.0 or 90.0)
 w1 (typically 0.0 or 1.0)
-....
+\[...\]
 Cn (energy)
 Kn (typically an integer)
 an (degrees)

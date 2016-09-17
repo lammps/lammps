@@ -186,8 +186,8 @@ columns. In regular dynamic tessellation mode the first column is the
 Voronoi volume, the second is the neighbor count, as described above
 (read above for the output data in case the {occupation} keyword is
 specified).  These values can be accessed by any command that uses
-per-atom values from a compute as input.  See "Section_howto
-15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+per-atom values from a compute as input.  See "Section
+6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options. If the {peratom} keyword is set to "no", the per-atom array
 is still created, but it is not accessible.
 

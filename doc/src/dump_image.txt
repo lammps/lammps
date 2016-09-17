@@ -606,7 +606,7 @@ supported. :l
 
 :line
 
-See "Section_modify"_Section_modify.html of the manual for information
+See "Section 10"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate
 per-atom quantities which could then be output into dump files.
 

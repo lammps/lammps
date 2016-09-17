@@ -73,7 +73,8 @@
         
           
           
-              <ul class="current">
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. Commands</a><ul>
@@ -102,6 +103,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -318,7 +331,7 @@ allowed, but that should be sufficient for most use cases.</p>
 <p>This section describes the structure of a typical LAMMPS input script.
 The &#8220;examples&#8221; directory in the LAMMPS distribution contains many
 sample input scripts; the corresponding problems are discussed in
-<a class="reference internal" href="Section_example.html"><span class="doc">Section_example</span></a>, and animated on the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a>.</p>
+<a class="reference internal" href="Section_example.html"><span class="doc">Section 7</span></a>, and animated on the <a class="reference external" href="http://lammps.sandia.gov">LAMMPS WWW Site</a>.</p>
 <p>A LAMMPS input script typically has 4 parts:</p>
 <ol class="arabic simple">
 <li>Initialization</li>
@@ -778,12 +791,12 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <a class="reference internal" href="Section_start.html#start-3"><span class="std std-ref">LAMMPS is built with the appropriate package</span></a>.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="14%" />
+<col width="15%" />
+<col width="16%" />
+<col width="16%" />
+<col width="16%" />
+<col width="16%" />
 <col width="22%" />
-<col width="15%" />
-<col width="15%" />
-<col width="15%" />
-<col width="20%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="fix_adapt_fep.html"><span class="doc">adapt/fep</span></a></td>
@@ -843,18 +856,11 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.</p>
 <td><a class="reference internal" href="fix_smd_move_triangulated_surface.html"><span class="doc">smd/move/triangulated/surface</span></a></td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="fix_smd_setvel.html"><span class="doc">smd/setvel</span></a></td>
-<td><a class="reference internal" href="fix_smd_tlsph_reference_configuration.html"><span class="doc">smd/tlsph/reference/configuration</span></a></td>
 <td><a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">smd/wall/surface</span></a></td>
 <td><a class="reference internal" href="fix_temp_rescale_eff.html"><span class="doc">temp/rescale/eff</span></a></td>
 <td><a class="reference internal" href="fix_ti_rs.html"><span class="doc">ti/rs</span></a></td>
 <td><a class="reference internal" href="fix_ti_spring.html"><span class="doc">ti/spring</span></a></td>
-</tr>
-<tr class="row-even"><td><a class="reference internal" href="fix_ttm.html"><span class="doc">ttm/mod</span></a></td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
+<td><a class="reference internal" href="fix_ttm.html"><span class="doc">ttm/mod</span></a></td>
 </tr>
 </tbody>
 </table>

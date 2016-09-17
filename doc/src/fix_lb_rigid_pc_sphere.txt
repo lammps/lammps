@@ -18,7 +18,7 @@ bodystyle = {single} or {molecule} or {group} :l
   {single} args = none
   {molecule} args = none
   {group} args = N groupID1 groupID2 ...
-    N = # of groups
+    N = # of groups :pre
 zero or more keyword/value pairs may be appended :l
 keyword = {force} or {torque} or {innerNodes} :l
   {force} values = M xflag yflag zflag

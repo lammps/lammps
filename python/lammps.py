@@ -436,6 +436,42 @@ class Atom2D(Atom):
             self.lmp.eval("fy[%d]" % self.index))
 
 
+def get_thermo_data(output):
+    """ traverse output of runs and extract thermo data columns """
+    if isinstance(output, str):
+        lines = output.splitlines()
+    else:
+        lines = output
+
+    runs = []
+    columns = []
+    in_run = False
+
+    for line in lines:
+        if line.startswith("Memory usage per processor"):
+            in_run = True
+        elif in_run and len(columns) == 0:
+            # first line after memory usage are column names
+            columns = line.split()
+
+            current_run = {}
+
+            for col in columns:
+                current_run[col] = []
+
+        elif line.startswith("Loop time of "):
+            in_run = False
+            columns = None
+            thermo_data = namedtuple('ThermoData', list(current_run.keys()))(*list(current_run.values()))
+            r = {'thermo' : thermo_data }
+            runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
+        elif in_run and len(columns) > 0:
+            values = [float(x) for x in line.split()]
+
+            for i, col in enumerate(columns):
+                current_run[col].append(values[i])
+    return runs
+
 class PyLammps(object):
   """
   More Python-like wrapper for LAMMPS (e.g., for iPython)
@@ -454,6 +490,8 @@ class PyLammps(object):
     else:
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")
+    self._cmd_history = []
+    self.runs = []
 
   def __del__(self):
     if self.lmp: self.lmp.close()
@@ -469,8 +507,26 @@ class PyLammps(object):
   def file(self,file):
     self.lmp.file(file)
 
+  def write_script(self,filename):
+    """ Write LAMMPS script file containing all commands executed up until now """
+    with open(filename, "w") as f:
+      for cmd in self._cmd_history:
+        f.write("%s\n" % cmd)
+
   def command(self,cmd):
     self.lmp.command(cmd)
+    self._cmd_history.append(cmd)
+
+  def run(self, *args, **kwargs):
+    output = self.__getattr__('run')(*args, **kwargs)
+    self.runs += get_thermo_data(output)
+    return output
+
+  @property
+  def last_run(self):
+    if len(self.runs) > 0:
+        return self.runs[-1]
+    return None
 
   @property
   def atoms(self):
@@ -643,7 +699,7 @@ class PyLammps(object):
       cmd_args = [name] + [str(x) for x in args]
 
       with OutputCapture() as capture:
-        self.lmp.command(' '.join(cmd_args))
+        self.command(' '.join(cmd_args))
         output = capture.output
 
       if 'verbose' in kwargs and kwargs['verbose']:

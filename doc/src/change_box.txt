@@ -75,7 +75,7 @@ The "create_box"_create_box.html, "read data"_read_data.html, and
 simulation box is orthogonal or triclinic and their doc pages explain
 the meaning of the xy,xz,yz tilt factors.
 
-See "Section_howto 12"_Section_howto.html#howto_12 of the doc pages
+See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
 triclinic representations.

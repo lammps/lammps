@@ -9,7 +9,7 @@
 
 "Return to Section accelerate overview"_Section_accelerate.html
 
-5.3.1 GPU package :h4
+5.3.1 GPU package :h5
 
 The GPU package was developed by Mike Brown at ORNL and his
 collaborators, particularly Trung Nguyen (ORNL).  It provides GPU
@@ -26,7 +26,7 @@ between the CPU(s) and GPU every timestep. :l
 
 Neighbor lists can be built on the CPU or on the GPU :l
 
-The charge assignement and force interpolation portions of PPPM can be
+The charge assignment and force interpolation portions of PPPM can be
 run on the GPU.  The FFT portion, which requires MPI communication
 between processors, runs on the CPU. :l
 

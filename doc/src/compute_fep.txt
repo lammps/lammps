@@ -219,8 +219,8 @@ unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.
 
 These output results can be used by any command that uses a global
-scalar or vector from a compute as input.  See "Section_howto
-15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+scalar or vector from a compute as input.  See "Section
+6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options. For example, the computed values can be averaged using "fix
 ave/time"_fix_ave_time.html.
 

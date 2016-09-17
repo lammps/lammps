@@ -36,7 +36,7 @@ pair_coeff 1 1 100.0 1.5 200.0 9.0 :pre
 
 These pair styles are designed to be used with the adiabatic
 core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham.  See
-"Section_howto 25"_Section_howto.html#howto_25 of the manual for an
+"Section 6.25"_Section_howto.html#howto_25 of the manual for an
 overview of the model as implemented in LAMMPS.
 
 These pair styles are identical to the "pair_style

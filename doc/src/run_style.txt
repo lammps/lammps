@@ -69,7 +69,7 @@ The {verlet} style is a standard velocity-Verlet integrator.
 
 The {verlet/split} style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
-processors.  See "Section_start 6"_Section_start.html#start_7 for an
+processors.  See "Section 2.7"_Section_start.html#start_7 for an
 explanation of the -partition command-line switch.
 
 Specifically, this style performs all computation except the
@@ -115,17 +115,17 @@ When you run in 2-partition mode with the {verlet/split} style, the
 thermodyanmic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
 screen.0 by default; see the "-plog and -pscreen command-line
-switches"Section_start.html#start_7 to change this.  The log and
+switches"_Section_start.html#start_7 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
 output beyone the 1st timestep of the run.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 performance details of the speed-up offered by the {verlet/split}
 style.  One important performance consideration is the assignemnt of
 logical processors in the 2 partitions to the physical cores of a
 parallel machine.  The "processors"_processors.html command has
 options to support this, and strategies are discussed in
-"Section_accelerate"_Section_accelerate.html of the manual.
+"Section 5"_Section_accelerate.html of the manual.
 
 :line
 
@@ -254,7 +254,7 @@ The {respa/omp} styles is a variant of {respa} adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an {omp}
 suffix. It is functionally equivalent to {respa} but performs additional
 operations required for managing {omp} styles. For more on {omp} styles
-see the "Section_accelerate"_Section_accelerate.html of the manual.
+see the "Section 5"_Section_accelerate.html of the manual.
 Accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 
@@ -263,7 +263,7 @@ you can use the "-suffix command-line switch"_Section_start.html#start_7
 when you invoke LAMMPS, or you can use the "suffix"_suffix.html
 command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line

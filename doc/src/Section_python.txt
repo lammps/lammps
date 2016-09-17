@@ -42,10 +42,10 @@ pieces of software together, such as a simulation package plus a
 visualization package, or to run a coupled multiscale or multiphysics
 model.
 
-See "Section_howto 10"_Section_howto.html#howto_10 of the manual and
+See "Section 6.10"_Section_howto.html#howto_10 of the manual and
 the couple directory of the distribution for more ideas about coupling
-LAMMPS to other codes.  See "Section_howto
-19"_Section_howto.html#howto_19 for a description of the LAMMPS
+LAMMPS to other codes.  See "Section
+6.19"_Section_howto.html#howto_19 for a description of the LAMMPS
 library interface provided in src/library.cpp and src/library.h, and
 how to extend it for your needs.  As described below, that interface
 is what is exposed to Python either when calling LAMMPS from Python or
@@ -179,7 +179,7 @@ file and the shared library.
 11.3 Building LAMMPS as a shared library :link(py_3),h4
 
 Instructions on how to build LAMMPS as a shared library are given in
-"Section_start 5"_Section_start.html#start_5.  A shared library is one
+"Section 2.5"_Section_start.html#start_5.  A shared library is one
 that is dynamically loadable, which is what Python requires to wrap
 LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
 
@@ -198,7 +198,7 @@ NOTE: If you are building LAMMPS with an MPI or FFT library or other
 auxiliary libraries (used by various packages), then all of these
 extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
-"Section_start 5"_Section_start.html#start_5 for more details.
+"Section 2.5"_Section_start.html#start_5 for more details.
 
 :line
 
@@ -419,8 +419,8 @@ first importing from the lammps.py file:
 >>> from ctypes import CDLL
 >>> CDLL("liblammps.so") :pre
 
-If an error occurs, carefully go thru the steps in "Section_start
-5"_Section_start.html#start_5 and above about building a shared
+If an error occurs, carefully go thru the steps in "Section
+2.5"_Section_start.html#start_5 and above about building a shared
 library and about insuring Python can find the necessary two files
 it needs.
 
@@ -656,7 +656,7 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See "Section_howto 15"_Section_howto.html#howto_15 of the manual for a
+See "Section 6.15"_Section_howto.html#howto_15 of the manual for a
 discussion of global, per-atom, and local data, and of scalar, vector,
 and array data types.  See the doc pages for individual
 "computes"_compute.html and "fixes"_fix.html for a description of what
@@ -790,13 +790,13 @@ capability needed by these Python scripts.
 
 Note that for PyMol, you need to have built and installed the
 open-source version of PyMol in your Python, so that you can import it
-from a Python script.  See the PyMol WWW pages "here"_pymol or
+from a Python script.  See the PyMol WWW pages "here"_pymolhome or
 "here"_pymolopen for more details:
 
 http://www.pymol.org
 http://sourceforge.net/scm/?type=svn&group_id=4546 :pre
 
-:link(pymol,http://www.pymol.org)
+:link(pymolhome,http://www.pymol.org)
 :link(pymolopen,http://sourceforge.net/scm/?type=svn&group_id=4546)
 
 The latter link is to the open-source version.

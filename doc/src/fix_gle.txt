@@ -19,17 +19,17 @@ Tstart, Tstop = temperature ramp during the run :l
 Amatrix = file to read the drift matrix A from :l
 seed = random number seed to use for generating noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
-keyword = {noneq} and/or {every}
-  {noneq} Cmatrix  = file to read the non-equilibrium covariance matrix from
-  {every} stride   = apply the GLE once every time steps. Reduces the accuracy
-      of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
-      sampling. It might change sampling properties when used together with {noneq}.
+  keyword = {noneq} or {every}
+    {noneq} Cmatrix  = file to read the non-equilibrium covariance matrix from 
+    {every} stride   = apply the GLE once every time steps. Reduces the accuracy
+        of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
+        sampling. It might change sampling properties when used together with {noneq}. :pre
 :ule
 
 [Examples:]
 
 fix 3 boundary gle 6 300 300 31415 smart.A
-fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C
+fix 1 all gle 6 300 300 31415 qt-300k.A noneq qt-300k.C :pre
 
 [Description:]
 
@@ -48,7 +48,7 @@ with Ns additional degrees of freedom s, and the equations of motion
 become
 
 dq/dt=p/m
-d(p,s)/dt=(F,0) - A(p,s) + B dW/dt
+d(p,s)/dt=(F,0) - A(p,s) + B dW/dt :pre
 
 where F is the physical force, A is the drift matrix (that generalizes
 the friction in Langevin dynamics), B is the diffusion term and dW/dt

@@ -137,8 +137,8 @@ thermo_style   custom step temp etotal press v_press :pre
 
 This compute calculates a per-atom array with 6 columns, which can be
 accessed by indices 1-6 by any command that uses per-atom values from
-a compute as input.  See "Section_howto
-15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+a compute as input.  See "Section
+6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The per-atom array values will be in pressure*volume

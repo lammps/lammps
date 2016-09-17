@@ -23,8 +23,6 @@ read_restart restart.*
 read_restart restart.*.mpiio
 read_restart poly.*.% remap :pre
 
-:pre
-
 [Description:]
 
 Read in a previously saved system configuration from a restart file.

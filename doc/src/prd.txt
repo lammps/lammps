@@ -63,13 +63,13 @@ event to occur.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section_start 6"_Section_start.html#start_7 of the
+switch; see "Section 2.7"_Section_start.html#start_7 of the
 manual.  Note that if you have MPI installed, you can run a
 multi-replica simulation with more replicas (partitions) than you have
 physical processors, e.g you can run a 10-replica simulation on one or
 two processors.  For PRD, this makes little sense, since this offers
 no effective parallel speed-up in searching for infrequent events. See
-"Section_howto 5"_Section_howto.html#howto_5 of the manual for further
+"Section 6.5"_Section_howto.html#howto_5 of the manual for further
 discussion.
 
 When a PRD simulation is performed, it is assumed that each replica is

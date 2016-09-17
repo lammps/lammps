@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>5.GPU package &mdash; LAMMPS documentation</title>
+  <title>5.3.1. GPU package &mdash; LAMMPS documentation</title>
   
 
   
@@ -32,7 +32,10 @@
   
 
   
-    <link rel="top" title="LAMMPS documentation" href="index.html"/> 
+    <link rel="top" title="LAMMPS documentation" href="index.html"/>
+        <link rel="up" title="5. Accelerating LAMMPS performance" href="Section_accelerate.html"/>
+        <link rel="next" title="5.3.2. USER-INTEL package" href="accelerate_intel.html"/>
+        <link rel="prev" title="5. Accelerating LAMMPS performance" href="Section_accelerate.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -71,12 +74,29 @@
         
           
           
-              <ul>
+              <p class="caption"><span class="caption-text">User Documentation</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="Section_intro.html">1. Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_start.html">2. Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_commands.html">3. Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_packages.html">4. Packages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Section_accelerate.html">5. Accelerating LAMMPS performance</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Section_accelerate.html#measuring-performance">5.1. Measuring performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Section_accelerate.html#general-strategies">5.2. General strategies</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Section_accelerate.html#packages-with-optimized-styles">5.3. Packages with optimized styles</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">5.3.1. GPU package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#restrictions">5.3.1.1. Restrictions</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_intel.html">5.3.2. USER-INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_kokkos.html">5.3.3. KOKKOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_omp.html">5.3.4. USER-OMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="accelerate_opt.html">5.3.5. OPT package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Section_accelerate.html#comparison-of-various-accelerator-packages">5.4. Comparison of various accelerator packages</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="Section_howto.html">6. How-to discussions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_example.html">7. Example problems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_perf.html">8. Performance &amp; scalability</a></li>
@@ -85,6 +105,18 @@
 <li class="toctree-l1"><a class="reference internal" href="Section_python.html">11. Python interface to LAMMPS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_errors.html">12. Errors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Section_history.html">13. Future and history</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="commands.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
 </ul>
 
           
@@ -109,7 +141,9 @@
   <ul class="wy-breadcrumbs">
     <li><a href="Manual.html">Docs</a> &raquo;</li>
       
-    <li>5.GPU package</li>
+          <li><a href="Section_accelerate.html">5. Accelerating LAMMPS performance</a> &raquo;</li>
+      
+    <li>5.3.1. GPU package</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -120,13 +154,22 @@
   </ul>
   <hr/>
   
+    <div class="rst-footer-buttons" style="margin-bottom: 1em" role="navigation" aria-label="footer navigation">
+      
+        <a href="accelerate_intel.html" class="btn btn-neutral float-right" title="5.3.2. USER-INTEL package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_accelerate.html" class="btn btn-neutral" title="5. Accelerating LAMMPS performance" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
   <p><a class="reference internal" href="Section_accelerate.html"><span class="doc">Return to Section accelerate overview</span></a></p>
 <div class="section" id="gpu-package">
-<h1>5.GPU package</h1>
+<h1>5.3.1. GPU package</h1>
 <p>The GPU package was developed by Mike Brown at ORNL and his
 collaborators, particularly Trung Nguyen (ORNL).  It provides GPU
 versions of many pair styles, including the 3-body Stillinger-Weber
@@ -139,7 +182,7 @@ e.g. within a node of a parallel machine.</li>
 <li>Atom-based data (e.g. coordinates, forces) moves back-and-forth
 between the CPU(s) and GPU every timestep.</li>
 <li>Neighbor lists can be built on the CPU or on the GPU</li>
-<li>The charge assignement and force interpolation portions of PPPM can be
+<li>The charge assignment and force interpolation portions of PPPM can be
 run on the GPU.  The FFT portion, which requires MPI communication
 between processors, runs on the CPU.</li>
 <li>Asynchronous force computations can be performed simultaneously on the
@@ -331,7 +374,7 @@ This is the maximum memory used at one time on the GPU for data
 storage by a single MPI process.</li>
 </ul>
 <div class="section" id="restrictions">
-<h2>Restrictions</h2>
+<h2>5.3.1.1. Restrictions</h2>
 <p>None.</p>
 </div>
 </div>
@@ -340,6 +383,15 @@ storage by a single MPI process.</li>
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="accelerate_intel.html" class="btn btn-neutral float-right" title="5.3.2. USER-INTEL package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Section_accelerate.html" class="btn btn-neutral" title="5. Accelerating LAMMPS performance" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

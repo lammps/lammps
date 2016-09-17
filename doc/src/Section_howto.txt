@@ -39,7 +39,7 @@ This section describes how to perform common tasks using LAMMPS.
 6.27 "Drude induced dipoles"_#howto_27 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
-highlighted in "Section_example"_Section_example.html also show how to
+highlighted in "Section 7"_Section_example.html also show how to
 setup and run various kinds of simulations.
 
 :line
@@ -180,7 +180,7 @@ used in the CHARMM, AMBER, and DREIDING force fields.  Setting
 coefficients is done in the input data file via the
 "read_data"_read_data.html command or in the input script with
 commands like "pair_coeff"_pair_coeff.html or
-"bond_coeff"_bond_coeff.html.  See "Section_tools"_Section_tools.html
+"bond_coeff"_bond_coeff.html.  See "Section 9"_Section_tools.html
 for additional tools that can use CHARMM or AMBER to assign force
 field coefficients and convert their output into LAMMPS input.
 
@@ -673,7 +673,7 @@ processors to start up another program).  In the latter case the
 stand-alone code could communicate with LAMMPS thru files that the
 command writes and reads.
 
-See "Section_modify"_Section_modify.html of the documentation for how
+See "Section 10"_Section_modify.html of the documentation for how
 to add a new command to LAMMPS.
 
 (3) Use LAMMPS as a library called by another code.  In this case the
@@ -709,12 +709,12 @@ example, from C++ you could create one (or more) "instances" of
 LAMMPS, pass it an input script to process, or execute individual
 commands, all by invoking the correct class methods in LAMMPS.  From C
 or Fortran you can make function calls to do the same things.  See
-"Section_python"_Section_python.html of the manual for a description
+"Section 11"_Section_python.html of the manual for a description
 of the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See "Section_howto 19"_Section_howto.html#howto_19 of the
+to LAMMPS.  See "Section 6.19"_Section_howto.html#howto_19 of the
 manual for a description of the interface and how to extend it for
 your needs.
 
@@ -746,7 +746,7 @@ and atom trajectories.
 
 Several programs included with LAMMPS as auxiliary tools can convert
 native LAMMPS dump files to other formats.  See the
-"Section_tools"_Section_tools.html doc page for details.  The first is
+"Section 9"_Section_tools.html doc page for details.  The first is
 the "ch2lmp tool"_Section_tools.html#charmm, which contains a
 lammps2pdb Perl script which converts LAMMPS dump files into PDB
 files.  The second is the "lmp2arc tool"_Section_tools.html#arc which
@@ -1840,7 +1840,7 @@ converge and requires careful post-processing "(Shinoda)"_#Shinoda
 
 6.19 Library interface to LAMMPS :link(howto_19),h4
 
-As described in "Section_start 5"_Section_start.html#start_5, LAMMPS
+As described in "Section 2.5"_Section_start.html#start_5, LAMMPS
 can be built as a library, so that it can be called by another code,
 used in a "coupled manner"_Section_howto.html#howto_10 with other
 codes, or driven through a "Python interface"_Section_python.html.
@@ -2212,7 +2212,7 @@ Note that this compute allows the per-atom output of other
 "variables"_variable.html to be used to define chunk IDs for each
 atom.  This means you can write your own compute or fix to output a
 per-atom quantity to use as chunk ID.  See
-"Section_modify"_Section_modify.html of the documentation for how to
+"Section 10"_Section_modify.html of the documentation for how to
 do this.  You can also define a "per-atom variable"_variable.html in
 the input script that uses a formula to generate a chunk ID for each
 atom.

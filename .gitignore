@@ -9,6 +9,8 @@
 *.x
 *.exe
 *.dll
+*.pyc
+__pycache__
 
 Obj_*
 log.lammps
@@ -20,6 +22,8 @@ log.cite
 *.orig
 *.rej
 .vagrant
+\#*#
+.#*
 
 .DS_Store
 .DS_Store?

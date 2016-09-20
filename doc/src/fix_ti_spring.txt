@@ -100,7 +100,7 @@ total velocity will result in divergences during the integration due
 to the fact that the atoms are 'attached' to their equilibrium
 positions by the Einstein crystal. Check the option {zero} of "fix
 langevin"_fix_langevin_html and "velocity"_velocity.html. The use of
-the Nose-Hoover thermostat ("fix nvt"_fix_nvt.html) is {NOT}
+the Nose-Hoover thermostat ("fix nvt"_fix_nh.html) is {NOT}
 recommended due to its well documented issues with the canonical
 sampling of harmonic degrees of freedom (notice that the {chain}
 option will {NOT} solve this problem). The Langevin thermostat ("fix

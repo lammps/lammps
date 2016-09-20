@@ -285,7 +285,6 @@
 <li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fix_ti_rs.html">fix ti/rs command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
@@ -370,12 +369,14 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">restrain</span> <span class="n">keyword</span> <span class="n">args</span> <span class="o">...</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
-<li>restrain = style name of this fix command</li>
-<li>one or more keyword/arg pairs may be appended</li>
-<li>keyword = <em>bond</em> or <em>angle</em> or <em>dihedral</em></li>
-</ul>
+<ul>
+<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
+</li>
+<li><p class="first">restrain = style name of this fix command</p>
+</li>
+<li><p class="first">one or more keyword/arg pairs may be appended</p>
+</li>
+<li><p class="first">keyword = <em>bond</em> or <em>angle</em> or <em>dihedral</em></p>
 <pre class="literal-block">
 <em>bond</em> args = atom1 atom2 Kstart Kstop r0
   atom1,atom2 = IDs of 2 atoms in bond
@@ -390,6 +391,8 @@
   Kstart,Kstop = restraint coefficients at start/end of run (energy units)
   phi0 = equilibrium dihedral angle phi (degrees)
 </pre>
+</li>
+</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

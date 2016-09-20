@@ -287,7 +287,6 @@
 <li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fix_ti_rs.html">fix ti/rs command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
@@ -311,7 +310,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bonds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
 <li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
@@ -431,7 +430,7 @@ fix 4 my_gas gcmc 1 10 10 1 123456543 300.0 -12.5 1.0 region disk
 <p>This fix performs grand canonical Monte Carlo (GCMC) exchanges of
 atoms or molecules of the given type with an imaginary ideal gas reservoir at
 the specified T and chemical potential (mu) as discussed in
-<a class="reference internal" href="fix_ti_spring.html#frenkel"><span class="std std-ref">(Frenkel)</span></a>. If used with the <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> command,
+<a class="reference internal" href="#frenkel"><span class="std std-ref">(Frenkel)</span></a>. If used with the <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> command,
 simulations in the grand canonical ensemble (muVT, constant chemical
 potential, constant volume, and constant temperature) can be
 performed.  Specific uses include computing isotherms in microporous

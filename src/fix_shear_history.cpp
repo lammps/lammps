@@ -35,7 +35,8 @@ enum{DEFAULT,NPARTNER,PERPARTNER};
 
 FixShearHistory::FixShearHistory(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  npartner(NULL), partner(NULL), shearpartner(NULL), pair(NULL), ipage(NULL), dpage(NULL)
+  npartner(NULL), partner(NULL), shearpartner(NULL), pair(NULL), 
+  ipage(NULL), dpage(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix SHEAR_HISTORY commmand");
 
@@ -698,14 +699,14 @@ int FixShearHistory::unpack_exchange(int nlocal, double *buf)
 
 int FixShearHistory::pack_restart(int i, double *buf)
 {
-  int m = 0;
-  buf[m++] = 4*npartner[i] + 2;
+  int m = 1;
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
     buf[m++] = partner[i][n];
     memcpy(&buf[m],&shearpartner[i][dnum*n],dnumbytes);
     m += dnum;
   }
+  buf[0] = m;
   return m;
 }
 

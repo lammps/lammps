@@ -321,7 +321,8 @@ void FixAdapt::init()
         delete[] psuffix;
       }
       if (ad->pair == NULL) ad->pair = force->pair_match(pstyle,1,nsub);
-      if (ad->pair == NULL) error->all(FLERR,"Fix adapt pair style does not exist");
+      if (ad->pair == NULL) 
+        error->all(FLERR,"Fix adapt pair style does not exist");
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == NULL)
@@ -329,11 +330,12 @@ void FixAdapt::init()
 
       // for pair styles only parameters that are 2-d arrays in atom types or
       // scalars are supported
+
       if (ad->pdim != 2 && ad->pdim != 0)
         error->all(FLERR,"Fix adapt pair style param is not compatible");
 
-      if(ad->pdim == 2) ad->array = (double **) ptr;
-      if(ad->pdim == 0) ad->scalar = (double *) ptr;
+      if (ad->pdim == 2) ad->array = (double **) ptr;
+      if (ad->pdim == 0) ad->scalar = (double *) ptr;
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
@@ -367,6 +369,7 @@ void FixAdapt::init()
   }
 
   // make copy of original pair array values
+
   for (int m = 0; m < nadapt; m++) {
     Adapt *ad = &adapt[m];
     if (ad->which == PAIR && ad->pdim == 2) {

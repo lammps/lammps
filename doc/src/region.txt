@@ -47,7 +47,7 @@ style = {delete} or {block} or {cone} or {cylinder} or {plane} or {prism} or {sp
     N = # of regions to follow, must be 2 or greater
     reg-ID1,reg-ID2, ... = IDs of regions to intersect :pre
 zero or more keyword/arg pairs may be appended :l
-keyword = {side} or {units} or {move} or {rotate} :l
+keyword = {side} or {units} or {move} or {rotate} or {open} :l
   {side} value = {in} or {out}
     {in} = the region is inside the specified geometry
     {out} = the region is outside the specified geometry
@@ -59,7 +59,9 @@ keyword = {side} or {units} or {move} or {rotate} :l
   {rotate} args = v_theta Px Py Pz Rx Ry Rz
     v_theta = equal-style variable for rotaton of region over time (in radians)
     Px,Py,Pz = origin for axis of rotation (distance units)
-    Rx,Ry,Rz = axis of rotation vector :pre
+    Rx,Ry,Rz = axis of rotation vector 
+  {open} value = integer from 1-6 corresponding to face index (see below)
+:pre
 
 accelerated styles (with same args) = {block/kk} :l
 :ule
@@ -71,7 +73,10 @@ region 2 sphere 0.0 0.0 0.0 5 side out
 region void cylinder y 2 3 5 -5.0 EDGE units box
 region 1 prism 0 10 0 10 0 10 2 0 0
 region outside union 4 side1 side2 side3 side4
-region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL :pre
+region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL 
+region openbox block 0 10 0 10 0 10 open 5 open 6 units box
+region funnel cone z 10 10 2 5 0 10 open 1 units box :pre
+
 
 [Description:]
 
@@ -181,7 +186,7 @@ functions, and include "thermo_style"_thermo_style.html command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent radius.
 
-See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
+See "Section_howto 12"_Section_howto.html#howto_12 of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
 triclinic representations.
@@ -192,7 +197,7 @@ consisting of the volume that is common to all the listed regions.
 
 NOTE: The {union} and {intersect} regions operate by invoking methods
 from their list of sub-regions.  Thus you cannot delete the
-sub-regions after defining the {union} or {intersection} region.
+sub-regions after defining a {union} or {intersection} region.
 
 :line
 
@@ -243,8 +248,7 @@ to yz. :l
 
 For style {sphere}, the lattice spacing in dimensions x,y,z are
 applied to the sphere center x,y,z.  The spacing in dimension x is
-applied to the sphere radius. :l
-:ule
+applied to the sphere radius. :l,ule
 
 :line
 
@@ -303,10 +307,61 @@ point of the {rotate} keyword.
 
 :line
 
+The {open} keyword can be used (multiple times) to indicate that one
+or more faces of the region are ignored for purposes of particle/wall
+interactions.  This keyword is only relevant for regions used by the
+{fix wall/region} and {fix wall/gran/region} commands.  It can be used
+to create "open" containers where only some of the region faces are
+walls.  For example, a funnel can be created with a {cone} style
+region that has an open face at the smaller radius for particles to
+flow out, or at the larger radius for pouring particles into the cone,
+or both.
+
+Note that using the {open} keyword partly overrides the {side}
+keyword, since both exterior and interior surfaces of an open region
+are tested for particle contacts.  The exception to this is a {union}
+or {intersect} region which includes an open sub-region.  In that case
+the {side} keyword is still used to define the union/intersect region
+volume, and the {open} settings are only applied to the individual
+sub-regions that use them.
+
+The indices specified as part of the {open} keyword have the following
+meanings:
+
+For style {block}, indices 1-6 correspond to the xlo, xhi, ylo, yhi,
+zlo, zhi surfaces of the block.  I.e. 1 is the yz plane at x = xlo, 2
+is the yz-plane at x = xhi, 3 is the xz plane at y = ylo, 4 is the xz
+plane at y = yhi, 5 is the xy plane at z = zlo, 6 is the xy plane at z
+= zhi).  In the second-to-last example above, the region is a box open
+at both xy planes.
+
+For style {prism}, values 1-6 have the same mapping as for style
+{block}.  I.e. in an untilted {prism}, {open} indices correspond to
+the xlo, xhi, ylo, yhi, zlo, zhi surfaces.
+
+For style {cylinder}, index 1 corresponds to the flat end cap at the
+low coordinate along the cylinder axis, index 2 corresponds to the
+high-coordinate flat end cap along the cylinder axis, and index 3 is
+the curved cylinder surface.  For example, a {cylinder} region with
+{open 1 open 2} keywords will be open at both ends (e.g. a section of
+pipe), regardless of the cylinder orientation.
+
+For style {cone}, the mapping is the same as for style {cylinder}.
+Index 1 is the low-coordinate flat end cap, index 2 is the
+high-coordinate flat end cap, and index 3 is the curved cone surface.
+In the last example above, a {cone} region is defined along the z-axis
+that is open at the zlo value (e.g. for use as a funnel).
+
+For all other styles, the {open} keyword is ignored.  As inidcated
+above, this includes the {intersect} and {union} regions, though their
+sub-regions can be defined with the {open} keyword.
+
+:line
+
 Styles with a {kk} suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
-"Section 5"_Section_accelerate.html of the manual.  The
+"Section_accelerate"_Section_accelerate.html of the manual.  The
 accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 
@@ -323,7 +378,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section 5"_Section_accelerate.html of the manual for
+See "Section_accelerate"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line

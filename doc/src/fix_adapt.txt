@@ -108,6 +108,7 @@ meaning of these parameters:
 "coul/cut"_pair_coul.html: scale: type pairs:
 "coul/debye"_pair_coul.html: scale: type pairs:
 "coul/long"_pair_coul.html: scale: type pairs:
+"eam, eam/alloy, eam/fs"_pair_eam.html: scale: type pairs:
 "lj/cut"_pair_lj.html: epsilon,sigma: type pairs:
 "lj/expand"_pair_lj_expand.html: epsilon,sigma,delta: type pairs:
 "lj/sf/dipole/sf"_pair_dipole.html: epsilon,sigma,scale: type pairs:
@@ -117,9 +118,9 @@ meaning of these parameters:
 "soft"_pair_soft.html: a: type pairs:
 "kim"_pair_kim.html: PARAM_FREE_*&#58i,j,...: global :tb(c=3,s=:)
 
-NOTE: It is easy to add new potentials and their parameters to this
-list.  All it typically takes is adding an extract() method to the
-pair_*.cpp file associated with the potential.
+NOTE: It is easy to add new pairwise potentials and their parameters
+to this list.  All it typically takes is adding an extract() method to
+the pair_*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style, e.g. the
 viscosity setting "mu" for "pair_style lubricate"_pair_lubricate.html.

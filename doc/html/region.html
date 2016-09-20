@@ -316,7 +316,7 @@
 </li>
 <li><p class="first">zero or more keyword/arg pairs may be appended</p>
 </li>
-<li><p class="first">keyword = <em>side</em> or <em>units</em> or <em>move</em> or <em>rotate</em></p>
+<li><p class="first">keyword = <em>side</em> or <em>units</em> or <em>move</em> or <em>rotate</em> or <em>open</em></p>
 <pre class="literal-block">
 <em>side</em> value = <em>in</em> or <em>out</em>
   <em>in</em> = the region is inside the specified geometry
@@ -330,6 +330,7 @@
   v_theta = equal-style variable for rotaton of region over time (in radians)
   Px,Py,Pz = origin for axis of rotation (distance units)
   Rx,Ry,Rz = axis of rotation vector
+<em>open</em> value = integer from 1-6 corresponding to face index (see below)
 </pre>
 </li>
 <li><p class="first">accelerated styles (with same args) = <em>block/kk</em></p>
@@ -345,6 +346,8 @@ region void cylinder y 2 3 5 -5.0 EDGE units box
 region 1 prism 0 10 0 10 0 10 2 0 0
 region outside union 4 side1 side2 side3 side4
 region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL
+region openbox block 0 10 0 10 0 10 open 5 open 6 units box
+region funnel cone z 10 10 2 5 0 10 open 1 units box
 </pre>
 </div>
 <div class="section" id="description">
@@ -446,7 +449,7 @@ its value used to determine the radius of the region.</p>
 functions, and include <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent radius.</p>
-<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span class="std std-ref">Section 6.12</span></a> of the doc pages
+<p>See <a class="reference internal" href="Section_howto.html#howto-12"><span class="std std-ref">Section_howto 12</span></a> of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
 triclinic representations.</p>
@@ -457,7 +460,7 @@ consisting of the volume that is common to all the listed regions.</p>
 <p class="first admonition-title">Note</p>
 <p class="last">The <em>union</em> and <em>intersect</em> regions operate by invoking methods
 from their list of sub-regions.  Thus you cannot delete the
-sub-regions after defining the <em>union</em> or <em>intersection</em> region.</p>
+sub-regions after defining a <em>union</em> or <em>intersection</em> region.</p>
 </div>
 <hr class="docutils" />
 <p>The <em>side</em> keyword determines whether the region is considered to be
@@ -549,10 +552,52 @@ wrap around the axis in the direction of rotation.</p>
 the displacement specified by the <em>move</em> keyword is applied to the <em>P</em>
 point of the <em>rotate</em> keyword.</p>
 <hr class="docutils" />
+<p>The <em>open</em> keyword can be used (multiple times) to indicate that one
+or more faces of the region are ignored for purposes of particle/wall
+interactions.  This keyword is only relevant for regions used by the
+<em>fix wall/region</em> and <em>fix wall/gran/region</em> commands.  It can be used
+to create &#8220;open&#8221; containers where only some of the region faces are
+walls.  For example, a funnel can be created with a <em>cone</em> style
+region that has an open face at the smaller radius for particles to
+flow out, or at the larger radius for pouring particles into the cone,
+or both.</p>
+<p>Note that using the <em>open</em> keyword partly overrides the <em>side</em>
+keyword, since both exterior and interior surfaces of an open region
+are tested for particle contacts.  The exception to this is a <em>union</em>
+or <em>intersect</em> region which includes an open sub-region.  In that case
+the <em>side</em> keyword is still used to define the union/intersect region
+volume, and the <em>open</em> settings are only applied to the individual
+sub-regions that use them.</p>
+<p>The indices specified as part of the <em>open</em> keyword have the following
+meanings:</p>
+<p>For style <em>block</em>, indices 1-6 correspond to the xlo, xhi, ylo, yhi,
+zlo, zhi surfaces of the block.  I.e. 1 is the yz plane at x = xlo, 2
+is the yz-plane at x = xhi, 3 is the xz plane at y = ylo, 4 is the xz
+plane at y = yhi, 5 is the xy plane at z = zlo, 6 is the xy plane at z
+= zhi).  In the second-to-last example above, the region is a box open
+at both xy planes.</p>
+<p>For style <em>prism</em>, values 1-6 have the same mapping as for style
+<em>block</em>.  I.e. in an untilted <em>prism</em>, <em>open</em> indices correspond to
+the xlo, xhi, ylo, yhi, zlo, zhi surfaces.</p>
+<p>For style <em>cylinder</em>, index 1 corresponds to the flat end cap at the
+low coordinate along the cylinder axis, index 2 corresponds to the
+high-coordinate flat end cap along the cylinder axis, and index 3 is
+the curved cylinder surface.  For example, a <em>cylinder</em> region with
+<em>open 1 open 2</em> keywords will be open at both ends (e.g. a section of
+pipe), regardless of the cylinder orientation.</p>
+<p>For style <em>cone</em>, the mapping is the same as for style <em>cylinder</em>.
+Index 1 is the low-coordinate flat end cap, index 2 is the
+high-coordinate flat end cap, and index 3 is the curved cone surface.
+In the last example above, a <em>cone</em> region is defined along the z-axis
+that is open at the zlo value (e.g. for use as a funnel).</p>
+<p>For all other styles, the <em>open</em> keyword is ignored.  As inidcated
+above, this includes the <em>intersect</em> and <em>union</em> regions, though their
+sub-regions can be defined with the <em>open</em> keyword.</p>
+<hr class="docutils" />
 <p>Styles with a <em>kk</em> suffix are functionally the same as the
 corresponding style without the suffix.  They have been optimized to
 run faster, depending on your available hardware, as discussed in
-<a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual.  The
+<a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual.  The
 accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.</p>
 <p>The code using the region (such as a fix or compute) must also be supported
@@ -563,7 +608,7 @@ only enabled if LAMMPS was built with that package.  See the <a class="reference
 <p>You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the <a class="reference internal" href="Section_start.html#start-7"><span class="std std-ref">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can
 use the <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
-<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section 5</span></a> of the manual for
+<p>See <a class="reference internal" href="Section_accelerate.html"><span class="doc">Section_accelerate</span></a> of the manual for
 more instructions on how to use the accelerated styles effectively.</p>
 </div>
 <hr class="docutils" />

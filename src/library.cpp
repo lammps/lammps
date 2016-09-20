@@ -39,14 +39,65 @@
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
+   Utility macros for optional code path which captures all exceptions
+   and stores the last error message. These assume there is a variable lmp
+   which is a pointer to the current LAMMPS instance.
+
+   Usage:
+
+   BEGIN_CAPTURE
+   {
+     // code paths which might throw exception
+     ...
+   }
+   END_CAPTURE
+------------------------------------------------------------------------- */
+
+#ifdef LAMMPS_EXCEPTIONS
+#define BEGIN_CAPTURE \
+  Error * error = lmp->error; \
+  try
+
+#define END_CAPTURE \
+  catch(LAMMPSAbortException & ae) { \
+    int nprocs = 0; \
+    MPI_Comm_size(ae.universe, &nprocs ); \
+    \
+    if (nprocs > 1) { \
+      error->set_last_error(ae.message.c_str(), ERROR_ABORT); \
+    } else { \
+      error->set_last_error(ae.message.c_str(), ERROR_NORMAL); \
+    } \
+  } catch(LAMMPSException & e) { \
+    error->set_last_error(e.message.c_str(), ERROR_NORMAL); \
+  }
+#else
+#define BEGIN_CAPTURE
+#define END_CAPTURE
+#endif
+
+
+/* ----------------------------------------------------------------------
    create an instance of LAMMPS and return pointer to it
    pass in command-line args and MPI communicator to run on
 ------------------------------------------------------------------------- */
 
 void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
 {
+#ifdef LAMMPS_EXCEPTIONS
+  try
+  {
+    LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
+    *ptr = (void *) lmp;
+  }
+  catch(LAMMPSException & e) {
+    fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
+    *ptr = (void*) NULL;
+  }
+#else
   LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
   *ptr = (void *) lmp;
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -68,8 +119,20 @@ void lammps_open_no_mpi(int argc, char **argv, void **ptr)
 
   MPI_Comm communicator = MPI_COMM_WORLD;
 
+#ifdef LAMMPS_EXCEPTIONS
+  try
+  {
+    LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
+    *ptr = (void *) lmp;
+  }
+  catch(LAMMPSException & e) {
+    fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
+    *ptr = (void*) NULL;
+  }
+#else
   LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
   *ptr = (void *) lmp;
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -99,7 +162,12 @@ int lammps_version(void *ptr)
 void lammps_file(void *ptr, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-  lmp->input->file(str);
+
+  BEGIN_CAPTURE
+  {
+    lmp->input->file(str);
+  }
+  END_CAPTURE
 }
 
 /* ----------------------------------------------------------------------
@@ -108,30 +176,16 @@ void lammps_file(void *ptr, char *str)
 
 char *lammps_command(void *ptr, char *str)
 {
-  LAMMPS *  lmp = (LAMMPS *) ptr;
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  char * result = NULL;
 
-#ifdef LAMMPS_EXCEPTIONS
-  Error * error = lmp->error;
-
-  try {
-    return lmp->input->one(str);
-  } catch(LAMMPSAbortException & ae) {
-    int nprocs = 0;
-    MPI_Comm_size(ae.universe, &nprocs );
-
-    if (nprocs > 1) {
-      error->set_last_error(ae.message.c_str(), ERROR_ABORT);
-    } else {
-      error->set_last_error(ae.message.c_str(), ERROR_NORMAL);
-    }
-    return NULL;
-  } catch(LAMMPSException & e) {
-    error->set_last_error(e.message.c_str(), ERROR_NORMAL);
-    return NULL;
+  BEGIN_CAPTURE
+  {
+    result = lmp->input->one(str);
   }
-#else
-  return lmp->input->one(str);
-#endif
+  END_CAPTURE
+
+  return result;
 }
 
 /* ----------------------------------------------------------------------
@@ -230,58 +284,62 @@ void *lammps_extract_compute(void *ptr, char *id, int style, int type)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  int icompute = lmp->modify->find_compute(id);
-  if (icompute < 0) return NULL;
-  Compute *compute = lmp->modify->compute[icompute];
+  BEGIN_CAPTURE
+  {
+    int icompute = lmp->modify->find_compute(id);
+    if (icompute < 0) return NULL;
+    Compute *compute = lmp->modify->compute[icompute];
 
-  if (style == 0) {
-    if (type == 0) {
-      if (!compute->scalar_flag) return NULL;
-      if (compute->invoked_scalar != lmp->update->ntimestep)
-        compute->compute_scalar();
-      return (void *) &compute->scalar;
+    if (style == 0) {
+      if (type == 0) {
+        if (!compute->scalar_flag) return NULL;
+        if (compute->invoked_scalar != lmp->update->ntimestep)
+          compute->compute_scalar();
+        return (void *) &compute->scalar;
+      }
+      if (type == 1) {
+        if (!compute->vector_flag) return NULL;
+        if (compute->invoked_vector != lmp->update->ntimestep)
+          compute->compute_vector();
+        return (void *) compute->vector;
+      }
+      if (type == 2) {
+        if (!compute->array_flag) return NULL;
+        if (compute->invoked_array != lmp->update->ntimestep)
+          compute->compute_array();
+        return (void *) compute->array;
+      }
     }
-    if (type == 1) {
-      if (!compute->vector_flag) return NULL;
-      if (compute->invoked_vector != lmp->update->ntimestep)
-        compute->compute_vector();
-      return (void *) compute->vector;
+
+    if (style == 1) {
+      if (!compute->peratom_flag) return NULL;
+      if (type == 1) {
+        if (compute->invoked_peratom != lmp->update->ntimestep)
+          compute->compute_peratom();
+        return (void *) compute->vector_atom;
+      }
+      if (type == 2) {
+        if (compute->invoked_peratom != lmp->update->ntimestep)
+          compute->compute_peratom();
+        return (void *) compute->array_atom;
+      }
     }
-    if (type == 2) {
-      if (!compute->array_flag) return NULL;
-      if (compute->invoked_array != lmp->update->ntimestep)
-        compute->compute_array();
-      return (void *) compute->array;
+
+    if (style == 2) {
+      if (!compute->local_flag) return NULL;
+      if (type == 1) {
+        if (compute->invoked_local != lmp->update->ntimestep)
+          compute->compute_local();
+        return (void *) compute->vector_local;
+      }
+      if (type == 2) {
+        if (compute->invoked_local != lmp->update->ntimestep)
+          compute->compute_local();
+        return (void *) compute->array_local;
+      }
     }
   }
-
-  if (style == 1) {
-    if (!compute->peratom_flag) return NULL;
-    if (type == 1) {
-      if (compute->invoked_peratom != lmp->update->ntimestep)
-        compute->compute_peratom();
-      return (void *) compute->vector_atom;
-    }
-    if (type == 2) {
-      if (compute->invoked_peratom != lmp->update->ntimestep)
-        compute->compute_peratom();
-      return (void *) compute->array_atom;
-    }
-  }
-
-  if (style == 2) {
-    if (!compute->local_flag) return NULL;
-    if (type == 1) {
-      if (compute->invoked_local != lmp->update->ntimestep)
-        compute->compute_local();
-      return (void *) compute->vector_local;
-    }
-    if (type == 2) {
-      if (compute->invoked_local != lmp->update->ntimestep)
-        compute->compute_local();
-      return (void *) compute->array_local;
-    }
-  }
+  END_CAPTURE
 
   return NULL;
 }
@@ -315,40 +373,44 @@ void *lammps_extract_fix(void *ptr, char *id, int style, int type,
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  int ifix = lmp->modify->find_fix(id);
-  if (ifix < 0) return NULL;
-  Fix *fix = lmp->modify->fix[ifix];
+  BEGIN_CAPTURE
+  {
+    int ifix = lmp->modify->find_fix(id);
+    if (ifix < 0) return NULL;
+    Fix *fix = lmp->modify->fix[ifix];
 
-  if (style == 0) {
-    double *dptr = (double *) malloc(sizeof(double));
-    if (type == 0) {
-      if (!fix->scalar_flag) return NULL;
-      *dptr = fix->compute_scalar();
-      return (void *) dptr;
+    if (style == 0) {
+      double *dptr = (double *) malloc(sizeof(double));
+      if (type == 0) {
+        if (!fix->scalar_flag) return NULL;
+        *dptr = fix->compute_scalar();
+        return (void *) dptr;
+      }
+      if (type == 1) {
+        if (!fix->vector_flag) return NULL;
+        *dptr = fix->compute_vector(i);
+        return (void *) dptr;
+      }
+      if (type == 2) {
+        if (!fix->array_flag) return NULL;
+        *dptr = fix->compute_array(i,j);
+        return (void *) dptr;
+      }
     }
-    if (type == 1) {
-      if (!fix->vector_flag) return NULL;
-      *dptr = fix->compute_vector(i);
-      return (void *) dptr;
+
+    if (style == 1) {
+      if (!fix->peratom_flag) return NULL;
+      if (type == 1) return (void *) fix->vector_atom;
+      if (type == 2) return (void *) fix->array_atom;
     }
-    if (type == 2) {
-      if (!fix->array_flag) return NULL;
-      *dptr = fix->compute_array(i,j);
-      return (void *) dptr;
+
+    if (style == 2) {
+      if (!fix->local_flag) return NULL;
+      if (type == 1) return (void *) fix->vector_local;
+      if (type == 2) return (void *) fix->array_local;
     }
   }
-
-  if (style == 1) {
-    if (!fix->peratom_flag) return NULL;
-    if (type == 1) return (void *) fix->vector_atom;
-    if (type == 2) return (void *) fix->array_atom;
-  }
-
-  if (style == 2) {
-    if (!fix->local_flag) return NULL;
-    if (type == 1) return (void *) fix->vector_local;
-    if (type == 2) return (void *) fix->array_local;
-  }
+  END_CAPTURE
 
   return NULL;
 }
@@ -384,23 +446,27 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  int ivar = lmp->input->variable->find(name);
-  if (ivar < 0) return NULL;
+  BEGIN_CAPTURE
+  {
+    int ivar = lmp->input->variable->find(name);
+    if (ivar < 0) return NULL;
 
-  if (lmp->input->variable->equalstyle(ivar)) {
-    double *dptr = (double *) malloc(sizeof(double));
-    *dptr = lmp->input->variable->compute_equal(ivar);
-    return (void *) dptr;
-  }
+    if (lmp->input->variable->equalstyle(ivar)) {
+      double *dptr = (double *) malloc(sizeof(double));
+      *dptr = lmp->input->variable->compute_equal(ivar);
+      return (void *) dptr;
+    }
 
-  if (lmp->input->variable->atomstyle(ivar)) {
-    int igroup = lmp->group->find(group);
-    if (igroup < 0) return NULL;
-    int nlocal = lmp->atom->nlocal;
-    double *vector = (double *) malloc(nlocal*sizeof(double));
-    lmp->input->variable->compute_atom(ivar,igroup,vector,1,0);
-    return (void *) vector;
+    if (lmp->input->variable->atomstyle(ivar)) {
+      int igroup = lmp->group->find(group);
+      if (igroup < 0) return NULL;
+      int nlocal = lmp->atom->nlocal;
+      double *vector = (double *) malloc(nlocal*sizeof(double));
+      lmp->input->variable->compute_atom(ivar,igroup,vector,1,0);
+      return (void *) vector;
+    }
   }
+  END_CAPTURE
 
   return NULL;
 }
@@ -414,7 +480,14 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
 int lammps_set_variable(void *ptr, char *name, char *str)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-  int err = lmp->input->variable->set_string(name,str);
+  int err = -1;
+
+  BEGIN_CAPTURE
+  {
+    err = lmp->input->variable->set_string(name,str);
+  }
+  END_CAPTURE
+
   return err;
 }
 
@@ -429,9 +502,14 @@ int lammps_set_variable(void *ptr, char *name, char *str)
 double lammps_get_thermo(void *ptr, char *name)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
-  double dval;
+  double dval = 0.0;
 
-  lmp->output->thermo->evaluate_keyword(name,&dval);
+  BEGIN_CAPTURE
+  {
+    lmp->output->thermo->evaluate_keyword(name,&dval);
+  }
+  END_CAPTURE
+
   return dval;
 }
 
@@ -464,79 +542,83 @@ void lammps_gather_atoms(void *ptr, char *name,
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  // error if tags are not defined or not consecutive
+  BEGIN_CAPTURE
+  {
+    // error if tags are not defined or not consecutive
 
-  int flag = 0;
-  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
-  if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-  if (flag) {
-    if (lmp->comm->me == 0)
-      lmp->error->warning(FLERR,"Library error in lammps_gather_atoms");
-    return;
-  }
-
-  int natoms = static_cast<int> (lmp->atom->natoms);
-
-  int i,j,offset;
-  void *vptr = lmp->atom->extract(name);
-
-  // copy = Natom length vector of per-atom values
-  // use atom ID to insert each atom's values into copy
-  // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
-
-  if (type == 0) {
-    int *vector = NULL;
-    int **array = NULL;
-    if (count == 1) vector = (int *) vptr;
-    else array = (int **) vptr;
-
-    int *copy;
-    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-    for (i = 0; i < count*natoms; i++) copy[i] = 0;
-
-    tagint *tag = lmp->atom->tag;
-    int nlocal = lmp->atom->nlocal;
-
-    if (count == 1)
-      for (i = 0; i < nlocal; i++)
-        copy[tag[i]-1] = vector[i];
-    else
-      for (i = 0; i < nlocal; i++) {
-        offset = count*(tag[i]-1);
-        for (j = 0; j < count; j++)
-          copy[offset++] = array[i][0];
-      }
-
-    MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
-    lmp->memory->destroy(copy);
-
-  } else {
-    double *vector = NULL;
-    double **array = NULL;
-    if (count == 1) vector = (double *) vptr;
-    else array = (double **) vptr;
-
-    double *copy;
-    lmp->memory->create(copy,count*natoms,"lib/gather:copy");
-    for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
-
-    tagint *tag = lmp->atom->tag;
-    int nlocal = lmp->atom->nlocal;
-
-    if (count == 1) {
-      for (i = 0; i < nlocal; i++)
-        copy[tag[i]-1] = vector[i];
-    } else {
-      for (i = 0; i < nlocal; i++) {
-        offset = count*(tag[i]-1);
-        for (j = 0; j < count; j++)
-          copy[offset++] = array[i][j];
-      }
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_gather_atoms");
+      return;
     }
 
-    MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
-    lmp->memory->destroy(copy);
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    int i,j,offset;
+    void *vptr = lmp->atom->extract(name);
+
+    // copy = Natom length vector of per-atom values
+    // use atom ID to insert each atom's values into copy
+    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+    if (type == 0) {
+      int *vector = NULL;
+      int **array = NULL;
+      if (count == 1) vector = (int *) vptr;
+      else array = (int **) vptr;
+
+      int *copy;
+      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+      for (i = 0; i < count*natoms; i++) copy[i] = 0;
+
+      tagint *tag = lmp->atom->tag;
+      int nlocal = lmp->atom->nlocal;
+
+      if (count == 1)
+        for (i = 0; i < nlocal; i++)
+          copy[tag[i]-1] = vector[i];
+      else
+        for (i = 0; i < nlocal; i++) {
+          offset = count*(tag[i]-1);
+          for (j = 0; j < count; j++)
+            copy[offset++] = array[i][0];
+        }
+
+      MPI_Allreduce(copy,data,count*natoms,MPI_INT,MPI_SUM,lmp->world);
+      lmp->memory->destroy(copy);
+
+    } else {
+      double *vector = NULL;
+      double **array = NULL;
+      if (count == 1) vector = (double *) vptr;
+      else array = (double **) vptr;
+
+      double *copy;
+      lmp->memory->create(copy,count*natoms,"lib/gather:copy");
+      for (i = 0; i < count*natoms; i++) copy[i] = 0.0;
+
+      tagint *tag = lmp->atom->tag;
+      int nlocal = lmp->atom->nlocal;
+
+      if (count == 1) {
+        for (i = 0; i < nlocal; i++)
+          copy[tag[i]-1] = vector[i];
+      } else {
+        for (i = 0; i < nlocal; i++) {
+          offset = count*(tag[i]-1);
+          for (j = 0; j < count; j++)
+            copy[offset++] = array[i][j];
+        }
+      }
+
+      MPI_Allreduce(copy,data,count*natoms,MPI_DOUBLE,MPI_SUM,lmp->world);
+      lmp->memory->destroy(copy);
+    }
   }
+  END_CAPTURE
 }
 
 /* ----------------------------------------------------------------------
@@ -553,67 +635,71 @@ void lammps_scatter_atoms(void *ptr, char *name,
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
-  // error if tags are not defined or not consecutive or no atom map
+  BEGIN_CAPTURE
+  {
+    // error if tags are not defined or not consecutive or no atom map
 
-  int flag = 0;
-  if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
-  if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
-  if (lmp->atom->map_style == 0) flag = 1;
-  if (flag) {
-    if (lmp->comm->me == 0)
-      lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
-    return;
-  }
-
-  int natoms = static_cast<int> (lmp->atom->natoms);
-
-  int i,j,m,offset;
-  void *vptr = lmp->atom->extract(name);
-
-  // copy = Natom length vector of per-atom values
-  // use atom ID to insert each atom's values into copy
-  // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
-
-  if (type == 0) {
-    int *vector = NULL;
-    int **array = NULL;
-    if (count == 1) vector = (int *) vptr;
-    else array = (int **) vptr;
-    int *dptr = (int *) data;
-
-    if (count == 1) {
-      for (i = 0; i < natoms; i++)
-        if ((m = lmp->atom->map(i+1)) >= 0)
-          vector[m] = dptr[i];
-    } else {
-      for (i = 0; i < natoms; i++)
-        if ((m = lmp->atom->map(i+1)) >= 0) {
-          offset = count*i;
-          for (j = 0; j < count; j++)
-            array[m][j] = dptr[offset++];
-        }
+    int flag = 0;
+    if (lmp->atom->tag_enable == 0 || lmp->atom->tag_consecutive() == 0) flag = 1;
+    if (lmp->atom->natoms > MAXSMALLINT) flag = 1;
+    if (lmp->atom->map_style == 0) flag = 1;
+    if (flag) {
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,"Library error in lammps_scatter_atoms");
+      return;
     }
-  } else {
-    double *vector = NULL;
-    double **array = NULL;
-    if (count == 1) vector = (double *) vptr;
-    else array = (double **) vptr;
-    double *dptr = (double *) data;
 
-    if (count == 1) {
-      for (i = 0; i < natoms; i++)
-        if ((m = lmp->atom->map(i+1)) >= 0)
-          vector[m] = dptr[i];
+    int natoms = static_cast<int> (lmp->atom->natoms);
+
+    int i,j,m,offset;
+    void *vptr = lmp->atom->extract(name);
+
+    // copy = Natom length vector of per-atom values
+    // use atom ID to insert each atom's values into copy
+    // MPI_Allreduce with MPI_SUM to merge into data, ordered by atom ID
+
+    if (type == 0) {
+      int *vector = NULL;
+      int **array = NULL;
+      if (count == 1) vector = (int *) vptr;
+      else array = (int **) vptr;
+      int *dptr = (int *) data;
+
+      if (count == 1) {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0)
+            vector[m] = dptr[i];
+      } else {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              array[m][j] = dptr[offset++];
+          }
+      }
     } else {
-      for (i = 0; i < natoms; i++) {
-        if ((m = lmp->atom->map(i+1)) >= 0) {
-          offset = count*i;
-          for (j = 0; j < count; j++)
-            array[m][j] = dptr[offset++];
+      double *vector = NULL;
+      double **array = NULL;
+      if (count == 1) vector = (double *) vptr;
+      else array = (double **) vptr;
+      double *dptr = (double *) data;
+
+      if (count == 1) {
+        for (i = 0; i < natoms; i++)
+          if ((m = lmp->atom->map(i+1)) >= 0)
+            vector[m] = dptr[i];
+      } else {
+        for (i = 0; i < natoms; i++) {
+          if ((m = lmp->atom->map(i+1)) >= 0) {
+            offset = count*i;
+            for (j = 0; j < count; j++)
+              array[m][j] = dptr[offset++];
+          }
         }
       }
     }
   }
+  END_CAPTURE
 }
 
 #ifdef LAMMPS_EXCEPTIONS

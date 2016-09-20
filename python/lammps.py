@@ -28,6 +28,15 @@ import os
 import select
 import re
 
+
+class MPIAbortException(Exception):
+  def __init__(self, message):
+    self.message = message
+
+  def __str__(self):
+    return repr(self.message)
+
+
 class lammps(object):
   # detect if Python is using version of mpi4py that can pass a communicator
 
@@ -151,16 +160,13 @@ class lammps(object):
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
 
-    if self.lib.lammps_has_error(self.lmp):
+    if self.uses_exceptions and self.lib.lammps_has_error(self.lmp):
       sb = create_string_buffer(100)
       error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
       error_msg = sb.value.decode().strip()
 
-      if error_type == 2 and lammps.has_mpi4py_v2 and self.comm != None and self.comm.Get_size() > 1:
-        print(error_msg, file=sys.stderr)
-        print("Aborting...", file=sys.stderr)
-        sys.stderr.flush()
-        self.comm.Abort()
+      if error_type == 2:
+        raise MPIAbortException(error_msg)
       raise Exception(error_msg)
 
   def extract_global(self,name,type):
@@ -293,6 +299,14 @@ class lammps(object):
   def scatter_atoms(self,name,type,count,data):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+
+  @property
+  def uses_exceptions(self):
+    try:
+      if self.lib.lammps_has_error:
+        return True
+    except(AttributeError):
+      return False
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------

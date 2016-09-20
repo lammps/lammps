@@ -39,9 +39,6 @@
 #include "error.h"
 #include "memory.h"
 
-// DEBUG
-#include "update.h"
-
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5

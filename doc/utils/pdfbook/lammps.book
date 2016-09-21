@@ -247,7 +247,6 @@ fix_smd_integrate_tlsph.html
 fix_smd_integrate_ulsph.html
 fix_smd_move_triangulated_surface.html
 fix_smd_setvel.html
-fix_smd_tlsph_reference_configuration.html
 fix_smd_wall_surface.html
 fix_spring.html
 fix_spring_chunk.html
@@ -262,7 +261,6 @@ fix_temp_rescale.html
 fix_temp_rescale_eff.html
 fix_tfmc.html
 fix_thermal_conductivity.html
-fix_ti_rs.html
 fix_ti_spring.html
 fix_tmd.html
 fix_ttm.html

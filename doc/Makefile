@@ -1,4 +1,5 @@
 # Makefile for LAMMPS documentation
+
 SHA1          = $(shell echo $USER-$PWD | python utils/sha1sum.py)
 BUILDDIR      = /tmp/lammps-docs-$(SHA1)
 RSTDIR        = $(BUILDDIR)/rst
@@ -23,7 +24,7 @@ OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
 	@echo "  html       to make HTML version of documentation using Sphinx"
-	@echo "  pdf        to make Manual.pdf"
+	@echo "  pdf        to make Manual.pdf and Developer.pdf"
 	@echo "  txt2html   to build txt2html tool"
 	@echo "  clean      to remove all generated RST files"
 	@echo "  clean-all  to reset the entire build environment"
@@ -51,11 +52,15 @@ pdf: utils/txt2html/txt2html.exe
 	@(\
 		cd src; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
-		htmldoc --batch ../lammps.book;          \
+		htmldoc --batch ../utils/pdfbook/lammps.book;          \
 		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q $$s ../lammps.book || \
-			echo doc file $$s missing in lammps.book; done; \
+			do grep -q $$s ../utils/pdfbook/lammps.book || \
+			echo doc file $$s missing in utils/pdfbook/lammps.book; done; \
 		rm *.html; \
+		cd Developer; \
+		pdflatex developer; \
+		pdflatex developer; \
+		mv developer.pdf ../../Developer.pdf; \
 	)
 
 utils/txt2html/txt2html.exe: utils/txt2html/txt2html.cpp

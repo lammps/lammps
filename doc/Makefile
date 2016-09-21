@@ -50,7 +50,15 @@ html: $(OBJECTS)
 		deactivate ;\
 	)
 	-rm html/searchindex.js
-	-rm -rf html/_sources
+	@rm -rf html/_sources
+	@rm -rf html/PDF
+	@rm -rf html/USER
+	@cp -r src/PDF html/PDF
+	@cp -r src/USER html/USER
+	@rm -rf html/PDF/.[sg]*
+	@rm -rf html/USER/.[sg]*
+	@rm -rf html/USER/*/.[sg]*
+	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
 pdf: utils/txt2html/txt2html.exe

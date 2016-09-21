@@ -57,10 +57,10 @@ pdf: utils/txt2html/txt2html.exe
 	@(\
 		cd src; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
-		htmldoc --batch ../utils/pdfbook/lammps.book;          \
+		htmldoc --batch lammps.book;          \
 		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q $$s ../utils/pdfbook/lammps.book || \
-			echo doc file $$s missing in utils/pdfbook/lammps.book; done; \
+			do grep -q $$s lammps.book || \
+			echo doc file $$s missing in src/lammps.book; done; \
 		rm *.html; \
 		cd Developer; \
 		pdflatex developer; \

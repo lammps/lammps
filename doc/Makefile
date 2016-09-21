@@ -89,9 +89,9 @@ fetch:
 	@rm -rf html_www Manual_www.pdf Developer_www.pdf
 	@curl -s -o Manual_www.pdf http://lammps.sandia.gov/doc/Manual.pdf
 	@curl -s -o Developer_www.pdf http://lammps.sandia.gov/doc/Developer.pdf
-#	@curl -s -o lammps-doc.tar.gz http://lammps.sandia.gov/tars/lammps-doc.tar.gz
-#	@tar xzf lammps-doc.tar.gz
-#	@rm -f lammps-doc.tar.gz
+	@curl -s -o lammps-doc.tar.gz http://lammps.sandia.gov/tars/lammps-doc.tar.gz
+	@tar xzf lammps-doc.tar.gz
+	@rm -f lammps-doc.tar.gz
 
 txt2html: utils/txt2html/txt2html.exe
 

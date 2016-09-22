@@ -1,4 +1,6 @@
 # Makefile for LAMMPS documentation
+
+SHELL 	      = /bin/bash
 SHA1          = $(shell echo $USER-$PWD | python utils/sha1sum.py)
 BUILDDIR      = /tmp/lammps-docs-$(SHA1)
 RSTDIR        = $(BUILDDIR)/rst
@@ -18,23 +20,27 @@ endif
 SOURCES=$(wildcard src/*.txt)
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean html pdf venv
+.PHONY: help clean-all clean html pdf old venv
+
+# ------------------------------------------
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html       to make HTML version of documentation using Sphinx"
-	@echo "  pdf        to make Manual.pdf"
-	@echo "  txt2html   to build txt2html tool"
-	@echo "  clean      to remove all generated RST files"
-	@echo "  clean-all  to reset the entire build environment"
+	@echo "  html       create HTML doc pages in html dir"
+	@echo "  pdf        create Manual.pdf and Developer.pdf in this dir"
+	@echo "  old        create old-style HTML doc pages in old dir"
+	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
+	@echo "  clean      remove all intermediate RST files"
+	@echo "  clean-all  reset the entire build environment"
+	@echo "  txt2html   build txt2html tool"
+
+# ------------------------------------------
 
 clean-all:
 	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
 	rm -rf $(RSTDIR)
-
-txt2html: utils/txt2html/txt2html.exe
 
 html: $(OBJECTS)
 	@(\
@@ -44,19 +50,52 @@ html: $(OBJECTS)
 		deactivate ;\
 	)
 	-rm html/searchindex.js
-	-rm -rf html/_sources
+	@rm -rf html/_sources
+	@rm -rf html/PDF
+	@rm -rf html/USER
+	@cp -r src/PDF html/PDF
+	@cp -r src/USER html/USER
+	@rm -rf html/PDF/.[sg]*
+	@rm -rf html/USER/.[sg]*
+	@rm -rf html/USER/*/.[sg]*
+	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
 pdf: utils/txt2html/txt2html.exe
 	@(\
 		cd src; \
 		../utils/txt2html/txt2html.exe -b *.txt; \
-		htmldoc --batch ../lammps.book;          \
+		htmldoc --batch lammps.book;          \
 		for s in `echo *.txt | sed -e 's,\.txt,\.html,g'` ; \
-			do grep -q $$s ../lammps.book || \
-			echo doc file $$s missing in lammps.book; done; \
+			do grep -q $$s lammps.book || \
+			echo doc file $$s missing in src/lammps.book; done; \
 		rm *.html; \
+		cd Developer; \
+		pdflatex developer; \
+		pdflatex developer; \
+		mv developer.pdf ../../Developer.pdf; \
 	)
+
+old: utils/txt2html/txt2html.exe
+	@rm -rf old
+	@mkdir old; mkdir old/Eqs; mkdir old/JPG; mkdir old/PDF
+	@cd src; ../utils/txt2html/txt2html.exe -b *.txt; \
+	  mv *.html ../old; \
+	  cp Eqs/*.jpg ../old/Eqs; \
+	  cp JPG/* ../old/JPG; \
+	  cp PDF/* ../old/PDF;
+
+fetch:
+	@rm -rf html_www Manual_www.pdf Developer_www.pdf
+	@curl -s -o Manual_www.pdf http://lammps.sandia.gov/doc/Manual.pdf
+	@curl -s -o Developer_www.pdf http://lammps.sandia.gov/doc/Developer.pdf
+	@curl -s -o lammps-doc.tar.gz http://lammps.sandia.gov/tars/lammps-doc.tar.gz
+	@tar xzf lammps-doc.tar.gz
+	@rm -f lammps-doc.tar.gz
+
+txt2html: utils/txt2html/txt2html.exe
+
+# ------------------------------------------
 
 utils/txt2html/txt2html.exe: utils/txt2html/txt2html.cpp
 	g++ -O -Wall -o $@ $<

@@ -1,0 +1,53 @@
+Generation of LAMMPS Documentation
+
+The generation of all documentation is managed by the Makefile in this
+dir.
+
+----------------
+
+Options:
+
+make html         # generate HTML in html dir using Sphinx
+make pdf          # generate 2 PDF files (Manual.pdf,Developer.pdf)
+                  #   in this dir via htmldoc and pdflatex
+make old          # generate old-style HTML pages in old dir via txt2html
+make fetch        # fetch HTML doc pages and 2 PDF files from web site
+                  #   as a tarball and unpack into html dir and 2 PDFs
+make clean        # remove intermediate RST files created by HTML build
+make clean-all    # remove entire build folder and any cached data
+
+----------------
+
+Installing prerequisites for HTML build
+
+To run the HTML documention build toolchain, Python 3 and virtualenv
+have to be installed.  Here are instructions for common setups:
+
+# Ubuntu
+
+sudo apt-get install python-virtualenv
+
+# Fedora (up to version 21)
+# Red Hat Enterprise Linux or CentOS (up to version 7.x)
+
+sudo yum install python3-virtualenv
+
+# Fedora (since version 22)
+
+sudo dnf install python3-virtualenv
+
+# MacOS X
+
+## Python 3
+
+Download the latest Python 3 MacOS X package from
+https://www.python.org and install it.  This will install both Python
+3 and pip3.
+
+## virtualenv
+
+Once Python 3 is installed, open a Terminal and type
+
+pip3 install virtualenv
+
+This will install virtualenv from the Python Package Index.

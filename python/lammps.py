@@ -28,6 +28,15 @@ import os
 import select
 import re
 
+
+class MPIAbortException(Exception):
+  def __init__(self, message):
+    self.message = message
+
+  def __str__(self):
+    return repr(self.message)
+
+
 class lammps(object):
   # detect if Python is using version of mpi4py that can pass a communicator
 
@@ -43,6 +52,7 @@ class lammps(object):
   # create instance of LAMMPS
 
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+    self.comm = comm
 
     # determine module location
 
@@ -150,10 +160,14 @@ class lammps(object):
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
 
-    if self.lib.lammps_has_error(self.lmp):
+    if self.uses_exceptions and self.lib.lammps_has_error(self.lmp):
       sb = create_string_buffer(100)
-      self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
-      raise Exception(sb.value.decode().strip())
+      error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
+      error_msg = sb.value.decode().strip()
+
+      if error_type == 2:
+        raise MPIAbortException(error_msg)
+      raise Exception(error_msg)
 
   def extract_global(self,name,type):
     if name: name = name.encode()
@@ -285,6 +299,14 @@ class lammps(object):
   def scatter_atoms(self,name,type,count,data):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+
+  @property
+  def uses_exceptions(self):
+    try:
+      if self.lib.lammps_has_error:
+        return True
+    except(AttributeError):
+      return False
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------

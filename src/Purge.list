@@ -13,6 +13,9 @@ style_kspace.h
 style_minimize.h
 style_pair.h
 style_region.h
+# deleted on 20 Sep 2016
+fix_ti_rs.cpp
+fix_ti_rs.h
 # deleted on 31 May 2016
 fix_ave_spatial_sphere.cpp
 fix_ave_spatial_sphere.h

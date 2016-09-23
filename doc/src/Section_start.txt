@@ -725,15 +725,15 @@ before building LAMMPS.  From the src directory, this is typically as
 simple as:
 
 make yes-colloid
-make g++ :pre
+make mpi :pre
 
 or
 
 make no-manybody
-make g++ :pre
+make mpi :pre
 
 NOTE: You should NOT include/exclude packages and build LAMMPS in a
-single make command using multiple targets, e.g. make yes-colloid g++.
+single make command using multiple targets, e.g. make yes-colloid mpi.
 This is because the make procedure creates a list of source files that
 will be out-of-date for the build if the package configuration changes
 within the same command.

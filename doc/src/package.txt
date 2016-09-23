@@ -142,7 +142,7 @@ the style options are set, either to default values or to specified
 settings.  I.e. settings from previous invocations do not persist
 across multiple invocations.
 
-See the "Section Accelerate"_Section_accelerate.html section of the
+See the "Section 5.3"_Section_accelerate.html#acc_3 section of the
 manual for more details about using the various accelerator packages
 for speeding up LAMMPS simulations.
 

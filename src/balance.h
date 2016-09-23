@@ -28,15 +28,23 @@ namespace LAMMPS_NS {
 class Balance : protected Pointers {
  public:
   class RCB *rcb;
+  class FixStore *fixstore;       // per-atom weights stored in FixStore
+  int wtflag;                     // 1 if particle weighting is used
+  int varflag;                    // 1 if weight style var(iable) is used
+  int outflag;                    // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
   ~Balance();
   void command(int, char **);
+  void options(int, int, char **);
+  void weight_storage(char *);
+  void init_imbalance();
+  void set_weights();
+  double imbalance_factor(double &);
   void shift_setup(char *, int, double);
   int shift();
   int *bisection(int sortflag = 0);
-  double imbalance_nlocal(int &);
-  void dumpout(bigint, FILE *);
+  void dumpout(bigint);
 
  private:
   int me,nprocs;
@@ -53,20 +61,23 @@ class Balance : protected Pointers {
   int shift_allocate;        // 1 if SHIFT vectors have been allocated
   int ndim;                  // length of balance string bstr
   int *bdim;                 // XYZ for each character in bstr
-  bigint *count;             // counts for slices in one dim
-  bigint *onecount;          // work vector of counts in one dim
-  bigint *sum;               // cummulative count for slices in one dim
-  bigint *target;            // target sum for slices in one dim
+  double *onecost;           // work vector of counts in one dim
+  double *allcost;           // counts for slices in one dim
+  double *sum;               // cummulative count for slices in one dim
+  double *target;            // target sum for slices in one dim
   double *lo,*hi;            // lo/hi split coords that bound each target
-  bigint *losum,*hisum;      // cummulative counts at lo/hi coords
+  double *losum,*hisum;      // cummulative counts at lo/hi coords
   int rho;                   // 0 for geometric recursion
                              // 1 for density weighted recursion
 
-  int *proccount;            // particle count per processor
-  int *allproccount;
+  double *proccost;          // particle cost per processor
+  double *allproccost;       // proccost summed across procs
 
-  int outflag;               // for output of balance results to file
-  FILE *fp;
+  int nimbalance;                 // number of user-specified weight styles
+  class Imbalance **imbalances;   // list of Imb classes, one per weight style
+  double *weight;                 // ptr to FixStore weight vector
+
+  FILE *fp;                  // balance output file
   int firststep;
 
   double imbalance_splits(int &);

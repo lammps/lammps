@@ -127,7 +127,6 @@ of the LAMMPS distribution.  See the lib/package/README file for info
 on how to build the library.  If it is not listed as lib/package, then
 it is a third-party library not included in the LAMMPS distribution.
 See details on all of this below for individual packages.
-p.s.: are we ever going to get commit messages from you? ;-)
 
 :line
 

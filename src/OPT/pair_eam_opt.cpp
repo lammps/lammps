@@ -247,6 +247,7 @@ void PairEAMOpt::eval()
     if (EFLAG) {
       double phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+      phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -273,6 +274,7 @@ void PairEAMOpt::eval()
     double tmpfz = 0.0;
 
     fast_gamma_t* _noalias tabssi = &tabss[itype1*ntypes*nr];
+    double* _noalias scale_i = scale[itype1+1]+1;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -316,12 +318,13 @@ void PairEAMOpt::eval()
         // psip needs both fp[i] and fp[j] terms since r_ij appears in two
         //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
         //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
+        // scale factor can be applied by thermodynamic integration
 
         double recip = 1.0/r;
         double phi = z2*recip;
         double phip = z2p*recip - phi*recip;
         double psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        double fpair = -psip*recip;
+        double fpair = -scale_i[jtype]*psip*recip;
 
         tmpfx += delx*fpair;
         tmpfy += dely*fpair;
@@ -332,7 +335,7 @@ void PairEAMOpt::eval()
           ff[j].z -= delz*fpair;
         }
 
-        if (EFLAG) evdwl = phi;
+        if (EFLAG) evdwl = scale_i[jtype]*phi;
 
         if (EVFLAG) ev_tally(i,j,nlocal,NEWTON_PAIR,
                              evdwl,0.0,fpair,delx,dely,delz);

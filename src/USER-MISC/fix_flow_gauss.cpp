@@ -144,13 +144,13 @@ void FixFlowGauss::setup(int vflag)
   if (mTot <= 0.0)
     error->all(FLERR,"Invalid group mass in fix flow/gauss");
 
-  if (strstr(update->integrate_style,"verlet"))
-    post_force(vflag);
-  else {
+  if (strstr(update->integrate_style,"respa")) {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
     ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
+  else
+    post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -171,7 +171,6 @@ void FixFlowGauss::post_force(int vflag)
   int ii,jj;
 
   //find the total force on all atoms
-
   //initialize to zero
   double f_thisProc[3];
   for (ii=0; ii<3; ii++)

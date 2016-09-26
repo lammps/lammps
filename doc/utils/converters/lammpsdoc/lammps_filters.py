@@ -90,3 +90,24 @@ def promote_doc_keywords(content):
 
 def filter_multiple_horizontal_rules(content):
     return re.sub(r"----------[\s\n]+----------", '', content)
+
+
+def merge_preformatted_sections(content):
+    mergable_section_pattern = re.compile(r"\.\. parsed-literal::\n"
+                                          r"\n"
+                                          r"(?P<listingA>((   [^\n]+\n)|(^\n))+)\n\s*"
+                                          r"^\.\. parsed-literal::\n"
+                                          r"\n"
+                                          r"(?P<listingB>((   [^\n]+\n)|(^\n))+)\n", re.MULTILINE | re.DOTALL)
+
+    m = mergable_section_pattern.search(content)
+
+    while m:
+        content = mergable_section_pattern.sub(r".. parsed-literal::\n"
+                                            r"\n"
+                                            r"\g<listingA>"
+                                            r"\g<listingB>"
+                                            r"\n", content)
+        m = mergable_section_pattern.search(content)
+
+    return content

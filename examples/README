@@ -61,6 +61,7 @@ sub-directories:
 accelerate: use of all the various accelerator packages
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
+cmap:     CMAP 5-body contributions to CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
 coreshell: adiabatic core/shell model
 comb:	  models using the COMB potential

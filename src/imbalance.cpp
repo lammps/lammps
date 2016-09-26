@@ -11,30 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_IMBALANCE_STORE_H
-#define LMP_IMBALANCE_STORE_H
-
 #include "imbalance.h"
 
-namespace LAMMPS_NS {
+using namespace LAMMPS_NS;
 
-class ImbalanceStore : public Imbalance {
- public:
-  ImbalanceStore(class LAMMPS *);
-  virtual ~ImbalanceStore();
+/* ---------------------------------------------------------------------- */
 
- public:
-  // parse options, return number of arguments consumed
-  virtual int options(int, char **);
-  // compute per-atom imbalance and apply to weight array
-  virtual void compute(double *);
-  // print information about the state of this imbalance compute (required)
-  virtual void info(FILE *);
-
- private:
-  char *name;                  // property name
-};
-
-}
-
-#endif
+Imbalance::Imbalance(LAMMPS *lmp) : Pointers(lmp) {}

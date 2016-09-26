@@ -12,22 +12,33 @@
 ------------------------------------------------------------------------- */
 
 #include <string.h>
-#include "pointers.h"
 #include "imbalance_store.h"
 #include "atom.h"
-#include "error.h"
 #include "input.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
+/* -------------------------------------------------------------------- */
+
+ImbalanceStore::ImbalanceStore(LAMMPS *lmp) : Imbalance(lmp), name(0) {}
+
+/* -------------------------------------------------------------------- */
+
+ImbalanceStore::~ImbalanceStore()
+{
+  delete [] name;
+}
+
+/* -------------------------------------------------------------------- */
+
 int ImbalanceStore::options(int narg, char **arg)
 {
-  Error *error = _lmp->error;
-
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-  int len = strlen(arg[0])+1;
-  _name = new char[len];
-  memcpy(_name,arg[0],len);
+
+  int len = strlen(arg[0]) + 1;
+  name = new char[len];
+  memcpy(name,arg[0],len);
 
   return 1;
 }
@@ -36,25 +47,23 @@ int ImbalanceStore::options(int narg, char **arg)
 
 void ImbalanceStore::compute(double *weight)
 {
-  if (_name) {
-    int dflag = 0;
-    int idx = _lmp->atom->find_custom(_name,dflag);
-
-    // property does not exist
-    if (idx < 0 || dflag != 1) return;
-
-    double *prop = _lmp->atom->dvector[idx];
-    const int nlocal = _lmp->atom->nlocal;
-
-    for (int i = 0; i < nlocal; ++i)
-      prop[i] = weight[i];
-  }
+  int dflag = 0;
+  int idx = atom->find_custom(name,dflag);
+  
+  // property does not exist
+  
+  if (idx < 0 || dflag != 1) return;
+  
+  double *prop = atom->dvector[idx];
+  const int nlocal = atom->nlocal;
+  
+  for (int i = 0; i < nlocal; ++i)
+    prop[i] = weight[i];
 }
 
 /* -------------------------------------------------------------------- */
 
 void ImbalanceStore::info(FILE *fp)
 {
-  if (_name)
-    fprintf(fp,"  storing weight in atom property d_%s\n",_name);
+  fprintf(fp,"  storing weight in atom property d_%s\n",name);
 }

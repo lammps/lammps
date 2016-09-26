@@ -15,28 +15,16 @@
 #define LMP_IMBALANCE_H
 
 #include <stdio.h>
+#include "pointers.h"
 
 namespace LAMMPS_NS {
- class LAMMPS;
 
-class Imbalance {
+class Imbalance : protected Pointers {
  public:
-  Imbalance(LAMMPS *lmp) : _lmp(lmp) {};
+  Imbalance(class LAMMPS *);
   virtual ~Imbalance() {};
 
-  // disallow default and copy constructor, assignment operator
- private:
-  Imbalance() {};
-  Imbalance(const Imbalance &) {};
-  Imbalance &operator=(const Imbalance &) {return *this;};
-
-  // internal use only data members
- protected:
-  LAMMPS *_lmp;
-
-  // public API
- public:
-  // parse options. return number of arguments consumed. (required)
+  // parse options. return number of arguments consumed (required)
   virtual int options(int narg, char **arg) = 0;
   // reinitialize internal data (needed for fix balance) (optional)
   virtual void init() {};
@@ -44,6 +32,12 @@ class Imbalance {
   virtual void compute(double *weights) = 0;
   // print information about the state of this imbalance compute (required)
   virtual void info(FILE *fp) = 0;
+
+  // disallow default and copy constructor, assignment operator
+  // private:
+  //Imbalance() {};
+  //Imbalance(const Imbalance &) {};
+  //Imbalance &operator=(const Imbalance &) {return *this;};
 };
 
 }

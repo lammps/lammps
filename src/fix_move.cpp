@@ -48,8 +48,10 @@ enum{EQUAL,ATOM};
 
 FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xvarstr(NULL), yvarstr(NULL), zvarstr(NULL), vxvarstr(NULL), vyvarstr(NULL), vzvarstr(NULL),
-  xoriginal(NULL), toriginal(NULL), qoriginal(NULL), displace(NULL), velocity(NULL)
+  xvarstr(NULL), yvarstr(NULL), zvarstr(NULL), vxvarstr(NULL), 
+  vyvarstr(NULL), vzvarstr(NULL),
+  xoriginal(NULL), toriginal(NULL), qoriginal(NULL), 
+  displace(NULL), velocity(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix move command");
 

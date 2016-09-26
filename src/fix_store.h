@@ -31,6 +31,7 @@ class FixStore : public Fix {
   int nvalues;           // number of per-atom values
   double *vstore;        // vector storage for GLOBAL or PERATOM
   double **astore;       // array storage for GLOBAL or PERATOM
+  int disable;        // 1 if operations (except grow) are currently disabled
 
   FixStore(class LAMMPS *, int, char **);
   ~FixStore();

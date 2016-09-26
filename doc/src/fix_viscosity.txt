@@ -100,8 +100,8 @@ accurately infer a viscosity and should try increasing the Nevery
 parameter.
 
 An alternative method for calculating a viscosity is to run a NEMD
-simulation, as described in "Section_howto
-13"_Section_howto.html#howto_13 of the manual.  NEMD simulations
+simulation, as described in "Section
+6.13"_Section_howto.html#howto_13 of the manual.  NEMD simulations
 deform the simmulation box via the "fix deform"_fix_deform.html
 command.  Thus they cannot be run on a charged system using a "PPPM
 solver"_kspace_style.html since PPPM does not currently support

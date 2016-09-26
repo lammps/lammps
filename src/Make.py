@@ -26,7 +26,7 @@ libclasses = ("atc","awpmd","colvars","cuda","gpu","h5md",
 buildclasses = ("intel","kokkos")
 makeclasses = ("cc","flags","mpi","fft","jpg","png")
 
-setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall")
+setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall","exceptions","#exceptions")
 actionargs = ("lib-all","file","clean","exe")
 
 gpubuildflag = 0
@@ -459,6 +459,8 @@ class Actions(object):
             make.delvar("LMP_INC","-DLAMMPS_SMALLBIG")
             make.delvar("LMP_INC","-DLAMMPS_BIGBIG")
             make.addvar("LMP_INC","-DLAMMPS_SMALLSMALL")
+          elif one == "exceptions": make.addvar("LMP_INC","-DLAMMPS_EXCEPTIONS")
+          elif one == "#exception": make.delvar("LMP_INC","-DLAMMPS_EXCEPTIONS")
           
       # add FFT, JPG, PNG settings
 
@@ -809,7 +811,7 @@ class Packages(object):
 
     original = {}
     tmp = "cd %s; make ps" % dir.src
-    output = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
+    output = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode().split('\n')
     pattern = "Installed\s+(\w+): package (\S+)"
     for line in output:
       m = re.search(pattern,line)
@@ -966,13 +968,14 @@ class Settings(object):
   def help(self):
     return """
 -s set1 set2 ...
-  possible settings = gzip #gzip ffmpeg #ffmpeg smallbig bigbig smallsmall
+  possible settings = gzip #gzip ffmpeg #ffmpeg smallbig bigbig smallsmall exceptions #exceptions
   alter LAMMPS ifdef settings in Makefile.auto
     only happens if new Makefile.auto is created by use of "file" action
   gzip and #gzip turn on/off LAMMPS_GZIP setting
   ffmpeg and #ffmpeg turn on/off LAMMPS_FFMPEG setting
   smallbig, bigbig, smallsmall turn on LAMMPS_SMALLBIG, etc
     and turn off other two
+  exceptions and #exceptions turn on/off LAMMPS_EXCEPTIONS setting
 """
   
   def check(self):

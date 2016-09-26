@@ -107,9 +107,10 @@ The ch2lmp sub-directory contains tools for converting files
 back-and-forth between the CHARMM MD code and LAMMPS. 
 
 They are intended to make it easy to use CHARMM as a builder and as a
-post-processor for LAMMPS. Using charmm2lammps.pl, you can convert an
-ensemble built in CHARMM into its LAMMPS equivalent.  Using
-lammps2pdb.pl you can convert LAMMPS atom dumps into pdb files.
+post-processor for LAMMPS. Using charmm2lammps.pl, you can convert a
+PDB file with associated CHARMM info, including CHARMM force field
+data, into its LAMMPS equivalent.  Using lammps2pdb.pl you can convert
+LAMMPS atom dumps into PDB files.
 
 See the README file in the ch2lmp sub-directory for more information.
 
@@ -330,7 +331,7 @@ Kohlmeyer (akohlmey at cmm.chem.upenn.edu) at U Penn.
 
 matlab tool :h4,link(matlab)
 
-The matlab sub-directory contains several "MATLAB"_matlab scripts for
+The matlab sub-directory contains several "MATLAB"_matlabhome scripts for
 post-processing LAMMPS output.  The scripts include readers for log
 and dump files, a reader for EAM potential files, and a converter that
 reads LAMMPS dump files and produces CFG files that can be visualized
@@ -342,7 +343,7 @@ See the README.pdf file for more information.
 These scripts were written by Arun Subramaniyan at Purdue Univ
 (asubrama at purdue.edu).
 
-:link(matlab,http://www.mathworks.com)
+:link(matlabhome,http://www.mathworks.com)
 
 :line
 
@@ -427,9 +428,10 @@ pymol_asphere tool :h4,link(pymol)
 The pymol_asphere sub-directory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
 particles into an input file for the "PyMol visualization
-package"_pymol.
+package"_pymolhome or its "open source variant"_pymolopen.
 
-:link(pymol,http://pymol.sourceforge.net)
+:link(pymolhome,http://www.pymol.org)
+:link(pymolopen,http://sourceforge.net/scm/?type=svn&group_id=4546)
 
 Specifically, the tool triangulates the ellipsoids so they can be
 viewed as true ellipsoidal particles within PyMol.  See the README and

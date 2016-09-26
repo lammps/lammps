@@ -13,7 +13,8 @@
 
 /* -------------------------------------------------------------------------
     Contributing authors:
-             Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
+             Rodrigo Freitas (UC Berkeley) - rodrigof@berkeley.edu
+             Mark Asta (UC Berkeley) - mdasta@berkeley.edu
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
 
@@ -26,16 +27,31 @@
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
+#include "citeme.h"
 #include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
+static const char cite_fix_ti_spring[] =
+  "ti/spring command:\n\n"
+  "@article{freitas2016,\n"
+  "  author={Freitas, Rodrigo and Asta, Mark and de Koning, Maurice},\n"
+  "  title={Nonequilibrium free-energy calculation of solids using LAMMPS},\n"
+  "  journal={Computational Materials Science},\n"
+  "  volume={112},\n"
+  "  pages={333--341},\n"
+  "  year={2016},\n"
+  "  publisher={Elsevier}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
 FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_ti_spring);
+
   if (narg < 6 || narg > 8)
     error->all(FLERR,"Illegal fix ti/spring command");
 
@@ -49,18 +65,21 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
+  // disallow resetting the time step, while this fix is defined
+  time_depend = 1;
+
   // Spring constant.
   k = force->numeric(FLERR,arg[3]);
   if (k <= 0.0) error->all(FLERR,"Illegal fix ti/spring command");
 
-  // Perform initial allocation of atom-based array.
-  // Registar with Atom class.
+  // Perform initial allocation of atom-based array
+  // Register with Atom class
   xoriginal = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
 
-  // xoriginal = initial unwrapped positions of atom.
+  // xoriginal = initial unwrapped positions of atoms
 
   double **x = atom->x;
   int *mask = atom->mask;
@@ -73,13 +92,13 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Time variables.
-  t_switch = force->bnumeric(FLERR,arg[4]); // Number of steps for switching.
-  t_equil =  force->bnumeric(FLERR,arg[5]); // Number of steps for equilibration.
-  t0 = update->ntimestep;  // Initial time.
-  if (t_switch <= 0) error->all(FLERR,"Illegal fix ti/spring command");
-  if (t_equil  <= 0) error->all(FLERR,"Illegal fix ti/spring command");
+  t0 = update->ntimestep;  // timestep of original/starting coordinates
+  t_switch = force->bnumeric(FLERR,arg[4]); // Number of steps for switching
+  t_equil  = force->bnumeric(FLERR,arg[5]); // Number of steps for equilibration
+  if ((t_switch <= 0) || (t_equil < 0))
+    error->all(FLERR,"Illegal fix ti/spring command");
 
-  // Coupling parameter initialization.
+  // Coupling parameter initialization
   sf = 1;
   if (narg > 6) {
     if (strcmp(arg[6], "function") == 0) sf = force->inumeric(FLERR,arg[7]);
@@ -150,9 +169,8 @@ void FixTISpring::min_setup(int vflag)
 
 void FixTISpring::post_force(int vflag)
 {
-  // If on the first equilibration do not calculate forces.
-  bigint t = update->ntimestep - t0;
-  if(t < t_equil) return;
+  // do not calculate forces during equilibration
+  if ((update->ntimestep - t0) < t_equil) return;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -198,16 +216,18 @@ void FixTISpring::min_post_force(int vflag)
 
 void FixTISpring::initial_integrate(int vflag)
 {
-  // Update the coupling parameter value.
+  // Update the coupling parameter value if needed
+  if ((update->ntimestep - t0) < t_equil) return;
+
   const bigint t = update->ntimestep - (t0+t_equil);
   const double r_switch = 1.0/t_switch;
 
-  if( (t >= 0) && (t <= t_switch) ) {
+  if ( (t >= 0) && (t <= t_switch) ) {
     lambda  =  switch_func(t*r_switch);
     dlambda = dswitch_func(t*r_switch);
   }
 
-  if( (t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch)) ) {
+  if ( (t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch)) ) {
     lambda  =    switch_func(1.0 - (t - t_switch - t_equil)*r_switch);
     dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)*r_switch);
   }
@@ -340,7 +360,7 @@ int FixTISpring::size_restart(int nlocal)
 }
 
 /* ----------------------------------------------------------------------
-     Switching function.
+     Switching function
 ------------------------------------------------------------------------- */
 
 double FixTISpring::switch_func(double t)
@@ -353,7 +373,7 @@ double FixTISpring::switch_func(double t)
 }
 
 /* ----------------------------------------------------------------------
-     Switching function derivative.
+     Switching function derivative
 ------------------------------------------------------------------------- */
 
 double FixTISpring::dswitch_func(double t)

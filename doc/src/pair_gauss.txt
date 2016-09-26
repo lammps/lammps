@@ -63,7 +63,7 @@ solvent simulations of salt ions "(Lenart)"_#Lenart and of surfactants
 "(Jusufi)"_#Jusufi.  In these instances the Gaussian potential mimics
 the hydration barrier between a pair of particles. The hydration
 barrier is located at r_mh and has a width of sigma_h. The prefactor
-determines the hight of the potential barrier.
+determines the height of the potential barrier.
 
 The following coefficients must be defined for each pair of atom types
 via the "pair_coeff"_pair_coeff.html command as in the example above,
@@ -73,16 +73,18 @@ commands:
 
 H (energy * distance units)
 r_mh (distance units)
-sigma_h (distance units) :ul
+sigma_h (distance units)
+cutoff (distance units) :ul
 
-The global cutoff (r_c) specified in the pair_style command is used.
+The last coefficient is optional. If not specified, the global cutoff
+is used.
 
 :line
 
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -97,7 +99,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch7_Section_start.html#start_6 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line

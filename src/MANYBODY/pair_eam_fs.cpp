@@ -102,6 +102,7 @@ void PairEAMFS::coeff(int narg, char **arg)
         if (i == j) atom->set_mass(i,fs->mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 

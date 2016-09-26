@@ -845,7 +845,7 @@ PYTHON package :link(PYTHON),h5
 Contents: A "python"_python.html command which allow you to execute
 Python code from a LAMMPS input script.  The code can be in a separate
 file or embedded in the input script itself.  See "Section
-11.2"_Section_python.html#py-2 for an overview of using Python from
+11.2"_Section_python.html#py_2 for an overview of using Python from
 LAMMPS and for other ways to use LAMMPS and Python together.
 
 Building with the PYTHON package assumes you have a Python shared

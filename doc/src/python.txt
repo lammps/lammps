@@ -97,7 +97,7 @@ be passed to various commands as arguments, so that the variable is
 evaluated during a simulation run.
 
 A broader overview of how Python can be used with LAMMPS is
-given in "Section python"_Section_python.html.  There is an
+given in "Section 11"_Section_python.html.  There is an
 examples/python directory which illustrates use of the python
 command.
 

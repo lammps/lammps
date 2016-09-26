@@ -85,8 +85,10 @@ to feel no force (they don't "see" the wall) when in one location,
 then move a distance epsilon, and suddenly feel a large force because
 they now "see" the wall.  In a worst-case scenario, this can blow
 particles out of the simulation box.  Thus, as a general rule you
-should not use the fix wall/region command with {union} or
-{interesect} regions that have convex points or edges.
+should not use the fix wall/gran/region command with {union} or
+{interesect} regions that have convex points or edges resulting from
+the union/intersection (convex points/edges in the union/intersection
+due to a single sub-region are still OK).
 
 NOTE: Similarly, you should not define {union} or {intersert} regions
 for use with this command that share an overlapping common face that

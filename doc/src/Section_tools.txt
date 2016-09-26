@@ -107,9 +107,10 @@ The ch2lmp sub-directory contains tools for converting files
 back-and-forth between the CHARMM MD code and LAMMPS. 
 
 They are intended to make it easy to use CHARMM as a builder and as a
-post-processor for LAMMPS. Using charmm2lammps.pl, you can convert an
-ensemble built in CHARMM into its LAMMPS equivalent.  Using
-lammps2pdb.pl you can convert LAMMPS atom dumps into pdb files.
+post-processor for LAMMPS. Using charmm2lammps.pl, you can convert a
+PDB file with associated CHARMM info, including CHARMM force field
+data, into its LAMMPS equivalent.  Using lammps2pdb.pl you can convert
+LAMMPS atom dumps into PDB files.
 
 See the README file in the ch2lmp sub-directory for more information.
 

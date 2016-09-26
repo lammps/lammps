@@ -33,6 +33,7 @@ public:
   void init_style();
   double single(int, int, int, int, double, double, double, double &);
   double memory_usage();
+  void *extract(const char *, int &) { return NULL; }
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);

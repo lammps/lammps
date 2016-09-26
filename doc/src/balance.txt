@@ -374,7 +374,7 @@ weight. Typical are {factor} values between 0.5 and 1.2. For the
 {balance} command the Timer information is taken from the preceding
 run command; with {fix balance} the Timer data since the last balancing
 operation is used. If no such information is available, e.g. at
-the beginning of an input, of when the "timer"_timer.html level is set
+the beginning of an input, or when the "timer"_timer.html level is set
 to either {loop} or {off}, this weight style is ignored and the weights
 remain unchanged.  This weight is the most generic one, and should
 be tried first, if neither {group} or {neigh} are easily applicable.

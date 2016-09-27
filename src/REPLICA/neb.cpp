@@ -228,7 +228,7 @@ void NEB::run()
 
   // perform regular NEB for n1steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
-  // break induced if converged
+  // break out of while loop early if converged
   // damped dynamic min styles insure all replicas converge together
 
   timer->init();

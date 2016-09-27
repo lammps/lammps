@@ -48,14 +48,14 @@ follows the discussion in these 3 papers: "(HenkelmanA)"_#HenkelmanA,
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.7"_Section_start.html#start_7 of the
-manual.  Note that if you have MPI installed, you can run a
-multi-replica simulation with more replicas (partitions) than you have
-physical processors, e.g you can run a 10-replica simulation on just
-one or two processors.  You will simply not get the performance
-speed-up you would see with one or more physical processors per
-replica.  See "this section"_Section_howto.html#howto_5 of the manual
-for further discussion.
+switch; see "Section 2.7"_Section_start.html#start_7 of the manual.
+Note that if you have MPI installed, you can run a multi-replica
+simulation with more replicas (partitions) than you have physical
+processors, e.g you can run a 10-replica simulation on just one or two
+processors.  You will simply not get the performance speed-up you
+would see with one or more physical processors per replica.  See
+"Section 6.5"_Section_howto.html#howto_5 of the manual for further
+discussion.
 
 NOTE: The current NEB implementation in LAMMPS only allows there to be
 one processor per replica.

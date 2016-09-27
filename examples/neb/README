@@ -7,6 +7,7 @@ mpirun -np 3 lmp_g++ -partition 3x1 -in in.neb.sivac
 mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1
 mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop2
 mpirun -np 6 lmp_g++ -partition 3x2 -in in.neb.sivac
+mpirun -np 9 lmp_g++ -partition 3x3 -in in.neb.sivac
 
 If you uncomment the dump command lines in the input scripts, you can
 create dump files to do visualization from via Python tools: (see

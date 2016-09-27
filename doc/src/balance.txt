@@ -90,9 +90,10 @@ the simulation is run in parallel.
 The balancing can be performed with or without per-particle weighting.
 With no weighting, the balancing attempts to assign an equal number of
 particles to each processor.  With weighting, the balancing attempts
-to assign an equal aggregate weight to each processor, which typically
-means a different number of particles per processor.  Details on the
-various weighting options are "given below"_#weighted_balance.
+to assign an equal aggregate computational weight to each processor,
+which typically inducces a diffrent number of atoms assigned to each
+processor.  Details on the various weighting options and examples for
+how they can be used are "given below"_#weighted_balance.
 
 Note that the "processors"_processors.html command allows some control
 over how the box volume is split across processors.  Specifically, for

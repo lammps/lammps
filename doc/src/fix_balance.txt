@@ -77,12 +77,13 @@ lead to poor performance when the simulation is run in parallel.
 The balancing can be performed with or without per-particle weighting.
 With no weighting, the balancing attempts to assign an equal number of
 particles to each processor.  With weighting, the balancing attempts
-to assign an equal weight to each processor, which typically means a
-different number of atoms per processor.
+to assign an equal aggregate computational weight to each processor,
+which typically inducces a diffrent number of atoms assigned to each
+processor.
 
 NOTE: The weighting options listed above are documented with the
 "balance"_balance.html command in "this section of the balance
-command"_balance.html#weighted_balance doc page.  The section
+command"_balance.html#weighted_balance doc page.  That section
 describes the various weighting options and gives a few examples of
 how they can be used.  The weighting options are the same for both the
 fix balance and "balance"_balance.html commands.

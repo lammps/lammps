@@ -10,7 +10,7 @@ fix balance command :h3
 
 [Syntax:]
 
-fix ID group-ID balance Nfreq thresh style args keyword value ... :pre
+fix ID group-ID balance Nfreq thresh style args keyword args ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 balance = style name of this fix command :l
@@ -21,10 +21,24 @@ style = {shift} or {rcb} :l
     dimstr = sequence of letters containing "x" or "y" or "z", each not more than once
     Niter = # of times to iterate within each dimension of dimstr sequence
     stopthresh = stop balancing when this imbalance threshhold is reached
-  rcb args = none :pre
-zero or more keyword/value pairs may be appended :l
-keyword = {out} :l
-  {out} value = filename
+  {rcb} args = none :pre
+zero or more keyword/arg pairs may be appended :l
+keyword = {weight} or {out} :l
+  {weight} style args = use weighted particle counts for the balancing
+    {style} = {group} or {neigh} or {time} or {var} or {store}
+      {group} args = Ngroup group1 weight1 group2 weight2 ...
+        Ngroup = number of groups with assigned weights
+        group1, group2, ... = group IDs
+        weight1, weight2, ...   = corresponding weight factors
+      {neigh} factor = compute weight based on number of neighbors
+        factor = scaling factor (> 0)
+      {time} factor = compute weight based on time spend computing
+        factor = scaling factor (> 0)
+      {var} name = take weight from atom-style variable
+        name = name of the atom-style variable
+      {store} name = store weight in custom atom property defined by "fix property/atom"_fix_property_atom.html command
+        name = atom property name (without d_ prefix)
+  {out} arg = filename
     filename = write each processor's sub-domain to a file, at each re-balancing :pre
 :ule
 
@@ -32,6 +46,9 @@ keyword = {out} :l
 
 fix 2 all balance 1000 1.05 shift x 10 1.05
 fix 2 all balance 100 0.9 shift xy 20 1.1 out tmp.balance
+fix 2 all balance 100 0.9 shift xy 20 1.1 weight group 3 substrate 3.0 solvent 1.0 solute 0.8 out tmp.balance
+fix 2 all balance 100 1.0 shift x 10 1.1 weight time 0.8
+fix 2 all balance 100 1.0 shift xy 5 1.1 weight var myweight weight neigh 0.6 weight store allweight
 fix 2 all balance 1000 1.1 rcb :pre
 
 [Description:]
@@ -44,14 +61,32 @@ rebalancing is performed periodically during the simulation.  To
 perform "static" balancing, before or between runs, see the
 "balance"_balance.html command.
 
-Load-balancing is typically only useful if the particles in the
-simulation box have a spatially-varying density distribution.  E.g. a
-model of a vapor/liquid interface, or a solid with an irregular-shaped
-geometry containing void regions.  In this case, the LAMMPS default of
-dividing the simulation box volume into a regular-spaced grid of 3d
-bricks, with one equal-volume sub-domain per processor, may assign
-very different numbers of particles per processor.  This can lead to
-poor performance when the simulation is run in parallel.
+Load-balancing is typically most useful if the particles in the
+simulation box have a spatially-varying density distribution or
+where the computational cost varies signficantly between different
+atoms. E.g. a model of a vapor/liquid interface, or a solid with
+an irregular-shaped geometry containing void regions, or
+"hybrid pair style simulations"_pair_hybrid.html which combine
+pair styles with different computational cost.  In these cases, the
+LAMMPS default of dividing the simulation box volume into a
+regular-spaced grid of 3d bricks, with one equal-volume sub-domain
+per procesor, may assign numbers of particles per processor in a
+way that the computational effort varies significantly.  This can
+lead to poor performance when the simulation is run in parallel.
+
+The balancing can be performed with or without per-particle weighting.
+With no weighting, the balancing attempts to assign an equal number of
+particles to each processor.  With weighting, the balancing attempts
+to assign an equal aggregate computational weight to each processor,
+which typically inducces a diffrent number of atoms assigned to each
+processor.
+
+NOTE: The weighting options listed above are documented with the
+"balance"_balance.html command in "this section of the balance
+command"_balance.html#weighted_balance doc page.  That section
+describes the various weighting options and gives a few examples of
+how they can be used.  The weighting options are the same for both the
+fix balance and "balance"_balance.html commands.
 
 Note that the "processors"_processors.html command allows some control
 over how the box volume is split across processors.  Specifically, for
@@ -64,9 +99,9 @@ sub-domains will still have the same shape and same volume.
 On a particular timestep, a load-balancing operation is only performed
 if the current "imbalance factor" in particles owned by each processor
 exceeds the specified {thresh} parameter.  The imbalance factor is
-defined as the maximum number of particles owned by any processor,
-divided by the average number of particles per processor.  Thus an
-imbalance factor of 1.0 is perfect balance.
+defined as the maximum number of particles (or weight) owned by any
+processor, divided by the average number of particles (or weight) per
+processor.  Thus an imbalance factor of 1.0 is perfect balance.
 
 As an example, for 10000 particles running on 10 processors, if the
 most heavily loaded processor has 1200 particles, then the factor is
@@ -117,8 +152,8 @@ applied.
 The {rcb} style is a "tiling" method which does not produce a logical
 3d grid of processors.  Rather it tiles the simulation domain with
 rectangular sub-boxes of varying size and shape in an irregular
-fashion so as to have equal numbers of particles in each sub-box, as
-in the rightmost diagram above.
+fashion so as to have equal numbers of particles (or weight) in each
+sub-box, as in the rightmost diagram above.
 
 The "grid" methods can be used with either of the
 "comm_style"_comm_style.html command options, {brick} or {tiled}.  The
@@ -139,12 +174,9 @@ from scratch.
 
 :line
 
-The {group-ID} is currently ignored.  In the future it may be used to
-determine what particles are considered for balancing.  Normally it
-would only makes sense to use the {all} group.  But in some cases it
-may be useful to balance on a subset of the particles, e.g. when
-modeling large nanoparticles in a background of small solvent
-particles.
+The {group-ID} is ignored.  However the impact of balancing on
+different groups of atoms can be affected by using the {group} weight
+style as described below.
 
 The {Nfreq} setting determines how often a rebalance is performed.  If
 {Nfreq} > 0, then rebalancing will occur every {Nfreq} steps.  Each
@@ -225,7 +257,7 @@ than {Niter} and exit early.
 
 The {rcb} style invokes a "tiled" method for balancing, as described
 above.  It performs a recursive coordinate bisectioning (RCB) of the
-simulation domain.  The basic idea is as follows.
+simulation domain. The basic idea is as follows.
 
 The simulation domain is cut into 2 boxes by an axis-aligned cut in
 the longest dimension, leaving one new box on either side of the cut.
@@ -250,10 +282,10 @@ in that sub-box.
 
 :line
 
-The {out} keyword writes a text file to the specified {filename} with
-the results of each rebalancing operation.  The file contains the
-bounds of the sub-domain for each processor after the balancing
-operation completes.  The format of the file is compatible with the
+The {out} keyword writes text to the specified {filename} with the
+results of each rebalancing operation.  The file contains the bounds
+of the sub-domain for each processor after the balancing operation
+completes.  The format of the file is compatible with the
 "Pizza.py"_pizza {mdump} tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by 4
 processors for a 2d problem:
@@ -321,8 +353,8 @@ values in the vector are as follows:
 3 = imbalance factor right before the last rebalance was performed :ul
 
 As explained above, the imbalance factor is the ratio of the maximum
-number of particles on any processor to the average number of
-particles per processor.
+number of particles (or total weight) on any processor to the average
+number of particles (or total weight) per processor.
 
 These quantities can be accessed by various "output
 commands"_Section_howto.html#howto_15.  The scalar and vector values
@@ -336,11 +368,11 @@ minimization"_minimize.html.
 
 [Restrictions:]
 
-For 2d simulations, a "z" cannot appear in {dimstr} for the {shift}
-style.
+For 2d simulations, the {z} style cannot be used.  Nor can a "z"
+appear in {dimstr} for the {shift} style.
 
 [Related commands:]
 
-"processors"_processors.html, "balance"_balance.html
+"group"_group.html, "processors"_processors.html, "balance"_balance.html
 
 [Default:] none

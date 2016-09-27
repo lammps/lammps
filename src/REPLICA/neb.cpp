@@ -137,10 +137,6 @@ void NEB::command(int narg, char **arg)
   // error checks
 
   if (nreplica == 1) error->all(FLERR,"Cannot use NEB with a single replica");
-  if (nreplica != universe->nprocs)
-    error->all(FLERR,"Can only use NEB with 1-processor replicas");
-  if (atom->sortfreq > 0)
-    error->all(FLERR,"Cannot use NEB with atom_modify sort enabled");
   if (atom->map_style == 0)
     error->all(FLERR,"Cannot use NEB unless atom map exists");
 
@@ -531,7 +527,7 @@ void NEB::open(char *file)
 
 /* ----------------------------------------------------------------------
    query fix NEB for info on each replica
-   proc 0 prints current NEB status
+   universe proc 0 prints current NEB status
 ------------------------------------------------------------------------- */
 
 void NEB::print_status()
@@ -552,6 +548,7 @@ void NEB::print_status()
   if (output->thermo->normflag) one[0] /= atom->natoms;
   if (me == 0)
     MPI_Allgather(one,nall,MPI_DOUBLE,&all[0][0],nall,MPI_DOUBLE,roots);
+  MPI_Bcast(&all[0][0],nall*nreplica,MPI_DOUBLE,0,world);
 
   rdist[0] = 0.0;
   for (int i = 1; i < nreplica; i++)

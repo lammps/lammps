@@ -1,0 +1,221 @@
+LAMMPS (26 Sep 2016)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+processors      * 1 1
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 10 0 10 0 10
+create_box	3 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+mass		* 1.0
+
+region		long block 3 6 0 10 0 10
+set             region long type 2
+  1400 settings made for type
+
+velocity	all create 1.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+pair_coeff      * 2 1.0 1.0 5.0
+
+neighbor	0.3 bin
+neigh_modify	every 2 delay 4 check yes
+fix		p all property/atom d_WEIGHT
+compute		p all property/atom d_WEIGHT
+fix		0 all balance 50 1.0 shift x 10 1.0                 weight time 1.0 weight store WEIGHT
+variable	maximb equal f_0[1]
+variable	iter   equal f_0[2]
+variable 	prev   equal f_0[3]
+variable	final  equal f_0
+
+#fix		3 all print 50 "${iter} ${prev} ${final} ${maximb}"
+
+fix		1 all nve
+
+#dump		id all atom 50 dump.melt
+#dump		id all custom 50 dump.lammpstrj id type x y z c_p
+
+#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		50
+run		500
+Neighbor list info ...
+  1 neighbor list requests
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65 -> bins = 7 7 7
+Memory usage per processor = 3.0442 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            1   -6.9453205            0   -5.4456955   -5.6812358    4738.2137 
+      50   0.48653399   -6.1788509            0   -5.4492324   -1.6017778    4738.2137 
+     100   0.53411175    -6.249885            0   -5.4489177   -1.9317606    4738.2137 
+     150   0.53646658   -6.2527206            0   -5.4482219   -1.9689568    4738.2137 
+     200   0.54551611   -6.2656326            0   -5.4475631   -2.0042104    4738.2137 
+     250   0.54677719   -6.2671162            0   -5.4471555   -2.0015995    4738.2137 
+     300    0.5477618   -6.2678071            0   -5.4463698    -1.997842    4738.2137 
+     350   0.55600296   -6.2801497            0   -5.4463538   -2.0394056    4738.2137 
+     400   0.53241503   -6.2453665            0   -5.4469436    -1.878594    4738.2137 
+     450    0.5439158      -6.2623            0   -5.4466302   -1.9744161    4738.2137 
+     500   0.55526241   -6.2793396            0   -5.4466542   -2.0595015    4738.2137 
+Loop time of 2.31899 on 4 procs for 500 steps with 4000 atoms
+
+Performance: 93143.824 tau/day, 215.611 timesteps/s
+99.4% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.1238     | 1.43       | 1.6724     |  19.4 | 61.66
+Neigh   | 0.26414    | 0.3845     | 0.55604    |  20.2 | 16.58
+Comm    | 0.36444    | 0.48475    | 0.61759    |  15.3 | 20.90
+Output  | 0.00027871 | 0.00032145 | 0.00035334 |   0.2 |  0.01
+Modify  | 0.0064867  | 0.0086303  | 0.011487   |   2.3 |  0.37
+Other   |            | 0.01078    |            |       |  0.46
+
+Nlocal:    1000 ave 1565 max 584 min
+Histogram: 2 0 0 0 0 0 1 0 0 1
+Nghost:    8752 ave 9835 max 8078 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Neighs:    149308 ave 161748 max 133300 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+
+Total # of neighbors = 597231
+Ave neighs/atom = 149.308
+Neighbor list builds = 50
+Dangerous builds = 0
+run		500
+Memory usage per processor = 3.06519 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+     500   0.55526241   -6.2793396            0   -5.4466542   -2.0595015    4738.2137 
+     550   0.53879347   -6.2554274            0   -5.4474393   -1.9756834    4738.2137 
+     600   0.54275982   -6.2616799            0   -5.4477437   -1.9939993    4738.2137 
+     650   0.54526651    -6.265098            0   -5.4474027   -2.0303672    4738.2137 
+     700   0.54369381    -6.263201            0   -5.4478642   -1.9921967    4738.2137 
+     750   0.54452777   -6.2640839            0   -5.4474964   -1.9658675    4738.2137 
+     800   0.55061744   -6.2725556            0   -5.4468359   -2.0100922    4738.2137 
+     850   0.55371614   -6.2763992            0   -5.4460326   -2.0065329    4738.2137 
+     900   0.54756622   -6.2668303            0   -5.4456863   -1.9796122    4738.2137 
+     950   0.54791593   -6.2673161            0   -5.4456477   -1.9598278    4738.2137 
+    1000   0.54173198   -6.2586101            0   -5.4462153   -1.9007466    4738.2137 
+Loop time of 2.32391 on 4 procs for 500 steps with 4000 atoms
+
+Performance: 92946.753 tau/day, 215.155 timesteps/s
+99.4% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.1054     | 1.4081     | 1.6402     |  19.8 | 60.59
+Neigh   | 0.28061    | 0.4047     | 0.57291    |  19.7 | 17.41
+Comm    | 0.38485    | 0.4918     | 0.62503    |  15.5 | 21.16
+Output  | 0.00028014 | 0.00031483 | 0.00032997 |   0.1 |  0.01
+Modify  | 0.0064781  | 0.0084658  | 0.011106   |   2.2 |  0.36
+Other   |            | 0.01051    |            |       |  0.45
+
+Nlocal:    1000 ave 1560 max 593 min
+Histogram: 2 0 0 0 0 0 1 0 0 1
+Nghost:    8716.25 ave 9788 max 8009 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Neighs:    150170 ave 164293 max 129469 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+
+Total # of neighbors = 600678
+Ave neighs/atom = 150.169
+Neighbor list builds = 53
+Dangerous builds = 0
+fix		0 all balance 50 1.0 shift x 5 1.0                 weight neigh 0.5 weight time 0.66 weight store WEIGHT
+run             500
+Memory usage per processor = 3.06519 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+    1000   0.54173198   -6.2586101            0   -5.4462153   -1.9007466    4738.2137 
+    1050   0.54629742   -6.2657526            0   -5.4465113    -1.945821    4738.2137 
+    1100   0.55427881   -6.2781733            0    -5.446963   -2.0021027    4738.2137 
+    1150   0.54730654    -6.267257            0   -5.4465025   -1.9420678    4738.2137 
+    1200    0.5388281   -6.2547963            0   -5.4467562    -1.890178    4738.2137 
+    1250   0.54848768   -6.2694237            0   -5.4468979   -1.9636797    4738.2137 
+    1300   0.54134321   -6.2590728            0    -5.447261   -1.9170271    4738.2137 
+    1350   0.53564389   -6.2501521            0   -5.4468871   -1.8642306    4738.2137 
+    1400   0.53726924   -6.2518379            0   -5.4461355   -1.8544028    4738.2137 
+    1450   0.54525935   -6.2632653            0   -5.4455808   -1.9072158    4738.2137 
+    1500   0.54223346   -6.2591057            0   -5.4459588   -1.8866985    4738.2137 
+Loop time of 2.13659 on 4 procs for 500 steps with 4000 atoms
+
+Performance: 101095.806 tau/day, 234.018 timesteps/s
+99.6% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.3372     | 1.3773     | 1.4155     |   2.5 | 64.46
+Neigh   | 0.22376    | 0.37791    | 0.57496    |  25.4 | 17.69
+Comm    | 0.20357    | 0.36123    | 0.52777    |  25.5 | 16.91
+Output  | 0.00029254 | 0.00034094 | 0.00039411 |   0.2 |  0.02
+Modify  | 0.0056622  | 0.0082379  | 0.01147    |   2.9 |  0.39
+Other   |            | 0.01156    |            |       |  0.54
+
+Nlocal:    1000 ave 1629 max 525 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Nghost:    8647.25 ave 9725 max 7935 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Neighs:    150494 ave 161009 max 143434 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 601974
+Ave neighs/atom = 150.494
+Neighbor list builds = 51
+Dangerous builds = 0
+run             500
+Memory usage per processor = 3.06519 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+    1500   0.54223346   -6.2591057            0   -5.4459588   -1.8866985    4738.2137 
+    1550   0.55327017   -6.2750125            0   -5.4453148   -1.9506584    4738.2137 
+    1600   0.54419003   -6.2612622            0   -5.4451812   -1.8559437    4738.2137 
+    1650   0.54710034   -6.2661978            0   -5.4457525   -1.8882831    4738.2137 
+    1700   0.53665689   -6.2504958            0   -5.4457117   -1.8068004    4738.2137 
+    1750   0.54864706   -6.2681124            0   -5.4453476   -1.8662646    4738.2137 
+    1800   0.54476202   -6.2615083            0   -5.4445696   -1.8352824    4738.2137 
+    1850   0.54142953   -6.2555505            0   -5.4436093   -1.8005654    4738.2137 
+    1900   0.53992431    -6.254135            0    -5.444451   -1.7768688    4738.2137 
+    1950   0.54665954   -6.2640971            0   -5.4443128   -1.7947032    4738.2137 
+    2000   0.54557798   -6.2625416            0   -5.4443793   -1.8072514    4738.2137 
+Loop time of 2.17499 on 4 procs for 500 steps with 4000 atoms
+
+Performance: 99310.978 tau/day, 229.887 timesteps/s
+99.6% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.3333     | 1.3705     | 1.397      |   2.0 | 63.01
+Neigh   | 0.24071    | 0.41014    | 0.62928    |  26.6 | 18.86
+Comm    | 0.19069    | 0.37486    | 0.53972    |  26.6 | 17.23
+Output  | 0.00031614 | 0.00035483 | 0.00040388 |   0.2 |  0.02
+Modify  | 0.0057304  | 0.0083074  | 0.01159    |   2.8 |  0.38
+Other   |            | 0.01083    |            |       |  0.50
+
+Nlocal:    1000 ave 1628 max 523 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Nghost:    8641.5 ave 9769 max 7941 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+Neighs:    151654 ave 163181 max 145045 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 606616
+Ave neighs/atom = 151.654
+Neighbor list builds = 56
+Dangerous builds = 0
+
+Total wall time: 0:00:09

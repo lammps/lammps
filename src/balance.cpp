@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors, for weighted balancing: Axel Kohlmeyer (Temple U)
+   Contributing authors, for weighted balancing: 
+     Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
 //#define BALANCE_DEBUG 1

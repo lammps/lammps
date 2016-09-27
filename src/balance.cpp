@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors, for weighted balancing: 
+     Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
+------------------------------------------------------------------------- */
+
 //#define BALANCE_DEBUG 1
 
 #include <mpi.h>

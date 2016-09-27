@@ -65,8 +65,8 @@ balance 1.0 shift x 20 1.0 out tmp.balance :pre
 [Description:]
 
 This command adjusts the size and shape of processor sub-domains
-within the simulation box, to attempt to balance the number of
-particles and thus indirectly the computational cost (load) more
+within the simulation box, to attempt to balance the number of atoms
+or particles and thus indirectly the computational cost (load) more
 evenly across processors.  The load balancing is "static" in the sense
 that this command performs the balancing once, before or between
 simulations.  The processor sub-domains will then remain static during
@@ -76,7 +76,7 @@ sub-domain sizes and shapes on-the-fly during a "run"_run.html.
 
 Load-balancing is typically most useful if the particles in the
 simulation box have a spatially-varying density distribution or when
-the computational cost varies signficantly between different atoms or
+the computational cost varies signficantly between different
 particles.  E.g. a model of a vapor/liquid interface, or a solid with
 an irregular-shaped geometry containing void regions, or "hybrid pair
 style simulations"_pair_hybrid.html which combine pair styles with
@@ -88,11 +88,12 @@ effort varies significantly.  This can lead to poor performance when
 the simulation is run in parallel.
 
 The balancing can be performed with or without per-particle weighting.
-Without any particle weighting, the balancing attempts to assign an
-equal number of particles to each processor.  With weighting, the
-balancing attempts to assign an equal weight to each processor, which
-typically means a different number of atoms per processor.  Details on
-the various weighting options are "given below."_#weighted_balance
+With no weighting, the balancing attempts to assign an equal number of
+particles to each processor.  With weighting, the balancing attempts
+to assign an equal aggregate computational weight to each processor,
+which typically inducces a diffrent number of atoms assigned to each
+processor.  Details on the various weighting options and examples for
+how they can be used are "given below"_#weighted_balance.
 
 Note that the "processors"_processors.html command allows some control
 over how the box volume is split across processors.  Specifically, for
@@ -307,96 +308,111 @@ particles in that sub-box.
 
 :line
 
-This sub-section describes how to perform weighted load balancing via
-the {weight} keyword. :link(weighted_balance)
+This sub-section describes how to perform weighted load balancing
+using the {weight} keyword. :link(weighted_balance)
 
-By default, all particles have a weight of 1.0, which means, each
-atom is assumed to cause the same amount of work during a time step.
-There are, however, scenarios, where this is not a good assumption.
-But measuring this computational cost for each particle accurately,
-would be impractical and slow down the computation. Instead the
-{weight} keyword implements several ways to influence these weights
-empirically by properties readily available or using knowledge about
-the system. The absolute value of the weights have little meaning;
-a particle with a weight of 2.5 will be assumed to cause 5x as much
-computational cost than a particle with a weight of 0.5.
+By default, all particles have a weight of 1.0, which means each
+particle is assumed to require the same amount of computation during a
+timestep.  There are, however, scenarios where this is not a good
+assumption.  Measuring the computational cost for each particle
+accurately would be impractical and slow down the computation.
+Instead the {weight} keyword implements several ways to influence the
+per-particle weights empirically by properties readily available or
+using the user's knowledge of the system.  Note that the absolute
+value of the weights are not important; their ratio is what is used to
+assign particles to processors.  A particle with a weight of 2.5 is
+assumed to require 5x more computational than a particle with a weight
+of 0.5.
 
-Below is a list of possible weight options with a short description
-of their usage some example scenario, where they might be applicable.
-It is possible to apply multiple weight flags and they will be combined
-through multiplication. Most of the time, however, it is sufficient
-to use just one method.
+Below is a list of possible weight options with a short description of
+their usage and some example scenarios where they might be applicable.
+It is possible to apply multiple weight flags and the weightins they
+induce will be combined through multiplication.  Most of the time,
+however, it is sufficient to use just one method.
 
 The {group} weight style assigns weight factors to specified
 "groups"_group.html of particles.  The {group} style keyword is
 followed by the number of groups, then pairs of group IDs and the
 corresponding weight factor.  If a particle belongs to none of the
-specified groups, its weight is untouched, if it belongs to multiple
-groups, the weight is the product.  This weight style is useful in
-combination with pair style "hybrid"_pair_hybrid.html when combining
-a more costly manybody potential with a fast pair-wise potential,
-or when using run style "respa"_run_style.html where some segments
-of the system have many bonded interactions and others none.
-It assumes that the computational cost for each group remains the same.
+specified groups, its weight is not changed.  If it belongs to
+multiple groups, its weight is the product of the weight factors.
+
+This weight style is useful in combination with pair style
+"hybrid"_pair_hybrid.html, e.g. when combining a more costly manybody
+potential with a fast pair-wise potential.  It is also useful when
+using "run_style respa"_run_style.html where some portions of the
+system have many bonded interactions and others none.  It assumes that
+the computational cost for each group remains constant over time.
 This is a purely empirical weighting, so a series test runs to tune
-the assigned weights for optimal performance is recommended.
+the assigned weight factors for optimal performance is recommended.
 
 The {neigh} weight style assigns a weight to each particle equal to
 its number of neighbors divided by the avergage number of neighbors
 for all particles.  The {factor} setting is then appied as an overall
-scale factor to all the {neigh} weights and allows to tune the impact
-of this method. A {factor} smaller than 1.0 (e.g. 0.8) is often
-resulting in the best performance, since the number of neighbors is
-likely to overestimate the weights.  This weight style is useful
-for systems, where there are different cutoffs used for different
-pairs of interations or the density fluctuates or a large number of
-atoms are in the vicinity of a wall or a combination of those.
-This weight style will use the first suitable neighbor list it finds
-internally, it will not request or compute a new one.  It will print
-a warning if there is no such neighbor list available or if it is not
-current, e.g. if the balance command is used before a "run"_run.html
-or "minimize"_minimize.html command is used, which can mean that no
-neighbor list has yet been built. Without a neighbor list, no weight
-is computed. Inserting a "run 0 post no"_run.html command before
-issuing the {balance} command, might be a workaround for that.
+scale factor to all the {neigh} weights which allows tuning of the
+impact of this style.  A {factor} smaller than 1.0 (e.g. 0.8) often
+results in the best performance, since the number of neighbors is
+likely to overestimate the ideal weight.
+
+This weight style is useful for systems where there are different
+cutoffs used for different pairs of interations, or the density
+fluctuates, or a large number of particles are in the vicinity of a
+wall, or a combination of these effects.  If a simulation uses
+multiple neighbor lists, this weight style will use the first suitable
+neighbor list it finds.  It will not request or compute a new list.  A
+warning will be issued if there is no suitable neighbor list available
+or if it is not current, e.g. if the balance command is used before a
+"run"_run.html or "minimize"_minimize.html command is used, in which
+case the neighbor list may not yet have been built.  In this case no
+weights are computed.  Inserting a "run 0 post no"_run.html command
+before issuing the {balance} command, may be a workaround for this
+case, as it will induce the neighbor list to be built.
 
 The {time} weight style uses "timer data"_timer.html to estimate a
-weight for each particle. This uses the same information as is used
-for the "MPI task timing breakdown"_Section_start.html#start_8,
-namely, the sections {Pair}, {Bond}, {Kspace}, and {Neigh}. The time
-spend in these sections of the LAMMPS code are measured for each MPI
-rank, summed up, converted into a cost for each MPI rank relative to
-the average cost over all MPI ranks for the same section, and that
-cost is then evenly distributed over the (local) atoms on that rank.
-The {factor} setting is then appied as an overall scale factor to
-all the {time} weights as a measure to fine tune the impact of this
-weight. Typical are {factor} values between 0.5 and 1.2. For the
-{balance} command the Timer information is taken from the preceding
-run command; with {fix balance} the Timer data since the last balancing
-operation is used. If no such information is available, e.g. at
-the beginning of an input, or when the "timer"_timer.html level is set
-to either {loop} or {off}, this weight style is ignored and the weights
-remain unchanged.  This weight is the most generic one, and should
-be tried first, if neither {group} or {neigh} are easily applicable.
+weight for each particle.  It uses the same information as is used for
+the "MPI task timing breakdown"_Section_start.html#start_8, namely,
+the timings for sections {Pair}, {Bond}, {Kspace}, and {Neigh}.  The
+time spent in these sections of the timestep are measured for each MPI
+rank, summed up, then converted into a cost for each MPI rank relative
+to the average cost over all MPI ranks for the same sections.  That
+cost then evenly distributed over all the particles owned by that
+rank.  Finally, the {factor} setting is then appied as an overall
+scale factor to all the {time} weights as a way to fine tune the
+impact of this weight style.  Good {factor} values to use are
+typically between 0.5 and 1.2.
+
+For the {balance} command the timing data is taken from the preceding
+run command, i.e. the timings are for the entire previous run.  For
+the {fix balance} command the timing data is for only the timesteps
+since the last balancing operation was performed.  If timing
+information for the required sections is not available, e.g. at the
+beginning of a run, or when the "timer"_timer.html command is set to
+either {loop} or {off}, a warning is issued.  In this case no weights
+are computed.
+
+This weight style is the most generic one, and should be tried first,
+if neither the {group} or {neigh} styles are easily applicable.
 However, since the computed cost function is averaged over all local
-atoms it is not always very accurate. It can also be effective as a
-secondary weight in combination with either {group} or {neigh} to
-offset some of errors in either of those heuristics.
+particles this weight style may not be highly accurate.  This style
+can also be effective as a secondary weight in combination with either
+{group} or {neigh} to offset some of inaccuracies in either of those
+heuristics.
 
 The {var} weight style assigns per-particle weights by evaluating an
-atom-style "variable"_variable.html specified by {name}. This is
+"atom-style variable"_variable.html specified by {name}.  This is
 provided as a more flexible alternative to the {group} weight style,
-thus allowing to define more complex heuristics based on information
-(global and per atom) available inside of LAMMPS (e.g. position of
-a particle, its velocity, volume of voronoi cell, etc.)
+allowing definition of a more complex heuristics based on information
+(global and per atom) available inside of LAMMPS.  For example,
+atom-style variables can reference the position of a particle, its
+velocity, the volume of its Voronoi cell, etc.
 
 The {store} weight style does not compute a weight factor.  Instead it
 stores the current accumulated weights in a custom per-atom property
 specified by {name}.  This must be a property defined as {d_name} via
 the "fix property/atom"_fix_property_atom.html command.  Note that
 these custom per-atom properties can be output in a "dump"_dump.html
-file, so this is a way to examine, debug and visualized the
-per-particle weights computed during the weighting.
+file, so this is a way to examine, debug, or visualize the
+per-particle weights computed during the load-balancing operation.
 
 :line
 

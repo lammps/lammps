@@ -85,7 +85,8 @@ def switch2str(switches,switch_order):
 def compile_check(compiler,ccflags,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   tmp = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
-  txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
+  try: txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
+  except subprocess.CalledProcessError as e: txt = e.output
   flag = 1
   if txt or not os.path.isfile("tmpauto.o"):
     flag = 0
@@ -104,7 +105,8 @@ def compile_check(compiler,ccflags,warn):
 def link_check(linker,linkflags,libs,warn):
   open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
   tmp = "%s %s -o tmpauto tmpauto.cpp %s" % (linker,linkflags,libs)
-  txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
+  try: txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
+  except subprocess.CalledProcessError as e: txt = e.output
   flag = 1
   if txt or not os.path.isfile("tmpauto"):
     flag = 0
@@ -588,7 +590,7 @@ class Actions(object):
     else:
       print(tmp)
       try: subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/lmp_auto" % dir.src):
       error('Unsuccessful "make auto"')
@@ -1066,7 +1068,7 @@ class ATC(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/libatc.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1117,7 +1119,7 @@ class AWPMD(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
    
     if not os.path.isfile("%s/libawpmd.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1168,7 +1170,7 @@ class COLVARS(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/libcolvars.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1225,7 +1227,7 @@ class CUDA(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/liblammpscuda.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1315,7 +1317,7 @@ class GPU(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/libgpu.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1365,7 +1367,7 @@ class H5MD(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/libch5md.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1416,7 +1418,7 @@ class MEAM(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/libmeam.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1467,7 +1469,7 @@ class POEMS(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/libpoems.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1553,7 +1555,7 @@ class QMMM(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
    
     if not os.path.isfile("%s/libqmmm.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
@@ -1604,7 +1606,7 @@ class REAX(object):
     if verbose: subprocess.call(txt,shell=True)
     else:
       try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
-      except Exception as e: print(e.output)
+      except subprocess.CalledProcessError as e: print(e.output)
 
     if not os.path.isfile("%s/libreax.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):

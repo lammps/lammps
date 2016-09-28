@@ -874,7 +874,7 @@ void TAD::revert_state()
 }
 
 /* ----------------------------------------------------------------------
-   Initialize list of possible events
+   initialize list of possible events
 ------------------------------------------------------------------------- */
 
 void TAD::initialize_event_list() {
@@ -890,7 +890,7 @@ void TAD::initialize_event_list() {
 }
 
 /* ----------------------------------------------------------------------
-   Delete list of possible events
+   delete list of possible events
 ------------------------------------------------------------------------- */
 
 void TAD::delete_event_list() {

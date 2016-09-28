@@ -765,10 +765,10 @@ void PRD::log_event()
 
 /* ----------------------------------------------------------------------
   communicate atom coords and image flags in ireplica to all other replicas
-  one proc per replica:
+  if one proc per replica:
     direct overwrite via bcast
-  else atoms could be stored in different order or on different procs:
-    collect to root proc of event replica
+  else atoms could be stored in different order on a proc or on different procs:
+    gather to root proc of event replica
     bcast to roots of other replicas
     bcast within each replica
     each proc extracts info for atoms it owns using atom IDs

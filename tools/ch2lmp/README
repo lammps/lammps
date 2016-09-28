@@ -13,33 +13,38 @@ In this directory, you should find:
 
 In addition, you will need to provide the following input for
 charmm2lammps.pl:
+
 1) a CHARMM parameter file (par_<forcefield>.prm)
 2) a CHARMM topology file (top_<forcefield>.rtf)
 3) a CHARMM coordinates file or pdb file (<project>.crd or <project>.pdb)
+   (NOTE: a .pdb file is required if the -cmap option is used)
 4) a CHARMM psf file (<project>.psf)
 
 To use the charmm2lammps.pl script, type: "perl charmm2lammps.pl
-[-option[=#]] <forcefield> <project>" where <forcefield> is the name
-of the CHARMM FF you are using, (i.e. all22_prot), and <project> is
-the common name of your *.crd and *.psf files. The options for the
-script are listed below. If the option requires a parameter, the
-syntax must be [-option[=#]], (i.e. -border=5).
+<forcefield> <project> [-option=value ...]" where <forcefield> is the
+name of the CHARMM FF you are using, (i.e. all22_prot), and <project>
+is the common name of your *.crd and *.psf files.  Possible options
+are listed next.  If the option requires a parameter, the syntax
+should be -option=value (e.g. -border=5).
 
--help        "display available options",
--nohints     "disable adding type hints to the data file",
--water       "add TIP3P water [default: 1 g/cc]",
--ions        "add (counter)ions using Na+ and Cl- [default: 0 mol/l]",
--center      "recenter atoms",
--quiet       "do not print info",
--pdb_ctrl    "output project_ctrl.pdb",
--l           "set x-, y-, and z-dimensions simultaneously",
--lx          "x-dimension of simulation box",
--ly          "y-dimension of simulation box",
--lz          "z-dimension of simulation box",
--border      "add border to all sides of simulation box [default: 0 A]",
--ax          "rotation around x-axis",
--ay          "rotation around y-axis",
--az          "rotation around z-axis"
+-help        display available options
+-charmm      add charmm types to LAMMPS data file
+-water       add TIP3P water [default: 1 g/cc]
+-ions        add (counter)ions using Na+ and Cl- [default: 0 mol/l]
+-center      recenter atoms
+-quiet       do not print info
+-pdb_ctrl    output project_ctrl.pdb
+-l           set x-, y-, and z-dimensions simultaneously
+-lx          x-dimension of simulation box
+-ly          y-dimension of simulation box
+-lz          z-dimension of simulation box
+-border      add border to all sides of simulation box [default: 0 A]
+-ax          rotation around x-axis
+-ay          rotation around y-axis
+-az          rotation around z-axis           
+-cd          correction for dihedral for carbohydrate systems
+-cmap        add CMAP section to data file and fix cmap command lines in 
+               input script" (NOTE: requires use of *.pdb file)
 
 In the "example" folder, you will find example files that were created
 by following the steps below. These steps describe how to take a
@@ -64,26 +69,26 @@ file has to the corresponding names in the charmm FF files. You'll
 need to add a "pdbalias residue x xnew" line for each change that
 needs to be made.  The *.pgn should contain something like this:
 
-package require psfgen
+package require psfgen   
 topology top_all27_na.rtf
-pdbalias residue A ADE
-pdbalias residue T THY
-pdbalias residue G GUA
-pdbalias residue C CYT
+pdbalias residue A ADE 
+pdbalias residue T THY 
+pdbalias residue G GUA 
+pdbalias residue C CYT 
 .
 .
 .
-segment A {pdb 1ac7_pared.pdb}
-coordpdb 1ac7_pared.pdb A
-guesscoord
-writepdb 1ac7.pdb
-writepsf charmm 1ac7.psf
-exit
+segment A {pdb 1ac7_pared.pdb}   
+coordpdb 1ac7_pared.pdb A   
+guesscoord   
+writepdb 1ac7.pdb   
+writepsf charmm 1ac7.psf  
+exit 
 
 5) Type "vmd -e 1ac7.pgn" to build the 1ac7.psf file, and the new
    1ac7.pdb file.
 
-6) Run charmm2lammps.pl by typing:
+6) Run charmm2lammps.pl by typing: 
 "perl charmm2lammps.pl all27_na 1ac7 -charmm -border=1 -pdb_ctrl -water -ions"
 
 7) Run lammps by typing: "lmp < 1ac7.in"
@@ -100,7 +105,22 @@ molecule. The -pdb_ctrl option produces the 1ac7_ctrl.pdb file that
 can be visualized in a standard visualization package such as VMD. The
 -charmm option put comments into the LAMMPS data file (everything
 after the # sign is a comment) for user convenience in tracking atom
-types etc. according to CHARMM nomenclature.
+types etc. according to CHARMM nomenclature.   
+
+The example molecule provided above (i.e., 1ac7) is a DNA fragment.
+If instead, a peptide longer than 2 amino acid residues or a protein
+is to be modeled, the '-cmap' option should be used. This will add a
+section at the end of the data file with the heading of 'CMAP' that
+will contain cmap crossterm corrections for the phi-psi dihedrals for
+the amino acid residues. You will then need to also copy the
+appropriate file for the cmap crossterms into your directory and be
+sure that you are using the appropriate cmap crossterms that go with
+the respective version of the charmm force field that is being used
+(e.g, cmap22.data or cmap36.data). This is necessary to account for
+the fact that the CHARMM group has provided updated cmap correction
+terms for use with the c36 and more recent version of the charmm
+protein force field.  Copies of cmap22.data and cmap36.data are
+provided in the tools/ch2lmp directory.
 
 The default timestep in the LAMMPS *.in file is set to 0.5 fs, which
 can typically be increased to 2 fs after equilibration if the bonds
@@ -109,9 +129,9 @@ delay on neigh_modify can probably increased to 5 or so to improve
 speed.
 
 The -ions option allows the user to neutralize the simulation cell
-with Na+ or Cl- counterions if the molecule has a net
-charge. Additional salt can be added by increasing the default
-concentration (i.e. -ions=0.5).
+with Na+ or Cl- counterions if the molecule has a net charge
+Additional salt can be added by increasing the default concentration
+(e.g. -ions=0.5).
 
 ** In the "other" file folder, you will find:
 
@@ -126,5 +146,3 @@ concentration (i.e. -ions=0.5).
 3) A 3rd party perl script called "crd2pdb.pl"
 
 4) A 3rd party fortran code called "pdb_to_crd.f"
-
-

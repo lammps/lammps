@@ -20,24 +20,22 @@ namespace LAMMPS_NS {
 
 class ImbalanceTime : public Imbalance {
  public:
-  ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp),_factor(0.0),_last(0.0) {};
-  virtual ~ImbalanceTime() {};
+  ImbalanceTime(class LAMMPS *);
+  virtual ~ImbalanceTime() {}
 
-  // internal data members
- private:
-  double _factor;               // weight factor for time imbalance
-  double _last;                 // combined wall time from last call
-
-  // required member functions
  public:
-  // parse options. return number of arguments consumed.
-  virtual int options(int narg, char **arg);
-  // reinitialize internal data (needed for fix balance)
-  virtual void init() { _last = 0.0; };
+  // parse options, return number of arguments consumed
+  virtual int options(int, char **);
+  // reinitialize internal data
+  virtual void init();
   // compute and apply weight factors to local atom array
-  virtual void compute(double *weight);
+  virtual void compute(double *);
   // print information about the state of this imbalance compute
-  virtual void info(FILE *fp);
+  virtual void info(FILE *);
+
+ private:
+  double factor;               // weight factor for time imbalance
+  double last;                 // combined wall time from last call
 };
 
 }

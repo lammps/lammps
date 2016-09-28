@@ -19,25 +19,21 @@
 namespace LAMMPS_NS {
 
 class ImbalanceGroup : public Imbalance {
-
  public:
-  ImbalanceGroup(LAMMPS *lmp) : Imbalance(lmp),_num(0),_id(0),_factor(0) {};
-  virtual ~ImbalanceGroup() { delete[] _id; delete[] _factor; };
+  ImbalanceGroup(class LAMMPS *);
+  virtual ~ImbalanceGroup();
 
-  // internal data members
- private:
-  int _num;                     // number of groups with weights
-  int *_id;                     // list numerical id's of groups
-  double *_factor;              // list if group weight factors
-
-  // required member functions
- public:
-  // parse options. return number of arguments consumed.
-  virtual int options(int narg, char **arg);
+  // parse options, return number of arguments consumed
+  virtual int options(int, char **);
   // compute and apply weight factors to local atom array
-  virtual void compute(double *weight);
+  virtual void compute(double *);
   // print information about the state of this imbalance compute
-  virtual void info(FILE *fp);
+  virtual void info(FILE *);
+
+ private:
+  int num;                     // number of groups with weights
+  int *id;                     // numerical IDs of groups
+  double *factor;              // group weight factors
 };
 
 }

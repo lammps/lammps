@@ -54,6 +54,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   frho = NULL;
   rhor = NULL;
   z2r = NULL;
+  scale = NULL;
 
   frho_spline = NULL;
   rhor_spline = NULL;
@@ -232,6 +233,7 @@ void PairEAM::compute(int eflag, int vflag)
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+      phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -306,7 +308,7 @@ void PairEAM::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
-        if (eflag) evdwl = phi;
+        if (eflag) evdwl = scale[itype][jtype]*phi;
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,fpair,delx,dely,delz);
       }

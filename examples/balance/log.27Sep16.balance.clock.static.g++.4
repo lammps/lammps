@@ -1,0 +1,188 @@
+LAMMPS (26 Sep 2016)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+processors      * 1 1
+
+variable	factor index 1.0
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 10 0 10 0 10
+create_box	3 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+mass		* 1.0
+
+region		long block 3 6 0 10 0 10
+set             region long type 2
+  1400 settings made for type
+
+velocity	all create 1.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+pair_coeff      * 2 1.0 1.0 5.0
+
+neighbor	0.3 bin
+neigh_modify	every 2 delay 4 check yes
+
+group		fast type 1
+2600 atoms in group fast
+group		slow type 2
+1400 atoms in group slow
+balance		1.0 shift x 5 1.1 weight time 1.0 # out unweighted.txt
+Neighbor list info ...
+  1 neighbor list requests
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65 -> bins = 7 7 7
+  rebalancing time: 0.000447989 seconds
+  iteration count = 2
+  time weight factor: 1
+  initial/final max load/proc = 1200 1200
+  initial/final imbalance factor = 1.2 1.2
+  x cuts: 0 0.25 0.5 0.6875 1
+  y cuts: 0 1
+  z cuts: 0 1
+
+fix		1 all nve
+
+#dump		id all atom 50 dump.melt
+
+#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		50
+run		250
+Memory usage per processor = 2.77892 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            1   -6.9453205            0   -5.4456955   -5.6812358 
+      50   0.48653399   -6.1788509            0   -5.4492324   -1.6017778 
+     100   0.53411175    -6.249885            0   -5.4489177   -1.9317606 
+     150   0.53646658   -6.2527206            0   -5.4482219   -1.9689568 
+     200   0.54551611   -6.2656326            0   -5.4475631   -2.0042104 
+     250   0.54677719   -6.2671162            0   -5.4471555   -2.0015995 
+Loop time of 1.42972 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 75539.346 tau/day, 174.860 timesteps/s
+98.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.34009    | 0.65732    | 1.1925     |  42.3 | 45.98
+Neigh   | 0.1324     | 0.17067    | 0.19962    |   6.6 | 11.94
+Comm    | 0.03502    | 0.5933     | 0.88766    |  45.1 | 41.50
+Output  | 0.0001173  | 0.00012749 | 0.00013947 |   0.1 |  0.01
+Modify  | 0.0024164  | 0.0032778  | 0.0040991  |   1.0 |  0.23
+Other   |            | 0.00502    |            |       |  0.35
+
+Nlocal:    1000 ave 1263 max 712 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Nghost:    8711.5 ave 9045 max 8325 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Neighs:    149325 ave 275165 max 77227 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 597299
+Ave neighs/atom = 149.325
+Neighbor list builds = 23
+Dangerous builds = 0
+balance		1.0 shift x 5 1.1 weight time 1.0 # out unweighted.txt
+  rebalancing time: 0.000354052 seconds
+  iteration count = 4
+  time weight factor: 1
+  initial/final max load/proc = 1673.83 1097.18
+  initial/final imbalance factor = 1.67383 1.09718
+  x cuts: 0 0.296875 0.453125 0.605469 1
+  y cuts: 0 1
+  z cuts: 0 1
+run		250
+Memory usage per processor = 2.7999 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     250   0.54677719   -6.2671162            0   -5.4471555   -2.0015995 
+     300    0.5477618   -6.2678071            0   -5.4463698    -1.997842 
+     350   0.55600296   -6.2801497            0   -5.4463538   -2.0394056 
+     400   0.53241503   -6.2453665            0   -5.4469436    -1.878594 
+     450    0.5439158      -6.2623            0   -5.4466302   -1.9744161 
+     500   0.55526241   -6.2793396            0   -5.4466542   -2.0595015 
+Loop time of 1.10579 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 97667.971 tau/day, 226.083 timesteps/s
+99.2% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.47383    | 0.65917    | 0.86391    |  21.2 | 59.61
+Neigh   | 0.12071    | 0.17144    | 0.23972    |  11.6 | 15.50
+Comm    | 0.10061    | 0.26652    | 0.39924    |  24.8 | 24.10
+Output  | 0.00012779 | 0.00014991 | 0.00018096 |   0.2 |  0.01
+Modify  | 0.0021801  | 0.0032307  | 0.0047314  |   1.8 |  0.29
+Other   |            | 0.005272   |            |       |  0.48
+
+Nlocal:    1000 ave 1479 max 635 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+Nghost:    8759.5 ave 9918 max 7969 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Neighs:    149356 ave 195930 max 110209 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 597424
+Ave neighs/atom = 149.356
+Neighbor list builds = 24
+Dangerous builds = 0
+balance		1.0 shift x 5 1.1 weight time 1.0 # out unweighted.txt
+  rebalancing time: 0.000221968 seconds
+  iteration count = 4
+  time weight factor: 1
+  initial/final max load/proc = 1200.06 1176.79
+  initial/final imbalance factor = 1.20006 1.17679
+  x cuts: 0 0.306641 0.443359 0.595947 1
+  y cuts: 0 1
+  z cuts: 0 1
+run 		250
+Memory usage per processor = 2.7999 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     500   0.55526241   -6.2793396            0   -5.4466542   -2.0595015 
+     550   0.53879347   -6.2554274            0   -5.4474393   -1.9756834 
+     600   0.54275982   -6.2616799            0   -5.4477437   -1.9939993 
+     650   0.54526651    -6.265098            0   -5.4474027   -2.0303672 
+     700   0.54369381    -6.263201            0   -5.4478642   -1.9921967 
+     750   0.54452777   -6.2640839            0   -5.4474964   -1.9658675 
+Loop time of 1.10659 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 97597.325 tau/day, 225.920 timesteps/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.59596    | 0.67205    | 0.81576    |  10.9 | 60.73
+Neigh   | 0.098      | 0.18193    | 0.2707     |  16.7 | 16.44
+Comm    | 0.15524    | 0.24375    | 0.40352    |  19.4 | 22.03
+Output  | 0.00013709 | 0.00017041 | 0.00020695 |   0.2 |  0.02
+Modify  | 0.0016487  | 0.0032793  | 0.0050011  |   2.4 |  0.30
+Other   |            | 0.005414   |            |       |  0.49
+
+Nlocal:    1000 ave 1580 max 493 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Nghost:    8736.5 ave 9808 max 8009 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Neighs:    149124 ave 178715 max 132100 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+
+Total # of neighbors = 596497
+Ave neighs/atom = 149.124
+Neighbor list builds = 25
+Dangerous builds = 0
+Total wall time: 0:00:03

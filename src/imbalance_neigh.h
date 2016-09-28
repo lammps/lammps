@@ -20,21 +20,20 @@ namespace LAMMPS_NS {
 
 class ImbalanceNeigh : public Imbalance {
  public:
-  ImbalanceNeigh(LAMMPS *lmp) : Imbalance(lmp), _factor(0.0), did_warn(0) {};
-  virtual ~ImbalanceNeigh() {};
-
-  // internal data members
- private:
-  double _factor;               // weight factor for neighbor imbalance
-  int did_warn;                 // 1 if warned about no suitable neighbor list
+  ImbalanceNeigh(class LAMMPS *);
+  virtual ~ImbalanceNeigh() {}
 
  public:
-  // parse options. return number of arguments consumed
-  virtual int options(int narg, char **arg);
+  // parse options, return number of arguments consumed
+  virtual int options(int, char **);
   // compute and apply weight factors to local atom array
-  virtual void compute(double *weights);
+  virtual void compute(double *);
   // print information about the state of this imbalance compute
-  virtual void info(FILE *fp);
+  virtual void info(FILE *);
+
+ private:
+  double factor;               // weight factor for neighbor imbalance
+  int did_warn;                // 1 if warned about no suitable neighbor list
 };
 
 }

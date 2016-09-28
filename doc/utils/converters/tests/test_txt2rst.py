@@ -169,6 +169,13 @@ class TestFormatting(unittest.TestCase):
                          "       Hello\n"
                          "       World\n\n", s)
 
+    def test_preformat_formatting_with_underscore(self):
+        s = self.txt2rst.convert("if MPI.COMM_WORLD.rank == 0:\n"
+                                 "    print(\"Potential energy: \", L.eval(\"pe\")) :pre\n")
+        self.assertEqual("\n.. parsed-literal::\n\n"
+                         "   if MPI.COMM_WORLD.rank == 0:\n"
+                         "       print(\"Potential energy: \", L.eval(\"pe\"))\n\n", s)
+
     def test_header_formatting(self):
         s = self.txt2rst.convert("Level 1 :h1\n"
                                  "Level 2 :h2\n"

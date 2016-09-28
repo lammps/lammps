@@ -11,42 +11,52 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
-#include "pointers.h"
+#include <mpi.h>
 #include "imbalance_time.h"
 #include "atom.h"
-#include "error.h"
 #include "comm.h"
 #include "force.h"
 #include "timer.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
+/* -------------------------------------------------------------------- */
+
+ImbalanceTime::ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp) {}
+
+/* -------------------------------------------------------------------- */
+
 int ImbalanceTime::options(int narg, char **arg)
 {
-  Error *error = _lmp->error;
-  Force *force = _lmp->force;
-
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-  _factor = force->numeric(FLERR,arg[0]);
-  if (_factor < 0.0) error->all(FLERR,"Illegal balance weight command");
+  factor = force->numeric(FLERR,arg[0]);
+  if (factor < 0.0) error->all(FLERR,"Illegal balance weight command");
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   reset last, needed for fix balance caller
+------------------------------------------------------------------------- */
+
+void ImbalanceTime::init()
+{
+  last = 0.0;
 }
 
 /* -------------------------------------------------------------------- */
 
 void ImbalanceTime::compute(double *weight)
 {
-  const int nlocal = _lmp->atom->nlocal;
-  const bigint natoms = _lmp->atom->natoms;
-  MPI_Comm world = _lmp->world;
-  Timer *timer = _lmp->timer;
+  const int nlocal = atom->nlocal;
+  const bigint natoms = atom->natoms;
 
-  if (_factor > 0.0) {
-    // compute the cost function of based on relevant timers
-    if (timer->has_normal()) {
+  if (factor == 0.0) return;
 
-      double cost = -_last;
+  // compute the cost function of based on relevant timers
+  
+  if (timer->has_normal()) {
+      double cost = -last;
       cost += timer->get_wall(Timer::PAIR);
       cost += timer->get_wall(Timer::NEIGH);
       cost += timer->get_wall(Timer::BOND);
@@ -58,12 +68,13 @@ void ImbalanceTime::compute(double *weight)
       if ((allcost > 0.0) && (nlocal > 0)) {
         const double avgcost = allcost/natoms;
         const double localcost = cost/nlocal;
-        const double scale = (1.0-_factor) + _factor*localcost/avgcost;
+        const double scale = (1.0-factor) + factor*localcost/avgcost;
         for (int i = 0; i < nlocal; ++i) weight[i] *= scale;
       }
+
       // record time up to this point
-      _last += cost;
-    }
+
+      last += cost;
   }
 }
 
@@ -71,6 +82,5 @@ void ImbalanceTime::compute(double *weight)
 
 void ImbalanceTime::info(FILE *fp)
 {
-  if (_factor > 0.0)
-    fprintf(fp,"  time weight factor: %g\n",_factor);
+  fprintf(fp,"  time weight factor: %g\n",factor);
 }

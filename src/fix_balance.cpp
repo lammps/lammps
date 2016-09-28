@@ -19,21 +19,14 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "modify.h"
 #include "neighbor.h"
 #include "irregular.h"
 #include "force.h"
 #include "kspace.h"
+#include "modify.h"
+#include "fix_store.h"
 #include "rcb.h"
 #include "error.h"
-
-#include "imbalance_group.h"
-#include "imbalance_time.h"
-#include "imbalance_neigh.h"
-#include "imbalance_store.h"
-#include "imbalance_var.h"
-
-#include "fix_store.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -44,8 +37,7 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 /* ---------------------------------------------------------------------- */
 
 FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  fp(NULL), nimbalance(0), imbalance(NULL), imb_fix(NULL), balance(NULL), irregular(NULL)
+  Fix(lmp, narg, arg), balance(NULL), irregular(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 
@@ -57,7 +49,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
   global_freq = 1;
 
-  // parse arguments
+  // parse required arguments
 
   int dimension = domain->dimension;
 
@@ -72,7 +64,8 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
   if (lbstyle == SHIFT) {
     if (iarg+4 > narg) error->all(FLERR,"Illegal fix balance command");
-    if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal fix balance command");
+    if (strlen(arg[iarg+1]) > 3)
+      error->all(FLERR,"Illegal fix balance command");
     strcpy(bstr,arg[iarg+1]);
     nitermax = force->inumeric(FLERR,arg[iarg+2]);
     if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
@@ -83,65 +76,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
-  // create instance of Balance class. required for processing group flags.
-
-  balance = new Balance(lmp);
-
-  // process optional keywords
-
-  // get max number of imbalance weight flags/classes
-
-  nimbalance = 0;
-  imbalance = NULL;
-  for (int i=iarg; i < narg; ++i)
-    if (strcmp(arg[i],"weight") == 0) ++nimbalance;
-  if (nimbalance) imbalance = new Imbalance*[nimbalance];
-
-  outflag = 0;
-  int outarg = 0;
-  fp = NULL;
-  nimbalance = 0;
-  imb_fix = NULL;
-
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"out") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix balance command");
-      outflag = 1;
-      outarg = iarg+1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"weight") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix balance command");
-      Imbalance *imb;
-      int nopt = 0;
-      if (strcmp(arg[iarg+1],"group") == 0) {
-        imb = new ImbalanceGroup(lmp);
-        nopt = imb->options(narg-iarg,arg+iarg+2);
-        imbalance[nimbalance] = imb;
-      } else if (strcmp(arg[iarg+1],"time") == 0) {
-        imb = new ImbalanceTime(lmp);
-        nopt = imb->options(narg-iarg,arg+iarg+2);
-        imbalance[nimbalance] = imb;
-      } else if (strcmp(arg[iarg+1],"neigh") == 0) {
-        imb = new ImbalanceNeigh(lmp);
-        nopt = imb->options(narg-iarg,arg+iarg+2);
-        imbalance[nimbalance] = imb;
-      } else if (strcmp(arg[iarg+1],"var") == 0) {
-        imb = new ImbalanceVar(lmp);
-        nopt = imb->options(narg-iarg,arg+iarg+2);
-        imbalance[nimbalance] = imb;
-      } else if (strcmp(arg[iarg+1],"store") == 0) {
-        imb = new ImbalanceStore(lmp);
-        nopt = imb->options(narg-iarg,arg+iarg+2);
-        imbalance[nimbalance] = imb;
-      } else {
-        error->all(FLERR,"Unknown balance weight method");
-      }
-      ++nimbalance;
-      iarg += 2+nopt;
-    } else error->all(FLERR,"Illegal fix balance command");
-  }
-
-  // error check
+  // error checks
 
   if (lbstyle == SHIFT) {
     int blen = strlen(bstr);
@@ -159,47 +94,39 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   if (lbstyle == BISECTION && comm->style == 0)
     error->all(FLERR,"Fix balance rcb cannot be used with comm_style brick");
 
-  // if SHIFT, initialize balance class with params
+  // create instance of Balance class
+  // if SHIFT, initialize it with params
+  // process remaining optional args via Balance
 
+  balance = new Balance(lmp);
   if (lbstyle == SHIFT) balance->shift_setup(bstr,nitermax,thresh);
+  balance->options(iarg,narg,arg);
+  wtflag = balance->wtflag;
+
+  if (balance->varflag && nevery == 0)
+    error->all(FLERR,"Fix balance nevery = 0 cannot be used with weight var");
 
   // create instance of Irregular class
 
   irregular = new Irregular(lmp);
 
-  // output file
-
-  if (outflag && comm->me == 0) {
-    fp = fopen(arg[outarg],"w");
-    if (fp == NULL) error->one(FLERR,"Cannot open fix balance output file");
-  }
-
   // only force reneighboring if nevery > 0
 
   if (nevery) force_reneighbor = 1;
 
+  // compute initial outputs
+
   itercount = 0;
   pending = 0;
-  imbfinal = imbprev = 0.0;
+  imbfinal = imbprev = maxloadperproc = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixBalance::~FixBalance()
 {
-  for (int i = 0; i < nimbalance; ++i)
-    delete imbalance[i];
-  delete[] imbalance;
-
-  if (imb_fix && (modify->nfix > 0)) {
-    modify->delete_fix(imb_fix->id);
-    imb_fix = NULL;
-    balance->set_imb_fix(NULL);
-  }
-
   delete balance;
   delete irregular;
-  if (fp) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -216,28 +143,7 @@ int FixBalance::setmask()
 
 void FixBalance::post_constructor()
 {
-  // add per atom weight property, if weighted balancing is requested
-
-  if (nimbalance > 0) {
-    char *fixargs[6];
-    char *imb_id = new char[strlen(this->id)+19];
-
-    strcpy(imb_id,this->id);
-    strcat(imb_id,"_IMBALANCE_WEIGHTS");
-
-    fixargs[0] = imb_id;
-    fixargs[1] = (char *) "all";
-    fixargs[2] = (char *) "STORE";
-    fixargs[3] = (char *) "peratom";
-    fixargs[4] = (char *) "1";
-    fixargs[5] = (char *) "1";
-
-    modify->add_fix(6,fixargs);
-    imb_fix = (FixStore *) modify->fix[modify->nfix-1];
-    balance->set_imb_fix(imb_fix);
-
-    delete[] imb_id;
-  }
+  if (wtflag) balance->weight_storage(id);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,6 +152,8 @@ void FixBalance::init()
 {
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
+
+  balance->init_imbalance();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -273,22 +181,13 @@ void FixBalance::setup_pre_exchange()
   domain->reset_box();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // compute and apply imbalance weights for local atoms
+  // perform a rebalance if threshhold exceeded
 
-  if (nimbalance > 0) {
-    double * const weight = imb_fix->vstore;
-    for (int i = 0; i < atom->nlocal; ++i)
-      weight[i] = 1.0;
-    for (int n = 0; n < nimbalance; ++n)
-      imbalance[n]->compute(weight);
-  }
-
-  // compute initial outputs and perform a rebalance if threshhold exceeded
-
-  imbfinal = imbprev = imbnow = balance->imbalance_nlocal(maxperproc);
+  balance->set_weights();
+  imbnow = balance->imbalance_factor(maxloadperproc);
   if (imbnow > thresh) rebalance();
 
-  // next_reneighbor = next time to force reneighboring
+  // next timestep to rebalance
 
   if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
 }
@@ -311,26 +210,15 @@ void FixBalance::pre_exchange()
   domain->reset_box();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // compute and apply imbalance weights for local atoms
+  // perform a rebalance if threshhold exceeded
+  // if weight variable is used, wrap weight setting in clear/add compute
 
-  if (nimbalance > 0) {
-    double * const weight = imb_fix->vstore;
-    for (int i = 0; i < atom->nlocal; ++i)
-      weight[i] = 1.0;
-    for (int n = 0; n < nimbalance; ++n)
-      imbalance[n]->compute(weight);
-  }
+  if (balance->varflag) modify->clearstep_compute();
+  balance->set_weights();
+  if (balance->varflag) modify->addstep_compute(update->ntimestep + nevery);
 
-  // return if imbalance < threshhold
-
-  imbnow = balance->imbalance_nlocal(maxperproc);
-
-  if (imbnow <= thresh) {
-    if (nevery) next_reneighbor = (update->ntimestep/nevery)*nevery + nevery;
-    return;
-  }
-
-  rebalance();
+  imbnow = balance->imbalance_factor(maxloadperproc);
+  if (imbnow > thresh) rebalance();
 
   // next timestep to rebalance
 
@@ -345,8 +233,7 @@ void FixBalance::pre_exchange()
 void FixBalance::pre_neighbor()
 {
   if (!pending) return;
-
-  imbfinal = balance->imbalance_nlocal(maxperproc);
+  imbfinal = balance->imbalance_factor(maxloadperproc);
   pending = 0;
 }
 
@@ -371,7 +258,7 @@ void FixBalance::rebalance()
 
   // output of new decomposition
 
-  if (outflag) balance->dumpout(update->ntimestep,fp);
+  if (balance->outflag) balance->dumpout(update->ntimestep);
 
   // reset proc sub-domains
   // check and warn if any proc's subbox is smaller than neigh skin
@@ -386,8 +273,10 @@ void FixBalance::rebalance()
   // else allow caller's comm->exchange() to do it
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (wtflag) balance->fixstore->disable = 0;
   if (lbstyle == BISECTION) irregular->migrate_atoms(0,1,sendproc);
   else if (irregular->migrate_check()) irregular->migrate_atoms();
+  if (wtflag) balance->fixstore->disable = 1;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // invoke KSpace setup_grid() to adjust to new proc sub-domains
@@ -415,7 +304,7 @@ double FixBalance::compute_scalar()
 
 double FixBalance::compute_vector(int i)
 {
-  if (i == 0) return (double) maxperproc;
+  if (i == 0) return maxloadperproc;
   if (i == 1) return (double) itercount;
   return imbprev;
 }

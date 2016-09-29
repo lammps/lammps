@@ -2123,7 +2123,7 @@ thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
 run          100000
 variable     v equal (v_v11+v_v22+v_v33)/3.0
 variable     ndens equal count(all)/vol
-print        "average viscosity: $v \[Pa.s/] @ $T K, $\{ndens\} /A^3" :pre
+print        "average viscosity: $v \[Pa.s\] @ $T K, $\{ndens\} /A^3" :pre
 
 The fifth method is related to the above Green-Kubo method,
 but uses the Einstein formulation, analogous to the Einstein

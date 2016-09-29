@@ -73,9 +73,12 @@ class RSTMarkup(Markup):
     def unescape_rst_chars(self, text):
         text = text.replace('\\*', '*')
         text = text.replace('\\^', '^')
-        text = text.replace('\\_', '_')
+        text = self.unescape_underscore(text)
         text = text.replace('\\|', '|')
         return text
+
+    def unescape_underscore(self, text):
+        return text.replace('\\_', '_')
 
     def inline_math(self, text):
         start_pos = text.find("\\(")
@@ -136,6 +139,7 @@ class RSTFormatting(Formatting):
         return content.strip()
 
     def preformat(self, content):
+        content = self.markup.unescape_underscore(content)
         if self.indent_level > 0:
             return self.list_indent("\n.. parsed-literal::\n\n" + self.indent(content.rstrip()), self.indent_level)
         return "\n.. parsed-literal::\n\n" + self.indent(content.rstrip())
@@ -355,6 +359,7 @@ class Txt2Rst(TxtParser):
         self.document_filters.append(lammps_filters.detect_and_add_command_to_index)
         self.document_filters.append(lammps_filters.filter_multiple_horizontal_rules)
         self.document_filters.append(lammps_filters.promote_doc_keywords)
+        self.document_filters.append(lammps_filters.merge_preformatted_sections)
 
     def is_ignored_textblock_begin(self, line):
         return line.startswith('<!-- HTML_ONLY -->')

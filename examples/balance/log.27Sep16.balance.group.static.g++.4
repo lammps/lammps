@@ -1,0 +1,139 @@
+LAMMPS (26 Sep 2016)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+processors      * 1 1
+
+variable	factor index 1.0
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 10 0 10 0 10
+create_box	3 box
+Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+mass		* 1.0
+
+region		long block 3 6 0 10 0 10
+set             region long type 2
+  1400 settings made for type
+
+velocity	all create 1.0 87287
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+pair_coeff      * 2 1.0 1.0 5.0
+
+neighbor	0.3 bin
+neigh_modify	every 2 delay 4 check yes
+
+balance		1.0 shift x 5 1.1 # out unweighted.txt
+Neighbor list info ...
+  1 neighbor list requests
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65 -> bins = 7 7 7
+  rebalancing time: 0.000433922 seconds
+  iteration count = 2
+  initial/final max load/proc = 1200 1200
+  initial/final imbalance factor = 1.2 1.2
+  x cuts: 0 0.25 0.5 0.6875 1
+  y cuts: 0 1
+  z cuts: 0 1
+
+balance		1.0 x uniform
+  rebalancing time: 0.000152826 seconds
+  iteration count = 0
+  initial/final max load/proc = 1200 1200
+  initial/final imbalance factor = 1.2 1.2
+  x cuts: 0 0.25 0.5 0.75 1
+  y cuts: 0 1
+  z cuts: 0 1
+
+variable        weight atom (type==1)*1.0+(type==2)*v_factor
+balance		1.0 shift x 5 1.1 weight var weight # out weighted_var.txt
+  rebalancing time: 0.000287056 seconds
+  iteration count = 2
+  weight variable: weight
+  initial/final max load/proc = 1200 1200
+  initial/final imbalance factor = 1.2 1.2
+  x cuts: 0 0.25 0.5 0.6875 1
+  y cuts: 0 1
+  z cuts: 0 1
+
+balance		1.0 x uniform
+  rebalancing time: 0.00011611 seconds
+  iteration count = 0
+  initial/final max load/proc = 1200 1200
+  initial/final imbalance factor = 1.2 1.2
+  x cuts: 0 0.25 0.5 0.75 1
+  y cuts: 0 1
+  z cuts: 0 1
+
+group		fast type 1
+2600 atoms in group fast
+group		slow type 2
+1400 atoms in group slow
+balance		1.0 shift x 5 1.1                 weight group 2 fast 1.0 slow ${factor} # out weighted_group.txt
+balance		1.0 shift x 5 1.1                 weight group 2 fast 1.0 slow 1.0 
+  rebalancing time: 0.000248909 seconds
+  iteration count = 2
+  group weights: fast=1 slow=1
+  initial/final max load/proc = 1200 1200
+  initial/final imbalance factor = 1.2 1.2
+  x cuts: 0 0.25 0.5 0.6875 1
+  y cuts: 0 1
+  z cuts: 0 1
+
+fix		1 all nve
+
+#dump		id all atom 50 dump.melt
+
+#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+thermo		50
+run		250
+Memory usage per processor = 2.77892 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            1   -6.9453205            0   -5.4456955   -5.6812358 
+      50   0.48653399   -6.1788509            0   -5.4492324   -1.6017778 
+     100   0.53411175    -6.249885            0   -5.4489177   -1.9317606 
+     150   0.53646658   -6.2527206            0   -5.4482219   -1.9689568 
+     200   0.54551611   -6.2656326            0   -5.4475631   -2.0042104 
+     250   0.54677719   -6.2671162            0   -5.4471555   -2.0015995 
+Loop time of 1.41033 on 4 procs for 250 steps with 4000 atoms
+
+Performance: 76577.913 tau/day, 177.264 timesteps/s
+98.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.33785    | 0.6592     | 1.1713     |  41.7 | 46.74
+Neigh   | 0.14133    | 0.17129    | 0.19681    |   5.6 | 12.15
+Comm    | 0.039078   | 0.57085    | 0.87566    |  45.3 | 40.48
+Output  | 0.00022721 | 0.00024492 | 0.00026417 |   0.1 |  0.02
+Modify  | 0.0025113  | 0.0033261  | 0.0040808  |   1.0 |  0.24
+Other   |            | 0.005427   |            |       |  0.38
+
+Nlocal:    1000 ave 1263 max 712 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Nghost:    8711.5 ave 9045 max 8325 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Neighs:    149325 ave 275165 max 77227 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 597299
+Ave neighs/atom = 149.325
+Neighbor list builds = 23
+Dangerous builds = 0
+Total wall time: 0:00:01

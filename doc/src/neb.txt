@@ -48,17 +48,14 @@ follows the discussion in these 3 papers: "(HenkelmanA)"_#HenkelmanA,
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section 2.7"_Section_start.html#start_7 of the
-manual.  Note that if you have MPI installed, you can run a
-multi-replica simulation with more replicas (partitions) than you have
-physical processors, e.g you can run a 10-replica simulation on just
-one or two processors.  You will simply not get the performance
-speed-up you would see with one or more physical processors per
-replica.  See "this section"_Section_howto.html#howto_5 of the manual
-for further discussion.
-
-NOTE: The current NEB implementation in LAMMPS only allows there to be
-one processor per replica.
+switch; see "Section 2.7"_Section_start.html#start_7 of the manual.
+Note that if you have MPI installed, you can run a multi-replica
+simulation with more replicas (partitions) than you have physical
+processors, e.g you can run a 10-replica simulation on just one or two
+processors.  You will simply not get the performance speed-up you
+would see with one or more physical processors per replica.  See
+"Section 6.5"_Section_howto.html#howto_5 of the manual for further
+discussion.
 
 NOTE: As explained below, a NEB calculation perfoms a damped dynamics
 minimization across all the replicas.  The mimimizer uses whatever
@@ -254,12 +251,6 @@ at the beginning of this doc page.
 An atom map must be defined which it is not by default for "atom_style
 atomic"_atom_style.html problems.  The "atom_modify
 map"_atom_modify.html command can be used to do this.
-
-The "atom_modify sort 0 0.0" command should be used to turn off atom
-sorting.
-
-NOTE: This sorting restriction will be removed in a future version of
-NEB in LAMMPS.
 
 The minimizers in LAMMPS operate on all atoms in your system, even
 non-NEB atoms, as defined above.  To prevent non-NEB atoms from moving

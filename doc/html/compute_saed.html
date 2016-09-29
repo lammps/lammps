@@ -287,14 +287,18 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">compute</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">saed</span> <span class="k">lambda</span> <span class="n">type1</span> <span class="n">type2</span> <span class="o">...</span> <span class="n">typeN</span> <span class="n">keyword</span> <span class="n">value</span> <span class="o">...</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</li>
-<li>saed = style name of this compute command</li>
-<li>lambda = wavelength of incident radiation (length units)</li>
-<li>type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)</li>
-<li>zero or more keyword/value pairs may be appended</li>
-<li>keyword = <em>Kmax</em> or <em>Zone</em> or <em>dR_Ewald</em> or <em>c</em> or <em>manual</em> or <em>echo</em></li>
-</ul>
+<ul>
+<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</p>
+</li>
+<li><p class="first">saed = style name of this compute command</p>
+</li>
+<li><p class="first">lambda = wavelength of incident radiation (length units)</p>
+</li>
+<li><p class="first">type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)</p>
+</li>
+<li><p class="first">zero or more keyword/value pairs may be appended</p>
+</li>
+<li><p class="first">keyword = <em>Kmax</em> or <em>Zone</em> or <em>dR_Ewald</em> or <em>c</em> or <em>manual</em> or <em>echo</em></p>
 <pre class="literal-block">
 <em>Kmax</em> value = Maximum distance explored from reciprocal space origin
                (inverse length units)
@@ -310,6 +314,8 @@
            based on the values of the <em>c</em> parameters
 <em>echo</em> = flag to provide extra output for debugging purposes
 </pre>
+</li>
+</ul>
 </div>
 <div class="section" id="examples">
 <h2>Examples</h2>

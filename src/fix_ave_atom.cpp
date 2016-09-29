@@ -69,33 +69,33 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(arg[i],"x") == 0) {
       which[i] = X;
-      argindex[i++] = 0;
+      argindex[i] = 0;
     } else if (strcmp(arg[i],"y") == 0) {
       which[i] = X;
-      argindex[i++] = 1;
+      argindex[i] = 1;
     } else if (strcmp(arg[i],"z") == 0) {
       which[i] = X;
-      argindex[i++] = 2;
+      argindex[i] = 2;
 
     } else if (strcmp(arg[i],"vx") == 0) {
       which[i] = V;
-      argindex[i++] = 0;
+      argindex[i] = 0;
     } else if (strcmp(arg[i],"vy") == 0) {
       which[i] = V;
-      argindex[i++] = 1;
+      argindex[i] = 1;
     } else if (strcmp(arg[i],"vz") == 0) {
       which[i] = V;
-      argindex[i++] = 2;
+      argindex[i] = 2;
 
     } else if (strcmp(arg[i],"fx") == 0) {
       which[i] = F;
-      argindex[i++] = 0;
+      argindex[i] = 0;
     } else if (strcmp(arg[i],"fy") == 0) {
       which[i] = F;
-      argindex[i++] = 1;
+      argindex[i] = 1;
     } else if (strcmp(arg[i],"fz") == 0) {
       which[i] = F;
-      argindex[i++] = 2;
+      argindex[i] = 2;
 
     } else if (strncmp(arg[i],"c_",2) == 0 ||
                strncmp(arg[i],"f_",2) == 0 ||

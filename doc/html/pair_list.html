@@ -560,12 +560,14 @@ an additional interaction within the <em>hybrid/overlay</em> pair style.  It
 currently supports three interaction styles: a 12-6 Lennard-Jones, a
 Morse and a harmonic potential.</p>
 <p>The format of the list file is as follows:</p>
-<ul class="simple">
-<li>one line per pair of atoms</li>
-<li>empty lines will be ignored</li>
-<li>comment text starts with a &#8216;#&#8217; character</li>
-<li>line syntax: <em>ID1 ID2 style coeffs cutoff</em></li>
-</ul>
+<ul>
+<li><p class="first">one line per pair of atoms</p>
+</li>
+<li><p class="first">empty lines will be ignored</p>
+</li>
+<li><p class="first">comment text starts with a &#8216;#&#8217; character</p>
+</li>
+<li><p class="first">line syntax: <em>ID1 ID2 style coeffs cutoff</em></p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ID1</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">ID</span> <span class="n">of</span> <span class="n">first</span> <span class="n">atom</span>
 <span class="n">ID2</span> <span class="o">=</span> <span class="n">atom</span> <span class="n">ID</span> <span class="n">of</span> <span class="n">second</span> <span class="n">atom</span>
 <span class="n">style</span> <span class="o">=</span> <span class="n">style</span> <span class="n">of</span> <span class="n">interaction</span>
@@ -573,6 +575,8 @@ Morse and a harmonic potential.</p>
 <span class="n">cutoff</span> <span class="o">=</span> <span class="n">cutoff</span> <span class="k">for</span> <span class="n">interaction</span> <span class="p">(</span><span class="n">optional</span><span class="p">)</span>
 </pre></div>
 </div>
+</li>
+</ul>
 <p>The cutoff parameter is optional. If not specified, the global cutoff
 is used.</p>
 <p>Here is an example file:</p>

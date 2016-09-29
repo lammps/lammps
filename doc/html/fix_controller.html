@@ -286,7 +286,6 @@
 <li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
-<li class="toctree-l2"><a class="reference internal" href="fix_ti_rs.html">fix ti/rs command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
 <li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
@@ -371,16 +370,22 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">fix</span> <span class="n">ID</span> <span class="n">group</span><span class="o">-</span><span class="n">ID</span> <span class="n">controller</span> <span class="n">Nevery</span> <span class="n">alpha</span> <span class="n">Kp</span> <span class="n">Ki</span> <span class="n">Kd</span> <span class="n">pvar</span> <span class="n">setpoint</span> <span class="n">cvar</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</li>
-<li>controller = style name of this fix command</li>
-<li>Nevery = invoke controller every this many timesteps</li>
-<li>alpha = coupling constant for PID equation (see units discussion below)</li>
-<li>Kp = proportional gain in PID equation (unitless)</li>
-<li>Ki = integral gain in PID equation (unitless)</li>
-<li>Kd = derivative gain in PID equation (unitless)</li>
-<li>pvar = process variable of form c_ID, c_ID[I], f_ID, f_ID[I], or v_name</li>
-</ul>
+<ul>
+<li><p class="first">ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p>
+</li>
+<li><p class="first">controller = style name of this fix command</p>
+</li>
+<li><p class="first">Nevery = invoke controller every this many timesteps</p>
+</li>
+<li><p class="first">alpha = coupling constant for PID equation (see units discussion below)</p>
+</li>
+<li><p class="first">Kp = proportional gain in PID equation (unitless)</p>
+</li>
+<li><p class="first">Ki = integral gain in PID equation (unitless)</p>
+</li>
+<li><p class="first">Kd = derivative gain in PID equation (unitless)</p>
+</li>
+<li><p class="first">pvar = process variable of form c_ID, c_ID[I], f_ID, f_ID[I], or v_name</p>
 <pre class="literal-block">
 c_ID = global scalar calculated by a compute with ID
 c_ID[I] = Ith component of global vector calculated by a compute with ID
@@ -388,9 +393,11 @@ f_ID = global scalar calculated by a fix with ID
 f_ID[I] = Ith component of global vector calculated by a fix with ID
 v_name = value calculated by an equal-style variable with name
 </pre>
-<ul class="simple">
-<li>setpoint = desired value of process variable (same units as process variable)</li>
-<li>cvar = name of control variable</li>
+</li>
+<li><p class="first">setpoint = desired value of process variable (same units as process variable)</p>
+</li>
+<li><p class="first">cvar = name of control variable</p>
+</li>
 </ul>
 </div>
 <div class="section" id="examples">

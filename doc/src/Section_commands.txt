@@ -662,7 +662,6 @@ package"_Section_start.html#start_3.
 "smd/setvel"_fix_smd_setvel.html,
 "smd/wall/surface"_fix_smd_wall_surface.html,
 "temp/rescale/eff"_fix_temp_rescale_eff.html,
-"ti/rs"_fix_ti_rs.html,
 "ti/spring"_fix_ti_spring.html,
 "ttm/mod"_fix_ttm.html :tb(c=6,ea=c)
 

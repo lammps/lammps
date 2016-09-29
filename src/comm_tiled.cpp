@@ -28,9 +28,6 @@
 #include "memory.h"
 #include "error.h"
 
-// DEBUG
-#include "update.h"
-
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5

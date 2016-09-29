@@ -52,6 +52,8 @@
 
 using namespace LAMMPS_NS;
 
+enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
+
 /* ---------------------------------------------------------------------- */
 
 PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
@@ -114,28 +116,33 @@ void PRD::command(int narg, char **arg)
   int color = me;
   MPI_Comm_split(universe->uworld,color,0,&comm_replica);
 
-  // equal_size_replicas = 1 if all replicas have same # of procs
-  // no longer used
+  // comm mode for inter-replica exchange of coords
 
-  //flag = 0;
-  //if (nreplica*nprocs == nprocs_universe) flag = 1;
-  //MPI_Allreduce(&flag,&equal_size_replicas,1,MPI_INT,MPI_MIN,
-  //              universe->uworld);
+  if (nreplica == nprocs_universe && atom->sortfreq == 0) 
+    cmode = SINGLE_PROC_DIRECT;
+  else if (nreplica == nprocs_universe) cmode = SINGLE_PROC_MAP;
+  else cmode = MULTI_PROC;
 
-  // workspace for inter-replica communication via gathers
+  // workspace for inter-replica communication
 
   natoms = atom->natoms;
 
-  displacements = NULL;
   tagall = NULL;
   xall = NULL;
   imageall = NULL;
 
-  if (nreplica != nprocs_universe) {
-    displacements = new int[nprocs];
+  if (cmode != SINGLE_PROC_DIRECT) {
     memory->create(tagall,natoms,"prd:tagall");
     memory->create(xall,natoms,3,"prd:xall");
     memory->create(imageall,natoms,"prd:imageall");
+  }
+
+  counts = NULL;
+  displacements = NULL;
+
+  if (cmode == MULTI_PROC) {
+    memory->create(counts,nprocs,"prd:counts");
+    memory->create(displacements,nprocs,"prd:displacements");
   }
 
   // random_select = same RNG for each replica, for multiple event selection
@@ -238,7 +245,7 @@ void PRD::command(int narg, char **arg)
   if (domain->box_change)
     error->all(FLERR,"Cannot use PRD with a changing box");
 
-  // cannot use PRD with time-dependent fixes or regions or atom sorting
+  // cannot use PRD with time-dependent fixes or regions
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
@@ -247,9 +254,6 @@ void PRD::command(int narg, char **arg)
   for (int i = 0; i < domain->nregion; i++)
     if (domain->regions[i]->dynamic_check())
       error->all(FLERR,"Cannot use PRD with a time-dependent region defined");
-
-  if (atom->sortfreq > 0)
-    error->all(FLERR,"Cannot use PRD with atom_modify sort enabled");
 
   // perform PRD simulation
 
@@ -433,12 +437,14 @@ void PRD::command(int narg, char **arg)
       fprintf(universe->uscreen,
               "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::TOTAL),nprocs_universe,
+              nsteps,atom->natoms);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
               "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::TOTAL),nprocs_universe,
+              nsteps,atom->natoms);
   }
 
   if (me == 0) {
@@ -461,10 +467,11 @@ void PRD::command(int narg, char **arg)
 
   // clean up
 
-  delete [] displacements;
   memory->destroy(tagall);
   memory->destroy(xall);
   memory->destroy(imageall);
+  memory->destroy(counts);
+  memory->destroy(displacements);
 
   delete [] id_compute;
   MPI_Comm_free(&comm_replica);
@@ -780,53 +787,94 @@ void PRD::replicate(int ireplica)
   int nprocs_universe = universe->nprocs;
   int i,m;
 
-  if (nreplica == nprocs_universe) {
-    MPI_Bcast(atom->image,atom->nlocal,MPI_INT,ireplica,comm_replica);
+  // -----------------------------------------------------
+  // 3 cases: two for single proc per replica
+  //          one for multiple procs per replica
+  // -----------------------------------------------------
+
+  // single proc per replica, no atom sorting
+  // direct bcast of image and x
+
+  if (cmode == SINGLE_PROC_DIRECT) {
     MPI_Bcast(atom->x[0],3*atom->nlocal,MPI_DOUBLE,ireplica,comm_replica);
+    MPI_Bcast(atom->image,atom->nlocal,MPI_INT,ireplica,comm_replica);
+    return;
+  }
 
-  } else {
-    int *counts = new int[nprocs];
+  // single proc per replica, atom sorting is enabled
+  // bcast atom IDs, x, image via tagall, xall, imageall
+  // recv procs use atom->map() to match received info to owned atoms
 
-    if (universe->iworld == ireplica) {
-      MPI_Gather(&atom->nlocal,1,MPI_INT,counts,1,MPI_INT,0,world);
-      displacements[0] = 0;
-      for (i = 0; i < nprocs-1; i++)
-        displacements[i+1] = displacements[i] + counts[i];
-      MPI_Gatherv(atom->tag,atom->nlocal,MPI_LMP_TAGINT,
-                  tagall,counts,displacements,MPI_LMP_TAGINT,0,world);
-      MPI_Gatherv(atom->image,atom->nlocal,MPI_INT,
-                        imageall,counts,displacements,MPI_INT,0,world);
-      for (i = 0; i < nprocs; i++) counts[i] *= 3;
-      for (i = 0; i < nprocs-1; i++)
-        displacements[i+1] = displacements[i] + counts[i];
-      MPI_Gatherv(atom->x[0],3*atom->nlocal,MPI_DOUBLE,
-                        xall[0],counts,displacements,MPI_DOUBLE,0,world);
-    }
-
-    if (me == 0) {
-      MPI_Bcast(tagall,natoms,MPI_INT,ireplica,comm_replica);
-      MPI_Bcast(imageall,natoms,MPI_INT,ireplica,comm_replica);
-      MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
-    }
-
-    MPI_Bcast(tagall,natoms,MPI_INT,0,world);
-    MPI_Bcast(imageall,natoms,MPI_INT,0,world);
-    MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,0,world);
-
+  if (cmode == SINGLE_PROC_MAP) {
     double **x = atom->x;
+    tagint *tag = atom->tag;
+    imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
-    for (i = 0; i < natoms; i++) {
-      m = atom->map(tagall[i]);
-      if (m >= 0 && m < nlocal) {
-        x[m][0] = xall[i][0];
-        x[m][1] = xall[i][1];
-        x[m][2] = xall[i][2];
-        atom->image[m] = imageall[i];
-      }
+    if (universe->iworld == ireplica) {
+      memcpy(tagall,tag,nlocal*sizeof(tagint));
+      memcpy(xall[0],x[0],3*nlocal*sizeof(double));
+      memcpy(imageall,image,nlocal*sizeof(imageint));
     }
 
-    delete [] counts;
+    MPI_Bcast(tagall,natoms,MPI_INT,ireplica,comm_replica);
+    MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
+    MPI_Bcast(imageall,natoms,MPI_INT,ireplica,comm_replica);
+
+    for (i = 0; i < nlocal; i++) {
+      m = atom->map(tagall[i]);
+      x[m][0] = xall[i][0];
+      x[m][1] = xall[i][1];
+      x[m][2] = xall[i][2];
+      atom->image[m] = imageall[i];
+    }
+
+    return;
+  }
+
+  // multiple procs per replica
+  // MPI_Gather all atom IDs, x, image to root proc of ireplica
+  // bcast to root of other replicas
+  // bcast within each replica
+  // each proc extracts info for atoms it owns via atom->map()
+  // NOTE: assumes imagint and tagint are always the same size
+
+  if (universe->iworld == ireplica) {
+    MPI_Gather(&atom->nlocal,1,MPI_INT,counts,1,MPI_INT,0,world);
+    displacements[0] = 0;
+    for (i = 0; i < nprocs-1; i++)
+      displacements[i+1] = displacements[i] + counts[i];
+    MPI_Gatherv(atom->tag,atom->nlocal,MPI_LMP_TAGINT,
+                tagall,counts,displacements,MPI_LMP_TAGINT,0,world);
+    MPI_Gatherv(atom->image,atom->nlocal,MPI_LMP_TAGINT,
+                imageall,counts,displacements,MPI_LMP_TAGINT,0,world);
+    for (i = 0; i < nprocs; i++) counts[i] *= 3;
+    for (i = 0; i < nprocs-1; i++)
+      displacements[i+1] = displacements[i] + counts[i];
+    MPI_Gatherv(atom->x[0],3*atom->nlocal,MPI_DOUBLE,
+                xall[0],counts,displacements,MPI_DOUBLE,0,world);
+  }
+  
+  if (me == 0) {
+    MPI_Bcast(tagall,natoms,MPI_INT,ireplica,comm_replica);
+    MPI_Bcast(imageall,natoms,MPI_INT,ireplica,comm_replica);
+    MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
+  }
+  
+  MPI_Bcast(tagall,natoms,MPI_INT,0,world);
+  MPI_Bcast(imageall,natoms,MPI_INT,0,world);
+  MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,0,world);
+  
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+  
+  for (i = 0; i < natoms; i++) {
+    m = atom->map(tagall[i]);
+    if (m < 0 || m >= nlocal) continue;
+    x[m][0] = xall[i][0];
+    x[m][1] = xall[i][1];
+    x[m][2] = xall[i][2];
+    atom->image[m] = imageall[i];
   }
 }
 

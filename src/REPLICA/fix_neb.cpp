@@ -142,7 +142,7 @@ void FixNEB::init()
   if (count > MAXSMALLINT) error->all(FLERR,"Too many active NEB atoms");
   nebatoms = count;
 
-  // comm style for inter-replica exchange of coords
+  // comm mode for inter-replica exchange of coords
 
   if (nreplica == nprocs_universe &&
       nebatoms == atom->natoms && atom->sortfreq == 0) 
@@ -392,7 +392,7 @@ void FixNEB::inter_replica_comm()
   // -----------------------------------------------------
 
   // single proc per replica
-  // all atoms are NEB atoms and no atom sorting is enabled
+  // all atoms are NEB atoms and no atom sorting
   // direct comm of x -> xprev and x -> xnext
 
   if (cmode == SINGLE_PROC_DIRECT) {
@@ -414,7 +414,7 @@ void FixNEB::inter_replica_comm()
   // single proc per replica
   // but only some atoms are NEB atoms or atom sorting is enabled
   // send atom IDs and coords of only NEB atoms to prev/next proc
-  // recv proc uses atom->map() to match received coords to owned atoms
+  // recv procs use atom->map() to match received coords to owned atoms
 
   if (cmode == SINGLE_PROC_MAP) {
     m = 0;

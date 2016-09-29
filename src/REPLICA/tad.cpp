@@ -43,8 +43,6 @@
 #include "fix_store.h"
 #include "force.h"
 #include "pair.h"
-#include "random_park.h"
-#include "random_mars.h"
 #include "output.h"
 #include "dump.h"
 #include "finish.h"
@@ -249,7 +247,7 @@ void TAD::command(int narg, char **arg)
   // need this line if quench() does only setup_minimal()
   // update->minimize->setup();
 
-  // This should work with if uncommented, but does not
+  // this should work with if statement uncommented, but does not
   // if (universe->iworld == 0) {
 
   fix_event->store_state_quench();
@@ -399,12 +397,14 @@ void TAD::command(int narg, char **arg)
       fprintf(universe->uscreen,
               "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::TOTAL),nprocs_universe,
+              nsteps,atom->natoms);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
               "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
-              timer->get_wall(Timer::TOTAL),nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::TOTAL),nprocs_universe,
+              nsteps,atom->natoms);
   }
 
   if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
@@ -874,7 +874,7 @@ void TAD::revert_state()
 }
 
 /* ----------------------------------------------------------------------
-   Initialize list of possible events
+   initialize list of possible events
 ------------------------------------------------------------------------- */
 
 void TAD::initialize_event_list() {
@@ -890,7 +890,7 @@ void TAD::initialize_event_list() {
 }
 
 /* ----------------------------------------------------------------------
-   Delete list of possible events
+   delete list of possible events
 ------------------------------------------------------------------------- */
 
 void TAD::delete_event_list() {

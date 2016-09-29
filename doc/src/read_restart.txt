@@ -124,7 +124,7 @@ MPI-IO requires two steps.  First, build LAMMPS with its MPIIO package
 installed, e.g.
 
 make yes-mpiio    # installs the MPIIO package
-make g++          # build LAMMPS for your platform :pre
+make mpi          # build LAMMPS for your platform :pre
 
 Second, use a restart filename which contains ".mpiio".  Note that it
 does not have to end in ".mpiio", just contain those characters.

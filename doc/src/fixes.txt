@@ -138,7 +138,6 @@ Fixes :h1
    fix_temp_rescale_eff
    fix_tfmc
    fix_thermal_conductivity
-   fix_ti_rs
    fix_ti_spring
    fix_tmd
    fix_ttm

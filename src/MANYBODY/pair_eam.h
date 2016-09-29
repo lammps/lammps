@@ -54,7 +54,7 @@ class PairEAM : public Pair {
   void init_style();
   double init_one(int, int);
   double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  virtual void *extract(const char *, int &);
 
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);

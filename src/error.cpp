@@ -22,7 +22,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(LAMMPS *lmp) : Pointers(lmp), last_error_message(NULL) {}
+Error::Error(LAMMPS *lmp) : Pointers(lmp) {
+#ifdef LAMMPS_EXCEPTIONS
+  last_error_message = NULL;
+  last_error_type = ERROR_NONE;
+#endif
+}
 
 /* ----------------------------------------------------------------------
    called by all procs in universe
@@ -198,6 +203,7 @@ void Error::done(int status)
   exit(status);
 }
 
+#ifdef LAMMPS_EXCEPTIONS
 /* ----------------------------------------------------------------------
    return the last error message reported by LAMMPS (only used if
    compiled with -DLAMMPS_EXCEPTIONS)
@@ -208,13 +214,22 @@ char * Error::get_last_error() const
   return last_error_message;
 }
 
-
 /* ----------------------------------------------------------------------
-   set the last error message (only used if compiled with
-   -DLAMMPS_EXCEPTIONS)
+   return the type of the last error reported by LAMMPS (only used if
+   compiled with -DLAMMPS_EXCEPTIONS)
 ------------------------------------------------------------------------- */
 
-void Error::set_last_error(const char * msg)
+ErrorType Error::get_last_error_type() const
+{
+  return last_error_type;
+}
+
+/* ----------------------------------------------------------------------
+   set the last error message and error type
+   (only used if compiled with -DLAMMPS_EXCEPTIONS)
+------------------------------------------------------------------------- */
+
+void Error::set_last_error(const char * msg, ErrorType type)
 {
   delete [] last_error_message;
 
@@ -224,4 +239,6 @@ void Error::set_last_error(const char * msg)
   } else {
     last_error_message = NULL;
   }
+  last_error_type = type;
 }
+#endif

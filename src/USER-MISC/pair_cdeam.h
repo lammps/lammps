@@ -49,6 +49,8 @@ public:
   /// Reports the memory usage of this pair style to LAMMPS.
   double memory_usage();
 
+  void *extract(const char *, int &) { return NULL; }
+
   /// Parses the coefficients of the h polynomial from the end of the EAM file.
   void read_h_coeff(char* filename);
 

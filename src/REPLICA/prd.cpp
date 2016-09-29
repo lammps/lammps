@@ -783,8 +783,6 @@ void PRD::log_event()
 
 void PRD::replicate(int ireplica)
 {
-  int nreplica = universe->nworlds;
-  int nprocs_universe = universe->nprocs;
   int i,m;
 
   // -----------------------------------------------------

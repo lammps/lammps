@@ -280,15 +280,19 @@ void NeighborKokkos::choose_build(int index, NeighRequest *rq)
   if (rq->kokkos_host != 0) {
     PairPtrHost pb = NULL;
     if (rq->ghost) {
-      if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,1>;
-      else if (rq->half) &NeighborKokkos::full_bin_kokkos<LMPHostType,1,1>;
-      pair_build_host[index] = pb;
+      if (rq->full) {
+        if (rq->full_cluster) pb = &NeighborKokkos::full_bin_cluster_kokkos<LMPHostType>;
+        else pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,1>;
+      }
+      else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,1,1>;
     } else {
-      if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,0>;
+      if (rq->full) {
+        if (rq->full_cluster) pb = &NeighborKokkos::full_bin_cluster_kokkos<LMPHostType>;
+        else pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,0>;
+      }
       else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,1,0>;
-      pair_build_host[index] = pb;
     }
-    return;
+    pair_build_host[index] = pb;
   }
   if (rq->kokkos_device != 0) {
     PairPtrDevice pb = NULL;

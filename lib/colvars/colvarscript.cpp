@@ -243,11 +243,17 @@ int colvarscript::proc_colvar(int argc, char const *argv[]) {
   }
 
   if (subcmd == "getappliedforce") {
-    result = (cv->bias_force()).to_simple_string();
+    result = (cv->applied_force()).to_simple_string();
     return COLVARS_OK;
   }
 
   if (subcmd == "getsystemforce") {
+    // TODO warning here
+    result = (cv->total_force()).to_simple_string();
+    return COLVARS_OK;
+  }
+
+  if (subcmd == "gettotalforce") {
     result = (cv->total_force()).to_simple_string();
     return COLVARS_OK;
   }

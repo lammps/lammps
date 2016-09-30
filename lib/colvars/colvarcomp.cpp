@@ -54,6 +54,21 @@ colvar::cvc::cvc(std::string const &conf)
 }
 
 
+int colvar::cvc::init_total_force_params(std::string const &conf)
+{
+  if (get_keyval_feature(this, conf, "oneSiteSystemForce",
+                         f_cvc_one_site_total_force, is_enabled(f_cvc_one_site_total_force))) {
+    cvm::log("Warning: keyword \"oneSiteSystemForce\" is deprecated: "
+             "please use \"oneSiteTotalForce\" instead.\n");
+  }
+  if (get_keyval_feature(this, conf, "oneSiteTotalForce",
+                         f_cvc_one_site_total_force, is_enabled(f_cvc_one_site_total_force))) {
+    cvm::log("Computing total force on group 1 only");
+  }
+  return COLVARS_OK;
+}
+
+
 cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
                                           char const *group_key,
                                           bool optional)
@@ -77,8 +92,6 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
 
       if (is_enabled(f_cvc_scalable)) {
         cvm::log("Will enable scalable calculation for group \""+group->key+"\".\n");
-      } else {
-        cvm::log("Scalable calculation is not available for group \""+group->key+"\" with the current configuration.\n");
       }
     }
 

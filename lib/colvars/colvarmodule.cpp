@@ -293,6 +293,9 @@ int colvarmodule::parse_biases(std::string const &conf)
   /// initialize histograms
   parse_biases_type<colvarbias_histogram>(conf, "histogram", n_histo_biases);
 
+  /// initialize histogram restraints
+  parse_biases_type<colvarbias_restraint_histogram>(conf, "histogramRestraint", n_rest_biases);
+
   /// initialize linear restraints
   parse_biases_type<colvarbias_restraint_linear>(conf, "linear", n_rest_biases);
 

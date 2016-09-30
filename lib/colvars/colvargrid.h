@@ -382,8 +382,8 @@ public:
   inline int current_bin_scalar(int const i, int const iv) const
   {
     return value_to_bin_scalar(actual_value[i] ?
-        cv[i]->actual_value().vector1d_value[iv] :
-        cv[i]->value().vector1d_value[iv], i);
+                               cv[i]->actual_value().vector1d_value[iv] :
+                               cv[i]->value().vector1d_value[iv], i);
   }
 
   /// \brief Use the lower boundary and the width to report which bin
@@ -395,8 +395,8 @@ public:
 
   /// \brief Same as the standard version, but uses another grid definition
   inline int value_to_bin_scalar(colvarvalue const &value,
-                                  colvarvalue const &new_offset,
-                                  cvm::real   const &new_width) const
+                                 colvarvalue const &new_offset,
+                                 cvm::real   const &new_width) const
   {
     return (int) std::floor( (value.real_value - new_offset.real_value) / new_width );
   }
@@ -410,22 +410,22 @@ public:
 
   /// \brief Same as the standard version, but uses different parameters
   inline colvarvalue bin_to_value_scalar(int const &i_bin,
-                                          colvarvalue const &new_offset,
-                                          cvm::real const &new_width) const
+                                         colvarvalue const &new_offset,
+                                         cvm::real const &new_width) const
   {
     return new_offset.real_value + new_width * (0.5 + i_bin);
   }
 
   /// Set the value at the point with index ix
   inline void set_value(std::vector<int> const &ix,
-                         T const &t,
-                         size_t const &imult = 0)
+                        T const &t,
+                        size_t const &imult = 0)
   {
     data[this->address(ix)+imult] = t;
     has_data = true;
   }
 
- /// \brief Get the change from this to other_grid
+  /// \brief Get the change from this to other_grid
   /// and store the result in this.
   /// this_grid := other_grid - this_grid
   /// Grids must have the same dimensions.
@@ -434,13 +434,13 @@ public:
 
     if (other_grid.multiplicity() != this->multiplicity()) {
       cvm::error("Error: trying to subtract two grids with "
-                        "different multiplicity.\n");
+                 "different multiplicity.\n");
       return;
     }
 
     if (other_grid.data.size() != this->data.size()) {
       cvm::error("Error: trying to subtract two grids with "
-                        "different size.\n");
+                 "different size.\n");
       return;
     }
 
@@ -457,13 +457,13 @@ public:
   {
     if (other_grid.multiplicity() != this->multiplicity()) {
       cvm::error("Error: trying to copy two grids with "
-                        "different multiplicity.\n");
+                 "different multiplicity.\n");
       return;
     }
 
     if (other_grid.data.size() != this->data.size()) {
       cvm::error("Error: trying to copy two grids with "
-                        "different size.\n");
+                 "different size.\n");
       return;
     }
 
@@ -493,7 +493,7 @@ public:
   /// \brief Get the binned value indexed by ix, or the first of them
   /// if the multiplicity is larger than 1
   inline T const & value(std::vector<int> const &ix,
-                          size_t const &imult = 0) const
+                         size_t const &imult = 0) const
   {
     return data[this->address(ix) + imult];
   }
@@ -541,7 +541,7 @@ public:
   /// boundaries; a negative number is returned if the given point is
   /// off-grid
   inline cvm::real bin_distance_from_boundaries(std::vector<colvarvalue> const &values,
-                                                 bool skip_hard_boundaries = false)
+                                                bool skip_hard_boundaries = false)
   {
     cvm::real minimum = 1.0E+16;
     for (size_t i = 0; i < nd; i++) {
@@ -574,7 +574,7 @@ public:
   {
     if (other_grid.multiplicity() != this->multiplicity()) {
       cvm::error("Error: trying to merge two grids with values of "
-                        "different multiplicity.\n");
+                 "different multiplicity.\n");
       return;
     }
 
@@ -593,8 +593,8 @@ public:
       for (size_t i = 0; i < nd; i++) {
         oix[i] =
           value_to_bin_scalar(bin_to_value_scalar(ix[i], gb[i], gw[i]),
-                               ogb[i],
-                               ogw[i]);
+                              ogb[i],
+                              ogw[i]);
       }
 
       if (! other_grid.index_ok(oix)) {
@@ -614,11 +614,11 @@ public:
   /// \brief Add data from another grid of the same type, AND
   /// identical definition (boundaries, widths)
   void add_grid(colvar_grid<T> const &other_grid,
-                 cvm::real scale_factor = 1.0)
+                cvm::real scale_factor = 1.0)
   {
     if (other_grid.multiplicity() != this->multiplicity()) {
       cvm::error("Error: trying to sum togetehr two grids with values of "
-                        "different multiplicity.\n");
+                 "different multiplicity.\n");
       return;
     }
     if (scale_factor != 1.0)
@@ -636,7 +636,7 @@ public:
   /// \brief Return the value suitable for output purposes (so that it
   /// may be rescaled or manipulated without changing it permanently)
   virtual inline T value_output(std::vector<int> const &ix,
-                                 size_t const &imult = 0)
+                                size_t const &imult = 0)
   {
     return value(ix, imult);
   }
@@ -645,9 +645,9 @@ public:
   /// into the internal representation (the two may be different,
   /// e.g. when using colvar_grid_count)
   virtual inline void value_input(std::vector<int> const &ix,
-                                   T const &t,
-                                   size_t const &imult = 0,
-                                   bool add = false)
+                                  T const &t,
+                                  size_t const &imult = 0,
+                                  bool add = false)
   {
     if ( add )
       data[address(ix) + imult] += t;
@@ -737,7 +737,8 @@ public:
   }
 
   /// Read a grid definition from a config string
-  int parse_params(std::string const &conf)
+  int parse_params(std::string const &conf,
+                   colvarparse::Parse_Mode const parse_mode = colvarparse::parse_normal)
   {
     if (cvm::debug()) cvm::log("Reading grid configuration from string.\n");
 
@@ -746,30 +747,33 @@ public:
 
     {
       size_t nd_in = 0;
+      // this is only used in state files
       colvarparse::get_keyval(conf, "n_colvars", nd_in, nd, colvarparse::parse_silent);
       if (nd_in != nd) {
         cvm::error("Error: trying to read data for a grid "
-                    "that contains a different number of colvars ("+
-                    cvm::to_str(nd_in)+") than the grid defined "
-                    "in the configuration file("+cvm::to_str(nd)+
-                    ").\n");
+                   "that contains a different number of colvars ("+
+                   cvm::to_str(nd_in)+") than the grid defined "
+                   "in the configuration file("+cvm::to_str(nd)+
+                   ").\n");
         return COLVARS_ERROR;
       }
     }
 
+    // underscore keywords are used in state file
     colvarparse::get_keyval(conf, "lower_boundaries",
-                             lower_boundaries, lower_boundaries, colvarparse::parse_silent);
+                            lower_boundaries, lower_boundaries, colvarparse::parse_silent);
     colvarparse::get_keyval(conf, "upper_boundaries",
-                             upper_boundaries, upper_boundaries, colvarparse::parse_silent);
+                            upper_boundaries, upper_boundaries, colvarparse::parse_silent);
 
-    // support also camel case
+    // camel case keywords are used in config file
     colvarparse::get_keyval(conf, "lowerBoundaries",
-                             lower_boundaries, lower_boundaries, colvarparse::parse_silent);
+                            lower_boundaries, lower_boundaries, parse_mode);
     colvarparse::get_keyval(conf, "upperBoundaries",
-                             upper_boundaries, upper_boundaries, colvarparse::parse_silent);
+                            upper_boundaries, upper_boundaries, parse_mode);
 
-    colvarparse::get_keyval(conf, "widths", widths, widths, colvarparse::parse_silent);
+    colvarparse::get_keyval(conf, "widths", widths, widths, parse_mode);
 
+    // only used in state file
     colvarparse::get_keyval(conf, "sizes", nx, nx, colvarparse::parse_silent);
 
     if (nd < lower_boundaries.size()) nd = lower_boundaries.size();
@@ -808,13 +812,13 @@ public:
   {
     for (size_t i = 0; i < nd; i++) {
       if ( (std::sqrt(cv[i]->dist2(cv[i]->lower_boundary,
-                                     lower_boundaries[i])) > 1.0E-10) ||
+                                   lower_boundaries[i])) > 1.0E-10) ||
            (std::sqrt(cv[i]->dist2(cv[i]->upper_boundary,
-                                     upper_boundaries[i])) > 1.0E-10) ||
+                                   upper_boundaries[i])) > 1.0E-10) ||
            (std::sqrt(cv[i]->dist2(cv[i]->width,
-                                     widths[i])) > 1.0E-10) ) {
+                                   widths[i])) > 1.0E-10) ) {
         cvm::error("Error: restart information for a grid is "
-                    "inconsistent with that of its colvars.\n");
+                   "inconsistent with that of its colvars.\n");
         return;
       }
     }
@@ -830,19 +834,19 @@ public:
       // matter: boundaries should be EXACTLY the same (otherwise,
       // map_grid() should be used)
       if ( (std::fabs(other_grid.lower_boundaries[i] -
-                       lower_boundaries[i]) > 1.0E-10) ||
+                      lower_boundaries[i]) > 1.0E-10) ||
            (std::fabs(other_grid.upper_boundaries[i] -
-                       upper_boundaries[i]) > 1.0E-10) ||
+                      upper_boundaries[i]) > 1.0E-10) ||
            (std::fabs(other_grid.widths[i] -
-                       widths[i]) > 1.0E-10) ||
+                      widths[i]) > 1.0E-10) ||
            (data.size() != other_grid.data.size()) ) {
-      cvm::error("Error: inconsistency between "
-                  "two grids that are supposed to be equal, "
-                  "aside from the data stored.\n");
-      return;
+        cvm::error("Error: inconsistency between "
+                   "two grids that are supposed to be equal, "
+                   "aside from the data stored.\n");
+        return;
+      }
     }
   }
-}
 
 
   /// \brief Read grid entry in restart file
@@ -853,7 +857,7 @@ public:
     if ((is >> key) && (key == std::string("grid_parameters"))) {
       is.seekg(start_pos, std::ios::beg);
       is >> colvarparse::read_block("grid_parameters", conf);
-      parse_params(conf);
+      parse_params(conf, colvarparse::parse_silent);
     } else {
       cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
       is.seekg(start_pos, std::ios::beg);
@@ -871,11 +875,11 @@ public:
   }
 
 
-/// \brief Write the grid data without labels, as they are
-/// represented in memory
-/// \param buf_size Number of values per line
+  /// \brief Write the grid data without labels, as they are
+  /// represented in memory
+  /// \param buf_size Number of values per line
   std::ostream & write_raw(std::ostream &os,
-                            size_t const buf_size = 3)
+                           size_t const buf_size = 3)
   {
     std::streamsize const w = os.width();
     std::streamsize const p = os.precision();
@@ -935,10 +939,10 @@ public:
     os << std::setw(2) << "# " << nd << "\n";
     for (size_t i = 0; i < nd; i++) {
       os << "# "
-        << std::setw(10) << lower_boundaries[i]
-        << std::setw(10) << widths[i]
-        << std::setw(10) << nx[i] << "  "
-        << periodic[i] << "\n";
+         << std::setw(10) << lower_boundaries[i]
+         << std::setw(10) << widths[i]
+         << std::setw(10) << nx[i] << "  "
+         << periodic[i] << "\n";
     }
 
 
@@ -951,14 +955,14 @@ public:
 
       for (size_t i = 0; i < nd; i++) {
         os << " "
-          << std::setw(w) << std::setprecision(p)
-          << bin_to_value_scalar(ix[i], i);
+           << std::setw(w) << std::setprecision(p)
+           << bin_to_value_scalar(ix[i], i);
       }
       os << " ";
       for (size_t imult = 0; imult < mult; imult++) {
         os << " "
-          << std::setw(w) << std::setprecision(p)
-          << value_output(ix, imult);
+           << std::setw(w) << std::setprecision(p)
+           << value_output(ix, imult);
       }
       os << "\n";
     }
@@ -986,7 +990,7 @@ public:
 
     if ( !(is >> hash) || (hash != "#") ) {
       cvm::error("Error reading grid at position "+
-                  cvm::to_str(is.tellg())+" in stream(read \"" + hash + "\")\n");
+                 cvm::to_str(is.tellg())+" in stream(read \"" + hash + "\")\n");
       return is;
     }
 
@@ -1008,7 +1012,7 @@ public:
     for (size_t i = 0; i < nd; i++ ) {
       if ( !(is >> hash) || (hash != "#") ) {
         cvm::error("Error reading grid at position "+
-                    cvm::to_str(is.tellg())+" in stream(read \"" + hash + "\")\n");
+                   cvm::to_str(is.tellg())+" in stream(read \"" + hash + "\")\n");
         return is;
       }
 
@@ -1016,10 +1020,10 @@ public:
 
 
       if ( (std::fabs(lower - lower_boundaries[i].real_value) > 1.0e-10) ||
-          (std::fabs(width - widths[i] ) > 1.0e-10) ||
-          (nx_read[i] != nx[i]) ) {
+           (std::fabs(width - widths[i] ) > 1.0e-10) ||
+           (nx_read[i] != nx[i]) ) {
         cvm::log("Warning: reading from different grid definition (colvar "
-                  + cvm::to_str(i+1) + "); remapping data on new grid.\n");
+                 + cvm::to_str(i+1) + "); remapping data on new grid.\n");
         remap = true;
       }
     }
@@ -1063,7 +1067,6 @@ public:
 
   /// \brief Write the grid data without labels, as they are
   /// represented in memory
-  /// \param buf_size Number of values per line
   std::ostream & write_opendx(std::ostream &os)
   {
     // write the header
@@ -1122,11 +1125,11 @@ public:
 
   /// Constructor
   colvar_grid_count(std::vector<int> const &nx_i,
-                     size_t const           &def_count = 0);
+                    size_t const           &def_count = 0);
 
   /// Constructor from a vector of colvars
   colvar_grid_count(std::vector<colvar *>  &colvars,
-                     size_t const           &def_count = 0);
+                    size_t const           &def_count = 0);
 
   /// Increment the counter at given position
   inline void incr_count(std::vector<int> const &ix)
@@ -1136,7 +1139,7 @@ public:
 
   /// \brief Get the binned count indexed by ix from the newly read data
   inline size_t const & new_count(std::vector<int> const &ix,
-                                   size_t const &imult = 0)
+                                  size_t const &imult = 0)
   {
     return new_data[address(ix) + imult];
   }
@@ -1145,9 +1148,9 @@ public:
   /// into the internal representation (it may have been rescaled or
   /// manipulated)
   virtual inline void value_input(std::vector<int> const &ix,
-                                   size_t const &t,
-                                   size_t const &imult = 0,
-                                   bool add = false)
+                                  size_t const &t,
+                                  size_t const &imult = 0,
+                                  bool add = false)
   {
     if (add) {
       data[address(ix)] += t;
@@ -1164,7 +1167,7 @@ public:
   /// \brief Return the log-gradient from finite differences
   /// on the *same* grid for dimension n
   inline const cvm::real log_gradient_finite_diff( const std::vector<int> &ix0,
-    int n = 0)
+                                                   int n = 0)
   {
     cvm::real A0, A1;
     std::vector<int> ix;
@@ -1377,7 +1380,7 @@ public:
   /// \brief Return the value of the function at ix divided by its
   /// number of samples (if the count grid is defined)
   virtual inline cvm::real value_output(std::vector<int> const &ix,
-                                         size_t const &imult = 0)
+                                        size_t const &imult = 0)
   {
     if (samples)
       return (samples->value(ix) > 0) ?
@@ -1391,9 +1394,9 @@ public:
   /// into the internal representation (it may have been rescaled or
   /// manipulated)
   virtual inline void value_input(std::vector<int> const &ix,
-                                   cvm::real const &new_value,
-                                   size_t const &imult = 0,
-                                   bool add = false)
+                                  cvm::real const &new_value,
+                                  size_t const &imult = 0,
+                                  bool add = false)
   {
     if (add) {
       if (samples)

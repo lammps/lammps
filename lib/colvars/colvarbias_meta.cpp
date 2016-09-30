@@ -92,7 +92,11 @@ int colvarbias_meta::init(std::string const &conf)
     get_keyval(conf, "keepHills", keep_hills, false);
     if (! get_keyval(conf, "writeFreeEnergyFile", dump_fes, true))
       get_keyval(conf, "dumpFreeEnergyFile", dump_fes, true, colvarparse::parse_silent);
-    get_keyval(conf, "saveFreeEnergyFile", dump_fes_save, false);
+    if (get_keyval(conf, "saveFreeEnergyFile", dump_fes_save, false, colvarparse::parse_silent)) {
+      cvm::log("Option \"saveFreeEnergyFile\" is deprecated, "
+               "please use \"keepFreeEnergyFiles\" instead.");
+    }
+    get_keyval(conf, "keepFreeEnergyFiles", dump_fes_save, dump_fes_save);
 
     hills_energy           = new colvar_grid_scalar(colvars);
     hills_energy_gradients = new colvar_grid_gradient(colvars);

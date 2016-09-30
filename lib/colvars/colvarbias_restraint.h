@@ -168,4 +168,52 @@ protected:
 };
 
 
+/// Restrain the 1D histogram of a set of variables (or of a multidimensional one)
+// TODO this could be reimplemented more cleanly as a derived class of both restraint and histogram
+class colvarbias_restraint_histogram : public colvarbias {
+
+public:
+
+  colvarbias_restraint_histogram(char const *key);
+  int init(std::string const &conf);
+  ~colvarbias_restraint_histogram();
+
+  virtual int update();
+
+  virtual std::istream & read_restart(std::istream &is);
+  virtual std::ostream & write_restart(std::ostream &os);
+  virtual std::ostream & write_traj_label(std::ostream &os);
+  virtual std::ostream & write_traj(std::ostream &os);
+
+protected:
+
+  /// Probability density
+  cvm::vector1d<cvm::real> p;
+
+  /// Reference probability density
+  cvm::vector1d<cvm::real> ref_p;
+
+  /// Difference between probability density and reference
+  cvm::vector1d<cvm::real> p_diff;
+
+  /// Lower boundary of the grid
+  cvm::real lower_boundary;
+
+  /// Upper boundary of the grid
+  cvm::real upper_boundary;
+
+  /// Resolution of the grid
+  cvm::real width;
+
+  /// Width of the Gaussians
+  cvm::real gaussian_width;
+
+  /// Restraint force constant
+  cvm::real force_k;
+
+  /// Write the histogram to a file
+  bool b_write_histogram;
+};
+
+
 #endif

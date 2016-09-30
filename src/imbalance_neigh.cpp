@@ -22,12 +22,14 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+#define SMALL 0.001
 
 /* -------------------------------------------------------------------- */
 
 ImbalanceNeigh::ImbalanceNeigh(LAMMPS *lmp) : Imbalance(lmp)
 {
   did_warn = 0;
+  factor = 1.0;
 }
 
 /* -------------------------------------------------------------------- */
@@ -36,7 +38,8 @@ int ImbalanceNeigh::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
   factor = force->numeric(FLERR,arg[0]);
-  if (factor < 0.0) error->all(FLERR,"Illegal balance weight command");
+  if ((factor < 0.0) || (factor > 2.0))
+    error->all(FLERR,"Illegal balance weight command");
   return 1;
 }
 
@@ -91,6 +94,7 @@ void ImbalanceNeigh::compute(double *weight)
   for (int ii = 0; ii < inum; ++ii) {
     const int i = ilist[ii];
     weight[i] *= (1.0-factor) + factor*scale*numneigh[i];
+    if (weight[i] < SMALL) weight[i] = SMALL;
   }
 }
 

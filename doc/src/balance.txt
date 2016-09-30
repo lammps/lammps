@@ -333,9 +333,10 @@ however, it is sufficient to use just one method.
 The {group} weight style assigns weight factors to specified
 "groups"_group.html of particles.  The {group} style keyword is
 followed by the number of groups, then pairs of group IDs and the
-corresponding weight factor.  If a particle belongs to none of the
+corresponding weight factor. If a particle belongs to none of the
 specified groups, its weight is not changed.  If it belongs to
 multiple groups, its weight is the product of the weight factors.
+The weight factors have to be positive.
 
 This weight style is useful in combination with pair style
 "hybrid"_pair_hybrid.html, e.g. when combining a more costly manybody
@@ -352,7 +353,8 @@ for all particles.  The {factor} setting is then appied as an overall
 scale factor to all the {neigh} weights which allows tuning of the
 impact of this style.  A {factor} smaller than 1.0 (e.g. 0.8) often
 results in the best performance, since the number of neighbors is
-likely to overestimate the ideal weight.
+likely to overestimate the ideal weight. The factor has to be between
+0.0 and 2.0.
 
 This weight style is useful for systems where there are different
 cutoffs used for different pairs of interations, or the density
@@ -379,7 +381,7 @@ cost then evenly distributed over all the particles owned by that
 rank.  Finally, the {factor} setting is then appied as an overall
 scale factor to all the {time} weights as a way to fine tune the
 impact of this weight style.  Good {factor} values to use are
-typically between 0.5 and 1.2.
+typically between 0.5 and 1.2. Allowed are values between 0.0 and 2.0.
 
 For the {balance} command the timing data is taken from the preceding
 run command, i.e. the timings are for the entire previous run.  For

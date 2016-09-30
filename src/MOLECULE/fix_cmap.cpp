@@ -973,7 +973,7 @@ void FixCMAP::bc_coeff(double *gs, double *d1gs, double *d2gs, double *d12gs)
       4,-4, 4,-4, 2, 2,-2,-2, 2,-2,-2, 2, 1, 1, 1, 1
     };
 
-  int i, j, k, l, in;
+  int i, j, k, in;
   double xx, x[16];
 
   for (i = 0; i < 4; i++) {

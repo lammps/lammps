@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -12,8 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-    Contributing authors:
-             Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
+    Contributing authors: 
+             Rodrigo Freitas (UC Berkeley) - rodrigof@berkeley.edu
+             Mark Asta (UC Berkeley) - mdasta@berkeley.edu
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
 
@@ -44,7 +45,7 @@ class FixTISpring : public Fix {
   void   initial_integrate(int);
   double compute_scalar();
   double compute_vector(int);
-
+  
   double memory_usage();
   void   grow_arrays(int);
   void   copy_arrays(int, int, int);

@@ -105,8 +105,8 @@ web site.
 
 If you uncomment the "dump image"_dump_image.html line(s) in the input
 script a series of JPG images will be produced by the run (assuming
-you built LAMMPS with JPG support; see "Section start
-2.2"_Section_start.html for details).  These can be viewed
+you built LAMMPS with JPG support; see "Section
+2.2"_Section_start.html#start_2 for details).  These can be viewed
 individually or turned into a movie or animated by tools like
 ImageMagick or QuickTime or various Windows-based tools.  See the
 "dump image"_dump_image.html doc page for more details.  E.g. this
@@ -136,5 +136,5 @@ The USER directory has a large number of sub-directories which
 correspond by name to a USER package.  They contain scripts that
 illustrate how to use the command(s) provided in that package.  Many
 of the sub-directories have their own README files which give further
-instructions.  See the "Section packages"_Section_packages.html doc
+instructions.  See the "Section 4"_Section_packages.html doc
 page for more info on specific USER packages.

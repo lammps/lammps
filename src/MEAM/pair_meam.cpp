@@ -35,12 +35,13 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 
 enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
-int nkeywords = 21;
-const char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
-                          "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
-                          "augt1","gsmooth_factor","re","ialloy",
-                          "mixture_ref_t","erose_form","zbl",
-                          "emb_lin_neg","bkgd_dyn"};
+static const int nkeywords = 21;
+static const char *keywords[] = {
+  "Ec","alpha","rho0","delta","lattce",
+  "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
+  "augt1","gsmooth_factor","re","ialloy",
+  "mixture_ref_t","erose_form","zbl",
+  "emb_lin_neg","bkgd_dyn"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,6 +58,7 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = NULL;
 
   maxneigh = 0;
+  allocated = 0;
   scrfcn = dscrfcn = fcpair = NULL;
 
   nelements = 0;

@@ -81,6 +81,10 @@ class TestMarkup(unittest.TestCase):
         s = self.markup.convert("[*bold] and {italic*}")
         self.assertEqual("**\*bold** and *italic\**", s)
 
+    def test_escape_rst_characters(self):
+      s = self.markup.convert("[|bold|] and {|italic|}")
+      self.assertEqual("**\|bold\|** and *\|italic\|*", s)
+
     def test_escape_hat_character(self):
         s = self.markup.convert("x^2")
         self.assertEqual("x\^2", s)
@@ -155,15 +159,22 @@ class TestFormatting(unittest.TestCase):
 
     def test_preformat_formatting(self):
         s = self.txt2rst.convert("Hello :pre\n")
-        self.assertEqual(".. parsed-literal::\n\n"
+        self.assertEqual("\n.. parsed-literal::\n\n"
                          "   Hello\n\n", s)
 
     def test_preformat_formatting_with_indentation(self):
         s = self.txt2rst.convert("    Hello\n"
                                  "    World :pre\n")
-        self.assertEqual(".. parsed-literal::\n\n"
+        self.assertEqual("\n.. parsed-literal::\n\n"
                          "       Hello\n"
                          "       World\n\n", s)
+
+    def test_preformat_formatting_with_underscore(self):
+        s = self.txt2rst.convert("if MPI.COMM_WORLD.rank == 0:\n"
+                                 "    print(\"Potential energy: \", L.eval(\"pe\")) :pre\n")
+        self.assertEqual("\n.. parsed-literal::\n\n"
+                         "   if MPI.COMM_WORLD.rank == 0:\n"
+                         "       print(\"Potential energy: \", L.eval(\"pe\"))\n\n", s)
 
     def test_header_formatting(self):
         s = self.txt2rst.convert("Level 1 :h1\n"
@@ -195,6 +206,16 @@ class TestFormatting(unittest.TestCase):
         s = self.txt2rst.convert("1.1 Level :h1\n")
         self.assertEqual("Level\n"
                          "#####\n\n", s)
+
+    def test_filter_header_numbers_deep(self):
+        s = self.txt2rst.convert("1.1.1.1.1 Level :h1\n")
+        self.assertEqual("Level\n"
+                         "#####\n\n", s)
+
+    def test_no_filter_date(self):
+        s = self.txt2rst.convert("9 Sept 2016 version :h1\n")
+        self.assertEqual("9 Sept 2016 version\n"
+                         "###################\n\n", s)
 
     def test_all_breaks(self):
         s = self.txt2rst.convert("one\n"
@@ -308,8 +329,6 @@ class TestListFormatting(unittest.TestCase):
                          "* third\n"
                          "  paragraph\n\n", s)
 
-
-
     def test_definition_list(self):
         s = self.txt2rst.convert("A\n"
                                   "first\n"
@@ -321,6 +340,39 @@ class TestListFormatting(unittest.TestCase):
                          "B\n"
                          "   second\n"
                          "\n\n", s)
+
+    def test_multi_paragraph_lists(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph of first bullet :ulb,l\n\n"
+                                 "second paragraph of first bullet\n\n"
+                                 "first paragraph of second bullet :l\n\n"
+                                 ":ule\n")
+        self.assertEqual("* first\n"
+                         "  paragraph of first bullet\n"
+                         "\n"
+                         "  second paragraph of first bullet\n"
+                         "\n"
+                         "* first paragraph of second bullet\n\n\n", s)
+
+    def test_multi_paragraph_lists_with_listing(self):
+        s = self.txt2rst.convert("first\n"
+                                 "paragraph of first bullet :ulb,l\n\n"
+                                 "code1 :pre\n"
+                                 "or\n"
+                                 "\n"
+                                 "first paragraph of second bullet :l\n\n"
+                                 ":ule\n")
+        self.assertEqual("* first\n"
+                         "  paragraph of first bullet\n"
+                         "  \n"
+                         "  .. parsed-literal::\n"
+                         "  \n"
+                         "     code1\n"
+                         "\n\n"
+                         "  or\n"
+                         "\n"
+                         "* first paragraph of second bullet\n\n\n", s)
+
 
 class TestSpecialCommands(unittest.TestCase):
     def setUp(self):

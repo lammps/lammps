@@ -26,7 +26,7 @@ fix 1 all ipi mysocket 666 unix
 [Description:]
 
 This fix enables LAMMPS to be run as a client for the i-PI Python
-wrapper "(IPI)"_#IPI for performing a path integral molecular dynamics
+wrapper "(IPI)"_#ipihome for performing a path integral molecular dynamics
 (PIMD) simulation.  The philosophy behind i-PI is described in the
 following publication "(IPI-CPC)"_#IPICPC.
 
@@ -86,6 +86,6 @@ environment.
 [(IPI-CPC)] Ceriotti, More and Manolopoulos, Comp Phys Comm, 185,
 1019-1026 (2014).
 
-:link(IPI)
+:link(ipihome)
 [(IPI)]
 "http://epfl-cosmo.github.io/gle4md/index.html?page=ipi"_http://epfl-cosmo.github.io/gle4md/index.html?page=ipi

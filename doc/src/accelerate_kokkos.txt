@@ -9,7 +9,7 @@
 
 "Return to Section accelerate overview"_Section_accelerate.html
 
-5.3.3 KOKKOS package :h4
+5.3.3 KOKKOS package :h5
 
 The KOKKOS package was developed primarily by Christian Trott (Sandia)
 with contributions of various styles by others, including Sikandar
@@ -156,19 +156,25 @@ CPU-only (run all-MPI or with OpenMP threading):
 
 cd lammps/src
 make yes-kokkos
-make g++ KOKKOS_DEVICES=OpenMP :pre
+make kokkos_omp :pre
 
-Intel Xeon Phi:
-
-cd lammps/src
-make yes-kokkos
-make g++ KOKKOS_DEVICES=OpenMP KOKKOS_ARCH=KNC :pre
-
-CPUs and GPUs:
+CPU-only (only MPI, no threading):
 
 cd lammps/src
 make yes-kokkos
-make cuda KOKKOS_DEVICES=Cuda :pre
+make kokkos_mpi :pre
+
+Intel Xeon Phi (Intel Compiler, Intel MPI):
+
+cd lammps/src
+make yes-kokkos
+make kokkos_phi :pre
+
+CPUs and GPUs (with MPICH):
+
+cd lammps/src
+make yes-kokkos
+make kokkos_cuda_mpich :pre
 
 These examples set the KOKKOS-specific OMP, MIC, CUDA variables on the
 make command line which requires a GNU-compatible make command.  Try
@@ -179,26 +185,6 @@ with different KOKKOS options and the *same* target, e.g. g++ in the
 first two examples above, then you *must* perform a "make clean-all"
 or "make clean-machine" before each build.  This is to force all the
 KOKKOS-dependent files to be re-compiled with the new options.
-
-You can also hardwire these make variables in the specified machine
-makefile, e.g. src/MAKE/Makefile.g++ in the first two examples above,
-with a line like:
-
-KOKKOS_ARCH = KNC :pre
-
-Note that if you build LAMMPS multiple times in this manner, using
-different KOKKOS options (defined in different machine makefiles), you
-do not have to worry about doing a "clean" in between.  This is
-because the targets will be different.
-
-NOTE: The 3rd example above for a GPU, uses a different machine
-makefile, in this case src/MAKE/Makefile.cuda, which is included in
-the LAMMPS distribution.  To build the KOKKOS package for a GPU, this
-makefile must use the NVIDA "nvcc" compiler.  And it must have a
-KOKKOS_ARCH setting that is appropriate for your NVIDIA hardware and
-installed software.  Typical values for KOKKOS_ARCH are given below,
-as well as other settings that must be included in the machine
-makefile, if you create your own.
 
 NOTE: Currently, there are no precision options with the KOKKOS
 package.  All compilation and computation is performed in double
@@ -246,7 +232,7 @@ used if running with KOKKOS_DEVICES=Pthreads for pthreads.  It is not
 necessary for KOKKOS_DEVICES=OpenMP for OpenMP, because OpenMP
 provides alternative methods via environment variables for binding
 threads to hardware cores.  More info on binding threads to cores is
-given in "this section"_Section_accelerate.html#acc_3.
+given in "Section 5.3"_Section_accelerate.html#acc_3.
 
 KOKKOS_ARCH=KNC enables compiler switches needed when compling for an
 Intel Phi processor.

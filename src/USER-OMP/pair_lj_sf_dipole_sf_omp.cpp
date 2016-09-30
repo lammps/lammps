@@ -247,7 +247,7 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         // total force
 
-        fq = factor_coul*qqrd2e;
+        fq = factor_coul*qqrd2e*scale[itype][jtype];
         fx = fq*forcecoulx + delx*forcelj;
         fy = fq*forcecouly + dely*forcelj;
         fz = fq*forcecoulz + delz*forcelj;
@@ -272,7 +272,7 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (EFLAG) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = (1.0-sqrt(rsq)/sqrt(cut_coulsq[itype][jtype]));
+            ecoul = (1.0-sqrt(rsq/cut_coulsq[itype][jtype]));
             ecoul *= ecoul;
             ecoul *= qtmp * q[j] * rinv;
             if (mu[i].w > 0.0 && mu[j].w > 0.0)
@@ -281,7 +281,7 @@ void PairLJSFDipoleSFOMP::eval(int iifrom, int iito, ThrData * const thr)
               ecoul += -q[j] * r3inv * pqfac * pidotr;
             if (mu[j].w > 0.0 && qtmp != 0.0)
               ecoul += qtmp * r3inv * qpfac * pjdotr;
-            ecoul *= factor_coul*qqrd2e;
+            ecoul *= factor_coul*qqrd2e*scale[itype][jtype];
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {

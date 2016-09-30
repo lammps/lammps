@@ -162,8 +162,8 @@ int ComputeAngleLocal::compute_angles(int flag)
         atom3 = atom->map(angle_atom3[atom2][i]);
       } else {
         if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
+        atype = onemols[imol]->angle_type[atom2][i];
         tagprev = tag[atom2] - iatom - 1;
-        atype = atom->map(onemols[imol]->angle_type[atom2][i]);
         atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i]+tagprev);
         atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i]+tagprev);
       }

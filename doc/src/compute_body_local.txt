@@ -32,7 +32,7 @@ Define a computation that calculates properties of individual body
 sub-particles.  The number of datums generated, aggregated across all
 processors, equals the number of body sub-particles plus the number of
 non-body particles in the system, modified by the group parameter as
-explained below.  See "Section_howto 14"_Section_howto.html#howto_14
+explained below.  See "Section 6.14"_Section_howto.html#howto_14
 of the manual and the "body"_body.html doc page for more details on
 using body particles.
 

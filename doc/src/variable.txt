@@ -894,11 +894,25 @@ The {is_defined()} function allows to query categories like {compute},
 {dump}, {fix}, {group}, {region}, and {variable} whether an entry
 with the provided name or id is defined.
 
-The {is_available()} function allows to query whether a specific
-optional feature is available, i.e. compiled in. This currently
-works for the following categories: {command}, {compute}, {fix},
-and {pair_style}. For all categories except {command} also appending
-active suffixes is tried before reporting failure.
+The {is_available(category,name)} function allows to query whether
+a specific optional feature is available, i.e. compiled in.
+This currently works for the following categories: {command},
+{compute}, {fix}, {pair_style} and {feature}. For all categories
+except {command} and {feature} also appending active suffixes is
+tried before reporting failure.
+
+The {feature} category is used to check the availability of compiled in
+features such as GZIP support, PNG support, JPEG support, FFMPEG support,
+and C++ exceptions for error handling. Corresponding values for name are
+{gzip}, {png}, {jpeg}, {ffmpeg} and {exceptions}.
+
+This enables writing input scripts which only dump using a given format if
+the compiled binary supports it.
+
+if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'" :pre
+
+if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0" :pre
+
 
 :line
 
@@ -1107,7 +1121,7 @@ with a leading $ sign (e.g. $x or $\{abc\}) versus with a leading "v_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained in "Section commands
+into the command.  As explained in "Section
 3.2"_Section_commands.html#cmd_2 for "Parsing rules", you can also use
 un-named "immediate" variables for this purpose.  For example, a
 string like this $((xlo+xhi)/2+sqrt(v_area)) in an input script

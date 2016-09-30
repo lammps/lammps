@@ -925,6 +925,18 @@ bool Info::is_available(const char *category, const char *name)
         delete[] name_w_suffix;
       }
     }
+  } else if (strcmp(category,"feature") == 0) {
+    if (strcmp(name,"gzip") == 0) {
+      return has_gzip_support();
+    } else if (strcmp(name,"png") == 0) {
+      return has_png_support();
+    } else if (strcmp(name,"jpeg") == 0) {
+      return has_jpeg_support();
+    } else if (strcmp(name,"ffmpeg") == 0) {
+      return has_ffmpeg_support();
+    } else if (strcmp(name,"exceptions") == 0) {
+      return has_exceptions();
+    }
   } else error->all(FLERR,"Unknown category for info is_available()");
 
   return match ? true : false;
@@ -1026,4 +1038,44 @@ static void print_columns(FILE* fp, vector<string> & styles)
       pos += 80;
     }
   }
+}
+
+bool Info::has_gzip_support() const {
+#ifdef LAMMPS_GZIP
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_png_support() const {
+#ifdef LAMMPS_PNG
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_jpeg_support() const {
+#ifdef LAMMPS_JPEG
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_ffmpeg_support() const {
+#ifdef LAMMPS_FFMPEG
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool Info::has_exceptions() const {
+#ifdef LAMMPS_EXCEPTIONS
+  return true;
+#else
+  return false;
+#endif
 }

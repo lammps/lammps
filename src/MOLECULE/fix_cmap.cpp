@@ -13,11 +13,11 @@
 
 /* ----------------------------------------------------------------------
    Implementation of the CHARMM CMAP; adds an extra energy term for the
-   peptide backbone dihedrals.  The tools/ch2lmp.pl conversion script, which
-   generates an extra section in the LAMMPS data file, is needed in order to
-   generate the info used by this fix style.
+   peptide backbone dihedrals.  The tools/ch2lmp/charmm2lammps.pl
+   conversion script, which generates an extra section in the LAMMPS data
+   file, is needed in order to generate the info used by this fix style.
 
-   Contributing authors: 
+   Contributing authors:
    Xiaohu Hu, CMB/ORNL (hux2@ornl.gov)
    David Hyde-Volpe, Tigran Abramyan, and Robert A. Latour (Clemson University)
    Chris Lorenz (Kings College-London)
@@ -27,11 +27,11 @@
    - MacKerell et al., J. Comput. Chem. 25(2004):1400-1415.
  -------------------------------------------------------------------------*/
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include "fix_cmap.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -80,7 +80,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
- 
+
   // allocate memory for CMAP data
 
   memory->create(g_axis,CMAPDIM,"cmap:g_axis");
@@ -123,8 +123,8 @@ FixCMAP::~FixCMAP()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0); 
-  atom->delete_callback(id,1); 
+  atom->delete_callback(id,0);
+  atom->delete_callback(id,1);
 
   memory->destroy(g_axis);
   memory->destroy(cmapgrid);
@@ -173,7 +173,7 @@ void FixCMAP::init()
   }
 
   // pre-compute the derivatives of the maps
-  
+
   for (i = 0; i < 6; i++)
     set_map_derivatives(cmapgrid[i],d1cmapgrid[i],d2cmapgrid[i],d12cmapgrid[i]);
 
@@ -194,7 +194,7 @@ void FixCMAP::setup(int vflag)
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
-  }  
+  }
 }
 
 /* --------------------------------------------------------------------- */
@@ -241,8 +241,8 @@ void FixCMAP::pre_neighbor()
       atom3 = atom->map(crossterm_atom3[i][m]);
       atom4 = atom->map(crossterm_atom4[i][m]);
       atom5 = atom->map(crossterm_atom5[i][m]);
-      
-      if (atom1 == -1 || atom2 == -1 || atom3 == -1 || 
+
+      if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
           atom4 == -1 || atom5 == -1) {
         char str[128];
         sprintf(str,"CMAP atoms "
@@ -260,7 +260,7 @@ void FixCMAP::pre_neighbor()
       atom4 = domain->closest_image(i,atom4);
       atom5 = domain->closest_image(i,atom5);
 
-      if (i <= atom1 && i <= atom2 && i <= atom3 && 
+      if (i <= atom1 && i <= atom2 && i <= atom3 &&
           i <= atom4 && i <= atom5) {
         if (ncrosstermlist == maxcrossterm) {
           maxcrossterm += LISTDELTA;
@@ -274,7 +274,7 @@ void FixCMAP::pre_neighbor()
         crosstermlist[ncrosstermlist][5] = crossterm_type[i][m];
         ncrosstermlist++;
       }
-    } 
+    }
   }
 }
 
@@ -304,7 +304,7 @@ void FixCMAP::post_force(int vflag)
   double dpr32r43,dpr45r43,r43,vb12x,vb12y,vb12z,vb54x,vb54y,vb54z;
   // cross-term dihedral angles
   double phi,psi,phi1,psi1;
-  double f1[3],f2[3],f3[3],f4[3],f5[3],vcmap[6]; 
+  double f1[3],f2[3],f3[3],f4[3],f5[3],vcmap[6];
   double gs[4],d1gs[4],d2gs[4],d12gs[4];
   double engfraction;
   // vectors needed for the gradient/force calculation
@@ -316,12 +316,12 @@ void FixCMAP::post_force(int vflag)
   // Definition of cross-term dihedrals
 
   //         phi dihedral
-  //   |--------------------| 
+  //   |--------------------|
   //   a1-----a2-----a3-----a4-----a5    cross-term atoms
   //   C      N      CA     C      N     cross-term atom types
   //          |--------------------|
   //               psi dihedral
- 
+
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -342,7 +342,7 @@ void FixCMAP::post_force(int vflag)
     if (type == 0) continue;
 
     // calculate bond vectors for both dihedrals
-      
+
     // phi
     // vb21 = r2 - r1
 
@@ -369,50 +369,50 @@ void FixCMAP::post_force(int vflag)
       vb43x = -1.0*vb34x;
       vb43y = -1.0*vb34y;
       vb43z = -1.0*vb34z;
-    
-      vb45x = x[i4][0] - x[i5][0]; 
-      vb45y = x[i4][1] - x[i5][1]; 
-      vb45z = x[i4][2] - x[i5][2]; 
+
+      vb45x = x[i4][0] - x[i5][0];
+      vb45y = x[i4][1] - x[i5][1];
+      vb45z = x[i4][2] - x[i5][2];
       vb54x = -1.0*vb45x;
       vb54y = -1.0*vb45y;
       vb54z = -1.0*vb45z;
- 
+
       // calculate normal vectors for planes that define the dihedral angles
-      
+
       a1x = vb12y*vb23z - vb12z*vb23y;
       a1y = vb12z*vb23x - vb12x*vb23z;
       a1z = vb12x*vb23y - vb12y*vb23x;
-      
+
       b1x = vb43y*vb23z - vb43z*vb23y;
       b1y = vb43z*vb23x - vb43x*vb23z;
       b1z = vb43x*vb23y - vb43y*vb23x;
-      
+
       a2x = vb23y*vb34z - vb23z*vb34y;
       a2y = vb23z*vb34x - vb23x*vb34z;
       a2z = vb23x*vb34y - vb23y*vb34x;
-      
+
       b2x = vb45y*vb43z - vb45z*vb43y;
       b2y = vb45z*vb43x - vb45x*vb43z;
       b2z = vb45x*vb43y - vb45y*vb43x;
-      
+
       // calculate terms used later in calculations
-      
+
       r32 = sqrt(vb32x*vb32x + vb32y*vb32y + vb32z*vb32z);
       a1sq = a1x*a1x + a1y*a1y + a1z*a1z;
       b1sq = b1x*b1x + b1y*b1y + b1z*b1z;
-      
+
       r43 = sqrt(vb43x*vb43x + vb43y*vb43y + vb43z*vb43z);
       a2sq = a2x*a2x + a2y*a2y + a2z*a2z;
       b2sq = b2x*b2x + b2y*b2y + b2z*b2z;
-      //if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) 
+      //if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001)
       //  printf("a1sq b1sq a2sq b2sq: %f %f %f %f \n",a1sq,b1sq,a2sq,b2sq);
       if (a1sq<0.0001 || b1sq<0.0001 || a2sq<0.0001 || b2sq<0.0001) continue;
       dpr21r32 = vb21x*vb32x + vb21y*vb32y + vb21z*vb32z;
       dpr34r32 = vb34x*vb32x + vb34y*vb32y + vb34z*vb32z;
       dpr32r43 = vb32x*vb43x + vb32y*vb43y + vb32z*vb43z;
       dpr45r43 = vb45x*vb43x + vb45y*vb43y + vb45z*vb43z;
-      
-      // calculate the backbone dihedral angles as VMD and GROMACS 
+
+      // calculate the backbone dihedral angles as VMD and GROMACS
 
       phi = dihedral_angle_atan2(vb21x,vb21y,vb21z,a1x,a1y,a1z,b1x,b1y,b1z,r32);
       psi = dihedral_angle_atan2(vb32x,vb32y,vb32z,a2x,a2y,a2z,b2x,b2y,b2z,r43);
@@ -425,7 +425,7 @@ void FixCMAP::post_force(int vflag)
       psi1 = psi;
       if (psi1 < 0.0) psi1 += 360.0;
 
-      // find the neighbor grid point index 
+      // find the neighbor grid point index
 
       li1 = int(((phi1+CMAPXMIN2)/CMAPDX)+((CMAPDIM*1.0)/2.0));
       li2 = int(((psi1+CMAPXMIN2)/CMAPDX)+((CMAPDIM*1.0)/2.0));
@@ -436,87 +436,87 @@ void FixCMAP::post_force(int vflag)
       mli4 = li4 % CMAPDIM;
       mli31 = (li3+1) % CMAPDIM;
       mli41 = (li4+1)  %CMAPDIM;
-      mli1 = li1 % CMAPDIM; 
+      mli1 = li1 % CMAPDIM;
       mli2 = li2 % CMAPDIM;
       mli11 = (li1+1) % CMAPDIM;
       mli21 = (li2+1)  %CMAPDIM;
       t1 = type-1;
       if (t1 < 0 || t1 > 5) error->all(FLERR,"Invalid CMAP crossterm_type");
-      
-      // determine the values and derivatives for the grid square points 
+
+      // determine the values and derivatives for the grid square points
 
       gs[0] = cmapgrid[t1][mli3][mli4];
       gs[1] = cmapgrid[t1][mli31][mli4];
       gs[2] = cmapgrid[t1][mli31][mli41];
       gs[3] = cmapgrid[t1][mli3][mli41];
-      d1gs[0] = d1cmapgrid[t1][mli1][mli2];  
+      d1gs[0] = d1cmapgrid[t1][mli1][mli2];
       d1gs[1] = d1cmapgrid[t1][mli11][mli2];
       d1gs[2] = d1cmapgrid[t1][mli11][mli21];
       d1gs[3] = d1cmapgrid[t1][mli1][mli21];
-      
-      d2gs[0] = d2cmapgrid[t1][mli1][mli2];  
+
+      d2gs[0] = d2cmapgrid[t1][mli1][mli2];
       d2gs[1] = d2cmapgrid[t1][mli11][mli2];
       d2gs[2] = d2cmapgrid[t1][mli11][mli21];
       d2gs[3] = d2cmapgrid[t1][mli1][mli21];
-      
-      d12gs[0] = d12cmapgrid[t1][mli1][mli2];  
+
+      d12gs[0] = d12cmapgrid[t1][mli1][mli2];
       d12gs[1] = d12cmapgrid[t1][mli11][mli2];
       d12gs[2] = d12cmapgrid[t1][mli11][mli21];
       d12gs[3] = d12cmapgrid[t1][mli1][mli21];
-      
-      // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi) 
-      
-      bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs);
-      
-      // sum up cmap energy contributions
-      
-      engfraction = 0.2 * E;
-      if (i1 < nlocal) ecmap += engfraction; 
-      if (i2 < nlocal) ecmap += engfraction; 
-      if (i3 < nlocal) ecmap += engfraction; 
-      if (i4 < nlocal) ecmap += engfraction; 
-      if (i5 < nlocal) ecmap += engfraction; 
 
-      // calculate the derivatives dphi/dr_i 
-      
+      // calculate the cmap energy and the gradient (dE/dphi,dE/dpsi)
+
+      bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs);
+
+      // sum up cmap energy contributions
+
+      engfraction = 0.2 * E;
+      if (i1 < nlocal) ecmap += engfraction;
+      if (i2 < nlocal) ecmap += engfraction;
+      if (i3 < nlocal) ecmap += engfraction;
+      if (i4 < nlocal) ecmap += engfraction;
+      if (i5 < nlocal) ecmap += engfraction;
+
+      // calculate the derivatives dphi/dr_i
+
       dphidr1x = 1.0*r32/a1sq*a1x;
       dphidr1y = 1.0*r32/a1sq*a1y;
       dphidr1z = 1.0*r32/a1sq*a1z;
-      
-      dphidr2x = -1.0*r32/a1sq*a1x - dpr21r32/a1sq/r32*a1x + 
+
+      dphidr2x = -1.0*r32/a1sq*a1x - dpr21r32/a1sq/r32*a1x +
         dpr34r32/b1sq/r32*b1x;
-      dphidr2y = -1.0*r32/a1sq*a1y - dpr21r32/a1sq/r32*a1y + 
+      dphidr2y = -1.0*r32/a1sq*a1y - dpr21r32/a1sq/r32*a1y +
         dpr34r32/b1sq/r32*b1y;
-      dphidr2z = -1.0*r32/a1sq*a1z - dpr21r32/a1sq/r32*a1z + 
+      dphidr2z = -1.0*r32/a1sq*a1z - dpr21r32/a1sq/r32*a1z +
         dpr34r32/b1sq/r32*b1z;
 
       dphidr3x = dpr34r32/b1sq/r32*b1x - dpr21r32/a1sq/r32*a1x - r32/b1sq*b1x;
       dphidr3y = dpr34r32/b1sq/r32*b1y - dpr21r32/a1sq/r32*a1y - r32/b1sq*b1y;
       dphidr3z = dpr34r32/b1sq/r32*b1z - dpr21r32/a1sq/r32*a1z - r32/b1sq*b1z;
-    
+
       dphidr4x = r32/b1sq*b1x;
       dphidr4y = r32/b1sq*b1y;
       dphidr4z = r32/b1sq*b1z;
 
-      // calculate the derivatives dpsi/dr_i 
-      
+      // calculate the derivatives dpsi/dr_i
+
       dpsidr1x = 1.0*r43/a2sq*a2x;
       dpsidr1y = 1.0*r43/a2sq*a2y;
       dpsidr1z = 1.0*r43/a2sq*a2z;
-      
+
       dpsidr2x = r43/a2sq*a2x + dpr32r43/a2sq/r43*a2x - dpr45r43/b2sq/r43*b2x;
       dpsidr2y = r43/a2sq*a2y + dpr32r43/a2sq/r43*a2y - dpr45r43/b2sq/r43*b2y;
       dpsidr2z = r43/a2sq*a2z + dpr32r43/a2sq/r43*a2z - dpr45r43/b2sq/r43*b2z;
-      
+
       dpsidr3x = dpr45r43/b2sq/r43*b2x - dpr32r43/a2sq/r43*a2x - r43/b2sq*b2x;
       dpsidr3y = dpr45r43/b2sq/r43*b2y - dpr32r43/a2sq/r43*a2y - r43/b2sq*b2y;
       dpsidr3z = dpr45r43/b2sq/r43*b2z - dpr32r43/a2sq/r43*a2z - r43/b2sq*b2z;
-      
+
       dpsidr4x = r43/b2sq*b2x;
       dpsidr4y = r43/b2sq*b2y;
       dpsidr4z = r43/b2sq*b2z;
 
-      // calculate forces on cross-term atoms: F = -(dE/dPhi)*(dPhi/dr) 
+      // calculate forces on cross-term atoms: F = -(dE/dPhi)*(dPhi/dr)
 
       f1[0] = dEdPhi*dphidr1x;
       f1[1] = dEdPhi*dphidr1y;
@@ -533,9 +533,9 @@ void FixCMAP::post_force(int vflag)
       f5[0] = -dEdPsi*dpsidr4x;
       f5[1] = -dEdPsi*dpsidr4y;
       f5[2] = -dEdPsi*dpsidr4z;
-      
+
       // apply force to each of the 5 atoms
-      
+
       if (i1 < nlocal) {
         f[i1][0] += f1[0];
         f[i1][1] += f1[1];
@@ -561,7 +561,7 @@ void FixCMAP::post_force(int vflag)
         f[i5][1] += f5[1];
         f[i5][2] += f5[2];
       }
-      
+
       // tally energy and/or virial
 
       if (evflag) {
@@ -622,15 +622,18 @@ double FixCMAP::compute_scalar()
 
 void FixCMAP::read_grid_map(char *cmapfile)
 {
-  char line[MAXLINE];
-  char *chunk;
+  char linebuf[MAXLINE];
+  char *chunk,*line;
   int i1, i2, i3, i4, i5, i6, j1, j2, j3, j4, j5, j6, counter;
-  
-  FILE *fp = fopen(cmapfile,"r");
-  if (fp == NULL) {
-    char str[128];
-    sprintf(str,"Cannot open fix cmap file %s",cmapfile);
-    error->one(FLERR,str);
+
+  FILE *fp = NULL;
+  if (comm->me == 0) {
+    fp = force->open_potential(cmapfile);
+    if (fp == NULL) {
+      char str[128];
+      sprintf(str,"Cannot open fix cmap file %s",cmapfile);
+      error->one(FLERR,str);
+    }
   }
 
   for (int ix1 = 0; ix1 < 6; ix1++)
@@ -642,8 +645,24 @@ void FixCMAP::read_grid_map(char *cmapfile)
   i1 = i2 = i3 = i4 = i5 = i6 = 0;
   j1 = j2 = j3 = j4 = j5 = j6 = 0;
 
-  while (fgets(line,MAXLINE,fp) != NULL) {
-    if (line == "" || line[0] == '#') { ;; }
+  int done = 0;
+
+  while (!done) {
+    // only read on rank 0 and broadcast to all other ranks
+    if (comm->me == 0)
+      done = (fgets(linebuf,MAXLINE,fp) == NULL);
+
+    MPI_Bcast(&done,1,MPI_INT,0,world);
+    if (done) continue;
+
+    MPI_Bcast(linebuf,MAXLINE,MPI_CHAR,0,world);
+
+    // remove leading whitespace
+    line = linebuf;
+    while (line && (*line == ' ' || *line == '\t' || *line == '\r')) ++line;
+
+    // skip if empty line or comment
+    if (!line || *line =='\n' || *line == '\0' || *line == '#') continue;
 
     // read in the cmap grid point values
     // NOTE: The order to read the 6 grid maps is HARD-CODED, thus errors
@@ -655,101 +674,99 @@ void FixCMAP::read_grid_map(char *cmapfile)
     // 3. Proline map
     // 4. Two adjacent prolines map
     // 5. Glycine map
-    // 6. Glycine before proline map	
-    
-    else {
-      chunk = strtok(line, " \r\n");
-      while (chunk != NULL) {
+    // 6. Glycine before proline map
 
-        // alanine map 
-        
-        if (counter < CMAPDIM*CMAPDIM) {
-          cmapgrid[0][i1][j1] = atof(chunk);
-          chunk = strtok(NULL, " \r\n");
-          j1++;
-          if (j1 == CMAPDIM) {
-            j1 = 0;
-            i1++;
-          }
-          counter++;
+    chunk = strtok(line, " \r\n");
+    while (chunk != NULL) {
+
+      // alanine map
+
+      if (counter < CMAPDIM*CMAPDIM) {
+        cmapgrid[0][i1][j1] = atof(chunk);
+        chunk = strtok(NULL, " \r\n");
+        j1++;
+        if (j1 == CMAPDIM) {
+          j1 = 0;
+          i1++;
         }
-        
-        // alanine-proline map 
-        
-        else if (counter >= CMAPDIM*CMAPDIM &&
-                 counter < 2*CMAPDIM*CMAPDIM) {
-          cmapgrid[1][i2][j2]= atof(chunk);
-          chunk = strtok(NULL, " \r\n");
-          j2++;
-          if (j2 == CMAPDIM) {
-            j2 = 0;
-            i2++;
-          }
-          counter++;
-        }
-        
-        // proline map 
-        
-        else if (counter >= 2*CMAPDIM*CMAPDIM &&
-                 counter < 3*CMAPDIM*CMAPDIM) {
-          cmapgrid[2][i3][j3] = atof(chunk);
-          chunk = strtok(NULL, " \r\n");
-          j3++;
-          if (j3 == CMAPDIM) {
-            j3 = 0;
-            i3++;
-          }
-          counter++;
-        }
-        
-        // 2 adjacent prolines map 
-        
-        else if (counter >= 3*CMAPDIM*CMAPDIM &&
-                 counter < 4*CMAPDIM*CMAPDIM) {
-          cmapgrid[3][i4][j4] = atof(chunk);
-          chunk = strtok(NULL, " \r\n");
-          j4++;
-          if (j4 == CMAPDIM) {
-            j4 = 0;
-            i4++;
-          }
-          counter++;
-        }
-        
-        // glycine map 
-        
-        else if (counter >= 4*CMAPDIM*CMAPDIM &&
-                 counter < 5*CMAPDIM*CMAPDIM) {
-          cmapgrid[4][i5][j5] = atof(chunk);
-          chunk = strtok(NULL, " \r\n");
-          j5++;
-          if (j5 == CMAPDIM) {
-            j5 = 0;
-            i5++;
-          }
-          counter++;
-        }
-        
-        // glycine-proline map 
-        
-        else if (counter >= 5*CMAPDIM*CMAPDIM &&
-                 counter < 6*CMAPDIM*CMAPDIM) {
-          cmapgrid[5][i6][j6] = atof(chunk);
-          chunk = strtok(NULL, " \r\n");
-          j6++;
-          if (j6 == CMAPDIM) {
-            j6 = 0;
-            i6++;
-          }
-          counter++;
-        }
-        
-        else break;
+        counter++;
       }
+
+      // alanine-proline map
+
+      else if (counter >= CMAPDIM*CMAPDIM &&
+               counter < 2*CMAPDIM*CMAPDIM) {
+        cmapgrid[1][i2][j2]= atof(chunk);
+        chunk = strtok(NULL, " \r\n");
+        j2++;
+        if (j2 == CMAPDIM) {
+          j2 = 0;
+          i2++;
+        }
+        counter++;
+      }
+
+      // proline map
+
+      else if (counter >= 2*CMAPDIM*CMAPDIM &&
+               counter < 3*CMAPDIM*CMAPDIM) {
+        cmapgrid[2][i3][j3] = atof(chunk);
+        chunk = strtok(NULL, " \r\n");
+        j3++;
+        if (j3 == CMAPDIM) {
+          j3 = 0;
+          i3++;
+        }
+        counter++;
+      }
+
+      // 2 adjacent prolines map
+
+      else if (counter >= 3*CMAPDIM*CMAPDIM &&
+               counter < 4*CMAPDIM*CMAPDIM) {
+        cmapgrid[3][i4][j4] = atof(chunk);
+        chunk = strtok(NULL, " \r\n");
+        j4++;
+        if (j4 == CMAPDIM) {
+          j4 = 0;
+          i4++;
+        }
+        counter++;
+      }
+
+      // glycine map
+
+      else if (counter >= 4*CMAPDIM*CMAPDIM &&
+               counter < 5*CMAPDIM*CMAPDIM) {
+        cmapgrid[4][i5][j5] = atof(chunk);
+        chunk = strtok(NULL, " \r\n");
+        j5++;
+        if (j5 == CMAPDIM) {
+          j5 = 0;
+          i5++;
+        }
+        counter++;
+      }
+
+      // glycine-proline map
+
+      else if (counter >= 5*CMAPDIM*CMAPDIM &&
+               counter < 6*CMAPDIM*CMAPDIM) {
+        cmapgrid[5][i6][j6] = atof(chunk);
+        chunk = strtok(NULL, " \r\n");
+        j6++;
+        if (j6 == CMAPDIM) {
+          j6 = 0;
+          i6++;
+        }
+        counter++;
+      }
+
+      else break;
     }
   }
-  
-  fclose(fp);
+
+  if (comm->me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -783,18 +800,18 @@ void FixCMAP::spline(double *y, double *ddy, int n)
 /* ---------------------------------------------------------------------- */
 
 void FixCMAP::spl_interpolate(double x, double *y, double *ddy, double &yo,
-		double &dyo)
+                              double &dyo)
 {
   // perform a 1D cubic spline interpolation
 
   int ix;
   double a,b,a1,b1,a2,b2;
-  
+
   ix = int((x-CMAPXMIN)/CMAPDX-(1./2.));
 
   a = (CMAPXMIN+(ix*1.0)*CMAPDX-x)/CMAPDX;
   b = (x-CMAPXMIN-(((ix-1)*1.0)*CMAPDX))/CMAPDX;
-  
+
   a1 = a*a*a-a;
   b1 = b*b*b-b;
 
@@ -807,7 +824,7 @@ void FixCMAP::spl_interpolate(double x, double *y, double *ddy, double &yo,
 /* ---------------------------------------------------------------------- */
 
 void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
-                                   double **d12yo)
+                                  double **d12yo)
 {
   // precompute the gradient and cross-derivatives of the map grid points.
   // use the bicubic spline to calculate the derivatives
@@ -833,7 +850,7 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
   memory->create(tddmap,CMAPDIM*2,CMAPDIM*2,"cmap:tddmap");
 
   // periodically expand the original map
-  // use the expanded map for bicubic spline interpolation, 
+  // use the expanded map for bicubic spline interpolation,
   //   which is used to obtain the derivatives
   // actual interpolation is done with bicubic interpolation
 
@@ -844,7 +861,7 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
       tmap[i][j] = map[ii][jj];
     }
   }
-  
+
   for (i = 0; i < CMAPDIM*2; i++)
     spline(tmap[i], tddmap[i], CMAPDIM*2);
 
@@ -869,7 +886,7 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
         tmp_y[k] = tyyk;
         tmp_dy[k] = tdyk;
       }
-      
+
       spline(tmp_y,tmp_ddy,CMAPDIM+xm+xm);
       ix = int((phi-CMAPXMIN)/CMAPDX);
       a = (CMAPXMIN+((ix+1)*1.0)*CMAPDX-phi)/CMAPDX;
@@ -899,7 +916,7 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
       d12yo[i%p][j%p] = d12y;
     }
   }
-  
+
   memory->destroy(tmp_y);
   memory->destroy(tmp_dy);
   memory->destroy(tmp_ddy);
@@ -911,7 +928,7 @@ void FixCMAP::set_map_derivatives(double **map, double **d1yo, double **d2yo,
 
 double FixCMAP::dihedral_angle_atan2(double fx, double fy, double fz,
                                       double ax, double ay, double az,
-                                      double bx, double by, double bz, 
+                                      double bx, double by, double bz,
                                       double absg)
 {
   // calculate the dihedral angle
@@ -953,19 +970,19 @@ void FixCMAP::bc_coeff(double *gs, double *d1gs, double *d2gs, double *d12gs)
       2,-2, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0, 0, 0, 0, 0, 0, 0, 0, 2,-2, 0, 0, 1, 1, 0, 0,
       -6, 6,-6, 6,-3,-3, 3, 3,-4, 4, 2,-2,-2,-2,-1,-1,
-      4,-4, 4,-4, 2, 2,-2,-2, 2,-2,-2, 2, 1, 1, 1, 1 
+      4,-4, 4,-4, 2, 2,-2,-2, 2,-2,-2, 2, 1, 1, 1, 1
     };
 
   int i, j, k, l, in;
   double xx, x[16];
-  
+
   for (i = 0; i < 4; i++) {
     x[i] = gs[i];
     x[i+4] = d1gs[i]*CMAPDX;
     x[i+8] = d2gs[i]*CMAPDX;
     x[i+12] = d12gs[i]*CMAPDX*CMAPDX;
   }
-  
+
   in = 0;
   for (i = 0; i < 4; i++) {
     for (j = 0; j < 4; j++) {
@@ -1006,7 +1023,7 @@ void FixCMAP::bc_interpol(double x1, double x2, int low1, int low2, double *gs,
     dEdPhi = u*dEdPhi + (3.0*cij[3][i]*t+2.0*cij[2][i])*t+cij[1][i];
     dEdPsi = t*dEdPsi + (3.0*cij[i][3]*u+2.0*cij[i][2])*u+cij[i][1];
   }
-  
+
   dEdPhi *= (180.0/MY_PI/CMAPDX);
   dEdPsi *= (180.0/MY_PI/CMAPDX);
 }
@@ -1023,7 +1040,7 @@ void FixCMAP::read_data_header(char *line)
     sscanf(line,BIGINT_FORMAT,&ncmap);
   } else error->all(FLERR,"Invalid read data header line for fix cmap");
 
-  // didn't set in constructor b/c this fix could be defined 
+  // didn't set in constructor b/c this fix could be defined
   // before newton command
 
   newton_bond = force->newton_bond;
@@ -1117,7 +1134,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
       crossterm_atom5[m][num_crossterm[m]] = atom5;
       num_crossterm[m]++;
     }
-    
+
     if ((m = atom->map(atom5)) >= 0) {
       if (num_crossterm[m] == CMAPMAX)
         error->one(FLERR,"Too many CMAP crossterms for one atom");
@@ -1226,7 +1243,7 @@ void FixCMAP::write_data_section(int mth, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT 
+    fprintf(fp,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
             " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
             index+i,(int) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
             (tagint) ubuf(buf[i][2]).i,(tagint) ubuf(buf[i][3]).i,
@@ -1261,8 +1278,8 @@ void FixCMAP::restart(char *buf)
   ncmap = *((bigint *) buf);
 }
 
-/* ---------------------------------------------------------------------- 
-   pack values in local atom-based arrays for restart file 
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
 int FixCMAP::pack_restart(int i, double *buf)
@@ -1275,14 +1292,14 @@ int FixCMAP::pack_restart(int i, double *buf)
     buf[n++] = ubuf(crossterm_atom3[i][m]).d;
     buf[n++] = ubuf(crossterm_atom4[i][m]).d;
     buf[n++] = ubuf(crossterm_atom5[i][m]).d;
-  }  
+  }
   buf[0] = n;
 
-  return n; 
+  return n;
 }
 
-/* ---------------------------------------------------------------------- 
-   unpack values from atom->extra array to restart the fix 
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
 void FixCMAP::unpack_restart(int nlocal, int nth)
@@ -1290,9 +1307,9 @@ void FixCMAP::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
-   
+
    int n = 0;
-   for (int i = 0; i < nth; i++) n += static_cast<int> (extra[nlocal][n]); 
+   for (int i = 0; i < nth; i++) n += static_cast<int> (extra[nlocal][n]);
 
    int count = static_cast<int> (extra[nlocal][n++]);
    num_crossterm[nlocal] = (count-1)/6;
@@ -1307,17 +1324,17 @@ void FixCMAP::unpack_restart(int nlocal, int nth)
    }
 }
 
-/* ---------------------------------------------------------------------- 
-   maxsize of any atom's restart data 
+/* ----------------------------------------------------------------------
+   maxsize of any atom's restart data
 ------------------------------------------------------------------------- */
 
 int FixCMAP::maxsize_restart()
 {
-  return 1 + CMAPMAX*6; 
+  return 1 + CMAPMAX*6;
 }
 
-/* ---------------------------------------------------------------------- 
-   size of atom nlocal's restart data 
+/* ----------------------------------------------------------------------
+   size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
 int FixCMAP::size_restart(int nlocal)
@@ -1330,7 +1347,7 @@ int FixCMAP::size_restart(int nlocal)
 ------------------------------------------------------------------------- */
 
 void FixCMAP::grow_arrays(int nmax)
-{ 
+{
   num_crossterm = memory->grow(num_crossterm,nmax,"cmap:num_crossterm");
   crossterm_type = memory->grow(crossterm_type,nmax,CMAPMAX,
                                 "cmap:crossterm_type");
@@ -1382,7 +1399,7 @@ void FixCMAP::set_arrays(int i)
 /* ----------------------------------------------------------------------
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
-  
+
 int FixCMAP::pack_exchange(int i, double *buf)
 {
   int n = 0;

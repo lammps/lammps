@@ -321,7 +321,7 @@ void FixAdapt::init()
         delete[] psuffix;
       }
       if (ad->pair == NULL) ad->pair = force->pair_match(pstyle,1,nsub);
-      if (ad->pair == NULL) 
+      if (ad->pair == NULL)
         error->all(FLERR,"Fix adapt pair style does not exist");
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);

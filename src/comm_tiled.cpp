@@ -45,9 +45,6 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 {
-  if (lmp->kokkos)
-    error->all(FLERR,"KOKKOS package does not yet support comm_style tiled");
-
   style = 1;
   layout = LAYOUT_UNIFORM;
   pbc_flag = NULL;
@@ -63,9 +60,6 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
 
 CommTiled::CommTiled(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
-  if (lmp->kokkos)
-    error->all(FLERR,"KOKKOS package does not yet support comm_style tiled");
-
   style = 1;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);

@@ -24,6 +24,7 @@ Fixes :h1
    fix_bond_create
    fix_bond_swap
    fix_box_relax
+   fix_cmap
    fix_colvars
    fix_controller
    fix_deform
@@ -138,7 +139,6 @@ Fixes :h1
    fix_temp_rescale_eff
    fix_tfmc
    fix_thermal_conductivity
-   fix_ti_rs
    fix_ti_spring
    fix_tmd
    fix_ttm

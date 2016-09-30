@@ -1,12 +1,18 @@
 Run these examples as:
 
-mpirun -np 4 lmp_linux -partition 4x1 -in in.neb.hop1
-mpirun -np 4 lmp_linux -partition 4x1 -in in.neb.hop2
-mpirun -np 3 lmp_linux -partition 3x1 -in in.neb.sivac
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop1
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop2
+mpirun -np 3 lmp_g++ -partition 3x1 -in in.neb.sivac
 
-Create dump files to do visualization from via Python tools:
-(see lammps/tools/README and lammps/tools/python/README
-for more info on these Python scripts)
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop2
+mpirun -np 6 lmp_g++ -partition 3x2 -in in.neb.sivac
+mpirun -np 9 lmp_g++ -partition 3x3 -in in.neb.sivac
+
+If you uncomment the dump command lines in the input scripts, you can
+create dump files to do visualization from via Python tools: (see
+lammps/tools/README and lammps/tools/python/README for more info on
+these Python scripts)
 
 python ~/lammps/tools/python/neb_combine.py -o dump.hop1.combine
 					    -b dump.nonneb.1 

@@ -7,7 +7,7 @@
 
 :line
 
-"Return to Section accelerate overview"_Section_accelerate.html
+"Return to Section 5 overview"_Section_accelerate.html
 
 5.3.4 USER-OMP package :h5
 
@@ -103,8 +103,8 @@ USER-OMP style (in serial or parallel) with a single thread per MPI
 task, versus running standard LAMMPS with its standard un-accelerated
 styles (in serial or all-MPI parallelization with 1 task/core).  This
 is because many of the USER-OMP styles contain similar optimizations
-to those used in the OPT package, described in "Section accelerate
-5.3.6"_accelerate_opt.html.
+to those used in the OPT package, described in "Section
+5.3.5"_accelerate_opt.html.
 
 With multiple threads/task, the optimal choice of number of MPI
 tasks/node and OpenMP threads/task can vary a lot and should always be

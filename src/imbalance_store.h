@@ -20,21 +20,19 @@ namespace LAMMPS_NS {
 
 class ImbalanceStore : public Imbalance {
  public:
-  ImbalanceStore(LAMMPS *lmp) : Imbalance(lmp), _name(0) {};
-  virtual ~ImbalanceStore() { delete[] _name; };
+  ImbalanceStore(class LAMMPS *);
+  virtual ~ImbalanceStore();
 
-  // internal data members
- private:
-  char *_name;                  // property name
-
-  // required member functions
  public:
-  // parse options. return number of arguments consumed.
-  virtual int options(int narg, char **arg);
+  // parse options, return number of arguments consumed
+  virtual int options(int, char **);
   // compute per-atom imbalance and apply to weight array
-  virtual void compute(double *weight);
+  virtual void compute(double *);
   // print information about the state of this imbalance compute (required)
-  virtual void info(FILE *fp);
+  virtual void info(FILE *);
+
+ private:
+  char *name;                  // property name
 };
 
 }

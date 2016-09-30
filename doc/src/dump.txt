@@ -328,8 +328,8 @@ bonds and colors.
 
 Note that {atom}, {custom}, {dcd}, {xtc}, and {xyz} style dump files
 can be read directly by "VMD"_http://www.ks.uiuc.edu/Research/vmd, a
-popular molecular viewing program.  See "Section
-tools"_Section_tools.html#vmd of the manual and the
+popular molecular viewing program.  See
+"Section 9"_Section_tools.html#vmd of the manual and the
 tools/lmp2vmd/README.txt file for more information about support in
 VMD for reading and visualizing LAMMPS dump files.
 
@@ -390,7 +390,7 @@ Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
 package installed, e.g.
 
 make yes-mpiio    # installs the MPIIO package
-make g++          # build LAMMPS for your platform :pre
+make mpi          # build LAMMPS for your platform :pre
 
 Second, use a dump filename which contains ".mpiio".  Note that it
 does not have to end in ".mpiio", just contain those characters.
@@ -531,7 +531,7 @@ so that each value is 0.0 to 1.0.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.
 I.e. actual unscaled (x,y,z) = xs*A + ys*B + zs*C, where (A,B,C) are
 the non-orthogonal vectors of the simulation box edges, as discussed
-in "Section howto 6.12"_Section_howto.html#howto_12.
+in "Section 6.12"_Section_howto.html#howto_12.
 
 Use {xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has

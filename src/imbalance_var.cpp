@@ -12,25 +12,40 @@
 ------------------------------------------------------------------------- */
 
 #include <string.h>
-#include "pointers.h"
 #include "imbalance_var.h"
 #include "atom.h"
-#include "error.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
+#include "memory.h"
+#include "error.h"
+
+// DEBUG
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
+/* -------------------------------------------------------------------- */
+
+ImbalanceVar::ImbalanceVar(LAMMPS *lmp) : Imbalance(lmp), name(0) {}
+
+/* -------------------------------------------------------------------- */
+
+ImbalanceVar::~ImbalanceVar()
+{
+  delete [] name;
+}
+
+/* -------------------------------------------------------------------- */
+
 int ImbalanceVar::options(int narg, char **arg)
 {
-  Error *error = _lmp->error;
-
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-  int len = strlen(arg[0])+1;
-  _name = new char[len];
-  memcpy(_name,arg[0],len);
-  this->init();
+
+  int len = strlen(arg[0]) + 1;
+  name = new char[len];
+  memcpy(name,arg[0],len);
+  init();
 
   return 1;
 }
@@ -39,17 +54,12 @@ int ImbalanceVar::options(int narg, char **arg)
 
 void ImbalanceVar::init()
 {
-  Error *error = _lmp->error;
-  Variable *variable = _lmp->input->variable;
-
-  if (_name) {
-    _id = variable->find(_name);
-    if (_id < 0) {
-      error->all(FLERR,"Variable name for balance weight does not exist");
-    } else {
-      if (variable->atomstyle(_id) == 0)
-        error->all(FLERR,"Variable for balance weight has invalid style");
-    }
+  id = input->variable->find(name);
+  if (id < 0) {
+    error->all(FLERR,"Variable name for balance weight does not exist");
+  } else {
+    if (input->variable->atomstyle(id) == 0)
+      error->all(FLERR,"Variable for balance weight has invalid style");
   }
 }
 
@@ -57,22 +67,22 @@ void ImbalanceVar::init()
 
 void ImbalanceVar::compute(double *weight)
 {
-  if (_id >= 0) {
-    const int all = _lmp->group->find("all");
-    if (all < 0) return;
+  const int all = group->find("all");
+  if (all < 0) return;
 
-    const int nlocal = _lmp->atom->nlocal;
-    double *val = new double[nlocal];
-    _lmp->input->variable->compute_atom(_id,all,val,1,0);
-    for (int i = 0; i < nlocal; ++i) weight[i] *= val[i];
-    delete[] val;
-  }
+  double *values;
+  const int nlocal = atom->nlocal;
+  memory->create(values,nlocal,"imbalance:values");
+
+  input->variable->compute_atom(id,all,values,1,0);
+  for (int i = 0; i < nlocal; ++i) weight[i] *= values[i];
+
+  memory->destroy(values);
 }
 
 /* -------------------------------------------------------------------- */
 
 void ImbalanceVar::info(FILE *fp)
 {
-  if (_id >= 0)
-    fprintf(fp,"  weight variable: %s\n",_name);
+  fprintf(fp,"  weight variable: %s\n",name);
 }

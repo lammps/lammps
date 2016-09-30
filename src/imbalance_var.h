@@ -20,24 +20,22 @@ namespace LAMMPS_NS {
 
 class ImbalanceVar : public Imbalance {
  public:
-  ImbalanceVar(LAMMPS *lmp) : Imbalance(lmp), _name(0), _id(-1) {};
-  virtual ~ImbalanceVar() { delete[] _name; };
+  ImbalanceVar(class LAMMPS *);
+  virtual ~ImbalanceVar();
 
-  // internal data members
- private:
-  char *_name;                  // variable name
-  int _id;                      // variable ID
-
-  // required member functions
  public:
   // parse options. return number of arguments consumed.
-  virtual int options(int narg, char **arg);
+  virtual int options(int, char **);
   // re-initialize internal data, e.g. variable ID
   virtual void init();
   // compute per-atom imbalance and apply to weight array
-  virtual void compute(double *weight);
+  virtual void compute(double *);
   // print information about the state of this imbalance compute (required)
-  virtual void info(FILE *fp);
+  virtual void info(FILE *);
+
+ private:
+  char *name;                  // variable name
+  int id;                      // variable index
 };
 
 }

@@ -30,33 +30,29 @@ class FixBalance : public Fix {
   FixBalance(class LAMMPS *, int, char **);
   ~FixBalance();
   int setmask();
+  void post_constructor();
   void init();
   void setup(int);
   void setup_pre_exchange();
   void pre_exchange();
   void pre_neighbor();
-  void post_constructor();
   double compute_scalar();
   double compute_vector(int);
   double memory_usage();
 
  private:
-  int nevery,lbstyle,nitermax,outflag;
+  int nevery,lbstyle,nitermax;
   double thresh,stopthresh;
   char bstr[4];
-  FILE *fp;
+  int wtflag;                   // 1 for weighted balancing
 
   double imbnow;                // current imbalance factor
   double imbprev;               // imbalance factor before last rebalancing
   double imbfinal;              // imbalance factor after last rebalancing
-  int maxperproc;               // max atoms on any processor
+  double maxloadperproc;        // max load on any processor
   int itercount;                // iteration count of last call to Balance
   int kspace_flag;              // 1 if KSpace solver defined
   int pending;
-
-  int nimbalance;               // number of imbalance weight computes
-  class Imbalance **imbalance;  // list of imbalance compute classes
-  class FixStore *imb_fix;      // fix for storing per-atom weights
 
   class Balance *balance;
   class Irregular *irregular;

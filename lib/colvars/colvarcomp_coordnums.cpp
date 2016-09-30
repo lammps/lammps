@@ -338,3 +338,151 @@ void colvar::selfcoordnum::apply_force(colvarvalue const &force)
   }
 }
 
+
+// groupcoordnum member functions
+colvar::groupcoordnum::groupcoordnum(std::string const &conf)
+  : distance(conf), b_anisotropic(false)
+{
+  function_type = "groupcoordnum";
+  x.type(colvarvalue::type_scalar);
+
+  // group1 and group2 are already initialized by distance()
+  if (group1->b_dummy || group2->b_dummy)
+    cvm::fatal_error("Error: neither group can be a dummy atom\n");
+
+  bool const b_scale = get_keyval(conf, "cutoff", r0,
+                                  cvm::real(4.0 * cvm::unit_angstrom()));
+
+  if (get_keyval(conf, "cutoff3", r0_vec,
+                 cvm::rvector(4.0, 4.0, 4.0), parse_silent)) {
+
+    if (b_scale)
+      cvm::fatal_error("Error: cannot specify \"scale\" and "
+                       "\"scale3\" at the same time.\n");
+    b_anisotropic = true;
+    // remove meaningless negative signs
+    if (r0_vec.x < 0.0) r0_vec.x *= -1.0;
+    if (r0_vec.y < 0.0) r0_vec.y *= -1.0;
+    if (r0_vec.z < 0.0) r0_vec.z *= -1.0;
+  }
+
+  get_keyval(conf, "expNumer", en, int(6) );
+  get_keyval(conf, "expDenom", ed, int(12));
+
+  if ( (en%2) || (ed%2) ) {
+    cvm::fatal_error("Error: odd exponents provided, can only use even ones.\n");
+  }
+
+}
+
+
+colvar::groupcoordnum::groupcoordnum()
+  : b_anisotropic(false)
+{
+  function_type = "groupcoordnum";
+  x.type(colvarvalue::type_scalar);
+}
+
+
+template<bool calculate_gradients>
+cvm::real colvar::groupcoordnum::switching_function(cvm::real const &r0,
+                                                    int const &en,
+                                                    int const &ed,
+                                                    cvm::atom &A1,
+                                                    cvm::atom &A2)
+{
+  cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
+  cvm::real const l2 = diff.norm2()/(r0*r0);
+
+  // Assume en and ed are even integers, and avoid sqrt in the following
+  int const en2 = en/2;
+  int const ed2 = ed/2;
+
+  cvm::real const xn = std::pow(l2, en2);
+  cvm::real const xd = std::pow(l2, ed2);
+  cvm::real const func = (1.0-xn)/(1.0-xd);
+
+  if (calculate_gradients) {
+    cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
+    cvm::rvector const dl2dx = (2.0/(r0*r0))*diff;
+    A1.grad += (-1.0)*dFdl2*dl2dx;
+    A2.grad +=        dFdl2*dl2dx;
+  }
+
+  return func;
+}
+
+
+#if 0  // AMG: I don't think there's any reason to support anisotropic,
+       //      and I don't have those flags below in calc_value, but
+       //      if I need them, I'll also need to uncomment this method
+template<bool calculate_gradients>
+cvm::real colvar::groupcoordnum::switching_function(cvm::rvector const &r0_vec,
+                                                    int const &en,
+                                                    int const &ed,
+                                                    cvm::atom &A1,
+                                                    cvm::atom &A2)
+{
+  cvm::rvector const diff = cvm::position_distance(A1.pos, A2.pos);
+  cvm::rvector const scal_diff(diff.x/r0_vec.x, diff.y/r0_vec.y, diff.z/r0_vec.z);
+  cvm::real const l2 = scal_diff.norm2();
+
+  // Assume en and ed are even integers, and avoid sqrt in the following
+  int const en2 = en/2;
+  int const ed2 = ed/2;
+
+  cvm::real const xn = std::pow(l2, en2);
+  cvm::real const xd = std::pow(l2, ed2);
+  cvm::real const func = (1.0-xn)/(1.0-xd);
+
+  if (calculate_gradients) {
+    cvm::real const dFdl2 = (1.0/(1.0-xd))*(en2*(xn/l2) - func*ed2*(xd/l2))*(-1.0);
+    cvm::rvector const dl2dx((2.0/(r0_vec.x*r0_vec.x))*diff.x,
+                             (2.0/(r0_vec.y*r0_vec.y))*diff.y,
+                             (2.0/(r0_vec.z*r0_vec.z))*diff.z);
+    A1.grad += (-1.0)*dFdl2*dl2dx;
+    A2.grad +=        dFdl2*dl2dx;
+  }
+  return func;
+}
+#endif
+
+
+
+void colvar::groupcoordnum::calc_value()
+{
+
+  // create fake atoms to hold the com coordinates
+  cvm::atom group1_com_atom;
+  cvm::atom group2_com_atom;
+  group1_com_atom.pos = group1->center_of_mass();
+  group2_com_atom.pos = group2->center_of_mass();
+
+  x.real_value = coordnum::switching_function<false>(r0, en, ed,
+                                                     group1_com_atom, group2_com_atom);
+
+}
+
+
+void colvar::groupcoordnum::calc_gradients()
+{
+  cvm::atom group1_com_atom;
+  cvm::atom group2_com_atom;
+  group1_com_atom.pos = group1->center_of_mass();
+  group2_com_atom.pos = group2->center_of_mass();
+
+  coordnum::switching_function<true>(r0, en, ed, group1_com_atom, group2_com_atom);
+  group1->set_weighted_gradient(group1_com_atom.grad);
+  group2->set_weighted_gradient(group2_com_atom.grad);
+
+}
+
+
+void colvar::groupcoordnum::apply_force(colvarvalue const &force)
+{
+  if (!group1->noforce)
+    group1->apply_colvar_force(force.real_value);
+
+  if (!group2->noforce)
+    group2->apply_colvar_force(force.real_value);
+}

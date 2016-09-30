@@ -150,7 +150,7 @@ colvar::colvar(std::string const &conf)
     feature_states[f_cv_linear]->enabled = lin;
   }
 
-  // Colvar is homogeneous iff:
+  // Colvar is homogeneous if:
   // - it is linear (hence not scripted)
   // - all cvcs have coefficient 1 or -1
   // i.e. sum or difference of cvcs
@@ -375,28 +375,16 @@ colvar::colvar(std::string const &conf)
 
   {
     bool temp;
-    if (get_keyval(conf, "outputSystemForce", temp, false)) {
-      cvm::error("Colvar option outputSystemForce is deprecated.\n"
-        "Please use outputTotalForce, or outputSystemForce within an ABF bias.");
+    if (get_keyval(conf, "outputSystemForce", temp, false, colvarparse::parse_silent)) {
+      cvm::error("Option outputSystemForce is deprecated: only outputTotalForce is supported instead.\n"
+                 "The two are NOT identical: see http://colvars.github.io/totalforce.html.\n", INPUT_ERROR);
       return;
     }
   }
 
-  {
-    bool b_output_total_force;
-    get_keyval(conf, "outputTotalForce", b_output_total_force, false);
-    if (b_output_total_force) {
-      enable(f_cv_output_total_force);
-    }
-  }
-
-  {
-    bool b_output_applied_force;
-    get_keyval(conf, "outputAppliedForce", b_output_applied_force, false);
-    if (b_output_applied_force) {
-      enable(f_cv_output_applied_force);
-    }
-  }
+  get_keyval_feature(this, conf, "outputTotalForce", f_cv_output_total_force, false);
+  get_keyval_feature(this, conf, "outputAppliedForce", f_cv_output_applied_force, false);
+  get_keyval_feature(this, conf, "subtractAppliedForce", f_cv_subtract_applied_force, false);
 
   // Start in active state by default
   enable(f_cv_active);
@@ -409,6 +397,8 @@ colvar::colvar(std::string const &conf)
   fj.type(value());
   ft.type(value());
   ft_reported.type(value());
+  f_old.type(value());
+  f_old.reset();
 
   if (cvm::b_analysis)
     parse_analysis(conf);
@@ -519,6 +509,8 @@ int colvar::init_components(std::string const &conf)
     "number", "coordNum");
   error_code |= init_components_type<selfcoordnum>(conf, "self-coordination "
     "number", "selfCoordNum");
+  error_code |= init_components_type<groupcoordnum>(conf, "group-coordination "
+    "number", "groupCoord");
   error_code |= init_components_type<angle>(conf, "angle", "angle");
   error_code |= init_components_type<dipole_angle>(conf, "dipole angle", "dipoleAngle");
   error_code |= init_components_type<dihedral>(conf, "dihedral", "dihedral");
@@ -1104,6 +1096,14 @@ int colvar::calc_colvar_properties()
 
   } else {
 
+    if (is_enabled(f_cv_subtract_applied_force)) {
+      // correct the total force only if it has been measured
+      // TODO add a specific test instead of relying on sq norm
+      if (ft.norm2() > 0.0) {
+        ft -= f_old;
+      }
+    }
+
     x_reported = x;
     ft_reported = ft;
   }
@@ -1208,6 +1208,10 @@ cvm::real colvar::update_forces_energy()
   if (is_enabled(f_cv_fdiff_velocity)) {
     // set it for the next step
     x_old = x;
+  }
+
+  if (is_enabled(f_cv_subtract_applied_force)) {
+    f_old = f;
   }
 
   if (cvm::debug())
@@ -1640,15 +1644,9 @@ std::ostream & colvar::write_traj(std::ostream &os)
   }
 
   if (is_enabled(f_cv_output_applied_force)) {
-    if (is_enabled(f_cv_extended_Lagrangian)) {
-      os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << fr;
-    } else {
-      os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << f;
-    }
+    os << " "
+       << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
+       << applied_force();
   }
 
   return os;

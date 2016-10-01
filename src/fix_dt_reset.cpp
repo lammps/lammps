@@ -48,6 +48,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 0;
   extvector = 0;
+  dynamic_group_allow = 1;
 
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix dt/reset command");

@@ -18,14 +18,14 @@ colvar::distance::distance(std::string const &conf)
   provide(f_cvc_Jacobian);
   provide(f_cvc_com_based);
 
+  group1 = parse_group(conf, "group1");
+  group2 = parse_group(conf, "group2");
+
   if (get_keyval(conf, "forceNoPBC", b_no_PBC, false)) {
     cvm::log("Computing distance using absolute positions (not minimal-image)");
   }
-  if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
-    cvm::log("Computing total force on group 1 only");
-  }
-  group1 = parse_group(conf, "group1");
-  group2 = parse_group(conf, "group2");
+
+  init_total_force_params(conf);
 
   x.type(colvarvalue::type_scalar);
 }
@@ -38,7 +38,6 @@ colvar::distance::distance()
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   provide(f_cvc_com_based);
-  b_1site_force = false;
   b_no_PBC = false;
   x.type(colvarvalue::type_scalar);
 }
@@ -67,7 +66,7 @@ void colvar::distance::calc_gradients()
 void colvar::distance::calc_force_invgrads()
 {
   group1->read_total_forces();
-  if ( b_1site_force ) {
+  if (is_enabled(f_cvc_one_site_total_force)) {
     ft.real_value = -1.0 * (group1->total_force() * dist_v.unit());
   } else {
     group2->read_total_forces();
@@ -97,6 +96,7 @@ colvar::distance_vec::distance_vec(std::string const &conf)
   : distance(conf)
 {
   function_type = "distance_vec";
+  provide(f_cvc_com_based);
   x.type(colvarvalue::type_3vector);
 }
 
@@ -105,6 +105,7 @@ colvar::distance_vec::distance_vec()
   : distance()
 {
   function_type = "distance_vec";
+  provide(f_cvc_com_based);
   x.type(colvarvalue::type_3vector);
 }
 
@@ -185,9 +186,9 @@ colvar::distance_z::distance_z(std::string const &conf)
   if (get_keyval(conf, "forceNoPBC", b_no_PBC, false)) {
     cvm::log("Computing distance using absolute positions (not minimal-image)");
   }
-  if (get_keyval(conf, "oneSiteSystemForce", b_1site_force, false)) {
-    cvm::log("Computing total force on group \"main\" only");
-  }
+
+  init_total_force_params(conf);
+
 }
 
 colvar::distance_z::distance_z()
@@ -251,7 +252,7 @@ void colvar::distance_z::calc_force_invgrads()
 {
   main->read_total_forces();
 
-  if (fixed_axis && !b_1site_force) {
+  if (fixed_axis && !is_enabled(f_cvc_one_site_total_force)) {
     ref1->read_total_forces();
     ft.real_value = 0.5 * ((main->total_force() - ref1->total_force()) * axis);
   } else {
@@ -351,7 +352,7 @@ void colvar::distance_xy::calc_force_invgrads()
 {
   main->read_total_forces();
 
-  if (fixed_axis && !b_1site_force) {
+  if (fixed_axis && !is_enabled(f_cvc_one_site_total_force)) {
     ref1->read_total_forces();
     ft.real_value = 0.5 / x.real_value * ((main->total_force() - ref1->total_force()) * dist_v_ortho);
   } else {
@@ -382,6 +383,7 @@ colvar::distance_dir::distance_dir(std::string const &conf)
   : distance(conf)
 {
   function_type = "distance_dir";
+  provide(f_cvc_com_based);
   x.type(colvarvalue::type_unit3vector);
 }
 
@@ -390,6 +392,7 @@ colvar::distance_dir::distance_dir()
   : distance()
 {
   function_type = "distance_dir";
+  provide(f_cvc_com_based);
   x.type(colvarvalue::type_unit3vector);
 }
 
@@ -461,7 +464,6 @@ colvar::distance_inv::distance_inv()
 {
   function_type = "distance_inv";
   exponent = 6;
-  b_1site_force = false;
   x.type(colvarvalue::type_scalar);
 }
 

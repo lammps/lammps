@@ -460,9 +460,9 @@ void FixTMD::readfile(char *file)
       else
         n = sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg",&itag,&x,&y,&z);
 
-      if (n < 0 && me == 0) {
-        error->warning(FLERR,"Ignoring empty or incorrectly formatted"
-                             " line in target file");
+      if (n < 0) {
+        if (me == 0) error->warning(FLERR,"Ignoring empty or incorrectly"
+                                    " formatted line in target file");
         bufptr = next + 1;
         continue;
       }

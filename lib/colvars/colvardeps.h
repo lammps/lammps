@@ -176,6 +176,8 @@ public:
     f_cv_total_force,
     /// \brief Calculate total force from atomic forces
     f_cv_total_force_calc,
+    /// \brief Subtract the applied force from the total force
+    f_cv_subtract_applied_force,
     /// \brief Estimate Jacobian derivative
     f_cv_Jacobian,
     /// \brief Do not report the Jacobian force as part of the total force
@@ -236,6 +238,7 @@ public:
     /// \brief If enabled, calc_gradients() will call debug_gradients() for every group needed
     f_cvc_debug_gradient,
     f_cvc_Jacobian,
+    f_cvc_one_site_total_force,
     f_cvc_com_based,
     f_cvc_scalable,
     f_cvc_scalable_com,

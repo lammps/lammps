@@ -41,9 +41,9 @@ should be -option=value (e.g. -border=5).
 -border      add border to all sides of simulation box [default: 0 A]
 -ax          rotation around x-axis
 -ay          rotation around y-axis
--az          rotation around z-axis           
+-az          rotation around z-axis
 -cd          correction for dihedral for carbohydrate systems
--cmap        add CMAP section to data file and fix cmap command lines in 
+-cmap        add CMAP section to data file and fix cmap command lines in
                input script" (NOTE: requires use of *.pdb file)
 
 In the "example" folder, you will find example files that were created
@@ -69,26 +69,26 @@ file has to the corresponding names in the charmm FF files. You'll
 need to add a "pdbalias residue x xnew" line for each change that
 needs to be made.  The *.pgn should contain something like this:
 
-package require psfgen   
+package require psfgen
 topology top_all27_na.rtf
-pdbalias residue A ADE 
-pdbalias residue T THY 
-pdbalias residue G GUA 
-pdbalias residue C CYT 
+pdbalias residue A ADE
+pdbalias residue T THY
+pdbalias residue G GUA
+pdbalias residue C CYT
 .
 .
 .
-segment A {pdb 1ac7_pared.pdb}   
-coordpdb 1ac7_pared.pdb A   
-guesscoord   
-writepdb 1ac7.pdb   
-writepsf charmm 1ac7.psf  
-exit 
+segment A {pdb 1ac7_pared.pdb}
+coordpdb 1ac7_pared.pdb A
+guesscoord
+writepdb 1ac7.pdb
+writepsf charmm 1ac7.psf
+exit
 
 5) Type "vmd -e 1ac7.pgn" to build the 1ac7.psf file, and the new
    1ac7.pdb file.
 
-6) Run charmm2lammps.pl by typing: 
+6) Run charmm2lammps.pl by typing:
 "perl charmm2lammps.pl all27_na 1ac7 -charmm -border=1 -pdb_ctrl -water -ions"
 
 7) Run lammps by typing: "lmp < 1ac7.in"
@@ -105,7 +105,7 @@ molecule. The -pdb_ctrl option produces the 1ac7_ctrl.pdb file that
 can be visualized in a standard visualization package such as VMD. The
 -charmm option put comments into the LAMMPS data file (everything
 after the # sign is a comment) for user convenience in tracking atom
-types etc. according to CHARMM nomenclature.   
+types etc. according to CHARMM nomenclature.
 
 The example molecule provided above (i.e., 1ac7) is a DNA fragment.
 If instead, a peptide longer than 2 amino acid residues or a protein

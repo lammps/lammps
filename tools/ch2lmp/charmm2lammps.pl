@@ -10,7 +10,7 @@
 #    20050212	Needed (in the same directory):
 #    		- $project.crd		; Assumed to be correct and running
 #    		- $project.psf		; CHARMM configs
-#    		- top_$forcefield.rtf	; 
+#    		- top_$forcefield.rtf	;
 #    		- par_$forcefield.prm	;
 #    		Ouput:
 #    		- $project.data		; LAMMPS data file
@@ -41,10 +41,10 @@
 #
 #    General	Many thanks to Paul S. Crozier for checking script validity
 #    		against his projects.
-#		Also thanks to Xiaohu Hu (hux2@ornl.gov) and Robert A. Latour 
-#		  (latourr@clemson.edu), David Hyde-Volpe, and Tigran Abramyan, 
-#		  Clemson University and Chris Lorenz (chris.lorenz@kcl.ac.uk), 
-#		  King's College London for their efforts to add CMAP sections, 
+#		Also thanks to Xiaohu Hu (hux2@ornl.gov) and Robert A. Latour
+#		  (latourr@clemson.edu), David Hyde-Volpe, and Tigran Abramyan,
+#		  Clemson University and Chris Lorenz (chris.lorenz@kcl.ac.uk),
+#		  King's College London for their efforts to add CMAP sections,
 #		  which is implemented using the option flag "-cmap".
 
 # Initialization
@@ -52,7 +52,7 @@
   sub Test
   {
     my $name		= shift(@_);
-    
+
     printf("Error: file %s not found\n", $name) if (!scalar(stat($name)));
     return !scalar(stat($name));
   }
@@ -63,7 +63,7 @@
     my $k		= 0;
     my @dir		= ("x", "y", "z");
     my @options		= ("-help", "-nohints", "-water", "-ions", "-center",
-			   "-quiet", "-pdb_ctrl", "-l", "-lx", "-ly", "-lz", 
+			   "-quiet", "-pdb_ctrl", "-l", "-lx", "-ly", "-lz",
 			   "-border", "-ax", "-ay", "-az", "-cmap");
     my @remarks		= ("display this message",
                            "do not print type and style hints in data file",
@@ -83,7 +83,7 @@
 			   "generate a CMAP section in data file"
 			 );
     my $notes;
-    
+
     $program		= "charmm2lammps";
     $version		= "1.9.0";
     $year		= "2016";
@@ -99,7 +99,7 @@
     $L			= (0, 0, 0);
     $cmap		= 0;
     @R 			= M_Unit();
-    
+
     $notes  = "  * The average of extremes is used as the origin\n";
     $notes .= "  * Residues are numbered sequentially\n";
     $notes .= "  * Water is added on an FCC lattice: allow 5 ps for";
@@ -119,7 +119,7 @@
     $notes .= "      - project.data          LAMMPS data file\n";
     $notes .= "      - project.in            suggested LAMMPS input script\n";
     $notes .= "      - project_ctrl.pdb      control file when requested\n";
-    
+
     foreach (@ARGV)
     {
       if (substr($_, 0, 1) eq "-")
@@ -200,7 +200,7 @@
     return "{".$v[0].", ".$v[1].", ".$v[2]."}";
   }
 
-  
+
   sub V_Add
   {
     my @v1		= splice(@_, 0, 3);
@@ -208,8 +208,8 @@
 
     return ($v1[0]+$v2[0], $v1[1]+$v2[1], $v1[2]+$v2[2]);
   }
-  
-    
+
+
   sub V_Subtr
   {
     my @v1		= splice(@_, 0, 3);
@@ -217,8 +217,8 @@
 
     return ($v1[0]-$v2[0], $v1[1]-$v2[1], $v1[2]-$v2[2]);
   }
-  
-    
+
+
   sub V_Dot
   {
     my @v1		= splice(@_, 0, 3);
@@ -226,8 +226,8 @@
 
     return $v1[0]*$v2[0]+$v1[1]*$v2[1]+$v1[2]*$v2[2];
   }
-  
-    
+
+
   sub V_Mult
   {
     my @v		= splice(@_, 0, 3);
@@ -236,12 +236,12 @@
     return ($f*$v[0], $f*$v[1], $f*$v[2]);
   }
 
-  
+
   sub M_String
   {
     my $string;
-    
-    for (my $i=0; $i<3; ++$i) 
+
+    for (my $i=0; $i<3; ++$i)
     {
       $string		.= ", " if ($i);
       $string		.= V_String(splice(@_, 0, 3));
@@ -258,7 +258,7 @@
        @_[2], @_[5], @_[8]);
   }
 
- 
+
   sub M_Dot
   {
     my @v11		= splice(@_, 0, 3);
@@ -268,7 +268,7 @@
     my @v21		= splice(@m, 0, 3);
     my @v22		= splice(@m, 0, 3);
     my @v23		= splice(@m, 0, 3);
-   
+
     return (
       V_Dot(@v11, @v21), V_Dot(@v11, @v22), V_Dot(@v11, @v23),
       V_Dot(@v12, @v21), V_Dot(@v12, @v22), V_Dot(@v12, @v23),
@@ -279,7 +279,7 @@
   sub M_Unit { return (1,0,0, 0,1,0, 0,0,1); }
 
   sub PI { return 4*atan2(1,1); }
-  
+
   sub M_Rotate
   {							# vmd convention
     my $n		= shift(@_);
@@ -294,7 +294,7 @@
     return ($cos,-$sin,0, $sin,$cos,0, 0,0,1) if ($n==2); # around z-axis
     return M_Unit();
   }
-    
+
 
   sub MV_Dot
   {
@@ -305,10 +305,10 @@
 
     return (V_Dot(@v11, @v2), V_Dot(@v12, @v2), V_Dot(@v13, @v2));
   }
-  
-    
+
+
 # CHARMM input
- 
+
   sub PSFConnectivity
   {
     my $n		= PSFGoto(bonds);
@@ -353,8 +353,8 @@
     $dihedral_flag	= 1;
     return $ndihedral;
   }
-	    
-  
+	
+
   sub CreatePSFIndex					# make an index of id
   {							# locations
     my @psf_ids		= ("!NATOM","!NBOND:","!NTHETA:","!NPHI:","!NIMPHI:");
@@ -374,13 +374,13 @@
     }
   }
 
- 
+
   sub PSFGoto						# goto $ident in <PSF>
   {
     CreatePSFIndex() if (!scalar(%PSFIndex));
     my $id		= shift(@_);
     my @n 		= split(" ", $PSFIndex{$id});
-    
+
     @PSFBuffer		= ();
     # return PSFDihedrals() if ($id eq "dihedrals");
     if (!scalar(@n))
@@ -415,10 +415,10 @@
   {
     my $items		= shift(@_);
     my $n		= $items;
-    
+
     if ($psf_ncols>7) { printf(PSF_CTRL "\n"); $psf_ncols = 0; }
-    foreach(@_) 
-    { 
+    foreach(@_)
+    {
       printf(PSF_CTRL " %7d", $_);
       ++$psf_ncols;
       if ((!--$n) && ($psf_ncols>7))
@@ -434,7 +434,7 @@
   sub CRDGoto
   {
     my $n;
-    
+
     return if (shift(@_) ne "atoms");
     open(CRD, "<".($pdb ? $Pdb : $Crd)) if (fileno(CRD) eq "");
     seek(CRD, 0, SEEK_SET);
@@ -451,20 +451,20 @@
     my @data = ();
     my $c = 0;
     my $line;
-    
+
     while (substr($line = <CRD>, 0, 4) ne "ATOM") {};
     chop($line);
     foreach (@n) { push(@data, substr($line, ($c += $_)-$_, $_)); }
     return @data[1, 8, 5, 3, 11, 12, 13, 17, 8, 15];
   }
 
-  
+
   sub Delete
   {
     my $item		= shift(@_);
     my $k		= 0;
     my @list;
-    
+
     foreach (@_)
     {
       my @tmp		= split(" ");
@@ -483,9 +483,9 @@
     my $flag		= $list[0] gt $list[-1];
     my $j		= $n;
     my $tmp;
-    
+
     return "" if (scalar(@list)<$n);
-    $flag		= $list[1] gt $list[-2] 
+    $flag		= $list[1] gt $list[-2]
 			  if ((scalar(@list)>3)&&($list[0] eq $list[-1]));
     for (my $i=0; $i<$n; ++$i)
     {
@@ -506,7 +506,7 @@
     for (my $i=0; $i<$n; ++$i)
     {
       my @tmp		= split(" ", <PSF>);
-      $tmp[5]		= $symbols{$tmp[5]} 
+      $tmp[5]		= $symbols{$tmp[5]}
         if ((substr($tmp[5],0,1) lt '0')||(substr($tmp[5],0,1) gt '9'));
       push(@atom_types, $tmp[5]);
       ++$list{$tmp[5]};
@@ -524,7 +524,7 @@
     return sort({$a<=>$b} keys(%list));
   }
 
-    
+
   sub Markers
   {
     my %markers = (
@@ -543,14 +543,14 @@
   {
     my @cols		= @_;
     my $f		= (scalar(@cols)>3)&&(substr($cols[3],0,1) ne "!");
-    my @tmp		= (-$cols[1], $cols[2], 
+    my @tmp		= (-$cols[1], $cols[2],
 			    $f ? -$cols[4]:-$cols[1], $f ? $cols[5]:$cols[2]);
     $tmp[1]		*= 2.0**(5/6);			# adjust sigma
     $tmp[3]		*= 2.0**(5/6);			# adjust sigma 1-4
     return join(" ", @tmp);
   }
 
-  
+
   sub AtomParameters					# non-bonded parameters
   {
     my @types;
@@ -574,7 +574,7 @@
       if ($markers{$cols[0]} ne "") {
        	$read 		= ($markers{$cols[0]} eq "0") ? 1 : 0; }
     }
-    $list[$types{HT}]	= NonBond(0, -0.046, 0.2245) 
+    $list[$types{HT}]	= NonBond(0, -0.046, 0.2245)
       if ($water_dens&&($list[$types{HT}] eq ""));
     $list[$types{OT}]	= NonBond(0, -0.152100, 1.768200)
       if ($water_dens&&($list[$types{OT}] eq ""));
@@ -593,7 +593,7 @@
     my $id		= (bonds, angles, dihedrals, impropers)[$mode];
     my $n		= PSFGoto($id);
     my %list;
-   
+
     for (my $i=0; $i<$n; ++$i)
     {
       my @tmp		= ();
@@ -624,7 +624,7 @@
   {							# <PARAMETERS>
     my $mode		= shift(@_);			# bonded mode
     return if (($mode>3)||($mode<0));
-    
+
     my $items		= (2, 3, 4, 4)[$mode];		# items per entry
     my $name		= ("bond", "angle", "dihedral", "improper")[$mode];
     my $read		= 0;
@@ -691,7 +691,7 @@
     }
     for (my $i=0; $i<scalar(@types); ++$i)
     {
-      printf("Warning: %s parameter %4d for [%s] was not found\n", 
+      printf("Warning: %s parameter %4d for [%s] was not found\n",
 	$name, $i+1, $types[$i]) if ($parms[$i] eq "");
     }
   }
@@ -702,7 +702,7 @@
     my $id		= shift(@_);
     my $value		= shift(@_);
     my $new		= "";
-    
+
     foreach (split(":", $parms[$id]))
     {
       my @tmp		= split(" ");
@@ -712,8 +712,8 @@
     }
     $parms[$id]		= $new;
   }
-  
-    
+
+
   sub CorrectDihedralParameters
   {
     my $n		= PSFGoto(dihedrals);
@@ -723,7 +723,7 @@
     my $id2;
     my $first;
     my $last;
-    
+
     for (my $i=0; $i<$n; ++$i)
     {
       my @bonded	= PSFGet(4);
@@ -733,7 +733,7 @@
       $first		= $bonded[0];
       $last		= $bonded[3];
       if ($first>$last) { my $tmp = $first; $first = $last; $last = $tmp; }
-      if (($id2 = $hash{$hash_id = $first." ".$last}) eq "") 
+      if (($id2 = $hash{$hash_id = $first." ".$last}) eq "")
       {
 	$hash{$hash_id}	= $id1;				# add id to hash
       }
@@ -757,26 +757,26 @@
     }
   }
 
-  
+
   sub AddMass
   {
     my $symbol		= shift(@_);
     my $mass		= shift(@_);
-    
+
     return if ($symbols{$symbol} ne "");
     $ids{++$max_id}	= $symbol;
     $masses{$max_id}	= $mass;
     $symbols{$symbol}	= $max_id;
   }
 
-  
+
   sub ReadTopology					# read topology links
   {
     my $id		= shift(@_);
     my $item		= shift(@_);
     my $read		= 0;
     my @tmp;
-    
+
     open(TOPOLOGY, "<top_$forcefield.rtf");
     $max_id		= 0;
     while (<TOPOLOGY>)
@@ -821,7 +821,7 @@
     my @z		= (-$L[2]/2, $L[2]/2);
     my $n		= CRDGoto(atoms);
     my $extremes	= !($L[0] && $L[1] && $L[2]);
-    
+
     @Center		= (0, 0, 0);
     return if (!$n);
     for (my $i=0; $i<$n; ++$i)
@@ -858,7 +858,7 @@
     my $s_OT		= 1.7682;			# CHARMM sigma [A]
     my $ahoh		= (180-104.52)/360*PI();
     my @p		= ($loh*cos($ahoh), $loh*sin($ahoh), 0);
-    
+
     printf("Info: creating fcc water\n") if ($info);
     $n_water		= 4;				# molecules/cell
     $nav		= 6.022e23;			# 1/mol
@@ -867,11 +867,11 @@
     @p_water		= (0,0,0, @p, -$p[0],$p[1],0);
     $v_fcc		= $n_water*$v_water;		# cell volume
     $l_fcc		= $v_fcc**(1/3);		# cell length
-    @p_fcc		= (0.00,0.00,0.00, 0.50,0.50,0.00, 
+    @p_fcc		= (0.00,0.00,0.00, 0.50,0.50,0.00,
 			   0.50,0.00,0.50, 0.00,0.50,0.50);
     @n_fcc		= ();
     for (my $i=0; $i<scalar(@L); ++$i)
-    { 
+    {
       my $n		= $L[$i]/$l_fcc;		# calculate n_fcc
       $n		= int($n-int($n) ? $n+1 : $n);	# ceil($n)
       $L[$i]		= $n*$l_fcc;			# adjust box length
@@ -894,18 +894,18 @@
     return $x>0 ? int($x) : int($x)-1;
   }
 
-  
+
   sub Periodic
   {
     my @p		= splice(@_, 0, 3);
-    
+
     return (
       $p[0]-floor($p[0]/$L[0]+0.5)*$L[0],
       $p[1]-floor($p[1]/$L[1]+0.5)*$L[1],
       $p[2]-floor($p[2]/$L[2]+0.5)*$L[2]);
   }
- 
-    
+
+
   sub EraseWater
   {
     my $r		= shift(@_)/2;
@@ -918,7 +918,7 @@
       $p[0]+$r,$p[1]+$r,$p[2]-$r, $p[0]+$r,$p[1]+$r,$p[2]+$r);
     my %list;
     my @n;
-  
+
     my $d2		= ($r_water+$r)**2;
     my @l		= ($L[0]/2, $L[1]/2, $L[2]/2);
     for (my $i=0; $i<scalar(@edges); $i+=3)		# determine candidates
@@ -946,8 +946,8 @@
       $flags_fcc[$n[0]][$n[1]][$n[2]] &= $flags;	# set flags
     }
   }
-  
- 
+
+
   sub CountFCC
    {
     my $n		= 0;
@@ -964,11 +964,11 @@
     return ($n_fccs = $n);
   }
 
-  
+
   sub AddIons
   {
     my $n		= ($n_waters = CountFCC())-int(abs($net_charge));
-   
+
     return if (!$ions);
     printf("Warning: charge not neutralized: too little water\n") if ($n<0);
     return if ($n<0);
@@ -1008,7 +1008,7 @@
 		$flags	|= $salt*(1+$salt*$na)*$bit;	# set type of ion
 	      }
 	    };
-	    $bit	*= 2; 
+	    $bit	*= 2;
 	  }
 	  $flags_fcc[$x][$y][$z] = $flags;
        	}
@@ -1016,7 +1016,7 @@
     }
   }
 
-    
+
 # LAMMPS output
 
   sub WriteLAMMPSHeader					# print lammps header
@@ -1053,12 +1053,12 @@
     printf(PSF_CTRL "\n");
   }
 
-  
+
   sub WriteBoxSize				# print box limits
   {
     my @lo		= V_Mult(@L[0,1,2], -1/2);
     my @hi		= V_Mult(@L[0,1,2], 1/2);
-    
+
     @lo			= V_Add(@lo, @Center) if (!$center);
     @hi			= V_Add(@hi, @Center) if (!$center);
     printf(LAMMPS "%12.8g %12.8g xlo xhi\n", $lo[0], $hi[0]);
@@ -1066,11 +1066,11 @@
     printf(LAMMPS "%12.8g %12.8g zlo zhi\n\n", $lo[2], $hi[2]);
   }
 
-  
+
   sub WriteMasses					# print mass list
   {
     my $k		= 0;
-    
+
     printf(LAMMPS "Masses\n\n");
     foreach (@types)
     {
@@ -1132,7 +1132,7 @@
 		printf(PDB_CTRL "ATOM %6.6s %-4.4s %-3.3s %5.5s %3.3s ".
 		  "%7.7s %7.7s %7.7s %5.5s %5.5s %4.4s %s\n", $k,
 		  $types[$par[$j]-1], $n-1 ? "HOH" : "ION", $res, "",
-		  $xyz[0], $xyz[1], $xyz[2], "1.00", "0.00", "", 
+		  $xyz[0], $xyz[1], $xyz[2], "1.00", "0.00", "",
 		  $n-1 ? "WATR" : "SALT") if ($pdb_ctrl);
 		printf(PSF_CTRL "%8d %4.4s %-4.4s %-4.4s %-4.4s %4.4s ".
 		  "%16.8e %7.7s %9.9s 0\n", $k, $n-1 ? "WATR" : "SALT",
@@ -1154,11 +1154,11 @@
   {
     my $n		= PSFGoto(atoms);
     my @res		= (0, 0);
-    
+
     printf(PSF_CTRL "%8d !NATOM\n", $n+2*$n_waters+$n_fccs);
-    while (<PSF>) 
-    { 
-      last if (!$n--); 
+    while (<PSF>)
+    {
+      last if (!$n--);
       my @psf		= split(" ");
       if ($res[1]!=$psf[2]) { ++$res[0]; $res[1] = $psf[2]; }
       printf(PSF_CTRL "%8d %4.4s %-4.4s %-4.4s %-4.4s %-4.4s ".
@@ -1173,7 +1173,7 @@
     my $n		= PSFGoto(atoms);
     my $k		= 0;
     my @res		= (0, 0);
-    
+
     CRDGoto(atoms);
     $net_charge		= 0;
     printf(LAMMPS "Atoms%s\n\n",($add ? " # full" : "")) if ($n>0);
@@ -1233,7 +1233,7 @@
 	{
 	  my @tmp	= split(" ");
           printf(LAMMPS "%8d", ++$k);
-          for (my $j=0; $j<$n; ++$j) { 
+          for (my $j=0; $j<$n; ++$j) {
 	    printf(LAMMPS " %16.12g", $j<scalar(@tmp) ? $tmp[$j] : 0); }
           printf(LAMMPS "%s\n", $add ? "  # ".$types[$i] : "");
 	}
@@ -1249,7 +1249,7 @@
     my $mode		= shift(@_);
     my $k		= shift(@_);
     my $atom		= $k_fcc;
-    
+
     return $k if (($mode>1)||!$water_dens);
     my $type		= $mode ? CreateID(HT, OT, HT) : CreateID(HT, OT);
     my $id		= $link{$type};
@@ -1266,7 +1266,7 @@
 	  my $bit	= 1;
 	  for (my $i=0; $i<scalar(@p_fcc); $i+=3)
 	  {
-	    if ($flags&$bit) 
+	    if ($flags&$bit)
 	    {
 	      if ($flags&($bit*$salt)) { ++$atom; }
 	      else
@@ -1293,7 +1293,7 @@
     return $k;
   }
 
-  
+
   sub WriteBonded					# print bonded list
   {
     my $mode		= shift(@_);
@@ -1304,7 +1304,7 @@
     my $k		= 0;
     my @delta;
     my @tmp;
-    
+
     return 0 if ($n<1);
     printf(LAMMPS "%s\n\n", ucfirst($title));
     printf(PSF_CTRL "\n%8d %s %s\n", $n+($mode ? ($mode==1 ? $n_waters : 0)
@@ -1349,7 +1349,7 @@
     return $k;
   }
 
-   
+
   sub CreateCorrectedPairCoefficients
   {
     my $read		= 0;
@@ -1372,8 +1372,8 @@
 	if (($id1 ne "")&&($id2 ne ""))
 	{
 	  my @c		= (abs($cols[2]), $cols[3]*2.0**(-1/6));
-	  if ($type{$id2}<$type{$id1}) 
-	  { 
+	  if ($type{$id2}<$type{$id1})
+	  {
 	    my $tmp = $id1; $id1 = $id2; $id2 = $tmp;
 	  }
 	  $coefficients .= ":" if ($coefficients ne "");
@@ -1386,7 +1386,7 @@
     }
   }
 
-  
+
   sub WriteData
   {
     open(LAMMPS, ">$project.in");			# use .in for temporary
@@ -1448,7 +1448,7 @@
     printf(LAMMPS "pair_style      lj/charmm/coul/long 8 12\n");
     printf(LAMMPS "pair_modify     mix arithmetic\n");
     printf(LAMMPS "kspace_style    pppm 1e-6\n\n");
- 
+
     if ($cmap) {
       printf(LAMMPS "# Modify following line to point to the desired CMAP file\n");
       printf(LAMMPS "fix             cmap all cmap charmm$cmap.cmap\n");
@@ -1508,7 +1508,7 @@
   #   Molecular Dynamics Simulations, J. Comput. Chem. 25(2004): 1400-1415.      #
   # ---------------------------------------------------------------------------- #
 
-  sub CharmmCmap 
+  sub CharmmCmap
   {
 	print "\nINITIATING CHARMM CMAP SUBROUTINE...\n\n";
 
@@ -1664,7 +1664,7 @@
 	#         ...
 	#
 	# Criteria to be a PHI/PSI dihedral pair:
-	# 1. Atoms have to match with the mass/charge constellations as 
+	# 1. Atoms have to match with the mass/charge constellations as
 	#    defined above.
 	# 2. The atoms N--CA--C needs to be covalently bonded with each
 	#    other.
@@ -1734,7 +1734,7 @@
 	my $N_PRO_counter = 0;
 
 	my $C_flag = 0;
- 
+
 	for (my $i = 0; $i <= $natom_number; $i++) {
 		my $cur_type = ${$atoms_matrix[$i]}[2];
 		my $cur_charge = ${$atoms_matrix[$i]}[3];
@@ -1777,8 +1777,8 @@
 	}
 
 	# Quit if one of the atom types dosen't exist
-	if ( $C_counter == 0 or 
-	    ($CA_counter == 0 and $CA_GLY_counter == 0 and $CA_PRO_counter == 0) or 
+	if ( $C_counter == 0 or
+	    ($CA_counter == 0 and $CA_GLY_counter == 0 and $CA_PRO_counter == 0) or
 	    ($N_counter == 0 and $N_PRO_counter == 0) ) {
 		if ($C_counter == 0) {
 			print "\nCannot find the peptide backbone C atom type\n";
@@ -1814,21 +1814,21 @@
 		my $cur_atom4_type = ${atoms_matrix[${dihedrals_matrix[$i]}[5]-1]}[2];
 
 		next if (${dihedrals_matrix[$i]}[2] == ${dihedrals_matrix[$i-1]}[2] and
-		         ${dihedrals_matrix[$i]}[3] == ${dihedrals_matrix[$i-1]}[3] and 
+		         ${dihedrals_matrix[$i]}[3] == ${dihedrals_matrix[$i-1]}[3] and
 	                 ${dihedrals_matrix[$i]}[4] == ${dihedrals_matrix[$i-1]}[4] and
                          ${dihedrals_matrix[$i]}[5] == ${dihedrals_matrix[$i-1]}[5]);
 
 		# Determine PHI-dihedrals; If C-CA-N-C or C-N-CA-C, then save it in a list
 		if ($cur_atom1_type == $C_type and $cur_atom4_type == $C_type) {
-			if ( ( ($cur_atom2_type == $CA_type or 
+			if ( ( ($cur_atom2_type == $CA_type or
 			        $cur_atom2_type == $CA_GLY_type or
-				$cur_atom2_type == $CA_PRO_type) and 
+				$cur_atom2_type == $CA_PRO_type) and
 			       ($cur_atom3_type == $N_type or
-			        $cur_atom3_type == $N_PRO_type) ) or 
-			     ( ($cur_atom3_type == $CA_type or 
+			        $cur_atom3_type == $N_PRO_type) ) or
+			     ( ($cur_atom3_type == $CA_type or
 				$cur_atom3_type == $CA_GLY_type or
-			        $cur_atom3_type == $CA_PRO_type) and 
-			       ($cur_atom2_type == $N_type or 
+			        $cur_atom3_type == $CA_PRO_type) and
+			       ($cur_atom2_type == $N_type or
 				$cur_atom2_type == $N_PRO_type) ) ) {
 				push (@PHI_dihedrals,$cur_dihe_ID);
 				$PHI_counter++;
@@ -1837,17 +1837,17 @@
 
 		# Determin PSI-dihedrals; If N-CA-C-N or N-C-CA-N (N can be both normal N or N proline),
 		# then save it in a list
-		if ( ($cur_atom1_type == $N_type and $cur_atom4_type == $N_type) or 
+		if ( ($cur_atom1_type == $N_type and $cur_atom4_type == $N_type) or
 		     ($cur_atom4_type == $N_PRO_type and $cur_atom1_type == $N_PRO_type) or
 	     	     ($cur_atom1_type == $N_type and $cur_atom4_type == $N_PRO_type) or
                      ($cur_atom4_type == $N_type and $cur_atom1_type == $N_PRO_type) ) {
-			if ( ( ($cur_atom2_type == $CA_type or 
+			if ( ( ($cur_atom2_type == $CA_type or
 			        $cur_atom2_type == $CA_GLY_type or
-		                $cur_atom2_type == $CA_PRO_type) and 
+		                $cur_atom2_type == $CA_PRO_type) and
 			        $cur_atom3_type == $C_type) or
-			     ( ($cur_atom3_type == $CA_type or 
-				$cur_atom3_type == $CA_GLY_type or 
-			        $cur_atom3_type == $CA_PRO_type) and 
+			     ( ($cur_atom3_type == $CA_type or
+				$cur_atom3_type == $CA_GLY_type or
+			        $cur_atom3_type == $CA_PRO_type) and
 				$cur_atom2_type == $C_type) ) {
 				push (@PSI_dihedrals,$cur_dihe_ID);
 				$PSI_counter++;
@@ -1871,7 +1871,7 @@
 	#
 	# The algorithm:
 	#         _____
-	#        |     | 
+	#        |     |
 	#     1--2--3--4      PHI-dihedral
 	#     4--3--2--1
 	#   --C--N-CA--C--N-- Peptide backbone
@@ -1887,7 +1887,7 @@
 	#  if (2--3--4) = (4--3--2)
 	#  or
 	#  if (3--2--1) = (1--2--3)
-	#  or 
+	#  or
 	#  if (3--2--1) = (4--3--2),
 	#
 	# then these 2 dihedrals are a PHI/PSI pair. If a pair is found, the
@@ -1940,7 +1940,7 @@
 
 			     if ($crossterm_CA_charge == $charge_CA) { $crossterm_type = 1; $crossterm_type1_flag = 1; }
 			     if ($crossterm_CA_charge == $charge_CA_GLY) { $crossterm_type = 5; $crossterm_type5_flag = 1; }
-			     if ($crossterm_CA_charge == $charge_CA_PRO) { 
+			     if ($crossterm_CA_charge == $charge_CA_PRO) {
 					$crossterm_type = 3; $crossterm_type3_flag = 1;
 					# Checking the last crossterm, re-assign the last crossterm type if needed
 					if ($crossterm_counter-1 >= 0 and $PHI_PSI_matrix[$crossterm_counter-1][0] == 1) {
@@ -1998,7 +1998,7 @@
                 print "acid abbreviation for that amino acid, and <#2> is the molecule number\n";
                 print "of the terminal amino acid residue.\n\n";
                 print "For example, if the last atom of the last amino acid in the peptide\n";
-                print "sequence is listed in the pdb file as:\n\n"; 
+                print "sequence is listed in the pdb file as:\n\n";
                 print "  'ATOM   853  O  GLU  P  56  12.089 -1.695 -6.543 1.00 1.03  PROA'\n\n";
                 print "you would insert the following line after it:\n\n";
                 print "  'TER    854     GLU     56'\n\n";
@@ -2016,7 +2016,7 @@
 	# Print out PHI/PSI diheral pair list
 	my $pair_counter = 0;
         # Don't presently use $ncrosstermtypes but have this available if wish to print it out
-	my $ncrosstermtypes = $crossterm_type1_flag + $crossterm_type2_flag + $crossterm_type3_flag + 
+	my $ncrosstermtypes = $crossterm_type1_flag + $crossterm_type2_flag + $crossterm_type3_flag +
                               $crossterm_type4_flag + $crossterm_type5_flag + $crossterm_type6_flag;
 	print "\nWriting \"$project.data\" with section \"CMAP crossterms\" added at the end.\n";
 	

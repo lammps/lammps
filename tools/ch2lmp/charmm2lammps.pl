@@ -80,12 +80,12 @@
 			   "rotation around x-axis",
 			   "rotation around y-axis",
 			   "rotation around z-axis",
-			   "generate the CMAP section"
+			   "generate a CMAP section in data file"
 			 );
     my $notes;
     
     $program		= "charmm2lammps";
-    $version		= "1.8.3";
+    $version		= "1.9.0";
     $year		= "2016";
     $add		= 1;
     $water_dens		= 0;
@@ -149,8 +149,8 @@
 	@R		= M_Dot(M_Rotate(0, $tmp[1]), @R) if (!$k--);# -ax
 	@R		= M_Dot(M_Rotate(1, $tmp[1]), @R) if (!$k--);# -ay
 	@R		= M_Dot(M_Rotate(2, $tmp[1]), @R) if (!$k--);# -az
-	$cmap		= 1 if (!$k--);
-        # print("Warning: ignoring unknown command line flag: $tmp[0]\n");
+	$cmap		= ($tmp[1] ne "" ? $tmp[1] : 22) if (!$k--); # -cmap
+        print("Warning: ignoring unknown command line flag: $tmp[0]\n") unless $k;
       }
       else
       {
@@ -161,7 +161,7 @@
     $water_dens		= 1 if ($ions && !$water_dens);
     if (($k<2)||$help)
     {
-      printf("\n%s v%s (c)%s by Pieter J. in \'t Veld for SNL\n\n",
+      printf("\n%s v%s (c)2005-%s by Pieter J. in \'t Veld and others\n\n",
         $program, $version, $year);
       printf("Usage:\n  %s.pl [-option[=#] ..] forcefield project\n\n",$program);
       printf("Options:\n");
@@ -172,7 +172,7 @@
       printf("\nNotes:\n%s\n", $notes);
       exit(-1);
     }
-    else { printf("\n%s v%s (c)%s\n\n", $program, $version, $year) if ($info); }
+    else { printf("\n%s v%s (c)2005-%s\n\n", $program, $version, $year) if ($info); }
     my $flag		= Test($Parameters = "par_$forcefield.prm");
     $flag		|= Test($Topology = "top_$forcefield.rtf");
     $flag		|= Test($Pdb = "$project.pdb")
@@ -1021,7 +1021,8 @@
 
   sub WriteLAMMPSHeader					# print lammps header
   {
-    printf(LAMMPS "LAMMPS data file. CGCMM style. atom_style full. Created by $program v$version on %s\n", `date`);
+    printf(LAMMPS "LAMMPS data file. %sCreated by $program v$version on %s\n",
+           ($add ? "CGCMM Style. atom_style full. " : ""),`date`);
     printf(LAMMPS "%12d  atoms\n", $natoms);
     printf(LAMMPS "%12d  bonds\n", $nbonds);
     printf(LAMMPS "%12d  angles\n", $nangles);
@@ -1175,7 +1176,7 @@
     
     CRDGoto(atoms);
     $net_charge		= 0;
-    printf(LAMMPS "Atoms # full\n\n") if ($n>0);
+    printf(LAMMPS "Atoms%s\n\n",($add ? " # full" : "")) if ($n>0);
     for (my $i=0; $i<$n; ++$i)
     {
       my @crd		= $pdb ? NextPDB2CRD() : split(" ", <CRD>);
@@ -1209,7 +1210,7 @@
   {
     my $mode		= shift(@_)+1;
     my $header		= ("Pair","Bond","Angle","Dihedral","Improper")[$mode];
-    my $hint            = ("lj/charmm/coul/long", "harmonic", "charmm", "charmm", "harmonic")[$mode];
+    my $hint            = ("# lj/charmm/coul/long", "# harmonic", "# charmm", "# charmm", "# harmonic")[$mode];
     my $n		= (4, 2, 4, 4, 2)[$mode];
     my $k		= 0;
 
@@ -1223,7 +1224,7 @@
       @parms		= Delete(1, @parms) if ($mode==3);
     }
     return 0 if (!scalar(@parms));
-    printf(LAMMPS "%s Coeffs # %s\n\n", $header, $hint);
+    printf(LAMMPS "%s Coeffs %s\n\n", $header, ($add ? $hint : ""));
     for (my $i=0; $i<scalar(@parms); ++$i)
     {
       if ($parms[$i] ne "")
@@ -1446,11 +1447,11 @@
     printf(LAMMPS "improper_style  harmonic\n\n") if ($nimproper_types);
     printf(LAMMPS "pair_style      lj/charmm/coul/long 8 12\n");
     printf(LAMMPS "pair_modify     mix arithmetic\n");
-    printf(LAMMPS "kspace_style    pppm 1e-4\n\n");
+    printf(LAMMPS "kspace_style    pppm 1e-6\n\n");
  
     if ($cmap) {
-      printf(LAMMPS "# Modify following lines to provide directory path cmap.data and 'project'.data files\n");
-      printf(LAMMPS "fix             cmap all cmap /directoryPath/.../cmap36.data\n");
+      printf(LAMMPS "# Modify following line to point to the desired CMAP file\n");
+      printf(LAMMPS "fix             cmap all cmap charmm$cmap.cmap\n");
       printf(LAMMPS "fix_modify      cmap energy yes\n");
       printf(LAMMPS "read_data       $project.data fix cmap crossterm CMAP\n\n");
     }else{

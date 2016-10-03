@@ -56,11 +56,11 @@ enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
 enum{ARG,OP};
 
 // customize by adding a function
-// if add before OR,
+// if add before XOR:
 // also set precedence level in constructor and precedence length in *.h
 
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
-     NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
+     NOT,EQ,NE,LT,LE,GT,GE,AND,OR,XOR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
@@ -103,7 +103,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   // customize by assigning a precedence level
 
   precedence[DONE] = 0;
-  precedence[OR] = 1;
+  precedence[OR] = precedence[XOR] = 1;
   precedence[AND] = 2;
   precedence[EQ] = precedence[NE] = 3;
   precedence[LT] = precedence[LE] = precedence[GT] = precedence[GE] = 4;
@@ -2088,9 +2088,9 @@ double Variable::evaluate(char *str, Tree **tree)
         op = AND;
         i++;
       } else if (onechar == '|') {
-        if (str[i+1] != '|')
-          error->all(FLERR,"Invalid syntax in variable formula");
-        op = OR;
+        if (str[i+1] == '|') op = OR;
+        else if (str[i+1] == '^') op = XOR;
+        else error->all(FLERR,"Invalid syntax in variable formula");
         i++;
       } else op = DONE;
 
@@ -2179,6 +2179,10 @@ double Variable::evaluate(char *str, Tree **tree)
             else argstack[nargstack++] = 0.0;
           } else if (opprevious == OR) {
             if (value1 != 0.0 || value2 != 0.0) argstack[nargstack++] = 1.0;
+            else argstack[nargstack++] = 0.0;
+          } else if (opprevious == XOR) {
+            if ((value1 == 0.0 && value2 != 0.0) || 
+                (value1 != 0.0 && value2 == 0.0)) argstack[nargstack++] = 1.0;
             else argstack[nargstack++] = 0.0;
           }
         }
@@ -2386,6 +2390,17 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 != 0.0 || arg2 != 0.0) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == XOR) {
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if ((arg1 == 0.0 && arg2 != 0.0) || (arg1 != 0.0 && arg2 == 0.0))
+      tree->value = 1.0;
     else tree->value = 0.0;
     return tree->value;
   }
@@ -2806,6 +2821,13 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == OR) {
     if (eval_tree(tree->first,i) != 0.0 || eval_tree(tree->second,i) != 0.0)
+      return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == XOR) {
+    if ((eval_tree(tree->first,i) == 0.0 && eval_tree(tree->second,i) != 0.0) 
+        ||
+        (eval_tree(tree->first,i) != 0.0 && eval_tree(tree->second,i) == 0.0))
       return 1.0;
     else return 0.0;
   }
@@ -4678,9 +4700,9 @@ double Variable::evaluate_boolean(char *str)
         op = AND;
         i++;
       } else if (onechar == '|') {
-        if (str[i+1] != '|')
-          error->all(FLERR,"Invalid Boolean syntax in if command");
-        op = OR;
+        if (str[i+1] == '|') op = OR;
+        else if (str[i+1] == '^') op = XOR;
+        else error->all(FLERR,"Invalid Boolean syntax in if command");
         i++;
       } else op = DONE;
 
@@ -4763,6 +4785,12 @@ double Variable::evaluate_boolean(char *str)
         } else if (opprevious == OR) {
           if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
           if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
+        } else if (opprevious == XOR) {
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if ((value1 == 0.0 && value2 != 0.0) ||
+              (value1 != 0.0 && value2 == 0.0))
+            argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         }
 

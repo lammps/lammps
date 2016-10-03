@@ -89,10 +89,9 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   memory->create(d2cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d2grid");
   memory->create(d12cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d12grid");
 
-  // read, initialize, broadcast cmapgrid
+  // read and setup CMAP data
 
-  if (me == 0) read_grid_map(arg[3]);
-  MPI_Bcast(&cmapgrid[0][0][0],6*CMAPDIM*CMAPDIM,MPI_DOUBLE,0,world);
+  read_grid_map(arg[3]);
 
   // perform initial allocation of atom-based arrays
   // register with Atom class

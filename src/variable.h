@@ -78,8 +78,8 @@ class Variable : protected Pointers {
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
 
-  int precedence[17];      // precedence level of math operators
-                           // set length to include up to OR in enum
+  int precedence[18];      // precedence level of math operators
+                           // set length to include up to XOR in enum
 
   class Python *python;    // ptr to embedded Python interpreter
 

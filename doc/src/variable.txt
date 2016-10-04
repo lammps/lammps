@@ -47,7 +47,7 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     constants = PI, version, on, off, true, false, yes, no
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
-                     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, !x
+                     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, x |^ y, !x
     math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
@@ -450,7 +450,7 @@ Number: 0.2, 100, 1.0e20, -15.4, etc
 Constant: PI, version, on, off, true, false, yes, no
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, \
-     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, !x
+     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, x |^ y, !x
 Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), \
      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), \
      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), \
@@ -551,9 +551,10 @@ division and the modulo operator "%" are next; addition and
 subtraction are next; the 4 relational operators "<", "<=", ">", and
 ">=" are next; the two remaining relational operators "==" and "!="
 are next; then the logical AND operator "&&"; and finally the logical
-OR operator "||" has the lowest precedence.  Parenthesis can be used
-to group one or more portions of a formula and/or enforce a different
-order of evaluation than what would occur with the default precedence.
+OR operator "||" and logical XOR (exclusive or) operator "|^" have the
+lowest precedence.  Parenthesis can be used to group one or more
+portions of a formula and/or enforce a different order of evaluation
+than what would occur with the default precedence.
 
 NOTE: Because a unary minus is higher precedence than exponentiation,
 the formula "-2^2" will evaluate to 4, not -4.  This convention is
@@ -568,8 +569,10 @@ return 1.0 for all atoms whose x-coordinate is less than 10.0, and 0.0
 for the others.  The logical AND operator will return 1.0 if both its
 arguments are non-zero, else it returns 0.0.  The logical OR operator
 will return 1.0 if either of its arguments is non-zero, else it
-returns 0.0.  The logical NOT operator returns 1.0 if its argument is
-0.0, else it returns 0.0.
+returns 0.0.  The logical XOR operator will return 1.0 if one of its
+arguments is zero and the other non-zero, else it returns 0.0.  The
+logical NOT operator returns 1.0 if its argument is 0.0, else it
+returns 0.0.
 
 These relational and logical operators can be used as a masking or
 selection operation in a formula.  For example, the number of atoms

@@ -139,7 +139,7 @@ InP, myString, a123, ab_23_cd, etc :pre
 
 and Boolean operators:
 
-A == B, A != B, A < B, A <= B, A > B, A >= B, A && B, A || B, !A :pre
+A == B, A != B, A < B, A <= B, A > B, A >= B, A && B, A || B, A |^ B, !A :pre
 
 Each A and B is a number or string or a variable reference like $a or
 $\{abc\}, or A or B can be another Boolean expression.
@@ -155,9 +155,10 @@ precedence: the unary logical NOT operator "!" has the highest
 precedence, the 4 relational operators "<", "<=", ">", and ">=" are
 next; the two remaining relational operators "==" and "!=" are next;
 then the logical AND operator "&&"; and finally the logical OR
-operator "||" has the lowest precedence.  Parenthesis can be used to
-group one or more portions of an expression and/or enforce a different
-order of evaluation than what would occur with the default precedence.
+operator "||" and logical XOR (exclusive or) operator "|^" have the
+lowest precedence.  Parenthesis can be used to group one or more
+portions of an expression and/or enforce a different order of
+evaluation than what would occur with the default precedence.
 
 When the 6 relational operators (first 6 in list above) compare 2
 numbers, they return either a 1.0 or 0.0 depending on whether the
@@ -171,9 +172,11 @@ relationship between A and B is TRUE or FALSE (or just A).  The
 logical AND operator will return 1.0 if both its arguments are
 non-zero, else it returns 0.0.  The logical OR operator will return
 1.0 if either of its arguments is non-zero, else it returns 0.0.  The
-logical NOT operator returns 1.0 if its argument is 0.0, else it
-returns 0.0.  The 3 logical operators can only be used to operate on
-numbers, not on strings.
+logical XOR operator will return 1.0 if one of its arguments is zero
+and the other non-zero, else it returns 0.0.  The logical NOT operator
+returns 1.0 if its argument is 0.0, else it returns 0.0.  The 3
+logical operators can only be used to operate on numbers, not on
+strings.
 
 The overall Boolean expression produces a TRUE result if the result is
 non-zero.  If the result is zero, the expression result is FALSE.

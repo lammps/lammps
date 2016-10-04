@@ -133,14 +133,11 @@ class lammps(object):
           # self.lmp = self.lib.lammps_open_no_mpi(0,None)
 
     else:
-      if isinstance(ptr,lammps):
-        # magic to convert ptr to ctypes ptr
-        pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
-        pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
-        self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
-      else:
-        self.lmp = None
-        raise TypeError('Unsupported type passed as "ptr"')
+      self.opened = 0
+      # magic to convert ptr to ctypes ptr
+      pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
+      pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
+      self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
 
   def __del__(self):
     if self.lmp and self.opened: self.lib.lammps_close(self.lmp)

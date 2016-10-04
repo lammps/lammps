@@ -20,10 +20,14 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+#define SMALL 0.001
 
 /* -------------------------------------------------------------------- */
 
-ImbalanceTime::ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp) {}
+ImbalanceTime::ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp)
+{
+  factor = 1.0;
+}
 
 /* -------------------------------------------------------------------- */
 
@@ -31,7 +35,8 @@ int ImbalanceTime::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
   factor = force->numeric(FLERR,arg[0]);
-  if (factor < 0.0) error->all(FLERR,"Illegal balance weight command");
+  if ((factor < 0.0) || (factor > 2.0))
+    error->all(FLERR,"Illegal balance weight command");
   return 1;
 }
 
@@ -69,7 +74,10 @@ void ImbalanceTime::compute(double *weight)
         const double avgcost = allcost/natoms;
         const double localcost = cost/nlocal;
         const double scale = (1.0-factor) + factor*localcost/avgcost;
-        for (int i = 0; i < nlocal; ++i) weight[i] *= scale;
+        for (int i = 0; i < nlocal; ++i) {
+          weight[i] *= scale;
+          if (weight[i] < SMALL) weight[i] = SMALL;
+        }
       }
 
       // record time up to this point

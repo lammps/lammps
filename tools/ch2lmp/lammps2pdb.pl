@@ -8,9 +8,9 @@
 #  		conjunction with vmd
 #
 #  Notes:	Copyright by author for Sandia National Laboratories
-#    20040903	Conception date of v1.0: rudimentary script for collagen 
+#    20040903	Conception date of v1.0: rudimentary script for collagen
 #    		project.
-#    20050423	Conception date of v2.0: 
+#    20050423	Conception date of v2.0:
 #    		- changed data access through indexing data directly on disk;
 #    		- added all command line options
 #    20050425	Corrected focussing to use a target molecule's moment of
@@ -22,21 +22,21 @@
 #    		the data stream.
 
 # subroutines
-  
+
   sub test
   {
     my $name		= shift(@_);
-    
+
     printf("Error: file %s not found\n", $name) if (!scalar(stat($name)));
     return !scalar(stat($name));
   }
 
-  
+
   sub initialize
   {
     my $k		= 0;
-    my @options		= ("-help", "-nstart", "-dn", "-cut", "-repair", 
-			   "-units", "-quiet", "-nodetect", "-data", "-pbc", 
+    my @options		= ("-help", "-nstart", "-dn", "-cut", "-repair",
+			   "-units", "-quiet", "-nodetect", "-data", "-pbc",
 			   "-focus", "-center", "-exclude");
     my @remarks		= ("display this message",
 			   "starting frame [-1]",
@@ -61,7 +61,7 @@
       "* Expected files in current directory: project.data, project.dump",
       "* Generated output files: project_trj.psf, project_trj.pdb",
       "* Uses project_ctrl.psf if available");
-    
+
 
     $program		= "lammps2pdb";
     $version		= "2.2.5";
@@ -96,7 +96,7 @@
 	$info		= $switch ? 0 : 1 if (!$k--);
 	$detect		= $switch ? 0 : 1 if (!$k--);
 	$data_name	= $arg[1] if (!$k--);
-	if (!$k--) { 
+	if (!$k--) {
 	  if ($switch) { $pbc{ALL} = 1; }
 	  else { foreach (split(",",$arg[1])) { $pbc{uc($_)} = 1; }}}
 	if (!$k--) { foreach (split(",",$arg[1])) { $focus{uc($_)} = uc($_);}}
@@ -120,7 +120,7 @@
       printf("\n");
       exit(-1);
     }
-    printf("%s v%s (c)%s\n\n", $program, $version, $year) if ($info);   
+    printf("%s v%s (c)%s\n\n", $program, $version, $year) if ($info);
 
     $data_name		= $project.".data" if ($data_name eq "");
     $traject_name	= $project.".dump";
@@ -133,7 +133,7 @@
     my $flag		= test($data_name);
     printf("Conversion aborted\n\n") if ($flag);
     exit(-1) if ($flag);
-    
+
     # data input
 
     create_atom_ids();
@@ -145,9 +145,9 @@
 
     open(PSF, ">".$psf_name) if (!$psf_ctrl);
     open(PDB, ">".$pdb_name);
-    
+
     # align center with focus
-    
+
     %center		= %focus if (scalar(%focus));
   }
 
@@ -166,24 +166,24 @@
     return @_;
   }
 
-  
+
   sub V_Add					# V_Add(@a, @b) = @a + @b;
   {
     return (@_[0]+@_[3], @_[1]+@_[4], @_[2]+@_[5]);
   }
-  
-    
+
+
   sub V_Subtr					# V_Subtr(@a, @b) = @a - @b;
   {
     return (@_[0]-@_[3], @_[1]-@_[4], @_[2]-@_[5]);
   }
-  
-    
+
+
   sub V_Dot					# V_Dot(@a, @b) = @a . @b;
   {
     return (@_[0]*@_[3]+@_[1]*@_[4]+@_[2]*@_[5]);
   }
-  
+
 
   sub V_Cross					# V_Cross(@a, @b) = @a x @b;
   {
@@ -191,7 +191,7 @@
       @_[0]*@_[4]-@_[1]*@_[3]);
   }
 
-  
+
   sub V_Mult					# V_Mult($f, @a) = $f * @a;
   {
     return (@_[0]*@_[1], @_[0]*@_[2], @_[0]*@_[3]);
@@ -203,11 +203,11 @@
     return V_Mult(1/sqrt(V_Dot(@_[0,1,2],@_[0,1,2])), @_[0,1,2]);
   }
 
-  
+
   sub pbc					# periodic -0.5*L <= x < 0.5*L
   {
     my $x		= @_[0]/@_[1]+0.5;
-    
+
     return @_[0]-@_[1]*($x<0 ? int($x)-1 : int($x));
   }
 
@@ -216,8 +216,8 @@
   {
     return (pbc(@_[0], @_[3]), pbc(@_[1], @_[4]), pbc(@_[2], @_[5]));
   }
-  
-  
+
+
   sub V_Cmp					# V_Cmp(abs(@a), abs(@b))
   {
     return -1 if (abs($_[0])<abs($_[3]));
@@ -228,12 +228,12 @@
     return  1 if (abs($_[2])>abs($_[5]));
     return 0;
   }
-  
-    
+
+
   sub V_Sort					# sort on descending absolute
   {						# value
     my @v		= @_;
-    
+
     for (my $i=0; $i<scalar(@v)-3; $i+=3)
     {
       for (my $j=$i+3; $j<scalar(@v); $j+=3)
@@ -247,13 +247,13 @@
     return @v;
   }
 
-  
+
 # Matrix routines
 
   sub M_String					# M_String(@A)
   {
     my @M;
-    
+
     for (my $i=0; $i<3; ++$i) { push(@M, V_String(splice(@_, 0, 3))); }
     return "{".join(", ", @M)."}";
   }
@@ -270,7 +270,7 @@
     return (@_[0], @_[3], @_[6], @_[1], @_[4], @_[7], @_[2], @_[5], @_[8]);
   }
 
- 
+
   sub M_Dot					# M_Dot(@A, @B) = @A . @B;
   {
     return (
@@ -288,7 +288,7 @@
     return V_Dot(@_[0,1,2], V_Cross(@_[3,4,5], @_[6,7,8]));
   }
 
-  
+
   sub M_Mult					# M_Mult($a, @A) = $a * @A
   {
     return (
@@ -296,12 +296,12 @@
       @_[0]*@_[4], @_[0]*@_[5], @_[0]*@_[6],
       @_[0]*@_[7], @_[0]*@_[8], @_[0]*@_[9]);
   }
-  
+
 
   sub M_Unit { return (1,0,0, 0,1,0, 0,0,1); }
 
   sub PI { return 4*atan2(1,1); }
-  
+
   sub M_Rotate					# M_Rotate($n, $alpha) = @R_$n;
   {						# vmd convention
     my $n		= shift(@_);
@@ -316,7 +316,7 @@
     return ($cos,-$sin,0, $sin,$cos,0, 0,0,1) if ($n==2); # around z-axis
     return M_Unit();
   }
-    
+
 
   sub M_RotateNormal				# returns R.(1,0,0) = @a/|@a|;
   {
@@ -324,7 +324,7 @@
     my @n		= V_Mult(1.0/sqrt(V_Dot(@_[0,1,2], @_)), @_);
     my $sina		= $n[1]<0 ? -sqrt($n[1]*$n[1]+$n[2]*$n[2]) :
 				     sqrt($n[1]*$n[1]+$n[2]*$n[2]);
-    
+
     if ($sina)
     {
       my $cosa		= $n[0];
@@ -337,8 +337,8 @@
     }
     return @R;
   }
-  
-  
+
+
   sub MV_Dot					# MV_Dot(@A, @b) = @A . @b;
   {
     return (V_Dot(@_[0,1,2], @_[9,10,11]), V_Dot(@_[3,4,5], @_[9,10,11]),
@@ -374,14 +374,14 @@
   {
     return (@_[0]+@_[2], @_[1]+@_[3]);
   }
-  
-    
+
+
   sub C_Subtr					# z = z1 - z2
   {
     return (@_[0]-@_[2], @_[1]-@_[3]);
   }
-  
-    
+
+
   sub C_Mult					# z = z1 * z2
   {
     return (@_[0]*@_[2]-@_[1]*@_[3], @_[0]*@_[3]+@_[2]*@_[1]);
@@ -404,7 +404,7 @@
     return ($r*cos($a), $r*sin($a));
   }
 
-  
+
   sub C_Correct
   {
     return (abs(@_[0])<1e-14 ? 0 : @_[0], abs(@_[1])<1e-14 ? 0 : @_[1]);
@@ -422,7 +422,7 @@
     return (@_[0], -@_[1]);
   }
 
-  
+
   sub C_String
   {
     return @_[0]." + ".@_[1]."i";
@@ -434,12 +434,12 @@
   sub R_Sort
   {
     my $n		= scalar(@_);
-    
+
     for (my $i=0; $i<$n-2; $i+=2)
     {
       for (my $j=$i+2; $j<$n; $j+=2)
       {
-	if (@_[$j]<@_[$i]) { 
+	if (@_[$j]<@_[$i]) {
 	  my @t = @_[$i,$i+1]; @_[$i,$i+1] = @_[$j,$j+1]; @_[$j,$j+1] = @t; }
 	else { if ((@_[$j]==@_[$i])&&(@_[$j+1]<@_[$i+1])) {
 	  my @t = @_[$i,$i+1]; @_[$i,$i+1] = @_[$j,$j+1]; @_[$j,$j+1] = @t; } }
@@ -448,7 +448,7 @@
     return @_;
   }
 
-  
+
   sub R_First
   {
     return (0, 0) if (abs(@_[1])<1e-14);
@@ -476,16 +476,16 @@
     my @B		= (0, 0);
     my @z1		= (0.5, 0.5*sqrt(3));
     my @z2		= C_Conj(@z1);
-   
+
     if (abs($f1)<1e-3) { 				# limit f1 -> 0
       @A		= ($f2<0 ? abs(2*$f2)**(1/3) : 0, 0); }
-    else { 
+    else {
       if (abs($f2)<1e-14) {				# limit f2 -> 0
 	my $f		= sqrt(abs($f1))/$c3;
 	@A		= $f1<0 ? (-$f*$z1[1], 0.5*$f) : ($f, 0);
 	@B		= $f1<0 ? (-$A[0], $A[1]) : ($f, 0); }
       else {
-	@B		= C_Pow(C_Add(($f2, 0), 
+	@B		= C_Pow(C_Add(($f2, 0),
 			    C_Pow(($f1*$f1*$f1+$f2*$f2, 0), 1/2)), 1/3);
 	@A		= C_Div(($f1/$c3, 0), @B);
 	@B		= ($B[0]/$c3, $B[1]/$c3); } }
@@ -503,21 +503,21 @@
     my $input		= shift;
     my $dlines		= shift;
     my $read;
-    
+
     while ($dlines--) { $read = <$input>; }
     return $read;
   }
 
-  
+
   sub rewind_read
   {
     my $input		= shift;
-    
+
     seek($input, 0, SEEK_SET);
   }
 
 
-# create crossreference tables 
+# create crossreference tables
 
   sub create_psf_index					# make an index of id
   {							# locations
@@ -538,13 +538,13 @@
     }
   }
 
- 
+
   sub psf_goto						# goto $ident in <PSF>
   {
     create_psf_index() if (!scalar(%PSFIndex));
     my $id		= shift(@_);
     my @n 		= split(" ", $PSFIndex{$id});
-    
+
     @PSFBuffer		= ();
     if (!scalar(@n))
     {
@@ -571,7 +571,7 @@
     my $id;
     my %hash;
     my %size;
-    
+
     foreach ((masses,atoms,bonds,angles,dihedrals,impropers)) { $hash{$_}=$_; }
     open(DATA, "<".$data_name);
     for (my $i=0; $i<2; ++$i) { my $tmp = <DATA>; }	# skip first two lines
@@ -604,7 +604,7 @@
     }
   }
 
-  
+
   sub goto_data
   {
     create_data_index() if (!scalar(%DATAIndex));
@@ -623,7 +623,7 @@
 
 
 # create atom and residue identifiers
-  
+
   sub create_names
   {
     return if (scalar(@names));
@@ -636,7 +636,7 @@
     my @letter		= ("X", "Y", "Z", "P", "Q", "R", "S", "A", "B", "C");
     my $k		= 0;
     my %atom;
-    
+
     $names[0]		= "";
     foreach (@mass) { $atom{$_} = shift(@name); }
     for (my $i=1; $i<=$n; ++$i)
@@ -658,7 +658,7 @@
     my @data		= @_;
     my $p		= $data[1]." ".$data[2];
     my $k;
-    
+
     for ($k=0; ($k<scalar(@data))&&(substr($data[$k],0,1) ne "#"); ++$k) { }
     @data		= splice(@data, $k-($k<8 ? 3 : 6), $k<8 ? 3 : 6);
     foreach (@L)
@@ -669,8 +669,8 @@
     }
     return $p;
   }
-  
-  
+
+
   sub create_atom_ids
   {
     my $res		= 0;
@@ -682,7 +682,7 @@
     my $id;
     my %link;
     my %special;
-    
+
     printf("Info: creating atom ids\n") if ($info);
     create_names();
     $n			= goto_data(atoms);
@@ -696,8 +696,8 @@
       {
 	if ((($tmp = $link{$id = join(" ", sort(split(" ", $id)))}) eq "")&&
 	    (($tmp = $special{$id}) eq ""))
-	{  
-	  $link{$id}	= 
+	{
+	  $link{$id}	=
 	      $tmp 	= "R".($res<10 ? "0" : "").$res;
 	  ++$res;
 	}
@@ -712,12 +712,12 @@
     }
   }
 
-  
+
   sub crossover
   {
     my @d		= V_Subtr((split(" ", $position[@_[0]]))[0,1,2],
 				  (split(" ", $position[@_[1]]))[0,1,2]);
-  
+
     $d[0]		/= $l[3];
     $d[1]		/= $l[4];
     $d[2]		/= $l[5];
@@ -744,7 +744,7 @@
   {
     my $n		= scalar(@bonds);
     my $i		= 0;
-    
+
     printf("Info: deleting excluded bonds\n") if ($info);
     while ($i<$n)
     {
@@ -754,12 +754,12 @@
       else { ++$i; }
     }
   }
-  
-  
+
+
   sub create_bonds
   {
     my $n		= goto_data(bonds);
-    
+
     printf("Info: creating bonds\n") if ($info);
     for (my $i=0; $i<$n; ++$i)
     {
@@ -779,20 +779,20 @@
     while (!eof(TRAJECT)&&(substr(lc(join(" ", split(" ", <TRAJECT>))),
 				  0,length($subject)) ne $subject)) {}
   }
-  
-  
+
+
   sub read_traject
   {
     my @box;
     my @l;
-    
+
     advance_traject("timestep");
     my $timestep	= (split(" ", <TRAJECT>))[0];
     advance_traject("number of atoms");
     my $n		= (split(" ", <TRAJECT>))[0];
     advance_traject("box bounds");
     for (my $i=0; $i<3; ++$i)
-    { 
+    {
       my @data		= split(" ", <TRAJECT>);
       $box[$i]		= $data[0];			# box edge
       $l[$i]		= $data[1]-$data[0];		# box length
@@ -806,9 +806,9 @@
     return ($timestep, $n, @box, @l);
   }
 
-  
+
 # pdb format
- 
+
   sub eigen_vector				# eigen_vector(@A, $l)
   {
     my @A		= splice(@_,0,9);
@@ -826,8 +826,8 @@
     return (0,0,1) if ($A[8]==1);
     return (0,0,0);
   }
-  
-    
+
+
   sub pdb_inertia
   {
     my @s		= (
@@ -852,13 +852,13 @@
 			    M_Transpose(M_RotateNormal(MV_Dot(@A,@b))));
     return M_Dot(@B, @A);
   }
-    
-      
+
+
 
   sub pdb_focus		# using moment of inertia
   {
     my @R		= pdb_inertia(@_);
-    
+
     printf("Info: focussing\n") if ($info);
     foreach (@position)
     {
@@ -867,7 +867,7 @@
     }
   }
 
-  
+
   sub pdb_center	
   {
     my @c		= splice(@_, 0, 3);
@@ -881,7 +881,7 @@
     }
   }
 
-  
+
   sub pdb_pbc
   {
     printf("Info: applying periodicity\n") if ($info);
@@ -909,7 +909,7 @@
     }
   }
 
-  
+
   sub pdb_positions
   {
     my @m		= (0,0,0,0,0,0,0,0,0);
@@ -918,7 +918,7 @@
     my $mass;
     my @p;
     my $d;
-  
+
     foreach (@traject)
     {
       my @arg		= split(" ");
@@ -974,7 +974,7 @@
     printf(PDB "%-11.11s", "P 1");
     printf(PDB "%3.3s\n", "1");
   }
-  
+
 
   sub pdb_atoms
   {
@@ -998,15 +998,15 @@
       foreach (@p) { $_ = 0 if (abs($_)<1e-4); }
       printf(PDB "ATOM  ");				# pdb command
       printf(PDB "%6.6s ", ++$n);			# atom number
-      printf(PDB "%-3.3s ", 
+      printf(PDB "%-3.3s ",
 	$psf_ctrl ? $psf[4] : $names[$p[4]]);		# atom name
-      printf(PDB "%-3.3s ", 
+      printf(PDB "%-3.3s ",
 	$psf_ctrl ? $psf[3] : $residue[$nres]);		# residue name
       printf(PDB "%5.5s ", $nres);			# residue number
       printf(PDB "%3.3s ", "");				# empty placeholder
       printf(PDB "%7.7s %7.7s %7.7s ",
        	$p[0], $p[1], $p[2]);				# positions
-      printf(PDB "%5.5s %5.5s %4.4s ", 
+      printf(PDB "%5.5s %5.5s %4.4s ",
 	"1.00", "0.00", "");				# trailing variables
       printf(PDB "%-4.4s\n",
        	$psf_ctrl ? $psf[1] : $cluster[$nres]);		# cluster name
@@ -1015,7 +1015,7 @@
     };
     printf(PDB "END\n");
   }
- 
+
 
   sub pdb_timestep
   {
@@ -1045,7 +1045,7 @@
     my $l		= 0;
     my $k		= 0;
     my @extra;
-    
+
     for (my $i=0; $i<$n; ++$i)
     {
       my @arg		= split(" ", <DATA>);
@@ -1073,13 +1073,13 @@
     }
     printf(PSF "\n");
   }
-  
+
 
   sub psf_bonds
   {
     my $npairs		= 0;
-  
-    delete_exclude() if (scalar(%exclude)>0); 
+
+    delete_exclude() if (scalar(%exclude)>0);
     delete_crossovers() if ($cut);
     printf(PSF "%8.8s !NBOND\n", scalar(@bonds));
     foreach (@bonds)
@@ -1098,7 +1098,7 @@
   initialize();
 
   # create .pdb file
- 
+
   $ncurrent		= -1;
   while ($traject_flag&&!eof(TRAJECT))
   {
@@ -1134,4 +1134,4 @@
 
   close(TRAJECT);
   close(DATA);
-  
+

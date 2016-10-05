@@ -19,6 +19,9 @@
 #include "timer.h"
 #include "error.h"
 
+// DEBUG
+#include "update.h"
+
 using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
@@ -54,17 +57,31 @@ void ImbalanceTime::compute(double *weight)
 
   // cost = CPU time for relevant timers since last invocation
   // localwt = weight assigned to each owned atom
-  
+  // just return if no time yet tallied
+
   double cost = -last;
   cost += timer->get_wall(Timer::PAIR);
   cost += timer->get_wall(Timer::NEIGH);
   cost += timer->get_wall(Timer::BOND);
   cost += timer->get_wall(Timer::KSPACE);
-  
+
+  /*
+  printf("TIME %ld %d %g %g: %g %g %g %g\n",
+         update->ntimestep,atom->nlocal,last,cost,
+         timer->get_wall(Timer::PAIR),
+         timer->get_wall(Timer::NEIGH),
+         timer->get_wall(Timer::BOND),
+         timer->get_wall(Timer::KSPACE));
+  */
+
+  double maxcost;
+  MPI_Allreduce(&cost,&maxcost,1,MPI_DOUBLE,MPI_MAX,world);
+  if (maxcost <= 0.0) return;
+
   int nlocal = atom->nlocal;
   double localwt = 0.0;
   if (nlocal) localwt = cost/nlocal;
-  
+
   if (nlocal && localwt <= 0.0) error->one(FLERR,"Balance weight <= 0.0");
 
   // apply factor if specified != 1.0

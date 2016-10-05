@@ -303,6 +303,14 @@ public:
                  COLVARS_NOT_IMPLEMENTED);
   }
 
+  /// Are total forces being used?
+  virtual bool total_forces_enabled() const
+  {
+    cvm::error("Error: total forces are currently not implemented.\n",
+               COLVARS_NOT_IMPLEMENTED);
+    return false;
+  }
+
   /// \brief Get the PBC-aware distance vector between two positions
   virtual cvm::rvector position_distance(cvm::atom_pos const &pos1,
                                          cvm::atom_pos const &pos2) = 0;

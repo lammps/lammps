@@ -242,13 +242,7 @@ int colvarbias_abf::update()
       for (size_t i = 0; i < colvars.size(); i++) {
         // get total forces (lagging by 1 timestep) from colvars
         // and subtract previous ABF force
-        system_force[i] = colvars[i]->total_force().real_value
-                        - colvar_forces[i].real_value;
-//         if (cvm::debug())
-//           cvm::log("ABF System force calc: cv " + cvm::to_str(i) +
-//                   " fs " + cvm::to_str(system_force[i]) +
-//                   " = ft " + cvm::to_str(colvars[i]->total_force().real_value) +
-//                   " - fa " + cvm::to_str(colvar_forces[i].real_value));
+        update_system_force(i);
       }
       gradients->acc_force(force_bin, system_force);
     }
@@ -260,8 +254,7 @@ int colvarbias_abf::update()
         for (size_t i = 0; i < colvars.size(); i++) {
           // If we are outside the range of xi, the force has not been obtained above
           // the function is just an accessor, so cheap to call again anyway
-          system_force[i] = colvars[i]->total_force().real_value
-                          - colvar_forces[i].real_value;
+          update_system_force(i);
         }
         z_gradients->acc_force(z_bin, system_force);
       }

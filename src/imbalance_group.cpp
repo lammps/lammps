@@ -18,12 +18,11 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-#define SMALL 0.001
 
 /* -------------------------------------------------------------------- */
 
-ImbalanceGroup::ImbalanceGroup(LAMMPS *lmp) : Imbalance(lmp),
-                id(0), factor(0), num(0) {}
+ImbalanceGroup::ImbalanceGroup(LAMMPS *lmp) : Imbalance(lmp), id(0), factor(0)
+{}
 
 /* -------------------------------------------------------------------- */
 
@@ -50,7 +49,7 @@ int ImbalanceGroup::options(int narg, char **arg)
     if (id[i] < 0)
       error->all(FLERR,"Unknown group in balance weight command");
     factor[i] = force->numeric(FLERR,arg[2*i+2]);
-    if (factor[i] < 0.0) error->all(FLERR,"Illegal balance weight command");
+    if (factor[i] <= 0.0) error->all(FLERR,"Illegal balance weight command");
   }
   return 2*num+1;
 }
@@ -67,13 +66,10 @@ void ImbalanceGroup::compute(double *weight)
 
   for (int i = 0; i < nlocal; ++i) {
     const int imask = mask[i];
-    double iweight = weight[i];
     for (int j = 0; j < num; ++j) {
       if (imask & bitmask[id[j]])
-        iweight *= factor[j];
+        weight[i] *= factor[j];
     }
-    if (iweight < SMALL) weight[i] = SMALL;
-    else weight[i] = iweight;
   }
 }
 

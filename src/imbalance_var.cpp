@@ -24,11 +24,10 @@
 #include "update.h"
 
 using namespace LAMMPS_NS;
-#define SMALL 0.001
 
 /* -------------------------------------------------------------------- */
 
-ImbalanceVar::ImbalanceVar(LAMMPS *lmp) : Imbalance(lmp), name(0), id(0) {}
+ImbalanceVar::ImbalanceVar(LAMMPS *lmp) : Imbalance(lmp), name(0) {}
 
 /* -------------------------------------------------------------------- */
 
@@ -76,10 +75,15 @@ void ImbalanceVar::compute(double *weight)
   memory->create(values,nlocal,"imbalance:values");
 
   input->variable->compute_atom(id,all,values,1,0);
-  for (int i = 0; i < nlocal; ++i) {
-    weight[i] *= values[i];
-    if (weight[i] < SMALL) weight[i] = SMALL;
-  }
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (values[i] <= 0.0) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->one(FLERR,"Balance weight <= 0.0");
+
+  for (int i = 0; i < nlocal; i++) weight[i] *= values[i];
 
   memory->destroy(values);
 }

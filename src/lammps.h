@@ -168,16 +168,7 @@ E: Cannot use -cuda on and -kokkos on together
 
 This is not allowed since both packages can use GPUs.
 
-E: Cannot use -cuda on without USER-CUDA installed
-
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built.
-
 E: Cannot use -kokkos on without KOKKOS installed
-
-Self-explanatory.
-
-E: Using suffix cuda without USER-CUDA package enabled
 
 Self-explanatory.
 

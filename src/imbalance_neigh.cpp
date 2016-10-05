@@ -22,14 +22,14 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-#define SMALL 0.001
+
+#define BIG 1.0e20
 
 /* -------------------------------------------------------------------- */
 
 ImbalanceNeigh::ImbalanceNeigh(LAMMPS *lmp) : Imbalance(lmp)
 {
   did_warn = 0;
-  factor = 1.0;
 }
 
 /* -------------------------------------------------------------------- */
@@ -38,8 +38,7 @@ int ImbalanceNeigh::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
   factor = force->numeric(FLERR,arg[0]);
-  if ((factor < 0.0) || (factor > 2.0))
-    error->all(FLERR,"Illegal balance weight command");
+  if (factor <= 0.0) error->all(FLERR,"Illegal balance weight command");
   return 1;
 }
 
@@ -52,7 +51,7 @@ void ImbalanceNeigh::compute(double *weight)
   if (factor == 0.0) return;
 
   // find suitable neighbor list
-  // we can only make use of certain (conventional) neighbor lists
+  // can only use certain conventional neighbor lists
 
   for (req = 0; req < neighbor->old_nrequest; ++req) {
     if ((neighbor->old_requests[req]->half ||
@@ -65,37 +64,46 @@ void ImbalanceNeigh::compute(double *weight)
 
   if (req >= neighbor->old_nrequest || neighbor->ago < 0) {
     if (comm->me == 0 && !did_warn)
-      error->warning(FLERR,"No suitable neighbor list found. "
-                     "Neighbor weighted balancing skipped");
+      error->warning(FLERR,"Balance weight neigh skipped b/c no list found");
     did_warn = 1;
     return;
   }
 
+  // neighsum = total neigh count for atoms on this proc
+  // localwt = weight assigned to each owned atom
+
   NeighList *list = neighbor->lists[req];
-  bigint neighsum = 0;
-  
   const int inum = list->inum;
   const int * const ilist = list->ilist;
   const int * const numneigh = list->numneigh;
+  int nlocal = atom->nlocal;
 
-  // first pass: get local number of neighbors
-
+  bigint neighsum = 0;
   for (int i = 0; i < inum; ++i) neighsum += numneigh[ilist[i]];
+  double localwt = 0.0;
+  if (nlocal) localwt = 1.0*neighsum/nlocal;
 
-  double allatoms = static_cast <double>(atom->natoms);
-  if (allatoms == 0.0) allatoms = 1.0;
-  double allavg;
-  double myavg = static_cast<double>(neighsum)/allatoms;
-  MPI_Allreduce(&myavg,&allavg,1,MPI_DOUBLE,MPI_SUM,world);
-  
-  // second pass: compute and apply weights
+  if (nlocal && localwt <= 0.0) error->one(FLERR,"Balance weight <= 0.0");
 
-  double scale = 1.0/allavg;
-  for (int ii = 0; ii < inum; ++ii) {
-    const int i = ilist[ii];
-    weight[i] *= (1.0-factor) + factor*scale*numneigh[i];
-    if (weight[i] < SMALL) weight[i] = SMALL;
+  // apply factor if specified != 1.0
+  // wtlo,wthi = lo/hi values excluding 0.0 due to no atoms on this proc
+  // lo value does not change
+  // newhi = new hi value to give hi/lo ratio factor times larger/smaller
+  // expand/contract all localwt values from lo->hi to lo->newhi
+
+  if (factor != 1.0) {
+    double wtlo,wthi;
+    if (localwt == 0.0) localwt = BIG;
+    MPI_Allreduce(&localwt,&wtlo,1,MPI_DOUBLE,MPI_MIN,world);
+    if (localwt == BIG) localwt = 0.0;
+    MPI_Allreduce(&localwt,&wthi,1,MPI_DOUBLE,MPI_MAX,world);
+    if (wtlo == wthi) return;
+
+    double newhi = wthi*factor;
+    localwt = wtlo + ((localwt-wtlo)/(wthi-wtlo)) * (newhi-wtlo);
   }
+
+  for (int i = 0; i < nlocal; i++) weight[i] *= localwt;
 }
 
 /* -------------------------------------------------------------------- */

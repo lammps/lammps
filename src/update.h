@@ -81,14 +81,6 @@ class Update : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: USER-CUDA mode requires CUDA variant of run style
-
-CUDA mode is enabled, so the run style must include a cuda suffix.
-
-E: USER-CUDA mode requires CUDA variant of min style
-
-CUDA mode is enabled, so the min style must include a cuda suffix.
-
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the

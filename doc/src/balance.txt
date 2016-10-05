@@ -319,24 +319,25 @@ accurately would be impractical and slow down the computation.
 Instead the {weight} keyword implements several ways to influence the
 per-particle weights empirically by properties readily available or
 using the user's knowledge of the system.  Note that the absolute
-value of the weights are not important; their ratio is what is used to
-assign particles to processors.  A particle with a weight of 2.5 is
-assumed to require 5x more computational than a particle with a weight
-of 0.5.
+value of the weights are not important; only their relative ratios
+affect which particle is assigned to which processor.  A particle with
+a weight of 2.5 is assumed to require 5x more computational than a
+particle with a weight of 0.5.  For all the options below the weight
+assigned to a particle must be a positive value; an error will be be
+generated if a weight is <= 0.0.
 
 Below is a list of possible weight options with a short description of
 their usage and some example scenarios where they might be applicable.
-It is possible to apply multiple weight flags and the weightins they
+It is possible to apply multiple weight flags and the weightings they
 induce will be combined through multiplication.  Most of the time,
 however, it is sufficient to use just one method.
 
 The {group} weight style assigns weight factors to specified
 "groups"_group.html of particles.  The {group} style keyword is
 followed by the number of groups, then pairs of group IDs and the
-corresponding weight factor. If a particle belongs to none of the
+corresponding weight factor.  If a particle belongs to none of the
 specified groups, its weight is not changed.  If it belongs to
 multiple groups, its weight is the product of the weight factors.
-The weight factors have to be positive.
 
 This weight style is useful in combination with pair style
 "hybrid"_pair_hybrid.html, e.g. when combining a more costly manybody
@@ -347,14 +348,24 @@ the computational cost for each group remains constant over time.
 This is a purely empirical weighting, so a series test runs to tune
 the assigned weight factors for optimal performance is recommended.
 
-The {neigh} weight style assigns a weight to each particle equal to
-its number of neighbors divided by the avergage number of neighbors
-for all particles.  The {factor} setting is then appied as an overall
-scale factor to all the {neigh} weights which allows tuning of the
-impact of this style.  A {factor} smaller than 1.0 (e.g. 0.8) often
-results in the best performance, since the number of neighbors is
-likely to overestimate the ideal weight. The factor has to be between
-0.0 and 2.0.
+The {neigh} weight style assigns the same weight to each particle
+owned by a processor based on the total count of neighbors in the
+neighbor list owned by that processor.  The motivation is that more
+neighbors means a higher computational cost.  The style does not use
+neighbors per atom to assign a unique weight to each atom, because
+that value can vary depending on how the neighbor list is built.
+
+The {factor} setting is applied as an overall scale factor to the
+{neigh} weights which allows adjustment of their impact on the
+balancing operation.  The specified {factor} value must be positive.
+A value > 1.0 will increase the weights so that the ratio of max
+weight to min weight increases by {factor}.  A value < 1.0 will
+decrease the weights so that the ratio of max weight to min weight
+decreases by {factor}.  In both cases the intermediate weight values
+increase/decrease proportionally as well.  A value = 1.0 has no effect
+on the {neigh} weights.  As a rule of thumb, we have found a {factor}
+of about 0.8 often results in the best performance, since the number
+of neighbors is likely to overestimate the ideal weight.
 
 This weight style is useful for systems where there are different
 cutoffs used for different pairs of interations, or the density
@@ -370,35 +381,48 @@ weights are computed.  Inserting a "run 0 post no"_run.html command
 before issuing the {balance} command, may be a workaround for this
 case, as it will induce the neighbor list to be built.
 
-The {time} weight style uses "timer data"_timer.html to estimate a
-weight for each particle.  It uses the same information as is used for
-the "MPI task timing breakdown"_Section_start.html#start_8, namely,
-the timings for sections {Pair}, {Bond}, {Kspace}, and {Neigh}.  The
-time spent in these sections of the timestep are measured for each MPI
-rank, summed up, then converted into a cost for each MPI rank relative
-to the average cost over all MPI ranks for the same sections.  That
-cost then evenly distributed over all the particles owned by that
-rank.  Finally, the {factor} setting is then appied as an overall
-scale factor to all the {time} weights as a way to fine tune the
-impact of this weight style.  Good {factor} values to use are
-typically between 0.5 and 1.2. Allowed are values between 0.0 and 2.0.
+The {time} weight style uses "timer data"_timer.html to estimate
+weights.  It assigns the same weight to each particle owned by a
+processor based on the total computational time spent by that
+processor.  See details below on what time window is used.  It uses
+the same timing information as is used for the "MPI task timing
+breakdown"_Section_start.html#start_8, namely, for sections {Pair},
+{Bond}, {Kspace}, and {Neigh}.  The time spent in those portions of
+the timestep are measured for each MPI rank, summed, then divided by
+the number of particles owned by that processor.  I.e. the weight is
+an effective CPU time/particle averaged over the particles on that
+processor.
 
-For the {balance} command the timing data is taken from the preceding
-run command, i.e. the timings are for the entire previous run.  For
-the {fix balance} command the timing data is for only the timesteps
-since the last balancing operation was performed.  If timing
-information for the required sections is not available, e.g. at the
-beginning of a run, or when the "timer"_timer.html command is set to
-either {loop} or {off}, a warning is issued.  In this case no weights
-are computed.
+The {factor} setting is applied as an overall scale factor to the
+{time} weights which allows adjustment of their impact on the
+balancing operation.  The specified {factor} value must be positive.
+A value > 1.0 will increase the weights so that the ratio of max
+weight to min weight increases by {factor}.  A value < 1.0 will
+decrease the weights so that the ratio of max weight to min weight
+decreases by {factor}.  In both cases the intermediate weight values
+increase/decrease proportionally as well.  A value = 1.0 has no effect
+on the {time} weights.  As a rule of thumb, effective values to use
+are typicall between 0.5 and 1.2.  Note that the timer quantities
+mentioned above can be affected by communication which occurs in the
+middle of the operations, e.g. pair styles with intermediate exchange
+of data witin the force computation, and likewise for KSpace solves.
 
-This weight style is the most generic one, and should be tried first,
-if neither the {group} or {neigh} styles are easily applicable.
-However, since the computed cost function is averaged over all local
-particles this weight style may not be highly accurate.  This style
-can also be effective as a secondary weight in combination with either
-{group} or {neigh} to offset some of inaccuracies in either of those
-heuristics.
+When using the {time} weight style with the {balance} command, the
+timing data is taken from the preceding run command, i.e. the timings
+are for the entire previous run.  For the {fix balance} command the
+timing data is for only the timesteps since the last balancing
+operation was performed.  If timing information for the required
+sections is not available, e.g. at the beginning of a run, or when the
+"timer"_timer.html command is set to either {loop} or {off}, a warning
+is issued.  In this case no weights are computed.
+
+NOTE: The {time} weight style is the most generic option, and should
+be tried first, unless the {group} style is easily applicable.
+However, since the computed cost function is averaged over all
+particles on a processor, the weights may not be highly accurate.
+This style can also be effective as a secondary weight in combination
+with either {group} or {neigh} to offset some of inaccuracies in
+either of those heuristics.
 
 The {var} weight style assigns per-particle weights by evaluating an
 "atom-style variable"_variable.html specified by {name}.  This is

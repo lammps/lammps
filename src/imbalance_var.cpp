@@ -45,14 +45,14 @@ int ImbalanceVar::options(int narg, char **arg)
   int len = strlen(arg[0]) + 1;
   name = new char[len];
   memcpy(name,arg[0],len);
-  init();
+  init(0);
 
   return 1;
 }
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceVar::init()
+void ImbalanceVar::init(int flag)
 {
   id = input->variable->find(name);
   if (id < 0) {
@@ -75,7 +75,15 @@ void ImbalanceVar::compute(double *weight)
   memory->create(values,nlocal,"imbalance:values");
 
   input->variable->compute_atom(id,all,values,1,0);
-  for (int i = 0; i < nlocal; ++i) weight[i] *= values[i];
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (values[i] <= 0.0) flag = 1;
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+  if (flagall) error->one(FLERR,"Balance weight <= 0.0");
+
+  for (int i = 0; i < nlocal; i++) weight[i] *= values[i];
 
   memory->destroy(values);
 }

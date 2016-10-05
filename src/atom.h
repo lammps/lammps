@@ -124,11 +124,6 @@ class Atom : protected Pointers {
   char **iname,**dname;
   int nivector,ndvector;
 
-  // used by USER-CUDA to flag used per-atom arrays
-
-  unsigned int datamask;
-  unsigned int datamask_ext;
-
   // atom style and per-atom array existence flags
   // customize by adding new flag
 

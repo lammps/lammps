@@ -38,7 +38,7 @@ class Balance : protected Pointers {
   void command(int, char **);
   void options(int, int, char **);
   void weight_storage(char *);
-  void init_imbalance();
+  void init_imbalance(int);
   void set_weights();
   double imbalance_factor(double &);
   void shift_setup(char *, int, double);

@@ -183,6 +183,16 @@ c
       real*8, external :: zbl
       real*8, external :: compute_phi
 
+c check for previously allocated arrays and free them
+      if(allocated(phir)) deallocate(phir)
+      if(allocated(phirar)) deallocate(phirar)
+      if(allocated(phirar1)) deallocate(phirar1)
+      if(allocated(phirar2)) deallocate(phirar2)
+      if(allocated(phirar3)) deallocate(phirar3)
+      if(allocated(phirar4)) deallocate(phirar4)
+      if(allocated(phirar5)) deallocate(phirar5)
+      if(allocated(phirar6)) deallocate(phirar6)
+
 c allocate memory for array that defines the potential
       allocate(phir(nr,(neltypes*(neltypes+1))/2))
 

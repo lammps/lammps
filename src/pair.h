@@ -97,9 +97,6 @@ class Pair : protected Pointers {
   class NeighList *listmiddle;
   class NeighList *listouter;
 
-  unsigned int datamask;
-  unsigned int datamask_ext;
-
   int allocated;                 // 0/1 = whether arrays are allocated
                                  //       public so external driver can check
   int compute_flag;              // 0 if skip compute()
@@ -190,9 +187,6 @@ class Pair : protected Pointers {
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
-
-  virtual unsigned int data_mask() {return datamask;}
-  virtual unsigned int data_mask_ext() {return datamask_ext;}
 
   // management of callbacks to be run from ev_tally()
 

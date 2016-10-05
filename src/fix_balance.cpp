@@ -26,6 +26,7 @@
 #include "modify.h"
 #include "fix_store.h"
 #include "rcb.h"
+#include "timer.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -113,7 +114,8 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   // only force reneighboring if nevery > 0
 
   if (nevery) force_reneighbor = 1;
-
+  lastbalance = -1;
+  
   // compute initial outputs
 
   itercount = 0;
@@ -153,7 +155,7 @@ void FixBalance::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  balance->init_imbalance();
+  balance->init_imbalance(1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,6 +172,12 @@ void FixBalance::setup(int vflag)
 
 void FixBalance::setup_pre_exchange()
 {
+  // do not allow rebalancing twice on same timestep
+  // even if wanted to, can mess up elapsed time in ImbalanceTime
+
+  if (update->ntimestep == lastbalance) return;
+  lastbalance = update->ntimestep;
+
   // insure atoms are in current box & update box via shrink-wrap
   // has to be be done before rebalance() invokes Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
@@ -201,6 +209,12 @@ void FixBalance::pre_exchange()
   // return if not a rebalance timestep
 
   if (nevery && update->ntimestep < next_reneighbor) return;
+
+  // do not allow rebalancing twice on same timestep
+  // even if wanted to, can mess up elapsed time in ImbalanceTime
+
+  if (update->ntimestep == lastbalance) return;
+  lastbalance = update->ntimestep;
 
   // insure atoms are in current box & update box via shrink-wrap
   // no exchange() since doesn't matter if atoms are assigned to correct procs
@@ -284,7 +298,7 @@ void FixBalance::rebalance()
   if (kspace_flag) force->kspace->setup_grid();
 
   // pending triggers pre_neighbor() to compute final imbalance factor
-  // can only be done after atoms migrate in caller's comm->exchange()
+  // can only be done after atoms migrate in comm->exchange()
 
   pending = 1;
 }

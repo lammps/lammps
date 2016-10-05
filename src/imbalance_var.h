@@ -27,7 +27,7 @@ class ImbalanceVar : public Imbalance {
   // parse options. return number of arguments consumed.
   virtual int options(int, char **);
   // re-initialize internal data, e.g. variable ID
-  virtual void init();
+  virtual void init(int);
   // compute per-atom imbalance and apply to weight array
   virtual void compute(double *);
   // print information about the state of this imbalance compute (required)

@@ -24,11 +24,11 @@ To use the charmm2lammps.pl script, type: "perl charmm2lammps.pl
 <forcefield> <project> [-option=value ...]" where <forcefield> is the
 name of the CHARMM FF you are using, (i.e. all22_prot), and <project>
 is the common name of your *.crd and *.psf files.  Possible options
-are listed next.  If the option requires a parameter, the syntax
-should be -option=value (e.g. -border=5).
+are listed below.  If the option requires a parameter, the syntax
+must be like this: -option=value (e.g. -border=5).
 
 -help        display available options
--charmm      add charmm types to LAMMPS data file
+-nohints     do not add charmm types and style hints to LAMMPS data file
 -water       add TIP3P water [default: 1 g/cc]
 -ions        add (counter)ions using Na+ and Cl- [default: 0 mol/l]
 -center      recenter atoms
@@ -42,9 +42,8 @@ should be -option=value (e.g. -border=5).
 -ax          rotation around x-axis
 -ay          rotation around y-axis
 -az          rotation around z-axis
--cd          correction for dihedral for carbohydrate systems
 -cmap        add CMAP section to data file and fix cmap command lines in
-               input script" (NOTE: requires use of *.pdb file)
+             input script" (NOTE: requires use of *.pdb file)
 
 In the "example" folder, you will find example files that were created
 by following the steps below. These steps describe how to take a
@@ -89,9 +88,9 @@ exit
    1ac7.pdb file.
 
 6) Run charmm2lammps.pl by typing:
-"perl charmm2lammps.pl all27_na 1ac7 -charmm -border=1 -pdb_ctrl -water -ions"
+"perl charmm2lammps.pl all27_na 1ac7 -border=1 -pdb_ctrl -water -ions"
 
-7) Run lammps by typing: "lmp < 1ac7.in"
+7) Run lammps by typing: "lmp_mpi -in 1ac7.in"
 
 8) Run lammps2pdb.pl by typing: "perl lammps2pdb.pl 1ac7"
 
@@ -102,10 +101,11 @@ molecule and converts them into LAMMPS format. The -water option
 embeds the molecule in water on a crystal lattice. The -border option
 includes a layer of water surrounding the minimum dimensions of the
 molecule. The -pdb_ctrl option produces the 1ac7_ctrl.pdb file that
-can be visualized in a standard visualization package such as VMD. The
--charmm option put comments into the LAMMPS data file (everything
+can be visualized in a standard visualization package such as VMD. By
+default, comments are added into the LAMMPS data file (everything
 after the # sign is a comment) for user convenience in tracking atom
-types etc. according to CHARMM nomenclature.
+types etc. according to CHARMM nomenclature. If this is not desired,
+the -nohints option can be used to turn off this function.
 
 The example molecule provided above (i.e., 1ac7) is a DNA fragment.
 If instead, a peptide longer than 2 amino acid residues or a protein
@@ -131,7 +131,7 @@ speed.
 The -ions option allows the user to neutralize the simulation cell
 with Na+ or Cl- counterions if the molecule has a net charge
 Additional salt can be added by increasing the default concentration
-(e.g. -ions=0.5).
+(i.e., -ions=0.5).
 
 ** In the "other" file folder, you will find:
 
@@ -146,3 +146,4 @@ Additional salt can be added by increasing the default concentration
 3) A 3rd party perl script called "crd2pdb.pl"
 
 4) A 3rd party fortran code called "pdb_to_crd.f"
+

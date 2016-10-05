@@ -328,12 +328,6 @@ E: Package command after simulation box is defined
 The package command cannot be used afer a read_data, read_restart, or
 create_box command.
 
-E: Package cuda command without USER-CUDA package enabled
-
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built, and the "-c on" must be used to enable the
-package.
-
 E: Package gpu command without GPU package installed
 
 The GPU package must be installed via "make yes-gpu" before LAMMPS is

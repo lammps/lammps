@@ -29,10 +29,9 @@ class Angle : protected Pointers {
   double energy;                  // accumulated energies
   double virial[6];               // accumlated virial
   double *eatom,**vatom;          // accumulated per-atom energy/virial
-  unsigned int datamask;
-  unsigned int datamask_ext;
 
   // KOKKOS host/device flag and data masks
+
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
   int copymode;
@@ -50,9 +49,6 @@ class Angle : protected Pointers {
   virtual void write_data(FILE *) {}
   virtual double single(int, int, int, int) = 0;
   virtual double memory_usage();
-
-  virtual unsigned int data_mask() {return datamask;}
-  virtual unsigned int data_mask_ext() {return datamask_ext;}
 
  protected:
   int suffix_flag;             // suffix compatibility flag

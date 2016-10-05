@@ -101,6 +101,7 @@ void PairEAMAlloyOMP::coeff(int narg, char **arg)
         if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 

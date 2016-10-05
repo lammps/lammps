@@ -43,7 +43,7 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE,INAME,DNAME};
-enum{LT,LE,GT,GE,EQ,NEQ};
+enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 
 #define INVOKED_PERATOM 8
@@ -947,6 +947,11 @@ int DumpCustom::count()
       } else if (thresh_op[ithresh] == NEQ) {
         for (i = 0; i < nlocal; i++, ptr += nstride)
           if (choose[i] && *ptr == value) choose[i] = 0;
+      } else if (thresh_op[ithresh] == XOR) {
+        for (i = 0; i < nlocal; i++, ptr += nstride)
+          if (choose[i] && (*ptr == 0.0 && value == 0.0) || 
+              (*ptr != 0.0 && value != 0.0))
+            choose[i] = 0;
       }
     }
   }
@@ -1835,6 +1840,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[2],">=") == 0) thresh_op[nthresh] = GE;
     else if (strcmp(arg[2],"==") == 0) thresh_op[nthresh] = EQ;
     else if (strcmp(arg[2],"!=") == 0) thresh_op[nthresh] = NEQ;
+    else if (strcmp(arg[2],"|^") == 0) thresh_op[nthresh] = XOR;
     else error->all(FLERR,"Invalid dump_modify threshold operator");
 
     // set threshold value

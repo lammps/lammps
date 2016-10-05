@@ -45,14 +45,14 @@ int ImbalanceVar::options(int narg, char **arg)
   int len = strlen(arg[0]) + 1;
   name = new char[len];
   memcpy(name,arg[0],len);
-  init();
+  init(0);
 
   return 1;
 }
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceVar::init()
+void ImbalanceVar::init(int flag)
 {
   id = input->variable->find(name);
   if (id < 0) {

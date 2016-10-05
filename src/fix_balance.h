@@ -53,6 +53,7 @@ class FixBalance : public Fix {
   int itercount;                // iteration count of last call to Balance
   int kspace_flag;              // 1 if KSpace solver defined
   int pending;
+  bigint lastbalance;           // last timestep balancing was attempted
 
   class Balance *balance;
   class Irregular *irregular;

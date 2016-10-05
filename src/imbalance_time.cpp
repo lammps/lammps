@@ -19,9 +19,6 @@
 #include "timer.h"
 #include "error.h"
 
-// DEBUG
-#include "update.h"
-
 using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
@@ -41,12 +38,18 @@ int ImbalanceTime::options(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   reset last, needed for fix balance caller
+   reset last and timers if necessary
 ------------------------------------------------------------------------- */
 
-void ImbalanceTime::init()
+void ImbalanceTime::init(int flag)
 {
   last = 0.0;
+
+  // flag = 1 if called from FixBalance at start of run
+  //   init Timer, so accumulated time not carried over from previous run
+  // should NOT init Timer if called from Balance, it uses time from last run
+
+  if (flag) timer->init();
 }
 
 /* -------------------------------------------------------------------- */
@@ -64,15 +67,6 @@ void ImbalanceTime::compute(double *weight)
   cost += timer->get_wall(Timer::NEIGH);
   cost += timer->get_wall(Timer::BOND);
   cost += timer->get_wall(Timer::KSPACE);
-
-  /*
-  printf("TIME %ld %d %g %g: %g %g %g %g\n",
-         update->ntimestep,atom->nlocal,last,cost,
-         timer->get_wall(Timer::PAIR),
-         timer->get_wall(Timer::NEIGH),
-         timer->get_wall(Timer::BOND),
-         timer->get_wall(Timer::KSPACE));
-  */
 
   double maxcost;
   MPI_Allreduce(&cost,&maxcost,1,MPI_DOUBLE,MPI_MAX,world);

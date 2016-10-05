@@ -27,7 +27,7 @@ class ImbalanceTime : public Imbalance {
   // parse options, return number of arguments consumed
   virtual int options(int, char **);
   // reinitialize internal data
-  virtual void init();
+  virtual void init(int);
   // compute and apply weight factors to local atom array
   virtual void compute(double *);
   // print information about the state of this imbalance compute

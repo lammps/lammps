@@ -52,4 +52,3 @@ fix		0 all balance 50 1.0 shift x 5 1.0 &
                 weight neigh 0.5 weight time 0.66 weight store WEIGHT
 run             500
 run             500
-

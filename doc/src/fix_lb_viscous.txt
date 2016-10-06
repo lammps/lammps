@@ -11,13 +11,13 @@ fix lb/viscous command :h3
 [Syntax:]
 
 fix ID group-ID lb/viscous :pre
-  
+
 ID, group-ID are documented in "fix"_fix.html command
 lb/viscous = style name of this fix command :ul
 
 [Examples:]
 
-fix 1 flow lb/viscous 
+fix 1 flow lb/viscous
 
 [Description:]
 
@@ -90,5 +90,5 @@ lb/rigid/pc/sphere"_fix_lb_rigid_pc_sphere.html
 
 :line
 
-:link(Mackay) 
+:link(Mackay)
 [(Mackay et al.)] Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.

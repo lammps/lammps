@@ -68,7 +68,7 @@ temp/berendsen"_fix_temp_berendsen.html, and "fix
 langevin"_fix_langevin.html.  This means that when this compute
 is used to calculate the temperature for any of the thermostatting
 fixes via the "fix modify temp"_fix_modify.html command, the thermostat
-will operate only on atoms that are currently in the geometric 
+will operate only on atoms that are currently in the geometric
 region.
 
 Unlike other compute styles that calculate temperature, this compute

@@ -43,7 +43,7 @@ internally; hence the units of K are in energy/radian^2.
 The also required {lj/sdk} parameters will be extracted automatically
 from the pair_style.
 
-[Restrictions:] 
+[Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the
 USER-CG-CMM package.  See the "Making

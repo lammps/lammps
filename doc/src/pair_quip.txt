@@ -86,11 +86,11 @@ therefore should be used with LAMMPS metal "units"_units.html.
 
 :line
 
-:link(Bartok_2010) 
+:link(Bartok_2010)
 
 [(Bartok_2010)] AP Bartok, MC Payne, R Kondor, and G Csanyi, Physical
 Review Letters 104, 136403 (2010).
 
-:link(Bartok_PhD) 
+:link(Bartok_PhD)
 [(Bartok_PhD)] A Bartok-Partay, PhD Thesis, University of Cambridge,
 (2010).

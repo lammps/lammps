@@ -5,7 +5,7 @@
 :link(lc,Section_commands.html#comm)
 
 :line
-   
+
 dump command :h3
 "dump custom/vtk"_dump_custom_vtk.html command :h3
 "dump h5md"_dump_h5md.html command :h3
@@ -55,13 +55,13 @@ args = list of arguments for a particular style :l
 
   {custom} or {custom/gz} or {custom/mpiio} args = list of atom attributes
     possible attributes = id, mol, proc, procp1, type, element, mass,
-			  x, y, z, xs, ys, zs, xu, yu, zu, 
-			  xsu, ysu, zsu, ix, iy, iz,
-			  vx, vy, vz, fx, fy, fz,
+                          x, y, z, xs, ys, zs, xu, yu, zu,
+                          xsu, ysu, zsu, ix, iy, iz,
+                          vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz, mu,
                           radius, diameter, omegax, omegay, omegaz,
-			  angmomx, angmomy, angmomz, tqx, tqy, tqz,
-			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
+                          angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                          c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
       mol = molecule ID
@@ -211,7 +211,7 @@ bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:
 
-ITEM: BOX BOUNDS xy xz yz xx yy zz 
+ITEM: BOX BOUNDS xy xz yz xx yy zz
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
 zlo_bound zhi_bound yz :pre
@@ -305,8 +305,8 @@ by the GROMACS molecular dynamics package, and described
 The precision used in XTC files can be adjusted via the
 "dump_modify"_dump_modify.html command.  The default value of 1000
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
-files are portable binary files written in the NFS XDR data format, 
-so that any machine which supports XDR should be able to read them. 
+files are portable binary files written in the NFS XDR data format,
+so that any machine which supports XDR should be able to read them.
 The number of atoms per snapshot cannot change with the {xtc} style.
 The {unwrap} option of the "dump_modify"_dump_modify.html command allows
 XTC coordinates to be written "unwrapped" by the image flags for each
@@ -499,7 +499,7 @@ values.
 Here is an example of how to dump bond info for a system, including
 the distance and energy of each bond:
 
-compute 1 all property/local batom1 batom2 btype 
+compute 1 all property/local batom1 batom2 btype
 compute 2 all bond/local dist eng
 dump 1 all local 1000 tmp.dump index c_1\[1\] c_1\[2\] c_1\[3\] c_2\[1\] c_2\[2\] :pre
 

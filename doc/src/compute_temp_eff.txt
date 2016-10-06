@@ -49,9 +49,9 @@ reported by LAMMPS in the thermodynamic quantities reported via the
 example:
 
 compute         effTemp all temp/eff
-thermo_style    custom step etotal pe ke temp press 
+thermo_style    custom step etotal pe ke temp press
 thermo_modify   temp effTemp :pre
- 
+
 A 6-component kinetic energy tensor is also calculated by this compute
 for use in the computation of a pressure tensor.  The formula for the
 components of the tensor is the same as the above formula, except that
@@ -80,7 +80,7 @@ is independent of the number of atoms in the simulation.  The vector
 values are "extensive", meaning they scale with the number of atoms in
 the simulation.
 
-[Restrictions:] 
+[Restrictions:]
 
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making

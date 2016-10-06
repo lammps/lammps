@@ -27,7 +27,7 @@ keyword = {file} or {ave} or {start} or {file} or {overwrite}:l
   {start} args = Nstart
     Nstart = start averaging on this timestep
   {file} arg = filename
-    filename = name of file to output time averages to 
+    filename = name of file to output time averages to
   {overwrite} arg = none = overwrite output file with only latest output :pre
 
 :ule
@@ -42,28 +42,28 @@ fix saed/vtk 1 1 1 c_2 file Ni_000.saed :pre
 
 [Description:]
 
-Time average computed intensities from "compute saed"_compute_saed.html and 
-write output to a file in the 3rd generation vtk image data format for 
-visualization directly in parallelized visualization software packages 
-like ParaView and VisIt. Note that if no time averaging is done, this 
-command can be used as a convenient way to simply output diffraction 
+Time average computed intensities from "compute saed"_compute_saed.html and
+write output to a file in the 3rd generation vtk image data format for
+visualization directly in parallelized visualization software packages
+like ParaView and VisIt. Note that if no time averaging is done, this
+command can be used as a convenient way to simply output diffraction
 intensities at a single snapshot.
 
 To produce output in the image data vtk format ghost data is added
-outside the {Kmax} range assigned in the compute saed. The ghost data is 
-assigned a value of -1 and can be removed setting a minimum isovolume 
-of 0 within the vizualiziton software. SAED images can be created by 
-visualizing a spherical slice of the data that is centered at 
+outside the {Kmax} range assigned in the compute saed. The ghost data is
+assigned a value of -1 and can be removed setting a minimum isovolume
+of 0 within the vizualiziton software. SAED images can be created by
+visualizing a spherical slice of the data that is centered at
 R_Ewald*\[h k l\]/norm(\[h k l\]), where R_Ewald=1/lambda.
 
-The group specified within this command is ignored. However, note that 
+The group specified within this command is ignored. However, note that
 specified values may represent calculations performed by saed computes
 which store their own "group" definitions.
 
 Fix saed/vtk is designed to work only with "compute saed"_compute_saed.html
 values, e.g.
 
-compute 3 top saed 0.0251 Al O 
+compute 3 top saed 0.0251 Al O
 fix saed/vtk 1 1 1 c_3 file Al2O3_001.saed :pre
 
 :line
@@ -76,8 +76,8 @@ quantities, computed in the preceding portion of the simulation every
 {Nevery} timesteps.  {Nfreq} must be a multiple of {Nevery} and
 {Nevery} must be non-zero even if {Nrepeat} is 1.
 Also, the timesteps
-contributing to the average value cannot overlap, 
-i.e. Nrepeat*Nevery can not exceed Nfreq. 
+contributing to the average value cannot overlap,
+i.e. Nrepeat*Nevery can not exceed Nfreq.
 
 For example, if Nevery=2, Nrepeat=6, and Nfreq=100, then values on
 timesteps 90,92,94,96,98,100 will be used to compute the final average
@@ -89,8 +89,8 @@ averaging is done; values are simply generated on timesteps
 :line
 
 The output for fix ave/time/saed is a file writen with the 3rd generation
-vtk image data formatting.  The filename assigned by the {file} keyword is 
-appended with _N.vtk where N is an index (0,1,2...) to account for multiple 
+vtk image data formatting.  The filename assigned by the {file} keyword is
+appended with _N.vtk where N is an index (0,1,2...) to account for multiple
 diffraction intensity outputs.
 
 By default the header contains the following information (with example data):
@@ -101,15 +101,15 @@ ASCII
 DATASET STRUCTURED_POINTS
 DIMENSIONS 337 219 209
 ASPECT_RATIO 0.00507953 0.00785161 0.00821458
-ORIGIN -0.853361 -0.855826 -0.854316 
+ORIGIN -0.853361 -0.855826 -0.854316
 POINT_DATA 15424827
 SCALARS intensity float
 LOOKUP_TABLE default
 ...data  :pre
 
 In this example, kspace is sampled across a 337 x 219 x 209 point mesh
-where the mesh spacing is approximately 0.005, 0.007, and 0.008 
-inv(length) units in the k1, k2, and k3 directions, respectively.  
+where the mesh spacing is approximately 0.005, 0.007, and 0.008
+inv(length) units in the k1, k2, and k3 directions, respectively.
 The data is shifted by -0.85, -0.85, -0.85 inv(length) units so that
 the origin will lie at 0, 0, 0.   Here, 15,424,827 kspace points are
 sampled in total.
@@ -149,9 +149,9 @@ setting {start} to a larger value can avoid including a 0.0 in a
 running or windowed average.
 
 The {file} keyword allows a filename to be specified.  Every {Nfreq}
-steps, the vector of saed intensity data is written to a new file using 
-the 3rd generation vtk format.  The base of each file is assigned by 
-the {file} keyword and this string is appended with _N.vtk where N is 
+steps, the vector of saed intensity data is written to a new file using
+the 3rd generation vtk format.  The base of each file is assigned by
+the {file} keyword and this string is appended with _N.vtk where N is
 an index (0,1,2...) to account for situations with multiple diffraction
 intensity outputs.
 
@@ -169,16 +169,16 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.  This fix is not invoked during "energy
 minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 The attributes for fix_saed_vtk must match the values assigned in the
 associated "compute_saed"_compute_saed.html command.
 
-[Related commands:] 
+[Related commands:]
 
 "compute_saed"_compute_saed.html
 
-[Default:] 
+[Default:]
 
 The option defaults are ave = one, start = 0, no file output.
 

@@ -49,7 +49,7 @@ atom.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html. 
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy stored in all the springs to the system's potential

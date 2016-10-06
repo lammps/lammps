@@ -77,7 +77,7 @@ this fix.
 
 [Related commands:]
 
-"fix drag"_fix_drag.html, "fix spring"_fix_spring.html, 
+"fix drag"_fix_drag.html, "fix spring"_fix_spring.html,
 "fix smd"_fix_smd.html, "fix spring/rg"_fix_spring_rg.html
 
 [Default:] none

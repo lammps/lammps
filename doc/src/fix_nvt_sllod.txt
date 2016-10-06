@@ -28,7 +28,7 @@ fix 1 all nvt/sllod temp 300.0 300.0 100.0 drag 0.2 :pre
 Perform constant NVT integration to update positions and velocities
 each timestep for atoms in the group using a Nose/Hoover temperature
 thermostat.  V is volume; T is temperature.  This creates a system
-trajectory consistent with the canonical ensemble. 
+trajectory consistent with the canonical ensemble.
 
 This thermostat is used for a simulation box that is changing size
 and/or shape, for example in a non-equilibrium MD (NEMD) simulation.
@@ -154,7 +154,7 @@ This fix can ramp its target temperature over multiple runs, using the
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 This fix works best without Nose-Hoover chain thermostats, i.e. using
 tchain = 1.  Setting tchain to larger values can result in poor

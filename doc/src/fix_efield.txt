@@ -63,7 +63,7 @@ If the {region} keyword is used, the atom must also be in the
 specified geometric "region"_region.html in order to have force added
 to it.
 
-:line 
+:line
 
 Adding a force or torque to atoms implies a change in their potential
 energy as they move or rotate due to the applied E-field.
@@ -108,12 +108,12 @@ due to the electric field were a spring-like F = kx, then the energy
 formula should be E = -0.5kx^2.  If you don't do this correctly, the
 minimization will not converge properly.
 
-:line 
+:line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html.  
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the potential "energy" inferred by the added force due to

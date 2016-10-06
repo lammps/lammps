@@ -44,7 +44,7 @@ stored in an index file. Without specifying any group IDs, all groups except
 {System} will be read from the index file and the corresponding groups
 recreated. If a group of the same name already exists, it will be completely
 reset. When specifying group IDs, those groups, if present, will be read
-from the index file and restored. 
+from the index file and restored.
 
 :line
 

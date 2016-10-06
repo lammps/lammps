@@ -77,11 +77,11 @@ input script command creates a new "atom"_atom_style.html,
 If the variant version does not exist, the standard version is
 created.
 
-For "hybrid", two packages are specified. The first is used whenever 
-available. If a style with the first suffix is not available, the style 
-with the suffix for the second package will be used if available. For 
-example, "hybrid intel omp" will use styles from the USER-INTEL package 
-as a first choice and styles from the USER-OMP package as a second choice 
+For "hybrid", two packages are specified. The first is used whenever
+available. If a style with the first suffix is not available, the style
+with the suffix for the second package will be used if available. For
+example, "hybrid intel omp" will use styles from the USER-INTEL package
+as a first choice and styles from the USER-OMP package as a second choice
 if no USER-INTEL variant is available.
 
 If the specified style is {off}, then any previously specified suffix

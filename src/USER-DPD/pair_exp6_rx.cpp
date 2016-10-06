@@ -26,7 +26,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include "float.h"
+#include <float.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -128,8 +128,8 @@ void PairExp6rx::compute(int eflag, int vflag)
   double epsilon1_j,alpha1_j,rm1_j;
   double epsilon2_i,alpha2_i,rm2_i;
   double epsilon2_j,alpha2_j,rm2_j;
-  double evdwlOldEXP6_12, evdwlOldEXP6_21;
-  double evdwlEXP6_12, evdwlEXP6_21, fpairEXP6_12, fpairEXP6_21;
+  double evdwlOldEXP6_12, evdwlOldEXP6_21, fpairOldEXP6_12, fpairOldEXP6_21;
+  double evdwlEXP6_12, evdwlEXP6_21;
   double fractionOld1_i, fractionOld1_j;
   double fractionOld2_i, fractionOld2_j;
   double fraction1_i, fraction1_j;
@@ -310,15 +310,20 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
             aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
+            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
+            fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
+            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
           } else {
+            forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
+
             evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
@@ -345,15 +350,20 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
             aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
-            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
+            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
+            fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
+            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
           } else {
+            forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
+            fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
+
             evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
@@ -395,22 +405,14 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
             aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
             evdwlEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
-
-            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
-            fpairEXP6_12 = factor_lj*forceExp6*r2inv;
-
           } else {
-
-            // A4.  Compute the exp-6 force and energy
-            forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
-            fpairEXP6_12 = factor_lj*forceExp6*r2inv;
             evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
@@ -435,30 +437,22 @@ void PairExp6rx::compute(int eflag, int vflag)
 
             uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
-            win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
+            win1 = -buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) - rin1*durc;
 
             aRep = -1.0*win1*powint(rin1,nRep)/nRep;
 
             uin1rep = aRep/powint(rin1,nRep);
 
             evdwlEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
-
-            forceExp6 = -double(nRep)*aRep/powint(r,nRep);
-            fpairEXP6_21 = factor_lj*forceExp6*r2inv;
-
           } else {
-
-            // A4.  Compute the exp-6 force and energy
-            forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
-            fpairEXP6_21 = factor_lj*forceExp6*r2inv;
             evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
           //
           // Apply Mixing Rule to get the overall force for the CG pair
           //
-          if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12; 
-          else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairEXP6_21;
+          if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12; 
+          else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairOldEXP6_21;
 
           f[i][0] += delx*fpair;
           f[i][1] += dely*fpair;

@@ -110,4 +110,4 @@ The option defaults are scale = 1.0 for all types and tally = no.
 [(Dunweg)] Dunweg and Paul, Int J of Modern Physics C, 2, 817-27 (1991).
 
 :link(Schneider)
-[(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978). 
+[(Schneider)] Schneider and Stoll, Phys Rev B, 17, 1302 (1978).

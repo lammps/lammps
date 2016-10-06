@@ -47,13 +47,7 @@ class RegPrism : public Region {
 
   void find_nearest(double *, double &, double &, double &);
   int inside_tri(double *, double *, double *, double *, double *);
-  void point_on_line_segment(double *, double *, double *, double *);
   double closest(double *, double *, double *, double);
-
-  void subtract(double *, double *, double *);
-  void cross(double *, double *, double *);
-  double dotproduct(double *, double *);
-  void normalize(double *);
 };
 
 }

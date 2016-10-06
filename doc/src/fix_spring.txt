@@ -98,7 +98,7 @@ way, as explained on the "fix rigid"_fix_rigid.html doc page.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html. 
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to add the energy stored in the spring to the system's potential
@@ -140,7 +140,7 @@ fix.
 
 [Related commands:]
 
-"fix drag"_fix_drag.html, "fix spring/self"_fix_spring_self.html, 
+"fix drag"_fix_drag.html, "fix spring/self"_fix_spring_self.html,
 "fix spring/rg"_fix_spring_rg.html, "fix smd"_fix_smd.html
 
 [Default:] none

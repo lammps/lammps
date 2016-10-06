@@ -138,13 +138,13 @@ NOTE: If you use "R" or "RSQ", the tabulated distance values in the
 file are effectively ignored, and replaced by new values as described
 in the previous paragraph.  If the density value in the table is not
 very close to the new value (i.e. round-off difference), then you will
-be assigning density-dependent energy and force values to a different density, 
+be assigning density-dependent energy and force values to a different density,
 which is probably not what you want.  LAMMPS will warn if this is occurring.
 
 Following a blank line, the next N lines list the tabulated values.
 On each line, the 1st value is the index from 1 to N, the 2nd value is
-r (in density units), the 3rd value is the density-dependent function value 
-(in energy units / length^4), and the 4th is the force (in force units).  The 
+r (in density units), the 3rd value is the density-dependent function value
+(in energy units / length^4), and the 4th is the force (in force units).  The
 density values must increase from one line to the next.
 
 Note that one file can contain many sections, each with a tabulated

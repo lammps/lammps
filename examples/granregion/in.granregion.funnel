@@ -1,0 +1,157 @@
+# pour particles into cone-shaped funnel, settle them, let them run out bottom
+
+variable	name string funnel_pour
+
+thermo_modify	flush yes
+units 		si  
+variable	PI equal 3.141592653589
+variable	seed equal 14314
+
+###############################################
+# Geometry-related parameters
+###############################################
+
+variable	xlo equal 10
+variable	xhi equal 40
+variable	ylo equal 10
+variable	yhi equal 40
+variable	zlo equal -20
+variable	zhi equal 50
+
+variable	xc equal 25
+variable	yc equal 25
+
+variable	zconehi equal 50
+variable	zconelo equal 10
+variable	zcyllo equal 0
+variable	radconelo equal 2
+variable	radconehi equal 20
+
+################################################
+# Particle sizes
+################################################
+
+variable	rlo equal 0.25 
+variable	rhi equal 0.5
+variable	dlo equal 2.0*${rlo}
+variable	dhi equal 2.0*${rhi}
+
+variable 	skin equal ${rhi}
+
+###############################################
+# Granular contact parameters
+###############################################
+
+variable	coeffRes equal 0.1
+variable	coeffFric equal 0.5
+
+variable	density equal 1.0
+variable	EYoung equal 10^5
+variable 	Poisson equal 2.0/7.0
+variable	GShear equal ${EYoung}/(2*(1+${Poisson})) 
+
+variable	gravity equal 1.0
+
+variable	reff equal 0.5*(${rhi}+${rlo})
+variable	meff equal ${density}*4.0/3.0*${PI}*${reff}^3
+variable	min_mass equal ${density}*4.0/3.0*${PI}*${rlo}*${rlo}*${rlo}
+variable	max_mass equal ${density}*4.0/3.0*${PI}*${rhi}*${rhi}*${rhi}
+
+## Typical way to set kn, kt, etc.:
+variable        kn equal 4.0*${GShear}/(3*(1-${Poisson}))
+variable        kt equal 4.0*${GShear}/(2-${Poisson})
+
+variable	a equal (-2.0*log(${coeffRes})/${PI})^2
+variable        gamma_n equal sqrt($a*2*${kn}/${min_mass}/(1+0.25*$a))
+variable        gamma_t equal ${gamma_n}*0.5
+
+variable	tcol equal ${PI}/sqrt(2*${kn}/${min_mass}-${gamma_n}/4.0)
+
+variable	dt equal ${tcol}*0.05
+timestep	${dt}
+
+###############################################
+variable	dumpfreq equal 1000
+variable	logfreq equal 1000
+
+newton 		off
+atom_style	sphere
+
+boundary	p p f
+
+region		boxreg block ${xlo} ${xhi} ${ylo} ${yhi} ${zlo} ${zhi}
+create_box	1 boxreg
+
+pair_style	gran/hertz/history &
+		${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1
+pair_coeff	* *
+
+neighbor        ${skin} bin
+thermo 		${logfreq}
+
+comm_style	brick
+comm_modify 	mode multi group all vel yes
+balance		1.1 shift xyz 20 1.1
+fix		bal all balance 10000 1.1 shift xyz 20 1.01
+
+####################### Options specific to pouring #########################
+
+# insertion region for fix/pour
+
+region	     	insreg cylinder z ${xc} ${yc} 10 30 50 side in units box
+
+# define cone and cylinder regions - see lammps doc on region command
+# note new open options
+
+region	    	cylreg cylinder z ${xc} ${yc} ${radconelo} &
+		${zcyllo} ${zconelo} side in units box &
+		open 2 #Top is open
+		
+region		conereg cone z ${xc} ${yc} ${radconelo} ${radconehi} &
+		${zconelo} ${zconehi} side in units box & 
+		open 1 open 2 #Bottom and top are open
+
+region		hopreg union 2 conereg cylreg
+
+fix		grav all gravity ${gravity} vector 0 0 -1
+fix		1 all nve/sphere
+
+
+fix		hopper3 all wall/gran/region hertz/history &
+                ${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+
+fix		ins all pour 2000 1 42424 region insreg &
+		diam range ${dlo} ${dhi} dens ${density} ${density}
+
+#dump		1 all custom ${dumpfreq} ${name}.dump &
+#		id type mass diameter x y z
+
+#dump		2 all image 4000 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30 zoom 3.0 &
+#                box no 0.0 axes no 0.0 0.0
+#dump_modify	2 pad 6
+
+thermo_style	custom step cpu atoms ke
+thermo_modify	flush yes lost warn
+
+# Initial run to fill up the cone
+
+run		20000 
+unfix 		ins
+run		150000
+
+# remove "plug" - need to redefine cylinder region & union
+
+region	  	cylreg delete
+region		hopreg delete
+region	    	cylreg cylinder z ${xc} ${yc} ${radconelo} &
+		${zcyllo} ${zconelo} side in units box &
+		open 1 open 2 #Bottom & top are open
+
+region		hopreg union 2 cylreg conereg
+
+unfix		hopper3
+fix		hopper3 all wall/gran/region hertz/history &
+		${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1 region hopreg
+
+run		100000

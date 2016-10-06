@@ -16,7 +16,7 @@ style = {gpu} or {intel} or {kokkos} or {omp} :ulb,l
 args = arguments specific to the style :l
   {gpu} args = Ngpu keyword value ...
     Ngpu = # of GPUs per node
-    zero or more keyword/value pairs may be appended 
+    zero or more keyword/value pairs may be appended
     keywords = {neigh} or {newton} or {binsize} or {split} or {gpuID} or {tpa} or {device} or {blocksize}
       {neigh} value = {yes} or {no}
         yes = neighbor list build on GPU (default)
@@ -39,7 +39,7 @@ args = arguments specific to the style :l
         size = thread block size for pair force computation
   {intel} args = NPhi keyword value ...
     Nphi = # of coprocessors per node
-    zero or more keyword/value pairs may be appended 
+    zero or more keyword/value pairs may be appended
     keywords = {mode} or {omp} or {lrt} or {balance} or {ghost} or {tpc} or {tptask} or {no_affinity}
       {mode} value = {single} or {mixed} or {double}
         single = perform force calculations in single precision
@@ -82,7 +82,7 @@ args = arguments specific to the style :l
         device = perform pack/unpack on device (e.g. on GPU)
   {omp} args = Nthreads keyword value ...
     Nthread = # of OpenMP threads to associate with each MPI process
-    zero or more keyword/value pairs may be appended 
+    zero or more keyword/value pairs may be appended
     keywords = {neigh}
       {neigh} value = {yes} or {no}
         yes = threaded neighbor list build (default)
@@ -153,7 +153,7 @@ package.
 
 The {Ngpu} argument sets the number of GPUs per node.  There must be
 at least as many MPI tasks per node as GPUs, as set by the mpirun or
-mpiexec command.  If there are more MPI tasks (per node) 
+mpiexec command.  If there are more MPI tasks (per node)
 than GPUs, multiple MPI tasks will share each GPU.
 
 Optional keyword/value pairs can also be specified.  Each has a
@@ -224,7 +224,7 @@ In this case, all CPU cores and GPU devices on the nodes would be
 utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
 cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
-the other particles.  
+the other particles.
 
 The {gpuID} keyword allows selection of which GPUs on each node will
 be used for a simulation.  The {first} and {last} values specify the
@@ -319,22 +319,22 @@ precision, including storage of forces, torques, energies, and virial
 quantities.  {Double} means double precision is used for the entire
 force calculation.
 
-The {lrt} keyword can be used to enable "Long Range Thread (LRT)" 
-mode. It can take a value of {yes} to enable and {no} to disable. 
+The {lrt} keyword can be used to enable "Long Range Thread (LRT)"
+mode. It can take a value of {yes} to enable and {no} to disable.
 LRT mode generates an extra thread (in addition to any OpenMP threads
-specified with the OMP_NUM_THREADS environment variable or the {omp} 
-keyword). The extra thread is dedicated for performing part of the 
+specified with the OMP_NUM_THREADS environment variable or the {omp}
+keyword). The extra thread is dedicated for performing part of the
 "PPPM solver"_kspace_style.html computations and communications. This
-can improve parallel performance on processors supporting 
-Simultaneous Multithreading (SMT) such as Hyperthreading on Intel 
-processors. In this mode, one additional thread is generated per MPI 
-process. LAMMPS will generate a warning in the case that more threads 
-are used than available in SMT hardware on a node. If the PPPM solver 
-from the USER-INTEL package is not used, then the LRT setting is 
+can improve parallel performance on processors supporting
+Simultaneous Multithreading (SMT) such as Hyperthreading on Intel
+processors. In this mode, one additional thread is generated per MPI
+process. LAMMPS will generate a warning in the case that more threads
+are used than available in SMT hardware on a node. If the PPPM solver
+from the USER-INTEL package is not used, then the LRT setting is
 ignored and no extra threads are generated. Enabling LRT will replace
 the "run_style"_run_style.html with the {verlet/lrt/intel} style that
 is identical to the default {verlet} style aside from supporting the
-LRT feature.  
+LRT feature.
 
 The {balance} keyword sets the fraction of "pair
 style"_pair_style.html work offloaded to the coprocessor for split
@@ -359,7 +359,7 @@ In some cases this can provide better performance, especially if the
 The {tpc} keyword sets the max # of coprocessor threads {Ntpc} that
 will run on each core of the coprocessor.  The default value = 4,
 which is the number of hardware threads per core supported by the
-current generation Xeon Phi chips.  
+current generation Xeon Phi chips.
 
 The {tptask} keyword sets the max # of coprocessor threads (Ntptask}
 assigned to each MPI task.  The default value = 240, which is the
@@ -377,9 +377,9 @@ most problems, regardless of how many MPI tasks you assign to a Phi.
 
 The {no_affinity} keyword will turn off automatic setting of core
 affinity for MPI tasks and OpenMP threads on the host when using
-offload to a coprocessor. Affinity settings are used when possible 
-to prevent MPI tasks and OpenMP threads from being on separate NUMA 
-domains and to prevent offload threads from interfering with other 
+offload to a coprocessor. Affinity settings are used when possible
+to prevent MPI tasks and OpenMP threads from being on separate NUMA
+domains and to prevent offload threads from interfering with other
 processes/threads used for LAMMPS.
 
 :line
@@ -505,7 +505,7 @@ env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
 env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
 mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script :pre
 
-or you can set it permanently in your shell's start-up script.  
+or you can set it permanently in your shell's start-up script.
 All three of these examples use a total of 4 CPU cores.
 
 Note that different MPI implementations have different ways of passing
@@ -571,14 +571,14 @@ must invoke the package gpu command in your input script or via the
 "-pk gpu" "command-line switch"_Section_start.html#start_7.
 
 For the USER-INTEL package, the default is Nphi = 1 and the option
-defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4, 
-tptask = 240.  The default ghost option is determined by the pair 
-style being used.  This value is output to the screen in the offload 
-report at the end of each run.  Note that all of these settings, 
-except "omp" and "mode", are ignored if LAMMPS was not built with 
-Xeon Phi coprocessor support.  These settings are made automatically 
-if the "-sf intel" "command-line switch"_Section_start.html#start_7 
-is used.  If it is not used, you must invoke the package intel 
+defaults are omp = 0, mode = mixed, lrt = no, balance = -1, tpc = 4,
+tptask = 240.  The default ghost option is determined by the pair
+style being used.  This value is output to the screen in the offload
+report at the end of each run.  Note that all of these settings,
+except "omp" and "mode", are ignored if LAMMPS was not built with
+Xeon Phi coprocessor support.  These settings are made automatically
+if the "-sf intel" "command-line switch"_Section_start.html#start_7
+is used.  If it is not used, you must invoke the package intel
 command in your input script or or via the "-pk intel" "command-line
 switch"_Section_start.html#start_7.
 

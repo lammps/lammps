@@ -55,7 +55,7 @@ keyword = {type} or {start} or {file} or {overwrite} or {title1} or {title2} or 
 fix 1 all ave/correlate/long 5 1000 c_myTemp file temp.correlate
 fix 1 all ave/correlate/long 1 10000 &
           c_thermo_press\[1\] c_thermo_press\[2\] c_thermo_press\[3\] &
-	  type upper title1 "My correlation data" nlen 15 ncount 3 :pre
+          type upper title1 "My correlation data" nlen 15 ncount 3 :pre
 
 [Description:]
 

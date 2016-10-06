@@ -29,7 +29,7 @@ keyword = {unwrap} or {fscale} or {trate} :l
 
 [Examples:]
 
-fix vmd all imd 5678 
+fix vmd all imd 5678
 fix comm all imd 8888 trate 5 unwrap on fscale 10.0 :pre
 
 [Description:]
@@ -103,7 +103,7 @@ prompts appears, one types the command line:
 
 imd connect localhost 5678 :pre
 
-This assumes that {fix imd} was started with 5678 as a port 
+This assumes that {fix imd} was started with 5678 as a port
 number for the IMD protocol.
 
 The steps to do interactive manipulation of a running simulation in
@@ -116,10 +116,10 @@ apply forces to your simulation. Click on an atom, residue, or
 fragment and drag to apply a force. Click quickly without moving the
 mouse to turn the force off. You can also use a variety of 3D position
 trackers to apply forces to your simulation. Game controllers or haptic
-devices with force-feedback such as the Novint Falcon or Sensable 
+devices with force-feedback such as the Novint Falcon or Sensable
 PHANTOM allow you to feel the resistance due to inertia or interactions
-with neighbors that the atoms experience you are trying to move, as if 
-they were real objects. See the "VMD IMD Homepage"_imdvmd and the 
+with neighbors that the atoms experience you are trying to move, as if
+they were real objects. See the "VMD IMD Homepage"_imdvmd and the
 "VRPN-ICMS Homepage"_vrpnicms for more details.
 
 If IMD control messages are received, a line of text describing the
@@ -127,8 +127,8 @@ message and its effect will be printed to the LAMMPS output screen, if
 screen output is active.
 
 :link(VMD,http://www.ks.uiuc.edu/Research/vmd)
-:link(imdvmd,http://www.ks.uiuc.edu/Research/vmd/imd/) 
-:link(vrpnicms,http://sites.google.com/site/akohlmey/software/vrpn-icms) 
+:link(imdvmd,http://www.ks.uiuc.edu/Research/vmd/imd/)
+:link(vrpnicms,http://sites.google.com/site/akohlmey/software/vrpn-icms)
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

@@ -253,7 +253,7 @@ group           mobile dynamic all region ss
 fix             1 mobile nve
 run             $\{nsteps\}
 group           mobile static
-run	        $\{nsteps\} :pre
+run             $\{nsteps\} :pre
 
 NOTE: All fixes and computes take a group ID as an argument, but they
 do not all allow for use of a dynamic group.  If you get an error

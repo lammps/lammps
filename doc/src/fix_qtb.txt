@@ -10,7 +10,7 @@ fix qtb command :h3
 
 [Syntax:]
 
-fix ID group-ID qtb keyword value ... :pre 
+fix ID group-ID qtb keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 qtb = style name of this fix :l
@@ -19,7 +19,7 @@ keyword = {temp} or {damp} or {seed} or {f_max} or {N_f} :l
   {temp} value = target quantum temperature (temperature units)
   {damp} value = damping parameter (time units) inverse of friction <i>&gamma</i>;
   {seed} value = random number seed (positive integer)
-  {f_max} value = upper cutoff frequency of the vibration spectrum (1/time units)  
+  {f_max} value = upper cutoff frequency of the vibration spectrum (1/time units)
   {N_f} value = number of frequency bins (positive integer) :pre
 :ule
 
@@ -68,13 +68,13 @@ with the same natural frequency:
 &#8463;&omega;[</i>exp(<i>&#8463;&omega;/k</i><sub>B</sub><i>T</i>)<i>-1</i>]<i><sup>-1</sup></i>
 </font></center>
 
-To efficiently generate the random forces, we employ the method 
-of "(Barrat)"_#Barrat, that circumvents the need to generate all 
-random forces for all times before the simulation. The memory 
-requirement of this approach is less demanding and independent 
-of the simulation duration. Since the total random force <i>R</i><sub>tot</sub> 
-does not necessarily vanish for a finite number of atoms, 
-<i>R<sub>i</sub></i> is replaced by <i>R<sub>i</sub></i> - <i>R</i><sub>tot</sub>/<i>N</i><sub>tot</sub> 
+To efficiently generate the random forces, we employ the method
+of "(Barrat)"_#Barrat, that circumvents the need to generate all
+random forces for all times before the simulation. The memory
+requirement of this approach is less demanding and independent
+of the simulation duration. Since the total random force <i>R</i><sub>tot</sub>
+does not necessarily vanish for a finite number of atoms,
+<i>R<sub>i</sub></i> is replaced by <i>R<sub>i</sub></i> - <i>R</i><sub>tot</sub>/<i>N</i><sub>tot</sub>
 to avoid collective motion of the system.
 
 The {temp} parameter sets the target quantum temperature. LAMMPS will
@@ -148,7 +148,7 @@ is not saved in restart files, this means you cannot do "exact"
 restarts with this fix. However, in a statistical sense, a restarted
 simulation should produce similar behaviors of the system.
 
-This fix is not invoked during "energy minimization"_minimize.html.  
+This fix is not invoked during "energy minimization"_minimize.html.
 
 :line
 

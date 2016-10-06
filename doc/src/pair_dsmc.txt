@@ -12,8 +12,8 @@ pair_style dsmc command :h3
 
 pair_style dsmc max_cell_size seed weighting Tref Nrecompute Nsample :pre
 
-max_cell_size = global maximum cell size for DSMC interactions (distance units) 
-seed = random # seed (positive integer) 
+max_cell_size = global maximum cell size for DSMC interactions (distance units)
+seed = random # seed (positive integer)
 weighting = macroparticle weighting
 Tref = reference temperature (temperature units)
 Nrecompute = recompute v*sigma_max every this many timesteps (timesteps)
@@ -86,10 +86,10 @@ created.  The output statistics for a simulation run should indicate
 there are no ghost particles or neighbors.
 
 In order to get correct DSMC collision statistics, users should
-specify a Gaussian velocity distribution when populating the 
+specify a Gaussian velocity distribution when populating the
 simulation domain. Note that the default velocity distribution is
 uniform, which will not give good DSMC collision rates. Specify
-"dist gaussian" when using the "velocity"_velocity.html command 
+"dist gaussian" when using the "velocity"_velocity.html command
 as in the following:
 
 velocity all create 594.6 87287 loop geom dist gaussian :pre

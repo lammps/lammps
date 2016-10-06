@@ -15,8 +15,8 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
+#include <mpi.h>
+#include <math.h>
 #include "dihedral_charmm_intel.h"
 #include "atom.h"
 #include "comm.h"

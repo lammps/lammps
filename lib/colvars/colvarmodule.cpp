@@ -942,6 +942,8 @@ int colvarmodule::setup_output()
 
 std::istream & colvarmodule::read_restart(std::istream &is)
 {
+  bool warn_total_forces = false;
+
   {
     // read global restart information
     std::string restart_conf;
@@ -958,6 +960,12 @@ std::istream & colvarmodule::read_restart(std::istream &is)
                         colvarparse::parse_silent);
       if (restart_version.size() && (restart_version != std::string(COLVARS_VERSION))) {
         cvm::log("This state file was generated with version "+restart_version+"\n");
+      }
+      if ((restart_version.size() == 0) || (restart_version.compare(std::string(COLVARS_VERSION)) < 0)) {
+        // check for total force change
+        if (proxy->total_forces_enabled()) {
+          warn_total_forces = true;
+        }
       }
     }
     is.clear();
@@ -987,6 +995,73 @@ std::istream & colvarmodule::read_restart(std::istream &is)
     }
   }
   cvm::decrease_depth();
+
+  if (warn_total_forces) {
+    cvm::log(cvm::line_marker);
+    cvm::log("WARNING:\n");
+    std::string const warning("### CHANGES IN THE DEFINITION OF SYSTEM FORCES (NOW TOTAL FORCES)\n\
+\n\
+Starting from the version 2016-08-10 of the Colvars module, \n\
+the role of system forces has been replaced by total forces.\n\
+\n\
+These include *all* forces acting on a collective variable, whether they\n\
+come from the force field potential or from external terms\n\
+(e.g. restraints), including forces applied by Colvars itself.\n\
+\n\
+In NAMD, forces applied by Colvars, IMD, SMD, TMD, symmetry\n\
+restraints and tclForces are now all counted in the total force.\n\
+\n\
+In LAMMPS, forces applied by Colvars itself are now counted in the total\n\
+force (all forces from other fixes were being counted already).\n\
+\n\
+\n\
+### WHEN IS THIS CHANGE RELEVANT\n\
+\n\
+This change affects results *only* when (1) outputSystemForce is\n\
+requested or (2) the ABF bias is used.  All other usage cases are\n\
+*unaffected* (colvar restraints, metadynamics, etc).\n\
+\n\
+When system forces are reported (flag: outputSystemForce), their values\n\
+in the output may change, but the physical trajectory is never affected.\n\
+The physical results of ABF calculations may be affected in some cases.\n\
+\n\
+\n\
+### CHANGES TO ABF CALCULATIONS\n\
+\n\
+Compared to previous Colvars versions, the ABF method will now attempt\n\
+to cancel external forces (for example, boundary walls) and it may be\n\
+not possible to resume through a state file a simulation that was\n\
+performed with a previous version.\n\
+\n\
+There are three possible scenarios:\n\
+\n\
+1. No external forces are applied to the atoms used by ABF: results are\n\
+unchanged.\n\
+\n\
+2. Some of the atoms used by ABF experience external forces, but these\n\
+forces are not applied directly to the variables used by ABF\n\
+(e.g. another colvar that uses the same atoms, tclForces, etc): in this\n\
+case, we recommend beginning a new simulation.\n\
+\n\
+3. External forces are applied to one or more of the colvars used by\n\
+ABF, but no other forces are applied to their atoms: you may use the\n\
+subtractAppliedForce keyword inside the corresponding colvars to\n\
+continue the previous simulation.\n\n");
+    cvm::log(warning);
+    cvm::log(cvm::line_marker);
+
+    // update this ahead of time in this special case
+    output_prefix = proxy->output_prefix();
+    cvm::log("All output files will now be saved with the prefix \""+output_prefix+".tmp.*\".\n");
+    output_prefix = output_prefix+".tmp";
+    write_output_files();
+    cvm::log(cvm::line_marker);
+    cvm::log("Please review the important warning above. After that, you may rename:\n\
+\""+output_prefix+".tmp.colvars.state\"\n\
+to:\n\
+\""+output_prefix+".colvars.state\"\n");
+    cvm::error("Exiting with error until issue is addressed.\n", FATAL_ERROR);
+  }
 
   return is;
 }

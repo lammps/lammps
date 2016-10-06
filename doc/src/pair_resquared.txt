@@ -215,7 +215,7 @@ spherical particles, or point particles.  Spherical particles have all
 3 of their shape parameters equal to each other.  Point particles have
 all 3 of their shape parameters equal to 0.0.
 
-The distance-of-closest-approach approximation used by LAMMPS becomes 
+The distance-of-closest-approach approximation used by LAMMPS becomes
 less accurate when high-aspect ratio ellipsoids are used.
 
 [Related commands:]

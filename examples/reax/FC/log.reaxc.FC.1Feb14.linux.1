@@ -1,0 +1,107 @@
+LAMMPS (1 Feb 2014)
+# REAX potential for Nitroamines system
+# .....
+
+dimension      3
+boundary       p p p
+units		real
+
+atom_style	charge
+read_data	data.FC
+  orthogonal box = (-82.62 -79.5011 -50) to (82.62 79.5011 50)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  17280 atoms
+
+pair_style	reax/c NULL
+pair_coeff	* * ffield.reax.FC C F
+neighbor	2. bin
+neigh_modify	every 10 delay 0 check no
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 reax/c
+
+# should equilibrate much longer in practice
+
+fix		1 all npt temp 100.0 100.0 10.0 iso 1.0 1. 2000.0
+timestep        0.2
+thermo_style    custom step temp epair etotal press
+thermo          1
+dump            4 all xyz 5000 dumpnpt.xyz
+run             10
+Memory usage per processor = 463.475 Mbytes
+Step Temp E_pair TotEng Press 
+       0            0   -808525.04   -808525.04    58194.694 
+       1    4.9935726   -808803.89   -808546.69    58205.825 
+       2     19.98696   -809640.54    -808611.1    58239.155 
+       3    45.012616   -811035.31   -808716.91    58294.499 
+       4    80.103613    -812988.6   -808862.83    58371.547 
+       5    125.26228   -815500.71   -809049.03    58469.871 
+       6     180.4316   -818571.61    -809278.4    58588.935 
+       7    245.47913   -822200.79   -809557.28    58728.142 
+       8    320.17692   -826387.27   -809896.43    58886.877 
+       9    404.17073   -831129.48    -810312.5    59064.551 
+      10    497.02486   -836425.19   -810825.72    59260.714 
+Loop time of 12.1099 on 1 procs for 10 steps with 17280 atoms
+
+Pair  time (%) = 10.4781 (86.5251)
+Neigh time (%) = 0.0671439 (0.554454)
+Comm  time (%) = 0.000841141 (0.00694588)
+Outpt time (%) = 0.000734806 (0.0060678)
+Other time (%) = 1.56308 (12.9074)
+
+Nlocal:    17280 ave 17280 max 17280 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5352 ave 5352 max 5352 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.62136e+06 ave 2.62136e+06 max 2.62136e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2621360
+Ave neighs/atom = 151.699
+Neighbor list builds = 1
+Dangerous builds = 0
+
+unfix           1
+
+fix             1  all nvt temp 100.0 100.0 100.0
+thermo_style    custom step temp epair etotal press
+timestep	0.2
+
+#dump		5 all xyz 5000 dumpnvt.xyz
+#dump            6 all custom 5000 dumpidtype.dat id type x y z
+
+run		10
+Memory usage per processor = 463.475 Mbytes
+Step Temp E_pair TotEng Press 
+      10    497.02486   -836425.19   -810825.72    59260.714 
+      11    601.65141   -841814.22   -810825.91    59489.422 
+      12    716.37599   -847724.72   -810827.48    59738.295 
+      13    841.27961   -854161.75   -810831.29    60008.162 
+      14    976.46663   -861131.81   -810838.49    60300.362 
+      15    1122.0668   -868643.09   -810850.57    60616.791 
+      16    1278.2373   -876705.56   -810869.41     60959.94 
+      17    1445.1655   -885331.16   -810897.31    61332.931 
+      18     1623.072   -894534.04   -810937.04    61739.541 
+      19    1812.1865   -904337.99   -811000.57    62200.561 
+      20    2011.5899   -915379.19   -811771.41    63361.151 
+Loop time of 12.1846 on 1 procs for 10 steps with 17280 atoms
+
+Pair  time (%) = 10.3822 (85.207)
+Neigh time (%) = 0.063045 (0.517414)
+Comm  time (%) = 0.000839949 (0.0068935)
+Outpt time (%) = 0.000734806 (0.00603059)
+Other time (%) = 1.73786 (14.2627)
+
+Nlocal:    17280 ave 17280 max 17280 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5352 ave 5352 max 5352 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.62136e+06 ave 2.62136e+06 max 2.62136e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2621360
+Ave neighs/atom = 151.699
+Neighbor list builds = 1
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+

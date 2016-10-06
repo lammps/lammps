@@ -30,4 +30,9 @@ void PairREBO::settings(int narg, char **arg)
 
   cutlj = 0.0;
   ljflag = torflag = 0;
+
+  // this one parameter for C-C interactions is different in REBO vs AIREBO
+  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
+  
+  PCCf_2_0 = 0.0;
 }

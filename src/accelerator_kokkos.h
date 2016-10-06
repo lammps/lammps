@@ -58,6 +58,8 @@ class AtomKokkos : public Atom {
   tagint **k_special;
   AtomKokkos(class LAMMPS *lmp) : Atom(lmp) {}
   ~AtomKokkos() {}
+  void sync(const ExecutionSpace space, unsigned int mask) {}
+  void modified(const ExecutionSpace space, unsigned int mask) {}
 };
 
 class CommKokkos : public CommBrick {

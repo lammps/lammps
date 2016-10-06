@@ -55,6 +55,7 @@ enum{ISO,ANISO,TRICLINIC};
 template<class DeviceType>
 FixNHKokkos<DeviceType>::FixNHKokkos(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
+  kokkosable = 1;
   domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 

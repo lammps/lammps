@@ -70,6 +70,7 @@ class PairAIREBO : public Pair {
   double epsilon[2][2],sigma[2][2],epsilonT[2][2];
 
   // parameters for Morse variant
+
   double epsilonM[2][2],alphaM[2][2],reqM[2][2];
 
   // spline coefficients
@@ -82,6 +83,7 @@ class PairAIREBO : public Pair {
 
   // spline knot values
 
+  double PCCf_2_0;
   double PCCf[5][5],PCCdfdx[5][5],PCCdfdy[5][5],PCHf[5][5];
   double PCHdfdx[5][5],PCHdfdy[5][5];
   double piCCf[5][5][11],piCCdfdx[5][5][11];

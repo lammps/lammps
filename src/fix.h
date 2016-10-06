@@ -96,6 +96,7 @@ class Fix : protected Pointers {
 
   // KOKKOS host/device flag and data masks
 
+  int kokkosable;                // 1 if Kokkos fix
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
 

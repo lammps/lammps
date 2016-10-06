@@ -1,0 +1,96 @@
+variable	name string mixer
+
+thermo_modify	flush yes
+variable	seed equal 14314
+
+###############################################
+# Particle parameters
+################################################
+
+variable	rlo equal 0.3
+variable	rhi equal 0.6
+variable	dlo equal 2.0*${rlo}
+variable	dhi equal 2.0*${rhi}
+variable 	skin equal ${rhi}
+
+variable	coeffRes equal 0.1
+variable	coeffFric equal 0.5
+
+variable	kn equal 10^5
+variable	kt equal 0.2*${kn}
+
+variable	gravity equal 1.0
+variable	density equal 1.0
+
+variable	min_mass equal ${density}*4.0/3.0*PI*${rlo}*${rlo}*${rlo}
+variable	a equal (-2.0*log(${coeffRes})/PI)^2
+variable        gamma_n equal sqrt($a*2*${kn}/${min_mass}/(1+0.25*$a))
+variable        gamma_t equal ${gamma_n}*0.5
+
+variable	tcol equal PI/sqrt(2*${kn}/${min_mass}-${gamma_n}/4.0)
+
+variable	dt equal ${tcol}*0.02
+timestep	${dt}
+
+###############################################
+
+variable	dumpfreq equal 1000
+variable	logfreq equal 1000
+
+newton 		on
+atom_style	sphere
+
+boundary	p p f
+
+region		boxreg block 0 20 0 20 0 20
+create_box	1 boxreg
+
+pair_style	gran/hertz/history &
+		${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1
+pair_coeff	* *
+
+neighbor        ${skin} bin
+thermo 		${logfreq}
+
+comm_style	brick
+comm_modify 	mode multi group all vel yes
+balance		1.1 shift xyz 20 1.1
+fix		bal all balance 10000 1.1 shift xyz 20 1.01
+
+####################### Options specific to pouring #########################
+
+region	     	insreg cylinder z 10 10 8 10 18 side in units box
+region	    	cylreg cylinder z 10 10 10 0 20 side in units box
+
+variable	theta equal (step/400000)*2*PI
+		
+region          b1 block 2 18 9 11 0 4 side out &
+                rotate v_theta 10 10 0 0 0 1 units box
+region          b2 block 9 11 2 18 0 3.99999 side out &
+                rotate v_theta 10 10 0 0 0 1 units box
+
+region		mixer intersect 3 cylreg b1 b2 side in		
+
+fix		grav all gravity ${gravity} vector 0 0 -1
+fix		1 all nve/sphere
+
+fix		mixwall all wall/gran/region hertz/history &
+                ${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1 region mixer
+
+fix		ins all pour 1000 1 42424 region insreg &
+		diam range ${dlo} ${dhi} dens ${density} ${density}
+
+#dump		1 all custom ${dumpfreq} ${name}_pour.dump &
+#		id type mass diameter x y z
+
+#dump		2 all image 4000 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30 zoom 1.5 &
+#                box no 0.0 axes no 0.0 0.0
+#dump_modify	2 pad 6
+
+thermo_style	custom step cpu atoms ke v_theta
+thermo_modify	flush yes lost warn
+
+run		200000 
+unfix 		ins
+run		200000

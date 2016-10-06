@@ -272,7 +272,7 @@ void Balance::command(int narg, char **arg)
   // imbinit = initial imbalance
 
   double maxinit;
-  init_imbalance();
+  init_imbalance(0);
   set_weights();
   double imbinit = imbalance_factor(maxinit);
 
@@ -543,12 +543,13 @@ void Balance::weight_storage(char *prefix)
 
 /* ----------------------------------------------------------------------
    invoke init() for each Imbalance class
+   flag = 0 for call from Balance, 1 for call from FixBalance
 ------------------------------------------------------------------------- */
 
-void Balance::init_imbalance()
+void Balance::init_imbalance(int flag)
 {
   if (!wtflag) return;
-  for (int n = 0; n < nimbalance; n++) imbalances[n]->init();
+  for (int n = 0; n < nimbalance; n++) imbalances[n]->init(flag);
 }
 
 /* ----------------------------------------------------------------------

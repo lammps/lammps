@@ -84,9 +84,6 @@ class Compute : protected Pointers {
   int comm_reverse;         // size of reverse communication (0 if none)
   int dynamic_group_allow;  // 1 if can be used with dynamic group, else 0
 
-  unsigned int datamask;
-  unsigned int datamask_ext;
-
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -141,9 +138,6 @@ class Compute : protected Pointers {
   virtual void pair_tally_callback(int, int, int, int,
                                    double, double, double,
                                    double, double, double) {}
-
-  virtual int unsigned data_mask() {return datamask;}
-  virtual int unsigned data_mask_ext() {return datamask_ext;}
 
  protected:
   int instance_me;             // which Compute class instantiation I am

@@ -95,10 +95,7 @@ id(NULL), style(NULL), eatom(NULL), vatom(NULL)
   maxeatom = maxvatom = 0;
   vflag_atom = 0;
 
-  // CUDA and KOKKOS per-fix data masks
-
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
+  // KOKKOS per-fix data masks
 
   execution_space = Host;
   datamask_read = ALL_MASK;

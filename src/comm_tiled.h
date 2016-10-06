@@ -155,10 +155,6 @@ class CommTiled : public Comm {
 
 /* ERROR/WARNING messages:
 
-E: USER-CUDA package does not yet support comm_style tiled
-
-Self-explanatory.
-
 E: KOKKOS package does not yet support comm_style tiled
 
 Self-explanatory.

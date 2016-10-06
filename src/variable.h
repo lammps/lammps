@@ -50,9 +50,6 @@ class Variable : protected Pointers {
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
-  unsigned int data_mask(int ivar);
-  unsigned int data_mask(char *str);
-
  private:
   int me;
   int nvar;                // # of defined variables

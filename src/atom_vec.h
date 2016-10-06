@@ -156,10 +156,6 @@ E: Invalid atom_style command
 
 Self-explanatory.
 
-E: USER-CUDA package requires a cuda enabled atom_style
-
-Self-explanatory.
-
 E: KOKKOS package requires a kokkos enabled atom_style
 
 Self-explanatory.

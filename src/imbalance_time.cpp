@@ -21,6 +21,8 @@
 
 using namespace LAMMPS_NS;
 
+#define BIG 1.0e20
+
 /* -------------------------------------------------------------------- */
 
 ImbalanceTime::ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp) {}
@@ -31,51 +33,74 @@ int ImbalanceTime::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
   factor = force->numeric(FLERR,arg[0]);
-  if (factor < 0.0) error->all(FLERR,"Illegal balance weight command");
+  if (factor <= 0.0) error->all(FLERR,"Illegal balance weight command");
   return 1;
 }
 
 /* ----------------------------------------------------------------------
-   reset last, needed for fix balance caller
+   reset last and timers if necessary
 ------------------------------------------------------------------------- */
 
-void ImbalanceTime::init()
+void ImbalanceTime::init(int flag)
 {
   last = 0.0;
+
+  // flag = 1 if called from FixBalance at start of run
+  //   init Timer, so accumulated time not carried over from previous run
+  // should NOT init Timer if called from Balance, it uses time from last run
+
+  if (flag) timer->init();
 }
 
 /* -------------------------------------------------------------------- */
 
 void ImbalanceTime::compute(double *weight)
 {
-  const int nlocal = atom->nlocal;
-  const bigint natoms = atom->natoms;
+  if (!timer->has_normal()) return;
 
-  if (factor == 0.0) return;
+  // cost = CPU time for relevant timers since last invocation
+  // localwt = weight assigned to each owned atom
+  // just return if no time yet tallied
 
-  // compute the cost function of based on relevant timers
-  
-  if (timer->has_normal()) {
-      double cost = -last;
-      cost += timer->get_wall(Timer::PAIR);
-      cost += timer->get_wall(Timer::NEIGH);
-      cost += timer->get_wall(Timer::BOND);
-      cost += timer->get_wall(Timer::KSPACE);
+  double cost = -last;
+  cost += timer->get_wall(Timer::PAIR);
+  cost += timer->get_wall(Timer::NEIGH);
+  cost += timer->get_wall(Timer::BOND);
+  cost += timer->get_wall(Timer::KSPACE);
 
-      double allcost;
-      MPI_Allreduce(&cost,&allcost,1,MPI_DOUBLE,MPI_SUM,world);
+  double maxcost;
+  MPI_Allreduce(&cost,&maxcost,1,MPI_DOUBLE,MPI_MAX,world);
+  if (maxcost <= 0.0) return;
 
-      if ((allcost > 0.0) && (nlocal > 0)) {
-        const double avgcost = allcost/natoms;
-        const double localcost = cost/nlocal;
-        const double scale = (1.0-factor) + factor*localcost/avgcost;
-        for (int i = 0; i < nlocal; ++i) weight[i] *= scale;
-      }
+  int nlocal = atom->nlocal;
+  double localwt = 0.0;
+  if (nlocal) localwt = cost/nlocal;
 
-      // record time up to this point
+  if (nlocal && localwt <= 0.0) error->one(FLERR,"Balance weight <= 0.0");
 
-      last += cost;
+  // apply factor if specified != 1.0
+  // wtlo,wthi = lo/hi values excluding 0.0 due to no atoms on this proc
+  // lo value does not change
+  // newhi = new hi value to give hi/lo ratio factor times larger/smaller
+  // expand/contract all localwt values from lo->hi to lo->newhi
+
+  if (factor != 1.0) {
+    double wtlo,wthi;
+    if (localwt == 0.0) localwt = BIG;
+    MPI_Allreduce(&localwt,&wtlo,1,MPI_DOUBLE,MPI_MIN,world);
+    if (localwt == BIG) localwt = 0.0;
+    MPI_Allreduce(&localwt,&wthi,1,MPI_DOUBLE,MPI_MAX,world);
+    if (wtlo == wthi) return;
+
+    double newhi = wthi*factor;
+    localwt = wtlo + ((localwt-wtlo)/(wthi-wtlo)) * (newhi-wtlo);
   }
+
+  for (int i = 0; i < nlocal; i++) weight[i] *= localwt;
+  
+  // record time up to this point
+  
+  last += cost;
 }
 
 /* -------------------------------------------------------------------- */

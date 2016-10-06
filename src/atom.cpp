@@ -217,9 +217,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   atom_style = NULL;
   avec = NULL;
 
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
-
   avec_map = new AtomVecCreatorMap();
 
 #define ATOM_CLASS

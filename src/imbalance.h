@@ -25,13 +25,13 @@ class Imbalance : protected Pointers {
   virtual ~Imbalance() {};
 
   // parse options. return number of arguments consumed (required)
-  virtual int options(int narg, char **arg) = 0;
+  virtual int options(int, char **) = 0;
   // reinitialize internal data (needed for fix balance) (optional)
-  virtual void init() {};
+  virtual void init(int) {};
   // compute and apply weight factors to local atom array (required)
-  virtual void compute(double *weights) = 0;
+  virtual void compute(double *) = 0;
   // print information about the state of this imbalance compute (required)
-  virtual void info(FILE *fp) = 0;
+  virtual void info(FILE *) = 0;
 
   // disallow default and copy constructor, assignment operator
   // private:

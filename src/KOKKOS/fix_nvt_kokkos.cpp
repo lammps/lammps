@@ -26,6 +26,7 @@ template<class DeviceType>
 FixNVTKokkos<DeviceType>::FixNVTKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixNHKokkos<DeviceType>(lmp, narg, arg)
 {
+  this->kokkosable = 1;
   if (!this->tstat_flag)
     this->error->all(FLERR,"Temperature control must be used with fix nvt");
   if (this->pstat_flag)

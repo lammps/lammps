@@ -44,6 +44,7 @@ template<class DeviceType>
 FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixLangevin(lmp, narg, arg),rand_pool(seed + comm->me)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   int ntypes = atomKK->ntypes;
 

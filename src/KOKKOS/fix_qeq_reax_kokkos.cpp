@@ -53,6 +53,7 @@ template<class DeviceType>
 FixQEqReaxKokkos<DeviceType>::FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReax(lmp, narg, arg)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 

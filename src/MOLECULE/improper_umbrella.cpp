@@ -233,7 +233,7 @@ void ImproperUmbrella::compute(int eflag, int vflag)
 
     if (evflag) {
 
-      // correct 4-body geometry for virial tally
+      // get correct 4-body geometry for virial tally
 
       vb1x = x[i1][0] - x[i2][0];
       vb1y = x[i1][1] - x[i2][1];
@@ -246,7 +246,6 @@ void ImproperUmbrella::compute(int eflag, int vflag)
       vb3x = x[i4][0] - x[i3][0];
       vb3y = x[i4][1] - x[i3][1];
       vb3z = x[i4][2] - x[i3][2];
-
 
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f3,f4,
                vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);

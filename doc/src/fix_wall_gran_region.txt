@@ -38,15 +38,15 @@ the "fix wall/region"_fix_wall_region.html and "fix
 wall/gran"_fix_wall_gran.html commands for related kinds of walls for
 non-granular particles and simpler wall geometries, respectively.
 
-Here are example simulations using this command.  The input scripts
-for these can be found in examples/granregion.  Click on the image to
-play or download a movie.  The movies were made with
-"VMD"_http://www.ks.uiuc.edu/Research/vmd.
+Here are snapshots of example models using this command.
+Corresponding input scripts can be found in examples/granregion.
+Click on the images to see a bigger picture.  Movies of these
+simulations are "here on the Movies
+page"_http://lammps.sandia.gov/movies.html#granregion.html of the
+LAMMPS web site.
 
-:image(gran_funnel_small.jpg,gran_funnel.gif)
-:image(gran_mixer_small.jpg,gran_mixer.gif)
-
-image(gran_box_small.jpg,gran_box.gif)
+:image(JPG/gran_funnel_small.jpg,JPG/gran_funnel.png)
+:image(JPG/gran_mixer_small.jpg,JPG/gran_mixer.png)
 
 :line
 
@@ -189,9 +189,11 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"fix_move"_fix_move.html, "pair_style granular"_pair_gran.html,
-"region"_region.html, "fix wall/gran"_fix_wall_gran.html, fix
-wall/region"_fix_wall_region.html
+"fix_move"_fix_move.html,
+"fix wall/gran"_fix_wall_gran.html, 
+"fix wall/region"_fix_wall_region.html,
+"pair_style granular"_pair_gran.html,
+"region"_region.html
 
 [Default:] none
 

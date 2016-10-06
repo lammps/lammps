@@ -41,7 +41,9 @@ supplemental information of the following paper: "(Chenoweth et al.,
 2008)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
-the "(Aktulga)"_#Aktulga paper.
+the "(Aktulga)"_#Aktulga paper. The {reax/c} style was initially
+implemented as a stand-alone C code and is now integrated into LAMMPS
+as a package.
 
 The {reax/c/kk} style is a Kokkos version of the ReaxFF potential that is
 derived from the {reax/c} style. The Kokkos version can run on GPUs and
@@ -163,11 +165,11 @@ To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
 compute reax all pair reax/c
-variable eb  	 equal c_reax\[1\]
-variable ea  	 equal c_reax\[2\]
+variable eb      equal c_reax\[1\]
+variable ea      equal c_reax\[2\]
 \[...\]
-variable eqeq 	 equal c_reax\[14\]
-thermo_style custom step temp epair v_eb v_ea ... v_eqeq :pre
+variable eqeq    equal c_reax\[14\]
+thermo_style custom step temp epair v_eb v_ea \[...\] v_eqeq :pre
 
 Only a single pair_coeff command is used with the {reax/c} style which
 specifies a ReaxFF potential file with parameters for all needed
@@ -237,7 +239,7 @@ nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
 regarding the bonded interactions. (default value = 5.0)
 
 hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
-bond interactions.(default value = 7.5. Value of 0.0 turns off
+bond interactions.(default value = 7.5. A value of 0.0 turns off
 hydrogen bonds)
 
 bond_graph_cutoff: is the threshold used in determining what is a

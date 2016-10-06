@@ -158,7 +158,7 @@ Divided line :ul
 3) Potential parameters:
 
 Keyword for element1, element2 and interaction potential ('second_moment' or 'buck' or 'buckPlusAttr') between element 1 and 2.  If the potential is 'second_moment', specify 'oxide' or 'metal' for metal-oxygen or metal-metal interactions respectively.
-Potential parameter: <pre><br/>	If type of potential is 'second_moment' : {A (eV)}, {p}, {&#958<sup>0</sup>} (eV) and {q} <br/>						  {r<sub>c1</sub>} (&#197), {r<sub>c2</sub>} (&#197) and {r<sub>0</sub>} (&#197) <br/> 	If type of potential is 'buck' : {C} (eV) and {&#961} (&#197) <br/>	If type of potential is 'buckPlusAttr' : {C} (eV) and {&#961} (&#197) <br/>						 {D} (eV), {B} (&#197<sup>-1</sup>), {r<sub>1</sub><sup>OO</sup>} (&#197) and {r<sub>2</sub><sup>OO</sup>} (&#197) </pre>
+Potential parameter: <pre><br/> If type of potential is 'second_moment' : {A (eV)}, {p}, {&#958<sup>0</sup>} (eV) and {q} <br/> {r<sub>c1</sub>} (&#197), {r<sub>c2</sub>} (&#197) and {r<sub>0</sub>} (&#197) <br/> If type of potential is 'buck' : {C} (eV) and {&#961} (&#197) <br/> If type of potential is 'buckPlusAttr' : {C} (eV) and {&#961} (&#197) <br/> {D} (eV), {B} (&#197<sup>-1</sup>), {r<sub>1</sub><sup>OO</sup>} (&#197) and {r<sub>2</sub><sup>OO</sup>} (&#197) </pre>
 Divided line :ul
 
 4) Tables parameters:
@@ -185,7 +185,7 @@ Divided line :ul
 
 8) Mode for the electronegativity equalization (Qeq) :
 
-Keyword mode: <pre> <br/>		QEqAll  (one QEq group)			|   no parameters <br/>		QEqAllParallel (several QEq groups)	|   no parameters <br/>		Surface			|   zlim   (QEq only for z>zlim)   </pre>
+Keyword mode: <pre> <br/> QEqAll  (one QEq group) |   no parameters <br/> QEqAllParallel (several QEq groups) |   no parameters <br/> Surface |   zlim   (QEq only for z>zlim)   </pre>
 Parameter if necessary
 Divided line :ul
 

@@ -113,8 +113,8 @@ For example, the following commands will write restart files
 every step from 1100 to 1200, and could be useful for debugging
 a simulation where something goes wrong at step 1163:
 
-variable	s equal stride(1100,1200,1)
-restart		v_s tmp.restart :pre
+variable       s equal stride(1100,1200,1)
+restart        v_s tmp.restart :pre
 
 :line
 

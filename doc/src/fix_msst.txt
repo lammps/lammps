@@ -120,7 +120,7 @@ The global vector contains four values in this order:
 To print these quantities to the log file with descriptive column
 headers, the following LAMMPS commands are suggested:
 
-fix		 msst all msst z
+fix              msst all msst z
 fix_modify       msst energy yes
 variable dhug    equal f_msst\[1\]
 variable dray    equal f_msst\[2\]

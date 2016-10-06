@@ -188,9 +188,9 @@ lattce(I,J) = lattice structure of I-J reference structure:
                 bcc = body centered cubic
                 dim = dimer
                 b1  = rock salt (NaCl structure)
-		hcp = hexagonal close-packed
-		c11 = MoSi2 structure
-		l12 = Cu3Au structure (lower case L, followed by 12)
+                hcp = hexagonal close-packed
+                c11 = MoSi2 structure
+                l12 = Cu3Au structure (lower case L, followed by 12)
                 b2  = CsCl structure (interpenetrating simple cubic)
 nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
               I-J pair (see for example "(Lee)"_#Lee).

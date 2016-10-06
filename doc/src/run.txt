@@ -66,11 +66,11 @@ keywords.
 
 For example, consider this fix followed by 10 run commands:
 
-fix	     1 all nvt 200.0 300.0 1.0
-run	     1000 start 0 stop 10000
-run	     1000 start 0 stop 10000
+fix         1 all nvt 200.0 300.0 1.0
+run         1000 start 0 stop 10000
+run         1000 start 0 stop 10000
 ...
-run	     1000 start 0 stop 10000 :pre
+run         1000 start 0 stop 10000 :pre
 
 The NVT fix ramps the target temperature from 200.0 to 300.0 during a
 run.  If the run commands did not have the start/stop keywords (just

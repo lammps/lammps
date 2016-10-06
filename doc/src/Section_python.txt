@@ -552,32 +552,32 @@ lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" :pre
 
 xlo = lmp.extract_global(name,type)  # extract a global quantity
                                      # name = "boxxlo", "nlocal", etc
-				     # type = 0 = int
-				     #        1 = double :pre
+                                     # type = 0 = int
+                                     #        1 = double :pre
 
 coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
                                           # name = "x", "type", etc
-				          # type = 0 = vector of ints
-				          #        1 = array of ints
-				          #        2 = vector of doubles
-				          #        3 = array of doubles :pre
+                                          # type = 0 = vector of ints
+                                          #        1 = array of ints
+                                          #        2 = vector of doubles
+                                          #        3 = array of doubles :pre
 
 eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
 v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
                                           # id = ID of compute or fix
-					  # style = 0 = global data
-					  #	    1 = per-atom data
-					  #         2 = local data
-					  # type = 0 = scalar
-					  #	   1 = vector
-					  #        2 = array
-					  # i,j = indices of value in global vector or array :pre
+                                          # style = 0 = global data
+                                          #         1 = per-atom data
+                                          #         2 = local data
+                                          # type = 0 = scalar
+                                          #        1 = vector
+                                          #        2 = array
+                                          # i,j = indices of value in global vector or array :pre
 
 var = lmp.extract_variable(name,group,flag)  # extract value(s) from a variable
-	                                     # name = name of variable
-					     # group = group ID (ignored for equal-style variables)
-					     # flag = 0 = equal-style variable
-					     #        1 = atom-style variable :pre
+                                             # name = name of variable
+                                             # group = group ID (ignored for equal-style variables)
+                                             # flag = 0 = equal-style variable
+                                             #        1 = atom-style variable :pre
 
 flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
 natoms = lmp.get_natoms()                 # total # of atoms as int

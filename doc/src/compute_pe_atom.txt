@@ -52,7 +52,7 @@ The KSpace contribution is calculated using the method in
 "(Heyes)"_#Heyes for the Ewald method and a related method for PPPM,
 as specified by the "kspace_style pppm"_kspace_style.html command.
 For PPPM, the calcluation requires 1 extra FFT each timestep that
-per-atom energy is calculated.  Thie "document"_PDF/kspace.pdf
+per-atom energy is calculated.  This "document"_PDF/kspace.pdf
 describes how the long-range per-atom energy calculation is performed.
 
 Various fixes can contribute to the per-atom potential energy of the
@@ -68,9 +68,9 @@ As an example of per-atom potential energy compared to total potential
 energy, these lines in an input script should yield the same result
 in the last 2 columns of thermo output:
 
-compute		peratom all pe/atom
-compute		pe all reduce sum c_peratom
-thermo_style	custom step temp etotal press pe c_pe :pre
+compute        peratom all pe/atom
+compute        pe all reduce sum c_peratom
+thermo_style   custom step temp etotal press pe c_pe :pre
 
 NOTE: The per-atom energy does not any Lennard-Jones tail corrections
 invoked by the "pair_modify tail yes"_pair_modify.html command, since

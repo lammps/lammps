@@ -17,11 +17,11 @@ rigid/local = style name of this compute command :l
 rigidID = ID of fix rigid/small command or one of its variants :l
 input = one or more rigid body attributes :l
   possible attributes = id, mol, mass,
- 	                x, y, z, xu, yu, zu, ix, iy, iz
-		        vx, vy, vz, fx, fy, fz,
+                        x, y, z, xu, yu, zu, ix, iy, iz
+                        vx, vy, vz, fx, fy, fz,
                         omegax, omegay, omegaz,
-			angmomx, angmomy, angmomz,
-		        quatw, quati, quatj, quatk,
+                        angmomx, angmomy, angmomz,
+                        quatw, quati, quatj, quatk,
                         tqx, tqy, tqz,
                         inertiax, inertiay, inertiaz
       id = atom ID of atom within body which owns body properties

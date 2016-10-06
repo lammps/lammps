@@ -96,15 +96,15 @@ tantalum potential provided in the LAMMPS potentials directory
 combines the {snap} and {zbl} pair styles. It is invoked
 by the following commands:
 
-	variable zblcutinner equal 4
-	variable zblcutouter equal 4.8
-	variable zblz equal 73
-	pair_style hybrid/overlay &
-	zbl $\{zblcutinner\} $\{zblcutouter\} snap
-	pair_coeff * * zbl 0.0
-	pair_coeff 1 1 zbl $\{zblz\}
-	pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &
-	../potentials/Ta06A.snapparam Ta :pre
+        variable zblcutinner equal 4
+        variable zblcutouter equal 4.8
+        variable zblz equal 73
+        pair_style hybrid/overlay &
+        zbl $\{zblcutinner\} $\{zblcutouter\} snap
+        pair_coeff * * zbl 0.0
+        pair_coeff 1 1 zbl $\{zblz\}
+        pair_coeff * * snap ../potentials/Ta06A.snapcoeff Ta &
+        ../potentials/Ta06A.snapparam Ta :pre
 
 It is convenient to keep these commands in a separate file that can
 be inserted in any LAMMPS input script using the "include"_include.html

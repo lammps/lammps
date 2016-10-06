@@ -20,7 +20,7 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
     n1, n2, ... = loop factor between rRESPA levels (N-1 values)
     zero or more keyword/value pairings may be appended to the loop factors
     keyword = {bond} or {angle} or {dihedral} or {improper} or
-	      {pair} or {inner} or {middle} or {outer} or {hybrid} or {kspace}
+              {pair} or {inner} or {middle} or {outer} or {hybrid} or {kspace}
       {bond} value = M
         M = which level (1-N) to compute bond forces in
       {angle} value = M
@@ -33,14 +33,14 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
         M = which level (1-N) to compute pair forces in
       {inner} values = M cut1 cut2
         M = which level (1-N) to compute pair inner forces in
-	cut1 = inner cutoff between pair inner and
-	       pair middle or outer  (distance units)
-	cut2 = outer cutoff between pair inner and
-	       pair middle or outer  (distance units)
+        cut1 = inner cutoff between pair inner and
+               pair middle or outer  (distance units)
+        cut2 = outer cutoff between pair inner and
+               pair middle or outer  (distance units)
       {middle} values = M cut1 cut2
         M = which level (1-N) to compute pair middle forces in
-	cut1 = inner cutoff between pair middle and pair outer (distance units)
-	cut2 = outer cutoff between pair middle and pair outer (distance units)
+        cut1 = inner cutoff between pair middle and pair outer (distance units)
+        cut2 = outer cutoff between pair middle and pair outer (distance units)
       {outer} value = M
         M = which level (1-N) to compute pair outer forces in
       {hybrid} values = M1 M2 ... (as many values as there are hybrid sub-styles
@@ -230,7 +230,7 @@ rRESPA:
 
 fix             2 all shake 0.000001 500 0 m 1.0 a 1
 timestep        4.0
-run_style	respa 2 2 inner 1 4.0 5.0 outer 2 :pre
+run_style       respa 2 2 inner 1 4.0 5.0 outer 2 :pre
 
 With these settings, users can expect good energy conservation and
 roughly a 1.5 fold speedup over the {verlet} style with SHAKE and a

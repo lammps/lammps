@@ -170,7 +170,7 @@ so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for {hybrid} and {hybrid/overlay} simulations, you
 can use this form of the pair_coeff command in your input script:
 
-pair_coeff	2 3 none :pre
+pair_coeff        2 3 none :pre
 
 or this form in the "Pair Coeffs" section of the data file:
 

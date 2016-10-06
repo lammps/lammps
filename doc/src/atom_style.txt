@@ -14,7 +14,7 @@ atom_style style args :pre
 
 style = {angle} or {atomic} or {body} or {bond} or {charge} or {dipole} or \
         {dpd} or {electron} or {ellipsoid} or {full} or {line} or {meso} or \
-	{molecular} or {peri} or {smd} or {sphere} or {tri} or \
+        {molecular} or {peri} or {smd} or {sphere} or {tri} or \
         {template} or {hybrid} :ulb,l
   args = none for any style except the following
   {body} args = bstyle bstyle-args

@@ -167,14 +167,14 @@ headers, the following LAMMPS commands are suggested. Here the
 the thermo keyword {etotal} to print the quantity <i>etot</i>.  See
 also the "thermo_style"_thermo_style.html command.
 
-fix		fix_id all msst z
-fix_modify	fix_id energy yes
-variable	dhug	equal f_fix_id\[1\]
-variable	dray	equal f_fix_id\[2\]
-variable	lgr_vel	equal f_fix_id\[3\]
-variable	lgr_pos	equal f_fix_id\[4\]
-variable	T_qm	equal f_fix_id\[5\]
-thermo_style	custom	step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id :pre
+fix             fix_id all msst z
+fix_modify      fix_id energy yes
+variable        dhug    equal f_fix_id\[1\]
+variable        dray    equal f_fix_id\[2\]
+variable        lgr_vel equal f_fix_id\[3\]
+variable        lgr_pos equal f_fix_id\[4\]
+variable        T_qm    equal f_fix_id\[5\]
+thermo_style    custom  step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id :pre
 
 The global scalar under the entry f_fix_id is the quantity of thermo
 energy as an extra part of <i>etot</i>. This global scalar and the

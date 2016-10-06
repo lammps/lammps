@@ -74,9 +74,9 @@ void ReadMdfFile(void)
         at_end = 1;
       } else if (strncmp(line,"@column",7) == 0) {
 
-        temp_string = strtok(line," ");
-        col_no = strtok(NULL," ");
-        col_name = strtok(NULL," ");
+        temp_string = strtok(line,WHITESPACE);
+        col_no = strtok(NULL,WHITESPACE);
+        col_name = strtok(NULL,WHITESPACE);
         if (strncmp(col_name,"charge",6) == 0) {
           if (strlen(col_name) < 8) {
             q_col_no = atoi(col_no);
@@ -285,7 +285,7 @@ int get_molecule(char *line, int connect_col_no, int q_col_no,
     /* Get atom name */
     cur_field = strtok(line,":");
     sscanf(cur_field, "%s", atoms[*counter].residue_string);
-    cur_field = strtok(NULL," ");
+    cur_field = strtok(NULL,WHITESPACE);
     /* Compare atom name with that in .car file */
     if (strcmp(atoms[*counter].name, cur_field)) {
       printf("Names %s from .car file and %s from .mdf file do not match\n",
@@ -297,18 +297,18 @@ int get_molecule(char *line, int connect_col_no, int q_col_no,
 
     /* Skip unwanted fields until charge column, then update charge */
 
-    for (i=1; i < q_col_no; i++) strtok(NULL," ");
-    cur_field = strtok(NULL, " ");
+    for (i=1; i < q_col_no; i++) strtok(NULL,WHITESPACE);
+    cur_field = strtok(NULL, WHITESPACE);
     atoms[*counter].q = atof(cur_field);
 
     /* Continue skipping unwanted fields until connectivity records begin */
 
-    for ( i = (q_col_no + 1); i < connect_col_no; i++) strtok(NULL," ");
+    for ( i = (q_col_no + 1); i < connect_col_no; i++) strtok(NULL,WHITESPACE);
 
     /* Process connections */
 
     connect_no = 0; /* reset connections counter */
-    while ((cur_field = strtok(NULL," ")) && (connect_no < MAX_CONNECTIONS)) {
+    while ((cur_field = strtok(NULL,WHITESPACE)) && (connect_no < MAX_CONNECTIONS)) {
       sscanf(cur_field, "%s", atoms[*counter].connections[connect_no++]);
     }
     atoms[*counter].no_connect = connect_no;

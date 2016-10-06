@@ -135,7 +135,7 @@ and angular momentum of a particle.  If the {vel} option is set to
 {yes}, then ghost atoms store these quantities; if {no} then they do
 not.  The {yes} setting is needed by some pair styles which require
 the velocity state of both the I and J particles to compute a pairwise
-I,J interaction.
+I,J interaction, as well as by some compute and fix commands.
 
 Note that if the "fix deform"_fix_deform.html command is being used
 with its "remap v" option enabled, then the velocities for ghost atoms

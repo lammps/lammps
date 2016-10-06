@@ -15,7 +15,7 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include <string.h>
 #include <stdlib.h>
 #include "compute_dpd_atom.h"

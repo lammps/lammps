@@ -74,11 +74,14 @@ larger version of your molecule as a pre-processing step and input a
 new data file to LAMMPS.
 
 If the current simulation was read in from a restart file (before a
-run is performed), there can have been no fix information stored in
+run is performed), there must not be any fix information stored in
 the file for individual atoms.  Similarly, no fixes can be defined at
 the time the replicate command is used that require vectors of atom
 information to be stored.  This is because the replicate command does
 not know how to replicate that information for new atoms it creates.
+To work around this restriction, restart files may be converted into
+data files and fixes may be undefined via the "unfix"_unfix.html
+command before and redefined after the replicate command.
 
 [Related commands:] none
 

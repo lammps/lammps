@@ -15,10 +15,10 @@
    Contributing author: Markus Höhnerbach (RWTH)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_tersoff_intel.h"
 #include "atom.h"
 #include "neighbor.h"

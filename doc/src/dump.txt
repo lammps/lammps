@@ -55,13 +55,13 @@ args = list of arguments for a particular style :l
 
   {custom} or {custom/gz} or {custom/mpiio} args = list of atom attributes
     possible attributes = id, mol, proc, procp1, type, element, mass,
-			  x, y, z, xs, ys, zs, xu, yu, zu,
-			  xsu, ysu, zsu, ix, iy, iz,
-			  vx, vy, vz, fx, fy, fz,
+                          x, y, z, xs, ys, zs, xu, yu, zu,
+                          xsu, ysu, zsu, ix, iy, iz,
+                          vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz, mu,
                           radius, diameter, omegax, omegay, omegaz,
-			  angmomx, angmomy, angmomz, tqx, tqy, tqz,
-			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
+                          angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                          c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
       mol = molecule ID

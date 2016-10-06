@@ -15,7 +15,7 @@ pair_style peri/eps command :h3
 
 [Syntax:]
 
-pair_style style :pre 
+pair_style style :pre
 
 style = {peri/pmb} or {peri/lps} or {peri/ves} or {peri/eps} :ul
 
@@ -49,7 +49,7 @@ peridynamic solid (LPS) model.
 Style {peri/ves} implements the Peridynamic state-based linear
 peridynamic viscoelastic solid (VES) model.
 
-Style {peri/eps} implements the Peridynamic state-based elastic-plastic 
+Style {peri/eps} implements the Peridynamic state-based elastic-plastic
 solid (EPS) model.
 
 The canonical papers on Peridynamics are "(Silling 2000)"_#Silling2000
@@ -107,7 +107,7 @@ K (force/area units)
 G (force/area units)
 horizon (distance units)
 s00 (unitless)
-alpha (unitless) 
+alpha (unitless)
 m_lambdai (unitless)
 m_taubi (unitless) :ul
 
@@ -126,7 +126,7 @@ K (force/area units)
 G (force/area units)
 horizon (distance units)
 s00 (unitless)
-alpha (unitless) 
+alpha (unitless)
 m_yield_stress (force/area units)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a

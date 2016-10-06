@@ -27,7 +27,7 @@ keyword = {com} or {rot} :l
 [Examples:]
 
 fix 1 all tfmc 0.1 1000.0 159345
-fix 1 all tfmc 0.05 600.0 658943 com 1 1 0 
+fix 1 all tfmc 0.05 600.0 658943 com 1 1 0
 fix 1 all tfmc 0.1 750.0 387068 com 1 1 1 rot :pre
 
 [Description:]
@@ -128,7 +128,7 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-This fix is not compatible with "fix shake"_fix_shake.html. 
+This fix is not compatible with "fix shake"_fix_shake.html.
 
 [Related commands:]
 

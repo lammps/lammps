@@ -46,7 +46,7 @@ command.  See, for example, discussion of the {temp} and {drag}
 keywords.
 
 This fix computes a temperature each timestep.  To do this, the fix
-creates its own compute of style "temp/sphere", as if this command 
+creates its own compute of style "temp/sphere", as if this command
 had been issued:
 
 compute fix-ID_temp group-ID temp/sphere :pre

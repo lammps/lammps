@@ -19,7 +19,7 @@ t_eq = number of steps for the equilibration procedure :l
 t_s = number of steps for the switching procedure :l
 zero or more keyword/value pairs may be appended to args :l
 keyword = {function} :l
-  {function} value = function-ID 
+  {function} value = function-ID
     function-ID = ID of the switching function (1 or 2) :pre
 :ule
 

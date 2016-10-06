@@ -25,7 +25,7 @@ pair_coeff 1 4 78. 1.375 0.112 :pre
 
 Style {coul/diel} computes a Coulomb correction for implict solvent
 ion interactions in which the dielectric perimittivity is distance dependent.
-The dielectric permittivity epsilon_D(r) connects to limiting regimes: 
+The dielectric permittivity epsilon_D(r) connects to limiting regimes:
 One limit is defined by a small dielectric permittivity (close to vacuum)
 at or close to contact seperation between the ions. At larger separations
 the dielectric permittivity reaches a bulk value used in the regular Coulomb
@@ -38,18 +38,18 @@ in the Coulomb correction term for small ion separations as follows
 where r_me is the inflection point of epsilon_D(r) and sigma_e is a slope
 defining length scale. C is the same Coulomb conversion factor as in the
 pair_styles coul/cut, coul/long, and coul/debye. In this way the Coulomb
-interaction between ions is corrected at small distances r. The lower 
-limit of epsilon_D(r->0)=5.2 due to dielectric saturation "(Stiles)"_#Stiles 
-while the Coulomb interaction reaches its bulk limit by setting 
-epsilon_D(r->\infty)=epsilon, the bulk value of the solvent which is 78 
-for water at 298K.  
+interaction between ions is corrected at small distances r. The lower
+limit of epsilon_D(r->0)=5.2 due to dielectric saturation "(Stiles)"_#Stiles
+while the Coulomb interaction reaches its bulk limit by setting
+epsilon_D(r->\infty)=epsilon, the bulk value of the solvent which is 78
+for water at 298K.
 
-Examples of the use of this type of Coulomb interaction include implicit 
-solvent simulations of salt ions 
+Examples of the use of this type of Coulomb interaction include implicit
+solvent simulations of salt ions
 "(Lenart)"_#Lenart and of ionic surfactants "(Jusufi)"_#Jusufi.
 Note that this potential is only reasonable for implicit solvent simulations
 and in combiantion with coul/cut or coul/long. It is also usually combined
-with gauss/cut, see "(Lenart)"_#Lenart or "(Jusufi)"_#Jusufi.  
+with gauss/cut, see "(Lenart)"_#Lenart or "(Jusufi)"_#Jusufi.
 
 The following coefficients must be defined for each pair of atom
 types via the "pair_coeff"_pair_coeff.html command as in the example
@@ -67,7 +67,7 @@ The global cutoff (r_c) specified in the pair_style command is used.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-This pair style does not support parameter mixing. Coefficients must be given explicitly for each type of particle pairs. 
+This pair style does not support parameter mixing. Coefficients must be given explicitly for each type of particle pairs.
 
 This pair style supports the "pair_modify"_pair_modify.html shift
 option for the energy of the Gauss-potential portion of the pair

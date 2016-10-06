@@ -100,7 +100,7 @@ B (energy units)
 R (distance units)
 D (distance units)
 lambda1 (1/distance units)
-A (energy units) 
+A (energy units)
 Z_i
 Z_j
 ZBLcut (distance units)
@@ -134,7 +134,7 @@ three-body parameters for SiCSi and SiSiC entries will not, in
 general, be the same.  The parameters used for the two-body
 interaction come from the entry where the 2nd element is repeated.
 Thus the two-body parameters for Si interacting with C, comes from the
-SiCC entry.  
+SiCC entry.
 
 The parameters used for a particular
 three-body interaction come from the entry with the corresponding
@@ -143,9 +143,9 @@ three elements.  The parameters used only for two-body interactions
 element are different (e.g. SiCSi) are not used for anything and can
 be set to 0.0 if desired.
 
-Note that the twobody parameters in entries such as SiCC and CSiSi 
-are often the same, due to the common use of symmetric mixing rules, 
-but this is not always the case. For example, the beta and n parameters in 
+Note that the twobody parameters in entries such as SiCC and CSiSi
+are often the same, due to the common use of symmetric mixing rules,
+but this is not always the case. For example, the beta and n parameters in
 Tersoff_2 "(Tersoff_2)"_#Tersoff_2 are not symmetric.
 
 We chose the above form so as to enable users to define all commonly

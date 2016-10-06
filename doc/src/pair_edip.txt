@@ -77,7 +77,7 @@ u3
 u4 :ul
 
 The A, B, beta, sigma parameters are used only for two-body interactions.
-The eta, gamma, lambda, mu, Q0 and all u1 to u4 parameters are used only 
+The eta, gamma, lambda, mu, Q0 and all u1 to u4 parameters are used only
 for three-body interactions. The alpha and cutoffC parameters are used
 for the coordination environment function only.
 
@@ -93,9 +93,9 @@ specify EDIP parameters for all permutations of the two elements
 interacting in three-body configurations.  Thus for 3 elements, 27
 entries would be required, etc.
 
-At the moment, only a single element parametrization is 
-implemented. However, the author is not aware of other 
-multi-element EDIP parametrizations. If you know any and 
+At the moment, only a single element parametrization is
+implemented. However, the author is not aware of other
+multi-element EDIP parametrizations. If you know any and
 you are interest in that, please contact the author of
 the EDIP package.
 
@@ -149,7 +149,7 @@ section for more info on packages.
 This pair style requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 
-The EDIP potential files provided with LAMMPS (see the potentials directory) 
+The EDIP potential files provided with LAMMPS (see the potentials directory)
 are parameterized for metal "units"_units.html.
 You can use the SW potential with any LAMMPS units, but you would need
 to create your own EDIP potential file with coefficients listed in the

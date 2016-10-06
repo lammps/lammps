@@ -15,7 +15,7 @@ pair_style hbond/dreiding/morse/omp command :h3
 
 pair_style style N inner_distance_cutoff outer_distance_cutoff angle_cutof :pre
 
-style = {hbond/dreiding/lj} or {hbond/dreiding/morse} 
+style = {hbond/dreiding/lj} or {hbond/dreiding/morse}
 n = cosine angle periodicity
 inner_distance_cutoff = global inner cutoff for Donor-Acceptor interactions (distance units)
 outer_distance_cutoff = global cutoff for Donor-Acceptor interactions (distance units)
@@ -100,7 +100,7 @@ NOTE: Unlike other pair styles and their associated
 pair_coeff settings for all possible I,J type pairs.  Only I,J type
 pairs for atoms which act as joint donors/acceptors need to be
 specified; all other type pairs are assumed to be inactive.
- 
+
 NOTE: A "pair_coeff"_pair_coeff.html command can be speficied multiple
 times for the same donor/acceptor type pair.  This enables multiple
 hydrogen types to be assigned to the same donor/acceptor type pair.

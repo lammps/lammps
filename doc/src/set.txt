@@ -89,7 +89,7 @@ keyword = {type} or {type/fraction} or {mol} or {x} or {y} or {z} or \
   {meso/rho} value = density of SPH particles (need units)
     value can be an atom-style variable (see below)
   {smd/contact/radius} = radius for short range interactions, i.e. contact and friction
-    value can be an atom-style variable (see below) 
+    value can be an atom-style variable (see below)
   {smd/mass/density} = set particle mass based on volume by providing a mass density
     value can be an atom-style variable (see below)
   {dpd/theta} value = internal temperature of DPD particles (temperature units)
@@ -294,7 +294,7 @@ Keyword {theta} sets the orientation of selected atoms.  The particles
 must be line segments as defined by the "atom_style
 line"_atom_style.html command.  The specified value is used to set the
 orientation angle of the line segments with respect to the x axis.
- 
+
 Keyword {theta/random} randomizes the orientation of theta for the
 selected atoms.  The particles must be line segments as defined by the
 "atom_style line"_atom_style.html command.  Random numbers are used in

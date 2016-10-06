@@ -23,8 +23,8 @@ adjust_radius values = adjust_radius_factor min_nn max_nn
       min_nn = minimum number of neighbors
       max_nn = maximum number of neighbors
 limit_velocity values = max_velocity
-      max_velocity = maximum allowed velocity.  
-   
+      max_velocity = maximum allowed velocity.
+
 
 [Examples:]
 
@@ -41,7 +41,7 @@ within the interval {min_nn} to {max_nn}. The parameter {adjust_radius_factor} d
 {adjust_radius_factor}=1.02, {min_nn}=15, and {max_nn}=20.
 
 The {limit_velocity} keyword will control the velocity, scaling the norm of
-the velocity vector to max_vel in case it exceeds this velocity limit. 
+the velocity vector to max_vel in case it exceeds this velocity limit.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

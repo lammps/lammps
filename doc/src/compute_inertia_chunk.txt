@@ -23,7 +23,7 @@ compute 1 fluid inertia/chunk molchunk :pre
 [Description:]
 
 Define a computation that calculates the inertia tensor for multiple
-chunks of atoms. 
+chunks of atoms.
 
 In LAMMPS, chunks are collections of atoms defined by a "compute
 chunk/atom"_compute_chunk_atom.html command, which assigns each atom

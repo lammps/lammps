@@ -75,7 +75,7 @@ can be spread across many lines, though it is still a single command:
 if "$a < $b" then &
   "print 'Minimum value = $a'" &
   "run 1000" &
-else &      
+else &
   'print "Minimum value = $b"' &
   "minimize 0.001 0.001 1000 10000" :pre
 
@@ -134,7 +134,7 @@ An expression is built out of numbers (which start with a digit or
 period or minus sign) or strings (which start with a letter and can
 contain alphanumeric characters or underscores):
 
-0.2, 100, 1.0e20, -15.4, etc 
+0.2, 100, 1.0e20, -15.4, etc
 InP, myString, a123, ab_23_cd, etc :pre
 
 and Boolean operators:
@@ -148,7 +148,7 @@ If a variable is used it can produce a number when evaluated, like an
 "equal-style variable"_variable.html.  Or it can produce a string,
 like an "index-style variable"_variable.html.  For an individual
 Boolean operator, A and B must both be numbers or must both be
-strings.  You cannot compare a number to a string.  
+strings.  You cannot compare a number to a string.
 
 Expressions are evaluated left to right and have the usual C-style
 precedence: the unary logical NOT operator "!" has the highest

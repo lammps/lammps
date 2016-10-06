@@ -20,7 +20,7 @@ stress-ID = ID of a compute that calculates per-atom stress :ul
 
 [Examples:]
 
-compute myFlux all heat/flux myKE myPE myStress :pre 
+compute myFlux all heat/flux myKE myPE myStress :pre
 
 [Description:]
 
@@ -38,7 +38,7 @@ subtracted to a group of atoms.
 The compute takes three arguments which are IDs of other
 "computes"_compute.html.  One calculates per-atom kinetic energy
 ({ke-ID}), one calculates per-atom potential energy ({pe-ID)}, and the
-third calcualtes per-atom stress ({stress-ID}).  
+third calcualtes per-atom stress ({stress-ID}).
 
 NOTE: These other computes should provide values for all the atoms in
 the group this compute specifies.  That means the other computes could

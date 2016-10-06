@@ -181,7 +181,7 @@ Atom creation :h5
   displace atoms :ul
 
 Ensembles, constraints, and boundary conditions :h5
-("fix"_fix.html command) 
+("fix"_fix.html command)
 
   2d or 3d systems
   orthogonal or non-orthogonal (triclinic symmetry) simulation domains
@@ -199,7 +199,7 @@ Ensembles, constraints, and boundary conditions :h5
   variety of additional boundary conditions and constraints :ul
 
 Integrators :h5
-("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands) 
+("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands)
 
   velocity-Verlet integrator
   Brownian dynamics
@@ -213,7 +213,7 @@ Diagnostics :h5
   see the various flavors of the "fix"_fix.html and "compute"_compute.html commands :ul
 
 Output :h5
-("dump"_dump.html, "restart"_restart.html commands) 
+("dump"_dump.html, "restart"_restart.html commands)
 
   log file of thermodynamic info
   text dump files of atom coords, velocities, other per-atom quantities

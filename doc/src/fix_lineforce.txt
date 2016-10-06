@@ -48,4 +48,4 @@ invoked by the "minimize"_minimize.html command.
 
 "fix planeforce"_fix_planeforce.html
 
-[Default:] none 
+[Default:] none

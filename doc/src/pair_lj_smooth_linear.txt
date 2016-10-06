@@ -15,7 +15,7 @@ pair_style lj/smooth/linear Rc :pre
 
 Rc = cutoff for lj/smooth/linear interactions (distance units) :ul
 
-[Examples:] 
+[Examples:]
 
 pair_style lj/smooth/linear 5.456108274435118
 pair_coeff * * 0.7242785984051078 2.598146797350056

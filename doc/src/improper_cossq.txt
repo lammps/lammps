@@ -25,7 +25,7 @@ The {cossq} improper style uses the potential
 :c,image(Eqs/improper_cossq.jpg)
 
 where x is the improper angle, x0 is its equilibrium value, and K is a
-prefactor.  
+prefactor.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
 by the "read_data"_read_data.html command) are ordered I,J,K,L then X

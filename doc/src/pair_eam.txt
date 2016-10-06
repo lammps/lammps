@@ -433,11 +433,11 @@ section for more info.
 [(Ackland1)] Ackland, Condensed Matter (2005).
 
 :link(Ackland2)
-[(Ackland2)] Ackland, Mendelev, Srolovitz, Han and Barashev, Journal 
+[(Ackland2)] Ackland, Mendelev, Srolovitz, Han and Barashev, Journal
 of Physics: Condensed Matter, 16, S2629 (2004).
 
 :link(Daw)
-[(Daw)] Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).  
+[(Daw)] Daw, Baskes, Phys Rev Lett, 50, 1285 (1983).
 Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 
 :link(Finnis)

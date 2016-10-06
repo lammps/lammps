@@ -6,7 +6,7 @@
 
 :line
 
-dielectric command :h3 
+dielectric command :h3
 
 [Syntax:]
 

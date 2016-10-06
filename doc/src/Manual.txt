@@ -109,7 +109,7 @@ it gives quick access to documentation for all LAMMPS commands.
    :caption: User Documentation
    :name: userdoc
    :includehidden:
-   
+
    Section_intro
    Section_start
    Section_commands
@@ -144,7 +144,7 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
-   
+
 END_RST -->
 
 <!-- HTML_ONLY -->

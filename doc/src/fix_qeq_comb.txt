@@ -98,11 +98,11 @@ gradient of the charge on each atom.  The per-atom values be accessed
 on any timestep.
 
 No parameter of this fix can be used with the {start/stop} keywords of
-the "run"_run.html command.  
+the "run"_run.html command.
 
 This fix can be invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 This fix command currently only supports "pair style {comb}"_pair_comb.html.
 

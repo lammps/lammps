@@ -38,9 +38,9 @@ The {tersoff} style computes a 3-body Tersoff potential
 
 where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
-within a cutoff distance = R + D. 
+within a cutoff distance = R + D.
 
-The {tersoff/table} style uses tabulated forms for the two-body, 
+The {tersoff/table} style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed
 between adjacent table entries. The table length is chosen to be
 accurate within 10^-6 with respect to the {tersoff} style energy.
@@ -124,18 +124,18 @@ three-body parameters for SiCSi and SiSiC entries will not, in
 general, be the same.  The parameters used for the two-body
 interaction come from the entry where the 2nd element is repeated.
 Thus the two-body parameters for Si interacting with C, comes from the
-SiCC entry.  
+SiCC entry.
 
 The parameters used for a particular
 three-body interaction come from the entry with the corresponding
 three elements.  The parameters used only for two-body interactions
 (n, beta, lambda2, B, lambda1, and A) in entries whose 2nd and 3rd
 element are different (e.g. SiCSi) are not used for anything and can
-be set to 0.0 if desired. 
+be set to 0.0 if desired.
 
-Note that the twobody parameters in entries such as SiCC and CSiSi 
-are often the same, due to the common use of symmetric mixing rules, 
-but this is not always the case. For example, the beta and n parameters in 
+Note that the twobody parameters in entries such as SiCC and CSiSi
+are often the same, due to the common use of symmetric mixing rules,
+but this is not always the case. For example, the beta and n parameters in
 Tersoff_2 "(Tersoff_2)"_#Tersoff_2 are not symmetric.
 
 We chose the above form so as to enable users to define all commonly

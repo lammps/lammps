@@ -25,8 +25,8 @@ keyword = {*LINEAR} or {*WIGGLE} or {*ROTATE} :l
       Px,Py,Pz = origin point of axis of rotation (distance units)
       Rx,Ry,Rz = axis of rotation vector
       period = period of rotation (time units) :pre
-      
-:ule      
+
+:ule
 
 [Examples:]
 
@@ -42,7 +42,7 @@ The rigid surfaces can thus be moved along simple trajectories during the simula
 
 The {*LINEAR} style moves particles with the specified constant velocity
 vector V = (Vx,Vy,Vz). This style also sets the velocity of each particle
-to V = (Vx,Vy,Vz). 
+to V = (Vx,Vy,Vz).
 
 The {*WIGGLE} style moves particles in an oscillatory fashion.
 Particles are moved along (vx, vy, vz) with constant velocity until a

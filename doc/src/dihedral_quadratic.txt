@@ -33,7 +33,7 @@ above, or in the data file or restart files read by the
 "read_data"_read_data.html or "read_restart"_read_restart.html
 commands:
 
-K (energy/radian^2) 
+K (energy/radian^2)
 phi0 (degrees) :ul
 
 :line
@@ -64,7 +64,7 @@ more instructions on how to use the accelerated styles effectively.
 [Restrictions:]
 
 This angle style can only be used if LAMMPS was built with the
-USER_MISC package.  See the "Making LAMMPS"_Section_start.html#start_3 
+USER_MISC package.  See the "Making LAMMPS"_Section_start.html#start_3
 section for more info on packages.
 
 [Related commands:]

@@ -48,7 +48,7 @@ read_dump dump.xyz 10 x y z box no format molfile xyz "../plugins"
 read_dump dump.dcd 0 x y z box yes format molfile dcd
 read_dump dump.file 1000 x y z vx vy vz box yes format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile
 read_dump dump.file 5000 x y vx vy trim yes
-read_dump ../run7/dump.file.gz 10000 x y z box yes 
+read_dump ../run7/dump.file.gz 10000 x y z box yes
 read_dump dump.xyz 10 x y z box no format molfile xyz ../plugins
 read_dump dump.dcd 0 x y z format molfile dcd
 read_dump dump.file 1000 x y z vx vy vz format molfile lammpstrj /usr/local/lib/vmd/plugins/LINUXAMD64/plugins/molfile :pre

@@ -98,7 +98,7 @@ shared with all replicas, so that all replicas begin from the same
 initial state. The first potential energy basin is identified by
 quenching (an energy minimization, see below) the initial state and
 storing the resulting coordinates for reference.
-    
+
 In the first stage, dephasing is performed by each replica
 independently to eliminate correlations between replicas.  This is
 done by choosing a random set of velocities, based on the
@@ -309,7 +309,7 @@ deposit"_fix_deposit.html.
 "velocity"_velocity.html, "temper"_temper.html, "neb"_neb.html,
 "tad"_tad.html
 
-[Default:] 
+[Default:]
 
 The option defaults are min = 0.1 0.1 40 50, no temp setting, vel =
 geom gaussian, and time = steps.

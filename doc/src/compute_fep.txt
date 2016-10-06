@@ -64,7 +64,7 @@ these atoms:
 A coupling parameter \(\lambda\) varying from 0 to 1 connects the
 reference and perturbed systems:
 
-:c,image(Eqs/compute_fep_lambda.jpg) 
+:c,image(Eqs/compute_fep_lambda.jpg)
 
 It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential

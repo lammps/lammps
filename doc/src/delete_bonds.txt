@@ -121,7 +121,7 @@ The {special} keyword is invoked at the end of the delete_bonds
 operation, after (optional) removal.  It re-computes the pairwise 1-2,
 1-3, 1-4 weighting list.  The weighting list computation treats
 turned-off bonds the same as turned-on.  Thus, turned-off bonds must
-be removed if you wish to change the weighting list. 
+be removed if you wish to change the weighting list.
 
 Note that the choice of {remove} and {special} options affects how
 1-2, 1-3, 1-4 pairwise interactions will be computed across bonds that

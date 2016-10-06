@@ -63,7 +63,7 @@ unchanged and controlling the pressure of a surrounding fluid.
 :line
 
 This fix computes a temperature and pressure each timestep.  To do
-this, the fix creates its own computes of style "temp/asphere" and 
+this, the fix creates its own computes of style "temp/asphere" and
 "pressure", as if these commands had been issued:
 
 compute fix-ID_temp all temp/asphere

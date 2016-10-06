@@ -35,7 +35,7 @@ be used to impose velocity boundary conditions.
 Any of the vx,vy,vz values can be specified as NULL which means do not
 alter the velocity component in that dimension.
 
-This fix is indented to be used together with a time integration fix. 
+This fix is indented to be used together with a time integration fix.
 
 Any of the 3 quantities defining the velocity components can be specified
 as an equal-style or atom-style "variable"_variable.html, namely {vx},

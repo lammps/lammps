@@ -589,6 +589,8 @@ int AtomVecDPD::unpack_comm_hybrid(int n, int first, double *buf)
     uCond[i] = buf[m++];
     uMech[i] = buf[m++];
     uChem[i] = buf[m++];
+    uCG[i] = buf[m++];
+    uCGnew[i] = buf[m++];
   }
   return m;
 }

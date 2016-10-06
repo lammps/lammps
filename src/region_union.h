@@ -34,10 +34,12 @@ class RegUnion : public Region {
   int surface_exterior(double *, double);
   void shape_update();
   void pretransform();
+  void set_velocity();
+  void write_restart(FILE *);
+  int restart(char *, int);
+  void reset_vel();
 
  private:
-  int nregion;
-  int *list;
   char **idsub;
 };
 

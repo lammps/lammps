@@ -36,6 +36,11 @@ class RegBlock : public Region {
 
  protected:
   double xlo,xhi,ylo,yhi,zlo,zhi;
+  double corners[6][4][3];
+  double face[6][3];
+
+  double find_closest_point(int, double *, double &, double &, double &);
+  int inside_face(double *, int);
 };
 
 }

@@ -43,7 +43,7 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
 	cut2 = outer cutoff between pair middle and pair outer (distance units)
       {outer} value = M
         M = which level (1-N) to compute pair outer forces in
-      {hybrid} values = M1 M2 ... (as many values as there are hybrid sub-styles 
+      {hybrid} values = M1 M2 ... (as many values as there are hybrid sub-styles
         M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
         M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
         M3,etc
@@ -245,7 +245,7 @@ good energy conservation.  In real units, for a pure LJ fluid at
 liquid density, with a sigma of 3.0 angstroms, and epsilon of 0.1
 Kcal/mol, the following settings seem to work well:
 
-timestep  36.0  
+timestep  36.0
 run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 :pre
 
 :line

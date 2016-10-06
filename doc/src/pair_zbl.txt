@@ -27,8 +27,8 @@ pair_coeff 1 1 14.0 14.0 :pre
 
 Style {zbl} computes the Ziegler-Biersack-Littmark (ZBL) screened nuclear
 repulsion for describing high-energy collisions between atoms.
-"(Ziegler)"_#Ziegler. It includes an additional switching function 
-that ramps the energy, force, and curvature smoothly to zero 
+"(Ziegler)"_#Ziegler. It includes an additional switching function
+that ramps the energy, force, and curvature smoothly to zero
 between an inner and outer cutoff. The potential
 energy due to a pair of atoms at a distance r_ij is given by:
 
@@ -47,7 +47,7 @@ or in the LAMMPS data file.
 Z_i (atomic number for first atom type, e.g. 13.0 for aluminum) :ul
 Z_j (ditto for second atom type) :ul
 
-The values of Z_i and Z_j are normally equal to the atomic 
+The values of Z_i and Z_j are normally equal to the atomic
 numbers of the two atom types. Thus, the user may optionally
 specify only the coefficients for each I==I pair, and rely
 on the obvious mixing rule for cross interactions (see below).
@@ -97,7 +97,7 @@ can be mixed by taking Z_i and Z_j from the values specified for
 I == I and J == J cases. When used
 with "hybrid/overlay"_pair_hybrid.html and pairs are assigned
 to more than one sub-style, the mixing rule is not used and
-each pair of types interacting with the ZBL sub-style 
+each pair of types interacting with the ZBL sub-style
 must be included in a pair_coeff command.
 The "pair_modify"_pair_modify.html mix option has no effect on
 the mixing behavior

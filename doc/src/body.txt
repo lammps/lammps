@@ -125,7 +125,7 @@ in the {Bodies} section of the data file:
 
 atom-ID 1 M
 N
-ixx iyy izz ixy ixz iyz 
+ixx iyy izz ixy ixz iyz
 x1 y1 z1
 ...
 xN yN zN :pre
@@ -198,11 +198,11 @@ in the {Bodies} section of the data file:
 
 atom-ID 1 M
 N
-ixx iyy izz ixy ixz iyz 
+ixx iyy izz ixy ixz iyz
 x1 y1 z1
 ...
 xN yN zN
-i j j k k ... 
+i j j k k ...
 radius :pre
 
 N is the number of vertices in the body particle.  M = 6 + 3*N + 2*N +
@@ -230,11 +230,11 @@ particles whose edge length is sqrt(2):
 
 3 1 27
 4
-1 1 4 0 0 0 
--0.7071 -0.7071 0 
--0.7071 0.7071 0 
-0.7071 0.7071 0 
-0.7071 -0.7071 0 
+1 1 4 0 0 0
+-0.7071 -0.7071 0
+-0.7071 0.7071 0
+0.7071 0.7071 0
+0.7071 -0.7071 0
 0 1 1 2 2 3 3 0
 1.0 :pre
 

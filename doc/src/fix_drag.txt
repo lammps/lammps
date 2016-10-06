@@ -57,9 +57,9 @@ minimization"_minimize.html.
 
 [Restrictions:] none
 
-[Related commands:] 
+[Related commands:]
 
-"fix spring"_fix_spring.html, "fix spring/self"_fix_spring_self.html, 
+"fix spring"_fix_spring.html, "fix spring/self"_fix_spring_self.html,
 "fix spring/rg"_fix_spring_rg.html, "fix smd"_fix_smd.html
 
 [Default:] none

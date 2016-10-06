@@ -52,9 +52,9 @@ printed with thermodynamic output by using the
 example:
 
 compute         effTemp all temp/eff
-thermo_style    custom step etotal pe ke temp press 
+thermo_style    custom step etotal pe ke temp press
 thermo_modify   temp effTemp :pre
- 
+
 See "compute temp/eff"_compute_temp_eff.html.
 
 [Output info:]

@@ -48,7 +48,7 @@ keyword = {mol} or {basis} or {remap} or {var} or {set} or {units} :l
 
 create_atoms 1 box
 create_atoms 3 region regsphere basis 2 3
-create_atoms 3 single 0 0 5 
+create_atoms 3 single 0 0 5
 create_atoms 1 box var v set x xpos set y ypos :pre
 
 [Description:]
@@ -245,7 +245,7 @@ style.  A {box} value selects standard distance units as defined by
 the "units"_units.html command, e.g. Angstroms for units = real or
 metal.  A {lattice} value means the distance units are in lattice
 spacings.
- 
+
 :line
 
 Atom IDs are assigned to created atoms in the following way.  The

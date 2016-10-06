@@ -54,7 +54,7 @@ keyword = {append} or {buffer} or {element} or {every} or {fileper} or {first} o
     these 3 args can be replaced by the word "none" to turn off thresholding
   {unwrap} arg = {yes} or {no} :pre
 these keywords apply only to the {image} and {movie} "styles"_dump_image.html :l
-keyword = {acolor} or {adiam} or {amap} or {backcolor} or {bcolor} or {bdiam} or {boxcolor} or {color} or {bitrate} or {framerate} :l 
+keyword = {acolor} or {adiam} or {amap} or {backcolor} or {bcolor} or {bdiam} or {boxcolor} or {color} or {bitrate} or {framerate} :l
   {acolor} args = type color
     type = atom type or range of types (see below)
     color = name of color or color1/color2/...
@@ -491,7 +491,7 @@ simulation box since the last dump.  (Note that atoms that crossed
 once and then crossed back between the two dump timesteps would not be
 included.)
 
-region foo sphere 10 20 10 15 
+region foo sphere 10 20 10 15
 variable inregion atom rmask(foo)
 dump_modify ... thresh v_inregion |^ LAST
 

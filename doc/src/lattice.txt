@@ -187,7 +187,7 @@ orientation in the simulation box.
 Several LAMMPS commands have the option to use distance units that are
 inferred from "lattice spacings" in the x,y,z box directions.
 E.g. the "region"_region.html command can create a block of size
-10x20x20, where 10 means 10 lattice spacings in the x direction.  
+10x20x20, where 10 means 10 lattice spacings in the x direction.
 
 NOTE: Though they are called lattice spacings, all the commands that
 have a "units lattice" option, simply use the 3 values as scale

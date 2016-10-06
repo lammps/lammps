@@ -200,7 +200,7 @@ different value after reading a restart file, if you expect a fix move
 command to work in an uninterrupted fashion.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
-fix.  
+fix.
 
 This fix produces a per-atom array which can be accessed by various
 "output commands"_Section_howto.html#howto_15.  The number of columns

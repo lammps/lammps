@@ -33,7 +33,7 @@ tar -xzvf lammps*.tar.gz :pre
 
 This will create a LAMMPS directory containing two files and several
 sub-directories:
-    
+
 README: text file
 LICENSE: the GNU General Public License (GPL)
 bench: benchmark problems
@@ -600,10 +600,10 @@ LAMMPS will generate a run-time error.  As far as we know, the
 settings defined in src/lmptype.h are portable and work on every
 current system.
 
-In all cases, the size of problem that can be run on a per-processor  
-basis is limited by 4-byte integer storage to 2^31 atoms per processor  
-(about 2 billion). This should not normally be a limitation since such  
-a problem would have a huge per-processor memory footprint due to  
+In all cases, the size of problem that can be run on a per-processor
+basis is limited by 4-byte integer storage to 2^31 atoms per processor
+(about 2 billion). This should not normally be a limitation since such
+a problem would have a huge per-processor memory footprint due to
 neighbor lists and would run very slowly in terms of CPU secs/timestep.
 
 :line
@@ -841,7 +841,7 @@ libpackage.a
 Makefile.lammps :pre
 
 The Makefile.lammps file will typically be a copy of one of the
-Makefile.lammps.* files in the library directory.  
+Makefile.lammps.* files in the library directory.
 
 Note that you must insure that the settings in Makefile.lammps are
 appropriate for your system.  If they are not, the LAMMPS build may
@@ -883,7 +883,7 @@ A few packages require specific settings in Makefile.machine, to
 either build or use the package effectively.  These are the
 USER-INTEL, KOKKOS, USER-OMP, and OPT packages, used for accelerating
 code performance on CPUs or other hardware, as discussed in "Section
-5.3"_Section_accelerate.html#acc_3. 
+5.3"_Section_accelerate.html#acc_3.
 
 A summary of what Makefile.machine changes are needed for each of
 these packages is given in "Section 4"_Section_packages.html.
@@ -1199,7 +1199,7 @@ installer package from "here"_http://rpm.lammps.org/windows.html
 
 For running the non-MPI executable, follow these steps:
 
-Get a command prompt by going to Start->Run... , 
+Get a command prompt by going to Start->Run... ,
 then typing "cmd". :ulb,l
 
 Move to the directory where you have your input, e.g. a copy of
@@ -1209,7 +1209,7 @@ At the command prompt, type "lmp_serial -in in.lj", replacing [in.lj]
 with the name of your LAMMPS input script. :l
 :ule
 
-For the MPI version, which allows you to run LAMMPS under Windows on 
+For the MPI version, which allows you to run LAMMPS under Windows on
 multiple processors, follow these steps:
 
 Download and install
@@ -1224,7 +1224,7 @@ For this you need to start a Command Prompt in {Administrator Mode}
 installation directory, then into the subdirectory [bin] and execute
 [smpd.exe -install]. Exit the command window.
 
-Get a new, regular command prompt by going to Start->Run... , 
+Get a new, regular command prompt by going to Start->Run... ,
 then typing "cmd". :l
 
 Move to the directory where you have your input file
@@ -1488,7 +1488,7 @@ of the manual.  World- and universe-style "variables"_variable.html
 are useful in this context.
 
 -plog file :pre
- 
+
 Specify the base name for the partition log files, so partition N
 writes log information to file.N. If file is none, then no partition
 log files are created.  This overrides the filename specified in the
@@ -1499,7 +1499,7 @@ replica_files/log.lammps) If this option is not used the log file for
 partition N is log.lammps.N or whatever is specified by the -log
 command-line option.
 
--pscreen file :pre 
+-pscreen file :pre
 
 Specify the base name for the partition screen file, so partition N
 writes screen information to file.N. If file is none, then no
@@ -1511,7 +1511,7 @@ sub-directory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
 
--restart restartfile {remap} datafile keyword value ... :pre 
+-restart restartfile {remap} datafile keyword value ... :pre
 
 Convert the restart file into a data file and immediately exit.  This
 is the same operation as if the following 2-line input script were
@@ -1572,7 +1572,7 @@ to
 
 so that the processors in each partition will be
 
-0 1 2 4 5 6 8 9 10 
+0 1 2 4 5 6 8 9 10
 3 7 11 :pre
 
 See the "processors" command for how to insure processors from each
@@ -1663,12 +1663,12 @@ invokes the default USER-INTEL settings, as if the command "package
 intel 1" were used at the top of your input script.  These settings
 can be changed by using the "-package intel" command-line switch or
 the "package intel"_package.html command in your script. If the
-USER-OMP package is also installed, the hybrid style with "intel omp" 
-arguments can be used to make the omp suffix a second choice, if a 
-requested style is not available in the USER-INTEL package.  It will 
-also invoke the default USER-OMP settings, as if the command "package 
-omp 0" were used at the top of your input script.  These settings can 
-be changed by using the "-package omp" command-line switch or the 
+USER-OMP package is also installed, the hybrid style with "intel omp"
+arguments can be used to make the omp suffix a second choice, if a
+requested style is not available in the USER-INTEL package.  It will
+also invoke the default USER-OMP settings, as if the command "package
+omp 0" were used at the top of your input script.  These settings can
+be changed by using the "-package omp" command-line switch or the
 "package omp"_package.html command in your script.
 
 For the KOKKOS package, using this command-line switch also invokes
@@ -1833,7 +1833,7 @@ e.g.
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
-  Energy initial, next-to-last, final = 
+  Energy initial, next-to-last, final =
          -6372.3765206     -8328.46998942     -8328.46998942
   Force two-norm initial, final = 1059.36 5.36874
   Force max component initial, final = 58.6026 1.46872

@@ -193,7 +193,7 @@ Only spherical monodisperse particles are allowed for pair_style
 lubricateU.
 
 Only spherical particles are allowed for pair_style lubricateU/poly.
- 
+
 For sheared suspensions, it is assumed that the shearing is done in
 the xy plane, with x being the velocity direction and y being the
 velocity-gradient direction. In this case, one must use "fix

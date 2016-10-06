@@ -62,7 +62,7 @@ coordinates received from i-PI before forces are ever evaluated.
 There is no restart information associated with this fix, since all
 the dynamical parameters are dealt with by i-PI.
 
-[Restrictions:] 
+[Restrictions:]
 
 Using this fix on anything other than all atoms requires particular
 care, since i-PI will know nothing on atoms that are not those whose

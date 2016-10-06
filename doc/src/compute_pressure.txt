@@ -50,7 +50,7 @@ ordered xx, yy, zz, xy, xz, yz.  The equation for the I,J components
 (where I and J = x,y,z) is similar to the above formula, except that
 the first term uses components of the kinetic energy tensor and the
 second term uses components of the virial tensor:
-  
+
 :c,image(Eqs/pressure_tensor.jpg)
 
 If no extra keywords are listed, the entire equations above are

@@ -193,7 +193,7 @@ For the {body} style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
 the {bstyle} argument.  Body particles can represent complex entities,
 such as surface meshes of discrete points, collections of
-sub-particles, deformable objects, etc.  
+sub-particles, deformable objects, etc.
 
 The "body"_body.html doc page descibes the body styles LAMMPS
 currently supports, and provides more details as to the kind of body
@@ -269,7 +269,7 @@ The {line} and {tri} styles are part of the ASPHERE package.
 
 The {body} style is part of the BODY package.
 
-The {dipole} style is part of the DIPOLE package.  
+The {dipole} style is part of the DIPOLE package.
 
 The {peri} style is part of the PERI package for Peridynamics.
 

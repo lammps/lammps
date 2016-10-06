@@ -100,7 +100,7 @@ Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
 For pair_style {thole}, the following coefficients must be defined for
-each pair of atoms types via the "pair_coeff"_pair_coeff.html command 
+each pair of atoms types via the "pair_coeff"_pair_coeff.html command
 as in the example above.
 
 alpha (distance units^3)

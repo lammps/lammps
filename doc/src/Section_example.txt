@@ -120,7 +120,7 @@ browser.
 Uppercase directories :h4
 
 ASPHERE: various aspherical particle models, using ellipsoids, rigid bodies, line/triangle particles, etc
-COUPLE: examples of how to use LAMMPS as a library 
+COUPLE: examples of how to use LAMMPS as a library
 DIFFUSE: compute diffusion coefficients via several methods
 ELASTIC: compute elastic constants at zero temperature
 ELASTIC_T: compute elastic constants at finite temperature

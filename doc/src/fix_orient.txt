@@ -173,7 +173,7 @@ Materials, 5, 124-127 (2006).
 Science, 117, 397-405 (2016).
 
 :link(Wicaksono2)
-[(Wicaksono2)] Wicaksono, figshare, 
+[(Wicaksono2)] Wicaksono, figshare,
 https://dx.doi.org/10.6084/m9.figshare.1488628.v1 (2015).
 
 :line

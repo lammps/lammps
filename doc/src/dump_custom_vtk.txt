@@ -5,7 +5,7 @@
 :link(lc,Section_commands.html#comm)
 
 :line
-   
+
 dump custom/vtk command :h3
 
 [Syntax:]
@@ -20,7 +20,7 @@ file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
   {custom/vtk} args = list of atom attributes
     possible attributes = id, mol, proc, procp1, type, element, mass,
-			  x, y, z, xs, ys, zs, xu, yu, zu, 
+			  x, y, z, xs, ys, zs, xu, yu, zu,
 			  xsu, ysu, zsu, ix, iy, iz,
 			  vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz, mu,

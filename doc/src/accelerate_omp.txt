@@ -96,7 +96,7 @@ variable.
 
 Depending on which styles are accelerated, you should look for a
 reduction in the "Pair time", "Bond time", "KSpace time", and "Loop
-time" values printed at the end of a run.  
+time" values printed at the end of a run.
 
 You may see a small performance advantage (5 to 20%) when running a
 USER-OMP style (in serial or parallel) with a single thread per MPI

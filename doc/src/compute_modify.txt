@@ -61,4 +61,4 @@ the temperature is correctly normalized.
 [Default:]
 
 The option defaults are extra = 2 or 3 for 2d or 3d systems and
-dynamic = no. 
+dynamic = no.

@@ -88,7 +88,7 @@ potentials only include the pair potential portion of the EAM
 interaction when used by this compute, not the embedding term.  Also
 bonded or Kspace interactions do not contribute to this compute.
 
-[Related commands:] 
+[Related commands:]
 
 {compute group/group}_compute_group_group.html, {compute
 heat/flux}_compute_heat_flux.html

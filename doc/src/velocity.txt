@@ -35,10 +35,10 @@ zero or more keyword/value pairs may be appended :l
 keyword = {dist} or {sum} or {mom} or {rot} or {temp} or {bias} or {loop} or {units} :l
   {dist} value = {uniform} or {gaussian}
   {sum} value = {no} or {yes}
-  {mom} value = {no} or {yes} 
-  {rot} value = {no} or {yes} 
+  {mom} value = {no} or {yes}
+  {rot} value = {no} or {yes}
   {temp} value = temperature compute ID
-  {bias} value = {no} or {yes} 
+  {bias} value = {no} or {yes}
   {loop} value = {all} or {local} or {geom}
   {rigid} value = fix-ID
     fix-ID = ID of rigid body fix
@@ -219,7 +219,7 @@ fix"_fix_rigid.html variants which defines a set of rigid bodies.  The
 zeroing of linear or angular momentum is then performed for each rigid
 body defined by the fix, as described above.
 
-The {units} keyword is used by {set} and {ramp}.  If units = box, 
+The {units} keyword is used by {set} and {ramp}.  If units = box,
 the velocities and coordinates specified in the velocity command are
 in the standard units described by the "units"_units.html command
 (e.g. Angstroms/fmsec for real units).  If units = lattice, velocities

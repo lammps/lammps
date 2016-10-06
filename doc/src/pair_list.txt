@@ -8,15 +8,15 @@
 
 pair_style list command :h3
 
-[Syntax:] 
+[Syntax:]
 
 pair_style list listfile cutoff keyword :pre
 
 listfile = name of file with list of pairwise interactions
-cutoff = global cutoff (distance units) 
+cutoff = global cutoff (distance units)
 keyword = optional flag {nocheck} or {check} (default is {check}) :ul
 
-[Examples:] 
+[Examples:]
 
 pair_style list restraints.txt 200.0
 pair_coeff * * :pre
@@ -25,7 +25,7 @@ pair_style hybrid/overlay lj/cut 1.1225 list pair_list.txt 300.0
 pair_coeff * * lj/cut 1.0 1.0
 pair_coeff 3* 3* list :pre
 
-[Description:] 
+[Description:]
 
 Style {list} computes interactions between explicitly listed pairs of
 atoms with the option to select functional form and parameters for
@@ -61,7 +61,7 @@ Here is an example file:
 # this is a comment :pre
 
 15 259 lj126     1.0 1.0      50.0
-15 603 morse    10.0 1.2 2.0  10.0 # and another comment 
+15 603 morse    10.0 1.2 2.0  10.0 # and another comment
 18 470 harmonic 50.0 1.2       5.0  :pre
 
 The style {lj126} computes pairwise interactions with the formula
@@ -92,7 +92,7 @@ and the coefficients:
 K (energy units)
 r0 (distance units) :ul
 
-Note that the usual 1/2 factor is included in K. 
+Note that the usual 1/2 factor is included in K.
 
 :line
 

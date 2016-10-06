@@ -24,7 +24,7 @@ keyword = {file} or {append} or {screen} :l
 
 print "Done with equilibration" file info.dat
 print Vol=$v append info.dat screen no
-print "The system volume is now $v" 
+print "The system volume is now $v"
 print 'The system volume is now $v'
 print """
 System volume = $v

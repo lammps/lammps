@@ -104,7 +104,7 @@ since binary files are not compatible across all platforms.
 ch2lmp tool :h4,link(charmm)
 
 The ch2lmp sub-directory contains tools for converting files
-back-and-forth between the CHARMM MD code and LAMMPS. 
+back-and-forth between the CHARMM MD code and LAMMPS.
 
 They are intended to make it easy to use CHARMM as a builder and as a
 post-processor for LAMMPS. Using charmm2lammps.pl, you can convert a

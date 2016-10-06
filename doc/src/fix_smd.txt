@@ -17,7 +17,7 @@ smd  = style name of this fix command :l
 mode = {cvel} or {cfor} to select constant velocity or constant force SMD :l
   {cvel} values = K vel
     K = spring constant (force/distance units)
-    vel = velocity of pulling (distance/time units) 
+    vel = velocity of pulling (distance/time units)
   {cfor} values = force
     force = pulling force (force units) :pre
 keyword = {tether} or {couple} :l
@@ -87,9 +87,9 @@ For both the {tether} and {couple} styles, any of the x,y,z values can
 be specified as NULL which means do not include that dimension in the
 distance calculation or force application.
 
-For constant velocity pulling ({cvel} mode), the running integral 
+For constant velocity pulling ({cvel} mode), the running integral
 over the pulling force in direction of the spring is recorded and
-can then later be used to compute the potential of mean force (PMF) 
+can then later be used to compute the potential of mean force (PMF)
 by averaging over multiple independent trajectories along the same
 pulling path.
 
@@ -130,8 +130,8 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 
-"fix drag"_fix_drag.html, "fix spring"_fix_spring.html, 
-"fix spring/self"_fix_spring_self.html, 
+"fix drag"_fix_drag.html, "fix spring"_fix_spring.html,
+"fix spring/self"_fix_spring_self.html,
 "fix spring/rg"_fix_spring_rg.html
 
 [Default:] none

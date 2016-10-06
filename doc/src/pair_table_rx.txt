@@ -107,7 +107,7 @@ Use {N} in the pair_style command equal to the "N" in the tabulation
 file, and use the "RSQ" or "BITMAP" parameter, so additional interpolation
 is not needed.  See discussion below. :l
 
-Make sure that your tabulated forces and tabulated energies are consistent 
+Make sure that your tabulated forces and tabulated energies are consistent
 (dE/dr = -F) along the entire range of r values. :l
 
 Use as large an inner cutoff as possible.  This avoids fitting splines

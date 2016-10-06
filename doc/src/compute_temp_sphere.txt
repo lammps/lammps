@@ -122,7 +122,7 @@ vector values will be in energy "units"_units.html.
 
 This fix requires that atoms store torque and angular velocity (omega)
 and a radius as defined by the "atom_style sphere"_atom_style.html
-command.  
+command.
 
 All particles in the group must be finite-size spheres, or point
 particles with radius = 0.0.

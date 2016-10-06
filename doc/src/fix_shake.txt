@@ -217,11 +217,11 @@ SHAKE or RATTLE should not be used to contrain an angle at 180 degrees
 
 [Default:] none
 
-:line 
- 
+:line
+
 :link(Ryckaert)
-[(Ryckaert)] J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen, 
+[(Ryckaert)] J.-P. Ryckaert, G. Ciccotti and H. J. C. Berendsen,
 J of Comp Phys, 23, 327-341 (1977).
- 
+
 :link(Andersen)
 [(Andersen)] H. Andersen, J of Comp Phys, 52, 24-34 (1983).

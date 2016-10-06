@@ -21,7 +21,7 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <math.h>
 #include "math_const.h"
 #include <stdlib.h>

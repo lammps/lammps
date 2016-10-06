@@ -26,7 +26,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
-#include "float.h"
+#include <float.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

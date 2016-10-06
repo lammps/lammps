@@ -45,9 +45,9 @@ const char *SearchAndCheck(const char *keyword)
       exit(1);
     }
     if (line[0] == '@') {
-      if (string_match(strtok(line+1," '\t\n'("),keyword)) {
+      if (string_match(strtok(line+1," '\t\n\r\f("),keyword)) {
         got_it = 1;
-        status = strtok(NULL," '\t\n(");
+        status = strtok(NULL," '\t\n\r\f(");
         if (status != NULL)
           return strdup(status);
       }
@@ -79,7 +79,7 @@ void SearchAndFill(struct FrcFieldItem *item)
       exit(1);
     }
     if (line[0] == '#') {
-      if (string_match(strtok(line," '\t'("),item->keyword)) got_it = 1;
+      if (string_match(strtok(line," '\t\r\n("),item->keyword)) got_it = 1;
     }
     /*     if (strncmp(line, item->keyword,strlen(item->keyword))==0) got_it = 1; */
   }
@@ -132,13 +132,13 @@ void SearchAndFill(struct FrcFieldItem *item)
 
     /* version number and reference number */
 
-    version = atof(strtok(line, " "));
-    reference = atoi(strtok(NULL, " "));
+    version = atof(strtok(line, WHITESPACE));
+    reference = atoi(strtok(NULL, WHITESPACE));
 
     /* equivalences */
 
     for(i = 0; i < item->number_of_members; i++ ) {
-      charptr = strtok(NULL, " ");
+      charptr = strtok(NULL, WHITESPACE);
       if (strlen(charptr) > 4) {
         fprintf(stderr,"Warning: type name overflow for '%s'. "
                 "Truncating to 4 characters.\n",charptr);
@@ -150,7 +150,7 @@ void SearchAndFill(struct FrcFieldItem *item)
        endbontor have to be treated carefully */
 
     for( i = 0; i < item->number_of_parameters; i++ ) {
-      charptr = strtok(NULL, " ");
+      charptr = strtok(NULL, WHITESPACE);
       if(charptr == NULL) {
         for ( j = i; j < item->number_of_parameters; j++ )
           parameters[j] = parameters[j-i];

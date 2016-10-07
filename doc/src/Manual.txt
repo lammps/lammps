@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="5 Oct 2016 version">
+<META NAME="docnumber" CONTENT="6 Oct 2016 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-5 Oct 2016 version :c,h4
+6 Oct 2016 version :c,h4
 
 Version info: :h4
 
@@ -109,7 +109,7 @@ it gives quick access to documentation for all LAMMPS commands.
    :caption: User Documentation
    :name: userdoc
    :includehidden:
-   
+
    Section_intro
    Section_start
    Section_commands
@@ -144,7 +144,7 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`search`
-   
+
 END_RST -->
 
 <!-- HTML_ONLY -->

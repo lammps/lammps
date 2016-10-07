@@ -1,13 +1,18 @@
 Axel Kohlmeyer is the current maintainer of the msi2lmp tool.
 Please send any inquiries about msi2lmp to the lammps-users mailing list.
 
+06 Oct 2016 Axel Kohlmeyer <akohlmey@gmail.com>
+
+Improved whitespace handling in parsing topology and force field
+files to avoid bogus warnings about type name truncation.
+
 24 Oct 2015 Axel Kohlmeyer <akohlmey@gmail.com>
 
 Added check to make certain that force field files
 are consistent with the notation of non-bonded parameters
 that the msi2lmp code expects. For Class 1 and OPLS-AA
 the A-B notation with geometric mixing is expected and for
-Class 2 the r-eps notation with sixthpower mixing.(
+Class 2 the r-eps notation with sixthpower mixing.
 
 11 Sep 2014 Axel Kohlmeyer <akohlmey@gmail.com>
 

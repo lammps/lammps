@@ -42,7 +42,7 @@ supplemental information of the following paper: "(Chenoweth et al.,
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
 the "(Aktulga)"_#Aktulga paper. The {reax/c} style was initially
-implemented as stand-alone C code and is now integrated into LAMMPS
+implemented as a stand-alone C code and is now integrated into LAMMPS
 as a package.
 
 The {reax/c/kk} style is a Kokkos version of the ReaxFF potential that is

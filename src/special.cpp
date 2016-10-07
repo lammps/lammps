@@ -23,6 +23,7 @@
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -588,8 +589,12 @@ void Special::combine()
 
   if (lmp->kokkos) {
     AtomKokkos* atomKK = (AtomKokkos*) atom;
+    atomKK->modified(Host,SPECIAL_MASK);
+    atomKK->sync(Device,SPECIAL_MASK);
     memory->grow_kokkos(atomKK->k_special,atom->special,
                         atom->nmax,atom->maxspecial,"atom:special");
+    atomKK->modified(Device,SPECIAL_MASK);
+    atomKK->sync(Host,SPECIAL_MASK);
   } else {
     memory->destroy(atom->special);
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");

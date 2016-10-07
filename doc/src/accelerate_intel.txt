@@ -79,8 +79,8 @@ pppm} in the input script :
 
 Edit src/MAKE/OPTIONS/Makefile.knl as necessary. :ulb,l
 Runs should be performed using MCDRAM. :l
-"-pk intel 0 omp 2 -sf intel" {or} "-pk intel 0 omp 4 -sf intel" 
-should be added to the LAMMPS command-line. Choice for best 
+"-pk intel 0 omp 2 -sf intel" {or} "-pk intel 0 omp 4 -sf intel"
+should be added to the LAMMPS command-line. Choice for best
 performance will depend on the simulation. :l
 :ule
 
@@ -95,14 +95,14 @@ Add "kspace_modify diff ad" to the input script for better
 performance. :l
 export KMP_AFFINITY=none :l
 "-pk intel 0 omp 3 lrt yes -sf intel" or "-pk intel 0 omp 1 lrt yes
--sf intel" added to LAMMPS command-line. Choice for best performance 
+-sf intel" added to LAMMPS command-line. Choice for best performance
 will depend on the simulation. :l
 :ule
 
 For Intel Xeon Phi coprocessors (Offload):
 
 Edit src/MAKE/OPTIONS/Makefile.intel_coprocessor as necessary :ulb,l
-"-pk intel N omp 1" added to command-line where N is the number of 
+"-pk intel N omp 1" added to command-line where N is the number of
 coprocessors per node. :l
 :ule
 

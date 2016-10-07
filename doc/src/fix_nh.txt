@@ -57,7 +57,7 @@ keyword = {temp} or {iso} or {aniso} or {tri} or {x} or {y} or {z} or {xy} or {y
   {fixedpoint} values = x y z
     x,y,z = perform barostat dilation/contraction around this point (distance units)
   {update} value = {dipole} or {dipole/dlm}
-    dipole = update dipole orientation (only for sphere variants) 
+    dipole = update dipole orientation (only for sphere variants)
     dipole/dlm = use DLM integrator to update dipole orientation (only for sphere variants) :pre
 :ule
 

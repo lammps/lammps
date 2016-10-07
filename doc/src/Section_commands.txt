@@ -598,6 +598,7 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "viscous"_fix_viscous.html,
 "wall/colloid"_fix_wall.html,
 "wall/gran"_fix_wall_gran.html,
+"wall/gran/region"_fix_wall_gran_region.html,
 "wall/harmonic"_fix_wall.html,
 "wall/lj1043"_fix_wall.html,
 "wall/lj126"_fix_wall.html,

@@ -59,7 +59,7 @@ keyword = {side} or {units} or {move} or {rotate} or {open} :l
   {rotate} args = v_theta Px Py Pz Rx Ry Rz
     v_theta = equal-style variable for rotaton of region over time (in radians)
     Px,Py,Pz = origin for axis of rotation (distance units)
-    Rx,Ry,Rz = axis of rotation vector 
+    Rx,Ry,Rz = axis of rotation vector
   {open} value = integer from 1-6 corresponding to face index (see below)
 :pre
 
@@ -73,7 +73,7 @@ region 2 sphere 0.0 0.0 0.0 5 side out
 region void cylinder y 2 3 5 -5.0 EDGE units box
 region 1 prism 0 10 0 10 0 10 2 0 0
 region outside union 4 side1 side2 side3 side4
-region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL 
+region 2 sphere 0.0 0.0 0.0 5 side out move v_left v_up NULL
 region openbox block 0 10 0 10 0 10 open 5 open 6 units box
 region funnel cone z 10 10 2 5 0 10 open 1 units box :pre
 

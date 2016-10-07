@@ -2,6 +2,9 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.8 AK- Improved whitespace handling in parsing topology and force
+*              field files to avoid bogus warnings about type name truncation
+*
 *   v3.9.7 AK- Add check to enforce that Class1/OPLS-AA use A-B parameter
 *              conventions in force field file and Class2 us r-eps conventions
 *

@@ -40,7 +40,7 @@ pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 
 pair_style lj/sf/dipole/sf 9.0
-pair_coeff * * 1.0 1.0 
+pair_coeff * * 1.0 1.0
 pair_coeff 2 3 1.0 1.0 2.5 4.0 scale 0.5
 pair_coeff 2 3 1.0 1.0 2.5 4.0 :pre
 

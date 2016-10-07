@@ -17,10 +17,10 @@ group = name of group fix is to be applied :l
 type = {thermal} or {two_temperature} or {hardy} or {field} :l
  {thermal} = thermal coupling with fields: temperature
  {two_temperature} = electron-phonon coupling with field: temperature and electron_temperature
- {hardy} = on-the-fly post-processing using kernel localization functions (see "related" section for possible fields) 
- {field} = on-the-fly post-processing using mesh-based localization functions (see "related" section for possible fields) :pre 
+ {hardy} = on-the-fly post-processing using kernel localization functions (see "related" section for possible fields)
+ {field} = on-the-fly post-processing using mesh-based localization functions (see "related" section for possible fields) :pre
 parameter_file = name of the file with material parameters. Note: Neither hardy nor field requires a parameter file :l
-:ule 
+:ule
 
 [Examples:]
 

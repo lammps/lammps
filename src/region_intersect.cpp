@@ -43,7 +43,7 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
     idsub[nregion] = new char[m];
     strcpy(idsub[nregion],arg[iarg+3]);
     iregion = domain->find_region(idsub[nregion]);
-    if (iregion == -1)
+    if (iregion == -1) 
       error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
   }
@@ -88,11 +88,21 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // possible contacts = sum of possible contacts in all sub-regions
+  // for near contacts and touching contacts
 
   cmax = 0;
-  for (int ilist = 0; ilist < nregion; ilist++)
+  size_restart = 0;
+  for (int ilist = 0; ilist < nregion; ilist++){
     cmax += regions[list[ilist]]->cmax;
+    size_restart += regions[list[ilist]]->size_restart;
+  }
   contact = new Contact[cmax];
+
+  tmax = 0;
+  for (int ilist = 0; ilist < nregion; ilist++) {
+    if (interior) tmax += regions[list[ilist]]->tmax;
+    else tmax++;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,7 +127,7 @@ void RegIntersect::init()
   int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
     iregion = domain->find_region(idsub[ilist]);
-    if (iregion == -1)
+    if (iregion == -1) 
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;
   }
@@ -159,6 +169,7 @@ int RegIntersect::surface_interior(double *x, double cutoff)
   Region **regions = domain->regions;
   int n = 0;
 
+  int walloffset = 0;
   for (ilist = 0; ilist < nregion; ilist++) {
     iregion = list[ilist];
     ncontacts = regions[iregion]->surface(x[0],x[1],x[2],cutoff);
@@ -173,12 +184,18 @@ int RegIntersect::surface_interior(double *x, double cutoff)
       }
       if (jlist == nregion) {
         contact[n].r = regions[iregion]->contact[m].r;
+        contact[n].radius = regions[iregion]->contact[m].radius;
         contact[n].delx = regions[iregion]->contact[m].delx;
         contact[n].dely = regions[iregion]->contact[m].dely;
         contact[n].delz = regions[iregion]->contact[m].delz;
+        contact[n].iwall = regions[iregion]->contact[m].iwall + walloffset;
+        contact[n].varflag = regions[iregion]->contact[m].varflag;
         n++;
       }
     }
+    // increment by cmax instead of tmax to insure
+    // possible wall IDs for sub-regions are non overlapping
+    walloffset += regions[iregion]->cmax;
   }
 
   return n;
@@ -218,9 +235,12 @@ int RegIntersect::surface_exterior(double *x, double cutoff)
       }
       if (jlist == nregion) {
         contact[n].r = regions[iregion]->contact[m].r;
+        contact[n].radius = regions[iregion]->contact[m].radius;
         contact[n].delx = regions[iregion]->contact[m].delx;
         contact[n].dely = regions[iregion]->contact[m].dely;
         contact[n].delz = regions[iregion]->contact[m].delz;
+        contact[n].iwall = ilist;
+        contact[n].varflag = regions[iregion]->contact[m].varflag;
         n++;
       }
     }
@@ -253,3 +273,48 @@ void RegIntersect::pretransform()
   for (int ilist = 0; ilist < nregion; ilist++)
     regions[list[ilist]]->pretransform();
 }
+
+/* ----------------------------------------------------------------------
+   get translational/angular velocities of all subregions
+------------------------------------------------------------------------- */
+
+void RegIntersect::set_velocity()
+{
+  Region **regions = domain->regions;
+  for (int ilist = 0; ilist < nregion; ilist++)
+    regions[list[ilist]]->set_velocity();
+}
+
+/* ----------------------------------------------------------------------
+   region writes its current position/angle
+   needed by fix/wall/gran/region to compute velocity by differencing scheme
+------------------------------------------------------------------------- */
+
+void RegIntersect::write_restart(FILE *fp)
+{
+  for (int ilist = 0; ilist < nregion; ilist++)
+    domain->regions[list[ilist]]->write_restart(fp);
+}
+
+/* ----------------------------------------------------------------------
+   region reads its previous position/angle
+   needed by fix/wall/gran/region to compute velocity by differencing scheme
+------------------------------------------------------------------------- */
+
+int RegIntersect::restart(char *buf, int n)
+{
+  for (int ilist = 0; ilist < nregion; ilist++)
+    n = domain->regions[list[ilist]]->restart(buf, n);
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   set prev vector to zero
+------------------------------------------------------------------------- */
+
+void RegIntersect::reset_vel()
+{
+  for (int ilist = 0; ilist < nregion; ilist++)
+    domain->regions[list[ilist]]->reset_vel();
+}
+

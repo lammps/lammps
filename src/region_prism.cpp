@@ -21,6 +21,7 @@
 #include "region_prism.h"
 #include "domain.h"
 #include "force.h"
+#include "math_extra.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -116,10 +117,13 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     extent_zhi = zhi;
   } else bboxflag = 0;
 
-  // particle could contact all 6 planes
+  // particle could be close to all 6 planes
+  // particle can only touch 3 planes
 
   cmax = 6;
   contact = new Contact[cmax];
+  if (interior) tmax = 3;
+  else tmax = 1;
 
   // h = transformation matrix from tilt coords (0-1) to box coords (xyz)
   // columns of h are edge vectors of tilted box
@@ -191,14 +195,28 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   // face = 6 inward-facing unit normals to prism faces
   // order = xy plane, xz plane, yz plane
 
-  cross(a,b,face[0]);
-  cross(b,a,face[1]);
-  cross(c,a,face[2]);
-  cross(a,c,face[3]);
-  cross(b,c,face[4]);
-  cross(c,b,face[5]);
+  MathExtra::cross3(a,b,face[0]);
+  MathExtra::cross3(b,a,face[1]);
+  MathExtra::cross3(c,a,face[2]);
+  MathExtra::cross3(a,c,face[3]);
+  MathExtra::cross3(b,c,face[4]);
+  MathExtra::cross3(c,b,face[5]);
 
-  for (int i = 0; i < 6; i++) normalize(face[i]);
+  // remap open face indices to be consistent
+
+  if (openflag) {
+    int temp[6];
+    for (int i = 0; i < 6; i++)
+      temp[i] = open_faces[i];
+    open_faces[0] = temp[4];
+    open_faces[1] = temp[5];
+    open_faces[2] = temp[2];
+    open_faces[3] = temp[3];
+    open_faces[4] = temp[0];
+    open_faces[5] = temp[1];
+  }
+
+  for (int i = 0; i < 6; i++) MathExtra::norm3(face[i]);
 
   // tri = 3 vertices (0-7) in each of 12 triangles on 6 faces
   // verts in each tri are ordered so that right-hand rule gives inward norm
@@ -275,7 +293,8 @@ int RegPrism::surface_interior(double *x, double cutoff)
 
   int n = 0;
 
-  for (int i = 0; i < 6; i++) {
+  for (i = 0; i < 6; i++) {
+    if (open_faces[i]) continue;
     if (i % 2) corner = chi;
     else corner = clo;
     dot = (x[0]-corner[0])*face[i][0] + (x[1]-corner[1])*face[i][1] +
@@ -285,6 +304,8 @@ int RegPrism::surface_interior(double *x, double cutoff)
       contact[n].delx = dot*face[i][0];
       contact[n].dely = dot*face[i][1];
       contact[n].delz = dot*face[i][2];
+      contact[n].radius = 0;
+      contact[n].iwall = i;
       n++;
     }
   }
@@ -334,6 +355,8 @@ int RegPrism::surface_exterior(double *x, double cutoff)
 
   find_nearest(x,xp,yp,zp);
   add_contact(0,x,xp,yp,zp);
+  contact[0].radius = 0;
+  contact[0].iwall = 0;
   if (contact[0].r < cutoff) return 1;
   return 0;
 }
@@ -361,6 +384,7 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
 
   for (int itri = 0; itri < 12; itri++) {
     iface = itri/2;
+    if (open_faces[iface]) continue;
     i = tri[itri][0];
     j = tri[itri][1];
     k = tri[itri][2];
@@ -370,8 +394,9 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
     xproj[0] = x[0] - dot*face[iface][0];
     xproj[1] = x[1] - dot*face[iface][1];
     xproj[2] = x[2] - dot*face[iface][2];
-    if (inside_tri(xproj,corners[i],corners[j],corners[k],face[iface]))
+    if (inside_tri(xproj,corners[i],corners[j],corners[k],face[iface])){
       distsq = closest(x,xproj,nearest,distsq);
+    }
     else {
       point_on_line_segment(corners[i],corners[j],xproj,xline);
       distsq = closest(x,xline,nearest,distsq);
@@ -401,55 +426,22 @@ int RegPrism::inside_tri(double *x, double *v1, double *v2, double *v3,
 {
   double edge[3],pvec[3],xproduct[3];
 
-  subtract(v1,v2,edge);
-  subtract(v1,x,pvec);
-  cross(edge,pvec,xproduct);
-  if (dotproduct(xproduct,norm) < 0.0) return 0;
+  MathExtra::sub3(v2,v1,edge);
+  MathExtra::sub3(x,v1,pvec);
+  MathExtra::cross3(edge,pvec,xproduct);
+  if (MathExtra::dot3(xproduct,norm) < 0.0) return 0;
 
-  subtract(v2,v3,edge);
-  subtract(v2,x,pvec);
-  cross(edge,pvec,xproduct);
-  if (dotproduct(xproduct,norm) < 0.0) return 0;
+  MathExtra::sub3(v3,v2,edge);
+  MathExtra::sub3(x,v2,pvec);
+  MathExtra::cross3(edge,pvec,xproduct);
+  if (MathExtra::dot3(xproduct,norm) < 0.0) return 0;
 
-  subtract(v3,v1,edge);
-  subtract(v3,x,pvec);
-  cross(edge,pvec,xproduct);
-  if (dotproduct(xproduct,norm) < 0.0) return 0;
+  MathExtra::sub3(v1,v3,edge);
+  MathExtra::sub3(x,v3,pvec);
+  MathExtra::cross3(edge,pvec,xproduct);
+  if (MathExtra::dot3(xproduct,norm) < 0.0) return 0;
 
   return 1;
-}
-
-/* ----------------------------------------------------------------------
-   find nearest point to C on line segment A,B and return it as D
-   project (C-A) onto (B-A)
-   t = length of that projection, normalized by length of (B-A)
-   t <= 0, C is closest to A
-   t >= 1, C is closest to B
-   else closest point is between A and B
-------------------------------------------------------------------------- */
-
-void RegPrism::point_on_line_segment(double *a, double *b,
-                                     double *c, double *d)
-{
-  double ba[3],ca[3];
-
-  subtract(a,b,ba);
-  subtract(a,c,ca);
-  double t = dotproduct(ca,ba) / dotproduct(ba,ba);
-
-  if (t <= 0.0) {
-    d[0] = a[0];
-    d[1] = a[1];
-    d[2] = a[2];
-  } else if (t >= 1.0) {
-    d[0] = b[0];
-    d[1] = b[1];
-    d[2] = b[2];
-  } else {
-    d[0] = a[0] + t*ba[0];
-    d[1] = a[1] + t*ba[1];
-    d[2] = a[2] + t*ba[2];
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -466,45 +458,4 @@ double RegPrism::closest(double *x, double *near, double *nearest, double dsq)
   nearest[1] = near[1];
   nearest[2] = near[2];
   return rsq;
-}
-
-/* ----------------------------------------------------------------------
-   v3 = v2 - v1
-------------------------------------------------------------------------- */
-
-void RegPrism::subtract(double *v1, double *v2, double *v3)
-{
-  v3[0] = v2[0] - v1[0];
-  v3[1] = v2[1] - v1[1];
-  v3[2] = v2[2] - v1[2];
-}
-
-/* ----------------------------------------------------------------------
-   v3 = v1 x v2
-------------------------------------------------------------------------- */
-
-void RegPrism::cross(double *v1, double *v2, double *v3)
-{
-  v3[0] = v1[1]*v2[2] - v1[2]*v2[1];
-  v3[1] = v1[2]*v2[0] - v1[0]*v2[2];
-  v3[2] = v1[0]*v2[1] - v1[1]*v2[0];
-}
-
-/* ----------------------------------------------------------------------
-   return dotproduct = v1 dot v2
-------------------------------------------------------------------------- */
-
-double RegPrism::dotproduct(double *v1, double *v2)
-{
-  return (v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void RegPrism::normalize(double *x)
-{
-  double invlen = 1.0/sqrt(x[0]*x[0] + x[1]*x[1] + x[2]*x[2]);
-  x[0] *= invlen;
-  x[1] *= invlen;
-  x[2] *= invlen;
 }

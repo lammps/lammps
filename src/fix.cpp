@@ -101,6 +101,7 @@ id(NULL), style(NULL), eatom(NULL), vatom(NULL)
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
+  kokkosable = 0;
   copymode = 0;
 }
 

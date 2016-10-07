@@ -15,7 +15,7 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

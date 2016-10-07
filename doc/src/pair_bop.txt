@@ -176,7 +176,7 @@ interaction types e_i-e_j, with i=1->N, j=i->N
 Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
-Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
 the previous section but is interaction type dependent) :l
 :ule
 
@@ -198,7 +198,7 @@ interaction type) :ulb,l
 Line 2: phi(r6), phi(r7), phi(r8), phi(r9), phi(r10) (this continues
 until nr) :l
 ... :l
-Line nr/5_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the 
+Line nr/5_1: phi(r1), phi(r2), phi(r3), phi(r4), phi(r5), (for the
 e_1-e_1 interaction type) :l
 :ule
 
@@ -211,7 +211,7 @@ beta_sigma(r5) (for the e_1-e_1 interaction type) :ulb,l
 Line 2: beta_sigma(r6), beta_sigma(r7), beta_sigma(r8), beta_sigma(r9),
 beta_sigma(r10) (this continues until nr) :l
 ... :l
-Line nr/5+1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3), 
+Line nr/5+1: beta_sigma(r1), beta_sigma(r2), beta_sigma(r3),
 beta_sigma(r4), beta_sigma(r5) (for the e_1-e_2 interaction type) :l
 :ule
 
@@ -223,7 +223,7 @@ Line 1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), beta_pi(r5)
 Line 2: beta_pi(r6), beta_pi(r7), beta_pi(r8), beta_pi(r9),
 beta_pi(r10) (this continues until nr) :l
 ... :l
-Line nr/5+1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4), 
+Line nr/5+1: beta_pi(r1), beta_pi(r2), beta_pi(r3), beta_pi(r4),
 beta_pi(r5) (for the e_1-e_2 interaction type) :l
 :ule
 
@@ -236,7 +236,7 @@ THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) :ulb,l
 Line 2: THETA_(S,ij)(r6), THETA_(S,ij)(r7), THETA_(S,ij)(r8),
 THETA_(S,ij)(r9), THETA_(S,ij)(r10) (this continues until nBOt) :l
 ... :l
-Line nBOt/5+1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3), 
+Line nBOt/5+1: THETA_(S,ij)(r1), THETA_(S,ij)(r2), THETA_(S,ij)(r3),
 THETA_(S,ij)(r4), THETA_(S,ij)(r5) (for the e_1-e_2 interaction type) :l
 :ule
 
@@ -287,7 +287,7 @@ interaction types e_i-e_j, with i=1->N, j=i->N
 Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
-Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
 the previous section but is interaction type dependent) :l
 :ule
 
@@ -343,7 +343,7 @@ interaction types e_i-e_j, with i=1->N, j=i->N
 Line 1: r_cut (for e_1-e_1 interactions) :ulb,l
 Line 2: c_sigma, a_sigma, c_pi, a_pi :l
 Line 3: delta_sigma, delta_pi :l
-Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of 
+Line 4: f_sigma, k_sigma, delta_3 (This delta_3 is similar to that of
 the previous section but is interaction type dependent) :l
 :ule
 
@@ -355,7 +355,7 @@ interaction type) :ulb,l
 Line 2: g(theta6), g(theta7), g(theta8), g(theta9), g(theta10) (this continues
 until ntheta) :l
 ... :l
-Line ntheta/5+1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5), (for the 
+Line ntheta/5+1: g(theta1), g(theta2), g(theta3), g(theta4), g(theta5), (for the
 e_1-e_1-e_2 interaction type) :l
 :ule
 

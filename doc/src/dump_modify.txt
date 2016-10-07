@@ -491,7 +491,7 @@ simulation box since the last dump.  (Note that atoms that crossed
 once and then crossed back between the two dump timesteps would not be
 included.)
 
-region foo sphere 10 20 10 15 
+region foo sphere 10 20 10 15
 variable inregion atom rmask(foo)
 dump_modify ... thresh v_inregion |^ LAST
 

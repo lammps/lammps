@@ -49,7 +49,7 @@ where we follow the notation used in "Branicio2009"_#Branicio2009.
 U2 is a two-body term and U3 is a three-body term.  The
 summation over two-body terms is over all neighbors J within
 a cutoff distance = {rc}.  The twobody terms are shifted and
-tilted by a linear function so that the energy and force are 
+tilted by a linear function so that the energy and force are
 both zero at {rc}. The summation over three-body terms
 is over all neighbors J and K within a cut-off distance = {r0},
 where the exponential screening function becomes zero.
@@ -103,7 +103,7 @@ element 1 (the center atom in a 3-body interaction)
 element 2
 element 3
 H (energy units)
-eta 
+eta
 Zi (electron charge units)
 Zj (electron charge units)
 lambda1 (distance units)

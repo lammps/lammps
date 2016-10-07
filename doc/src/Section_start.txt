@@ -883,7 +883,7 @@ A few packages require specific settings in Makefile.machine, to
 either build or use the package effectively.  These are the
 USER-INTEL, KOKKOS, USER-OMP, and OPT packages, used for accelerating
 code performance on CPUs or other hardware, as discussed in "Section
-5.3"_Section_accelerate.html#acc_3. 
+5.3"_Section_accelerate.html#acc_3.
 
 A summary of what Makefile.machine changes are needed for each of
 these packages is given in "Section 4"_Section_packages.html.
@@ -1224,7 +1224,7 @@ For this you need to start a Command Prompt in {Administrator Mode}
 installation directory, then into the subdirectory [bin] and execute
 [smpd.exe -install]. Exit the command window.
 
-Get a new, regular command prompt by going to Start->Run... , 
+Get a new, regular command prompt by going to Start->Run... ,
 then typing "cmd". :l
 
 Move to the directory where you have your input file

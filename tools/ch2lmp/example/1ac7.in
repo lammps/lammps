@@ -1,4 +1,5 @@
-# Created by charmm2lammps v1.9.0 on Mon Oct  3 06:55:39 EDT 2016
+# Created by charmm2lammps v1.9.1 on Wed Oct  5 18:18:20 EDT 2016
+# Command: charmm2lammps.pl -water -ions -border=2.0 all27_na 1ac7
 
 units           real
 neigh_modify    delay 2 every 1
@@ -16,18 +17,20 @@ kspace_style    pppm 1e-6
 read_data       1ac7.data
 
 special_bonds   charmm
-thermo          1
+thermo          10
 thermo_style    multi
-timestep        0.5
+timestep        1.0
 
-minimize 0.0 0.0 1000 10000
+minimize 0.0 0.0 50 200
 
+reset_timestep  0
 fix             1 all nve
 fix             2 all shake 1e-6 500 0 m 1.0 a 93
 velocity        all create 0.0 12345678 dist uniform
 
-restart         10 1ac7.restart1 1ac7.restart2
-dump            1 all atom 10 1ac7.dump
+restart         500 1ac7.restart1 1ac7.restart2
+dump            1 all atom 100 1ac7.dump
 dump_modify     1 image yes scale yes
 
-run             20
+thermo          100
+run             1000

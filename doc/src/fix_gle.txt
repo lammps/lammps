@@ -20,7 +20,7 @@ Amatrix = file to read the drift matrix A from :l
 seed = random number seed to use for generating noise (positive integer) :l
 zero or more keyword/value pairs may be appended :l
   keyword = {noneq} or {every}
-    {noneq} Cmatrix  = file to read the non-equilibrium covariance matrix from 
+    {noneq} Cmatrix  = file to read the non-equilibrium covariance matrix from
     {every} stride   = apply the GLE once every time steps. Reduces the accuracy
         of the integration of the GLE, but has *no effect* on the accuracy of equilibrium
         sampling. It might change sampling properties when used together with {noneq}. :pre

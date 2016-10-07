@@ -21,6 +21,7 @@
 #include "atom_masks.h"
 #include "memory.h"
 #include "error.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -78,6 +79,9 @@ AtomKokkos::~AtomKokkos()
 
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
+  if (space == Device && lmp->kokkos->auto_sync)
+    ((AtomVecKokkos *) avec)->modified(Host,mask);
+
   ((AtomVecKokkos *) avec)->sync(space,mask);
 }
 
@@ -86,6 +90,9 @@ void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
   ((AtomVecKokkos *) avec)->modified(space,mask);
+
+  if (space == Device && lmp->kokkos->auto_sync)
+    ((AtomVecKokkos *) avec)->sync(Host,mask);
 }
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)

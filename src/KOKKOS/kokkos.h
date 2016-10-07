@@ -29,6 +29,7 @@ class KokkosLMP : protected Pointers {
   int forward_comm_on_host;
   int num_threads,ngpu;
   int numa;
+  int auto_sync;
 
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();

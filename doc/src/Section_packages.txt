@@ -1054,7 +1054,7 @@ Make.py -p ^snap -a machine :pre
 Supporting info: "pair snap"_pair_snap.html, "compute
 sna/atom"_compute_sna_atom.html, "compute snad/atom"_compute_sna_atom.html,
 "compute snav/atom"_compute_sna_atom.html, examples/snap
- 
+
 :line
 
 SRD package :link(SRD),h5

@@ -123,7 +123,7 @@ system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
 
 The "fix_modify"_fix_modify.html {respa} option is supported by this
-fix. This allows the user to set at which level of the "r-RESPA"_run_style.html
+fix. This allows the user to set at which level of the "rRESPA"_run_style.html
 integrator the fix computes and adds the external acceleration. Default is the
 outermost level. 
 

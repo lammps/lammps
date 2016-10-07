@@ -401,7 +401,7 @@ void FixWallGran::post_force(int vflag)
           dx = -delr/delxy * x[i][0];
           dy = -delr/delxy * x[i][1];
           // rwall = -2r_c if inside cylinder, 2r_c outside
-          rwall = 2*(1-2*(delxy < cylradius))*cylradius; 
+          rwall = (delxy < cylradius) ? -2*cylradius : 2*cylradius;
           if (wshear && axis != 2) {
             vwall[0] += vshear * x[i][1]/delxy;
             vwall[1] += -vshear * x[i][0]/delxy;

@@ -424,6 +424,11 @@ class TestSpecialCommands(unittest.TestCase):
                          "one \n\n"
                          "a :ref:`link <name>` to above\n\n", s)
 
+    def test_external_anchor_link(self):
+        s = self.txt2rst.convert('some text "containing a\n'
+                                 'link"_http://lammps.sandia.gov/movies.html#granregion with an anchor')
+        self.assertEqual('some text `containing a link <http://lammps.sandia.gov/movies.html#granregion>`_ with an anchor\n\n', s)
+
     def test_define_link_alias(self):
         s = self.txt2rst.convert("one :link(alias,value)\n"
                                  "\"test\"_alias\n")

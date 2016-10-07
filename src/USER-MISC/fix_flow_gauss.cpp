@@ -27,6 +27,7 @@
 #include "domain.h"
 #include "error.h"
 #include "citeme.h"
+#include "respa.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -63,6 +64,8 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   size_vector = 3;
   global_freq = 1;    //data available every timestep
+  respa_level_support = 1; 
+  //default respa level=outermost level is set in init()
 
   dimension = domain->dimension;
 
@@ -109,7 +112,21 @@ int FixFlowGauss::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= THERMO_ENERGY;
+  mask |= POST_FORCE_RESPA;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixFlowGauss::init()
+{
+  //if respa level specified by fix_modify, then override default (outermost)
+  //if specified level too high, set to max level
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) 
+      ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -127,7 +144,13 @@ void FixFlowGauss::setup(int vflag)
   if (mTot <= 0.0)
     error->all(FLERR,"Invalid group mass in fix flow/gauss");
 
-  post_force(vflag);
+  if (strstr(update->integrate_style,"respa")) {
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
+  }
+  else
+    post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -148,7 +171,6 @@ void FixFlowGauss::post_force(int vflag)
   int ii,jj;
 
   //find the total force on all atoms
-
   //initialize to zero
   double f_thisProc[3];
   for (ii=0; ii<3; ii++)
@@ -199,6 +221,11 @@ void FixFlowGauss::post_force(int vflag)
     pe_tot += pe_tmp;
   }
 
+}
+
+void FixFlowGauss::post_force_respa(int vflag, int ilevel, int iloop)
+{
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------

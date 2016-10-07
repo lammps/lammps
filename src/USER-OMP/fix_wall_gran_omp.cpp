@@ -107,6 +107,7 @@ void FixWallGranOMP::post_force(int vflag)
 
     if (mask[i] & groupbit) {
       double dx,dy,dz,del1,del2,delxy,delr,rsq;
+      double rwall = 0.0;
 
       dx = dy = dz = 0.0;
 
@@ -132,6 +133,7 @@ void FixWallGranOMP::post_force(int vflag)
         else {
           dx = -delr/delxy * x[i][0];
           dy = -delr/delxy * x[i][1];
+          rwall = (delxy < cylradius) ? -2*cylradius : 2*cylradius;
           if (wshear && axis != 2) {
             vwall[0] = vshear * x[i][1]/delxy;
             vwall[1] = -vshear * x[i][0]/delxy;
@@ -144,9 +146,9 @@ void FixWallGranOMP::post_force(int vflag)
 
       if (rsq > radius[i]*radius[i]) {
         if (pairstyle != HOOKE) {
-          shear[i][0] = 0.0;
-          shear[i][1] = 0.0;
-          shear[i][2] = 0.0;
+          shearone[i][0] = 0.0;
+          shearone[i][1] = 0.0;
+          shearone[i][2] = 0.0;
         }
       } else {
 
@@ -163,10 +165,11 @@ void FixWallGranOMP::post_force(int vflag)
                 radius[i],meff);
         else if (pairstyle == HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                        radius[i],meff,shear[i]);
+                        radius[i],meff,shearone[i]);
         else if (pairstyle == HERTZ_HISTORY)
-          hertz_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                        radius[i],meff,shear[i]);
+          hertz_history(rsq,dx,dy,dz,vwall,rwall,v[i],f[i],
+                        omega[i],torque[i],radius[i],meff,shearone[i]);
+
       }
     }
   }

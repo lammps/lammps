@@ -307,6 +307,8 @@
 /fix_cmap.h
 /fix_deposit.cpp
 /fix_deposit.h
+/fix_dpd_energy.cpp
+/fix_dpd_energy.h
 /fix_efield.cpp
 /fix_efield.h
 /fix_eos_cv.cpp

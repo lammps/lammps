@@ -1552,10 +1552,10 @@ std::string colvarmodule::restart_in_name = "";
 
 
 // i/o constants
-size_t const colvarmodule::it_width = 12;
-size_t const colvarmodule::cv_prec  = 14;
-size_t const colvarmodule::cv_width = 21;
-size_t const colvarmodule::en_prec  = 14;
-size_t const colvarmodule::en_width = 21;
-std::string const colvarmodule::line_marker =
+const size_t colvarmodule::it_width = 12;
+const size_t colvarmodule::cv_prec  = 14;
+const size_t colvarmodule::cv_width = 21;
+const size_t colvarmodule::en_prec  = 14;
+const size_t colvarmodule::en_width = 21;
+const char * const colvarmodule::line_marker = (const char *)
   "----------------------------------------------------------------------\n";

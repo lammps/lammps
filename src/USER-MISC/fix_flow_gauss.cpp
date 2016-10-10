@@ -64,7 +64,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   size_vector = 3;
   global_freq = 1;    //data available every timestep
-  respa_level_support = 1; 
+  respa_level_support = 1;
   //default respa level=outermost level is set in init()
 
   dimension = domain->dimension;
@@ -124,7 +124,7 @@ void FixFlowGauss::init()
   //if specified level too high, set to max level
   if (strstr(update->integrate_style,"respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
-    if (respa_level >= 0) 
+    if (respa_level >= 0)
       ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }

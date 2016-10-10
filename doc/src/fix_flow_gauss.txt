@@ -125,7 +125,7 @@ output"_thermo_style.html.
 The "fix_modify"_fix_modify.html {respa} option is supported by this
 fix. This allows the user to set at which level of the "rRESPA"_run_style.html
 integrator the fix computes and adds the external acceleration. Default is the
-outermost level. 
+outermost level.
 
 This fix computes a global scalar and a global 3-vector of forces,
 which can be accessed by various "output

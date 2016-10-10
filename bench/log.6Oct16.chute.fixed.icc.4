@@ -1,4 +1,4 @@
-LAMMPS (15 Feb 2016)
+LAMMPS (6 Oct 2016)
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
@@ -10,7 +10,7 @@ comm_modify	vel yes
 
 read_data	data.chute
   orthogonal box = (0 0 0) to (40 20 37.2886)
-  1 by 1 by 1 MPI processor grid
+  2 by 1 by 2 MPI processor grid
   reading atoms ...
   32000 atoms
   reading velocities ...
@@ -47,34 +47,34 @@ Neighbor list info ...
   master list distance cutoff = 1.1
   ghost atom cutoff = 1.1
   binsize = 0.55 -> bins = 73 37 68
-Memory usage per processor = 15.567 Mbytes
-Step Atoms KinEng 1 Volume 
+Memory usage per processor = 7.04927 Mbytes
+Step Atoms KinEng c_1 Volume 
        0    32000    784139.13    1601.1263    29833.783 
      100    32000    784292.08    1571.0968    29834.707 
-Loop time of 0.550482 on 1 procs for 100 steps with 32000 atoms
+Loop time of 0.171815 on 4 procs for 100 steps with 32000 atoms
 
-Performance: 1569.534 tau/day, 181.659 timesteps/s
-100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 5028.653 tau/day, 582.020 timesteps/s
+99.7% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.33849    | 0.33849    | 0.33849    |   0.0 | 61.49
-Neigh   | 0.040353   | 0.040353   | 0.040353   |   0.0 |  7.33
-Comm    | 0.018023   | 0.018023   | 0.018023   |   0.0 |  3.27
-Output  | 0.00020385 | 0.00020385 | 0.00020385 |   0.0 |  0.04
-Modify  | 0.13155    | 0.13155    | 0.13155    |   0.0 | 23.90
-Other   |            | 0.02186    |            |       |  3.97
+Pair    | 0.093691   | 0.096898   | 0.10005    |   0.8 | 56.40
+Neigh   | 0.011976   | 0.012059   | 0.012146   |   0.1 |  7.02
+Comm    | 0.016384   | 0.017418   | 0.018465   |   0.8 | 10.14
+Output  | 7.7963e-05 | 0.00010747 | 0.00013304 |   0.2 |  0.06
+Modify  | 0.031744   | 0.031943   | 0.032167   |   0.1 | 18.59
+Other   |            | 0.01339    |            |       |  7.79
 
-Nlocal:    32000 ave 32000 max 32000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    5463 ave 5463 max 5463 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    115133 ave 115133 max 115133 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    8000 ave 8008 max 7992 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:    2439 ave 2450 max 2428 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    29500.5 ave 30488 max 28513 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
-Total # of neighbors = 115133
-Ave neighs/atom = 3.59791
+Total # of neighbors = 118002
+Ave neighs/atom = 3.68756
 Neighbor list builds = 2
 Dangerous builds = 0
 Total wall time: 0:00:00

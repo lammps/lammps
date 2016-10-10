@@ -1,4 +1,4 @@
-LAMMPS (15 Feb 2016)
+LAMMPS (6 Oct 2016)
 # LAMMPS benchmark of granular flow
 # chute flow of 32000 atoms with frozen base at 26 degrees
 
@@ -57,24 +57,24 @@ Neighbor list info ...
   master list distance cutoff = 1.1
   ghost atom cutoff = 1.1
   binsize = 0.55 -> bins = 146 73 68
-Memory usage per processor = 15.7007 Mbytes
-Step Atoms KinEng 1 Volume 
+Memory usage per processor = 16.1265 Mbytes
+Step Atoms KinEng c_1 Volume 
        0   128000    3136556.5    6404.5051    119335.13 
      100   128000    3137168.3    6284.3873    119338.83 
-Loop time of 0.906913 on 4 procs for 100 steps with 128000 atoms
+Loop time of 0.832365 on 4 procs for 100 steps with 128000 atoms
 
-Performance: 952.683 tau/day, 110.264 timesteps/s
-99.7% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 1038.006 tau/day, 120.140 timesteps/s
+99.8% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.51454    | 0.53094    | 0.55381    |   2.0 | 58.54
-Neigh   | 0.042597   | 0.043726   | 0.045801   |   0.6 |  4.82
-Comm    | 0.063027   | 0.064657   | 0.067367   |   0.7 |  7.13
-Output  | 0.00024891 | 0.00059718 | 0.00086498 |   1.0 |  0.07
-Modify  | 0.16508    | 0.17656    | 0.1925     |   2.6 | 19.47
-Other   |            | 0.09043    |            |       |  9.97
+Pair    | 0.5178     | 0.52208    | 0.52793    |   0.5 | 62.72
+Neigh   | 0.047003   | 0.047113   | 0.047224   |   0.0 |  5.66
+Comm    | 0.05233    | 0.052988   | 0.053722   |   0.2 |  6.37
+Output  | 0.00024986 | 0.00032717 | 0.00036693 |   0.3 |  0.04
+Modify  | 0.15517    | 0.15627    | 0.15808    |   0.3 | 18.77
+Other   |            | 0.0536     |            |       |  6.44
 
 Nlocal:    32000 ave 32000 max 32000 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -87,4 +87,4 @@ Total # of neighbors = 460532
 Ave neighs/atom = 3.59791
 Neighbor list builds = 2
 Dangerous builds = 0
-Total wall time: 0:00:01
+Total wall time: 0:00:00

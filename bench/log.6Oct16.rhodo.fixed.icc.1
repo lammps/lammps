@@ -1,4 +1,4 @@
-LAMMPS (15 Feb 2016)
+LAMMPS (6 Oct 2016)
 # Rhodopsin model
 
 units           real
@@ -15,7 +15,7 @@ kspace_style    pppm 1e-4
 
 read_data       data.rhodo
   orthogonal box = (-27.5 -38.5 -36.3646) to (27.5 38.5 36.3615)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   32000 atoms
   reading velocities ...
@@ -56,13 +56,14 @@ timestep        2.0
 
 run		100
 PPPM initialization ...
+WARNING: Using 12-bit tables for long-range coulomb (../kspace.cpp:316)
   G vector (1/distance) = 0.248835
   grid = 25 32 32
   stencil order = 5
   estimated absolute RMS force accuracy = 0.0355478
   estimated relative force accuracy = 0.000107051
   using double precision FFTs
-  3d grid and FFT values/proc = 13230 6400
+  3d grid and FFT values/proc = 41070 25600
 Neighbor list info ...
   1 neighbor list requests
   update every 1 steps, delay 5 steps, check yes
@@ -70,52 +71,52 @@ Neighbor list info ...
   master list distance cutoff = 12
   ghost atom cutoff = 12
   binsize = 6 -> bins = 10 13 13
-Memory usage per processor = 36.629 Mbytes
+Memory usage per processor = 93.2721 Mbytes
 ---------------- Step        0 ----- CPU =      0.0000 (sec) ----------------
 TotEng   =    -25356.2064 KinEng   =     21444.8313 Temp     =       299.0397 
 PotEng   =    -46801.0377 E_bond   =      2537.9940 E_angle  =     10921.3742 
 E_dihed  =      5211.7865 E_impro  =       213.5116 E_vdwl   =     -2307.8634 
-E_coul   =    207025.8927 E_long   =   -270403.7333 Press    =      -142.6035 
+E_coul   =    207025.8927 E_long   =   -270403.7333 Press    =      -149.3301 
 Volume   =    307995.0335 
----------------- Step       50 ----- CPU =      4.7461 (sec) ----------------
-TotEng   =    -25330.0828 KinEng   =     21501.0029 Temp     =       299.8230 
-PotEng   =    -46831.0857 E_bond   =      2471.7004 E_angle  =     10836.4975 
-E_dihed  =      5239.6299 E_impro  =       227.1218 E_vdwl   =     -1993.2754 
-E_coul   =    206797.6331 E_long   =   -270410.3930 Press    =       237.6701 
-Volume   =    308031.5639 
----------------- Step      100 ----- CPU =      9.6332 (sec) ----------------
-TotEng   =    -25290.7591 KinEng   =     21592.0117 Temp     =       301.0920 
-PotEng   =    -46882.7708 E_bond   =      2567.9807 E_angle  =     10781.9408 
-E_dihed  =      5198.7432 E_impro  =       216.7834 E_vdwl   =     -1902.4783 
-E_coul   =    206659.2327 E_long   =   -270404.9733 Press    =         6.9960 
-Volume   =    308133.9888 
-Loop time of 9.63322 on 4 procs for 100 steps with 32000 atoms
+---------------- Step       50 ----- CPU =     17.2007 (sec) ----------------
+TotEng   =    -25330.0321 KinEng   =     21501.0036 Temp     =       299.8230 
+PotEng   =    -46831.0357 E_bond   =      2471.7033 E_angle  =     10836.5108 
+E_dihed  =      5239.6316 E_impro  =       227.1219 E_vdwl   =     -1993.2763 
+E_coul   =    206797.6655 E_long   =   -270410.3927 Press    =       237.6866 
+Volume   =    308031.5640 
+---------------- Step      100 ----- CPU =     35.0315 (sec) ----------------
+TotEng   =    -25290.7387 KinEng   =     21591.9096 Temp     =       301.0906 
+PotEng   =    -46882.6484 E_bond   =      2567.9789 E_angle  =     10781.9556 
+E_dihed  =      5198.7493 E_impro  =       216.7863 E_vdwl   =     -1902.6458 
+E_coul   =    206659.5006 E_long   =   -270404.9733 Press    =         6.7898 
+Volume   =    308133.9933 
+Loop time of 35.0316 on 1 procs for 100 steps with 32000 atoms
 
-Performance: 1.794 ns/day, 13.379 hours/ns, 10.381 timesteps/s
-99.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 0.493 ns/day, 48.655 hours/ns, 2.855 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 6.4364     | 6.5993     | 6.7208     |   4.7 | 68.51
-Bond    | 0.30755    | 0.32435    | 0.35704    |   3.4 |  3.37
-Kspace  | 0.92248    | 1.0782     | 1.2597     |  13.0 | 11.19
-Neigh   | 1.1669     | 1.1672     | 1.1675     |   0.0 | 12.12
-Comm    | 0.094674   | 0.098065   | 0.10543    |   1.4 |  1.02
-Output  | 0.00015521 | 0.00016224 | 0.00018215 |   0.1 |  0.00
-Modify  | 0.32982    | 0.34654    | 0.35365    |   1.6 |  3.60
-Other   |            | 0.01943    |            |       |  0.20
+Pair    | 25.021     | 25.021     | 25.021     |   0.0 | 71.42
+Bond    | 1.2834     | 1.2834     | 1.2834     |   0.0 |  3.66
+Kspace  | 3.2116     | 3.2116     | 3.2116     |   0.0 |  9.17
+Neigh   | 4.2767     | 4.2767     | 4.2767     |   0.0 | 12.21
+Comm    | 0.069283   | 0.069283   | 0.069283   |   0.0 |  0.20
+Output  | 0.00028205 | 0.00028205 | 0.00028205 |   0.0 |  0.00
+Modify  | 1.14       | 1.14       | 1.14       |   0.0 |  3.25
+Other   |            | 0.02938    |            |       |  0.08
 
-Nlocal:    8000 ave 8143 max 7933 min
-Histogram: 1 2 0 0 0 0 0 0 0 1
-Nghost:    22733.5 ave 22769 max 22693 min
-Histogram: 1 0 0 0 0 2 0 0 0 1
-Neighs:    3.00703e+06 ave 3.0975e+06 max 2.96493e+06 min
-Histogram: 1 2 0 0 0 0 0 0 0 1
+Nlocal:    32000 ave 32000 max 32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    47958 ave 47958 max 47958 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.20281e+07 ave 1.20281e+07 max 1.20281e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 12028107
+Total # of neighbors = 12028098
 Ave neighs/atom = 375.878
 Ave special neighs/atom = 7.43187
 Neighbor list builds = 11
 Dangerous builds = 0
-Total wall time: 0:00:10
+Total wall time: 0:00:36

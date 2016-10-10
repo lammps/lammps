@@ -1557,5 +1557,5 @@ size_t const colvarmodule::cv_prec  = 14;
 size_t const colvarmodule::cv_width = 21;
 size_t const colvarmodule::en_prec  = 14;
 size_t const colvarmodule::en_width = 21;
-std::string const colvarmodule::line_marker =
+const char * const colvarmodule::line_marker = (const char *)
   "----------------------------------------------------------------------\n";

@@ -366,7 +366,7 @@ public:
   /// Number of characters to represent the collective variables energy
   static size_t const en_width;
   /// Line separator in the log output
-  static std::string const line_marker;
+  static const char * const line_marker;
 
 
   // proxy functions

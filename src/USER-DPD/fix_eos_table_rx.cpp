@@ -117,6 +117,9 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
 
   comm_forward = 3;
   comm_reverse = 2;
+
+  if (atom->dpd_flag != 1)
+    error->all(FLERR,"FixEOStableRX requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 
 /* ---------------------------------------------------------------------- */

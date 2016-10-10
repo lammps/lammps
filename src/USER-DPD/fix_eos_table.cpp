@@ -78,6 +78,9 @@ FixEOStable::FixEOStable(LAMMPS *lmp, int narg, char **arg) :
   spline_table(tb2);
   compute_table(tb2);
   ntables++;
+
+  if (atom->dpd_flag != 1)
+    error->all(FLERR,"FixEOStable requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 
 /* ---------------------------------------------------------------------- */

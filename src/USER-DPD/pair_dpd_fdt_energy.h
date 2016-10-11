@@ -38,16 +38,20 @@ class PairDPDfdtEnergy : public Pair {
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
   double single(int, int, int, int, double, double, double, double &);
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
 
   double **cut;
   double **a0;
   double **sigma,**kappa;
+  double *duCond,*duMech;
 
   class RanMars *random;
 
  protected:
   double cut_global;
   int seed;
+  bool splitFDT_flag;
 
   void allocate();
 

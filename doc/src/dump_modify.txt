@@ -215,17 +215,17 @@ to the dump file.  The {every} keyword cannot be used with the dump
 For example, the following commands will
 write snapshots at timesteps 0,10,20,30,100,200,300,1000,2000,etc:
 
-variable	s equal logfreq(10,3,10)
-dump		1 all atom 100 tmp.dump
-dump_modify	1 every v_s first yes :pre
+variable        s equal logfreq(10,3,10)
+dump            1 all atom 100 tmp.dump
+dump_modify     1 every v_s first yes :pre
 
 The following commands would write snapshots at the timesteps listed
 in file tmp.times:
 
 variable        f file tmp.times
-variable	s equal next(f)
-dump		1 all atom 100 tmp.dump
-dump_modify	1 every v_s :pre
+variable        s equal next(f)
+dump            1 all atom 100 tmp.dump
+dump_modify     1 every v_s :pre
 
 NOTE: When using a file-style variable with the {every} keyword, the
 file of timesteps must list a first timestep that is beyond the
@@ -686,10 +686,10 @@ this is used.
 variable        colors string &
                 "red green blue yellow white &
                 purple pink orange lime gray"
-variable	mol atom mol%10
-dump		1 all image 250 image.*.jpg v_mol type &
-		zoom 1.6 adiam 1.5
-dump_modify	1 pad 5 amap 0 10 sa 1 10 $\{colors\} :pre
+variable        mol atom mol%10
+dump            1 all image 250 image.*.jpg v_mol type &
+                zoom 1.6 adiam 1.5
+dump_modify     1 pad 5 amap 0 10 sa 1 10 $\{colors\} :pre
 
 In this case, 10 colors are defined, and molecule IDs are
 mapped to one of the colors, even if there are 1000s of molecules.

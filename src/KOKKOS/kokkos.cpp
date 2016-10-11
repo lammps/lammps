@@ -33,6 +33,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   kokkos_exists = 1;
   lmp->kokkos = this;
 
+  auto_sync = 1;
+
   int me = 0;
   MPI_Comm_rank(world,&me);
   if (me == 0) error->message(FLERR,"KOKKOS mode is enabled");

@@ -75,7 +75,7 @@ but no more than max_steps will be taken. If max_steps is reached, an error warn
 is printed and the simulation is stopped.
 
 After each ODE step, the solution error {e} is tested and weighted using the absTol
-and relTol values. The error vector is weighted as {e} / (relTol * | {u} | + absTol)
+and relTol values. The error vector is weighted as {e} / (relTol * |{u}| + absTol)
 where {u} is the solution vector. If the norm of the error is <= 1, the solution is
 accepted, {h} is increased by a proportional amount, and the next ODE step is begun.
 Otherwise, {h} is shrunk and the ODE step is repeated.

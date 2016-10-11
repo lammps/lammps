@@ -104,7 +104,7 @@ class RSTMarkup(Markup):
 
         anchor_pos = href.find('#')
 
-        if anchor_pos >= 0:
+        if anchor_pos >= 0 and not href.startswith('http'):
             href = href[anchor_pos+1:]
             return ":ref:`%s <%s>`" % (content, href)
 

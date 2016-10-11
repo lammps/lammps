@@ -114,8 +114,6 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0); // grow (aka exchange)
   atom->add_callback(1); // restart
   atom->add_callback(2); // border
-
-  reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

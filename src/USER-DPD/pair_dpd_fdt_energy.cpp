@@ -43,6 +43,8 @@ using namespace LAMMPS_NS;
 PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
 {
   random = NULL;
+
+  comm_reverse = 2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,8 +59,11 @@ PairDPDfdtEnergy::~PairDPDfdtEnergy()
     memory->destroy(a0);
     memory->destroy(sigma);
     memory->destroy(kappa);
+    if (!splitFDT_flag) {
+      memory->destroy(duCond);
+      memory->destroy(duMech);
+    }
   }
-
 
   if (random) delete random;
 }
@@ -69,7 +74,9 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,rinv,wd,wr,factor_dpd;
+  double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
+  double rsq,r,rinv,wd,wr,factor_dpd,uTmp;
+  double dot,randnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -77,11 +84,22 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
   else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
+  double **v = atom->v;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
+  double dtinvsqrt = 1.0/sqrt(update->dt);
+
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  double *dpdTheta = atom->dpdTheta;
+  double kappa_ij, alpha_ij, theta_ij, gamma_ij;
+  double mass_i, mass_j;
+  double massinv_i, massinv_j;
+  double randPair, mu_ij;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -90,61 +108,192 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
 
   // loop over neighbors of my atoms
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+  if (splitFDT_flag) {
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_dpd = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        factor_dpd = special_lj[sbmask(j)];
+        j &= NEIGHMASK;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);
-        if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-        rinv = 1.0/r;
-        wr = 1.0 - r/cut[itype][jtype];
-        wd = wr*wr;
+        if (rsq < cutsq[itype][jtype]) {
+          r = sqrt(rsq);
+          if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
+          rinv = 1.0/r;
+          wr = 1.0 - r/cut[itype][jtype];
+          wd = wr*wr;
 
-        // conservative force = a0 * wr
-        fpair = a0[itype][jtype]*wr;
-        fpair *= factor_dpd*rinv;
+          // conservative force = a0 * wr
+          fpair = a0[itype][jtype]*wr;
+          fpair *= factor_dpd*rinv;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[i][0] += delx*fpair;
+          f[i][1] += dely*fpair;
+          f[i][2] += delz*fpair;
+          if (newton_pair || j < nlocal) {
+            f[j][0] -= delx*fpair;
+            f[j][1] -= dely*fpair;
+            f[j][2] -= delz*fpair;
+          }
+
+          if (eflag) {
+            // unshifted eng of conservative term:
+            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+            // eng shifted to 0.0 at cutoff
+            evdwl = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd;
+            evdwl *= factor_dpd;
+          }
+
+          if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                               evdwl,0.0,fpair,delx,dely,delz);
         }
-
-        if (eflag) {
-          // unshifted eng of conservative term:
-          // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
-          // eng shifted to 0.0 at cutoff
-          evdwl = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd;
-          evdwl *= factor_dpd;
-        }
-
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
       }
     }
-  }
+  } else {
 
+    // Allocate memory for duCond and duMech
+    if (allocated) {
+      memory->destroy(duCond);
+      memory->destroy(duMech);
+    }
+    memory->create(duCond,nlocal+nghost,"pair:duCond");
+    memory->create(duMech,nlocal+nghost,"pair:duMech");
+    for (int ii = 0; ii < nlocal+nghost; ii++) {
+      duCond[ii] = 0.0;
+      duMech[ii] = 0.0;
+    }
+
+    // loop over neighbors of my atoms
+    for (int ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      vxtmp = v[i][0];
+      vytmp = v[i][1];
+      vztmp = v[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        factor_dpd = special_lj[sbmask(j)];
+        j &= NEIGHMASK;
+
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        jtype = type[j];
+
+        if (rsq < cutsq[itype][jtype]) {
+          r = sqrt(rsq);
+          if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
+          rinv = 1.0/r;
+          wr = 1.0 - r/cut[itype][jtype];
+	  wd = wr*wr;
+
+          delvx = vxtmp - v[j][0];
+          delvy = vytmp - v[j][1];
+          delvz = vztmp - v[j][2];
+          dot = delx*delvx + dely*delvy + delz*delvz;
+          randnum = random->gaussian();
+
+	  // Compute the current temperature
+	  theta_ij = 0.5*(1.0/dpdTheta[i] + 1.0/dpdTheta[j]);
+	  theta_ij = 1.0/theta_ij;
+	
+	  gamma_ij = sigma[itype][jtype]*sigma[itype][jtype]
+                     / (2.0*force->boltz*theta_ij);
+
+          // conservative force = a0 * wr
+          // drag force = -gamma * wr^2 * (delx dot delv) / r
+          // random force = sigma * wr * rnd * dtinvsqrt;
+
+          fpair = a0[itype][jtype]*wr;
+          fpair -= gamma_ij*wd*dot*rinv;
+          fpair += sigma[itype][jtype]*wr*randnum*dtinvsqrt;
+          fpair *= factor_dpd*rinv;
+
+          f[i][0] += delx*fpair;
+          f[i][1] += dely*fpair;
+          f[i][2] += delz*fpair;
+          if (newton_pair || j < nlocal) {
+            f[j][0] -= delx*fpair;
+            f[j][1] -= dely*fpair;
+            f[j][2] -= delz*fpair;
+          }
+
+	  if (rmass) {
+	    mass_i = rmass[i];
+	    mass_j = rmass[j];
+	  } else {
+	    mass_i = mass[itype];
+	    mass_j = mass[jtype];
+	  }
+	  massinv_i = 1.0 / mass_i;
+	  massinv_j = 1.0 / mass_j;
+
+	  // Compute the mechanical and conductive energy, uMech and uCond
+	  mu_ij = massinv_i + massinv_j;
+	  mu_ij *= force->ftm2v;
+
+	  uTmp = gamma_ij*wd*rinv*rinv*dot*dot
+                 - 0.5*sigma[itype][jtype]*sigma[itype][jtype]*mu_ij*wd;
+	  uTmp -= sigma[itype][jtype]*wr*rinv*dot*randnum*dtinvsqrt;
+	  uTmp *= 0.5;
+
+	  duMech[i] += uTmp;
+	  if (newton_pair || j < nlocal) {
+	    duMech[j] += uTmp;
+	  }
+	
+	  // Compute uCond
+	  randnum = random->gaussian();
+	  kappa_ij = kappa[itype][jtype];
+	  alpha_ij = sqrt(2.0*force->boltz*kappa_ij);
+	  randPair = alpha_ij*wr*randnum*dtinvsqrt;
+
+	  uTmp = kappa_ij*(1.0/dpdTheta[i] - 1.0/dpdTheta[j])*wd;
+	  uTmp += randPair;
+	
+	  duCond[i] += uTmp;
+	  if (newton_pair || j < nlocal) {
+	    duCond[j] -= uTmp;
+	  }
+	
+          if (eflag) {
+            // unshifted eng of conservative term:
+            // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
+            // eng shifted to 0.0 at cutoff
+            evdwl = 0.5*a0[itype][jtype]*cut[itype][jtype] * wd;
+            evdwl *= factor_dpd;
+          }
+
+          if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                               evdwl,0.0,fpair,delx,dely,delz);
+        }
+      }
+    }
+    // Communicate the ghost delta energies to the locally owned atoms
+    comm->reverse_comm_pair(this);
+  }
   if (vflag_fdotr) virial_fdotr_compute();
+
 }
 
 /* ----------------------------------------------------------------------
@@ -155,6 +304,8 @@ void PairDPDfdtEnergy::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
@@ -167,6 +318,10 @@ void PairDPDfdtEnergy::allocate()
   memory->create(a0,n+1,n+1,"pair:a0");
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(kappa,n+1,n+1,"pair:kappa");
+  if (!splitFDT_flag) {
+    memory->create(duCond,nlocal+nghost+1,"pair:duCond");
+    memory->create(duMech,nlocal+nghost+1,"pair:duMech");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -250,11 +405,14 @@ void PairDPDfdtEnergy::init_style()
   if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
       "Pair dpd/fdt/energy requires newton pair on");
 
+  splitFDT_flag = false;
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->ssa = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shardlow") == 0)
+    if (strcmp(modify->fix[i]->style,"shardlow") == 0){
+      splitFDT_flag = true;
       neighbor->requests[irequest]->ssa = 1;
+    }
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
@@ -385,3 +543,32 @@ double PairDPDfdtEnergy::single(int i, int j, int itype, int jtype, double rsq,
   return factor_dpd*phi;
 }
 
+/* ---------------------------------------------------------------------- */
+
+int PairDPDfdtEnergy::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    buf[m++] = duCond[i];
+    buf[m++] = duMech[i];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairDPDfdtEnergy::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+
+    duCond[j] += buf[m++];
+    duMech[j] += buf[m++];
+  }
+}

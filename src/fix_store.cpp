@@ -154,6 +154,9 @@ void FixStore::reset_global(int nrow_caller, int ncol_caller)
   if (vecflag) memory->create(vstore,nrow,"fix/store:vstore");
   else memory->create(astore,nrow,ncol,"fix/store:astore");
   memory->create(rbuf,nrow*ncol+2,"fix/store:rbuf");
+
+
+  printf("AAA HOW GET HERE\n");
 }
 
 /* ----------------------------------------------------------------------

@@ -618,6 +618,7 @@ package"_Section_start.html#start_3.
 "atc"_fix_atc.html,
 "ave/correlate/long"_fix_ave_correlate_long.html,
 "colvars"_fix_colvars.html,
+"dpd/energy"_fix_dpd_energy.html,
 "drude"_fix_drude.html,
 "drude/transform/direct"_fix_drude_transform.html,
 "drude/transform/reverse"_fix_drude_transform.html,
@@ -923,6 +924,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "tip4p/long (o)"_pair_coul.html,
 "tri/lj"_pair_tri_lj.html,
 "vashishta (o)"_pair_vashishta.html,
+"vashishta/table (o)"_pair_vashishta_table.html,
 "yukawa (go)"_pair_yukawa.html,
 "yukawa/colloid (go)"_pair_yukawa_colloid.html,
 "zbl (go)"_pair_zbl.html :tb(c=4,ea=c)

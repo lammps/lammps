@@ -696,7 +696,8 @@ void ImproperClass2OMP::angleangle_thr(int nfrom, int nto, ThrData * const thr)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,
-                   fabcd[0],fabcd[2],fabcd[3],delxAB,delyAB,delzAB,
-                   delxBC,delyBC,delzBC,delxBD,delyBD,delzBD,thr);
+                   fabcd[0],fabcd[2],fabcd[3],
+                   delxAB,delyAB,delzAB,delxBC,delyBC,delzBC,
+                   delxBD-delxBC,delyBD-delyBC,delzBD-delzBC,thr);
   }
 }

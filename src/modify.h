@@ -107,7 +107,7 @@ class Modify : protected Pointers {
 
   void write_restart(FILE *);
   int read_restart(FILE *);
-  void restart_deallocate();
+  void restart_deallocate(int);
 
   bigint memory_usage();
 
@@ -135,10 +135,12 @@ class Modify : protected Pointers {
   char **id_restart_global;           // stored fix global info
   char **style_restart_global;        // from read-in restart file
   char **state_restart_global;
+  int *used_restart_global;
 
   char **id_restart_peratom;          // stored fix peratom info
   char **style_restart_peratom;       // from read-in restart file
   int *index_restart_peratom;
+  int *used_restart_peratom;
 
   int index_permanent;        // fix/compute index returned to library call
 

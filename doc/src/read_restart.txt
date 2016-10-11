@@ -191,13 +191,18 @@ input script should specify all fixes it will use.  However, note that
 some fixes store an internal "state" which is written to the restart
 file.  This allows the fix to continue on with its calculations in a
 restarted simulation.  To re-enable such a fix, the fix command in the
-new input script must use the same fix-ID and group-ID as was used in
-the input script that wrote the restart file.  If a match is found,
-LAMMPS prints a message indicating that the fix is being re-enabled.
-If no match is found before the first run or minimization is performed
-by the new script, the "state" information for the saved fix is
-discarded.  See the doc pages for individual fixes for info on which
-ones can be restarted in this manner.
+new input script must be of the same style and use the same fix-ID as
+was used in the input script that wrote the restart file.
+
+If a match is found, LAMMPS prints a message indicating that the fix
+is being re-enabled.  If no match is found before the first run or
+minimization is performed by the new script, the "state" information
+for the saved fix is discarded.  LAMMPS will also print a list of
+fixes for which the information is being discarded.  See the doc pages
+for individual fixes for info on which ones can be restarted in this
+manner.  Note that fixes which are created internally by other LAMMPS
+commands (computes, fixes, etc) will have style names which are
+all-capitalized, and IDs which are generated internally.
 
 Likewise, the "computes"_fix.html used for a simulation are not stored
 in the restart file.  This means the new input script should specify
@@ -212,6 +217,14 @@ then it will create the same fix in the restarted run.  This means the
 re-created fix will be re-enabled with the stored state information as
 described in the previous paragraph, so that the compute can continue
 its calculations in a consistent manner.
+
+NOTE: There are a handful of commands which can be used before or
+between runs which require a system initialization.  Examples include
+the "balance", "displace_atoms", and "delete_atoms" commands.  This is
+because they may migrate atoms to new processors.  Thus they will also
+discard unused "state" information from fixes.  This means that, if
+desired, you must re-specify the relevant fixes and computes (which
+create fixes) before those commands are used.
 
 Some pair styles, like the "granular pair styles"_pair_gran.html, also
 use a fix to store "state" information that persists from timestep to

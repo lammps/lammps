@@ -63,7 +63,7 @@ applied by GD before computing a pressure drop or comparing it to
 other methods, such as the pump method "(Zhu)"_#Zhu. The pressure
 correction is discussed and described in "(Strong)"_#Strong.
 
-NOTE: For a complete example including the considerations discussed
+For a complete example including the considerations discussed
 above, see the examples/USER/flow_gauss directory.
 
 NOTE: Only the flux of the atoms in group-ID will be conserved. If the
@@ -93,6 +93,19 @@ work on the system must have {fix_modify energy yes} set as well. This
 includes thermostat fixes and any constraints that hold the positions
 of wall atoms fixed, such as "fix spring/self"_fix_spring_self.html.
 
+If this fix is used in a simulation with the "rRESPA"_run_style.html
+integrator, the applied acceleration must be computed and applied at the same
+rRESPA level as the interactions between the flowing fluid and the obstacle.
+The rRESPA level at which the acceleration is applied can be changed using
+the "fix_modify"_fix_modify.html {respa} option discussed below. If the
+flowing fluid and the obstacle interact through multiple interactions that are
+computed at different rRESPA levels, then there must be a separate flow/gauss
+fix for each level. For example, if the flowing fluid and obstacle interact
+through pairwise and long-range Coulomb interactions, which are computed at
+rRESPA levels 3 and 4, respectively, then there must be two separate
+flow/gauss fixes, one that specifies {fix_modify respa 3} and one with
+{fix_modify respa 4}.
+
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -108,6 +121,11 @@ The "fix_modify"_fix_modify.html {energy} option is supported by this
 fix to subtract the work done from the
 system's potential energy as part of "thermodynamic
 output"_thermo_style.html.
+
+The "fix_modify"_fix_modify.html {respa} option is supported by this
+fix. This allows the user to set at which level of the "rRESPA"_run_style.html
+integrator the fix computes and adds the external acceleration. Default is the
+outermost level.
 
 This fix computes a global scalar and a global 3-vector of forces,
 which can be accessed by various "output

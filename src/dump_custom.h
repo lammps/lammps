@@ -33,10 +33,20 @@ class DumpCustom : public Dump {
   int nevery;                // dump frequency for output
   int iregion;               // -1 if no region, else which region
   char *idregion;            // region ID
-  int nthresh;               // # of defined threshholds
-  int *thresh_array;         // array to threshhhold on for each nthresh
-  int *thresh_op;            // threshhold operation for each nthresh
-  double *thresh_value;      // threshhold value for each nthresh
+
+  int nthresh;               // # of defined thresholds
+  int nthreshlast;           // # of defined thresholds with value = LAST
+
+  int *thresh_array;         // array to threshold on for each nthresh
+  int *thresh_op;            // threshold operation for each nthresh
+  double *thresh_value;      // threshold value for each nthresh
+  int *thresh_last;          // for threshold value = LAST,
+                             // index into thresh_fix
+                             // -1 if not LAST, value is numeric
+
+  class FixStore **thresh_fix;  // stores values for each threshold LAST
+  char **thresh_fixID;          // IDs of thresh_fixes
+  int *thresh_first;            // 1 the first time a FixStore values accessed
 
   int expand;                // flag for whether field args were expanded
   char **earg;               // field names with wildcard expansion
@@ -50,7 +60,7 @@ class DumpCustom : public Dump {
   int nchoose;               // # of selected atoms
   int maxlocal;              // size of atom selection and variable arrays
   int *choose;               // local indices of selected atoms
-  double *dchoose;           // value for each atom to threshhold against
+  double *dchoose;           // value for each atom to threshold against
   int *clist;                // compressed list of indices of selected atoms
 
   int nfield;                // # of keywords listed by user
@@ -233,9 +243,9 @@ E: Compute used in dump between runs is not current
 The compute was not invoked on the current timestep, therefore it
 cannot be used in a dump between runs.
 
-E: Threshhold for an atom property that isn't allocated
+E: Threshold for an atom property that isn't allocated
 
-A dump threshhold has been requested on a quantity that is
+A dump threshold has been requested on a quantity that is
 not defined by the atom style used in this simulation.
 
 E: Dumping an atom property that isn't allocated
@@ -362,7 +372,7 @@ E: Could not find dump modify custom atom integer property ID
 
 Self-explanatory.
 
-E: Invalid dump_modify threshhold operator
+E: Invalid dump_modify threshold operator
 
 Operator keyword used for threshold specification in not recognized.
 

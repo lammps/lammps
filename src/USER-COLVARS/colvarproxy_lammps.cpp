@@ -193,7 +193,7 @@ double colvarproxy_lammps::compute()
   previous_step = _lmp->update->ntimestep;
 
   if (cvm::debug()) {
-    cvm::log(cvm::line_marker+
+    cvm::log(std::string(cvm::line_marker)+
              "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
              "Updating internal data.\n");
   }

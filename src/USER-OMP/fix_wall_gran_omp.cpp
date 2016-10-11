@@ -25,8 +25,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER};    // XYZ PLANE need to be 0,1,2
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY};
+enum{XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};    // XYZ PLANE need to be 0,1,2
+enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,BONDED_HISTORY};
 
 #define BIG 1.0e20
 
@@ -107,6 +107,7 @@ void FixWallGranOMP::post_force(int vflag)
 
     if (mask[i] & groupbit) {
       double dx,dy,dz,del1,del2,delxy,delr,rsq;
+      double rwall = 0.0;
 
       dx = dy = dz = 0.0;
 
@@ -128,13 +129,16 @@ void FixWallGranOMP::post_force(int vflag)
       } else if (wallstyle == ZCYLINDER) {
         delxy = sqrt(x[i][0]*x[i][0] + x[i][1]*x[i][1]);
         delr = cylradius - delxy;
-        if (delr > radius[i]) dz = cylradius;
-        else {
+        if (delr > radius[i]) {
+          dz = cylradius;
+          rwall = 0.0;
+        } else {
           dx = -delr/delxy * x[i][0];
           dy = -delr/delxy * x[i][1];
+          rwall = (delxy < cylradius) ? -2*cylradius : 2*cylradius;
           if (wshear && axis != 2) {
-            vwall[0] = vshear * x[i][1]/delxy;
-            vwall[1] = -vshear * x[i][0]/delxy;
+            vwall[0] += vshear * x[i][1]/delxy;
+            vwall[1] += -vshear * x[i][0]/delxy;
             vwall[2] = 0.0;
           }
         }
@@ -143,11 +147,10 @@ void FixWallGranOMP::post_force(int vflag)
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (rsq > radius[i]*radius[i]) {
-        if (pairstyle != HOOKE) {
-          shear[i][0] = 0.0;
-          shear[i][1] = 0.0;
-          shear[i][2] = 0.0;
-        }
+        if (history)
+          for (int j = 0; j < sheardim; j++)
+            shearone[i][j] = 0.0;
+
       } else {
 
         // meff = effective mass of sphere
@@ -156,17 +159,20 @@ void FixWallGranOMP::post_force(int vflag)
         double meff = rmass[i];
         if (fix_rigid && mass_rigid[i] > 0.0) meff = mass_rigid[i];
 
-        // inovke sphere/wall interaction
+        // invoke sphere/wall interaction
 
         if (pairstyle == HOOKE)
-          hooke(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                radius[i],meff);
+          hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
+                omega[i],torque[i],radius[i],meff);
         else if (pairstyle == HOOKE_HISTORY)
-          hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                        radius[i],meff,shear[i]);
+          hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],
+                        omega[i],torque[i],radius[i],meff,shearone[i]);
         else if (pairstyle == HERTZ_HISTORY)
-          hertz_history(rsq,dx,dy,dz,vwall,v[i],f[i],omega[i],torque[i],
-                        radius[i],meff,shear[i]);
+          hertz_history(rsq,dx,dy,dz,vwall,rwall,v[i],f[i],
+                        omega[i],torque[i],radius[i],meff,shearone[i]);
+        else if (pairstyle == BONDED_HISTORY)
+          bonded_history(rsq,dx,dy,dz,vwall,rwall,v[i],f[i],
+                         omega[i],torque[i],radius[i],meff,shearone[i]);
       }
     }
   }

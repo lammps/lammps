@@ -32,7 +32,6 @@ using namespace LAMMPS_NS;
 
 void WriteDump::command(int narg, char **arg)
 {
-
   if (narg < 3) error->all(FLERR,"Illegal write_dump command");
 
   // modindex = index in args of "modify" keyword

@@ -68,10 +68,12 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_timeflag = NULL;
 
   nfix_restart_global = 0;
-  id_restart_global = style_restart_global = state_restart_global = NULL;
+  id_restart_global = style_restart_global = NULL;
+  state_restart_global = NULL;
+  used_restart_global = NULL;
   nfix_restart_peratom = 0;
   id_restart_peratom = style_restart_peratom = NULL;
-  index_restart_peratom = NULL;
+  index_restart_peratom = used_restart_peratom = NULL;
 
   ncompute = maxcompute = 0;
   compute = NULL;
@@ -140,7 +142,7 @@ Modify::~Modify()
   delete [] end_of_step_every;
   delete [] list_timeflag;
 
-  restart_deallocate();
+  restart_deallocate(0);
 
   delete compute_map;
   delete fix_map;
@@ -156,7 +158,7 @@ void Modify::init()
 
   // delete storage of restart info since it is not valid after 1st run
 
-  restart_deallocate();
+  restart_deallocate(1);
 
   // create lists of fixes to call at each stage of run
 
@@ -819,11 +821,16 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     if (strcmp(id_restart_global[i],fix[ifix]->id) == 0 &&
         strcmp(style_restart_global[i],fix[ifix]->style) == 0) {
       fix[ifix]->restart(state_restart_global[i]);
+      used_restart_global[i] = 1;
       if (comm->me == 0) {
-        const char *str = (const char *) ("Resetting global state of Fix %s "
-                                          "Style %s from restart file info\n");
-        if (screen) fprintf(screen,str,fix[ifix]->id,fix[ifix]->style);
-        if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
+	if (screen) 
+          fprintf(screen,"Resetting global fix info from restart file:\n");
+	if (logfile) 
+          fprintf(logfile,"Resetting global fix info from restart file:\n");
+        if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
+                            fix[ifix]->style,fix[ifix]->id);
+        if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
+                             fix[ifix]->style,fix[ifix]->id);
       }
     }
 
@@ -833,14 +840,19 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   for (int i = 0; i < nfix_restart_peratom; i++)
     if (strcmp(id_restart_peratom[i],fix[ifix]->id) == 0 &&
         strcmp(style_restart_peratom[i],fix[ifix]->style) == 0) {
+      used_restart_peratom[i] = 1;
       for (int j = 0; j < atom->nlocal; j++)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0) {
-        char *str = (char *) ("Resetting per-atom state of Fix %s Style %s "
-                     "from restart file info\n");
-        if (screen) fprintf(screen,str,fix[ifix]->id,fix[ifix]->style);
-        if (logfile) fprintf(logfile,str,fix[ifix]->id,fix[ifix]->style);
+	if (screen) 
+          fprintf(screen,"Resetting peratom fix info from restart file:\n");
+	if (logfile) 
+          fprintf(logfile,"Resetting peratom fix info from restart file:\n");
+        if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
+                            fix[ifix]->style,fix[ifix]->id);
+        if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
+                             fix[ifix]->style,fix[ifix]->id);
       }
     }
 
@@ -1158,6 +1170,7 @@ int Modify::read_restart(FILE *fp)
     id_restart_global = new char*[nfix_restart_global];
     style_restart_global = new char*[nfix_restart_global];
     state_restart_global = new char*[nfix_restart_global];
+    used_restart_global = new int[nfix_restart_global];
   }
 
   // read each entry and Bcast to all procs
@@ -1182,6 +1195,8 @@ int Modify::read_restart(FILE *fp)
     state_restart_global[i] = new char[n];
     if (me == 0) fread(state_restart_global[i],sizeof(char),n,fp);
     MPI_Bcast(state_restart_global[i],n,MPI_CHAR,0,world);
+
+    used_restart_global[i] = 0;
   }
 
   // nfix_restart_peratom = # of restart entries with peratom info
@@ -1197,6 +1212,7 @@ int Modify::read_restart(FILE *fp)
     id_restart_peratom = new char*[nfix_restart_peratom];
     style_restart_peratom = new char*[nfix_restart_peratom];
     index_restart_peratom = new int[nfix_restart_peratom];
+    used_restart_peratom = new int[nfix_restart_peratom];
   }
 
   // read each entry and Bcast to all procs
@@ -1221,6 +1237,7 @@ int Modify::read_restart(FILE *fp)
     maxsize += n;
 
     index_restart_peratom[i] = i;
+    used_restart_peratom[i] = 0;
   }
 
   return maxsize;
@@ -1228,11 +1245,36 @@ int Modify::read_restart(FILE *fp)
 
 /* ----------------------------------------------------------------------
    delete all lists of restart file Fix info
+   if flag set, print list of restart file info not assigned to new fixes
 ------------------------------------------------------------------------- */
 
-void Modify::restart_deallocate()
+void Modify::restart_deallocate(int flag)
 {
   if (nfix_restart_global) {
+    if (flag && comm->me == 0) {
+      int i;
+      for (i = 0; i < nfix_restart_global; i++)
+	if (used_restart_global[i] == 0) break;
+      if (i == nfix_restart_global) {
+	if (screen) 
+          fprintf(screen,"All restart file global fix info "
+                  "was re-assigned\n");
+	if (logfile) 
+          fprintf(logfile,"All restart file global fix info "
+                  "was re-assigned\n");
+      } else {
+	if (screen) fprintf(screen,"Unused restart file global fix info:\n");
+	if (logfile) fprintf(logfile,"Unused restart file global fix info:\n");
+	for (i = 0; i < nfix_restart_global; i++) {
+	  if (used_restart_global[i]) continue;
+	  if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
+			      style_restart_global[i],id_restart_global[i]);
+	  if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
+			       style_restart_global[i],id_restart_global[i]);
+	}
+      }
+    }
+
     for (int i = 0; i < nfix_restart_global; i++) {
       delete [] id_restart_global[i];
       delete [] style_restart_global[i];
@@ -1241,9 +1283,34 @@ void Modify::restart_deallocate()
     delete [] id_restart_global;
     delete [] style_restart_global;
     delete [] state_restart_global;
+    delete [] used_restart_global;
   }
 
   if (nfix_restart_peratom) {
+    if (flag && comm->me == 0) {
+      int i;
+      for (i = 0; i < nfix_restart_peratom; i++)
+	if (used_restart_peratom[i] == 0) break;
+      if (i == nfix_restart_peratom) {
+	if (screen) 
+          fprintf(screen,"All restart file peratom fix info "
+                  "was re-assigned\n");
+	if (logfile) 
+          fprintf(logfile,"All restart file peratom fix info "
+                  "was re-assigned\n");
+      } else {
+	if (screen) fprintf(screen,"Unused restart file peratom fix info:\n");
+	if (logfile) fprintf(logfile,"Unused restart file peratom fix info:\n");
+	for (i = 0; i < nfix_restart_peratom; i++) {
+	  if (used_restart_peratom[i]) continue;
+	  if (screen) fprintf(screen,"  fix style: %s, fix ID: %s\n",
+			      style_restart_peratom[i],id_restart_peratom[i]);
+	  if (logfile) fprintf(logfile,"  fix style: %s, fix ID: %s\n",
+			       style_restart_peratom[i],id_restart_peratom[i]);
+	}
+      }
+    }
+
     for (int i = 0; i < nfix_restart_peratom; i++) {
       delete [] id_restart_peratom[i];
       delete [] style_restart_peratom[i];
@@ -1251,6 +1318,7 @@ void Modify::restart_deallocate()
     delete [] id_restart_peratom;
     delete [] style_restart_peratom;
     delete [] index_restart_peratom;
+    delete [] used_restart_peratom;
   }
 
   nfix_restart_global = nfix_restart_peratom = 0;

@@ -43,6 +43,10 @@ Rescaling is performed every N timesteps.  The target temperature is a
 ramped value between the {Tstart} and {Tstop} temperatures at the
 beginning and end of the run.
 
+NOTE: This thermostat will generate an error if the current
+temperature is zero at the end of a timestep it is inovoked on.  It
+cannot rescale a zero temperature.
+
 {Tstart} can be specified as an equal-style "variable"_variable.html.
 In this case, the {Tstop} setting is ignored.  If the value is a
 variable, it should be specified as v_name, where name is the variable
@@ -50,7 +54,7 @@ name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the target temperature.
 
 Equal-style variables can specify formulas with various mathematical
-functions, and include "thermo_style"_thermo_style.html command
+functions, and include "thermo_style"_thermox_style.html command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 

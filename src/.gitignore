@@ -271,6 +271,10 @@
 /dump_custom_vtk.h
 /dump_h5md.cpp
 /dump_h5md.h
+/dump_nc.cpp
+/dump_nc.h
+/dump_nc_mpiio.cpp
+/dump_nc_mpiio.h
 /dump_xtc.cpp
 /dump_xtc.h
 /dump_xyz_mpiio.cpp

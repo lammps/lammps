@@ -2,6 +2,9 @@ USER-NC-DUMP
 ============
 
 This package provides the nc and (optionally) the nc/mpiio dump styles.
+See the doc page for dump nc or dump nc/mpiio command for how to use them.
+Compiling these dump styles requires having the netCDF library installed
+on your system. See lib/netcdf/README for additional details.
 
 PACKAGE DESCRIPTION
 -------------------
@@ -29,9 +32,9 @@ The person who created these files is Lars Pastewka at
 Karlsruhe Institute of Technology (lars.pastewka@kit.edu).
 Contact him directly if you have questions.
 
-Lars Pastewka  
-Institute for Applied Materials (IAM)  
-Karlsruhe Institute of Technology (KIT)  
-Kaiserstraße 12, 76131 Karlsruhe  
+Lars Pastewka
+Institute for Applied Materials (IAM)
+Karlsruhe Institute of Technology (KIT)
+Kaiserstrasse 12, 76131 Karlsruhe
 e-mail: lars.pastewka@kit.edu
 

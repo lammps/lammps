@@ -27,7 +27,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -289,7 +289,7 @@ void DumpNC::openfile()
       singlefile_opened = 1;
 
       NCERRX( nc_open(filename, NC_WRITE, &ncid), filename );
-    
+
       // dimensions
       NCERRX( nc_inq_dimid(ncid, NC_FRAME_STR, &frame_dim), NC_FRAME_STR );
       NCERRX( nc_inq_dimid(ncid, NC_SPATIAL_STR, &spatial_dim),
@@ -309,7 +309,7 @@ void DumpNC::openfile()
 	      NC_CELL_SPATIAL_STR);
       NCERRX( nc_inq_varid(ncid, NC_CELL_ANGULAR_STR, &cell_angular_var),
 	      NC_CELL_ANGULAR_STR);
-      
+
       NCERRX( nc_inq_varid(ncid, NC_TIME_STR, &time_var), NC_TIME_STR );
       NCERRX( nc_inq_varid(ncid, NC_CELL_ORIGIN_STR, &cell_origin_var),
 	      NC_CELL_ORIGIN_STR );
@@ -332,7 +332,7 @@ void DumpNC::openfile()
           else
             xtype = NC_FLOAT;
         }
-    
+
         NCERRX( nc_inq_varid(ncid, perat[i].name, &perat[i].var),
                 perat[i].name );
       }
@@ -342,7 +342,7 @@ void DumpNC::openfile()
         NCERRX( nc_inq_varid(ncid, perframe[i].name, &perframe[i].var),
                 perframe[i].name );
       }
-    
+
       size_t nframes;
       NCERR( nc_inq_dimlen(ncid, frame_dim, &nframes) );
       // framei == -1 means append to file, == -2 means override last frame
@@ -360,7 +360,7 @@ void DumpNC::openfile()
 
       NCERRX( nc_create(filename, NC_64BIT_OFFSET, &ncid),
 	      filename );
-    
+
       // dimensions
       NCERRX( nc_def_dim(ncid, NC_FRAME_STR, NC_UNLIMITED, &frame_dim),
 	      NC_FRAME_STR );
@@ -387,7 +387,7 @@ void DumpNC::openfile()
       dims[1] = label_dim;
       NCERRX( nc_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims,
 			 &cell_angular_var), NC_CELL_ANGULAR_STR );
-      
+
       dims[0] = frame_dim;
       NCERRX( nc_def_var(ncid, NC_TIME_STR, NC_DOUBLE, 1, dims, &time_var),
 	      NC_TIME_STR);
@@ -420,7 +420,7 @@ void DumpNC::openfile()
           else
             xtype = NC_FLOAT;
         }
-    
+
         if (perat[i].constant) {
           // this quantity will only be written once
           if (perat[i].dims == 6) {
@@ -491,7 +491,7 @@ void DumpNC::openfile()
                  5, "AMBER") );
       NCERR( nc_put_att_text(ncid, NC_GLOBAL, "ConventionVersion",
                  3, "1.0") );
-      
+
       NCERR( nc_put_att_text(ncid, NC_GLOBAL, "program",
                  6, "LAMMPS") );
       NCERR( nc_put_att_text(ncid, NC_GLOBAL, "programVersion",
@@ -551,7 +551,7 @@ void DumpNC::openfile()
         sprintf(errstr, "Unsupported unit style '%s'", update->unit_style);
         error->all(FLERR,errstr);
       }
-      
+
       NCERR( nc_put_att_text(ncid, cell_angles_var, NC_UNITS_STR,
                              6, "degree") );
 
@@ -564,17 +564,17 @@ void DumpNC::openfile()
       d[0] = 1.0;
       NCERR( nc_put_att_double(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR,
                                NC_DOUBLE, 1, d) );
-      
+
       /*
        * Finished with definition
        */
-      
+
       NCERR( nc_enddef(ncid) );
 
       /*
        * Write label variables
        */
-      
+
       NCERR( nc_put_var_text(ncid, spatial_var, "xyz") );
       NCERR( nc_put_var_text(ncid, cell_spatial_var, "abc") );
       index[0] = 0;
@@ -588,7 +588,7 @@ void DumpNC::openfile()
       index[0] = 2;
       count[1] = 5;
       NCERR( nc_put_vara_text(ncid, cell_angular_var, index, count, "gamma") );
-    
+
       framei = 1;
     }
   }
@@ -803,7 +803,7 @@ void DumpNC::write_data(int n, double *mybuf)
             for (int j = 0; j < n; j++, iaux+=size_one) {
               int_buffer[j] = mybuf[iaux];
             }
-      
+
             start[2] = idim;
 
             if (perat[i].constant) {
@@ -848,7 +848,7 @@ void DumpNC::write_data(int n, double *mybuf)
             for (int j = 0; j < n; j++, iaux+=size_one) {
                 double_buffer[j] = mybuf[iaux];
             }
-      
+
             start[2] = idim;
 
             if (perat[i].constant) {
@@ -941,7 +941,7 @@ int DumpNC::modify_param(int narg, char **arg)
         strcpy(perframe[i].name, arg[iarg]);
       }
       else {
-    
+
         n = strlen(arg[iarg]);
 
         if (n > 2) {
@@ -954,7 +954,7 @@ int DumpNC::modify_param(int narg, char **arg)
                   "compute, fix or variable", arg[iarg]);
           error->all(FLERR,errstr);
         }
-        
+
         if (!strncmp(arg[iarg], "c_", 2)) {
           int idim = -1;
           char *ptr = strchr(suffix, '[');
@@ -991,7 +991,7 @@ int DumpNC::modify_param(int narg, char **arg)
             *ptr = '\0';
             idim = ptr[1] - '1';
           }
-      
+
           n = modify->find_fix(suffix);
           if (n < 0)
             error->all(FLERR,"Could not find dump modify fix ID");
@@ -1028,7 +1028,7 @@ int DumpNC::modify_param(int narg, char **arg)
         }
 
         delete [] suffix;
-    
+
       }
     }
 

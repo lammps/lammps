@@ -27,7 +27,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -283,7 +283,7 @@ void DumpNCMPIIO::openfile()
 
     NCERRX( ncmpi_open(MPI_COMM_WORLD, filename, NC_WRITE, MPI_INFO_NULL,
                        &ncid), filename );
-    
+
     // dimensions
     NCERRX( ncmpi_inq_dimid(ncid, NC_FRAME_STR, &frame_dim), NC_FRAME_STR );
     NCERRX( ncmpi_inq_dimid(ncid, NC_SPATIAL_STR, &spatial_dim),
@@ -303,7 +303,7 @@ void DumpNCMPIIO::openfile()
             NC_CELL_SPATIAL_STR);
     NCERRX( ncmpi_inq_varid(ncid, NC_CELL_ANGULAR_STR, &cell_angular_var),
             NC_CELL_ANGULAR_STR);
-      
+
     NCERRX( ncmpi_inq_varid(ncid, NC_TIME_STR, &time_var), NC_TIME_STR );
     NCERRX( ncmpi_inq_varid(ncid, NC_CELL_ORIGIN_STR, &cell_origin_var),
             NC_CELL_ORIGIN_STR );
@@ -326,7 +326,7 @@ void DumpNCMPIIO::openfile()
         else
           xtype = NC_FLOAT;
       }
-    
+
       NCERRX( ncmpi_inq_varid(ncid, perat[i].name, &perat[i].var),
               perat[i].name );
     }
@@ -336,7 +336,7 @@ void DumpNCMPIIO::openfile()
       NCERRX( ncmpi_inq_varid(ncid, perframe[i].name, &perframe[i].var),
               perframe[i].name );
     }
-    
+
     MPI_Offset nframes;
     NCERR( ncmpi_inq_dimlen(ncid, frame_dim, &nframes) );
     // framei == -1 means append to file, == -2 means override last frame
@@ -354,7 +354,7 @@ void DumpNCMPIIO::openfile()
 
     NCERRX( ncmpi_create(MPI_COMM_WORLD, filename, NC_64BIT_OFFSET,
                          MPI_INFO_NULL, &ncid), filename );
-    
+
     // dimensions
     NCERRX( ncmpi_def_dim(ncid, NC_FRAME_STR, NC_UNLIMITED, &frame_dim),
             NC_FRAME_STR );
@@ -381,7 +381,7 @@ void DumpNCMPIIO::openfile()
     dims[1] = label_dim;
     NCERRX( ncmpi_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims,
                           &cell_angular_var), NC_CELL_ANGULAR_STR );
-    
+
     dims[0] = frame_dim;
     NCERRX( ncmpi_def_var(ncid, NC_TIME_STR, NC_DOUBLE, 1, dims, &time_var),
             NC_TIME_STR);
@@ -414,7 +414,7 @@ void DumpNCMPIIO::openfile()
         else
           xtype = NC_FLOAT;
       }
-      
+
       if (perat[i].dims == 6) {
         // this is a tensor in Voigt notation
         dims[2] = Voigt_dim;
@@ -457,12 +457,12 @@ void DumpNCMPIIO::openfile()
                               5, "AMBER") );
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "ConventionVersion",
                               3, "1.0") );
-    
+
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "program",
                               6, "LAMMPS") );
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "programVersion",
                               strlen(universe->version), universe->version) );
-    
+
     // units
     if (!strcmp(update->unit_style, "lj")) {
       NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR,
@@ -517,10 +517,10 @@ void DumpNCMPIIO::openfile()
       sprintf(errstr, "Unsupported unit style '%s'", update->unit_style);
       error->all(FLERR,errstr);
     }
-      
+
     NCERR( ncmpi_put_att_text(ncid, cell_angles_var, NC_UNITS_STR,
                               6, "degree") );
-    
+
     d[0] = update->dt;
     NCERR( ncmpi_put_att_double(ncid, time_var, NC_SCALE_FACTOR_STR,
                                 NC_DOUBLE, 1, d) );
@@ -530,17 +530,17 @@ void DumpNCMPIIO::openfile()
     d[0] = 1.0;
     NCERR( ncmpi_put_att_double(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR,
                                 NC_DOUBLE, 1, d) );
-    
+
     /*
      * Finished with definition
      */
-    
+
     NCERR( ncmpi_enddef(ncid) );
 
     /*
      * Write label variables
      */
-    
+
     NCERR( ncmpi_begin_indep_data(ncid) );
 
     if (filewriter) {
@@ -646,7 +646,7 @@ void DumpNCMPIIO::write()
   }
 
   // write timestep header
- 
+
   write_time_and_cell();
 
   NCERR( ncmpi_end_indep_data(ncid) );
@@ -827,7 +827,7 @@ void DumpNCMPIIO::write_data(int n, double *mybuf)
             for (int j = 0; j < n; j++, iaux+=size_one) {
               int_buffer[j] = mybuf[iaux];
             }
-      
+
             start[2] = idim;
             NCERRX( ncmpi_put_vars_int_all(ncid, perat[i].var, start, count,
                                            stride, int_buffer), perat[i].name );
@@ -861,7 +861,7 @@ void DumpNCMPIIO::write_data(int n, double *mybuf)
             for (int j = 0; j < n; j++, iaux+=size_one) {
                 double_buffer[j] = mybuf[iaux];
             }
-      
+
             start[2] = idim;
             NCERRX( ncmpi_put_vars_double_all(ncid, perat[i].var, start, count,
                                               stride, double_buffer), perat[i].name );
@@ -934,7 +934,7 @@ int DumpNCMPIIO::modify_param(int narg, char **arg)
         strcpy(perframe[i].name, arg[iarg]);
       }
       else {
-    
+
         n = strlen(arg[iarg]);
 
         if (n > 2) {
@@ -947,7 +947,7 @@ int DumpNCMPIIO::modify_param(int narg, char **arg)
                   "compute, fix or variable", arg[iarg]);
           error->all(FLERR,errstr);
         }
-        
+
         if (!strncmp(arg[iarg], "c_", 2)) {
           int idim = -1;
           char *ptr = strchr(suffix, '[');
@@ -984,7 +984,7 @@ int DumpNCMPIIO::modify_param(int narg, char **arg)
             *ptr = '\0';
             idim = ptr[1] - '1';
           }
-      
+
           n = modify->find_fix(suffix);
           if (n < 0)
             error->all(FLERR,"Could not find dump modify fix ID");
@@ -1021,7 +1021,7 @@ int DumpNCMPIIO::modify_param(int narg, char **arg)
         }
 
         delete [] suffix;
-    
+
       }
     }
 

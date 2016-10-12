@@ -231,7 +231,7 @@ FixRX::~FixRX()
      memory->destroy( sparseKinetics_inu );
      memory->destroy( sparseKinetics_isIntegralReaction );
   }
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1720,7 +1720,7 @@ void FixRX::computeLocalTemperature()
 
         // Lucy's Weight Function
         if(wtFlag==LUCY){
-          wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio); 
+          wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
           dpdThetaLocal[i] += wij/dpdTheta[j];
           if (newton_pair || j < nlocal)
             dpdThetaLocal[j] += wij/dpdTheta[i];

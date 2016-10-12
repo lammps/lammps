@@ -1677,16 +1677,10 @@ void FixRX::computeLocalTemperature()
   double wij=0.0;
   double *dpdTheta = atom->dpdTheta;
 
-  // Initialize the local density and local temperature arrays
-  if (newton_pair) {
-    sumWeights = new double[nlocal+nghost];
-    for (ii = 0; ii < nlocal+nghost; ii++)
-      sumWeights[ii] = 0.0;
-  } else {
-    sumWeights = new double[nlocal];
-    for (ii = 0; ii < nlocal; ii++)
-      dpdThetaLocal[ii] = 0.0;
-  }
+  // Initialize the local temperature weight array
+  int sumWeightsCt = nlocal + (newton_pair ? nghost : 0);
+  sumWeights = new double[sumWeightsCt];
+  memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
 
   inum = pairDPDE->list->inum;
   ilist = pairDPDE->list->ilist;

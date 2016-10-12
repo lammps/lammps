@@ -15,9 +15,9 @@
    Contributing authors: Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_wall_gran_region.h"
 #include "region.h"
 #include "atom.h"

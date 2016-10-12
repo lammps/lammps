@@ -34,6 +34,8 @@
 ------------------------------------------------------------------------- */
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <netcdf.h>
 
@@ -48,8 +50,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "stdlib.h"
-#include "string.h"
 #include "update.h"
 #include "universe.h"
 #include "variable.h"

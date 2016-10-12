@@ -35,6 +35,8 @@
 #if defined(LMP_HAS_PNETCDF)
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <pnetcdf.h>
 
@@ -49,8 +51,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "stdlib.h"
-#include "string.h"
 #include "update.h"
 #include "universe.h"
 #include "variable.h"

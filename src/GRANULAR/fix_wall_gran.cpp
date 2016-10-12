@@ -37,7 +37,7 @@ using namespace MathConst;
 
 // XYZ PLANE need to be 0,1,2
 
-enum{XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION}; 
+enum{XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
 enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,BONDED_HISTORY};
 enum{NONE,CONSTANT,EQUAL};
 
@@ -78,21 +78,21 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     kn = force->numeric(FLERR,arg[4]);
     if (strcmp(arg[5],"NULL") == 0) kt = kn * 2.0/7.0;
     else kt = force->numeric(FLERR,arg[5]);
-    
+
     gamman = force->numeric(FLERR,arg[6]);
     if (strcmp(arg[7],"NULL") == 0) gammat = 0.5 * gamman;
     else gammat = force->numeric(FLERR,arg[7]);
-    
+
     xmu = force->numeric(FLERR,arg[8]);
     int dampflag = force->inumeric(FLERR,arg[9]);
     if (dampflag == 0) gammat = 0.0;
-    
+
     if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
         xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
       error->all(FLERR,"Illegal fix wall/gran command");
-    
+
     // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
-    
+
     if (pairstyle == HERTZ_HISTORY) {
       kn /= force->nktv2p;
       kt /= force->nktv2p;
@@ -119,7 +119,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // wallstyle args
-  
+
   idregion = NULL;
 
   if (strcmp(arg[iarg],"xplane") == 0) {
@@ -160,12 +160,12 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     strcpy(idregion,arg[iarg+1]);
     iarg += 2;
   }
-  
+
   // optional args
 
   wiggle = 0;
   wshear = 0;
-    
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix wall/gran command");
@@ -188,7 +188,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
-  
+
   if (wallstyle == XPLANE && domain->xperiodic)
     error->all(FLERR,"Cannot use wall in periodic dimension");
   if (wallstyle == YPLANE && domain->yperiodic)
@@ -197,7 +197,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot use wall in periodic dimension");
   if (wallstyle == ZCYLINDER && (domain->xperiodic || domain->yperiodic))
     error->all(FLERR,"Cannot use wall in periodic dimension");
-  
+
   if (wiggle && wshear)
     error->all(FLERR,"Cannot wiggle and shear fix wall/gran");
   if (wiggle && wallstyle == ZCYLINDER && axis != 2)
@@ -212,15 +212,15 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Cannot wiggle or shear with fix wall/gran/region");
 
   // setup oscillations
-  
+
   if (wiggle) omega = 2.0*MY_PI / period;
-    
+
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
   if (pairstyle == BONDED_HISTORY) sheardim = 7;
   else sheardim = 3;
-  
+
   shearone = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
@@ -348,7 +348,7 @@ void FixWallGran::post_force(int vflag)
     }
     vwall[axis] = amplitude*omega*sin(arg);
   } else if (wshear) vwall[axis] = vshear;
-  
+
   // loop over all my atoms
   // rsq = distance from wall
   // dx,dy,dz = signed distance from wall
@@ -358,7 +358,7 @@ void FixWallGran::post_force(int vflag)
   // compute force and torque on atom if close enough to wall
   //   via wall potential matched to pair potential
   // set shear if pair potential stores history
-  
+
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -368,14 +368,14 @@ void FixWallGran::post_force(int vflag)
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   rwall = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      
+
       dx = dy = dz = 0.0;
-      
+
       if (wallstyle == XPLANE) {
         del1 = x[i][0] - wlo;
         del2 = whi - x[i][0];
@@ -409,12 +409,12 @@ void FixWallGran::post_force(int vflag)
           }
         }
       }
-      
+
       rsq = dx*dx + dy*dy + dz*dz;
-      
+
       if (rsq > radius[i]*radius[i]) {
         if (history)
-          for (j = 0; j < sheardim; j++) 
+          for (j = 0; j < sheardim; j++)
             shearone[i][j] = 0.0;
 
       } else {
@@ -467,66 +467,66 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
   rsqinv = 1.0/rsq;
 
   // relative translational velocity
-  
+
   vr1 = v[0] - vwall[0];
   vr2 = v[1] - vwall[1];
   vr3 = v[2] - vwall[2];
-  
+
   // normal component
-  
+
   vnnr = vr1*dx + vr2*dy + vr3*dz;
   vn1 = dx*vnnr * rsqinv;
   vn2 = dy*vnnr * rsqinv;
   vn3 = dz*vnnr * rsqinv;
-  
+
   // tangential component
-  
+
   vt1 = vr1 - vn1;
   vt2 = vr2 - vn2;
   vt3 = vr3 - vn3;
-  
+
   // relative rotational velocity
-  
+
   wr1 = radius*omega[0] * rinv;
   wr2 = radius*omega[1] * rinv;
   wr3 = radius*omega[2] * rinv;
-  
+
   // normal forces = Hookian contact + normal velocity damping
-  
+
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  
+
   // relative velocities
-  
+
   vtr1 = vt1 - (dz*wr2-dy*wr3);
   vtr2 = vt2 - (dx*wr3-dz*wr1);
   vtr3 = vt3 - (dy*wr1-dx*wr2);
   vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
   vrel = sqrt(vrel);
-  
+
   // force normalization
-  
+
   fn = xmu * fabs(ccel*r);
   fs = meff*gammat*vrel;
   if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
   else ft = 0.0;
-  
+
   // tangential force due to tangential velocity damping
-  
+
   fs1 = -ft*vtr1;
   fs2 = -ft*vtr2;
   fs3 = -ft*vtr3;
-  
+
   // forces & torques
-  
+
   fx = dx*ccel + fs1;
   fy = dy*ccel + fs2;
   fz = dz*ccel + fs3;
-  
+
   f[0] += fx;
   f[1] += fy;
   f[2] += fz;
-  
+
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -546,60 +546,60 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
   double wr1,wr2,wr3,damp,ccel,vtr1,vtr2,vtr3,vrel;
   double fn,fs,fs1,fs2,fs3,fx,fy,fz,tor1,tor2,tor3;
   double shrmag,rsht,rinv,rsqinv;
-  
+
   r = sqrt(rsq);
   rinv = 1.0/r;
   rsqinv = 1.0/rsq;
-  
+
   // relative translational velocity
-  
+
   vr1 = v[0] - vwall[0];
   vr2 = v[1] - vwall[1];
   vr3 = v[2] - vwall[2];
-  
+
   // normal component
-  
+
   vnnr = vr1*dx + vr2*dy + vr3*dz;
   vn1 = dx*vnnr * rsqinv;
   vn2 = dy*vnnr * rsqinv;
   vn3 = dz*vnnr * rsqinv;
-  
+
   // tangential component
-  
+
   vt1 = vr1 - vn1;
   vt2 = vr2 - vn2;
   vt3 = vr3 - vn3;
-  
+
   // relative rotational velocity
-  
+
   wr1 = radius*omega[0] * rinv;
   wr2 = radius*omega[1] * rinv;
   wr3 = radius*omega[2] * rinv;
-  
+
   // normal forces = Hookian contact + normal velocity damping
-  
+
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  
+
   // relative velocities
-  
+
   vtr1 = vt1 - (dz*wr2-dy*wr3);
   vtr2 = vt2 - (dx*wr3-dz*wr1);
   vtr3 = vt3 - (dy*wr1-dx*wr2);
   vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
   vrel = sqrt(vrel);
-  
+
   // shear history effects
-  
+
   if (shearupdate) {
     shear[0] += vtr1*dt;
     shear[1] += vtr2*dt;
     shear[2] += vtr3*dt;
   }
   shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + shear[2]*shear[2]);
-  
+
   // rotate shear displacements
-  
+
   rsht = shear[0]*dx + shear[1]*dy + shear[2]*dz;
   rsht = rsht*rsqinv;
   if (shearupdate) {
@@ -607,18 +607,18 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
     shear[1] -= rsht*dy;
     shear[2] -= rsht*dz;
   }
-  
+
   // tangential forces = shear + tangential velocity damping
-  
+
   fs1 = - (kt*shear[0] + meff*gammat*vtr1);
   fs2 = - (kt*shear[1] + meff*gammat*vtr2);
   fs3 = - (kt*shear[2] + meff*gammat*vtr3);
-  
+
   // rescale frictional displacements and forces if needed
-  
+
   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
   fn = xmu * fabs(ccel*r);
-  
+
   if (fs > fn) {
     if (shrmag != 0.0) {
       shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
@@ -632,17 +632,17 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
       fs3 *= fn/fs;
     } else fs1 = fs2 = fs3 = 0.0;
   }
-  
+
   // forces & torques
-  
+
   fx = dx*ccel + fs1;
   fy = dy*ccel + fs2;
   fz = dz*ccel + fs3;
-  
+
   f[0] += fx;
   f[1] += fy;
   f[2] += fz;
-  
+
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -662,56 +662,56 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   double wr1,wr2,wr3,damp,ccel,vtr1,vtr2,vtr3,vrel;
   double fn,fs,fs1,fs2,fs3,fx,fy,fz,tor1,tor2,tor3;
   double shrmag,rsht,polyhertz,rinv,rsqinv;
-  
+
   r = sqrt(rsq);
   rinv = 1.0/r;
   rsqinv = 1.0/rsq;
-  
+
   // relative translational velocity
-  
+
   vr1 = v[0] - vwall[0];
   vr2 = v[1] - vwall[1];
   vr3 = v[2] - vwall[2];
-  
+
   // normal component
-  
+
   vnnr = vr1*dx + vr2*dy + vr3*dz;
   vn1 = dx*vnnr / rsq;
   vn2 = dy*vnnr / rsq;
   vn3 = dz*vnnr / rsq;
-  
+
   // tangential component
-  
+
   vt1 = vr1 - vn1;
   vt2 = vr2 - vn2;
   vt3 = vr3 - vn3;
-  
+
   // relative rotational velocity
-  
+
   wr1 = radius*omega[0] * rinv;
   wr2 = radius*omega[1] * rinv;
   wr3 = radius*omega[2] * rinv;
-  
+
   // normal forces = Hertzian contact + normal velocity damping
   // rwall = 0 is flat wall case
   // rwall positive or negative is curved wall
-  //   will break (as it should) if rwall is negative and 
+  //   will break (as it should) if rwall is negative and
   //   its absolute value < radius of particle
-  
+
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
   if (rwall == 0.0) polyhertz = sqrt((radius-r)*radius);
   else polyhertz = sqrt((radius-r)*radius*rwall/(rwall+radius));
   ccel *= polyhertz;
-  
+
   // relative velocities
-  
+
   vtr1 = vt1 - (dz*wr2-dy*wr3);
   vtr2 = vt2 - (dx*wr3-dz*wr1);
   vtr3 = vt3 - (dy*wr1-dx*wr2);
   vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
   vrel = sqrt(vrel);
-  
+
   // shear history effects
 
   if (shearupdate) {
@@ -720,9 +720,9 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
     shear[2] += vtr3*dt;
   }
   shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] + shear[2]*shear[2]);
-  
+
   // rotate shear displacements
-  
+
   rsht = shear[0]*dx + shear[1]*dy + shear[2]*dz;
   rsht = rsht*rsqinv;
   if (shearupdate) {
@@ -730,18 +730,18 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
     shear[1] -= rsht*dy;
     shear[2] -= rsht*dz;
   }
-  
+
   // tangential forces = shear + tangential velocity damping
-  
+
   fs1 = -polyhertz * (kt*shear[0] + meff*gammat*vtr1);
   fs2 = -polyhertz * (kt*shear[1] + meff*gammat*vtr2);
   fs3 = -polyhertz * (kt*shear[2] + meff*gammat*vtr3);
-  
+
   // rescale frictional displacements and forces if needed
-  
+
   fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
   fn = xmu * fabs(ccel*r);
-  
+
   if (fs > fn) {
     if (shrmag != 0.0) {
       shear[0] = (fn/fs) * (shear[0] + meff*gammat*vtr1/kt) -
@@ -757,7 +757,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   }
 
   // forces & torques
-  
+
   fx = dx*ccel + fs1;
   fy = dy*ccel + fs2;
   fz = dz*ccel + fs3;
@@ -765,7 +765,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   f[0] += fx;
   f[1] += fy;
   f[2] += fz;
-  
+
   tor1 = rinv * (dy*fs3 - dz*fs2);
   tor2 = rinv * (dz*fs1 - dx*fs3);
   tor3 = rinv * (dx*fs2 - dy*fs1);
@@ -864,8 +864,8 @@ void FixWallGran::bonded_history(double rsq, double dx, double dy, double dz,
 
   // use Tsuji et al form
 
-  polyhertz = 1.2728- 4.2783*0.9 + 11.087*0.9*0.9 - 22.348*0.9*0.9*0.9 + 
-    27.467*0.9*0.9*0.9*0.9 - 18.022*0.9*0.9*0.9*0.9*0.9 + 
+  polyhertz = 1.2728- 4.2783*0.9 + 11.087*0.9*0.9 - 22.348*0.9*0.9*0.9 +
+    27.467*0.9*0.9*0.9*0.9 - 18.022*0.9*0.9*0.9*0.9*0.9 +
     4.8218*0.9*0.9*0.9*0.9*0.9*0.9;
 
   gammatsuji = 0.2*sqrt(meff*kn);
@@ -969,7 +969,7 @@ void FixWallGran::bonded_history(double rsq, double dx, double dy, double dz,
   shear[6] += magtwist*dt;
 
   ktwist = 0.5*kt*(a0*aovera0)*(a0*aovera0);
-  magtortwist = -ktwist*shear[6] - 
+  magtortwist = -ktwist*shear[6] -
     0.5*polyhertz*gammatsuji*(a0*aovera0)*(a0*aovera0)*magtwist;
 
   twistcrit=TWOTHIRDS*a0*aovera0*Fcrit;
@@ -1113,11 +1113,11 @@ void FixWallGran::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
-  
+
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;
-  
+
   for (int i = 0; i < sheardim; i++)
     shearone[nlocal][i] = extra[nlocal][m++];
 }

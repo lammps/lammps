@@ -819,7 +819,8 @@ void ImproperClass2::angleangle(int eflag, int vflag)
     if (evflag)
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,
                fabcd[0],fabcd[2],fabcd[3],
-               delxAB,delyAB,delzAB,delxBC,delyBC,delzBC,delxBD,delyBD,delzBD);
+               delxAB,delyAB,delzAB,delxBC,delyBC,delzBC,
+               delxBD-delxBC,delyBD-delyBC,delzBD-delzBC);
   }
 }
 

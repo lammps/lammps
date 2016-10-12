@@ -40,8 +40,6 @@ class FixShardlow : public Fix {
   void copy_arrays(int, int, int);
   void set_arrays(int);
 
-  void reset_dt();
-
   int pack_border(int, int *, double *);
   int unpack_border(int, int, double *);
   int unpack_exchange(int, double *);

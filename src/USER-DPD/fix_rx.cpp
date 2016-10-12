@@ -642,15 +642,9 @@ void FixRX::setup_pre_force(int vflag)
   int ii;
 
   if(localTempFlag){
-    if (newton_pair) {
-      dpdThetaLocal = new double[nlocal+nghost];
-      for (ii = 0; ii < nlocal+nghost; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    } else {
-      dpdThetaLocal = new double[nlocal];
-      for (ii = 0; ii < nlocal; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    }
+    int count = nlocal + (newton_pair ? nghost : 0);
+    dpdThetaLocal = new double[count];
+    memset(dpdThetaLocal, 0, sizeof(double)*count);
     computeLocalTemperature();
   }
 
@@ -690,15 +684,9 @@ void FixRX::pre_force(int vflag)
   double theta;
 
   if(localTempFlag){
-    if (newton_pair) {
-      dpdThetaLocal = new double[nlocal+nghost];
-      for (ii = 0; ii < nlocal+nghost; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    } else {
-      dpdThetaLocal = new double[nlocal];
-      for (ii = 0; ii < nlocal; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    }
+    int count = nlocal + (newton_pair ? nghost : 0);
+    dpdThetaLocal = new double[count];
+    memset(dpdThetaLocal, 0, sizeof(double)*count);
     computeLocalTemperature();
   }
 

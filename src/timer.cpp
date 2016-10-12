@@ -98,6 +98,7 @@ Timer::Timer(LAMMPS *lmp) : Pointers(lmp)
   _timeout = -1.0;
   _checkfreq = 10;
   _nextcheck = -1;
+  _laststep = -1;
   this->_stamp(RESET);
 }
 
@@ -215,6 +216,7 @@ void Timer::set_wall(enum ttype which, double newtime)
 
 void Timer::init_timeout()
 {
+  _laststep = -1;
   if (_timeout < 0)
     _nextcheck = -1;
   else
@@ -243,6 +245,14 @@ void Timer::print_timeout(FILE *fp)
     fprintf(fp,"  Walltime left : %d:%02d:%02d.%02d\n",
             hours,minutes,seconds,hs);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Timer::force_timeout()
+{
+  _timeout = 0.0;
+  _nextcheck = _laststep + 1;
 }
 
 /* ---------------------------------------------------------------------- */

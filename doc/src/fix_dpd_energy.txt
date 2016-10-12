@@ -27,9 +27,9 @@ the group at each timestep.  It must be used in conjunction with a
 deterministic integrator (e.g. "fix nve"_fix_nve.html) that updates
 the particle positions and velocities.
 
-For fix {dpd/energy}, the particle internal temperature is related to 
-the particle internal energy through a mesoparticle equation of state.  
-An additional fix must be specified that defines the equation of state 
+For fix {dpd/energy}, the particle internal temperature is related to
+the particle internal energy through a mesoparticle equation of state.
+An additional fix must be specified that defines the equation of state
 for each particle, e.g. "fix eos/cv"_fix_eos_cv.html.
 
 This fix must be used with the "pair_style
@@ -37,7 +37,7 @@ dpd/fdt/energy"_pair_style.html command.
 
 Note that numerous variants of DPD can be specified by choosing an
 appropriate combination of the integrator and "pair_style
-dpd/fdt/energy"_pair_style.html command.  DPD under isoenergetic conditions 
+dpd/fdt/energy"_pair_style.html command.  DPD under isoenergetic conditions
 can be specified by using fix {dpd/energy}, fix {nve} and pair_style
 {dpd/fdt/energy}.  DPD under isoenthalpic conditions can
 be specified by using fix {dpd/energy}, fix {nph} and pair_style
@@ -46,7 +46,7 @@ examples/USER/dpd directory.
 
 :line
 
-[Restrictions:] 
+[Restrictions:]
 
 This command is part of the USER-DPD package.  It is only enabled if
 LAMMPS was built with that package.  See the "Making
@@ -55,11 +55,11 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 This fix must be used with an additional fix that specifies time
 integration, e.g. "fix nve"_fix_nve.html.
 
-The fix {dpd/energy} requires the {dpd} "atom_style"_atom_style.html 
-to be used in order to properly account for the particle internal 
+The fix {dpd/energy} requires the {dpd} "atom_style"_atom_style.html
+to be used in order to properly account for the particle internal
 energies and temperature.
 
-The fix {dpd/energy} must be used with an additional fix that specifies the 
+The fix {dpd/energy} must be used with an additional fix that specifies the
 mesoparticle equation of state for each particle.
 
 [Related commands:]

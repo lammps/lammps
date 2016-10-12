@@ -84,7 +84,7 @@ is up to you to ensure that the region location with respect to
 periodic or non-periodic boundaries is specified appropriately via the
 "region"_region.html and "boundary"_boundary.html commands when using
 a region as a wall that bounds particle motion.
- 
+
 NOTE: For primitive regions with sharp corners and/or edges (e.g. a
 block or cylinder), wall/particle forces are computed accurately for
 both interior and exterior regions.  For {union} and {intersect}
@@ -190,7 +190,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "fix_move"_fix_move.html,
-"fix wall/gran"_fix_wall_gran.html, 
+"fix wall/gran"_fix_wall_gran.html,
 "fix wall/region"_fix_wall_region.html,
 "pair_style granular"_pair_gran.html,
 "region"_region.html

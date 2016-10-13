@@ -54,8 +54,6 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   dynamic_group_allow = 1;
 
-/* ---------------------------------------------------------------------- */
-
   if (strcmp(arg[3],"NULL") == 0) xflag = 0;
   else if (strcmp(arg[3],"INIT") == 0) xinitflag = 1;
   else xcom = force->numeric(FLERR,arg[3]);

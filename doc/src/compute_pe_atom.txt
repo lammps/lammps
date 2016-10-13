@@ -72,9 +72,10 @@ compute        peratom all pe/atom
 compute        pe all reduce sum c_peratom
 thermo_style   custom step temp etotal press pe c_pe :pre
 
-NOTE: The per-atom energy does not any Lennard-Jones tail corrections
-invoked by the "pair_modify tail yes"_pair_modify.html command, since
-those are global contributions to the system energy.
+NOTE: The per-atom energy does not include any Lennard-Jones tail
+corrections to the energy added by the "pair_modify tail
+yes"_pair_modify.html command, since those are contributions to the
+global system energy.
 
 [Output info:]
 

@@ -231,7 +231,7 @@ FixRX::~FixRX()
      memory->destroy( sparseKinetics_inu );
      memory->destroy( sparseKinetics_isIntegralReaction );
   }
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -642,15 +642,9 @@ void FixRX::setup_pre_force(int vflag)
   int ii;
 
   if(localTempFlag){
-    if (newton_pair) {
-      dpdThetaLocal = new double[nlocal+nghost];
-      for (ii = 0; ii < nlocal+nghost; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    } else {
-      dpdThetaLocal = new double[nlocal];
-      for (ii = 0; ii < nlocal; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    }
+    int count = nlocal + (newton_pair ? nghost : 0);
+    dpdThetaLocal = new double[count];
+    memset(dpdThetaLocal, 0, sizeof(double)*count);
     computeLocalTemperature();
   }
 
@@ -690,15 +684,9 @@ void FixRX::pre_force(int vflag)
   double theta;
 
   if(localTempFlag){
-    if (newton_pair) {
-      dpdThetaLocal = new double[nlocal+nghost];
-      for (ii = 0; ii < nlocal+nghost; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    } else {
-      dpdThetaLocal = new double[nlocal];
-      for (ii = 0; ii < nlocal; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    }
+    int count = nlocal + (newton_pair ? nghost : 0);
+    dpdThetaLocal = new double[count];
+    memset(dpdThetaLocal, 0, sizeof(double)*count);
     computeLocalTemperature();
   }
 
@@ -1677,16 +1665,10 @@ void FixRX::computeLocalTemperature()
   double wij=0.0;
   double *dpdTheta = atom->dpdTheta;
 
-  // Initialize the local density and local temperature arrays
-  if (newton_pair) {
-    sumWeights = new double[nlocal+nghost];
-    for (ii = 0; ii < nlocal+nghost; ii++)
-      sumWeights[ii] = 0.0;
-  } else {
-    sumWeights = new double[nlocal];
-    for (ii = 0; ii < nlocal; ii++)
-      dpdThetaLocal[ii] = 0.0;
-  }
+  // Initialize the local temperature weight array
+  int sumWeightsCt = nlocal + (newton_pair ? nghost : 0);
+  sumWeights = new double[sumWeightsCt];
+  memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
 
   inum = pairDPDE->list->inum;
   ilist = pairDPDE->list->ilist;
@@ -1720,7 +1702,7 @@ void FixRX::computeLocalTemperature()
 
         // Lucy's Weight Function
         if(wtFlag==LUCY){
-          wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio); 
+          wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
           dpdThetaLocal[i] += wij/dpdTheta[j];
           if (newton_pair || j < nlocal)
             dpdThetaLocal[j] += wij/dpdTheta[i];

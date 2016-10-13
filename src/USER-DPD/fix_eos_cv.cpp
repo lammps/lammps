@@ -36,6 +36,9 @@ FixEOScv::FixEOScv(LAMMPS *lmp, int narg, char **arg) :
 
   restart_peratom = 1;
   nevery = 1;
+
+  if (atom->dpd_flag != 1)
+    error->all(FLERR,"FixEOScv requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 
 /* ---------------------------------------------------------------------- */

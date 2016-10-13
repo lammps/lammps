@@ -32,6 +32,7 @@ Fixes :h1
    fix_drag
    fix_drude
    fix_drude_transform
+   fix_dpd_energy
    fix_dt_reset
    fix_efield
    fix_ehex
@@ -148,6 +149,7 @@ Fixes :h1
    fix_viscous
    fix_wall
    fix_wall_gran
+   fix_wall_gran_region
    fix_wall_piston
    fix_wall_reflect
    fix_wall_region

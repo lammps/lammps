@@ -133,6 +133,11 @@ compute        p all reduce sum c_peratom\[1\] c_peratom\[2\] c_peratom\[3\]
 variable       press equal -(c_p\[1\]+c_p\[2\]+c_p\[3\])/(3*vol)
 thermo_style   custom step temp etotal press v_press :pre
 
+NOTE: The per-atom stress does not include any Lennard-Jones tail
+corrections to the pressure added by the "pair_modify tail
+yes"_pair_modify.html command, since those are contributions to the
+global system pressure.
+
 [Output info:]
 
 This compute calculates a per-atom array with 6 columns, which can be

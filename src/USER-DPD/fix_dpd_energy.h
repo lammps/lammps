@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -11,37 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef REGION_CLASS
+#ifdef FIX_CLASS
 
-RegionStyle(intersect,RegIntersect)
+FixStyle(dpd/energy,FixDPDenergy)
 
 #else
 
-#ifndef LMP_REGION_INTERSECT_H
-#define LMP_REGION_INTERSECT_H
+#ifndef LMP_FIX_DPDE_H
+#define LMP_FIX_DPDE_H
 
-#include "region.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class RegIntersect : public Region {
+class FixDPDenergy : public Fix {
  public:
-  RegIntersect(class LAMMPS *, int, char **);
-  ~RegIntersect();
-  void init();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
-  void shape_update();
-  void pretransform();
-  void set_velocity();
-  void length_restart_string(int&);
-  void write_restart(FILE *);
-  int restart(char *, int&);
-  void reset_vel();
+  FixDPDenergy(class LAMMPS *, int, char **);
+  virtual ~FixDPDenergy() {}
+  int setmask();
+  virtual void initial_integrate(int);
+  virtual void final_integrate();
 
- private:
-  char **idsub;
+ protected:
+  double dtv,dtf;
+  int mass_require;
+  int eos;
+
+  class PairDPDfdtEnergy *pairDPDE;
 };
 
 }
@@ -56,14 +52,5 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Region intersect region ID does not exist
-
-Self-explanatory.
-
-E: Region union region ID does not exist
-
-One or more of the region IDs specified by the region union command
-does not exist.
 
 */

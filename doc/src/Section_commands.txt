@@ -282,78 +282,135 @@ the "minimize"_minimize.html command.  A parallel tempering
 3.4 Commands listed by category :link(cmd_4),h4
 
 This section lists all LAMMPS commands, grouped by category.  The
-"next section"_#cmd_5 lists the same commands alphabetically.  Note
-that some style options for some commands are part of specific LAMMPS
-packages, which means they cannot be used unless the package was
-included when LAMMPS was built.  Not all packages are included in a
-default LAMMPS build.  These dependencies are listed as Restrictions
-in the command's documentation.
+"next section"_#cmd_5 lists the same commands alphabetically.  The
+next section also includes (long) lists of style options for entries
+that appear in the following categories as a single command (fix,
+compute, pair, etc).  Commands that are added by user packages are not
+included in these categories, but they are in the next section.
 
 Initialization:
 
-"atom_modify"_atom_modify.html, "atom_style"_atom_style.html,
-"boundary"_boundary.html, "dimension"_dimension.html,
-"newton"_newton.html, "processors"_processors.html, "units"_units.html
+"newton"_newton.html,
+"package"_package.html,
+"processors"_processors.html,
+"suffix"_suffix.html,
+"units"_units.html
 
-Atom definition:
+Setup simulation box:
 
-"create_atoms"_create_atoms.html, "create_box"_create_box.html,
-"lattice"_lattice.html, "read_data"_read_data.html,
-"read_dump"_read_dump.html, "read_restart"_read_restart.html,
-"region"_region.html, "replicate"_replicate.html
+"boundary"_boundary.html,
+"box"_box.html,
+"change_box"_change_box.html,
+"create_box"_create_box.html,
+"dimension"_dimension.html,
+"lattice"_lattice.html,
+"region"_region.html
+
+Setup atoms:
+
+"atom_modify"_atom_modify.html,
+"atom_style"_atom_style.html,
+"balance"_balance.html,
+"create_atoms"_create_atoms.html,
+"create_bonds"_create_bonds.html,
+"delete_atoms"_delete_atoms.html,
+"delete_bonds"_delete_bonds.html,
+"displace_atoms"_displace_atoms.html,
+"group"_group.html,
+"mass"_mass.html,
+"molecule"_molecule.html,
+"read_data"_read_data.html,
+"read_dump"_read_dump.html,
+"read_restart"_read_restart.html,
+"replicate"_replicate.html,
+"set"_set.html,
+"velocity"_velocity.html
 
 Force fields:
 
-"angle_coeff"_angle_coeff.html, "angle_style"_angle_style.html,
-"bond_coeff"_bond_coeff.html, "bond_style"_bond_style.html,
-"dielectric"_dielectric.html, "dihedral_coeff"_dihedral_coeff.html,
+"angle_coeff"_angle_coeff.html,
+"angle_style"_angle_style.html,
+"bond_coeff"_bond_coeff.html,
+"bond_style"_bond_style.html,
+"bond_write"_bond_write.html,
+"dielectric"_dielectric.html,
+"dihedral_coeff"_dihedral_coeff.html,
 "dihedral_style"_dihedral_style.html,
 "improper_coeff"_improper_coeff.html,
 "improper_style"_improper_style.html,
-"kspace_modify"_kspace_modify.html, "kspace_style"_kspace_style.html,
-"pair_coeff"_pair_coeff.html, "pair_modify"_pair_modify.html,
-"pair_style"_pair_style.html, "pair_write"_pair_write.html,
+"kspace_modify"_kspace_modify.html,
+"kspace_style"_kspace_style.html,
+"pair_coeff"_pair_coeff.html,
+"pair_modify"_pair_modify.html,
+"pair_style"_pair_style.html,
+"pair_write"_pair_write.html,
 "special_bonds"_special_bonds.html
 
 Settings:
 
-"comm_style"_comm_style.html, "group"_group.html, "mass"_mass.html,
-"min_modify"_min_modify.html, "min_style"_min_style.html,
-"neigh_modify"_neigh_modify.html, "neighbor"_neighbor.html,
-"reset_timestep"_reset_timestep.html, "run_style"_run_style.html,
-"set"_set.html, "timestep"_timestep.html, "velocity"_velocity.html
+"comm_modify"_comm_modify.html,
+"comm_style"_comm_style.html,
+"info"_info.html,
+"min_modify"_min_modify.html,
+"min_style"_min_style.html,
+"neigh_modify"_neigh_modify.html,
+"neighbor"_neighbor.html,
+"partition"_partition.html,
+"reset_timestep"_reset_timestep.html,
+"run_style"_run_style.html,
+"timer"_timer.html,
+"timestep"_timestep.html
 
-Fixes:
+Operations within timestepping (fixes) and diagnositics (computes):
 
-"fix"_fix.html, "fix_modify"_fix_modify.html, "unfix"_unfix.html
-
-Computes:
-
-"compute"_compute.html, "compute_modify"_compute_modify.html,
-"uncompute"_uncompute.html
+"compute"_compute.html,
+"compute_modify"_compute_modify.html,
+"fix"_fix.html,
+"fix_modify"_fix_modify.html,
+"uncompute"_uncompute.html,
+"unfix"_unfix.html
 
 Output:
 
-"dump"_dump.html, "dump image"_dump_image.html,
-"dump_modify"_dump_modify.html, "dump movie"_dump_image.html,
-"restart"_restart.html, "thermo"_thermo.html,
-"thermo_modify"_thermo_modify.html, "thermo_style"_thermo_style.html,
-"undump"_undump.html, "write_data"_write_data.html,
-"write_dump"_write_dump.html, "write_restart"_write_restart.html
+"dump image"_dump_image.html,
+"dump movie"_dump_image.html,
+"dump"_dump.html,
+"dump_modify"_dump_modify.html,
+"restart"_restart.html,
+"thermo"_thermo.html,
+"thermo_modify"_thermo_modify.html,
+"thermo_style"_thermo_style.html,
+"undump"_undump.html,
+"write_coeff"_write_coeff.html,
+"write_data"_write_data.html,
+"write_dump"_write_dump.html,
+"write_restart"_write_restart.html
 
 Actions:
 
-"delete_atoms"_delete_atoms.html, "delete_bonds"_delete_bonds.html,
-"displace_atoms"_displace_atoms.html, "change_box"_change_box.html,
-"minimize"_minimize.html, "neb"_neb.html "prd"_prd.html,
-"rerun"_rerun.html, "run"_run.html, "temper"_temper.html
+"minimize"_minimize.html,
+"neb"_neb.html,
+"prd"_prd.html,
+"rerun"_rerun.html,
+"run"_run.html,
+"tad"_tad.html,
+"temper"_temper.html
 
-Miscellaneous:
+Input script control:
 
-"clear"_clear.html, "echo"_echo.html, "if"_if.html,
-"include"_include.html, "jump"_jump.html, "label"_label.html,
-"log"_log.html, "next"_next.html, "print"_print.html,
-"shell"_shell.html, "variable"_variable.html
+"clear"_clear.html,
+"echo"_echo.html,
+"if"_if.html,
+"include"_include.html,
+"jump"_jump.html,
+"label"_label.html,
+"log"_log.html,
+"next"_next.html,
+"print"_print.html,
+"python"_python.html,
+"quit"_quit.html,
+"shell"_shell.html,
+"variable"_variable.html
 
 :line
 
@@ -618,6 +675,7 @@ package"_Section_start.html#start_3.
 "atc"_fix_atc.html,
 "ave/correlate/long"_fix_ave_correlate_long.html,
 "colvars"_fix_colvars.html,
+"dpd/energy"_fix_dpd_energy.html,
 "drude"_fix_drude.html,
 "drude/transform/direct"_fix_drude_transform.html,
 "drude/transform/reverse"_fix_drude_transform.html,
@@ -923,6 +981,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "tip4p/long (o)"_pair_coul.html,
 "tri/lj"_pair_tri_lj.html,
 "vashishta (o)"_pair_vashishta.html,
+"vashishta/table (o)"_pair_vashishta.html,
 "yukawa (go)"_pair_yukawa.html,
 "yukawa/colloid (go)"_pair_yukawa_colloid.html,
 "zbl (go)"_pair_zbl.html :tb(c=4,ea=c)

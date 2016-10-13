@@ -91,11 +91,8 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   // for near contacts and touching contacts
 
   cmax = 0;
-  size_restart = 0;
-  for (int ilist = 0; ilist < nregion; ilist++){
+  for (int ilist = 0; ilist < nregion; ilist++)
     cmax += regions[list[ilist]]->cmax;
-    size_restart += regions[list[ilist]]->size_restart;
-  }
   contact = new Contact[cmax];
 
   tmax = 0;
@@ -274,6 +271,7 @@ void RegIntersect::pretransform()
     regions[list[ilist]]->pretransform();
 }
 
+
 /* ----------------------------------------------------------------------
    get translational/angular velocities of all subregions
 ------------------------------------------------------------------------- */
@@ -286,14 +284,36 @@ void RegIntersect::set_velocity()
 }
 
 /* ----------------------------------------------------------------------
+   increment length of restart buffer based on region info
+   used by restart of fix/wall/gran/region
+------------------------------------------------------------------------- */
+
+void RegIntersect::length_restart_string(int& n)
+{
+  n += sizeof(int) + strlen(id)+1 + 
+    sizeof(int) + strlen(style)+1 + sizeof(int);
+  for (int ilist = 0; ilist < nregion; ilist++)
+    domain->regions[list[ilist]]->length_restart_string(n);
+
+}
+/* ----------------------------------------------------------------------
    region writes its current position/angle
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
 void RegIntersect::write_restart(FILE *fp)
 {
-  for (int ilist = 0; ilist < nregion; ilist++)
+  int sizeid = (strlen(id)+1);
+  int sizestyle = (strlen(style)+1);
+  fwrite(&sizeid, sizeof(int), 1, fp);
+  fwrite(id, 1, sizeid, fp);
+  fwrite(&sizestyle, sizeof(int), 1, fp);
+  fwrite(style, 1, sizestyle, fp);  
+  fwrite(&nregion,sizeof(int),1,fp);
+
+  for (int ilist = 0; ilist < nregion; ilist++){
     domain->regions[list[ilist]]->write_restart(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -301,11 +321,33 @@ void RegIntersect::write_restart(FILE *fp)
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
-int RegIntersect::restart(char *buf, int n)
+int RegIntersect::restart(char *buf, int& n)
 {
-  for (int ilist = 0; ilist < nregion; ilist++)
-    n = domain->regions[list[ilist]]->restart(buf, n);
-  return n;
+  int sizeid = buf[n];
+  n += sizeof(int);
+  char *restart_id = new char[sizeid];
+  for (int i = 0; i < sizeid; i++)
+    restart_id[i] = buf[n++];    
+  if (strcmp(restart_id,id) != 0) return 0;
+
+  int sizestyle = buf[n];
+  n += sizeof(int);
+
+  char *restart_style = new char[sizestyle];
+  for (int i = 0; i < sizestyle; i++)
+    restart_style[i] = buf[n++];  
+  if (strcmp(restart_style,style) != 0) return 0;    
+
+  int restart_nreg = buf[n];
+  n += sizeof(int);
+  if (restart_nreg != nregion) return 0;
+
+  for (int ilist = 0; ilist < nregion; ilist++){
+    if (!domain->regions[list[ilist]]->restart(buf, n)){
+      return 0;
+    }
+  }
+  return 1; 
 }
 
 /* ----------------------------------------------------------------------

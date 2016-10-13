@@ -64,7 +64,7 @@ class Timer : protected Pointers {
   void init_timeout();
 
   // trigger enforced timeout
-  void force_timeout() { _timeout = 0.0; };
+  void force_timeout();
 
   // get remaining time in seconds. 0.0 if inactive, negative if expired
   double get_timeout_remain();
@@ -75,6 +75,7 @@ class Timer : protected Pointers {
   // check for timeout. inline wrapper around internal
   // function to reduce overhead in case there is no check.
   bool check_timeout(int step) {
+    _laststep = step;
     if (_nextcheck != step) return false;
     else return _check_timeout();
   }
@@ -91,7 +92,8 @@ class Timer : protected Pointers {
   int _sync;      // if nonzero, synchronize tasks before setting the timer
   int _timeout;   // max allowed wall time in seconds. infinity if negative
   int _checkfreq; // frequency of timeout checking
-  int _nextcheck; // timestep number of next timeout check
+  int _nextcheck; // loop number of next timeout check
+  int _laststep;  // loop number of last iteration
 
   // update one specific timer array
   void _stamp(enum ttype);

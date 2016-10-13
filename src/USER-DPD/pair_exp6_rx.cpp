@@ -451,7 +451,7 @@ void PairExp6rx::compute(int eflag, int vflag)
           //
           // Apply Mixing Rule to get the overall force for the CG pair
           //
-          if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12; 
+          if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12;
           else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairOldEXP6_21;
 
           f[i][0] += delx*fpair;
@@ -588,7 +588,7 @@ void PairExp6rx::coeff(int narg, char **arg)
 
   {
     // Set isite1 and isite2 parameters based on site1 and site2 strings.
-    
+
     if (strcmp(site1,"1fluid") == 0)
       isite1 = oneFluidApproxParameter;
     else
@@ -602,7 +602,7 @@ void PairExp6rx::coeff(int narg, char **arg)
         else
           isite1 = isp;
       }
-    
+
     if (strcmp(site2,"1fluid") == 0)
       isite2 = oneFluidApproxParameter;
     else
@@ -616,7 +616,7 @@ void PairExp6rx::coeff(int narg, char **arg)
         else
           isite2 = isp;
       }
-    
+
     // Set the interaction potential type to the enumerated type.
     for (int iparam = 0; iparam < nparams; ++iparam)
       {

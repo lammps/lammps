@@ -58,6 +58,13 @@ class lammps(object):
     # determine module location
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
+    self.lib = None
+
+    # if a pointer to a LAMMPS object is handed in, all symbols should already be available.
+    try:
+      if ptr: self.lib = CDLL("",RTLD_GLOBAL)
+    except:
+      self.lib = None
 
     # load liblammps.so unless name is given.
     # e.g. if name = "g++", load liblammps_g++.so
@@ -66,13 +73,13 @@ class lammps(object):
     # does not need to be set for regular installations.
     # fall back to loading with a relative path, which typically
     # requires LD_LIBRARY_PATH to be set appropriately.
-
-    try:
-      if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
-      else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
-    except:
-      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
-      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+    if not self.lib:
+      try:
+        if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
+        else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
+      except:
+        if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
+        else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar

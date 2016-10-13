@@ -85,11 +85,8 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
   // for near contacts and touching contacts
 
   cmax = 0;
-  size_restart = 0;
-  for (int ilist = 0; ilist < nregion; ilist++){
+  for (int ilist = 0; ilist < nregion; ilist++)
     cmax += regions[list[ilist]]->cmax;
-    size_restart += regions[list[ilist]]->size_restart;
-  }
   contact = new Contact[cmax];
 
   tmax = 0;
@@ -270,7 +267,7 @@ void RegUnion::pretransform()
 }
 
 /* ----------------------------------------------------------------------
-   get translational/angular velocities of all subregions
+   Get translational/angular velocities of all subregions
 ------------------------------------------------------------------------- */
 
 void RegUnion::set_velocity()
@@ -279,33 +276,70 @@ void RegUnion::set_velocity()
   for (int ilist = 0; ilist < nregion; ilist++)
     regions[list[ilist]]->set_velocity();
 }
-/* ----------------------------------------------------------------------
-   region writes its current position/angle
-   needed by fix/wall/gran/region to compute velocity by differencing scheme
-------------------------------------------------------------------------- */
 
+
+/* ----------------------------------------------------------------------
+   Increment length of restart buffer based on region info
+   Used by restart of fix/wall/gran/region
+------------------------------------------------------------------------- */
+void RegUnion::length_restart_string(int& n)
+{
+  n += sizeof(int) + strlen(id)+1 + 
+    sizeof(int) + strlen(style)+1 + sizeof(int);
+  for (int ilist = 0; ilist < nregion; ilist++)
+    domain->regions[list[ilist]]->length_restart_string(n);
+
+}
+/* ----------------------------------------------------------------------
+   Region writes its current position/angle
+   Needed by fix/wall/gran/region to compute velocity by differencing scheme
+------------------------------------------------------------------------- */
 void RegUnion::write_restart(FILE *fp)
 {
+  int sizeid = (strlen(id)+1);
+  int sizestyle = (strlen(style)+1);
+  fwrite(&sizeid, sizeof(int), 1, fp);
+  fwrite(id, 1, sizeid, fp);
+  fwrite(&sizestyle, sizeof(int), 1, fp);
+  fwrite(style, 1, sizestyle, fp);  
+  fwrite(&nregion,sizeof(int),1,fp);
   for (int ilist = 0; ilist < nregion; ilist++)
-    domain->regions[list[ilist]]->write_restart(fp);
+    domain->regions[list[ilist]]->write_restart(fp);  
 }
 
 /* ----------------------------------------------------------------------
-   region reads its previous position/angle
-   needed by fix/wall/gran/region to compute velocity by differencing scheme
+   Region reads its previous position/angle
+   Needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
-
-int RegUnion::restart(char *buf, int n)
+int RegUnion::restart(char *buf, int &n)
 {
-  for (int ilist = 0; ilist < nregion; ilist++)
-    n = domain->regions[list[ilist]]->restart(buf, n);
-  return n;
+  int sizeid = buf[n];
+  n += sizeof(int);
+  char *restart_id = new char[sizeid];
+  for (int i = 0; i < sizeid; i++)
+    restart_id[i] = buf[n++];    
+  if (strcmp(restart_id,id) != 0) return 0;
+
+  int sizestyle = buf[n];
+  n += sizeof(int);
+  char *restart_style = new char[sizestyle];
+  for (int i = 0; i < sizestyle; i++)
+    restart_style[i] = buf[n++];  
+  if (strcmp(restart_style,style) != 0) return 0;    
+
+  int restart_nreg = buf[n];
+  n += sizeof(int);
+  if (restart_nreg != nregion) return 0;
+
+  for (int ilist = 0; ilist < nregion; ilist++){
+    if (!domain->regions[list[ilist]]->restart(buf, n)) return 0;
+  }
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
-   set prev vector to zero
+   Set prev vector to zero
 ------------------------------------------------------------------------- */
-
 void RegUnion::reset_vel()
 {
   for (int ilist = 0; ilist < nregion; ilist++)

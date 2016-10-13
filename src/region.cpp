@@ -42,10 +42,6 @@ Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   xstr = ystr = zstr = tstr = NULL;
   dx = dy = dz = 0.0;
 
-  // used by set_velocity() even if no rotation specified
-
-  point[0] = point[1] = point[2] = 0.0;
-
   size_restart = 5;
   reset_vel();
   copymode = 0;
@@ -398,7 +394,6 @@ void Region::options(int narg, char **arg)
     else error->all(FLERR,"Illegal region command");
   }
 
-
   // error check
 
   if ((moveflag || rotateflag) &&
@@ -514,58 +509,106 @@ void Region::set_velocity()
 }
 
 /* ----------------------------------------------------------------------
-   compute velocity of wall for given contact
-   since contacts only store delx/y/z, need to pass particle coords
-     to compute contact point
-   called by fix/wall/gran/region every contact every timestep
+   Compute velocity of wall for given contact
+   Since contacts only store delx/y/z, need to pass particle coords
+    to compute contact point
+   Called by fix/wall/gran/region every contact every timestep
 ------------------------------------------------------------------------- */
 
 void Region::velocity_contact(double *vwall, double *x, int ic)
 {
   Contact c = contact[ic];
   double xc[3];
-  xc[0] = x[0] - contact[ic].delx;
-  xc[1] = x[1] - contact[ic].dely;
-  xc[2] = x[2] - contact[ic].delz;
-  
-  vwall[0] = v[0] + omega[1]*(xc[2] - rpoint[2]) - omega[2]*(xc[1] - rpoint[1]);
-  vwall[1] = v[1] + omega[2]*(xc[0] - rpoint[0]) - omega[0]*(xc[2] - rpoint[2]);
-  vwall[2] = v[2] + omega[0]*(xc[1] - rpoint[1]) - omega[1]*(xc[0] - rpoint[0]);
 
-  if (varshape && contact[ic].varflag) velocity_contact_shape(vwall,xc);
+  vwall[0] = vwall[1] = vwall[2] = 0.0;
+
+  if (moveflag){
+    vwall[0] = v[0];
+    vwall[1] = v[1];
+    vwall[2] = v[2];
+  }
+  if (rotateflag){
+    xc[0] = x[0] - contact[ic].delx;
+    xc[1] = x[1] - contact[ic].dely;
+    xc[2] = x[2] - contact[ic].delz;
+    vwall[0] += omega[1]*(xc[2] - rpoint[2]) - omega[2]*(xc[1] - rpoint[1]);
+    vwall[1] += omega[2]*(xc[0] - rpoint[0]) - omega[0]*(xc[2] - rpoint[2]);
+    vwall[2] += omega[0]*(xc[1] - rpoint[1]) - omega[1]*(xc[0] - rpoint[0]);
+  }
+
+  if (varshape && contact[ic].varflag) velocity_contact_shape(vwall, xc);
+}
+
+
+/* ----------------------------------------------------------------------
+   Increment length of restart buffer based on region info
+   Used by restart of fix/wall/gran/region
+------------------------------------------------------------------------- */
+void Region::length_restart_string(int& n)
+{
+  n += sizeof(int) + strlen(id)+1 + 
+    sizeof(int) + strlen(style)+1 + sizeof(int)+
+    size_restart*sizeof(double);    
 }
 
 /* ----------------------------------------------------------------------
-   region writes its current position/angle
-   needed by fix/wall/gran/region to compute velocity by differencing scheme
+   Region writes its current style, id, number of sub-regions and position/angle
+   Needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
-
 void Region::write_restart(FILE *fp)
 {
+  int sizeid = (strlen(id)+1);
+  int sizestyle = (strlen(style)+1);
+  fwrite(&sizeid, sizeof(int), 1, fp);
+  fwrite(id, 1, sizeid, fp);
+  fwrite(&sizestyle, sizeof(int), 1, fp);
+  fwrite(style, 1, sizestyle, fp);  
+  fwrite(&nregion,sizeof(int),1,fp);
+
   fwrite(prev, sizeof(double), size_restart, fp);  
 }
 
 /* ----------------------------------------------------------------------
-   region reads its previous position/angle
-   needed by fix/wall/gran/region to compute velocity by differencing scheme
+   Region reads style, id, number of sub-regions from restart file. If they
+    match current region, also read previous position/angle
+   Needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
-
-int Region::restart(char *buf, int n)
+int Region::restart(char *buf, int &n)
 {
+  int sizeid = buf[n];
+  n += sizeof(int);
+  char *restart_id = new char[sizeid];
+  for (int i = 0; i < sizeid; i++)
+    restart_id[i] = buf[n++];    
+  if (strcmp(restart_id,id) != 0) return 0;
+
+  int sizestyle = buf[n];
+  n += sizeof(int);
+  char *restart_style = new char[sizestyle];
+  for (int i = 0; i < sizestyle; i++)
+    restart_style[i] = buf[n++];  
+  if (strcmp(restart_style,style) != 0) return 0;    
+
+  int restart_nreg = buf[n];
+  n += sizeof(int);
+  if (restart_nreg != nregion) return 0;
+
   char *rlist = new char[size_restart*sizeof(double)];  
   for (int i = 0; i < size_restart*sizeof(double); i++)
     rlist[i] = buf[n++]; 
-  for (int i = 0; i < size_restart; i++) {
+  for (int i = 0; i < size_restart; i++){
     prev[i] = ((double *)rlist)[i];
   }
+  
   delete [] rlist;
-  return n;
+  delete [] restart_id;
+  delete [] restart_style;
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
-   set prev vector to zero
+   Set prev vector to zero
 ------------------------------------------------------------------------- */
-
 void Region::reset_vel()
 {
   for (int i = 0; i < size_restart; i++)

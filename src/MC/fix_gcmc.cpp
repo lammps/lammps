@@ -2108,11 +2108,6 @@ double FixGCMC::energy_full()
   int eflag = 1;
   int vflag = 0;
 
-  // clear forces because they are used by fix shake 
-  
-  int nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
-  memset(&atom->f[0][0],0,3*nbytes);
-
   if (modify->n_pre_force) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag,vflag);

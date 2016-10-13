@@ -163,8 +163,8 @@ Any dimension (xyz) that has a granular wall must be non-periodic.
 
 [Related commands:]
 
-"fix move"_fix_move.html, 
-"fix wall/gran/region"_fix_wall_gran_region.html, 
+"fix move"_fix_move.html,
+"fix wall/gran/region"_fix_wall_gran_region.html,
 "pair_style granular"_pair_gran.html
 
 [Default:] none

@@ -139,7 +139,7 @@ void FixTempRescale::end_of_step()
 
   if (temperature->dof < 1) return;
 
-  // protect against division by zero.
+  // protect against division by zero
 
   if (t_current == 0.0)
     error->all(FLERR,"Computed temperature for fix temp/rescale cannot be 0.0");

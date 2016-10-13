@@ -114,8 +114,6 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0); // grow (aka exchange)
   atom->add_callback(1); // restart
   atom->add_callback(2); // border
-
-  reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,13 +163,6 @@ void FixShardlow::min_pre_exchange()
 void FixShardlow::min_setup_pre_exchange()
 {
   memset(atom->ssaAIR, 0, sizeof(int)*atom->nlocal);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixShardlow::reset_dt()
-{
-  dtsqrt = sqrt(update->dt);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -451,6 +442,8 @@ void FixShardlow::initial_integrate(int vflag)
   }
   inum = list->inum;
   ilist = list->ilist;
+
+  dtsqrt = sqrt(update->dt);
 
   //Loop over all 14 directions (8 stages)
   for (airnum = 1; airnum <=8; airnum++){

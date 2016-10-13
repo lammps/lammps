@@ -267,7 +267,7 @@ void RegUnion::pretransform()
 }
 
 /* ----------------------------------------------------------------------
-   Get translational/angular velocities of all subregions
+   get translational/angular velocities of all subregions
 ------------------------------------------------------------------------- */
 
 void RegUnion::set_velocity()
@@ -277,11 +277,11 @@ void RegUnion::set_velocity()
     regions[list[ilist]]->set_velocity();
 }
 
-
 /* ----------------------------------------------------------------------
-   Increment length of restart buffer based on region info
-   Used by restart of fix/wall/gran/region
+   increment length of restart buffer based on region info
+   used by restart of fix/wall/gran/region
 ------------------------------------------------------------------------- */
+
 void RegUnion::length_restart_string(int& n)
 {
   n += sizeof(int) + strlen(id)+1 + 
@@ -291,9 +291,10 @@ void RegUnion::length_restart_string(int& n)
 
 }
 /* ----------------------------------------------------------------------
-   Region writes its current position/angle
-   Needed by fix/wall/gran/region to compute velocity by differencing scheme
+   region writes its current position/angle
+   needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
+
 void RegUnion::write_restart(FILE *fp)
 {
   int sizeid = (strlen(id)+1);
@@ -308,9 +309,10 @@ void RegUnion::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   Region reads its previous position/angle
-   Needed by fix/wall/gran/region to compute velocity by differencing scheme
+   region reads its previous position/angle
+   needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
+
 int RegUnion::restart(char *buf, int &n)
 {
   int sizeid = buf[n];
@@ -338,8 +340,9 @@ int RegUnion::restart(char *buf, int &n)
 }
 
 /* ----------------------------------------------------------------------
-   Set prev vector to zero
+   set prev vector to zero
 ------------------------------------------------------------------------- */
+
 void RegUnion::reset_vel()
 {
   for (int ilist = 0; ilist < nregion; ilist++)

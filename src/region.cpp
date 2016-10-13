@@ -509,10 +509,10 @@ void Region::set_velocity()
 }
 
 /* ----------------------------------------------------------------------
-   Compute velocity of wall for given contact
-   Since contacts only store delx/y/z, need to pass particle coords
-    to compute contact point
-   Called by fix/wall/gran/region every contact every timestep
+   compute velocity of wall for given contact
+   since contacts only store delx/y/z, need to pass particle coords
+     to compute contact point
+   called by fix/wall/gran/region every contact every timestep
 ------------------------------------------------------------------------- */
 
 void Region::velocity_contact(double *vwall, double *x, int ic)
@@ -541,20 +541,23 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
 
 
 /* ----------------------------------------------------------------------
-   Increment length of restart buffer based on region info
-   Used by restart of fix/wall/gran/region
+   increment length of restart buffer based on region info
+   used by restart of fix/wall/gran/region
 ------------------------------------------------------------------------- */
-void Region::length_restart_string(int& n)
+
+void Region::length_restart_string(int &n)
 {
   n += sizeof(int) + strlen(id)+1 + 
-    sizeof(int) + strlen(style)+1 + sizeof(int)+
-    size_restart*sizeof(double);    
+    sizeof(int) + strlen(style)+1 + sizeof(int) +
+    size_restart*sizeof(double);
 }
 
 /* ----------------------------------------------------------------------
-   Region writes its current style, id, number of sub-regions and position/angle
-   Needed by fix/wall/gran/region to compute velocity by differencing scheme
+   region writes its current style, id, number of sub-regions 
+     and position/angle
+   needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
+
 void Region::write_restart(FILE *fp)
 {
   int sizeid = (strlen(id)+1);
@@ -569,10 +572,11 @@ void Region::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   Region reads style, id, number of sub-regions from restart file. If they
-    match current region, also read previous position/angle
-   Needed by fix/wall/gran/region to compute velocity by differencing scheme
+   region reads style, id, number of sub-regions from restart file
+     if they match current region, also read previous position/angle
+   needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
+
 int Region::restart(char *buf, int &n)
 {
   int sizeid = buf[n];
@@ -607,10 +611,10 @@ int Region::restart(char *buf, int &n)
 }
 
 /* ----------------------------------------------------------------------
-   Set prev vector to zero
+   set prev vector to zero
 ------------------------------------------------------------------------- */
+
 void Region::reset_vel()
 {
-  for (int i = 0; i < size_restart; i++)
-    prev[i] = 0;
+  for (int i = 0; i < size_restart; i++) prev[i] = 0;
 }

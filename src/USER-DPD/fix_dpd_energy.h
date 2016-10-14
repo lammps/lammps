@@ -33,10 +33,6 @@ class FixDPDenergy : public Fix {
   virtual void final_integrate();
 
  protected:
-  double dtv,dtf;
-  int mass_require;
-  int eos;
-
   class PairDPDfdtEnergy *pairDPDE;
 };
 

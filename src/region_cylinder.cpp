@@ -618,7 +618,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           dx = 0;
           zp = x[2];
         }
-        d2 = d2prev = dr2 + dx*dx;
+        d2prev = dr2 + dx*dx;
       }
 
       // closest point on bottom cap

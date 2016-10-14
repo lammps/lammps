@@ -1,4 +1,4 @@
-LAMMPS (7 Jun 2016)
+LAMMPS (13 Oct 2016)
 # sample LAMMPS input script for thermal conductivity of liquid LJ
 # use fix heat to add/subtract energy from 2 regions
 
@@ -79,20 +79,20 @@ Step Temp E_pair E_mol TotEng Press
      800    1.3419995   -3.7155648            0   -1.7028172   0.82925676 
      900    1.3562214   -3.6965609            0   -1.6624831   0.88908117 
     1000    1.3732017   -3.7100044            0   -1.6504594   0.83982701 
-Loop time of 0.889036 on 8 procs for 1000 steps with 8000 atoms
+Loop time of 0.872163 on 8 procs for 1000 steps with 8000 atoms
 
-Performance: 485919.613 tau/day, 1124.814 timesteps/s
-99.4% CPU use with 8 MPI tasks x no OpenMP threads
+Performance: 495320.223 tau/day, 1146.575 timesteps/s
+99.5% CPU use with 8 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.47867    | 0.4928     | 0.5006     |   1.0 | 55.43
-Neigh   | 0.23302    | 0.23557    | 0.23833    |   0.3 | 26.50
-Comm    | 0.1001     | 0.11264    | 0.12817    |   2.6 | 12.67
-Output  | 0.00032806 | 0.00034043 | 0.00040531 |   0.1 |  0.04
-Modify  | 0.028788   | 0.031511   | 0.033365   |   0.9 |  3.54
-Other   |            | 0.01618    |            |       |  1.82
+Pair    | 0.48598    | 0.49768    | 0.50892    |   1.1 | 57.06
+Neigh   | 0.22855    | 0.23236    | 0.23463    |   0.5 | 26.64
+Comm    | 0.082584   | 0.093727   | 0.10748    |   2.9 | 10.75
+Output  | 0.0002718  | 0.00028038 | 0.00031757 |   0.1 |  0.03
+Modify  | 0.028934   | 0.031425   | 0.03322    |   0.8 |  3.60
+Other   |            | 0.01668    |            |       |  1.91
 
 Nlocal:    1000 ave 1020 max 982 min
 Histogram: 1 0 2 1 0 1 1 1 0 1
@@ -121,7 +121,7 @@ thermo_style    custom step temp c_Thot c_Tcold
 thermo	        1000
 run             10000
 Memory usage per processor = 2.55761 Mbytes
-Step Temp Thot Tcold 
+Step Temp c_Thot c_Tcold 
     1000         1.35     1.431295    1.2955644 
     2000    1.3518468    1.5562602     1.154905 
     3000    1.3477229    1.5890075    1.2395414 
@@ -133,20 +133,20 @@ Step Temp Thot Tcold
     9000    1.3739201    1.6846211    1.1138829 
    10000    1.3751455    1.8039471    1.1500399 
    11000    1.3716416     1.833336    1.1267278 
-Loop time of 10.488 on 8 procs for 10000 steps with 8000 atoms
+Loop time of 10.3395 on 8 procs for 10000 steps with 8000 atoms
 
-Performance: 411900.216 tau/day, 953.473 timesteps/s
+Performance: 417815.278 tau/day, 967.165 timesteps/s
 99.5% CPU use with 8 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.138      | 4.9118     | 5.6168     |  26.2 | 46.83
-Neigh   | 2.1715     | 2.4541     | 2.7147     |  14.7 | 23.40
-Comm    | 0.94395    | 1.8449     | 2.9212     |  55.3 | 17.59
-Output  | 0.00043416 | 0.00046757 | 0.00054884 |   0.2 |  0.00
-Modify  | 1.0234     | 1.0946     | 1.2539     |   8.7 | 10.44
-Other   |            | 0.1821     |            |       |  1.74
+Pair    | 4.2189     | 4.9657     | 5.6225     |  25.3 | 48.03
+Neigh   | 2.1359     | 2.4223     | 2.6741     |  14.8 | 23.43
+Comm    | 0.83801    | 1.6773     | 2.6984     |  57.1 | 16.22
+Output  | 0.00042701 | 0.00046191 | 0.00052905 |   0.1 |  0.00
+Modify  | 1.0143     | 1.0895     | 1.1846     |   5.7 | 10.54
+Other   |            | 0.1844     |            |       |  1.78
 
 Nlocal:    1000 ave 1131 max 878 min
 Histogram: 3 1 0 0 0 0 0 1 1 2
@@ -174,7 +174,7 @@ thermo_style    custom step temp c_Thot c_Tcold v_tdiff f_ave
 
 run             20000
 Memory usage per processor = 2.8078 Mbytes
-Step Temp Thot Tcold tdiff ave 
+Step Temp c_Thot c_Tcold v_tdiff f_ave 
    11000    1.3716416     1.833336    1.1267278            0            0 
    12000    1.3703433    1.7829467    1.1194444  -0.66044316            0 
    13000    1.3686734    1.8334366    1.1193477  -0.71431978  -0.71431978 
@@ -196,20 +196,20 @@ Step Temp Thot Tcold tdiff ave
    29000    1.3777555    1.8287284    1.0715132  -0.70375514  -0.74425717 
    30000    1.3821118    1.7382856    1.1078333  -0.79892499  -0.74729427 
    31000    1.3870476    1.8410063    1.1235958  -0.76218423  -0.74807795 
-Loop time of 22.3813 on 8 procs for 20000 steps with 8000 atoms
+Loop time of 22.4057 on 8 procs for 20000 steps with 8000 atoms
 
-Performance: 386036.860 tau/day, 893.604 timesteps/s
-99.4% CPU use with 8 MPI tasks x no OpenMP threads
+Performance: 385616.132 tau/day, 892.630 timesteps/s
+99.3% CPU use with 8 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 7.4578     | 9.8912     | 11.96      |  64.5 | 44.19
-Neigh   | 4.0721     | 5.0195     | 5.8898     |  36.9 | 22.43
-Comm    | 1.9554     | 4.7393     | 7.8917     | 125.4 | 21.18
-Output  | 0.00099301 | 0.0017841  | 0.0019252  |   0.7 |  0.01
-Modify  | 2.2325     | 2.321      | 2.4866     |   6.5 | 10.37
-Other   |            | 0.4085     |            |       |  1.83
+Pair    | 7.6116     | 10.003     | 12.262     |  64.3 | 44.65
+Neigh   | 4.038      | 4.9528     | 5.8822     |  37.6 | 22.10
+Comm    | 1.6649     | 4.7143     | 7.6339     | 124.9 | 21.04
+Output  | 0.00098443 | 0.0017504  | 0.0018921  |   0.7 |  0.01
+Modify  | 2.1819     | 2.3289     | 2.6598     |  12.6 | 10.39
+Other   |            | 0.4047     |            |       |  1.81
 
 Nlocal:    1000 ave 1134 max 850 min
 Histogram: 2 1 0 1 0 0 0 1 0 3

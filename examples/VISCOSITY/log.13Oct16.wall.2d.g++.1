@@ -1,0 +1,246 @@
+LAMMPS (13 Oct 2016)
+# sample LAMMPS input script for viscosity of 2d LJ liquid
+# use shearing wall, thermostat via fix langevin
+
+# settings
+
+variable	x equal 20
+variable	y equal 20
+variable	ylo equal -2.5
+variable	yhi equal 23
+
+variable	rho equal 0.6
+variable        t equal 1.0
+variable	rc equal 2.5
+
+variable	srate equal 2.7
+
+# problem setup
+
+units		lj
+dimension	2
+atom_style	atomic
+neigh_modify	delay 0 every 1
+
+lattice         sq2 ${rho}
+lattice         sq2 0.6
+Lattice spacing in x,y,z = 1.82574 1.82574 1.82574
+region          simbox block 0 $x ${ylo} ${yhi} -0.1 0.1
+region          simbox block 0 20 ${ylo} ${yhi} -0.1 0.1
+region          simbox block 0 20 -2.5 ${yhi} -0.1 0.1
+region          simbox block 0 20 -2.5 23 -0.1 0.1
+create_box      3 simbox
+Created orthogonal box = (0 -4.56435 -0.182574) to (36.5148 41.9921 0.182574)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 1020 atoms
+
+mass            * 1.0
+
+pair_style      lj/cut ${rc}
+pair_style      lj/cut 2.5
+pair_coeff      * * 1 1
+
+region		lower block INF INF INF 0.0 INF INF
+region		upper block INF INF $y INF INF INF
+region		upper block INF INF 20 INF INF INF
+group		lower region lower
+120 atoms in group lower
+group		upper region upper
+120 atoms in group upper
+set		group lower type 2
+  120 settings made for type
+set		group upper type 3
+  120 settings made for type
+group		wall union lower upper
+240 atoms in group wall
+group		flow subtract all wall
+780 atoms in group flow
+
+velocity        flow create $t 97287
+velocity        flow create 1 97287
+velocity	upper set ${srate} 0.0 0.0 units box
+velocity	upper set 2.7 0.0 0.0 units box
+
+compute		thermal flow temp/partial 0 1 0
+compute		flow flow temp
+
+fix             1 all nve
+fix	        2 flow langevin $t $t 0.1 498094
+fix	        2 flow langevin 1 $t 0.1 498094
+fix	        2 flow langevin 1 1 0.1 498094
+fix_modify      2 temp thermal
+
+fix		3 wall setforce 0.0 0.0 0.0
+
+compute         layers all chunk/atom bin/1d y center 0.05 units reduced
+fix		4 all ave/chunk 20 500 10000 layers vx file profile.wall.2d
+
+fix	        5 all enforce2d
+
+# equilibration run
+
+variable        ybox equal $y*ylat
+variable        ybox equal 20*ylat
+compute		tilt flow temp/ramp vx 0 ${srate} y 0 ${ybox} units box
+compute		tilt flow temp/ramp vx 0 2.7 y 0 ${ybox} units box
+compute		tilt flow temp/ramp vx 0 2.7 y 0 36.5148371670111 units box
+
+thermo          1000
+thermo_style	custom step temp c_tilt epair etotal press pxy
+
+run	        20000
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4 -> bins = 27 34 1
+Memory usage per processor = 2.7306 Mbytes
+Step Temp c_tilt E_pair TotEng Press Pxy 
+       0    1.1937193    2.1893943   -1.4419854  -0.24943634  -0.78936698  0.014349737 
+    1000    1.3454512    1.9300306   -1.5968842  -0.25275207   0.66766599  -0.14162185 
+    2000    1.4039195    1.7346977   -1.5342235  -0.13168039    1.0083734  0.018811845 
+    3000    1.3945539    1.6038724   -1.5472166  -0.15402987   0.89714673  -0.21459294 
+    4000    1.4507445    1.5640577   -1.5682837  -0.11896142   0.80780492  -0.11602642 
+    5000    1.5081166    1.5260484   -1.4466585  0.059979546    1.5213379   0.15651364 
+    6000     1.471403    1.3275791   -1.5730732  -0.10311276   0.76780953 -0.028043991 
+    7000    1.5811576    1.3851463   -1.5518076  0.027799848    1.0149281  0.004725238 
+    8000    1.5298095    1.3333038    -1.536974 -0.0086643578    1.2325979  -0.11754624 
+    9000    1.5269137     1.253444   -1.5995915 -0.074174772   0.72678912  0.068344793 
+   10000    1.6201621    1.2415469   -1.4659459   0.15262788    1.4780324   0.12762214 
+   11000    1.6422795    1.2595346   -1.5659612  0.074708257    1.0471534 -0.039697954 
+   12000    1.7111306    1.1978075   -1.5685671   0.14088596   0.97371007  0.099889098 
+   13000    1.6871075    1.1495076   -1.4967158   0.18873768    1.3445558 -0.058891196 
+   14000    1.7237433    1.1976445   -1.5857394   0.13631394   0.96603231  0.082195882 
+   15000    1.7080799    1.1550766   -1.4962561   0.21014912    1.3733324  0.062008565 
+   16000    1.7030363    1.1186642   -1.5735945   0.12777215    1.0071474  -0.12038271 
+   17000    1.7442786    1.1134856   -1.5544631   0.18810536   0.98640596  -0.10793154 
+   18000    1.7433517    1.0565945   -1.4702226   0.27141996    1.5983127   -0.1847178 
+   19000    1.7909641     1.071494   -1.5628363   0.22637195    1.0487763  -0.16215298 
+   20000    1.8291721    1.1152277   -1.4955372   0.33184161    1.4404718   0.13157652 
+Loop time of 4.60977 on 1 procs for 20000 steps with 1020 atoms
+
+Performance: 1874278.390 tau/day, 4338.607 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.2771     | 2.2771     | 2.2771     |   0.0 | 49.40
+Neigh   | 0.77127    | 0.77127    | 0.77127    |   0.0 | 16.73
+Comm    | 0.08461    | 0.08461    | 0.08461    |   0.0 |  1.84
+Output  | 0.00045896 | 0.00045896 | 0.00045896 |   0.0 |  0.01
+Modify  | 1.3487     | 1.3487     | 1.3487     |   0.0 | 29.26
+Other   |            | 0.1277     |            |       |  2.77
+
+Nlocal:    1020 ave 1020 max 1020 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    319 ave 319 max 319 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    6977 ave 6977 max 6977 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6977
+Ave neighs/atom = 6.8402
+Neighbor list builds = 3091
+Dangerous builds = 0
+
+# data gathering run
+
+variable	visc equal -pxy/(v_srate/ly)
+fix		vave all ave/time 1000 1 1000 v_visc ave running
+
+thermo_style	custom step temp pxy v_visc f_vave
+thermo_modify	temp tilt
+WARNING: Temperature for thermo pressure is not for group all (../thermo.cpp:474)
+
+# only need to run for 5000 steps to make a good 100-frame movie
+
+#dump	        1 all custom 50 dump.wall.2d id type x y z vx
+
+#dump		2 all image 50 image.*.jpg vx type zoom 1.6 adiam 1.2
+#dump_modify	2 pad 5 amap 0.0 ${srate} ca 0.0 2 min blue max red
+
+run		50000
+Memory usage per processor = 2.73133 Mbytes
+Step Temp Pxy v_visc f_vave 
+   20000    1.1152277   0.14873839   -2.5647136   -2.5647136 
+   21000    1.0675243 -0.064336523    1.1093622  -0.72767568 
+   22000    1.1044647 -0.092189802    1.5896396  0.044762746 
+   23000    1.0278193  -0.16030404    2.7641414   0.72460741 
+   24000     1.032998 -0.025162118   0.43387337    0.6664606 
+   25000     1.012257   0.15289388   -2.6363671   0.11598931 
+   26000    1.0678095  -0.15317374    2.6411929   0.47673268 
+   27000   0.99951185 -0.013635884   0.23512515   0.44653174 
+   28000    1.0663423 -0.061009474    1.0519935   0.51380527 
+   29000    1.0753719 -0.037018843   0.63832026   0.52625677 
+   30000    1.0749259 -0.0092916614   0.16021721   0.49298044 
+   31000    1.0171594  -0.14103555    2.4318926   0.65455646 
+   32000    1.0811717  -0.22037237    3.7999068   0.89650648 
+   33000    1.0123567 -0.076368085    1.3168239   0.92652915 
+   34000    1.0923478 -0.017551868   0.30264892   0.88493714 
+   35000    1.0252013 0.0042522796 -0.073322558   0.82504591 
+   36000    1.0205412  -0.17942577    3.0938596   0.95850554 
+   37000     1.016861  -0.15185242    2.6184092    1.0507224 
+   38000    1.0156825 -0.058057333    1.0010894    1.0481101 
+   39000    1.0299458 -0.028138186   0.48519005    1.0199641 
+   40000    1.0109947  0.069370747   -1.1961679   0.91443404 
+   41000   0.99255941  -0.20057649    3.4585639    1.0300763 
+   42000   0.93280953  -0.20797609    3.5861562    1.1412102 
+   43000   0.98040039  0.070643632   -1.2181165    1.0429049 
+   44000     1.001795  -0.06620924    1.1416537    1.0468549 
+   45000   0.96231963  0.028026245  -0.48325983   0.98800432 
+   46000    1.0193639  -0.15553891    2.6819757     1.050744 
+   47000    1.0241202 0.0053565438 -0.092363514    1.0099187 
+   48000    0.9736932   0.12643935   -2.1802085   0.89991435 
+   49000   0.96326617  -0.14719163    2.5380426   0.95451862 
+   50000   0.99008772   0.03563038  -0.61437884   0.90390903 
+   51000    1.0689018  -0.11122259    1.9178243   0.93559388 
+   52000    1.0123467  0.021882959  -0.37733044   0.89580829 
+   53000    1.0075671   0.20840798   -3.5936033   0.76376678 
+   54000   0.97454265 -0.027528034   0.47466913   0.75550684 
+   55000    1.0072632  -0.02991098   0.51575854   0.74884717 
+   56000   0.94706748  -0.29624115     5.108121   0.86666538 
+   57000    1.0411989 -0.043160809   0.74422691   0.86344332 
+   58000    1.0040809   0.10858868   -1.8724074    0.7932933 
+   59000    1.0101096  -0.17512944    3.0197775    0.8489554 
+   60000   0.97394086  0.025630293  -0.44194616      0.81747 
+   61000   0.97631407  -0.21776922    3.7550203   0.88741167 
+   62000    0.9650689 -0.036733674   0.63340305   0.88150449 
+   63000    1.0401136   0.11852825   -2.0437965   0.81502038 
+   64000   0.99261276  -0.20362786    3.5111792   0.87493502 
+   65000    1.0397086 -0.056685607   0.97743658   0.87716332 
+   66000    1.0115793  -0.20411863    3.5196415   0.93338626 
+   67000    1.1243059 -0.086897372    1.4983816   0.94515699 
+   68000    1.0005962  0.081847197   -1.4113008   0.89706602 
+   69000    1.0412065  -0.21375629    3.6858249   0.95284119 
+   70000   0.97952466 -0.060208765    1.0381868   0.95451464 
+Loop time of 11.6259 on 1 procs for 50000 steps with 1020 atoms
+
+Performance: 1857923.682 tau/day, 4300.749 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.6901     | 5.6901     | 5.6901     |   0.0 | 48.94
+Neigh   | 2.0175     | 2.0175     | 2.0175     |   0.0 | 17.35
+Comm    | 0.21634    | 0.21634    | 0.21634    |   0.0 |  1.86
+Output  | 0.00069594 | 0.00069594 | 0.00069594 |   0.0 |  0.01
+Modify  | 3.3775     | 3.3775     | 3.3775     |   0.0 | 29.05
+Other   |            | 0.3236     |            |       |  2.78
+
+Nlocal:    1020 ave 1020 max 1020 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    332 ave 332 max 332 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    6969 ave 6969 max 6969 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6969
+Ave neighs/atom = 6.83235
+Neighbor list builds = 8088
+Dangerous builds = 0
+Total wall time: 0:00:16

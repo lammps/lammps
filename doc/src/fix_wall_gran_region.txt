@@ -164,25 +164,19 @@ restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
 NOTE: Information about region definitions is NOT included in restart
-files.  This means that in a restart script you must re-define a
-region to associate with this fix in a consistent manner with how a
-region was used in the original script (same style, ID, geometric
-attributes).  If it is a moving region, you should also define its
-motion attributes consistent with the original simulation that wrote
-the restart file.  If you use a region that is a union or intersection
-of sub-regions, LAMMPS will do some limited checking that the new
-region is consistent with the one defined in the previous script
-before reassigning the motion attributes, but does not currently check
-recursively down a nested tree of union or intersection regions.  Note
-that if you want to change the region's motion attributes in the
-restart run (e.g. its velocity), then you should insure the
-postition/orientation of the region at the initial restart timestep is
-the same as it was on the timestep the restart file was written.
-Otherwise the position of the region may make an instantanous jump
-when the restart simulation begins.  If this is not easy or possible,
-then you can just ignore info in the restart file by defining a new
-fix wall/gran/region command in your restart script (e.g. with a
-different fix ID).
+files, as discussed on the "read_restart"_read_restart.html doc page.
+So you must re-define your region and if it is a moving region, define
+its motion attributes in a way that is consistent with the simulation
+that wrote the restart file.  In particular, if you want to change the
+region motion attributes (e.g. its velocity), then you should ensure
+the postition/orientation of the region at the initial restart
+timestep is the same as it was on the timestep the restart file was
+written.  If this is not possible, you may need to ignore info in the
+restart file by defining a new fix wall/gran/region command in your
+restart script, e.g. with a different fix ID.  Or if you want to keep
+the shear history info but discard the region motion information, you
+can use the same fix ID for fix wall/gran/region, but assign it a
+region with a different region ID.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for

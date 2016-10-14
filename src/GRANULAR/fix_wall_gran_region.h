@@ -62,7 +62,6 @@ class FixWallGranRegion : public FixWallGran {
                          //    vel info is to be reset
 
   void update_contacts(int, int);
-  int check_consistent_region(Region *, char*, char*, int);
 };
 
 }

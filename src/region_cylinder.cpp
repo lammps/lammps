@@ -67,7 +67,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     shape_update();
   } else {
     radius = force->numeric(FLERR,arg[5]);
-    if (axis == 'x') radius *= xscale;
+    if (axis == 'x') radius *= yscale;
     else radius *= xscale;
     rstyle = CONSTANT;
   }

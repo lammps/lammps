@@ -411,7 +411,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     // radius of curvature, only used for granular walls
 
-    double crad = 0.0; 
+    crad = 0.0;
 
     // x is far enough from cone that there is no contact
     // x is interior to cone
@@ -475,6 +475,10 @@ int RegCone::surface_exterior(double *x, double cutoff)
     r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[1]-lo)*(radiushi-radiuslo)/(hi-lo);
 
+    // radius of curvature, only used for granular walls
+
+    crad = 0.0;
+
     // y is far enough from cone that there is no contact
     // y is interior to cone
 
@@ -535,6 +539,10 @@ int RegCone::surface_exterior(double *x, double cutoff)
     del2 = x[1] - c2;
     r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[2]-lo)*(radiushi-radiuslo)/(hi-lo);
+
+    // radius of curvature, only used for granular walls
+
+    crad = 0.0;
 
     // z is far enough from cone that there is no contact
     // z is interior to cone

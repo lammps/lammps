@@ -10,7 +10,7 @@ fix halt command :h3
 
 [Syntax:]
 
-fix ID group-ID halt N attribute operator value keyword value ... :pre
+fix ID group-ID halt N attribute operator avalue keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 halt = style name of this fix command :l
@@ -19,7 +19,7 @@ attribute = hstyle or v_name :l
   hstyle = {bondmax}
   v_name = name of "equal-style variable"_variable.html :pre
 operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "|^" :l
-value = numeric value to compare to :l
+avalue = numeric value to compare attribute to :l
 string = text string to print with optional variable names :l
 zero or more keyword/value pairs may be appended :l
 keyword = {error} :l
@@ -71,6 +71,16 @@ fix 10 all halt 1 v_bondmax > 1.5 :pre
 The version with "bondmax" will just run somewhat faster, due to less
 overhead in computing bond lengths and not storing them in a separate
 compute.
+
+The choice of operators listed above are the usual comparison
+operators.  The XOR operation (exclusive or) is also included as "|^".
+In this context, XOR means that if either the attribute or avalue is
+0.0 and the other is non-zero, then the result is "true".  Otherwise
+it is "false".
+
+The specified {avalue} must be a numeric value.
+
+:line
 
 The optional {error} keyword determines how the current run is halted.
 If its value is {hard}, then LAMMPS will stop with an error message.

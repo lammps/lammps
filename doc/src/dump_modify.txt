@@ -503,11 +503,11 @@ less than 1/2 to greater than 1/2 (or vice versa) since the last dump.
 E.g. due to reactions and subsequent charge equilibration in a
 reactive force field.
 
-The choice of operators are the usual comparison operators.  The XOR
-operation (exclusive or) is also included as "|^".  In this context,
-XOR means that if either the attribute or value is 0.0 and the other
-is non-zero, then the result is "true" and the threshold criterion is
-met.  Otherwise it is not met.
+The choice of operators listed above are the usual comparison
+operators.  The XOR operation (exclusive or) is also included as "|^".
+In this context, XOR means that if either the attribute or value is
+0.0 and the other is non-zero, then the result is "true" and the
+threshold criterion is met.  Otherwise it is not met.
 
 :line
 

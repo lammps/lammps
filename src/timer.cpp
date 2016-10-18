@@ -95,7 +95,8 @@ Timer::Timer(LAMMPS *lmp) : Pointers(lmp)
 {
   _level = NORMAL;
   _sync  = OFF;
-  _timeout = -1.0;
+  _timeout = -1;
+  _s_timeout = -1;
   _checkfreq = 10;
   _nextcheck = -1;
   this->_stamp(RESET);
@@ -215,6 +216,7 @@ void Timer::set_wall(enum ttype which, double newtime)
 
 void Timer::init_timeout()
 {
+  _s_timeout = _timeout;
   if (_timeout < 0)
     _nextcheck = -1;
   else

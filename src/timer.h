@@ -66,6 +66,9 @@ class Timer : protected Pointers {
   // trigger enforced timeout
   void force_timeout() { _timeout = 0.0; }
 
+  // restore original timeout setting after enforce timeout
+  void reset_timeout() { _timeout = _s_timeout; }
+
   // get remaining time in seconds. 0.0 if inactive, negative if expired
   double get_timeout_remain();
 
@@ -91,6 +94,7 @@ class Timer : protected Pointers {
   int _level;     // level of detail: off=0,loop=1,normal=2,full=3
   int _sync;      // if nonzero, synchronize tasks before setting the timer
   int _timeout;   // max allowed wall time in seconds. infinity if negative
+  int _s_timeout; // copy of timeout for restoring after a forced timeout
   int _checkfreq; // frequency of timeout checking
   int _nextcheck; // loop number of next timeout check
 

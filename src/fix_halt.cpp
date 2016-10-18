@@ -109,6 +109,7 @@ int FixHalt::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
+  mask |= POST_RUN;
   return mask;
 }
 
@@ -170,12 +171,19 @@ void FixHalt::end_of_step()
           id,update->ntimestep,attvalue);
 
   if (eflag == HARD) error->all(FLERR,str);
-  else if (eflag == SOFT) {
+  else if (eflag == SOFT || eflag == CONTINUE) {
     if (comm->me == 0) error->message(FLERR,str);
     timer->force_timeout();
-  } else if (eflag == CONTINUE) {
-    // exit this run, but not subsequent ones
   }
+}
+
+/* ----------------------------------------------------------------------
+   reset expired timer setting to original value, if requested
+------------------------------------------------------------------------- */
+
+void FixHalt::post_run()
+{
+  if (eflag == CONTINUE) timer->reset_timeout();
 }
 
 /* ----------------------------------------------------------------------

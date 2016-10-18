@@ -32,6 +32,7 @@ class FixHalt : public Fix {
   int setmask();
   void init();
   void end_of_step();
+  void post_run();
 
  private:
   int attribute,operation,eflag,ivar;

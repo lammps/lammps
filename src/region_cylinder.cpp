@@ -67,7 +67,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     shape_update();
   } else {
     radius = force->numeric(FLERR,arg[5]);
-    if (axis == 'x') radius *= xscale;
+    if (axis == 'x') radius *= yscale;
     else radius *= xscale;
     rstyle = CONSTANT;
   }
@@ -618,7 +618,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           dx = 0;
           zp = x[2];
         }
-        d2 = d2prev = dr2 + dx*dx;
+        d2prev = dr2 + dx*dx;
       }
 
       // closest point on bottom cap

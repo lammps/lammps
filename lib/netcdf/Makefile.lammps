@@ -2,18 +2,17 @@
 # netCDF library is installed. This tries to automate configuration
 # via the nc-config tool, which is part of the netCDF installation.
 
-ifeq ($(shell nc-config --has-pnetcdf),no)
-
-netcdf_SYSINC = $(shell nc-config --cflags)
-netcdf_SYSLIB = $(shell nc-config --libs)
+netcdf_SYSINC =
+netcdf_SYSLIB =
 netcdf_SYSPATH =
 
+ifneq ($(shell which nc-config),)
+netcdf_SYSINC += -DLMP_HAS_NETCDF $(shell nc-config --cflags)
+netcdf_SYSLIB += $(shell nc-config --libs)
 endif
 
-ifeq ($(shell nc-config --has-pnetcdf),yes)
-
-netcdf_SYSINC = -DLMP_HAS_PNETCDF $(nc-config --cflags)
-netcdf_SYSLIB = $(shell nc-config --libs)
-netcdf_SYSPATH =
-
+ifneq ($(shell which ncmpidump),)
+PNETCDF_PATH = ($shell which ncmpidump | sed -e 's,bin/ncmpidump,,')
+netcdf_SYSINC = -DLMP_HAS_PNETCDF -I$(PNETCDF_PATH)/include
+netcdf_SYSLIB = -L$(PNETCDF_PATH)/lib -lpnetcdf
 endif

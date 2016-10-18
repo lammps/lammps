@@ -162,8 +162,7 @@ void FixHalt::end_of_step()
   }
 
   // hard halt -> exit LAMMPS
-  // soft halt -> trigger timer to break from run loop
-  // continue halt -> trigger time to exit only this run loop
+  // soft/continue halt -> trigger timer to break from run loop
   // print message with ID of fix halt in case multiple instances
 
   char str[128];
@@ -183,6 +182,8 @@ void FixHalt::end_of_step()
 
 void FixHalt::post_run()
 {
+  // continue halt -> subsequent runs are allowd
+
   if (eflag == CONTINUE) timer->reset_timeout();
 }
 

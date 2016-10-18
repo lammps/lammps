@@ -53,7 +53,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix wall/gran requires atom style sphere");
 
-  restart_peratom = 1;
   create_attribute = 1;
 
   // set interaction style
@@ -65,8 +64,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   //else if (strcmp(arg[3],"bonded/history") == 0) pairstyle = BONDED_HISTORY;
   else error->all(FLERR,"Invalid fix wall/gran interaction style");
 
-  history = 1;
-  if (pairstyle == HOOKE) history = 0;
+  history = restart_peratom = 1;
+  if (pairstyle == HOOKE) history = restart_peratom = 0;
 
   // wall/particle coefficients
 

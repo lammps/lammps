@@ -59,8 +59,7 @@ class Region : protected Pointers {
   double rpoint[3];	      // current origin of rotation axis
   double omega[3];	      // angular velocity
   double rprev;               // speed of time-dependent radius, if applicable
-  double xcenter[3];          // translated/rotated center of cylinder/sphere
-                              //   only used with varshape
+  double xcenter[3];          // translated/rotated center of cylinder/sphere (only used if varshape)
   double prev[5];             // stores displacement (X3), angle and if 
                               //  necessary, region variable size (e.g. radius)
                               //  at previous time step
@@ -84,7 +83,8 @@ class Region : protected Pointers {
   virtual void set_velocity();
   void velocity_contact(double *, double *, int);
   virtual void write_restart(FILE *);
-  virtual int restart(char *, int);
+  virtual int restart(char *, int&);
+  virtual void length_restart_string(int&);
   virtual void reset_vel();
 
   // implemented by each region, not called by other classes
@@ -106,12 +106,11 @@ class Region : protected Pointers {
   void options(int, char **);
   void point_on_line_segment(double *, double *, double *, double *);
   void forward_transform(double &, double &, double &);
-  double point[3],runit[3];
 
  private:
   char *xstr,*ystr,*zstr,*tstr;
   int xvar,yvar,zvar,tvar;
-  double axis[3];
+  double axis[3],point[3],runit[3];
 
   void inverse_transform(double &, double &, double &);
   void rotate(double &, double &, double &, double);

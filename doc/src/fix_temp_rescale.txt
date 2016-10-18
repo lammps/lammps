@@ -43,6 +43,10 @@ Rescaling is performed every N timesteps.  The target temperature is a
 ramped value between the {Tstart} and {Tstop} temperatures at the
 beginning and end of the run.
 
+NOTE: This thermostat will generate an error if the current
+temperature is zero at the end of a timestep it is inovoked on.  It
+cannot rescale a zero temperature.
+
 {Tstart} can be specified as an equal-style "variable"_variable.html.
 In this case, the {Tstop} setting is ignored.  If the value is a
 variable, it should be specified as v_name, where name is the variable

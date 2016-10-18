@@ -1,0 +1,121 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix halt command :h3
+
+[Syntax:]
+
+fix ID group-ID halt N attribute operator avalue keyword value ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+halt = style name of this fix command :l
+N = check halt condition every N steps :l
+attribute = hstyle or v_name :l
+  hstyle = {bondmax}
+  v_name = name of "equal-style variable"_variable.html :pre
+operator = "<" or "<=" or ">" or ">=" or "==" or "!=" or "|^" :l
+avalue = numeric value to compare attribute to :l
+string = text string to print with optional variable names :l
+zero or more keyword/value pairs may be appended :l
+keyword = {error} :l
+  {error} value = {hard} or {soft} or {continue} :pre
+:ule
+
+[Examples:]
+
+fix 10 all halt 1 bondmax > 1.5
+fix 10 all print 10 v_myCheck != 0 error soft :pre
+
+[Description:]
+
+Check a condition every N steps during a simulation run.  N must be >=
+1.  If the condition is met, exit the run immediately.  In this
+context a "run" can be dynamics or minimization iterations, as
+specified by the "run"_run.html or "minimize"_minimize.html command.
+
+The specified group-ID is ignored by this fix.
+
+The specified {attribute} can be one of the {hstyle} options listed
+above, or an "equal-style variable"_variable.html referenced as
+{v_name}, where "name" is the name of a variable that has been defined
+previously in the input script.
+
+The only {hstyle} option currently implemented is {bondmax}.  This
+will loop over all bonds in the system, compute their current
+lengths, and set {attribute} to the longest bond distance.
+
+Equal-style variables evaluate to a numeric value.  See the
+"variable"_variable.html command for a description.  They calculate
+formulas which can involve mathematical operations, atom properties,
+group properties, thermodynamic properties, global values calculated
+by a "compute"_compute.html or "fix"_fix.html, or references to other
+"variables"_variable.html.  Thus they are a very general means of
+computing some attribute of the current system.  For example, the
+following "bondmax" variable will calculate the same quantity as the
+hstyle = bondmax option.
+
+compute         bdist all bond/local dist
+compute         bmax all reduce max c_bdist
+variable        bondmax equal c_bmax :pre
+
+Thus these two versions of a fix halt command will do the same thing:
+
+fix 10 all halt 1 bondmax > 1.5
+fix 10 all halt 1 v_bondmax > 1.5 :pre
+
+The version with "bondmax" will just run somewhat faster, due to less
+overhead in computing bond lengths and not storing them in a separate
+compute.
+
+The choice of operators listed above are the usual comparison
+operators.  The XOR operation (exclusive or) is also included as "|^".
+In this context, XOR means that if either the attribute or avalue is
+0.0 and the other is non-zero, then the result is "true".  Otherwise
+it is "false".
+
+The specified {avalue} must be a numeric value.
+
+:line
+
+The optional {error} keyword determines how the current run is halted.
+If its value is {hard}, then LAMMPS will stop with an error message.
+
+If its value is {soft}, LAMMPS will exit the current run, but continue
+to execute subsequent commands in the input script.  However,
+additional "run"_run.html or "minimize"_minimize.html commands will be
+skipped.  For example, this allows a script to output the current
+state of the system, e.g. via a "write_dump"_write_dump.html or
+"write_restart"_write_restart.html command.
+
+If its value is {continue}, the behavior is the same as for {soft},
+except subsequent subsequent "run"_run.html or
+"minimize"_minimize.html commands are executed.  This allows your
+script to remedy the condition that triggered the halt, if necessary.
+Note that you may wish use the "unfix"_unfix.html command on the fix
+halt ID, so that the same condition is not immediately triggered in a
+subsequent run.
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  None of the "fix_modify"_fix_modify.html options
+are relevant to this fix.  No global or per-atom quantities are stored
+by this fix for access by various "output
+commands"_Section_howto.html#howto_15.  No parameter of this fix can
+be used with the {start/stop} keywords of the "run"_run.html command.
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:] none
+
+[Related commands:]
+
+"variable"_variable.html
+
+[Default:]
+
+The option defaults are error = hard.

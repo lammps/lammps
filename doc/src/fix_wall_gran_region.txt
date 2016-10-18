@@ -84,7 +84,7 @@ is up to you to ensure that the region location with respect to
 periodic or non-periodic boundaries is specified appropriately via the
 "region"_region.html and "boundary"_boundary.html commands when using
 a region as a wall that bounds particle motion.
- 
+
 NOTE: For primitive regions with sharp corners and/or edges (e.g. a
 block or cylinder), wall/particle forces are computed accurately for
 both interior and exterior regions.  For {union} and {intersect}
@@ -163,16 +163,20 @@ info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-Note that info about region definitions is NOT included in restart
-files.  So you must re-define your region and if it is a moving
-region, define its motion attributes in a way that is consistent with
-the simulation that wrote the restart file.  In particular, if you
-want to change its motion attributes (e.g. its velocity), then you
-should insure the postition/orientation of the region at the initial
-restart timestep is the same as it was on the timestep the restart
-file was written.  If this is not possible, then you may need to
-ignore info in the restart file by defining a new fix wall/gran/region
-command in your restart script (e.g. with a different fix ID).
+NOTE: Information about region definitions is NOT included in restart
+files, as discussed on the "read_restart"_read_restart.html doc page.
+So you must re-define your region and if it is a moving region, define
+its motion attributes in a way that is consistent with the simulation
+that wrote the restart file.  In particular, if you want to change the
+region motion attributes (e.g. its velocity), then you should ensure
+the postition/orientation of the region at the initial restart
+timestep is the same as it was on the timestep the restart file was
+written.  If this is not possible, you may need to ignore info in the
+restart file by defining a new fix wall/gran/region command in your
+restart script, e.g. with a different fix ID.  Or if you want to keep
+the shear history info but discard the region motion information, you
+can use the same fix ID for fix wall/gran/region, but assign it a
+region with a different region ID.
 
 None of the "fix_modify"_fix_modify.html options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for
@@ -190,7 +194,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "fix_move"_fix_move.html,
-"fix wall/gran"_fix_wall_gran.html, 
+"fix wall/gran"_fix_wall_gran.html,
 "fix wall/region"_fix_wall_region.html,
 "pair_style granular"_pair_gran.html,
 "region"_region.html

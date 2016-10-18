@@ -8,13 +8,15 @@ VENV          = $(BUILDDIR)/docenv
 TXT2RST       = $(VENV)/bin/txt2rst
 
 PYTHON        = $(shell which python3)
+HAS_PYTHON3    = NO
+HAS_VIRTUALENV = NO
 
-ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 1)
-$(error Python3 was not found! Please check README.md for further instructions)
+ifeq ($(shell which python3 >/dev/null 2>&1; echo $$?), 0)
+HAS_PYTHON3 = YES
 endif
 
-ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 1)
-$(error virtualenv was not found! Please check README.md for further instructions)
+ifeq ($(shell which virtualenv >/dev/null 2>&1; echo $$?), 0)
+HAS_VIRTUALENV = YES
 endif
 
 SOURCES=$(wildcard src/*.txt)
@@ -109,6 +111,8 @@ $(RSTDIR)/%.rst : src/%.txt $(TXT2RST)
 	)
 
 $(VENV):
+	@if [ "$(HAS_PYTHON3)" == "NO" ] ; then echo "Python3 was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_VIRTUALENV)" == "NO" ] ; then echo "virtualenv was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
 	@( \
 		virtualenv -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \

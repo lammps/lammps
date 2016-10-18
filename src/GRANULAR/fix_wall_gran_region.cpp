@@ -15,9 +15,9 @@
    Contributing authors: Dan Bolintineanu (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_wall_gran_region.h"
 #include "region.h"
 #include "atom.h"
@@ -85,6 +85,8 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
 FixWallGranRegion::~FixWallGranRegion()
 {
   delete [] c2r;
+  delete [] region_style;
+
   memory->destroy(ncontact);
   memory->destroy(walls);
   memory->destroy(shearmany);
@@ -101,20 +103,27 @@ void FixWallGranRegion::init()
     error->all(FLERR,"Region ID for fix wall/gran/region does not exist");
   region = domain->regions[iregion];
 
-  // region displacement and orientation theta at previous step
   // check if region properties changed between runs
+  // reset if restart info was inconsistent
 
-  if (motion_resetflag) {
-    if (comm->me == 0) {
-      char str[128];
-      sprintf(str,"Properties for region %s do not match restart file, "
-              "resetting its motion",idregion);
-      error->warning(FLERR,str);
-    }
+  if (strcmp(idregion,region->id) != 0 ||
+      strcmp(region_style,region->style) != 0 ||
+      nregion != region->nregion) {
+    char str[256];
+    sprintf(str,"Region properties for region %s changed between runs, "
+            "resetting its motion",idregion);
+    error->warning(FLERR,str);
     region->reset_vel();
-  }  
-}
+  }
 
+  if (motion_resetflag){    
+    char str[256];
+    sprintf(str,"Region properties for region %s are inconsistent "
+            "with restart file, resetting its motion",idregion);
+    error->warning(FLERR,str);
+    region->reset_vel();
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -483,19 +492,9 @@ int FixWallGranRegion::size_restart(int nlocal)
 void FixWallGranRegion::write_restart(FILE *fp)
 {
   if (comm->me) return;
-  int size_id_str = (strlen(region->id) + 1) * sizeof(char);
-  int size_style_str = (strlen(region->style) + 1) * sizeof(char);
-  int size_tot = sizeof(int) + size_id_str + 
-    sizeof(int) + size_style_str + sizeof(int) + 
-    region->size_restart*sizeof(double);
-
-  fwrite(&size_tot,sizeof(int),1,fp);
-  fwrite(&size_id_str,sizeof(int),1,fp);
-  fwrite(region->id,sizeof(char),size_id_str,fp);
-  fwrite(&size_style_str,sizeof(int),1,fp);
-  fwrite(region->style,sizeof(char),size_style_str,fp);  
-  fwrite(&region->nregion,sizeof(int),1,fp);
-
+  int len = 0;
+  region->length_restart_string(len);
+  fwrite(&len, sizeof(int),1,fp);
   region->write_restart(fp);
 }
 
@@ -505,44 +504,6 @@ void FixWallGranRegion::write_restart(FILE *fp)
 
 void FixWallGranRegion::restart(char *buf)
 {
-  int n = 0;  
-  int size_id_str = buf[n];
-  n += sizeof(int);
-  char *region_id_restart = new char[size_id_str];
-  for (int i = 0; i < size_id_str; i++){
-    region_id_restart[i] = buf[n++];  
-  }
-  
-  int size_style_str = buf[n];
-  n += sizeof(int);
-  char *region_style_restart = new char[size_style_str];
-  for (int i = 0; i < size_style_str; i++)
-    region_style_restart[i] = buf[n++];  
-  
-  int nregion_restart = buf[n];
-  n += sizeof(int);
-
-  if (check_consistent_region(region,region_id_restart,
-                              region_style_restart,nregion_restart))
-    region->restart(buf,n);
-  else motion_resetflag = 1;
-
-  delete [] region_id_restart;
-  delete [] region_style_restart;
-}
-
-
-/* ----------------------------------------------------------------------
-   check that region id/style/number of sub-regions are consistent
-------------------------------------------------------------------------- */
-
-int FixWallGranRegion::check_consistent_region(Region *region, 
-                                               char* region_id, 
-                                               char* region_style, int nregion)
-{
-  if (strcmp(region_id, region->id) != 0 ||
-      strcmp(region_style, region->style) != 0 ||
-      nregion != region->nregion)
-    return 0;       
-  return 1;
+  int n = 0;
+  if (!region->restart(buf,n)) motion_resetflag = 1;  
 }

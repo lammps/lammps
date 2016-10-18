@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   LAMMRDS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
@@ -246,12 +246,9 @@ void Finish::end(int flag)
 
   if (prdflag) {
     if (me == 0) {
-      if (screen) fprintf(screen,"\n");
-      if (logfile) fprintf(logfile,"\n");
+      if (screen) fprintf(screen,"\nPRD stats:\n");
+      if (logfile) fprintf(logfile,"\nPRD stats:\n");
     }
-
-    if (screen) fprintf(screen,"PRD stats:\n");
-    if (logfile) fprintf(logfile,"PRD stats:\n");
 
     time = timer->get_wall(Timer::DEPHASE);
     MPI_Allreduce(&time,&tmp,1,MPI_DOUBLE,MPI_SUM,world);

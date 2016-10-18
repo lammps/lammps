@@ -49,6 +49,10 @@ variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the target temperature.
 
+NOTE: This thermostat will generate an error if the current
+temperature is zero at the end of a timestep.  It cannot rescale a
+zero temperature.
+
 Equal-style variables can specify formulas with various mathematical
 functions, and include "thermo_style"_thermo_style.html command
 keywords for the simulation box parameters and timestep and elapsed

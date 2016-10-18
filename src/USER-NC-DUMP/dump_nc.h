@@ -32,6 +32,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+#if defined(LMP_HAS_NETCDF)
 
 #ifdef DUMP_CLASS
 
@@ -139,3 +140,4 @@ class DumpNC : public DumpCustom {
 
 #endif
 #endif
+#endif /* defined(LMP_HAS_NETCDF) */

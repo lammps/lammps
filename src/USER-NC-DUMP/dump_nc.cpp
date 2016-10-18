@@ -32,6 +32,7 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+#if defined(LMP_HAS_NETCDF)
 
 #include <unistd.h>
 #include <stdlib.h>
@@ -1142,3 +1143,5 @@ void DumpNC::compute_elapsed_long(void *r)
 {
   *((bigint *) r) = update->ntimestep - update->beginstep;
 }
+
+#endif /* defined(LMP_HAS_NETCDF) */

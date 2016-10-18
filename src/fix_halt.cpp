@@ -11,16 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "fix_halt.h"
 #include "update.h"
 #include "force.h"
+#include "update.h"
 #include "input.h"
+#include "variable.h"
+#include "atom.h"
+#include "neighbor.h"
 #include "modify.h"
 #include "comm.h"
 #include "timer.h"
-#include "variable.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -28,7 +32,7 @@ using namespace FixConst;
 
 enum{BONDMAX,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
-enum{SOFT,HARD};
+enum{HARD,SOFT,CONTINUE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -74,8 +78,9 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"error") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
-      if (strcmp(arg[iarg+1],"soft") == 0) eflag = SOFT;
-      else if (strcmp(arg[iarg+1],"hard") == 0) eflag = HARD;
+      if (strcmp(arg[iarg+1],"hard") == 0) eflag = HARD;
+      else if (strcmp(arg[iarg+1],"soft") == 0) eflag = SOFT;
+      else if (strcmp(arg[iarg+1],"continue") == 0) eflag = CONTINUE;
       else error->all(FLERR,"Illegal fix halt command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix halt command");
@@ -113,19 +118,18 @@ void FixHalt::init()
 {
   // set ivar from current variable list
 
-  ivar = input->variable->find(idvar);
-  if (ivar < 0) error->all(FLERR,"Could not find fix halt variable name");
-  if (input->variable->equalstyle(ivar) == 0)
-    error->all(FLERR,"Fix halt variable is not equal-style variable");
+  if (attribute == VARIABLE) {
+    ivar = input->variable->find(idvar);
+    if (ivar < 0) error->all(FLERR,"Could not find fix halt variable name");
+    if (input->variable->equalstyle(ivar) == 0)
+      error->all(FLERR,"Fix halt variable is not equal-style variable");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixHalt::end_of_step()
 {
-  // make a copy of string to work on
-  // substitute for $ variables (no printing)
-  // append a newline and print final copy
   // variable evaluation may invoke computes so wrap with clear/add
 
   double attvalue;
@@ -157,21 +161,53 @@ void FixHalt::end_of_step()
   }
 
   // hard halt -> exit LAMMPS
-  // also print ID of fix halt in case multiple ?
+  // soft halt -> trigger timer to break from run loop
+  // continue halt -> trigger time to exit only this run loop
+  // print message with ID of fix halt in case multiple instances
 
-  if (eflag == HARD) error->all(FLERR,"Fix halt condition triggered");
-  else { // eflag == SOFT
-    if (comm->me == 0) error->message(FLERR,"Fix halt condition triggered");
+  char str[128];
+  sprintf(str,"Fix halt %s condition met on step %ld with value %g",
+          id,update->ntimestep,attvalue);
+
+  if (eflag == HARD) error->all(FLERR,str);
+  else if (eflag == SOFT) {
+    if (comm->me == 0) error->message(FLERR,str);
     timer->force_timeout();
+  } else if (eflag == CONTINUE) {
+    // exit this run, but not subsequent ones
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   compute max length of any bond using Neighbor bondlist for each proc
+------------------------------------------------------------------------- */
 
 double FixHalt::bondmax()
 {
-  // could add custom keyword methods
-  // e.g. one to compute max bond length, with no sqrt()
+  double **x = atom->x;
+  double **f = atom->f;
+  int **bondlist = neighbor->bondlist;
+  int nbondlist = neighbor->nbondlist;
+  int nlocal = atom->nlocal;
 
-  return 0.0;
+  int i1,i2;
+  double delx,dely,delz,rsq;
+  double maxone = 0.0;
+
+  for (int n = 0; n < nbondlist; n++) {
+    i1 = bondlist[n][0];
+    i2 = bondlist[n][1];
+
+    delx = x[i1][0] - x[i2][0];
+    dely = x[i1][1] - x[i2][1];
+    delz = x[i1][2] - x[i2][2];
+
+    rsq = delx*delx + dely*dely + delz*delz;
+    maxone = MAX(rsq,maxone);
+  }
+
+  double maxall;
+  MPI_Allreduce(&maxone,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
+
+  return sqrt(maxall);
 }

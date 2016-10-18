@@ -182,7 +182,7 @@ void FixHalt::end_of_step()
 
 void FixHalt::post_run()
 {
-  // continue halt -> subsequent runs are allowd
+  // continue halt -> subsequent runs are allowed
 
   if (eflag == CONTINUE) timer->reset_timeout();
 }

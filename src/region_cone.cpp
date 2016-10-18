@@ -174,34 +174,31 @@ int RegCone::inside(double x, double y, double z)
 {
   double del1,del2,dist;
   double currentradius;
-  int inside;
 
   if (axis == 'x') {
     del1 = y - c1;
     del2 = z - c2;
     dist = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x-lo)*(radiushi-radiuslo)/(hi-lo);
-    if (dist <= currentradius && x >= lo && x <= hi) inside = 1;
-    else inside = 0;
-  }
-  if (axis == 'y') {
+    if (dist <= currentradius && x >= lo && x <= hi) return 1;
+    else return 0;
+  } else if (axis == 'y') {
     del1 = x - c1;
     del2 = z - c2;
     dist = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (y-lo)*(radiushi-radiuslo)/(hi-lo);
-    if (dist <= currentradius && y >= lo && y <= hi) inside = 1;
-    else inside = 0;
-  }
-  if (axis == 'z') {
+    if (dist <= currentradius && y >= lo && y <= hi) return 1;
+    else return 0;
+  } else if (axis == 'z') {
     del1 = x - c1;
     del2 = y - c2;
     dist = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (z-lo)*(radiushi-radiuslo)/(hi-lo);
-    if (dist <= currentradius && z >= lo && z <= hi) inside = 1;
-    else inside = 0;
+    if (dist <= currentradius && z >= lo && z <= hi) return 1;
+    else return 0;
   }
 
-  return inside;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -414,7 +411,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     // radius of curvature, only used for granular walls
 
-    double crad = 0.0; 
+    crad = 0.0;
 
     // x is far enough from cone that there is no contact
     // x is interior to cone
@@ -478,6 +475,10 @@ int RegCone::surface_exterior(double *x, double cutoff)
     r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[1]-lo)*(radiushi-radiuslo)/(hi-lo);
 
+    // radius of curvature, only used for granular walls
+
+    crad = 0.0;
+
     // y is far enough from cone that there is no contact
     // y is interior to cone
 
@@ -538,6 +539,10 @@ int RegCone::surface_exterior(double *x, double cutoff)
     del2 = x[1] - c2;
     r = sqrt(del1*del1 + del2*del2);
     currentradius = radiuslo + (x[2]-lo)*(radiushi-radiuslo)/(hi-lo);
+
+    // radius of curvature, only used for granular walls
+
+    crad = 0.0;
 
     // z is far enough from cone that there is no contact
     // z is interior to cone

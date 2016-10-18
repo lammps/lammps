@@ -1918,7 +1918,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       field2index[nfield+nthresh] = add_custom(suffix,0);
       delete [] suffix;
 
-    } else error->all(FLERR,"Invalid dump_modify threshold operator");
+    } else error->all(FLERR,"Invalid dump_modify thresh attribute");
 
     // set operation type of threshold
 
@@ -1929,7 +1929,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[2],"==") == 0) thresh_op[nthresh] = EQ;
     else if (strcmp(arg[2],"!=") == 0) thresh_op[nthresh] = NEQ;
     else if (strcmp(arg[2],"|^") == 0) thresh_op[nthresh] = XOR;
-    else error->all(FLERR,"Invalid dump_modify threshold operator");
+    else error->all(FLERR,"Invalid dump_modify thresh operator");
 
     // set threshold value as number or special LAST keyword
     // create FixStore to hold LAST values, should work with restart

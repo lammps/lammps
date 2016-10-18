@@ -573,6 +573,7 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "gcmc"_fix_gcmc.html,
 "gld"_fix_gld.html,
 "gravity (o)"_fix_gravity.html,
+"halt"_fix_halt.html,
 "heat"_fix_heat.html,
 "indent"_fix_indent.html,
 "langevin (k)"_fix_langevin.html,

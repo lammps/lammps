@@ -103,6 +103,11 @@ the line search fails because the step distance backtracks to 0.0
 the number of outer iterations or timesteps exceeds {maxiter}
 the number of total force evaluations exceeds {maxeval} :ul
 
+NOTE: You can also use the "fix halt"_fix_halt.html command to specify
+a general criterion for exiting a minimization, that is a calculation
+performed on the state of the current system, as defined by an
+"equal-style variable"_variable.html.
+
 For the first criterion, the specified energy tolerance {etol} is
 unitless; it is met when the energy change between successive
 iterations divided by the energy magnitude is less than or equal to

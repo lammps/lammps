@@ -1854,13 +1854,19 @@ internal LAMMPS operations.  Note that LAMMPS classes are defined
 within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
 application.
 
-Library.cpp contains these 5 basic functions:
+Library.cpp contains these functions for creating and destroying an
+instance of LAMMPS and sending it commands to execute.  See the
+documentation in the src/library.cpp file for details:
 
 void lammps_open(int, char **, MPI_Comm, void **)
+void lammps_open_no_mpi(int, char **, void **)
 void lammps_close(void *)
 int lammps_version(void *)
 void lammps_file(void *, char *)
-char *lammps_command(void *, char *) :pre
+char *lammps_command(void *, char *)
+char *lammps_commands_list(void *, int, char **)
+char *lammps_commands_concatenated(void *, char *)
+void lammps_free(void *) :pre
 
 The lammps_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were "command-line
@@ -1880,6 +1886,10 @@ half to the other code and run both codes simultaneously before
 syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
 
+The lammps_open_no_mpi() function is similar except that no MPI
+communicator is passed from the caller.  Instead, MPI_COMM_WORLD is
+used to instantiate LAMMPS, and MPI is initialzed if necessary.
+
 The lammps_close() function is used to shut down an instance of LAMMPS
 and free all its memory.
 
@@ -1891,16 +1901,33 @@ changes to the LAMMPS command syntax between versions. The returned
 LAMMPS version code is an integer (e.g. 2 Sep 2015 results in
 20150902) that grows with every new LAMMPS version.
 
-The lammps_file() and lammps_command() functions are used to pass a
-file or string to LAMMPS as if it were an input script or single
-command in an input script.  Thus the calling code can read or
-generate a series of LAMMPS commands one line at a time and pass it
-thru the library interface to setup a problem and then run it,
-interleaving the lammps_command() calls with other calls to extract
-information from LAMMPS, perform its own operations, or call another
+The lammps_file(), lammps_command(), lammps_commands_list(),
+lammps_commands_concatenated() functions are used to pass one or more
+commands to LAMMPS to execute as if they were coming from an input
+script.
+
+The lammps_file() function passes the filename of an input script.
+The lammps_command() function passes a single command as a string.
+The lammps_commands_multiple() function passes multiple commands in a
+char** list.  The lammps_commands_concatentaed() function passes
+multiple commands concatenated into one long string, separated by
+newline characters.  A single command can be spread across multiple
+lines, if the last printable character of all but the last line is
+"&", the same as if the lines appeared in an input script.
+
+Via these library functions, the calling code can read or generate a
+series of LAMMPS commands one or multiple at a time and pass it thru
+the library interface to setup a problem and then run it, interleaving
+the command function calls with operations performed within the
+faller, calls to extract information from LAMMPS, or calls to another
 code's library.
 
-Other useful functions are also included in library.cpp.  For example:
+The lammps_free() is a clean-up function to free memory that the library
+allocated previously.
+
+Library.cpp also contains these functions for extracting information
+from LAMMPS and setting value within LAMMPS.  Again, see the
+documentation in the src/library.cpp file for details:
 
 void *lammps_extract_global(void *, char *)
 void *lammps_extract_atom(void *, char *)
@@ -1908,27 +1935,37 @@ void *lammps_extract_compute(void *, char *, int, int)
 void *lammps_extract_fix(void *, char *, int, int, int, int)
 void *lammps_extract_variable(void *, char *, char *)
 int lammps_set_variable(void *, char *, char *)
+double lammps_get_thermo(void *, char *)
 int lammps_get_natoms(void *)
-void lammps_get_coords(void *, double *)
-void lammps_put_coords(void *, double *) :pre
+void lammps_gather_atoms(void *, double *)
+void lammps_scatter_atoms(void *, double *) :pre
 
-These can extract various global or per-atom quantities from LAMMPS as
-well as values calculated by a compute, fix, or variable.  The
-"set_variable" function can set an existing string-style variable to a
-new value, so that subsequent LAMMPS commands can access the variable.
-The "get" and "put" operations can retrieve and reset atom
-coordinates.  See the library.cpp file and its associated header file
-library.h for details.
+These functions can extract various global or per-atom quantities from
+LAMMPS as well as values calculated by a compute, fix, or variable.
+The lammps_set_variable() function can set an existing string-style variable
+to a new value, so that subsequent LAMMPS commands can access the
+variable.  The lammps_get_thermo() function returns the current
+value of a thermo keyword.
 
-The key idea of the library interface is that you can write any
-functions you wish to define how your code talks to LAMMPS and add
-them to src/library.cpp and src/library.h, as well as to the "Python
+The lammps_get_natoms() function returns the total number of atoms in
+the system and can be used by the caller to allocate space for the
+lammps_gather_atoms() and lammps_scatter_atoms() functions.  The
+gather function collects atom info of the requested type (atom coords,
+types, forces, etc) from all procsesors, orders them by atom ID, and
+returns a full list to each calling processor.  The scatter function
+does the inverse.  It distributes the same kinds of values, 
+passed by the caller, to each atom owned by individual processors.
+
+The examples/COUPLE and python directories have example C++ and C and
+Python codes which show how a driver code can link to LAMMPS as a
+library, run LAMMPS on a subset of processors, grab data from LAMMPS,
+change it, and put it back into LAMMPS.
+
+NOTE: You can write your own additional functions as needed to define
+how your code talks to LAMMPS and add them to src/library.cpp and
+src/library.h, as well as to the "Python
 interface"_Section_python.html.  The routines you add can access or
-change any LAMMPS data you wish.  The examples/COUPLE and python
-directories have example C++ and C and Python codes which show how a
-driver code can link to LAMMPS as a library, run LAMMPS on a subset of
-processors, grab data from LAMMPS, change it, and put it back into
-LAMMPS.
+change any LAMMPS data you wish.
 
 :line
 

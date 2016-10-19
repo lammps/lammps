@@ -39,6 +39,8 @@ class Info : protected Pointers {
   bool has_ffmpeg_support() const;
   bool has_exceptions() const;
 
+  char **get_variable_names(int &num);
+
 private:
   void available_styles(FILE * out, int flags);
 

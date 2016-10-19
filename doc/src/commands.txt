@@ -37,6 +37,7 @@ Commands :h1
    dump_image
    dump_modify
    dump_molfile
+   dump_nc
    echo
    fix
    fix_modify

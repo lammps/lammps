@@ -194,10 +194,8 @@ void FixHalt::post_run()
 double FixHalt::bondmax()
 {
   double **x = atom->x;
-  double **f = atom->f;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
-  int nlocal = atom->nlocal;
 
   int i1,i2;
   double delx,dely,delz,rsq;

@@ -517,7 +517,6 @@ void Region::set_velocity()
 
 void Region::velocity_contact(double *vwall, double *x, int ic)
 {
-  Contact c = contact[ic];
   double xc[3];
 
   vwall[0] = vwall[1] = vwall[2] = 0.0;

@@ -232,8 +232,8 @@ void Neighbor::skip_from_granular(NeighList *list)
 {
   int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
   tagint jtag;
-  int *neighptr,*jlist,*touchptr,*touchptr_skip;
-  double *shearptr,*shearptr_skip;
+  int *neighptr,*jlist,*touchptr;
+  double *shearptr;
 
   NeighList *listgranhistory;
   int *npartner;
@@ -364,8 +364,8 @@ void Neighbor::skip_from_granular_off2on(NeighList *list)
 {
   int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,dnum,dnumbytes;
   tagint itag,jtag;
-  int *neighptr,*jlist,*touchptr,*touchptr_skip;
-  double *shearptr,*shearptr_skip;
+  int *neighptr,*jlist,*touchptr;
+  double *shearptr;
 
   NeighList *listgranhistory;
   int *npartner;
@@ -502,8 +502,8 @@ void Neighbor::skip_from_granular_off2on(NeighList *list)
 void Neighbor::skip_from_granular_off2on_onesided(NeighList *list)
 {
   int i,j,ii,jj,m,n,nn,itype,jnum,joriginal,flip,dnum,dnumbytes,tmp;
-  tagint itag,jtag;
-  int *surf,*neighptr,*jlist;
+  tagint jtag;
+  int *surf,*jlist;
 
   NeighList *listgranhistory;
   int *npartner;
@@ -571,7 +571,6 @@ void Neighbor::skip_from_granular_off2on_onesided(NeighList *list)
     i = ilist_skip[ii];
     itype = type[i];
     if (iskip[itype]) continue;
-    itag = tag[i];
 
     n = 0;
 
@@ -625,7 +624,6 @@ void Neighbor::skip_from_granular_off2on_onesided(NeighList *list)
     i = ilist_skip[ii];
     itype = type[i];
     if (iskip[itype]) continue;
-    itag = tag[i];
 
     // loop over parent non-skip granular list and optionally its history info
 

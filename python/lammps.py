@@ -14,15 +14,18 @@
 # Python wrappers on LAMMPS library via ctypes
 
 # for python3 compatibility
+
 from __future__ import print_function
 
 # imports for simple LAMMPS python wrapper module "lammps"
+
 import sys,traceback,types
 from ctypes import *
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
 
 # imports for advanced LAMMPS python wrapper modules "PyLammps" and "IPyLammps"
+
 from collections import namedtuple
 import os
 import select
@@ -38,6 +41,7 @@ class MPIAbortException(Exception):
 
 
 class lammps(object):
+  
   # detect if Python is using version of mpi4py that can pass a communicator
 
   has_mpi4py_v2 = False
@@ -60,23 +64,27 @@ class lammps(object):
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     self.lib = None
 
-    # if a pointer to a LAMMPS object is handed in, all symbols should already be available.
+    # if a pointer to a LAMMPS object is handed in,
+    # all symbols should already be available
+    
     try:
       if ptr: self.lib = CDLL("",RTLD_GLOBAL)
     except:
       self.lib = None
 
-    # load liblammps.so unless name is given.
-    # e.g. if name = "g++", load liblammps_g++.so
+    # load liblammps.so unless name is given
+    #   if name = "g++", load liblammps_g++.so
     # try loading the LAMMPS shared object from the location
-    # of lammps.py with an absolute path (so that LD_LIBRARY_PATH
-    # does not need to be set for regular installations.
-    # fall back to loading with a relative path, which typically
-    # requires LD_LIBRARY_PATH to be set appropriately.
+    #   of lammps.py with an absolute path,
+    #   so that LD_LIBRARY_PATH does not need to be set for regular install
+    # fall back to loading with a relative path,
+    #   typically requires LD_LIBRARY_PATH to be set appropriately
+      
     if not self.lib:
       try:
         if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
-        else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
+        else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),
+                              RTLD_GLOBAL)
       except:
         if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
         else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
@@ -91,6 +99,7 @@ class lammps(object):
     #   just convert it to ctypes ptr and store in self.lmp
 
     if not ptr:
+      
       # with mpi4py v2, can pass MPI communicator to LAMMPS
       # need to adjust for type of MPI communicator object
       # allow for int (like MPICH) or void* (like OpenMPI)

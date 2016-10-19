@@ -578,7 +578,7 @@ void PairTable::param_extract(Table *tb, char *line)
       tb->rlo = atof(word);
       word = strtok(NULL," \t\n\r\f");
       tb->rhi = atof(word);
-    } else if (strncmp(word,"FP",2) == 0) {
+    } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
       word = strtok(NULL," \t\n\r\f");
       tb->fplo = atof(word);

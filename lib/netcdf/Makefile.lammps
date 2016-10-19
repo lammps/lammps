@@ -12,8 +12,8 @@ netcdf_SYSLIB += $(shell nc-config --libs)
 endif
 
 ifneq ($(shell which ncmpidump 2>> /dev/null),)
-PNETCDF_PATH = ($shell which ncmpidump | sed -e 's,bin/ncmpidump,,')
-netcdf_SYSINC = -DLMP_HAS_PNETCDF -I$(PNETCDF_PATH)/include
-netcdf_SYSLIB = -lpnetcdf
-netcdf_SYSPATH = -L$(PNETCDF_PATH)/lib
+PNETCDF_PATH = $(shell which ncmpidump | sed -e 's,bin/ncmpidump,,')
+netcdf_SYSINC += -DLMP_HAS_PNETCDF -I$(PNETCDF_PATH)/include
+netcdf_SYSLIB += -lpnetcdf
+netcdf_SYSPATH += -L$(PNETCDF_PATH)/lib
 endif

@@ -1079,3 +1079,10 @@ bool Info::has_exceptions() const {
   return false;
 #endif
 }
+
+/* ---------------------------------------------------------------------- */
+
+char **Info::get_variable_names(int &num) {
+    num = input->variable->nvar;
+    return input->variable->names;
+}

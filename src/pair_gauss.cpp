@@ -34,10 +34,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairGauss::PairGauss(LAMMPS *lmp) :Pair(lmp)
+PairGauss::PairGauss(LAMMPS *lmp) : Pair(lmp)
 {
   nextra = 1;
   pvector = new double[1];
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -187,7 +188,7 @@ void PairGauss::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo, ihi, jlo, jhi;
+  int ilo,ihi,jlo,jhi;
   force->bounds(arg[0],atom->ntypes,ilo,ihi);
   force->bounds(arg[1],atom->ntypes,jlo,jhi);
 
@@ -204,7 +205,7 @@ void PairGauss::coeff(int narg, char **arg)
       b[i][j] = b_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
-      count++ ;
+      count++;
     }
   }
 
@@ -217,12 +218,27 @@ void PairGauss::coeff(int narg, char **arg)
 
 double PairGauss::init_one(int i, int j)
 {
+  if (setflag[i][j] == 0) {
+    double sign_bi = (b[i][i] >= 0.0) ? 1.0 : -1.0;
+    double sign_bj = (b[j][j] >= 0.0) ? 1.0 : -1.0;
+    double si = sqrt(0.5/fabs(b[i][i]));
+    double sj = sqrt(0.5/fabs(b[j][j]));
+    double sij = mix_distance(si, sj);
+    b[i][j] = 0.5 / (sij*sij);
+    b[i][j] *= MAX(sign_bi, sign_bj);
 
-  // This error is triggered when ti is performed on lj/cut tail
-  // in presence of extra atom type for tether sites
-  // "i = 2 j = 1 ERROR: All pair coeffs are not set (pair_gauss.cpp:223)"
-  //  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+    // Negative "a" values are useful for simulating repulsive particles.
+    // If either of the particles is repulsive (a<0), then the
+    // interaction between both is repulsive.
+    double sign_ai = (a[i][i] >= 0.0) ? 1.0 : -1.0;
+    double sign_aj = (a[j][j] >= 0.0) ? 1.0 : -1.0;
+    a[i][j] = mix_energy(fabs(a[i][i]), fabs(a[j][j]), si, sj);
+    a[i][j] *= MIN(sign_ai, sign_aj);
 
+    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+  }
+
+  // cutoff correction to energy
   if (offset_flag) offset[i][j] = a[i][j]*exp(-b[i][j]*cut[i][j]*cut[i][j]);
   else offset[i][j] = 0.0;
 
@@ -260,7 +276,6 @@ void PairGauss::write_restart(FILE *fp)
 void PairGauss::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
-
   allocate();
 
   int i,j;
@@ -307,6 +322,27 @@ void PairGauss::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairGauss::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,a[i][i],b[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairGauss::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g\n",i,j,a[i][j],b[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

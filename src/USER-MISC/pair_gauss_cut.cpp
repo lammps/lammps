@@ -39,6 +39,7 @@ using namespace MathConst;
 PairGaussCut::PairGaussCut(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 0;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -96,7 +97,6 @@ void PairGaussCut::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-
       factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
@@ -221,7 +221,21 @@ void PairGaussCut::coeff(int narg, char **arg)
 
 double PairGaussCut::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  if (setflag[i][j] == 0) {
+    hgauss[i][j] = mix_energy(fabs(hgauss[i][i]), fabs(hgauss[j][j]),
+			      fabs(sigmah[i][i]), fabs(sigmah[j][j]));
+
+    // If either of the particles is repulsive (ie, if hgauss > 0),
+    // then the interaction between both is repulsive.
+    double sign_hi = (hgauss[i][i] >= 0.0) ? 1.0 : -1.0;
+    double sign_hj = (hgauss[j][j] >= 0.0) ? 1.0 : -1.0;
+    hgauss[i][j] *= MAX(sign_hi, sign_hj);
+
+    sigmah[i][j] = mix_distance(sigmah[i][i], sigmah[j][j]);
+    rmh[i][j] = mix_distance(rmh[i][i], rmh[j][j]);
+    cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
+  }
+
   pgauss[i][j] = hgauss[i][j] / sqrt(MY_2PI) / sigmah[i][j];
 
   if (offset_flag) {
@@ -332,6 +346,27 @@ void PairGaussCut::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairGaussCut::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g %g\n",i,hgauss[i][i],rmh[i][i],sigmah[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairGaussCut::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",i,j,hgauss[i][j],rmh[i][j],sigmah[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

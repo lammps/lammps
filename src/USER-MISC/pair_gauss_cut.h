@@ -42,6 +42,8 @@ class PairGaussCut : public Pair {
   virtual void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
   virtual void read_restart_settings(FILE *);
+  virtual void write_data(FILE *fp);
+  virtual void write_data_all(FILE *fp);
 
   virtual double memory_usage();
 

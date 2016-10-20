@@ -119,7 +119,7 @@ of walls (whether moving or stationary) will affect the volume
 fraction available to colloidal particles. This is currently accounted
 for with the following types of walls: "wall/lj93"_fix_wall.html,
 "wall/lj126"_fix_wall.html, "wall/colloid"_fix_wall.html, and
-"wall/harmonic_fix_wall.html".  For these wall styles, the correct
+"wall/harmonic"_fix_wall.html.  For these wall styles, the correct
 volume fraction will be used when walls do not coincide with the box
 boundary, as well as when walls move and thereby cause a change in the
 volume fraction. To use these wall styles with pair_style {lubricateU}

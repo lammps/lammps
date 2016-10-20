@@ -431,8 +431,8 @@ Atoms # sphere
 Pair Coeffs # lj/cut :pre
 
 will check if the currently-defined "atom_style"_atom_style.html is
-{sphere}, and the current "pair_style"_pair_style is {lj/cut}.  If
-not, LAMMPS will issue a warning to indicate that the data file
+{sphere}, and the current "pair_style"_pair_style.html is {lj/cut}.
+If not, LAMMPS will issue a warning to indicate that the data file
 section likely does not contain the correct number or type of
 parameters expected for the currently-defined style.
 

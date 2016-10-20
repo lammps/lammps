@@ -104,7 +104,7 @@ the Nose-Hoover thermostat ("fix nvt"_fix_nh.html) is {NOT}
 recommended due to its well documented issues with the canonical
 sampling of harmonic degrees of freedom (notice that the {chain}
 option will {NOT} solve this problem). The Langevin thermostat ("fix
-langevin"_fix_langevin.html") correctly thermostats the system and we
+langevin"_fix_langevin.html) correctly thermostats the system and we
 advise its usage with ti/spring command.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]

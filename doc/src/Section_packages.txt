@@ -1153,6 +1153,7 @@ Package, Description, Author(s), Doc page, Example, Pic/movie, Library
 "USER-MISC"_#USER-MISC, single-file contributions, USER-MISC/README, USER-MISC/README, -, -, -
 "USER-MANIFOLD"_#USER-MANIFOLD, motion on 2d surface, Stefan Paquay (Eindhoven U of Technology), "fix manifoldforce"_fix_manifoldforce.html, USER/manifold, "manifold"_manifold, -
 "USER-MOLFILE"_#USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfile"_dump_molfile.html, -, -, VMD-MOLFILE
+"USER-NC-DUMP"_#USER-NC-DUMP, dump output via NetCDF, Lars Pastewka (Karlsruhe Institute of Technology, KIT), "dump nc, dump nc/mpiio"_dump_nc.html, -, -, lib/netcdf
 "USER-OMP"_#USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section 5.3.4"_accelerate_omp.html, -, -, -
 "USER-PHONON"_#USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
 "USER-QMMM"_#USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
@@ -1595,6 +1596,29 @@ See this doc page to get started:
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
+
+:line
+
+USER-NC-DUMP package :link(USER-NC-DUMP),h5
+
+Contents: Dump styles for writing NetCDF format files.  NetCDF is a binary,
+portable, self-describing file format on top of HDF5. The file format
+contents follow the AMBER NetCDF trajectory conventions
+(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions to this
+convention. This package implements a "dump nc"_dump_nc.html command
+and a "dump nc/mpiio"_dump_nc.html command to output LAMMPS snapshots
+in this format.  See src/USER-NC-DUMP/README for more details.
+
+NetCDF files can be directly visualized with the following tools:
+Ovito (http://www.ovito.org/). Ovito supports the AMBER convention
+  and all of the above extensions. :ulb,l
+VMD (http://www.ks.uiuc.edu/Research/vmd/) :l
+AtomEye (http://www.libatoms.org/). The libAtoms version of AtomEye contains
+  a NetCDF reader that is not present in the standard distribution of AtomEye :l,ule
+
+The person who created these files is Lars Pastewka at
+Karlsruhe Institute of Technology (lars.pastewka at kit.edu).
+Contact him directly if you have questions.
 
 :line
 

@@ -22,7 +22,7 @@ endif
 SOURCES=$(wildcard src/*.txt)
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean epub html pdf old venv
+.PHONY: help clean-all clean html pdf old venv
 
 # ------------------------------------------
 
@@ -32,7 +32,6 @@ help:
 	@echo "  pdf        create Manual.pdf and Developer.pdf in this dir"
 	@echo "  old        create old-style HTML doc pages in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
-	@echo "  epub       create ePUB file with manual in this dir"
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
@@ -63,17 +62,6 @@ html: $(OBJECTS)
 	@rm -rf html/USER/*/.[sg]*
 	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
-
-epub: $(OBJECTS)
-	@(\
-		. $(VENV)/bin/activate ;\
-		cp -r src/* $(RSTDIR)/ ;\
-		sphinx-build -j 8 -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
-		deactivate ;\
-	)
-	@mv -f epub/LAMMPS.epub .
-	@rm -rf epub
-	@echo "Build finished. The ePUB file LAMMPS.epub is created/updated."
 
 pdf: utils/txt2html/txt2html.exe
 	@(\

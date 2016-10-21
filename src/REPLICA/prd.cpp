@@ -795,7 +795,7 @@ void PRD::replicate(int ireplica)
 
   if (cmode == SINGLE_PROC_DIRECT) {
     MPI_Bcast(atom->x[0],3*atom->nlocal,MPI_DOUBLE,ireplica,comm_replica);
-    MPI_Bcast(atom->image,atom->nlocal,MPI_INT,ireplica,comm_replica);
+    MPI_Bcast(atom->image,atom->nlocal,MPI_LMP_IMAGEINT,ireplica,comm_replica);
     return;
   }
 
@@ -815,9 +815,9 @@ void PRD::replicate(int ireplica)
       memcpy(imageall,image,nlocal*sizeof(imageint));
     }
 
-    MPI_Bcast(tagall,natoms,MPI_INT,ireplica,comm_replica);
+    MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,ireplica,comm_replica);
     MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
-    MPI_Bcast(imageall,natoms,MPI_INT,ireplica,comm_replica);
+    MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,ireplica,comm_replica);
 
     for (i = 0; i < nlocal; i++) {
       m = atom->map(tagall[i]);
@@ -844,8 +844,8 @@ void PRD::replicate(int ireplica)
       displacements[i+1] = displacements[i] + counts[i];
     MPI_Gatherv(atom->tag,atom->nlocal,MPI_LMP_TAGINT,
                 tagall,counts,displacements,MPI_LMP_TAGINT,0,world);
-    MPI_Gatherv(atom->image,atom->nlocal,MPI_LMP_TAGINT,
-                imageall,counts,displacements,MPI_LMP_TAGINT,0,world);
+    MPI_Gatherv(atom->image,atom->nlocal,MPI_LMP_IMAGEINT,
+                imageall,counts,displacements,MPI_LMP_IMAGEINT,0,world);
     for (i = 0; i < nprocs; i++) counts[i] *= 3;
     for (i = 0; i < nprocs-1; i++)
       displacements[i+1] = displacements[i] + counts[i];
@@ -854,13 +854,13 @@ void PRD::replicate(int ireplica)
   }
   
   if (me == 0) {
-    MPI_Bcast(tagall,natoms,MPI_INT,ireplica,comm_replica);
-    MPI_Bcast(imageall,natoms,MPI_INT,ireplica,comm_replica);
+    MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,ireplica,comm_replica);
+    MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,ireplica,comm_replica);
     MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
   }
   
-  MPI_Bcast(tagall,natoms,MPI_INT,0,world);
-  MPI_Bcast(imageall,natoms,MPI_INT,0,world);
+  MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,0,world);
+  MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,0,world);
   MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,0,world);
   
   double **x = atom->x;

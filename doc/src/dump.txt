@@ -12,6 +12,7 @@ dump command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
 "dump molfile"_dump_molfile.html command :h3
+"dump nc"_dump_nc.html command :h3
 
 [Syntax:]
 
@@ -43,7 +44,9 @@ args = list of arguments for a particular style :l
 
   {movie} args = discussed on "dump image"_dump_image.html doc page :pre
 
-  {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page :pre
+  {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page
+
+  {nc} args = discussed on "dump nc"_dump_nc.html doc page :pre
 
   {local} args = list of local attributes
     possible attributes = index, c_ID, c_ID\[I\], f_ID, f_ID\[I\]

@@ -148,7 +148,7 @@ int ComputeBondLocal::compute_bonds(int flag)
   double vvib,vrotsq;
   double inertia,omegasq;
   double mvv2e;
-  double engpot,engtrans,engvib,engrot,engtot,fbond;
+  double engpot,engtrans,engvib,engrot,fbond;
   double *ptr;
 
   double **x = atom->x;

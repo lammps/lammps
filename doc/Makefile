@@ -22,7 +22,7 @@ endif
 SOURCES=$(wildcard src/*.txt)
 OBJECTS=$(SOURCES:src/%.txt=$(RSTDIR)/%.rst)
 
-.PHONY: help clean-all clean ebook html pdf old venv
+.PHONY: help clean-all clean epub html pdf old venv
 
 # ------------------------------------------
 
@@ -32,7 +32,7 @@ help:
 	@echo "  pdf        create Manual.pdf and Developer.pdf in this dir"
 	@echo "  old        create old-style HTML doc pages in old dir"
 	@echo "  fetch      fetch HTML and PDF files from LAMMPS web site"
-	@echo "  ebook      create ePUB/mobi file with manual in this dir"
+	@echo "  epub       create ePUB format manual for e-book readers"
 	@echo "  clean      remove all intermediate RST files"
 	@echo "  clean-all  reset the entire build environment"
 	@echo "  txt2html   build txt2html tool"
@@ -64,8 +64,9 @@ html: $(OBJECTS)
 	@rm -rf html/USER/*/*.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
-ebook: $(OBJECTS)
+epub: $(OBJECTS)
 	@mkdir -p epub
+	@rm -f LAMMPS.epub
 	@cp src/JPG/lammps-logo.png epub/
 	@(\
 		. $(VENV)/bin/activate ;\
@@ -73,10 +74,9 @@ ebook: $(OBJECTS)
 		sphinx-build -j 8 -b epub -c utils/sphinx-config -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		deactivate ;\
 	)
-	@-(cd epub; ebook-convert LAMMPS.epub LAMMPS.mobi )
-	@-mv -f epub/LAMMPS.epub epub/LAMMPS.mobi .
+	@mv  epub/LAMMPS.epub .
 	@rm -rf epub
-	@echo "Build finished. The ebook file(s) is/are created."
+	@echo "Build finished. The ePUB manual file is created."
 
 pdf: utils/txt2html/txt2html.exe
 	@(\

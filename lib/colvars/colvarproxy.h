@@ -80,7 +80,7 @@ public:
   /// configuration)
   std::string input_prefix_str, output_prefix_str, restart_output_prefix_str;
 
-  inline std::string input_prefix()
+  inline std::string & input_prefix()
   {
     return input_prefix_str;
   }

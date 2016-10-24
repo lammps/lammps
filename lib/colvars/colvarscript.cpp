@@ -155,7 +155,7 @@ int colvarscript::run(int argc, char const *argv[]) {
       result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
-    proxy->input_prefix_str = argv[2];
+    proxy->input_prefix() = argv[2];
     if (colvars->setup_input() == COLVARS_OK) {
       return COLVARS_OK;
     } else {

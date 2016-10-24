@@ -84,15 +84,12 @@ cvm::atom_group *colvar::cvc::parse_group(std::string const &conf,
       if (is_available(f_cvc_scalable_com) && is_available(f_cvc_com_based)) {
         enable(f_cvc_scalable_com);
         enable(f_cvc_scalable);
-        group->enable(f_ag_scalable_com);
-        group->enable(f_ag_scalable);
+        // The CVC makes the feature available;
+        // the atom group will enable it unless it needs to compute a rotational fit
+        group->provide(f_ag_scalable_com);
       }
 
       // TODO check for other types of parallelism here
-
-      if (is_enabled(f_cvc_scalable)) {
-        cvm::log("Will enable scalable calculation for group \""+group->key+"\".\n");
-      }
     }
 
     if (group->parse(conf) == COLVARS_OK) {

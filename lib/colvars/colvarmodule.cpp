@@ -810,6 +810,7 @@ int colvarmodule::analyze()
 
 int colvarmodule::setup()
 {
+  if (this->size() == 0) return cvm::get_error();
   // loop over all components of all colvars to reset masses of all groups
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end();  cvi++) {
@@ -867,25 +868,35 @@ int colvarmodule::reset()
 
 int colvarmodule::setup_input()
 {
-  // name of input state file
-  restart_in_name = proxy->input_prefix().size() ?
-    std::string(proxy->input_prefix()+".colvars.state") :
-    std::string("") ;
+  if (this->size() == 0) return cvm::get_error();
+
+  std::string restart_in_name("");
 
   // read the restart configuration, if available
-  if (restart_in_name.size()) {
+  if (proxy->input_prefix().size()) {
     // read the restart file
+    restart_in_name = proxy->input_prefix();
     std::ifstream input_is(restart_in_name.c_str());
     if (!input_is.good()) {
-      cvm::error("Error: in opening restart file \""+
+      // try by adding the suffix
+      input_is.clear();
+      restart_in_name = restart_in_name+std::string(".colvars.state");
+      input_is.open(restart_in_name.c_str());
+    }
+
+    if (!input_is.good()) {
+      cvm::error("Error: in opening input file \""+
                  std::string(restart_in_name)+"\".\n",
                  FILE_ERROR);
       return COLVARS_ERROR;
     } else {
+      cvm::log(cvm::line_marker);
       cvm::log("Restarting from file \""+restart_in_name+"\".\n");
       read_restart(input_is);
       if (cvm::get_error() != COLVARS_OK) {
         return COLVARS_ERROR;
+      } else {
+        proxy->input_prefix().clear();
       }
       cvm::log(cvm::line_marker);
     }
@@ -897,7 +908,9 @@ int colvarmodule::setup_input()
 
 int colvarmodule::setup_output()
 {
-  int error_code = 0;
+  if (this->size() == 0) return cvm::get_error();
+
+  int error_code = COLVARS_OK;
 
   // output state file (restart)
   restart_out_name = proxy->restart_output_prefix().size() ?
@@ -1545,11 +1558,7 @@ std::list<std::string> colvarmodule::index_group_names;
 std::list<std::vector<int> > colvarmodule::index_groups;
 bool     colvarmodule::use_scripted_forces = false;
 bool     colvarmodule::scripting_after_biases = true;
-
-// file name prefixes
 std::string colvarmodule::output_prefix = "";
-std::string colvarmodule::restart_in_name = "";
-
 
 // i/o constants
 size_t const colvarmodule::it_width = 12;

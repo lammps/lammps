@@ -486,7 +486,7 @@ void Region::set_velocity()
     else v[0] = v[1] = v[2] = 0.0;
     prev[0] = dx;
     prev[1] = dy;
-    prev[2] = dz;    
+    prev[2] = dz;
   }
 
   if (rotateflag) {
@@ -546,13 +546,13 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
 
 void Region::length_restart_string(int &n)
 {
-  n += sizeof(int) + strlen(id)+1 + 
+  n += sizeof(int) + strlen(id)+1 +
     sizeof(int) + strlen(style)+1 + sizeof(int) +
     size_restart*sizeof(double);
 }
 
 /* ----------------------------------------------------------------------
-   region writes its current style, id, number of sub-regions 
+   region writes its current style, id, number of sub-regions
      and position/angle
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
@@ -564,10 +564,10 @@ void Region::write_restart(FILE *fp)
   fwrite(&sizeid, sizeof(int), 1, fp);
   fwrite(id, 1, sizeid, fp);
   fwrite(&sizestyle, sizeof(int), 1, fp);
-  fwrite(style, 1, sizestyle, fp);  
+  fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
 
-  fwrite(prev, sizeof(double), size_restart, fp);  
+  fwrite(prev, sizeof(double), size_restart, fp);
 }
 
 /* ----------------------------------------------------------------------

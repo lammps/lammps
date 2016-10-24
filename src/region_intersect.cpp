@@ -43,7 +43,7 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
     idsub[nregion] = new char[m];
     strcpy(idsub[nregion],arg[iarg+3]);
     iregion = domain->find_region(idsub[nregion]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
   }
@@ -124,7 +124,7 @@ void RegIntersect::init()
   int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
     iregion = domain->find_region(idsub[ilist]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;
   }
@@ -290,7 +290,7 @@ void RegIntersect::set_velocity()
 
 void RegIntersect::length_restart_string(int& n)
 {
-  n += sizeof(int) + strlen(id)+1 + 
+  n += sizeof(int) + strlen(id)+1 +
     sizeof(int) + strlen(style)+1 + sizeof(int);
   for (int ilist = 0; ilist < nregion; ilist++)
     domain->regions[list[ilist]]->length_restart_string(n);
@@ -308,7 +308,7 @@ void RegIntersect::write_restart(FILE *fp)
   fwrite(&sizeid, sizeof(int), 1, fp);
   fwrite(id, 1, sizeid, fp);
   fwrite(&sizestyle, sizeof(int), 1, fp);
-  fwrite(style, 1, sizestyle, fp);  
+  fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
 
   for (int ilist = 0; ilist < nregion; ilist++){
@@ -340,7 +340,7 @@ int RegIntersect::restart(char *buf, int& n)
   for (int ilist = 0; ilist < nregion; ilist++)
     if (!domain->regions[list[ilist]]->restart(buf, n)) return 0;
 
-  return 1; 
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

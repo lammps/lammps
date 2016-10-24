@@ -44,7 +44,7 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     idsub[nregion] = new char[m];
     strcpy(idsub[nregion],arg[iarg+3]);
     iregion = domain->find_region(idsub[nregion]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[nregion++] = iregion;
   }
@@ -118,7 +118,7 @@ void RegUnion::init()
   int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
     iregion = domain->find_region(idsub[ilist]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;
   }
@@ -171,7 +171,7 @@ int RegUnion::surface_interior(double *x, double cutoff)
       for (jlist = 0; jlist < nregion; jlist++) {
         if (jlist == ilist) continue;
         jregion = list[jlist];
-        if (regions[jregion]->match(xs,ys,zs) && 
+        if (regions[jregion]->match(xs,ys,zs) &&
             !regions[jregion]->openflag) break;
       }
       if (jlist == nregion) {
@@ -284,7 +284,7 @@ void RegUnion::set_velocity()
 
 void RegUnion::length_restart_string(int& n)
 {
-  n += sizeof(int) + strlen(id)+1 + 
+  n += sizeof(int) + strlen(id)+1 +
     sizeof(int) + strlen(style)+1 + sizeof(int);
   for (int ilist = 0; ilist < nregion; ilist++)
     domain->regions[list[ilist]]->length_restart_string(n);
@@ -302,10 +302,10 @@ void RegUnion::write_restart(FILE *fp)
   fwrite(&sizeid, sizeof(int), 1, fp);
   fwrite(id, 1, sizeid, fp);
   fwrite(&sizestyle, sizeof(int), 1, fp);
-  fwrite(style, 1, sizestyle, fp);  
+  fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
   for (int ilist = 0; ilist < nregion; ilist++)
-    domain->regions[list[ilist]]->write_restart(fp);  
+    domain->regions[list[ilist]]->write_restart(fp);
 }
 
 /* ----------------------------------------------------------------------

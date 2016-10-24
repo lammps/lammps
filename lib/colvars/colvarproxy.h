@@ -25,7 +25,7 @@ public:
   colvarmodule *colvars;
 
   /// Default constructor
-  inline colvarproxy() : script(NULL) {}
+  inline colvarproxy() : script(NULL), b_smp_active(true) {}
 
   /// Default destructor
   virtual ~colvarproxy() {}
@@ -80,7 +80,7 @@ public:
   /// configuration)
   std::string input_prefix_str, output_prefix_str, restart_output_prefix_str;
 
-  inline std::string input_prefix()
+  inline std::string & input_prefix()
   {
     return input_prefix_str;
   }
@@ -116,11 +116,14 @@ public:
 
   // ***************** SHARED-MEMORY PARALLELIZATION *****************
 
-  /// Whether or not threaded parallelization is available
+  /// Whether threaded parallelization is available (TODO: make this a cvm::deps feature)
   virtual int smp_enabled()
   {
     return COLVARS_NOT_IMPLEMENTED;
   }
+
+  /// Whether threaded parallelization should be used (TODO: make this a cvm::deps feature)
+  bool b_smp_active;
 
   /// Distribute calculation of colvars (and their components) across threads
   virtual int smp_colvars_loop()

@@ -60,8 +60,8 @@ pair_style command or overridden with an optional argument in the
 pair_coeff command for a type pair as discussed below.  The distance
 between the centers of 2 line segments, or the center of a line
 segment and a point particle, must be less than this distance (plus
-the neighbor skin; see the "neighbor"_neighbor command), for the pair
-of particles to be included in the neighbor list.
+the neighbor skin; see the "neighbor"_neighbor.html command), for
+the pair of particles to be included in the neighbor list.
 
 NOTE: This means that a too-short value for the {cutoff} setting can
 exclude a pair of particles from the neighbor list even if pairs of

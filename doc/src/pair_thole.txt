@@ -180,7 +180,7 @@ package.
 langevin/drude"_fix_langevin_drude.html, "fix
 drude/transform"_fix_drude_transform.html, "compute
 temp/drude"_compute_temp_drude.html
-"pair_style lj/cut/coul/long"_pair_lj_cut_coul_long
+"pair_style lj/cut/coul/long"_pair_lj.html
 
 [Default:] none
 

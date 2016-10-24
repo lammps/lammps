@@ -166,7 +166,7 @@ stores a per-particle mass and size and orientation (i.e. the corner
 points of the triangle).
 
 The {template} style allows molecular topolgy (bonds,angles,etc) to be
-defined via a molecule template using the "molecule"_molecule.txt
+defined via a molecule template using the "molecule"_molecule.html
 command.  The template stores one or more molecules with a single copy
 of the topology info (bonds,angles,etc) of each.  Individual atoms
 only store a template index and template atom to identify which

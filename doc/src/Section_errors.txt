@@ -8116,11 +8116,11 @@ boundary of a processor's sub-domain has moved more than 1/2 the
 rebuilt and atoms being migrated to new processors.  This also means
 you may be missing pairwise interactions that need to be computed.
 The solution is to change the re-neighboring criteria via the
-"neigh_modify"_neigh_modify command.  The safest settings are "delay 0
-every 1 check yes".  Second, it may mean that an atom has moved far
-outside a processor's sub-domain or even the entire simulation box.
-This indicates bad physics, e.g. due to highly overlapping atoms, too
-large a timestep, etc. :dd
+"neigh_modify"_neigh_modify.html command.  The safest settings are
+"delay 0 every 1 check yes".  Second, it may mean that an atom has
+moved far outside a processor's sub-domain or even the entire
+simulation box. This indicates bad physics, e.g. due to highly
+overlapping atoms, too large a timestep, etc. :dd
 
 {Out of range atoms - cannot compute PPPM} :dt
 
@@ -8132,11 +8132,11 @@ boundary of a processor's sub-domain has moved more than 1/2 the
 rebuilt and atoms being migrated to new processors.  This also means
 you may be missing pairwise interactions that need to be computed.
 The solution is to change the re-neighboring criteria via the
-"neigh_modify"_neigh_modify command.  The safest settings are "delay 0
-every 1 check yes".  Second, it may mean that an atom has moved far
-outside a processor's sub-domain or even the entire simulation box.
-This indicates bad physics, e.g. due to highly overlapping atoms, too
-large a timestep, etc. :dd
+"neigh_modify"_neigh_modify.html command.  The safest settings are
+"delay 0 every 1 check yes".  Second, it may mean that an atom has
+moved far outside a processor's sub-domain or even the entire
+simulation box. This indicates bad physics, e.g. due to highly
+overlapping atoms, too large a timestep, etc. :dd
 
 {Out of range atoms - cannot compute PPPMDisp} :dt
 
@@ -8148,11 +8148,11 @@ boundary of a processor's sub-domain has moved more than 1/2 the
 rebuilt and atoms being migrated to new processors.  This also means
 you may be missing pairwise interactions that need to be computed.
 The solution is to change the re-neighboring criteria via the
-"neigh_modify"_neigh_modify command.  The safest settings are "delay 0
-every 1 check yes".  Second, it may mean that an atom has moved far
-outside a processor's sub-domain or even the entire simulation box.
-This indicates bad physics, e.g. due to highly overlapping atoms, too
-large a timestep, etc. :dd
+"neigh_modify"_neigh_modify.html command.  The safest settings are
+"delay 0 every 1 check yes".  Second, it may mean that an atom has
+moved far outside a processor's sub-domain or even the entire
+simulation box. This indicates bad physics, e.g. due to highly
+overlapping atoms, too large a timestep, etc. :dd
 
 {Overflow of allocated fix vector storage} :dt
 

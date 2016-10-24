@@ -595,6 +595,10 @@ void Molecule::read(int flag)
   // set maxspecial on first pass, so allocate() has a size
 
   if (bondflag && specialflag == 0) {
+    if (domain->box_exist == 0)
+      error->all(FLERR,"Cannot auto-generate special bonds before "
+                       "simulation box is defined");
+
     maxspecial = atom->maxspecial;
     if (flag) {
       special_generate();

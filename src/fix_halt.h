@@ -36,7 +36,7 @@ class FixHalt : public Fix {
 
  private:
   int attribute,operation,eflag,ivar;
-  double attvalue,value;
+  double value;
   char *idvar;
 
   double bondmax();

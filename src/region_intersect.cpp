@@ -323,30 +323,23 @@ void RegIntersect::write_restart(FILE *fp)
 
 int RegIntersect::restart(char *buf, int& n)
 {
-  int sizeid = buf[n];
+  int size = *((int *)(buf+n));
   n += sizeof(int);
-  char *restart_id = new char[sizeid];
-  for (int i = 0; i < sizeid; i++)
-    restart_id[i] = buf[n++];    
-  if (strcmp(restart_id,id) != 0) return 0;
+  if ((size <= 0) || (strcmp(buf+n,id) != 0)) return 0;
+  n += size;
 
-  int sizestyle = buf[n];
+  size = *((int *)(buf+n));
   n += sizeof(int);
+  if ((size <= 0) || (strcmp(buf+n,style) != 0)) return 0;
+  n += size;
 
-  char *restart_style = new char[sizestyle];
-  for (int i = 0; i < sizestyle; i++)
-    restart_style[i] = buf[n++];  
-  if (strcmp(restart_style,style) != 0) return 0;    
-
-  int restart_nreg = buf[n];
+  int restart_nreg = *((int *)(buf+n));
   n += sizeof(int);
   if (restart_nreg != nregion) return 0;
 
-  for (int ilist = 0; ilist < nregion; ilist++){
-    if (!domain->regions[list[ilist]]->restart(buf, n)){
-      return 0;
-    }
-  }
+  for (int ilist = 0; ilist < nregion; ilist++)
+    if (!domain->regions[list[ilist]]->restart(buf, n)) return 0;
+
   return 1; 
 }
 

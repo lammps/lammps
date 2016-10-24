@@ -156,6 +156,12 @@ int colvarmodule::parse_global_params(std::string const &conf)
     read_index_file(index_file_name.c_str());
   }
 
+  if (parse->get_keyval(conf, "smp", proxy->b_smp_active, proxy->b_smp_active)) {
+    if (proxy->b_smp_active == false) {
+      cvm::log("SMP parallelism has been disabled.\n");
+    }
+  }
+
   parse->get_keyval(conf, "analysis", b_analysis, b_analysis);
 
   parse->get_keyval(conf, "debugGradientsStepSize", debug_gradients_step_size,

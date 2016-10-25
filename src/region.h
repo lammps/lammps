@@ -106,11 +106,12 @@ class Region : protected Pointers {
   void options(int, char **);
   void point_on_line_segment(double *, double *, double *, double *);
   void forward_transform(double &, double &, double &);
+  double point[3],runit[3];
 
  private:
   char *xstr,*ystr,*zstr,*tstr;
   int xvar,yvar,zvar,tvar;
-  double axis[3],point[3],runit[3];
+  double axis[3];
 
   void inverse_transform(double &, double &, double &);
   void rotate(double &, double &, double &, double);

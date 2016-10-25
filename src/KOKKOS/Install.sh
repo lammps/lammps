@@ -83,6 +83,10 @@ action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
 action fix_qeq_reax_kokkos.cpp fix_qeq_reax.cpp
 action fix_qeq_reax_kokkos.h fix_qeq_reax.h
+action fix_reaxc_bonds_kokkos.cpp fix_reaxc_bonds.cpp
+action fix_reaxc_bonds_kokkos.h fix_reaxc_bonds.h
+action fix_reaxc_species_kokkos.cpp fix_reaxc_species.cpp
+action fix_reaxc_species_kokkos.h fix_reaxc_species.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
 action fix_wall_reflect_kokkos.cpp

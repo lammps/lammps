@@ -188,10 +188,10 @@ void RegSphere::variable_check()
 
 
 /* ----------------------------------------------------------------------
-   Set values needed to calculate velocity due to shape changes. 
+   Set values needed to calculate velocity due to shape changes.
    These values do not depend on the contact, so this function is
    called once per timestep by fix/wall/gran/region.
-   
+
 ------------------------------------------------------------------------- */
 
 void RegSphere::set_velocity_shape()
@@ -200,27 +200,27 @@ void RegSphere::set_velocity_shape()
   xcenter[1] = yc;
   xcenter[2] = zc;
   forward_transform(xcenter[0], xcenter[1], xcenter[2]);
-  if (update->ntimestep > 0) rprev = prev[4];  
+  if (update->ntimestep > 0) rprev = prev[4];
   else rprev = radius;
-  prev[4] = radius;     
+  prev[4] = radius;
 }
 
 
 
 /* ----------------------------------------------------------------------
-   add velocity due to shape change to wall velocity 
+   add velocity due to shape change to wall velocity
 ------------------------------------------------------------------------- */
 
 void RegSphere::velocity_contact_shape(double *vwall, double *xc)
 {
   double delx, dely, delz; // Displacement of contact point in x,y,z
- 
+
   delx = (xc[0] - xcenter[0])*(1 - rprev/radius);
   dely = (xc[1] - xcenter[1])*(1 - rprev/radius);
   delz = (xc[2] - xcenter[2])*(1 - rprev/radius);
 
   vwall[0] += delx/update->dt;
   vwall[1] += dely/update->dt;
-  vwall[2] += delz/update->dt;     
+  vwall[2] += delz/update->dt;
 }
 

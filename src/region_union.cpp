@@ -44,7 +44,7 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     idsub[nregion] = new char[m];
     strcpy(idsub[nregion],arg[iarg+3]);
     iregion = domain->find_region(idsub[nregion]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[nregion++] = iregion;
   }
@@ -118,7 +118,7 @@ void RegUnion::init()
   int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
     iregion = domain->find_region(idsub[ilist]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;
   }
@@ -171,7 +171,7 @@ int RegUnion::surface_interior(double *x, double cutoff)
       for (jlist = 0; jlist < nregion; jlist++) {
         if (jlist == ilist) continue;
         jregion = list[jlist];
-        if (regions[jregion]->match(xs,ys,zs) && 
+        if (regions[jregion]->match(xs,ys,zs) &&
             !regions[jregion]->openflag) break;
       }
       if (jlist == nregion) {
@@ -284,7 +284,7 @@ void RegUnion::set_velocity()
 
 void RegUnion::length_restart_string(int& n)
 {
-  n += sizeof(int) + strlen(id)+1 + 
+  n += sizeof(int) + strlen(id)+1 +
     sizeof(int) + strlen(style)+1 + sizeof(int);
   for (int ilist = 0; ilist < nregion; ilist++)
     domain->regions[list[ilist]]->length_restart_string(n);
@@ -302,10 +302,10 @@ void RegUnion::write_restart(FILE *fp)
   fwrite(&sizeid, sizeof(int), 1, fp);
   fwrite(id, 1, sizeid, fp);
   fwrite(&sizestyle, sizeof(int), 1, fp);
-  fwrite(style, 1, sizestyle, fp);  
+  fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
   for (int ilist = 0; ilist < nregion; ilist++)
-    domain->regions[list[ilist]]->write_restart(fp);  
+    domain->regions[list[ilist]]->write_restart(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -315,27 +315,23 @@ void RegUnion::write_restart(FILE *fp)
 
 int RegUnion::restart(char *buf, int &n)
 {
-  int sizeid = buf[n];
+  int size = *((int *)(buf+n));
   n += sizeof(int);
-  char *restart_id = new char[sizeid];
-  for (int i = 0; i < sizeid; i++)
-    restart_id[i] = buf[n++];    
-  if (strcmp(restart_id,id) != 0) return 0;
+  if ((size <= 0) || (strcmp(buf+n,id) != 0)) return 0;
+  n += size;
 
-  int sizestyle = buf[n];
+  size = *((int *)(buf+n));
   n += sizeof(int);
-  char *restart_style = new char[sizestyle];
-  for (int i = 0; i < sizestyle; i++)
-    restart_style[i] = buf[n++];  
-  if (strcmp(restart_style,style) != 0) return 0;    
+  if ((size <= 0) || (strcmp(buf+n,style) != 0)) return 0;
+  n += size;
 
-  int restart_nreg = buf[n];
+  int restart_nreg = *((int *)(buf+n));
   n += sizeof(int);
   if (restart_nreg != nregion) return 0;
 
-  for (int ilist = 0; ilist < nregion; ilist++){
+  for (int ilist = 0; ilist < nregion; ilist++)
     if (!domain->regions[list[ilist]]->restart(buf, n)) return 0;
-  }
+
   return 1;
 }
 

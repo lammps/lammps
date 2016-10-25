@@ -416,7 +416,6 @@ void DihedralFourier::write_data(FILE *fp)
     for(int j = 0; j < nterms[i]; j++)
        fprintf(fp," %g %d %g",k[i][j],multiplicity[i][j],shift[i][j]);
     fprintf(fp,"\n");
-
   }
 }
 

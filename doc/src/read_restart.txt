@@ -141,11 +141,11 @@ these settings after the restart file is read.
 "units"_units.html
 "newton bond"_newton.html (see discussion of newton command below)
 "atom style"_atom_style.html and "atom_modify"_atom_modify.html settings id, map, sort
-"comm style"_comm_style.html and "comm_modify"_comm_modify settings mode, cutoff, vel
+"comm style"_comm_style.html and "comm_modify"_comm_modify.html settings mode, cutoff, vel
 "timestep"_timestep.html
 simulation box size and shape and "boundary"_boundary.html settings
 atom "group"_group.html definitions
-per-type atom settings such as "mass"_mass.thml
+per-type atom settings such as "mass"_mass.html
 per-atom attributes including their group assignments and molecular topology attributes (bonds, angles, etc)
 force field styles ("pair"_pair_style.html, "bond"_bond_style.html, "angle"_angle_style.html, etc)
 force field coefficients ("pair"_pair_coeff.html, "bond"_bond_coeff.html, "angle"_angle_coeff.html, etc) in some cases (see below)

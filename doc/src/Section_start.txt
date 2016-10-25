@@ -1601,9 +1601,9 @@ implementations, either by environment variables that specify how to
 order physical processors, or by config files that specify what
 physical processors to assign to each MPI rank.  The -reorder switch
 simply gives you a portable way to do this without relying on MPI
-itself.  See the "processors out"_processors command for how to output
-info on the final assignment of physical processors to the LAMMPS
-simulation domain.
+itself.  See the "processors out"_processors.html command for how
+to output info on the final assignment of physical processors to
+the LAMMPS simulation domain.
 
 -screen file :pre
 

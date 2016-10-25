@@ -73,7 +73,7 @@ This bond style can only be used if LAMMPS was built with the
 MOLECULE package (which it is by default).  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
-You typically should specify "special_bonds fene"_special_bonds.html"
+You typically should specify "special_bonds fene"_special_bonds.html
 or "special_bonds lj/coul 0 1 1"_special_bonds.html to use this bond
 style.  LAMMPS will issue a warning it that's not the case.
 

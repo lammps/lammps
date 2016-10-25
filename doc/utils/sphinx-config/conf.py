@@ -276,4 +276,27 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
+# -- Options for ePUB output ----------------------------------------------
+
+epub_title = 'LAMMPS Documentation - ' + get_lammps_version()
+
+epub_cover = ('lammps-logo.png', '')
+
+epub_description = """
+This is the Manual for the LAMMPS software package.
+
+LAMMPS stands for Large-scale Atomic/Molecular Massively Parallel
+Simulator and is a classical molecular dynamics simulation code
+designed to run efficiently on parallel computers.  It was developed
+at Sandia National Laboratories, a US Department of Energy facility,
+with funding from the DOE.  It is an open-source code, distributed
+freely under the terms of the GNU Public License (GPL).
+
+The primary author of the code is Steve Plimpton, who can be emailed
+at sjplimp@sandia.gov.  The LAMMPS WWW Site at lammps.sandia.gov has
+more information about the code and its uses.
+"""
+
+epub_author = 'The LAMMPS Developers'
+
 

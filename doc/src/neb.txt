@@ -83,9 +83,9 @@ replica.  Conceptually, the non-NEB atoms provide a background force
 field for the NEB atoms.  They can be allowed to move during the NEB
 minimiation procedure (which will typically induce different
 coordinates for non-NEB atoms in different replicas), or held fixed
-using other LAMMPS commands such as "fix setforce"_fix_setforce.  Note
-that the "partition"_partition.html command can be used to invoke a
-command on a subset of the replicas, e.g. if you wish to hold NEB or
+using other LAMMPS commands such as "fix setforce"_fix_setforce.html.
+Note that the "partition"_partition.html command can be used to invoke
+a command on a subset of the replicas, e.g. if you wish to hold NEB or
 non-NEB atoms fixed in only the end-point replicas.
 
 The initial atomic configuration for each of the replicas can be

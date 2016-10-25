@@ -106,7 +106,7 @@ the $.  Thus $\{myTemp\} and $x refer to variable names "myTemp" and
 "x".
 
 How the variable is converted to a text string depends on what style
-of variable it is; see the "variable"_variable doc page for details.
+of variable it is; see the "variable"_variable.html doc page for details.
 It can be a variable that stores multiple text strings, and return one
 of them.  The returned text string can be multiple "words" (space
 separated) which will then be interpreted as multiple arguments in the

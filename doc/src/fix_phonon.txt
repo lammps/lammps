@@ -184,7 +184,7 @@ This fix requires LAMMPS be built with an FFT library.  See the
 [Default:]
 
 The option defaults are sysdim = the same dimemsion as specified by
-the "dimension"_dimension command, and nasr = 20.
+the "dimension"_dimension.html command, and nasr = 20.
 
 :line
 

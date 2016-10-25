@@ -585,17 +585,26 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 /* ----------------------------------------------------------------------
    calculate potential u and force f at distance x
-   insure x is between bond min/max
+   insure x is between bond min/max, exit with error if not
 ------------------------------------------------------------------------- */
 
 void BondTable::uf_lookup(int type, double x, double &u, double &f)
 {
   int itable;
   double fraction,a,b;
+  char estr[128];
 
   Table *tb = &tables[tabindex[type]];
-  x = MAX(x,tb->lo);
-  x = MIN(x,tb->hi);
+  if (x < tb->lo) {
+    sprintf(estr,"Bond length < table inner cutoff: "
+            "type %d length %g",type,x);
+    error->one(FLERR,estr);
+  }
+  if (x > tb->hi) {
+    sprintf(estr,"Bond length > table outer cutoff: "
+            "type %d length %g",type,x);
+    error->one(FLERR,estr);
+  }
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((x - tb->lo) * tb->invdelta);

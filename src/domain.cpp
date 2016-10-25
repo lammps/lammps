@@ -1497,6 +1497,28 @@ void Domain::image_flip(int m, int n, int p)
 }
 
 /* ----------------------------------------------------------------------
+   return 1 if this proc owns atom with coords x, else return 0
+   x is returned remapped into periodic box
+------------------------------------------------------------------------- */
+
+int Domain::ownatom(double *x)
+{
+  double lamda[3];
+  double *coord;
+  
+  remap(x);
+  if (triclinic) {
+    x2lamda(x,lamda);
+    coord = lamda;
+  } else coord = x;
+  
+  if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
+      coord[1] >= sublo[1] && coord[1] < subhi[1] &&
+      coord[2] >= sublo[2] && coord[2] < subhi[2]) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    create a lattice
 ------------------------------------------------------------------------- */
 
@@ -1929,5 +1951,3 @@ void Domain::lamda_box_corners(double *lo, double *hi)
   corners[7][0] = hi[0]; corners[7][1] = hi[1]; corners[7][2] = subhi_lamda[2];
   lamda2x(corners[7],corners[7]);
 }
-
-

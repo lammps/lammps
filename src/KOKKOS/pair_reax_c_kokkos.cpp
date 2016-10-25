@@ -1367,8 +1367,8 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
   if (fixspecies_flag) {
     memory->destroy_kokkos(k_tmpid,tmpid);
     memory->destroy_kokkos(k_tmpbo,tmpbo);
-    memory->create_kokkos(k_tmpid,tmpid,nmax,maxbo,"pair:tmpid");
-    memory->create_kokkos(k_tmpbo,tmpbo,nmax,maxbo,"pair:tmpbo");
+    memory->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memory->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
   }
 
   // FixReaxCBonds
@@ -3985,8 +3985,8 @@ double PairReaxCKokkos<DeviceType>::memory_usage()
 
   // FixReaxCSpecies
   if (fixspecies_flag) {
-    bytes += maxbo*nmax*sizeof(tagint);
-    bytes += maxbo*nmax*sizeof(F_FLOAT);
+    bytes += MAXSPECBOND*nmax*sizeof(tagint);
+    bytes += MAXSPECBOND*nmax*sizeof(F_FLOAT);
   }
 
   // FixReaxCBonds
@@ -4044,6 +4044,7 @@ void PairReaxCKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds
   const int j_end = j_start + d_bo_num[i];
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
+    j &= NEIGHMASK;
     const tagint jtag = tag[j];
     const int j_index = jj - j_start;
     double bo_tmp = d_BO(i,j_index);
@@ -4175,6 +4176,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int 
   const int j_end = j_start + d_bo_num[i];
   for (int jj = j_start; jj < j_end; jj++) {
     int j = d_bo_list[jj];
+    j &= NEIGHMASK;
     if (j < i) continue;
     const int j_index = jj - j_start;
   

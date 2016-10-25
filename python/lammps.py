@@ -172,6 +172,8 @@ class lammps(object):
     if file: file = file.encode()
     self.lib.lammps_file(self.lmp,file)
 
+  # send a single command
+    
   def command(self,cmd):
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
@@ -185,6 +187,13 @@ class lammps(object):
         raise MPIAbortException(error_msg)
       raise Exception(error_msg)
 
+  # send a list of commands, one at a time
+
+  def commands_list(self,cmdlist):
+    for cmd in cmdlist: self.command(cmd)
+
+  # extract global info
+    
   def extract_global(self,name,type):
     if name: name = name.encode()
     if type == 0:
@@ -195,6 +204,8 @@ class lammps(object):
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]
 
+  # extract per-atom info
+  
   def extract_atom(self,name,type):
     if name: name = name.encode()
     if type == 0:
@@ -209,6 +220,8 @@ class lammps(object):
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
     return ptr
 
+  # extract compute info
+  
   def extract_compute(self,id,style,type):
     if id: id = id.encode()
     if type == 0:
@@ -226,6 +239,7 @@ class lammps(object):
       return ptr
     return None
 
+  # extract fix info
   # in case of global datum, free memory for 1 double via lammps_free()
   # double was allocated by library interface function
 
@@ -249,6 +263,7 @@ class lammps(object):
     else:
       return None
 
+  # extract variable info
   # free memory for 1 double or 1 vector of doubles via lammps_free()
   # for vector, must copy nlocal returned values to local c_double vector
   # memory was allocated by library interface function
@@ -296,7 +311,14 @@ class lammps(object):
     return self.lib.lammps_get_natoms(self.lmp)
 
   # return vector of atom properties gathered across procs, ordered by atom ID
-
+  # name = atom property recognized by LAMMPS in atom->extract()
+  # type = 0 for integer values, 1 for double values
+  # count = number of per-atom valus, 1 for type or charge, 3 for x or f
+  # returned data is a 1d vector - doc how it is ordered?
+  # NOTE: how could we insure are converting to correct Python type
+  #   e.g. for Python list or NumPy, etc
+  #   ditto for extact_atom() above
+  
   def gather_atoms(self,name,type,count):
     if name: name = name.encode()
     natoms = self.lib.lammps_get_natoms(self.lmp)
@@ -310,12 +332,38 @@ class lammps(object):
     return data
 
   # scatter vector of atom properties across procs, ordered by atom ID
-  # assume vector is of correct type and length, as created by gather_atoms()
-
+  # name = atom property recognized by LAMMPS in atom->extract()
+  # type = 0 for integer values, 1 for double values
+  # count = number of per-atom valus, 1 for type or charge, 3 for x or f
+  # assume data is of correct type and length, as created by gather_atoms()
+  # NOTE: how could we insure are passing correct type to LAMMPS
+  # e.g. for Python list or NumPy, etc
+    
   def scatter_atoms(self,name,type,count,data):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
 
+  # create N atoms on all procs
+  # N = global number of atoms
+  # id = ID of each atom (optional, can be None)
+  # type = type of each atom (1 to Ntypes) (required)
+  # x = coords of each atom as (N,3) array (required)
+  # v = velocity of each atom as (N,3) array (optional, can be None)
+  # NOTE: how could we insure are passing correct type to LAMMPS
+  #   e.g. for Python list or NumPy, etc
+  #   ditto for gather_atoms() above
+
+  def create_atoms(self,n,id,type,x,v):
+    if id:
+      id_lmp = (c_int * n)()
+      id_lmp[:] = id
+    else: id_lmp = id
+    type_lmp = (c_int * n)()
+    type_lmp[:] = type
+    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v)
+
+  # document this?
+    
   @property
   def uses_exceptions(self):
     try:

@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2016-10-05"
+#define COLVARS_VERSION "2016-10-21"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -12,6 +12,9 @@
 #endif
 
 /*! \mainpage Main page
+This is the Developer's documentation for the Collective Variables Module.
+
+You can browse the class hierarchy or the list of source files.
  */
 
 /// \file colvarmodule.h
@@ -154,9 +157,6 @@ public:
   /// Prefix for all output files for this run
   static std::string output_prefix;
 
-  /// input restart file name (determined from input_prefix)
-  static std::string restart_in_name;
-
 
   /// Array of collective variables
   static std::vector<colvar *>     colvars;
@@ -197,6 +197,11 @@ public:
     return COLVARS_DEBUG;
   }
 
+  /// \brief How many objects are configured yet?
+  inline size_t const size() const
+  {
+    return colvars.size() + biases.size();
+  }
 
   /// \brief Constructor \param config_name Configuration file name
   /// \param restart_name (optional) Restart file name

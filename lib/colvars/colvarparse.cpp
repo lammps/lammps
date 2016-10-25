@@ -644,9 +644,9 @@ bool colvarparse::key_lookup(std::string const &conf,
 
       // find the matching closing brace
 
-      if (cvm::debug()) {
-        cvm::log("Multi-line value, config is now \""+line+"\".\n");
-      }
+//       if (cvm::debug()) {
+//         cvm::log("Multi-line value, config is now \""+line+"\".\n");
+//       }
 
       int brace_count = 1;
 
@@ -689,9 +689,9 @@ bool colvarparse::key_lookup(std::string const &conf,
             line_end = nl;
           line.append(conf, line_begin, (line_end-line_begin));
 
-          if (cvm::debug()) {
-            cvm::log("Added a new line, config is now \""+line+"\".\n");
-          }
+//           if (cvm::debug()) {
+//             cvm::log("Added a new line, config is now \""+line+"\".\n");
+//           }
         }
 
         if (brace_count < 0) {

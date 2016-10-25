@@ -14,6 +14,36 @@ colvarscript::colvarscript(colvarproxy *p)
 {
 }
 
+
+extern "C" {
+
+  // Generic hooks; NAMD and VMD have Tcl-specific versions in the respective proxies
+
+  int run_colvarscript_command(int argc, const char **argv)
+  {
+    colvarproxy *cvp = cvm::proxy;
+    if (!cvp) {
+      return -1;
+    }
+    if (!cvp->script) {
+      cvm::error("Called run_colvarscript_command without a script object initialized.\n");
+      return -1;
+    }
+    return cvp->script->run(argc, argv);
+  }
+
+  const char * get_colvarscript_result()
+  {
+    colvarproxy *cvp = cvm::proxy;
+    if (!cvp->script) {
+      cvm::error("Called run_colvarscript_command without a script object initialized.\n");
+      return "";
+    }
+    return cvp->script->result.c_str();
+  }
+}
+
+
 /// Run method based on given arguments
 int colvarscript::run(int argc, char const *argv[]) {
 
@@ -125,7 +155,7 @@ int colvarscript::run(int argc, char const *argv[]) {
       result = "Missing arguments\n" + help_string();
       return COLVARSCRIPT_ERROR;
     }
-    proxy->input_prefix_str = argv[2];
+    proxy->input_prefix() = argv[2];
     if (colvars->setup_input() == COLVARS_OK) {
       return COLVARS_OK;
     } else {

@@ -4027,7 +4027,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondZero, const int &i) const {
   d_numneigh_bonds[i] = 0;
-  for (int j = 0; j < MAXREAXBOND; j++) {
+  for (int j = 0; j < maxbo; j++) {
     d_neighid(i,j) = 0;
     d_abo(i,j) = 0.0;
   }

@@ -53,8 +53,7 @@ PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
   elem2param = NULL;
   map = NULL;
 
-  sizeshort = 10;
-  numshort = 0;
+  maxshort = 10;
   neighshort = NULL;
 }
 
@@ -124,7 +123,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    numshort = 0;
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -137,9 +136,9 @@ void PairTersoff::compute(int eflag, int vflag)
 
       if (rsq < cutshortsq) {
         neighshort[numshort++] = j;
-        if (numshort > sizeshort) {
-          sizeshort += sizeshort/2;
-          memory->grow(neighshort,sizeshort,"pair:neighshort");
+        if (numshort > maxshort) {
+          maxshort += maxshort/2;
+          memory->grow(neighshort,maxshort,"pair:neighshort");
         }
       }
 
@@ -262,7 +261,7 @@ void PairTersoff::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(neighshort,sizeshort,"pair:neighshort");
+  memory->create(neighshort,maxshort,"pair:neighshort");
   map = new int[n+1];
 }
 

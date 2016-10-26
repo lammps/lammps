@@ -94,7 +94,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    numshort = 0;
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -107,9 +107,9 @@ void PairVashishtaTable::compute(int eflag, int vflag)
 
       if (rsq < cutshortsq) {
         neighshort[numshort++] = j;
-        if (numshort > sizeshort) {
-          sizeshort += sizeshort/2;
-          memory->grow(neighshort,sizeshort,"pair:neighshort");
+        if (numshort > maxshort) {
+          maxshort += maxshort/2;
+          memory->grow(neighshort,maxshort,"pair:neighshort");
         }
       }
 

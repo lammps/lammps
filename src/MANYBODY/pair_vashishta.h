@@ -55,8 +55,7 @@ class PairVashishta : public Pair {
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
   double r0max;                 // largest value of r0
-  int sizeshort;                // size of short neighbor list array
-  int numshort;                 // current count of neighbors in short list
+  int maxshort;                 // size of short neighbor list array
   int *neighshort;              // short neighbor list array
 
   void allocate();

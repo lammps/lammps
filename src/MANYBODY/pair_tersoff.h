@@ -59,8 +59,7 @@ class PairTersoff : public Pair {
   int nelements;                // # of unique elements
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
-  int sizeshort;                // size of short neighbor list array
-  int numshort;                 // current count of neighbors in short list
+  int maxshort;                 // size of short neighbor list array
   int *neighshort;              // short neighbor list array
 
   virtual void allocate();

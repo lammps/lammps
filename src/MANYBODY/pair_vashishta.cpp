@@ -54,8 +54,7 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   map = NULL;
 
   r0max = 0.0;
-  sizeshort = 10;
-  numshort = 0;
+  maxshort = 10;
   neighshort = NULL;
 }
 
@@ -122,7 +121,7 @@ void PairVashishta::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    numshort = 0;
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -135,9 +134,9 @@ void PairVashishta::compute(int eflag, int vflag)
 
       if (rsq < cutshortsq) {
         neighshort[numshort++] = j;
-        if (numshort > sizeshort) {
-          sizeshort += sizeshort/2;
-          memory->grow(neighshort,sizeshort,"pair:neighshort");
+        if (numshort > maxshort) {
+          maxshort += maxshort/2;
+          memory->grow(neighshort,maxshort,"pair:neighshort");
         }
       }
 
@@ -154,7 +153,7 @@ void PairVashishta::compute(int eflag, int vflag)
 
       jtype = map[type[j]];
       ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
+      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -206,7 +205,7 @@ void PairVashishta::compute(int eflag, int vflag)
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-	if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
+        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
     }
   }
@@ -223,7 +222,7 @@ void PairVashishta::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(neighshort,sizeshort,"pair:neighshort");
+  memory->create(neighshort,maxshort,"pair:neighshort");
 
   map = new int[n+1];
 }

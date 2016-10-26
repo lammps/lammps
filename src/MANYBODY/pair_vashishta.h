@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -54,6 +54,10 @@ class PairVashishta : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
+  double r0max;                 // largest value of r0
+  int sizeshort;                // size of short neighbor list array
+  int numshort;                 // current count of neighbors in short list
+  int *neighshort;              // short neighbor list array
 
   void allocate();
   void read_file(char *);

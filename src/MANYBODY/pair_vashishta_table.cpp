@@ -37,9 +37,6 @@ using namespace LAMMPS_NS;
 
 PairVashishtaTable::PairVashishtaTable(LAMMPS *lmp) : PairVashishta(lmp)
 {
-  neigh3BodyMax = 0;
-  neigh3BodyCount = NULL; 
-  neigh3Body = NULL;
   forceTable = NULL;
   potentialTable = NULL;
 }
@@ -52,8 +49,6 @@ PairVashishtaTable::~PairVashishtaTable()
 {
   memory->destroy(forceTable);
   memory->destroy(potentialTable);
-  memory->destroy(neigh3BodyCount);
-  memory->destroy(neigh3Body);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,25 +73,12 @@ void PairVashishtaTable::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  const double cutshortsq = r0max*r0max;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
-  // reallocate 3-body neighbor list if necessary
-  // NOTE: using 1000 is inefficient
-  //       could make this a LAMMPS paged neighbor list
-
-  if (nlocal > neigh3BodyMax) {
-    neigh3BodyMax = atom->nmax;
-    memory->destroy(neigh3BodyCount);
-    memory->destroy(neigh3Body);
-    memory->create(neigh3BodyCount,neigh3BodyMax,
-                   "pair:vashishta:neigh3BodyCount");
-    memory->create(neigh3Body,neigh3BodyMax,1000,
-                   "pair:vashishta:neigh3Body");
-  }
 
   // loop over full neighbor list of my atoms
 
@@ -108,35 +90,30 @@ void PairVashishtaTable::compute(int eflag, int vflag)
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    // reset the 3-body neighbor list
-
-    neigh3BodyCount[i] = 0;
-
     // two-body interactions, skip half of them
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtag = tag[j];
-
-      jtype = map[type[j]];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
-      ijparam = elem2param[itype][jtype][jtype];
 
-      if (rsq <= params[ijparam].cutsq2) {
-        neigh3Body[i][neigh3BodyCount[i]] = j;
-        neigh3BodyCount[i]++;
+      if (rsq < cutshortsq) {
+        neighshort[numshort++] = j;
+        if (numshort > sizeshort) {
+          sizeshort += sizeshort/2;
+          memory->grow(neighshort,sizeshort,"pair:neighshort");
+        }
       }
 
-      if (rsq > params[ijparam].cutsq) continue;
-
+      jtag = tag[j];
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -146,6 +123,10 @@ void PairVashishtaTable::compute(int eflag, int vflag)
         if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
+
+      jtype = map[type[j]];
+      ijparam = elem2param[itype][jtype][jtype];
+      if (rsq > params[ijparam].cutsq) continue;
 
       twobody_table(params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -160,13 +141,10 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       			   evdwl,0.0,fpair,delx,dely,delz);
     }
 
-    jlist = neigh3Body[i];
-    jnum = neigh3BodyCount[i];
-    jnumm1 = jnum - 1;
+    jnumm1 = numshort - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
+      j = neighshort[jj];
       jtype = map[type[j]];
       ijparam = elem2param[itype][jtype][jtype];
       delr1[0] = x[j][0] - xtmp;
@@ -175,9 +153,8 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
       if (rsq1 >= params[ijparam].cutsq2) continue;
 
-      for (kk = jj+1; kk < jnum; kk++) {
-        k = jlist[kk];
-        k &= NEIGHMASK;
+      for (kk = jj+1; kk < numshort; kk++) {
+        k = neighshort[kk];
         ktype = map[type[k]];
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];

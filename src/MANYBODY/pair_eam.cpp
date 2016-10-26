@@ -395,7 +395,7 @@ void PairEAM::coeff(int narg, char **arg)
       if (i == j) {
         setflag[i][i] = 1;
         map[i] = ifuncfl;
-        atom->set_mass(i,funcfl[ifuncfl].mass);
+        atom->set_mass(FLERR,i,funcfl[ifuncfl].mass);
         count++;
       }
       scale[i][j] = 1.0;

@@ -55,6 +55,9 @@ class PairSW : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
+  int sizeshort;                // size of short neighbor list array
+  int numshort;                 // current count of neighbors in short list
+  int *neighshort;              // short neighbor list array
 
   virtual void allocate();
   void read_file(char *);

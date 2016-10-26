@@ -51,6 +51,10 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   params = NULL;
   elem2param = NULL;
   map = NULL;
+
+  sizeshort = 10;
+  numshort = 0;
+  neighshort = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -70,6 +74,7 @@ PairSW::~PairSW()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(neighshort);
     delete [] map;
   }
 }
@@ -96,6 +101,7 @@ void PairSW::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  const double cutshortsq = cutmax*cutmax;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -116,12 +122,26 @@ void PairSW::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtag = tag[j];
 
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cutshortsq) {
+        neighshort[numshort++] = j;
+        if (numshort > sizeshort) {
+          sizeshort += sizeshort/2;
+          memory->grow(neighshort,sizeshort,"pair:neighshort");
+        }
+      }
+
+      jtag = tag[j];
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -133,12 +153,6 @@ void PairSW::compute(int eflag, int vflag)
       }
 
       jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
       ijparam = elem2param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) continue;
 
@@ -155,11 +169,10 @@ void PairSW::compute(int eflag, int vflag)
                            evdwl,0.0,fpair,delx,dely,delz);
     }
 
-    jnumm1 = jnum - 1;
+    jnumm1 = numshort - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
+      j = neighshort[jj];
       jtype = map[type[j]];
       ijparam = elem2param[itype][jtype][jtype];
       delr1[0] = x[j][0] - xtmp;
@@ -168,9 +181,8 @@ void PairSW::compute(int eflag, int vflag)
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
       if (rsq1 >= params[ijparam].cutsq) continue;
 
-      for (kk = jj+1; kk < jnum; kk++) {
-        k = jlist[kk];
-        k &= NEIGHMASK;
+      for (kk = jj+1; kk < numshort; kk++) {
+        k = neighshort[kk];
         ktype = map[type[k]];
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
@@ -211,7 +223,7 @@ void PairSW::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-
+  memory->create(neighshort,sizeshort,"pair:neighshort");
   map = new int[n+1];
 }
 

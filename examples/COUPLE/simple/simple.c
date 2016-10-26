@@ -112,7 +112,17 @@ int main(int narg, char **arg)
     lammps_command(lmp,"run 1");
   }
 
-  /* use commands_list() and commands_string() to invoke more commands */
+  // extract force on single atom two different ways
+
+  if (lammps == 1) {
+    double **f = (double **) lammps_extract_atom(lmp,"f");
+    printf("Force on 1 atom via extract_atom: %g\n",f[0][0]);
+
+    double *fx = (double *) lammps_extract_variable(lmp,"fx","all");
+    printf("Force on 1 atom via extract_variable: %g\n",fx[0]);
+  }
+
+  /* use commands_string() and commands_list() to invoke more commands */
 
   char *strtwo = "run 10\nrun 20";
   if (lammps == 1) lammps_commands_string(lmp,strtwo);

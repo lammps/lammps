@@ -187,11 +187,17 @@ class lammps(object):
         raise MPIAbortException(error_msg)
       raise Exception(error_msg)
 
-  # send a list of commands, one at a time
+  # send a list of commands
 
   def commands_list(self,cmdlist):
-    for cmd in cmdlist: self.command(cmd)
+    args = (c_char_p * len(cmdlist))(*cmdlist)
+    self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
+    
+  # send a string of commands
 
+  def commands_string(self,multicmd):
+    self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
+    
   # extract global info
     
   def extract_global(self,name,type):

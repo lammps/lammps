@@ -333,7 +333,10 @@ int colvarproxy_lammps::backup_file(char const *filename)
 
 int colvarproxy_lammps::smp_enabled()
 {
-  return COLVARS_OK;
+  if (b_smp_active) {
+    return COLVARS_OK;
+  }
+  return COLVARS_ERROR;
 }
 
 

@@ -15,7 +15,7 @@ compute ID group-ID orientorder/atom keyword values ... :pre
 ID, group-ID are documented in "compute"_compute.html command :ulb,l
 orientorder/atom = style name of this compute command :l
 one or more keyword/value pairs may be appended :l
-keyword = {cutoff} or {nnn} or {ql}
+keyword = {cutoff} or {nnn} or {degrees}
   {cutoff} value = distance cutoff
   {nnn} value = number of nearest neighbors
   {degrees} values = nlvalues, l1, l2,...  :pre
@@ -111,7 +111,7 @@ options.
 
 [Default:]
 
-The option defaults are {cutoff} = pair style cutoff, {nnn} = 12, {degrees} = 5 4 6 8 9 10 12 i.e. {Q}4, {Q}6, {Q}8, {Q}10, and {Q}12.
+The option defaults are {cutoff} = pair style cutoff, {nnn} = 12, {degrees} = 5 4 6 8 10 12 i.e. {Q}4, {Q}6, {Q}8, {Q}10, and {Q}12.
 
 :line
 

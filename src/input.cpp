@@ -278,7 +278,8 @@ void Input::file(const char *filename)
 }
 
 /* ----------------------------------------------------------------------
-   copy command in single to line, parse and execute it
+   invoke one command in single
+   first copy to line, then parse, then execute it
    return command name to caller
 ------------------------------------------------------------------------- */
 

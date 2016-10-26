@@ -51,16 +51,38 @@ for line in lines: lmp.command(line)
 
 lmp.command("run 10")
 x = lmp.gather_atoms("x",1,3)
+v = lmp.gather_atoms("v",1,3)
 epsilon = 0.1
 x[0] += epsilon
 lmp.scatter_atoms("x",1,3,x)
 lmp.command("run 1");
 
+# extract force on single atom
+
 f = lmp.extract_atom("f",3)
+print("F",f)
 print("Force on 1 atom via extract_atom: ",f[0][0])
 
 fx = lmp.extract_variable("fx","all",1)
+print("FX",fx)
 print("Force on 1 atom via extract_variable:",fx[0])
+
+# use commands_list() to invoke more commands
+
+#strtwo = ["run 10","run 20"]
+#lmp.commands_list(strtwo)
+#lmp.commands_list(strtwo)
+
+# delete all atoms
+# create_atoms() to create new ones with old coords, vels
+# initial thermo should be same as step 20
+
+#natoms = lmp.get_natoms()
+#type = natoms*[1]
+
+#lmp.command("delete_atoms group all");
+#lmp.create_atoms(natoms,None,type,x,v);
+#lmp.command("run 10");
 
 # uncomment if running in parallel via Pypar
 #print("Proc %d out of %d procs has" % (me,nprocs), lmp)

@@ -60,7 +60,7 @@ class Region : protected Pointers {
   double omega[3];	      // angular velocity
   double rprev;               // speed of time-dependent radius, if applicable
   double xcenter[3];          // translated/rotated center of cylinder/sphere (only used if varshape)
-  double prev[5];             // stores displacement (X3), angle and if 
+  double prev[5];             // stores displacement (X3), angle and if
                               //  necessary, region variable size (e.g. radius)
                               //  at previous time step
   int vel_timestep;           // store timestep at which set_velocity was called

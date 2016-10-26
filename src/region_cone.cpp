@@ -416,7 +416,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
     // x is far enough from cone that there is no contact
     // x is interior to cone
 
-    if (r >= maxradius+cutoff || x[0] <= lo-cutoff || x[0] >= hi+cutoff) 
+    if (r >= maxradius+cutoff || x[0] <= lo-cutoff || x[0] >= hi+cutoff)
       return 0;
     if (r < currentradius && x[0] > lo && x[0] < hi) return 0;
 

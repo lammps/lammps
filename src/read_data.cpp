@@ -703,7 +703,11 @@ void ReadData::command(int narg, char **arg)
     if (addflag == NONE) atom->deallocate_topology();
     atom->avec->grow(atom->nmax);
   }
+
+  // init per-atom fix/compute/variable values for created atoms
   
+  atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
+
   // assign atoms added by this data file to specified group
 
   if (groupbit) {
@@ -830,6 +834,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // restore old styles, when reading with nocoeff flag given
+  
   if (coeffflag == 0) {
     if (force->pair) delete force->pair;
     force->pair = saved_pair;

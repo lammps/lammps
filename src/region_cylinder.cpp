@@ -36,7 +36,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
 
   // check open face settings
 
-  if (openflag && (open_faces[2] || open_faces[3] || 
+  if (openflag && (open_faces[2] || open_faces[3] ||
                    open_faces[4] || open_faces[5]))
     error->all(FLERR,"Invalid region cylinder open setting");
 
@@ -691,16 +691,16 @@ void RegCylinder::variable_check()
 
 
 /* ----------------------------------------------------------------------
-   Set values needed to calculate velocity due to shape changes. 
+   Set values needed to calculate velocity due to shape changes.
    These values do not depend on the contact, so this function is
    called once per timestep by fix/wall/gran/region.
-   
+
 ------------------------------------------------------------------------- */
 
 void RegCylinder::set_velocity_shape()
 {
   if (axis == 'x'){
-    xcenter[0] = 0; 
+    xcenter[0] = 0;
     xcenter[1] = c1;
     xcenter[2] = c2;
   }
@@ -715,15 +715,15 @@ void RegCylinder::set_velocity_shape()
     xcenter[2] = 0;
   }
   forward_transform(xcenter[0], xcenter[1], xcenter[2]);
-  if (update->ntimestep > 0) rprev = prev[4];  
+  if (update->ntimestep > 0) rprev = prev[4];
   else rprev = radius;
-  prev[4] = radius;     
+  prev[4] = radius;
 }
 
 
 
 /* ----------------------------------------------------------------------
-   add velocity due to shape change to wall velocity 
+   add velocity due to shape change to wall velocity
 ------------------------------------------------------------------------- */
 
 void RegCylinder::velocity_contact_shape(double *vwall, double *xc)
@@ -746,7 +746,7 @@ void RegCylinder::velocity_contact_shape(double *vwall, double *xc)
   }
   vwall[0] += delx/update->dt;
   vwall[1] += dely/update->dt;
-  vwall[2] += delz/update->dt;     
+  vwall[2] += delz/update->dt;
   //printf ("R is %g, prev %g, velocity of wall at %g %g %g is %g %g %g\n",radius,rprev,xc[0],xc[1],xc[2],vwall[0],vwall[1],vwall[2]);
 }
 

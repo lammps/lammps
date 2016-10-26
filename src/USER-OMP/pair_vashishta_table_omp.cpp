@@ -126,7 +126,7 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cutshortsq) {
         neighshort_thr[numshort++] = j;
-        if (numshort > maxshort_thr) {
+        if (numshort >= maxshort_thr) {
           maxshort_thr += maxshort_thr/2;
           memory->grow(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
         }

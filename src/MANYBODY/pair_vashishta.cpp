@@ -134,7 +134,7 @@ void PairVashishta::compute(int eflag, int vflag)
 
       if (rsq < cutshortsq) {
         neighshort[numshort++] = j;
-        if (numshort > maxshort) {
+        if (numshort >= maxshort) {
           maxshort += maxshort/2;
           memory->grow(neighshort,maxshort,"pair:neighshort");
         }

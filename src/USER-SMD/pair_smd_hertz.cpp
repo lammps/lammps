@@ -266,8 +266,8 @@ void PairHertz::coeff(int narg, char **arg) {
 		allocate();
 
 	int ilo, ihi, jlo, jhi;
-	force->bounds(arg[0], atom->ntypes, ilo, ihi);
-	force->bounds(arg[1], atom->ntypes, jlo, jhi);
+	force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
+	force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
 
 	double bulkmodulus_one = atof(arg[2]);
 

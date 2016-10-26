@@ -683,7 +683,7 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
 
     if (expandflag) {
       *ptr2 = '\0';
-      force->bounds(ptr1+1,nmax,nlo,nhi);
+      force->bounds(FLERR,ptr1+1,nmax,nlo,nhi);
       *ptr2 = ']';
       if (newarg+nhi-nlo+1 > maxarg) {
 	maxarg += nhi-nlo+1;
@@ -1130,7 +1130,7 @@ void Input::partition()
   else error->all(FLERR,"Illegal partition command");
 
   int ilo,ihi;
-  force->bounds(arg[1],universe->nworlds,ilo,ihi);
+  force->bounds(FLERR,arg[1],universe->nworlds,ilo,ihi);
 
   // copy original line to copy, since will use strtok() on it
   // ptr = start of 4th word

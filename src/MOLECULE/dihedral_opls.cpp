@@ -289,7 +289,7 @@ void DihedralOPLS::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
 
   double k1_one = force->numeric(FLERR,arg[1]);
   double k2_one = force->numeric(FLERR,arg[2]);

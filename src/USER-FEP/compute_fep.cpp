@@ -95,9 +95,9 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
       n = strlen(arg[iarg+2]) + 1;
       perturb[npert].pparam = new char[n];
       strcpy(perturb[npert].pparam,arg[iarg+2]);
-      force->bounds(arg[iarg+3],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
                     perturb[npert].ilo,perturb[npert].ihi);
-      force->bounds(arg[iarg+4],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+4],atom->ntypes,
                     perturb[npert].jlo,perturb[npert].jhi);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
         n = strlen(&arg[iarg+5][2]) + 1;
@@ -112,7 +112,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
         perturb[npert].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal atom argument in compute fep");
-      force->bounds(arg[iarg+2],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+2],atom->ntypes,
                     perturb[npert].ilo,perturb[npert].ihi);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;

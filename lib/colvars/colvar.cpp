@@ -1144,9 +1144,9 @@ cvm::real colvar::update_forces_energy()
     // For a periodic colvar, both walls may be applicable at the same time
     // in which case we pick the closer one
     if ( (!is_enabled(f_cv_upper_wall)) ||
-         (this->dist2(x, lower_wall) < this->dist2(x, upper_wall)) ) {
+         (this->dist2(x_reported, lower_wall) < this->dist2(x_reported, upper_wall)) ) {
 
-      cvm::real const grad = this->dist2_lgrad(x, lower_wall);
+      cvm::real const grad = this->dist2_lgrad(x_reported, lower_wall);
       if (grad < 0.0) {
         fw = -0.5 * lower_wall_k * grad;
         f += fw;
@@ -1157,7 +1157,7 @@ cvm::real colvar::update_forces_energy()
 
     } else {
 
-      cvm::real const grad = this->dist2_lgrad(x, upper_wall);
+      cvm::real const grad = this->dist2_lgrad(x_reported, upper_wall);
       if (grad > 0.0) {
         fw = -0.5 * upper_wall_k * grad;
         f += fw;
@@ -1177,15 +1177,21 @@ cvm::real colvar::update_forces_energy()
     // atoms only feel the harmonic force
     // fr: bias force on extended variable (without harmonic spring), for output in trajectory
     // f_ext: total force on extended variable (including harmonic spring)
-    // f: - initially, external biasing force
+    // f: - initially, external biasing force (including wall forces)
     //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
     fr    = f;
     f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
     f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
 
-    // The total force acting on the extended variable is f_ext
-    // This will be used in the next timestep
-    ft_reported = f_ext;
+    if (is_enabled(f_cv_subtract_applied_force)) {
+      // Report a "system" force without the biases on this colvar
+      // that is, just the spring force
+      ft_reported = (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
+    } else {
+      // The total force acting on the extended variable is f_ext
+      // This will be used in the next timestep
+      ft_reported = f_ext;
+    }
 
     // leapfrog: starting from x_i, f_i, v_(i-1/2)
     vr  += (0.5 * dt) * f_ext / ext_mass;

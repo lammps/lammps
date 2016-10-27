@@ -138,8 +138,8 @@ angle cutoff (degrees) :ul
 A single hydrogen atom type K can be specified, or a wild-card
 asterisk can be used in place of or in conjunction with the K
 arguments to select multiple types as hydrogens.  This takes the form
-"*" or "*n" or "n*" or "m*n".  See the "pair_coeff"_pair_coeff command
-doc page for details.
+"*" or "*n" or "n*" or "m*n".  See the "pair_coeff"_pair_coeff.html
+command doc page for details.
 
 If the donor flag is {i}, then the atom of type I in the pair_coeff
 command is treated as the donor, and J is the acceptor.  If the donor

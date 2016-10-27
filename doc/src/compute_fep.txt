@@ -236,7 +236,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "fix adapt/fep"_fix_adapt_fep.html, "fix ave/time"_fix_ave_time.html,
-"pair_lj_soft_coul_soft"_pair_lj_soft_coul_soft.txt
+"pair_style lj/soft/coul/soft"_pair_lj_soft.html
 
 [Default:]
 

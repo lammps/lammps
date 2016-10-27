@@ -225,15 +225,14 @@ class Atom : protected Pointers {
 
   void data_atoms(int, char *, tagint, int, int, double *);
   void data_vels(int, char *, tagint);
-
   void data_bonds(int, char *, int *, tagint, int);
   void data_angles(int, char *, int *, tagint, int);
   void data_dihedrals(int, char *, int *, tagint, int);
   void data_impropers(int, char *, int *, tagint, int);
-
   void data_bonus(int, char *, class AtomVec *, tagint);
   void data_bodies(int, char *, class AtomVecBody *, tagint);
-
+  void data_fix_compute_variable(int, int);
+  
   virtual void allocate_type_arrays();
   void set_mass(const char *, int);
   void set_mass(int, double);

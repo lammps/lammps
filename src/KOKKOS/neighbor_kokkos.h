@@ -434,6 +434,10 @@ class NeighborKokkos : public Neighbor {
 
 /* ERROR/WARNING messages:
 
+E: KOKKOS package only supports 'bin' neighbor lists
+
+Self-explanatory.
+
 E: Too many local+ghost atoms for neighbor list
 
 The number of nlocal + nghost atoms on a processor

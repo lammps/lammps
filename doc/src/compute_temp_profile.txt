@@ -69,8 +69,8 @@ velocity for each atom.  Note that if there is only one atom in the
 bin, its thermal velocity will thus be 0.0.
 
 After the spatially-averaged velocity field has been subtracted from
-each atom, the temperature is calculated by the formula KE = (dim/2 N
-- dim*Nx*Ny*Nz) k T, where KE = total kinetic energy of the group of
+each atom, the temperature is calculated by the formula KE = (dim*N
+- dim*Nx*Ny*Nz) k T/2, where KE = total kinetic energy of the group of
 atoms (sum of 1/2 m v^2), dim = 2 or 3 = dimensionality of the
 simulation, N = number of atoms in the group, k = Boltzmann constant,
 and T = temperature.  The dim*Nx*Ny*Nz term are degrees of freedom

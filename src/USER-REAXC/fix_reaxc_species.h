@@ -38,15 +38,15 @@ typedef struct {
 class FixReaxCSpecies : public Fix {
  public:
   FixReaxCSpecies(class LAMMPS *, int, char **);
-  ~FixReaxCSpecies();
+  virtual ~FixReaxCSpecies();
   int setmask();
-  void init();
+  virtual void init();
   void init_list(int, class NeighList *);
   void setup(int);
   void post_integrate();
   double compute_vector(int);
 
- private:
+ protected:
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
   int nrepeat, nfreq, posfreq;
   int Nmoltype, vector_nmole, vector_nspec;
@@ -67,7 +67,8 @@ class FixReaxCSpecies : public Fix {
   void Output_ReaxC_Bonds(bigint, FILE *);
   void create_compute();
   void create_fix();
-  void FindMolecule();
+  AtomCoord chAnchor(AtomCoord, AtomCoord);
+  virtual void FindMolecule();
   void SortMolecule(int &);
   void FindSpecies(int, int &);
   void WriteFormulas(int, int);

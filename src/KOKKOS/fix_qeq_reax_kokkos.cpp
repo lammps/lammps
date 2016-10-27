@@ -431,8 +431,8 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const boo
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
       if (rsq > cutsq) continue;
 
-      const F_FLOAT r = sqrt(rsq);
       if (final) {
+        const F_FLOAT r = sqrt(rsq);
         d_jlist(m_fill) = j;
         const F_FLOAT shldij = d_shield(itype,jtype);
         d_val(m_fill) = calculate_H_k(r,shldij);

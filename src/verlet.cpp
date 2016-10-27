@@ -95,6 +95,9 @@ void Verlet::setup()
     timer->print_timeout(screen);
   }
 
+  if (lmp->kokkos)
+    error->all(FLERR,"KOKKOS package requires run_style verlet/kk");
+
   update->setupflag = 1;
 
   // setup domain, communication and neighboring

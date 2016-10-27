@@ -29,13 +29,13 @@ namespace LAMMPS_NS {
 class FixReaxCBonds : public Fix {
  public:
   FixReaxCBonds(class LAMMPS *, int, char **);
-  ~FixReaxCBonds();
+  virtual ~FixReaxCBonds();
   int setmask();
-  void init();
+  virtual void init();
   void setup(int);
   void end_of_step();
 
- private:
+ protected:
   int me, nprocs, nmax, ntypes, maxsize;
   int *numneigh;
   tagint **neighid;
@@ -44,12 +44,12 @@ class FixReaxCBonds : public Fix {
 
   void allocate();
   void destroy();
-  void Output_ReaxC_Bonds(bigint, FILE *);
+  virtual void Output_ReaxC_Bonds(bigint, FILE *);
   void FindBond(struct _reax_list*, int &);
   void PassBuffer(double *, int &);
   void RecvBuffer(double *, int, int, int, int);
   int nint(const double &);
-  double memory_usage();
+  virtual double memory_usage();
 
   bigint nvalid, nextvalid();
   struct _reax_list *lists;

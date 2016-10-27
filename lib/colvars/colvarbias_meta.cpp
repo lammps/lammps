@@ -404,7 +404,7 @@ int colvarbias_meta::update()
 
     if (ebmeta) {
        hills_scale *= 1.0/target_dist->value(target_dist->get_colvars_index());
-       if(cvm::step_absolute() <= ebmeta_equil_steps) {
+       if(cvm::step_absolute() <= long(ebmeta_equil_steps)) {
          cvm::real const hills_lambda=(cvm::real(ebmeta_equil_steps - cvm::step_absolute()))/(cvm::real(ebmeta_equil_steps));
          hills_scale = hills_lambda + (1-hills_lambda)*hills_scale;
        }

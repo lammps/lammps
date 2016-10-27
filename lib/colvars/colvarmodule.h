@@ -4,7 +4,7 @@
 #define COLVARMODULE_H
 
 #ifndef COLVARS_VERSION
-#define COLVARS_VERSION "2016-10-21"
+#define COLVARS_VERSION "2016-10-27"
 #endif
 
 #ifndef COLVARS_DEBUG
@@ -198,7 +198,7 @@ public:
   }
 
   /// \brief How many objects are configured yet?
-  inline size_t const size() const
+  inline size_t size() const
   {
     return colvars.size() + biases.size();
   }

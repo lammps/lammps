@@ -1071,7 +1071,7 @@ public:
   {
     // write the header
     os << "object 1 class gridpositions counts";
-    int icv;
+    size_t icv;
     for (icv = 0; icv < number_of_colvars(); icv++) {
       os << " " << number_of_points(icv);
     }
@@ -1166,8 +1166,8 @@ public:
 
   /// \brief Return the log-gradient from finite differences
   /// on the *same* grid for dimension n
-  inline const cvm::real log_gradient_finite_diff( const std::vector<int> &ix0,
-                                                   int n = 0)
+  inline cvm::real log_gradient_finite_diff(const std::vector<int> &ix0,
+                                            int n = 0)
   {
     cvm::real A0, A1;
     std::vector<int> ix;

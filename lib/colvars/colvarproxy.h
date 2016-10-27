@@ -25,7 +25,7 @@ public:
   colvarmodule *colvars;
 
   /// Default constructor
-  inline colvarproxy() : script(NULL), b_smp_active(true) {}
+  inline colvarproxy() : b_smp_active(true), script(NULL) {}
 
   /// Default destructor
   virtual ~colvarproxy() {}

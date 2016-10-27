@@ -1085,7 +1085,7 @@ int colvar::calc_colvar_properties()
     // TODO: put it in the restart information
     if (cvm::step_relative() == 0) {
       xr = x;
-      vr = 0.0; // (already 0; added for clarity)
+      vr.reset(); // (already 0; added for clarity)
     }
 
     // report the restraint center as "value"
@@ -1171,7 +1171,8 @@ cvm::real colvar::update_forces_energy()
   if (is_enabled(f_cv_extended_Lagrangian)) {
 
     cvm::real dt = cvm::dt();
-    cvm::real f_ext;
+    colvarvalue f_ext(fr.type());
+    f_ext.reset();
 
     // the total force is applied to the fictitious mass, while the
     // atoms only feel the harmonic force
@@ -1200,8 +1201,10 @@ cvm::real colvar::update_forces_energy()
     potential_energy = 0.5 * ext_force_k * this->dist2(xr, x);
     // leap to v_(i+1/2)
     if (is_enabled(f_cv_Langevin)) {
-      vr -= dt * ext_gamma * vr.real_value;
-      vr += dt * ext_sigma * cvm::rand_gaussian() / ext_mass;
+      vr -= dt * ext_gamma * vr;
+      colvarvalue rnd(x);
+      rnd.set_random();
+      vr += dt * ext_sigma * rnd / ext_mass;
     }
     vr  += (0.5 * dt) * f_ext / ext_mass;
     xr  += dt * vr;

@@ -70,6 +70,39 @@ void colvarvalue::set_elem(int const icv, colvarvalue const &x)
 }
 
 
+void colvarvalue::set_random()
+{
+  switch (this->type()) {
+  case colvarvalue::type_scalar:
+    this->real_value = cvm::rand_gaussian();
+    break;
+  case colvarvalue::type_3vector:
+  case colvarvalue::type_unit3vector:
+  case colvarvalue::type_unit3vectorderiv:
+    this->rvector_value.x = cvm::rand_gaussian();
+    this->rvector_value.y = cvm::rand_gaussian();
+    this->rvector_value.z = cvm::rand_gaussian();
+    break;
+  case colvarvalue::type_quaternion:
+  case colvarvalue::type_quaternionderiv:
+    this->quaternion_value.q0 = cvm::rand_gaussian();
+    this->quaternion_value.q1 = cvm::rand_gaussian();
+    this->quaternion_value.q2 = cvm::rand_gaussian();
+    this->quaternion_value.q3 = cvm::rand_gaussian();
+    break;
+  case colvarvalue::type_vector:
+    for (size_t ic = 0; ic < this->vector1d_value.size(); ic++) {
+      this->vector1d_value[ic] = cvm::rand_gaussian();
+    }
+    break;
+  case colvarvalue::type_notset:
+  default:
+    undef_op();
+    break;
+  }
+}
+
+
 colvarvalue colvarvalue::inverse() const
 {
   switch (value_type) {

@@ -297,6 +297,9 @@ public:
   /// Set elements of the vector from a single colvarvalue
   void set_elem(int const i_begin, int const i_end, colvarvalue const &x);
 
+  /// Make each element a random number in N(0,1)
+  void set_random();
+
   /// Get a single colvarvalue out of elements of the vector
   colvarvalue const get_elem(int const icv) const;
 

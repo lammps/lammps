@@ -253,6 +253,8 @@ public:
     return atoms.size();
   }
 
+  std::string const print_atom_ids() const;
+
   /// \brief If this option is on, this group merely acts as a wrapper
   /// for a fixed position; any calls to atoms within or to
   /// functions that return disaggregated data will fail

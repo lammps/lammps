@@ -344,7 +344,7 @@ int RegBlock::surface_exterior(double *x, double cutoff)
   store closest point in xc,yc,zc
 --------------------------------------------------------------------------*/
 
-double RegBlock::find_closest_point(int i, double *x, 
+double RegBlock::find_closest_point(int i, double *x,
                                     double &xc, double &yc, double &zc)
 {
   double dot,d2,d2min;
@@ -372,7 +372,7 @@ double RegBlock::find_closest_point(int i, double *x,
 
   } else {
     point_on_line_segment(corners[i][0],corners[i][1],x,p);
-    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) + 
+    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) +
       (p[2]-x[2])*(p[2]-x[2]);
     if (d2 < d2min) {
       d2min = d2;
@@ -382,7 +382,7 @@ double RegBlock::find_closest_point(int i, double *x,
     }
 
     point_on_line_segment(corners[i][1],corners[i][2],x,p);
-    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) + 
+    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) +
       (p[2]-x[2])*(p[2]-x[2]);
     if (d2 < d2min) {
       d2min = d2;
@@ -392,7 +392,7 @@ double RegBlock::find_closest_point(int i, double *x,
     }
 
     point_on_line_segment(corners[i][2],corners[i][3],x,p);
-    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) + 
+    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) +
       (p[2]-x[2])*(p[2]-x[2]);
     if (d2 < d2min) {
       d2min = d2;
@@ -402,7 +402,7 @@ double RegBlock::find_closest_point(int i, double *x,
     }
 
     point_on_line_segment(corners[i][3],corners[i][4],x,p);
-    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) + 
+    d2 = (p[0]-x[0])*(p[0]-x[0]) + (p[1]-x[1])*(p[1]-x[1]) +
       (p[2]-x[2])*(p[2]-x[2]);
     if (d2 < d2min) {
       d2min = d2;

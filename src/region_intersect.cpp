@@ -43,7 +43,7 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
     idsub[nregion] = new char[m];
     strcpy(idsub[nregion],arg[iarg+3]);
     iregion = domain->find_region(idsub[nregion]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region intersect region ID does not exist");
     list[nregion++] = iregion;
   }
@@ -124,7 +124,7 @@ void RegIntersect::init()
   int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
     iregion = domain->find_region(idsub[ilist]);
-    if (iregion == -1) 
+    if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;
   }
@@ -290,7 +290,7 @@ void RegIntersect::set_velocity()
 
 void RegIntersect::length_restart_string(int& n)
 {
-  n += sizeof(int) + strlen(id)+1 + 
+  n += sizeof(int) + strlen(id)+1 +
     sizeof(int) + strlen(style)+1 + sizeof(int);
   for (int ilist = 0; ilist < nregion; ilist++)
     domain->regions[list[ilist]]->length_restart_string(n);
@@ -308,7 +308,7 @@ void RegIntersect::write_restart(FILE *fp)
   fwrite(&sizeid, sizeof(int), 1, fp);
   fwrite(id, 1, sizeid, fp);
   fwrite(&sizestyle, sizeof(int), 1, fp);
-  fwrite(style, 1, sizestyle, fp);  
+  fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
 
   for (int ilist = 0; ilist < nregion; ilist++){
@@ -321,33 +321,26 @@ void RegIntersect::write_restart(FILE *fp)
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
-int RegIntersect::restart(char *buf, int& n)
+int RegIntersect::restart(char *buf, int &n)
 {
-  int sizeid = buf[n];
+  int size = *((int *) (&buf[n]));
   n += sizeof(int);
-  char *restart_id = new char[sizeid];
-  for (int i = 0; i < sizeid; i++)
-    restart_id[i] = buf[n++];    
-  if (strcmp(restart_id,id) != 0) return 0;
+  if ((size <= 0) || (strcmp(&buf[n],id) != 0)) return 0;
+  n += size;
 
-  int sizestyle = buf[n];
+  size = *((int *) (&buf[n]));
   n += sizeof(int);
+  if ((size <= 0) || (strcmp(&buf[n],style) != 0)) return 0;
+  n += size;
 
-  char *restart_style = new char[sizestyle];
-  for (int i = 0; i < sizestyle; i++)
-    restart_style[i] = buf[n++];  
-  if (strcmp(restart_style,style) != 0) return 0;    
-
-  int restart_nreg = buf[n];
+  int restart_nreg = *((int *) (&buf[n]));
   n += sizeof(int);
   if (restart_nreg != nregion) return 0;
 
-  for (int ilist = 0; ilist < nregion; ilist++){
-    if (!domain->regions[list[ilist]]->restart(buf, n)){
-      return 0;
-    }
-  }
-  return 1; 
+  for (int ilist = 0; ilist < nregion; ilist++)
+    if (!domain->regions[list[ilist]]->restart(buf,n)) return 0;
+
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

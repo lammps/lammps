@@ -550,7 +550,8 @@ version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 20
 
 lmp.file(file)           # run an entire input script, file = "in.lj"
 lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" :pre
-lmp.commands_list(cmdlist)  # invoke commands in cmdlist
+lmp.commands_list(cmdlist)     # invoke commands in cmdlist = ["run 10", "run 20"]
+lmp.commands_string(multicmd)  # invoke commands in multicmd = "run 10\nrun 20"
 
 xlo = lmp.extract_global(name,type)  # extract a global quantity
                                      # name = "boxxlo", "nlocal", etc
@@ -631,8 +632,9 @@ lmp2 = lammps()
 lmp1.file("in.file1")
 lmp2.file("in.file2") :pre
 
-The file() and command() methods allow an input script or single
-commands to be invoked.
+The file(), command(), commands_list(), commands_string() methods
+allow an input script, a single command, or multiple commands to be
+invoked.
 
 The extract_global(), extract_atom(), extract_compute(),
 extract_fix(), and extract_variable() methods return values or

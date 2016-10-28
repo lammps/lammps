@@ -486,7 +486,7 @@ void Region::set_velocity()
     else v[0] = v[1] = v[2] = 0.0;
     prev[0] = dx;
     prev[1] = dy;
-    prev[2] = dz;    
+    prev[2] = dz;
   }
 
   if (rotateflag) {
@@ -546,14 +546,13 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
 
 void Region::length_restart_string(int &n)
 {
-  n += sizeof(int) + strlen(id)+1 + 
+  n += sizeof(int) + strlen(id)+1 +
     sizeof(int) + strlen(style)+1 + sizeof(int) +
     size_restart*sizeof(double);
 }
 
 /* ----------------------------------------------------------------------
-   region writes its current style, id, number of sub-regions 
-     and position/angle
+   region writes its current style, id, number of sub-regions, position/angle
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
@@ -562,50 +561,36 @@ void Region::write_restart(FILE *fp)
   int sizeid = (strlen(id)+1);
   int sizestyle = (strlen(style)+1);
   fwrite(&sizeid, sizeof(int), 1, fp);
-  fwrite(id, 1, sizeid, fp);
-  fwrite(&sizestyle, sizeof(int), 1, fp);
-  fwrite(style, 1, sizestyle, fp);  
+  fwrite(id,1,sizeid,fp);
+  fwrite(&sizestyle,sizeof(int),1,fp);
+  fwrite(style,1,sizestyle,fp);
   fwrite(&nregion,sizeof(int),1,fp);
-
-  fwrite(prev, sizeof(double), size_restart, fp);  
+  fwrite(prev,sizeof(double),size_restart,fp);
 }
 
 /* ----------------------------------------------------------------------
    region reads style, id, number of sub-regions from restart file
-     if they match current region, also read previous position/angle
+   if they match current region, also read previous position/angle
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
 int Region::restart(char *buf, int &n)
 {
-  int sizeid = buf[n];
+  int size = *((int *) (&buf[n]));
   n += sizeof(int);
-  char *restart_id = new char[sizeid];
-  for (int i = 0; i < sizeid; i++)
-    restart_id[i] = buf[n++];    
-  if (strcmp(restart_id,id) != 0) return 0;
+  if ((size <= 0) || (strcmp(&buf[n],id) != 0)) return 0;
+  n += size;
 
-  int sizestyle = buf[n];
+  size = *((int *) (&buf[n]));
   n += sizeof(int);
-  char *restart_style = new char[sizestyle];
-  for (int i = 0; i < sizestyle; i++)
-    restart_style[i] = buf[n++];  
-  if (strcmp(restart_style,style) != 0) return 0;    
+  if ((size <= 0) || (strcmp(&buf[n],style) != 0)) return 0;
+  n += size;
 
-  int restart_nreg = buf[n];
+  int restart_nreg = *((int *) (&buf[n]));
   n += sizeof(int);
   if (restart_nreg != nregion) return 0;
 
-  char *rlist = new char[size_restart*sizeof(double)];  
-  for (int i = 0; i < size_restart*sizeof(double); i++)
-    rlist[i] = buf[n++]; 
-  for (int i = 0; i < size_restart; i++){
-    prev[i] = ((double *)rlist)[i];
-  }
-  
-  delete [] rlist;
-  delete [] restart_id;
-  delete [] restart_style;
+  memcpy(prev,&buf[n],size_restart*sizeof(double));
   return 1;
 }
 

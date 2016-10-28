@@ -26,11 +26,14 @@
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
+#include "compute.h"
 #include "output.h"
 #include "thermo.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
+#include "input.h"
+#include "variable.h"
 #include "molecule.h"
 #include "atom_masks.h"
 #include "math_const.h"
@@ -1386,6 +1389,33 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 
   delete [] ivalues;
   delete [] dvalues;
+}
+
+/* ----------------------------------------------------------------------
+   init per-atom fix/compute/variable values for newly created atoms
+   called from create_atoms, read_data, read_dump,
+     lib::lammps_create_atoms()
+   fixes, computes, variables may or may not exist when called
+------------------------------------------------------------------------- */
+
+void Atom::data_fix_compute_variable(int nprev, int nnew)
+{
+  for (int m = 0; m < modify->nfix; m++) {
+    Fix *fix = modify->fix[m];
+    if (fix->create_attribute)
+      for (int i = nprev; i < nnew; i++)
+        fix->set_arrays(i);
+  }
+
+  for (int m = 0; m < modify->ncompute; m++) {
+    Compute *compute = modify->compute[m];
+    if (compute->create_attribute)
+      for (int i = nprev; i < nnew; i++)
+        compute->set_arrays(i);
+  }
+
+  for (int i = nprev; i < nnew; i++)
+    input->variable->set_arrays(i);
 }
 
 /* ----------------------------------------------------------------------

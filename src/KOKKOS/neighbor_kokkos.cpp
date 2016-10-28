@@ -181,6 +181,9 @@ int NeighborKokkos::init_lists_kokkos()
 
 void NeighborKokkos::init_list_flags1_kokkos(int i)
 {
+  if (style != BIN)
+    error->all(FLERR,"KOKKOS package only supports 'bin' neighbor lists");
+
   if (lists_host[i]) {
     lists_host[i]->buildflag = 1;
     if (pair_build_host[i] == NULL) lists_host[i]->buildflag = 0;

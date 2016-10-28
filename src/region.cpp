@@ -552,8 +552,7 @@ void Region::length_restart_string(int &n)
 }
 
 /* ----------------------------------------------------------------------
-   region writes its current style, id, number of sub-regions
-     and position/angle
+   region writes its current style, id, number of sub-regions, position/angle
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
@@ -562,37 +561,36 @@ void Region::write_restart(FILE *fp)
   int sizeid = (strlen(id)+1);
   int sizestyle = (strlen(style)+1);
   fwrite(&sizeid, sizeof(int), 1, fp);
-  fwrite(id, 1, sizeid, fp);
-  fwrite(&sizestyle, sizeof(int), 1, fp);
-  fwrite(style, 1, sizestyle, fp);
+  fwrite(id,1,sizeid,fp);
+  fwrite(&sizestyle,sizeof(int),1,fp);
+  fwrite(style,1,sizestyle,fp);
   fwrite(&nregion,sizeof(int),1,fp);
-
-  fwrite(prev, sizeof(double), size_restart, fp);
+  fwrite(prev,sizeof(double),size_restart,fp);
 }
 
 /* ----------------------------------------------------------------------
    region reads style, id, number of sub-regions from restart file
-     if they match current region, also read previous position/angle
+   if they match current region, also read previous position/angle
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
 int Region::restart(char *buf, int &n)
 {
-  int size = *((int *)(buf+n));
+  int size = *((int *) (&buf[n]));
   n += sizeof(int);
-  if ((size <= 0) || (strcmp(buf+n,id) != 0)) return 0;
+  if ((size <= 0) || (strcmp(&buf[n],id) != 0)) return 0;
   n += size;
 
-  size = *((int *)(buf+n));
+  size = *((int *) (&buf[n]));
   n += sizeof(int);
-  if ((size <= 0) || (strcmp(buf+n,style) != 0)) return 0;
+  if ((size <= 0) || (strcmp(&buf[n],style) != 0)) return 0;
   n += size;
 
-  int restart_nreg = *((int *)(buf+n));
+  int restart_nreg = *((int *) (&buf[n]));
   n += sizeof(int);
   if (restart_nreg != nregion) return 0;
 
-  memcpy(prev,buf+n,size_restart*sizeof(double));
+  memcpy(prev,&buf[n],size_restart*sizeof(double));
   return 1;
 }
 

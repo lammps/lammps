@@ -44,7 +44,7 @@
 
 /* ---------------------------------------------------------------------- */
 
-namespace LAMMPS_NS{
+namespace LAMMPS_NS {
 using namespace MathConst;
 using namespace MathSpecial;
 
@@ -69,6 +69,9 @@ PairReaxCKokkos<DeviceType>::PairReaxCKokkos(LAMMPS *lmp) : PairReaxC(lmp)
   nmax = 0;
   maxbo = 1;
   maxhb = 1;
+
+  k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
+  k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,10 +79,15 @@ PairReaxCKokkos<DeviceType>::PairReaxCKokkos(LAMMPS *lmp) : PairReaxC(lmp)
 template<class DeviceType>
 PairReaxCKokkos<DeviceType>::~PairReaxCKokkos()
 {
-  if (!copymode) {
-    memory->destroy_kokkos(k_eatom,eatom);
-    memory->destroy_kokkos(k_vatom,vatom);
-  }
+  if (copymode) return;
+
+  memory->destroy_kokkos(k_eatom,eatom);
+  memory->destroy_kokkos(k_vatom,vatom);
+
+  memory->destroy_kokkos(k_tmpid,tmpid);
+  tmpid = NULL;
+  memory->destroy_kokkos(k_tmpbo,tmpbo);
+  tmpbo = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -306,6 +314,11 @@ void PairReaxCKokkos<DeviceType>::setup()
   bo_cut = 0.01 * gp[29];
   thb_cut = control->thb_cut;
   thb_cutsq = 0.000010; //thb_cut*thb_cut;
+
+  if (atom->nmax > nmax) {
+    nmax = atom->nmax;
+    allocate_array();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -980,6 +993,9 @@ void PairReaxCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom.template sync<LMPHostType>();
   }
 
+  if (fixspecies_flag)
+    FindBondSpecies();
+
   copymode = 0;
 }
 
@@ -1346,6 +1362,19 @@ void PairReaxCKokkos<DeviceType>::allocate_array()
   d_Delta_lp_temp = typename AT::t_ffloat_1d("reax/c/kk:Delta_lp_temp",nmax);
   d_CdDelta = typename AT::t_ffloat_1d("reax/c/kk:CdDelta",nmax);
   d_sum_ovun = typename AT::t_ffloat_2d_dl("reax/c/kk:sum_ovun",nmax,3);
+
+  // FixReaxCSpecies
+  if (fixspecies_flag) {
+    memory->destroy_kokkos(k_tmpid,tmpid);
+    memory->destroy_kokkos(k_tmpbo,tmpbo);
+    memory->create_kokkos(k_tmpid,tmpid,nmax,MAXSPECBOND,"pair:tmpid");
+    memory->create_kokkos(k_tmpbo,tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
+  }
+
+  // FixReaxCBonds
+  d_abo = typename AT::t_ffloat_2d("reax/c/kk:abo",nmax,maxbo);
+  d_neighid = typename AT::t_tagint_2d("reax/c/kk:neighid",nmax,maxbo);
+  d_numneigh_bonds = typename AT::t_int_1d("reax/c/kk:numneigh_bonds",nmax);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3954,10 +3983,213 @@ double PairReaxCKokkos<DeviceType>::memory_usage()
   bytes += nmax*17*sizeof(F_FLOAT);
   bytes += maxbo*nmax*34*sizeof(F_FLOAT);
 
+  // FixReaxCSpecies
+  if (fixspecies_flag) {
+    bytes += MAXSPECBOND*nmax*sizeof(tagint);
+    bytes += MAXSPECBOND*nmax*sizeof(F_FLOAT);
+  }
+
+  // FixReaxCBonds
+  bytes += maxbo*nmax*sizeof(tagint);
+  bytes += maxbo*nmax*sizeof(F_FLOAT);
+  bytes += nmax*sizeof(int);
+
   return bytes;
 }
 
 /* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxCKokkos<DeviceType>::FindBond(int &numbonds)
+{
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondZero>(0,nmax),*this);
+  DeviceType::fence();
+
+  bo_cut_bond = control->bg_cut;
+
+  atomKK->sync(execution_space,TAG_MASK);
+  tag = atomKK->k_tag.view<DeviceType>();
+
+  const int inum = list->inum;
+  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  d_ilist = k_list->d_ilist;
+  k_list->clean_copy();
+
+  numbonds = 0;
+  PairReaxCKokkosFindBondFunctor<DeviceType> find_bond_functor(this);
+  Kokkos::parallel_reduce(inum,find_bond_functor,numbonds);
+  DeviceType::fence();
+  copymode = 0;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondZero, const int &i) const {
+  d_numneigh_bonds[i] = 0;
+  for (int j = 0; j < maxbo; j++) {
+    d_neighid(i,j) = 0;
+    d_abo(i,j) = 0.0;
+  }
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxCKokkos<DeviceType>::calculate_find_bond_item(int ii, int &numbonds) const
+{
+  const int i = d_ilist[ii];
+  int nj = 0;
+
+  const int j_start = d_bo_first[i];
+  const int j_end = j_start + d_bo_num[i];
+  for (int jj = j_start; jj < j_end; jj++) {
+    int j = d_bo_list[jj];
+    j &= NEIGHMASK;
+    const tagint jtag = tag[j];
+    const int j_index = jj - j_start;
+    double bo_tmp = d_BO(i,j_index);
+
+    if (bo_tmp > bo_cut_bond) {
+      d_neighid(i,nj) = jtag;
+      d_abo(i,nj) = bo_tmp;
+      nj++;
+    }
+  }
+  d_numneigh_bonds[i] = nj;
+  if (nj > numbonds) numbonds = nj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxCKokkos<DeviceType>::PackBondBuffer(DAT::tdual_ffloat_1d k_buf, int &nbuf_local)
+{
+  d_buf = k_buf.view<DeviceType>();
+  k_params_sing.template sync<DeviceType>();
+  atomKK->sync(execution_space,TAG_MASK|TYPE_MASK|Q_MASK|MOLECULE_MASK);
+
+  tag = atomKK->k_tag.view<DeviceType>();
+  type = atomKK->k_type.view<DeviceType>();
+  q = atomKK->k_q.view<DeviceType>();
+  if (atom->molecule)
+    molecule = atomKK->k_molecule.view<DeviceType>();
+
+  copymode = 1;
+  nlocal = atomKK->nlocal;
+  PairReaxCKokkosPackBondBufferFunctor<DeviceType> pack_bond_buffer_functor(this);
+  Kokkos::parallel_scan(nlocal,pack_bond_buffer_functor);
+  DeviceType::fence();
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+  k_nbuf_local.modify<DeviceType>();
+
+  k_buf.sync<LMPHostType>();
+  k_nbuf_local.sync<LMPHostType>();
+  nbuf_local = k_nbuf_local.h_view();
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxCKokkos<DeviceType>::pack_bond_buffer_item(int i, int &j, const bool &final) const
+{
+  if (i == 0)
+    j += 2;
+
+  if (final) {
+    d_buf[j-1] = tag[i];
+    d_buf[j+0] = type[i];
+    d_buf[j+1] = d_total_bo[i];
+    d_buf[j+2] = paramssing(type[i]).nlp_opt - d_Delta_lp[i];
+    d_buf[j+3] = q[i];
+    d_buf[j+4] = d_numneigh_bonds[i];
+  }
+  const int numbonds = d_numneigh_bonds[i];
+
+  if (final) {
+    for (int k = 5; k < 5+numbonds; k++) {
+      d_buf[j+k] = d_neighid(i,k-5);
+    }
+  }
+  j += (5+numbonds);
+
+  if (final) {
+    if (!molecule.data()) d_buf[j] = 0.0;
+    else d_buf[j] = molecule[i];
+  }
+  j++;
+
+  if (final) {
+    for (int k = 0; k < numbonds; k++) {
+      d_buf[j+k] = d_abo(i,k);
+    }
+  }
+  j += (1+numbonds);
+
+  if (final && i == nlocal-1)
+    k_nbuf_local.view<DeviceType>()() = j - 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxCKokkos<DeviceType>::FindBondSpecies()
+{
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpeciesZero>(0,nmax),*this);
+  DeviceType::fence();
+
+  nlocal = atomKK->nlocal;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxFindBondSpecies>(0,nlocal),*this);
+  DeviceType::fence();
+  copymode = 0;
+
+  // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added
+
+  k_tmpbo.modify<DeviceType>();
+  k_tmpid.modify<DeviceType>();
+  k_error_flag.modify<DeviceType>();
+
+  k_tmpbo.sync<LMPHostType>();
+  k_tmpid.sync<LMPHostType>();
+  k_error_flag.sync<LMPHostType>();
+
+  if (k_error_flag.h_view())
+    error->all(FLERR,"Increase MAXSPECBOND in reaxc_defs.h");
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpeciesZero, const int &i) const {
+  for (int j = 0; j < MAXSPECBOND; j++) {
+    k_tmpbo.view<DeviceType>()(i,j) = 0.0;
+    k_tmpid.view<DeviceType>()(i,j) = 0;
+  }
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxCKokkos<DeviceType>::operator()(PairReaxFindBondSpecies, const int &i) const {
+  int nj = 0;
+
+  const int j_start = d_bo_first[i];
+  const int j_end = j_start + d_bo_num[i];
+  for (int jj = j_start; jj < j_end; jj++) {
+    int j = d_bo_list[jj];
+    j &= NEIGHMASK;
+    if (j < i) continue;
+    const int j_index = jj - j_start;
+  
+    double bo_tmp = d_BO(i,j_index);
+  
+    if (bo_tmp >= 0.10 ) { // Why is this a hardcoded value?
+      k_tmpid.view<DeviceType>()(i,nj) = j;
+      k_tmpbo.view<DeviceType>()(i,nj) = bo_tmp;
+      nj++;
+      if (nj > MAXSPECBOND) k_error_flag.view<DeviceType>()() = 1;
+    }
+  }
+}
 
 template class PairReaxCKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA

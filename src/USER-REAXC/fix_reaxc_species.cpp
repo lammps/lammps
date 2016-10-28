@@ -284,11 +284,10 @@ void FixReaxCSpecies::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use fix reax/c/species unless atoms have IDs");
 
-  Pair *pair_kk = force->pair_match("reax/c/kk",1);
-  if (pair_kk != NULL) error->all(FLERR,"Cannot (yet) use fix reax/c/species with "
-                  "pair_style reax/c/kk");
-
   reaxc = (PairReaxC *) force->pair_match("reax/c",1);
+  if (reaxc == NULL)
+    reaxc = (PairReaxC *) force->pair_match("reax/c/kk",1);
+
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/species without "
 		  "pair_style reax/c");
 
@@ -485,7 +484,7 @@ void FixReaxCSpecies::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-AtomCoord chAnchor(AtomCoord in1, AtomCoord in2)
+AtomCoord FixReaxCSpecies::chAnchor(AtomCoord in1, AtomCoord in2)
 {
   if (in1.x < in2.x)
     return in1;

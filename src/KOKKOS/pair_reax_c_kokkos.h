@@ -115,6 +115,13 @@ struct PairReaxComputeTorsion{};
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeHydrogen{};
 
+struct PairReaxFindBondZero{};
+
+struct PairReaxFindBondSpeciesZero{};
+
+struct PairReaxFindBondSpecies{};
+
+
 template<class DeviceType>
 class PairReaxCKokkos : public PairReaxC {
  public:
@@ -132,6 +139,9 @@ class PairReaxCKokkos : public PairReaxC {
   void *extract(const char *, int &);
   void init_style();
   double memory_usage();
+  void FindBond(int &);
+  void PackBondBuffer(DAT::tdual_ffloat_1d, int &);
+  void FindBondSpecies();
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -244,6 +254,21 @@ class PairReaxCKokkos : public PairReaxC {
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFindBondZero, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void calculate_find_bond_item(int, int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void pack_bond_buffer_item(int, int&, const bool&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFindBondSpeciesZero, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFindBondSpecies, const int&) const;
 
   struct params_sing{
     KOKKOS_INLINE_FUNCTION
@@ -359,8 +384,9 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_tagint_1d tag;
+  typename AT::t_tagint_1d_randomread tag;
   typename AT::t_float_1d_randomread q;
+  typename AT::t_tagint_1d_randomread molecule;
 
   DAT::tdual_efloat_1d k_eatom;
   typename AT::t_efloat_1d v_eatom;
@@ -405,6 +431,7 @@ class PairReaxCKokkos : public PairReaxC {
   int neighflag,newton_pair, maxnumneigh, maxhb, maxbo;
   int nlocal,nall,eflag,vflag;
   F_FLOAT cut_nbsq, cut_hbsq, cut_bosq, bo_cut, thb_cut, thb_cutsq;
+  F_FLOAT bo_cut_bond;
 
   int vdwflag, lgflag;
   F_FLOAT gp[39], p_boc1, p_boc2;
@@ -418,6 +445,49 @@ class PairReaxCKokkos : public PairReaxC {
 
   tdual_LR_lookup_table_kk_2d k_LR;
   t_LR_lookup_table_kk_2d d_LR;
+
+  DAT::tdual_int_2d k_tmpid;
+  DAT::tdual_ffloat_2d k_tmpbo;
+  DAT::tdual_int_scalar k_error_flag;
+
+  typename AT::t_int_1d d_numneigh_bonds;
+  typename AT::t_tagint_2d d_neighid;
+  typename AT::t_ffloat_2d d_abo;
+
+  typename AT::t_ffloat_1d d_buf;
+  DAT::tdual_int_scalar k_nbuf_local;
+};
+
+template <class DeviceType>
+struct PairReaxCKokkosFindBondFunctor  {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  PairReaxCKokkos<DeviceType> c;
+  PairReaxCKokkosFindBondFunctor(PairReaxCKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void join(volatile int &dst,
+             const volatile int &src) const {
+    dst = MAX(dst,src);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, int &numbonds) const {
+    c.calculate_find_bond_item(ii,numbonds);
+  }
+};
+
+template <class DeviceType>
+struct PairReaxCKokkosPackBondBufferFunctor  {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  PairReaxCKokkos<DeviceType> c;
+  PairReaxCKokkosPackBondBufferFunctor(PairReaxCKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, int &j, const bool &final) const {
+    c.pack_bond_buffer_item(ii,j,final);
+  }
 };
 
 }

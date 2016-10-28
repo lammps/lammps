@@ -121,6 +121,8 @@ class Domain : protected Pointers {
   void unmap(double *, imageint);
   void unmap(double *, imageint, double *);
   void image_flip(int, int, int);
+  int ownatom(double *);
+  
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(int, char **);

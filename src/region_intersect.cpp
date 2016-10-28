@@ -321,24 +321,24 @@ void RegIntersect::write_restart(FILE *fp)
    needed by fix/wall/gran/region to compute velocity by differencing scheme
 ------------------------------------------------------------------------- */
 
-int RegIntersect::restart(char *buf, int& n)
+int RegIntersect::restart(char *buf, int &n)
 {
-  int size = *((int *)(buf+n));
+  int size = *((int *) (&buf[n]));
   n += sizeof(int);
-  if ((size <= 0) || (strcmp(buf+n,id) != 0)) return 0;
+  if ((size <= 0) || (strcmp(&buf[n],id) != 0)) return 0;
   n += size;
 
-  size = *((int *)(buf+n));
+  size = *((int *) (&buf[n]));
   n += sizeof(int);
-  if ((size <= 0) || (strcmp(buf+n,style) != 0)) return 0;
+  if ((size <= 0) || (strcmp(&buf[n],style) != 0)) return 0;
   n += size;
 
-  int restart_nreg = *((int *)(buf+n));
+  int restart_nreg = *((int *) (&buf[n]));
   n += sizeof(int);
   if (restart_nreg != nregion) return 0;
 
   for (int ilist = 0; ilist < nregion; ilist++)
-    if (!domain->regions[list[ilist]]->restart(buf, n)) return 0;
+    if (!domain->regions[list[ilist]]->restart(buf,n)) return 0;
 
   return 1;
 }

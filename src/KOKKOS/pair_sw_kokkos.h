@@ -34,6 +34,8 @@ struct TagPairSWComputeFullA{};
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairSWComputeFullB{};
 
+struct TagPairSWComputeShortNeigh{};
+
 namespace LAMMPS_NS {
 
 template<class DeviceType>
@@ -74,6 +76,9 @@ class PairSWKokkos : public PairSW {
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG>, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairSWComputeShortNeigh, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -136,6 +141,9 @@ class PairSWKokkos : public PairSW {
   int nlocal,nall,eflag,vflag;
 
   int inum;
+  Kokkos::View<int**,DeviceType> d_neighbors_short;
+  Kokkos::View<int*,DeviceType> d_numneigh_short;
+
 
   friend void pair_virial_fdotr_compute<PairSWKokkos>(PairSWKokkos*);
 };

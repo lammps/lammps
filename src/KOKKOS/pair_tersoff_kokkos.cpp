@@ -204,6 +204,8 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev;
   EV_FLOAT ev_all;
 
+  // build short neighbor list
+
   int max_neighs = d_neighbors.dimension_1();
 
   if ((d_neighbors_short.dimension_1() != max_neighs) ||
@@ -265,6 +267,8 @@ void PairTersoffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeShortNeigh, const int& ii) const {
@@ -298,8 +302,6 @@ template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
-
-
 
   // The f array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
@@ -499,6 +501,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeFullA<NEIGHF
   const int jnum = d_numneigh_short[i];
 
   // repulsive
+
   F_FLOAT f_x = 0.0;
   F_FLOAT f_y = 0.0;
   F_FLOAT f_z = 0.0;
@@ -839,7 +842,6 @@ KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::
 	ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const
 {
-
   const F_FLOAT ters_c = paramskk(i,j,k).c * paramskk(i,j,k).c;
   const F_FLOAT ters_d = paramskk(i,j,k).d * paramskk(i,j,k).d;
   const F_FLOAT hcth = paramskk(i,j,k).h - cos;

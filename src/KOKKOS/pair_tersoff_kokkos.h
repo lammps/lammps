@@ -215,6 +215,7 @@ class PairTersoffKokkos : public PairTersoff {
 
   Kokkos::View<int**,DeviceType> d_neighbors_short;
   Kokkos::View<int*,DeviceType> d_numneigh_short;
+
   friend void pair_virial_fdotr_compute<PairTersoffKokkos>(PairTersoffKokkos*);
 };
 

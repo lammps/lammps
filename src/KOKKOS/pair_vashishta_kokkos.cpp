@@ -108,7 +108,7 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_pair = force->newton_pair;
   nall = atom->nlocal + atom->nghost;
 
-  const int inum = list->inum;
+  inum = list->inum;
   const int ignum = inum + list->gnum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_ilist = k_list->d_ilist;
@@ -120,6 +120,29 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
   EV_FLOAT ev_all;
+
+  int max_neighs = d_neighbors.dimension_1();
+
+  if ((d_neighbors_short_2body.dimension_1() != max_neighs) ||
+     (d_neighbors_short_2body.dimension_0() != ignum)) {
+    d_neighbors_short_2body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_2body",ignum,max_neighs);
+  }
+  if (d_numneigh_short_2body.dimension_0()!=ignum) {
+    d_numneigh_short_2body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_2body",ignum);
+  }
+  
+  if ((d_neighbors_short_3body.dimension_1() != max_neighs) ||
+     (d_neighbors_short_3body.dimension_0() != ignum)) {
+    d_neighbors_short_3body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_3body",ignum,max_neighs);
+  }
+
+  if (d_numneigh_short_3body.dimension_0()!=ignum) {
+    d_numneigh_short_3body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_3body",ignum);
+  }
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairVashishtaComputeShortNeigh>(0,neighflag==FULL?ignum:inum), *this);
+
+
 
   // loop over neighbor list of my atoms
 
@@ -172,6 +195,40 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   copymode = 0;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeShortNeigh, const int& ii) const {
+    const int i = d_ilist[ii];
+    const X_FLOAT xtmp = x(i,0);
+    const X_FLOAT ytmp = x(i,1);
+    const X_FLOAT ztmp = x(i,2);
+
+    const int jnum = d_numneigh[i];
+    int inside_2body = 0;
+    int inside_3body = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
+
+      const X_FLOAT delx = xtmp - x(j,0);
+      const X_FLOAT dely = ytmp - x(j,1);
+      const X_FLOAT delz = ztmp - x(j,2);
+      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cutmax*cutmax) {
+        d_neighbors_short_2body(i,inside_2body) = j;
+        inside_2body++;
+      }
+
+      if (rsq < cutmax_3body*cutmax_3body) {
+        d_neighbors_short_3body(i,inside_3body) = j;
+        inside_3body++;
+      }
+    }
+    d_numneigh_short_2body(i) = inside_2body;
+    d_numneigh_short_3body(i) = inside_3body;
 }
 
 template<class DeviceType>

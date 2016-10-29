@@ -34,6 +34,8 @@ struct TagPairVashishtaComputeFullA{};
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairVashishtaComputeFullB{};
 
+struct TagPairVashishtaComputeShortNeigh{};
+
 namespace LAMMPS_NS {
 
 template<class DeviceType>
@@ -74,6 +76,9 @@ class PairVashishtaKokkos : public PairVashishta {
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairVashishtaComputeFullB<NEIGHFLAG,EVFLAG>, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairVashishtaComputeShortNeigh, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -136,7 +141,10 @@ class PairVashishtaKokkos : public PairVashishta {
   int nlocal,nall,eflag,vflag;
 
   int inum;
-
+  Kokkos::View<int**,DeviceType> d_neighbors_short_2body;
+  Kokkos::View<int*,DeviceType> d_numneigh_short_2body;
+  Kokkos::View<int**,DeviceType> d_neighbors_short_3body;
+  Kokkos::View<int*,DeviceType> d_numneigh_short_3body;
   friend void pair_virial_fdotr_compute<PairVashishtaKokkos>(PairVashishtaKokkos*);
 };
 

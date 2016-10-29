@@ -532,11 +532,12 @@ void PairVashishta::setup_params()
   }
 
   // set cutmax to max of all params
-
+  cutmax_3body = 0.0;
   cutmax = 0.0;
   for (m = 0; m < nparams; m++) {
     if (params[m].cut > cutmax) cutmax = params[m].cut;
     if (params[m].r0 > cutmax) cutmax = params[m].r0;
+    if (params[m].r0 > cutmax_3body) cutmax_3body = params[m].r0;
   }
 }
 

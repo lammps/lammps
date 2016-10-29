@@ -253,7 +253,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
 
   // two-body interactions, skip half of them
 
-  // const int jnum = d_numneigh[i];
   const int jnum = d_numneigh_short_2body[i];
 
   F_FLOAT fxtmpi = 0.0;
@@ -261,7 +260,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
   F_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    // int j = d_neighbors(i,jj);
     int j = d_neighbors_short_2body(i,jj);
     j &= NEIGHMASK;
     const tagint jtag = tag[j];
@@ -390,14 +388,14 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
   // two-body interactions
 
-  const int jnum = d_numneigh[i];
+  const int jnum = d_numneigh_short_2body[i];
 
   F_FLOAT fxtmpi = 0.0;
   F_FLOAT fytmpi = 0.0;
   F_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors(i,jj);
+    int j = d_neighbors_short_2body(i,jj);
     j &= NEIGHMASK;
     const tagint jtag = tag[j];
 
@@ -424,10 +422,10 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
     }
   }
 
-  const int jnumm1 = jnum - 1;
+  const int jnumm1 = d_numneigh_short_3body[i];
 
-  for (int jj = 0; jj < jnumm1; jj++) {
-    int j = d_neighbors(i,jj);
+  for (int jj = 0; jj < jnumm1-1; jj++) {
+    int j = d_neighbors_short_3body(i,jj);
     j &= NEIGHMASK;
     const int jtype = d_map[type[j]];
     const int ijparam = d_elem2param(itype,jtype,jtype);
@@ -438,8 +436,8 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
     if (rsq1 >= d_params[ijparam].cutsq2) continue;
 
-    for (int kk = jj+1; kk < jnum; kk++) {
-      int k = d_neighbors(i,kk);
+    for (int kk = jj+1; kk < jnumm1; kk++) {
+      int k = d_neighbors_short_3body(i,kk);
       k &= NEIGHMASK;
       const int ktype = d_map[type[k]];
       const int ikparam = d_elem2param(itype,ktype,ktype);
@@ -497,14 +495,14 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
   const X_FLOAT ytmpi = x(i,1);
   const X_FLOAT ztmpi = x(i,2);
 
-  const int jnum = d_numneigh[i];
+  const int jnum = d_numneigh_short_3body[i];
 
   F_FLOAT fxtmpi = 0.0;
   F_FLOAT fytmpi = 0.0;
   F_FLOAT fztmpi = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors(i,jj);
+    int j = d_neighbors_short_3body(i,jj);
     j &= NEIGHMASK;
     if (j >= nlocal) continue;
     const int jtype = d_map[type[j]];
@@ -520,10 +518,10 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
 
     if (rsq1 >= d_params[jiparam].cutsq2) continue;
 
-    const int j_jnum = d_numneigh[j];
+    const int j_jnum = d_numneigh_short_3body[j];
 
     for (int kk = 0; kk < j_jnum; kk++) {
-      int k = d_neighbors(j,kk);
+      int k = d_neighbors_short_3body(j,kk);
       k &= NEIGHMASK;
       if (k == i) continue;
       const int ktype = d_map[type[k]];

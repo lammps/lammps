@@ -164,6 +164,7 @@ if (GHOST) {
     list->gnum = 0;
   }
 
+  list->k_ilist.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -37,7 +37,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "pair_kokkos.h"
+#include "pair_reax_c_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -62,6 +62,11 @@ FixQEqReaxKokkos<DeviceType>::FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg
 
   nmax = nmax = m_cap = 0;
   allocated_flag = 0;
+
+  reaxc = (PairReaxC *) force->pair_match("reax/c/kk",1);
+  use_pair_list = 0;
+  if (reaxc->execution_space == this->execution_space)
+    use_pair_list = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,29 +85,54 @@ void FixQEqReaxKokkos<DeviceType>::init()
   atomKK->k_q.modify<LMPHostType>();
   atomKK->k_q.sync<LMPDeviceType>();
 
-  FixQEqReax::init();
+  //FixQEqReax::init();
+  {
+    if (!atom->q_flag) error->all(FLERR,"Fix qeq/reax requires atom attribute q");
+
+    ngroup = group->count(igroup);
+    if (ngroup == 0) error->all(FLERR,"Fix qeq/reax group has no atoms");
+
+    // need a half neighbor list w/ Newton off and ghost neighbors
+    // built whenever re-neighboring occurs
+
+    if (!use_pair_list) {
+      int irequest = neighbor->request(this,instance_me);
+      neighbor->requests[irequest]->pair = 0;
+      neighbor->requests[irequest]->fix = 1;
+      neighbor->requests[irequest]->newton = 2;
+      neighbor->requests[irequest]->ghost = 1;
+    }
+    
+    init_shielding();
+    init_taper();
+    
+    if (strstr(update->integrate_style,"respa"))
+      nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  }
 
   neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
 
-  neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->fix = 1;
-    neighbor->requests[irequest]->pair = 0;
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full_cluster = 0;
-  } else { //if (neighflag == HALF || neighflag == HALFTHREAD)
-    neighbor->requests[irequest]->fix = 1;
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-    neighbor->requests[irequest]->full_cluster = 0;
-    neighbor->requests[irequest]->ghost = 1;
+  if (!use_pair_list) {
+    int irequest = neighbor->nrequest - 1;
+    neighbor->requests[irequest]->
+      kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
+      !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    neighbor->requests[irequest]->
+      kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    
+    if (neighflag == FULL) {
+      neighbor->requests[irequest]->fix = 1;
+      neighbor->requests[irequest]->pair = 0;
+      neighbor->requests[irequest]->full = 1;
+      neighbor->requests[irequest]->half = 0;
+      neighbor->requests[irequest]->full_cluster = 0;
+    } else { //if (neighflag == HALF || neighflag == HALFTHREAD)
+      neighbor->requests[irequest]->fix = 1;
+      neighbor->requests[irequest]->full = 0;
+      neighbor->requests[irequest]->half = 1;
+      neighbor->requests[irequest]->full_cluster = 0;
+      neighbor->requests[irequest]->ghost = 1;
+    }
   }
 
   int ntypes = atom->ntypes;
@@ -213,6 +243,8 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   k_shield.template sync<DeviceType>();
   k_tap.template sync<DeviceType>();
 
+  if (use_pair_list)
+    list = reaxc->list;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;

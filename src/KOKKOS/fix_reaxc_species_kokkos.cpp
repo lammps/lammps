@@ -71,12 +71,6 @@ void FixReaxCSpeciesKokkos::init()
                   "pair_style reax/c/kk");
 
   FixReaxCSpecies::init();
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->newton = 2;
-  neighbor->requests[irequest]->ghost = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,12 +80,20 @@ void FixReaxCSpeciesKokkos::FindMolecule()
   int i,j,ii,jj,inum,itype,jtype,loop,looptot;
   int change,done,anychange;
   int *mask = atom->mask;
-  int *ilist;
   double bo_tmp,bo_cut;
   double **spec_atom = f_SPECBOND->array_atom;
 
-  inum = list->inum;
-  ilist = list->ilist;
+  inum = reaxc->list->inum;
+  typename ArrayTypes<LMPHostType>::t_int_1d ilist;
+  if (reaxc->execution_space == Host) {
+    NeighListKokkos<LMPHostType>* k_list = static_cast<NeighListKokkos<LMPHostType>*>(reaxc->list);
+    k_list->k_ilist.sync<LMPHostType>();
+    ilist = k_list->k_ilist.h_view;
+  } else {
+    NeighListKokkos<LMPDeviceType>* k_list = static_cast<NeighListKokkos<LMPDeviceType>*>(reaxc->list);
+    k_list->k_ilist.sync<LMPHostType>();
+    ilist = k_list->k_ilist.h_view;
+  }
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

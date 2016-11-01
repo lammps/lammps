@@ -60,7 +60,7 @@ produced by a small set of atoms (e.g. 4 atoms in a dihedral or 3
 atoms in a Tersoff 3-body interaction) is assigned in equal portions
 to each atom in the set.  E.g. 1/4 of the dihedral virial to each of
 the 4 atoms, or 1/3 of the fix virial due to SHAKE constraints applied
-to atoms in a a water molecule via the "fix shake"_fix_shake.html
+to atoms in a water molecule via the "fix shake"_fix_shake.html
 command.
 
 If no extra keywords are listed, all of the terms in this formula are

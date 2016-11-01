@@ -2729,7 +2729,7 @@ production runs and is only required during equilibration. This way one
 is consistent with literature (based on the code packages DL_POLY or
 GULP for instance).
 
-The mentioned energy transfer will typically lead to a a small drift
+The mentioned energy transfer will typically lead to a small drift
 in total energy over time.  This internal energy can be monitored
 using the "compute chunk/atom"_compute_chunk_atom.html and "compute
 temp/chunk"_compute_temp_chunk.html commands.  The internal kinetic

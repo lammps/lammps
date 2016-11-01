@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
   class PPPMDispOMP : public PPPMDisp, public ThrOMP {
  public:
   PPPMDispOMP(class LAMMPS *, int, char **);
-  virtual ~PPPMDispOMP () {};
+  virtual ~PPPMDispOMP ();
   virtual void compute(int, int);
 
  protected:

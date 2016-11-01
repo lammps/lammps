@@ -2830,7 +2830,7 @@ temp/drude"_compute_temp_drude.html. This requires also to use the
 command {comm_modify vel yes}.
 
 Short-range damping of the induced dipole interactions can be achieved
-using Thole functions through the the "pair style
+using Thole functions through the "pair style
 thole"_pair_thole.html in "pair_style hybrid/overlay"_pair_hybrid.html
 with a Coulomb pair style. It may be useful to use {coul/long/cs} or
 similar from the CORESHELL package if the core and Drude particle come

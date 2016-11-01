@@ -27,7 +27,7 @@ between quadruplets of atoms, which remain in force for the duration
 of the simulation.  The list of improper quadruplets is read in by a
 "read_data"_read_data.html or "read_restart"_read_restart.html command
 from a data or restart file.  Note that the ordering of the 4 atoms in
-an improper quadruplet determines the the definition of the improper
+an improper quadruplet determines the definition of the improper
 angle used in the formula for each style.  See the doc pages of
 individual styles for details.
 

@@ -94,6 +94,13 @@ Of course this is also possible by not using any suffix commands, and
 explictly appending or not appending the suffix to the relevant
 commands in your input script.
 
+NOTE: The default "run_style"_run_style.html verlet is invoked prior to
+reading the input script and is therefore not affected by a suffix command
+in the input script. The KOKKOS package requires "run_style verlet/kk",
+so when using the KOKKOS package it is necessary to either use the command
+line "-sf kk" command or add an explicit "run_style verlet" command to the
+input script.
+
 [Restrictions:] none
 
 [Related commands:]

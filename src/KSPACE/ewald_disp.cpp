@@ -141,6 +141,7 @@ void EwaldDisp::init()
   init_coeffs();
   init_coeff_sums();
   if (function[0]) qsum_qsq();
+  else qsqsum = qsum = 0.0;
   natoms_original = atom->natoms;
 
   // turn off coulombic if no charge
@@ -152,6 +153,7 @@ void EwaldDisp::init()
   }
 
   double bsbsum = 0.0;
+  M2 = 0.0;
   if (function[1]) bsbsum = sum[1].x2;
   if (function[2]) bsbsum = sum[2].x2;
 
@@ -526,6 +528,7 @@ void EwaldDisp::init_coeff_sums()
   Sum sum_local[EWALD_MAX_NSUMS];
 
   memset(sum_local, 0, EWALD_MAX_NSUMS*sizeof(Sum));
+  memset(sum,       0, EWALD_MAX_NSUMS*sizeof(Sum));
 
   // now perform qsum and qsq via parent qsum_qsq()
 

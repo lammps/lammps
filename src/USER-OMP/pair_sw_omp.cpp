@@ -87,7 +87,6 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const double cutshortsq = cutmax*cutmax;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -124,11 +123,15 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutshortsq) {
+      jtype = map[type[j]];
+      ijparam = elem2param[itype][jtype][jtype];
+      if (rsq >= params[ijparam].cutsq) {
+        continue;
+      } else {
         neighshort_thr[numshort++] = j;
         if (numshort >= maxshort_thr) {
           maxshort_thr += maxshort_thr/2;
-          memory->grow(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
+          memory->grow(neighshort_thr,maxshort_thr,"pair:neighshort_thr");
         }
       }
 
@@ -142,10 +145,6 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (x[j].z == ztmp && x[j].y < ytmp) continue;
         if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
       }
-
-      jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
 
@@ -170,7 +169,6 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-      if (rsq1 >= params[ijparam].cutsq) continue;
 
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
@@ -185,7 +183,6 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[1] = x[k].y - ytmp;
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-        if (rsq2 >= params[ikparam].cutsq) continue;
 
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);

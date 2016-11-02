@@ -100,7 +100,6 @@ void PairSW::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-  const double cutshortsq = cutmax*cutmax;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -132,7 +131,11 @@ void PairSW::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutshortsq) {
+      jtype = map[type[j]];
+      ijparam = elem2param[itype][jtype][jtype];
+      if (rsq >= params[ijparam].cutsq) {
+        continue;
+      } else {
         neighshort[numshort++] = j;
         if (numshort >= maxshort) {
           maxshort += maxshort/2;
@@ -151,9 +154,6 @@ void PairSW::compute(int eflag, int vflag)
         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
 
-      jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -178,7 +178,6 @@ void PairSW::compute(int eflag, int vflag)
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-      if (rsq1 >= params[ijparam].cutsq) continue;
 
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort[kk];
@@ -190,7 +189,6 @@ void PairSW::compute(int eflag, int vflag)
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-        if (rsq2 >= params[ikparam].cutsq) continue;
 
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);

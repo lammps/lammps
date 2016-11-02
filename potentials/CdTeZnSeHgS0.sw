@@ -1,9 +1,17 @@
 ### DATE: 2013-08-09 CONTRIBUTOR: X. W. Zhou, xzhou@sandia.gov, CITATION: Zhou, Ward, Martin, van Swol, Cruz-Campa, and D. Zubia, Phys. Rev. B, 88, 085309 (2013).
 #
-# Note that the way the parameters can be entered is not unique. As one way, we assume that eps_ijk is equal to eps_ik and lambda_ijk is equal to
-# sqrt(lambda_ij*eps_ij*lambda_ik*eps_ik)/eps_ik, and all other parameters in the ijk line are for ik.
+# Note that the way the parameters can be entered is not unique.
+# As one way, we assume that eps_ijk is equal to eps_ik and
+# lambda_ijk is equal to sqrt(lambda_ij*eps_ij*lambda_ik*eps_ik)/eps_ik,
+# and all other parameters in the ijk line are for ik.
+#
+# The twobody ik pair parameters are entered on the i*k lines, where *
+# can be any species. This is consistent with the LAMMPS requirement
+# that twobody ik parameters be defined on the ikk line. Entries on all
+# the other i*k lines are ignored by LAMMPS
 #  
-# These entries are in LAMMPS "metal" units: epsilon = eV; sigma = Angstroms; other quantities are unitless;
+# These entries are in LAMMPS "metal" units: epsilon = eV;
+# sigma = Angstroms; other quantities are unitless
 #
 # cutoff distance = 4.632
 #               eps          sigma            a            lambda          gamma       cos(theta)         A              B              p              q             tol

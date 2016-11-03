@@ -209,7 +209,6 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
   //NeighListKokkos<DeviceType> k_list;
 
-  class AtomKokkos *atomKK;
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
 

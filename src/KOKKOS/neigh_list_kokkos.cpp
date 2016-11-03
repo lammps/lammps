@@ -49,8 +49,9 @@ void NeighListKokkos<Device>::grow(int nmax)
   if (nmax <= maxatoms) return;
   maxatoms = nmax;
 
-  d_ilist =
-    typename ArrayTypes<Device>::t_int_1d("neighlist:ilist",maxatoms);
+  k_ilist =
+    DAT::tdual_int_1d("neighlist:ilist",maxatoms);
+  d_ilist = k_ilist.view<Device>();
   d_numneigh =
     typename ArrayTypes<Device>::t_int_1d("neighlist:numneigh",maxatoms);
   d_neighbors =

@@ -146,7 +146,7 @@ class FixQEqReaxKokkos : public FixQEqReax {
   double memory_usage();
 
  protected:
-  int inum;
+  int inum,use_pair_list;
   int allocated_flag;
 
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;

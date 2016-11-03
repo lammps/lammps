@@ -109,6 +109,8 @@ void PairTersoff::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  double fxtmp,fytmp,fztmp;
+
   // loop over full neighbor list of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -118,6 +120,7 @@ void PairTersoff::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    fxtmp = fytmp = fztmp = 0.0;
 
     // two-body interactions, skip half of them
 
@@ -155,13 +158,13 @@ void PairTersoff::compute(int eflag, int vflag)
 
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
-      if (rsq > params[iparam_ij].cutsq) continue;
+      if (rsq >= params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
 
-      f[i][0] += delx*fpair;
-      f[i][1] += dely*fpair;
-      f[i][2] += delz*fpair;
+      fxtmp += delx*fpair;
+      fytmp += dely*fpair;
+      fztmp += delz*fpair;
       f[j][0] -= delx*fpair;
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
@@ -172,6 +175,7 @@ void PairTersoff::compute(int eflag, int vflag)
 
     // three-body interactions
     // skip immediately if I-J is not within cutoff
+    double fjxtmp,fjytmp,fjztmp;
 
     for (jj = 0; jj < numshort; jj++) {
       j = neighshort[jj];
@@ -182,10 +186,11 @@ void PairTersoff::compute(int eflag, int vflag)
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-      if (rsq1 > params[iparam_ij].cutsq) continue;
+      if (rsq1 >= params[iparam_ij].cutsq) continue;
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
+      fjxtmp = fjytmp = fjztmp = 0.0;
       zeta_ij = 0.0;
 
       for (kk = 0; kk < numshort; kk++) {
@@ -198,7 +203,7 @@ void PairTersoff::compute(int eflag, int vflag)
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-        if (rsq2 > params[iparam_ijk].cutsq) continue;
+        if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
         zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
       }
@@ -207,12 +212,12 @@ void PairTersoff::compute(int eflag, int vflag)
 
       force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,eflag,evdwl);
 
-      f[i][0] += delr1[0]*fpair;
-      f[i][1] += delr1[1]*fpair;
-      f[i][2] += delr1[2]*fpair;
-      f[j][0] -= delr1[0]*fpair;
-      f[j][1] -= delr1[1]*fpair;
-      f[j][2] -= delr1[2]*fpair;
+      fxtmp += delr1[0]*fpair;
+      fytmp += delr1[1]*fpair;
+      fztmp += delr1[2]*fpair;
+      fjxtmp -= delr1[0]*fpair;
+      fjytmp -= delr1[1]*fpair;
+      fjztmp -= delr1[2]*fpair;
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,-fpair,-delr1[0],-delr1[1],-delr1[2]);
@@ -229,24 +234,30 @@ void PairTersoff::compute(int eflag, int vflag)
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-        if (rsq2 > params[iparam_ijk].cutsq) continue;
+        if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
         attractive(&params[iparam_ijk],prefactor,
                    rsq1,rsq2,delr1,delr2,fi,fj,fk);
 
-        f[i][0] += fi[0];
-        f[i][1] += fi[1];
-        f[i][2] += fi[2];
-        f[j][0] += fj[0];
-        f[j][1] += fj[1];
-        f[j][2] += fj[2];
+        fxtmp += fi[0];
+        fytmp += fi[1];
+        fztmp += fi[2];
+        fjxtmp += fj[0];
+        fjytmp += fj[1];
+        fjztmp += fj[2];
         f[k][0] += fk[0];
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
         if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
       }
+      f[j][0] += fjxtmp;
+      f[j][1] += fjytmp;
+      f[j][2] += fjztmp;
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();

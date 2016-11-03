@@ -50,7 +50,7 @@ velocity 	all create $t 5287287 mom yes rot yes dist gaussian
 
 # Equilibrate using Stillinger-Weber model for silicon
 
-pair_style      sw/struct
+pair_style      sw
 pair_coeff 	* * Si.sw Si Si Si Si Si Si Si Si
 
 thermo          10
@@ -68,7 +68,7 @@ write_restart	restart.equil
 clear
 read_restart	restart.equil
 
-pair_style      sw/struct
+pair_style      sw
 pair_coeff 	* * CdTeZnSeHgS0.sw Cd Zn Hg Cd Te S Se Te
 
 thermo          10
@@ -104,7 +104,7 @@ variable	fac equal 0.6
 change_box 	all x scale ${fac} y scale ${fac} z scale ${fac} remap
 
 pair_style      tersoff
-pair_coeff 	* * BNC.tersoff N N N N B B B B
+pair_coeff 	* * BNC.tersoff N N N C B B C B
 
 thermo          10
 fix             1 all nvt temp $t $t 0.1

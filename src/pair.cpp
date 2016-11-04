@@ -87,6 +87,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ndisptablebits = 12;
   tabinner = sqrt(2.0);
   tabinner_disp = sqrt(2.0);
+  ftable = NULL;
+  fdisptable = NULL;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;

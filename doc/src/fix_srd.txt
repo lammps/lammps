@@ -101,7 +101,7 @@ particles move in the normal way via a time integration "fix"_fix.html
 with a short timestep dt.  SRD particles advect with a large timestep
 dt_SRD >= dt.
 
-If the {lamda} keyword is not specified, the the SRD temperature
+If the {lamda} keyword is not specified, the SRD temperature
 {Tsrd} is used in the above formula to compute lamda.  If the {lamda}
 keyword is specified, then the {Tsrd} setting is ignored and the above
 equation is used to compute the SRD temperature.

@@ -188,7 +188,7 @@ is assumed to have been previously loaded by another python command.
 
 Note that the Python code that is loaded and run must contain a
 function with the specified {func} name.  To operate properly when
-later invoked, the the function code must match the {input} and
+later invoked, the function code must match the {input} and
 {return} and {format} keywords specified by the python command.
 Otherwise Python will generate an error.
 

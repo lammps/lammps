@@ -231,7 +231,7 @@ time was spent in each stage (NEB, dynamics, quenching, etc).
 
 Any "dump files"_dump.html defined in the input script will be written
 to during a TAD run at timesteps when an event is executed.  This
-means the the requested dump frequency in the "dump"_dump.html command
+means the requested dump frequency in the "dump"_dump.html command
 is ignored.  There will be one dump file (per dump command) created
 for all partitions.  The atom coordinates of the dump snapshot are
 those of the minimum energy configuration resulting from quenching

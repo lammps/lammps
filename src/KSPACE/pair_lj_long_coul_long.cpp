@@ -130,6 +130,7 @@ PairLJLongCoulLong::~PairLJLongCoulLong()
     memory->destroy(offset);
   }
   if (ftable) free_tables();
+  if (fdisptable) free_disp_tables();
 }
 
 /* ----------------------------------------------------------------------
@@ -282,8 +283,8 @@ void PairLJLongCoulLong::init_style()
 
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
-  if (ndisptablebits) init_tables_disp(cut_lj_global);
+  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
+  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_lj_global);
 
 }
 

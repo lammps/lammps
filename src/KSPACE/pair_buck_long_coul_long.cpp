@@ -51,8 +51,6 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   writedata = 1;
-  ftable = NULL;
-  fdisptable = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -134,6 +132,7 @@ PairBuckLongCoulLong::~PairBuckLongCoulLong()
     memory->destroy(offset);
   }
   if (ftable) free_tables();
+  if (fdisptable) free_disp_tables();
 }
 
 /* ----------------------------------------------------------------------
@@ -288,8 +287,8 @@ void PairBuckLongCoulLong::init_style()
   if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
-  if (ndisptablebits) init_tables_disp(cut_buck_global);
+  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
+  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_buck_global);
 }
 
 /* ----------------------------------------------------------------------

@@ -749,6 +749,7 @@ void Output::create_restart(int narg, char **arg)
     } else restart_every_single = every;
 
     int n = strlen(arg[1]) + 3;
+    delete [] restart1;
     restart1 = new char[n];
     strcpy(restart1,arg[1]);
     if (strchr(restart1,'*') == NULL) strcat(restart1,".*");
@@ -765,6 +766,8 @@ void Output::create_restart(int narg, char **arg)
       restart_every_double = 0;
     } else restart_every_double = every;
 
+    delete [] restart2a;
+    delete [] restart2b;
     restart_toggle = 0;
     int n = strlen(arg[1]) + 3;
     restart2a = new char[n];

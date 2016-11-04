@@ -233,7 +233,7 @@ present, the speed of sound squared is set equal to (1/3)*(dx/dt)^2.
 Setting a0 > (dx/dt)^2 is not allowed, as this may lead to
 instabilities.
 
-If the {noise} keyword is used, followed by a a positive temperature
+If the {noise} keyword is used, followed by a positive temperature
 value, and a positive integer random number seed, a thermal
 lattice-Boltzmann algorithm is used.  If {LBtype} is set equal to 1
 (i.e. the standard LB integrator is chosen), the thermal LB algorithm

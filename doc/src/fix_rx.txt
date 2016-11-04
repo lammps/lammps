@@ -87,7 +87,7 @@ end of each run. A positive value N means that the diagnostics are reported once
 per N time-steps.
 
 The diagnostics report the average # of integrator steps and RHS function evaluations
-and run-time per ODE as well as the the average/RMS/min/max per process. If the
+and run-time per ODE as well as the average/RMS/min/max per process. If the
 reporting frequency is 1, the RMS/min/max per ODE are also reported. The per ODE
 statistics can be used to adjust the tolerance and min/max step parameters. The
 statistics per MPI process can be useful to examine any load imbalance caused by the

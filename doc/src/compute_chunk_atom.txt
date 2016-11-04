@@ -536,7 +536,7 @@ For the {bin/cylinder} style the details are as follows.  If {discard}
 is set to {yes}, an out-of-domain atom will have its chunk ID set to
 0.  If {discard} is set to {no}, the atom will have its chunk ID set
 to the first or last bin in both the radial and axis dimensions.  If
-{discard} is set to {mixed}, which is the default, the the radial
+{discard} is set to {mixed}, which is the default, the radial
 dimension is treated the same as for {discard} = no.  But for the axis
 dimensinon, it will only have its chunk ID set to the first or last
 bin if bins extend to the simulation box boundary in the axis

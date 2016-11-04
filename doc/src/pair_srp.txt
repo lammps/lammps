@@ -99,7 +99,7 @@ The optional {exclude} keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
 {no}, first neighbor forces are computed; for {yes} they are not
 computed. A setting of {no} cannot be used with the {min} option for
-distance calculation because the the minimum distance between directly
+distance calculation because the minimum distance between directly
 connected bonds is zero.
 
 Pair style {srp} turns off normalization of thermodynamic properties

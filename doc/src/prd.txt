@@ -214,7 +214,7 @@ when a correlated event occurs during the third stage of the loop
 listed above, i.e. when only one replica is running dynamics.
 
 When more than one replica detects an event at the end of the same
-event check (every {t_event} steps) during the the second stage, then
+event check (every {t_event} steps) during the second stage, then
 one of them is chosen at random.  The number of coincident events is
 the number of replicas that detected an event.  Normally, this value
 should be 1.  If it is often greater than 1, then either the number of
@@ -241,7 +241,7 @@ time was spent in each stage (dephasing, dynamics, quenching, etc).
 
 Any "dump files"_dump.html defined in the input script, will be
 written to during a PRD run at timesteps corresponding to both
-uncorrelated and correlated events.  This means the the requested dump
+uncorrelated and correlated events.  This means the requested dump
 frequency in the "dump"_dump.html command is ignored.  There will be
 one dump file (per dump command) created for all partitions.
 

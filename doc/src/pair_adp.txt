@@ -168,7 +168,7 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package (which it is by default).
+if LAMMPS was built with that package.
 
 [Related commands:]
 

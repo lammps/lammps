@@ -313,9 +313,8 @@ This pair style can only be used via the {pair} keyword of the
 
 The {coul/long}, {coul/msm} and {tip4p/long} styles are part of the
 KSPACE package.  The {coul/long/cs} style is part of the CORESHELL
-package.  They are only enabled if LAMMPS was built with that package
-(which it is by default).  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+package.  They are only enabled if LAMMPS was built with that package.
+See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

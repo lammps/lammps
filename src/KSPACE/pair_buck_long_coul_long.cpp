@@ -197,8 +197,8 @@ void PairBuckLongCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(*(arg++),atom->ntypes,ilo,ihi);
-  force->bounds(*(arg++),atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,*(arg++),atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,*(arg++),atom->ntypes,jlo,jhi);
 
   double buck_a_one = force->numeric(FLERR,*(arg++));
   double buck_rho_one = force->numeric(FLERR,*(arg++));

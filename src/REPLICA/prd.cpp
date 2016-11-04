@@ -165,7 +165,7 @@ void PRD::command(int narg, char **arg)
   // create Velocity class for velocity creation in dephasing
   // pass it temperature compute, loop_setting, dist_setting settings
 
-  atom->check_mass();
+  atom->check_mass(FLERR);
   velocity = new Velocity(lmp);
   velocity->init_external("all");
 

@@ -276,7 +276,7 @@ void DihedralHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
 
   double k_one = force->numeric(FLERR,arg[1]);
   int sign_one = force->inumeric(FLERR,arg[2]);

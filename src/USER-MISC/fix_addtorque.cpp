@@ -195,7 +195,7 @@ void FixAddTorque::post_force(int vflag)
     modify->addstep_compute(update->ntimestep + 1);
   }
 
-  atom->check_mass();
+  atom->check_mass(FLERR);
   double masstotal = group->mass(igroup);
   group->xcm(igroup,masstotal,xcm);
   group->inertia(igroup,xcm,inertia);

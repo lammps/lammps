@@ -18,9 +18,11 @@
 # sqrt(lambda_ij*epsilon_ij*lambda_ik*epsilon_ik)/lambda_ik, and the
 # results are directly entered in this table. Obviously, this
 # conversion does not change the two-body parameters epsilon_ijj. 
-# All other ik pair parameters are entered on the i*k line, where *
-# can be any species. This is consistent with the requirement of
-# the ik parameter being on the ikk line.
+
+# The twobody ik pair parameters are entered on the i*k lines, where *
+# can be any species. This is consistent with the LAMMPS requirement
+# that twobody ik parameters be defined on the ikk line. Entries on all
+# the other i*k lines are ignored by LAMMPS
 
 # These entries are in LAMMPS "metal" units: epsilon = eV;
 # sigma = Angstroms; other quantities are unitless

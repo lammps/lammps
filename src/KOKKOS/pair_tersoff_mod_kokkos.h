@@ -39,6 +39,8 @@ struct TagPairTersoffMODComputeFullA{};
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairTersoffMODComputeFullB{};
 
+struct TagPairTersoffMODComputeShortNeigh{};
+
 template<class DeviceType>
 class PairTersoffMODKokkos : public PairTersoffMOD {
  public:
@@ -76,6 +78,9 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffMODComputeFullB<NEIGHFLAG,EVFLAG>, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTersoffMODComputeShortNeigh, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   double ters_fc_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
@@ -184,6 +189,7 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   // hardwired to space for 15 atom types
   //params_ters m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
+  int inum; 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
@@ -203,9 +209,11 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
   //NeighListKokkos<DeviceType> k_list;
 
-  class AtomKokkos *atomKK;
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
+
+  Kokkos::View<int**,DeviceType> d_neighbors_short;
+  Kokkos::View<int*,DeviceType> d_numneigh_short;
 
   friend void pair_virial_fdotr_compute<PairTersoffMODKokkos>(PairTersoffMODKokkos*);
 };

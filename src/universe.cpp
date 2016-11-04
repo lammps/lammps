@@ -163,17 +163,49 @@ void Universe::add_world(char *str)
   int n,nper;
   char *ptr;
 
-  if (str == NULL) {
-    n = 1;
-    nper = nprocs;
-  } else if ((ptr = strchr(str,'x')) != NULL) {
-    *ptr = '\0';
-    n = atoi(str);
-    nper = atoi(ptr+1);
-  } else {
-    n = 1;
-    nper = atoi(str);
-  }
+  n = 1;
+  if (str != NULL) {
+
+    // check for valid partition argument
+
+    bool valid = true;
+
+    // str may not be empty and may only consist of digits or 'x'
+
+    int len = strlen(str);
+    if (len < 1) valid = false;
+    for (int i=0; i < len; ++i)
+      if (isdigit(str[i]) || str[i] == 'x') continue;
+      else valid = false;
+
+    if (valid) {
+      if ((ptr = strchr(str,'x')) != NULL) {
+
+        // 'x' may not be the first or last character
+
+        if (ptr == str) {
+          valid = false;
+        } else if (strlen(str) == len-1) {
+          valid = false;
+        } else {
+          *ptr = '\0';
+          n = atoi(str);
+          nper = atoi(ptr+1);
+          *ptr = 'x';
+        }
+      } else nper = atoi(str);
+    }
+
+    // require minimum of 1 partition with 1 processor
+
+    if (n < 1 || nper < 1) valid = false;
+
+    if (!valid) {
+      char msg[128];
+      sprintf(msg,"Invalid partition string '%s'",str);
+      error->universe_all(FLERR,msg);
+    }
+  } else nper = nprocs;
 
   memory->grow(procs_per_world,nworlds+n,"universe:procs_per_world");
   memory->grow(root_proc,(nworlds+n),"universe:root_proc");

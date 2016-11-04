@@ -41,20 +41,6 @@ void PairVashishtaTableOMP::compute(int eflag, int vflag)
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = 0;
 
-  // reallocate 3-body neighbor list if necessary
-  // NOTE: using 1000 is inefficient
-  //       could make this a LAMMPS paged neighbor list
-
-  if (atom->nlocal > neigh3BodyMax) {
-    neigh3BodyMax = atom->nmax;
-    memory->destroy(neigh3BodyCount);
-    memory->destroy(neigh3Body);
-    memory->create(neigh3BodyCount,neigh3BodyMax,
-                   "pair:vashishta:neigh3BodyCount");
-    memory->create(neigh3Body,neigh3BodyMax,1000,
-                   "pair:vashishta:neigh3Body");
-  }
-
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
@@ -86,13 +72,13 @@ void PairVashishtaTableOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG>
 void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,k,ii,jj,kk,jnum,jnumm1;
+  int i,j,k,ii,jj,kk,jnum,jnumm1,maxshort_thr;
   tagint itag,jtag;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *ilist,*jlist,*numneigh,**firstneigh,*neighshort_thr;
 
   evdwl = 0.0;
 
@@ -101,13 +87,16 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
+  const double cutshortsq = r0max*r0max;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  maxshort_thr = maxshort;
+  memory->create(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
 
   double fxtmp,fytmp,fztmp;
-  
+
   // loop over full neighbor list of my atoms
 
   for (ii = iifrom; ii < iito; ++ii) {
@@ -120,35 +109,30 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
     ztmp = x[i].z;
     fxtmp = fytmp = fztmp = 0.0;
 
-    // reset the 3-body neighbor list
-
-    neigh3BodyCount[i] = 0;
-
     // two-body interactions, skip half of them
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtag = tag[j];
-
-      jtype = map[type[j]];
 
       delx = xtmp - x[j].x;
       dely = ytmp - x[j].y;
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
-      ijparam = elem2param[itype][jtype][jtype];
 
-      if (rsq <= params[ijparam].cutsq2) {
-        neigh3Body[i][neigh3BodyCount[i]] = j;
-        neigh3BodyCount[i]++;
+      if (rsq < cutshortsq) {
+        neighshort_thr[numshort++] = j;
+        if (numshort >= maxshort_thr) {
+          maxshort_thr += maxshort_thr/2;
+          memory->grow(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
+        }
       }
 
-      if (rsq >= params[ijparam].cutsq) continue;
-
+      jtag = tag[j];
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -158,6 +142,10 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (x[j].z == ztmp && x[j].y < ytmp) continue;
         if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
       }
+
+      jtype = map[type[j]];
+      ijparam = elem2param[itype][jtype][jtype];
+      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody_table(params[ijparam],rsq,fpair,EFLAG,evdwl);
 
@@ -172,13 +160,10 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
                                evdwl,0.0,fpair,delx,dely,delz,thr);
     }
 
-    jlist = neigh3Body[i];
-    jnum = neigh3BodyCount[i];
-    jnumm1 = jnum - 1;
+    jnumm1 = numshort - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
+      j = neighshort_thr[jj];
       jtype = map[type[j]];
       ijparam = elem2param[itype][jtype][jtype];
       delr1[0] = x[j].x - xtmp;
@@ -190,9 +175,8 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
 
-      for (kk = jj+1; kk < jnum; kk++) {
-        k = jlist[kk];
-        k &= NEIGHMASK;
+      for (kk = jj+1; kk < numshort; kk++) {
+        k = neighshort_thr[kk];
         ktype = map[type[k]];
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
@@ -226,6 +210,7 @@ void PairVashishtaTableOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i].y += fytmp;
     f[i].z += fztmp;
   }
+  memory->destroy(neighshort_thr);
 }
 
 /* ---------------------------------------------------------------------- */

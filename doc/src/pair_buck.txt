@@ -186,9 +186,8 @@ respa"_run_style.html command.  They do not support the {inner},
 
 The {buck/coul/long} style is part of the KSPACE package.  The
 {buck/coul/long/cs} style is part of the CORESHELL package.  They are
-only enabled if LAMMPS was built with that package (which it is by
-default).  See the "Making LAMMPS"_Section_start.html#start_3 section
-for more info.
+only enabled if LAMMPS was built with that package.  See the
+"Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 [Related commands:]
 

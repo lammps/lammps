@@ -60,7 +60,7 @@ void Velocity::command(int narg, char **arg)
 
   // atom masses must all be set
 
-  atom->check_mass();
+  atom->check_mass(FLERR);
 
   // identify group
 

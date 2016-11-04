@@ -237,7 +237,7 @@ described in the papers cited below, the purpose of this method is to
 enable longer timesteps to be used (up to the numerical stability
 limit of the integrator), while still producing the correct Boltzmann
 distribution of atom positions.  It is implemented within LAMMPS, by
-changing how the the random force is applied so that it is composed of
+changing how the random force is applied so that it is composed of
 the average of two random forces representing half-contributions from
 the previous and current time intervals.
 

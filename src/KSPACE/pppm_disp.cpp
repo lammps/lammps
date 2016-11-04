@@ -1357,7 +1357,8 @@ void PPPMDisp::init_coeffs()				// local pair coeffs
   if (function[1]) {					// geometric 1/r^6
     double **b = (double **) force->pair->extract("B",tmp);
     B = new double[n+1];
-    for (int i=0; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
+    B[0] = 0.0;
+    for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
   if (function[2]) {					// arithmetic 1/r^6
     //cannot use epsilon, because this has not been set yet

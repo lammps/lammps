@@ -113,7 +113,7 @@ quantity being minimized), you MUST enable the
 [Restrictions:]
 
 This fix can only be used if LAMMPS was built with the MOLECULE
-package (which it is by default).  See the "Making
+package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info on packages.
 
 [Related commands:]

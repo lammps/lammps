@@ -282,7 +282,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
 
       int mlo,mhi;
-      force->bounds(arg[iarg+1],nbody,mlo,mhi);
+      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
@@ -313,7 +313,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
 
       int mlo,mhi;
-      force->bounds(arg[iarg+1],nbody,mlo,mhi);
+      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;

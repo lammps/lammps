@@ -287,7 +287,7 @@ void Comm::modify_params(int narg, char **arg)
         for (i=0; i < ntypes+1; ++i)
           cutusermulti[i] = -1.0;
       }
-      force->bounds(arg[iarg+1],ntypes,nlo,nhi,1);
+      force->bounds(FLERR,arg[iarg+1],ntypes,nlo,nhi,1);
       cut = force->numeric(FLERR,arg[iarg+2]);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)

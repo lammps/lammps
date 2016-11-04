@@ -74,7 +74,7 @@ void DeleteBonds::command(int narg, char **arg)
   else error->all(FLERR,"Illegal delete_bonds command");
 
   // setup list of types (atom,bond,etc) to consider
-  // use force->bounds() to allow setting of range of types
+  // use force->bounds(FLERR,) to allow setting of range of types
   // range can be 0 to ntypes inclusive
 
   int *tlist = NULL;
@@ -93,7 +93,7 @@ void DeleteBonds::command(int narg, char **arg)
     tlist = new int[n+1];
     for (int i = 0; i <= n; i++) tlist[i] = 0;
     int nlo,nhi;
-    force->bounds(arg[2],n,nlo,nhi,0);
+    force->bounds(FLERR,arg[2],n,nlo,nhi,0);
     for (int i = nlo; i <= nhi; i++) tlist[i] = 1;
 
     iarg++;

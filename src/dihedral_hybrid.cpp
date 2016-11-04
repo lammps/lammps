@@ -247,7 +247,7 @@ void DihedralHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
 
   // 2nd arg = dihedral sub-style name
   // allow for "none" or "skip" as valid sub-style name

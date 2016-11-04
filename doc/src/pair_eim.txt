@@ -159,7 +159,7 @@ more instructions on how to use the accelerated styles effectively.
 [Restrictions:]
 
 This style is part of the MANYBODY package.  It is only enabled if
-LAMMPS was built with that package (which it is by default).
+LAMMPS was built with that package.
 
 [Related commands:]
 

@@ -38,7 +38,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralFourier::DihedralFourier(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralFourier::DihedralFourier(LAMMPS *lmp) : Dihedral(lmp) 
+{
+   writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -398,6 +401,21 @@ void DihedralFourier::read_restart(FILE *fp)
       cos_shift[i][j] = cos(MY_PI*shift[i][j]/180.0);
       sin_shift[i][j] = sin(MY_PI*shift[i][j]/180.0);
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralFourier::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+  {
+    fprintf(fp,"%d %d",i,nterms[i]);
+    for(int j = 0; j < nterms[i]; j++)
+       fprintf(fp," %g %d %g",k[i][j],multiplicity[i][j],shift[i][j]);
+    fprintf(fp,"\n");
   }
 }
 

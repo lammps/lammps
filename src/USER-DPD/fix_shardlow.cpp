@@ -592,6 +592,36 @@ int FixShardlow::coord2ssaAIR(double *x)
   return -2;
 }
 
+/* ----------------------------------------------------------------------
+   convert atom coords into the ssa active interaction region number
+   edges and corners combined with faces, reduces stages from 8 to 4
+------------------------------------------------------------------------- */
+
+int FixShardlow::coord2ssaAIR4stage(double *x)
+{
+  int ix, iy, iz;
+
+  ix = iy = iz = 0;
+  if (x[2] < domain->sublo[2]) iz = -1;
+  if (x[2] >= domain->subhi[2]) iz = 1;
+  if (x[1] < domain->sublo[1]) iy = -1;
+  if (x[1] >= domain->subhi[1]) iy = 1;
+  if (x[0] < domain->sublo[0]) ix = -1;
+  if (x[0] >= domain->subhi[0]) ix = 1;
+
+  if(iz < 0) return -1;
+  else if (iz == 0) {
+    if ( iy < 0 ) return -1;
+    else if (iy == 0) {
+      if (ix < 0) return -1;
+      else if (ix == 0) return 0; // Locally owned atoms
+      else return 1;              // Right atoms
+    } else return 2;              // Top atoms
+  } else return 3;                // Back atoms
+
+  return -2;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixShardlow::grow_arrays(int nmax)

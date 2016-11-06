@@ -1,102 +1,102 @@
- 
+Â 
 :link(lws,http://lammps.sandia.gov)
 :link(ld,Manual.html)
 :link(lc,Section_commands.html#comm)
- 
+Â 
 :line
- 
-fix wall/asphere command :h3
- 
+Â 
+fix wall/asphereÂ command :h3
+Â 
 [Syntax:]
- 
-fix ID group-ID wall/asphere face args ... keyword value ... :pre
- 
-ID, group-ID are documented in "fix"_fix.html command :ulb,l
-one or more face/arg pairs may be appended :l
+Â 
+fix ID group-ID wall/asphereÂ faceÂ argsÂ ... keyword valueÂ ... :pre
+Â 
+ID, group-ID are documented in "fix"_fix.htmlÂ command :ulb,l
+one or more face/argÂ pairs may beÂ appended :l
 face = {xlo} or {xhi} or {ylo} or {yhi} or {zlo} or {zhi} :l
-  args = coord epsilon sigma cutoff
-    coord = position of wall = EDGE or constant or variable
-      EDGE = current lo or hi edge of simulation box
-      constant = number like 0.0 or -30.0 (distance units)
-      variable = "equal-style variable"_variable.html like v_x or v_wiggle
-    epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
-      epsilon can be a variable (see below)
-    sigma = size factor for wall-particle interaction (distance units)
-      sigma can be a variable (see below)
-    cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
-zero or more keyword/value pairs may be appended :l
+Â Â argsÂ =Â coordÂ epsilon sigma cutoff
+Â Â Â Â coordÂ = position of wall = EDGE or constant or variable
+Â Â Â Â Â Â EDGE = currentÂ loÂ or hi edge of simulation box
+Â Â Â Â Â Â constant = number like 0.0 or -30.0 (distance units)
+Â Â Â Â Â Â variable = "equal-style variable"_variable.html likeÂ v_xÂ orÂ v_wiggle
+Â Â Â Â epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
+Â Â Â Â Â Â epsilon can be a variable (see below)
+Â Â Â Â sigma = size factor for wall-particle interaction (distance units)
+Â Â Â Â Â Â sigma can be a variable (see below)
+Â Â Â Â cutoff = distance from wall at which wall-particle interaction is cut off (distance units) :pre
+zero or more keyword/value pairs may beÂ appended :l
 keyword = {units} or {fld} :l
-  {units} value = {lattice} or {box}
-    {lattice} = the wall position is defined in lattice units
-    {box} = the wall position is defined in simulation box units
-  {fld} value = {yes} or {no}
-    {yes} = invoke the wall constraint to be compatible with implicit FLD
-    {no} = invoke the wall constraint in the normal way
-  {pbc} value = {yes} or {no}
-    {yes} = allow periodic boundary in a wall dimension
-    {no} = require non-perioidic boundaries in any wall dimension :pre
+Â Â {units} value = {lattice} or {box}
+Â Â Â Â {lattice} = the wall position is defined in lattice units
+Â Â Â Â {box} = the wall position is defined in simulation box units
+Â Â {fld} value = {yes} or {no}
+Â Â Â Â {yes} = invoke the wall constraint to be compatible with implicit FLD
+Â Â Â Â {no} = invoke the wall constraint in the normal way
+Â Â {pbc} value = {yes} or {no}
+Â Â Â Â {yes} = allow periodic boundary in a wall dimension
+Â Â Â Â {no} = require non-perioidicÂ boundaries in any wallÂ dimension :pre
 :ule
- 
+Â 
 [Examples:]
- 
-fix wallhi all wall/asphere xlo -1.0 1.0 1.0 2.5 units box
-fix wallhi all wall/asphere xhi EDGE 1.0 1.0 2.5
-fix wallhi all wall/asphere v_wiggle 23.2 1.0 1.0 2.5
-fix zwalls all wall/asphere zlo 0.0 1.0 1.0 0.858 zhi 40.0 1.0 1.0 0.858 :pre
- 
+Â 
+fixÂ wallhiÂ all wall/asphereÂ xloÂ -1.0 1.0 1.0 2.5Â unitsÂ box
+fixÂ wallhiÂ all wall/asphereÂ xhiÂ EDGE 1.0 1.0 2.5
+fixÂ wallhiÂ all wall/asphereÂ v_wiggleÂ 23.2 1.0 1.0 2.5
+fixÂ zwallsÂ all wall/asphereÂ zloÂ 0.0 1.0 1.0 0.858Â zhiÂ 40.0 1.0 1.0 0.858 :pre
+Â 
 [Description:]
- 
+Â 
 Bound the simulation domain on one or more of its faces with a flat
 wall that interacts with the ellipsoidal particles in the group by generating a force
-on the particle in a direction perpendicular to the wall and a torque parallel to wall.  The energy of
+on the particle in a direction perpendicular to the wall and a torque parallel to wall.Â Â The energy of
 wall-particle interactions E is given by:
 
 
 :c,image(Eqs/fix_wall_asphere.jpg)
- 
- 
-Introduced by Babadi and Ejtehadi in “(Babadi and Ejtehadi)”_#Babdai,Ejtehadi in which sigma_n is the distance between center of ellipsoid and the nearest point of its surface to the wall (see the image below).
- 
+Â 
+Â 
+Introduced by Babadi in â€œ(Babadi)â€_#BabadiÂ in whichÂ sigma_nÂ is the distance between center of ellipsoid and the nearest point of its surface to the wall (see the image below).
+Â 
 :c,image(JPG/fix_wall_asphere_image.jpg)
- 
+Â 
 Here, {r} is the distance from the particle to the wall at
-position {coord}, and Rc is the {cutoff} distance at which the 
-particle and wall no longer interact.  The energy of the wall
+position {coord}, andÂ RcÂ is the {cutoff} distance at which theÂ 
+particle and wall no longer interact.Â Â The energy of the wall
 potential is shifted so that the wall-particle interaction energy is
 0.0 at the cutoff distance.
- 
-Details of using this command and specifications are the same as fix/wall command. 
- 
-The prefactor {epsilon} can be thought of as an
-effective Hamaker constant with energy units for the strength of the
-ellipsoid-wall interaction.  More specifically, the {epsilon} pre-factor
-= 8 * pi^2 * rho_wall * rho_ellipsoid * epsilon * sigma_a * sigma_b * sigma_c, where epsilon
+Â 
+Details of using this command and specifications are the same as fix/wall command.Â 
+Â 
+TheÂ prefactorÂ {epsilon} can be thought of as an
+effectiveÂ HamakerÂ constant with energy units for the strength of the
+ellipsoid-wall interaction.Â Â More specifically, the {epsilon} pre-factor
+= 8 * pi^2 *Â rho_wallÂ *Â rho_ellipsoidÂ * epsilon *Â sigma_aÂ *Â sigma_bÂ *Â sigma_c, where epsilon
 is the LJ parameters for the constituent LJ
-particles and sigma_a, sigma_b, and sigma_c are radii of ellipsoidal particles. Rho_wall and rho_ellipsoid are the number density of the
+particles andÂ sigma_a,Â sigma_b, andÂ sigma_cÂ are radii of ellipsoidal particles.Â Rho_wallÂ andÂ rho_ellipsoidÂ areÂ the number density of the
 constituent particles, in the wall and ellipsoid respectively, in units
 of 1/volume.
- 
+Â 
 NOTE: You must insure that r is always bigger than sigma_n for
-all particles in the group, or LAMMPS will generate an error.  This
+all particles in the group, or LAMMPS will generate an error.Â  This
 means you cannot start your simulation with particles touching the wall
 position {coord} (r = sigma_n) or with particles penetrating the wall (0 =< r < sigma_n) or with particles on the wrong side of the
 wall (r < 0). 
- 
- 
+Â 
+Â 
 [Restrictions:] none
- 
+Â 
 [Related commands:]
- 
+Â 
 "fix wall"_fix_wall.html
 
- 
+Â 
 [Default:]
- 
-The option defaults units = lattice, fld = no, and pbc = no.
- 
+Â 
+The option defaults units = lattice,Â fldÂ = no, andÂ pbcÂ = no.
+Â 
 :line
- 
-:link(Babadi and Ejtehadi)
+Â 
+:link(Babadi)
 [(Babadi and Ejtehadi)]
- 
+Â 
 

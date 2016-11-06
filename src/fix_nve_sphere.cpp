@@ -64,8 +64,8 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
 
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix nve/sphere requires atom style sphere");
-  if (extra == DIPOLE && !atom->mu_flag)
-    error->all(FLERR,"Fix nve/sphere update dipole requires atom attribute mu");
+  if (extra == DIPOLE && !(atom->mu_flag || atom->bmu_flag) )
+    error->all(FLERR,"Fix nve/sphere update dipole requires atom attribute mu or bmu");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,24 +134,42 @@ void FixNVESphere::initial_integrate(int vflag)
   // update mu for dipoles
   
   if (extra == DIPOLE) {
+
     double **mu = atom->mu;
+    double **bmu = atom->bmu;
+
     if (dlm == NODLM) {
 
-      // d_mu/dt = omega cross mu
-      // renormalize mu to dipole length
-
-      for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
-          if (mu[i][3] > 0.0) {
-            g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
-            g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
-            g[2] = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
-            msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-            scale = mu[i][3]/sqrt(msq);
-            mu[i][0] = g[0]*scale;
-            mu[i][1] = g[1]*scale;
-            mu[i][2] = g[2]*scale;
-          }
+      if(atom->mu_flag){
+        // d_mu/dt = omega cross mu
+        // renormalize mu to dipole length
+        for (int i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            if (mu[i][3] > 0.0) {
+              g[0] = mu[i][0] + dtv * (omega[i][1]*mu[i][2]-omega[i][2]*mu[i][1]);
+              g[1] = mu[i][1] + dtv * (omega[i][2]*mu[i][0]-omega[i][0]*mu[i][2]);
+              g[2] = mu[i][2] + dtv * (omega[i][0]*mu[i][1]-omega[i][1]*mu[i][0]);
+              msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+              scale = mu[i][3]/sqrt(msq);
+              mu[i][0] = g[0]*scale;
+              mu[i][1] = g[1]*scale;
+              mu[i][2] = g[2]*scale;
+            }
+      }
+      if(atom->bmu_flag){
+        for (int i = 0; i < nlocal; i++)
+          if (mask[i] & groupbit)
+            if (bmu[i][3] > 0.0) {
+              g[0] = bmu[i][0] + dtv * (omega[i][1]*bmu[i][2]-omega[i][2]*bmu[i][1]);
+              g[1] = bmu[i][1] + dtv * (omega[i][2]*bmu[i][0]-omega[i][0]*bmu[i][2]);
+              g[2] = bmu[i][2] + dtv * (omega[i][0]*bmu[i][1]-omega[i][1]*bmu[i][0]);
+              msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
+              scale = bmu[i][3]/sqrt(msq);
+              bmu[i][0] = g[0]*scale;
+              bmu[i][1] = g[1]*scale;
+              bmu[i][2] = g[2]*scale;
+            }
+      }
     } else {
 
       // integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme

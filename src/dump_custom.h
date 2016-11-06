@@ -178,6 +178,10 @@ class DumpCustom : public Dump {
   void pack_muy(int);
   void pack_muz(int);
   void pack_mu(int);
+  void pack_bmux(int);
+  void pack_bmuy(int);
+  void pack_bmuz(int);
+  void pack_bmu(int);
   void pack_radius(int);
   void pack_diameter(int);
 

@@ -40,7 +40,7 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      XSU,YSU,ZSU,XSUTRI,YSUTRI,ZSUTRI,
      IX,IY,IZ,
      VX,VY,VZ,FX,FY,FZ,
-     Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
+     Q,MUX,MUY,MUZ,MU,BMUX,BMUY,BMUZ,BMU,RADIUS,DIAMETER,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
      COMPUTE,FIX,VARIABLE,INAME,DNAME};
@@ -832,6 +832,31 @@ int DumpCustom::count()
         ptr = &atom->mu[0][3];
         nstride = 4;
 
+      } else if (thresh_array[ithresh] == BMUX) {
+        if (!atom->bmu_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = &atom->bmu[0][0];
+        nstride = 4;
+      } else if (thresh_array[ithresh] == BMUY) {
+        if (!atom->bmu_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = &atom->bmu[0][1];
+        nstride = 4;
+      } else if (thresh_array[ithresh] == BMUZ) {
+        if (!atom->bmu_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = &atom->bmu[0][2];
+        nstride = 4;
+      } else if (thresh_array[ithresh] == BMU) {
+        if (!atom->bmu_flag)
+          error->all(FLERR,
+                     "Threshold for an atom property that isn't allocated");
+        ptr = &atom->bmu[0][3];
+        nstride = 4;
+
       } else if (thresh_array[ithresh] == RADIUS) {
         if (!atom->radius_flag)
           error->all(FLERR,
@@ -1272,6 +1297,26 @@ int DumpCustom::parse_fields(int narg, char **arg)
       if (!atom->mu_flag)
         error->all(FLERR,"Dumping an atom property that isn't allocated");
       pack_choice[i] = &DumpCustom::pack_mu;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"bmux") == 0) {
+      if (!atom->bmu_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_bmux;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"bmuy") == 0) {
+      if (!atom->bmu_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_bmuy;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"bmuz") == 0) {
+      if (!atom->bmu_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_bmuz;
+      vtype[i] = DOUBLE;
+    } else if (strcmp(arg[iarg],"bmu") == 0) {
+      if (!atom->bmu_flag)
+        error->all(FLERR,"Dumping an atom property that isn't allocated");
+      pack_choice[i] = &DumpCustom::pack_bmu;
       vtype[i] = DOUBLE;
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
@@ -1763,6 +1808,10 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"muy") == 0) thresh_array[nthresh] = MUY;
     else if (strcmp(arg[1],"muz") == 0) thresh_array[nthresh] = MUZ;
     else if (strcmp(arg[1],"mu") == 0) thresh_array[nthresh] = MU;
+    else if (strcmp(arg[1],"bmux") == 0) thresh_array[nthresh] = BMUX;
+    else if (strcmp(arg[1],"bmuy") == 0) thresh_array[nthresh] = BMUY;
+    else if (strcmp(arg[1],"bmuz") == 0) thresh_array[nthresh] = BMUZ;
+    else if (strcmp(arg[1],"bmu") == 0) thresh_array[nthresh] = BMU;
 
     else if (strcmp(arg[1],"radius") == 0) thresh_array[nthresh] = RADIUS;
     else if (strcmp(arg[1],"diameter") == 0) thresh_array[nthresh] = DIAMETER;
@@ -2673,6 +2722,54 @@ void DumpCustom::pack_mu(int n)
 
   for (int i = 0; i < nchoose; i++) {
     buf[n] = mu[clist[i]][3];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_bmux(int n)
+{
+  double **bmu = atom->bmu;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = bmu[clist[i]][0];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_bmuy(int n)
+{
+  double **bmu = atom->bmu;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = bmu[clist[i]][1];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_bmuz(int n)
+{
+  double **bmu = atom->bmu;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = bmu[clist[i]][2];
+    n += size_one;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpCustom::pack_bmu(int n)
+{
+  double **bmu = atom->bmu;
+
+  for (int i = 0; i < nchoose; i++) {
+    buf[n] = bmu[clist[i]][3];
     n += size_one;
   }
 }

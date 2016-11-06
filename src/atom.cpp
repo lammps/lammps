@@ -79,6 +79,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   molindex = molatom = NULL;
   q = NULL;
   mu = NULL;
+  bmu = NULL;
   omega = angmom = torque = NULL;
   radius = rmass = NULL;
   ellipsoid = line = tri = body = NULL;
@@ -155,7 +156,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   wavepacket_flag = sph_flag = 0;
 
   molecule_flag = 0;
-  q_flag = mu_flag = 0;
+  q_flag = mu_flag = bmu_flag = 0;
   omega_flag = torque_flag = angmom_flag = 0;
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
@@ -251,6 +252,7 @@ Atom::~Atom()
 
   memory->destroy(q);
   memory->destroy(mu);
+  memory->destroy(bmu);
   memory->destroy(omega);
   memory->destroy(angmom);
   memory->destroy(torque);
@@ -399,7 +401,7 @@ void Atom::create_avec(const char *style, int narg, char **arg, int trysuffix)
   wavepacket_flag = sph_flag = 0;
 
   molecule_flag = 0;
-  q_flag = mu_flag = 0;
+  q_flag = mu_flag = bmu_flag = 0;
   omega_flag = torque_flag = angmom_flag = 0;
   radius_flag = rmass_flag = 0;
   ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
@@ -2100,6 +2102,7 @@ void *Atom::extract(char *name)
   if (strcmp(name,"molecule") == 0) return (void *) molecule;
   if (strcmp(name,"q") == 0) return (void *) q;
   if (strcmp(name,"mu") == 0) return (void *) mu;
+  if (strcmp(name,"bmu") == 0) return (void *) bmu;
   if (strcmp(name,"omega") == 0) return (void *) omega;
   if (strcmp(name,"angmom") == 0) return (void *) angmom;
   if (strcmp(name,"torque") == 0) return (void *) torque;

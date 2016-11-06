@@ -12,8 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author:  Yongnan Xiong (HNU), xyn@hnu.edu.cn
-                         Aidan Thompson (SNL)
+   Contributing authors:  Yongnan Xiong (HNU), xyn@hnu.edu.cn
+                          Aidan Thompson (SNL)
+                          Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -52,6 +53,9 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   params = NULL;
   elem2param = NULL;
   map = NULL;
+  neigh3BodyMax = 0;
+  neigh3BodyCount = NULL; 
+  neigh3Body = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -71,6 +75,9 @@ PairVashishta::~PairVashishta()
     memory->destroy(cutsq);
     delete [] map;
   }
+
+  memory->destroy(neigh3BodyCount);
+  memory->destroy(neigh3Body);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,6 +108,20 @@ void PairVashishta::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // reallocate 3-body neighbor list if necessary
+  // NOTE: using 1000 is inefficient
+  //       could make this a LAMMPS paged neighbor list
+
+  if (nlocal > neigh3BodyMax) {
+    neigh3BodyMax = atom->nmax;
+    memory->destroy(neigh3BodyCount);
+    memory->destroy(neigh3Body);
+    memory->create(neigh3BodyCount,neigh3BodyMax,
+                   "pair:sw:neigh3BodyCount");
+    memory->create(neigh3Body,neigh3BodyMax,1000,
+                   "pair:sw:neigh3Body");
+  }
+
   // loop over full neighbor list of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -110,6 +131,10 @@ void PairVashishta::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+
+    // reset the 3-body neighbor list
+
+    neigh3BodyCount[i] = 0;
 
     // two-body interactions, skip half of them
 
@@ -121,6 +146,21 @@ void PairVashishta::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtag = tag[j];
 
+      jtype = map[type[j]];
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      ijparam = elem2param[itype][jtype][jtype];
+
+      if (rsq <= params[ijparam].cutsq2) {
+        neigh3Body[i][neigh3BodyCount[i]] = j;
+        neigh3BodyCount[i]++;
+      }
+
+      if (rsq > params[ijparam].cutsq) continue;
+
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -130,16 +170,6 @@ void PairVashishta::compute(int eflag, int vflag)
         if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
         if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
       }
-
-      jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -154,6 +184,8 @@ void PairVashishta::compute(int eflag, int vflag)
       			   evdwl,0.0,fpair,delx,dely,delz);
     }
 
+    jlist = neigh3Body[i];
+    jnum = neigh3BodyCount[i];
     jnumm1 = jnum - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {

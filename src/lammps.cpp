@@ -86,6 +86,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   suffix = suffix2 = NULL;
   suffix_enable = 0;
+  exename = arg[0];
   packargs = NULL;
   num_package = 0;
   char *rfile = NULL;

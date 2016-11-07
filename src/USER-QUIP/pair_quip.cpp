@@ -66,6 +66,7 @@ void PairQUIP::compute(int eflag, int vflag)
   int nghost = atom->nghost;
   int ntotal = nlocal + nghost;
   int *type = atom->type;
+  tagint *tag = atom->tag;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -124,7 +125,7 @@ void PairQUIP::compute(int eflag, int vflag)
   lattice[8] = domain->zprd;
 
   quip_lammps_wrapper
-    (&nlocal,&nghost,atomic_numbers,
+    (&nlocal,&nghost,atomic_numbers,tag,
      &inum,&sum_num_neigh,ilist,
      quip_num_neigh,quip_neigh,lattice,
      quip_potential,&n_quip_potential,&x[0][0],

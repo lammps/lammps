@@ -24,7 +24,7 @@ PairStyle(quip,PairQUIP)
 
 extern "C"
 {
-   void quip_lammps_wrapper(int*, int*, int*,
+   void quip_lammps_wrapper(int*, int*, int*, int*,
       int*, int*, int*,
       int*, int*, double*,
       int*, int*, double*,

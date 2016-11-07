@@ -39,7 +39,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-fp(NULL), qf(NULL), q1(NULL), q2(NULL)
+  fp(NULL), comb(NULL), comb3(NULL), qf(NULL), q1(NULL), q2(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb command");
 

@@ -45,7 +45,9 @@ enum{DIST_UNIFORM,DIST_GAUSSIAN};
 /* ---------------------------------------------------------------------- */
 
 FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), idregion(NULL), idrigid(NULL),
+  idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL), imageflags(NULL),
+  fixrigid(NULL), fixshake(NULL), random(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix deposit command");
 

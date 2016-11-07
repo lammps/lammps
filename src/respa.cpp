@@ -44,8 +44,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg)
+Respa::Respa(LAMMPS *lmp, int narg, char **arg) : Integrate(lmp, narg, arg),
+step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL), newton(NULL), fix_respa(NULL)
 {
+  nhybrid_styles = 0;
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
 
   nlevels = force->inumeric(FLERR,arg[0]);

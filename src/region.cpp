@@ -28,7 +28,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
+Region::Region(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp),
+  id(NULL), style(NULL), contact(NULL), list(NULL), xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
 {
   int n = strlen(arg[0]) + 1;
   id = new char[n];

@@ -42,7 +42,8 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg)
+MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg),
+  is_charged(NULL)
 {
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style msm/cg command");
@@ -53,7 +54,6 @@ MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg)
   else smallq = SMALLQ;
 
   num_charged = -1;
-  is_charged = NULL;
 }
 
 /* ----------------------------------------------------------------------

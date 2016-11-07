@@ -40,14 +40,20 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+Ewald::Ewald(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+  kxvecs(NULL), kyvecs(NULL), kzvecs(NULL), ug(NULL), eg(NULL), vg(NULL),
+  ek(NULL), sfacrl(NULL), sfacim(NULL), sfacrl_all(NULL), sfacim_all(NULL),
+  cs(NULL), sn(NULL), sfacrl_A(NULL), sfacim_A(NULL), sfacrl_A_all(NULL),
+  sfacim_A_all(NULL), sfacrl_B(NULL), sfacim_B(NULL), sfacrl_B_all(NULL),
+  sfacim_B_all(NULL)
 {
+  group_allocate_flag = 0;
+  kmax_created = 0;
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
   ewaldflag = 1;
   group_group_enable = 1;
-  group_allocate_flag = 0;
-
+  
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
   kmax = 0;

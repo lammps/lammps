@@ -33,7 +33,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), randomt(NULL), gfactor1(NULL), gfactor2(NULL)
 {
   force_reneighbor = 1;
   next_reneighbor = -1;

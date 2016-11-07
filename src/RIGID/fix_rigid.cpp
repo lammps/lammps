@@ -56,7 +56,16 @@ enum{ISO,ANISO,TRICLINIC};
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), step_respa(NULL), 
+  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL), 
+  body(NULL), displace(NULL), masstotal(NULL), xcm(NULL), 
+  vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL), 
+  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL), 
+  torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL), 
+  tflag(NULL), langextra(NULL), sum(NULL), all(NULL), 
+  remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL), 
+  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL), 
+  avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
 

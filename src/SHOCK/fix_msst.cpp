@@ -40,7 +40,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), old_velocity(NULL), rfix(NULL), 
+  id_temp(NULL), id_press(NULL), id_pe(NULL), temperature(NULL), 
+  pressure(NULL), pe(NULL), atoms_allocated(0)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix msst command");
 

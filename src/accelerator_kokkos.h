@@ -73,6 +73,7 @@ class CommKokkos : public CommBrick {
 class CommTiledKokkos : public CommTiled {
  public:
   CommTiledKokkos(class LAMMPS *lmp) : CommTiled(lmp) {}
+  CommTiledKokkos(class LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm) {}
   ~CommTiledKokkos() {}
 };
 

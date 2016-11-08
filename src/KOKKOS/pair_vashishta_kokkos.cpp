@@ -201,6 +201,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeShortNeigh, const int& ii) const {
     const int i = d_ilist[ii];
+    const int itype = d_map[type[i]];
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
     const X_FLOAT ztmp = x(i,2);
@@ -211,18 +212,20 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeShortNei
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
-
+      const int jtype = d_map[type[j]];
+      const int ijparam = d_elem2param(itype,jtype,jtype);
+      
       const X_FLOAT delx = xtmp - x(j,0);
       const X_FLOAT dely = ytmp - x(j,1);
       const X_FLOAT delz = ztmp - x(j,2);
       const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutmax*cutmax) {
+      if (rsq < d_params[ijparam].cutsq) {
         d_neighbors_short_2body(i,inside_2body) = j;
         inside_2body++;
       }
 
-      if (rsq < cutmax_3body*cutmax_3body) {
+      if (rsq < d_params[ijparam].cutsq2) {
         d_neighbors_short_3body(i,inside_3body) = j;
         inside_3body++;
       }
@@ -282,8 +285,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     const int ijparam = d_elem2param(itype,jtype,jtype);
-    if (rsq >= d_params[ijparam].cutsq) continue;
-
+    
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
     fxtmpi += delx*fpair;
@@ -310,8 +312,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-    if (rsq1 >= d_params[ijparam].cutsq2) continue;
-
+    
     F_FLOAT fxtmpj = 0.0;
     F_FLOAT fytmpj = 0.0;
     F_FLOAT fztmpj = 0.0;
@@ -327,8 +328,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
       delr2[1] = x(k,1) - ytmp;
       delr2[2] = x(k,2) - ztmp;
       const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-      if (rsq2 >= d_params[ikparam].cutsq2) continue;
 
       threebody(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
                 rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
@@ -408,8 +407,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
     const int ijparam = d_elem2param(itype,jtype,jtype);
 
-    if (rsq >= d_params[ijparam].cutsq) continue;
-
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
     fxtmpi += delx*fpair;
@@ -434,8 +431,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
     delr1[2] = x(j,2) - ztmp;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-    if (rsq1 >= d_params[ijparam].cutsq2) continue;
-
     for (int kk = jj+1; kk < jnumm1; kk++) {
       int k = d_neighbors_short_3body(i,kk);
       k &= NEIGHMASK;
@@ -447,8 +442,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
       delr2[1] = x(k,1) - ytmp;
       delr2[2] = x(k,2) - ztmp;
       const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-      if (rsq2 >= d_params[ikparam].cutsq2) continue;
 
       threebody(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
                 rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
@@ -516,8 +509,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
     delr1[2] = ztmpi - ztmpj;
     const F_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-    if (rsq1 >= d_params[jiparam].cutsq2) continue;
-
     const int j_jnum = d_numneigh_short_3body[j];
 
     for (int kk = 0; kk < j_jnum; kk++) {
@@ -532,8 +523,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
       delr2[1] = x(k,1) - ytmpj;
       delr2[2] = x(k,2) - ztmpj;
       const F_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-      if (rsq2 >= d_params[jkparam].cutsq2) continue;
 
       if (vflag_atom)
         threebody(d_params[jiparam],d_params[jkparam],d_params[jikparam],

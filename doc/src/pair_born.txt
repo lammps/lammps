@@ -19,6 +19,8 @@ pair_style born/coul/msm/omp command :h3
 pair_style born/coul/wolf command :h3
 pair_style born/coul/wolf/gpu command :h3
 pair_style born/coul/wolf/omp command :h3
+pair_style born/coul/dsf command :h3
+pair_style born/coul/dsf/cs command :h3
 
 [Syntax:]
 
@@ -37,7 +39,11 @@ args = list of arguments for a particular style :ul
   {born/coul/wolf} args = alpha cutoff (cutoff2)
     alpha = damping parameter (inverse distance units)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {born/coul/dsf} or {born/coul/dsf/cs} args = alpha cutoff (cutoff2)
+    alpha = damping parameter (inverse distance units)
+    cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (distance units) :pre
 
 [Examples:]
 
@@ -61,6 +67,11 @@ pair_style born/coul/wolf 0.25 10.0
 pair_style born/coul/wolf 0.25 10.0 9.0
 pair_coeff * * 6.08 0.317 2.340 24.18 11.51
 pair_coeff 1 1 6.08 0.317 2.340 24.18 11.51 :pre
+
+pair_style born/coul/dsf 0.1 10.0 12.0
+pair_coeff * *   0.0 1.00 0.00 0.00 0.00
+pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50 :pre
+
 
 [Description:]
 
@@ -90,10 +101,15 @@ term.
 The {born/coul/wolf} style adds a Coulombic term as described for the
 Wolf potential in the "coul/wolf"_pair_coul.html pair style.
 
+The {born/coul/dsf} style computes the Coulomb contribution
+with the damped shifted force model as in the
+"coul/dsf"_pair_coul.html style.
+
 Style {born/coul/long/cs} is identical to {born/coul/long} except that
 a term is added for the "core/shell model"_Section_howto.html#howto_25
 to allow charges on core and shell particles to be separated by r =
-0.0.
+0.0. The same correction is introduced for {born/coul/dsf/cs} style
+which is identical to {born/coul/dsf}.
 
 Note that these potentials are related to the "Buckingham
 potential"_pair_buck.html.
@@ -116,9 +132,10 @@ The second coefficient, rho, must be greater than zero.
 The last coefficient is optional.  If not specified, the global A,C,D
 cutoff specified in the pair_style command is used.
 
-For {born/coul/long} and {born/coul/wolf} no Coulombic cutoff can be
-specified for an individual I,J type pair.  All type pairs use the
-same global Coulombic cutoff specified in the pair_style command.
+For {born/coul/long}, {born/coul/wolf} and {born/coul/dsf} no
+Coulombic cutoff can be specified for an individual I,J type pair.
+All type pairs use the same global Coulombic cutoff specified in
+the pair_style command.
 
 :line
 

@@ -10,49 +10,42 @@ fix bfield command :h3
 
 [Syntax:]
 
-fix ID group-ID bfield bx by bz :pre
+fix ID group-ID bfield Bx By Bz :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 bfield = style name of this fix command :l
-bx,by,bz = B-field component values (magnetic field units) :l
-zero or more keyword/value pairs may be appended to args :l
+Bx,By,Bz = B-field component values (magnetic field units) :l
+
+zero or more keyword/value pairs may be appended to args :ulb,l
 keyword = {region} :l
-  {region} value = region-ID
-    region-ID = ID of region atoms must be in to have added force
+  {region} value = region-ID of region atoms must be in to experience magnetic field :l
 :ule
 
 [Examples:]
 
-fix all external-field bfield 1.0 0.0 0.0 :pre
+fix all external-field bfield 1.0 0.0 0.0 
 fix all external-field bfield 0.0 v_b 0.0 region sub :pre
 
 [Description:]
 
-Add the effect of an external magnetic field to each charged atom. If the system
-contains magnetic point-dipoles, also add a torque on the dipoles due to the
-external magnetic field.
+Add the effect of a Lorentz force {F = qB x v} to the positions and velocities of charged atoms. 
 
-force F = q*(B x v) 
+If the system contains magnetic point-dipoles, a torque is added to the dipoles due to the external magnetic field as {T = mu x B}. The energy added by the torque is saved as a global scalar. 
 
 For charges, any of the 3 quantities defining the B-field components
-can be specified as an equal-style "variable"_variable.html, namely {bx}, {by}, {bz}.  If the value is a
+can be specified as an equal-style "variable"_variable.html, namely {Bx}, {By}, {Bz}.  If the value is a
 variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the B-field component.
 
+If the {region} keyword is used, the atom must be in the specified geometric region in order to experience the magnetic field.
+
+The implementation follows the weak-field limit given by "(Spreiter and Walter)"_#Spreiter. A warning is issued if the applied field is extremely strong. 
+
 :line 
 
-Adding a force or torque to atoms implies a change in their potential
-energy as they move or rotate due to the applied B-field.
-
-For dynamics via the "run" command, this energy can be optionally
-added to the system's potential energy for thermodynamic output (see
-below). For energy minimization via the "minimize" command, this
-energy must be added to the system's potential energy to formulate a
-self-consistent minimization problem (see below).
-
-NOTE: the minimizer in LAMMPS does not rotate dipoles, so you should not expect to be able to
-minimize the orientation of dipoles in an applied magnetic field.
+NOTE: Adding a force or torque to atoms implies a change in their potential
+energy as they rotate due to the applied B-field. The minimizers in LAMMPS do not rotate dipoles, so you should not expect the orientation of dipoles to be minimized in an applied magnetic field.
 
 :line 
 
@@ -70,6 +63,11 @@ No parameter of this fix can be used with the {start/stop} keywords of
 the "run"_run.html command.
 
 [Restrictions:]
+
+The system must contain charges or magnetic dipoles.
+
+:link(Spreiter)
+[(Spreiter)] Spreiter and Walter. J Comp Phys, 152, 102-119 (1999)
 
 [Related commands:]
 

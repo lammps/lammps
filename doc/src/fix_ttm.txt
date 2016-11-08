@@ -107,7 +107,7 @@ specified as parameters to the fix.  The other quantities are derived.
 The form of the heat diffusion equation used here is almost the same
 as that in equation 6 of "(Duffy)"_#Duffy, with the exception that the
 electronic density is explicitly reprensented, rather than being part
-of the the specific heat parameter.
+of the specific heat parameter.
 
 Currently, fix ttm assumes that none of the user-supplied parameters
 will vary with temperature. Note that "(Duffy)"_#Duffy used a tanh()

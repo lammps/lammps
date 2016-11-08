@@ -141,6 +141,7 @@ void EwaldDisp::init()
   init_coeffs();
   init_coeff_sums();
   if (function[0]) qsum_qsq();
+  else qsqsum = qsum = 0.0;
   natoms_original = atom->natoms;
 
   // turn off coulombic if no charge
@@ -152,6 +153,7 @@ void EwaldDisp::init()
   }
 
   double bsbsum = 0.0;
+  M2 = 0.0;
   if (function[1]) bsbsum = sum[1].x2;
   if (function[2]) bsbsum = sum[2].x2;
 
@@ -501,8 +503,9 @@ void EwaldDisp::init_coeffs()
     double **b = (double **) force->pair->extract("B",tmp);
     delete [] B;
     B = new double[n+1];
+    B[0] = 0.0;
     bytes += (n+1)*sizeof(double);
-    for (int i=0; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
+    for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
   if (function[2]) {                                        // arithmetic 1/r^6
     double **epsilon = (double **) force->pair->extract("epsilon",tmp);
@@ -514,7 +517,9 @@ void EwaldDisp::init_coeffs()
     if (!(epsilon&&sigma))
       error->all(
           FLERR,"Epsilon or sigma reference not set by pair style in ewald/n");
-    for (int i=0; i<=n; ++i) {
+    for (int j=0; j<7; ++j)
+      *(bi++) = 0.0;
+    for (int i=1; i<=n; ++i) {
       eps_i = sqrt(epsilon[i][i]);
       sigma_i = sigma[i][i];
       sigma_n = 1.0;
@@ -535,6 +540,7 @@ void EwaldDisp::init_coeff_sums()
   Sum sum_local[EWALD_MAX_NSUMS];
 
   memset(sum_local, 0, EWALD_MAX_NSUMS*sizeof(Sum));
+  memset(sum,       0, EWALD_MAX_NSUMS*sizeof(Sum));
 
   // now perform qsum and qsq via parent qsum_qsq()
 

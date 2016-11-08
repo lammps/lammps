@@ -3688,7 +3688,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"xcm") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3704,7 +3704,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"vcm") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double vcm[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3743,7 +3743,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"gyration") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3];
     if (narg == 1) {
       double masstotal = group->mass(igroup);
@@ -3762,7 +3762,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"angmom") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],lmom[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3780,7 +3780,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"torque") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],tq[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3798,7 +3798,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"inertia") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],inertia[3][3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3819,7 +3819,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"omega") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],angmom[3],inertia[3][3],omega[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);

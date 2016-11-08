@@ -185,7 +185,7 @@ For dump files in {xyz} format, only the {x}, {y}, and {z} fields are
 supported.  The dump file does not store atom IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
 starting from 1.  Thus you should insure that order of atoms is
-consistent from snapshot to snapshot in the the XYZ dump file.  See
+consistent from snapshot to snapshot in the XYZ dump file.  See
 the "dump_modify sort"_dump_modify.html command if the XYZ dump file
 was written by LAMMPS.
 
@@ -195,7 +195,7 @@ velocities, or their respective plugins may not support reading of
 velocities.  The molfile dump files do not store atom IDs, so these
 are assigned consecutively to the atoms as they appear in the dump
 file, starting from 1.  Thus you should insure that order of atoms are
-consistent from snapshot to snapshot in the the molfile dump file.
+consistent from snapshot to snapshot in the molfile dump file.
 See the "dump_modify sort"_dump_modify.html command if the dump file
 was written by LAMMPS.
 

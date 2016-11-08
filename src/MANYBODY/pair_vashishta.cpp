@@ -52,6 +52,10 @@ PairVashishta::PairVashishta(LAMMPS *lmp) : Pair(lmp)
   params = NULL;
   elem2param = NULL;
   map = NULL;
+
+  r0max = 0.0;
+  maxshort = 10;
+  neighshort = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -69,6 +73,7 @@ PairVashishta::~PairVashishta()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
+    memory->destroy(neighshort);
     delete [] map;
   }
 }
@@ -95,11 +100,14 @@ void PairVashishta::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  const double cutshortsq = r0max*r0max;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  double fxtmp,fytmp,fztmp;
 
   // loop over full neighbor list of my atoms
 
@@ -110,17 +118,32 @@ void PairVashishta::compute(int eflag, int vflag)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    fxtmp = fytmp = fztmp = 0.0;
 
     // two-body interactions, skip half of them
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtag = tag[j];
 
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      if (rsq < cutshortsq) {
+        neighshort[numshort++] = j;
+        if (numshort >= maxshort) {
+          maxshort += maxshort/2;
+          memory->grow(neighshort,maxshort,"pair:neighshort");
+        }
+      }
+
+      jtag = tag[j];
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -132,20 +155,14 @@ void PairVashishta::compute(int eflag, int vflag)
       }
 
       jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
       ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
+      if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,eflag,evdwl);
 
-      f[i][0] += delx*fpair;
-      f[i][1] += dely*fpair;
-      f[i][2] += delz*fpair;
+      fxtmp += delx*fpair;
+      fytmp += dely*fpair;
+      fztmp += delz*fpair;
       f[j][0] -= delx*fpair;
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
@@ -154,11 +171,10 @@ void PairVashishta::compute(int eflag, int vflag)
       			   evdwl,0.0,fpair,delx,dely,delz);
     }
 
-    jnumm1 = jnum - 1;
+    jnumm1 = numshort - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
+      j = neighshort[jj];
       jtype = map[type[j]];
       ijparam = elem2param[itype][jtype][jtype];
       delr1[0] = x[j][0] - xtmp;
@@ -167,9 +183,11 @@ void PairVashishta::compute(int eflag, int vflag)
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
       if (rsq1 >= params[ijparam].cutsq2) continue;
 
-      for (kk = jj+1; kk < jnum; kk++) {
-        k = jlist[kk];
-        k &= NEIGHMASK;
+      double fjxtmp,fjytmp,fjztmp;
+      fjxtmp = fjytmp = fjztmp = 0.0;
+
+      for (kk = jj+1; kk < numshort; kk++) {
+        k = neighshort[kk];
         ktype = map[type[k]];
         ikparam = elem2param[itype][ktype][ktype];
         ijkparam = elem2param[itype][jtype][ktype];
@@ -183,19 +201,25 @@ void PairVashishta::compute(int eflag, int vflag)
         threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
-        f[i][0] -= fj[0] + fk[0];
-        f[i][1] -= fj[1] + fk[1];
-        f[i][2] -= fj[2] + fk[2];
-        f[j][0] += fj[0];
-        f[j][1] += fj[1];
-        f[j][2] += fj[2];
+        fxtmp -= fj[0] + fk[0];
+        fytmp -= fj[1] + fk[1];
+        fztmp -= fj[2] + fk[2];
+        fjxtmp += fj[0];
+        fjytmp += fj[1];
+        fjztmp += fj[2];
         f[k][0] += fk[0];
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-	if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
+        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
+      f[j][0] += fjxtmp;
+      f[j][1] += fjytmp;
+      f[j][2] += fjztmp;
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
@@ -210,6 +234,7 @@ void PairVashishta::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(neighshort,maxshort,"pair:neighshort");
 
   map = new int[n+1];
 }
@@ -529,13 +554,15 @@ void PairVashishta::setup_params()
     params[m].c0 = params[m].cut*params[m].dvrc - params[m].vrc;
   }
 
-  // set cutmax to max of all params
+  // set cutmax to max of all cutoff params. r0max only for r0
 
   cutmax = 0.0;
+  r0max = 0.0;
   for (m = 0; m < nparams; m++) {
     if (params[m].cut > cutmax) cutmax = params[m].cut;
-    if (params[m].r0 > cutmax) cutmax = params[m].r0;
+    if (params[m].r0 > r0max) r0max = params[m].r0;
   }
+  if (r0max > cutmax) cutmax = r0max;
 }
 
 /* ---------------------------------------------------------------------- */

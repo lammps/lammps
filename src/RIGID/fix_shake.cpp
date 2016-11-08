@@ -112,7 +112,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[next],"t") == 0) mode = 't';
     else if (strcmp(arg[next],"m") == 0) {
       mode = 'm';
-      atom->check_mass();
+      atom->check_mass(FLERR);
 
     // break if keyword that is not b,a,t,m
 

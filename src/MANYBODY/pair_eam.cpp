@@ -366,8 +366,8 @@ void PairEAM::coeff(int narg, char **arg)
   // parse pair of atom types
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   // read funcfl file if hasn't already been read
   // store filename in Funcfl data struct
@@ -395,7 +395,7 @@ void PairEAM::coeff(int narg, char **arg)
       if (i == j) {
         setflag[i][i] = 1;
         map[i] = ifuncfl;
-        atom->set_mass(i,funcfl[ifuncfl].mass);
+        atom->set_mass(FLERR,i,funcfl[ifuncfl].mass);
         count++;
       }
       scale[i][j] = 1.0;

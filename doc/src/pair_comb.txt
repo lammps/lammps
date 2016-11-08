@@ -156,7 +156,7 @@ These pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 These pair styles are part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package (which it is by default).  See
+if LAMMPS was built with that package.  See
 the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 These pair styles requires the "newton"_newton.html setting to be "on"

@@ -1983,7 +1983,7 @@ void PairMGPT::coeff(int narg, char **arg)
 
   // Set atomic mass.
   for(int i = 1; i <= atom->ntypes; i++)
-    atom->set_mass(i, splinepot.mass);
+    atom->set_mass(FLERR,i, splinepot.mass);
 
   // Initialize linear algebra routines.
   linalg = mgpt_linalg(lmax,single_precision);

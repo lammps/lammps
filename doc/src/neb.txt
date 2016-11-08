@@ -284,7 +284,7 @@ ID2 x2 y2 z2
 ...
 IDN xN yN zN :pre
 
-The fields are the the atom ID, followed by the x,y,z coordinates.
+The fields are the atom ID, followed by the x,y,z coordinates.
 The lines can be listed in any order.  Additional trailing information
 on the line is OK, such as a comment.
 

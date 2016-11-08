@@ -39,11 +39,6 @@ class PairVashishtaTable : public PairVashishta {
   double ***forceTable;         // table of forces per element pair
   double ***potentialTable;     // table of potential energies
 
-  int neigh3BodyMax;            // max size of short neighborlist
-  int *neigh3BodyCount;         // # of neighbors in short range 
-                                // 3 particle forces neighbor list
-  int **neigh3Body;             // neighlist for short range 3 particle forces
-
   void twobody_table(const Param &, double, double &, int, double &);
   void setup_params();
   void create_tables();

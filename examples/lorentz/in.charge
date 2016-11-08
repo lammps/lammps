@@ -1,0 +1,51 @@
+# charged particle in a magnetic field
+
+units		lj
+atom_style	charge
+atom_modify map array sort 10000 1.0
+
+region		box block 0 10 0 10 0 10 units box
+create_box	1 box
+create_atoms    1 single 5 5 5
+mass		1 1.0
+
+variable        bf equal 1.0
+
+fix 		1 all bfield v_bf 0.0 0.0
+fix		2 all nve
+
+variable x1 equal x[1]
+variable y1 equal y[1]
+variable z1 equal z[1]
+variable v1x equal vx[1]
+variable v1y equal vy[1]
+variable v1z equal vz[1]
+
+variable vel equal (vz[1]*vz[1]+vy[1]*vy[1]+vx[1]*vx[1])^0.5
+variable myke equal 0.5*v_vel*v_vel
+
+# parameters
+variable vperp equal 1.0 
+velocity all set 0 ${vperp} 0 
+set group all charge -1.0
+timestep 0.005
+
+# lamor radius
+# half of coordiate amplitude 
+# (m*v_p)/(B*q) 
+variable rlamor equal (mass[1]*${vperp})/(v_bf*abs(q[1]))
+
+# inverse of lamor frequency, in timesteps
+# period of coordinate oscillation
+# (2*pi*m)/(qB)/dt
+variable flamor equal (2*3.1415*mass[1])/(abs(q[1])*v_bf)*(1/dt)
+
+thermo_style custom step v_x1 v_y1 v_z1 v_v1x v_v1y v_v1z v_myke v_rlamor v_flamor 
+thermo		5
+
+dump 0 all atom 1 dump.lammpstrj
+
+#run particle in one full oscillation 
+variable nsteps equal ceil(${flamor})
+run		${nsteps}
+

@@ -38,7 +38,6 @@ class FixBfield : public Fix {
   void post_force(int);
   double memory_usage();
   double compute_scalar();
-  double compute_vector(int);
 
  private:
   Region *region;

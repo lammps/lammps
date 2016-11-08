@@ -101,7 +101,7 @@ FixBfield::FixBfield(LAMMPS *lmp, int narg, char **arg) :
   }
 
   force_flag = 0;
-  fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
+  fsum[0] = 0.0;
 
   maxatom = atom->nmax;
   memory->create(v0,maxatom,3,"v0:bfield");
@@ -135,6 +135,7 @@ void FixBfield::init()
   // charges needed for lorentz force
   if (atom->q_flag) qflag = 1;
   if (atom->bmu_flag && atom->torque_flag) bmuflag = 1;
+
   if (!qflag && !bmuflag)
     error->all(FLERR,"Fix bfield requires atom attribute q or bmu");
 
@@ -232,13 +233,13 @@ if(qflag){
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double dtfm, c1;
+  double c1;
 
   if(rmass){
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
-        dtfm = dtf / rmass[i];
+        //dtfm = dtf / rmass[i];
         c1 = qBm2f*q[i]/rmass[i];
         omega[0] = c1*B[0];
         omega[1] = c1*B[1];
@@ -251,7 +252,7 @@ if(qflag){
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
-        dtfm = dtf / mass[type[i]];
+        //dtfm = dtf / mass[type[i]];
         c1 = qBm2f*q[i]/mass[type[i]];
         omega[0] = c1*B[0];
         omega[1] = c1*B[1];
@@ -344,13 +345,16 @@ void FixBfield::post_integrate()
     region->prematch();
   }
 
-  // fsum[0] = "potential energy" for added force
-  // fsum[123] = extra force added to atoms
-
-  fsum[0] = fsum[1] = fsum[2] = fsum[3] = 0.0;
   force_flag = 0;
 
-  // constant bfield
+  // variable B-field
+  if (varflag == EQUAL) {
+    modify->clearstep_compute();
+    if (xstyle == EQUAL) B[0] = input->variable->compute_equal(xvar);
+    if (ystyle == EQUAL) B[1] = input->variable->compute_equal(yvar);
+    if (zstyle == EQUAL) B[2] = input->variable->compute_equal(zvar);
+    modify->addstep_compute(update->ntimestep + 1);
+  }
 
   if (rmass) {
 
@@ -404,10 +408,6 @@ void FixBfield::post_integrate()
         fy = q[i]*(vz*B[0]-vx*B[2]);
         fz = q[i]*(vx*B[1]-vy*B[0]);
         domain->unmap(x[i],image[i],unwrap);
-        fsum[0] -= fx*unwrap[0]+fy*unwrap[1]+fz*unwrap[2];
-        fsum[1] += fx;
-        fsum[2] += fy;
-        fsum[3] += fz;
         }
   
 } else {
@@ -462,10 +462,6 @@ void FixBfield::post_integrate()
         fy = q[i]*(vz*B[0]-vx*B[2]);
         fz = q[i]*(vx*B[1]-vy*B[0]);
         domain->unmap(x[i],image[i],unwrap);
-        fsum[0] -= fx*unwrap[0]+fy*unwrap[1]+fz*unwrap[2];
-        fsum[1] += fx;
-        fsum[2] += fy;
-        fsum[3] += fz;
         }
   }
 }
@@ -492,6 +488,7 @@ void FixBfield::post_force(int vflag)
   }
 
   // fsum[0] = "potential energy" for added force
+  fsum[0] = 0.0;
   force_flag = 0;
 
   if (varflag == EQUAL) {
@@ -540,15 +537,3 @@ double FixBfield::compute_scalar(void)
   return fsum_all[0];
 }
 
-/* ----------------------------------------------------------------------
-   return total extra force due to fix
-------------------------------------------------------------------------- */
-
-double FixBfield::compute_vector(int n)
-{
-  if (force_flag == 0) {
-    MPI_Allreduce(fsum,fsum_all,4,MPI_DOUBLE,MPI_SUM,world);
-    force_flag = 1;
-  }
-  return fsum_all[n+1];
-}

@@ -44,7 +44,7 @@ The implementation follows the weak-field limit given by "(Spreiter and Walter)"
 
 :line 
 
-NOTE: Adding a force or torque to atoms implies a change in their potential
+NOTE: Adding a torque to atoms implies a change in their potential
 energy as they rotate due to the applied B-field. The minimizers in LAMMPS do not rotate dipoles, so you should not expect the orientation of dipoles to be minimized in an applied magnetic field.
 
 :line 

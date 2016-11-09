@@ -59,6 +59,8 @@ action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
 action comm_kokkos.cpp
 action comm_kokkos.h
+action comm_tiled_kokkos.cpp
+action comm_tiled_kokkos.h
 action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp

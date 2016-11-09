@@ -53,18 +53,18 @@ class FixEHEX : public Fix {
   char *idregion;
   int me;
  
-  double ** x;              // coordinates
-  double ** f;              // forces
-  double ** v;              // velocities
-  double *  mass;           // masses
-  double *  rmass;          // reduced masses
-  int    *  type;           // atom types
+  double **x;              // coordinates
+  double **f;              // forces
+  double **v;              // velocities
+  double *mass;           // masses
+  double *rmass;          // reduced masses
+  int    *type;           // atom types
   int   nlocal;             // number of local atoms
   FixShake * fshake;        // pointer to fix_shake/fix_rattle
   int constraints;          // constraints (0/1)
   int cluster;              // rescaling entire clusters (0/1)
   int hex;                  // HEX mode (0/1)
-  bool * scalingmask;       // scalingmask[i] determines whether 
+  bool *scalingmask;       // scalingmask[i] determines whether 
                             // the velocity of atom i is to be rescaled
 };
 

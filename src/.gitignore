@@ -976,6 +976,8 @@
 /fix_ttm_mod.h
 /pair_born_coul_long_cs.cpp
 /pair_born_coul_long_cs.h
+/pair_born_coul_dsf_cs.cpp
+/pair_born_coul_dsf_cs.h
 /pair_buck_coul_long_cs.cpp
 /pair_buck_coul_long_cs.h
 /pair_coul_long_cs.cpp

@@ -30,7 +30,7 @@ enum{CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg)
+  Region(lmp, narg, arg), rstr(NULL)
 {
   options(narg-8,&arg[8]);
 

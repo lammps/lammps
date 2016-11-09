@@ -46,9 +46,12 @@
 #include "accelerator_omp.h"
 #include "timer.h"
 #include "memory.h"
+#include "version.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+static void print_style(FILE *fp, const char *str, int &pos);
 
 /* ----------------------------------------------------------------------
    start up LAMMPS
@@ -86,6 +89,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator)
 
   suffix = suffix2 = NULL;
   suffix_enable = 0;
+  exename = arg[0];
   packargs = NULL;
   num_package = 0;
   char *rfile = NULL;
@@ -762,8 +766,37 @@ void LAMMPS::destroy()
 
 void LAMMPS::help()
 {
-  fprintf(screen,
-          "\nCommand line options:\n\n"
+  FILE *fp = screen;
+  const char *pager = NULL;
+
+  // if output is "stdout", use a pipe to a pager for paged output.
+  // this will avoid the most important help text to rush past the
+  // user. scrollback buffers are often not large enough. this is most
+  // beneficial to windows users, who are not used to command line.
+
+  if (fp == stdout) {
+    pager = getenv("PAGER");
+    if (pager == NULL) pager = "more";
+#if defined(_WIN32)
+    fp = _popen(pager,"w");
+#else
+    fp = popen(pager,"w");
+#endif
+
+    // reset to original state, if pipe command failed
+    if (fp == NULL) {
+      fp = stdout;
+      pager = NULL;
+    }
+  }
+
+  // general help message about command line and flags
+
+  fprintf(fp,
+          "\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
+          LAMMPS_VERSION "\n\n"
+          "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"
+          "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
           "-help                       : print this help message (-h)\n"
           "-in filename                : read input from file, not stdin (-i)\n"
@@ -778,121 +811,126 @@ void LAMMPS::help()
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
-          "-var varname value          : set index style variable (-v)\n\n");
+          "-var varname value          : set index style variable (-v)\n\n",
+          exename);
 
-  fprintf(screen,"Style options compiled with this executable\n\n");
+  fprintf(fp,"List of style options included in this LAMMPS executable\n\n");
 
   int pos = 80;
-  fprintf(screen,"* Atom styles:\n");
+  fprintf(fp,"* Atom styles:\n");
 #define ATOM_CLASS
-#define AtomStyle(key,Class) print_style(#key,pos);
+#define AtomStyle(key,Class) print_style(fp,#key,pos);
 #include "style_atom.h"
 #undef ATOM_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Integrate styles:\n");
+  fprintf(fp,"* Integrate styles:\n");
 #define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) print_style(#key,pos);
+#define IntegrateStyle(key,Class) print_style(fp,#key,pos);
 #include "style_integrate.h"
 #undef INTEGRATE_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Minimize styles:\n");
+  fprintf(fp,"* Minimize styles:\n");
 #define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) print_style(#key,pos);
+#define MinimizeStyle(key,Class) print_style(fp,#key,pos);
 #include "style_minimize.h"
 #undef MINIMIZE_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Pair styles:\n");
+  fprintf(fp,"* Pair styles:\n");
 #define PAIR_CLASS
-#define PairStyle(key,Class) print_style(#key,pos);
+#define PairStyle(key,Class) print_style(fp,#key,pos);
 #include "style_pair.h"
 #undef PAIR_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Bond styles:\n");
+  fprintf(fp,"* Bond styles:\n");
 #define BOND_CLASS
-#define BondStyle(key,Class) print_style(#key,pos);
+#define BondStyle(key,Class) print_style(fp,#key,pos);
 #include "style_bond.h"
 #undef BOND_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Angle styles:\n");
+  fprintf(fp,"* Angle styles:\n");
 #define ANGLE_CLASS
-#define AngleStyle(key,Class) print_style(#key,pos);
+#define AngleStyle(key,Class) print_style(fp,#key,pos);
 #include "style_angle.h"
 #undef ANGLE_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Dihedral styles:\n");
+  fprintf(fp,"* Dihedral styles:\n");
 #define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) print_style(#key,pos);
+#define DihedralStyle(key,Class) print_style(fp,#key,pos);
 #include "style_dihedral.h"
 #undef DIHEDRAL_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Improper styles:\n");
+  fprintf(fp,"* Improper styles:\n");
 #define IMPROPER_CLASS
-#define ImproperStyle(key,Class) print_style(#key,pos);
+#define ImproperStyle(key,Class) print_style(fp,#key,pos);
 #include "style_improper.h"
 #undef IMPROPER_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* KSpace styles:\n");
+  fprintf(fp,"* KSpace styles:\n");
 #define KSPACE_CLASS
-#define KSpaceStyle(key,Class) print_style(#key,pos);
+#define KSpaceStyle(key,Class) print_style(fp,#key,pos);
 #include "style_kspace.h"
 #undef KSPACE_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Fix styles\n");
+  fprintf(fp,"* Fix styles\n");
 #define FIX_CLASS
-#define FixStyle(key,Class) print_style(#key,pos);
+#define FixStyle(key,Class) print_style(fp,#key,pos);
 #include "style_fix.h"
 #undef FIX_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Compute styles:\n");
+  fprintf(fp,"* Compute styles:\n");
 #define COMPUTE_CLASS
-#define ComputeStyle(key,Class) print_style(#key,pos);
+#define ComputeStyle(key,Class) print_style(fp,#key,pos);
 #include "style_compute.h"
 #undef COMPUTE_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Region styles:\n");
+  fprintf(fp,"* Region styles:\n");
 #define REGION_CLASS
-#define RegionStyle(key,Class) print_style(#key,pos);
+#define RegionStyle(key,Class) print_style(fp,#key,pos);
 #include "style_region.h"
 #undef REGION_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Dump styles:\n");
+  fprintf(fp,"* Dump styles:\n");
 #define DUMP_CLASS
-#define DumpStyle(key,Class) print_style(#key,pos);
+#define DumpStyle(key,Class) print_style(fp,#key,pos);
 #include "style_dump.h"
 #undef DUMP_CLASS
-  fprintf(screen,"\n\n");
+  fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(screen,"* Command styles\n");
+  fprintf(fp,"* Command styles\n");
 #define COMMAND_CLASS
-#define CommandStyle(key,Class) print_style(#key,pos);
+#define CommandStyle(key,Class) print_style(fp,#key,pos);
 #include "style_command.h"
 #undef COMMAND_CLASS
-  fprintf(screen,"\n");
+  fprintf(fp,"\n\n");
+
+  // close pipe to pager, if active
+
+  if (pager != NULL) pclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -900,30 +938,30 @@ void LAMMPS::help()
    skip any style that starts with upper-case letter, since internal
 ------------------------------------------------------------------------- */
 
-void LAMMPS::print_style(const char *str, int &pos)
+void print_style(FILE *fp, const char *str, int &pos)
 {
   if (isupper(str[0])) return;
 
   int len = strlen(str);
   if (pos+len > 80) {
-    fprintf(screen,"\n");
+    fprintf(fp,"\n");
     pos = 0;
   }
 
   if (len < 16) {
-    fprintf(screen,"%-16s",str);
+    fprintf(fp,"%-16s",str);
     pos += 16;
   } else if (len < 32) {
-    fprintf(screen,"%-32s",str);
+    fprintf(fp,"%-32s",str);
     pos += 32;
   } else if (len < 48) {
-    fprintf(screen,"%-48s",str);
+    fprintf(fp,"%-48s",str);
     pos += 48;
   } else if (len < 64) {
-    fprintf(screen,"%-64s",str);
+    fprintf(fp,"%-64s",str);
     pos += 64;
   } else {
-    fprintf(screen,"%-80s",str);
+    fprintf(fp,"%-80s",str);
     pos += 80;
   }
 }

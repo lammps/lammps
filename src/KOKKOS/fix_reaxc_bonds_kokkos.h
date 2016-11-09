@@ -32,7 +32,7 @@ class FixReaxCBondsKokkos : public FixReaxCBonds {
   void init();
 
  private:
-  double nbuf;
+  int nbuf;
   void Output_ReaxC_Bonds(bigint, FILE *);
   double memory_usage();
 };

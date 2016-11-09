@@ -64,8 +64,20 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg), 
+  factors(NULL), density_brick(NULL), vdx_brick(NULL), vdy_brick(NULL), vdz_brick(NULL),
+  u_brick(NULL), v0_brick(NULL), v1_brick(NULL), v2_brick(NULL), v3_brick(NULL),
+  v4_brick(NULL), v5_brick(NULL), greensfn(NULL), vg(NULL), fkx(NULL), fky(NULL),
+  fkz(NULL), density_fft(NULL), work1(NULL), work2(NULL), gf_b(NULL), rho1d(NULL),
+  rho_coeff(NULL), drho1d(NULL), drho_coeff(NULL), sf_precoeff1(NULL), sf_precoeff2(NULL),
+  sf_precoeff3(NULL), sf_precoeff4(NULL), sf_precoeff5(NULL), sf_precoeff6(NULL),
+  acons(NULL), density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL),
+  density_B_fft(NULL), fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),
+  part2grid(NULL), boxlo(NULL)
 {
+  peratom_allocate_flag = 0;
+  group_allocate_flag = 0;
+
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
 
   pppmflag = 1;
@@ -107,9 +119,6 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   nmax = 0;
   part2grid = NULL;
-
-  peratom_allocate_flag = 0;
-  group_allocate_flag = 0;
 
   // define acons coefficients for estimation of kspace errors
   // see JCP 109, pg 7698 for derivation of coefficients

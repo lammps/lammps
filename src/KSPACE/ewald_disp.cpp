@@ -45,7 +45,9 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 /* ---------------------------------------------------------------------- */
 
-EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+  kenergy(NULL), kvirial(NULL), energy_self_peratom(NULL), virial_self_peratom(NULL),
+  ekr_local(NULL), hvec(NULL), kvec(NULL), B(NULL), cek_local(NULL), cek_global(NULL)
 {
   if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
 

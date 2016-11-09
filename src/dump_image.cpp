@@ -49,7 +49,12 @@ enum{NO,YES};
 /* ---------------------------------------------------------------------- */
 
 DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg)
+  DumpCustom(lmp, narg, arg), thetastr(NULL), phistr(NULL), cxstr(NULL), 
+  cystr(NULL), czstr(NULL), upxstr(NULL), upystr(NULL), upzstr(NULL), 
+  zoomstr(NULL), perspstr(NULL), diamtype(NULL), diamelement(NULL), 
+  bdiamtype(NULL), colortype(NULL), colorelement(NULL), bcolortype(NULL), 
+  avec_line(NULL), avec_tri(NULL), avec_body(NULL), fixptr(NULL), image(NULL), 
+  chooseghost(NULL), bufcopy(NULL)
 {
   if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
 

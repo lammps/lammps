@@ -107,7 +107,8 @@ void PairBornCoulDSF::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-  // self coulombic energy
+    // self coulombic energy
+
     if (eflag) {
       double e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
       ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);

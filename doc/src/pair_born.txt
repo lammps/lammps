@@ -72,7 +72,6 @@ pair_style born/coul/dsf 0.1 10.0 12.0
 pair_coeff * *   0.0 1.00 0.00 0.00 0.00
 pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50 :pre
 
-
 [Description:]
 
 The {born} style computes the Born-Mayer-Huggins or Tosi/Fumi
@@ -101,9 +100,8 @@ term.
 The {born/coul/wolf} style adds a Coulombic term as described for the
 Wolf potential in the "coul/wolf"_pair_coul.html pair style.
 
-The {born/coul/dsf} style computes the Coulomb contribution
-with the damped shifted force model as in the
-"coul/dsf"_pair_coul.html style.
+The {born/coul/dsf} style computes the Coulomb contribution with the
+damped shifted force model as in the "coul/dsf"_pair_coul.html style.
 
 Style {born/coul/long/cs} is identical to {born/coul/long} except that
 a term is added for the "core/shell model"_Section_howto.html#howto_25
@@ -134,8 +132,8 @@ cutoff specified in the pair_style command is used.
 
 For {born/coul/long}, {born/coul/wolf} and {born/coul/dsf} no
 Coulombic cutoff can be specified for an individual I,J type pair.
-All type pairs use the same global Coulombic cutoff specified in
-the pair_style command.
+All type pairs use the same global Coulombic cutoff specified in the
+pair_style command.
 
 :line
 

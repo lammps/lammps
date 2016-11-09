@@ -34,7 +34,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), ntables(0), tables(NULL), 
+  tables2(NULL), dHf(NULL), eosSpecies(NULL)
 {
   if (narg != 8) error->all(FLERR,"Illegal fix eos/table/rx command");
   restart_peratom = 1;

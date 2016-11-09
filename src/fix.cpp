@@ -32,7 +32,8 @@ int Fix::instance_total = 0;
 /* ---------------------------------------------------------------------- */
 
 Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp),
-id(NULL), style(NULL), eatom(NULL), vatom(NULL)
+id(NULL), style(NULL), extlist(NULL), vector_atom(NULL), array_atom(NULL),
+vector_local(NULL), array_local(NULL), eatom(NULL), vatom(NULL)
 {
   instance_me = instance_total++;
 

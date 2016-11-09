@@ -886,6 +886,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "body"_pair_body.html,
 "bop"_pair_bop.html,
 "born (go)"_pair_born.html,
+"born/coul/dsf"_pair_born.html,
+"born/coul/dsf/cs"_pair_born.html,
 "born/coul/long (go)"_pair_born.html,
 "born/coul/long/cs"_pair_born.html,
 "born/coul/msm (o)"_pair_born.html,

@@ -38,7 +38,8 @@ enum{ROTATE,ALL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_bias(NULL), tbias(NULL), avec(NULL)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/asphere command");
 

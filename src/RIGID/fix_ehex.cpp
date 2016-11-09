@@ -49,7 +49,9 @@ enum{CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+  idregion(NULL), x(NULL), f(NULL), v(NULL), 
+  mass(NULL), rmass(NULL), type(NULL), scalingmask(NULL)
 {
   MPI_Comm_rank(world, &me);
  
@@ -73,8 +75,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // optional args
 
   iregion = -1;
-  idregion = NULL;
-
+  
   // NOTE: constraints are deactivated by default
 
   constraints = 0;

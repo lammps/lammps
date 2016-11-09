@@ -1,0 +1,5 @@
+# Settings that the LAMMPS build will import when this package is installed
+
+latte_SYSINC  =
+latte_SYSLIB  = -lgfortran
+latte_SYSPATH =

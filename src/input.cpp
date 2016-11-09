@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
+#include "accelerator_kokkos.h"
 #include "group.h"
 #include "domain.h"
 #include "output.h"
@@ -1465,7 +1466,10 @@ void Input::comm_style()
   } else if (strcmp(arg[0],"tiled") == 0) {
     if (comm->style == 1) return;
     Comm *oldcomm = comm;
-    comm = new CommTiled(lmp,oldcomm);
+
+    if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
+    else comm = new CommTiled(lmp,oldcomm);
+
     delete oldcomm;
   } else error->all(FLERR,"Illegal comm_style command");
 }

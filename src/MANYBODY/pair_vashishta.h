@@ -46,7 +46,6 @@ class PairVashishta : public Pair {
   };
  protected:
   double cutmax;                // max cutoff for all elements
-  double cutmax_3body;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
   int ***elem2param;            // mapping from element triplets to parameters

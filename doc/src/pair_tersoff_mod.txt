@@ -42,6 +42,7 @@ The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D.
 The {tersoff/mod/c} style differs from {tersoff/mod} only in the
 formulation of the V_ij term, where it contains an additional c0 term.
+
 :c,image(Eqs/pair_tersoff_mod_c.jpg)
 
 

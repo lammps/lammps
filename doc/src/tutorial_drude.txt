@@ -33,7 +33,7 @@ created by the surrounding particles.  Drude oscillators represent
 these dipoles by two fixed charges: the core (DC) and the Drude
 particle (DP) bound by a harmonic potential. The Drude particle can be
 thought of as the electron cloud whose center can be displaced from
-the position of the the corresponding nucleus.
+the position of the corresponding nucleus.
 
 The sum of the masses of a core-Drude pair should be the mass of the
 initial (unsplit) atom, \(m_C + m_D = m\).  The sum of their charges

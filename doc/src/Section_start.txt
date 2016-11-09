@@ -706,7 +706,7 @@ future changes to LAMMPS.
 User packages, such as user-atc or user-omp, have been contributed by
 users, and always begin with the user prefix.  If they are a single
 command (single file), they are typically in the user-misc package.
-Otherwise, they are a a set of files grouped together which add a
+Otherwise, they are a set of files grouped together which add a
 specific functionality to the code.
 
 User packages don't necessarily meet the requirements of the standard

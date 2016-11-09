@@ -412,9 +412,8 @@ The eam pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 All of these styles except the {eam/cd} style are part of the MANYBODY
-package.  They are only enabled if LAMMPS was built with that package
-(which it is by default).  See the "Making
-LAMMPS"_Section_start.html#start_3 section for more info.
+package.  They are only enabled if LAMMPS was built with that package.
+See the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 The {eam/cd} style is part of the USER-MISC package and also requires
 the MANYBODY package.  It is only enabled if LAMMPS was built with

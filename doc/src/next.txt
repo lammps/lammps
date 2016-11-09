@@ -44,7 +44,7 @@ one value from their respective list of values.  A {file}-style
 variable reads the next line from its associated file.  An
 {atomfile}-style variable reads the next set of lines (one per atom)
 from its associated file.  {String-} or {atom}- or {equal}- or
-{world}-style variables cannot be used with the the next command,
+{world}-style variables cannot be used with the next command,
 since they only store a single value.
 
 When any of the variables in the next command has no more values, a

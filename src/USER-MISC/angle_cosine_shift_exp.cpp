@@ -194,7 +194,7 @@ void AngleCosineShiftExp::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nangletypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
 
   double umin_   = force->numeric(FLERR,arg[1]);
   double theta0_ = force->numeric(FLERR,arg[2]);

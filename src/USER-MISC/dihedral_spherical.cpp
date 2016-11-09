@@ -681,7 +681,7 @@ void DihedralSpherical::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
 
   int nterms_one = force->inumeric(FLERR,arg[1]);
 

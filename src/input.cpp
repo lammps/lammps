@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
+#include "accelerator_kokkos.h"
 #include "group.h"
 #include "domain.h"
 #include "output.h"
@@ -684,7 +685,7 @@ int Input::expand_args(int narg, char **arg, int mode, char **&earg)
 
     if (expandflag) {
       *ptr2 = '\0';
-      force->bounds(ptr1+1,nmax,nlo,nhi);
+      force->bounds(FLERR,ptr1+1,nmax,nlo,nhi);
       *ptr2 = ']';
       if (newarg+nhi-nlo+1 > maxarg) {
 	maxarg += nhi-nlo+1;
@@ -1131,7 +1132,7 @@ void Input::partition()
   else error->all(FLERR,"Illegal partition command");
 
   int ilo,ihi;
-  force->bounds(arg[1],universe->nworlds,ilo,ihi);
+  force->bounds(FLERR,arg[1],universe->nworlds,ilo,ihi);
 
   // copy original line to copy, since will use strtok() on it
   // ptr = start of 4th word
@@ -1465,7 +1466,10 @@ void Input::comm_style()
   } else if (strcmp(arg[0],"tiled") == 0) {
     if (comm->style == 1) return;
     Comm *oldcomm = comm;
-    comm = new CommTiled(lmp,oldcomm);
+
+    if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
+    else comm = new CommTiled(lmp,oldcomm);
+
     delete oldcomm;
   } else error->all(FLERR,"Illegal comm_style command");
 }
@@ -1623,7 +1627,7 @@ void Input::mass()
   if (narg != 2) error->all(FLERR,"Illegal mass command");
   if (domain->box_exist == 0)
     error->all(FLERR,"Mass command before simulation box is defined");
-  atom->set_mass(narg,arg);
+  atom->set_mass(FLERR,narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

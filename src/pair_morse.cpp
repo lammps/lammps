@@ -176,12 +176,13 @@ void PairMorse::settings(int narg, char **arg)
 
 void PairMorse::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double d0_one = force->numeric(FLERR,arg[2]);
   double alpha_one = force->numeric(FLERR,arg[3]);

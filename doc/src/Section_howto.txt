@@ -2729,7 +2729,7 @@ production runs and is only required during equilibration. This way one
 is consistent with literature (based on the code packages DL_POLY or
 GULP for instance).
 
-The mentioned energy transfer will typically lead to a a small drift
+The mentioned energy transfer will typically lead to a small drift
 in total energy over time.  This internal energy can be monitored
 using the "compute chunk/atom"_compute_chunk_atom.html and "compute
 temp/chunk"_compute_temp_chunk.html commands.  The internal kinetic
@@ -2830,7 +2830,7 @@ temp/drude"_compute_temp_drude.html. This requires also to use the
 command {comm_modify vel yes}.
 
 Short-range damping of the induced dipole interactions can be achieved
-using Thole functions through the the "pair style
+using Thole functions through the "pair style
 thole"_pair_thole.html in "pair_style hybrid/overlay"_pair_hybrid.html
 with a Coulomb pair style. It may be useful to use {coul/long/cs} or
 similar from the CORESHELL package if the core and Drude particle come

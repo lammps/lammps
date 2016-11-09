@@ -529,7 +529,7 @@ void ImproperClass2::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nimpropertypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
 
   int count = 0;
 

@@ -191,7 +191,7 @@ input script. If using read_data, atomic masses must be defined in the
 atomic structure data file.
 
 This pair style is part of the MANYBODY package. It is only enabled if
-LAMMPS was built with that package (which it is by default). See the
+LAMMPS was built with that package. See the
 "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 This pair potential requires the "newtion"_newton.html setting to be

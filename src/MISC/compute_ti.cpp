@@ -79,7 +79,7 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
     int n = strlen(arg[iarg]) + 1;
     pstyle[nterms] = new char[n];
     strcpy(pstyle[nterms],arg[iarg]);
-    force->bounds(arg[iarg+1],atom->ntypes,ilo[nterms],ihi[nterms]);
+    force->bounds(FLERR,arg[iarg+1],atom->ntypes,ilo[nterms],ihi[nterms]);
     iarg += 1;
 
     if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {

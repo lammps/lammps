@@ -28,7 +28,7 @@ fix 1 all smd/adjust_dt 0.1 :pre
 The fix calculates a new stable time increment for use with the SMD time integrators.
 
 The stable time increment is based on multiple conditions. For the SPH pair styles, a
-CFL criterion (Courant, Friedrichs & Lewy, 1928) is evaluated, which determines the the speed of
+CFL criterion (Courant, Friedrichs & Lewy, 1928) is evaluated, which determines the speed of
 sound cannot propagate further than a typical spacing between particles within a single time step to ensure
 no information is lost. For the contact pair styles, a linear analysis of the pair potential determines a
 stable maximum time step.

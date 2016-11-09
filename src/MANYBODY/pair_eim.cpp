@@ -415,7 +415,7 @@ void PairEIM::coeff(int narg, char **arg)
     for (j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
-        if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
+        if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
         count++;
       }
 

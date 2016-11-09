@@ -114,7 +114,7 @@ local defects surrounding the central atom, as described above.  For
 the {axes yes} case, the vector components are also unitless, since
 they represent spatial directions.
 
-Here are typical centro-symmetry values, from a a nanoindentation
+Here are typical centro-symmetry values, from a nanoindentation
 simulation into gold (FCC).  These were provided by Jon Zimmerman
 (Sandia):
 

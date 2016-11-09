@@ -50,6 +50,13 @@ PPPMDispOMP::PPPMDispOMP(LAMMPS *lmp, int narg, char **arg) :
   suffix_flag |= Suffix::OMP;
 }
 
+/* ---------------------------------------------------------------------- */
+
+PPPMDispOMP::~PPPMDispOMP()
+{
+  deallocate();
+}
+
 /* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */

@@ -234,11 +234,11 @@ class Atom : protected Pointers {
   void data_fix_compute_variable(int, int);
   
   virtual void allocate_type_arrays();
-  void set_mass(const char *, int);
-  void set_mass(int, double);
-  void set_mass(int, char **);
+  void set_mass(const char *, int, const char *, int);
+  void set_mass(const char *, int, int, double);
+  void set_mass(const char *, int, int, char **);
   void set_mass(double *);
-  void check_mass();
+  void check_mass(const char *, int);
 
   int radius_consistency(int, double &);
   int shape_consistency(int, double &, double &, double &);

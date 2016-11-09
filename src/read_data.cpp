@@ -1650,7 +1650,7 @@ void ReadData::mass()
   for (int i = 0; i < ntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    atom->set_mass(buf,toffset);
+    atom->set_mass(FLERR,buf,toffset);
     buf = next + 1;
   }
   delete [] original;

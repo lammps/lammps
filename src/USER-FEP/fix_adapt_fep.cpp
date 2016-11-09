@@ -95,9 +95,9 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       n = strlen(arg[iarg+2]) + 1;
       adapt[nadapt].pparam = new char[n];
       strcpy(adapt[nadapt].pparam,arg[iarg+2]);
-      force->bounds(arg[iarg+3],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi);
-      force->bounds(arg[iarg+4],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+4],atom->ntypes,
                     adapt[nadapt].jlo,adapt[nadapt].jhi);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
         n = strlen(&arg[iarg+5][2]) + 1;
@@ -126,7 +126,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt/fep command");
-      force->bounds(arg[iarg+2],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+2],atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;

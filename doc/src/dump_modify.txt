@@ -165,7 +165,7 @@ extra buffering.
 
 :line
 
-The {element} keyword applies only to the the dump {cfg}, {xyz}, and
+The {element} keyword applies only to the dump {cfg}, {xyz}, and
 {image} styles.  It associates element names (e.g. H, C, Fe) with
 LAMMPS atom types.  See the list of element names at the bottom of
 this page.
@@ -574,7 +574,7 @@ e.g. its x-component of velocity if the atom-attribute "vx" was
 specified.
 
 The basic idea of a color map is that the atom-attribute will be
-within a range of values, and that range is associated with a a series
+within a range of values, and that range is associated with a series
 of colors (e.g. red, blue, green).  An atom's specific value (vx =
 -3.2) can then mapped to the series of colors (e.g. halfway between
 red and blue), and a specific color is determined via an interpolation

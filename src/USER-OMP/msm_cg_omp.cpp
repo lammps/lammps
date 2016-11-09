@@ -44,7 +44,8 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-MSMCGOMP::MSMCGOMP(LAMMPS *lmp, int narg, char **arg) : MSMOMP(lmp, narg, arg)
+MSMCGOMP::MSMCGOMP(LAMMPS *lmp, int narg, char **arg) : MSMOMP(lmp, narg, arg),
+  is_charged(NULL)
 {
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style msm/cg/omp command");
@@ -55,7 +56,6 @@ MSMCGOMP::MSMCGOMP(LAMMPS *lmp, int narg, char **arg) : MSMOMP(lmp, narg, arg)
   else smallq = SMALLQ;
 
   num_charged = -1;
-  is_charged = NULL;
 }
 
 /* ----------------------------------------------------------------------

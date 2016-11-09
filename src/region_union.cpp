@@ -24,8 +24,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
+RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
+  idsub(NULL)
 {
+  nregion = 0;
   if (narg < 5) error->all(FLERR,"Illegal region command");
   int n = force->inumeric(FLERR,arg[2]);
   if (n < 2) error->all(FLERR,"Illegal region command");

@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDpdAtom::ComputeDpdAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), dpdAtom(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute dpd/atom command");
 
@@ -43,8 +43,7 @@ ComputeDpdAtom::ComputeDpdAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 4;
 
   nmax = 0;
-  dpdAtom = NULL;
-
+  
   if (atom->dpd_flag != 1) error->all(FLERR,"compute dpd requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 

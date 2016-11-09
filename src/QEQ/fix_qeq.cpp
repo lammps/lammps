@@ -46,7 +46,11 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), list(NULL), chi(NULL), eta(NULL), 
+  gamma(NULL), zeta(NULL), zcore(NULL), chizj(NULL), shld(NULL), 
+  s(NULL), t(NULL), s_hist(NULL), t_hist(NULL), Hdia_inv(NULL), b_s(NULL), 
+  b_t(NULL), p(NULL), q(NULL), r(NULL), d(NULL), 
+  qf(NULL), q1(NULL), q2(NULL), qv(NULL)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
 

@@ -37,7 +37,16 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
-  Pointers(lmp)
+  Pointers(lmp), id(NULL), x(NULL), type(NULL), q(NULL), radius(NULL),
+  rmass(NULL), num_bond(NULL), bond_type(NULL), bond_atom(NULL),
+  num_angle(NULL), angle_type(NULL), angle_atom1(NULL), angle_atom2(NULL),
+  angle_atom3(NULL), num_dihedral(NULL), dihedral_type(NULL), dihedral_atom1(NULL),
+  dihedral_atom2(NULL), dihedral_atom3(NULL), dihedral_atom4(NULL), num_improper(NULL),
+  improper_type(NULL), improper_atom1(NULL), improper_atom2(NULL),
+  improper_atom3(NULL), improper_atom4(NULL), nspecial(NULL), special(NULL),
+  shake_flag(NULL), shake_atom(NULL), shake_type(NULL), avec_body(NULL), ibodyparams(NULL),
+  dbodyparams(NULL), dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL),
+  fp(NULL), count(NULL)
 {
   me = comm->me;
 

@@ -36,7 +36,10 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 /* ---------------------------------------------------------------------- */
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), id_pe(NULL), pe(NULL), xprev(NULL), xnext(NULL), 
+  tangent(NULL), xsend(NULL), xrecv(NULL), tagsend(NULL), tagrecv(NULL), 
+  xsendall(NULL), xrecvall(NULL), tagsendall(NULL), tagrecvall(NULL), 
+  counts(NULL), displacements(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix neb command");
 

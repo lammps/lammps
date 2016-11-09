@@ -26,7 +26,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
+DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
+  typenames(NULL)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xyz command");
   if (binary || multiproc) error->all(FLERR,"Invalid dump xyz filename");

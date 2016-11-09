@@ -36,7 +36,8 @@ enum{PAIR,TAIL,KSPACE};
 /* ---------------------------------------------------------------------- */
 
 ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), nterms(0), which(NULL), ivar1(NULL), ivar2(NULL),
+  ilo(NULL), ihi(NULL), var1(NULL), var2(NULL), pptr(NULL), pstyle(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute ti command");
 

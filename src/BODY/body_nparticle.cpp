@@ -28,7 +28,7 @@ enum{SPHERE,LINE,TRI};           // also in DumpImage
 /* ---------------------------------------------------------------------- */
 
 BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
-  Body(lmp, narg, arg)
+  Body(lmp, narg, arg), imflag(NULL), imdata(NULL)
 {
   if (narg != 3) error->all(FLERR,"Invalid body nparticle command");
 

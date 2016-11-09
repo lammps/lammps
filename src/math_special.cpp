@@ -1,4 +1,3 @@
-
 #include <math.h>
 #include <stdint.h>
 #include "math_special.h"

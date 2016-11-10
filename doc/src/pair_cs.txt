@@ -8,19 +8,24 @@
 
 pair_style born/coul/long/cs command :h3
 pair_style buck/coul/long/cs command :h3
+pair_style born/coul/dsf/cs command :h3
 
 [Syntax:]
 
 pair_style style args :pre
 
-style = {born/coul/long/cs} or {buck/coul/long/cs}
+style = {born/coul/long/cs} or {buck/coul/long/cs} or {born/coul/dsf/cs}
 args = list of arguments for a particular style :ul
   {born/coul/long/cs} args = cutoff (cutoff2)
     cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
     cutoff2 = global cutoff for Coulombic (optional) (distance units)
   {buck/coul/long/cs} args = cutoff (cutoff2)
     cutoff = global cutoff for Buckingham (and Coulombic if only 1 arg) (distance units)
-    cutoff2 = global cutoff for Coulombic (optional) (distance units) :pre
+    cutoff2 = global cutoff for Coulombic (optional) (distance units)
+  {born/coul/dsf/cs} args = alpha cutoff (cutoff2)
+    alpha = damping parameter (inverse distance units)
+    cutoff = global cutoff for non-Coulombic (and Coulombic if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Coulombic (distance units) :pre
 
 [Examples:]
 
@@ -32,6 +37,10 @@ pair_style buck/coul/long/cs 10.0 8.0
 pair_coeff * * 100.0 1.5 200.0
 pair_coeff 1 1 100.0 1.5 200.0 9.0 :pre
 
+pair_style born/coul/dsf/cs 0.1 10.0 12.0
+pair_coeff * *   0.0 1.00 0.00 0.00 0.00
+pair_coeff 1 1 480.0 0.25 0.00 1.05 0.50 :pre
+
 [Description:]
 
 These pair styles are designed to be used with the adiabatic
@@ -39,7 +48,7 @@ core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham.  See
 "Section 6.25"_Section_howto.html#howto_25 of the manual for an
 overview of the model as implemented in LAMMPS.
 
-These pair styles are identical to the "pair_style
+The styles with a {coul/long} term are identical to the "pair_style
 born/coul/long"_pair_born.html and "pair_style
 buck/coul/long"_pair_buck.html styles, except they correctly treat the
 special case where the distance between two charged core and shell
@@ -62,6 +71,14 @@ pair is treated, as follows
 where C is an energy-conversion constant, Qi and Qj are the charges on
 the core and shell, epsilon is the dielectric constant and r_min is the
 minimal distance.
+
+The pair style {born/coul/dsf/cs} is identical to the
+"pair_style born/coul/dsf"_pair_born.html style, which uses the
+the damped shifted force model as in "coul/dsf"_pair_coul.html
+to compute the Coulomb contribution. This approach does not require
+a long-range solver, thus the only correction is the addition of a
+minimal distance to avoid the possible r = 0.0 case for a
+core/shell pair.
 
 [Restrictions:]
 

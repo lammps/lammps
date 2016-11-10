@@ -42,7 +42,7 @@ enum{INT,DOUBLE,STRING,BIGINT};   // same as in DumpCustom
 /* ---------------------------------------------------------------------- */
 
 DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg)
+  DumpCustom(lmp, narg, arg), auxname(NULL)
 {
   multifile_override = 0;
 

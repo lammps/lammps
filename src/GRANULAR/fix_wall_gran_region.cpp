@@ -44,7 +44,8 @@ enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,BONDED_HISTORY};
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg)
+  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL), ncontact(NULL), 
+  walls(NULL), shearmany(NULL), c2r(NULL)
 {
   restart_global = 1;
   motion_resetflag = 0;

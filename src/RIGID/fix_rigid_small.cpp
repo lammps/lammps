@@ -67,7 +67,12 @@ enum{FULL_BODY,INITIAL,FINAL,FORCE_TORQUE,VCM_ANGMOM,XCM_MASS,ITENSOR,DOF};
 /* ---------------------------------------------------------------------- */
 
 FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), step_respa(NULL), 
+  infile(NULL), body(NULL), bodyown(NULL), bodytag(NULL), atom2body(NULL), 
+  xcmimage(NULL), displace(NULL), eflags(NULL), orient(NULL), dorient(NULL), 
+  avec_ellipsoid(NULL), avec_line(NULL), avec_tri(NULL), counts(NULL), 
+  itensor(NULL), mass_body(NULL), langextra(NULL), random(NULL), id_dilate(NULL), 
+  onemols(NULL), hash(NULL), bbox(NULL), ctr(NULL), idclose(NULL), rsqclose(NULL)
 {
   int i;
 

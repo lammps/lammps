@@ -30,7 +30,8 @@
 using namespace LAMMPS_NS;
 
 ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snad(NULL), 
+  radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
   int twojmax, switchflag;

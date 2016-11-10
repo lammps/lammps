@@ -366,11 +366,11 @@ complementary modeling tasks.
 "DL_POLY"_dlpoly
 "Tinker"_tinker :ul
 
-:link(charmm,http://www.scripps.edu/brooks)
-:link(amber,http://amber.scripps.edu)
+:link(charmm,http://www.charmm.org)
+:link(amber,http://ambermd.org)
 :link(namd,http://www.ks.uiuc.edu/Research/namd/)
 :link(nwchem,http://www.emsl.pnl.gov/docs/nwchem/nwchem.html)
-:link(dlpoly,http://www.cse.clrc.ac.uk/msi/software/DL_POLY)
+:link(dlpoly,http://www.ccp5.ac.uk/DL_POLY_CLASSIC)
 :link(tinker,http://dasher.wustl.edu/tinker)
 
 CHARMM, AMBER, NAMD, NWCHEM, and Tinker are designed primarily for

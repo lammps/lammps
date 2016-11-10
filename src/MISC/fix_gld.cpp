@@ -43,7 +43,8 @@ using namespace FixConst;
 ------------------------------------------------------------------------- */
 
 FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), 
+  step_respa(NULL), prony_c(NULL), prony_tau(NULL), s_gld(NULL), random(NULL)
 {
   int narg_min = 8;
   // Check to make sure we have the minimal number of inputs

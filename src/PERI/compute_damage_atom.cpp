@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), damage(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute damage/atom command");
 
@@ -40,7 +40,6 @@ ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  damage = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

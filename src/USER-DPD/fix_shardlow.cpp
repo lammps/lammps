@@ -83,7 +83,7 @@ static const char cite_fix_shardlow[] =
 /* ---------------------------------------------------------------------- */
 
 FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), pairDPD(NULL), pairDPDE(NULL), v_t0(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_shardlow);
 

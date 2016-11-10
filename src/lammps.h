@@ -46,6 +46,7 @@ class LAMMPS {
 
   char *suffix,*suffix2;         // suffixes to add to input script style names
   int suffix_enable;             // 1 if suffixes are enabled, 0 if disabled
+  char *exename;                 // pointer to argv[0]
   char ***packargs;              // arguments for cmdline package commands
   int num_package;               // number of cmdline package commands
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
@@ -56,13 +57,14 @@ class LAMMPS {
   class CiteMe *citeme;          // citation info
 
   LAMMPS(int, char **, MPI_Comm);
-  virtual ~LAMMPS();
+  ~LAMMPS();
   void create();
   void post_create();
   void init();
   void destroy();
 
  private:
+  void help();
   LAMMPS() {};                   // prohibit using the default constructor
   LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor
 };

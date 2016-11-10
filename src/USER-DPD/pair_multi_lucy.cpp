@@ -54,7 +54,8 @@ static const char cite_pair_multi_lucy[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairMultiLucy::PairMultiLucy(LAMMPS *lmp) : Pair(lmp)
+PairMultiLucy::PairMultiLucy(LAMMPS *lmp) : Pair(lmp),
+  ntables(0), tables(NULL), tabindex(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy);
 

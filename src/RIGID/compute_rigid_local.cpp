@@ -33,7 +33,7 @@ enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,FX,FY,FZ,IX,IY,IZ,
 /* ---------------------------------------------------------------------- */
 
 ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), rstyle(NULL), idrigid(NULL), fixrigid(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute rigid/local command");
 
@@ -90,7 +90,6 @@ ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
   ncount = nmax = 0;
   vector = NULL;
   array = NULL;
-  fixrigid = NULL;
 }
 
 /* ---------------------------------------------------------------------- */

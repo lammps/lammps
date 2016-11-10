@@ -35,7 +35,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), idregion(NULL), list(NULL), mark(NULL), random(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix evaporate command");
 

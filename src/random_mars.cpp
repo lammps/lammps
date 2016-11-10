@@ -22,7 +22,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp)
+RanMars::RanMars(LAMMPS *lmp, int seed) : Pointers(lmp),
+  u(NULL)
 {
   int ij,kl,i,j,k,l,ii,jj,m;
   double s,t;

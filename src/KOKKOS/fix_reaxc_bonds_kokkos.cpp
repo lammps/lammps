@@ -103,12 +103,15 @@ void FixReaxCBondsKokkos::Output_ReaxC_Bonds(bigint ntimestep, FILE *fp)
     ((PairReaxCKokkos<LMPDeviceType>*) reaxc)->PackBondBuffer(k_buf,nbuf_local);
   else
     ((PairReaxCKokkos<LMPHostType>*) reaxc)->PackBondBuffer(k_buf,nbuf_local);
+  buf[0] = nlocal;
 
   // Receive information from buffer for output
   RecvBuffer(buf, nbuf, nbuf_local, nlocal_tot, numbonds_max);
 
   memory->destroy_kokkos(k_buf,buf);
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixReaxCBondsKokkos::memory_usage()
 {

@@ -54,7 +54,13 @@ enum{INT,DOUBLE,STRING,BIGINT};    // same as in DumpCFG
 /* ---------------------------------------------------------------------- */
 
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg)
+  Dump(lmp, narg, arg),
+  idregion(NULL), thresh_array(NULL), thresh_op(NULL), thresh_value(NULL),
+  thresh_last(NULL), thresh_fix(NULL), thresh_fixID(NULL), thresh_first(NULL),
+  earg(NULL), vtype(NULL), vformat(NULL), columns(NULL), choose(NULL),
+  dchoose(NULL), clist(NULL), field2index(NULL), argindex(NULL), id_compute(NULL),
+  compute(NULL), id_fix(NULL), fix(NULL), id_variable(NULL), variable(NULL),
+  vbuf(NULL), id_custom(NULL), flag_custom(NULL), typenames(NULL), pack_choice(NULL)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 

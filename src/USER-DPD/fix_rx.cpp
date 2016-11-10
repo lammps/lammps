@@ -60,7 +60,13 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), mol2param(NULL), nreactions(0), 
+  params(NULL), Arr(NULL), nArr(NULL), Ea(NULL), tempExp(NULL), 
+  stoich(NULL), stoichReactants(NULL), stoichProducts(NULL), kR(NULL), 
+  pairDPDE(NULL), dpdThetaLocal(NULL), sumWeights(NULL), sparseKinetics_nu(NULL), 
+  sparseKinetics_nuk(NULL), sparseKinetics_inu(NULL), sparseKinetics_isIntegralReaction(NULL), 
+  kineticsFile(NULL), id_fix_species(NULL), 
+  id_fix_species_old(NULL), fix_species(NULL), fix_species_old(NULL)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
   restart_peratom = 1;

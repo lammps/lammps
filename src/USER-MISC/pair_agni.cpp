@@ -405,7 +405,8 @@ void PairAGNI::read_file(char *file)
       for (i = 0; i < nparams; ++i) {
         for (j = 0; j < nelements; ++j)
           if (strcmp(words[i+1],elements[j]) == 0) break;
-        if (j == nelements) params[i].ielement = -1;
+        if (j == nelements)
+          error->all(FLERR,"No suitable parameters for requested element found");
         else params[i].ielement = j;
       }
     } else if (params && (nwords == 2) && (strcmp(words[0],"interaction") == 0)) {

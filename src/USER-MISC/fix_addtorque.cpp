@@ -48,6 +48,7 @@ FixAddTorque::FixAddTorque(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  dynamic_group_allow = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 

@@ -82,6 +82,8 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
 
+  no_virial_fdotr_compute = 1;
+
   nelements = 0;
   elements = NULL;
   elem2param = NULL;
@@ -203,9 +205,15 @@ void PairAGNI::compute(int eflag, int vflag)
       fytmp += iparam.alpha[j]*exp(ky*e);
       fztmp += iparam.alpha[j]*exp(kz*e);
     }
-    f[i][0] += fxtmp + iparam.b;
-    f[i][1] += fytmp + iparam.b;
-    f[i][2] += fztmp + iparam.b;
+    fxtmp += iparam.b;
+    fytmp += iparam.b;
+    fztmp += iparam.b;
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
+
+    if (evflag) ev_tally_xyz_full(i,0.0,0.0,fxtmp,fytmp,fztmp,delx,dely,delz);
+
     delete [] V;
   }
 

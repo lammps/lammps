@@ -34,6 +34,8 @@
 
 using namespace LAMMPS_NS;
 
+#define AGNI_VERSION 1
+
 static const char cite_pair_agni[] =
   "pair agni command:\n\n"
   "@article{botu2015adaptive,\n"
@@ -60,7 +62,8 @@ static const char cite_pair_agni[] =
   "}\n\n";
 
 
-#define MAXLINE 1024
+#define MAXLINE 10240
+#define MAXWORD 40
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
@@ -90,7 +93,20 @@ PairAGNI::~PairAGNI()
   if (elements)
     for (int i = 0; i < nelements; i++) delete [] elements[i];
   delete [] elements;
-  memory->destroy(params);
+  if (params) {
+    for (int i = 0; i < nparams; ++i) {
+      int n = params[i].numeta;
+      for (int j = 0; j < n; ++j) {
+        delete [] params[i].xU[j];
+      }
+      delete [] params[i].eta;
+      delete [] params[i].alpha;
+      delete [] params[i].xU;
+      delete [] params[i].yU;
+    }
+    memory->destroy(params);
+    params = NULL;
+  }
 
   if (allocated) {
     memory->destroy(setflag);
@@ -295,9 +311,6 @@ double PairAGNI::init_one(int i, int j)
 
 void PairAGNI::read_file(char *file)
 {
-  int params_per_line = 14;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
   params = NULL;
   nparams = 0;
@@ -318,11 +331,13 @@ void PairAGNI::read_file(char *file)
   // one set of params can span multiple lines
   // store params if all 3 element tags are in element list
 
-  int n,nwords,ielement,jelement,kelement;
+  int i,j,n,nwords,curparam,wantdata,numdata;
   char line[MAXLINE],*ptr;
   int eof = 0;
+  char **words = new char*[MAXWORD+1];
 
   while (1) {
+    n = 0;
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == NULL) {
@@ -341,59 +356,84 @@ void PairAGNI::read_file(char *file)
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
-    // concatenate additional lines until have params_per_line words
-
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
-      }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
-    }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in Stillinger-Weber potential file");
+    if (nwords > MAXWORD)
+      error->all(FLERR,"Increase MAXWORD and recompile");
 
     // words = ptrs to all words in line
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
     while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    --nwords;
 
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next entry in file
+    if ((nwords == 2) && (strcmp(words[0],"generation") == 0)) {
+      int ver = atoi(words[1]);
+      if (ver != AGNI_VERSION)
+        error->all(FLERR,"Incompatible AGNI potential file version");
+      if ((ver == 1) && (nelements != 1))
+        error->all(FLERR,"Cannot handle multi-element systems with this potential");
 
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
+    } else if ((nwords == 2) && (strcmp(words[0],"n_elements") == 0)) {
+      nparams = atoi(words[1]);
+      if ((nparams < 1) || params) // sanity check
+        error->all(FLERR,"Invalid AGNI potential file");
+      params = memory->create(params,nparams,"pair:params");
+      memset(params,0,nparams*sizeof(Param));
+      curparam = -1;
 
-    // load up parameter settings and error check their values
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].epsilon = atof(words[3]);
-    params[nparams].sigma = atof(words[4]);
-
-    if (params[nparams].epsilon < 0.0 || params[nparams].sigma < 0.0)
-      error->all(FLERR,"Illegal AGNI parameter");
-
-    nparams++;
+    } else if (params && (nwords == nparams+1) && (strcmp(words[0],"element") == 0)) {
+      wantdata = -1;
+      for (i = 0; i < nparams; ++i) {
+        for (j = 0; j < nelements; ++j)
+          if (strcmp(words[i+1],elements[j]) == 0) break;
+        if (j == nelements) params[nparams].ielement = params[nparams].jelement = -1;
+        else params[nparams].ielement = params[nparams].jelement = j;
+      }
+    } else if (params && (nwords == 2) && (strcmp(words[0],"interaction") == 0)) {
+      for (i = 0; i < nparams; ++i)
+        if (strcmp(words[1],elements[params[i].ielement]) == 0) curparam = i;
+    } else if ((curparam >=0) && (nwords == 1) && (strcmp(words[0],"endVar") == 0)) {
+      int numtrain = params[curparam].numtrain;
+      int numeta = params[curparam].numeta;
+      params[curparam].alpha = new double[numtrain];
+      params[curparam].yU = new double[numtrain];
+      params[curparam].xU = new double*[numeta];
+      for (i = 0; i < numeta; ++i)
+        params[curparam].xU[i] = new double[numtrain];
+      
+      wantdata = curparam;
+      curparam = -1;
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"Rc") == 0)) {
+      params[curparam].cut = atof(words[1]);
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"Rs") == 0)) {
+      ; // ignored
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"neighbors") == 0)) {
+      ; // ignored
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"sigma") == 0)) {
+      params[curparam].sigma = atof(words[1]);
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"lambda") == 0)) {
+      params[curparam].lambda = atof(words[1]);
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"b") == 0)) {
+      params[curparam].b = atof(words[1]);
+    } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"n_train") == 0)) {
+      params[curparam].numtrain = atoi(words[1]);
+    } else if ((curparam >=0) && (nwords > 1) && (strcmp(words[0],"eta") == 0)) {
+      params[curparam].numeta = nwords-1;
+      params[curparam].eta = new double[nwords-1];
+      for (i = 0, j = 1 ; j < nwords; ++i, ++j)
+        params[curparam].eta[i] = atof(words[j]);
+    } else if (params && (wantdata >=0) && (nwords == params[wantdata].numeta+3)) {
+      n = (int) atof(words[0]);
+      for (i = 0; i < params[wantdata].numeta; ++i) {
+        params[wantdata].xU[i][n] = atof(words[i+1]);
+      }
+      params[wantdata].yU[n] = atof(words[params[wantdata].numeta+1]);
+      params[wantdata].alpha[n] = atof(words[params[wantdata].numeta+2]);
+      
+    } else {
+      if (comm->me == 0)
+        error->warning(FLERR,"Ignoring unknown content in AGNI potential file.");
+    }
   }
 
   delete [] words;

@@ -35,8 +35,10 @@ class PairAGNI : public Pair {
   virtual void init_style();
 
   struct Param {
-    double epsilon,sigma;
     double cut,cutsq;
+    double *eta,**xU,*yU,*alpha;
+    double sigma,lambda,b;
+    int numeta,numtrain;
     int ielement,jelement;
   };
 

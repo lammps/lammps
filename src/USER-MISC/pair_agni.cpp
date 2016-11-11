@@ -31,10 +31,11 @@
 #include "memory.h"
 #include "error.h"
 #include "citeme.h"
+#include "math_special.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
-
-#define AGNI_VERSION 1
+using namespace MathSpecial;
 
 static const char cite_pair_agni[] =
   "pair agni command:\n\n"
@@ -61,10 +62,14 @@ static const char cite_pair_agni[] =
   " publisher = {APS}\n"
   "}\n\n";
 
-
+#define AGNI_VERSION 1
 #define MAXLINE 10240
 #define MAXWORD 40
-#define DELTA 4
+
+struct _3vec {
+  double x,y,z;
+};
+typedef struct _3vec _3vec_t;
 
 /* ---------------------------------------------------------------------- */
 
@@ -79,6 +84,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
 
   nelements = 0;
   elements = NULL;
+  elem2param = NULL;
   nparams = 0;
   params = NULL;
   map = NULL;
@@ -119,24 +125,17 @@ PairAGNI::~PairAGNI()
 
 void PairAGNI::compute(int eflag, int vflag)
 {
-  int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
-  tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fj[3],fk[3];
+  int i,j,k,ii,jj,inum,jnum,itype;
+  double xtmp,ytmp,ztmp,delx,dely,delz;
+  double rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
-  tagint *tag = atom->tag;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -144,17 +143,21 @@ void PairAGNI::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   double fxtmp,fytmp,fztmp;
+  _3vec_t *V;
 
   // loop over full neighbor list of my atoms
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itag = tag[i];
     itype = map[type[i]];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
     fxtmp = fytmp = fztmp = 0.0;
+
+    const Param &iparam = params[elem2param[itype]];
+    V = new _3vec_t[iparam.numeta];
+    memset(V,0,iparam.numeta *sizeof(_3vec_t));
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -168,23 +171,42 @@ void PairAGNI::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      jtype = map[type[j]];
-      // ijparam = elem2param[itype][jtype];
-      if (rsq < params[ijparam].cutsq) {
-
-        // XXX compute force
-
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
-
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             0,0.0,fpair,delx,dely,delz);
+      if ((rsq > 0.0) && (rsq < iparam.cutsq)) {
+        const double r = sqrt(rsq);
+        const double cF = 0.5*(cos((MathConst::MY_PI*r)/iparam.cut)+1.0);
+        const double wX = cF*delx/r;
+        const double wY = cF*dely/r;
+        const double wZ = cF*delz/r;
+        
+        for (k = 0; k < iparam.numeta; ++k) {
+          const double e = exp(-(iparam.eta[k]*rsq));
+          V[k].x += wX*e;
+          V[k].y += wY*e;
+          V[k].z += wZ*e;
+        }
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
+
+    for (j = 0; j < iparam.numtrain; ++j) {
+      double kx = 0.0;
+      double ky = 0.0;
+      double kz = 0.0;    
+
+      for(int k = 0; k < iparam.numeta; ++k) {
+        const double xu = iparam.xU[k][j];
+        kx += square(V[k].x - xu);  
+        ky += square(V[k].y - xu);
+        kz += square(V[k].z - xu);        
+      }
+      const double e = -0.5/(square(iparam.sigma));
+      fxtmp += iparam.alpha[j]*exp(kx*e);
+      fytmp += iparam.alpha[j]*exp(ky*e);
+      fztmp += iparam.alpha[j]*exp(kz*e);
+    }
+    f[i][0] += fxtmp + iparam.b;
+    f[i][1] += fytmp + iparam.b;
+    f[i][2] += fztmp + iparam.b;
+    delete [] V;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
@@ -315,7 +337,8 @@ void PairAGNI::read_file(char *file)
   params = NULL;
   nparams = 0;
 
-  // open file on proc 0
+  // open file on proc 0 only
+  // then read line by line and broadcast the line to all MPI ranks
 
   FILE *fp;
   if (comm->me == 0) {
@@ -327,11 +350,7 @@ void PairAGNI::read_file(char *file)
     }
   }
 
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-  // store params if all 3 element tags are in element list
-
-  int i,j,n,nwords,curparam,wantdata,numdata;
+  int i,j,n,nwords,curparam,wantdata;
   char line[MAXLINE],*ptr;
   int eof = 0;
   char **words = new char*[MAXWORD+1];
@@ -386,8 +405,8 @@ void PairAGNI::read_file(char *file)
       for (i = 0; i < nparams; ++i) {
         for (j = 0; j < nelements; ++j)
           if (strcmp(words[i+1],elements[j]) == 0) break;
-        if (j == nelements) params[nparams].ielement = params[nparams].jelement = -1;
-        else params[nparams].ielement = params[nparams].jelement = j;
+        if (j == nelements) params[i].ielement = -1;
+        else params[i].ielement = j;
       }
     } else if (params && (nwords == 2) && (strcmp(words[0],"interaction") == 0)) {
       for (i = 0; i < nparams; ++i)
@@ -443,32 +462,25 @@ void PairAGNI::read_file(char *file)
 
 void PairAGNI::setup_params()
 {
-  int i,j,k,m,n;
+  int i,m,n;
   double rtmp;
 
-#if 0
-  // set elem2param for all triplet combinations
-  // must be a single exact match to lines read from file
-  // do not allow for ACB in place of ABC
+  // set elem2param for all elements
 
   memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->create(elem2param,nelements,"pair:elem2param");
 
-  for (i = 0; i < nelements; i++)
-    for (j = 0; j < nelements; j++)
-      for (k = 0; k < nelements; k++) {
-        n = -1;
-        for (m = 0; m < nparams; m++) {
-          if (i == params[m].ielement && j == params[m].jelement &&
-              k == params[m].kelement) {
-            if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
-            n = m;
-          }
-        }
-        if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+  for (i = 0; i < nelements; i++) {
+    n = -1;
+    for (m = 0; m < nparams; m++) {
+      if (i == params[m].ielement) {
+        if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
+        n = m;
       }
-
+    }
+    if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+    elem2param[i] = n;
+  }
 
   // compute parameter values derived from inputs
 
@@ -476,45 +488,11 @@ void PairAGNI::setup_params()
   // calculations. cut must remain unchanged as it is a potential parameter
   // (cut = a*sigma)
 
-  for (m = 0; m < nparams; m++) {
-    params[m].cut = params[m].sigma*params[m].littlea;
-
-    rtmp = params[m].cut;
-    if (params[m].tol > 0.0) {
-      if (params[m].tol > 0.01) params[m].tol = 0.01;
-      if (params[m].gamma < 1.0)
-        rtmp = rtmp +
-          params[m].gamma * params[m].sigma / log(params[m].tol);
-      else rtmp = rtmp +
-             params[m].sigma / log(params[m].tol);
-    }
-    params[m].cutsq = rtmp * rtmp;
-
-    params[m].sigma_gamma = params[m].sigma*params[m].gamma;
-    params[m].lambda_epsilon = params[m].lambda*params[m].epsilon;
-    params[m].lambda_epsilon2 = 2.0*params[m].lambda*params[m].epsilon;
-    params[m].c1 = params[m].biga*params[m].epsilon *
-      params[m].powerp*params[m].bigb *
-      pow(params[m].sigma,params[m].powerp);
-    params[m].c2 = params[m].biga*params[m].epsilon*params[m].powerq *
-      pow(params[m].sigma,params[m].powerq);
-    params[m].c3 = params[m].biga*params[m].epsilon*params[m].bigb *
-      pow(params[m].sigma,params[m].powerp+1.0);
-    params[m].c4 = params[m].biga*params[m].epsilon *
-      pow(params[m].sigma,params[m].powerq+1.0);
-    params[m].c5 = params[m].biga*params[m].epsilon*params[m].bigb *
-      pow(params[m].sigma,params[m].powerp);
-    params[m].c6 = params[m].biga*params[m].epsilon *
-      pow(params[m].sigma,params[m].powerq);
-  }
-
-  // set cutmax to max of all params
-
   cutmax = 0.0;
   for (m = 0; m < nparams; m++) {
-    rtmp = sqrt(params[m].cutsq);
+    rtmp = params[m].cut;
+    params[m].cutsq = rtmp * rtmp;
     if (rtmp > cutmax) cutmax = rtmp;
   }
-#endif
 }
 

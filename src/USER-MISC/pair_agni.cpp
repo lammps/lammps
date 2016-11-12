@@ -66,11 +66,6 @@ static const char cite_pair_agni[] =
 #define MAXLINE 10240
 #define MAXWORD 40
 
-struct _3vec {
-  double x,y,z;
-};
-typedef struct _3vec _3vec_t;
-
 /* ---------------------------------------------------------------------- */
 
 PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
@@ -145,7 +140,7 @@ void PairAGNI::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   double fxtmp,fytmp,fztmp;
-  _3vec_t *V;
+  double *Vx, *Vy, *Vz;
 
   // loop over full neighbor list of my atoms
 
@@ -158,8 +153,12 @@ void PairAGNI::compute(int eflag, int vflag)
     fxtmp = fytmp = fztmp = 0.0;
 
     const Param &iparam = params[elem2param[itype]];
-    V = new _3vec_t[iparam.numeta];
-    memset(V,0,iparam.numeta *sizeof(_3vec_t));
+    Vx = new double[iparam.numeta];
+    Vy = new double[iparam.numeta];
+    Vz = new double[iparam.numeta];
+    memset(Vx,0,iparam.numeta*sizeof(double));
+    memset(Vy,0,iparam.numeta*sizeof(double));
+    memset(Vz,0,iparam.numeta*sizeof(double));
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -179,12 +178,12 @@ void PairAGNI::compute(int eflag, int vflag)
         const double wX = cF*delx/r;
         const double wY = cF*dely/r;
         const double wZ = cF*delz/r;
-        
+
         for (k = 0; k < iparam.numeta; ++k) {
           const double e = exp(-(iparam.eta[k]*rsq));
-          V[k].x += wX*e;
-          V[k].y += wY*e;
-          V[k].z += wZ*e;
+          Vx[k] += wX*e;
+          Vy[k] += wY*e;
+          Vz[k] += wZ*e;
         }
       }
     }
@@ -192,13 +191,13 @@ void PairAGNI::compute(int eflag, int vflag)
     for (j = 0; j < iparam.numtrain; ++j) {
       double kx = 0.0;
       double ky = 0.0;
-      double kz = 0.0;    
+      double kz = 0.0;
 
       for(int k = 0; k < iparam.numeta; ++k) {
         const double xu = iparam.xU[k][j];
-        kx += square(V[k].x - xu);  
-        ky += square(V[k].y - xu);
-        kz += square(V[k].z - xu);        
+        kx += square(Vx[k] - xu);
+        ky += square(Vy[k] - xu);
+        kz += square(Vz[k] - xu);
       }
       const double e = -0.5/(square(iparam.sigma));
       fxtmp += iparam.alpha[j]*exp(kx*e);
@@ -214,7 +213,9 @@ void PairAGNI::compute(int eflag, int vflag)
 
     if (evflag) ev_tally_xyz_full(i,0.0,0.0,fxtmp,fytmp,fztmp,delx,dely,delz);
 
-    delete [] V;
+    delete [] Vx;
+    delete [] Vy;
+    delete [] Vz;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
@@ -428,7 +429,7 @@ void PairAGNI::read_file(char *file)
       params[curparam].xU = new double*[numeta];
       for (i = 0; i < numeta; ++i)
         params[curparam].xU[i] = new double[numtrain];
-      
+
       wantdata = curparam;
       curparam = -1;
     } else if ((curparam >=0) && (nwords == 2) && (strcmp(words[0],"Rc") == 0)) {
@@ -457,7 +458,7 @@ void PairAGNI::read_file(char *file)
       }
       params[wantdata].yU[n] = atof(words[params[wantdata].numeta+1]);
       params[wantdata].alpha[n] = atof(words[params[wantdata].numeta+2]);
-      
+
     } else {
       if (comm->me == 0)
         error->warning(FLERR,"Ignoring unknown content in AGNI potential file.");

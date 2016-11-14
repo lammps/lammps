@@ -28,6 +28,10 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+ extern "C" {
+   void latte(int*, double*, int*, double*);
+  }
+
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
@@ -35,7 +39,7 @@ using namespace FixConst;
 FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix latte command");
+  if (narg != 5) error->all(FLERR,"Illegal fix latte command");
 
   // store pe/atom ID used for input of Coulomb potential to LATTE
   // insure it is valid for these computations
@@ -48,6 +52,8 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
   if (modify->compute[ipe]->peatomflag == 0)
     error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
+
+//   latte(arg[4]);
 
   // initialize LATTE with LAMMPS info about box, atoms, atom types, etc ?
   // may need to be done in init() ??
@@ -183,7 +189,7 @@ void FixLatte::post_force(int vflag)
   // what should cutoffs be for passing neighlist info to LATTE ??
   // do cutoffs include many self image atoms for tiny periodic system ??
 
-  int i,j,ii,jj,inum,jnum;
+/*  int i,j,ii,jj,inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   inum = list->inum;
@@ -218,7 +224,11 @@ void FixLatte::post_force(int vflag)
   double *pe = c_pe->vector_atom;
 
   modify->addstep_compute(update->ntimestep+1);
-
+*/
+  int natoms = (int) atom->natoms;
+  latte(&natoms,&atom->x[0][0],atom->type,&atom->f[0][0]);  
+//   latte(&natoms,&atom->x[0][0],atom->type);
+  
   // construct H0,S,Z
   // setup full Hamiltonian H(R,n)
   // calculate density matrix D and charge q(n)
@@ -280,4 +290,5 @@ double FixLatte::compute_scalar()
   // return DFTB global energy
   return 0.0;
 }
+
 

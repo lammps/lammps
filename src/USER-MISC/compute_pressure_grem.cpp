@@ -34,9 +34,17 @@ using namespace LAMMPS_NS;
 ComputePressureGrem::ComputePressureGrem(LAMMPS *lmp, int narg, char **arg) :
   ComputePressure(lmp, narg-1, arg)
 {
-  fix_grem = arg[narg-1];
+  int len = strlen(arg[narg-1])+1;
+  fix_grem = new char[len];
+  strcpy(fix_grem,arg[narg-1]);
 }
 
+/* ---------------------------------------------------------------------- */
+
+ComputePressureGrem::~ComputePressureGrem()
+{
+  delete [] fix_grem;
+}
 /* ---------------------------------------------------------------------- */
 
 void ComputePressureGrem::init()
@@ -70,8 +78,8 @@ double ComputePressureGrem::compute_scalar()
   double t;
   if (keflag) {
     if (temperature->invoked_scalar != update->ntimestep)
-      t = temperature->compute_scalar() * (*scale_grem);
-    else t = temperature->scalar * (*scale_grem);
+      t = temperature->compute_scalar() / (*scale_grem);
+    else t = temperature->scalar / (*scale_grem);
   }
 
   if (dimension == 3) {
@@ -119,7 +127,7 @@ void ComputePressureGrem::compute_vector()
     ke_tensor = temperature->vector;
   }
   for (int i = 0; i < 6; i++)
-    ke_tensor[i] *= *scale_grem;
+    ke_tensor[i] /= *scale_grem;
 
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class ComputePressureGrem : public ComputePressure {
  public:
   ComputePressureGrem(class LAMMPS *, int, char **);
-  virtual ~ComputePressureGrem() {};
+  virtual ~ComputePressureGrem();
   virtual void init();
   virtual double compute_scalar();
   virtual void compute_vector();

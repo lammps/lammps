@@ -13,7 +13,7 @@
    Force scaling fix for gREM.
    Cite: http://dx.doi.org/10.1063/1.3432176
    Cite: http://dx.doi.org/10.1021/acs.jpcb.5b07614
-   
+
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -61,7 +61,7 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   lambda = force->numeric(FLERR,arg[3]);
   eta = force->numeric(FLERR,arg[4]);
   h0 = force->numeric(FLERR,arg[5]);
-  
+
   int n = strlen(arg[6])+1;
   id_npt = new char[n];
   strcpy(id_npt,arg[6]);
@@ -101,7 +101,7 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   newarg[4] = id;
   modify->add_compute(5,newarg);
   delete [] newarg;
-  
+
   // create a new compute ke style
   // id = fix-ID + ke
 
@@ -249,7 +249,7 @@ void FixGrem::post_force(int vflag)
   double **f = atom->f;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  
+
   double tmpvolume = domain->xprd * domain->yprd * domain->zprd;
   double tmppe = pe->compute_scalar();
   // potential energy
@@ -257,7 +257,7 @@ void FixGrem::post_force(int vflag)
 
   double teffective = lambda+eta*(tmpenthalpy-h0);
   scale_grem = tbath/teffective;
-  
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       f[i][0] *= scale_grem;

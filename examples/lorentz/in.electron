@@ -1,15 +1,15 @@
-# charged particle in a magnetic field
+# charged particle in external magnetic field
 
-units		lj
+units		real
 atom_style	charge
 atom_modify map array sort 10000 1.0
 
-region		box block 0 10 0 10 0 10 units box
+region		box block 0 100 0 100 0 100 units box
 create_box	1 box
-create_atoms    1 single 5 5 5
-mass		1 1.0
+create_atoms    1 single 50 50 50
+mass		1 0.000549 # amu, electron
 
-variable        bf equal 1.0
+variable        bf equal 10 # T
 
 fix 		1 all bfield v_bf 0.0 0.0
 fix		2 all nve
@@ -25,27 +25,29 @@ variable vel equal (vz[1]*vz[1]+vy[1]*vy[1]+vx[1]*vx[1])^0.5
 variable myke equal 0.5*v_vel*v_vel
 
 # parameters
-variable vperp equal 1.0 
+variable vperp equal 0.05 # A/fs  
 velocity all set 0 ${vperp} 0 
 set group all charge -1.0
-timestep 0.005
+timestep 1.0
 
 # larmor radius
 # half of coordiate amplitude 
-# (m*v_p)/(B*q) 
-variable rlarmor equal (mass[1]*${vperp})/(v_bf*abs(q[1]))
+# (m*v_p)/(B*q)
+# convert to SI, then angstroms 
+variable rlarmor equal (mass[1]*1.66054e-27*${vperp}*(1e-10*1e15))/(v_bf*abs(q[1])/6.24150934e18)*1e10
 
-# inverse of larmor frequency, in timesteps
+# inverse of larmor frequency
 # period of coordinate oscillation
-# (2*pi*m)/(qB)/dt
-variable flarmor equal (2*3.1415*mass[1])/(abs(q[1])*v_bf)*(1/dt)
+# (2*pi*m)/(qB)
+# convert to SI, then fs
+variable flarmor equal (2*3.1415*mass[1]*1.66054e-27)/(abs(q[1])/6.24150934e18*v_bf)*1e15
 
 thermo_style custom step v_x1 v_y1 v_z1 v_v1x v_v1y v_v1z v_myke v_rlarmor v_flarmor 
-thermo		50
+thermo	100
 
-dump 0 all atom 1 dump.lammpstrj
+dump 0 all atom 100 dump.lammpstrj
 
-#run particle in one full oscillation 
+#run particle one full oscillation 
 variable nsteps equal ceil(${flarmor})
 run		${nsteps}
 

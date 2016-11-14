@@ -47,7 +47,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix grem command");
+  if (narg < 7) error->all(FLERR,"Illegal fix grem command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -61,15 +61,17 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   lambda = force->numeric(FLERR,arg[3]);
   eta = force->numeric(FLERR,arg[4]);
   h0 = force->numeric(FLERR,arg[5]);
-  tbath = force->numeric(FLERR,arg[6]);
-  pressref = force->numeric(FLERR,arg[7]);
+  
+  int n = strlen(arg[6])+1;
+  id_npt = new char[n];
+  strcpy(id_npt,arg[6]);
 
   // create a new compute temp style
   // id = fix-ID + temp
   // compute group = all since pressure is always global (group all)
   //   and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
+  n = strlen(id) + 6;
   id_temp = new char[n];
   strcpy(id_temp,id);
   strcat(id_temp,"_temp");
@@ -148,7 +150,7 @@ FixGrem::~FixGrem()
   delete [] id_press;
   delete [] id_ke;
   delete [] id_pe;
-
+  delete [] id_npt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,24 +167,61 @@ int FixGrem::setmask()
 void FixGrem::init()
 {
 
-  // add check of sign of eta
+  if (domain->triclinic)
+    error->all(FLERR,"Triclinic cells are not supported");
 
   // set temperature and pressure ptrs
 
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0)
-    error->all(FLERR,"Temperature ID for fix scaledforce does not exist");
+    error->all(FLERR,"Temperature compute ID for fix grem does not exist");
   temperature = modify->compute[icompute];
 
   icompute = modify->find_compute(id_ke);
   if (icompute < 0)
-    error->all(FLERR,"Ke ID for fix scaledforce does not exist");
+    error->all(FLERR,"KE compute ID for fix grem does not exist");
   ke = modify->compute[icompute];
 
   icompute = modify->find_compute(id_pe);
   if (icompute < 0)
-    error->all(FLERR,"Pe ID for fix scaledforce does not exist");
-  pe = modify->compute[icompute];  
+    error->all(FLERR,"PE compute ID for fix grem does not exist");
+  pe = modify->compute[icompute];
+
+  int ifix = modify->find_fix(id_npt);
+  if (ifix < 0)
+    error->all(FLERR,"Fix id for npt fix does not exist");
+  Fix *npt = modify->fix[ifix];
+
+  double *t_start = (double *)npt->extract("t_start",ifix);
+  double *t_stop = (double *)npt->extract("t_stop",ifix);
+  if ((t_start != NULL) && (t_stop != NULL) && (ifix == 0)) {
+    tbath = *t_start;
+    if (*t_start != *t_stop)
+      error->all(FLERR,"Thermostat temperature ramp not allowed");
+  } else
+    error->all(FLERR,"Problem extracting target temperature from fix npt");
+
+  int *p_flag = (int *)npt->extract("p_flag",ifix);
+  double *p_start = (double *) npt->extract("p_start",ifix);
+  double *p_stop = (double *) npt->extract("p_stop",ifix);
+  if ((p_flag != NULL) && (p_start != NULL) && (p_stop != NULL)
+      && (ifix == 1)) {
+    ifix = 0;
+    pressref = p_start[0];
+    if ((p_start[0] != p_stop[0]) || (p_flag[0] != 1)) ++ ifix;
+    if ((p_start[1] != p_stop[1]) || (p_flag[0] != 1)) ++ ifix;
+    if ((p_start[2] != p_stop[2]) || (p_flag[0] != 1)) ++ ifix;
+    if ((p_start[0] != p_start[1]) || (p_start[1] != p_start[2])) ++ifix;
+    if ((p_flag[3] != 0) || (p_flag[4] != 0) || (p_flag[5] != 0)) ++ifix;
+    if (ifix > 0)
+      error->all(FLERR,"Unsupported pressure settings in fix npt");
+  } else
+    error->all(FLERR,"Problem extracting target pressure from fix npt");
+
+  char *modargs[2];
+  modargs[0] = (char *) "press";
+  modargs[1] = id_press;
+  npt->modify_param(2,modargs);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -191,6 +230,9 @@ void FixGrem::setup(int vflag)
 {
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
+
+  if (strstr(update->integrate_style,"respa"))
+    error->all(FLERR,"Run style 'respa' is not supported");
 }
 
 /* ---------------------------------------------------------------------- */

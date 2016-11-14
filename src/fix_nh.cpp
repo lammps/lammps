@@ -1698,25 +1698,29 @@ void FixNH::reset_dt()
 void *FixNH::extract(const char *str, int &dim)
 {
   dim=0;
-  if (strcmp(str,"t_target") == 0) {
+  if (tstat_flag && strcmp(str,"t_target") == 0) {
     return &t_target;
-  } else if (strcmp(str,"t_start") == 0) {
+  } else if (tstat_flag && strcmp(str,"t_start") == 0) {
     return &t_start;
-  } else if (strcmp(str,"t_stop") == 0) {
+  } else if (tstat_flag && strcmp(str,"t_stop") == 0) {
     return &t_stop;
-  } else if (strcmp(str,"mtchain") == 0) {
+  } else if (tstat_flag && strcmp(str,"mtchain") == 0) {
+    return &mtchain;
+  } else if (pstat_flag && strcmp(str,"mpchain") == 0) {
     return &mtchain;
   }
   dim=1;
-  if (strcmp(str,"eta") == 0) {
+  if (tstat_flag && strcmp(str,"eta") == 0) {
     return &eta;
-  } else if (strcmp(str,"p_flag") == 0) {
+  } else if (pstat_flag && strcmp(str,"etap") == 0) {
+    return &eta;
+  } else if (pstat_flag && strcmp(str,"p_flag") == 0) {
     return &p_flag;
-  } else if (strcmp(str,"p_start") == 0) {
+  } else if (pstat_flag && strcmp(str,"p_start") == 0) {
     return &p_start;
-  } else if (strcmp(str,"p_stop") == 0) {
+  } else if (pstat_flag && strcmp(str,"p_stop") == 0) {
     return &p_stop;
-  } else if (strcmp(str,"p_target") == 0) {
+  } else if (pstat_flag && strcmp(str,"p_target") == 0) {
     return &p_target;
   }
   return NULL;

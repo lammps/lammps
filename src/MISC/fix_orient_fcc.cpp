@@ -55,7 +55,8 @@ static const char cite_fix_orient_fcc[] =
 
 FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL), sort(NULL), list(NULL)
+  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL), 
+  sort(NULL), list(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_fcc);
 

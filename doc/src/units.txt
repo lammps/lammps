@@ -69,8 +69,10 @@ temperature = reduced LJ temperature, where T* = T Kb / epsilon
 pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
 dynamic viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
 charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
-dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
+electric dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
+magnetic dipole = epsilon/(tau*q/m)
 electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon
+magnetic field = tau*q/m
 density = mass/volume, where rho* = rho sigma^dim :ul
 
 Note that for LJ units, the default mode of thermodyamic output via
@@ -94,8 +96,10 @@ temperature = Kelvin
 pressure = atmospheres
 dynamic viscosity = Poise
 charge = multiple of electron charge (1.0 is a proton)
-dipole = charge*Angstroms
+electric dipole = charge*Angstroms
+magnetic dipole = kcal/mol/tesla
 electric field = volts/Angstrom
+magnetic field = tesla
 density = gram/cm^dim :ul
 
 For style {metal}, these are the units:
@@ -111,8 +115,10 @@ temperature = Kelvin
 pressure = bars
 dynamic viscosity = Poise
 charge = multiple of electron charge (1.0 is a proton)
-dipole = charge*Angstroms
+electric dipole = charge*Angstroms
+magnetic dipole = eV/tesla
 electric field = volts/Angstrom
+magnetic field = tesla
 density = gram/cm^dim :ul
 
 For style {si}, these are the units:
@@ -128,8 +134,10 @@ temperature = Kelvin
 pressure = Pascals
 dynamic viscosity = Pascal*second
 charge = Coulombs (1.6021765e-19 is a proton)
-dipole = Coulombs*meters
+electric dipole = Coulombs*meters
+magnetic dipole = Joules/tesla
 electric field = volts/meter
+magnetic field = tesla
 density = kilograms/meter^dim :ul
 
 For style {cgs}, these are the units:
@@ -145,8 +153,10 @@ temperature = Kelvin
 pressure = dyne/cm^2 or barye = 1.0e-6 bars
 dynamic viscosity = Poise
 charge = statcoulombs or esu (4.8032044e-10 is a proton)
-dipole = statcoul-cm = 10^18 debye
+electric dipole = statcoul-cm = 10^18 debye
+magnetic dipole = ergs/tesla
 electric field = statvolt/cm or dyne/esu
+magnetic field = tesla
 density = grams/cm^dim :ul
 
 For style {electron}, these are the units:
@@ -160,8 +170,10 @@ force = Hartrees/Bohr
 temperature = Kelvin
 pressure = Pascals
 charge = multiple of electron charge (1.0 is a proton)
-dipole moment = Debye
-electric field = volts/cm :ul
+electric dipole moment = Debye
+magnetic dipole moment = Hartrees/tesla
+electric field = volts/cm 
+magnetic field = tesla :ul
 
 For style {micro}, these are the units:
 
@@ -176,8 +188,10 @@ temperature = Kelvin
 pressure = picogram/(micrometer-microsecond^2)
 dynamic viscosity = picogram/(micrometer-microsecond)
 charge = picocoulombs (1.6021765e-7 is a proton)
-dipole = picocoulomb-micrometer
+electric dipole = picocoulomb-micrometer
+magnetic dipole = picogram-micrometer^2/microsecond^2/tesla
 electric field = volt/micrometer
+magnetic field = tesla
 density = picograms/micrometer^dim :ul
 
 For style {nano}, these are the units:
@@ -193,8 +207,10 @@ temperature = Kelvin
 pressure = attogram/(nanometer-nanosecond^2)
 dynamic viscosity = attogram/(nanometer-nanosecond)
 charge = multiple of electron charge (1.0 is a proton)
-dipole = charge-nanometer
+electric dipole = charge-nanometer
+magnetic dipole = attogram-nanometer^2/nanosecond^2 / tesla
 electric field = volt/nanometer
+magnetic field = tesla
 density = attograms/nanometer^dim :ul
 
 The units command also sets the timestep size and neighbor skin

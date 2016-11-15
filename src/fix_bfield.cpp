@@ -166,28 +166,7 @@ void FixBfield::init()
     else error->all(FLERR,"Variable for fix bfield is invalid style");
   }
 
-  // set units
-  // B-field input in Tesla (T) for all unit sets except LJ
-  // LJ: B in tau*q/m
-  if (strcmp(update->unit_style,"lj") == 0) 
-    qBm2f = 1;
-  else if (strcmp(update->unit_style,"real") == 0) 
-    qBm2f = 1.60217646e-19 / 1.66054e-27 / 1e15; // coulomb per electron charge / kg per amu / fs per s
-  else if (strcmp(update->unit_style,"metal") == 0) 
-    qBm2f = 1.60217646e-19 / 1.66054e-27 / 1e12; // coulomb per electron charge / kg per amu / ps per s
-  else if (strcmp(update->unit_style,"si") == 0) 
-    qBm2f = 1 / 1 / 1; // coulomb per coulomb / kg per kg / s per s
-  else if (strcmp(update->unit_style,"cgs") == 0) 
-    qBm2f = 3.356e-10 / 1.66054e-24 / 1; // coulomb per statcoulomb / g per amu / s per s
-  else if (strcmp(update->unit_style,"electron") == 0) 
-    qBm2f = 1.60217646e-19 / 1.66054e-27 / 1e15; // coulomb per electron charge / kg per amu / fs per s
-  else if (strcmp(update->unit_style,"micro") == 0) 
-    qBm2f = 1e-12 / 1.66054e-12 / 1e6; // coulomb per picocoulomb / kg per picogram / ms per s
-  else if (strcmp(update->unit_style,"nano") == 0) 
-    qBm2f = 1.60217646e-19 / 1.66054e-6 / 1e9; // coulomb per electron charge / kg per attogram / ns per s
-  else
-    error->all(FLERR,"Illegal units in fix bfield");
-
+   double qBm2f = force->qBm2f;
    dtf = 0.5*update->dt*force->ftm2v;
 
   // order of pre_integrate fixes important
@@ -329,17 +308,15 @@ void FixBfield::post_integrate()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-  imageint *image = atom->image;
   double vx, vy, vz, c1;
   double fx,fy,fz;
   double dtfm;
   double dtv = update->dt;
   double dtv_omega0, dtv_omega1, dtv_omega2;
   double half_dtfm, half_dtv_omega0, half_dtv_omega1, half_dtv_omega2;  
-  double unwrap[3];
+  double qBm2f = force->qBm2f;
 
   // update region if necessary
-
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -473,7 +450,7 @@ void FixBfield::post_force(int vflag)
       region->prematch();
   }
 
-  // fsum[0] = "potential energy" for added force
+  // fsum[0] = "potential energy" for added torque
   fsum[0] = 0.0;
   force_flag = 0;
 

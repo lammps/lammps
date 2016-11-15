@@ -50,7 +50,7 @@ class FixBfield : public Fix {
   double **v0, **fb;
   double B[3];
   double omega[3];
-  double qBm2f;
+  //double qBm2f;
   int bmuflag;
   int qflag;
   int force_flag;

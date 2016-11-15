@@ -401,13 +401,6 @@ void FixBfield::post_integrate()
         // B2
         x[i][0] += (dtv*half_dtv_omega2*vy);
         x[i][1] += (-dtv*half_dtv_omega2*vx);
-
-        // estimate total magnetic force for analysis
-        // not used for dynamics
-        fx = q[i]*(vy*B[2]-vz*B[1]);
-        fy = q[i]*(vz*B[0]-vx*B[2]);
-        fz = q[i]*(vx*B[1]-vy*B[0]);
-        domain->unmap(x[i],image[i],unwrap);
         }
   
 } else {
@@ -455,13 +448,6 @@ void FixBfield::post_integrate()
         // B2
         x[i][0] += (dtv*half_dtv_omega2*vy);
         x[i][1] += (-dtv*half_dtv_omega2*vx);
-
-        // compute total magnetic force for analysis
-        // not used for dynamics
-        fx = q[i]*(vy*B[2]-vz*B[1]);
-        fy = q[i]*(vz*B[0]-vx*B[2]);
-        fz = q[i]*(vx*B[1]-vy*B[0]);
-        domain->unmap(x[i],image[i],unwrap);
         }
   }
 }

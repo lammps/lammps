@@ -1423,7 +1423,7 @@ void PairSMTBQ::tabqeq()
         {
           gam = dgam = dza = dzb = d2zaa = d2zab =
             d2zbb = d2zra = d2zrb = d2gamr2 = 0.0 ;
-          aCoeff = bCoeff = dij = 0.0 ;
+          dij = 0.0 ;
 
           s = static_cast<double>(k)*ds ; r = sqrt(s) ;
           if (k==0) r=10e-30;
@@ -1438,7 +1438,6 @@ void PairSMTBQ::tabqeq()
 
           // Cutting Fonction
 
-
           if (dij < 0.01 && ii==0)
             {
               ii=2;
@@ -1451,7 +1450,6 @@ void PairSMTBQ::tabqeq()
           if (r > rc) {dij = aCoeff *square(r- rc-nang) *exp(bCoeff*r);
             ddij = aCoeff*(r- rc-nang) *(2+bCoeff*(r-rc-nang))*exp(bCoeff*r);
           }
-
 
           if (r > (rc+nang)) {dij = 0.0 ; ddij = 0.0;}
 
@@ -1470,7 +1468,6 @@ void PairSMTBQ::tabqeq()
         if(strcmp(params[j].nom,"O")==0) {
           rb = ROxSurf;
           zb = (2.0*params[j].ne + 1.0)/(4.0*rb); }
-
 
         ii = 0 ; nang =cang= 5.0 ;
         // --------------------------

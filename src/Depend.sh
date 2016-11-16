@@ -53,6 +53,7 @@ fi
 
 if (test $1 = "CLASS2") then
   depend GPU
+  depend KOKKOS
   depend USER-OMP
 fi
 

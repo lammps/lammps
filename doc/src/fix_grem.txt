@@ -29,12 +29,13 @@ fix             fxgREM all grem 502 -0.15 -80000 fxnvt
 [Description:]
 
 This fix implements the molecular dynamics version
-of the generlized replica 
+of the generalized replica 
 exchange method (gREM) originally developed by "(Kim)"_#Kim,
 which uses non-Boltzmann ensembles to sample over first
 order phase transitions.
 
-The is done by defining replicas with an effective temperature
+The is done by defining replicas with an enthalpy dependent
+effective temperature
 
 :c,image(Eqs/fix_grem.jpg)
 
@@ -42,7 +43,7 @@ with {eta} negative and steep enough to only intersect
 the characteristic microcanonical temperature (Ts) of the
 system once, ensuring a unimodal enthalpy distribution in 
 that replica. {Lambda} is the intercept and effects the 
-generalized ensemble simliar to how temperature effects 
+generalized ensemble similar to how temperature effects 
 a Boltzmann ensemble. {H0} is a reference enthalpy, and
 is typically set as the lowest desired sampled enthalpy.
 Further explanation can be found in our recent papers 
@@ -50,7 +51,7 @@ Further explanation can be found in our recent papers
 
 This fix requires a thermostat, with ID passed to fix_grem
 by {thermostat-ID}. Two distinct temperatures exist in this
-generlized ensemble, the effective temperature defined above,
+generalized ensemble, the effective temperature defined above,
 and a kinetic temperature that controls the velocity 
 distribution of particles as usual. Either constant volume
 or constant pressure algorithms can be used.
@@ -59,17 +60,17 @@ The fix enforces a generalized ensemble in a single replica
 only. Typically, different replicas only differ by {lambda}
 for simplicity, but this is not necessary. Multi-replica 
 runs need to be run outside of LAMMPS. An example of this 
-can be found in examples/USER/misc/grem .
+can be found in examples/USER/misc/grem
 
 In general, defining the generalized ensembles is unique for 
 every system. When starting a many-replica simulation without 
 any knowledge of the underlying microcanonical temperature, 
-there are several tricks we have utilized to optimze the process. 
+there are several tricks we have utilized to optimize the process. 
 Choosing a less-steep {eta} yields broader distributions, 
 requiring fewer replicas to map the microcanonical temperature. 
 While this likely struggles from the same sampling problems 
 gREM was built to avoid, it provides quick insight to Ts. 
-Initially using an evenly-spaced {lambda} distribtuion identifies
+Initially using an evenly-spaced {lambda} distribution identifies
 regions where small changes in enthalpy lead to large temperature
 changes. Replicas are easily added where needed. 
 
@@ -103,5 +104,5 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [(Kim)] Kim, Keyes, Straub, J. Chem. Phys., 132, 224107 (2010).
 
 :link(Malolepsza)
-[(Brooks)] Malolepsza, Secor, Keyes, J. Phys. Chem. B. 119 (42), 
+[(Malolepsza)] Malolepsza, Secor, Keyes, J. Phys. Chem. B. 119 (42), 
 13379-13384 (2015).

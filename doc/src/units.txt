@@ -47,8 +47,14 @@ new units.  And you must correctly convert all output from the new
 units to the old units when comparing to the original results.  That
 is often not simple to do.
 
+The units command also sets the timestep size and neighbor skin
+distance to default values for each style.
+
 :line
 
+----
+{lj}
+----
 For style {lj}, all quantities are unitless.  Without loss of
 generality, LAMMPS sets the fundamental quantities mass, sigma,
 epsilon, and the Boltzmann constant = 1.  The masses, distances,
@@ -58,20 +64,27 @@ to the same quantity with units is also given.  Thus you can use the
 mass & sigma & epsilon values for a specific material and convert the
 results from a unitless LJ simulation into physical quantities.
 
-mass = mass or m
-distance = sigma, where x* = x / sigma
-time = tau, where t* = t (epsilon / m / sigma^2)^1/2
-energy = epsilon, where E* = E / epsilon
-velocity = sigma/tau, where v* = v tau / sigma
-force = epsilon/sigma, where f* = f sigma / epsilon
-torque = epsilon, where t* = t / epsilon
-temperature = reduced LJ temperature, where T* = T Kb / epsilon
-pressure = reduced LJ pressure, where P* = P sigma^3 / epsilon
-dynamic viscosity = reduced LJ viscosity, where eta* = eta sigma^3 / epsilon / tau
-charge = reduced LJ charge, where q* = q / (4 pi perm0 sigma epsilon)^1/2
-dipole = reduced LJ dipole, moment where *mu = mu / (4 pi perm0 sigma^3 epsilon)^1/2
-electric field = force/charge, where E* = E (4 pi perm0 sigma epsilon)^1/2 sigma / epsilon
-density = mass/volume, where rho* = rho sigma^dim :ul
+================= ======================== =============================
+Physical property {lj} (short form)        {lj} (clear form)
+================= ======================== =============================
+mass              m                        mass
+distance          σ                        x* = x/σ
+time              τ                        t* = t (ε/m/σ^2)^1/2
+energy            ε                        E* = E/ε
+velocity          σ/τ                      v* = v τ/σ
+force             ε/σ                      f* = f σ/ε
+torque            ε                        t* = t/ε
+temperature       reduced LJ temperature   T* = T Kb / ε
+pressure          reduced LJ pressure      P* = P σ^3 / ε
+dynamic viscosity reduced LJ viscosity     η* = η σ^3 / ε / τ
+charge            reduced LJ charge        q* = q / (4π perm0 σ ε)^1/2
+dipole            reduced LJ dipole moment μ* = μ / (4π perm0 σ^3 ε)^1/2
+electric field    force/charge             E* = E (4π perm0 σ ε)^1/2 σ/ε
+density           mass/volume              ρ* = ρ σ^dim
+{timestep}        0.005 τ                  dt = 0.005 τ
+{skin distance}   0.3 σ                    skin = 0.3 σ
+================= ======================== =============================
+
 
 Note that for LJ units, the default mode of thermodyamic output via
 the "thermo_style"_thermo_style.html command is to normalize all
@@ -81,133 +94,191 @@ energy/atom.  Temperature is intensive since it is already normalized
 by the number of atoms, so it is output as-is.  This behavior can be
 changed via the "thermo_modify norm"_thermo_modify.html command.
 
+------
+{real}
+------
 For style {real}, these are the units:
 
-mass = grams/mole
-distance = Angstroms
-time = femtoseconds
-energy = Kcal/mole
-velocity = Angstroms/femtosecond
-force = Kcal/mole-Angstrom
-torque = Kcal/mole
-temperature = Kelvin
-pressure = atmospheres
-dynamic viscosity = Poise
-charge = multiple of electron charge (1.0 is a proton)
-dipole = charge*Angstroms
-electric field = volts/Angstrom
-density = gram/cm^dim :ul
+================= =================== =============================================
+Physical property {real} (short form) {real} (clear form)
+================= =================== =============================================
+mass              g/mol               grams/mole
+distance          Å                   Angstroms
+time              fs                  femtoseconds
+energy            kcal/mol            kcal/mole
+velocity          Å/fs                Angstroms/femtosecond
+force             kcal/mol/Å          kcal/mole-Angstrom
+torque            kcal/mol            kcal/mole
+temperature       K                   Kelvin
+pressure          atm                 atmospheres
+dynamic viscosity P                   Poise
+charge            e                   multiple of electron charge (1.0 is a proton)
+dipole            e*Å                 charge*Angstroms
+electric field    V/Å                 volts/Angstrom
+density           g/cm^dim            gram/cm^dim
+{timestep}        1 fs                dt = 1.0 fmsec
+{skin distance}   2 Å                 skin = 2.0 Angstroms
+================= =================== =============================================
 
+
+-------
+{metal}
+-------
 For style {metal}, these are the units:
 
-mass = grams/mole
-distance = Angstroms
-time = picoseconds
-energy = eV
-velocity = Angstroms/picosecond
-force = eV/Angstrom
-torque = eV
-temperature = Kelvin
-pressure = bars
-dynamic viscosity = Poise
-charge = multiple of electron charge (1.0 is a proton)
-dipole = charge*Angstroms
-electric field = volts/Angstrom
-density = gram/cm^dim :ul
+================= ==================== =============================================
+Physical property {metal} (short form) {metal} (clear form)
+================= ==================== =============================================
+mass              g/mol                grams/mole
+distance          Å                    Angstroms
+time              ps                   picoseconds
+energy            eV                   electron-volts
+velocity          Å/ps                 Angstroms/picosecond
+force             eV/Å                 eV/Angstrom
+torque            eV                   eV
+temperature       K                    Kelvin
+pressure          bar                  bars
+dynamic viscosity P                    Poise
+charge            e                    multiple of electron charge (1.0 is a proton)
+dipole            e*Å                  charge*Angstroms
+electric field    V/Å                  volts/Angstrom
+density           g/cm^dim             gram/cm^dim
+{timestep}        0.001 ps             dt = 0.001 psec
+{skin distance}   2 Å                  skin = 2.0 Angstroms
+================= ==================== =============================================
 
+
+----
+{si}
+----
 For style {si}, these are the units:
 
-mass = kilograms
-distance = meters
-time = seconds
-energy = Joules
-velocity = meters/second
-force = Newtons
-torque = Newton-meters
-temperature = Kelvin
-pressure = Pascals
-dynamic viscosity = Pascal*second
-charge = Coulombs (1.6021765e-19 is a proton)
-dipole = Coulombs*meters
-electric field = volts/meter
-density = kilograms/meter^dim :ul
+================= ================== ====================================
+Physical property {si} (short form)  {si} (clear form)
+================= ================== ====================================
+mass              kg                 kilograms
+distance          m                  meters
+time              s                  seconds
+energy            J                  Joules
+velocity          m/s                meters/second
+force             N                  Newtons
+torque            N*m                Newton-meters
+temperature       K                  Kelvin
+pressure          Pa                 Pascals
+dynamic viscosity Pa*s               Pascal*second
+charge            C                  Coulombs (1.6021765e-19 is a proton)
+dipole            C*m                Coulombs*meters
+electric field    V/m                volts/meter
+density           kg/m^dim           kilograms/meter^dim
+{timestep}        1e-8 s             dt = 1.0e-8 sec
+{skin distance}   0.001 m            skin = 0.001 meters
+================= ================== ====================================
 
+
+-----
+{cgs}
+-----
 For style {cgs}, these are the units:
 
-mass = grams
-distance = centimeters
-time = seconds
-energy = ergs
-velocity = centimeters/second
-force = dynes
-torque = dyne-centimeters
-temperature = Kelvin
-pressure = dyne/cm^2 or barye = 1.0e-6 bars
-dynamic viscosity = Poise
-charge = statcoulombs or esu (4.8032044e-10 is a proton)
-dipole = statcoul-cm = 10^18 debye
-electric field = statvolt/cm or dyne/esu
-density = grams/cm^dim :ul
+================= ====================== ===============================================
+Physical property {cgs} (short form)     {cgs} (clear form)
+================= ====================== ===============================================
+mass              g                      grams
+distance          cm                     centimeters
+time              s                      seconds
+energy            erg                    ergs
+velocity          cm/s                   centimeters/second
+force             dyn                    dynes
+torque            dyn*cm                 dyne-centimeters
+temperature       K                      Kelvin
+pressure          dyn/cm^2 or Ba         dyne/cm^2 or barye = 1.0e-6 bars
+dynamic viscosity P                      Poise
+charge            statC or esu           statcoulombs or esu (4.8032044e-10 is a proton)
+dipole            statC*cm               statcoul-cm = 10^18 debye
+electric field    statvolt/cm or dyn/esu statvolt/cm or dyne/esu
+density           g/cm^dim               grams/cm^dim
+{timestep}        1e-8 s                 dt = 1.0e-8 sec
+{skin distance}   0.1 cm                 skin = 0.1 cm
+================= ====================== ===============================================
 
+
+----------
+{electron}
+----------
 For style {electron}, these are the units:
 
-mass = atomic mass units
-distance = Bohr
-time = femtoseconds
-energy = Hartrees
-velocity = Bohr/atomic time units \[1.03275e-15 seconds\]
-force = Hartrees/Bohr
-temperature = Kelvin
-pressure = Pascals
-charge = multiple of electron charge (1.0 is a proton)
-dipole moment = Debye
-electric field = volts/cm :ul
+================= ======================= ==============================================
+Physical property {electron} (short form) {electron} (clear form)
+================= ======================= ==============================================
+mass              amu                     atomic mass units
+distance          Bohr                    Bohr
+time              fs                      femtoseconds
+energy            Ha                      Hartrees
+velocity          Bohr/atomic time units  Bohr/atomic time units \[1.03275e-15 seconds\]
+force             Ha/Bohr                 Hartrees/Bohr
+torque            K                       Kelvin
+temperature       Pa                      Pascals
+charge            e                       multiple of electron charge (1.0 is a proton)
+dipole            D                       Debye
+electric field    V/cm                    volts/cm
+{timestep}        0.001 fs                dt = 0.001 fmsec
+{skin distance}   2.0 Bohr                skin = 2.0 Bohr
+================= ======================= ==============================================
 
+
+-------
+{micro}
+-------
 For style {micro}, these are the units:
 
-mass = picograms
-distance = micrometers
-time = microseconds
-energy = picogram-micrometer^2/microsecond^2
-velocity = micrometers/microsecond
-force = picogram-micrometer/microsecond^2
-torque = picogram-micrometer^2/microsecond^2
-temperature = Kelvin
-pressure = picogram/(micrometer-microsecond^2)
-dynamic viscosity = picogram/(micrometer-microsecond)
-charge = picocoulombs (1.6021765e-7 is a proton)
-dipole = picocoulomb-micrometer
-electric field = volt/micrometer
-density = picograms/micrometer^dim :ul
+================= ==================== =======================================
+Physical property {micro} (short form) {micro} (clear form)
+================= ==================== =======================================
+mass              pg                   picograms
+distance          μm                   micrometers
+time              μs                   microseconds
+energy            pg*μm^2/μs^2         picogram-micrometer^2/microsecond^2
+velocity          μm/μs                micrometers/microsecond
+force             pg*μm/μs^2           picogram-micrometer/microsecond^2
+torque            pg*μm^2/μs^2         picogram-micrometer^2/microsecond^2
+temperature       K                    Kelvin 
+pressure          pg/μm/μs^2           picogram/(micrometer-microsecond^2)
+dynamic viscosity pg/μm/μs             picogram/(micrometer-microsecond)
+charge            pC                   picocoulombs (1.6021765e-7 is a proton)
+dipole            pC*μm                picocoulomb-micrometer
+electric field    V/μm                 volt/micrometer
+density           pg/μm^dim            picograms/micrometer^dim
+{timestep}        2 μs                 dt = 2.0 microsec
+{skin distance}   0.1 μm               skin = 0.1 micrometers
+================= ==================== =======================================
 
+
+------
+{nano}
+------
 For style {nano}, these are the units:
 
-mass = attograms
-distance = nanometers
-time = nanoseconds
-energy = attogram-nanometer^2/nanosecond^2
-velocity = nanometers/nanosecond
-force = attogram-nanometer/nanosecond^2
-torque = attogram-nanometer^2/nanosecond^2
-temperature = Kelvin
-pressure = attogram/(nanometer-nanosecond^2)
-dynamic viscosity = attogram/(nanometer-nanosecond)
-charge = multiple of electron charge (1.0 is a proton)
-dipole = charge-nanometer
-electric field = volt/nanometer
-density = attograms/nanometer^dim :ul
+================= =================== =============================================
+Physical property {nano} (short form) {nano} (clear form)
+================= =================== =============================================
+mass              ag                  attograms
+distance          nm                  nanometers
+time              ns                  nanoseconds
+energy            ag*nm^2/ns^2        attogram-nanometer^2/nanosecond^2
+velocity          nm/ns               nanometers/nanosecond
+force             ag*nm/ns^2          attogram-nanometer/nanosecond^2
+torque            ag*nm^2/ns^2        attogram-nanometer^2/nanosecond^2
+temperature       K                   Kelvin 
+pressure          ag/nm/ns^2          attogram/(nanometer-nanosecond^2)
+dynamic viscosity ag/nm/ns            attogram/(nanometer-nanosecond)
+charge            e                   multiple of electron charge (1.0 is a proton)
+dipole            e*nm                charge-nanometer
+electric field    V/nm                volt/nanometer
+density           ag/nm^dim           attograms/nanometer^dim
+{timestep}        0.00045 ns          dt = 0.00045 nanosec
+{skin distance}   0.1 nm              skin = 0.1 nanometers
+================= =================== =============================================
 
-The units command also sets the timestep size and neighbor skin
-distance to default values for each style:
-
-For style {lj} these are dt = 0.005 tau and skin = 0.3 sigma.
-For style {real} these are dt = 1.0 fmsec and skin = 2.0 Angstroms.
-For style {metal} these are dt = 0.001 psec and skin = 2.0 Angstroms.
-For style {si} these are dt = 1.0e-8 sec and skin = 0.001 meters.
-For style {cgs} these are dt = 1.0e-8 sec and skin = 0.1 cm.
-For style {electron} these are dt = 0.001 fmsec and skin = 2.0 Bohr.
-For style {micro} these are dt = 2.0 microsec and skin = 0.1 micrometers.
-For style {nano} these are dt = 0.00045 nanosec and skin = 0.1 nanometers. :ul
 
 [Restrictions:]
 

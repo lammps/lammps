@@ -199,6 +199,7 @@ void FixGrem::init()
   if (ifix < 0)
     error->all(FLERR,"Fix id for npt fix does not exist");
   Fix *npt = modify->fix[ifix];
+
   double *t_start = (double *)npt->extract("t_start",ifix);
   double *t_stop = (double *)npt->extract("t_stop",ifix);
   if ((t_start != NULL) && (t_stop != NULL) && (ifix == 0)) {

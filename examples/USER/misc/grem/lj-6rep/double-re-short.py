@@ -51,9 +51,9 @@ for exchange in arange(starting_ex,max_exchange):
 		os.chdir(path+"/%s" % lambdas[l])
 		#os.system("cp restart_file restart_file%d" % exchange)
                 if (nproc > 1):
-                    os.system("mpirun -np %d " + lmp + " -in " + inp + " > output" % nproc)
+                    os.system("mpirun -np %d " + lmp + " -in ../" + inp + " -var lambda %g -var eta %g -var enthalpy %g > output" % (nproc, lambdas[l], eta, H))
                 if (nproc == 1):
-                    os.system(lmp + " -in " + inp + " > output")
+                    os.system(lmp + " -in ../" + inp + " -var lambda %g -var eta %g -var enthalpy %g > output" % (lambdas[l], eta, H))
 		os.system("grep -v '[a-zA-Z]' output | awk '{if(NF==6 && NR>19)print $0}' | awk '{print $3}' >ent")
 		enthalpy[l] = os.popen("tail -n 1 ent").read()
 		ee = loadtxt("ent")

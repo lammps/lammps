@@ -1,5 +1,4 @@
 LAMMPS (9 Nov 2016)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:90)
   using 1 OpenMP thread(s) per MPI task
 # LJ particles
 variable        T0 equal 300.0
@@ -26,16 +25,13 @@ thermo_style    custom step temp pe etotal press vol
 
 timestep        1.0
 
-fix             fxgREM all grem 400 -.01 -30000 ${T0} ${press}
-fix             fxgREM all grem 400 -.01 -30000 300 ${press}
-fix             fxgREM all grem 400 -.01 -30000 300 0
 fix             fxnvt all npt temp ${T0} ${T0} 1000.0 iso ${press} ${press} 10000.0
 fix             fxnvt all npt temp 300 ${T0} 1000.0 iso ${press} ${press} 10000.0
 fix             fxnvt all npt temp 300 300 1000.0 iso ${press} ${press} 10000.0
 fix             fxnvt all npt temp 300 300 1000.0 iso 0 ${press} 10000.0
 fix             fxnvt all npt temp 300 300 1000.0 iso 0 0 10000.0
+fix             fxgREM all grem 400 -.01 -30000 fxnvt
 thermo_modify   press fxgREM_press
-fix_modify      fxnvt press fxgREM_press
 run             1000
 Neighbor list info ...
   1 neighbor list requests
@@ -147,21 +143,21 @@ Step Temp PotEng TotEng Press Volume
      980    303.93331   -3178.9891   -2726.9114   -88.434034    11953.723 
      990    307.36223   -3180.7316   -2723.5535   -145.46208    11953.849 
     1000    310.09574    -3181.101   -2719.8571   -180.39125    11953.972 
-Loop time of 0.248474 on 1 procs for 1000 steps with 500 atoms
+Loop time of 0.303645 on 1 procs for 1000 steps with 500 atoms
 
-Performance: 347.722 ns/day, 0.069 hours/ns, 4024.566 timesteps/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 284.542 ns/day, 0.084 hours/ns, 3293.315 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.20529    | 0.20529    | 0.20529    |   0.0 | 82.62
-Bond    | 8.4e-05    | 8.4e-05    | 8.4e-05    |   0.0 |  0.03
-Neigh   | 0.004163   | 0.004163   | 0.004163   |   0.0 |  1.68
-Comm    | 0.007817   | 0.007817   | 0.007817   |   0.0 |  3.15
-Output  | 0.001142   | 0.001142   | 0.001142   |   0.0 |  0.46
-Modify  | 0.026383   | 0.026383   | 0.026383   |   0.0 | 10.62
-Other   |            | 0.003598   |            |       |  1.45
+Pair    | 0.25029    | 0.25029    | 0.25029    |   0.0 | 82.43
+Bond    | 7.0572e-05 | 7.0572e-05 | 7.0572e-05 |   0.0 |  0.02
+Neigh   | 0.0042012  | 0.0042012  | 0.0042012  |   0.0 |  1.38
+Comm    | 0.010247   | 0.010247   | 0.010247   |   0.0 |  3.37
+Output  | 0.0013516  | 0.0013516  | 0.0013516  |   0.0 |  0.45
+Modify  | 0.033518   | 0.033518   | 0.033518   |   0.0 | 11.04
+Other   |            | 0.003969   |            |       |  1.31
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

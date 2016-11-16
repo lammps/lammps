@@ -40,9 +40,9 @@ class FixGrem : public Fix {
   double lambda,eta,h0,tbath,pressref;
 
  protected:
-  char *id_temp,*id_press,*id_ke,*id_pe,*id_npt;
+  char *id_temp,*id_press,*id_ke,*id_pe,*id_nh;
   class Compute *temperature,*pressure,*ke,*pe;
-  int pflag,tflag,keflag,peflag;
+  int pressflag;
 };
 
 }

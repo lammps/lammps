@@ -65,8 +65,8 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   h0 = force->numeric(FLERR,arg[5]);
 
   int n = strlen(arg[6])+1;
-  id_npt = new char[n];
-  strcpy(id_npt,arg[6]);
+  id_nh = new char[n];
+  strcpy(id_nh,arg[6]);
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -133,15 +133,24 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(3,newarg);
   delete [] newarg;
 
-  int ifix = modify->find_fix(id_npt);
+  int ifix = modify->find_fix(id_nh);
   if (ifix < 0)
-    error->all(FLERR,"Fix id for npt fix does not exist");
-  Fix *npt = modify->fix[ifix];
+    error->all(FLERR,"Fix id for nvt or npt fix does not exist");
+  Fix *nh = modify->fix[ifix];
 
-  char *modargs[2];
-  modargs[0] = (char *) "press";
-  modargs[1] = id_press;
-  npt->modify_param(2,modargs);
+  pressflag = 0;
+  int *p_flag = (int *)nh->extract("p_flag",ifix);
+  if ((p_flag == NULL) || (ifix != 1) || (p_flag[0] == 0)
+      || (p_flag[1] == 0) || (p_flag[2] == 0)) {
+    pressflag = 0;
+  } else if ((p_flag[0] == 1) && (p_flag[1] == 1)
+             && (p_flag[2] == 1) && (ifix == 1)) {
+    pressflag = 1;
+    char *modargs[2];
+    modargs[0] = (char *) "press";
+    modargs[1] = id_press;
+    nh->modify_param(2,modargs);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,7 +167,7 @@ FixGrem::~FixGrem()
   delete [] id_press;
   delete [] id_ke;
   delete [] id_pe;
-  delete [] id_npt;
+  delete [] id_nh;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -195,36 +204,39 @@ void FixGrem::init()
     error->all(FLERR,"PE compute ID for fix grem does not exist");
   pe = modify->compute[icompute];
 
-  int ifix = modify->find_fix(id_npt);
+  int ifix = modify->find_fix(id_nh);
   if (ifix < 0)
-    error->all(FLERR,"Fix id for npt fix does not exist");
-  Fix *npt = modify->fix[ifix];
+    error->all(FLERR,"Fix id for nvt or npt fix does not exist");
+  Fix *nh = modify->fix[ifix];
 
-  double *t_start = (double *)npt->extract("t_start",ifix);
-  double *t_stop = (double *)npt->extract("t_stop",ifix);
+  double *t_start = (double *)nh->extract("t_start",ifix);
+  double *t_stop = (double *)nh->extract("t_stop",ifix);
   if ((t_start != NULL) && (t_stop != NULL) && (ifix == 0)) {
     tbath = *t_start;
     if (*t_start != *t_stop)
       error->all(FLERR,"Thermostat temperature ramp not allowed");
   } else
-    error->all(FLERR,"Problem extracting target temperature from fix npt");
+    error->all(FLERR,"Problem extracting target temperature from fix nvt or npt");
 
-  int *p_flag = (int *)npt->extract("p_flag",ifix);
-  double *p_start = (double *) npt->extract("p_start",ifix);
-  double *p_stop = (double *) npt->extract("p_stop",ifix);
-  if ((p_flag != NULL) && (p_start != NULL) && (p_stop != NULL)
-      && (ifix == 1)) {
-    ifix = 0;
-    pressref = p_start[0];
-    if ((p_start[0] != p_stop[0]) || (p_flag[0] != 1)) ++ ifix;
-    if ((p_start[1] != p_stop[1]) || (p_flag[0] != 1)) ++ ifix;
-    if ((p_start[2] != p_stop[2]) || (p_flag[0] != 1)) ++ ifix;
-    if ((p_start[0] != p_start[1]) || (p_start[1] != p_start[2])) ++ifix;
-    if ((p_flag[3] != 0) || (p_flag[4] != 0) || (p_flag[5] != 0)) ++ifix;
-    if (ifix > 0)
-      error->all(FLERR,"Unsupported pressure settings in fix npt");
-  } else
-    error->all(FLERR,"Problem extracting target pressure from fix npt");
+  pressref = 0.0;
+  if (pressflag) {
+    int *p_flag = (int *)nh->extract("p_flag",ifix);
+    double *p_start = (double *) nh->extract("p_start",ifix);
+    double *p_stop = (double *) nh->extract("p_stop",ifix);
+    if ((p_flag != NULL) && (p_start != NULL) && (p_stop != NULL)
+        && (ifix == 1)) {
+      ifix = 0;
+      pressref = p_start[0];
+      if ((p_start[0] != p_stop[0]) || (p_flag[0] != 1)) ++ ifix;
+      if ((p_start[1] != p_stop[1]) || (p_flag[0] != 1)) ++ ifix;
+      if ((p_start[2] != p_stop[2]) || (p_flag[0] != 1)) ++ ifix;
+      if ((p_start[0] != p_start[1]) || (p_start[1] != p_start[2])) ++ifix;
+      if ((p_flag[3] != 0) || (p_flag[4] != 0) || (p_flag[5] != 0)) ++ifix;
+      if (ifix > 0)
+        error->all(FLERR,"Unsupported pressure settings in fix npt");
+    } else
+      error->all(FLERR,"Problem extracting target pressure from fix npt");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

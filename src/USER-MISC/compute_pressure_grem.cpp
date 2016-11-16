@@ -120,14 +120,14 @@ void ComputePressureGrem::compute_vector()
 
   // invoke temperature if it hasn't been already
 
-  double *ke_tensor;
+  double ke_tensor[6];
   if (keflag) {
     if (temperature->invoked_vector != update->ntimestep)
       temperature->compute_vector();
     ke_tensor = temperature->vector;
+    for (int i = 0; i < 6; ++i)
+      ke_tensor[i] = temperature->vector[i] / (*scale_grem);
   }
-  for (int i = 0; i < 6; i++)
-    ke_tensor[i] /= *scale_grem;
 
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);

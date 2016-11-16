@@ -10,7 +10,7 @@ pair_style      lj/cut 5.0
 
 read_data       "lj.data"
   orthogonal box = (1.06874 1.06874 1.06874) to (23.9313 23.9313 23.9313)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   500 atoms
   reading velocities ...
@@ -40,7 +40,7 @@ Neighbor list info ...
   master list distance cutoff = 7
   ghost atom cutoff = 7
   binsize = 3.5 -> bins = 7 7 7
-Memory usage per processor = 5.37943 Mbytes
+Memory usage per processor = 5.34276 Mbytes
 Step Temp PotEng TotEng Press Volume 
        0    305.69499   -3177.6423   -2722.9442   -91.741776    11950.115 
       10    312.30124   -3182.2257   -2717.7013   -203.95075    11950.113 
@@ -143,28 +143,28 @@ Step Temp PotEng TotEng Press Volume
      980    303.93331   -3178.9891   -2726.9114   -88.434034    11953.723 
      990    307.36223   -3180.7316   -2723.5535   -145.46208    11953.849 
     1000    310.09574    -3181.101   -2719.8571   -180.39125    11953.972 
-Loop time of 0.303645 on 1 procs for 1000 steps with 500 atoms
+Loop time of 0.154208 on 4 procs for 1000 steps with 500 atoms
 
-Performance: 284.542 ns/day, 0.084 hours/ns, 3293.315 timesteps/s
-99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 560.281 ns/day, 0.043 hours/ns, 6484.730 timesteps/s
+98.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.25029    | 0.25029    | 0.25029    |   0.0 | 82.43
-Bond    | 7.0572e-05 | 7.0572e-05 | 7.0572e-05 |   0.0 |  0.02
-Neigh   | 0.0042012  | 0.0042012  | 0.0042012  |   0.0 |  1.38
-Comm    | 0.010247   | 0.010247   | 0.010247   |   0.0 |  3.37
-Output  | 0.0013516  | 0.0013516  | 0.0013516  |   0.0 |  0.45
-Modify  | 0.033518   | 0.033518   | 0.033518   |   0.0 | 11.04
-Other   |            | 0.003969   |            |       |  1.31
+Pair    | 0.072079   | 0.074846   | 0.079666   |   1.1 | 48.54
+Bond    | 5.7936e-05 | 6.634e-05  | 8.1062e-05 |   0.1 |  0.04
+Neigh   | 0.0010812  | 0.0012064  | 0.0012748  |   0.2 |  0.78
+Comm    | 0.032452   | 0.037544   | 0.04076    |   1.6 | 24.35
+Output  | 0.0018461  | 0.0020589  | 0.0026393  |   0.7 |  1.34
+Modify  | 0.032085   | 0.032688   | 0.033361   |   0.3 | 21.20
+Other   |            | 0.005799   |            |       |  3.76
 
-Nlocal:    500 ave 500 max 500 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    1610 ave 1610 max 1610 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    14765 ave 14765 max 14765 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:    125 ave 127 max 123 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:    870.5 ave 882 max 862 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+Neighs:    3691.25 ave 3807 max 3563 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
 
 Total # of neighbors = 14765
 Ave neighs/atom = 29.53

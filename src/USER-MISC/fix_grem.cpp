@@ -188,6 +188,7 @@ void FixGrem::init()
   pe = modify->compute[icompute];
 
   int ifix = modify->find_fix(id_npt);
+  int nvtflag = 0;
   if (ifix < 0)
     error->all(FLERR,"Fix id for npt fix does not exist");
   Fix *npt = modify->fix[ifix];
@@ -202,26 +203,34 @@ void FixGrem::init()
     error->all(FLERR,"Problem extracting target temperature from fix npt");
 
   int *p_flag = (int *)npt->extract("p_flag",ifix);
-  double *p_start = (double *) npt->extract("p_start",ifix);
-  double *p_stop = (double *) npt->extract("p_stop",ifix);
-  if ((p_flag != NULL) && (p_start != NULL) && (p_stop != NULL)
-      && (ifix == 1)) {
-    ifix = 0;
-    pressref = p_start[0];
-    if ((p_start[0] != p_stop[0]) || (p_flag[0] != 1)) ++ ifix;
-    if ((p_start[1] != p_stop[1]) || (p_flag[0] != 1)) ++ ifix;
-    if ((p_start[2] != p_stop[2]) || (p_flag[0] != 1)) ++ ifix;
-    if ((p_start[0] != p_start[1]) || (p_start[1] != p_start[2])) ++ifix;
-    if ((p_flag[3] != 0) || (p_flag[4] != 0) || (p_flag[5] != 0)) ++ifix;
-    if (ifix > 0)
-      error->all(FLERR,"Unsupported pressure settings in fix npt");
-  } else
-    error->all(FLERR,"Problem extracting target pressure from fix npt");
+  if ((p_flag[0] == 0) && (p_flag[1] == 0) && (p_flag[2] == 0) && (ifix == 1)) {
+    pressref = 0.0;
+    nvtflag = 1;
+  }
+  else {
+    double *p_start = (double *) npt->extract("p_start",ifix);
+    double *p_stop = (double *) npt->extract("p_stop",ifix);
+    if ((p_flag != NULL) && (p_start != NULL) && (p_stop != NULL)
+        && (ifix == 1)) {
+      ifix = 0;
+      pressref = p_start[0];
+      if ((p_start[0] != p_stop[0]) || (p_flag[0] != 1)) ++ ifix;
+      if ((p_start[1] != p_stop[1]) || (p_flag[0] != 1)) ++ ifix;
+      if ((p_start[2] != p_stop[2]) || (p_flag[0] != 1)) ++ ifix;
+      if ((p_start[0] != p_start[1]) || (p_start[1] != p_start[2])) ++ifix;
+      if ((p_flag[3] != 0) || (p_flag[4] != 0) || (p_flag[5] != 0)) ++ifix;
+      if (ifix > 0)
+        error->all(FLERR,"Unsupported pressure settings in fix npt");
+    } else
+      error->all(FLERR,"Problem extracting target pressure from fix npt");
+  }
 
-  char *modargs[2];
-  modargs[0] = (char *) "press";
-  modargs[1] = id_press;
-  npt->modify_param(2,modargs);
+  if (!nvtflag) {
+    char *modargs[2];
+    modargs[0] = (char *) "press";
+    modargs[1] = id_press;
+    npt->modify_param(2,modargs);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

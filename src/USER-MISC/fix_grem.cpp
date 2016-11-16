@@ -82,7 +82,6 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   newarg[2] = (char *) "temp";
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
@@ -116,7 +115,6 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   newarg[2] = (char *) "ke";
   modify->add_compute(3,newarg);
   delete [] newarg;
-  keflag = 1;
 
   // create a new compute pe style
   // id = fix-ID + pe
@@ -132,7 +130,6 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   newarg[2] = (char *) "pe";
   modify->add_compute(3,newarg);
   delete [] newarg;
-  peflag = 1;
 
 }
 
@@ -142,10 +139,10 @@ FixGrem::~FixGrem()
 {
   // delete temperature, pressure and energies if fix created them
 
-  if (tflag) modify->delete_compute(id_temp);
-  if (pflag) modify->delete_compute(id_press);
-  if (keflag) modify->delete_compute(id_ke);
-  if (peflag) modify->delete_compute(id_pe);
+  modify->delete_compute(id_temp);
+  modify->delete_compute(id_press);
+  modify->delete_compute(id_ke);
+  modify->delete_compute(id_pe);
   delete [] id_temp;
   delete [] id_press;
   delete [] id_ke;

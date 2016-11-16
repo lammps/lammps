@@ -124,7 +124,6 @@ void ComputePressureGrem::compute_vector()
   if (keflag) {
     if (temperature->invoked_vector != update->ntimestep)
       temperature->compute_vector();
-    ke_tensor = temperature->vector;
     for (int i = 0; i < 6; ++i)
       ke_tensor[i] = temperature->vector[i] / (*scale_grem);
   }

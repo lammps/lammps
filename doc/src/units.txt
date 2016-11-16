@@ -52,7 +52,7 @@ distance to default values for each style.
 
 :line
 
-----
+
 {lj}
 ----
 For style {lj}, all quantities are unitless.  Without loss of
@@ -94,7 +94,7 @@ energy/atom.  Temperature is intensive since it is already normalized
 by the number of atoms, so it is output as-is.  This behavior can be
 changed via the "thermo_modify norm"_thermo_modify.html command.
 
-------
+
 {real}
 ------
 For style {real}, these are the units:
@@ -121,7 +121,6 @@ density           g/cm^dim            gram/cm^dim
 ================= =================== =============================================
 
 
--------
 {metal}
 -------
 For style {metal}, these are the units:
@@ -148,7 +147,6 @@ density           g/cm^dim             gram/cm^dim
 ================= ==================== =============================================
 
 
-----
 {si}
 ----
 For style {si}, these are the units:
@@ -175,7 +173,6 @@ density           kg/m^dim           kilograms/meter^dim
 ================= ================== ====================================
 
 
------
 {cgs}
 -----
 For style {cgs}, these are the units:
@@ -202,7 +199,6 @@ density           g/cm^dim               grams/cm^dim
 ================= ====================== ===============================================
 
 
-----------
 {electron}
 ----------
 For style {electron}, these are the units:
@@ -226,7 +222,6 @@ electric field    V/cm                    volts/cm
 ================= ======================= ==============================================
 
 
--------
 {micro}
 -------
 For style {micro}, these are the units:
@@ -253,7 +248,6 @@ density           pg/μm^dim            picograms/micrometer^dim
 ================= ==================== =======================================
 
 
-------
 {nano}
 ------
 For style {nano}, these are the units:

@@ -48,6 +48,7 @@ Fixes :h1
    fix_gld
    fix_gle
    fix_gravity
+   fix_grem
    fix_halt
    fix_heat
    fix_imd

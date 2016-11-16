@@ -56,6 +56,8 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
+  scale_grem = 1.0;
+
   // tbath - temp of bath, the same as defined in thermostat
 
   lambda = force->numeric(FLERR,arg[3]);
@@ -131,6 +133,15 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(3,newarg);
   delete [] newarg;
 
+  int ifix = modify->find_fix(id_npt);
+  if (ifix < 0)
+    error->all(FLERR,"Fix id for npt fix does not exist");
+  Fix *npt = modify->fix[ifix];
+
+  char *modargs[2];
+  modargs[0] = (char *) "press";
+  modargs[1] = id_press;
+  npt->modify_param(2,modargs);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,7 +199,6 @@ void FixGrem::init()
   if (ifix < 0)
     error->all(FLERR,"Fix id for npt fix does not exist");
   Fix *npt = modify->fix[ifix];
-
   double *t_start = (double *)npt->extract("t_start",ifix);
   double *t_stop = (double *)npt->extract("t_stop",ifix);
   if ((t_start != NULL) && (t_stop != NULL) && (ifix == 0)) {
@@ -214,11 +224,6 @@ void FixGrem::init()
       error->all(FLERR,"Unsupported pressure settings in fix npt");
   } else
     error->all(FLERR,"Problem extracting target pressure from fix npt");
-
-  char *modargs[2];
-  modargs[0] = (char *) "press";
-  modargs[1] = id_press;
-  npt->modify_param(2,modargs);
 }
 
 /* ---------------------------------------------------------------------- */

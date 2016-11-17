@@ -34,15 +34,15 @@ class FixGrem : public Fix {
   void min_setup(int);
   void post_force(int);
   void *extract(const char *, int &);
-  double scale_grem;
+  double scale_grem,lambda,eta,h0;
+  int pressflag;
 
  private:
-  double lambda,eta,h0,tbath,pressref;
+  double tbath,pressref;
 
  protected:
   char *id_temp,*id_press,*id_ke,*id_pe,*id_nh;
   class Compute *temperature,*pressure,*ke,*pe;
-  int pressflag;
 };
 
 }

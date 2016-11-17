@@ -45,7 +45,6 @@ formulation of the V_ij term, where it contains an additional c0 term.
 
 :c,image(Eqs/pair_tersoff_mod_c.jpg)
 
-
 The modified cutoff function f_C proposed by "(Murty)"_#Murty and
 having a continuous second-order differential is employed. The
 angular-dependent term g(theta) was modified to increase the

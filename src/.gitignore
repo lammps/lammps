@@ -875,6 +875,8 @@
 /tad.h
 /temper.cpp
 /temper.h
+/temper_grem.cpp
+/temper_grem.h
 /thr_data.cpp
 /thr_data.h
 /verlet_split.cpp

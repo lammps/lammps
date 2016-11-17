@@ -1,0 +1,26 @@
+# LJ particles
+variable        lambda world 400 410 420 430
+variable        rep world 1 2 3 4
+#variable        walker world 1 2 3 4
+
+variable        T0 equal 300.0
+variable        press equal 0.0
+
+units           real
+atom_style      full
+pair_style      lj/cut 5.0
+
+read_data       "lj.data"
+
+thermo          10
+thermo_style    custom step temp pe etotal press vol
+
+timestep        1.0
+
+fix             fxnpt all npt temp ${T0} ${T0} 1000.0 iso ${press} ${press} 10000.0 
+fix             fxgREM all grem ${lambda} -.01 -30000 fxnpt
+thermo_modify   press fxgREM_press
+
+grem            10000 1000 ${lambda} fxgREM fxnpt 10294 98392 
+
+#write_data      lj-out.data

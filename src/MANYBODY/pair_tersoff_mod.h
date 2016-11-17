@@ -30,7 +30,7 @@ class PairTersoffMOD : public PairTersoff {
   ~PairTersoffMOD() {}
 
  protected:
-  void read_file(char *);
+  virtual void read_file(char *);
   virtual void setup_params();
   double zeta(Param *, double, double, double *, double *);
 

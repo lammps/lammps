@@ -557,6 +557,37 @@ void ThrOMP::ev_tally_xyz_thr(Pair * const pair, const int i, const int j,
   }
 }
 
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+   called when using full neighbor lists
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_xyz_full_thr(Pair * const pair, const int i,
+                                   const double evdwl, const double ecoul,
+                                   const double fx, const double fy,
+                                   const double fz, const double delx,
+                                   const double dely, const double delz,
+                                   ThrData * const thr)
+{
+
+  if (pair->eflag_either)
+    e_tally_thr(pair,i,i,i+1,0,0.5*evdwl,ecoul,thr);
+
+  if (pair->vflag_either) {
+    double v[6];
+    v[0] = 0.5*delx*fx;
+    v[1] = 0.5*dely*fy;
+    v[2] = 0.5*delz*fz;
+    v[3] = 0.5*delx*fy;
+    v[4] = 0.5*delx*fz;
+    v[5] = 0.5*dely*fz;
+
+    v_tally_thr(pair,i,i,i+1,0,v,thr);
+  }
+}
+
 /* ----------------------------------------------------------------------
    tally eng_vdwl and virial into global and per-atom accumulators
    called by SW and hbond potentials, newton_pair is always on

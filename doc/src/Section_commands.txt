@@ -995,6 +995,7 @@ These are additional pair styles in USER packages, which can be used
 if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
+"agni (o)"_pair_agni.html,
 "awpmd/cut"_pair_awpmd.html,
 "buck/mdf"_pair_mdf.html,
 "coul/cut/soft (o)"_pair_lj_soft.html,

@@ -14,7 +14,7 @@ info args :pre
 
 args = one or more of the following keywords: {out}, {all}, {system}, {communication}, {computes}, {dumps}, {fixes}, {groups}, {regions}, {variables}, {styles}, {time}, or {configuration}
      {out} values = {screen}, {log}, {append} filename, {overwrite} filename
-     {styles} values = {all}, {angle}, {atom}, {bond}, {compute}, {command}, {dump}, {dihedral}, {fix}, {improper}, {integrate}, {kspace}, {minimize}, {region} :ul
+     {styles} values = {all}, {angle}, {atom}, {bond}, {compute}, {command}, {dump}, {dihedral}, {fix}, {improper}, {integrate}, {kspace}, {minimize}, {pair}, {region} :ul
 
 [Examples:]
 
@@ -70,8 +70,9 @@ The {variables} category prints a list of all currently defined
 variables, their names, styles, definition and last computed value, if
 available.
 
-The {styles} category prints the list of styles available in LAMMPS. It
-supports one of the following options to control what is printed out:
+The {styles} category prints the list of styles available in the
+current LAMMPS binary. It supports one of the following options
+to control which category of styles is printed out:
 
 all
 angle
@@ -86,6 +87,7 @@ improper
 integrate
 kspace
 minimize
+pair
 region :ul
 
 The {time} category prints the accumulated CPU and wall time for the

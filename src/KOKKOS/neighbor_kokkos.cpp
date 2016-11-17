@@ -21,6 +21,11 @@
 #include "atom_masks.h"
 #include "error.h"
 #include "kokkos.h"
+#include "force.h"
+#include "bond.h"
+#include "angle.h"
+#include "dihedral.h"
+#include "improper.h"
 
 using namespace LAMMPS_NS;
 
@@ -601,7 +606,19 @@ void NeighborKokkos::build_topology_kokkos() {
     k_anglelist.modify<LMPDeviceType>();
     k_dihedrallist.modify<LMPDeviceType>();
     k_improperlist.modify<LMPDeviceType>();
-  } else {
+
+    // Transfer topology neighbor lists to Host for non-Kokkos styles
+ 
+    if (force->bond && force->bond->execution_space == Host)
+      k_bondlist.sync<LMPHostType>();
+    if (force->angle && force->angle->execution_space == Host)
+      k_anglelist.sync<LMPHostType>();
+    if (force->dihedral && force->dihedral->execution_space == Host)
+      k_dihedrallist.sync<LMPHostType>();
+    if (force->improper && force->improper->execution_space == Host)
+      k_improperlist.sync<LMPHostType>();
+
+   } else {
     neighbond_host.build_topology_kk();
 
     k_bondlist = neighbond_host.k_bondlist;

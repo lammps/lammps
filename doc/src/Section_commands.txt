@@ -886,6 +886,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "body"_pair_body.html,
 "bop"_pair_bop.html,
 "born (go)"_pair_born.html,
+"born/coul/dsf"_pair_born.html,
+"born/coul/dsf/cs"_pair_born.html,
 "born/coul/long (go)"_pair_born.html,
 "born/coul/long/cs"_pair_born.html,
 "born/coul/msm (o)"_pair_born.html,
@@ -993,6 +995,7 @@ These are additional pair styles in USER packages, which can be used
 if "LAMMPS is built with the appropriate
 package"_Section_start.html#start_3.
 
+"agni (o)"_pair_agni.html,
 "awpmd/cut"_pair_awpmd.html,
 "buck/mdf"_pair_mdf.html,
 "coul/cut/soft (o)"_pair_lj_soft.html,

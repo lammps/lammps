@@ -30,7 +30,8 @@
 using namespace LAMMPS_NS;
 
 ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), snav(NULL),
+  radelem(NULL), wjelem(NULL)
 {
   double rfac0, rmin0;
   int twojmax, switchflag;
@@ -128,7 +129,7 @@ ComputeSNAVAtom::~ComputeSNAVAtom()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(cutsq);
-delete [] snaptr;
+  delete [] snaptr;
 }
 
 /* ---------------------------------------------------------------------- */

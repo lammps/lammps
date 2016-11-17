@@ -46,7 +46,7 @@ enum{NONE,CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), idregion(NULL), shearone(NULL), fix_rigid(NULL), mass_rigid(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
 

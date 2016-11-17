@@ -40,7 +40,12 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), 
+  random(NULL), fp(NULL), fpr(NULL), nsum(NULL), nsum_all(NULL), 
+  T_initial_set(NULL), gfactor1(NULL), gfactor2(NULL), ratio(NULL), 
+  flangevin(NULL), T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), 
+  sum_mass_vsq(NULL), sum_vsq_all(NULL), sum_mass_vsq_all(NULL), 
+  net_energy_transfer(NULL), net_energy_transfer_all(NULL)
 {
   if (narg < 15) error->all(FLERR,"Illegal fix ttm command");
 

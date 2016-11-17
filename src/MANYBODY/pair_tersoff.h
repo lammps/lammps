@@ -49,6 +49,7 @@ class PairTersoff : public Pair {
     double ZBLcut,ZBLexpscale;
     double c5,ca1,ca4;           // added for TersoffMOD
     double powern_del;
+    double c0;                   // added for TersoffMODC
   };
 
   Param *params;                // parameter set for an I-J-K interaction

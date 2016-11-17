@@ -38,9 +38,17 @@ The pressure is computed by the formula
 where N is the number of atoms in the system (see discussion of DOF
 below), Kb is the Boltzmann constant, T is the temperature, d is the
 dimensionality of the system (2 or 3 for 2d/3d), V is the system
-volume (or area in 2d), and the second term is the virial, computed
-within LAMMPS for all pairwise as well as 2-body, 3-body, and 4-body,
-and long-range interactions.  "Fixes"_fix.html that impose constraints
+volume (or area in 2d).
+The second term is the virial, -dU/dV, computed within LAMMPS for all
+pairwise as well as 2-body, 3-body, 4-body, many-body, and
+long-range interactions, where r_i and f_i are the position and
+force vector of atom i, and the big black dot indicates dot product.
+When periodic boundary conditions are used, the summation includes
+contributions from periodic images of the atoms in the central box,
+which involves computing partial forces on local and ghost atoms.
+A detailed description of how partial forces for 2-body and manybody
+potentials are computed is provided in "(Thompson)"_#Thompson.
+"Fixes"_fix.html that impose constraints
 (e.g. the "fix shake"_fix_shake.html command) also contribute to the
 virial term.
 

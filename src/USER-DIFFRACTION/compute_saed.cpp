@@ -49,7 +49,7 @@ static const char cite_compute_saed_c[] =
 /* ---------------------------------------------------------------------- */
 
 ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), ztype(NULL), store_tmp(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_saed_c);
 

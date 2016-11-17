@@ -41,7 +41,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), xstr(NULL), ystr(NULL), zstr(NULL),
+  estr(NULL), idregion(NULL), efield(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix efield command");
 

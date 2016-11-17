@@ -22,6 +22,7 @@
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
+#include "comm_tiled_kokkos.h"
 #include "domain_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "modify_kokkos.h"
@@ -33,6 +34,7 @@
 
 #include "atom.h"
 #include "comm_brick.h"
+#include "comm_tiled.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "modify.h"
@@ -66,6 +68,13 @@ class CommKokkos : public CommBrick {
  public:
   CommKokkos(class LAMMPS *lmp) : CommBrick(lmp) {}
   ~CommKokkos() {}
+};
+
+class CommTiledKokkos : public CommTiled {
+ public:
+  CommTiledKokkos(class LAMMPS *lmp) : CommTiled(lmp) {}
+  CommTiledKokkos(class LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm) {}
+  ~CommTiledKokkos() {}
 };
 
 class DomainKokkos : public Domain {

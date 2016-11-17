@@ -539,6 +539,8 @@
 
 /pair_adp.cpp
 /pair_adp.h
+/pair_agni.cpp
+/pair_agni.h
 /pair_airebo.cpp
 /pair_airebo.h
 /pair_airebo_morse.cpp
@@ -976,6 +978,8 @@
 /fix_ttm_mod.h
 /pair_born_coul_long_cs.cpp
 /pair_born_coul_long_cs.h
+/pair_born_coul_dsf_cs.cpp
+/pair_born_coul_dsf_cs.h
 /pair_buck_coul_long_cs.cpp
 /pair_buck_coul_long_cs.h
 /pair_coul_long_cs.cpp

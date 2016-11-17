@@ -49,6 +49,7 @@ improper_style cossq, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 improper_style fourier, Loukas Peristeras, loukas.peristeras at scienomics.com, 27 Oct 12
 improper_style ring, Georgios Vogiatzis, gvog at chemeng.ntua.gr, 25 May 12
 improper_style distance, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
+pair_style agni, Axel Kohlmeyer, akohlmey at gmail.com, 9 Nov 16
 pair_style buck/mdf, Paolo Raiteri, p.raiteri at curtin.edu.au, 2 Dec 15
 pair_style coul/diel, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11

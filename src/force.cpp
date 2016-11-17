@@ -172,7 +172,7 @@ Force::~Force()
 void Force::init()
 {
   qqrd2e = qqr2e/dielectric;
-  qqrm2e = qqr2e/dimagnetic;
+  ddrd2e = ddr2e/dimagnetic;
 
   if (kspace) kspace->init();         // kspace must come before pair
   if (pair) pair->init();             // so g_ewald is defined

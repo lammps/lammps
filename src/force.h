@@ -30,13 +30,14 @@ class Force : protected Pointers {
   double mv2d;                       // conversion of mass/volume to density
   double nktv2p;                     // conversion of NkT/V to pressure
   double qqr2e;                      // conversion of q^2/r to energy
+  double ddr2e;                      // conversion of d^2/r to energy for mag dipoles
   double qe2f;                       // conversion of qE to force
   double vxmu2f;                     // conversion of vx dynamic-visc to force
   double xxt2kmu;                    // conversion of xx/t to kinematic-visc
   double dielectric;                 // dielectric constant, relative permittivity
   double dimagnetic;                 // dielectric constant, relative permeability
-  double qqrd2e;                     // q^2/r to energy w/ dielectric constant
-  double qqrm2e;                     //  w/ dimagnetic constant
+  double qqrd2e;                     // d^2/r to energy w/ dielectric constant
+  double ddrd2e;                     // d^2/r to energy w/ dimagnetic constant
   double e_mass;                     // electron mass
   double hhmrr2e;                    // conversion of (hbar)^2/(mr^2) to energy
   double mvh2r;                      // conversion of mv/hbar to distance

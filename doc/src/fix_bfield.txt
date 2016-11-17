@@ -28,11 +28,9 @@ fix all external-field bfield 0.0 v_b 0.0 region sub :pre
 
 [Description:]
 
-Add the effect of a Lorentz force {F = qB x v} to the positions and velocities of charged atoms. 
+Add the effect of a Lorentz force {F = qv x B} to the positions and velocities of charged atoms. If the system contains magnetic point-dipoles, a torque is added to the dipoles due to the external magnetic field as {T = mu x B}. The energy added by the torque is saved as a global scalar. 
 
-If the system contains magnetic point-dipoles, a torque is added to the dipoles due to the external magnetic field as {T = mu x B}. The energy added by the torque is saved as a global scalar. 
-
-For charges, any of the 3 quantities defining the B-field components
+Any of the 3 quantities defining the B-field components
 can be specified as an equal-style "variable"_variable.html, namely {Bx}, {By}, {Bz}.  If the value is a
 variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
@@ -45,7 +43,7 @@ The implementation follows the weak-field limit given by "(Spreiter and Walter)"
 :line 
 
 NOTE: Adding a torque to atoms implies a change in their potential
-energy as they rotate due to the applied B-field. The minimizers in LAMMPS do not rotate dipoles, so you should not expect the orientation of dipoles to be minimized in an applied magnetic field.
+energy as they rotate due to the applied B-field. The minimizers in LAMMPS do not rotate dipoles, so you should not expect the orientation of dipoles to be minimized in the applied magnetic field.
 
 :line 
 

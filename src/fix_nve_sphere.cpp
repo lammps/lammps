@@ -66,6 +66,8 @@ FixNVESphere::FixNVESphere(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix nve/sphere requires atom style sphere");
   if (extra == DIPOLE && !(atom->mu_flag || atom->bmu_flag) )
     error->all(FLERR,"Fix nve/sphere update dipole requires atom attribute mu or bmu");
+  if (extra == DIPOLE && (atom->mu_flag && atom->bmu_flag) )
+    error->all(FLERR,"Fix nve/sphere updates either dipole attribute mu or bmu");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,12 +137,14 @@ void FixNVESphere::initial_integrate(int vflag)
   
   if (extra == DIPOLE) {
 
-    double **mu = atom->mu;
-    double **bmu = atom->bmu;
+  // mu is electric or magnetic dipole 
+    double **mu; 
+    if(atom->mu_flag) mu = atom->mu;
+    else mu = atom->bmu;
 
     if (dlm == NODLM) {
 
-      if(atom->mu_flag){
+//      if(atom->mu_flag){
         // d_mu/dt = omega cross mu
         // renormalize mu to dipole length
         for (int i = 0; i < nlocal; i++)
@@ -155,7 +159,8 @@ void FixNVESphere::initial_integrate(int vflag)
               mu[i][1] = g[1]*scale;
               mu[i][2] = g[2]*scale;
             }
-      }
+//      }
+/*
       if(atom->bmu_flag){
         for (int i = 0; i < nlocal; i++)
           if (mask[i] & groupbit)
@@ -170,10 +175,11 @@ void FixNVESphere::initial_integrate(int vflag)
               bmu[i][2] = g[2]*scale;
             }
       }
+*/    
+ 
     } else {
 
       // integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
-
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit && mu[i][3] > 0.0) {
           

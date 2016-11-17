@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U), Venkatesh Botu
+   Contributing authors: Axel Kohlmeyer (Temple U), Venkatesh Botu
 ------------------------------------------------------------------------- */
 
 #include <math.h>

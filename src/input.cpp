@@ -788,6 +788,7 @@ int Input::execute_command()
   else if (!strcmp(command,"compute")) compute();
   else if (!strcmp(command,"compute_modify")) compute_modify();
   else if (!strcmp(command,"dielectric")) dielectric();
+  else if (!strcmp(command,"dimagnetic")) dimagnetic();
   else if (!strcmp(command,"dihedral_coeff")) dihedral_coeff();
   else if (!strcmp(command,"dihedral_style")) dihedral_style();
   else if (!strcmp(command,"dimension")) dimension();
@@ -1490,6 +1491,14 @@ void Input::dielectric()
 {
   if (narg != 1) error->all(FLERR,"Illegal dielectric command");
   force->dielectric = force->numeric(FLERR,arg[0]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::dimagnetic()
+{
+  if (narg != 1) error->all(FLERR,"Illegal dimagnetic command");
+  force->dimagnetic = force->numeric(FLERR,arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */

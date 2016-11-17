@@ -97,6 +97,7 @@ class Input : protected Pointers {
   void compute();
   void compute_modify();
   void dielectric();
+  void dimagnetic();
   void dihedral_coeff();
   void dihedral_style();
   void dimension();

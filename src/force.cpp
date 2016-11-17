@@ -52,7 +52,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_angle = special_dihedral = 0;
   special_extra = 0;
 
-  dielectric = 1.0;
+  dielectric = 1.0; //relative permittivity
+  dimagnetic = 1.0; //relative permeability
 
   pair = NULL;
   bond = NULL;
@@ -171,6 +172,7 @@ Force::~Force()
 void Force::init()
 {
   qqrd2e = qqr2e/dielectric;
+  qqrm2e = qqr2e/dimagnetic;
 
   if (kspace) kspace->init();         // kspace must come before pair
   if (pair) pair->init();             // so g_ewald is defined

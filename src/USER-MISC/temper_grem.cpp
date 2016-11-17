@@ -41,7 +41,7 @@
 
 using namespace LAMMPS_NS;
 
-#define TEMPER_DEBUG 1
+//#define TEMPER_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
 

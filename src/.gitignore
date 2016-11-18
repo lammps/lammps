@@ -543,6 +543,8 @@
 
 /pair_adp.cpp
 /pair_adp.h
+/pair_agni.cpp
+/pair_agni.h
 /pair_airebo.cpp
 /pair_airebo.h
 /pair_airebo_morse.cpp

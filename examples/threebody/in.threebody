@@ -114,3 +114,35 @@ neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
 run             100
 
+# Test Tersoff/Mod model for Si
+
+clear
+read_restart	restart.equil
+
+pair_style      tersoff/mod
+pair_coeff 	* * Si.tersoff.mod Si Si Si Si Si Si Si Si
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+
+# Test Tersoff/Mod/C model for Si
+
+clear
+read_restart	restart.equil
+
+pair_style      tersoff/mod/c
+pair_coeff 	* * Si.tersoff.modc Si Si Si Si Si Si Si Si
+
+thermo          10
+fix             1 all nvt temp $t $t 0.1
+fix_modify 	1 energy yes
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+run             100
+

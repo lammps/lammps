@@ -98,9 +98,9 @@ fix             integration_fix all smd/integrate_ulsph adjust_radius 1.01 10 15
 ####################################################################################################
 variable        dumpFreq equal 100
 compute 	rho all smd/rho
-compute 	nn all smd/ulsph_num_neighs # number of neighbors for each particle
-compute         contact_radius all smd/contact_radius
-compute         surface_coords surface smd/triangle_vertices
+compute 	nn all smd/ulsph/num/neighs # number of neighbors for each particle
+compute         contact_radius all smd/contact/radius
+compute         surface_coords surface smd/triangle/vertices
 
 
 dump 		dump_id water custom ${dumpFreq} dump.LAMMPS id type x y z vx vy vz &
@@ -116,7 +116,7 @@ dump_modify 	surf_dump first yes
 ####################################################################################################
 # STATUS OUTPUT
 ####################################################################################################
-compute         eint all smd/internal_energy
+compute         eint all smd/internal/energy
 compute         alleint all reduce sum c_eint
 variable        etot equal pe+ke+c_alleint+f_gfix # total energy of the system
 thermo 100

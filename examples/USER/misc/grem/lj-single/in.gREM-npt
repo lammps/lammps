@@ -13,8 +13,8 @@ thermo_style    custom step temp pe etotal press vol
 
 timestep        1.0
 
-fix             fxnvt all npt temp ${T0} ${T0} 1000.0 iso ${press} ${press} 10000.0 
-fix             fxgREM all grem 400 -.01 -30000 fxnvt
+fix             fxnpt all npt temp ${T0} ${T0} 1000.0 iso ${press} ${press} 10000.0 
+fix             fxgREM all grem 400 -.01 -30000 fxnpt
 thermo_modify   press fxgREM_press
 run             1000
 

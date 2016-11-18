@@ -30,14 +30,14 @@ grem 40000 100 ${lambda} fxgREM fxnpt 0 32285 ${walkers} :pre
 
 Run a parallel tempering or replica exchange simulation in LAMMPS partition
 mode using multiple generalized replicas (ensembles) of a system defined by 
-"fix_grem"_fix_grem.html. Two or more replicas must be used. 
+"fix grem"_fix_grem.html. Two or more replicas must be used. 
 
 This command is a modification of the "temper"_temper.html command and has
 the same dependencies, restraints, and input variables which are discussed
 there in greater detail.
 
 Instead of temperature, this command performs replica exchanges in lambda
-as per the generalized ensemble enforced by "fix_grem"_fix_grem.html.
+as per the generalized ensemble enforced by "fix grem"_fix_grem.html.
 The desired lambda is specified by {lambda}, which is typically a
 variable previously set in the input script, so that each partition is
 assigned a different temperature.  See the "variable"_variable.html
@@ -50,7 +50,7 @@ temper 100000 100 ${lambda} fxgREM fxnvt 3847 58382 :pre
 
 would define 4 lambdas with constant kinetic temperature but unique
 generalized temperature, and assign one of them to 
-"fix_grem"_fix_grem.html used by each replica, and to the grem command.
+"fix grem"_fix_grem.html used by each replica, and to the grem command.
 
 As the gREM simulation runs for {N} timesteps, a swap
 between adjacent ensembles will be attempted every {M} timesteps.  If
@@ -89,11 +89,11 @@ This command can only be used if LAMMPS was built with the USER-MISC
 package.  See the "Making LAMMPS"_Section_start.html#start_3 section
 for more info on packages.
 
-This command must be used with "fix_grem"_fix_grem.html.
+This command must be used with "fix grem"_fix_grem.html.
 
 [Related commands:]
 
-"fix_grem"_fix_grem.html, "temper"_temper.html, "variable"_variable.html
+"fix grem"_fix_grem.html, "temper"_temper.html, "variable"_variable.html
 
 [Default:] none
 

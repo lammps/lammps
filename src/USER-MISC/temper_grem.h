@@ -65,14 +65,14 @@ class TemperGrem : protected Pointers {
 
 /* ERROR/WARNING messages:
 
-E: Must have more than one processor partition to temper
+E: Must have more than one processor partition to grem
 
-Cannot use the temper command with only one processor partition.  Use
+Cannot use the grem command with only one processor partition.  Use
 the -partition command-line option.
 
-E: Temper command before simulation box is defined
+E: Grem command before simulation box is defined
 
-The temper command cannot be used before a read_data, read_restart, or
+The grem command cannot be used before a read_data, read_restart, or
 create_box command.
 
 E: Illegal ... command
@@ -83,27 +83,27 @@ command-line option when running LAMMPS to see the offending line.
 
 E: Tempering fix ID is not defined
 
-The fix ID specified by the temper command does not exist.
+The fix ID specified by the grem command does not exist.
 
-E: Invalid frequency in temper command
+E: Invalid frequency in grem command
 
 Nevery must be > 0.
 
-E: Non integer # of swaps in temper command
+E: Non integer # of swaps in grem command
 
-Swap frequency in temper command must evenly divide the total # of
+Swap frequency in grem command must evenly divide the total # of
 timesteps.
 
-E: Tempering temperature fix is not valid
+E: Grem temperature fix is not valid
 
-The fix specified by the temper command is not one that controls
-temperature (nvt or langevin).
+The fix specified by the grem command is not one that controls
+temperature (nvt or npt).
 
 E: Too many timesteps
 
 The cummulative timesteps must fit in a 64-bit integer.
 
-E: Tempering could not find thermo_pe compute
+E: Grem could not find thermo_pe compute
 
 This compute is created by the thermo command.  It must have been
 explicitly deleted by a uncompute command.

@@ -8,7 +8,7 @@ SHELL = /bin/sh
 
 export OMPI_CXX = icc
 CC =		mpicxx
-CCFLAGS =	-g -O3
+CCFLAGS =	-g -O3 -restrict
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

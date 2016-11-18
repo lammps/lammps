@@ -7,32 +7,43 @@
 :line
 
 pair_style tersoff/mod command :h3
+pair_style tersoff/mod/c command :h3
 pair_style tersoff/mod/gpu command :h3
 pair_style tersoff/mod/kk command :h3
 pair_style tersoff/mod/omp command :h3
+pair_style tersoff/mod/c/omp command :h3
 
 [Syntax:]
 
 pair_style tersoff/mod :pre
+
+pair_style tersoff/mod/c :pre
 
 [Examples:]
 
 pair_style tersoff/mod
 pair_coeff * * Si.tersoff.mod Si Si :pre
 
+pair_style tersoff/mod/c
+pair_coeff * * Si.tersoff.modc Si Si :pre
+
 [Description:]
 
-The {tersoff/mod} style computes a bond-order type interatomic
-potential "(Kumagai)"_#Kumagai based on a 3-body Tersoff potential
-"(Tersoff_1)"_#Tersoff_1, "(Tersoff_2)"_#Tersoff_2 with modified
-cutoff function and angular-dependent term, giving the energy E of a
-system of atoms as
+The {tersoff/mod} and {tersoff/mod/c} styles computes a bond-order type
+interatomic potential "(Kumagai)"_#Kumagai based on a 3-body Tersoff
+potential "(Tersoff_1)"_#Tersoff_1, "(Tersoff_2)"_#Tersoff_2 with
+modified cutoff function and angular-dependent term, giving the energy
+E of a system of atoms as
 
 :c,image(Eqs/pair_tersoff_mod.jpg)
 
 where f_R is a two-body term and f_A includes three-body interactions.
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D.
+The {tersoff/mod/c} style differs from {tersoff/mod} only in the
+formulation of the V_ij term, where it contains an additional c0 term.
+
+:c,image(Eqs/pair_tersoff_mod_c.jpg)
 
 The modified cutoff function f_C proposed by "(Murty)"_#Murty and
 having a continuous second-order differential is employed. The
@@ -69,10 +80,11 @@ are placeholders for atom types that will be used with other
 potentials.
 
 Tersoff/MOD file in the {potentials} directory of the LAMMPS
-distribution have a ".tersoff.mod" suffix.  Lines that are not blank
-or comments (starting with #) define parameters for a triplet of
-elements.  The parameters in a single entry correspond to coefficients
-in the formula above:
+distribution have a ".tersoff.mod" suffix. Potential files for the
+{tersoff/mod/c} style have the suffix ".tersoff.modc". Lines that are
+not blank or comments (starting with #) define parameters for a triplet
+of elements.  The parameters in a single entry correspond to
+coefficients in the formulae above:
 
 element 1 (the center atom in a 3-body interaction)
 element 2 (the atom bonded to the center atom)
@@ -93,13 +105,15 @@ c1
 c2
 c3
 c4
-c5 :ul
+c5
+c0 (energy units, tersoff/mod/c only):ul
 
 The n, eta, lambda2, B, lambda1, and A parameters are only used for
 two-body interactions.  The beta, alpha, c1, c2, c3, c4, c5, h
 parameters are only used for three-body interactions. The R and D
-parameters are used for both two-body and three-body interactions. The
-non-annotated parameters are unitless.
+parameters are used for both two-body and three-body interactions.
+The c0 term applies to {tersoff/mod/c} only. The non-annotated
+parameters are unitless.
 
 The Tersoff/MOD potential file must contain entries for all the elements
 listed in the pair_coeff command.  It can also contain entries for

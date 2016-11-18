@@ -7,7 +7,7 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		icc
-CCFLAGS =	-g -O3
+CCFLAGS =	-g -O3 -restrict
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

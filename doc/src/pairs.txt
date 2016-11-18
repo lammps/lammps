@@ -6,6 +6,7 @@ Pair Styles :h1
    :maxdepth: 1
 
    pair_adp
+   pair_agni
    pair_airebo
    pair_awpmd
    pair_beck

@@ -164,6 +164,8 @@ void Universe::add_world(char *str)
   char *ptr;
 
   n = 1;
+  nper = 0;
+
   if (str != NULL) {
 
     // check for valid partition argument

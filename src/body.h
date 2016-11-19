@@ -38,13 +38,16 @@ class Body : protected Pointers {
   virtual int pack_comm_body(struct AtomVecBody::Bonus *, double *) {return 0;}
   virtual int unpack_comm_body(struct AtomVecBody::Bonus *, double *) {return 0;}
   virtual int pack_border_body(struct AtomVecBody::Bonus *, double *) {return 0;}
-  virtual int unpack_border_body(struct AtomVecBody::Bonus *, 
+  virtual int unpack_border_body(struct AtomVecBody::Bonus *,
                                  double *) {return 0;}
 
-  virtual void data_body(int, int, int, char **, char **) = 0;
+  virtual void data_body(int, int, int, int*, double *) = 0;
   virtual int noutrow(int) = 0;
   virtual int noutcol() = 0;
   virtual void output(int, int, double *) = 0;
+  virtual int image(int, double, double, int *&, double **&) = 0;
+
+  virtual double radius_body(int, int, int *, double *) {return 0.0;}
 };
 
 }

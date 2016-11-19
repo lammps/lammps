@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_line_lj.h"
 #include "atom.h"
 #include "atom_vec_line.h"
@@ -52,7 +52,10 @@ PairLineLJ::~PairLineLJ()
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
+    memory->destroy(subsize);
     memory->destroy(cut);
+    memory->destroy(cutsub);
+    memory->destroy(cutsubsq);
     memory->destroy(epsilon);
     memory->destroy(sigma);
     memory->destroy(lj1);
@@ -70,7 +73,7 @@ void PairLineLJ::compute(int eflag, int vflag)
   int ni,nj,npi,npj,ifirst,jfirst;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,term1,term2,sig,sig3,forcelj;
-  double xi[2],xj[2],fi[2],fj[2],dxi,dxj,dyi,dyj;
+  double xi[2],xj[2],fi[2],dxi,dxj,dyi,dyj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -130,10 +133,10 @@ void PairLineLJ::compute(int eflag, int vflag)
 
       evdwl = 0.0;
       if (line[i] >= 0 && line[j] >= 0) {
-        if (dnum[i] == 0) discretize(i,sigma[itype][itype]);
+        if (dnum[i] == 0) discretize(i,subsize[itype]);
         npi = dnum[i];
         ifirst = dfirst[i];
-        if (dnum[j] == 0) discretize(j,sigma[jtype][jtype]);
+        if (dnum[j] == 0) discretize(j,subsize[jtype]);
         npj = dnum[j];
         jfirst = dfirst[j];
 
@@ -154,7 +157,11 @@ void PairLineLJ::compute(int eflag, int vflag)
             dely = xi[1] - xj[1];
             rsq = delx*delx + dely*dely;
 
-            sig = 0.5 * (discrete[ifirst+ni].sigma+discrete[jfirst+nj].sigma);
+            // skip this pair of sub-particles if outside sub cutoff
+
+            if (rsq >= cutsubsq[itype][jtype]) continue;
+
+            sig = sigma[itype][jtype];
             sig3 = sig*sig*sig;
             term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
             term1 = 2.0 * term2 * sig3*sig3;
@@ -167,16 +174,15 @@ void PairLineLJ::compute(int eflag, int vflag)
 
             fi[0] = delx*fpair;
             fi[1] = dely*fpair;
+
             f[i][0] += fi[0];
             f[i][1] += fi[1];
             torque[i][2] += dxi*fi[1] - dyi*fi[0];
 
             if (newton_pair || j < nlocal) {
-              fj[0] = -delx*fpair;
-              fj[1] = -dely*fpair;
-              f[j][0] += fj[0];
-              f[j][1] += fj[1];
-              torque[j][2] += dxj*fj[1] - dyj*fj[0];
+              f[j][0] -= fi[0];
+              f[j][1] -= fi[1];
+              torque[j][2] -= dxj*fi[1] - dyj*fi[0];
             }
           }
         }
@@ -185,7 +191,7 @@ void PairLineLJ::compute(int eflag, int vflag)
       // convert line into Np particles based on sigma and line length
 
       } else if (line[i] >= 0) {
-        if (dnum[i] == 0) discretize(i,sigma[itype][itype]);
+        if (dnum[i] == 0) discretize(i,subsize[itype]);
         npi = dnum[i];
         ifirst = dfirst[i];
 
@@ -202,7 +208,11 @@ void PairLineLJ::compute(int eflag, int vflag)
           dely = xi[1] - xj[1];
           rsq = delx*delx + dely*dely;
 
-          sig = 0.5 * (discrete[ifirst+ni].sigma+sigma[jtype][jtype]);
+          // skip this pair of sub-particles if outside sub cutoff
+
+          if (rsq >= cutsubsq[itype][jtype]) continue;
+
+          sig = sigma[itype][jtype];
           sig3 = sig*sig*sig;
           term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
           term1 = 2.0 * term2 * sig3*sig3;
@@ -220,10 +230,8 @@ void PairLineLJ::compute(int eflag, int vflag)
           torque[i][2] += dxi*fi[1] - dyi*fi[0];
 
           if (newton_pair || j < nlocal) {
-            fj[0] = -delx*fpair;
-            fj[1] = -dely*fpair;
-            f[j][0] += fj[0];
-            f[j][1] += fj[1];
+            f[j][0] -= fi[0];
+            f[j][1] -= fi[1];
           }
         }
 
@@ -231,7 +239,7 @@ void PairLineLJ::compute(int eflag, int vflag)
       // convert line into Np particles based on sigma and line length
 
       } else if (line[j] >= 0) {
-        if (dnum[j] == 0) discretize(j,sigma[jtype][jtype]);
+        if (dnum[j] == 0) discretize(j,subsize[jtype]);
         npj = dnum[j];
         jfirst = dfirst[j];
 
@@ -248,7 +256,11 @@ void PairLineLJ::compute(int eflag, int vflag)
           dely = xi[1] - xj[1];
           rsq = delx*delx + dely*dely;
 
-          sig = 0.5 * (sigma[itype][itype]+discrete[jfirst+nj].sigma);
+          // skip this pair of sub-particles if outside sub cutoff
+
+          if (rsq >= cutsubsq[itype][jtype]) continue;
+
+          sig = sigma[itype][jtype];
           sig3 = sig*sig*sig;
           term2 = 24.0*epsilon[itype][jtype] * sig3*sig3;
           term1 = 2.0 * term2 * sig3*sig3;
@@ -265,11 +277,9 @@ void PairLineLJ::compute(int eflag, int vflag)
           f[i][1] += fi[1];
 
           if (newton_pair || j < nlocal) {
-            f[j][0] += fj[0];
-            f[j][1] += fj[1];
-            fj[0] = -delx*fpair;
-            fj[1] = -dely*fpair;
-            torque[j][2] += dxj*fj[1] - dyj*fj[0];
+            f[j][0] -= fi[0];
+            f[j][1] -= fi[1];
+            torque[j][2] -= dxj*fi[1] - dyj*fi[0];
           }
         }
 
@@ -318,7 +328,10 @@ void PairLineLJ::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  memory->create(subsize,n+1,"pair:subsize");
   memory->create(cut,n+1,n+1,"pair:cut");
+  memory->create(cutsub,n+1,n+1,"pair:cutsub");
+  memory->create(cutsubsq,n+1,n+1,"pair:cutsubsq");
   memory->create(epsilon,n+1,n+1,"pair:epsilon");
   memory->create(sigma,n+1,n+1,"pair:sigma");
   memory->create(lj1,n+1,n+1,"pair:lj1");
@@ -353,25 +366,31 @@ void PairLineLJ::settings(int narg, char **arg)
 
 void PairLineLJ::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5)
+  if (narg < 7 || narg > 8)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double size_itype = force->numeric(FLERR,arg[2]);
+  double size_jtype = force->numeric(FLERR,arg[3]);
+  double epsilon_one = force->numeric(FLERR,arg[4]);
+  double sigma_one = force->numeric(FLERR,arg[5]);
+  double cutsub_one = force->numeric(FLERR,arg[6]);
 
   double cut_one = cut_global;
-  if (narg == 5) cut_one = force->numeric(FLERR,arg[4]);
+  if (narg == 8) cut_one = force->numeric(FLERR,arg[7]);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
+      subsize[i] = size_itype;
+      subsize[j] = size_jtype;
       epsilon[i][j] = epsilon_one;
       sigma[i][j] = sigma_one;
+      cutsub[i][j] = cutsub_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -399,12 +418,9 @@ void PairLineLJ::init_style()
 
 double PairLineLJ::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) {
-    epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-                               sigma[i][i],sigma[j][j]);
-    sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-  }
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+
+  cutsubsq[i][j] = cutsub[i][j] * cutsub[i][j];
 
   lj1[i][j] = 48.0 * epsilon[i][j] * pow(sigma[i][j],12.0);
   lj2[i][j] = 24.0 * epsilon[i][j] * pow(sigma[i][j],6.0);
@@ -413,6 +429,8 @@ double PairLineLJ::init_one(int i, int j)
 
   epsilon[j][i] = epsilon[i][j];
   sigma[j][i] = sigma[i][j];
+  cutsubsq[j][i] = cutsubsq[i][j];
+
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];
@@ -422,16 +440,17 @@ double PairLineLJ::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   discretize line segment I into N sub-segments no more than sigma in length
-   store new discrete particles in Discrete list
+   discretize line segment I into N sub-particles with <= size separation
+   store displacement dx,dy of discrete particles in Discrete list
 ------------------------------------------------------------------------- */
 
-void PairLineLJ::discretize(int i, double sigma)
+void PairLineLJ::discretize(int i, double size)
 {
   AtomVecLine::Bonus *bonus = avec->bonus;
   double length = bonus[atom->line[i]].length;
   double theta = bonus[atom->line[i]].theta;
-  int n = static_cast<int> (length/sigma) + 1;
+  int n = static_cast<int> (length/size) + 1;
+  
   dnum[i] = n;
   dfirst[i] = ndiscrete;
 
@@ -441,14 +460,12 @@ void PairLineLJ::discretize(int i, double sigma)
       memory->srealloc(discrete,dmax*sizeof(Discrete),"pair:discrete");
   }
 
-  sigma = length/n;
   double delta;
 
   for (int m = 0; m < n; m++) {
     delta = -0.5 + (2*m+1)/(2.0*n);
     discrete[ndiscrete].dx = delta*length*cos(theta);
     discrete[ndiscrete].dy = delta*length*sin(theta);
-    discrete[ndiscrete].sigma = sigma;
     ndiscrete++;
   }
 }

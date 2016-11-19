@@ -1,13 +1,13 @@
 c     Extern "C" declaration has the form:
-c     
+c
 c  void meam_force_(int *, int *, int *, double *, int *, int *, int *, double *,
 c		 int *, int *, int *, int *, double *, double *,
 c		 double *, double *, double *, double *, double *, double *,
 c		 double *, double *, double *, double *, double *, double *,
 c		 double *, double *, double *, double *, double *, double *, int *);
-c     
+c
 c     Call from pair_meam.cpp has the form:
-c     
+c
 c    meam_force_(&i,&nmax,&eflag_either,&eflag_global,&eflag_atom,&vflag_atom,
 c              &eng_vdwl,eatom,&ntype,type,fmap,&x[0][0],
 c	       &numneigh[i],firstneigh[i],&numneigh_full[i],firstneigh_full[i],
@@ -15,15 +15,15 @@ c	       &scrfcn[offset],&dscrfcn[offset],&fcpair[offset],
 c	       dgamma1,dgamma2,dgamma3,rho0,rho1,rho2,rho3,frhop,
 c	       &arho1[0][0],&arho2[0][0],arho2b,&arho3[0][0],&arho3b[0][0],
 c	       &t_ave[0][0],&tsq_ave[0][0],&f[0][0],&vatom[0][0],&errorflag);
-c     
+c
 
       subroutine meam_force(i, nmax,
      $     eflag_either, eflag_global, eflag_atom, vflag_atom,
      $     eng_vdwl, eatom, ntype, type, fmap, x,
      $     numneigh, firstneigh, numneigh_full, firstneigh_full,
-     $     scrfcn, dscrfcn, fcpair, 
+     $     scrfcn, dscrfcn, fcpair,
      $     dGamma1, dGamma2, dGamma3, rho0, rho1, rho2, rho3, fp,
-     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave, tsq_ave, f, 
+     $     Arho1, Arho2, Arho2b, Arho3, Arho3b, t_ave, tsq_ave, f,
      $     vatom, errorflag)
 
       use meam_data
@@ -92,20 +92,20 @@ c
 c     Compute forces atom i
 
       elti = fmap(type(i))
-      
+
       if (elti.gt.0) then
         xitmp = x(1,i)
         yitmp = x(2,i)
         zitmp = x(3,i)
-        
+
 c     Treat each pair
         do jn = 1,numneigh
-          
+
           j = firstneigh(jn)
           eltj = fmap(type(j))
 
           if (scrfcn(jn).ne.0.d0.and.eltj.gt.0) then
-            
+
             sij = scrfcn(jn)*fcpair(jn)
             delij(1) = x(1,j) - xitmp
             delij(2) = x(2,j) - yitmp
@@ -115,7 +115,7 @@ c     Treat each pair
             if (rij2.lt.cutforcesq) then
               rij = sqrt(rij2)
               r = rij
-              
+
 c     Compute phi and phip
               ind = eltind(elti,eltj)
               pp = rij*rdrar + 1.0D0
@@ -123,12 +123,12 @@ c     Compute phi and phip
               kk = min(kk,nrar-1)
               pp = pp - kk
               pp = min(pp,1.0D0)
-              phi = ((phirar3(kk,ind)*pp + phirar2(kk,ind))*pp 
+              phi = ((phirar3(kk,ind)*pp + phirar2(kk,ind))*pp
      $             + phirar1(kk,ind))*pp + phirar(kk,ind)
-              phip = (phirar6(kk,ind)*pp + phirar5(kk,ind))*pp 
+              phip = (phirar6(kk,ind)*pp + phirar5(kk,ind))*pp
      $             + phirar4(kk,ind)
               recip = 1.0d0/r
-              
+
               if (eflag_either.ne.0) then
                 if (eflag_global.ne.0) eng_vdwl = eng_vdwl + phi*sij
                 if (eflag_atom.ne.0) then
@@ -136,34 +136,34 @@ c     Compute phi and phip
                   eatom(j) = eatom(j) + 0.5*phi*sij
                 endif
               endif
-              
+
 c     write(1,*) "force_meamf: phi: ",phi
 c     write(1,*) "force_meamf: phip: ",phip
-              
+
 c     Compute pair densities and derivatives
               invrei = 1.d0/re_meam(elti,elti)
               ai = rij*invrei - 1.d0
               ro0i = rho0_meam(elti)
-              rhoa0i = ro0i*exp(-beta0_meam(elti)*ai)
+              rhoa0i = ro0i*fm_exp(-beta0_meam(elti)*ai)
               drhoa0i = -beta0_meam(elti)*invrei*rhoa0i
-              rhoa1i = ro0i*exp(-beta1_meam(elti)*ai)
+              rhoa1i = ro0i*fm_exp(-beta1_meam(elti)*ai)
               drhoa1i = -beta1_meam(elti)*invrei*rhoa1i
-              rhoa2i = ro0i*exp(-beta2_meam(elti)*ai)
+              rhoa2i = ro0i*fm_exp(-beta2_meam(elti)*ai)
               drhoa2i = -beta2_meam(elti)*invrei*rhoa2i
-              rhoa3i = ro0i*exp(-beta3_meam(elti)*ai)
+              rhoa3i = ro0i*fm_exp(-beta3_meam(elti)*ai)
               drhoa3i = -beta3_meam(elti)*invrei*rhoa3i
-              
+
               if (elti.ne.eltj) then
                 invrej = 1.d0/re_meam(eltj,eltj)
                 aj = rij*invrej - 1.d0
                 ro0j = rho0_meam(eltj)
-                rhoa0j = ro0j*exp(-beta0_meam(eltj)*aj)
+                rhoa0j = ro0j*fm_exp(-beta0_meam(eltj)*aj)
                 drhoa0j = -beta0_meam(eltj)*invrej*rhoa0j
-                rhoa1j = ro0j*exp(-beta1_meam(eltj)*aj)
+                rhoa1j = ro0j*fm_exp(-beta1_meam(eltj)*aj)
                 drhoa1j = -beta1_meam(eltj)*invrej*rhoa1j
-                rhoa2j = ro0j*exp(-beta2_meam(eltj)*aj)
+                rhoa2j = ro0j*fm_exp(-beta2_meam(eltj)*aj)
                 drhoa2j = -beta2_meam(eltj)*invrej*rhoa2j
-                rhoa3j = ro0j*exp(-beta3_meam(eltj)*aj)
+                rhoa3j = ro0j*fm_exp(-beta3_meam(eltj)*aj)
                 drhoa3j = -beta3_meam(eltj)*invrej*rhoa3j
               else
                 rhoa0j = rhoa0i
@@ -175,7 +175,7 @@ c     Compute pair densities and derivatives
                 rhoa3j = rhoa3i
                 drhoa3j = drhoa3i
               endif
-              
+
               if (ialloy.eq.1) then
                 rhoa1j = rhoa1j * t1_meam(eltj)
                 rhoa2j = rhoa2j * t2_meam(eltj)
@@ -217,15 +217,15 @@ c     Compute pair densities and derivatives
                 arg1i1 = arg1i1 + Arho1(n,i)*delij(n)
                 arg1j1 = arg1j1 - Arho1(n,j)*delij(n)
                 arg3i3 = arg3i3 + Arho3b(n,i)*delij(n)
-                arg3j3 = arg3j3 - Arho3b(n,j)*delij(n)             
+                arg3j3 = arg3j3 - Arho3b(n,j)*delij(n)
               enddo
-              
+
 c     rho0 terms
               drho0dr1 = drhoa0j * sij
               drho0dr2 = drhoa0i * sij
-              
-c     rho1 terms  
-              a1 = 2*sij/rij              
+
+c     rho1 terms
+              a1 = 2*sij/rij
               drho1dr1 = a1*(drhoa1j-rhoa1j/rij)*arg1i1
               drho1dr2 = a1*(drhoa1i-rhoa1i/rij)*arg1j1
               a1 = 2.d0*sij/rij
@@ -233,10 +233,10 @@ c     rho1 terms
                 drho1drm1(m) = a1*rhoa1j*Arho1(m,i)
                 drho1drm2(m) = -a1*rhoa1i*Arho1(m,j)
               enddo
-              
+
 c     rho2 terms
               a2 = 2*sij/rij2
-              drho2dr1 = a2*(drhoa2j - 2*rhoa2j/rij)*arg1i2 
+              drho2dr1 = a2*(drhoa2j - 2*rhoa2j/rij)*arg1i2
      $             - 2.d0/3.d0*Arho2b(i)*drhoa2j*sij
               drho2dr2 = a2*(drhoa2i - 2*rhoa2i/rij)*arg1j2
      $             - 2.d0/3.d0*Arho2b(j)*drhoa2i*sij
@@ -245,7 +245,7 @@ c     rho2 terms
                 drho2drm1(m) = 0.d0
                 drho2drm2(m) = 0.d0
                 do n = 1,3
-                  drho2drm1(m) = drho2drm1(m) 
+                  drho2drm1(m) = drho2drm1(m)
      $                 + Arho2(vind2D(m,n),i)*delij(n)
                   drho2drm2(m) = drho2drm2(m)
      $                 - Arho2(vind2D(m,n),j)*delij(n)
@@ -253,14 +253,14 @@ c     rho2 terms
                 drho2drm1(m) = a2*rhoa2j*drho2drm1(m)
                 drho2drm2(m) = -a2*rhoa2i*drho2drm2(m)
               enddo
-              
+
 c     rho3 terms
               rij3 = rij*rij2
               a3 = 2*sij/rij3
               a3a = 6.d0/5.d0*sij/rij
-              drho3dr1 = a3*(drhoa3j - 3*rhoa3j/rij)*arg1i3 
+              drho3dr1 = a3*(drhoa3j - 3*rhoa3j/rij)*arg1i3
      $             - a3a*(drhoa3j - rhoa3j/rij)*arg3i3
-              drho3dr2 = a3*(drhoa3i - 3*rhoa3i/rij)*arg1j3 
+              drho3dr2 = a3*(drhoa3i - 3*rhoa3i/rij)*arg1j3
      $             - a3a*(drhoa3i - rhoa3i/rij)*arg3j3
               a3 = 6*sij/rij3
               a3a = 6*sij/(5*rij)
@@ -327,7 +327,7 @@ c     Compute derivatives of weighting functions t wrt rij
                 dt3dr2 = a3j*(t3_meam(elti)-t3j*t3_meam(elti)**2)
 
               else if (ialloy.eq.2) then
-                
+
                 dt1dr1 = 0.d0
                 dt1dr2 = 0.d0
                 dt2dr1 = 0.d0
@@ -352,7 +352,7 @@ c     Compute derivatives of weighting functions t wrt rij
                 dt2dr2 = aj*(t2_meam(elti)-t2j)
                 dt3dr1 = ai*(t3_meam(eltj)-t3i)
                 dt3dr2 = aj*(t3_meam(elti)-t3j)
-                
+
               endif
 
 c     Compute derivatives of total density wrt rij, sij and rij(3)
@@ -393,9 +393,9 @@ c     Compute derivatives wrt sij, but only if necessary
                 drho1ds1 = a1*rhoa1j*arg1i1
                 drho1ds2 = a1*rhoa1i*arg1j1
                 a2 = 2.d0/rij2
-                drho2ds1 = a2*rhoa2j*arg1i2 
+                drho2ds1 = a2*rhoa2j*arg1i2
      $               - 2.d0/3.d0*Arho2b(i)*rhoa2j
-                drho2ds2 = a2*rhoa2i*arg1j2 
+                drho2ds2 = a2*rhoa2i*arg1j2
      $               - 2.d0/3.d0*Arho2b(j)*rhoa2i
                 a3 = 2.d0/rij3
                 a3a = 6.d0/(5.d0*rij)
@@ -403,7 +403,7 @@ c     Compute derivatives wrt sij, but only if necessary
                 drho3ds2 = a3*rhoa3i*arg1j3 - a3a*rhoa3i*arg3j3
 
                 if (ialloy.eq.1) then
-                  
+
                   a1i = 0.d0
                   a1j = 0.d0
                   a2i = 0.d0
@@ -455,7 +455,7 @@ c     Compute derivatives wrt sij, but only if necessary
                   if( rho0(j) .ne. 0.d0 ) then
                     aj = rhoa0i/rho0(j)
                   end if
-                  
+
                   dt1ds1 = ai*(t1_meam(eltj)-t1i)
                   dt1ds2 = aj*(t1_meam(elti)-t1j)
                   dt2ds1 = ai*(t2_meam(eltj)-t2i)
@@ -492,7 +492,7 @@ c     Compute derivatives of energy wrt rij, sij and rij(3)
               do m = 1,3
                 dUdrijm(m) = fp(i)*drhodrm1(m) + fp(j)*drhodrm2(m)
               enddo
-              
+
 c     Add the part of the force due to dUdrij and dUdsij
 
               force = dUdrij*recip + dUdsij*dscrfcn(jn)
@@ -603,6 +603,6 @@ c     end of j loop
 
 c     else if elti=0, this is not a meam atom
       endif
-      
+
       return
       end

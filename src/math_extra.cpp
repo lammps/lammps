@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
 #include "math_extra.h"
 
 #define MAXJACOBI 50
@@ -61,7 +61,7 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       }
     }
 
-    while (aug[p][i] == 0.0 && p < 3) p++;
+    while (p < 3 && aug[p][i] == 0.0) p++;
 
     if (p == 3) return 1;
     else
@@ -230,7 +230,8 @@ void richardson(double *q, double *m, double *w, double *moments, double dtq)
    apply evolution operators to quat, quat momentum
    Miller et al., J Chem Phys. 116, 8649-8659 (2002)
 ------------------------------------------------------------------------- */
-void no_squish_rotate(int k, double *p, double *q, double *inertia, 
+
+void no_squish_rotate(int k, double *p, double *q, double *inertia,
                       double dt)
 {
   double phi,c_phi,s_phi,kp[4],kq[4];
@@ -604,6 +605,51 @@ void inertia_triangle(double *idiag, double *quat, double mass,
   inertia[3] = tensor[1][2];
   inertia[4] = tensor[0][2];
   inertia[5] = tensor[0][1];
+}
+
+/* ----------------------------------------------------------------------
+ Build rotation matrix for a small angle rotation around the X axis
+ ------------------------------------------------------------------------- */
+
+void BuildRxMatrix(double R[3][3], const double angle)
+{
+  const double angleSq = angle * angle;
+  const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
+  const double sinAngle = angle / (1.0 + angleSq * 0.25);
+  
+  R[0][0] = 1.0;  R[0][1] = 0.0;       R[0][2] = 0.0;
+  R[1][0] = 0.0;  R[1][1] = cosAngle;  R[1][2] = -sinAngle;
+  R[2][0] = 0.0;  R[2][1] = sinAngle;  R[2][2] = cosAngle;
+}
+
+/* ----------------------------------------------------------------------
+ Build rotation matrix for a small angle rotation around the Y axis
+ ------------------------------------------------------------------------- */
+
+void BuildRyMatrix(double R[3][3], const double angle)
+{
+  const double angleSq = angle * angle;
+  const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
+  const double sinAngle = angle / (1.0 + angleSq * 0.25);
+  
+  R[0][0] = cosAngle;   R[0][1] = 0.0;  R[0][2] = sinAngle;
+  R[1][0] = 0.0;        R[1][1] = 1.0;  R[1][2] = 0.0;
+  R[2][0] = -sinAngle;  R[2][1] = 0.0;  R[2][2] = cosAngle;
+}
+
+/* ----------------------------------------------------------------------
+ Build rotation matrix for a small angle rotation around the Y axis
+ ------------------------------------------------------------------------- */
+
+void BuildRzMatrix(double R[3][3], const double angle)
+{
+  const double angleSq = angle * angle;
+  const double cosAngle = (1.0 - angleSq * 0.25) / (1.0 + angleSq * 0.25);
+  const double sinAngle = angle / (1.0 + angleSq * 0.25);
+  
+  R[0][0] = cosAngle;  R[0][1] = -sinAngle;  R[0][2] = 0.0;
+  R[1][0] = sinAngle;  R[1][1] = cosAngle;   R[1][2] = 0.0;
+  R[2][0] = 0.0;       R[2][1] = 0.0;        R[2][2] = 1.0;
 }
 
 /* ---------------------------------------------------------------------- */

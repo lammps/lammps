@@ -13,9 +13,9 @@
 
 #ifdef DIHEDRAL_CLASS
 
-DihedralStyle(charmm/kk,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(charmm/kk/device,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(charmm/kk/host,DihedralOPLSKokkos<LMPHostType>)
+DihedralStyle(opls/kk,DihedralOPLSKokkos<LMPDeviceType>)
+DihedralStyle(opls/kk/device,DihedralOPLSKokkos<LMPDeviceType>)
+DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>)
 
 #else
 
@@ -59,9 +59,9 @@ class DihedralOPLSKokkos : public DihedralOPLS {
                           const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const;
 
  protected:
-  
+
   class NeighborKokkos *neighborKK;
- 
+
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_2d dihedrallist;

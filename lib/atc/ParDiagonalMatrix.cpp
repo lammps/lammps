@@ -88,6 +88,10 @@ namespace ATC_matrix {
     // Collect results on all processors
     allgatherv(_comm, C.ptr() + myMajorOffset * nMinor, myNMajor * nMinor,
                C.ptr(), majorCounts, majorOffsets);
+
+    delete[] majorCounts;
+    delete[] majorOffsets;
   }
+
 
 } // end namespace

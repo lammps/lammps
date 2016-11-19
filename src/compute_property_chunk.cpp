@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_property_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -25,7 +25,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  idchunk(NULL), count_one(NULL), count_all(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute property/chunk command");
 
@@ -51,7 +52,7 @@ ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
       pack_choice[i] = &ComputePropertyChunk::pack_count;
       countflag = 1;
     } else if (strcmp(arg[iarg],"id") == 0) {
-      if (!cchunk->compress) 
+      if (!cchunk->compress)
 	error->all(FLERR,"Compute chunk/atom stores no IDs for "
                    "compute property/chunk");
       pack_choice[i] = &ComputePropertyChunk::pack_id;
@@ -78,9 +79,6 @@ ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  vector = NULL;
-  array = NULL;
-  count_one = count_all = NULL;
   allocate();
 
   if (nvalues == 1) {

@@ -32,7 +32,7 @@ class ComputePE : public Compute {
   double compute_scalar();
 
  private:
-  int pairflag,bondflag,angleflag,dihedralflag,improperflag,kspaceflag;
+  int pairflag,bondflag,angleflag,dihedralflag,improperflag,kspaceflag,fixflag;
 };
 
 }

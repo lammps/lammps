@@ -15,8 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "fix_nvt_sllod_omp.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -65,7 +65,7 @@ FixNVTSllodOMP::FixNVTSllodOMP(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

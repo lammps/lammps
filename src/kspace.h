@@ -15,6 +15,7 @@
 #define LMP_KSPACE_H
 
 #include "pointers.h"
+#include "accelerator_kokkos.h"
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -45,9 +46,9 @@ class KSpace : protected Pointers {
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
   int differentiation_flag;
-  int neighrequest_flag;         // used to avoid obsolete construction 
+  int neighrequest_flag;         // used to avoid obsolete construction
                                  // of neighbor lists
-  int mixflag;                   // 1 if geometric mixing rules are enforced 
+  int mixflag;                   // 1 if geometric mixing rules are enforced
                                  // for LJ coefficients
   int slabflag;
   int scalar_pressure_flag;      // 1 if using MSM fast scalar pressure
@@ -64,9 +65,9 @@ class KSpace : protected Pointers {
   double accuracy_absolute;         // user-specifed accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
                                     // accurary = acc_rel * two_charge_force
-  double accuracy_real_6;           // real space accuracy for 
+  double accuracy_real_6;           // real space accuracy for
                                     // dispersion solver (force units)
-  double accuracy_kspace_6;         // reciprocal space accuracy for 
+  double accuracy_kspace_6;         // reciprocal space accuracy for
                                     // dispersion solver (force units)
   int auto_disp_flag;		    // use automatic paramter generation for pppm/disp
   double two_charge_force;          // force in user units of two point
@@ -79,12 +80,11 @@ class KSpace : protected Pointers {
 
   int group_group_enable;         // 1 if style supports group/group calculation
 
-  unsigned int datamask;
-  unsigned int datamask_ext;
-
   // KOKKOS host/device flag and data masks
+
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
+  int copymode;
 
   int compute_flag;               // 0 if skip compute()
   int fftbench;                   // 0 if skip FFT timing
@@ -124,6 +124,11 @@ class KSpace : protected Pointers {
   virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
 
+  virtual void pack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void pack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}
@@ -134,7 +139,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164177
 ------------------------------------------------------------------------- */
 
-  double gamma(const double &rho) const 
+  double gamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order/2;
@@ -154,7 +159,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
-  double dgamma(const double &rho) const 
+  double dgamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order/2;
@@ -168,7 +173,7 @@ class KSpace : protected Pointers {
       return dg;
     } else return (-1.0/rho/rho);
   }
-  
+
   double **get_gcons() { return gcons; }
   double **get_dgcons() { return dgcons; }
 

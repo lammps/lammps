@@ -1,6 +1,6 @@
-#include "mpi.h"
-#include "stdlib.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "error.h"
 
 /* ---------------------------------------------------------------------- */

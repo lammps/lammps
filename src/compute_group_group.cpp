@@ -16,8 +16,8 @@
      K-space terms added by Stan Moore (BYU)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_group_group.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +29,7 @@
 #include "group.h"
 #include "kspace.h"
 #include "error.h"
-#include "math.h"
+#include <math.h>
 #include "comm.h"
 #include "domain.h"
 #include "math_const.h"
@@ -42,7 +42,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  group2(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute group/group command");
 
@@ -227,7 +228,7 @@ void ComputeGroupGroup::pair_contribution()
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     // skip if atom I is not in either group
-    if (!(mask[i] & groupbit || mask[i] & jgroupbit)) continue; 
+    if (!(mask[i] & groupbit || mask[i] & jgroupbit)) continue;
 
     xtmp = x[i][0];
     ytmp = x[i][1];

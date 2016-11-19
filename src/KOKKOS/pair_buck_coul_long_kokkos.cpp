@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_buck_coul_long_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -152,8 +152,6 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev = pair_compute<PairBuckCoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-
-  DeviceType::fence();
 
   if (eflag) {
     eng_vdwl += ev.evdwl;
@@ -511,7 +509,10 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
 }
 
 
+namespace LAMMPS_NS {
 template class PairBuckCoulLongKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckCoulLongKokkos<LMPHostType>;
 #endif
+}
+

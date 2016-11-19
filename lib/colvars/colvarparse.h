@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARPARSE_H
 #define COLVARPARSE_H
@@ -37,7 +37,7 @@ protected:
   /// \brief Whether or not to accumulate data_begin_pos and
   /// data_end_pos in key_lookup(); it may be useful to disable
   /// this after the constructor is called, because other files may be
-  /// read (e.g. restart) that would mess up with the registry; in any
+  /// read (e.g. restart) that would mess up the registry; in any
   /// case, nothing serious happens until check_keywords() is invoked
   /// (which should happen only right after construction)
   bool save_delimiters;
@@ -53,18 +53,39 @@ protected:
 
 public:
 
+
   inline colvarparse()
     : save_delimiters(true)
-  {}
+  {
+    init();
+  }
 
   /// Constructor that stores the object's config string
   inline colvarparse(const std::string& conf)
-    : save_delimiters(true), config_string(conf)
-  {}
+    : save_delimiters(true)
+  {
+    init(conf);
+  }
+
+  /// Set the object ready to parse a new configuration string
+  inline void init()
+  {
+    config_string.clear();
+    clear_keyword_registry();
+  }
+
+  /// Set a new config string for this object
+  inline void init(const std::string& conf)
+  {
+    if (! config_string.size()) {
+      init();
+      config_string = conf;
+    }
+  }
 
   inline const std::string& get_config()
   {
-      return config_string;
+    return config_string;
   }
 
   /// How a keyword is parsed in a string
@@ -78,6 +99,16 @@ public:
     /// numerous and redundant)
     parse_silent
   };
+
+  /// \brief Check that all the keywords within "conf" are in the list
+  /// of allowed keywords; this will invoke strip_values() first and
+  /// then loop over all words
+  int check_keywords(std::string &conf, char const *key);
+
+  /// \brief Use this after parsing a config string (note that check_keywords() calls it already)
+  void clear_keyword_registry();
+
+public:
 
   /// \fn get_keyval bool const get_keyval (std::string const &conf,
   /// char const *key, _type_ &value, _type_ const &def_value,
@@ -104,46 +135,113 @@ public:
   /// functions, or insert this type in the \link colvarvalue \endlink
   /// wrapper class (colvarvalue.h).
 
-#define _get_keyval_scalar_proto_(_type_,_def_value_)           \
-  bool get_keyval(std::string const &conf,                      \
-                  char const *key,                              \
-                  _type_ &value,                                \
-                  _type_ const &def_value = _def_value_,        \
-                  Parse_Mode const parse_mode = parse_normal)
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  int &value,
+                  int const &def_value = (int)0,
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  size_t &value,
+                  size_t const &def_value = (size_t)0,
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  long &value,
+                  long const &def_value = 0,
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::string &value,
+                  std::string const &def_value = std::string(""),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  cvm::real &value,
+                  cvm::real const &def_value = (cvm::real)0.0,
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  cvm::rvector &value,
+                  cvm::rvector const &def_value = cvm::rvector(),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  cvm::quaternion &value,
+                  cvm::quaternion const &def_value = cvm::quaternion(),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  colvarvalue &value,
+                  colvarvalue const &def_value = colvarvalue(colvarvalue::type_notset),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  bool &value,
+                  bool const &def_value = false,
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<int> &values,
+                  std::vector<int> const &def_values = std::vector<int>(0, (int)0),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<size_t> &values,
+                  std::vector<size_t> const &def_values = std::vector<size_t>(0, (size_t)0),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<long> &values,
+                  std::vector<long> const &def_values = std::vector<long>(0, (long)0),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<std::string> &values,
+                  std::vector<std::string> const &def_values = std::vector<std::string>(0, std::string("")),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<cvm::real> &values,
+                  std::vector<cvm::real> const &def_values = std::vector<cvm::real>(0, (cvm::real)0.0),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<cvm::rvector> &values,
+                  std::vector<cvm::rvector> const &def_values = std::vector<cvm::rvector>(0, cvm::rvector()),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<cvm::quaternion> &values,
+                  std::vector<cvm::quaternion> const &def_values = std::vector<cvm::quaternion>(0, cvm::quaternion()),
+                  Parse_Mode const parse_mode = parse_normal);
+  bool get_keyval(std::string const &conf,
+                  char const *key,
+                  std::vector<colvarvalue> &values,
+                  std::vector<colvarvalue> const &def_values = std::vector<colvarvalue>(0, colvarvalue(colvarvalue::type_notset)),
+                  Parse_Mode const parse_mode = parse_normal);
 
-  _get_keyval_scalar_proto_(int, (int)0);
-  _get_keyval_scalar_proto_(size_t, (size_t)0);
-  _get_keyval_scalar_proto_(long, 0);
-  _get_keyval_scalar_proto_(std::string, std::string(""));
-  _get_keyval_scalar_proto_(cvm::real, (cvm::real)0.0);
-  _get_keyval_scalar_proto_(cvm::rvector, cvm::rvector());
-  _get_keyval_scalar_proto_(cvm::quaternion, cvm::quaternion());
-  _get_keyval_scalar_proto_(colvarvalue, colvarvalue(colvarvalue::type_notset));
-  _get_keyval_scalar_proto_(bool, false);
+protected:
 
-#define _get_keyval_vector_proto_(_type_,_def_value_)                   \
-  bool get_keyval(std::string const &conf,                              \
-                  char const *key,                                      \
-                  std::vector<_type_> &values,                          \
-                  std::vector<_type_> const &def_values =               \
-                  std::vector<_type_> (0, static_cast<_type_>(_def_value_)), \
-                  Parse_Mode const parse_mode = parse_normal)
+  // Templates
+  template<typename TYPE> bool _get_keyval_scalar_(std::string const &conf,
+                                                   char const *key,
+                                                   TYPE &value,
+                                                   TYPE const &def_value,
+                                                   Parse_Mode const parse_mode);
+  bool _get_keyval_scalar_string_(std::string const &conf,
+                                  char const *key,
+                                  std::string &value,
+                                  std::string const &def_value,
+                                  Parse_Mode const parse_mode);
 
-  _get_keyval_vector_proto_(int, 0);
-  _get_keyval_vector_proto_(size_t, 0);
-  _get_keyval_vector_proto_(long, 0);
-  _get_keyval_vector_proto_(std::string, std::string(""));
-  _get_keyval_vector_proto_(cvm::real, 0.0);
-  _get_keyval_vector_proto_(cvm::rvector, cvm::rvector());
-  _get_keyval_vector_proto_(cvm::quaternion, cvm::quaternion());
-  _get_keyval_vector_proto_(colvarvalue, colvarvalue(colvarvalue::type_notset));
+  template<typename TYPE> bool _get_keyval_vector_(std::string const &conf,
+                                                   char const *key,
+                                                   std::vector<TYPE> &values,
+                                                   std::vector<TYPE> const &def_values,
+                                                   Parse_Mode const parse_mode);
 
-
-  /// \brief Check that all the keywords within "conf" are in the list
-  /// of allowed keywords; this will invoke strip_values() first and
-  /// then loop over all words
-  int check_keywords(std::string &conf, char const *key);
-
+public:
 
   /// \brief Return a lowercased copy of the string
   static inline std::string to_lower_cppstr(std::string const &in)
@@ -180,17 +278,16 @@ public:
   static std::string const white_space;
 
   /// \brief Low-level function for parsing configuration strings;
-  /// automatically adds the requested keywords to the list of valid
+  /// automatically adds the requested keyword to the list of valid
   /// ones.  \param conf the content of the configuration file or one
-  /// of its blocks \param key the keyword to search in "conf" \param
+  /// of its blocks \param key the keyword to search within "conf" \param
   /// data (optional) holds the string provided after "key", if any
   /// \param save_pos (optional) stores the position of the keyword
-  /// within "conf", useful when doing multiple calls \param
-  /// save_delimiters (optional)
+  /// within "conf", useful when doing multiple calls
   bool key_lookup(std::string const &conf,
-                   char const *key,
-                   std::string &data = dummy_string,
-                   size_t &save_pos = dummy_pos);
+                  char const *key,
+                  std::string &data = dummy_string,
+                  size_t &save_pos = dummy_pos);
 
   /// Used as a default argument by key_lookup
   static std::string dummy_string;
@@ -200,12 +297,12 @@ public:
   /// \brief Works as std::getline() but also removes everything
   /// between a comment character and the following newline
   static std::istream & getline_nocomments(std::istream &is,
-                                            std::string &s,
-                                            char const delim = '\n');
+                                           std::string &s,
+                                           char const delim = '\n');
 
   /// Check if the content of the file has matching braces
   bool brace_check(std::string const &conf,
-                    size_t const start_pos = 0);
+                   size_t const start_pos = 0);
 
 };
 

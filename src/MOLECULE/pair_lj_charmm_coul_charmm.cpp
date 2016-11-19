@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_charmm_coul_charmm.h"
 #include "atom.h"
 #include "comm.h"
@@ -125,9 +125,7 @@ void PairLJCharmmCoulCharmm::compute(int eflag, int vflag)
           if (rsq > cut_coul_innersq) {
             switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-            switch2 = 12.0*rsq * (cut_coulsq-rsq) *
-              (rsq-cut_coul_innersq) / denom_coul;
-            forcecoul *= switch1 + switch2;
+            forcecoul *= switch1;
           }
         } else forcecoul = 0.0;
 
@@ -249,8 +247,8 @@ void PairLJCharmmCoulCharmm::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
@@ -470,9 +468,7 @@ double PairLJCharmmCoulCharmm::single(int i, int j, int itype, int jtype,
     if (rsq > cut_coul_innersq) {
       switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
         (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-      switch2 = 12.0*rsq * (cut_coulsq-rsq) *
-        (rsq-cut_coul_innersq) / denom_coul;
-      forcecoul *= switch1 + switch2;
+      forcecoul *= switch1;
     }
   } else forcecoul = 0.0;
 

@@ -18,10 +18,10 @@
 ------------------------------------------------------------------------- */
 
 #include "lmptype.h"
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_ttm_mod.h"
 #include "atom.h"
 #include "force.h"
@@ -69,7 +69,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_ttm_mod);
-  
+
   if (narg < 9) error->all(FLERR,"Illegal fix ttm/mod command");
   vector_flag = 1;
   size_vector = 2;
@@ -78,24 +78,33 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   restart_peratom = 1;
   restart_global = 1;
-  seed = atoi(arg[3]);
-  fpr_2 = fopen(arg[4],"r");
-  nxnodes = atoi(arg[5]);
-  nynodes = atoi(arg[6]);
-  nznodes = atoi(arg[7]);
-  fpr = fopen(arg[8],"r");
-  if (fpr == NULL) {
+
+  seed = force->inumeric(FLERR,arg[3]);
+  if (seed <= 0)
+    error->all(FLERR,"Invalid random number seed in fix ttm/mod command");
+
+  FILE *fpr_2 = force->open_potential(arg[4]);
+  if (fpr_2 == NULL) {
     char str[128];
-    sprintf(str,"Cannot open file %s",arg[7]);
-    error->one(FLERR,str);
+    sprintf(str,"Cannot open file %s",arg[4]);
+    error->all(FLERR,str);
   }
+
+  nxnodes = force->inumeric(FLERR,arg[5]);
+  nynodes = force->inumeric(FLERR,arg[6]);
+  nznodes = force->inumeric(FLERR,arg[7]);
+  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
+    error->all(FLERR,"Fix ttm/mod number of nodes must be > 0");
+  
+  FILE *fpr = force->open_potential(arg[8]);
   if (fpr == NULL) {
     char str[128];
     sprintf(str,"Cannot open file %s",arg[8]);
-    error->one(FLERR,str);
+    error->all(FLERR,str);
   }
-  nfileevery = atoi(arg[9]);
-  if (nfileevery) {
+
+  nfileevery = force->inumeric(FLERR,arg[9]);
+  if (nfileevery > 0) {
     if (narg != 11) error->all(FLERR,"Illegal fix ttm/mod command");
     MPI_Comm_rank(world,&me);
     if (me == 0) {
@@ -225,20 +234,16 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   t_surface_l = surface_l;
   mult_factor = intensity;
   duration = 0.0;
+  v_0_sq = v_0*v_0;
   surface_double = double(t_surface_l)*(domain->xprd/nxnodes);
   if ((C_limit+esheat_0) < 0.0)
-    error->all(FLERR,"Fix ttm electronic_specific_heat must be >= 0.0");
+    error->all(FLERR,"Fix ttm/mod electronic_specific_heat must be >= 0.0");
   if (electronic_density <= 0.0)
-    error->all(FLERR,"Fix ttm electronic_density must be > 0.0");
-  if (gamma_p < 0.0) error->all(FLERR,"Fix ttm gamma_p must be >= 0.0");
-  if (gamma_s < 0.0) error->all(FLERR,"Fix ttm gamma_s must be >= 0.0");
-  if (v_0 < 0.0) error->all(FLERR,"Fix ttm v_0 must be >= 0.0");
-  if (ionic_density <= 0.0) error->all(FLERR,"Fix ttm ionic_density must be > 0.0");
-  v_0_sq = v_0*v_0;
-  // error check
-  if (nxnodes <= 0 || nynodes <= 0 || nznodes <= 0)
-    error->all(FLERR,"Fix ttm number of nodes must be > 0");
-  if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
+    error->all(FLERR,"Fix ttm/mod electronic_density must be > 0.0");
+  if (gamma_p < 0.0) error->all(FLERR,"Fix ttm/mod gamma_p must be >= 0.0");
+  if (gamma_s < 0.0) error->all(FLERR,"Fix ttm/mod gamma_s must be >= 0.0");
+  if (v_0 < 0.0) error->all(FLERR,"Fix ttm/mod v_0 must be >= 0.0");
+  if (ionic_density <= 0.0) error->all(FLERR,"Fix ttm/mod ionic_density must be > 0.0");
   if (surface_l < 0) error->all(FLERR,"Surface coordinates must be >= 0");
   if (surface_l >= surface_r) error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");
   // initialize Marsaglia RNG with processor-unique seed
@@ -274,8 +279,9 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(0);
   atom->add_callback(1);
   // set initial electron temperatures from user input file
-  if (me == 0) read_initial_electron_temperatures();
+  if (me == 0) read_initial_electron_temperatures(fpr);
   MPI_Bcast(&T_electron[0][0][0],total_nnodes,MPI_DOUBLE,0,world);
+  fclose(fpr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -317,11 +323,11 @@ int FixTTMMod::setmask()
 void FixTTMMod::init()
 {
   if (domain->dimension == 2)
-    error->all(FLERR,"Cannot use fix ttm with 2d simulation");
+    error->all(FLERR,"Cannot use fix ttm/mod with 2d simulation");
   if (domain->nonperiodic != 0)
-    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm");
+    error->all(FLERR,"Cannot use nonperiodic boundares with fix ttm/mod");
   if (domain->triclinic)
-    error->all(FLERR,"Cannot use fix ttm with triclinic box");
+    error->all(FLERR,"Cannot use fix ttm/mod with triclinic box");
   // set force prefactors
   for (int i = 1; i <= atom->ntypes; i++) {
     gfactor1[i] = - gamma_p / force->ftm2v;
@@ -488,7 +494,7 @@ void FixTTMMod::reset_dt()
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixTTMMod::read_initial_electron_temperatures()
+void FixTTMMod::read_initial_electron_temperatures(FILE *fpr)
 {
   char line[MAXLINE];
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
@@ -501,7 +507,7 @@ void FixTTMMod::read_initial_electron_temperatures()
   while (1) {
     if (fgets(line,MAXLINE,fpr) == NULL) break;
     sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm electron temperatures must be >= 0.0");
+    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm/mod electron temperatures must be >= 0.0");
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }
@@ -509,9 +515,7 @@ void FixTTMMod::read_initial_electron_temperatures()
     for (int iynode = 0; iynode < nynodes; iynode++)
       for (int iznode = 0; iznode < nznodes; iznode++)
         if (T_initial_set[ixnode][iynode][iznode] == 0)
-          error->one(FLERR,"Initial temperatures not all set in fix ttm");
-  // close file
-  fclose(fpr);
+          error->one(FLERR,"Initial temperatures not all set in fix ttm/mod");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -611,112 +615,112 @@ void FixTTMMod::end_of_step()
   int num_inner_timesteps = 1;
   double inner_dt = update->dt;
   double stability_criterion = 0.0;
-  
+
   for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-	for (int iynode = 0; iynode < nynodes; iynode++)
-	  for (int iznode = 0; iznode < nznodes; iznode++)
-		T_electron_first[ixnode][iynode][iznode] =
-		  T_electron[ixnode][iynode][iznode];
+    for (int iynode = 0; iynode < nynodes; iynode++)
+      for (int iznode = 0; iznode < nznodes; iznode++)
+        T_electron_first[ixnode][iynode][iznode] =
+          T_electron[ixnode][iynode][iznode];
   do {
-	for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
       for (int iynode = 0; iynode < nynodes; iynode++)
         for (int iznode = 0; iznode < nznodes; iznode++)
           T_electron[ixnode][iynode][iznode] =
             T_electron_first[ixnode][iynode][iznode];
-	  
-	  stability_criterion = 1.0 -
-	    2.0*inner_dt/el_specific_heat *
-	    (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
-	  if (stability_criterion < 0.0) {
-	    inner_dt = 0.25*el_specific_heat /
-	      (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
-	  }
-	  num_inner_timesteps = static_cast<unsigned int>(update->dt/inner_dt) + 1;
-	  inner_dt = update->dt/double(num_inner_timesteps);
-	  if (num_inner_timesteps > 1000000)
-	    error->warning(FLERR,"Too many inner timesteps in fix ttm",0);
-	  for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
-	       ith_inner_timestep++) {
-	    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-	      for (int iynode = 0; iynode < nynodes; iynode++)
-	        for (int iznode = 0; iznode < nznodes; iznode++)
-	          T_electron_old[ixnode][iynode][iznode] =
-	            T_electron[ixnode][iynode][iznode];
-	    // compute new electron T profile
-	    duration = duration + inner_dt;
-	    for (int ixnode = 0; ixnode < nxnodes; ixnode++)
-	      for (int iynode = 0; iynode < nynodes; iynode++)
-	        for (int iznode = 0; iznode < nznodes; iznode++) {
-	          int right_xnode = ixnode + 1;
-	          int right_ynode = iynode + 1;
-	          int right_znode = iznode + 1;
-	          if (right_xnode == nxnodes) right_xnode = 0;
-	          if (right_ynode == nynodes) right_ynode = 0;
-	          if (right_znode == nznodes) right_znode = 0;
-	          int left_xnode = ixnode - 1;
-	          int left_ynode = iynode - 1;
-	          int left_znode = iznode - 1;
-	          if (left_xnode == -1) left_xnode = nxnodes - 1;
-	          if (left_ynode == -1) left_ynode = nynodes - 1;
-	          if (left_znode == -1) left_znode = nznodes - 1;
-	          double skin_layer_d = double(skin_layer);
-	          double ixnode_d = double(ixnode);
-	          double surface_d = double(t_surface_l);
-	          mult_factor = 0.0;
-	          if (duration < width){
-	            if (ixnode >= t_surface_l) mult_factor = (intensity/(dx*skin_layer_d))*exp((-1.0)*(ixnode_d - surface_d)/skin_layer_d);
-	          }
-	          if (ixnode < t_surface_l) net_energy_transfer_all[ixnode][iynode][iznode] = 0.0;
-	          double cr_vac = 1;
-	          if (T_electron_old[ixnode][iynode][iznode] == 0) cr_vac = 0;
-	          double cr_v_l_x = 1;
-	          if (T_electron_old[left_xnode][iynode][iznode] == 0) cr_v_l_x = 0;
-	          double cr_v_r_x = 1;
-	          if (T_electron_old[right_xnode][iynode][iznode] == 0) cr_v_r_x = 0;
-	          double cr_v_l_y = 1;
-	          if (T_electron_old[ixnode][left_ynode][iznode] == 0) cr_v_l_y = 0;
-	          double cr_v_r_y = 1;
-	          if (T_electron_old[ixnode][right_ynode][iznode] == 0) cr_v_r_y = 0;
-	          double cr_v_l_z = 1;
-	          if (T_electron_old[ixnode][iynode][left_znode] == 0) cr_v_l_z = 0;
-	          double cr_v_r_z = 1;
-	          if (T_electron_old[ixnode][iynode][right_znode] == 0) cr_v_r_z = 0;
-	          if (cr_vac != 0) {
-	            T_electron[ixnode][iynode][iznode] =
-	              T_electron_old[ixnode][iynode][iznode] +
-	              inner_dt/el_properties(T_electron_old[ixnode][iynode][iznode]).el_heat_capacity *
-	              ((cr_v_r_x*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[right_xnode][iynode][iznode]/2.0).el_thermal_conductivity*
-	                (T_electron_old[right_xnode][iynode][iznode]-T_electron_old[ixnode][iynode][iznode])/dx -
-	                cr_v_l_x*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[left_xnode][iynode][iznode]/2.0).el_thermal_conductivity*
-	                (T_electron_old[ixnode][iynode][iznode]-T_electron_old[left_xnode][iynode][iznode])/dx)/dx +
-	               (cr_v_r_y*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][right_ynode][iznode]/2.0).el_thermal_conductivity*
-	                (T_electron_old[ixnode][right_ynode][iznode]-T_electron_old[ixnode][iynode][iznode])/dy -
-	                cr_v_l_y*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][left_ynode][iznode]/2.0).el_thermal_conductivity*
-	                (T_electron_old[ixnode][iynode][iznode]-T_electron_old[ixnode][left_ynode][iznode])/dy)/dy +
-	               (cr_v_r_z*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][iynode][right_znode]/2.0).el_thermal_conductivity*
-	                (T_electron_old[ixnode][iynode][right_znode]-T_electron_old[ixnode][iynode][iznode])/dz -
-	                cr_v_l_z*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][iynode][left_znode]/2.0).el_thermal_conductivity*
-	                (T_electron_old[ixnode][iynode][iznode]-T_electron_old[ixnode][iynode][left_znode])/dz)/dz);
-	            T_electron[ixnode][iynode][iznode]+=inner_dt/el_properties(T_electron[ixnode][iynode][iznode]).el_heat_capacity*
-	              (mult_factor -
-	               net_energy_transfer_all[ixnode][iynode][iznode]/del_vol);
-	          }
-	          else T_electron[ixnode][iynode][iznode] =
-	                 T_electron_old[ixnode][iynode][iznode];
-	          if ((T_electron[ixnode][iynode][iznode] > 0.0) && (T_electron[ixnode][iynode][iznode] < electron_temperature_min))
-	            T_electron[ixnode][iynode][iznode] = T_electron[ixnode][iynode][iznode] + 0.5*(electron_temperature_min - T_electron[ixnode][iynode][iznode]);
-	          
-	          if (el_properties(T_electron[ixnode][iynode][iznode]).el_thermal_conductivity > el_thermal_conductivity)
-	            el_thermal_conductivity = el_properties(T_electron[ixnode][iynode][iznode]).el_thermal_conductivity;
-	          if ((T_electron[ixnode][iynode][iznode] > 0.0) && (el_properties(T_electron[ixnode][iynode][iznode]).el_heat_capacity < el_specific_heat))
+
+      stability_criterion = 1.0 -
+        2.0*inner_dt/el_specific_heat *
+        (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
+      if (stability_criterion < 0.0) {
+        inner_dt = 0.25*el_specific_heat /
+          (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
+      }
+      num_inner_timesteps = static_cast<unsigned int>(update->dt/inner_dt) + 1;
+      inner_dt = update->dt/double(num_inner_timesteps);
+      if (num_inner_timesteps > 1000000)
+        error->warning(FLERR,"Too many inner timesteps in fix ttm/mod",0);
+      for (int ith_inner_timestep = 0; ith_inner_timestep < num_inner_timesteps;
+           ith_inner_timestep++) {
+        for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+          for (int iynode = 0; iynode < nynodes; iynode++)
+            for (int iznode = 0; iznode < nznodes; iznode++)
+              T_electron_old[ixnode][iynode][iznode] =
+                T_electron[ixnode][iynode][iznode];
+        // compute new electron T profile
+        duration = duration + inner_dt;
+        for (int ixnode = 0; ixnode < nxnodes; ixnode++)
+          for (int iynode = 0; iynode < nynodes; iynode++)
+            for (int iznode = 0; iznode < nznodes; iznode++) {
+              int right_xnode = ixnode + 1;
+              int right_ynode = iynode + 1;
+              int right_znode = iznode + 1;
+              if (right_xnode == nxnodes) right_xnode = 0;
+              if (right_ynode == nynodes) right_ynode = 0;
+              if (right_znode == nznodes) right_znode = 0;
+              int left_xnode = ixnode - 1;
+              int left_ynode = iynode - 1;
+              int left_znode = iznode - 1;
+              if (left_xnode == -1) left_xnode = nxnodes - 1;
+              if (left_ynode == -1) left_ynode = nynodes - 1;
+              if (left_znode == -1) left_znode = nznodes - 1;
+              double skin_layer_d = double(skin_layer);
+              double ixnode_d = double(ixnode);
+              double surface_d = double(t_surface_l);
+              mult_factor = 0.0;
+              if (duration < width){
+                if (ixnode >= t_surface_l) mult_factor = (intensity/(dx*skin_layer_d))*exp((-1.0)*(ixnode_d - surface_d)/skin_layer_d);
+              }
+              if (ixnode < t_surface_l) net_energy_transfer_all[ixnode][iynode][iznode] = 0.0;
+              double cr_vac = 1;
+              if (T_electron_old[ixnode][iynode][iznode] == 0) cr_vac = 0;
+              double cr_v_l_x = 1;
+              if (T_electron_old[left_xnode][iynode][iznode] == 0) cr_v_l_x = 0;
+              double cr_v_r_x = 1;
+              if (T_electron_old[right_xnode][iynode][iznode] == 0) cr_v_r_x = 0;
+              double cr_v_l_y = 1;
+              if (T_electron_old[ixnode][left_ynode][iznode] == 0) cr_v_l_y = 0;
+              double cr_v_r_y = 1;
+              if (T_electron_old[ixnode][right_ynode][iznode] == 0) cr_v_r_y = 0;
+              double cr_v_l_z = 1;
+              if (T_electron_old[ixnode][iynode][left_znode] == 0) cr_v_l_z = 0;
+              double cr_v_r_z = 1;
+              if (T_electron_old[ixnode][iynode][right_znode] == 0) cr_v_r_z = 0;
+              if (cr_vac != 0) {
+                T_electron[ixnode][iynode][iznode] =
+                  T_electron_old[ixnode][iynode][iznode] +
+                  inner_dt/el_properties(T_electron_old[ixnode][iynode][iznode]).el_heat_capacity *
+                  ((cr_v_r_x*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[right_xnode][iynode][iznode]/2.0).el_thermal_conductivity*
+                    (T_electron_old[right_xnode][iynode][iznode]-T_electron_old[ixnode][iynode][iznode])/dx -
+                    cr_v_l_x*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[left_xnode][iynode][iznode]/2.0).el_thermal_conductivity*
+                    (T_electron_old[ixnode][iynode][iznode]-T_electron_old[left_xnode][iynode][iznode])/dx)/dx +
+                   (cr_v_r_y*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][right_ynode][iznode]/2.0).el_thermal_conductivity*
+                    (T_electron_old[ixnode][right_ynode][iznode]-T_electron_old[ixnode][iynode][iznode])/dy -
+                    cr_v_l_y*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][left_ynode][iznode]/2.0).el_thermal_conductivity*
+                    (T_electron_old[ixnode][iynode][iznode]-T_electron_old[ixnode][left_ynode][iznode])/dy)/dy +
+                   (cr_v_r_z*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][iynode][right_znode]/2.0).el_thermal_conductivity*
+                    (T_electron_old[ixnode][iynode][right_znode]-T_electron_old[ixnode][iynode][iznode])/dz -
+                    cr_v_l_z*el_properties(T_electron_old[ixnode][iynode][iznode]/2.0+T_electron_old[ixnode][iynode][left_znode]/2.0).el_thermal_conductivity*
+                    (T_electron_old[ixnode][iynode][iznode]-T_electron_old[ixnode][iynode][left_znode])/dz)/dz);
+                T_electron[ixnode][iynode][iznode]+=inner_dt/el_properties(T_electron[ixnode][iynode][iznode]).el_heat_capacity*
+                  (mult_factor -
+                   net_energy_transfer_all[ixnode][iynode][iznode]/del_vol);
+              }
+              else T_electron[ixnode][iynode][iznode] =
+                     T_electron_old[ixnode][iynode][iznode];
+              if ((T_electron[ixnode][iynode][iznode] > 0.0) && (T_electron[ixnode][iynode][iznode] < electron_temperature_min))
+                T_electron[ixnode][iynode][iznode] = T_electron[ixnode][iynode][iznode] + 0.5*(electron_temperature_min - T_electron[ixnode][iynode][iznode]);
+
+              if (el_properties(T_electron[ixnode][iynode][iznode]).el_thermal_conductivity > el_thermal_conductivity)
+                el_thermal_conductivity = el_properties(T_electron[ixnode][iynode][iznode]).el_thermal_conductivity;
+              if ((T_electron[ixnode][iynode][iznode] > 0.0) && (el_properties(T_electron[ixnode][iynode][iznode]).el_heat_capacity < el_specific_heat))
                 el_specific_heat = el_properties(T_electron[ixnode][iynode][iznode]).el_heat_capacity;
-	        }
-	  }
-	  stability_criterion = 1.0 -
-	    2.0*inner_dt/el_specific_heat *
-	    (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
-	    	  
-	} while (stability_criterion < 0.0);
+            }
+      }
+      stability_criterion = 1.0 -
+        2.0*inner_dt/el_specific_heat *
+        (el_thermal_conductivity*(1.0/dx/dx + 1.0/dy/dy + 1.0/dz/dz));
+
+    } while (stability_criterion < 0.0);
   // output nodal temperatures for current timestep
   if ((nfileevery) && !(update->ntimestep % nfileevery)) {
     // compute atomic Ta for each grid point

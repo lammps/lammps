@@ -15,11 +15,11 @@
    Contributing author (triclinic) : Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "comm_brick.h"
 #include "comm_tiled.h"
 #include "universe.h"
@@ -51,10 +51,14 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
-CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp)
+CommBrick::CommBrick(LAMMPS *lmp) : Comm(lmp),
+  sendnum(NULL), recvnum(NULL), sendproc(NULL), recvproc(NULL), size_forward_recv(NULL),
+  size_reverse_send(NULL), size_reverse_recv(NULL), slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
+  cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL), sendlist(NULL), maxsendlist(NULL), buf_send(NULL), buf_recv(NULL)
 {
   style = 0;
   layout = LAYOUT_UNIFORM;
+  pbc_flag = NULL;
   init_buffers();
 }
 
@@ -77,6 +81,11 @@ CommBrick::~CommBrick()
 }
 
 /* ---------------------------------------------------------------------- */
+//IMPORTANT: we *MUST* pass "*oldcomm" to the Comm initializer here, as
+//           the code below *requires* that the (implicit) copy constructor
+//           for Comm is run and thus creating a shallow copy of "oldcomm".
+//           The call to Comm::copy_arrays() then converts the shallow copy
+//           into a deep copy of the class with the new layout.
 
 CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 {
@@ -85,7 +94,7 @@ CommBrick::CommBrick(LAMMPS *lmp, Comm *oldcomm) : Comm(*oldcomm)
 
   style = 0;
   layout = oldcomm->layout;
-  copy_arrays(oldcomm);
+  Comm::copy_arrays(oldcomm);
   init_buffers();
 }
 
@@ -172,9 +181,13 @@ void CommBrick::setup()
 
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++)
-        cutghostmulti[i][0] = cutghostmulti[i][1] = cutghostmulti[i][2] =
-          cuttype[i];
+      for (i = 1; i <= ntypes; i++) {
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
+      }
     }
 
   } else {
@@ -193,9 +206,11 @@ void CommBrick::setup()
     if (mode == MULTI) {
       double *cuttype = neighbor->cuttype;
       for (i = 1; i <= ntypes; i++) {
-        cutghostmulti[i][0] = cuttype[i] * length0;
-        cutghostmulti[i][1] = cuttype[i] * length1;
-        cutghostmulti[i][2] = cuttype[i] * length2;
+        cut = 0.0;
+        if (cutusermulti) cut = cutusermulti[i];
+        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
+        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
       }
     }
   }
@@ -641,11 +656,13 @@ void CommBrick::exchange()
     if (procgrid[dim] == 1) nrecv = 0;
     else {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
-                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
+                   &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,
+                   MPI_STATUS_IGNORE);
       nrecv = nrecv1;
       if (procgrid[dim] > 2) {
         MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
+                     &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,
+                     MPI_STATUS_IGNORE);
         nrecv += nrecv2;
       }
       if (nrecv > maxrecv) grow_recv(nrecv);
@@ -812,7 +829,8 @@ void CommBrick::borders()
 
       if (sendproc[iswap] != me) {
         MPI_Sendrecv(&nsend,1,MPI_INT,sendproc[iswap],0,
-                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,MPI_STATUS_IGNORE);
+                     &nrecv,1,MPI_INT,recvproc[iswap],0,world,
+                     MPI_STATUS_IGNORE);
         if (nrecv*size_border > maxrecv) grow_recv(nrecv*size_border);
         if (nrecv) MPI_Irecv(buf_recv,nrecv*size_border,MPI_DOUBLE,
                              recvproc[iswap],0,world,&request);
@@ -1015,7 +1033,51 @@ void CommBrick::reverse_comm_fix(Fix *fix, int size)
       if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       buf = buf_recv;
     } else buf = buf_send;
-    
+
+    // unpack buffer
+
+    fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Fix with variable size data
+   query fix for pack size to insure buf_send is big enough
+   handshake sizes before each Irecv/Send to insure buf_recv is big enough
+------------------------------------------------------------------------- */
+
+void CommBrick::reverse_comm_fix_variable(Fix *fix)
+{
+  int iswap,nsend,nrecv;
+  double *buf;
+  MPI_Request request;
+
+  for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // pack buffer
+
+    nsend = fix->pack_reverse_comm_size(recvnum[iswap],firstrecv[iswap]);
+    if (nsend > maxsend) grow_send(nsend,0);
+    nsend = fix->pack_reverse_comm(recvnum[iswap],firstrecv[iswap],buf_send);
+
+    // exchange with another proc
+    // if self, set recv buffer to send buffer
+
+    if (sendproc[iswap] != me) {
+      MPI_Sendrecv(&nsend,1,MPI_INT,recvproc[iswap],0,
+                   &nrecv,1,MPI_INT,sendproc[iswap],0,world,
+                   MPI_STATUS_IGNORE);
+      if (sendnum[iswap]) {
+        if (nrecv > maxrecv) grow_recv(nrecv);
+        MPI_Irecv(buf_recv,maxrecv,MPI_DOUBLE,sendproc[iswap],0,
+                  world,&request);
+      }
+      if (recvnum[iswap])
+        MPI_Send(buf_send,nsend,MPI_DOUBLE,recvproc[iswap],0,world);
+      if (sendnum[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
+      buf = buf_recv;
+    } else buf = buf_send;
+
     // unpack buffer
 
     fix->unpack_reverse_comm(sendnum[iswap],sendlist[iswap],buf);
@@ -1040,7 +1102,7 @@ void CommBrick::forward_comm_compute(Compute *compute)
     // pack buffer
 
     n = compute->pack_forward_comm(sendnum[iswap],sendlist[iswap],
-                           buf_send,pbc_flag[iswap],pbc[iswap]);
+                                   buf_send,pbc_flag[iswap],pbc[iswap]);
 
     // exchange with another proc
     // if self, set recv buffer to send buffer
@@ -1246,7 +1308,7 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
   // loop over dimensions
 
   for (int dim = 0; dim < 3; dim++) {
-    
+
     // no exchange if only one proc in a dimension
 
     if (procgrid[dim] == 1) continue;
@@ -1261,17 +1323,18 @@ int CommBrick::exchange_variable(int n, double *inbuf, double *&outbuf)
     nrecv += nrecv1;
     if (procgrid[dim] > 2) {
       MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][1],0,
-                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,MPI_STATUS_IGNORE);
+                   &nrecv2,1,MPI_INT,procneigh[dim][0],0,world,
+                   MPI_STATUS_IGNORE);
       nrecv += nrecv2;
     } else nrecv2 = 0;
 
     if (nrecv > maxrecv) grow_recv(nrecv);
-    
+
     MPI_Irecv(&buf_recv[nsend],nrecv1,MPI_DOUBLE,procneigh[dim][1],0,
               world,&request);
     MPI_Send(buf_recv,nsend,MPI_DOUBLE,procneigh[dim][0],0,world);
     MPI_Wait(&request,MPI_STATUS_IGNORE);
-    
+
     if (procgrid[dim] > 2) {
       MPI_Irecv(&buf_recv[nsend+nrecv1],nrecv2,MPI_DOUBLE,procneigh[dim][0],0,
                 world,&request);
@@ -1403,6 +1466,7 @@ void CommBrick::free_multi()
 {
   memory->destroy(multilo);
   memory->destroy(multihi);
+  multilo = multihi = NULL;
 }
 
 /* ----------------------------------------------------------------------

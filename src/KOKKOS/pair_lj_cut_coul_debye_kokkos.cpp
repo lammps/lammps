@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_debye_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -128,8 +128,6 @@ void PairLJCutCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairLJCutCoulDebyeKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
-
-  DeviceType::fence();
 
   if (eflag) {
     eng_vdwl += ev.evdwl;
@@ -369,7 +367,10 @@ double PairLJCutCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCutCoulDebyeKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCutCoulDebyeKokkos<LMPHostType>;
 #endif
+}
+

@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -274,9 +272,9 @@ struct DefaultBinOp1D {
   typename KeyViewType::const_value_type min_;
 
   //Construct BinOp with number of bins, minimum value and maxuimum value
-  DefaultBinOp1D(int max_bins, typename KeyViewType::const_value_type min,
+  DefaultBinOp1D(int max_bins__, typename KeyViewType::const_value_type min,
                                typename KeyViewType::const_value_type max )
-     :max_bins_(max_bins+1),mul_(1.0*max_bins/(max-min)),range_(max-min),min_(min) {}
+     :max_bins_(max_bins__+1),mul_(1.0*max_bins__/(max-min)),range_(max-min),min_(min) {}
 
   //Determine bin index from key value
   template<class ViewType>
@@ -306,15 +304,15 @@ struct DefaultBinOp3D {
   typename KeyViewType::non_const_value_type range_[3];
   typename KeyViewType::non_const_value_type min_[3];
 
-  DefaultBinOp3D(int max_bins[], typename KeyViewType::const_value_type min[],
+  DefaultBinOp3D(int max_bins__[], typename KeyViewType::const_value_type min[],
                                typename KeyViewType::const_value_type max[] )
   {
-    max_bins_[0] = max_bins[0]+1;
-    max_bins_[1] = max_bins[1]+1;
-    max_bins_[2] = max_bins[2]+1;
-    mul_[0] = 1.0*max_bins[0]/(max[0]-min[0]);
-    mul_[1] = 1.0*max_bins[1]/(max[1]-min[1]);
-    mul_[2] = 1.0*max_bins[2]/(max[2]-min[2]);
+    max_bins_[0] = max_bins__[0]+1;
+    max_bins_[1] = max_bins__[1]+1;
+    max_bins_[2] = max_bins__[2]+1;
+    mul_[0] = 1.0*max_bins__[0]/(max[0]-min[0]);
+    mul_[1] = 1.0*max_bins__[1]/(max[1]-min[1]);
+    mul_[2] = 1.0*max_bins__[2]/(max[2]-min[2]);
     range_[0] = max[0]-min[0];
     range_[1] = max[1]-min[1];
     range_[2] = max[2]-min[2];
@@ -449,8 +447,20 @@ struct min_max_functor {
 template<class ViewType>
 bool try_std_sort(ViewType view) {
   bool possible = true;
+#if ! KOKKOS_USING_EXP_VIEW
   size_t stride[8];
   view.stride(stride);
+#else
+  size_t stride[8] = { view.stride_0()
+                     , view.stride_1()
+                     , view.stride_2()
+                     , view.stride_3()
+                     , view.stride_4()
+                     , view.stride_5()
+                     , view.stride_6()
+                     , view.stride_7()
+                     };
+#endif
   possible  = possible && Impl::is_same<typename ViewType::memory_space, HostSpace>::value;
   possible  = possible && (ViewType::Rank == 1);
   possible  = possible && (stride[0] == 1);

@@ -17,8 +17,8 @@
             "Parallel Unconstrained Min", Plantenga, SAND98-8201
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "atom.h"
 #include "fix_minimize.h"
 #include "min_hftn.h"
@@ -42,12 +42,12 @@ using namespace LAMMPS_NS;
 
 //---- CONSTANTS MAP TO stopstrings DECLARED IN Min.run (min.cpp).
 
-static const int  STOP_MAX_ITER = 0;          //-- MAX ITERATIONS EXCEEDED
-static const int  STOP_MAX_FORCE_EVALS = 1;   //-- MAX FORCE EVALUATIONS EXCEEDED
-static const int  STOP_ENERGY_TOL = 2;        //-- STEP DID NOT CHANGE ENERGY
-static const int  STOP_FORCE_TOL = 3;         //-- CONVERGED TO DESIRED FORCE TOL
-static const int  STOP_TR_TOO_SMALL = 8;      //-- TRUST REGION TOO SMALL
-static const int  STOP_ERROR = 9;             //-- INTERNAL ERROR
+static const int  STOP_MAX_ITER = Min::MAXITER;        //-- MAX ITERATIONS EXCEEDED
+static const int  STOP_MAX_FORCE_EVALS = Min::MAXEVAL; //-- MAX FORCE EVALUATIONS EXCEEDED
+static const int  STOP_ENERGY_TOL = Min::ETOL;         //-- STEP DID NOT CHANGE ENERGY
+static const int  STOP_FORCE_TOL = Min::FTOL;          //-- CONVERGED TO DESIRED FORCE TOL
+static const int  STOP_TR_TOO_SMALL = Min::TRSMALL;    //-- TRUST REGION TOO SMALL
+static const int  STOP_ERROR = Min::INTERROR;          //-- INTERNAL ERROR
 
 static const int  NO_CGSTEP_BECAUSE_F_TOL_SATISFIED = 0;
 static const int  CGSTEP_NEWTON                     = 1;
@@ -138,8 +138,11 @@ void MinHFTN::setup_style()
   //---- ALLOCATE MEMORY FOR EXTRA GLOBAL DEGREES OF FREEDOM.
   //---- THE FIX MODULE TAKES CARE OF THE FIRST VECTOR, X0 (XK).
   if (nextra_global) {
-    for (int  i = 1; i < NUM_HFTN_ATOM_BASED_VECTORS; i++)
+    for (int  i = 1; i < NUM_HFTN_ATOM_BASED_VECTORS; i++) {
       _daExtraGlobal[i] = new double[nextra_global];
+      for (int  j = 0; j < nextra_global; j++)
+        _daExtraGlobal[i][j] = 0.0;
+    }
   }
 
   //---- ALLOCATE MEMORY FOR EXTRA PER-ATOM DEGREES OF FREEDOM.
@@ -292,6 +295,10 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
   double  dCurrentEnergy    = dInitialEnergy;
   double  dCurrentForce2    = dInitialForce2;
   for (niter = 0; niter < update->nsteps; niter++) {
+
+    if (timer->check_timeout(niter))
+      return(Min::TIMEOUT);
+
     (update->ntimestep)++;
 
     //---- CALL THE INNER LOOP TO GET THE NEXT TRUST REGION STEP.
@@ -535,7 +542,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       }
       timer->stamp();
       output->write (update->ntimestep);
-      timer->stamp (TIME_OUTPUT);
+      timer->stamp (Timer::OUTPUT);
     }
 
     //---- RETURN IF NUMBER OF EVALUATIONS EXCEEDED.

@@ -69,6 +69,10 @@ class Neighbor : protected Pointers {
   int nimproperlist;               // list of impropers to compute
   int **improperlist;
 
+  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
+
+  // methods
+
   Neighbor(class LAMMPS *);
   virtual ~Neighbor();
   virtual void init();
@@ -79,13 +83,14 @@ class Neighbor : protected Pointers {
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int topoflag=1);  // create all neighbor lists (pair,bond)
   virtual void build_topology();    // create all topology neighbor lists
-  void build_one(class NeighList *list, int preflag=0);  // create a single neighbor list
+  void build_one(class NeighList *list,
+                 int preflag=0);    // create a single one-time neigh list
   void set(int, char **);           // set neighbor style and skin distance
+  void reset_timestep(bigint);      // reset of timestep counter
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   int exclude_setting();
-
-  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
+  void exclusion_group_group_delete(int, int);  // rm a group-group exclusion
 
  protected:
   int me,nprocs;
@@ -170,6 +175,10 @@ class Neighbor : protected Pointers {
   int *glist;                  // lists to grow atom arrays every reneigh
   int *slist;                  // lists to grow stencil arrays every reneigh
 
+  double *zeroes;              // vector of zeroes for shear history init
+
+  // methods
+
   void bin_atoms();                     // bin all atoms
   double bin_distance(int, int, int);   // distance between binx
   int coord2bin(double *);              // mapping atom coord to a bin
@@ -187,6 +196,9 @@ class Neighbor : protected Pointers {
   virtual int init_lists_kokkos() {return 0;}
   virtual void init_list_flags1_kokkos(int) {}
   virtual void init_list_flags2_kokkos(int) {}
+  virtual void init_ex_type_kokkos(int) {}
+  virtual void init_ex_bit_kokkos() {}
+  virtual void init_ex_mol_bit_kokkos() {}
   virtual void init_list_grow_kokkos(int) {}
   virtual void build_kokkos(int) {}
   virtual void setup_bins_kokkos(int) {}
@@ -219,17 +231,12 @@ class Neighbor : protected Pointers {
   void full_bin_ghost(class NeighList *);
   void full_multi(class NeighList *);
 
-  void half_from_full_no_newton(class NeighList *);
-  void half_from_full_newton(class NeighList *);
-  void skip_from(class NeighList *);
-  void skip_from_granular(class NeighList *);
-  void skip_from_respa(class NeighList *);
-  void copy_from(class NeighList *);
-
   void granular_nsq_no_newton(class NeighList *);
   void granular_nsq_newton(class NeighList *);
+  void granular_nsq_newton_onesided(class NeighList *);
   void granular_bin_no_newton(class NeighList *);
   void granular_bin_newton(class NeighList *);
+  void granular_bin_newton_onesided(class NeighList *);
   void granular_bin_newton_tri(class NeighList *);
 
   void respa_nsq_no_newton(class NeighList *);
@@ -237,6 +244,15 @@ class Neighbor : protected Pointers {
   void respa_bin_no_newton(class NeighList *);
   void respa_bin_newton(class NeighList *);
   void respa_bin_newton_tri(class NeighList *);
+
+  void half_from_full_no_newton(class NeighList *);
+  void half_from_full_newton(class NeighList *);
+  void skip_from(class NeighList *);
+  void skip_from_granular(class NeighList *);
+  void skip_from_granular_off2on(class NeighList *);
+  void skip_from_granular_off2on_onesided(class NeighList *);
+  void skip_from_respa(class NeighList *);
+  void copy_from(class NeighList *);
 
   // include prototypes for multi-threaded neighbor lists
   // builds or their corresponding dummy versions
@@ -300,6 +316,13 @@ class Neighbor : protected Pointers {
   void improper_all();                // improper list with all impropers
   void improper_template();           // improper list with templated bonds
   void improper_partial();            // exclude certain impropers
+
+  // SSA neighboring for USER-DPD
+
+  void half_bin_newton_ssa(NeighList *);
+  void half_from_full_newton_ssa(class NeighList *);
+  void stencil_half_bin_2d_ssa(class NeighList *, int, int, int);
+  void stencil_half_bin_3d_ssa(class NeighList *, int, int, int);
 
   // find_special: determine if atom j is in special list of atom i
   // if it is not, return 0

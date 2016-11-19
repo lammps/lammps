@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "dump_xyz.h"
 #include "atom.h"
 #include "group.h"
@@ -26,7 +26,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
+DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
+  typenames(NULL)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xyz command");
   if (binary || multiproc) error->all(FLERR,"Invalid dump xyz filename");
@@ -68,9 +69,11 @@ DumpXYZ::~DumpXYZ()
 
 void DumpXYZ::init_style()
 {
+  // format = copy of default or user-specified line format
+
   delete [] format;
   char *str;
-  if (format_user) str = format_user;
+  if (format_line_user) str = format_line_user;
   else str = format_default;
 
   int n = strlen(str) + 2;

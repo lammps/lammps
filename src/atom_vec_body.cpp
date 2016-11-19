@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom_vec_body.h"
 #include "style_body.h"
 #include "body.h"
@@ -48,6 +48,7 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
   atom->body_flag = 1;
   atom->rmass_flag = 1;
   atom->angmom_flag = atom->torque_flag = 1;
+  atom->radius_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
   bonus = NULL;
@@ -103,7 +104,7 @@ void AtomVecBody::process_args(int narg, char **arg)
   // bptr values = max number of additional ivalues/dvalues from Body class
 
   size_forward = 7 + bptr->size_forward;
-  size_border = 16 + bptr->size_border;
+  size_border = 18 + bptr->size_border;
 }
 
 /* ----------------------------------------------------------------------
@@ -117,7 +118,7 @@ void AtomVecBody::grow(int n)
   if (n == 0) grow_nmax();
   else nmax = n;
   atom->nmax = nmax;
-  if (nmax < 0 || nmax > MAXSMALLINT)
+  if (nmax < 0)
     error->one(FLERR,"Per-processor system is too big");
 
   tag = memory->grow(atom->tag,nmax,"atom:tag");
@@ -128,6 +129,7 @@ void AtomVecBody::grow(int n)
   v = memory->grow(atom->v,nmax,3,"atom:v");
   f = memory->grow(atom->f,nmax*comm->nthreads,3,"atom:f");
 
+  radius = memory->grow(atom->radius,nmax,"atom:radius");
   rmass = memory->grow(atom->rmass,nmax,"atom:rmass");
   angmom = memory->grow(atom->angmom,nmax,3,"atom:angmom");
   torque = memory->grow(atom->torque,nmax*comm->nthreads,3,"atom:torque");
@@ -147,7 +149,8 @@ void AtomVecBody::grow_reset()
   tag = atom->tag; type = atom->type;
   mask = atom->mask; image = atom->image;
   x = atom->x; v = atom->v; f = atom->f;
-  rmass = atom->rmass; angmom = atom->angmom; torque = atom->torque;
+  radius = atom->radius; rmass = atom->rmass;
+  angmom = atom->angmom; torque = atom->torque;
   body = atom->body;
 }
 
@@ -158,7 +161,7 @@ void AtomVecBody::grow_reset()
 void AtomVecBody::grow_bonus()
 {
   nmax_bonus = grow_nmax_bonus(nmax_bonus);
-  if (nmax_bonus < 0 || nmax_bonus > MAXSMALLINT)
+  if (nmax_bonus < 0)
     error->one(FLERR,"Per-processor system is too big");
 
   bonus = (Bonus *) memory->srealloc(bonus,nmax_bonus*sizeof(Bonus),
@@ -183,6 +186,7 @@ void AtomVecBody::copy(int i, int j, int delflag)
   v[j][1] = v[i][1];
   v[j][2] = v[i][2];
 
+  radius[j] = radius[i];
   rmass[j] = rmass[i];
   angmom[j][0] = angmom[i][0];
   angmom[j][1] = angmom[i][1];
@@ -191,9 +195,10 @@ void AtomVecBody::copy(int i, int j, int delflag)
   // if deleting atom J via delflag and J has bonus data, then delete it
 
   if (delflag && body[j] >= 0) {
-    icp->put(bonus[body[j]].iindex);
-    dcp->put(bonus[body[j]].dindex);
-    copy_bonus(nlocal_bonus-1,body[j]);
+    int k = body[j];
+    icp->put(bonus[k].iindex);
+    dcp->put(bonus[k].dindex);
+    copy_bonus(nlocal_bonus-1,k);
     nlocal_bonus--;
   }
 
@@ -571,6 +576,8 @@ int AtomVecBody::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (body[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -606,6 +613,8 @@ int AtomVecBody::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (body[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -651,6 +660,8 @@ int AtomVecBody::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = ubuf(tag[j]).d;
       buf[m++] = ubuf(type[j]).d;
       buf[m++] = ubuf(mask[j]).d;
+      buf[m++] = radius[j];
+      buf[m++] = rmass[j];
       if (body[j] < 0) buf[m++] = ubuf(0).d;
       else {
         buf[m++] = ubuf(1).d;
@@ -693,6 +704,8 @@ int AtomVecBody::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
+        buf[m++] = radius[j];
+        buf[m++] = rmass[j];
         if (body[j] < 0) buf[m++] = ubuf(0).d;
         else {
           buf[m++] = ubuf(1).d;
@@ -777,6 +790,8 @@ int AtomVecBody::pack_border_hybrid(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
+    buf[m++] = radius[j];
+    buf[m++] = rmass[j];
     if (body[j] < 0) buf[m++] = ubuf(0).d;
     else {
       buf[m++] = ubuf(1).d;
@@ -814,6 +829,8 @@ void AtomVecBody::unpack_border(int n, int first, double *buf)
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     body[i] = (int) ubuf(buf[m++]).i;
     if (body[i] == 0) body[i] = -1;
     else {
@@ -862,6 +879,8 @@ void AtomVecBody::unpack_border_vel(int n, int first, double *buf)
     tag[i] = (tagint) ubuf(buf[m++]).i;
     type[i] = (int) ubuf(buf[m++]).i;
     mask[i] = (int) ubuf(buf[m++]).i;
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     body[i] = (int) ubuf(buf[m++]).i;
     if (body[i] == 0) body[i] = -1;
     else {
@@ -909,6 +928,8 @@ int AtomVecBody::unpack_border_hybrid(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
+    radius[i] = buf[m++];
+    rmass[i] = buf[m++];
     body[i] = (int) ubuf(buf[m++]).i;
     if (body[i] == 0) body[i] = -1;
     else {
@@ -954,7 +975,7 @@ int AtomVecBody::pack_exchange(int i, double *buf)
   buf[m++] = ubuf(type[i]).d;
   buf[m++] = ubuf(mask[i]).d;
   buf[m++] = ubuf(image[i]).d;
-
+  buf[m++] = radius[i];
   buf[m++] = rmass[i];
   buf[m++] = angmom[i][0];
   buf[m++] = angmom[i][1];
@@ -1008,7 +1029,7 @@ int AtomVecBody::unpack_exchange(double *buf)
   type[nlocal] = (int) ubuf(buf[m++]).i;
   mask[nlocal] = (int) ubuf(buf[m++]).i;
   image[nlocal] = (imageint) ubuf(buf[m++]).i;
-
+  radius[nlocal] = buf[m++];
   rmass[nlocal] = buf[m++];
   angmom[nlocal][0] = buf[m++];
   angmom[nlocal][1] = buf[m++];
@@ -1067,11 +1088,11 @@ int AtomVecBody::size_restart()
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++)
     if (body[i] >= 0) {
-      n += 25;
+      n += 26;
       if (intdoubleratio == 1) n += bonus[body[i]].ninteger;
       else n += (bonus[body[i]].ninteger+1)/2;
       n += bonus[body[i]].ndouble;
-    } else n += 16;
+    } else n += 17;
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
@@ -1101,6 +1122,7 @@ int AtomVecBody::pack_restart(int i, double *buf)
   buf[m++] = v[i][1];
   buf[m++] = v[i][2];
 
+  buf[m++] = radius[i];
   buf[m++] = rmass[i];
   buf[m++] = angmom[i][0];
   buf[m++] = angmom[i][1];
@@ -1161,6 +1183,7 @@ int AtomVecBody::unpack_restart(double *buf)
   v[nlocal][1] = buf[m++];
   v[nlocal][2] = buf[m++];
 
+  radius[nlocal] = buf[m++];
   rmass[nlocal] = buf[m++];
   angmom[nlocal][0] = buf[m++];
   angmom[nlocal][1] = buf[m++];
@@ -1228,6 +1251,7 @@ void AtomVecBody::create_atom(int itype, double *coord)
   v[nlocal][1] = 0.0;
   v[nlocal][2] = 0.0;
 
+  radius[nlocal] = 0.5;
   rmass[nlocal] = 1.0;
   angmom[nlocal][0] = 0.0;
   angmom[nlocal][1] = 0.0;
@@ -1274,6 +1298,7 @@ void AtomVecBody::data_atom(double *coord, imageint imagetmp, char **values)
   angmom[nlocal][0] = 0.0;
   angmom[nlocal][1] = 0.0;
   angmom[nlocal][2] = 0.0;
+  radius[nlocal] = 0.5;
 
   atom->nlocal++;
 }
@@ -1301,13 +1326,13 @@ int AtomVecBody::data_atom_hybrid(int nlocal, char **values)
    unpack one body from Bodies section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecBody::data_body(int m, int ninteger, int ndouble, 
-                             char **ivalues, char **dvalues)
+void AtomVecBody::data_body(int m, int ninteger, int ndouble,
+			    int *ivalues, double *dvalues)
 {
   if (body[m]) error->one(FLERR,"Assigning body parameters to non-body atom");
   if (nlocal_bonus == nmax_bonus) grow_bonus();
-  bptr->data_body(nlocal_bonus,ninteger,ndouble,ivalues,dvalues);
   bonus[nlocal_bonus].ilocal = m;
+  bptr->data_body(nlocal_bonus,ninteger,ndouble,ivalues,dvalues);
   body[m] = nlocal_bonus++;
 }
 
@@ -1449,6 +1474,29 @@ int AtomVecBody::write_vel_hybrid(FILE *fp, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   body computes its size based on ivalues/dvalues and returns it
+------------------------------------------------------------------------- */
+
+double AtomVecBody::radius_body(int ninteger, int ndouble,
+				int *ivalues, double *dvalues)
+{
+  return bptr->radius_body(ninteger,ndouble,ivalues,dvalues);
+}
+
+/* ----------------------------------------------------------------------
+   reset quat orientation for atom M to quat_external
+   called by Atom:add_molecule_atom()
+------------------------------------------------------------------------- */
+
+void AtomVecBody::set_quat(int m, double *quat_external)
+{
+  if (body[m] < 0) error->one(FLERR,"Assigning quat to non-body atom");
+  double *quat = bonus[body[m]].quat;
+  quat[0] = quat_external[0]; quat[1] = quat_external[1];
+  quat[2] = quat_external[2]; quat[3] = quat_external[3];
+}
+
+/* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
@@ -1464,9 +1512,10 @@ bigint AtomVecBody::memory_usage()
   if (atom->memcheck("v")) bytes += memory->usage(v,nmax,3);
   if (atom->memcheck("f")) bytes += memory->usage(f,nmax*comm->nthreads,3);
 
+  if (atom->memcheck("radius")) bytes += memory->usage(radius,nmax);
   if (atom->memcheck("rmass")) bytes += memory->usage(rmass,nmax);
   if (atom->memcheck("angmom")) bytes += memory->usage(angmom,nmax,3);
-  if (atom->memcheck("torque")) bytes += 
+  if (atom->memcheck("torque")) bytes +=
                                   memory->usage(torque,nmax*comm->nthreads,3);
   if (atom->memcheck("body")) bytes += memory->usage(body,nmax);
 
@@ -1496,8 +1545,8 @@ void AtomVecBody::check(int flag)
     }
   }
   for (int i = atom->nlocal; i < atom->nlocal+atom->nghost; i++) {
-    if (atom->body[i] >= 0 && 
-        (atom->body[i] < nlocal_bonus || 
+    if (atom->body[i] >= 0 &&
+        (atom->body[i] < nlocal_bonus ||
          atom->body[i] >= nlocal_bonus+nghost_bonus)) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD BBB");
@@ -1516,7 +1565,7 @@ void AtomVecBody::check(int flag)
     }
   }
   for (int i = nlocal_bonus; i < nlocal_bonus+nghost_bonus; i++) {
-    if (bonus[i].ilocal < atom->nlocal || 
+    if (bonus[i].ilocal < atom->nlocal ||
         bonus[i].ilocal >= atom->nlocal+atom->nghost) {
       printf("Proc %d, step %ld, flag %d\n",comm->me,update->ntimestep,flag);
       errorx->one(FLERR,"BAD EEE");

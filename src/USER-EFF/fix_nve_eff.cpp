@@ -15,17 +15,17 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_nve_eff.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
-#include "math.h"
+#include <math.h>
 #include "domain.h"
 
 using namespace LAMMPS_NS;

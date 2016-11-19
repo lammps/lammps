@@ -39,6 +39,12 @@ class Respa : public Integrate {
   int level_improper,level_pair,level_kspace;
   int level_inner,level_middle,level_outer;
 
+  int nhybrid_styles;     // number of hybrid pair styles
+  int *hybrid_level;      // level to compute pair hybrid sub-style at
+  int *hybrid_compute;    // selects whether to compute sub-style forces
+  int tally_global;       // 1 if pair style should tally global accumulators
+  int pair_compute;       // 1 if pair force need to be computed
+
   Respa(class LAMMPS *, int, char **);
   virtual ~Respa();
   virtual void init();
@@ -61,6 +67,7 @@ class Respa : public Integrate {
   virtual void recurse(int);
   void force_clear(int);
   void sum_flevel_f();
+  void set_compute_flags(int ilevel);
 };
 
 }
@@ -95,6 +102,12 @@ E: Cannot set respa middle without inner/outer
 
 In the rRESPA integrator, you must define both a inner and outer
 setting in order to use a middle setting.
+
+E: Cannot set respa hybrid and any of pair/inner/middle/outer
+
+In the rRESPA integrator, you must compute pairwise potentials either
+all together (pair), with different cutoff regions (inner/middle/outer),
+or per hybrid sub-style (hybrid).  You cannot mix those.
 
 E: Invalid order of forces within respa levels
 

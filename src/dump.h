@@ -14,8 +14,8 @@
 #ifndef LMP_DUMP_H
 #define LMP_DUMP_H
 
-#include "mpi.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -24,6 +24,7 @@ class Dump : protected Pointers {
  public:
   char *id;                  // user-defined name of Dump
   char *style;               // style of Dump
+  char *filename;            // user-specified file
   int igroup,groupbit;       // group that Dump is performed on
 
   int first_flag;            // 0 if no initial dump, 1 if yes initial dump
@@ -52,7 +53,6 @@ class Dump : protected Pointers {
  protected:
   int me,nprocs;             // proc info
 
-  char *filename;            // user-specified file
   int compressed;            // 1 if dump file is written compressed, 0 no
   int binary;                // 1 if dump file is written binary, 0 no
   int multifile;             // 0 = one big file, 1 = one file per timestep
@@ -71,15 +71,23 @@ class Dump : protected Pointers {
   int buffer_allow;          // 1 if style allows for buffer_flag, 0 if not
   int buffer_flag;           // 1 if buffer output as one big string, 0 if not
   int padflag;               // timestep padding in filename
+  int pbcflag;               // 1 if remap dumped atoms via PBC, 0 if not
   int singlefile_opened;     // 1 = one big file, already opened, else 0
   int sortcol;               // 0 to sort on ID, 1-N on columns
   int sortcolm1;             // sortcol - 1
   int sortorder;             // ASCEND or DESCEND
 
   char boundstr[9];          // encoding of boundary flags
-  char *format_default;      // default format string
-  char *format_user;         // format string set by user
+
   char *format;              // format string for the file write
+  char *format_default;      // default format string
+
+  char *format_line_user;    // user-specified format strings
+  char *format_float_user;
+  char *format_int_user;
+  char *format_bigint_user;
+  char **format_column_user;
+
   FILE *fp;                  // file to write dump to
   int size_one;              // # of quantities for one atom
   int nme;                   // # of atoms in this dump from me
@@ -109,6 +117,10 @@ class Dump : protected Pointers {
   tagint *idsort;
   int *index,*proclist;
 
+  double **xpbc,**vpbc;
+  imageint *imagepbc;
+  int maxpbc;
+
   class Irregular *irregular;
 
   virtual void init_style() = 0;
@@ -119,7 +131,8 @@ class Dump : protected Pointers {
   virtual void pack(tagint *) = 0;
   virtual int convert_string(int, double *) {return 0;}
   virtual void write_data(int, double *) = 0;
-
+  void pbc_allocate();
+    
   void sort();
   static int idcompare(const void *, const void *);
   static int bufcompare(const void *, const void *);
@@ -171,8 +184,7 @@ files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 E: Cannot open dump file
 
-The output file for the dump command cannot be opened.  Check that the
-path and name are correct.
+Self-explanatory.
 
 E: Illegal ... command
 

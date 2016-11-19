@@ -34,7 +34,7 @@ char Read_Control_File( char *control_file, control_params* control,
   FILE *fp;
   char *s, **tmp;
   int   i,ival;
-  real  val;
+  double  val;
 
   /* open control file */
   if ( (fp = fopen( control_file, "r" ) ) == NULL ) {

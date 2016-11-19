@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_shielded.h"
 #include "atom.h"
 #include "comm.h"
@@ -45,7 +45,7 @@ FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqShielded::init()
 {
-  if (!atom->q_flag) 
+  if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/shielded requires atom attribute q");
 
   ngroup = group->count(igroup);
@@ -64,7 +64,7 @@ void FixQEqShielded::init()
 
   int i;
   for (i = 1; i <= ntypes; i++) {
-    if (gamma[i] == 0.0) 
+    if (gamma[i] == 0.0)
       error->all(FLERR,"Invalid param file for fix qeq/shielded");
   }
 
@@ -219,7 +219,7 @@ void FixQEqShielded::compute_H()
 /* ---------------------------------------------------------------------- */
 
 double FixQEqShielded::calculate_H( double r, double gamma )
-{ 
+{
   double Taper, denom;
 
   Taper = Tap[7] * r + Tap[6];

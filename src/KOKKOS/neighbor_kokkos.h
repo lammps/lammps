@@ -158,8 +158,9 @@ class NeighborKokkosExecute
   KOKKOS_FUNCTION
   void build_Item(const int &i) const;
 
+  template<int HalfNeigh>
   KOKKOS_FUNCTION
-  void build_Item_Full_Ghost(const int &i) const;
+  void build_Item_Ghost(const int &i) const;
 
   template<int ClusterSize>
   KOKKOS_FUNCTION
@@ -280,10 +281,10 @@ struct NeighborKokkosBuildFunctor {
   const NeighborKokkosExecute<Device> c;
   const size_t sharedsize;
 
-  NeighborKokkosBuildFunctor(const NeighborKokkosExecute<Device> &_c, 
+  NeighborKokkosBuildFunctor(const NeighborKokkosExecute<Device> &_c,
                              const size_t _sharedsize):c(_c),
                              sharedsize(_sharedsize) {};
-  
+
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON>(i);
@@ -297,20 +298,20 @@ struct NeighborKokkosBuildFunctor {
 #endif
 };
 
-template<class Device>
-struct NeighborKokkosBuildFunctorFullGhost {
+template<class Device,int HALF_NEIGH>
+struct NeighborKokkosBuildFunctorGhost {
   typedef Device device_type;
 
   const NeighborKokkosExecute<Device> c;
   const size_t sharedsize;
 
-  NeighborKokkosBuildFunctorFullGhost(const NeighborKokkosExecute<Device> &_c, 
+  NeighborKokkosBuildFunctorGhost(const NeighborKokkosExecute<Device> &_c,
                              const size_t _sharedsize):c(_c),
                              sharedsize(_sharedsize) {};
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
-    c.build_Item_Full_Ghost(i);
+    c.template build_Item_Ghost<HALF_NEIGH>(i);
   }
 };
 
@@ -331,17 +332,17 @@ struct NeighborClusterKokkosBuildFunctor {
   }
 };
 
-template<class DeviceType> 
+template<class DeviceType>
 struct TagNeighborCheckDistance{};
 
-template<class DeviceType> 
+template<class DeviceType>
 struct TagNeighborXhold{};
 
 class NeighborKokkos : public Neighbor {
  public:
   typedef int value_type;
 
-  
+
 
   int nlist_host;                       // pairwise neighbor lists on Host
   NeighListKokkos<LMPHostType> **lists_host;
@@ -360,11 +361,11 @@ class NeighborKokkos : public Neighbor {
   ~NeighborKokkos();
   void init();
 
-  template<class DeviceType> 
+  template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborCheckDistance<DeviceType>, const int&, int&) const;
 
-  template<class DeviceType> 
+  template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborXhold<DeviceType>, const int&) const;
 
@@ -433,14 +434,14 @@ class NeighborKokkos : public Neighbor {
 
 /* ERROR/WARNING messages:
 
+E: KOKKOS package only supports 'bin' neighbor lists
+
+Self-explanatory.
+
 E: Too many local+ghost atoms for neighbor list
 
 The number of nlocal + nghost atoms on a processor
 is limited by the size of a 32-bit integer with 2 bits
 removed for masking 1-2, 1-3, 1-4 neighbors.
-
-E: Cannot (yet) request ghost atoms with Kokkos half neighbor list
-
-This feature is not yet supported.
 
 */

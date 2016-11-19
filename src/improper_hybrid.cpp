@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "ctype.h"
+#include <math.h>
+#include <string.h>
+#include <ctype.h>
 #include "improper_hybrid.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -76,7 +76,7 @@ void ImproperHybrid::compute(int eflag, int vflag)
     for (m = 0; m < nstyles; m++) nimproperlist[m] = 0;
     for (i = 0; i < nimproperlist_orig; i++) {
       m = map[improperlist_orig[i][4]];
-      nimproperlist[m]++;
+      if (m >= 0) nimproperlist[m]++;
     }
     for (m = 0; m < nstyles; m++) {
       if (nimproperlist[m] > maximproper[m]) {
@@ -155,6 +155,15 @@ void ImproperHybrid::allocate()
   for (int m = 0; m < nstyles; m++) maximproper[m] = 0;
   for (int m = 0; m < nstyles; m++) improperlist[m] = NULL;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void ImproperHybrid::init_style()
+{
+    for (int i = 0; i < nstyles; i++)
+      styles[i]->init_style();
+}
+
 
 /* ----------------------------------------------------------------------
    create one improper style for each arg in list
@@ -247,7 +256,7 @@ void ImproperHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nimpropertypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
 
   // 2nd arg = improper sub-style name
   // allow for "none" as valid sub-style name

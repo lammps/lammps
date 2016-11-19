@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_cut_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -113,8 +113,6 @@ void PairCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairCoulCutKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
-
-  DeviceType::fence();
 
   if (eflag) eng_coul += ev.ecoul;
   if (vflag_global) {
@@ -259,7 +257,10 @@ double PairCoulCutKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairCoulCutKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairCoulCutKokkos<LMPHostType>;
 #endif
+}
+

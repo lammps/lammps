@@ -37,8 +37,6 @@ class ComputeBodyLocal : public Compute {
   int *which,*index;
 
   int nmax;
-  double *vector;
-  double **array;
 
   class AtomVecBody *avec;
   class Body *bptr;

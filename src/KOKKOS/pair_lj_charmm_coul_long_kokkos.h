@@ -39,7 +39,6 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 
   void compute(int, int);
 
-  void settings(int, char **);
   void init_tables(double cut_coul, double *cut_respa);
   void init_style();
   double init_one(int, int);
@@ -75,7 +74,7 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,
-    Kokkos::LayoutRight,DeviceType>::t_dev_const params;
+    Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   // hardwired to space for 15 atom types
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
@@ -105,7 +104,7 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
   typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,
     d_ctable, d_dctable, d_etable, d_detable;
-  
+
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
@@ -147,5 +146,13 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+Self-explanatory.
+
+E: Cannot use chosen neighbor list style with lj/charmm/coul/long/kk
+
+Self-explanatory.
 
 */

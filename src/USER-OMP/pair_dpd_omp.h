@@ -40,6 +40,7 @@ class PairDPDOMP : public PairDPD, public ThrOMP {
 
  protected:
   class RanMars **random_thr;
+  int nthreads;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>

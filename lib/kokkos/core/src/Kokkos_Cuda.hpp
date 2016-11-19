@@ -2,10 +2,8 @@
 //@HEADER
 // ************************************************************************
 //
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 //
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -37,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -58,10 +56,13 @@
 #include <Kokkos_CudaSpace.hpp>
 
 #include <Kokkos_Parallel.hpp>
+#include <Kokkos_TaskPolicy.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Tags.hpp>
+
+#include <KokkosExp_MDRangePolicy.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -101,15 +102,16 @@ public:
   typedef CudaSpace             memory_space ;
 #endif
 
+  //! This execution space preferred device_type
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
+
   //! The size_type best suited for this execution space.
   typedef memory_space::size_type  size_type ;
 
   //! This execution space's preferred array layout.
   typedef LayoutLeft            array_layout ;
 
-  //! For backward compatibility
-  typedef Cuda                  device_type ;
-  //! 
+  //!
   typedef ScratchMemorySpace< Cuda >  scratch_memory_space ;
 
   //@}
@@ -161,6 +163,9 @@ public:
   //! Has been initialized
   static int is_initialized();
 
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency();
+
   //! Print configuration information to the given output stream.
   static void print_configuration( std::ostream & , const bool detail = false );
 
@@ -172,13 +177,10 @@ public:
   Cuda();
   explicit Cuda( const int instance_id );
 
-#if defined( KOKKOS_HAVE_CXX11 )
-  Cuda & operator = ( const Cuda & ) = delete ;
-#else
-private:
-  Cuda & operator = ( const Cuda & );
-public:
-#endif
+  Cuda( Cuda && ) = default ;
+  Cuda( const Cuda & ) = default ;
+  Cuda & operator = ( Cuda && ) = default ;
+  Cuda & operator = ( const Cuda & ) = default ;
 
   //--------------------------------------------------------------------------
   //! \name Device-specific functions
@@ -207,11 +209,16 @@ public:
    */
   static std::vector<unsigned> detect_device_arch();
 
+  cudaStream_t cuda_stream() const { return m_stream ; }
+  int          cuda_device() const { return m_device ; }
+
   //@}
   //--------------------------------------------------------------------------
 
-  const cudaStream_t m_stream ;
-  const int          m_device ;
+private:
+
+  cudaStream_t m_stream ;
+  int          m_device ;
 };
 
 } // namespace Kokkos
@@ -252,7 +259,11 @@ struct VerifyExecutionCanAccessMemorySpace
 
 #include <Cuda/Kokkos_CudaExec.hpp>
 #include <Cuda/Kokkos_Cuda_View.hpp>
+
+#include <Cuda/KokkosExp_Cuda_View.hpp>
+
 #include <Cuda/Kokkos_Cuda_Parallel.hpp>
+#include <Cuda/Kokkos_Cuda_Task.hpp>
 
 //----------------------------------------------------------------------------
 

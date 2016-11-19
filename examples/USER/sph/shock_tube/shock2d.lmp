@@ -13,17 +13,17 @@ set                region right type 2
 
 mass               1 1
 mass               2 0.25
-set                type 1 meso_e 2.5 # internal energy corresponding to p=1, rho=1
-set                type 2 meso_e 0.625 # internal energy corresponding to p=0.25, rho=0.25
-set                type 1 meso_rho 1.0
-set                type 2 meso_rho 0.25
+set                type 1 meso/e 2.5 # internal energy corresponding to p=1, rho=1
+set                type 2 meso/e 0.625 # internal energy corresponding to p=0.25, rho=0.25
+set                type 1 meso/rho 1.0
+set                type 2 meso/rho 0.25
 
 pair_style         hybrid/overlay sph/rhosum 1 sph/idealgas
 pair_coeff         * * sph/rhosum 4.0
 pair_coeff         * * sph/idealgas 0.75 4.0
 
-compute            rhoatom all meso_rho/atom
-compute            ieatom all meso_e/atom
+compute            rhoatom all meso/rho/atom
+compute            ieatom all meso/e/atom
 compute            emeso all reduce sum c_ieatom # total internal energy
 compute            ke all ke
 variable           etot equal c_ke+c_emeso # total energy

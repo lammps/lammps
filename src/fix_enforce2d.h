@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixEnforce2D : public Fix {
  public:
   FixEnforce2D(class LAMMPS *, int, char **);
+  ~FixEnforce2D();
   int setmask();
   void init();
   void setup(int);
@@ -34,6 +35,10 @@ class FixEnforce2D : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+
+ private:
+  int nfixlist;
+  class Fix **flist;
 };
 
 }

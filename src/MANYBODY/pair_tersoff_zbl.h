@@ -29,7 +29,7 @@ class PairTersoffZBL : public PairTersoff {
   PairTersoffZBL(class LAMMPS *);
   ~PairTersoffZBL() {}
 
- private:
+ protected:
   double global_a_0;                // Bohr radius for Coulomb repulsion
   double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion
   double global_e;                // proton charge (negative of electron charge)

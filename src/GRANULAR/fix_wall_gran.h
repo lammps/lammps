@@ -29,44 +29,59 @@ class FixWallGran : public Fix {
   FixWallGran(class LAMMPS *, int, char **);
   virtual ~FixWallGran();
   int setmask();
-  void init();
+  virtual void init();
   void setup(int);
   virtual void post_force(int);
   virtual void post_force_respa(int, int, int);
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  virtual double memory_usage();
+  virtual void grow_arrays(int);
+  virtual void copy_arrays(int, int, int);
+  virtual void set_arrays(int);
+  virtual int pack_exchange(int, double *);
+  virtual int unpack_exchange(int, double *);
+  virtual int pack_restart(int, double *);
+  virtual void unpack_restart(int, int);
+  virtual int size_restart(int);
+  virtual int maxsize_restart();
   void reset_dt();
-
- protected:
-  int wallstyle,pairstyle,wiggle,wshear,axis;
-  double kn,kt,gamman,gammat,xmu;
-  double lo,hi,cylradius;
-  double amplitude,period,omega,vshear;
-  double dt;
-  int nlevels_respa;
-  int time_origin;
-
-  int *touch;
-  double **shear;
-  int shearupdate;
 
   void hooke(double, double, double, double, double *,
              double *, double *, double *, double *, double, double);
   void hooke_history(double, double, double, double, double *,
                      double *, double *, double *, double *, double, double,
                      double *);
-  void hertz_history(double, double, double, double, double *,
+  void hertz_history(double, double, double, double, double *, double,
                      double *, double *, double *, double *, double, double,
                      double *);
+  void bonded_history(double, double, double, double, double *, double,
+                       double *, double *, double *, double *, double, double,
+                       double *);
+
+ protected:
+  int wallstyle,wiggle,wshear,axis;
+  int pairstyle,nlevels_respa;
+  bigint time_origin;
+  double kn,kt,gamman,gammat,xmu;
+  double E,G,SurfEnergy;
+  double lo,hi,cylradius;
+  double amplitude,period,omega,vshear;
+  double dt;
+  char *idregion;
+
+  int history;       // if particle/wall interaction stores history
+  int shearupdate;   // flag for whether shear history is updated
+  int sheardim;      // # of shear history values per contact
+
+  // shear history for single contact per particle
+
+  double **shearone;
+
+  // rigid body masses for use in granular interactions
+
+  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  double *mass_rigid;      // rigid mass for owned+ghost atoms
+  int nmax;                // allocated size of mass_rigid
 };
 
 }

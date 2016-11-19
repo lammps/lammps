@@ -12,15 +12,15 @@
 # If not, carry out the instructions in "README_setup.sh".
 #
 #  -- Instructions: --
-# If "lmp_linux" is the name of the command you use to invoke lammps,
+# If "lmp_mpi" is the name of the command you use to invoke lammps,
 # then you would run lammps on these files this way:
 
 
-lmp_linux -i run.in.npt  # minimization and simulation at constant pressure
-lmp_linux -i run.in.nvt  # simulation at constant volume
+lmp_mpi -i run.in.npt  # minimization and simulation at constant pressure
+lmp_mpi -i run.in.nvt  # simulation at constant volume
 
 
 # If you have compiled the MPI version of lammps, you can run lammps in parallel
-#mpirun -np 4 lmp_linux -i run.in.npt
-#mpirun -np 4 lmp_linux -i run.in.nvt
+#mpirun -np 4 lmp_mpi -i run.in.npt
+#mpirun -np 4 lmp_mpi -i run.in.nvt
 # (assuming you have 4 processors available)

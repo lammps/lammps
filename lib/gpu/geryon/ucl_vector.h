@@ -34,25 +34,25 @@ class UCL_Vector {
     ROW_MAJOR = 1,
     VECTOR = 1
   };
-  typedef hosttype data_type; 
+  typedef hosttype data_type;
 
   /// Host Allocation
   UCL_H_Vec<hosttype> host;
-  
+
   /// Device Allocation
   UCL_D_Vec<devtype> device;
-  
+
   UCL_Vector() { }
   ~UCL_Vector() { }
 
   /// Construct with n columns
   /** \sa alloc() **/
-  UCL_Vector(const size_t cols, UCL_Device &acc, 
+  UCL_Vector(const size_t cols, UCL_Device &acc,
              const enum UCL_MEMOPT kind1=UCL_READ_WRITE,
              const enum UCL_MEMOPT kind2=UCL_READ_WRITE)
     { _ucl_s_obj_help< ucl_same_type<hosttype,devtype>::ans >::
         alloc(host,device,_buffer,cols,acc,kind1,kind2); }
-  
+
   /// Set up the vector with 'cols' columns and reserve memory
   /** The kind1 parameter controls memory access from the host
     * - UCL_READ_WRITE - Specify that you will read and write from host
@@ -89,12 +89,12 @@ class UCL_Vector {
     * \return UCL_SUCCESS if the memory allocation is successful **/
   inline int alloc(const size_t cols, UCL_Device &acc,
                    const enum UCL_MEMOPT kind1=UCL_READ_WRITE,
-                   const enum UCL_MEMOPT kind2=UCL_READ_WRITE) 
+                   const enum UCL_MEMOPT kind2=UCL_READ_WRITE)
     { return _ucl_s_obj_help< ucl_same_type<hosttype,devtype>::ans >::
         alloc(host,device,_buffer,cols,acc,kind1,kind2); }
-  
+
   /// Free memory and set size to 0
-  inline void clear() 
+  inline void clear()
     { host.clear(); device.clear(); }
 
   /// Resize the allocation to contain cols elements
@@ -106,7 +106,7 @@ class UCL_Vector {
     return _ucl_s_obj_help< ucl_same_type<hosttype,devtype>::ans >::
       dev_resize(device,host,_buffer,cols);
   }
-    
+
   /// Resize (only if bigger) the allocation to contain cols elements
   inline int resize_ib(const int new_cols)
     { if (new_cols>cols()) return resize(new_cols); else return UCL_SUCCESS; }
@@ -117,14 +117,14 @@ class UCL_Vector {
   inline void zero(const int n) { zero(n,cq()); }
   /// Set each element to zero (asynchronously on device)
   inline void zero(command_queue &cq) {
-    host.zero(); 
+    host.zero();
     if (device.kind()!=UCL_VIEW) device.zero(cq);
     else if (_buffer.numel()>0) _buffer.zero();
   }
   /// Set first n elements to zero (asynchronously on device)
-  inline void zero(const int n, command_queue &cq) { 
-    host.zero(n); 
-    if (device.kind()!=UCL_VIEW) device.zero(n,cq); 
+  inline void zero(const int n, command_queue &cq) {
+    host.zero(n);
+    if (device.kind()!=UCL_VIEW) device.zero(n,cq);
     else if (_buffer.numel()>0) _buffer.zero();
   }
 
@@ -135,27 +135,27 @@ class UCL_Vector {
   /// Get the number of columns
   inline size_t cols() const { return host.cols(); }
   /// Get the memory usage (bytes) of the s-object (including any buffers)
-  inline size_t host_mem_usage() 
+  inline size_t host_mem_usage()
     { return host.row_bytes()+_buffer.row_bytes(); }
   /// Get the memory usage (bytes) of the s-object (including any buffers)
-  inline size_t device_mem_usage() 
+  inline size_t device_mem_usage()
     { return device.row_bytes(); }
-  
-  
+
+
   /// Get element at index i
   inline hosttype & operator[](const int i) { return host[i]; }
   /// Get element at index i
   inline const hosttype & operator[](const int i) const { return host[i]; }
-  /// 2D access (row should always be 0) 
-  inline hosttype & operator()(const int row, const int col) 
+  /// 2D access (row should always be 0)
+  inline hosttype & operator()(const int row, const int col)
     { return host[col]; }
-  /// 2D access (row should always be 0) 
+  /// 2D access (row should always be 0)
   inline const hosttype & operator()(const int row, const int col) const
     { return host[col]; }
-  
+
   /// Returns pointer to memory pointer for allocation on host
   inline hosttype ** host_ptr() { return host.host_ptr(); }
-  
+
   /// Return the default command queue/stream associated with this data
   inline command_queue & cq() { return host.cq(); }
   /// Change the default command queue associated with this data
@@ -172,7 +172,7 @@ class UCL_Vector {
 
 
   /// Update the allocation on the host asynchronously
-  inline void update_host() 
+  inline void update_host()
     { _ucl_s_obj_help< ucl_same_type<hosttype,devtype>::ans >::
         copy(host,device,_buffer,true); }
   /// Update the allocation on the host (true for asynchronous copy)
@@ -202,7 +202,7 @@ class UCL_Vector {
 
 
   /// Update the allocation on the device asynchronously
-  inline void update_device() 
+  inline void update_device()
     { _ucl_s_obj_help< ucl_same_type<hosttype,devtype>::ans >::
         copy(device,host,_buffer,true); }
   /// Update the allocation on the device (true for asynchronous copy)

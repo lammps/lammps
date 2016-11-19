@@ -22,7 +22,7 @@ CommandStyle(read_dump,ReadDump)
 #ifndef LMP_READ_DUMP_H
 #define LMP_READ_DUMP_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {

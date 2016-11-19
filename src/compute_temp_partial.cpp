@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <stdlib.h>
 #include "compute_temp_partial.h"
 #include "atom.h"
 #include "update.h"
@@ -41,6 +41,9 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
   xflag = force->inumeric(FLERR,arg[3]);
   yflag = force->inumeric(FLERR,arg[4]);
   zflag = force->inumeric(FLERR,arg[5]);
+  if ((xflag != 0 && xflag != 1) || (yflag != 0 && yflag != 1)
+      || (zflag != 0 && zflag != 1))
+    error->all(FLERR,"Illegal compute temp/partial command");
   if (zflag && domain->dimension == 2)
     error->all(FLERR,"Compute temp/partial cannot use vz for 2d systemx");
 
@@ -77,7 +80,10 @@ void ComputeTempPartial::dof_compute()
   natoms_temp = group->count(igroup);
   int nper = xflag+yflag+zflag;
   dof = nper * natoms_temp;
-  dof -= (1.0*nper/domain->dimension)*fix_dof + extra_dof;
+
+  // distribute extra dofs evenly across active dimensions
+
+  dof -= (1.0*nper/domain->dimension)*(fix_dof + extra_dof);
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -119,7 +125,7 @@ double ComputeTempPartial::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0) 
+  if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
@@ -189,7 +195,7 @@ void ComputeTempPartial::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
+  if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/partial:vbiasall");

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "compute_reduce.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +29,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{SUM,MINN,MAXX,AVE};
+enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ReduceRegion
 enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{PERATOM,LOCAL};
 
@@ -43,7 +43,10 @@ enum{PERATOM,LOCAL};
 /* ---------------------------------------------------------------------- */
 
 ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), flavor(NULL), 
+  value2index(NULL), ids(NULL), onevec(NULL), replace(NULL), indices(NULL), 
+  owner(NULL), idregion(NULL), varatom(NULL)
 {
   int iarg = 0;
   if (strcmp(style,"reduce") == 0) {
@@ -62,24 +65,36 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (strcmp(arg[iarg],"sum") == 0) mode = SUM;
+  else if (strcmp(arg[iarg],"sumsq") == 0) mode = SUMSQ;
   else if (strcmp(arg[iarg],"min") == 0) mode = MINN;
   else if (strcmp(arg[iarg],"max") == 0) mode = MAXX;
   else if (strcmp(arg[iarg],"ave") == 0) mode = AVE;
+  else if (strcmp(arg[iarg],"avesq") == 0) mode = AVESQ;
   else error->all(FLERR,"Illegal compute reduce command");
   iarg++;
 
   MPI_Comm_rank(world,&me);
 
-  // parse remaining values until one isn't recognized
+  // expand args if any have wildcard character "*"
 
-  which = new int[narg-4];
-  argindex = new int[narg-4];
-  flavor = new int[narg-4];
-  ids = new char*[narg-4];
-  value2index = new int[narg-4];
+  int expand = 0;
+  char **earg;
+  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+
+  if (earg != &arg[iarg]) expand = 1;
+  arg = earg;
+
+  // parse values until one isn't recognized
+
+  which = new int[nargnew];
+  argindex = new int[nargnew];
+  flavor = new int[nargnew];
+  ids = new char*[nargnew];
+  value2index = new int[nargnew];
   nvalues = 0;
 
-  while (iarg < narg) {
+  iarg = 0;
+  while (iarg < nargnew) {
     ids[nvalues] = NULL;
 
     if (strcmp(arg[iarg],"x") == 0) {
@@ -147,7 +162,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   replace = new int[nvalues];
   for (int i = 0; i < nvalues; i++) replace[i] = -1;
 
-  while (iarg < narg) {
+  while (iarg < nargnew) {
     if (strcmp(arg[iarg],"replace") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute reduce command");
       if (mode != MINN && mode != MAXX)
@@ -172,6 +187,13 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   if (!flag) {
     delete [] replace;
     replace = NULL;
+  }
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+
+  if (expand) {
+    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    memory->sfree(earg);
   }
 
   // setup and error check
@@ -257,14 +279,14 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   if (nvalues == 1) {
     scalar_flag = 1;
-    if (mode == SUM) extscalar = 1;
+    if (mode == SUM || mode == SUMSQ) extscalar = 1;
     else extscalar = 0;
     vector = onevec = NULL;
     indices = owner = NULL;
   } else {
     vector_flag = 1;
     size_vector = nvalues;
-    if (mode == SUM) extvector = 1;
+    if (mode == SUM || mode == SUMSQ) extvector = 1;
     else extvector = 0;
     vector = new double[size_vector];
     onevec = new double[size_vector];
@@ -342,13 +364,13 @@ double ComputeReduce::compute_scalar()
 
   double one = compute_one(0,-1);
 
-  if (mode == SUM) {
+  if (mode == SUM || mode == SUMSQ) {
     MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   } else if (mode == MINN) {
     MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MIN,world);
   } else if (mode == MAXX) {
     MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MAX,world);
-  } else if (mode == AVE) {
+  } else if (mode == AVE || mode == AVESQ) {
     MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
     bigint n = count(0);
     if (n) scalar /= n;
@@ -369,7 +391,7 @@ void ComputeReduce::compute_vector()
       indices[m] = index;
     }
 
-  if (mode == SUM) {
+  if (mode == SUM || mode == SUMSQ) {
     for (int m = 0; m < nvalues; m++)
       MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
 
@@ -417,7 +439,7 @@ void ComputeReduce::compute_vector()
         }
     }
 
-  } else if (mode == AVE) {
+  } else if (mode == AVE || mode == AVESQ) {
     for (int m = 0; m < nvalues; m++) {
       MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
       bigint n = count(m);
@@ -450,11 +472,9 @@ double ComputeReduce::compute_one(int m, int flag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  double one;
-  if (mode == SUM) one = 0.0;
-  else if (mode == MINN) one = BIG;
-  else if (mode == MAXX) one = -BIG;
-  else if (mode == AVE) one = 0.0;
+  double one = 0.0;
+  if (mode == MINN) one = BIG;
+  if (mode == MAXX) one = -BIG;
 
   if (which[m] == X) {
     double **x = atom->x;
@@ -574,7 +594,7 @@ double ComputeReduce::compute_one(int m, int flag)
   // evaluate atom-style variable
 
   } else if (which[m] == VARIABLE) {
-    if (nlocal > maxatom) {
+    if (atom->nmax > maxatom) {
       maxatom = atom->nmax;
       memory->destroy(varatom);
       memory->create(varatom,maxatom,"reduce:varatom");
@@ -633,6 +653,7 @@ bigint ComputeReduce::count(int m)
 void ComputeReduce::combine(double &one, double two, int i)
 {
   if (mode == SUM || mode == AVE) one += two;
+  else if (mode == SUMSQ || mode == AVESQ) one += two*two;
   else if (mode == MINN) {
     if (two < one) {
       one = two;

@@ -33,7 +33,7 @@ pair_coeff    15  15    0.02   3.0
 pair_coeff    16  16    0.02   3.0
   
 group cnt type 1
-group cnad type 2-16
+group cnad type 2:16
 
 displace_atoms cnad move 0 -7 0 units box
 special_bonds   charmm

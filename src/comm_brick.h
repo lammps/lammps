@@ -33,10 +33,12 @@ class CommBrick : public Comm {
 
   virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
   virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  virtual void forward_comm_fix(class Fix *, int size=0);  
+  virtual void forward_comm_fix(class Fix *, int size=0);
                                                    // forward comm from a Fix
   virtual void reverse_comm_fix(class Fix *, int size=0);
                                                    // reverse comm from a Fix
+  virtual void reverse_comm_fix_variable(class Fix *);
+                                     // variable size reverse comm from a Fix
   virtual void forward_comm_compute(class Compute *);  // forward from a Compute
   virtual void reverse_comm_compute(class Compute *);  // reverse from a Compute
   virtual void forward_comm_dump(class Dump *);    // forward comm from a Dump
@@ -73,7 +75,9 @@ class CommBrick : public Comm {
   int bufextra;                     // extra space beyond maxsend in send buffer
   int smax,rmax;             // max size in atoms of single borders send/recv
 
+  // NOTE: init_buffers is called from a constructor and must not be made virtual
   void init_buffers();
+
   int updown(int, int, int, double, int, double *);
                                             // compare cutoff to procs
   virtual void grow_send(int, int);         // reallocate send buffer

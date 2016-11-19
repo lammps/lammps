@@ -43,7 +43,7 @@ class FixWallRegion : public Fix {
   double epsilon,sigma,cutoff;
   int eflag;
   double ewall[4],ewall_all[4];
-  int nlevels_respa;
+  int ilevel_respa;
   char *idregion;
 
   double coeff1,coeff2,coeff3,coeff4,offset;
@@ -84,9 +84,9 @@ E: Fix wall/region colloid requires extended particles
 
 One of the particles has radius 0.0.
 
-E: Particle on or inside surface of region used in fix wall/region
+E: Particle outside surface of region used in fix wall/region
 
-Particles must be "exterior" to the region surface in order for
-energy/force to be calculated.
+Particles must be inside the region for energy/force to be calculated.
+A particle outside the region generates an error.
 
 */

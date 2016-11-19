@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -33,23 +33,23 @@ CGCMMT::CGCMM() : BaseAtomic<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-CGCMMT::~CGCMM() { 
+CGCMMT::~CGCMM() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int CGCMMT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int CGCMMT::init(const int ntypes, double **host_cutsq, 
-                          int **host_cg_type, double **host_lj1, 
-                          double **host_lj2, double **host_lj3, 
-                          double **host_lj4, double **host_offset, 
+int CGCMMT::init(const int ntypes, double **host_cutsq,
+                          int **host_cg_type, double **host_lj1,
+                          double **host_lj2, double **host_lj3,
+                          double **host_lj4, double **host_offset,
                           double *host_special_lj, const int nlocal,
                           const int nall, const int max_nbors,
-                          const int maxspecial, const double cell_size, 
+                          const int maxspecial, const double cell_size,
                           const double gpu_split, FILE *_screen) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
@@ -75,12 +75,12 @@ int CGCMMT::init(const int ntypes, double **host_cutsq,
     host_write[i]=0.0;
 
   lj1.alloc(cmm_types*cmm_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,cmm_types,lj1,host_write,host_cutsq, 
+  this->atom->type_pack4(ntypes,cmm_types,lj1,host_write,host_cutsq,
                          host_cg_type,host_lj1,host_lj2);
 
   lj3.alloc(cmm_types*cmm_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,cmm_types,lj3,host_write,host_lj3,host_lj4,
-		         host_offset);
+                         host_offset);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -126,7 +126,7 @@ void CGCMMT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -138,7 +138,7 @@ void CGCMMT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.run(&this->atom->x, &lj1, &lj3, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
-                          &vflag, &ainum, &nbor_pitch,  
+                          &vflag, &ainum, &nbor_pitch,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);

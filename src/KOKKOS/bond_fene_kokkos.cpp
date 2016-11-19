@@ -15,8 +15,8 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_fene_kokkos.h"
 #include "atom_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -379,7 +379,10 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class BondFENEKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class BondFENEKokkos<LMPHostType>;
 #endif
+}
+

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_class2_coul_long_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -138,8 +138,6 @@ void PairLJClass2CoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ev = pair_compute<PairLJClass2CoulLongKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-
-  DeviceType::fence();
 
   if (eflag) {
     eng_vdwl += ev.evdwl;
@@ -496,8 +494,10 @@ double PairLJClass2CoulLongKokkos<DeviceType>::init_one(int i, int j)
 }
 
 
-
+namespace LAMMPS_NS {
 template class PairLJClass2CoulLongKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJClass2CoulLongKokkos<LMPHostType>;
 #endif
+}
+

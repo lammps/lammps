@@ -11,12 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "ctype.h"
-#include "unistd.h"
+#include <mpi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <ctype.h>
+#include <unistd.h>
 #include "sys/stat.h"
 #include "input.h"
 #include "style_command.h"
@@ -26,6 +27,7 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
+#include "accelerator_kokkos.h"
 #include "group.h"
 #include "domain.h"
 #include "output.h"
@@ -35,6 +37,7 @@
 #include "min.h"
 #include "modify.h"
 #include "compute.h"
+#include "fix.h"
 #include "bond.h"
 #include "angle.h"
 #include "dihedral.h"
@@ -43,14 +46,14 @@
 #include "update.h"
 #include "neighbor.h"
 #include "special.h"
+#include "timer.h"
 #include "variable.h"
-#include "accelerator_cuda.h"
 #include "accelerator_kokkos.h"
 #include "error.h"
 #include "memory.h"
 
 #ifdef _OPENMP
-#include "omp.h"
+#include <omp.h>
 #endif
 
 #ifdef _WIN32
@@ -91,7 +94,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 
   // fill map with commands listed in style_command.h
 
-  command_map = new std::map<std::string,CommandCreator>();
+  command_map = new CommandCreatorMap();
 
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) \
@@ -104,7 +107,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   // check for args "-var" and "-echo"
   // caller has already checked that sufficient arguments exist
 
-  int iarg = 0;
+  int iarg = 1;
   while (iarg < argc) {
     if (strcmp(argv[iarg],"-var") == 0 || strcmp(argv[iarg],"-v") == 0) {
       int jarg = iarg+3;
@@ -149,13 +152,13 @@ Input::~Input()
 void Input::file()
 {
   int m,n;
-  
+
   while (1) {
-    
+
     // read a line from input script
     // n = length of line including str terminator, 0 if end of file
     // if line ends in continuation char '&', concatenate next line
-    
+
     if (me == 0) {
       m = 0;
       while (1) {
@@ -163,7 +166,7 @@ void Input::file()
 
 	// end of file reached, so break
 	// n == 0 if nothing read, else n = line with str terminator
-	
+
         if (fgets(&line[m],maxline-m,infile) == NULL) {
           if (m) n = strlen(line) + 1;
           else n = 0;
@@ -193,13 +196,13 @@ void Input::file()
         }
       }
     }
-    
+
     // bcast the line
     // if n = 0, end-of-file
     // error if label_active is set, since label wasn't encountered
     // if original input file, code is done
     // else go back to previous input file
-    
+
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n == 0) {
       if (label_active) error->all(FLERR,"Label wasn't found in input script");
@@ -215,29 +218,29 @@ void Input::file()
       if (me == 0) infile = infiles[nfile-1];
       continue;
     }
-    
+
     if (n > maxline) reallocate(line,maxline,n);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
-    
+
     // echo the command unless scanning for label
-    
+
     if (me == 0 && label_active == 0) {
       if (echo_screen && screen) fprintf(screen,"%s\n",line);
       if (echo_log && logfile) fprintf(logfile,"%s\n",line);
     }
-    
+
     // parse the line
     // if no command, skip to next line in input script
-    
+
     parse();
     if (command == NULL) continue;
-    
+
     // if scanning for label, skip command unless it's a label command
-    
+
     if (label_active && strcmp(command,"label") != 0) continue;
-    
+
     // execute the command
-    
+
     if (execute_command()) {
       char *str = new char[maxline+32];
       sprintf(str,"Unknown command: %s",line);
@@ -261,7 +264,7 @@ void Input::file(const char *filename)
     if (nfile > 1)
       error->one(FLERR,"Invalid use of library file() function");
 
-    if (infile && infile != stdin) fclose(infile); 
+    if (infile && infile != stdin) fclose(infile);
     infile = fopen(filename,"r");
     if (infile == NULL) {
       char str[128];
@@ -271,12 +274,13 @@ void Input::file(const char *filename)
     infiles[0] = infile;
     nfile = 1;
   }
-  
+
   file();
 }
 
 /* ----------------------------------------------------------------------
-   copy command in single to line, parse and execute it
+   invoke one command in single
+   first copy to line, then parse, then execute it
    return command name to caller
 ------------------------------------------------------------------------- */
 
@@ -285,32 +289,32 @@ char *Input::one(const char *single)
   int n = strlen(single) + 1;
   if (n > maxline) reallocate(line,maxline,n);
   strcpy(line,single);
-  
+
   // echo the command unless scanning for label
-  
+
   if (me == 0 && label_active == 0) {
     if (echo_screen && screen) fprintf(screen,"%s\n",line);
     if (echo_log && logfile) fprintf(logfile,"%s\n",line);
   }
-  
+
   // parse the line
   // if no command, just return NULL
-  
+
   parse();
   if (command == NULL) return NULL;
-  
+
   // if scanning for label, skip command unless it's a label command
-  
+
   if (label_active && strcmp(command,"label") != 0) return NULL;
-  
+
   // execute the command and return its name
-  
+
   if (execute_command()) {
     char *str = new char[maxline+32];
     sprintf(str,"Unknown command: %s",line);
     error->all(FLERR,str);
   }
-  
+
   return command;
 }
 
@@ -327,11 +331,11 @@ char *Input::one(const char *single)
 void Input::parse()
 {
   // duplicate line into copy string to break into words
-  
+
   int n = strlen(line) + 1;
   if (n > maxcopy) reallocate(copy,maxcopy,n);
   strcpy(copy,line);
-  
+
   // strip any # comment by replacing it with 0
   // do not strip from a # inside single/double/triple quotes
   // quoteflag = 1,2,3 when encounter first single/double,triple quote
@@ -361,22 +365,22 @@ void Input::parse()
     }
     ptr++;
   }
-  
+
   // perform $ variable substitution (print changes)
   // except if searching for a label since earlier variable may not be defined
-  
+
   if (!label_active) substitute(copy,work,maxcopy,maxwork,1);
-  
+
   // command = 1st arg in copy string
-  
+
   char *next;
   command = nextword(copy,&next);
   if (command == NULL) return;
-  
+
   // point arg[] at each subsequent arg in copy string
   // nextword() inserts string terminators into copy string to delimit args
   // nextword() treats text between single/double/triple quotes as one arg
-  
+
   narg = 0;
   ptr = next;
   while (ptr) {
@@ -405,12 +409,12 @@ void Input::parse()
 char *Input::nextword(char *str, char **next)
 {
   char *start,*stop;
-  
+
   // start = first non-whitespace char
 
   start = &str[strspn(str," \t\n\v\f\r")];
   if (*start == '\0') return NULL;
-  
+
   // if start is single/double/triple quote:
   //   start = first char beyond quote
   //   stop = first char of matching quote
@@ -462,45 +466,45 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
   //   if $ is followed by '{', trailing '}' becomes NULL
   //   else $x becomes x followed by NULL
   // beyond = points to text following variable
-  
+
   int i,n,paren_count;
   char immediate[256];
   char *var,*value,*beyond;
   int quoteflag = 0;
   char *ptr = str;
-  
+
   n = strlen(str) + 1;
   if (n > max2) reallocate(str2,max2,n);
   *str2 = '\0';
   char *ptr2 = str2;
-  
+
   while (*ptr) {
 
     // variable substitution
-    
+
     if (*ptr == '$' && !quoteflag) {
 
       // value = ptr to expanded variable
       // variable name between curly braces, e.g. ${a}
-      
+
       if (*(ptr+1) == '{') {
         var = ptr+2;
         i = 0;
-        
+
         while (var[i] != '\0' && var[i] != '}') i++;
-        
+
         if (var[i] == '\0') error->one(FLERR,"Invalid variable name");
         var[i] = '\0';
         beyond = ptr + strlen(var) + 3;
         value = variable->retrieve(var);
-        
+
       // immediate variable between parenthesis, e.g. $(1/2)
-        
+
       } else if (*(ptr+1) == '(') {
         var = ptr+2;
         paren_count = 0;
         i = 0;
-        
+
         while (var[i] != '\0' && !(var[i] == ')' && paren_count == 0)) {
           switch (var[i]) {
           case '(': paren_count++; break;
@@ -509,15 +513,15 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
           }
           i++;
         }
-        
+
         if (var[i] == '\0') error->one(FLERR,"Invalid immediate variable");
         var[i] = '\0';
         beyond = ptr + strlen(var) + 3;
         sprintf(immediate,"%.20g",variable->compute_equal(var));
         value = immediate;
-        
+
         // single character variable name, e.g. $a
-        
+
       } else {
         var = ptr;
         var[0] = var[1];
@@ -525,25 +529,25 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         beyond = ptr + 2;
         value = variable->retrieve(var);
       }
-      
+
       if (value == NULL) error->one(FLERR,"Substitution for illegal variable");
-      
+
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
-      
+
       n = strlen(str2) + strlen(value) + strlen(beyond) + 1;
       if (n > max2) reallocate(str2,max2,n);
       strcat(str2,value);
       ptr2 = str2 + strlen(str2);
       ptr = beyond;
-      
+
       // output substitution progress if requested
-      
+
       if (flag && me == 0 && label_active == 0) {
         if (echo_screen && screen) fprintf(screen,"%s%s\n",str2,beyond);
         if (echo_log && logfile) fprintf(logfile,"%s%s\n",str2,beyond);
       }
-      
+
       continue;
     }
 
@@ -556,7 +560,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 	quoteflag = 3;
 	*ptr2++ = *ptr++;
 	*ptr2++ = *ptr++;
-      } 
+      }
       else if (*ptr == '"') quoteflag = 2;
       else if (*ptr == '\'') quoteflag = 1;
     } else {
@@ -570,16 +574,151 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
     }
 
     // copy current character into str2
-    
+
     *ptr2++ = *ptr++;
     *ptr2 = '\0';
   }
-  
+
   // set length of input str to length of work str2
   // copy work string back to input str
-  
+
   if (max2 > max) reallocate(str,max,max2);
   strcpy(str,str2);
+}
+
+/* ----------------------------------------------------------------------
+   expand arg to earg, for arguments with syntax c_ID[*] or f_ID[*]
+   fields to consider in input arg range from iarg to narg
+   return new expanded # of values, and copy them w/out "*" into earg
+   if any expansion occurs, earg is new allocation, must be freed by caller
+   if no expansion occurs, earg just points to arg, caller need not free
+------------------------------------------------------------------------- */
+
+int Input::expand_args(int narg, char **arg, int mode, char **&earg)
+{
+  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
+  char *ptr1,*ptr2,*str;
+
+  ptr1 = NULL;
+  for (iarg = 0; iarg < narg; iarg++) {
+    ptr1 = strchr(arg[iarg],'*');
+    if (ptr1) break;
+  }
+
+  if (!ptr1) {
+    earg = arg;
+    return narg;
+  }
+
+  // maxarg should always end up equal to newarg, so caller can free earg
+
+  int maxarg = narg-iarg;
+  earg = (char **) memory->smalloc(maxarg*sizeof(char *),"input:earg");
+
+  int newarg = 0;
+  for (iarg = 0; iarg < narg; iarg++) {
+    expandflag = 0;
+
+    if (strncmp(arg[iarg],"c_",2) == 0 ||
+        strncmp(arg[iarg],"f_",2) == 0) {
+
+      ptr1 = strchr(&arg[iarg][2],'[');
+      if (ptr1) {
+	ptr2 = strchr(ptr1,']');
+	if (ptr2) {
+	  *ptr2 = '\0';
+	  if (strchr(ptr1,'*')) {
+	    if (arg[iarg][0] == 'c') {
+	      *ptr1 = '\0';
+	      icompute = modify->find_compute(&arg[iarg][2]);
+	      *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+	      if (icompute >= 0) {
+		if (mode == 0 && modify->compute[icompute]->vector_flag) {
+		  nmax = modify->compute[icompute]->size_vector;
+		  expandflag = 1;
+		} else if (mode == 1 && modify->compute[icompute]->array_flag) {
+		  nmax = modify->compute[icompute]->size_array_cols;
+		  expandflag = 1;
+                } else if (modify->compute[icompute]->peratom_flag && 
+                           modify->compute[icompute]->size_peratom_cols) {
+		  nmax = modify->compute[icompute]->size_peratom_cols;
+		  expandflag = 1;
+                } else if (modify->compute[icompute]->local_flag && 
+                           modify->compute[icompute]->size_local_cols) {
+		  nmax = modify->compute[icompute]->size_local_cols;
+		  expandflag = 1;
+		}
+	      }	      
+	    } else if (arg[iarg][0] == 'f') {
+	      *ptr1 = '\0';
+	      ifix = modify->find_fix(&arg[iarg][2]);
+	      *ptr1 = '[';
+
+              // check for global vector/array, peratom array, local array
+
+	      if (ifix >= 0) {
+		if (mode == 0 && modify->fix[ifix]->vector_flag) {
+		  nmax = modify->fix[ifix]->size_vector;
+		  expandflag = 1;
+		} else if (mode == 1 && modify->fix[ifix]->array_flag) {
+		  nmax = modify->fix[ifix]->size_array_cols;
+		  expandflag = 1;
+                } else if (modify->fix[ifix]->peratom_flag && 
+                           modify->fix[ifix]->size_peratom_cols) {
+		  nmax = modify->fix[ifix]->size_peratom_cols;
+		  expandflag = 1;
+                } else if (modify->fix[ifix]->local_flag && 
+                           modify->fix[ifix]->size_local_cols) {
+		  nmax = modify->fix[ifix]->size_local_cols;
+		  expandflag = 1;
+		}
+	      }
+	    }
+	  }
+	  *ptr2 = ']';
+	}
+      }
+    }
+
+    if (expandflag) {
+      *ptr2 = '\0';
+      force->bounds(FLERR,ptr1+1,nmax,nlo,nhi);
+      *ptr2 = ']';
+      if (newarg+nhi-nlo+1 > maxarg) {
+	maxarg += nhi-nlo+1;
+	earg = (char **) 
+          memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      for (index = nlo; index <= nhi; index++) {
+	n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
+	str = earg[newarg] = new char[n];
+	strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
+	sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
+	strcat(str,ptr2);
+        newarg++;
+      }
+
+    } else {
+      if (newarg == maxarg) {
+	maxarg++;
+	earg = (char **) 
+          memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
+      }
+      n = strlen(arg[iarg]) + 1;
+      earg[newarg] = new char[n];
+      strcpy(earg[newarg],arg[iarg]);
+      newarg++;
+    }
+  }
+
+  //printf("NEWARG %d\n",newarg);
+  //for (int i = 0; i < newarg; i++)
+  //  printf("  arg %d: %s\n",i,earg[i]);
+
+  return newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -608,7 +747,7 @@ void Input::reallocate(char *&str, int &max, int n)
   if (n) {
     while (n > max) max += DELTALINE;
   } else max += DELTALINE;
-  
+
   str = (char *) memory->srealloc(str,max*sizeof(char),"input:str");
 }
 
@@ -620,7 +759,7 @@ void Input::reallocate(char *&str, int &max, int n)
 int Input::execute_command()
 {
   int flag = 1;
-  
+
   if (!strcmp(command,"clear")) clear();
   else if (!strcmp(command,"echo")) echo();
   else if (!strcmp(command,"if")) ifthenelse();
@@ -635,13 +774,14 @@ int Input::execute_command()
   else if (!strcmp(command,"quit")) quit();
   else if (!strcmp(command,"shell")) shell();
   else if (!strcmp(command,"variable")) variable_command();
-  
+
   else if (!strcmp(command,"angle_coeff")) angle_coeff();
   else if (!strcmp(command,"angle_style")) angle_style();
   else if (!strcmp(command,"atom_modify")) atom_modify();
   else if (!strcmp(command,"atom_style")) atom_style();
   else if (!strcmp(command,"bond_coeff")) bond_coeff();
   else if (!strcmp(command,"bond_style")) bond_style();
+  else if (!strcmp(command,"bond_write")) bond_write();
   else if (!strcmp(command,"boundary")) boundary();
   else if (!strcmp(command,"box")) box();
   else if (!strcmp(command,"comm_modify")) comm_modify();
@@ -685,27 +825,28 @@ int Input::execute_command()
   else if (!strcmp(command,"thermo_modify")) thermo_modify();
   else if (!strcmp(command,"thermo_style")) thermo_style();
   else if (!strcmp(command,"timestep")) timestep();
+  else if (!strcmp(command,"timer")) timer_command();
   else if (!strcmp(command,"uncompute")) uncompute();
   else if (!strcmp(command,"undump")) undump();
   else if (!strcmp(command,"unfix")) unfix();
   else if (!strcmp(command,"units")) units();
-  
+
   else flag = 0;
-  
+
   // return if command was listed above
-  
+
   if (flag) return 0;
-  
+
   // invoke commands added via style_command.h
-  
+
   if (command_map->find(command) != command_map->end()) {
     CommandCreator command_creator = (*command_map)[command];
     command_creator(lmp,narg,arg);
     return 0;
   }
-  
+
   // unrecognized command
-  
+
   return -1;
 }
 
@@ -731,7 +872,7 @@ void Input::clear()
   if (narg > 0) error->all(FLERR,"Illegal clear command");
   lmp->destroy();
   lmp->create();
-  lmp->post_create(0,NULL,NULL,NULL);
+  lmp->post_create();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -882,7 +1023,7 @@ void Input::include()
   // NOTE: this check will fail if a 2nd if command was inside the if command
   //       and came before the include
 
-  if (ifthenelse_flag) 
+  if (ifthenelse_flag)
     error->all(FLERR,"Cannot use include command within an if command");
 
   if (me == 0) {
@@ -991,7 +1132,7 @@ void Input::partition()
   else error->all(FLERR,"Illegal partition command");
 
   int ilo,ihi;
-  force->bounds(arg[1],universe->nworlds,ilo,ihi);
+  force->bounds(FLERR,arg[1],universe->nworlds,ilo,ihi);
 
   // copy original line to copy, since will use strtok() on it
   // ptr = start of 4th word
@@ -1037,6 +1178,7 @@ void Input::print()
     if (strcmp(arg[iarg],"file") == 0 || strcmp(arg[iarg],"append") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
       if (me == 0) {
+        if (fp != NULL) fclose(fp);
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == NULL) {
@@ -1076,54 +1218,103 @@ void Input::python()
 
 void Input::quit()
 {
-  if (narg) error->all(FLERR,"Illegal quit command");
-  error->done();
+  if (narg == 0) error->done(0); // 1 would be fully backwards compatible
+  if (narg == 1) error->done(force->inumeric(FLERR,arg[0]));
+  error->all(FLERR,"Illegal quit command");
 }
 
 /* ---------------------------------------------------------------------- */
 
+char *shell_failed_message(const char* cmd, int errnum)
+{
+  const char *errmsg = strerror(errnum);
+  int len = strlen(cmd)+strlen(errmsg)+64;
+  char *msg = new char[len];
+  sprintf(msg,"Shell command '%s' failed with error '%s'", cmd, errmsg);
+  return msg;
+}
+
 void Input::shell()
 {
+  int rv,err;
+
   if (narg < 1) error->all(FLERR,"Illegal shell command");
 
   if (strcmp(arg[0],"cd") == 0) {
     if (narg != 2) error->all(FLERR,"Illegal shell cd command");
-    chdir(arg[1]);
+    rv = (chdir(arg[1]) < 0) ? errno : 0;
+    MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
+    if (me == 0 && err != 0) {
+      char *message = shell_failed_message("cd",err);
+      error->warning(FLERR,message);
+      delete [] message;
+    }
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
     if (me == 0)
       for (int i = 1; i < narg; i++) {
 #if defined(_WIN32)
-        _mkdir(arg[i]);
+        rv = _mkdir(arg[i]);
 #else
-        mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);
+        rv = mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);
 #endif
+        if (rv < 0) {
+          char *message = shell_failed_message("mkdir",errno);
+          error->warning(FLERR,message);
+          delete [] message;
+        }
       }
 
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");
-    if (me == 0) rename(arg[1],arg[2]);
+    rv = (rename(arg[1],arg[2]) < 0) ? errno : 0;
+    MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
+    if (me == 0 && err != 0) {
+      char *message = shell_failed_message("mv",err);
+      error->warning(FLERR,message);
+      delete [] message;
+    }
 
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
     if (me == 0)
-      for (int i = 1; i < narg; i++) unlink(arg[i]);
+      for (int i = 1; i < narg; i++) {
+        if (unlink(arg[i]) < 0) {
+          char *message = shell_failed_message("rm",errno);
+          error->warning(FLERR,message);
+          delete [] message;
+        }
+      }
 
   } else if (strcmp(arg[0],"rmdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rmdir command");
     if (me == 0)
-      for (int i = 1; i < narg; i++) rmdir(arg[i]);
+      for (int i = 1; i < narg; i++) {
+        if (rmdir(arg[i]) < 0) {
+          char *message = shell_failed_message("rmdir",errno);
+          error->warning(FLERR,message);
+          delete [] message;
+        }
+      }
 
   } else if (strcmp(arg[0],"putenv") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
     for (int i = 1; i < narg; i++) {
       char *ptr = strdup(arg[i]);
-#ifdef _WIN32 
-      if (ptr != NULL) _putenv(ptr);
+      rv = 0;
+#ifdef _WIN32
+      if (ptr != NULL) rv = _putenv(ptr);
 #else
-      if (ptr != NULL) putenv(ptr);
+      if (ptr != NULL) rv = putenv(ptr);
 #endif
+      rv = (rv < 0) ? errno : 0;
+      MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
+      if (me == 0 && err != 0) {
+        char *message = shell_failed_message("putenv",err);
+        error->warning(FLERR,message);
+        delete [] message;
+      }
     }
 
   // use work string to concat args back into one string separated by spaces
@@ -1140,7 +1331,9 @@ void Input::shell()
       strcat(work,arg[i]);
     }
 
-    if (me == 0) system(work);
+    if (me == 0)
+      if (system(work) != 0)
+        error->warning(FLERR,"Shell command returned with non-zero status");
   }
 }
 
@@ -1226,6 +1419,17 @@ void Input::bond_style()
 
 /* ---------------------------------------------------------------------- */
 
+void Input::bond_write()
+{
+  if (atom->avec->bonds_allow == 0)
+    error->all(FLERR,"Bond_write command when no bonds allowed");
+  if (force->bond == NULL)
+    error->all(FLERR,"Bond_write command before bond_style is defined");
+  else force->bond->write_file(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Input::boundary()
 {
   if (domain->box_exist)
@@ -1262,7 +1466,10 @@ void Input::comm_style()
   } else if (strcmp(arg[0],"tiled") == 0) {
     if (comm->style == 1) return;
     Comm *oldcomm = comm;
-    comm = new CommTiled(lmp,oldcomm);
+
+    if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
+    else comm = new CommTiled(lmp,oldcomm);
+
     delete oldcomm;
   } else error->all(FLERR,"Illegal comm_style command");
 }
@@ -1420,7 +1627,7 @@ void Input::mass()
   if (narg != 2) error->all(FLERR,"Illegal mass command");
   if (domain->box_exist == 0)
     error->all(FLERR,"Mass command before simulation box is defined");
-  atom->set_mass(narg,arg);
+  atom->set_mass(FLERR,narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1500,13 +1707,7 @@ void Input::package()
   // same checks for packages existing as in LAMMPS::post_create()
   // since can be invoked here by package command in input script
 
-  if (strcmp(arg[0],"cuda") == 0) {
-    if (lmp->cuda == NULL || lmp->cuda->cuda_exists == 0)
-      error->all(FLERR,
-                 "Package cuda command without USER-CUDA package enabled");
-    lmp->cuda->accelerator(narg-1,&arg[1]);
-
-  } else if (strcmp(arg[0],"gpu") == 0) {
+  if (strcmp(arg[0],"gpu") == 0) {
     if (!modify->check_package("GPU"))
       error->all(FLERR,"Package gpu command without GPU package installed");
 
@@ -1549,13 +1750,6 @@ void Input::package()
     for (int i = 1; i < narg; i++) fixarg[i+2] = arg[i];
     modify->add_fix(2+narg,fixarg);
     delete [] fixarg;
-
-    // set integrator = verlet/intel
-    // -sf intel does same thing in Update constructor via suffix
-
-    char *str;
-    str = (char *) "verlet/intel";
-    update->create_integrate(1,&str,0);
 
   } else error->all(FLERR,"Illegal package command");
 }
@@ -1695,7 +1889,7 @@ void Input::special_bonds()
 
 void Input::suffix()
 {
-  if (narg != 1) error->all(FLERR,"Illegal suffix command");
+  if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
   if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
   else if (strcmp(arg[0],"on") == 0) lmp->suffix_enable = 1;
@@ -1703,17 +1897,21 @@ void Input::suffix()
     lmp->suffix_enable = 1;
 
     delete [] lmp->suffix;
-    int n = strlen(arg[0]) + 1;
-    lmp->suffix = new char[n];
-    strcpy(lmp->suffix,arg[0]);
+    delete [] lmp->suffix2;
 
-    // set 2nd suffix = "omp" when suffix = "intel"
-    // but only if USER-OMP package is installed
-
-    if (strcmp(lmp->suffix,"intel") == 0 && modify->check_package("OMP")) {
-      delete [] lmp->suffix2;
-      lmp->suffix2 = new char[4];
-      strcpy(lmp->suffix2,"omp");
+    if (strcmp(arg[0],"hybrid") == 0) {
+      if (narg != 3) error->all(FLERR,"Illegal suffix command");
+      int n = strlen(arg[1]) + 1;
+      lmp->suffix = new char[n];
+      strcpy(lmp->suffix,arg[1]);
+      n = strlen(arg[2]) + 1;
+      lmp->suffix2 = new char[n];
+      strcpy(lmp->suffix2,arg[2]);
+    } else {
+      if (narg != 1) error->all(FLERR,"Illegal suffix command");
+      int n = strlen(arg[0]) + 1;
+      lmp->suffix = new char[n];
+      strcpy(lmp->suffix,arg[0]);
     }
   }
 }
@@ -1737,6 +1935,13 @@ void Input::thermo_modify()
 void Input::thermo_style()
 {
   output->create_thermo(narg,arg);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::timer_command()
+{
+  timer->modify_params(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

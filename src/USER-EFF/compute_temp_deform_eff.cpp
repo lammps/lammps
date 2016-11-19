@@ -15,10 +15,10 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_temp_deform_eff.h"
 #include "domain.h"
 #include "atom.h"
@@ -174,7 +174,7 @@ double ComputeTempDeformEff::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0) 
+  if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
@@ -264,7 +264,7 @@ void ComputeTempDeformEff::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
+  if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/deform/eff:vbiasall");

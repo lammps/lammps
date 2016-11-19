@@ -19,10 +19,10 @@
 // due to OpenMPI bug which sets INT64_MAX via its mpi.h
 //   before lmptype.h can set flags to insure it is done correctly
 
-#include "lmptype.h" 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include "lmptype.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "read_dump.h"
 #include "reader.h"
 #include "style_reader.h"
@@ -707,7 +707,9 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 int ReadDump::whichtype(char *str)
 {
   int type = -1;
-  if (strcmp(str,"x") == 0) type = X;
+  if (strcmp(str,"id") == 0) type = ID;
+  else if (strcmp(str,"type") == 0) type = TYPE;
+  else if (strcmp(str,"x") == 0) type = X;
   else if (strcmp(str,"y") == 0) type = Y;
   else if (strcmp(str,"z") == 0) type = Z;
   else if (strcmp(str,"vx") == 0) type = VX;
@@ -810,8 +812,8 @@ void ReadDump::process_atoms(int n)
 
       if (!wrapped) xbox = ybox = zbox = 0;
 
-      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
-        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }
@@ -839,6 +841,7 @@ void ReadDump::process_atoms(int n)
     // create type and coord fields from dump file
     // coord = 0.0 unless corresponding dump file field was specified
 
+    itype = 0;
     one[0] = one[1] = one[2] = 0.0;
     for (ifield = 1; ifield < nfield; ifield++) {
       switch (fieldtype[ifield]) {
@@ -899,33 +902,15 @@ void ReadDump::process_atoms(int n)
 
       // replace image flag in case changed by ix,iy,iz fields
 
-      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) | 
-        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) | 
+      image[m] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+        (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
   }
 
-  // invoke set_arrays() for fixes/computes/variables
-  //   that need initialization of attributes of new atoms
-  // same as in CreateAtoms
-  // don't use modify->create_attributes() since would be inefficient
-  //   for large number of atoms
-
-  nlocal = atom->nlocal;
-  for (int m = 0; m < modify->nfix; m++) {
-    Fix *fix = modify->fix[m];
-    if (fix->create_attribute)
-      for (i = nlocal_previous; i < nlocal; i++)
-        fix->set_arrays(i);
-  }
-  for (int m = 0; m < modify->ncompute; m++) {
-    Compute *compute = modify->compute[m];
-    if (compute->create_attribute)
-      for (i = nlocal_previous; i < nlocal; i++)
-        compute->set_arrays(i);
-  }
-  for (int i = nlocal_previous; i < nlocal; i++)
-    input->variable->set_arrays(i);
+  // init per-atom fix/compute/variable values for created atoms
+  
+  atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------

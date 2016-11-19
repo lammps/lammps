@@ -36,9 +36,9 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include "limits.h"
-#include "stdint.h"
-#include "inttypes.h"
+#include <limits.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 // grrr - IBM Power6 does not provide this def in their system header files
 
@@ -89,6 +89,7 @@ typedef int64_t bigint;
 #define MAXBIGINT INT64_MAX
 
 #define MPI_LMP_TAGINT MPI_INT
+#define MPI_LMP_IMAGEINT MPI_INT
 #define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%d"
@@ -120,6 +121,7 @@ typedef int64_t bigint;
 #define MAXBIGINT INT64_MAX
 
 #define MPI_LMP_TAGINT MPI_LL
+#define MPI_LMP_IMAGEINT MPI_LL
 #define MPI_LMP_BIGINT MPI_LL
 
 #define TAGINT_FORMAT "%" PRId64
@@ -150,6 +152,7 @@ typedef int bigint;
 #define MAXBIGINT INT_MAX
 
 #define MPI_LMP_TAGINT MPI_INT
+#define MPI_LMP_IMAGEINT MPI_INT
 #define MPI_LMP_BIGINT MPI_INT
 
 #define TAGINT_FORMAT "%d"
@@ -196,6 +199,8 @@ typedef int bigint;
 #else
 #define _noalias
 #endif
+
+#define ISFINITE(x) isfinite(x)
 
 // settings to enable LAMMPS to build under Windows
 

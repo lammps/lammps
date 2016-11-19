@@ -3,6 +3,10 @@
 
 mode=$1
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 # arg1 = file, arg2 = file it depends on
 
 action () {
@@ -77,6 +81,8 @@ action pair_lj_class2_coul_long_gpu.cpp pair_lj_class2_coul_long.cpp
 action pair_lj_class2_coul_long_gpu.h pair_lj_class2_coul_long.cpp
 action pair_lj_class2_gpu.cpp pair_lj_class2.cpp
 action pair_lj_class2_gpu.h pair_lj_class2.cpp
+action pair_lj_cubic_gpu.cpp
+action pair_lj_cubic_gpu.h
 action pair_lj_cut_coul_cut_gpu.cpp
 action pair_lj_cut_coul_cut_gpu.h
 action pair_lj_cut_coul_debye_gpu.cpp
@@ -109,10 +115,18 @@ action pair_sw_gpu.cpp pair_sw.cpp
 action pair_sw_gpu.h pair_sw.h
 action pair_table_gpu.cpp pair_table.cpp
 action pair_table_gpu.h pair_table.cpp
+action pair_tersoff_gpu.cpp pair_tersoff.cpp
+action pair_tersoff_gpu.h pair_tersoff.cpp
+action pair_tersoff_mod_gpu.cpp pair_tersoff_mod.cpp
+action pair_tersoff_mod_gpu.h pair_tersoff_mod.cpp
+action pair_tersoff_zbl_gpu.cpp pair_tersoff_zbl.cpp
+action pair_tersoff_zbl_gpu.h pair_tersoff_zbl.cpp
 action pair_yukawa_colloid_gpu.cpp pair_yukawa_colloid.cpp
 action pair_yukawa_colloid_gpu.h pair_yukawa_colloid.cpp
 action pair_yukawa_gpu.cpp pair_yukawa.cpp
 action pair_yukawa_gpu.h pair_yukawa.cpp
+action pair_zbl_gpu.cpp
+action pair_zbl_gpu.h
 action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
 

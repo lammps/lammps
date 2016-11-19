@@ -38,7 +38,7 @@ class PairGranHertzHistoryOMP : public PairGranHertzHistory, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int SHEARUPDATE>
+  template <int EVFLAG, int SHEARUPDATE, int NEWTON_PAIR>
   void eval(int ifrom, int ito, ThrData * const thr);
 };
 

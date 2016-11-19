@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "create_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -225,12 +225,11 @@ void CreateAtoms::command(int narg, char **arg)
     onemol->compute_center();
 
     // molecule random number generator, different for each proc
-    
+
     ranmol = new RanMars(lmp,molseed+comm->me);
   }
 
   // error check and further setup for variable test
-  // save local copy of each equal variable string so can restore at end
 
   if (!vstr && (xstr || ystr || zstr))
     error->all(FLERR,"Incomplete use of variables in create_atoms command");
@@ -248,25 +247,22 @@ void CreateAtoms::command(int narg, char **arg)
       xvar = input->variable->find(xstr);
       if (xvar < 0)
         error->all(FLERR,"Variable name for create_atoms does not exist");
-      if (!input->variable->equalstyle(xvar))
+      if (!input->variable->internalstyle(xvar))
         error->all(FLERR,"Variable for create_atoms is invalid style");
-      input->variable->equal_save(xvar,xstr_copy);
     }
     if (ystr) {
       yvar = input->variable->find(ystr);
       if (yvar < 0)
         error->all(FLERR,"Variable name for create_atoms does not exist");
-      if (!input->variable->equalstyle(yvar))
+      if (!input->variable->internalstyle(yvar))
         error->all(FLERR,"Variable for create_atoms is invalid style");
-      input->variable->equal_save(yvar,ystr_copy);
     }
     if (zstr) {
       zvar = input->variable->find(zstr);
       if (zvar < 0)
         error->all(FLERR,"Variable name for create_atoms does not exist");
-      if (!input->variable->equalstyle(zvar))
+      if (!input->variable->internalstyle(zvar))
         error->all(FLERR,"Variable for create_atoms is invalid style");
-      input->variable->equal_save(zvar,zstr_copy);
     }
   }
 
@@ -347,6 +343,13 @@ void CreateAtoms::command(int narg, char **arg)
     }
   }
 
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c creating atoms will overwrite ghost atoms
+
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
+
   // add atoms/molecules in one of 3 ways
 
   bigint natoms_previous = atom->natoms;
@@ -356,36 +359,9 @@ void CreateAtoms::command(int narg, char **arg)
   else if (style == RANDOM) add_random();
   else add_lattice();
 
-  // invoke set_arrays() for fixes/computes/variables
-  //   that need initialization of attributes of new atoms
-  // don't use modify->create_attributes() since would be inefficient
-  //   for large number of atoms
-  // note that for typical early use of create_atoms,
-  //   no fixes/computes/variables exist yet
-
-  int nlocal = atom->nlocal;
-  for (int m = 0; m < modify->nfix; m++) {
-    Fix *fix = modify->fix[m];
-    if (fix->create_attribute)
-      for (int i = nlocal_previous; i < nlocal; i++)
-        fix->set_arrays(i);
-  }
-  for (int m = 0; m < modify->ncompute; m++) {
-    Compute *compute = modify->compute[m];
-    if (compute->create_attribute)
-      for (int i = nlocal_previous; i < nlocal; i++)
-        compute->set_arrays(i);
-  }
-  for (int i = nlocal_previous; i < nlocal; i++)
-    input->variable->set_arrays(i);
-
-  // restore each equal variable string previously saved
-
-  if (varflag) {
-    if (xstr) input->variable->equal_restore(xvar,xstr_copy);
-    if (ystr) input->variable->equal_restore(yvar,ystr_copy);
-    if (zstr) input->variable->equal_restore(zvar,zstr_copy);
-  }
+  // init per-atom fix/compute/variable values for created atoms
+  
+  atom->data_fix_compute_variable(nlocal_previous,atom->nlocal);
 
   // set new total # of atoms and error check
 
@@ -400,30 +376,34 @@ void CreateAtoms::command(int narg, char **arg)
   if (atom->tag_enable) atom->tag_extend();
   atom->tag_check();
 
-  // create global mapping of atoms
-  // zero nghost in case are adding new atoms to existing atoms
+  // if global map exists, reset it
+  // invoke map_init() b/c atom count has grown
 
   if (atom->map_style) {
-    atom->nghost = 0;
     atom->map_init();
     atom->map_set();
   }
 
   // for MOLECULE mode:
-  // set molecule IDs for created atoms if used
-  // reset new molecule bond,angle,etc and special values
+  // molecule can mean just a mol ID or bonds/angles/etc or mol templates
+  // set molecule IDs for created atoms if atom->molecule_flag is set
+  // reset new molecule bond,angle,etc and special values if defined
   // send atoms to new owning procs via irregular comm
   //   since not all atoms I created will be within my sub-domain
   // perform special list build if needed
 
   if (mode == MOLECULE) {
 
+    int molecule_flag = atom->molecule_flag;
+    int molecular = atom->molecular;
+    tagint *molecule = atom->molecule;
+
     // molcreate = # of molecules I created
 
     int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
-    // increment total bonds,angles,etc 
-    
+    // increment total bonds,angles,etc
+
     bigint nmolme = molcreate;
     bigint nmoltotal;
     MPI_Allreduce(&nmolme,&nmoltotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -438,8 +418,7 @@ void CreateAtoms::command(int narg, char **arg)
     //             including molecules existing before this creation
 
     tagint moloffset;
-    tagint *molecule = atom->molecule;
-    if (molecule) {
+    if (molecule_flag) {
       tagint max = 0;
       for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
       tagint maxmol;
@@ -474,13 +453,12 @@ void CreateAtoms::command(int narg, char **arg)
     tagint **improper_atom4 = atom->improper_atom4;
     int **nspecial = atom->nspecial;
     tagint **special = atom->special;
-    int molecular = atom->molecular;
 
     int ilocal = nlocal_previous;
     for (int i = 0; i < molcreate; i++) {
       if (tag) offset = tag[ilocal]-1;
       for (int m = 0; m < natoms; m++) {
-        if (molecular) molecule[ilocal] = moloffset + i+1;
+        if (molecule_flag) molecule[ilocal] = moloffset + i+1;
         if (molecular == 2) {
           atom->molindex[ilocal] = 0;
           atom->molatom[ilocal] = m;
@@ -509,7 +487,7 @@ void CreateAtoms::command(int narg, char **arg)
               improper_atom4[ilocal][j] += offset;
             }
           if (onemol->specialflag)
-            for (int j = 0; j < nspecial[ilocal][2]; j++) 
+            for (int j = 0; j < nspecial[ilocal][2]; j++)
               special[ilocal][j] += offset;
         }
         ilocal++;
@@ -595,7 +573,7 @@ void CreateAtoms::add_single()
     if (mode == ATOM) atom->avec->create_atom(ntype,xone);
     else if (quatone[0] == 0.0 && quatone[1] == 0.0 && quatone[2] == 0.0)
       add_molecule(xone);
-    else add_molecule(xone,&quatone[0]);
+    else add_molecule(xone,quatone);
   }
 }
 
@@ -807,24 +785,25 @@ void CreateAtoms::add_molecule(double *center, double *quat_user)
   int n;
   double r[3],rotmat[3][3],quat[4],xnew[3];
 
-  if (domain->dimension == 3) {
-    r[0] = ranmol->uniform() - 0.5;
-    r[1] = ranmol->uniform() - 0.5;
-    r[2] = ranmol->uniform() - 0.5;
-  } else {
-    r[0] = r[1] = 0.0;
-    r[2] = 1.0;
-  }
-
   if (quat_user) {
     quat[0] = quat_user[0]; quat[1] = quat_user[1];
     quat[2] = quat_user[2]; quat[3] = quat_user[3];
   } else {
-    double theta = ranmol->uniform() * MY_2PI;
+    if (domain->dimension == 3) {
+      r[0] = ranmol->uniform() - 0.5;
+      r[1] = ranmol->uniform() - 0.5;
+      r[2] = ranmol->uniform() - 0.5;
+    } else {
+      r[0] = r[1] = 0.0;
+      r[2] = 1.0;
+    }
     MathExtra::norm3(r);
+    double theta = ranmol->uniform() * MY_2PI;
     MathExtra::axisangle_to_quat(r,theta,quat);
   }
+
   MathExtra::quat_to_mat(quat,rotmat);
+  onemol->quat_external = quat;
 
   // create atoms in molecule with atom ID = 0 and mol ID = 0
   // reset in caller after all moleclues created by all procs
@@ -843,16 +822,17 @@ void CreateAtoms::add_molecule(double *center, double *quat_user)
 
 /* ----------------------------------------------------------------------
    test a generated atom position against variable evaluation
-   first plug in x,y,z values as requested
+   first set x,y,z values in internal variables
 ------------------------------------------------------------------------- */
 
 int CreateAtoms::vartest(double *x)
 {
-  if (xstr) input->variable->equal_override(xvar,x[0]);
-  if (ystr) input->variable->equal_override(yvar,x[1]);
-  if (zstr) input->variable->equal_override(zvar,x[2]);
+  if (xstr) input->variable->internal_set(xvar,x[0]);
+  if (ystr) input->variable->internal_set(yvar,x[1]);
+  if (zstr) input->variable->internal_set(zvar,x[2]);
 
   double value = input->variable->compute_equal(vvar);
+
   if (value == 0.0) return 0;
   return 1;
 }

@@ -23,8 +23,18 @@ double fmin(double A, double B) { return ( A < B ? A : B ); }
  *
  */
 
-colvarbias_alb::colvarbias_alb(std::string const &conf, char const *key) :
-  colvarbias(conf, key), update_calls(0), b_equilibration(true) {
+colvarbias_alb::colvarbias_alb(char const *key)
+  : colvarbias(key), update_calls(0), b_equilibration(true)
+{
+}
+
+
+int colvarbias_alb::init(std::string const &conf)
+{
+  colvarbias::init(conf);
+
+  provide(f_cvb_history_dependent);
+
   size_t i;
 
   // get the initial restraint centers
@@ -41,6 +51,7 @@ colvarbias_alb::colvarbias_alb(std::string const &conf, char const *key) :
   current_coupling.resize(colvars.size());
   coupling_rate.resize(colvars.size());
 
+  enable(f_cvb_apply_force);
 
   for (i = 0; i < colvars.size(); i++) {
     colvar_centers[i].type(colvars[i]->value());
@@ -70,8 +81,10 @@ colvarbias_alb::colvarbias_alb(std::string const &conf, char const *key) :
   //we split the time between updating and equilibrating
   update_freq /= 2;
 
-  if (update_freq == 0)
+  if (update_freq <= 1)
     cvm::fatal_error("Error: must set updateFrequency to greater than 2.\n");
+
+  enable(f_cvb_history_dependent);
 
   get_keyval(conf, "outputCenters", b_output_centers, false);
   get_keyval(conf, "outputGradient", b_output_grad, false);
@@ -98,8 +111,6 @@ colvarbias_alb::colvarbias_alb(std::string const &conf, char const *key) :
     }
   }
 
-
-
   if (!get_keyval(conf, "rateMax", max_coupling_rate, max_coupling_rate)) {
     //set to default
     for (i = 0; i < colvars.size(); i++) {
@@ -111,25 +122,25 @@ colvarbias_alb::colvarbias_alb(std::string const &conf, char const *key) :
   if (cvm::debug())
     cvm::log(" bias.\n");
 
+  return COLVARS_OK;
 }
 
-colvarbias_alb::~colvarbias_alb() {
 
+colvarbias_alb::~colvarbias_alb()
+{
   if (cvm::n_rest_biases > 0)
     cvm::n_rest_biases -= 1;
-
 }
 
-cvm::real colvarbias_alb::update() {
+
+int colvarbias_alb::update()
+{
 
   bias_energy = 0.0;
   update_calls++;
 
   if (cvm::debug())
     cvm::log("Updating the adaptive linear bias \""+this->name+"\".\n");
-
-
-
 
   //log the moments of the CVs
   // Force and energy calculation
@@ -224,8 +235,7 @@ cvm::real colvarbias_alb::update() {
 
   }
 
-  return bias_energy;
-
+  return COLVARS_OK;
 }
 
 
@@ -423,17 +433,24 @@ std::ostream & colvarbias_alb::write_traj(std::ostream &os)
 }
 
 
-cvm::real colvarbias_alb::restraint_potential(cvm::real k,  const colvar* x,  const colvarvalue &xcenter) const
+cvm::real colvarbias_alb::restraint_potential(cvm::real k,
+                                              colvar const *x,
+                                              colvarvalue const &xcenter) const
 {
   return k * (x->value() - xcenter);
 }
 
-colvarvalue colvarbias_alb::restraint_force(cvm::real k,  const colvar* x,  const colvarvalue &xcenter) const
+
+colvarvalue colvarbias_alb::restraint_force(cvm::real k,
+                                            colvar const *x,
+                                            colvarvalue const &xcenter) const
 {
   return k;
 }
 
-cvm::real colvarbias_alb::restraint_convert_k(cvm::real k, cvm::real dist_measure) const
+
+cvm::real colvarbias_alb::restraint_convert_k(cvm::real k,
+                                              cvm::real dist_measure) const
 {
   return k / dist_measure;
 }

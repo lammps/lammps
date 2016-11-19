@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_ke_rigid.h"
 #include "update.h"
 #include "force.h"
@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeKERigid::ComputeKERigid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), rfix(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute ke/rigid command");
 
@@ -53,10 +53,8 @@ void ComputeKERigid::init()
   irfix = modify->find_fix(rfix);
   if (irfix < 0) error->all(FLERR,"Fix ID for compute ke/rigid does not exist");
 
-  int flag = 1;
-  if (strcmp(modify->fix[irfix]->style,"rigid/small") == 0) flag = 0;
-  else if (strstr(modify->fix[irfix]->style,"rigid")) flag = 0;
-  if (flag) error->all(FLERR,"Compute ke/rigid with non-rigid fix-ID");
+  if (strncmp(modify->fix[irfix]->style,"rigid",5))
+    error->all(FLERR,"Compute ke/rigid with non-rigid fix-ID");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,11 +63,11 @@ double ComputeKERigid::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  if (strcmp(modify->fix[irfix]->style,"rigid/small") == 0)
-    scalar = ((FixRigidSmall *) modify->fix[irfix])->extract_ke();
-  else if (strstr(modify->fix[irfix]->style,"rigid"))
-    scalar = ((FixRigid *) modify->fix[irfix])->extract_ke();
-
+  if (strncmp(modify->fix[irfix]->style,"rigid",5) == 0) {
+    if (strstr(modify->fix[irfix]->style,"/small")) {
+      scalar = ((FixRigidSmall *) modify->fix[irfix])->extract_ke();
+    } else scalar = ((FixRigid *) modify->fix[irfix])->extract_ke();
+  }
   scalar *= force->mvv2e;
   return scalar;
 }

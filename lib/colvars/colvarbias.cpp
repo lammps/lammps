@@ -1,53 +1,99 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarbias.h"
 
 
-colvarbias::colvarbias(std::string const &conf, char const *key)
-  : colvarparse(conf), bias_energy(0.), has_data(false)
+colvarbias::colvarbias(char const *key)
+  : bias_type(to_lower_cppstr(key))
 {
-  cvm::log("Initializing a new \""+std::string(key)+"\" instance.\n");
+  init_cvb_requires();
 
-  size_t rank = 1;
-  std::string const key_str(key);
+  rank = 1;
 
-  if (to_lower_cppstr(key_str) == std::string("abf")) {
+  if (bias_type == std::string("abf")) {
     rank = cvm::n_abf_biases+1;
   }
-  if (to_lower_cppstr(key_str) == std::string("harmonic") ||
-      to_lower_cppstr(key_str) == std::string("linear")) {
+  if (bias_type == std::string("harmonic") ||
+      bias_type == std::string("linear")) {
     rank = cvm::n_rest_biases+1;
   }
-  if (to_lower_cppstr(key_str) == std::string("histogram")) {
+  if (bias_type == std::string("histogram")) {
     rank = cvm::n_histo_biases+1;
   }
-  if (to_lower_cppstr(key_str) == std::string("metadynamics")) {
+  if (bias_type == std::string("metadynamics")) {
     rank = cvm::n_meta_biases+1;
   }
 
-  get_keyval(conf, "name", name, key_str+cvm::to_str(rank));
+  has_data = false;
+  b_output_energy = false;
+  reset();
 
-  if (cvm::bias_by_name(this->name) != NULL) {
-    cvm::error("Error: this bias cannot have the same name, \""+this->name+
-                "\", as another bias.\n", INPUT_ERROR);
-    return;
-  }
+  // Start in active state by default
+  enable(f_cvb_active);
+}
 
-  // lookup the associated colvars
-  std::vector<std::string> colvars_str;
-  if (get_keyval(conf, "colvars", colvars_str)) {
-    for (size_t i = 0; i < colvars_str.size(); i++) {
-      add_colvar(colvars_str[i]);
+
+int colvarbias::init(std::string const &conf)
+{
+  colvarparse::init(conf);
+
+  if (name.size() == 0) {
+    cvm::log("Initializing a new \""+bias_type+"\" instance.\n");
+    get_keyval(conf, "name", name, bias_type+cvm::to_str(rank));
+
+    {
+      colvarbias *bias_with_name = cvm::bias_by_name(this->name);
+      if (bias_with_name != NULL) {
+        if ((bias_with_name->rank != this->rank) ||
+            (bias_with_name->bias_type != this->bias_type)) {
+          cvm::error("Error: this bias cannot have the same name, \""+this->name+
+                     "\", as another bias.\n", INPUT_ERROR);
+          return INPUT_ERROR;
+        }
+      }
     }
-  }
-  if (!colvars.size()) {
-    cvm::error("Error: no collective variables specified.\n");
-    return;
+
+    description = "bias " + name;
+
+    {
+      // lookup the associated colvars
+      std::vector<std::string> colvar_names;
+      if (get_keyval(conf, "colvars", colvar_names)) {
+        if (colvars.size()) {
+          cvm::error("Error: cannot redefine the colvars that a bias was already defined on.\n",
+                     INPUT_ERROR);
+          return INPUT_ERROR;
+        }
+        for (size_t i = 0; i < colvar_names.size(); i++) {
+          add_colvar(colvar_names[i]);
+        }
+      }
+    }
+
+    if (!colvars.size()) {
+      cvm::error("Error: no collective variables specified.\n", INPUT_ERROR);
+      return INPUT_ERROR;
+    }
+
+  } else {
+    cvm::log("Reinitializing bias \""+name+"\".\n");
   }
 
-  get_keyval(conf, "outputEnergy", b_output_energy, false);
+  get_keyval(conf, "outputEnergy", b_output_energy, b_output_energy);
+
+  return COLVARS_OK;
+}
+
+
+int colvarbias::reset()
+{
+  bias_energy = 0.0;
+  for (size_t i = 0; i < colvars.size(); i++) {
+    colvar_forces[i].reset();
+  }
+  return COLVARS_OK;
 }
 
 
@@ -55,7 +101,14 @@ colvarbias::colvarbias()
   : colvarparse(), has_data(false)
 {}
 
+
 colvarbias::~colvarbias()
+{
+  colvarbias::clear();
+}
+
+
+int colvarbias::clear()
 {
   // Remove references to this bias from colvars
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
@@ -70,6 +123,7 @@ colvarbias::~colvarbias()
       }
     }
   }
+
   // ...and from the colvars module
   for (std::vector<colvarbias *>::iterator bi = cvm::biases.begin();
        bi != cvm::biases.end();
@@ -79,24 +133,48 @@ colvarbias::~colvarbias()
       break;
     }
   }
+
+  return COLVARS_OK;
 }
 
-void colvarbias::add_colvar(std::string const &cv_name)
+
+int colvarbias::add_colvar(std::string const &cv_name)
 {
   if (colvar *cv = cvm::colvar_by_name(cv_name)) {
-    cv->enable(colvar::task_gradients);
-    if (cvm::debug())
+    // Removed this as nor all biases apply forces eg histogram
+    // cv->enable(colvar::task_gradients);
+    if (cvm::debug()) {
       cvm::log("Applying this bias to collective variable \""+
-                cv->name+"\".\n");
+               cv->name+"\".\n");
+    }
     colvars.push_back(cv);
+
     colvar_forces.push_back(colvarvalue());
-    colvar_forces.back().type(cv->value()); // make sure each forces is initialized to zero
+    colvar_forces.back().type(cv->value()); // make sure each force is initialized to zero
     colvar_forces.back().reset();
+
     cv->biases.push_back(this); // add back-reference to this bias to colvar
+
+    // Add dependency link.
+    // All biases need at least the value of each colvar
+    // although possibly not at all timesteps
+    add_child(cv);
+
   } else {
     cvm::error("Error: cannot find a colvar named \""+
-               cv_name+"\".\n");
+               cv_name+"\".\n", INPUT_ERROR);
+    return INPUT_ERROR;
   }
+  return COLVARS_OK;
+}
+
+
+int colvarbias::update()
+{
+  // Note: if anything is added here, it should be added also in the SMP block of calc_biases()
+  // TODO move here debug msg of bias update
+  has_data = true;
+  return COLVARS_OK;
 }
 
 
@@ -125,7 +203,7 @@ cvm::real colvarbias::energy_difference(std::string const &conf)
 }
 
 
-// So far, these are only implemented in colvarsbias_abf
+// So far, these are only implemented in colvarbias_abf
 int colvarbias::bin_num()
 {
   cvm::error("Error: bin_num() not implemented.\n");
@@ -165,3 +243,7 @@ std::ostream & colvarbias::write_traj(std::ostream &os)
        << bias_energy;
   return os;
 }
+
+// Static members
+
+std::vector<colvardeps::feature *> colvarbias::cvb_features;

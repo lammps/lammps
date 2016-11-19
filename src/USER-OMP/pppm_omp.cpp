@@ -135,6 +135,8 @@ void PPPMOMP::compute_gf_ik()
     int k,l,m,nx,ny,nz,kper,lper,mper,n,nfrom,nto,tid;
 
     loop_setup_thr(nfrom, nto, tid, nfft, comm->nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
 
     for (n = nfrom; n < nto; ++n) {
       m = n / (numl*numk);
@@ -187,6 +189,7 @@ void PPPMOMP::compute_gf_ik()
         greensfn[n] = numerator*sum1/denominator;
       } else greensfn[n] = 0.0;
     }
+    thr->timer(Timer::KSPACE);
   } // end of parallel region
 }
 
@@ -223,6 +226,8 @@ void PPPMOMP::compute_gf_ad()
     int k,l,m,kper,lper,mper,n,nfrom,nto,tid;
 
     loop_setup_thr(nfrom, nto, tid, nfft, comm->nthreads);
+    ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
 
     for (n = nfrom; n < nto; ++n) {
 
@@ -276,8 +281,9 @@ void PPPMOMP::compute_gf_ad()
         sf5 += sf_precoeff6[n]*greensfn[n];
       }
     }
+    thr->timer(Timer::KSPACE);
   } // end of paralle region
-  
+
   // compute the coefficients for the self-force correction
 
   double prex, prey, prez, tmp[6];
@@ -318,6 +324,7 @@ void PPPMOMP::compute(int eflag, int vflag)
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -363,6 +370,7 @@ void PPPMOMP::make_rho()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     // loop over my charges, add their contribution to nearby grid points
@@ -376,7 +384,7 @@ void PPPMOMP::make_rho()
       const int ny = p2g[i].b;
       const int nz = p2g[i].t;
 
-      // pre-screen whether this atom will ever come within 
+      // pre-screen whether this atom will ever come within
       // reach of the data segement this thread is updating.
       if ( ((nz+nlower-nzlo_out)*ix*iy >= jto)
            || ((nz+nupper-nzlo_out+1)*ix*iy < jfrom) ) continue;
@@ -409,6 +417,7 @@ void PPPMOMP::make_rho()
         }
       }
     }
+    thr->timer(Timer::KSPACE);
   }
 }
 
@@ -451,6 +460,7 @@ void PPPMOMP::fieldforce_ik()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
@@ -488,6 +498,7 @@ void PPPMOMP::fieldforce_ik()
       f[i].y += qfactor*eky;
       if (slabflag != 2) f[i].z += qfactor*ekz;
     }
+    thr->timer(Timer::KSPACE);
   } // end of parallel region
 }
 
@@ -535,6 +546,7 @@ void PPPMOMP::fieldforce_ad()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
     FFT_SCALAR * const * const d1d = static_cast<FFT_SCALAR **>(thr->get_drho1d());
@@ -590,6 +602,7 @@ void PPPMOMP::fieldforce_ad()
       sf *= 2.0*qi;
       if (slabflag != 2) f[i].z += qfactor*(ekz - sf);
     }
+    thr->timer(Timer::KSPACE);
   } // end of parallel region
 }
 
@@ -626,6 +639,7 @@ void PPPMOMP::fieldforce_peratom()
 
     // get per thread data
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     FFT_SCALAR * const * const r1d = static_cast<FFT_SCALAR **>(thr->get_rho1d());
 
     for (i = ifrom; i < ito; ++i) {
@@ -672,6 +686,7 @@ void PPPMOMP::fieldforce_peratom()
         vatom[i][5] += qi*v5;
       }
     }
+    thr->timer(Timer::KSPACE);
   } // end of parallel region
 }
 

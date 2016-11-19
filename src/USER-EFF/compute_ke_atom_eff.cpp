@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_ke_atom_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -75,7 +75,7 @@ void ComputeKEAtomEff::compute_peratom()
 
   // grow ke array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(ke);
     nmax = atom->nmax;
     memory->create(ke,nmax,"compute/ke/atom/eff:ke");

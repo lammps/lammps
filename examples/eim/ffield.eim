@@ -1,4 +1,4 @@
- global:  2.0000e+00 -1.6450e+00  1.6450e+00
+ global:  2.0000e+00 -1.6450e+00  1.6450e+00 ### DATE: 2010-08-31 CONTRIBUTOR: Xiaowang Zhou, xzhou@sandia.gov CITATION: Zhou, unknown 
 element:  Li    3  6.9410e+00  9.8000e-01  1.1220e+00  1.1220e+00 -1.6500e+00  0.0000e+00
 element:  Na   11  2.2990e+01  9.3000e-01  1.3690e+00  1.3690e+00 -1.1100e+00  0.0000e+00
 element:   K   19  3.9100e+01  8.2000e-01  1.6910e+00  1.6910e+00 -9.3400e-01  0.0000e+00

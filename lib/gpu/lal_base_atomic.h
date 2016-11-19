@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -41,7 +41,7 @@ class BaseAtomic {
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
     * \param k_name name for the kernel for force calculation
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -49,8 +49,8 @@ class BaseAtomic {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
-                  const int maxspecial, const double cell_size, 
-                  const double gpu_split, FILE *screen, 
+                  const int maxspecial, const double cell_size,
+                  const double gpu_split, FILE *screen,
                   const void *pair_program, const char *k_name);
 
   /// Estimate the overhead for GPU context changes and CPU driver
@@ -80,7 +80,7 @@ class BaseAtomic {
     * \note host_inum is 0 if the host is performing neighboring
     * \note nlocal+host_inum=total number local particles
     * \note olist_size=0 **/
-  inline void resize_local(const int inum, const int host_inum, 
+  inline void resize_local(const int inum, const int host_inum,
                            const int max_nbors, bool &success) {
     nbor->resize(inum,host_inum,max_nbors,success);
   }
@@ -119,7 +119,7 @@ class BaseAtomic {
   /// Build neighbor list on device
   void build_nbor_list(const int inum, const int host_inum,
                        const int nall, double **host_x, int *host_type,
-                       double *sublo, double *subhi, tagint *tag, int **nspecial, 
+                       double *sublo, double *subhi, tagint *tag, int **nspecial,
                        tagint **special, bool &success);
 
   /// Pair loop with host neighboring
@@ -133,19 +133,19 @@ class BaseAtomic {
   int * compute(const int ago, const int inum_full,
                 const int nall, double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag, 
-                const bool eatom, const bool vatom, int &host_start, 
+                tagint **special, const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
                 const double cpu_time, bool &success);
 
   /// Pair loop with device neighboring
   int ** compute(const int ago, const int inum_full,
                  const int nall, double **host_x, int *host_type, double *sublo,
                  double *subhi, tagint *tag, int **nspecial,
-                 tagint **special, const bool eflag, const bool vflag, 
-                 const bool eatom, const bool vatom, int &host_start, 
+                 tagint **special, const bool eflag, const bool vflag,
+                 const bool eatom, const bool vatom, int &host_start,
                  int **ilist, int **numj, const double cpu_time, bool &success);
 
-  // -------------------------- DEVICE DATA ------------------------- 
+  // -------------------------- DEVICE DATA -------------------------
 
   /// Device Properties and Atom and Neighbor storage
   Device<numtyp,acctyp> *device;

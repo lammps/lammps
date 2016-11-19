@@ -1,0 +1,153 @@
+// -------------------------------------------------------------------------------- //
+
+The following steps are for workstations/servers with the SEMS environment installed.
+
+// -------------------------------------------------------------------------------- //
+Summary:
+
+- Step 1: Rigorous testing of Kokkos' develop branch for each backend (Serial, OpenMP, Threads, Cuda) with all supported compilers.
+
+- Step 2: Snapshot Kokkos' develop branch into current Trilinos develop branch.
+
+- Step 3: Build and test Trilinos with combinations of compilers, types, backends.
+
+- Step 4: Promote Kokkos develop branch to master if the snapshot does not cause any new tests to fail; else track/fix causes of new failures.
+
+- Step 5: Snapshot Kokkos tagged master branch into Trilinos and push Trilinos.
+// -------------------------------------------------------------------------------- //
+
+
+// -------------------------------------------------------------------------------- //
+
+Step 1:
+  1.1. Update kokkos develop branch (NOT a fork)
+
+         (From kokkos directory):
+         git fetch --all
+         git checkout develop
+         git reset --hard origin/develop
+
+  1.2. Create a testing directory - here the directory is created within the kokkos directory
+
+         mkdir testing
+         cd testing
+
+  1.3. Run the test_all_sandia script; various compiler and build-list options can be specified
+
+         ../config/test_all_sandia
+
+  1.4 Clean repository of untracked files
+
+        cd ../
+        git clean -df
+
+// -------------------------------------------------------------------------------- //
+
+Step 2:
+  2.1 Update Trilinos develop branch
+
+        (From Trilinos directory):
+        git checkout develop
+        git fetch --all
+        git reset --hard origin/develop
+        git clean -df
+
+  2.2 Snapshot Kokkos into Trilinos - this requires python/2.7.9 and that both Trilinos and Kokkos be clean - no untracked or modified files
+
+        module load python/2.7.9
+        python KOKKOS_PATH/config/snapshot.py KOKKOS_PATH TRILINOS_PATH/packages
+
+// -------------------------------------------------------------------------------- //
+
+Step 3:
+  3.1. Build and test Trilinos with 3 different configurations; a configure-all script is provided in Trilinos and should be modified to test each of the following 3 configurations with appropriate environment variable(s):
+
+      - GCC/4.7.2-OpenMP/Complex
+          Run tests with the following environment variable:
+
+            export OMP_NUM_THREADS=2
+
+
+      - Intel/15.0.2-Serial/NoComplex
+
+
+      - GCC/4.8.4/CUDA/7.5.18-Cuda/Serial/NoComplex
+          Run tests with the following environment variables:
+
+            export CUDA_LAUNCH_BLOCKING=1
+            export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+
+
+        mkdir Build
+        cd Build
+        cp TRILINOS_PATH/sampleScripts/Sandia-SEMS/configure-all ./
+            ** Set the path to Trilinos appropriately within the configure-all script **
+        source $SEMS_MODULE_ROOT/utils/sems-modules-init.sh kokkos
+        source configure-all
+        make -k  (-k means "keep going" to get past build errors; -j12 can also be specified to build with 12 threads, for example)
+        ctest
+
+  3.2. Compare the failed test output to the test output on the dashboard ( testing.sandia.gov/cdash select Trilinos ); investigate and fix problems if new tests fail after the Kokkos snapshot
+
+// -------------------------------------------------------------------------------- //
+
+Step 4:
+  4.1. Once all Trilinos tests pass promote Kokkos develop branch to master on Github
+
+       - DO NOT fast-forward the merge!!!!
+
+       (From kokkos directory):
+       git checkout master
+       git fetch --all
+       # Ensure we are on the current origin/master
+       git reset --hard origin/master
+       git merge --no-ff origin/develop
+
+  4.2. Update the tag in kokkos/config/master_history.txt
+       Tag description: MajorNumber.MinorNumber.WeeksSinceMinorNumberUpdate
+       Tag format: #.#.##
+
+       # Prepend master_history.txt with 
+       
+       # tag: #.#.##
+       # date: mm/dd/yyyy
+       # master: sha1
+       # develop: sha1
+       # -----------------------
+
+       git commit --amend -a
+
+       git tag -a #.#.##
+         tag: #.#.##
+         date: mm/dd/yyyy
+         master: sha1
+         develop: sha1
+
+       git push --follow-tags origin master
+
+// -------------------------------------------------------------------------------- //
+
+Step 5:
+  5.1. Make sure Trilinos is up-to-date - chances are other changes have been committed since the integration testing process began. If a substantial change has occurred that may be affected by the snapshot the testing procedure may need to be repeated
+
+       (From Trilinos directory):
+       git checkout develop
+       git fetch --all
+       git reset --hard origin/develop
+       git clean -df
+
+  5.2. Snapshot Kokkos master branch into Trilinos
+
+       (From kokkos directory):
+       git fetch --all
+       git checkout tags/#.#.##
+       git clean -df
+
+       python KOKKOS_PATH/config/snapshot.py KOKKOS_PATH TRILINOS_PATH/packages
+       
+  5.3. Push the updated develop branch of Trilinos to Github - congratulations!!!
+
+       (From Trilinos directory):
+       git push
+
+// -------------------------------------------------------------------------------- //

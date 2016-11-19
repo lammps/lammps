@@ -1,16 +1,29 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarbias_restraint.h"
 
 
-colvarbias_restraint::colvarbias_restraint(std::string const &conf,
-                                           char const *key)
-  : colvarbias(conf, key),
-    target_nstages(0),
-    target_nsteps(0)
+colvarbias_restraint::colvarbias_restraint(char const *key)
+  : colvarbias(key)
 {
+}
+
+
+int colvarbias_restraint::init(std::string const &conf)
+{
+  colvarbias::init(conf);
+
+  if (cvm::debug())
+    cvm::log("Initializing a new restraint bias.\n");
+
+  // TODO move these initializations to constructor and let get_keyval
+  // only override existing values
+  target_nstages = 0;
+  target_nsteps = 0;
+  force_k = 0.0;
+
   get_keyval(conf, "forceConstant", force_k, 1.0);
 
   {
@@ -18,6 +31,9 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
     colvar_centers.resize(colvars.size());
     colvar_centers_raw.resize(colvars.size());
     size_t i;
+
+    enable(f_cvb_apply_force);
+
     for (i = 0; i < colvars.size(); i++) {
       colvar_centers[i].type(colvars[i]->value());
       colvar_centers_raw[i].type(colvars[i]->value());
@@ -53,6 +69,10 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
 
     size_t i;
     if (get_keyval(conf, "targetCenters", target_centers, colvar_centers)) {
+      if (colvar_centers.size() != colvars.size()) {
+        cvm::error("Error: number of target centers does not match "
+                   "that of collective variables.\n");
+      }
       b_chg_centers = true;
       for (i = 0; i < target_centers.size(); i++) {
         target_centers[i].apply_constraints();
@@ -115,7 +135,10 @@ colvarbias_restraint::colvarbias_restraint(std::string const &conf,
 
   if (cvm::debug())
     cvm::log("Done initializing a new restraint bias.\n");
+
+  return COLVARS_OK;
 }
+
 
 colvarbias_restraint::~colvarbias_restraint()
 {
@@ -167,7 +190,7 @@ cvm::real colvarbias_restraint::energy_difference(std::string const &conf)
 }
 
 
-cvm::real colvarbias_restraint::update()
+int colvarbias_restraint::update()
 {
   bias_energy = 0.0;
 
@@ -333,7 +356,7 @@ cvm::real colvarbias_restraint::update()
     cvm::log("Current forces for the restraint bias \""+
               this->name+"\": "+cvm::to_str(colvar_forces)+".\n");
 
-  return bias_energy;
+  return COLVARS_OK;
 }
 
 
@@ -498,55 +521,341 @@ std::ostream & colvarbias_restraint::write_traj(std::ostream &os)
   return os;
 }
 
-colvarbias_restraint_harmonic::colvarbias_restraint_harmonic(std::string const &conf, char const *key) :
-  colvarbias_restraint(conf, key) {
+
+colvarbias_restraint_harmonic::colvarbias_restraint_harmonic(char const *key)
+  : colvarbias_restraint(key)
+{
+}
+
+
+int colvarbias_restraint_harmonic::init(std::string const &conf)
+{
+  colvarbias_restraint::init(conf);
+
   for (size_t i = 0; i < colvars.size(); i++) {
     if (colvars[i]->width != 1.0)
       cvm::log("The force constant for colvar \""+colvars[i]->name+
-                "\" will be rescaled to "+
-                cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
-                " according to the specified width.\n");
+               "\" will be rescaled to "+
+               cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
+               " according to the specified width.\n");
   }
+  return COLVARS_OK;
 }
 
-cvm::real colvarbias_restraint_harmonic::restraint_potential(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+cvm::real colvarbias_restraint_harmonic::restraint_potential(cvm::real k,
+                                                             colvar const *x,
+                                                             colvarvalue const &xcenter) const
 {
   return 0.5 * k * x->dist2(x->value(), xcenter);
 }
 
-colvarvalue colvarbias_restraint_harmonic::restraint_force(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+colvarvalue colvarbias_restraint_harmonic::restraint_force(cvm::real k,
+                                                           colvar const *x,
+                                                           colvarvalue const &xcenter) const
 {
   return 0.5 * k * x->dist2_lgrad(x->value(), xcenter);
 }
 
-cvm::real colvarbias_restraint_harmonic::restraint_convert_k(cvm::real k, cvm::real dist_measure) const
+
+cvm::real colvarbias_restraint_harmonic::restraint_convert_k(cvm::real k,
+                                                             cvm::real dist_measure) const
 {
   return k / (dist_measure * dist_measure);
 }
 
 
-colvarbias_restraint_linear::colvarbias_restraint_linear(std::string const &conf, char const *key) :
-  colvarbias_restraint(conf, key) {
+
+colvarbias_restraint_linear::colvarbias_restraint_linear(char const *key)
+  : colvarbias_restraint(key)
+{
+}
+
+
+int colvarbias_restraint_linear::init(std::string const &conf)
+{
+  colvarbias_restraint::init(conf);
+
   for (size_t i = 0; i < colvars.size(); i++) {
     if (colvars[i]->width != 1.0)
       cvm::log("The force constant for colvar \""+colvars[i]->name+
-                "\" will be rescaled to "+
-                cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
-                " according to the specified width.\n");
+               "\" will be rescaled to "+
+               cvm::to_str(restraint_convert_k(force_k, colvars[i]->width))+
+               " according to the specified width.\n");
   }
+  return COLVARS_OK;
 }
 
-cvm::real colvarbias_restraint_linear::restraint_potential(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+cvm::real colvarbias_restraint_linear::restraint_potential(cvm::real k,
+                                                           colvar const *x,
+                                                           colvarvalue const &xcenter) const
 {
   return k * (x->value() - xcenter);
 }
 
-colvarvalue colvarbias_restraint_linear::restraint_force(cvm::real k,  colvar* x,  const colvarvalue &xcenter) const
+
+colvarvalue colvarbias_restraint_linear::restraint_force(cvm::real k,
+                                                         colvar const *x,
+                                                         colvarvalue const &xcenter) const
 {
   return k;
 }
 
-cvm::real colvarbias_restraint_linear::restraint_convert_k(cvm::real k, cvm::real dist_measure) const
+
+cvm::real colvarbias_restraint_linear::restraint_convert_k(cvm::real k,
+                                                           cvm::real dist_measure) const
 {
   return k / dist_measure;
+}
+
+
+
+colvarbias_restraint_histogram::colvarbias_restraint_histogram(char const *key)
+  : colvarbias(key)
+{
+  lower_boundary = 0.0;
+  upper_boundary = 0.0;
+  width = 0.0;
+  gaussian_width = 0.0;
+}
+
+
+int colvarbias_restraint_histogram::init(std::string const &conf)
+{
+  colvarbias::init(conf);
+
+  get_keyval(conf, "lowerBoundary", lower_boundary, lower_boundary);
+  get_keyval(conf, "upperBoundary", upper_boundary, upper_boundary);
+  get_keyval(conf, "width", width, width);
+
+  if (width <= 0.0) {
+    cvm::error("Error: \"width\" must be positive.\n", INPUT_ERROR);
+  }
+
+  get_keyval(conf, "gaussianWidth", gaussian_width, 2.0 * width, colvarparse::parse_silent);
+  get_keyval(conf, "gaussianSigma", gaussian_width, 2.0 * width);
+
+  if (lower_boundary >= upper_boundary) {
+    cvm::error("Error: the upper boundary, "+
+               cvm::to_str(upper_boundary)+
+               ", is not higher than the lower boundary, "+
+               cvm::to_str(lower_boundary)+".\n",
+               INPUT_ERROR);
+  }
+
+  cvm::real const nbins = (upper_boundary - lower_boundary) / width;
+  int const nbins_round = (int)(nbins);
+
+  if (std::fabs(nbins - cvm::real(nbins_round)) > 1.0E-10) {
+    cvm::log("Warning: grid interval ("+
+             cvm::to_str(lower_boundary, cvm::cv_width, cvm::cv_prec)+" - "+
+             cvm::to_str(upper_boundary, cvm::cv_width, cvm::cv_prec)+
+             ") is not commensurate to its bin width ("+
+             cvm::to_str(width, cvm::cv_width, cvm::cv_prec)+").\n");
+  }
+
+  p.resize(nbins_round);
+  ref_p.resize(nbins_round);
+  p_diff.resize(nbins_round);
+
+  bool const inline_ref_p =
+    get_keyval(conf, "refHistogram", ref_p.data_array(), ref_p.data_array());
+  std::string ref_p_file;
+  get_keyval(conf, "refHistogramFile", ref_p_file, std::string(""));
+  if (ref_p_file.size()) {
+    if (inline_ref_p) {
+      cvm::error("Error: cannot specify both refHistogram and refHistogramFile at the same time.\n",
+                 INPUT_ERROR);
+    } else {
+      std::ifstream is(ref_p_file.c_str());
+      std::string data_s = "";
+      std::string line;
+      while (getline_nocomments(is, line)) {
+        data_s.append(line+"\n");
+      }
+      if (data_s.size() == 0) {
+        cvm::error("Error: file \""+ref_p_file+"\" empty or unreadable.\n", FILE_ERROR);
+      }
+      is.close();
+      cvm::vector1d<cvm::real> data;
+      if (data.from_simple_string(data_s) != 0) {
+        cvm::error("Error: could not read histogram from file \""+ref_p_file+"\".\n");
+      }
+      if (data.size() == 2*ref_p.size()) {
+        // file contains both x and p(x)
+        size_t i;
+        for (i = 0; i < ref_p.size(); i++) {
+          ref_p[i] = data[2*i+1];
+        }
+      } else if (data.size() == ref_p.size()) {
+        ref_p = data;
+      } else {
+        cvm::error("Error: file \""+ref_p_file+"\" contains a histogram of different length.\n",
+                   INPUT_ERROR);
+      }
+    }
+  }
+  cvm::real const ref_integral = ref_p.sum() * width;
+  if (std::fabs(ref_integral - 1.0) > 1.0e-03) {
+    cvm::log("Reference distribution not normalized, normalizing to unity.\n");
+    ref_p /= ref_integral;
+  }
+
+  get_keyval(conf, "writeHistogram", b_write_histogram, false);
+  get_keyval(conf, "forceConstant", force_k, 1.0);
+
+  return COLVARS_OK;
+}
+
+
+colvarbias_restraint_histogram::~colvarbias_restraint_histogram()
+{
+  p.resize(0);
+  ref_p.resize(0);
+  p_diff.resize(0);
+}
+
+
+int colvarbias_restraint_histogram::update()
+{
+  if (cvm::debug())
+    cvm::log("Updating the histogram restraint bias \""+this->name+"\".\n");
+
+  size_t vector_size = 0;
+  size_t icv;
+  for (icv = 0; icv < colvars.size(); icv++) {
+    vector_size += colvars[icv]->value().size();
+  }
+
+  cvm::real const norm = 1.0/(std::sqrt(2.0*PI)*gaussian_width*vector_size);
+
+  // calculate the histogram
+  p.reset();
+  for (icv = 0; icv < colvars.size(); icv++) {
+    colvarvalue const &cv = colvars[icv]->value();
+    if (cv.type() == colvarvalue::type_scalar) {
+      cvm::real const cv_value = cv.real_value;
+      size_t igrid;
+      for (igrid = 0; igrid < p.size(); igrid++) {
+        cvm::real const x_grid = (lower_boundary + (igrid+0.5)*width);
+        p[igrid] += norm * std::exp(-1.0 * (x_grid - cv_value) * (x_grid - cv_value) /
+                                    (2.0 * gaussian_width * gaussian_width));
+      }
+    } else if (cv.type() == colvarvalue::type_vector) {
+      size_t idim;
+      for (idim = 0; idim < cv.vector1d_value.size(); idim++) {
+        cvm::real const cv_value = cv.vector1d_value[idim];
+        size_t igrid;
+        for (igrid = 0; igrid < p.size(); igrid++) {
+          cvm::real const x_grid = (lower_boundary + (igrid+0.5)*width);
+          p[igrid] += norm * std::exp(-1.0 * (x_grid - cv_value) * (x_grid - cv_value) /
+                                      (2.0 * gaussian_width * gaussian_width));
+        }
+      }
+    } else {
+      // TODO
+    }
+  }
+
+  cvm::real const force_k_cv = force_k * vector_size;
+
+  // calculate the difference between current and reference
+  p_diff = p - ref_p;
+  bias_energy = 0.5 * force_k_cv * p_diff * p_diff;
+
+  // calculate the forces
+  for (icv = 0; icv < colvars.size(); icv++) {
+    colvarvalue const &cv = colvars[icv]->value();
+    colvarvalue &cv_force = colvar_forces[icv];
+    cv_force.type(cv);
+    cv_force.reset();
+
+    if (cv.type() == colvarvalue::type_scalar) {
+      cvm::real const cv_value = cv.real_value;
+      cvm::real &force = cv_force.real_value;
+      size_t igrid;
+      for (igrid = 0; igrid < p.size(); igrid++) {
+        cvm::real const x_grid = (lower_boundary + (igrid+0.5)*width);
+        force += force_k_cv * p_diff[igrid] *
+          norm * std::exp(-1.0 * (x_grid - cv_value) * (x_grid - cv_value) /
+                          (2.0 * gaussian_width * gaussian_width)) *
+          (-1.0 * (x_grid - cv_value) / (gaussian_width * gaussian_width));
+      }
+    } else if (cv.type() == colvarvalue::type_vector) {
+      size_t idim;
+      for (idim = 0; idim < cv.vector1d_value.size(); idim++) {
+        cvm::real const cv_value = cv.vector1d_value[idim];
+        cvm::real &force = cv_force.vector1d_value[idim];
+        size_t igrid;
+        for (igrid = 0; igrid < p.size(); igrid++) {
+          cvm::real const x_grid = (lower_boundary + (igrid+0.5)*width);
+          force += force_k_cv * p_diff[igrid] *
+            norm * std::exp(-1.0 * (x_grid - cv_value) * (x_grid - cv_value) /
+                            (2.0 * gaussian_width * gaussian_width)) *
+            (-1.0 * (x_grid - cv_value) / (gaussian_width * gaussian_width));
+        }
+      }
+    } else {
+      // TODO
+    }
+  }
+
+  return COLVARS_OK;
+}
+
+
+std::ostream & colvarbias_restraint_histogram::write_restart(std::ostream &os)
+{
+  if (b_write_histogram) {
+    std::string file_name(cvm::output_prefix+"."+this->name+".hist.dat");
+    std::ofstream os(file_name.c_str());
+    os << "# " << cvm::wrap_string(colvars[0]->name, cvm::cv_width)
+       << "  " << "p(" << cvm::wrap_string(colvars[0]->name, cvm::cv_width-3)
+       << ")\n";
+    size_t igrid;
+    for (igrid = 0; igrid < p.size(); igrid++) {
+      cvm::real const x_grid = (lower_boundary + (igrid+1)*width);
+      os << "  "
+         << std::setprecision(cvm::cv_prec)
+         << std::setw(cvm::cv_width)
+         << x_grid
+         << "  "
+         << std::setprecision(cvm::cv_prec)
+         << std::setw(cvm::cv_width)
+         << p[igrid] << "\n";
+    }
+    os.close();
+  }
+  return os;
+}
+
+
+std::istream & colvarbias_restraint_histogram::read_restart(std::istream &is)
+{
+  return is;
+}
+
+
+std::ostream & colvarbias_restraint_histogram::write_traj_label(std::ostream &os)
+{
+  os << " ";
+  if (b_output_energy) {
+    os << " E_"
+       << cvm::wrap_string(this->name, cvm::en_width-2);
+  }
+  return os;
+}
+
+
+std::ostream & colvarbias_restraint_histogram::write_traj(std::ostream &os)
+{
+  os << " ";
+  if (b_output_energy) {
+    os << " "
+       << std::setprecision(cvm::en_prec) << std::setw(cvm::en_width)
+       << bias_energy;
+  }
+  return os;
 }

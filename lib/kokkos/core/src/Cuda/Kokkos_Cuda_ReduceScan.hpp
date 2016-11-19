@@ -2,8 +2,8 @@
 //@HEADER
 // ************************************************************************
 // 
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 // 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov) 
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -44,7 +44,10 @@
 #ifndef KOKKOS_CUDA_REDUCESCAN_HPP
 #define KOKKOS_CUDA_REDUCESCAN_HPP
 
-#if defined( __CUDACC__ )
+#include <Kokkos_Macros.hpp>
+
+/* only compile this file if CUDA is enabled for Kokkos */
+#if defined( __CUDACC__ ) && defined( KOKKOS_HAVE_CUDA )
 
 #include <utility>
 
@@ -114,7 +117,7 @@ inline void cuda_inter_warp_reduction( ValueType& value,
 
 
   value = result[0];
-  for(int i = 1; (i*step<=max_active_thread) && i<STEP_WIDTH; i++)
+  for(int i = 1; (i*step<max_active_thread) && i<STEP_WIDTH; i++)
     join(value,result[i]);
 }
 
@@ -127,16 +130,17 @@ inline void cuda_intra_block_reduction( ValueType& value,
   cuda_inter_warp_reduction(value,join,max_active_thread);
 }
 
-template< class FunctorType , class JoinOp>
+template< class FunctorType , class JoinOp , class ArgTag = void >
 __device__
-bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , void >::reference_type  value,
+bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , ArgTag >::reference_type  value,
+                                 typename FunctorValueTraits< FunctorType , ArgTag >::reference_type  neutral,
                                  const JoinOp& join,
                                  Cuda::size_type * const m_scratch_space,
-                                 typename FunctorValueTraits< FunctorType , void >::pointer_type const result,
+                                 typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type const result,
                                  Cuda::size_type * const m_scratch_flags,
                                  const int max_active_thread = blockDim.y) {
-  typedef typename FunctorValueTraits< FunctorType , void >::pointer_type pointer_type;
-  typedef typename FunctorValueTraits< FunctorType , void >::value_type value_type;
+  typedef typename FunctorValueTraits< FunctorType , ArgTag >::pointer_type pointer_type;
+  typedef typename FunctorValueTraits< FunctorType , ArgTag >::value_type value_type;
 
   //Do the intra-block reduction with shfl operations and static shared memory
   cuda_intra_block_reduction(value,join,max_active_thread);
@@ -167,7 +171,7 @@ bool cuda_inter_block_reduction( typename FunctorValueTraits< FunctorType , void
       if(id == 0)
         *m_scratch_flags = 0;
       last_block = true;
-      value = 0;
+      value = neutral;
 
       pointer_type const volatile global = (pointer_type) m_scratch_space ;
 
@@ -342,8 +346,11 @@ bool cuda_single_inter_block_reduce_scan( const FunctorType     & functor ,
   typedef typename ValueTraits::pointer_type    pointer_type ;
   typedef typename ValueTraits::reference_type  reference_type ;
 
+  // '__ffs' = position of the least significant bit set to 1.
+  // 'blockDim.y' is guaranteed to be a power of two so this
+  // is the integral shift value that can replace an integral divide.
+  const unsigned BlockSizeShift = __ffs( blockDim.y ) - 1 ;
   const unsigned BlockSizeMask  = blockDim.y - 1 ;
-  const unsigned BlockSizeShift = power_of_two_if_valid( blockDim.y );
 
   // Must have power of two thread count
   if ( BlockSizeMask & blockDim.y ) { Kokkos::abort("Cuda::cuda_single_inter_block_reduce_scan requires power-of-two blockDim"); }
@@ -360,7 +367,12 @@ bool cuda_single_inter_block_reduce_scan( const FunctorType     & functor ,
     size_type * const shared = shared_data + word_count.value * BlockSizeMask ;
     size_type * const global = global_data + word_count.value * block_id ;
 
+#if (__CUDA_ARCH__ < 500)
     for ( size_type i = threadIdx.y ; i < word_count.value ; i += blockDim.y ) { global[i] = shared[i] ; }
+#else
+    for ( size_type i = 0 ; i < word_count.value ; i += 1 ) { global[i] = shared[i] ; }
+#endif
+
   }
 
   // Contributing blocks note that their contribution has been completed via an atomic-increment flag

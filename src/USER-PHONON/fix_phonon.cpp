@@ -23,12 +23,14 @@
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_phonon.h"
+#include "fft3d_wrap.h"
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
 #include "force.h"
 #include "group.h"
 #include "lattice.h"
@@ -139,23 +141,23 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   nxlo = 0;
   int *nx_loc = new int [nprocs];
   for (int i = 0; i < nprocs; ++i){
-    nx_loc[i] = nx/nprocs;
+    nx_loc[i] = nx / nprocs;
     if (i < nx%nprocs) ++nx_loc[i];
   }
   for (int i = 0; i < me; ++i) nxlo += nx_loc[i];
   nxhi  = nxlo + nx_loc[me] - 1;
-  mynpt = nx_loc[me]*ny*nz;
+  mynpt = nx_loc[me] * ny * nz;
   mynq  = mynpt;
 
-  fft_dim   = nucell*sysdim;
-  fft_dim2  = fft_dim*fft_dim;
-  fft_nsend = mynpt*fft_dim;
+  fft_dim   = nucell  * sysdim;
+  fft_dim2  = fft_dim * fft_dim;
+  fft_nsend = mynpt   * fft_dim;
 
   fft_cnts  = new int[nprocs];
   fft_disp  = new int[nprocs];
   fft_disp[0] = 0;
-  for (int i = 0; i < nprocs; ++i) fft_cnts[i] = nx_loc[i]*ny*nz*fft_dim;
-  for (int i = 1; i < nprocs; ++i) fft_disp[i] = fft_disp[i-1]+fft_cnts[i-1];
+  for (int i = 0; i < nprocs; ++i) fft_cnts[i] = nx_loc[i] * ny * nz * fft_dim;
+  for (int i = 1; i < nprocs; ++i) fft_disp[i] = fft_disp[i-1] + fft_cnts[i-1];
   delete []nx_loc;
 
   fft = new FFT3d(lmp,world,nz,ny,nx,0,nz-1,0,ny-1,nxlo,nxhi,0,nz-1,0,ny-1,nxlo,nxhi,0,0,&mysize,0);
@@ -188,7 +190,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
       sprintf(str,"Can not open output file %s",logfile);
       error->one(FLERR,str);
     }
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fprintf(flog,"# group name of the atoms under study      : %s\n", group->names[igroup]);
     fprintf(flog,"# total number of atoms in the group       : %d\n", ngroup);
     fprintf(flog,"# dimension of the system                  : %d D\n", sysdim);
@@ -198,8 +200,8 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
     fprintf(flog,"# frequency of the measurement             : %d\n", nevery);
     fprintf(flog,"# output result after this many measurement: %d\n", nfreq);
     fprintf(flog,"# number of processors used by this run    : %d\n", nprocs);
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog,"# mapping information between lattice index and atom id\n");
+    fprintf(flog,"############################################################\n");
+    fprintf(flog,"# mapping information between lattice indices and atom id\n");
     fprintf(flog,"# nx ny nz nucell\n");
     fprintf(flog,"%d %d %d %d\n", nx, ny, nz, nucell);
     fprintf(flog,"# l1 l2 l3 k atom_id\n");
@@ -212,7 +214,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
       ix   = (idx/(nucell*nz*ny))%nx;
       fprintf(flog,"%d %d %d %d " TAGINT_FORMAT "\n", ix, iy, iz, iu, itag);
     }
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
+    fprintf(flog,"############################################################\n");
     fflush(flog);
   }
   surf2tag.clear();
@@ -223,7 +225,7 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   strcpy(id_temp,"thermo_temp");
   int icompute = modify->find_compute(id_temp);
   temperature = modify->compute[icompute];
-  inv_nTemp = 1.0/group->count(temperature->igroup);
+  inv_nTemp = 1./group->count(temperature->igroup);
 
 } // end of constructor
 
@@ -291,7 +293,7 @@ void FixPhonon::init()
 {
   // warn if more than one fix-phonon
   int count = 0;
-  for (int i = 0; i < modify->nfix; ++i) if (strcmp(modify->fix[i]->style,"gfc") == 0) ++count;
+  for (int i = 0; i < modify->nfix; ++i) if (strcmp(modify->fix[i]->style,"phonon") == 0) ++count;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix phonon defined"); // just warn, but allowed.
 }
 
@@ -313,8 +315,8 @@ void FixPhonon::setup(int flag)
   for (int i = 0; i < nucell; ++i)
   for (int j = 0; j < sysdim; ++j) basis[i][j] = 0.;
 
+  neval = ifreq = 0;
   prev_nstep = update->ntimestep;
-  neval  = ifreq = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -324,12 +326,12 @@ void FixPhonon::end_of_step()
   if ( (update->ntimestep-prev_nstep) <= waitsteps) return;
 
   double **x = atom->x;
-  int *mask  = atom->mask;
-  tagint *tag   = atom->tag;
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  double *h   = domain->h;
+  double *h = domain->h;
 
   int i,idim,jdim,ndim;
   double xcur[3];
@@ -348,7 +350,7 @@ void FixPhonon::end_of_step()
       domain->unmap(x[i], image[i], xcur);
         
       for (idim = 0; idim < sysdim; ++idim) RIloc[nfind][idim] = xcur[idim];
-      RIloc[nfind++][sysdim] = double(idx);
+      RIloc[nfind++][sysdim] = static_cast<double>(idx);
     }
   }
 
@@ -374,17 +376,17 @@ void FixPhonon::end_of_step()
 
   // FFT R(r) to get R(q)
   for (idim = 0; idim < fft_dim; ++idim){
-    int m=0;
+    int m = 0;
     for (idx = 0; idx < mynpt; ++idx){
-      fft_data[m++] = Rnow[idx][idim];
-      fft_data[m++] = 0.;
+      fft_data[m++] = static_cast<FFT_SCALAR>(Rnow[idx][idim]);
+      fft_data[m++] = static_cast<FFT_SCALAR>(0.);
     }
 
     fft->compute(fft_data, fft_data, -1);
 
     m = 0;
     for (idq = 0; idq < mynq; ++idq){
-      Rqnow[idq][idim] = std::complex<double>(fft_data[m], fft_data[m+1]);
+      Rqnow[idq][idim] = std::complex<double>(static_cast<double>(fft_data[m]), static_cast<double>(fft_data[m+1]));
       m += 2;
     }
   }
@@ -393,7 +395,7 @@ void FixPhonon::end_of_step()
   for (idq = 0; idq < mynq; ++idq){
     ndim = 0;
     for (idim = 0; idim < fft_dim; ++idim)
-    for (jdim = 0; jdim < fft_dim; ++jdim) Rqsum[idq][ndim++] += Rqnow[idq][idim]*conj(Rqnow[idq][jdim]);
+    for (jdim = 0; jdim < fft_dim; ++jdim) Rqsum[idq][ndim++] += Rqnow[idq][idim] * std::conj(Rqnow[idq][jdim]);
   }
 
   // get basis info
@@ -547,7 +549,7 @@ void FixPhonon::readmap()
     MPI_Allgather(&nfind,1,MPI_INT,recvcnts,1,MPI_INT,world);
     for (int i = 1; i < nprocs; ++i) displs[i] = displs[i-1] + recvcnts[i-1];
    
-    MPI_Allgatherv(tag_loc,nfind,MPI_LMP_TAGINT,tag_all,recvcnts,displs,MPI_INT,world);
+    MPI_Allgatherv(tag_loc,nfind,MPI_LMP_TAGINT,tag_all,recvcnts,displs,MPI_LMP_TAGINT,world);
     for (int i = 0; i < ngroup; ++i){
       itag = tag_all[i];
       tag2surf[itag] = i;
@@ -595,7 +597,7 @@ void FixPhonon::readmap()
     if (ix < 0 || ix >= nx || iy < 0 || iy >= ny || 
         iz < 0 || iz >= nz || iu < 0 || iu >= nucell) {info = 2; break;}
     // 1 <= itag <= natoms
-    if (itag < 1 || itag > static_cast<int>(atom->natoms)) {info = 3; break;}
+    if (itag < 1 || itag > static_cast<tagint>(atom->natoms)) {info = 3; break;}
     idx = ((ix*ny+iy)*nz+iz)*nucell + iu;
     tag2surf[itag] = idx;
     surf2tag[idx]  = itag;
@@ -631,11 +633,11 @@ void FixPhonon::postprocess( )
 
   ifreq = 0;
   int idim, jdim, ndim;
-  double inv_neval = 1.0 /double(neval);
+  double inv_neval = 1. /double(neval);
 
   // to get <Rq.Rq*>
   for (idq = 0; idq < mynq; ++idq)
-  for (idim = 0; idim < fft_dim2; ++idim) Phi_q[idq][idim] = Rqsum[idq][idim]*inv_neval;
+  for (idim = 0; idim < fft_dim2; ++idim) Phi_q[idq][idim] = Rqsum[idq][idim] * inv_neval;
 
   // to get <R>
   for (idx = 0; idx < mynpt; ++idx)
@@ -645,15 +647,15 @@ void FixPhonon::postprocess( )
   for (idim = 0; idim < fft_dim; ++idim){
     int m = 0;
     for (idx = 0; idx < mynpt; ++idx){
-      fft_data[m++] = Rnow[idx][idim];
-      fft_data[m++] = 0.;
+      fft_data[m++] = static_cast<FFT_SCALAR>(Rnow[idx][idim]);
+      fft_data[m++] = static_cast<FFT_SCALAR>(0.);
     }
 
     fft->compute(fft_data,fft_data,-1);
 
     m = 0;
     for (idq = 0; idq < mynq; ++idq){
-      Rqnow[idq][idim]  = std::complex<double>(fft_data[m], fft_data[m+1]);
+      Rqnow[idq][idim]  = std::complex<double>(static_cast<double>(fft_data[m]), static_cast<double>(fft_data[m+1]));
       m += 2;
     }
   }
@@ -662,17 +664,17 @@ void FixPhonon::postprocess( )
   for (idq = 0; idq < mynq; ++idq){
     ndim = 0;
     for (idim = 0; idim < fft_dim; ++idim)
-    for (jdim = 0; jdim < fft_dim; ++jdim) Phi_q[idq][ndim++] -= Rqnow[idq][idim]*conj(Rqnow[idq][jdim]);
+    for (jdim = 0; jdim < fft_dim; ++jdim) Phi_q[idq][ndim++] -= Rqnow[idq][idim] * std::conj(Rqnow[idq][jdim]);
   }
 
   // to get Phi = KT.G^-1; normalization of FFTW data is done here
   double boltz = force->boltz, kbtsqrt[sysdim], TempAve = 0.;
-  double TempFac = inv_neval*inv_nTemp;
-  double NormFac = TempFac*double(ntotal);
+  double TempFac = inv_neval * inv_nTemp;
+  double NormFac = TempFac * double(ntotal);
 
   for (idim = 0; idim < sysdim; ++idim){
-    kbtsqrt[idim] = sqrt(TempSum[idim]*NormFac);
-    TempAve += TempSum[idim]*TempFac;
+    kbtsqrt[idim] = sqrt(TempSum[idim] * NormFac);
+    TempAve += TempSum[idim] * TempFac;
   }
   TempAve /= sysdim*boltz;
   
@@ -732,16 +734,16 @@ void FixPhonon::postprocess( )
     fclose(fp_bin);
 
     // write log file, here however, it is the dynamical matrix that is written
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog, "# Current time step                      : " BIGINT_FORMAT "\n", update->ntimestep);
-    fprintf(flog, "# Total number of measurements           : %d\n", neval);
-    fprintf(flog, "# Average temperature of the measurement : %lg\n", TempAve);
-    fprintf(flog, "# Boltzmann constant under current units : %lg\n", boltz);
-    fprintf(flog, "# basis vector A1 = [%lg %lg %lg]\n", basevec[0], basevec[1], basevec[2]);
-    fprintf(flog, "# basis vector A2 = [%lg %lg %lg]\n", basevec[3], basevec[4], basevec[5]);
-    fprintf(flog, "# basis vector A3 = [%lg %lg %lg]\n", basevec[6], basevec[7], basevec[8]);
-    for (int i = 0; i < 60; ++i) fprintf(flog,"#"); fprintf(flog,"\n");
-    fprintf(flog, "# qx\t qy \t qz \t\t Phi(q)\n");
+    fprintf(flog,"############################################################\n");
+    fprintf(flog,"# Current time step                      : " BIGINT_FORMAT "\n", update->ntimestep);
+    fprintf(flog,"# Total number of measurements           : %d\n", neval);
+    fprintf(flog,"# Average temperature of the measurement : %lg\n", TempAve);
+    fprintf(flog,"# Boltzmann constant under current units : %lg\n", boltz);
+    fprintf(flog,"# basis vector A1 = [%lg %lg %lg]\n", basevec[0], basevec[1], basevec[2]);
+    fprintf(flog,"# basis vector A2 = [%lg %lg %lg]\n", basevec[3], basevec[4], basevec[5]);
+    fprintf(flog,"# basis vector A3 = [%lg %lg %lg]\n", basevec[6], basevec[7], basevec[8]);
+    fprintf(flog,"############################################################\n");
+    fprintf(flog,"# qx\t qy \t qz \t\t Phi(q)\n");
 
     EnforceASR();
 

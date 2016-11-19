@@ -33,23 +33,23 @@ DPDT::DPD() : BaseDPD<numtyp,acctyp>(), _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-DPDT::~DPD() { 
+DPDT::~DPD() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int DPDT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int DPDT::init(const int ntypes, 
-               double **host_cutsq, double **host_a0, 
-               double **host_gamma, double **host_sigma, 
+int DPDT::init(const int ntypes,
+               double **host_cutsq, double **host_a0,
+               double **host_gamma, double **host_sigma,
                double **host_cut, double *host_special_lj,
-               const bool tstat_only, 
-               const int nlocal, const int nall, 
-               const int max_nbors, const int maxspecial, 
+               const bool tstat_only,
+               const int nlocal, const int nall,
+               const int max_nbors, const int maxspecial,
                const double cell_size,
                const double gpu_split, FILE *_screen) {
   int success;
@@ -76,7 +76,7 @@ int DPDT::init(const int ntypes,
 
   coeff.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff,host_write,host_a0,host_gamma,
-			 host_sigma,host_cut);
+                         host_sigma,host_cut);
 
   UCL_H_Vec<numtyp> host_rsq(lj_types*lj_types,*(this->ucl_device),
                              UCL_WRITE_ONLY);
@@ -90,7 +90,7 @@ int DPDT::init(const int ntypes,
 
   _tstat_only = 0;
   if (tstat_only) _tstat_only=1;
-  
+
   _allocated=true;
   this->_max_bytes=coeff.row_bytes()+cutsq.row_bytes()+sp_lj.row_bytes();
   return 0;
@@ -130,7 +130,7 @@ void DPDT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -147,8 +147,8 @@ void DPDT::loop(const bool _eflag, const bool _vflag) {
                           &this->_tstat_only, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &coeff, &_lj_types, &sp_lj, 
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+    this->k_pair.run(&this->atom->x, &coeff, &_lj_types, &sp_lj,
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->atom->v, &cutsq, &this->_dtinvsqrt,
                      &this->_seed, &this->_timestep, &this->_tstat_only,
@@ -164,7 +164,7 @@ void DPDT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
   UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
                                UCL_WRITE_ONLY);
   this->atom->type_pack4(ntypes,_lj_types,coeff,host_write,host_a0,host_gamma,
-			 host_sigma,host_cut);
+                         host_sigma,host_cut);
 }
-               
+
 template class DPD<PRECISION,ACC_PRECISION>;

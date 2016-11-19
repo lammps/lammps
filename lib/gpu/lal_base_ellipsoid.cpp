@@ -70,7 +70,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
     _gpu_host=1;
 
   _threads_per_atom=device->threads_per_atom();
-    
+
   int success=device->init(*ans,false,true,nlocal,host_nlocal,nall,nbor,
                            maxspecial,_gpu_host,max_nbors,cell_size,true,
                            1);
@@ -113,7 +113,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
     return -8;
   if (_multiple_forms && gpu_nbor!=0)
     return -9;
-  
+
   if (_multiple_forms)
     ans->force.zero();
 
@@ -142,7 +142,7 @@ void BaseEllipsoidT::clear_base() {
   // Output any timing information
   output_times();
   host_olist.clear();
-  
+
   if (_compiled) {
     k_nbor_fast.clear();
     k_nbor.clear();
@@ -156,7 +156,7 @@ void BaseEllipsoidT::clear_base() {
     delete lj_program;
     _compiled=false;
   }
- 
+
   time_nbor1.clear();
   time_ellipsoid.clear();
   time_nbor2.clear();
@@ -230,7 +230,7 @@ void BaseEllipsoidT::output_times() {
       if (times[6]>0)
         fprintf(screen,"Device Overhead: %.4f s.\n",times[6]/replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
-      fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);      
+      fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[7]/replica_size);
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[8]/replica_size);
@@ -241,10 +241,10 @@ void BaseEllipsoidT::output_times() {
 }
 
 // ---------------------------------------------------------------------------
-// Pack neighbors to limit thread divergence for lj-lj and ellipse 
+// Pack neighbors to limit thread divergence for lj-lj and ellipse
 // ---------------------------------------------------------------------------
 template<class numtyp, class acctyp>
-void BaseEllipsoidT::pack_nbors(const int GX, const int BX, const int start, 
+void BaseEllipsoidT::pack_nbors(const int GX, const int BX, const int start,
                                 const int inum, const int form_low,
                                 const int form_high, const bool shared_types,
                                 int ntypes) {
@@ -264,18 +264,18 @@ void BaseEllipsoidT::pack_nbors(const int GX, const int BX, const int start,
 // Copy neighbor list from host
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseEllipsoidT::reset_nbors(const int nall, const int inum, 
+void BaseEllipsoidT::reset_nbors(const int nall, const int inum,
                                  const int osize, int *ilist,
                                  int *numj, int *type, int **firstneigh,
                                  bool &success) {
   success=true;
-    
+
   int mn=nbor->max_nbor_loop(osize,numj,ilist);
   resize_atom(nall,success);
   resize_local(inum,0,mn,osize,success);
   if (!success)
     return;
-    
+
   if (_multiple_forms) {
     int p=0;
     for (int i=0; i<osize; i++) {
@@ -315,7 +315,7 @@ template <class numtyp, class acctyp>
 inline void BaseEllipsoidT::build_nbor_list(const int inum, const int host_inum,
                                             const int nall, double **host_x,
                                             int *host_type, double *sublo,
-                                            double *subhi, tagint *tag, 
+                                            double *subhi, tagint *tag,
                                             int **nspecial, tagint **special,
                                             bool &success) {
   success=true;
@@ -354,7 +354,7 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
     zero_timers();
     return NULL;
   }
-  
+
   int ago=hd_balancer.ago_first(f_ago);
   int inum=hd_balancer.balance(ago,inum_full,cpu_time);
   ans->inum(inum);
@@ -394,7 +394,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
                               double **host_x, int *host_type, double *sublo,
                               double *subhi, tagint *tag, int **nspecial,
                               tagint **special, const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom, 
+                              const bool eatom, const bool vatom,
                               int &host_start, int **ilist, int **jnum,
                               const double cpu_time, bool &success,
                               double **host_quat) {
@@ -410,7 +410,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
   ans->inum(inum);
   _last_ellipse=std::min(inum,_max_last_ellipse);
   host_start=inum;
-  
+
   // Build neighbor list on GPU if necessary
   if (ago==0) {
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
@@ -419,7 +419,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
       return NULL;
     atom->cast_quat_data(host_quat[0]);
     hd_balancer.start_timer();
-  } else {    
+  } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_quat_data(host_quat[0]);
     hd_balancer.start_timer();
@@ -444,9 +444,9 @@ double BaseEllipsoidT::host_memory_usage_base() const {
 }
 
 template <class numtyp, class acctyp>
-void BaseEllipsoidT::compile_kernels(UCL_Device &dev, 
+void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
                                      const void *ellipsoid_string,
-                                     const void *lj_string, 
+                                     const void *lj_string,
                                      const char *kname, const bool e_s) {
   if (_compiled)
     return;

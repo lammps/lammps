@@ -77,14 +77,14 @@ class NeighBondKokkos : protected Pointers  {
   unsigned int datamask_read,datamask_modify;
 
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
-  int me;
+  int me,nprocs;
 
  private:
-  
+
 
   DAT::tdual_int_1d k_map_array;
   typename AT::t_int_1d_randomread map_array;
-  
+
   DAT::tdual_int_1d k_sametag;
   typename AT::t_int_1d_randomread sametag;
 

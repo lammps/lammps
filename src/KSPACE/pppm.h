@@ -21,7 +21,7 @@ KSpaceStyle(pppm,PPPM)
 #define LMP_PPPM_H
 
 #include "lmptype.h"
-#include "mpi.h"
+#include <mpi.h>
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -104,7 +104,7 @@ class PPPM : public KSpace {
   int typeH,typeO;             // atom types of TIP4P water H and O atoms
   double qdist;                // distance from O site to negative charge
   double alpha;                // geometric factor
-  
+
   void set_grid_global();
   void set_grid_local();
   void adjust_gewald();
@@ -124,19 +124,19 @@ class PPPM : public KSpace {
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();
   void compute_sf_precoeff();
-  
+
   virtual void particle_map();
   virtual void make_rho();
   virtual void brick2fft();
-  
+
   virtual void poisson();
   virtual void poisson_ik();
   virtual void poisson_ad();
-  
+
   virtual void fieldforce();
   virtual void fieldforce_ik();
   virtual void fieldforce_ad();
-  
+
   virtual void poisson_peratom();
   virtual void fieldforce_peratom();
   void procs2grid2d(int,int,int,int *, int*);

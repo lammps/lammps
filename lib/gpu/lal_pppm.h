@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -48,9 +48,9 @@ class PPPM {
   grdtyp * init(const int nlocal, const int nall, FILE *screen, const int order,
                 const int nxlo_out, const int nylo_out, const int nzlo_out,
                 const int nxhi_out, const int nyhi_out, const int nzhi_out,
-                grdtyp **rho_coeff, grdtyp **vd_brick, 
-                const double slab_volfactor, const int nx_pppm, 
-                const int ny_pppm, const int nz_pppm, const bool split, 
+                grdtyp **rho_coeff, grdtyp **vd_brick,
+                const double slab_volfactor, const int nx_pppm,
+                const int ny_pppm, const int nz_pppm, const bool split,
                 int &success);
 
   /// Check if there is enough storage for atom arrays and realloc if not
@@ -66,7 +66,7 @@ class PPPM {
   /// Check if there is enough storage for local atoms and realloc if not
   inline void resize_local(const int inum, bool &success) {
   }
-  
+
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear(const double cpu_time);
@@ -118,7 +118,7 @@ class PPPM {
 
   void interp(const grdtyp qqrd2e_scale);
 
-  // -------------------------- DEVICE DATA ------------------------- 
+  // -------------------------- DEVICE DATA -------------------------
 
   /// Device Properties and Atom and Neighbor storage
   Device<numtyp,acctyp> *device;
@@ -142,21 +142,21 @@ class PPPM {
 
   UCL_Vector<grdtyp,grdtyp> brick;
   UCL_Vector<grdtyp,grdtyp> vd_brick;
-  
+
   // Count of number of atoms assigned to each grid point
   UCL_D_Vec<int> d_brick_counts;
   // Atoms assigned to each grid point
   UCL_D_Vec<grdtyp4> d_brick_atoms;
-  
+
   // Error checking for out of bounds atoms
   UCL_Vector<int,int> error_flag;
-  
+
   // Number of grid points in brick (including ghost)
   int _npts_x, _npts_y, _npts_z, _npts_yx;
-  
+
   // Number of local grid points in brick
   int _nlocal_x, _nlocal_y, _nlocal_z, _nlocal_yx, _atom_stride;
-  
+
   // -------------------------- SPLINE DATA -------------------------
   UCL_D_Vec<grdtyp> d_rho_coeff;
   int _order, _nlower, _nupper, _order_m_1, _order2;
@@ -180,12 +180,12 @@ class PPPM {
   int _block_size, _block_pencils, _pencil_size, _max_brick_atoms, _max_atoms;
   double  _max_bytes, _max_an_bytes;
   double _cpu_idle_time;
-  
-  grdtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv; 
+
+  grdtyp _brick_x, _brick_y, _brick_z, _delxinv, _delyinv, _delzinv;
 
   double _slab_volfactor;
   int _nx_pppm, _ny_pppm, _nz_pppm;
-  
+
   void compile_kernels(UCL_Device &dev);
   void _precompute(const int ago, const int nlocal, const int nall,
                    double **host_x, int *host_type, bool &success,

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -47,6 +47,22 @@
 // Combination operands to be used in an Compare and Exchange based atomic operation
 namespace Kokkos {
 namespace Impl {
+
+template<class Scalar1, class Scalar2>
+struct MaxOper {
+  KOKKOS_FORCEINLINE_FUNCTION
+  static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
+    return (val1 > val2 ? val1 : val2);
+  }
+};
+
+template<class Scalar1, class Scalar2>
+struct MinOper {
+  KOKKOS_FORCEINLINE_FUNCTION
+  static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
+    return (val1 < val2 ? val1 : val2);
+  }
+};
 
 template<class Scalar1, class Scalar2>
 struct AddOper {
@@ -202,77 +218,73 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
   return newval.t ;
 }
 
-/*template < class Oper, typename T >
+template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) == sizeof(short) , const T >::type val )
+  typename ::Kokkos::Impl::enable_if<
+                ( sizeof(T) != 4 )
+             && ( sizeof(T) != 8 )
+          #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+             && ( sizeof(T) != 16 )
+          #endif
+           , const T >::type val )
 {
-  union { short i ; T t ; } oldval , assume , newval ;
 
-  oldval.t = *dest ;
-
-  do {
-    assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (short*)dest , assume.i , newval.i );
-  } while ( assume.i != oldval.i );
-
-  return oldval.t ;
+#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+  while( !Impl::lock_address_host_space( (void*) dest ) );
+  T return_val = *dest;
+  *dest = Oper::apply(return_val, val);
+  Impl::unlock_address_host_space( (void*) dest );
+  return return_val;
+#else
+  // This is a way to (hopefully) avoid dead lock in a warp
+  int done = 1;
+  while ( done>0 ) {
+    done++;
+    if( Impl::lock_address_cuda_space( (void*) dest ) ) {
+      T return_val = *dest;
+      *dest = Oper::apply(return_val, val);;
+      Impl::unlock_address_cuda_space( (void*) dest );
+      done=0;
+    }
+  }
+  return return_val;
+#endif
 }
 
 template < class Oper, typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) == sizeof(short), const T >::type val )
+  typename ::Kokkos::Impl::enable_if<
+                ( sizeof(T) != 4 )
+             && ( sizeof(T) != 8 )
+          #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
+             && ( sizeof(T) != 16 )
+          #endif
+           , const T >::type& val )
 {
-  union { short i ; T t ; } oldval , assume , newval ;
 
-  oldval.t = *dest ;
-
-  do {
-    assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (short*)dest , assume.i , newval.i );
-  } while ( assume.i != oldval.i );
-
-  return newval.t ;
+#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+  while( !Impl::lock_address_host_space( (void*) dest ) );
+  T return_val = Oper::apply(*dest, val);
+  *dest = return_val;
+  Impl::unlock_address_host_space( (void*) dest );
+  return return_val;
+#else
+  // This is a way to (hopefully) avoid dead lock in a warp
+  int done = 1;
+  while ( done>0 ) {
+    done++;
+    if( Impl::lock_address_cuda_space( (void*) dest ) ) {
+      T return_val = Oper::apply(*dest, val);
+      *dest = return_val;
+      Impl::unlock_address_cuda_space( (void*) dest );
+      done=0;
+    }
+  }
+  return return_val;
+#endif
 }
-
-template < class Oper, typename T >
-KOKKOS_INLINE_FUNCTION
-T atomic_fetch_oper( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) == sizeof(char) , const T >::type val )
-{
-  union { char i ; T t ; } oldval , assume , newval ;
-
-  oldval.t = *dest ;
-
-  do {
-    assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (char*)dest , assume.i , newval.i );
-  } while ( assume.i != oldval.i );
-
-  return oldval.t ;
-}
-
-template < class Oper, typename T >
-KOKKOS_INLINE_FUNCTION
-T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
-  typename ::Kokkos::Impl::enable_if< sizeof(T) == sizeof(char), const T >::type val )
-{
-  union { char i ; T t ; } oldval , assume , newval ;
-
-  oldval.t = *dest ;
-
-  do {
-    assume.i = oldval.i ;
-    newval.t = Oper::apply(assume.t, val) ;
-    oldval.i = ::Kokkos::atomic_compare_exchange( (char*)dest , assume.i , newval.i );
-  } while ( assume.i != oldval.i );
-
-  return newval.t ;
-}*/
 
 }
 }
@@ -280,6 +292,18 @@ T atomic_oper_fetch( const Oper& op, volatile T * const dest ,
 namespace Kokkos {
 
 // Fetch_Oper atomics: return value before operation
+template < typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_fetch_max(volatile T * const dest, const T val) {
+  return Impl::atomic_fetch_oper(Impl::MaxOper<T,const T>(),dest,val);
+}
+
+template < typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_fetch_min(volatile T * const dest, const T val) {
+  return Impl::atomic_fetch_oper(Impl::MinOper<T,const T>(),dest,val);
+}
+
 template < typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_fetch_mul(volatile T * const dest, const T val) {
@@ -330,6 +354,18 @@ T atomic_fetch_rshift(volatile T * const dest, const unsigned int val) {
 
 
 // Oper Fetch atomics: return value after operation
+template < typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_max_fetch(volatile T * const dest, const T val) {
+  return Impl::atomic_oper_fetch(Impl::MaxOper<T,const T>(),dest,val);
+}
+
+template < typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_min_fetch(volatile T * const dest, const T val) {
+  return Impl::atomic_oper_fetch(Impl::MinOper<T,const T>(),dest,val);
+}
+
 template < typename T >
 KOKKOS_INLINE_FUNCTION
 T atomic_mul_fetch(volatile T * const dest, const T val) {

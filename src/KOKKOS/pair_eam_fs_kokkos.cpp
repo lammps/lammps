@@ -15,10 +15,10 @@
    Contributing authors: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_eam_fs_kokkos.h"
@@ -941,7 +941,7 @@ void PairEAMFSKokkos<DeviceType>::coeff(int narg, char **arg)
     for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
-        if (i == j) atom->set_mass(i,fs->mass[map[i]]);
+        if (i == j) atom->set_mass(FLERR,i,fs->mass[map[i]]);
         count++;
       }
     }
@@ -1180,7 +1180,10 @@ void PairEAMFSKokkos<DeviceType>::file2array_fs()
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class PairEAMFSKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairEAMFSKokkos<LMPHostType>;
 #endif
+}
+

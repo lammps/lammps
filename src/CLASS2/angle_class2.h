@@ -20,7 +20,7 @@ AngleStyle(class2,AngleClass2)
 #ifndef LMP_ANGLE_CLASS2_H
 #define LMP_ANGLE_CLASS2_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "angle.h"
 
 namespace LAMMPS_NS {

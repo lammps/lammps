@@ -11,10 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include "universe.h"
 #include "version.h"
 #include "error.h"
@@ -25,13 +26,16 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 256
 
+static char *date2num(const char *version);
+
 /* ----------------------------------------------------------------------
    create & initialize the universe of processors in communicator
 ------------------------------------------------------------------------- */
 
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
-  version = (char *) LAMMPS_VERSION;
+  version = (const char *) LAMMPS_VERSION;
+  num_ver = date2num(version);
 
   uworld = uorig = communicator;
   MPI_Comm_rank(uworld,&me);
@@ -57,6 +61,7 @@ Universe::~Universe()
   memory->destroy(procs_per_world);
   memory->destroy(root_proc);
   memory->destroy(uni2orig);
+  delete [] num_ver;
 }
 
 /* ----------------------------------------------------------------------
@@ -158,17 +163,51 @@ void Universe::add_world(char *str)
   int n,nper;
   char *ptr;
 
-  if (str == NULL) {
-    n = 1;
-    nper = nprocs;
-  } else if ((ptr = strchr(str,'x')) != NULL) {
-    *ptr = '\0';
-    n = atoi(str);
-    nper = atoi(ptr+1);
-  } else {
-    n = 1;
-    nper = atoi(str);
-  }
+  n = 1;
+  nper = 0;
+
+  if (str != NULL) {
+
+    // check for valid partition argument
+
+    bool valid = true;
+
+    // str may not be empty and may only consist of digits or 'x'
+
+    int len = strlen(str);
+    if (len < 1) valid = false;
+    for (int i=0; i < len; ++i)
+      if (isdigit(str[i]) || str[i] == 'x') continue;
+      else valid = false;
+
+    if (valid) {
+      if ((ptr = strchr(str,'x')) != NULL) {
+
+        // 'x' may not be the first or last character
+
+        if (ptr == str) {
+          valid = false;
+        } else if (strlen(str) == len-1) {
+          valid = false;
+        } else {
+          *ptr = '\0';
+          n = atoi(str);
+          nper = atoi(ptr+1);
+          *ptr = 'x';
+        }
+      } else nper = atoi(str);
+    }
+
+    // require minimum of 1 partition with 1 processor
+
+    if (n < 1 || nper < 1) valid = false;
+
+    if (!valid) {
+      char msg[128];
+      sprintf(msg,"Invalid partition string '%s'",str);
+      error->universe_all(FLERR,msg);
+    }
+  } else nper = nprocs;
 
   memory->grow(procs_per_world,nworlds+n,"universe:procs_per_world");
   memory->grow(root_proc,(nworlds+n),"universe:root_proc");
@@ -193,4 +232,45 @@ int Universe::consistent()
   for (int i = 0; i < nworlds; i++) n += procs_per_world[i];
   if (n == nprocs) return 1;
   else return 0;
+}
+
+// helper function to convert the LAMMPS date string to a version id
+// that can be used for both string and numerical comparisons
+// where newer versions are larger than older ones.
+
+char *date2num(const char *version)
+{
+  int day,month,year;
+  day = month = year = 0;
+
+  if (version) {
+
+    day = atoi(version);
+
+    while (*version != '\0' && (isdigit(*version) || *version == ' '))
+      ++version;
+
+    if (strncmp(version,"Jan",3) == 0) month = 1;
+    if (strncmp(version,"Feb",3) == 0) month = 2;
+    if (strncmp(version,"Mar",3) == 0) month = 3;
+    if (strncmp(version,"Apr",3) == 0) month = 4;
+    if (strncmp(version,"May",3) == 0) month = 5;
+    if (strncmp(version,"Jun",3) == 0) month = 6;
+    if (strncmp(version,"Jul",3) == 0) month = 7;
+    if (strncmp(version,"Aug",3) == 0) month = 8;
+    if (strncmp(version,"Sep",3) == 0) month = 9;
+    if (strncmp(version,"Oct",3) == 0) month = 10;
+    if (strncmp(version,"Nov",3) == 0) month = 11;
+    if (strncmp(version,"Dec",3) == 0) month = 12;
+
+    while (*version != '\0' && !isdigit(*version))
+      ++version;
+
+    year = atoi(version);
+  }
+
+  char *ver = new char[10];
+  sprintf(ver,"%04d%02d%02d", year % 10000, month, day % 100);
+
+  return ver;
 }

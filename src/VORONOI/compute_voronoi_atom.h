@@ -32,6 +32,7 @@ class ComputeVoronoi : public Compute {
   void init();
   void compute_peratom();
   void compute_vector();
+  void compute_local();
   double memory_usage();
 
   int pack_forward_comm(int, int *, double *, int, int *);
@@ -54,8 +55,10 @@ class ComputeVoronoi : public Compute {
   enum { VOROSURF_NONE, VOROSURF_ALL, VOROSURF_GROUP } surface;
   bool onlyGroup, occupation;
 
-  tagint *tags;
+  tagint *tags, oldmaxtag;
   int *occvec, *sendocc, *lroot, *lnext, lmax, oldnatoms, oldnall;
+  int faces_flag, nfaces, nfacesmax;
+  double **faces;
 };
 
 }

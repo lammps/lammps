@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_vector.h"
 #include "update.h"
 #include "force.h"
@@ -37,7 +37,8 @@ enum{SCALAR,VECTOR};
 /* ---------------------------------------------------------------------- */
 
 FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), vector(NULL), array(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix vector command");
 
@@ -68,7 +69,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       argindex[nvalues] = atoi(ptr+1);
       *ptr = '\0';
     } else argindex[nvalues] = 0;
-    
+
     n = strlen(suffix) + 1;
     ids[nvalues] = new char[n];
     strcpy(ids[nvalues],suffix);
@@ -111,8 +112,10 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix vector does not exist");
-      if (input->variable->equalstyle(ivariable) == 0)
+      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
         error->all(FLERR,"Fix vector variable is not equal-style variable");
+      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,"Fix vector variable is not vector-style variable");
     }
   }
 
@@ -223,7 +226,7 @@ void FixVector::init()
 
   // reallocate vector or array for accumulated size at end of run
   // use endstep to allow for subsequent runs with "pre no"
-  // nsize = # of entries from initialstep to finalstep 
+  // nsize = # of entries from initialstep to finalstep
 
   bigint finalstep = update->endstep/nevery * nevery;
   if (finalstep > update->endstep) finalstep -= nevery;
@@ -248,7 +251,7 @@ void FixVector::end_of_step()
   // skip if not step which requires doing something
 
   if (update->ntimestep != nextstep) return;
-  if (ncount == ncountmax) 
+  if (ncount == ncountmax)
     error->all(FLERR,"Overflow of allocated fix vector storage");
 
   // accumulate results of computes,fixes,variables to local copy
@@ -259,7 +262,7 @@ void FixVector::end_of_step()
   else result = array[ncount];
 
   modify->clearstep_compute();
-  
+
   for (int i = 0; i < nvalues; i++) {
     int m = value2index[i];
 
@@ -290,10 +293,19 @@ void FixVector::end_of_step()
       else
         result[i] = modify->fix[m]->compute_vector(argindex[i]-1);
 
-    // evaluate equal-style variable
+    // evaluate equal-style or vector-style variable
 
-    } else if (which[i] == VARIABLE)
-      result[i] = input->variable->compute_equal(m);
+    } else if (which[i] == VARIABLE) {
+      if (argindex[i] == 0) 
+        result[i] = input->variable->compute_equal(m);
+      else {
+        double *varvec;
+        int nvec = input->variable->compute_vector(m,&varvec);
+        int index = argindex[i];
+        if (nvec < index) result[i] = 0.0;
+        else result[i] = varvec[index-1];
+      }
+    }
   }
 
   // trigger computes on next needed step

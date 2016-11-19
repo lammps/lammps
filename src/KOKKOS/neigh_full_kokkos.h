@@ -15,7 +15,7 @@
 #include "atom_masks.h"
 #include "domain_kokkos.h"
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
@@ -124,8 +124,8 @@ void NeighborKokkos::full_bin_kokkos(NeighListKokkos<DeviceType> *list)
     const int factor = 1;
 #endif
 
-if (GHOST && !HALF_NEIGH) {
-  NeighborKokkosBuildFunctorFullGhost<DeviceType> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+if (GHOST) {
+  NeighborKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
   Kokkos::parallel_for(nall, f);
 } else {
   if(newton_pair) {
@@ -164,6 +164,7 @@ if (GHOST && !HALF_NEIGH) {
     list->gnum = 0;
   }
 
+  list->k_ilist.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,14 +294,18 @@ void NeighborKokkosExecute<Device>::
             /* else which = 0; */
         if (which == 0){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }else if (minimum_image_check(delx,dely,delz)){
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }
         else if (which > 0) {
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+          else n++;
         }
       } else {
         if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+        else n++;
       }
     }
   }
@@ -334,14 +339,18 @@ void NeighborKokkosExecute<Device>::
             /* else which = 0; */
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }
             else if (which > 0) {
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+              else n++;
             }
           } else {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
         }
 
@@ -444,14 +453,18 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
           /* else which = 0; */
           if (which == 0){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }else if (minimum_image_check(delx,dely,delz)){
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
           else if (which > 0) {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+            else n++;
           }
         } else {
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }
       }
 
@@ -509,14 +522,18 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
             /* else which = 0; */
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }
             else if (which > 0) {
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+              else n++;
             }
           } else {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
         }
 
@@ -541,9 +558,9 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
 /* ---------------------------------------------------------------------- */
 
-template<class Device>
+template<class Device>  template<int HalfNeigh>
 void NeighborKokkosExecute<Device>::
-   build_Item_Full_Ghost(const int &i) const
+   build_Item_Ghost(const int &i) const
 {
   /* if necessary, goto next page and add pages */
   int n = 0;
@@ -576,7 +593,9 @@ void NeighborKokkosExecute<Device>::
       const int jbin = ibin + stencil[k];
       for(int m = 0; m < c_bincount(jbin); m++) {
         const int j = c_bins(jbin,m);
-        if (i == j) continue;
+
+        if (HalfNeigh && j <= i) continue;
+        else if (j == i) continue;
 
         const int jtype = type[j];
         if(exclude && exclusion(i,j,itype,jtype)) continue;
@@ -597,14 +616,18 @@ void NeighborKokkosExecute<Device>::
             /* else which = 0; */
             if (which == 0){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }else if (minimum_image_check(delx,dely,delz)){
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+              else n++;
             }
             else if (which > 0) {
               if(n<neigh_list.maxneighs) neighbors_i(n++) = j ^ (which << SBBITS);
+              else n++;
             }
           } else {
             if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+            else n++;
           }
         }
       }
@@ -626,7 +649,9 @@ void NeighborKokkosExecute<Device>::
       const int jbin = ibin + stencil[k];
       for(int m = 0; m < c_bincount(jbin); m++) {
         const int j = c_bins(jbin,m);
-        if (i == j) continue;
+
+        if (HalfNeigh && j <= i) continue;
+        else if (j == i) continue;
 
         const int jtype = type[j];
         if(exclude && exclusion(i,j,itype,jtype)) continue;
@@ -638,6 +663,7 @@ void NeighborKokkosExecute<Device>::
 
         if (rsq <= cutneighsq(itype,jtype)) {
           if(n<neigh_list.maxneighs) neighbors_i(n++) = j;
+          else n++;
         }
       }
     }
@@ -844,4 +870,6 @@ void NeighborKokkosExecute<Device>::
     if(n >= new_maxneighs()) new_maxneighs() = n;
   }
   neigh_list.d_ilist(i) = i;
+}
+
 }

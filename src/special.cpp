@@ -11,16 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdio.h"
+#include <mpi.h>
+#include <stdio.h>
 #include "special.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
 #include "comm.h"
+#include "modify.h"
+#include "fix.h"
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -191,6 +194,7 @@ void Special::build()
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
     combine();
+    fix_alteration();
     return;
   }
 
@@ -307,6 +311,7 @@ void Special::build()
     dedup();
     if (force->special_angle) angle_trim();
     combine();
+    fix_alteration();
     return;
   }
 
@@ -419,6 +424,7 @@ void Special::build()
   if (force->special_angle) angle_trim();
   if (force->special_dihedral) dihedral_trim();
   combine();
+  fix_alteration();
 }
 
 /* ----------------------------------------------------------------------
@@ -583,8 +589,12 @@ void Special::combine()
 
   if (lmp->kokkos) {
     AtomKokkos* atomKK = (AtomKokkos*) atom;
+    atomKK->modified(Host,SPECIAL_MASK);
+    atomKK->sync(Device,SPECIAL_MASK);
     memory->grow_kokkos(atomKK->k_special,atom->special,
                         atom->nmax,atom->maxspecial,"atom:special");
+    atomKK->modified(Device,SPECIAL_MASK);
+    atomKK->sync(Host,SPECIAL_MASK);
   } else {
     memory->destroy(atom->special);
     memory->create(atom->special,atom->nmax,atom->maxspecial,"atom:special");
@@ -1127,3 +1137,17 @@ void Special::ring_eight(int ndatum, char *cbuf)
     i += 2;
   }
 }
+
+/* ----------------------------------------------------------------------
+   allow fixes to alter special list
+   currently, only fix drude does this
+     so that both the Drude core and electron are same level of neighbor
+------------------------------------------------------------------------- */
+
+void Special::fix_alteration()
+{
+  for (int ifix = 0; ifix < modify->nfix; ifix++)
+    if (modify->fix[ifix]->special_alter_flag)
+      modify->fix[ifix]->rebuild_special();
+}
+

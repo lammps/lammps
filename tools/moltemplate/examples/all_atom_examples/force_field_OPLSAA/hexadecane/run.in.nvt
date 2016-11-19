@@ -26,6 +26,7 @@ read_data       system_after_eq3_npt.data
 # ------------------------------- Settings Section --------------------------
 
 include         system.in.settings
+include         system.in.charges
 
 # ------------------------------- Run Section -------------------------------
 

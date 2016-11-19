@@ -24,17 +24,6 @@ MinimizeStyle(hftn,MinHFTN)
 
 namespace LAMMPS_NS
 {
-  //---- THE ALGORITHM NEEDS TO STORE THIS MANY ATOM-BASED VECTORS,
-  //---- IN ADDITION TO ATOM POSITIONS AND THE FORCE VECTOR.
-
-  static const int  NUM_HFTN_ATOM_BASED_VECTORS = 7;
-  static const int  VEC_XK    = 0;   //-- ATOM POSITIONS AT SUBITER START
-  static const int  VEC_CG_P  = 1;   //-- STEP p IN CG SUBITER
-  static const int  VEC_CG_D  = 2;   //-- DIRECTION d IN CG SUBITER
-  static const int  VEC_CG_HD = 3;   //-- HESSIAN-VECTOR PRODUCT Hd
-  static const int  VEC_CG_R  = 4;   //-- RESIDUAL r IN CG SUBITER
-  static const int  VEC_DIF1  = 5;   //-- FOR FINITE DIFFERENCING
-  static const int  VEC_DIF2  = 6;   //-- FOR FINITE DIFFERENCING
 
 class MinHFTN : public Min
 {
@@ -48,6 +37,19 @@ class MinHFTN : public Min
   int iterate (int);
 
   private:
+
+  //---- THE ALGORITHM NEEDS TO STORE THIS MANY ATOM-BASED VECTORS,
+  //---- IN ADDITION TO ATOM POSITIONS AND THE FORCE VECTOR.
+  enum {
+    VEC_XK=0,   //-- ATOM POSITIONS AT SUBITER START
+    VEC_CG_P,   //-- STEP p IN CG SUBITER
+    VEC_CG_D,   //-- DIRECTION d IN CG SUBITER
+    VEC_CG_HD,  //-- HESSIAN-VECTOR PRODUCT Hd
+    VEC_CG_R,   //-- RESIDUAL r IN CG SUBITER
+    VEC_DIF1,   //-- FOR FINITE DIFFERENCING
+    VEC_DIF2,   //-- FOR FINITE DIFFERENCING
+    NUM_HFTN_ATOM_BASED_VECTORS
+  };
 
   //---- ATOM-BASED STORAGE VECTORS.
   double *   _daAVectors[NUM_HFTN_ATOM_BASED_VECTORS];

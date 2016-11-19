@@ -15,10 +15,10 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "atom.h"
 #include "gridcomm.h"
@@ -48,7 +48,8 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
+PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg), 
+  is_charged(NULL)
 {
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style pppm/cg command");
@@ -59,7 +60,6 @@ PPPMCG::PPPMCG(LAMMPS *lmp, int narg, char **arg) : PPPM(lmp, narg, arg)
   else smallq = SMALLQ;
 
   num_charged = -1;
-  is_charged = NULL;
   group_group_enable = 1;
 }
 
@@ -101,7 +101,7 @@ void PPPMCG::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     memory->destroy(is_charged);
     nmax = atom->nmax;
@@ -193,7 +193,7 @@ void PPPMCG::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    if (differentiation_flag == 1 && vflag_atom) 
+    if (differentiation_flag == 1 && vflag_atom)
       cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
     else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
@@ -282,7 +282,7 @@ void PPPMCG::particle_map()
 
   double **x = atom->x;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -272,14 +272,14 @@ void assert_shape_bounds( const ShapeType & shape ,
   // Must supply at least as many indices as ranks.
   // Every index must be within bounds.
   const bool ok = ShapeType::rank <= arg_rank &&
-                  i0 < shape.N0 && 
-                  i1 < shape.N1 &&
-                  i2 < shape.N2 &&
-                  i3 < shape.N3 &&
-                  i4 < shape.N4 &&
-                  i5 < shape.N5 &&
-                  i6 < shape.N6 &&
-                  i7 < shape.N7 ;
+                  i0 < size_t(shape.N0) && 
+                  i1 < size_t(shape.N1) &&
+                  i2 < size_t(shape.N2) &&
+                  i3 < size_t(shape.N3) &&
+                  i4 < size_t(shape.N4) &&
+                  i5 < size_t(shape.N5) &&
+                  i6 < size_t(shape.N6) &&
+                  i7 < size_t(shape.N7) ;
 
   if ( ! ok ) {
     AssertShapeBoundsAbort< Kokkos::Impl::ActiveExecutionMemorySpace >
@@ -290,7 +290,7 @@ void assert_shape_bounds( const ShapeType & shape ,
   }
 }
 
-#if defined( KOKKOS_EXPRESSION_CHECK )
+#if defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_1( S , I0 ) assert_shape_bounds(S,1,I0);
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_2( S , I0 , I1 ) assert_shape_bounds(S,2,I0,I1);
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_3( S , I0 , I1 , I2 ) assert_shape_bounds(S,3,I0,I1,I2);

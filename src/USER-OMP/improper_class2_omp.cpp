@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "improper_class2_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -60,6 +60,7 @@ void ImproperClass2OMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (inum > 0) {
@@ -76,6 +77,7 @@ void ImproperClass2OMP::compute(int eflag, int vflag)
         else eval<0,0,0>(ifrom, ito, thr);
       }
     }
+    thr->timer(Timer::BOND);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -694,7 +696,8 @@ void ImproperClass2OMP::angleangle_thr(int nfrom, int nto, ThrData * const thr)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,
-                   fabcd[0],fabcd[2],fabcd[3],delxAB,delyAB,delzAB,
-                   delxBC,delyBC,delzBC,delxBD,delyBD,delzBD,thr);
+                   fabcd[0],fabcd[2],fabcd[3],
+                   delxAB,delyAB,delzAB,delxBC,delyBC,delzBC,
+                   delxBD-delxBC,delyBD-delyBC,delzBD-delzBC,thr);
   }
 }

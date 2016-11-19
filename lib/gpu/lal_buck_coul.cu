@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
@@ -29,19 +29,19 @@ texture<int2> q_tex;
 #define q_tex q_
 #endif
 
-__kernel void k_buck_coul(const __global numtyp4 *restrict x_, 
+__kernel void k_buck_coul(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict coeff1,
-                          const __global numtyp4 *restrict coeff2, 
-                          const int lj_types, 
-                          const __global numtyp *restrict sp_lj_in, 
-                          const __global int *dev_nbor, 
-                          const __global int *dev_packed, 
+                          const __global numtyp4 *restrict coeff2,
+                          const int lj_types,
+                          const __global numtyp *restrict sp_lj_in,
+                          const __global int *dev_nbor,
+                          const __global int *dev_packed,
                           __global acctyp4 *restrict ans,
-                          __global acctyp *restrict engv, 
+                          __global acctyp *restrict engv,
                           const int eflag, const int vflag, const int inum,
-                          const int nbor_pitch, 
+                          const int nbor_pitch,
                           const __global numtyp *restrict q_ ,
-                          const __global numtyp4 *restrict cutsq, 
+                          const __global numtyp4 *restrict cutsq,
                           const numtyp qqrd2e, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -63,21 +63,21 @@ __kernel void k_buck_coul(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
-    
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
-      
+
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
       factor_coul = sp_lj[sbmask(j)+4];
@@ -91,30 +91,30 @@ __kernel void k_buck_coul(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       int mtype=itype*lj_types+jtype;
       if (rsq<cutsq[mtype].x) {
         numtyp r2inv=ucl_recip(rsq);
         numtyp forcecoul, forcebuck, force, r6inv;
         numtyp rexp = (numtyp)0.0;
-        
+
         if (rsq < cutsq[mtype].y) { // buckingham
           numtyp r=ucl_sqrt(rsq);
           rexp = ucl_exp(-r*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
-          forcebuck = (coeff1[mtype].y*r*rexp 
+          forcebuck = (coeff1[mtype].y*r*rexp
                   - coeff1[mtype].z*r6inv)*factor_lj;
         } else
           forcebuck = (numtyp)0.0;
-        
+
         if (rsq < coeff2[mtype].z) {
           fetch(forcecoul,j,q_tex);
           forcecoul *= qqrd2e*qtmp*ucl_rsqrt(rsq)*factor_coul;
         } else
           forcecoul = (numtyp)0.0;
-        
+
         force = (forcebuck + forcecoul) * r2inv;
-        
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
@@ -142,22 +142,22 @@ __kernel void k_buck_coul(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_buck_coul_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_buck_coul_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp4 *restrict coeff1_in,
-                               const __global numtyp4 *restrict coeff2_in, 
-                               const __global numtyp *restrict sp_lj_in, 
-                               const __global int *dev_nbor, 
-                               const __global int *dev_packed, 
-                               __global acctyp4 *restrict ans, 
-                               __global acctyp *restrict engv, 
-                               const int eflag, const int vflag, const int inum, 
-                               const int nbor_pitch, 
+                               const __global numtyp4 *restrict coeff2_in,
+                               const __global numtyp *restrict sp_lj_in,
+                               const __global int *dev_nbor,
+                               const __global int *dev_packed,
+                               __global acctyp4 *restrict ans,
+                               __global acctyp *restrict engv,
+                               const int eflag, const int vflag, const int inum,
+                               const int nbor_pitch,
                                const __global numtyp *restrict q_,
-                               const __global numtyp4 *restrict _cutsq, 
+                               const __global numtyp4 *restrict _cutsq,
                                const numtyp qqrd2e, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local numtyp4 coeff1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 coeff2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 cutsq[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
@@ -170,7 +170,7 @@ __kernel void k_buck_coul_fast(const __global numtyp4 *restrict x_,
     if (eflag>0)
       coeff2[tid]=coeff2_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -180,7 +180,7 @@ __kernel void k_buck_coul_fast(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
@@ -195,7 +195,7 @@ __kernel void k_buck_coul_fast(const __global numtyp4 *restrict x_,
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
       int j=dev_packed[nbor];
-      
+
       numtyp factor_lj, factor_coul;
       factor_lj = sp_lj[sbmask(j)];
       factor_coul = sp_lj[sbmask(j)+4];
@@ -209,27 +209,27 @@ __kernel void k_buck_coul_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       if (rsq<cutsq[mtype].x) {
         numtyp r2inv=ucl_recip(rsq);
         numtyp forcecoul, forcebuck, force, r6inv;
         numtyp rexp = (numtyp)0.0;
-        
+
         if (rsq < cutsq[mtype].y) { // buckingham
           numtyp r=ucl_sqrt(rsq);
           rexp = ucl_exp(-r*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
-          forcebuck = (coeff1[mtype].y*r*rexp 
+          forcebuck = (coeff1[mtype].y*r*rexp
                   - coeff1[mtype].z*r6inv)*factor_lj;
         } else
           forcebuck = (numtyp)0.0;
-        
+
         if (rsq < cutsq[mtype].z) {
           fetch(forcecoul,j,q_tex);
           forcecoul *= qqrd2e*qtmp*ucl_rsqrt(rsq)*factor_coul;
         } else
           forcecoul = (numtyp)0.0;
-        
+
         force = (forcebuck + forcecoul) * r2inv;
 
         f.x+=delx*force;
@@ -241,7 +241,7 @@ __kernel void k_buck_coul_fast(const __global numtyp4 *restrict x_,
           if (rsq < cutsq[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv;
             energy+=factor_lj*(e-coeff2[mtype].z);
-          } 
+          }
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

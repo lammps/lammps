@@ -19,16 +19,20 @@ if "${dir} == 6" then &
 # Reset box and simulation parameters
 
 clear
+box tilt large
 read_restart restart.equil
 include potential.mod
 
 # Negative deformation
 
 variable delta equal -${up}*${len0}
+variable deltaxy equal -${up}*xy
+variable deltaxz equal -${up}*xz
+variable deltayz equal -${up}*yz
 if "${dir} == 1" then &
-   "change_box all x delta 0 ${delta} remap units box"
+   "change_box all x delta 0 ${delta} xy delta ${deltaxy} xz delta ${deltaxz} remap units box"
 if "${dir} == 2" then &
-   "change_box all y delta 0 ${delta} remap units box"
+   "change_box all y delta 0 ${delta} yz delta ${deltayz} remap units box"
 if "${dir} == 3" then &
    "change_box all z delta 0 ${delta} remap units box"
 if "${dir} == 4" then &
@@ -69,16 +73,20 @@ variable C6neg equal ${d6}
 # Reset box and simulation parameters
 
 clear
+box tilt large
 read_restart restart.equil
 include potential.mod
 
 # Positive deformation
 
 variable delta equal ${up}*${len0}
+variable deltaxy equal ${up}*xy
+variable deltaxz equal ${up}*xz
+variable deltayz equal ${up}*yz
 if "${dir} == 1" then &
-   "change_box all x delta 0 ${delta} remap units box"
+   "change_box all x delta 0 ${delta} xy delta ${deltaxy} xz delta ${deltaxz} remap units box"
 if "${dir} == 2" then &
-   "change_box all y delta 0 ${delta} remap units box"
+   "change_box all y delta 0 ${delta} yz delta ${deltayz} remap units box"
 if "${dir} == 3" then &
    "change_box all z delta 0 ${delta} remap units box"
 if "${dir} == 4" then &

@@ -15,10 +15,10 @@
    Contributing authors: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_eam_alloy_kokkos.h"
@@ -133,7 +133,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMAlloyInitialize>(0,nall),*this);
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMAlloyInitialize>(0,nlocal),*this);
-  DeviceType::fence();
 
   // loop over neighbors of my atoms
 
@@ -156,7 +155,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMAlloyKernelA<HALFTHREAD,0> >(0,inum),*this);
       }
     }
-    DeviceType::fence();
 
     // communicate and sum densities (on the host)
 
@@ -174,7 +172,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMAlloyKernelB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMAlloyKernelB<0> >(0,inum),*this);
-    DeviceType::fence();
 
   } else if (neighflag == FULL) {
 
@@ -184,7 +181,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMAlloyKernelAB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMAlloyKernelAB<0> >(0,inum),*this);
-    DeviceType::fence();
   }
 
   if (eflag) {
@@ -239,7 +235,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -941,7 +936,7 @@ void PairEAMAlloyKokkos<DeviceType>::coeff(int narg, char **arg)
     for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
-        if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
+        if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
         count++;
       }
     }
@@ -1171,7 +1166,10 @@ void PairEAMAlloyKokkos<DeviceType>::file2array_alloy()
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class PairEAMAlloyKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairEAMAlloyKokkos<LMPHostType>;
 #endif
+}
+

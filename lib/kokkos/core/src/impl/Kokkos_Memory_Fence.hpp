@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,15 +35,14 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
 
 #if defined( KOKKOS_ATOMIC_HPP ) && ! defined( KOKKOS_MEMORY_FENCE )
 #define KOKKOS_MEMORY_FENCE
-
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
@@ -60,9 +59,44 @@ void memory_fence()
   _mm_mfence();
 #elif defined( KOKKOS_ATOMICS_USE_OMP31 )
   #pragma omp flush
-
+#elif defined( KOKKOS_ATOMICS_USE_WINDOWS )
+  MemoryBarrier();
 #else
  #error "Error: memory_fence() not defined"
+#endif
+}
+
+//////////////////////////////////////////////////////
+// store_fence()
+//
+// If possible use a store fence on the architecture, if not run a full memory fence
+
+KOKKOS_FORCEINLINE_FUNCTION
+void store_fence()
+{
+#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_USE_ISA_X86_64 )
+  asm volatile (
+	"sfence" ::: "memory"
+  	);
+#else
+  memory_fence();
+#endif
+}
+
+//////////////////////////////////////////////////////
+// load_fence()
+//
+// If possible use a load fence on the architecture, if not run a full memory fence
+
+KOKKOS_FORCEINLINE_FUNCTION
+void load_fence()
+{
+#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_USE_ISA_X86_64 )
+  asm volatile (
+	"lfence" ::: "memory"
+  	);
+#else
+  memory_fence();
 #endif
 }
 

@@ -84,10 +84,12 @@ class Compute : protected Pointers {
   int comm_reverse;         // size of reverse communication (0 if none)
   int dynamic_group_allow;  // 1 if can be used with dynamic group, else 0
 
-  unsigned int datamask;
-  unsigned int datamask_ext;
+  // KOKKOS host/device flag and data masks
 
-  int cudable;              // 1 if compute is CUDA-enabled
+  ExecutionSpace execution_space;
+  unsigned int datamask_read,datamask_modify;
+
+  int copymode;
 
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
@@ -131,18 +133,18 @@ class Compute : protected Pointers {
 
   virtual double memory_usage() {return 0.0;}
 
-  virtual int unsigned data_mask() {return datamask;}
-  virtual int unsigned data_mask_ext() {return datamask_ext;}
+  virtual void pair_tally_callback(int, int, int, int,
+                                   double, double, double,
+                                   double, double, double) {}
 
  protected:
   int instance_me;             // which Compute class instantiation I am
 
   double natoms_temp;          // # of atoms used for temperature calculation
-  int extra_dof;               // extra DOF for temperature computes
+  double extra_dof;            // extra DOF for temperature computes
   int fix_dof;                 // DOF due to fixes
   int dynamic;                 // recount atoms for temperature computes
   int dynamic_user;            // user request for temp compute to be dynamic
-  int thermoflag;              // 1 if include fix PE for PE computes
 
   double vbias[3];             // stored velocity bias for one atom
   double **vbiasall;           // stored velocity bias for all atoms

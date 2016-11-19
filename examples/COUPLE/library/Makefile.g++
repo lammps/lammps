@@ -4,10 +4,10 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-CC =		g++
-CCFLAGS =	-g -O -DMPICH_IGNORE_CXX_SEEK
+CC =		mpicxx
+CCFLAGS =	-g -O -DMPICH_IGNORE_CXX_SEEK  -DOMPI_SKIP_MPICXX=1 
 DEPFLAGS =	-M
-LINK =		g++
+LINK =		mpicxx
 LINKFLAGS =	-g -O
 ARCHIVE =	ar
 ARFLAGS =	-rc

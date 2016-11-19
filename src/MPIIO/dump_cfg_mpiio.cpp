@@ -15,9 +15,9 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dump_cfg_mpiio.h"
 #include "atom.h"
 #include "domain.h"
@@ -290,7 +290,7 @@ void DumpCFGMPIIO::write_header(bigint n)
     else if (unwrapflag == 1) scale = UNWRAPEXPAND;
 
     char str[64];
-  
+
     sprintf(str,"Number of particles = %s\n",BIGINT_FORMAT);
     headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),str,n);
     headerSize += sprintf(((char*)&((char*)headerBuffer)[headerSize]),"A = %g Angstrom (basic length-scale)\n",scale);
@@ -372,24 +372,24 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
             mpifh_buffer_line_per_thread[tid] = (char *) realloc(mpifh_buffer_line_per_thread[tid],(mpifhStringCountPerThread[tid]+DUMP_BUF_CHUNK_SIZE) * sizeof(char));
             bufLength[tid] = (mpifhStringCountPerThread[tid]+DUMP_BUF_CHUNK_SIZE) * sizeof(char);
           }
-          for (int j = 0; j < size_one; j++) {  
+          for (int j = 0; j < size_one; j++) {
             if (j == 0) {
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"%f \n",(mybuf[bufOffset[tid]+m]));
             } else if (j == 1) {
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"%s \n",typenames[(int) mybuf[bufOffset[tid]+m]]);
             } else if (j >= 2) {
-            if (vtype[j] == INT) 
+            if (vtype[j] == INT)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<int> (mybuf[bufOffset[tid]+m]));
-            else if (vtype[j] == DOUBLE) 
+            else if (vtype[j] == DOUBLE)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],mybuf[bufOffset[tid]+m]);
-            else if (vtype[j] == STRING) 
+            else if (vtype[j] == STRING)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],typenames[(int) mybuf[bufOffset[tid]+m]]);
-            else if (vtype[j] == BIGINT) 
+            else if (vtype[j] == BIGINT)
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<bigint> (mybuf[bufOffset[tid]+m]));
           }
           m++;
         } // for j
-        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"\n");        
+        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"\n");
       } // for i
     } // wrap flag
     else if (unwrapflag == 1) {
@@ -398,7 +398,7 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
           mpifh_buffer_line_per_thread[tid] = (char *) realloc(mpifh_buffer_line_per_thread[tid],(mpifhStringCountPerThread[tid]+DUMP_BUF_CHUNK_SIZE) * sizeof(char));
           bufLength[tid] = (mpifhStringCountPerThread[tid]+DUMP_BUF_CHUNK_SIZE) * sizeof(char);
         }
-        for (int j = 0; j < size_one; j++) {  
+        for (int j = 0; j < size_one; j++) {
           double unwrap_coord;
           if (j == 0) {
 	  //offset += sprintf(&sbuf[offset],"%f \n",mybuf[m]);
@@ -411,39 +411,39 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
           //offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],unwrap_coord);
           } else if (j >= 5 ) {
-            if (vtype[j] == INT) 
-            //offset += 
+            if (vtype[j] == INT)
+            //offset +=
             //  sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<int> (mybuf[bufOffset[tid]+m]));
-            else if (vtype[j] == DOUBLE) 
+            else if (vtype[j] == DOUBLE)
             // offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],mybuf[bufOffset[tid]+m]);
-            else if (vtype[j] == STRING) 
-            // offset += 
+            else if (vtype[j] == STRING)
+            // offset +=
             //  sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],typenames[(int) mybuf[bufOffset[tid]+m]]);
-            else if (vtype[j] == BIGINT) 
-            // offset += 
+            else if (vtype[j] == BIGINT)
+            // offset +=
             //  sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
               mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],static_cast<bigint> (mybuf[bufOffset[tid]+m]));
           }
           m++;
         } // for j
-        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"\n");        
+        mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),"\n");
       } // for i
     } // unwrap flag
   } // pragma omp parallel
-  
+
 #pragma omp barrier
     mpifhStringCount = 0;
     for (i=0;i<nthreads;i++) {
       mpifhStringCount += mpifhStringCountPerThread[i];
     }
-  
+
     memory->destroy(bufOffset);
     memory->destroy(bufRange);
     memory->destroy(bufLength);
-  
+
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
@@ -452,19 +452,19 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
       }
       sbuf[0] = '\0';
     }
- 
+
     for (int i=0;i<nthreads;i++) {
       strcat(sbuf,mpifh_buffer_line_per_thread[i]);
       free(mpifh_buffer_line_per_thread[i]);
     }
-  
+
     memory->destroy(mpifhStringCountPerThread);
     free(mpifh_buffer_line_per_thread);
-  
+
   } // else omp
 
   return mpifhStringCount;
- 
+
 }
 
 #endif

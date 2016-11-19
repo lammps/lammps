@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Hendrik Heenen (hendrik.heenen@mytum.com)
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 
 PairStyle(born/coul/long/cs,PairBornCoulLongCS)

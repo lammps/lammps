@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_temp_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -33,7 +33,8 @@ enum{ROTATE,ALL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_bias(NULL)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/sphere command");
 
@@ -44,7 +45,6 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
 
   tempbias = 0;
-  id_bias = NULL;
   mode = ALL;
 
   int iarg = 3;
@@ -250,7 +250,7 @@ double ComputeTempSphere::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic || tempbias == 2) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0) 
+  if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;

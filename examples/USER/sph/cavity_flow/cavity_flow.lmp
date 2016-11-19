@@ -28,7 +28,7 @@ group              integrate_full union fluid driver
 mass               3 2.0e-7
 mass               2 2.0e-7
 mass               1 4.0e-7
-set                group all meso_rho 1000.0
+set                group all meso/rho 1000.0
 
 # use Tait's EOS in combination with Morris' laminar viscosity.
 # We set rho_0 = 1000 kg/m^3, c = 0.1 m/s, h = 6.5e-5 m.
@@ -37,8 +37,8 @@ pair_style         hybrid sph/taitwater/morris
 pair_coeff         * *    sph/taitwater/morris 1000 0.1 1.0e-3 6.5e-5
 pair_coeff         2 3    none # exclude interaction between walls and shear driver
 
-compute            rho_peratom all meso_rho/atom
-compute            e_peratom all meso_e/atom
+compute            rho_peratom all meso/rho/atom
+compute            e_peratom all meso/e/atom
 compute            ke_peratom all ke/atom
 compute            esph all reduce sum c_e_peratom
 compute            ke all ke

@@ -5,20 +5,21 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------ */
 
 /* Single-processor "stub" versions of MPI routines */
+/* -I. in Makefile insures dummy mpi.h in this dir is included */
 
-#include "stdlib.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdint.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <sys/time.h>
-#include "mpi.h"
+#include <mpi.h>
 
 /* data structure for double/int */
 
@@ -77,17 +78,30 @@ int MPI_Finalized(int *flag)
 
 /* return "localhost" as name of the processor */
 
-void MPI_Get_processor_name(char *name, int *resultlen)
+int MPI_Get_processor_name(char *name, int *resultlen)
 {
   const char host[] = "localhost";
   int len;
 
-  if (!name || !resultlen) return;
+  if (!name || !resultlen) return MPI_ERR_ARG;
 
   len = strlen(host);
   memcpy(name,host,len+1);
   *resultlen = len;
-  return;
+  return MPI_SUCCESS;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* return MPI version level. v1.2 is not 100% correct, but close enough */
+
+int MPI_Get_version(int *major, int *minor)
+{
+  if (!major || !minor) return MPI_ERR_ARG;
+
+  *major = 1;
+  *minor = 2;
+  return MPI_SUCCESS;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,7 +190,7 @@ int MPI_Type_size(MPI_Datatype datatype, int *size)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Send(void *buf, int count, MPI_Datatype datatype,
+int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm)
 {
   printf("MPI Stub WARNING: Should not send message to self\n");
@@ -185,7 +199,7 @@ int MPI_Send(void *buf, int count, MPI_Datatype datatype,
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
               int source, int tag, MPI_Comm comm, MPI_Request *request)
 {
   printf("MPI Stub WARNING: Should not send message to self\n");
@@ -194,7 +208,7 @@ int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype,
               int dest, int tag, MPI_Comm comm)
 {
   printf("MPI Stub WARNING: Should not rsend message to self\n");
@@ -237,7 +251,7 @@ int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Waitany(int count, MPI_Request *request, int *index, 
+int MPI_Waitany(int count, MPI_Request *request, int *index,
                 MPI_Status *status)
 {
   printf("MPI Stub WARNING: Should not wait on message from self\n");
@@ -246,7 +260,7 @@ int MPI_Waitany(int count, MPI_Request *request, int *index,
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
+int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype,
                  int dest, int stag, void *rbuf, int rcount,
                  MPI_Datatype rdatatype, int source, int rtag,
                  MPI_Comm comm, MPI_Status *status)
@@ -293,7 +307,7 @@ MPI_Comm MPI_Comm_f2c(MPI_Fint comm) { return comm; };
 
 //* ---------------------------------------------------------------------- */
 
-int MPI_Comm_group(MPI_Comm comm, MPI_Group *group) 
+int MPI_Comm_group(MPI_Comm comm, MPI_Group *group)
 {
    *group = comm;
    return 0;
@@ -301,7 +315,7 @@ int MPI_Comm_group(MPI_Comm comm, MPI_Group *group)
 
 /* ---------------------------------------------------------------------- */
 
-int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm) 
+int MPI_Comm_create(MPI_Comm comm, MPI_Group group, MPI_Comm *newcomm)
 {
    *newcomm = group;
    return 0;
@@ -358,10 +372,10 @@ int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank)
 
 /* store size of user datatype in extra lists */
 
-int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
+int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
                         MPI_Datatype *newtype)
 {
-  if (nextra_datatype = MAXEXTRA_DATATYPE) return -1;
+  if (nextra_datatype == MAXEXTRA_DATATYPE) return -1;
   ptr_datatype[nextra_datatype] = newtype;
   index_datatype[nextra_datatype] = -(nextra_datatype + 1);
   size_datatype[nextra_datatype] = count * stubtypesize(oldtype);
@@ -371,7 +385,7 @@ int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
 
 /* ---------------------------------------------------------------------- */
 
-/* set value of user datatype to internal negative index, 
+/* set value of user datatype to internal negative index,
    based on match of ptr */
 
 int MPI_Type_commit(MPI_Datatype *datatype)
@@ -543,7 +557,7 @@ int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 
 /* copy values from data1 to data2 */
 
-int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype, 
+int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                 void *recvbuf, int recvcount, MPI_Datatype recvtype,
                 int root, MPI_Comm comm)
 {

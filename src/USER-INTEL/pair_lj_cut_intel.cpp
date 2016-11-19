@@ -12,7 +12,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_cut_intel.h"
 #include "atom.h"
 #include "comm.h"
@@ -74,53 +74,86 @@ void PairLJCutIntel::compute(int eflag, int vflag,
 
   if (ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
-    if (ago != 0) {
-      #if defined(_OPENMP)
-      #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
-      #endif
-      {
-        int ifrom, ito, tid;
-	IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
-				  nthreads, sizeof(ATOM_T));
-	buffers->thr_pack(ifrom,ito,ago);
-      }
+
+    #if defined(_OPENMP)
+    #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
+    #endif
+    {
+      int ifrom, ito, tid;
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost,
+                                nthreads, sizeof(ATOM_T));
+      buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
 
-  if (evflag || vflag_fdotr) {
-    int ovflag = 0;
-    if (vflag_fdotr) ovflag = 2;
-    else if (vflag) ovflag = 1;
-    if (eflag) {
-      if (force->newton_pair) {
-        eval<1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,1,1>(0, ovflag, buffers, fc, host_start, inum);
+  if (_onetype) {
+    if (evflag || vflag_fdotr) {
+      int ovflag = 0;
+      if (vflag_fdotr) ovflag = 2;
+      else if (vflag) ovflag = 1;
+      if (eflag) {
+	if (force->newton_pair) {
+	  eval<1,1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<1,1,1,1>(0, ovflag, buffers, fc, host_start, inum);
+	} else {
+	  eval<1,1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<1,1,1,0>(0, ovflag, buffers, fc, host_start, inum);
+	}
       } else {
-        eval<1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,1,0>(0, ovflag, buffers, fc, host_start, inum);
+	if (force->newton_pair) {
+	  eval<1,1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<1,1,0,1>(0, ovflag, buffers, fc, host_start, inum);
+	} else {
+	  eval<1,1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<1,1,0,0>(0, ovflag, buffers, fc, host_start, inum);
+	}
       }
     } else {
       if (force->newton_pair) {
-        eval<1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,0,1>(0, ovflag, buffers, fc, host_start, inum);
+	eval<1,0,0,1>(1, 0, buffers, fc, 0, offload_end);
+	eval<1,0,0,1>(0, 0, buffers, fc, host_start, inum);
       } else {
-        eval<1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
-        eval<1,0,0>(0, ovflag, buffers, fc, host_start, inum);
+	eval<1,0,0,0>(1, 0, buffers, fc, 0, offload_end);
+	eval<1,0,0,0>(0, 0, buffers, fc, host_start, inum);
       }
     }
   } else {
-    if (force->newton_pair) {
-      eval<0,0,1>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,1>(0, 0, buffers, fc, host_start, inum);
+    if (evflag || vflag_fdotr) {
+      int ovflag = 0;
+      if (vflag_fdotr) ovflag = 2;
+      else if (vflag) ovflag = 1;
+      if (eflag) {
+	if (force->newton_pair) {
+	  eval<0,1,1,1>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<0,1,1,1>(0, ovflag, buffers, fc, host_start, inum);
+	} else {
+	  eval<0,1,1,0>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<0,1,1,0>(0, ovflag, buffers, fc, host_start, inum);
+	}
+      } else {
+	if (force->newton_pair) {
+	  eval<0,1,0,1>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<0,1,0,1>(0, ovflag, buffers, fc, host_start, inum);
+	} else {
+	  eval<0,1,0,0>(1, ovflag, buffers, fc, 0, offload_end);
+	  eval<0,1,0,0>(0, ovflag, buffers, fc, host_start, inum);
+	}
+      }
     } else {
-      eval<0,0,0>(1, 0, buffers, fc, 0, offload_end);
-      eval<0,0,0>(0, 0, buffers, fc, host_start, inum);
+      if (force->newton_pair) {
+	eval<0,0,0,1>(1, 0, buffers, fc, 0, offload_end);
+	eval<0,0,0,1>(0, 0, buffers, fc, host_start, inum);
+      } else {
+	eval<0,0,0,0>(1, 0, buffers, fc, 0, offload_end);
+	eval<0,0,0,0>(0, 0, buffers, fc, host_start, inum);
+      }
     }
   }
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
+template <int ONETYPE, int EVFLAG, int EFLAG, int NEWTON_PAIR, class flt_t, 
+	  class acc_t>
 void PairLJCutIntel::eval(const int offload, const int vflag,
                           IntelBuffers<flt_t,acc_t> *buffers,
                           const ForceConst<flt_t> &fc,
@@ -159,11 +192,11 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
   const int nthreads = tc;
   int *overflow = fix->get_off_overflow_flag();
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
-    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall, 
+    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall,
 			      f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
@@ -187,12 +220,25 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
       FORCE_T * _noalias const f = f_start - minlocal + (tid * f_stride);
       memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
+      flt_t cutsq, lj1, lj2, lj3, lj4, offset;
+      if (ONETYPE) {
+	cutsq = ljc12o[3].cutsq;
+	lj1 = ljc12o[3].lj1;
+	lj2 = ljc12o[3].lj2;
+	lj3 = lj34[3].lj3;
+	lj4 = lj34[3].lj4;
+	offset = ljc12o[3].offset;
+      }
       for (int i = iifrom; i < iito; ++i) {
-        const int itype = x[i].w;
-
-        const int ptr_off = itype * ntypes;
-        const FC_PACKED1_T * _noalias const ljc12oi = ljc12o + ptr_off;
-        const FC_PACKED2_T * _noalias const lj34i = lj34 + ptr_off;
+        int itype, ptr_off;
+        const FC_PACKED1_T * _noalias ljc12oi;
+        const FC_PACKED2_T * _noalias lj34i;
+	if (!ONETYPE) {
+	  itype = x[i].w;
+          ptr_off = itype * ntypes;
+          ljc12oi = ljc12o + ptr_off;
+          lj34i = lj34 + ptr_off;
+	}
 
         const int * _noalias const jlist = firstneigh + cnumneigh[i];
         const int jnum = numneigh[i];
@@ -209,7 +255,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
         }
 
-        #if defined(__INTEL_COMPILER)
+        #if defined(LMP_SIMD_COMPILER)
         #pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
@@ -218,25 +264,42 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
           flt_t forcelj, evdwl;
           forcelj = evdwl = (flt_t)0.0;
 
-          const int sbindex = jlist[jj] >> SBBITS & 3;
-          const int j = jlist[jj] & NEIGHMASK;
+	  int j, jtype, sbindex;
+	  if (!ONETYPE) {
+	    sbindex = jlist[jj] >> SBBITS & 3;
+	    j = jlist[jj] & NEIGHMASK;
+	  } else
+	    j = jlist[jj];
+
           const flt_t delx = xtmp - x[j].x;
           const flt_t dely = ytmp - x[j].y;
           const flt_t delz = ztmp - x[j].z;
-          const int jtype = x[j].w;
+          if (!ONETYPE) {
+	    jtype = x[j].w;
+            cutsq = ljc12oi[jtype].cutsq;
+	  }
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
 
-          #ifdef __MIC__
-          if (rsq < ljc12oi[jtype].cutsq) {
+          #ifdef INTEL_VMASK
+          if (rsq < cutsq) {
 	  #endif
-            flt_t factor_lj = special_lj[sbindex];
+            flt_t factor_lj;
+	    if (!ONETYPE) factor_lj = special_lj[sbindex];
             flt_t r2inv = 1.0 / rsq;
             flt_t r6inv = r2inv * r2inv * r2inv;
-            #ifndef __MIC__
-	    if (rsq > ljc12oi[jtype].cutsq) r6inv = (flt_t)0.0;
+            #ifndef INTEL_VMASK
+	    if (rsq > cutsq) r6inv = (flt_t)0.0;
 	    #endif
-            forcelj = r6inv * (ljc12oi[jtype].lj1 * r6inv - ljc12oi[jtype].lj2);
-            flt_t fpair = factor_lj * forcelj * r2inv;
+	    if (!ONETYPE) {
+	      lj1 = ljc12oi[jtype].lj1;
+	      lj2 = ljc12oi[jtype].lj2;
+	    }
+            forcelj = r6inv * (lj1 * r6inv - lj2);
+            flt_t fpair;
+	    if (!ONETYPE)
+	      fpair = factor_lj * forcelj * r2inv;
+	    else
+	      fpair = forcelj * r2inv;
 
             fxtmp += delx * fpair;
             fytmp += dely * fpair;
@@ -255,9 +318,18 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
                 ev_pre += (flt_t)0.5;
 
               if (EFLAG) {
-                evdwl = r6inv * (lj34i[jtype].lj3 * r6inv-lj34i[jtype].lj4) -
-                    ljc12oi[jtype].offset;
-                evdwl *= factor_lj;
+		if (!ONETYPE) {
+		  lj3 = lj34i[jtype].lj3;
+		  lj4 = lj34i[jtype].lj4;
+		  offset = ljc12oi[jtype].offset;
+		}
+                evdwl = r6inv * (lj3 * r6inv - lj4);
+                #ifdef INTEL_VMASK
+		evdwl -= offset;
+		#else
+		if (rsq < cutsq) evdwl -= offset;
+		#endif
+                if (!ONETYPE) evdwl *= factor_lj;
                 sevdwl += ev_pre*evdwl;
                 if (eatom) {
                   if (NEWTON_PAIR || i < nlocal)
@@ -270,23 +342,28 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
 	      IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
 				   delx, dely, delz);
             }
-          #ifdef __MIC__
+          #ifdef INTEL_VMASK
           } // if rsq
           #endif
         } // for jj
         f[i].x += fxtmp;
         f[i].y += fytmp;
         f[i].z += fztmp;
-        
+
 	IP_PRE_ev_tally_atom(EVFLAG, EFLAG, vflag, f, fwtmp);
       } // for ii
 
-      #if defined(_OPENMP)
-      #pragma omp barrier
+      #ifndef _LMP_INTEL_OFFLOAD
+      if (vflag == 2)
       #endif
-      IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			     nlocal, minlocal, nthreads, f_start, f_stride, 
-			     x);
+      {
+        #if defined(_OPENMP)
+        #pragma omp barrier
+        #endif
+        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
+	                       nlocal, minlocal, nthreads, f_start, f_stride,
+	                       x, offload);
+      }
     } // end omp
     if (EVFLAG) {
       if (EFLAG) {
@@ -302,7 +379,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
         ev_global[7] = ov5;
       }
     }
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end offload
@@ -313,7 +390,7 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload, eatom);
+    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
 }
@@ -352,6 +429,9 @@ template <class flt_t, class acc_t>
 void PairLJCutIntel::pack_force_const(ForceConst<flt_t> &fc,
                                       IntelBuffers<flt_t,acc_t> *buffers)
 {
+  _onetype = 0;
+  if (atom->ntypes == 1 && !atom->molecular) _onetype = 1;
+
   int tp1 = atom->ntypes + 1;
   fc.set_ntypes(tp1,memory,_cop);
   buffers->set_ntypes(tp1);

@@ -15,10 +15,10 @@
    Contributing authors: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_dsmc.h"
 #include "atom.h"
 #include "comm.h"
@@ -28,7 +28,7 @@
 #include "domain.h"
 #include "update.h"
 #include "random_mars.h"
-#include "limits.h"
+#include <limits.h>
 
 using namespace LAMMPS_NS;
 
@@ -245,8 +245,8 @@ void PairDSMC::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double sigma_one = force->numeric(FLERR,arg[2]);
 

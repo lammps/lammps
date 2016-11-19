@@ -1,0 +1,27 @@
+# Input File for DPD fluid under isothermal conditions using the VV-SSA integration scheme
+log             log.dpd-shardlow
+boundary        p p p
+
+units           metal  
+atom_style      atomic   # Can be either dpd or atomic 
+read_data       data.dpd
+
+comm_modify     mode single vel yes
+mass            1 100.0
+
+pair_style      dpd/fdt 300.0 10.0 234324
+pair_coeff      1 1 0.075 0.022 10.0
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check no once no
+
+timestep        0.001
+
+thermo          1
+thermo_style    custom step temp pe ke etotal
+thermo_modify   format float %15.10f
+
+fix             1 all shardlow
+fix             2 all nve
+
+run             100

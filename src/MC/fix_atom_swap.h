@@ -20,7 +20,7 @@ FixStyle(atom/swap,FixAtomSwap)
 #ifndef LMP_FIX_MCSWAP_H
 #define LMP_FIX_MCSWAP_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -62,15 +62,15 @@ class FixAtomSwap : public Fix {
   int iregion;                            // swap region
   char *idregion;                         // swap region id
 
-  int nswaptypes,ndeltamutypes;
+  int nswaptypes,nmutypes;
   int *type_list;
-  double *delta_mu;
-  
+  double *mu;
+
   double nswap_attempts;
   double nswap_successes;
 
   bool unequal_cutoffs;
-  
+
   int atom_swap_nmax;
   double beta;
   double *qtype;
@@ -82,7 +82,7 @@ class FixAtomSwap : public Fix {
 
   class RanPark *random_equal;
   class RanPark *random_unequal;
-  
+
   class Compute *c_pe;
 
   void options(int, char **);
@@ -109,7 +109,7 @@ E: Must specify at least 2 types in fix atom/swap command
 
 Self-explanatory.
 
-E: Need ntypes-1 delta_mu values in fix atom/swap command
+E: Need nswaptypes mu values in fix atom/swap command
 
 Self-explanatory.
 
@@ -117,7 +117,7 @@ E: Only 2 types allowed when not using semi-grand in fix atom/swap command
 
 Self-explanatory.
 
-E: Delta_mu not allowed when not using semi-grand in fix atom/swap command
+E: Mu not allowed when not using semi-grand in fix atom/swap command
 
 Self-explanatory.
 
@@ -126,6 +126,14 @@ E: Invalid atom type in fix atom/swap command
 The atom type specified in the atom/swap command does not exist.
 
 E: All atoms of a swapped type must have the same charge.
+
+Self-explanatory.
+
+E: At least one atom of each swapped type must be present to define charges.
+
+Self-explanatory.
+
+E: All atoms of a swapped type must have same charge.
 
 Self-explanatory.
 

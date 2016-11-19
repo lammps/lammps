@@ -46,6 +46,10 @@ class Min : protected Pointers {
   virtual void reset_vectors() = 0;
   virtual int iterate(int) = 0;
 
+  // possible return values of iterate() method
+  enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,
+       ZEROQUAD,TRSMALL,INTERROR,TIMEOUT};
+
  protected:
   int eflag,vflag;            // flags for energy/virial computation
   int virial_style;           // compute virial explicitly or implicitly

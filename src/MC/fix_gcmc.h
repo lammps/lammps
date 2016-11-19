@@ -20,7 +20,7 @@ FixStyle(gcmc,FixGCMC)
 #ifndef LMP_FIX_GCMC_H
 #define LMP_FIX_GCMC_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -39,7 +39,6 @@ class FixGCMC : public Fix {
   void attempt_molecule_rotation();
   void attempt_molecule_deletion();
   void attempt_molecule_insertion();
-  double energy(int, int, tagint, double *);
   void attempt_atomic_translation_full();
   void attempt_atomic_deletion_full();
   void attempt_atomic_insertion_full();
@@ -47,11 +46,12 @@ class FixGCMC : public Fix {
   void attempt_molecule_rotation_full();
   void attempt_molecule_deletion_full();
   void attempt_molecule_insertion_full();
+  double energy(int, int, tagint, double *);
+  double molecule_energy(tagint);
   double energy_full();
   int pick_random_gas_atom();
   tagint pick_random_gas_molecule();
   void toggle_intramolecular(int);
-  double molecule_energy(tagint);
   void update_gas_atoms_list();
   double compute_vector(int);
   double memory_usage();
@@ -74,7 +74,7 @@ class FixGCMC : public Fix {
   bool pressure_flag;       // true if user specified reservoir pressure
   bool charge_flag;         // true if user specified atomic charge
   bool full_flag;           // true if doing full system energy calculations
- 
+
   int natoms_per_molecule;  // number of atoms in each gas molecule
 
   int groupbitall;          // group bitmask for inserted atoms
@@ -82,8 +82,8 @@ class FixGCMC : public Fix {
   char** groupstrings;      // list of group-ids for inserted atoms
   int ngrouptypes;          // number of type-based group-ids for inserted atoms
   char** grouptypestrings;  // list of type-based group-ids for inserted atoms
-  int* grouptypebits;       // list of type-based group bitmasks 
-  int* grouptypes;          // list of type-based group types 
+  int* grouptypebits;       // list of type-based group bitmasks
+  int* grouptypes;          // list of type-based group types
   double ntranslation_attempts;
   double ntranslation_successes;
   double nrotation_attempts;
@@ -97,6 +97,7 @@ class FixGCMC : public Fix {
   int max_region_attempts;
   double gas_mass;
   double reservoir_temperature;
+  double tfac_insert;
   double chemical_potential;
   double displace;
   double max_rotation_angle;
@@ -110,7 +111,7 @@ class FixGCMC : public Fix {
   int *local_gas_list;
   double **cutsq;
   double **atom_coord;
-  imageint imagetmp;
+  imageint imagezero;
 
   double energy_intra;
 
@@ -118,7 +119,7 @@ class FixGCMC : public Fix {
 
   class RanPark *random_equal;
   class RanPark *random_unequal;
-  
+
   class Atom *model_atom;
 
   class Molecule **onemols;
@@ -128,7 +129,8 @@ class FixGCMC : public Fix {
   class Fix *fixshake;
   int shakeflag;
   char *idshake;
-  
+  int triclinic;                         // 0 = orthog box, 1 = triclinic
+
   class Compute *c_pe;
 
   void options(int, char **);
@@ -172,7 +174,11 @@ E: Fix gcmc molecule must have atom types
 
 The defined molecule does not specify atom types.
 
-E: Invalid atom type in fix gcmc mol command
+E: Atom type must be zero in fix gcmc mol command
+
+Self-explanatory.
+
+E: Fix gcmc molecule has charges, but atom style does not
 
 Self-explanatory.
 
@@ -180,6 +186,10 @@ E: Fix gcmc molecule template ID must be same as atom_style template ID
 
 When using atom_style template, you cannot insert molecules that are
 not in that template.
+
+E: Fix gcmc atom has charge, but atom style does not
+
+Self-explanatory.
 
 E: Cannot use fix gcmc shake and not molecule
 
@@ -237,6 +247,10 @@ E: Fix gcmc and fix shake not using same molecule template ID
 
 Self-explanatory.
 
+E: Fix gcmc can not currently be used with fix rigid or fix rigid/small
+
+Self-explanatory.
+
 E: Cannot use fix gcmc in a 2d simulation
 
 Fix gcmc is set up to run in 3d only. No 2d simulations with fix gcmc
@@ -252,13 +266,21 @@ Self-explanatory.
 
 E: Illegal fix gcmc gas mass <= 0
 
-The computed mass of the designated gas molecule or atom type was less 
+The computed mass of the designated gas molecule or atom type was less
 than or equal to zero.
 
-E: Cannot do gcmc on atoms in atom_modify first group
+E: Cannot do GCMC on atoms in atom_modify first group
 
 This is a restriction due to the way atoms are organized in a list to
 enable the atom_modify first command.
+
+E: Could not find specified fix gcmc group ID
+
+Self-explanatory.
+
+E: Fix gcmc put atom outside box
+
+This should not normally happen.  Contact the developers.
 
 E: Fix gcmc ran out of available molecule IDs
 

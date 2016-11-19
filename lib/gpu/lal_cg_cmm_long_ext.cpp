@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -28,9 +28,9 @@ static CGCMMLong<PRECISION,ACC_PRECISION> CMMLMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
-                  double **host_lj1, double **host_lj2, double **host_lj3, 
+                  double **host_lj1, double **host_lj2, double **host_lj3,
                   double **host_lj4, double **offset, double *special_lj,
-                  const int inum, const int nall, const int max_nbors, 
+                  const int inum, const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size, int &gpu_mode,
                   FILE *screen, double **host_cut_ljsq, double host_cut_coulsq,
                   double *host_special_coul, const double qqrd2e,
@@ -58,7 +58,7 @@ int cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
   int init_ok=0;
   if (world_me==0)
     init_ok=CMMLMF.init(ntypes, cutsq, cg_type, host_lj1, host_lj2, host_lj3,
-                        host_lj4, offset, special_lj, inum, nall, 300, 
+                        host_lj4, offset, special_lj, inum, nall, 300,
                         maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e,g_ewald);
 
@@ -82,7 +82,7 @@ int cmml_gpu_init(const int ntypes, double **cutsq, int **cg_type,
                           host_cut_ljsq, host_cut_coulsq, host_special_coul,
                           qqrd2e, g_ewald);
     CMMLMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -99,7 +99,7 @@ void cmml_gpu_clear() {
 
 int** cmml_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial, 
+                         double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum, const double cpu_time,
@@ -109,8 +109,8 @@ int** cmml_gpu_compute_n(const int ago, const int inum_full,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
                         vatom, host_start, ilist, jnum, cpu_time, success,
                         host_q,boxlo,prd);
-}  
-			
+}
+
 void cmml_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,

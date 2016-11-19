@@ -15,8 +15,8 @@
    Contributing author: Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_morse.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -126,7 +126,7 @@ void BondMorse::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
 
   double d0_one = force->numeric(FLERR,arg[1]);
   double alpha_one = force->numeric(FLERR,arg[2]);

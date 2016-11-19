@@ -72,7 +72,7 @@ class Irregular : protected Pointers {
   int *length_recv;          // # of doubles to recv from each proc
   int *offset_send;          // where each atom starts in send buffer
 
-  // extra plan params plan for irregular communication of datums 
+  // extra plan params plan for irregular communication of datums
   // 2 self params refer to data copied to self
 
   int *num_recv;             // # of datums to recv from each proc

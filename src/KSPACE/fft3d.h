@@ -314,10 +314,10 @@ struct fft_plan_3d {
 
 // function prototypes
 
-extern "C" { 
+extern "C" {
   void fft_3d(FFT_DATA *, FFT_DATA *, int, struct fft_plan_3d *);
   struct fft_plan_3d *fft_3d_create_plan(MPI_Comm, int, int, int,
-                                         int, int, int, int, int, 
+                                         int, int, int, int, int,
                                          int, int, int, int, int, int, int,
                                          int, int, int *, int);
   void fft_3d_destroy_plan(struct fft_plan_3d *);

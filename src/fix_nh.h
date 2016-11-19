@@ -29,7 +29,7 @@ class FixNH : public Fix {
   virtual void final_integrate();
   void initial_integrate_respa(int, int, int);
   void final_integrate_respa(int, int);
-  void pre_exchange();
+  virtual void pre_exchange();
   double compute_scalar();
   virtual double compute_vector(int);
   void write_restart(FILE *);
@@ -76,7 +76,8 @@ class FixNH : public Fix {
 
   char *id_temp,*id_press;
   class Compute *temperature,*pressure;
-  int tflag,pflag;
+  int tcomputeflag,pcomputeflag;   // 1 = compute was created by fix
+                                   // 0 = created externally
 
   double *eta,*eta_dot;            // chain thermostat for particles
   double *eta_dotdot;
@@ -109,6 +110,8 @@ class FixNH : public Fix {
   int eta_mass_flag;               // 1 if eta_mass updated, 0 if not.
   int omega_mass_flag;             // 1 if omega_mass updated, 0 if not.
   int etap_mass_flag;              // 1 if etap_mass updated, 0 if not.
+  int dipole_flag;                 // 1 if dipole is updated, 0 if not.
+  int dlm_flag;                    // 1 if using the DLM rotational integrator, 0 if not
 
   int scaleyz;                     // 1 if yz scaled with lz
   int scalexz;                     // 1 if xz scaled with lz
@@ -120,7 +123,7 @@ class FixNH : public Fix {
   double fixedpoint[3];            // location of dilation fixed-point
 
   void couple();
-  void remap();
+  virtual void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();
 
@@ -210,6 +213,18 @@ See the region prism command for details.
 E: Invalid fix nvt/npt/nph pressure settings
 
 Settings for coupled dimensions must be the same.
+
+E: Using update dipole flag requires atom style sphere
+
+Self-explanatory.
+
+E: Using update dipole flag requires atom attribute mu
+
+Self-explanatory.
+ 
+E: The dlm flag must be used with update dipole
+ 
+Self-explanatory.
 
 E: Fix nvt/npt/nph damping parameters must be > 0.0
 

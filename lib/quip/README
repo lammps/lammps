@@ -23,7 +23,7 @@ $ git clone https://github.com/libAtoms/QUIP.git QUIP
 
 If GAP is needed, it may be downloaded from the `Software' section of
 libatoms.org, after accepting the terms and conditions of the Academic
-License Agreement. Extract the tarball into the QUIP directory.
+License Agreement. Extract the tarball under the /path/to/QUIP/src/ directory.
 
 1.2) Building QUIP
 
@@ -40,6 +40,12 @@ directory, build/${QUIP_ARCH}, and all the building will happen
 there. First it will ask you some questions about where you keep
 libraries and other stuff.
 
+Please note: if you are building QUIP to link it to LAMMPS, the serial version
+of QUIP must be compiled. For example, QUIP_ARCH may be:
+darwin_x86_64_gfortran
+linux_x86_64_gfortran
+linux_x86_64_ifort_icc etc.
+
 If you don't use something it is asking for, just leave it blank. NB
 make sure to answer `y' to `Do you want to compile with GAP prediction
 support ? [y/n]'. The answers will be stored in Makefile.inc in the
@@ -53,7 +59,7 @@ necessary libraries will be built.
 for example:
 
 $ cd QUIP
-$ export QUIP_DIR=/path/to/QUIP
+$ export QUIP_ROOT=/path/to/QUIP
 $ export QUIP_ARCH=linux_x86_64_gfortran
 $ make config
 $ make libquip
@@ -64,13 +70,8 @@ to run a test suite.
 
 2) Building LAMMPS
 
-2.1) Adding QUIP support
-Obtain the most recent version of the QUIPforLAMMPS package:
-$ git clone https://github.com/libAtoms/QUIPforLAMMPS
-$ cd QUIPforLAMMPS
-$ make LAMMPS_DIR=/path/to/lammps/directory install
-
-Enter the LAMMPS directory:
+LAMMPS is now shipped with the interface necessary to use QUIP potentials, but
+it should be enabled first. Enter the LAMMPS directory:
 
 $ cd LAMMPS
 $ cd src
@@ -85,4 +86,6 @@ $ make yes-user-quip
   this to benchmark that the interface is working correctly.
 
 - a set of input files to demonstrate how GAP potentials are specified
-  in a LAMMPS input file to run a short MD.
+  in a LAMMPS input file to run a short MD. The GAP parameter file
+  gap_example.xml is intended for TESTING purposes only. Potentials can be
+  downloaded from http://www.libatoms.org or obtained from the authors of QUIP.

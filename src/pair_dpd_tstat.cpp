@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_dpd_tstat.h"
 #include "atom.h"
 #include "update.h"
@@ -170,13 +170,13 @@ void PairDPDTstat::settings(int narg, char **arg)
 
 void PairDPDTstat::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) 
+  if (narg < 3 || narg > 4)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double a0_one = 0.0;
   double gamma_one = force->numeric(FLERR,arg[2]);

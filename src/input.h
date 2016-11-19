@@ -14,7 +14,7 @@
 #ifndef LMP_INPUT_H
 #define LMP_INPUT_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 #include <map>
 #include <string>
@@ -22,6 +22,7 @@
 namespace LAMMPS_NS {
 
 class Input : protected Pointers {
+  friend class Info;
  public:
   int narg;                    // # of command args
   char **arg;                  // parsed args for command
@@ -32,8 +33,9 @@ class Input : protected Pointers {
   void file();                   // process all input
   void file(const char *);       // process an input script
   char *one(const char *);       // process a single command
-  void substitute(char *&, char *&, int &, int &, int);  
+  void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
+  int expand_args(int, char **, int, char **&);  // expand args due to wildcard
 
  private:
   int me;                      // proc ID
@@ -51,18 +53,22 @@ class Input : protected Pointers {
 
   FILE **infiles;              // list of open input files
 
+ public:
   typedef void (*CommandCreator)(LAMMPS *, int, char **);
-  std::map<std::string,CommandCreator> *command_map;
+  typedef std::map<std::string,CommandCreator> CommandCreatorMap;
+  CommandCreatorMap *command_map;
 
+ protected:
   template <typename T> static void command_creator(LAMMPS *, int, char **);
 
+ private:
   void parse();                          // parse an input text line
   char *nextword(char *, char **);       // find next word in string with quotes
   int numtriple(char *);                 // count number of triple quotes
   void reallocate(char *&, int &, int);  // reallocate a char string
   int execute_command();                 // execute a single command
 
-  void clear();                // input script commands
+  void clear();                 // input script commands
   void echo();
   void ifthenelse();
   void include();
@@ -77,12 +83,13 @@ class Input : protected Pointers {
   void shell();
   void variable_command();
 
-  void angle_coeff();          // LAMMPS commands
+  void angle_coeff();           // LAMMPS commands
   void angle_style();
   void atom_modify();
   void atom_style();
   void bond_coeff();
   void bond_style();
+  void bond_write();
   void boundary();
   void box();
   void comm_modify();
@@ -126,6 +133,7 @@ class Input : protected Pointers {
   void thermo_modify();
   void thermo_style();
   void timestep();
+  void timer_command();
   void uncompute();
   void undump();
   void unfix();
@@ -195,6 +203,14 @@ Check that the path and name are correct.
 E: Cannot open print file %s
 
 Self-explanatory.
+
+W: Shell command '%s' failed with error '%s'
+
+Self-explanatory.
+
+W: Shell command returned with non-zero status
+
+This may indicate the shell command did not operate as expected.
 
 E: Angle_coeff command before simulation box is defined
 
@@ -311,12 +327,6 @@ E: Package command after simulation box is defined
 
 The package command cannot be used afer a read_data, read_restart, or
 create_box command.
-
-E: Package cuda command without USER-CUDA package enabled
-
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built, and the "-c on" must be used to enable the
-package.
 
 E: Package gpu command without GPU package installed
 

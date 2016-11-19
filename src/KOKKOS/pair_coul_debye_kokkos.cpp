@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_debye_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -123,8 +123,6 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev = pair_compute<PairCoulDebyeKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -159,7 +157,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT screening = exp(-kappa*r);
   F_FLOAT forcecoul;
 
-  forcecoul = qqrd2e * qtmp * q(j) * screening * (kappa + rinv) * 
+  forcecoul = qqrd2e * qtmp * q(j) * screening * (kappa + rinv) *
 	  (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
 
   return factor_coul*forcecoul*r2inv;
@@ -181,7 +179,7 @@ compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT r = 1.0/rinv;
   const F_FLOAT screening = exp(-kappa*r);
 
-  return factor_coul * qqrd2e * qtmp * q(j) * rinv * screening * 
+  return factor_coul * qqrd2e * qtmp * q(j) * rinv * screening *
 	  (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
 
 }
@@ -307,7 +305,10 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairCoulDebyeKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairCoulDebyeKokkos<LMPHostType>;
 #endif
+}
+

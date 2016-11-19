@@ -15,13 +15,15 @@
    Contributing author: Ase Henry (MIT)
    Bugfixes and optimizations:
      Marcel Fallet & Steve Stuart (Clemson), Axel Kohlmeyer (Temple U)
+   AIREBO-M modification to optionally replace LJ with Morse potentials.
+     Thomas C. O'Connor (JHU) 2014
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "mpi.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mpi.h>
 #include "pair_airebo.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -51,6 +53,11 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   one_coeff = 1;
   ghostneigh = 1;
+  ljflag = torflag = 1;
+  morseflag = 0;
+
+  nextra = 3;
+  pvector = new double[nextra];
 
   maxlocal = 0;
   REBO_numneigh = NULL;
@@ -59,6 +66,7 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   pgsize = oneatom = 0;
 
   nC = nH = NULL;
+  map = NULL;
   manybody_flag = 1;
 }
 
@@ -73,6 +81,7 @@ PairAIREBO::~PairAIREBO()
   delete [] ipage;
   memory->destroy(nC);
   memory->destroy(nH);
+  delete [] pvector;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -94,6 +103,7 @@ void PairAIREBO::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = vflag_atom = 0;
+  pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   REBO_neigh();
   FREBO(eflag,vflag);
@@ -141,11 +151,15 @@ void PairAIREBO::settings(int narg, char **arg)
 
   cutlj = force->numeric(FLERR,arg[0]);
 
-  ljflag = torflag = 1;
   if (narg == 3) {
     ljflag = force->inumeric(FLERR,arg[1]);
     torflag = force->inumeric(FLERR,arg[2]);
   }
+
+  // this one parameter for C-C interactions is different in AIREBO vs REBO
+  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
+  
+  PCCf_2_0 = -0.0276030;
 }
 
 /* ----------------------------------------------------------------------
@@ -289,10 +303,23 @@ double PairAIREBO::init_one(int i, int j)
 
   cutghost[i][j] = rcmax[ii][jj];
   cutljsq[ii][jj] = cutlj*sigma[ii][jj] * cutlj*sigma[ii][jj];
-  lj1[ii][jj] = 48.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
-  lj2[ii][jj] = 24.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
-  lj3[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
-  lj4[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
+
+  if (morseflag) {
+
+    // using LJ precomputed parameter arrays to store values for Morse potential
+
+    lj1[ii][jj] = epsilonM[ii][jj] * exp(alphaM[ii][jj]*reqM[ii][jj]);
+    lj2[ii][jj] = exp(alphaM[ii][jj]*reqM[ii][jj]);
+    lj3[ii][jj] = 2*epsilonM[ii][jj]*alphaM[ii][jj]*exp(alphaM[ii][jj]*reqM[ii][jj]);
+    lj4[ii][jj] = alphaM[ii][jj];
+
+  } else {
+
+    lj1[ii][jj] = 48.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
+    lj2[ii][jj] = 24.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
+    lj3[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],12.0);
+    lj4[ii][jj] = 4.0 * epsilon[ii][jj] * pow(sigma[ii][jj],6.0);
+  }
 
   cutghost[j][i] = cutghost[i][j];
   cutljsq[jj][ii] = cutljsq[ii][jj];
@@ -473,7 +500,7 @@ void PairAIREBO::FREBO(int eflag, int vflag)
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (eflag) evdwl = VR + bij*VA;
+      if (eflag) pvector[0] += evdwl = VR + bij*VA;
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delx,dely,delz);
     }
@@ -570,6 +597,8 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       // if outside of 2-path cutoff but inside 4-path cutoff,
       //   best = 0.0, test 3-,4-paths
       // if inside 2-path cutoff, best = wij, only test 3-,4-paths if best < 1
+      npath = testpath = done = 0;
+      best = 0.0;
 
       if (rijsq >= cutljsq[itype][jtype]) continue;
       rij = sqrt(rijsq);
@@ -586,7 +615,6 @@ void PairAIREBO::FLJ(int eflag, int vflag)
         else testpath = 0;
       }
 
-      done = 0;
       if (testpath) {
 
         // test all 3-body paths = I-K-J
@@ -607,7 +635,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
           if (rsq < rcmaxsq[itype][ktype]) {
             rik = sqrt(rsq);
             wik = Sp(rik,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-          } else wik = 0.0;
+          } else { dwik = wik = 0.0; rikS = rik = 1.0; }
 
           if (wik > best) {
             deljk[0] = x[j][0] - x[k][0];
@@ -620,19 +648,19 @@ void PairAIREBO::FLJ(int eflag, int vflag)
               if (wik*wkj > best) {
                 best = wik*wkj;
                 npath = 3;
-                 atomk = k;
-                    delikS[0] = delik[0];
-                    delikS[1] = delik[1];
-                    delikS[2] = delik[2];
-                    rikS = rik;
-                    wikS = wik;
-                    dwikS = dwik;
-                    deljkS[0] = deljk[0];
-                    deljkS[1] = deljk[1];
-                    deljkS[2] = deljk[2];
-                    rkjS = rkj;
-                    wkjS = wkj;
-                    dwkjS = dwkj;
+                atomk = k;
+                delikS[0] = delik[0];
+                delikS[1] = delik[1];
+                delikS[2] = delik[2];
+                rikS = rik;
+                wikS = wik;
+                dwikS = dwik;
+                deljkS[0] = deljk[0];
+                deljkS[1] = deljk[1];
+                deljkS[2] = deljk[2];
+                rkjS = rkj;
+                wkjS = wkj;
+                dwkjS = dwkj;
                 if (best == 1.0) {
                   done = 1;
                   break;
@@ -657,7 +685,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
               if (rsq < rcmaxsq[ktype][mtype]) {
                 rkm = sqrt(rsq);
                 wkm = Sp(rkm,rcmin[ktype][mtype],rcmax[ktype][mtype],dwkm);
-              } else wkm = 0.0;
+              } else { dwkm = wkm = 0.0; rkmS = rkm = 1.0; }
 
               if (wik*wkm > best) {
                 deljm[0] = x[j][0] - x[m][0];
@@ -731,11 +759,20 @@ void PairAIREBO::FLJ(int eflag, int vflag)
         dslw = 0.0;
       }
 
-      r2inv = 1.0/rijsq;
-      r6inv = r2inv*r2inv*r2inv;
+      if (morseflag) {
 
-      vdw = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-      dvdw = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
+        const double exr = exp(-rij*lj4[itype][jtype]);
+        vdw = lj1[itype][jtype]*exr*(lj2[itype][jtype]*exr - 2);
+        dvdw = lj3[itype][jtype]*exr*(1-lj2[itype][jtype]*exr);
+
+      } else {
+
+        r2inv = 1.0/rijsq;
+        r6inv = r2inv*r2inv*r2inv;
+
+        vdw = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+        dvdw = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
+      }
 
       // VLJ now becomes vdw * slw, derivaties, etc.
 
@@ -763,7 +800,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
       f[j][1] -= delij[1]*fpair;
       f[j][2] -= delij[2]*fpair;
 
-      if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
+      if (eflag) pvector[1] += evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
       if (evflag) ev_tally(i,j,nlocal,newton_pair,
                            evdwl,0.0,fpair,delij[0],delij[1],delij[2]);
 
@@ -803,7 +840,7 @@ void PairAIREBO::FLJ(int eflag, int vflag)
           if (vflag_atom)
             v_tally3(atomi,atomj,atomk,fi,fj,delikS,deljkS);
 
-        } else {
+        } else if (npath == 4) {
           fpair1 = dC*dwikS*wkmS*wmjS / rikS;
           fi[0] = delikS[0]*fpair1;
           fi[1] = delikS[1]*fpair1;
@@ -1006,7 +1043,7 @@ void PairAIREBO::TORSION(int eflag, int vflag)
           Ec = 256.0*ekijl/405.0;
           Vtors = (Ec*(powint(cw2,5)))-(ekijl/10.0);
 
-          if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
+          if (eflag) pvector[2] += evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 
           dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
           dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);
@@ -1713,9 +1750,9 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
         cos321 = MAX(cos321,-1.0);
         Sp2(cos321,thmin,thmax,dcut321);
         sin321 = sqrt(1.0 - cos321*cos321);
-        sink2i = 1.0/(sin321*sin321);
-        rik2i = 1.0/(r21mag*r21mag);
-        if (sin321 != 0.0) {
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          sink2i = 1.0/(sin321*sin321);
+          rik2i = 1.0/(r21mag*r21mag);
           rr = (r23mag*r23mag)-(r21mag*r21mag);
           rjk[0] = r21[0]-r23[0];
           rjk[1] = r21[1]-r23[1];
@@ -1750,10 +1787,10 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
               cos234 = MIN(cos234,1.0);
               cos234 = MAX(cos234,-1.0);
               sin234 = sqrt(1.0 - cos234*cos234);
-              sinl2i = 1.0/(sin234*sin234);
-              rjl2i = 1.0/(r34mag*r34mag);
 
-              if (sin234 != 0.0) {
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                sinl2i = 1.0/(sin234*sin234);
+                rjl2i = 1.0/(r34mag*r34mag);
                 w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
                 rr = (r23mag*r23mag)-(r34mag*r34mag);
                 ril[0] = r23[0]+r34[0];
@@ -2225,7 +2262,6 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
               ril[1] = rij[1]+rjl[1];
               ril[2] = rij[2]+rjl[2];
               ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-              rijrjl = 2.0*rijmag*rjlmag;
               rjl2 = rjlmag*rjlmag;
               costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
               tspijl = Sp2(costmp,thmin,thmax,dtsijl);
@@ -2273,6 +2309,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
     REBO_neighs_i = REBO_firstneigh[i];
     for (k = 0; k < REBO_numneigh[i]; k++) {
       atomk = REBO_neighs_i[k];
+      ktype = map[type[atomk]];
       if (atomk != atomj) {
         lamdajik = 0.0;
         rik[0] = x[atomi][0]-x[atomk][0];
@@ -2641,10 +2678,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
           cos321 = MIN(cos321,1.0);
           cos321 = MAX(cos321,-1.0);
           sin321 = sqrt(1.0 - cos321*cos321);
-          sink2i = 1.0/(sin321*sin321);
-          rik2i = 1.0/(r21mag*r21mag);
 
-          if (sin321 != 0.0) {
+          if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+            sink2i = 1.0/(sin321*sin321);
+            rik2i = 1.0/(r21mag*r21mag);
             rr = (rijmag*rijmag)-(r21mag*r21mag);
             rjk[0] = r21[0]-rij[0];
             rjk[1] = r21[1]-rij[1];
@@ -2678,10 +2715,10 @@ double PairAIREBO::bondorderLJ(int i, int j, double rij[3], double rijmag,
                 cos234 = MIN(cos234,1.0);
                 cos234 = MAX(cos234,-1.0);
                 sin234 = sqrt(1.0 - cos234*cos234);
-                sinl2i = 1.0/(sin234*sin234);
-                rjl2i = 1.0/(r34mag*r34mag);
 
-                if (sin234 != 0.0) {
+                if ((sin234 > TOL) && (r34mag > TOL)) { // XXX was sin234 != 0.0
+                  sinl2i = 1.0/(sin234*sin234);
+                  rjl2i = 1.0/(r34mag*r34mag);
                   w34 = Sp(r34mag,rcmin[jtype][ltype],
                            rcmaxp[jtype][ltype],dw34);
                   rr = (r23mag*r23mag)-(r34mag*r34mag);
@@ -3158,12 +3195,11 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 
     if (done==0) {
       for (i=0; i<piCCdom[0][1]; i++)
-        if (Nij>=(double) i && Nij<=(double) i+1 || Nij==(double) i) x=i;
+        if (Nij>=(double) i && Nij<=(double) i+1) x=i;
       for (i=0; i<piCCdom[1][1]; i++)
-        if (Nji>=(double) i && Nji<=(double) i+1 || Nji==(double) i) y=i;
+        if (Nji>=(double) i && Nji<=(double) i+1) y=i;
       for (i=0; i<piCCdom[2][1]; i++)
-        if (Nijconj>=(double) i && Nijconj<=(double) i+1 ||
-            Nijconj==(double) i) z=i;
+        if (Nijconj>=(double) i && Nijconj<=(double) i+1) z=i;
 
       for (i=0; i<64; i++) coeffs[i]=piCC[x][y][z][i];
       piRC=Sptricubic(Nij,Nji,Nijconj,coeffs,dN3);
@@ -3173,7 +3209,7 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
 
   // CH interaction
 
-  if (typei==0 && typej==1 || typei==1 && typej==0) {
+  if ((typei==0 && typej==1) || (typei==1 && typej==0)) {
     // if the inputs are out of bounds set them back to a point in bounds
 
     if (Nij<piCHdom[0][0] || Nij>piCHdom[0][1] ||
@@ -3320,6 +3356,10 @@ void PairAIREBO::read_file(char *filename)
     epsilon_CC,epsilon_CH,epsilon_HH;
   double sigma_CC,sigma_CH,sigma_HH,epsilonT_CCCC,epsilonT_CCCH,epsilonT_HCCH;
 
+  // additional parameters for Morse potential.
+  double epsilonM_CC,epsilonM_CH,epsilonM_HH,alphaM_CC,alphaM_CH,alphaM_HH;
+  double reqM_CC,reqM_CH,reqM_HH;
+
   MPI_Comm_rank(world,&me);
 
   // read file on proc 0
@@ -3328,7 +3368,10 @@ void PairAIREBO::read_file(char *filename)
     FILE *fp = force->open_potential(filename);
     if (fp == NULL) {
       char str[128];
-      sprintf(str,"Cannot open AIREBO potential file %s",filename);
+      if (morseflag)
+        sprintf(str,"Cannot open AIREBO-M potential file %s",filename);
+      else
+        sprintf(str,"Cannot open AIREBO potential file %s",filename);
       error->one(FLERR,str);
     }
 
@@ -3474,6 +3517,29 @@ void PairAIREBO::read_file(char *filename)
     sscanf(s,"%lg",&epsilonT_CCCH);
     fgets(s,MAXLINE,fp);
     sscanf(s,"%lg",&epsilonT_HCCH);
+
+    if (morseflag) {
+      // lines for reading in MORSE parameters from CH.airebo_m file
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&epsilonM_CC);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&epsilonM_CH);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&epsilonM_HH);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&alphaM_CC);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&alphaM_CH);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&alphaM_HH);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&reqM_CC);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&reqM_CH);
+      fgets(s,MAXLINE,fp);
+      sscanf(s,"%lg",&reqM_HH);
+    }
+
 
     // gC spline
 
@@ -3803,6 +3869,25 @@ void PairAIREBO::read_file(char *filename)
     sigma[1][0] = sigma[0][1];
     sigma[1][1] = sigma_HH;
 
+    if (morseflag) {
+      // Morse parameter assignments
+
+      epsilonM[0][0] = epsilonM_CC;
+      epsilonM[0][1] = epsilonM_CH;
+      epsilonM[1][0] = epsilonM[0][1];
+      epsilonM[1][1] = epsilonM_HH;
+
+      alphaM[0][0] = alphaM_CC;
+      alphaM[0][1] = alphaM_CH;
+      alphaM[1][0] = alphaM[0][1];
+      alphaM[1][1] = alphaM_HH;
+
+      reqM[0][0] = reqM_CC;
+      reqM[0][1] = reqM_CH;
+      reqM[1][0] = reqM[0][1];
+      reqM[1][1] = reqM_HH;
+    }
+
     // torsional
 
     thmin = -1.0;
@@ -3851,6 +3936,13 @@ void PairAIREBO::read_file(char *filename)
   MPI_Bcast(&epsilon[0][0],4,MPI_DOUBLE,0,world);
   MPI_Bcast(&sigma[0][0],4,MPI_DOUBLE,0,world);
   MPI_Bcast(&epsilonT[0][0],4,MPI_DOUBLE,0,world);
+
+  if (morseflag) {
+    // Morse parameter broadcast
+    MPI_Bcast(&epsilonM[0][0],4,MPI_DOUBLE,0,world);
+    MPI_Bcast(&alphaM[0][0],4,MPI_DOUBLE,0,world);
+    MPI_Bcast(&reqM[0][0],4,MPI_DOUBLE,0,world);
+  }
 
   MPI_Bcast(&gCdom[0],5,MPI_DOUBLE,0,world);
   MPI_Bcast(&gC1[0][0],24,MPI_DOUBLE,0,world);
@@ -4003,7 +4095,12 @@ void PairAIREBO::spline_init()
   PCCf[0][3] = 0.0161253646;
   PCCf[1][1] = -0.010960;
   PCCf[1][2] = 0.00632624824;
-  PCCf[2][0] = -0.0276030;
+
+  // this one parameter for C-C interactions is different in REBO vs AIREBO
+  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
+
+  PCCf[2][0] = PCCf_2_0;
+
   PCCf[2][1] = 0.00317953083;
 
   PCHf[0][1] = 0.209336733;
@@ -4194,7 +4291,7 @@ double PairAIREBO::memory_usage()
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
-  
+
   bytes += 2*maxlocal * sizeof(double);
   return bytes;
 }

@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #include "colvarmodule.h"
 #include "colvarvalue.h"
@@ -24,31 +24,6 @@ colvar_grid_count::colvar_grid_count(std::vector<colvar *>  &colvars,
   : colvar_grid<size_t>(colvars, def_count, 1)
 {}
 
-std::istream & colvar_grid_count::read_restart(std::istream &is)
-{
-  size_t const start_pos = is.tellg();
-  std::string key, conf;
-  if ((is >> key) && (key == std::string("grid_parameters"))) {
-    is.seekg(start_pos, std::ios::beg);
-    is >> colvarparse::read_block("grid_parameters", conf);
-    parse_params(conf);
-  } else {
-    cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
-    is.seekg(start_pos, std::ios::beg);
-  }
-  read_raw(is);
-  return is;
-}
-
-std::ostream & colvar_grid_count::write_restart(std::ostream &os)
-{
-  write_params(os);
-  write_raw(os);
-  return os;
-}
-
-
-
 colvar_grid_scalar::colvar_grid_scalar()
   : colvar_grid<cvm::real>(), samples(NULL), grad(NULL)
 {}
@@ -60,13 +35,13 @@ colvar_grid_scalar::colvar_grid_scalar(colvar_grid_scalar const &g)
 }
 
 colvar_grid_scalar::colvar_grid_scalar(std::vector<int> const &nx_i)
-  : colvar_grid<cvm::real>(nx_i, 0.0, 1), samples(NULL)
+  : colvar_grid<cvm::real>(nx_i, 0.0, 1), samples(NULL), grad(NULL)
 {
   grad = new cvm::real[nd];
 }
 
 colvar_grid_scalar::colvar_grid_scalar(std::vector<colvar *> &colvars, bool margin)
-  : colvar_grid<cvm::real>(colvars, 0.0, 1, margin), samples(NULL)
+  : colvar_grid<cvm::real>(colvars, 0.0, 1, margin), samples(NULL), grad(NULL)
 {
   grad = new cvm::real[nd];
 }
@@ -79,29 +54,52 @@ colvar_grid_scalar::~colvar_grid_scalar()
   }
 }
 
-std::istream & colvar_grid_scalar::read_restart(std::istream &is)
+cvm::real colvar_grid_scalar::maximum_value() const
 {
-  size_t const start_pos = is.tellg();
-  std::string key, conf;
-  if ((is >> key) && (key == std::string("grid_parameters"))) {
-    is.seekg(start_pos, std::ios::beg);
-    is >> colvarparse::read_block("grid_parameters", conf);
-    parse_params(conf);
-  } else {
-    cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
-    is.seekg(start_pos, std::ios::beg);
+  cvm::real max = data[0];
+  for (size_t i = 0; i < nt; i++) {
+    if (data[i] > max) max = data[i];
   }
-  read_raw(is);
-  return is;
+  return max;
 }
 
-std::ostream & colvar_grid_scalar::write_restart(std::ostream &os)
+
+cvm::real colvar_grid_scalar::minimum_value() const
 {
-  write_params(os);
-  write_raw(os);
-  return os;
+  cvm::real min = data[0];
+  for (size_t i = 0; i < nt; i++) {
+    if (data[i] < min) min = data[i];
+  }
+  return min;
 }
 
+
+cvm::real colvar_grid_scalar::integral() const
+{
+  cvm::real sum = 0.0;
+  for (size_t i = 0; i < nt; i++) {
+    sum += data[i];
+  }
+  cvm::real bin_volume = 1.0;
+  for (size_t id = 0; id < widths.size(); id++) {
+    bin_volume *= widths[id];
+  }
+  return bin_volume * sum;
+}
+
+
+cvm::real colvar_grid_scalar::entropy() const
+{
+  cvm::real sum = 0.0;
+  for (size_t i = 0; i < nt; i++) {
+    sum += -1.0 * data[i] * std::log(data[i]);
+  }
+  cvm::real bin_volume = 1.0;
+  for (size_t id = 0; id < widths.size(); id++) {
+    bin_volume *= widths[id];
+  }
+  return bin_volume * sum;
+}
 
 
 colvar_grid_gradient::colvar_grid_gradient()
@@ -116,29 +114,6 @@ colvar_grid_gradient::colvar_grid_gradient(std::vector<colvar *> &colvars)
   : colvar_grid<cvm::real>(colvars, 0.0, colvars.size()), samples(NULL)
 {}
 
-std::istream & colvar_grid_gradient::read_restart(std::istream &is)
-{
-  size_t const start_pos = is.tellg();
-  std::string key, conf;
-  if ((is >> key) && (key == std::string("grid_parameters"))) {
-    is.seekg(start_pos, std::ios::beg);
-    is >> colvarparse::read_block("grid_parameters", conf);
-    parse_params(conf);
-  } else {
-    cvm::log("Grid parameters are missing in the restart file, using those from the configuration.\n");
-    is.seekg(start_pos, std::ios::beg);
-  }
-  read_raw(is);
-  return is;
-}
-
-std::ostream & colvar_grid_gradient::write_restart(std::ostream &os)
-{
-  write_params(os);
-  write_raw(os);
-  return os;
-}
-
 void colvar_grid_gradient::write_1D_integral(std::ostream &os)
 {
   cvm::real bin, min, integral;
@@ -152,7 +127,6 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
 
   integral = 0.0;
   int_vals.push_back( 0.0 );
-  bin = 0.0;
   min = 0.0;
 
   // correction for periodic colvars, so that the PMF is periodic
@@ -163,7 +137,7 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
     corr = 0.0;
   }
 
-  for (std::vector<int> ix = new_index(); index_ok(ix); incr(ix), bin += 1.0 ) {
+  for (std::vector<int> ix = new_index(); index_ok(ix); incr(ix)) {
 
     if (samples) {
       size_t const samples_here = samples->value(ix);

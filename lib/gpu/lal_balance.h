@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -44,7 +44,7 @@ class Balance {
       _init_done=false;
     }
   }
-  
+
   /// Return the timestep since initialization
   inline int timestep() { return _timestep; }
 
@@ -96,7 +96,7 @@ class Balance {
   inline void stop_timer() { if (_measure_this_step) { _device_time.stop(); } }
 
   /// Calculate the new host/device split based on the cpu and device times
-  /** \note Only does calculation every _HD_BALANCE_EVERY timesteps 
+  /** \note Only does calculation every _HD_BALANCE_EVERY timesteps
             (and first 10) **/
   inline void balance(const double cpu_time);
 
@@ -105,13 +105,13 @@ class Balance {
     balance(cpu_time);
     return get_gpu_count(ago,inum_full);
   }
-  
+
  private:
   Device<numtyp,acctyp> *_device;
   UCL_Timer _device_time;
   bool _init_done;
   int _gpu_nbor;
-  
+
   bool _load_balance;
   double _actual_split, _avg_split, _desired_split, _max_split;
   int _avg_count;
@@ -123,15 +123,15 @@ class Balance {
 #define BalanceT Balance<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
-void BalanceT::init(Device<numtyp, acctyp> *gpu, 
+void BalanceT::init(Device<numtyp, acctyp> *gpu,
                            const int gpu_nbor, const double split) {
   clear();
   _gpu_nbor=gpu_nbor;
   _init_done=true;
-  
+
   _device=gpu;
   _device_time.init(*gpu->gpu);
-  
+
   if (split<0.0) {
     _load_balance=true;
     _desired_split=0.90;
@@ -163,7 +163,7 @@ int BalanceT::get_gpu_count(const int ago, const int inum_full) {
   _timestep++;
   return _inum;
 }
-    
+
 template <class numtyp, class acctyp>
 void BalanceT::balance(const double cpu_time) {
   if (_measure_this_step) {

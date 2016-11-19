@@ -42,8 +42,8 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   int  itr, top;
   int  num_hb_intrs = 0;
   ivec rel_jk;
-  real r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
-  real e_hb, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
+  double r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
+  double e_hb, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
   rvec dcos_theta_di, dcos_theta_dj, dcos_theta_dk;
   rvec dvec_jk, force, ext_press;
   hbond_parameters *hbp;
@@ -55,7 +55,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   hbond_data *hbond_list;
 
   // tally variables
-  real fi_tmp[3], fk_tmp[3], delij[3], delkj[3];
+  double fi_tmp[3], fk_tmp[3], delij[3], delkj[3];
 
   bonds = (*lists) + BONDS;
   bond_list = bonds->select.bond_list;
@@ -103,6 +103,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
             type_i = system->my_atoms[i].type;
 	    if (type_i < 0) continue;
             hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
+	    if (hbp->r0_hb <= 0.0) continue;
             ++num_hb_intrs;
 
             Calculate_Theta( pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,

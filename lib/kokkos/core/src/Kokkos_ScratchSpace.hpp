@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -57,6 +57,7 @@ namespace Kokkos {
  */
 template< class ExecSpace >
 class ScratchMemorySpace {
+  static_assert (Impl::is_execution_space<ExecSpace>::value,"Instantiating ScratchMemorySpace on non-execution-space type.");
 public:
 
   // Alignment of memory chunks returned by 'get'
@@ -65,8 +66,15 @@ public:
 
 private:
 
-  mutable char * m_iter ;
-  char *         m_end ;
+  mutable char * m_iter_L0 ;
+  char *         m_end_L0 ;
+  mutable char * m_iter_L1 ;
+  char *         m_end_L1 ;
+
+
+  mutable int m_multiplier;
+  mutable int m_offset;
+  mutable int m_default_level;
 
   ScratchMemorySpace();
   ScratchMemorySpace & operator = ( const ScratchMemorySpace & );
@@ -78,6 +86,9 @@ public:
   //! Tag this class as a memory space
   typedef ScratchMemorySpace                memory_space ;
   typedef ExecSpace                         execution_space ;
+  //! This execution space preferred device_type
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
+
   typedef typename ExecSpace::array_layout  array_layout ;
   typedef typename ExecSpace::size_type     size_type ;
 
@@ -88,22 +99,62 @@ public:
 
   template< typename IntType >
   KOKKOS_INLINE_FUNCTION
-  void* get_shmem (const IntType& size) const {
-    void* tmp = m_iter ;
-    if (m_end < (m_iter += align (size))) {
-      m_iter -= align (size); // put it back like it was
-      printf ("ScratchMemorySpace<...>::get_shmem: Failed to allocate %ld byte(s); remaining capacity is %ld byte(s)\n", long(size), long(m_end-m_iter));
-      tmp = 0;
+  void* get_shmem (const IntType& size, int level = -1) const {
+    if(level == -1)
+      level = m_default_level;
+    if(level == 0) {
+      void* tmp = m_iter_L0 + m_offset * align (size);
+      if (m_end_L0 < (m_iter_L0 += align (size) * m_multiplier)) {
+        m_iter_L0 -= align (size) * m_multiplier; // put it back like it was
+        #ifdef KOKKOS_HAVE_DEBUG
+        // mfh 23 Jun 2015: printf call consumes 25 registers
+        // in a CUDA build, so only print in debug mode.  The
+        // function still returns NULL if not enough memory.
+        printf ("ScratchMemorySpace<...>::get_shmem: Failed to allocate "
+                "%ld byte(s); remaining capacity is %ld byte(s)\n", long(size),
+                long(m_end_L0-m_iter_L0));
+        #endif // KOKKOS_HAVE_DEBUG
+        tmp = 0;
+      }
+      return tmp;
+    } else {
+      void* tmp = m_iter_L1 + m_offset * align (size);
+      if (m_end_L1 < (m_iter_L1 += align (size) * m_multiplier)) {
+        m_iter_L1 -= align (size) * m_multiplier; // put it back like it was
+        #ifdef KOKKOS_HAVE_DEBUG
+        // mfh 23 Jun 2015: printf call consumes 25 registers
+        // in a CUDA build, so only print in debug mode.  The
+        // function still returns NULL if not enough memory.
+        printf ("ScratchMemorySpace<...>::get_shmem: Failed to allocate "
+                "%ld byte(s); remaining capacity is %ld byte(s)\n", long(size),
+                long(m_end_L1-m_iter_L1));
+        #endif // KOKKOS_HAVE_DEBUG
+        tmp = 0;
+      }
+      return tmp;
+
     }
-    return tmp;
   }
 
   template< typename IntType >
   KOKKOS_INLINE_FUNCTION
-  ScratchMemorySpace( void * ptr , const IntType & size )
-    : m_iter( (char *) ptr )
-    , m_end(  m_iter + size )
+  ScratchMemorySpace( void * ptr_L0 , const IntType & size_L0 , void * ptr_L1 = NULL , const IntType & size_L1 = 0)
+    : m_iter_L0( (char *) ptr_L0 )
+    , m_end_L0(  m_iter_L0 + size_L0 )
+    , m_iter_L1( (char *) ptr_L1 )
+    , m_end_L1(  m_iter_L1 + size_L1 )
+    , m_multiplier( 1 )
+    , m_offset( 0 )
+    , m_default_level( 0 )
     {}
+
+  KOKKOS_INLINE_FUNCTION
+  const ScratchMemorySpace& set_team_thread_mode(const int& level, const int& multiplier, const int& offset) const {
+    m_default_level = level;
+    m_multiplier = multiplier;
+    m_offset = offset;
+    return *this;
+  }
 };
 
 } // namespace Kokkos

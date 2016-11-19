@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_point.h"
 #include "atom.h"
 #include "comm.h"
@@ -45,7 +45,7 @@ FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqPoint::init()
 {
-  if (!atom->q_flag) 
+  if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/point requires atom attribute q");
 
   ngroup = group->count(igroup);

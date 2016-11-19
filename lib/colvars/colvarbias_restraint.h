@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARBIAS_RESTRAINT_H
 #define COLVARBIAS_RESTRAINT_H
@@ -12,8 +12,9 @@ class colvarbias_restraint : public colvarbias {
 public:
 
   /// Retrieve colvar values and calculate their biasing forces
-  virtual cvm::real update();
+  virtual int update();
 
+  // TODO the following can be supplanted by a new call to init()
   /// Load new configuration - force constant and/or centers only
   virtual void change_configuration(std::string const &conf);
 
@@ -33,19 +34,21 @@ public:
   virtual std::ostream & write_traj(std::ostream &os);
 
   /// \brief Constructor
-  colvarbias_restraint(std::string const &conf, char const *key);
+  colvarbias_restraint(char const *key);
 
-  /// Destructor
+  virtual int init(std::string const &conf);
   virtual ~colvarbias_restraint();
 
 
 protected:
 
   /// \brief Potential function
-  virtual cvm::real restraint_potential(cvm::real k, colvar* x, const colvarvalue& xcenter) const = 0;
+  virtual cvm::real restraint_potential(cvm::real k, colvar const *x,
+                                        colvarvalue const &xcenter) const = 0;
 
   /// \brief Force function
-  virtual colvarvalue restraint_force(cvm::real k, colvar* x, const colvarvalue& xcenter) const = 0;
+  virtual colvarvalue restraint_force(cvm::real k, colvar const *x,
+                                      colvarvalue const &xcenter) const = 0;
 
   ///\brief Unit scaling
   virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const = 0;
@@ -113,40 +116,103 @@ protected:
   long target_nsteps;
 };
 
+
 /// \brief Harmonic bias restraint
 /// (implementation of \link colvarbias_restraint \endlink)
 class colvarbias_restraint_harmonic : public colvarbias_restraint {
 
 public:
-  colvarbias_restraint_harmonic(std::string const &conf, char const *key);
 
-protected: /// \brief Potential function
-  virtual cvm::real restraint_potential(cvm::real k,  colvar*  x, const colvarvalue& xcenter) const;
+  colvarbias_restraint_harmonic(char const *key);
+  virtual int init(std::string const &conf);
+  // no additional members, destructor not needed
+
+protected:
+
+  /// \brief Potential function
+  virtual cvm::real restraint_potential(cvm::real k, colvar const *x,
+                                        colvarvalue const &xcenter) const;
 
   /// \brief Force function
-  virtual colvarvalue restraint_force(cvm::real k,  colvar* x,  const colvarvalue& xcenter) const;
+  virtual colvarvalue restraint_force(cvm::real k, colvar const *x,
+                                      colvarvalue const &xcenter) const;
 
   ///\brief Unit scaling
   virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const;
 
 };
 
+
 /// \brief Linear bias restraint
 /// (implementation of \link colvarbias_restraint \endlink)
 class colvarbias_restraint_linear : public colvarbias_restraint {
 
 public:
-  colvarbias_restraint_linear(std::string const &conf, char const *key);
+  colvarbias_restraint_linear(char const *key);
+  virtual int init(std::string const &conf);
+  // no additional members, destructor not needed
 
-protected: /// \brief Potential function
-  virtual cvm::real restraint_potential(cvm::real k,  colvar*  x, const colvarvalue& xcenter) const;
+protected:
+
+  /// \brief Potential function
+  virtual cvm::real restraint_potential(cvm::real k, colvar const *x,
+                                        colvarvalue const &xcenter) const;
 
   /// \brief Force function
-  virtual colvarvalue restraint_force(cvm::real k,  colvar* x,  const colvarvalue& xcenter) const;
+  virtual colvarvalue restraint_force(cvm::real k, colvar const *x,
+                                      colvarvalue const &xcenter) const;
 
   ///\brief Unit scaling
   virtual cvm::real restraint_convert_k(cvm::real k, cvm::real dist_measure) const;
 
+};
+
+
+/// Restrain the 1D histogram of a set of variables (or of a multidimensional one)
+// TODO this could be reimplemented more cleanly as a derived class of both restraint and histogram
+class colvarbias_restraint_histogram : public colvarbias {
+
+public:
+
+  colvarbias_restraint_histogram(char const *key);
+  int init(std::string const &conf);
+  ~colvarbias_restraint_histogram();
+
+  virtual int update();
+
+  virtual std::istream & read_restart(std::istream &is);
+  virtual std::ostream & write_restart(std::ostream &os);
+  virtual std::ostream & write_traj_label(std::ostream &os);
+  virtual std::ostream & write_traj(std::ostream &os);
+
+protected:
+
+  /// Probability density
+  cvm::vector1d<cvm::real> p;
+
+  /// Reference probability density
+  cvm::vector1d<cvm::real> ref_p;
+
+  /// Difference between probability density and reference
+  cvm::vector1d<cvm::real> p_diff;
+
+  /// Lower boundary of the grid
+  cvm::real lower_boundary;
+
+  /// Upper boundary of the grid
+  cvm::real upper_boundary;
+
+  /// Resolution of the grid
+  cvm::real width;
+
+  /// Width of the Gaussians
+  cvm::real gaussian_width;
+
+  /// Restraint force constant
+  cvm::real force_k;
+
+  /// Write the histogram to a file
+  bool b_write_histogram;
 };
 
 

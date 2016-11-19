@@ -6,6 +6,9 @@
 # certain rights in this software.  This software is distributed under 
 # the GNU General Public License.
 
+# for python3 compatibility
+from __future__ import print_function
+
 # vmd tool
 
 # Minimalistic VMD embedding for Pizza.py
@@ -52,7 +55,7 @@ except: PIZZA_VMDDIR = "/usr/local/lib/vmd"
 try: from DEFAULTS import PIZZA_VMDDEV
 except: PIZZA_VMDDEV = "win"
 try: from DEFAULTS import PIZZA_VMDARCH
-except: PIZZA_VMDARCH = "LINUX"
+except: PIZZA_VMDARCH = "LINUXAMD64"
 
 # try these settings for a Mac
 #PIZZA_VMDNAME = "vmd"
@@ -62,8 +65,8 @@ except: PIZZA_VMDARCH = "LINUX"
 
 try: import pexpect
 except: 
-  print "pexpect from http://pypi.python.org/pypi/pexpect", \
-      "is required for vmd tool"
+  print("pexpect from http://pypi.python.org/pypi/pexpect", \
+      "is required for vmd tool")
   raise
 
 # Class definition
@@ -109,7 +112,7 @@ class vmd:
       self.VMD.sendline(command)
       self.VMD.expect('vmd >')
       if self.debugme:
-        print "call+result:"+self.VMD.before
+        print("call+result:"+self.VMD.before)
     return
     
   # --------------------------------------------------------------------
@@ -127,9 +130,9 @@ class vmd:
   # turn on debugging info
   def debug(self,status=True):
     if status and not self.debugme:
-      print 'Turning vmd.py debugging ON.'
+      print('Turning vmd.py debugging ON.')
     if not status and self.debugme:
-      print 'Turning vmd.py debugging OFF.'
+      print('Turning vmd.py debugging OFF.')
     self.debugme = status
 
   # --------------------------------------------------------------------
@@ -141,14 +144,14 @@ class vmd:
       try:
         command = raw_input("vmd > ")
       except EOFError:
-        print "(EOF)"
+        print("(EOF)")
         self.__call__('menu main off')
         return
       if command == "quit" or command == "exit":
         self.__call__('menu main off')
         return
       if command == "gopython":
-        print "gopython not supported here"
+        print("gopython not supported here")
         continue
       self.__call__(command)
 

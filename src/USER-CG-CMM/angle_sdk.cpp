@@ -17,8 +17,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "angle_sdk.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -240,7 +240,7 @@ void AngleSDK::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nangletypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
 
   double k_one = force->numeric(FLERR,arg[1]);
   double theta0_one = force->numeric(FLERR,arg[2]);
@@ -374,7 +374,7 @@ void AngleSDK::ev_tally13(int i, int j, int nlocal, int newton_bond,
     }
     if (eflag_atom) {
       if (newton_bond || i < nlocal) eatom[i] += 0.5*evdwl;
-      if (newton_bond || j < nlocal) eatom[i] += 0.5*evdwl;
+      if (newton_bond || j < nlocal) eatom[j] += 0.5*evdwl;
     }
   }
 

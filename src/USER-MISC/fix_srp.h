@@ -20,7 +20,7 @@ FixStyle(SRP,FixSRP)
 #ifndef LMP_FIX_SRP_H
 #define LMP_FIX_SRP_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -43,7 +43,7 @@ class FixSRP : public Fix {
   int unpack_exchange(int, double *);
   int pack_border(int, int *, double *);
   int unpack_border(int, int, double *);
-  void post_run(); 
+  void post_run();
 
   int pack_restart(int, double*);
   void unpack_restart(int, int);
@@ -56,10 +56,8 @@ class FixSRP : public Fix {
   double **array;
 
  private:
-  double xone[3];
   int btype;
   int bptype;
-  int setup;
 };
 
 }

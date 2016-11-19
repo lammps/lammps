@@ -15,8 +15,8 @@
    Contributing author: Pieter in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "fix_nvt_sllod.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -63,7 +63,7 @@ FixNVTSllod::FixNVTSllod(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

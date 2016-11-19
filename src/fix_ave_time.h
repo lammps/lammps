@@ -20,7 +20,7 @@ FixStyle(ave/time,FixAveTime)
 #ifndef LMP_FIX_AVE_TIME_H
 #define LMP_FIX_AVE_TIME_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -53,6 +53,7 @@ class FixAveTime : public Fix {
   int ave,nwindow,startstep,mode;
   int noff,overwrite;
   int *offlist;
+  char *format,*format_user;
   char *title1,*title2,*title3;
   long filepos;
 
@@ -68,8 +69,7 @@ class FixAveTime : public Fix {
   int column_length(int);
   void invoke_scalar(bigint);
   void invoke_vector(bigint);
-  void options(int, char **);
-  void allocate_values(int);
+  void options(int, int, char **);
   void allocate_arrays();
   bigint nextvalid();
 };
@@ -86,6 +86,10 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
+
+E: No values in fix ave/time command
+
+Self-explanatory.
 
 E: Compute ID for fix ave/time does not exist
 
@@ -164,6 +168,10 @@ E: Fix ave/time cannot use variable with vector mode
 
 Variables produce scalar values.
 
+E: Error writing file header
+
+Something in the output to the file triggered an error.
+
 E: Fix ave/time cannot set output array intensive/extensive from these inputs
 
 One of more of the vector inputs has individual elements which are
@@ -174,6 +182,10 @@ E: Invalid timestep reset for fix ave/time
 
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
+
+E: Error writing out time averaged data
+
+Something in the output to the file triggered an error.
 
 E: Fix ave/time columns are inconsistent lengths
 

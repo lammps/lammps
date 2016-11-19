@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_meso_t_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -28,9 +28,9 @@ using namespace LAMMPS_NS;
 ComputeMesoTAtom::ComputeMesoTAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Number of arguments for compute meso_t/atom command != 3");
+  if (narg != 3) error->all(FLERR,"Number of arguments for compute meso/t/atom command != 3");
   if ((atom->e_flag != 1) || (atom->cv_flag != 1))
-          error->all(FLERR,"compute meso_e/atom command requires atom_style with both energy and heat capacity (e.g. meso)");
+          error->all(FLERR,"Compute meso/t/atom command requires atom_style with both energy and heat capacity (e.g. meso)");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -53,9 +53,9 @@ void ComputeMesoTAtom::init()
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"meso_t/atom") == 0) count++;
+    if (strcmp(modify->compute[i]->style,"meso/t/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute meso_t/atom");
+    error->warning(FLERR,"More than one compute meso/t/atom");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,7 +66,7 @@ void ComputeMesoTAtom::compute_peratom()
 
   // grow tvector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(tvector);
     nmax = atom->nmax;
     tvector = (double *) memory->smalloc(nmax*sizeof(double),"tvector/atom:tvector");

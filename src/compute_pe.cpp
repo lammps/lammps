@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_pe.h"
 #include "atom.h"
 #include "update.h"
@@ -46,12 +46,12 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
     pairflag = 1;
     bondflag = angleflag = dihedralflag = improperflag = 1;
     kspaceflag = 1;
-    thermoflag = 1;
+    fixflag = 1;
   } else {
     pairflag = 0;
     bondflag = angleflag = dihedralflag = improperflag = 0;
     kspaceflag = 0;
-    thermoflag = 0;
+    fixflag = 0;
     int iarg = 3;
     while (iarg < narg) {
       if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
@@ -60,6 +60,7 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"dihedral") == 0) dihedralflag = 1;
       else if (strcmp(arg[iarg],"improper") == 0) improperflag = 1;
       else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
+      else if (strcmp(arg[iarg],"fix") == 0) fixflag = 1;
       else error->all(FLERR,"Illegal compute pe command");
       iarg++;
     }
@@ -94,7 +95,7 @@ double ComputePE::compute_scalar()
     scalar += force->pair->etail / volume;
   }
 
-  if (thermoflag && modify->n_thermo_energy) scalar += modify->thermo_energy();
+  if (fixflag && modify->n_thermo_energy) scalar += modify->thermo_energy();
 
   return scalar;
 }

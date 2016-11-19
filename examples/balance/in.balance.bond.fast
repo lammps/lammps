@@ -43,7 +43,7 @@ fix             2 all wall/lj93 xlo 0.0 1 1 2.5 xhi $x 1 1 2.5
 fix             3 all wall/lj93 ylo 0.0 1 1 2.5 yhi $y 1 1 2.5
 
 comm_style      tiled
-comm_modify     cutoff 7.5
+comm_modify     cutoff 10.0   # because bonds stretch a long ways
 fix             10 all balance 50 0.9 rcb
 
 #compute         1 all property/atom proc

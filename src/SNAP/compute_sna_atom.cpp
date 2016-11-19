@@ -5,14 +5,14 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 #include "sna.h"
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "compute_sna_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -30,7 +30,8 @@
 using namespace LAMMPS_NS;
 
 ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), cutsq(NULL), list(NULL), sna(NULL), 
+  radelem(NULL), wjelem(NULL)
 {
   double rmin0, rfac0;
   int twojmax, switchflag;
@@ -39,7 +40,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int ntypes = atom->ntypes;
   int nargmin = 6+2*ntypes;
-  
+
   if (narg < nargmin) error->all(FLERR,"Illegal compute sna/atom command");
 
   // default values
@@ -50,7 +51,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // offset by 1 to match up with types
 
-  memory->create(radelem,ntypes+1,"sna/atom:radelem"); 
+  memory->create(radelem,ntypes+1,"sna/atom:radelem");
   memory->create(wjelem,ntypes+1,"sna/atom:wjelem");
 
   rcutfac = atof(arg[3]);
@@ -83,19 +84,19 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"diagonal") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
 	error->all(FLERR,"Illegal compute sna/atom command");
       diagonalstyle = atoi(arg[iarg+1]);
       if (diagonalstyle < 0 || diagonalstyle > 3)
 	error->all(FLERR,"Illegal compute sna/atom command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"rmin0") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
 	error->all(FLERR,"Illegal compute sna/atom command");
       rmin0 = atof(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"switchflag") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
 	error->all(FLERR,"Illegal compute sna/atom command");
       switchflag = atoi(arg[iarg+1]);
       iarg += 2;
@@ -121,7 +122,7 @@ ComputeSNAAtom::ComputeSNAAtom(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   njmax = 0;
   sna = NULL;
-  
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -139,10 +140,10 @@ ComputeSNAAtom::~ComputeSNAAtom()
 
 void ComputeSNAAtom::init()
 {
-  if (force->pair == NULL) 
+  if (force->pair == NULL)
     error->all(FLERR,"Compute sna/atom requires a pair style be defined");
 
-  if (cutmax > force->pair->cutforce) 
+  if (cutmax > force->pair->cutforce)
     error->all(FLERR,"Compute sna/atom cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
@@ -183,7 +184,7 @@ void ComputeSNAAtom::compute_peratom()
 
   // grow sna array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(sna);
     nmax = atom->nmax;
     memory->create(sna,nmax,size_peratom_cols,"sna/atom:sna");
@@ -223,7 +224,7 @@ void ComputeSNAAtom::compute_peratom()
       const int jnum = numneigh[i];
 
       // insure rij, inside, and typej  are of size jnum
-      
+
       snaptr[tid]->grow_rij(jnum);
 
       // rij[][3] = displacements between atom I and those neighbors
@@ -234,7 +235,7 @@ void ComputeSNAAtom::compute_peratom()
       for (int jj = 0; jj < jnum; jj++) {
 	int j = jlist[jj];
 	j &= NEIGHMASK;
-	
+
 	const double delx = xtmp - x[j][0];
 	const double dely = ytmp - x[j][1];
 	const double delz = ztmp - x[j][2];
@@ -265,7 +266,7 @@ void ComputeSNAAtom::compute_peratom()
 }
 
 /* ----------------------------------------------------------------------
-   memory usage 
+   memory usage
 ------------------------------------------------------------------------- */
 
 double ComputeSNAAtom::memory_usage()

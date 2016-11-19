@@ -18,7 +18,7 @@ DumpStyle(xyz/mpiio,DumpXYZMPIIO)
 #else
 
 #ifndef LMP_DUMP_XYZ_MPIIO_H
-#define LMP_DUMP_XYZ_MPII0_H
+#define LMP_DUMP_XYZ_MPIIO_H
 
 #include "dump_xyz.h"
 

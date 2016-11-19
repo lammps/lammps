@@ -1,0 +1,53 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+compute smd/tlsph/num/neighs command :h3
+
+[Syntax:]
+
+compute ID group-ID smd/tlsph/num/neighs :pre
+
+ID, group-ID are documented in "compute"_compute.html command
+smd/tlsph/num/neighs = style name of this compute command :ul
+
+[Examples:]
+
+compute 1 all smd/tlsph/num/neighs :pre
+
+[Description:]
+
+Define a computation that calculates the number of particles inside of
+the smoothing kernel radius for particles interacting via the
+Total-Lagrangian SPH pair style.
+
+See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to using Smooth
+Mach Dynamics in LAMMPS.
+
+[Output info:]
+
+This compute calculates a per-particle vector, which can be accessed
+by any command that uses per-particle values from a compute as input.
+See "How-to discussions, section 6.15"_Section_howto.html#howto_15 for
+an overview of LAMMPS output options.
+
+The per-particle values are dimensionless. See "units"_units.html.
+
+[Restrictions:]
+
+This compute is part of the USER-SMD package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+This quantity will be computed only for particles which interact with
+the Total-Lagrangian pair style.
+
+[Related commands:]
+
+"smd/ulsph/num/neighs"_compute_smd_ulsph_num_neighs.html
+
+[Default:] none

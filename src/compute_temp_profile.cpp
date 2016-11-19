@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "compute_temp_profile.h"
 #include "atom.h"
 #include "update.h"
@@ -31,7 +31,8 @@ enum{TENSOR,BIN};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  bin(NULL), vbin(NULL), binave(NULL), tbin(NULL), tbinall(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 
@@ -102,7 +103,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   // optional keywords
 
   outflag = TENSOR;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg)
@@ -138,7 +139,6 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   }
 
   maxatom = 0;
-  bin = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -244,7 +244,7 @@ double ComputeTempProfile::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0) 
+  if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
@@ -497,7 +497,7 @@ void ComputeTempProfile::bin_assign()
 {
   // reallocate bin array if necessary
 
-  if (atom->nlocal > maxatom) {
+  if (atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(bin);
     memory->create(bin,maxatom,"temp/profile:bin");

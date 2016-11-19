@@ -1,7 +1,7 @@
 #ifndef IRREGULAR_H
 #define IRREGULAR_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Irregular {
  public:

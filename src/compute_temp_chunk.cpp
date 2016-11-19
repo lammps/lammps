@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_temp_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +29,9 @@ enum{TEMP,KECOM,INTERNAL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  which(NULL), idchunk(NULL), id_bias(NULL), sum(NULL), sumall(NULL), count(NULL), 
+  countall(NULL), massproc(NULL), masstotal(NULL), vcm(NULL), vcmall(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute temp/chunk command");
 
@@ -129,12 +131,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  sum = sumall = NULL;
-  count = countall = NULL;
-  massproc = masstotal = NULL;
-  vcm = vcmall = NULL;
-  array = NULL;
-
+  
   if (nvalues)  {
     array_flag = 1;
     size_array_cols = nvalues;
@@ -236,7 +233,7 @@ double ComputeTempChunk::compute_scalar()
         if (mask[i] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
-          t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+          t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
             rmass[i];
           mycount++;
         }
@@ -472,9 +469,13 @@ void ComputeTempChunk::vcm_compute()
   MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
 
   for (i = 0; i < nchunk; i++) {
-    vcmall[i][0] /= masstotal[i];
-    vcmall[i][1] /= masstotal[i];
-    vcmall[i][2] /= masstotal[i];
+    if (masstotal[i] > 0.0) {
+      vcmall[i][0] /= masstotal[i];
+      vcmall[i][1] /= masstotal[i];
+      vcmall[i][2] /= masstotal[i];
+    } else {
+      vcmall[i][0] = vcmall[i][1] = vcmall[i][2] = 0.0;
+    }
   }
 }
 
@@ -509,7 +510,7 @@ void ComputeTempChunk::temperature(int icol)
         if (mask[i] & groupbit) {
           index = ichunk[i]-1;
           if (index < 0) continue;
-          sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+          sum[index] += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
             rmass[i];
           count[index]++;
         }
@@ -689,7 +690,7 @@ void ComputeTempChunk::internal(int icol)
 
 void ComputeTempChunk::remove_bias(int i, double *v)
 {
-  int index = cchunk->ichunk[i];
+  int index = cchunk->ichunk[i]-1;
   if (index < 0) return;
   v[0] -= vcmall[index][0];
   v[1] -= vcmall[index][1];
@@ -711,11 +712,11 @@ void ComputeTempChunk::remove_bias_all()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      index = ichunk[i];
+      index = ichunk[i]-1;
       if (index < 0) continue;
-      v[i][0] -= vbias[0];
-      v[i][1] -= vbias[1];
-      v[i][2] -= vbias[2];
+      v[i][0] -= vcmall[index][0];
+      v[i][1] -= vcmall[index][1];
+      v[i][2] -= vcmall[index][2];
     }
 }
 
@@ -726,7 +727,7 @@ void ComputeTempChunk::remove_bias_all()
 
 void ComputeTempChunk::restore_bias(int i, double *v)
 {
-  int index = cchunk->ichunk[i];
+  int index = cchunk->ichunk[i]-1;
   if (index < 0) return;
   v[0] += vcmall[index][0];
   v[1] += vcmall[index][1];
@@ -749,11 +750,11 @@ void ComputeTempChunk::restore_bias_all()
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      index = ichunk[i];
+      index = ichunk[i]-1;
       if (index < 0) continue;
-      v[i][0] += vbias[0];
-      v[i][1] += vbias[1];
-      v[i][2] += vbias[2];
+      v[i][0] += vcmall[index][0];
+      v[i][1] += vcmall[index][1];
+      v[i][2] += vcmall[index][2];
     }
 }
 
@@ -850,8 +851,8 @@ void ComputeTempChunk::allocate()
 double ComputeTempChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes = (bigint) maxchunk * 2 * sizeof(int);
-  bytes = (bigint) maxchunk * nvalues * sizeof(double);
+  bytes += (bigint) maxchunk * 2 * sizeof(int);
+  bytes += (bigint) maxchunk * nvalues * sizeof(double);
   if (comflag || nvalues) {
     bytes += (bigint) maxchunk * 2 * sizeof(double);
     bytes += (bigint) maxchunk * 2*3 * sizeof(double);

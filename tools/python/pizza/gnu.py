@@ -19,7 +19,7 @@ g.plot(a,b)	 	       plot B against A
 g.plot(a,b,c,d,...)	       plot B against A, D against C, etc
 g.mplot(M,N,S,"file",a,b,...)  multiple plots saved to file0000.eps, etc
 
-  each plot argument can be a tuple, list, or Numeric vector
+  each plot argument can be a tuple, list, or Numeric/NumPy vector
   mplot loops over range(M,N,S) and create one plot per iteration
     last args are same as list of vectors for plot(), e.g. 1, 2, 4 vectors
     each plot is made from a portion of the vectors, depending on loop index i

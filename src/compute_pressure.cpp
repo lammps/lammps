@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_pressure.h"
 #include "atom.h"
 #include "update.h"
@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  vptr(NULL), id_temp(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pressure command");
   if (igroup) error->all(FLERR,"Compute pressure must use group all");
@@ -96,7 +97,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (keflag && id_temp == NULL) 
+  if (keflag && id_temp == NULL)
     error->all(FLERR,"Compute pressure requires temperature ID "
 	       "to include kinetic energy");
 

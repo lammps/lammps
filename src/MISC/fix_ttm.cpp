@@ -16,10 +16,10 @@
                          Carolyn Phillips (University of Michigan)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_ttm.h"
 #include "atom.h"
 #include "force.h"
@@ -40,7 +40,12 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), 
+  random(NULL), fp(NULL), fpr(NULL), nsum(NULL), nsum_all(NULL), 
+  T_initial_set(NULL), gfactor1(NULL), gfactor2(NULL), ratio(NULL), 
+  flangevin(NULL), T_electron(NULL), T_electron_old(NULL), sum_vsq(NULL), 
+  sum_mass_vsq(NULL), sum_vsq_all(NULL), sum_mass_vsq_all(NULL), 
+  net_energy_transfer(NULL), net_energy_transfer_all(NULL)
 {
   if (narg < 15) error->all(FLERR,"Illegal fix ttm command");
 
@@ -87,7 +92,8 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (seed <= 0) error->all(FLERR,"Invalid random number seed in fix ttm command");
+  if (seed <= 0) 
+    error->all(FLERR,"Invalid random number seed in fix ttm command");
   if (electronic_specific_heat <= 0.0)
     error->all(FLERR,"Fix ttm electronic_specific_heat must be > 0.0");
   if (electronic_density <= 0.0)
@@ -342,7 +348,8 @@ void FixTTM::read_initial_electron_temperatures()
   while (1) {
     if (fgets(line,MAXLINE,fpr) == NULL) break;
     sscanf(line,"%d %d %d %lg",&ixnode,&iynode,&iznode,&T_tmp);
-    if (T_tmp < 0.0) error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
+    if (T_tmp < 0.0) 
+      error->one(FLERR,"Fix ttm electron temperatures must be > 0.0");
     T_electron[ixnode][iynode][iznode] = T_tmp;
     T_initial_set[ixnode][iynode][iznode] = 1;
   }

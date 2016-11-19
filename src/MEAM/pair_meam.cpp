@@ -15,10 +15,10 @@
    Contributing author: Greg Wagner (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_meam.h"
 #include "atom.h"
 #include "force.h"
@@ -35,12 +35,13 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 
 enum{FCC,BCC,HCP,DIM,DIAMOND,B1,C11,L12,B2};
-int nkeywords = 21;
-const char *keywords[] = {"Ec","alpha","rho0","delta","lattce",
-                          "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
-                          "augt1","gsmooth_factor","re","ialloy",
-                          "mixture_ref_t","erose_form","zbl",
-                          "emb_lin_neg","bkgd_dyn"};
+static const int nkeywords = 21;
+static const char *keywords[] = {
+  "Ec","alpha","rho0","delta","lattce",
+  "attrac","repuls","nn2","Cmin","Cmax","rc","delr",
+  "augt1","gsmooth_factor","re","ialloy",
+  "mixture_ref_t","erose_form","zbl",
+  "emb_lin_neg","bkgd_dyn"};
 
 /* ---------------------------------------------------------------------- */
 
@@ -57,6 +58,7 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = NULL;
 
   maxneigh = 0;
+  allocated = 0;
   scrfcn = dscrfcn = fcpair = NULL;
 
   nelements = 0;
@@ -395,7 +397,7 @@ void PairMEAM::coeff(int narg, char **arg)
     for (int j = i; j <= n; j++)
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
-        if (i == j) atom->set_mass(i,mass[map[i]]);
+        if (i == j) atom->set_mass(FLERR,i,mass[map[i]]);
         count++;
       }
 
@@ -555,7 +557,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
     for (i = 0; i < nelements; i++)
       if (strcmp(words[0],elements[i]) == 0) break;
-    if (i == nelements) continue;
+    if (i >= nelements) continue;
 
     // skip if element already appeared
 
@@ -730,7 +732,7 @@ void PairMEAM::read_files(char *globalfile, char *userfile)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAM::pack_forward_comm(int n, int *list, double *buf, 
+int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,k,m;

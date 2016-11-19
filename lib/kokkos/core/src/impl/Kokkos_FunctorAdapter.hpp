@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -75,6 +75,7 @@ struct FunctorValueTraits
   typedef void value_type ;
   typedef void pointer_type ;
   typedef void reference_type ;
+  typedef void functor_type ;
 
   enum { StaticValueSize = 0 };
 
@@ -83,6 +84,15 @@ struct FunctorValueTraits
 
   KOKKOS_FORCEINLINE_FUNCTION static
   unsigned value_size( const FunctorType & ) { return 0 ; }
+};
+
+template<class ArgTag>
+struct FunctorValueTraits<void, ArgTag,false>
+{
+  typedef void value_type ;
+  typedef void pointer_type ;
+  typedef void reference_type ;
+  typedef void functor_type ;
 };
 
 /** \brief  FunctorType::value_type is explicitly declared so use it.
@@ -97,9 +107,13 @@ struct FunctorValueTraits
  *        const unsigned     value_count ;
  */
 template< class FunctorType , class ArgTag >
-struct FunctorValueTraits< FunctorType , ArgTag , true /* exists FunctorType::value_type */ >
+struct FunctorValueTraits< FunctorType , ArgTag , true /* == exists FunctorType::value_type */ >
 {
   typedef typename Impl::remove_extent< typename FunctorType::value_type >::type  value_type ;
+  typedef FunctorType functor_type;
+
+  static_assert( 0 == ( sizeof(value_type) % sizeof(int) ) ,
+    "Reduction functor's declared value_type requires: 0 == sizeof(value_type) % sizeof(int)" );
 
   // If not an array then what is the sizeof(value_type)
   enum { StaticValueSize = Impl::is_array< typename FunctorType::value_type >::value ? 0 : sizeof(value_type) };
@@ -131,121 +145,221 @@ struct FunctorValueTraits< FunctorType , ArgTag , true /* exists FunctorType::va
 };
 
 
-#if defined( KOKKOS_HAVE_CXX11 )
-
-// If have C++11 and functor does not explicitly specify a value type
-// then try to deduce the value type from FunctorType::operator().
-// Can only deduce single value type since array length cannot be deduced.
-template< class FunctorType >
-struct FunctorValueTraits< FunctorType
-                       , void  /* == ArgTag */
-                       , false /* == exists FunctorType::value_type */
-                       >
-{
-private:
-
-  struct VOID {};
-
-  // parallel_for operator without a tag:
-  template< class ArgMember >
-  KOKKOS_INLINE_FUNCTION
-  static VOID deduce( void (FunctorType::*)( ArgMember ) const ) {}
-
-  // parallel_reduce operator without a tag:
-  template< class ArgMember , class T >
-  KOKKOS_INLINE_FUNCTION
-  static T deduce( void (FunctorType::*)( ArgMember , T & ) const ) {}
-
-  // parallel_scan operator without a tag:
-  template< class ArgMember , class T >
-  KOKKOS_INLINE_FUNCTION
-  static T deduce( void (FunctorType::*)( ArgMember , T & , bool ) const ) {}
-
-  typedef decltype( deduce( & FunctorType::operator() ) ) ValueType ;
-
-  enum { IS_VOID = Impl::is_same<VOID,ValueType>::value };
-
-public:
-
-  typedef typename Impl::if_c< IS_VOID , void , ValueType   >::type  value_type ;
-  typedef typename Impl::if_c< IS_VOID , void , ValueType * >::type  pointer_type ;
-  typedef typename Impl::if_c< IS_VOID , void , ValueType & >::type  reference_type ;
-
-  enum { StaticValueSize = IS_VOID ? 0 : sizeof(ValueType) };
-
-  KOKKOS_FORCEINLINE_FUNCTION static
-  unsigned value_size( const FunctorType & ) { return StaticValueSize ; }
-
-  KOKKOS_FORCEINLINE_FUNCTION static
-  unsigned value_count( const FunctorType & ) { return IS_VOID ? 0 : 1 ; }
-};
-
-
 template< class FunctorType , class ArgTag >
 struct FunctorValueTraits< FunctorType
-                       , ArgTag /* != void */
-                       , false  /* == exists FunctorType::value_type */
-                       >
+                         , ArgTag
+                         , false  /* == exists FunctorType::value_type */
+                         >
 {
 private:
+
+  struct VOIDTAG {};   // Allow declaration of non-matching operator() with void argument tag.
+  struct REJECTTAG {}; // Reject tagged operator() when using non-tagged execution policy.
+
+  typedef typename
+    Impl::if_c< Impl::is_same< ArgTag , void >::value , VOIDTAG , ArgTag >::type tag_type ;
+
+  //----------------------------------------
+  // parallel_for operator without a tag:
+
+  template< class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static VOIDTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( ArgMember ) const ) {}
+
+  template< class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static VOIDTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const ArgMember & ) const ) {}
+
+  template< class TagType , class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , ArgMember ) const ) {}
+
+  template< class TagType , class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , const ArgMember & ) const ) {}
+
+  template< class TagType , class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , ArgMember ) const ) {}
+
+  template< class TagType , class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , const ArgMember & ) const ) {}
 
   //----------------------------------------
   // parallel_for operator with a tag:
 
-  struct VOID {}; // to allow valid sizeof(ValueType)
+  template< class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static VOIDTAG deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , ArgMember ) const ) {}
 
   template< class ArgMember >
   KOKKOS_INLINE_FUNCTION
-  static VOID deduce( void (FunctorType::*)( ArgTag , ArgMember ) const ) {}
+  static VOIDTAG deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , ArgMember ) const ) {}
 
   template< class ArgMember >
   KOKKOS_INLINE_FUNCTION
-  static VOID deduce( void (FunctorType::*)( const ArgTag & , ArgMember ) const ) {}
+  static VOIDTAG deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , const ArgMember & ) const ) {}
+
+  template< class ArgMember >
+  KOKKOS_INLINE_FUNCTION
+  static VOIDTAG deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , const ArgMember & ) const ) {}
+
+  //----------------------------------------
+  // parallel_reduce operator without a tag:
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( ArgMember , T & ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const ArgMember & , T & ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , ArgMember , T & ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , const ArgMember & , T & ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , ArgMember , T & ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , const ArgMember & , T & ) const ) {}
 
   //----------------------------------------
   // parallel_reduce operator with a tag:
 
   template< class ArgMember , class T >
   KOKKOS_INLINE_FUNCTION
-  static T deduce( void (FunctorType::*)( ArgTag , ArgMember , T & ) const ) {}
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , ArgMember , T & ) const ) {}
 
   template< class ArgMember , class T >
   KOKKOS_INLINE_FUNCTION
-  static T deduce( void (FunctorType::*)( const ArgTag & , ArgMember , T & ) const ) {}
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , ArgMember , T & ) const ) {}
 
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , const ArgMember & , T & ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , const ArgMember & , T & ) const ) {}
+
+  //----------------------------------------
+  // parallel_scan operator without a tag:
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( ArgMember , T & , bool ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const ArgMember & , T & , bool ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , ArgMember , T & , bool ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , const ArgMember & , T & , bool ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , ArgMember , T & , bool ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , const ArgMember & , T & , bool ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( ArgMember , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const ArgMember & , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , ArgMember , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( TagType , const ArgMember & , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , ArgMember , T & , const bool& ) const ) {}
+
+  template< class TagType , class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static REJECTTAG deduce_reduce_type( VOIDTAG , void (FunctorType::*)( const TagType & , const ArgMember & , T & , const bool& ) const ) {}
   //----------------------------------------
   // parallel_scan operator with a tag:
 
   template< class ArgMember , class T >
   KOKKOS_INLINE_FUNCTION
-  static T deduce( void (FunctorType::*)( ArgTag , ArgMember , T & , bool ) const ) {}
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , ArgMember , T & , bool ) const ) {}
 
   template< class ArgMember , class T >
   KOKKOS_INLINE_FUNCTION
-  static T deduce( void (FunctorType::*)( const ArgTag & , ArgMember , T & , bool ) const ) {}
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , ArgMember , T & , bool ) const ) {}
 
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , const ArgMember& , T & , bool ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , const ArgMember& , T & , bool ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , ArgMember , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , ArgMember , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( tag_type , const ArgMember& , T & , const bool& ) const ) {}
+
+  template< class ArgMember , class T >
+  KOKKOS_INLINE_FUNCTION
+  static T deduce_reduce_type( tag_type , void (FunctorType::*)( const tag_type & , const ArgMember& , T & , const bool& ) const ) {}
   //----------------------------------------
 
-  typedef decltype( deduce( & FunctorType::operator() ) ) ValueType ;
+  typedef decltype( deduce_reduce_type( tag_type() , & FunctorType::operator() ) ) ValueType ;
 
-  enum { IS_VOID = Impl::is_same<VOID,ValueType>::value };
+  enum { IS_VOID   = Impl::is_same<VOIDTAG  ,ValueType>::value };
+  enum { IS_REJECT = Impl::is_same<REJECTTAG,ValueType>::value };
 
 public:
 
-  typedef typename Impl::if_c< IS_VOID , void , ValueType   >::type  value_type ;
-  typedef typename Impl::if_c< IS_VOID , void , ValueType * >::type  pointer_type ;
-  typedef typename Impl::if_c< IS_VOID , void , ValueType & >::type  reference_type ;
+  typedef typename Impl::if_c< IS_VOID || IS_REJECT , void , ValueType   >::type  value_type ;
+  typedef typename Impl::if_c< IS_VOID || IS_REJECT , void , ValueType * >::type  pointer_type ;
+  typedef typename Impl::if_c< IS_VOID || IS_REJECT , void , ValueType & >::type  reference_type ;
+  typedef FunctorType functor_type;
 
-  enum { StaticValueSize = IS_VOID ? 0 : sizeof(ValueType) };
+  static_assert( IS_VOID || IS_REJECT || 0 == ( sizeof(ValueType) % sizeof(int) ) ,
+    "Reduction functor's value_type deduced from functor::operator() requires: 0 == sizeof(value_type) % sizeof(int)" );
+
+  enum { StaticValueSize = IS_VOID || IS_REJECT ? 0 : sizeof(ValueType) };
 
   KOKKOS_FORCEINLINE_FUNCTION static
   unsigned value_size( const FunctorType & ) { return StaticValueSize ; }
 
   KOKKOS_FORCEINLINE_FUNCTION static
-  unsigned value_count( const FunctorType & ) { return IS_VOID ? 0 : 1 ; }
+  unsigned value_count( const FunctorType & ) { return IS_VOID || IS_REJECT ? 0 : 1 ; }
 };
-
-#endif /* #if defined( KOKKOS_HAVE_CXX11 ) */
 
 } // namespace Impl
 } // namespace Kokkos
@@ -256,64 +370,39 @@ public:
 namespace Kokkos {
 namespace Impl {
 
-// Function signatures for FunctorType::init function with a tag and not an array
-template< class FunctorType , class ArgTag , bool IsArray = 0 == FunctorValueTraits<FunctorType,ArgTag>::StaticValueSize >
+/** Function signatures for FunctorType::init function with a tag.
+ *  reference_type is 'value_type &' for scalar and 'value_type *' for array.
+ */
+template< class FunctorType , class ArgTag >
 struct FunctorValueInitFunction {
 
-  typedef typename FunctorValueTraits<FunctorType,ArgTag>::value_type value_type ;
+  typedef typename FunctorValueTraits<FunctorType,ArgTag>::reference_type
+    reference_type ;
 
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag         , value_type & ) const );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag const & , value_type & ) const );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag         , value_type & ) );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag const & , value_type & ) );
+  KOKKOS_INLINE_FUNCTION static void
+    enable_if( void (FunctorType::*)( ArgTag         , reference_type ) const );
+  KOKKOS_INLINE_FUNCTION static void
+    enable_if( void (FunctorType::*)( ArgTag const & , reference_type ) const );
+  KOKKOS_INLINE_FUNCTION static void
+    enable_if( void (             *)( ArgTag         , reference_type ) );
+  KOKKOS_INLINE_FUNCTION static void
+    enable_if( void (             *)( ArgTag const & , reference_type ) );
 
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag         , value_type volatile & ) const );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag const & , value_type volatile & ) const );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag         , value_type volatile & ) );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag const & , value_type volatile & ) );
 };
 
-// Function signatures for FunctorType::init function with a tag and is an array
-template< class FunctorType , class ArgTag >
-struct FunctorValueInitFunction< FunctorType , ArgTag , true > {
-
-  typedef typename FunctorValueTraits<FunctorType,ArgTag>::value_type value_type ;
-
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag         , value_type * ) const );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag const & , value_type * ) const );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag         , value_type * ) );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag const & , value_type * ) );
-
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag         , value_type volatile * ) const );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag const & , value_type volatile * ) const );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag         , value_type volatile * ) );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( ArgTag const & , value_type volatile * ) );
-};
-
-// Function signatures for FunctorType::init function without a tag and not an array
+/** Function signatures for FunctorType::init function without a tag.
+ *  reference_type is 'value_type &' for scalar and 'value_type *' for array.
+ */
 template< class FunctorType >
-struct FunctorValueInitFunction< FunctorType , void , false > {
+struct FunctorValueInitFunction< FunctorType , void > {
 
-  typedef typename FunctorValueTraits<FunctorType,void>::reference_type value_type ;
+  typedef typename FunctorValueTraits<FunctorType,void>::reference_type
+    reference_type ;
 
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( value_type & ) const );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( value_type & ) );
-
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( value_type volatile & ) const );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( value_type volatile & ) );
-};
-
-// Function signatures for FunctorType::init function without a tag and is an array
-template< class FunctorType >
-struct FunctorValueInitFunction< FunctorType , void , true > {
-
-  typedef typename FunctorValueTraits<FunctorType,void>::reference_type value_type ;
-
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( value_type * ) const );
-  KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( value_type * ) );
-
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( value_type volatile * ) const );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)( value_type volatile * ) );
+  KOKKOS_INLINE_FUNCTION static void
+    enable_if( void (FunctorType::*)( reference_type ) const );
+  KOKKOS_INLINE_FUNCTION static void
+    enable_if( void (             *)( reference_type ) );
 };
 
 // Adapter for value initialization function.
@@ -347,23 +436,51 @@ struct FunctorValueInit< FunctorType , ArgTag , T * , Enable >
 };
 
 /* 'init' function provided for single value */
+template< class FunctorType , class T >
+struct FunctorValueInit
+  < FunctorType
+  , void
+  , T &
+    // First  substitution failure when FunctorType::init does not exist.
+    // Second substitution failure when FunctorType::init is not compatible.
+  , decltype( FunctorValueInitFunction< FunctorType , void >::enable_if( & FunctorType::init ) )
+  >
+{
+  KOKKOS_FORCEINLINE_FUNCTION static
+  T & init( const FunctorType & f , void * p )
+    { f.init( *((T*)p) ); return *((T*)p) ; }
+};
+
+/* 'init' function provided for array value */
+template< class FunctorType , class T >
+struct FunctorValueInit
+  < FunctorType
+  , void
+  , T *
+    // First  substitution failure when FunctorType::init does not exist.
+    // Second substitution failure when FunctorType::init is not compatible
+  , decltype( FunctorValueInitFunction< FunctorType , void >::enable_if( & FunctorType::init ) )
+  >
+{
+  KOKKOS_FORCEINLINE_FUNCTION static
+  T * init( const FunctorType & f , void * p )
+    { f.init( (T*)p ); return (T*)p ; }
+};
+
+/* 'init' function provided for single value */
 template< class FunctorType , class ArgTag , class T >
 struct FunctorValueInit
   < FunctorType
   , ArgTag
   , T &
     // First  substitution failure when FunctorType::init does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when FunctorType::init is not compatible.
   , decltype( FunctorValueInitFunction< FunctorType , ArgTag >::enable_if( & FunctorType::init ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::init ) >::type
-#endif
   >
 {
   KOKKOS_FORCEINLINE_FUNCTION static
   T & init( const FunctorType & f , void * p )
-    { f.init( *((T*)p) ); return *((T*)p) ; }
+    { f.init( ArgTag() , *((T*)p) ); return *((T*)p) ; }
 };
 
 /* 'init' function provided for array value */
@@ -373,17 +490,13 @@ struct FunctorValueInit
   , ArgTag
   , T *
     // First  substitution failure when FunctorType::init does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when FunctorType::init is not compatible
   , decltype( FunctorValueInitFunction< FunctorType , ArgTag >::enable_if( & FunctorType::init ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::init ) >::type
-#endif
   >
 {
   KOKKOS_FORCEINLINE_FUNCTION static
   T * init( const FunctorType & f , void * p )
-    { f.init( (T*)p ); return (T*)p ; }
+    { f.init( ArgTag() , (T*)p ); return (T*)p ; }
 };
 
 } // namespace Impl
@@ -461,10 +574,23 @@ struct FunctorValueJoin ;
 template< class FunctorType , class ArgTag , class T , class Enable >
 struct FunctorValueJoin< FunctorType , ArgTag , T & , Enable >
 {
+  KOKKOS_FORCEINLINE_FUNCTION
+  FunctorValueJoin(const FunctorType& ){}
+
   KOKKOS_FORCEINLINE_FUNCTION static
   void join( const FunctorType & f , volatile void * const lhs , const volatile void * const rhs )
     {
       *((volatile T*)lhs) += *((const volatile T*)rhs);
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator()( volatile T& lhs , const volatile T& rhs ) const
+    {
+      lhs += rhs;
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator() ( T& lhs , const T& rhs ) const
+    {
+      lhs += rhs;
     }
 };
 
@@ -472,12 +598,31 @@ struct FunctorValueJoin< FunctorType , ArgTag , T & , Enable >
 template< class FunctorType , class ArgTag , class T , class Enable >
 struct FunctorValueJoin< FunctorType , ArgTag , T * , Enable >
 {
+  const FunctorType& f;
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  FunctorValueJoin(const FunctorType& f_):f(f_){}
+
   KOKKOS_FORCEINLINE_FUNCTION static
-  void join( const FunctorType & f , volatile void * const lhs , const volatile void * const rhs )
+  void join( const FunctorType & f_ , volatile void * const lhs , const volatile void * const rhs )
+    {
+      const int n = FunctorValueTraits<FunctorType,ArgTag>::value_count(f_);
+
+      for ( int i = 0 ; i < n ; ++i ) { ((volatile T*)lhs)[i] += ((const volatile T*)rhs)[i]; }
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator()( volatile T* const lhs , const volatile T* const rhs ) const
     {
       const int n = FunctorValueTraits<FunctorType,ArgTag>::value_count(f);
 
-      for ( int i = 0 ; i < n ; ++i ) { ((volatile T*)lhs)[i] += ((const volatile T*)rhs)[i]; }
+      for ( int i = 0 ; i < n ; ++i ) { lhs[i] += rhs[i]; }
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator() ( T* lhs , const T* rhs ) const
+    {
+      const int n = FunctorValueTraits<FunctorType,ArgTag>::value_count(f);
+
+      for ( int i = 0 ; i < n ; ++i ) { lhs[i] += rhs[i]; }
     }
 };
 
@@ -488,18 +633,29 @@ struct FunctorValueJoin
   , ArgTag
   , T &
     // First  substitution failure when FunctorType::join does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::join ) does not exist
   , decltype( FunctorValueJoinFunction< FunctorType , ArgTag >::enable_if( & FunctorType::join ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::join ) >::type
-#endif
   >
 {
+  const FunctorType& f;
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  FunctorValueJoin(const FunctorType& f_):f(f_){}
+
   KOKKOS_FORCEINLINE_FUNCTION static
-  void join( const FunctorType & f , volatile void * const lhs , const volatile void * const rhs )
+  void join( const FunctorType & f_ , volatile void * const lhs , const volatile void * const rhs )
     {
-      f.join( ArgTag() , *((volatile T *)lhs) , *((const volatile T *)rhs) );
+      f_.join( ArgTag() , *((volatile T *)lhs) , *((const volatile T *)rhs) );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator()( volatile T& lhs , const volatile T& rhs ) const
+    {
+      f.join( ArgTag() , lhs , rhs );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator() ( T& lhs , const T& rhs ) const
+    {
+      f.join( ArgTag(), lhs , rhs );
     }
 };
 
@@ -510,18 +666,29 @@ struct FunctorValueJoin
   , void
   , T &
     // First  substitution failure when FunctorType::join does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::join ) does not exist
   , decltype( FunctorValueJoinFunction< FunctorType , void >::enable_if( & FunctorType::join ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::join ) >::type
-#endif
   >
 {
+  const FunctorType& f;
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  FunctorValueJoin(const FunctorType& f_):f(f_){}
+
   KOKKOS_FORCEINLINE_FUNCTION static
-  void join( const FunctorType & f , volatile void * const lhs , const volatile void * const rhs )
+  void join( const FunctorType & f_ , volatile void * const lhs , const volatile void * const rhs )
     {
-      f.join( *((volatile T *)lhs) , *((const volatile T *)rhs) );
+      f_.join( *((volatile T *)lhs) , *((const volatile T *)rhs) );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator()( volatile T& lhs , const volatile T& rhs ) const
+    {
+      f.join( lhs , rhs );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator() ( T& lhs , const T& rhs ) const
+    {
+      f.join( lhs , rhs );
     }
 };
 
@@ -532,18 +699,29 @@ struct FunctorValueJoin
   , ArgTag
   , T *
     // First  substitution failure when FunctorType::join does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::join ) does not exist
   , decltype( FunctorValueJoinFunction< FunctorType , ArgTag >::enable_if( & FunctorType::join ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::join ) >::type
-#endif
   >
 {
+  const FunctorType& f;
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  FunctorValueJoin(const FunctorType& f_):f(f_){}
+
   KOKKOS_FORCEINLINE_FUNCTION static
-  void join( const FunctorType & f , volatile void * const lhs , const volatile void * const rhs )
+  void join( const FunctorType & f_ , volatile void * const lhs , const volatile void * const rhs )
     {
-      f.join( ArgTag() , (volatile T *)lhs , (const volatile T *)rhs );
+      f_.join( ArgTag() , (volatile T *)lhs , (const volatile T *)rhs );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator()( volatile T* const lhs , const volatile T* const rhs ) const
+    {
+      f.join( ArgTag() , lhs , rhs );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator() ( T* lhs , const T* rhs ) const
+    {
+      f.join( ArgTag(), lhs , rhs );
     }
 };
 
@@ -554,25 +732,35 @@ struct FunctorValueJoin
   , void
   , T *
     // First  substitution failure when FunctorType::join does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::join ) does not exist
   , decltype( FunctorValueJoinFunction< FunctorType , void >::enable_if( & FunctorType::join ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::join ) >::type
-#endif
   >
 {
+  const FunctorType& f;
+
+  KOKKOS_FORCEINLINE_FUNCTION
+  FunctorValueJoin(const FunctorType& f_):f(f_){}
+
   KOKKOS_FORCEINLINE_FUNCTION static
-  void join( const FunctorType & f , volatile void * const lhs , const volatile void * const rhs )
+  void join( const FunctorType & f_ , volatile void * const lhs , const volatile void * const rhs )
     {
-      f.join( (volatile T *)lhs , (const volatile T *)rhs );
+      f_.join( (volatile T *)lhs , (const volatile T *)rhs );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator() ( volatile T* const lhs , const volatile T* const rhs ) const
+    {
+      f.join( lhs , rhs );
+    }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator() ( T* lhs , const T* rhs ) const
+    {
+      f.join( lhs , rhs );
     }
 };
 
 } // namespace Impl
 } // namespace Kokkos
 
-#ifdef KOKKOS_HAVE_CXX11
 namespace Kokkos {
 
 namespace Impl {
@@ -657,7 +845,6 @@ namespace Impl {
 
 }
 }
-#endif
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -825,12 +1012,8 @@ struct FunctorFinal
   , ArgTag
   , T &
     // First  substitution failure when FunctorType::final does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::final ) does not exist
   , decltype( FunctorFinalFunction< FunctorType , ArgTag >::enable_if( & FunctorType::final ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::final ) >::type
-#endif
   >
 {
   KOKKOS_FORCEINLINE_FUNCTION static
@@ -847,12 +1030,8 @@ struct FunctorFinal
   , ArgTag
   , T *
     // First  substitution failure when FunctorType::final does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::final ) does not exist
   , decltype( FunctorFinalFunction< FunctorType , ArgTag >::enable_if( & FunctorType::final ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::final ) >::type
-#endif
   >
 {
   KOKKOS_FORCEINLINE_FUNCTION static
@@ -913,12 +1092,8 @@ struct FunctorApply
   , ArgTag
   , void
     // First  substitution failure when FunctorType::apply does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::apply ) does not exist
   , decltype( FunctorApplyFunction< FunctorType , ArgTag , void >::enable_if( & FunctorType::apply ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::apply ) >::type
-#endif
   >
 {
   KOKKOS_FORCEINLINE_FUNCTION static
@@ -935,12 +1110,8 @@ struct FunctorApply
   , ArgTag
   , T &
     // First  substitution failure when FunctorType::apply does not exist.
-#if defined( KOKKOS_HAVE_CXX11 )
     // Second substitution failure when enable_if( & Functor::apply ) does not exist
   , decltype( FunctorApplyFunction< FunctorType , ArgTag >::enable_if( & FunctorType::apply ) )
-#else
-  , typename Impl::enable_if< 0 < sizeof( & FunctorType::apply ) >::type
-#endif
   >
 {
   KOKKOS_FORCEINLINE_FUNCTION static

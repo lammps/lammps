@@ -15,8 +15,8 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "dihedral_opls_kokkos.h"
 #include "atom_kokkos.h"
 #include "comm.h"
@@ -515,7 +515,10 @@ void DihedralOPLSKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const 
 
 /* ---------------------------------------------------------------------- */
 
+namespace LAMMPS_NS {
 template class DihedralOPLSKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class DihedralOPLSKokkos<LMPHostType>;
 #endif
+}
+

@@ -352,6 +352,6 @@ namespace ATC {
 
   };
 
-}; // namespace ATC
+} // namespace ATC
 
 #endif // FE_ELEMENT_H

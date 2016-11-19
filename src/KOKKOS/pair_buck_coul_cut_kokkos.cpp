@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_buck_coul_cut_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -63,7 +63,7 @@ PairBuckCoulCutKokkos<DeviceType>::PairBuckCoulCutKokkos(LAMMPS *lmp):PairBuckCo
 template<class DeviceType>
 PairBuckCoulCutKokkos<DeviceType>::~PairBuckCoulCutKokkos()
 {
-  
+
   if (!copymode) {
     memory->destroy_kokkos(k_eatom,eatom);
     memory->destroy_kokkos(k_vatom,vatom);
@@ -140,8 +140,6 @@ void PairBuckCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairBuckCoulCutKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
-
-  DeviceType::fence();
 
   if (eflag) {
     eng_vdwl += ev.evdwl;
@@ -367,7 +365,10 @@ double PairBuckCoulCutKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairBuckCoulCutKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckCoulCutKokkos<LMPHostType>;
 #endif
+}
+

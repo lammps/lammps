@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_charmm_coul_charmm_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -154,8 +154,6 @@ void PairLJCharmmCoulCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_i
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -195,8 +193,8 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
     switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
     switch2 = 12.0*rsq * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
-    englj = r6inv * 
-	    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv - 
+    englj = r6inv *
+	    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
 	     (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
     forcelj = forcelj*switch1 + englj*switch2;
   }
@@ -215,9 +213,9 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
               const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj, switch1; 
+  F_FLOAT englj, switch1;
 
-  englj = r6inv * 
+  englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
 
@@ -243,15 +241,14 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
-  F_FLOAT forcecoul, switch1, switch2;
+  F_FLOAT forcecoul, switch1;
 
   forcecoul = qqrd2e*qtmp*q(j) *rinv;
 
   if (rsq > cut_coul_innersq) {
     switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-    switch2 = 12.0*rsq * (cut_coulsq-rsq) * (rsq-cut_coul_innersq) / denom_coul;
-    forcecoul *= switch1 + switch2;
+    forcecoul *= switch1;
   }
 
   return forcecoul * r2inv * factor_coul;
@@ -270,7 +267,7 @@ compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
-  F_FLOAT ecoul, switch1; 
+  F_FLOAT ecoul, switch1;
 
   ecoul = qqrd2e * qtmp * q(j) * rinv;
   if (rsq > cut_coul_innersq) {
@@ -512,7 +509,9 @@ double PairLJCharmmCoulCharmmKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCharmmCoulCharmmKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCharmmCoulCharmmKokkos<LMPHostType>;
 #endif
+}

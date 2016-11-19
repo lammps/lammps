@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_tersoff_table_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -77,6 +77,7 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag)
@@ -84,6 +85,7 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
       else eval<1,0>(ifrom, ito, thr);
     else eval<0,0>(ifrom, ito, thr);
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -295,10 +297,6 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (r_ik > params[ikparam].cutsq) continue;
 
-        r_ik = sqrt(r_ik);
-
-        invR_ik = 1.0 / r_ik;
-
         gtetaFunctionIJK = thrGtetaFunction[tid][neighbor_j][neighbor_k];
 
         cutoffFunctionIK = thrCutoffFunction[tid][neighbor_k];
@@ -323,13 +321,6 @@ void PairTersoffTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         r_ik = dr_ik[0]*dr_ik[0] + dr_ik[1]*dr_ik[1] + dr_ik[2]*dr_ik[2];
 
         if (r_ik > params[ikparam].cutsq) continue;
-
-        r_ik = sqrt(r_ik);
-        invR_ik = 1.0 / r_ik;
-
-        directorCos_ik_x = invR_ik * dr_ik[0];
-        directorCos_ik_y = invR_ik * dr_ik[1];
-        directorCos_ik_z = invR_ik * dr_ik[2];
 
         gtetaFunctionIJK = thrGtetaFunction[tid][neighbor_j][neighbor_k];
 

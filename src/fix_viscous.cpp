@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_viscous.h"
 #include "atom.h"
 #include "update.h"
@@ -27,7 +27,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  gamma(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
 
@@ -49,6 +50,9 @@ FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else error->all(FLERR,"Illegal fix viscous command");
   }
+
+  respa_level_support = 1;
+  ilevel_respa = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,8 +77,12 @@ int FixViscous::setmask()
 
 void FixViscous::init()
 {
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  int max_respa = 0;
+
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,max_respa);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -84,9 +92,9 @@ void FixViscous::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -126,7 +134,7 @@ void FixViscous::post_force(int vflag)
 
 void FixViscous::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

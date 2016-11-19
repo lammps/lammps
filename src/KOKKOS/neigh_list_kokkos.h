@@ -28,7 +28,7 @@ class AtomNeighbors
   const int num_neighs;
 
   KOKKOS_INLINE_FUNCTION
-  AtomNeighbors(int* const & firstneigh, const int & _num_neighs, 
+  AtomNeighbors(int* const & firstneigh, const int & _num_neighs,
                 const int & stride):
   num_neighs(_num_neighs), _firstneigh(firstneigh), _stride(stride) {};
   KOKKOS_INLINE_FUNCTION
@@ -71,7 +71,8 @@ public:
   void clean_copy();
   void grow(int nmax);
   typename ArrayTypes<Device>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<Device>::t_int_1d d_ilist;   // local indices of I atoms
+  typename DAT::tdual_int_1d k_ilist;   // local indices of I atoms
+  typename ArrayTypes<Device>::t_int_1d d_ilist;
   typename ArrayTypes<Device>::t_int_1d d_numneigh; // # of J neighs for each I
   typename ArrayTypes<Device>::t_int_1d d_stencil;  // # of J neighs for each I
   typename ArrayTypes<LMPHostType>::t_int_1d h_stencil; // # of J neighs per I

@@ -2,10 +2,8 @@
 //@HEADER
 // ************************************************************************
 //
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 //
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -37,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -55,11 +53,16 @@
 #include <cstddef>
 #include <iosfwd>
 #include <Kokkos_HostSpace.hpp>
+#ifdef KOKKOS_HAVE_HBWSPACE
+#include <Kokkos_HBWSpace.hpp>
+#endif
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_Parallel.hpp>
+#include <Kokkos_TaskPolicy.hpp>
 #include <Kokkos_Layout.hpp>
 #include <impl/Kokkos_Tags.hpp>
 
+#include <KokkosExp_MDRangePolicy.hpp>
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
@@ -74,17 +77,22 @@ public:
 
   //! Tag this class as a kokkos execution space
   typedef OpenMP                execution_space ;
+  #ifdef KOKKOS_HAVE_HBWSPACE
+  typedef Experimental::HBWSpace memory_space ;
+  #else
   typedef HostSpace             memory_space ;
+  #endif
+  //! This execution space preferred device_type
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
+
   typedef LayoutRight           array_layout ;
-  typedef HostSpace::size_type  size_type ;
+  typedef memory_space::size_type  size_type ;
 
   typedef ScratchMemorySpace< OpenMP > scratch_memory_space ;
 
-  //! For backward compatibility
-  typedef OpenMP                device_type ;
   //@}
   //------------------------------------
-  //! \name Functions that all Kokkos devices must implement.
+  //! \name Functions that all Kokkos execution spaces must implement.
   //@{
 
   inline static bool in_parallel() { return omp_in_parallel(); }
@@ -118,6 +126,10 @@ public:
                           unsigned use_cores_per_numa = 0 );
 
   static int is_initialized();
+
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency();
+
   //@}
   //------------------------------------
   /** \brief  This execution space has a topological thread pool which can be queried.
@@ -167,6 +179,7 @@ struct VerifyExecutionCanAccessMemorySpace
 
 #include <OpenMP/Kokkos_OpenMPexec.hpp>
 #include <OpenMP/Kokkos_OpenMP_Parallel.hpp>
+#include <OpenMP/Kokkos_OpenMP_Task.hpp>
 
 /*--------------------------------------------------------------------------*/
 

@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_dsf_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -147,8 +147,6 @@ void PairLJCutCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev = pair_compute<PairLJCutCoulDSFKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
@@ -223,7 +221,7 @@ compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
   const F_FLOAT t = 1.0 / (1.0 + EWALD_P*alpha*r);
   const F_FLOAT erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
 
-  return prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + r*f_shift) * 
+  return prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + r*f_shift) *
 	  r2inv;
 }
 
@@ -360,7 +358,10 @@ double PairLJCutCoulDSFKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCutCoulDSFKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCutCoulDSFKokkos<LMPHostType>;
 #endif
+}
+

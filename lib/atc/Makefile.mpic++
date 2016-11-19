@@ -34,6 +34,6 @@ lib: 	$(OBJ)
 DEPENDS = $(OBJ:.o=.d)
 # ------ CLEAN ------
 clean:
-	@rm *.o *.d *~ $(LIB)
+	-rm *.o *.d *~ $(LIB)
 
 sinclude $(DEPENDS)

@@ -3,9 +3,10 @@
 # Make.py tool for managing packages and their auxiliary libs,
 #   auto-editing machine Makefiles, and building LAMMPS
 # Syntax: Make.py -h (for help)
-# Notes: needs python 2.7 (not Python 3)
+# Notes: should be compatible with python 2.7 and 3.x thanks to 'futurize'
 
-import sys,os,commands,re,copy
+from __future__ import print_function
+import sys,os,re,copy,subprocess,platform
 
 # switch abbrevs
 # switch classes = created class for each switch
@@ -14,32 +15,36 @@ import sys,os,commands,re,copy
 # make classes = makefile options with no defaults
 # setargs = makefile settings
 # actionargs = allowed actions (also lib-dir and machine)
+# lib build flags are set if lib is built, for use with zoutput
 
-abbrevs = "adhjmoprsv"
+abbrevs = "adhjmoprsvz"
 
 switchclasses = ("actions","dir","help","jmake","makefile",
-                 "output","packages","redo","settings","verbose")
-libclasses = ("atc","awpmd","colvars","cuda","gpu",
-              "meam","poems","qmmm","reax","voronoi")
+                 "output","packages","redo","settings","verbose","zoutput")
+libclasses = ("atc","awpmd","colvars","cuda","gpu","h5md",
+              "meam","poems","python","qmmm","reax","voronoi")
 buildclasses = ("intel","kokkos")
-makeclasses = ("cc","mpi","fft","jpg","png")
+makeclasses = ("cc","flags","mpi","fft","jpg","png")
 
-setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig","smallsmall")
+setargs = ("gzip","#gzip","ffmpeg","#ffmpeg","smallbig","bigbig",
+           "smallsmall","exceptions","#exceptions")
 actionargs = ("lib-all","file","clean","exe")
+
+gpubuildflag = 0
 
 # ----------------------------------------------------------------
 # functions
 # ----------------------------------------------------------------
 
-# if flag = 1, print str and exit
-# if flag = 0, print str as warning and do not exit
+# if flag = 1, print txt and exit
+# if flag = 0, print txt as warning and do not exit
 
-def error(str,flag=1):
+def error(txt,flag=1):
   if flag:
-    print "ERROR:",str
+    print("ERROR:",txt)
     sys.exit()
   else:
-    print "WARNING:",str
+    print("WARNING:",txt)
 
 # store command-line args as sw = dict of key/value
 # key = switch word, value = list of following args
@@ -79,35 +84,39 @@ def switch2str(switches,switch_order):
 # NOTE: unrecognized -override-limits can leave verride-limits file
 
 def compile_check(compiler,ccflags,warn):
-  open("tmpauto.cpp",'w').write("int main(int, char **) {}")
-  str = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
-  txt = commands.getoutput(str)
+  open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
+  tmp = "%s %s -c tmpauto.cpp" % (compiler,ccflags)
+  try: txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,
+                                     shell=True).decode()
+  except subprocess.CalledProcessError as e: txt = e.output
   flag = 1
   if txt or not os.path.isfile("tmpauto.o"):
     flag = 0
     if warn:
-      print str
-      if txt: print txt
-      else: print "compile produced no output"
+      print(tmp)
+      if txt: print(txt)
+      else: print("compile produced no output")
   os.remove("tmpauto.cpp")
   if os.path.isfile("tmpauto.o"): os.remove("tmpauto.o")
   return flag
 
-# check if linker works with linkflags on tmpauto.o file
+# check if linker works with linkflags and libs on tmpauto.o file
 # return 1 if successful, else 0
 # warn = 1 = print warning if not successful, warn = 0 = no warning
 
-def link_check(linker,linkflags,warn):
-  open("tmpauto.cpp",'w').write("int main(int, char **) {}")
-  str = "%s %s -o tmpauto tmpauto.cpp" % (linker,linkflags)
-  txt = commands.getoutput(str)
+def link_check(linker,linkflags,libs,warn):
+  open("tmpauto.cpp",'w').write("int main(int, char **) {}\n")
+  tmp = "%s %s -o tmpauto tmpauto.cpp %s" % (linker,linkflags,libs)
+  try: txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,
+                                     shell=True).decode()
+  except subprocess.CalledProcessError as e: txt = e.output
   flag = 1
   if txt or not os.path.isfile("tmpauto"):
     flag = 0
     if warn:
-      print str
-      if txt: print txt
-      else: print "link produced no output"
+      print(tmp)
+      if txt: print(txt)
+      else: print("link produced no output")
   os.remove("tmpauto.cpp")
   if os.path.isfile("tmpauto"): os.remove("tmpauto")
   return flag
@@ -118,9 +127,9 @@ def link_check(linker,linkflags,warn):
 
 # actions
 
-class Actions:
+class Actions(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     
   def help(self):
     return """
@@ -137,58 +146,64 @@ class Actions:
     lib-all builds all auxiliary libs needed by installed packages
     lib-dir builds a specific lib whether package installed or not
       dir is any dir in lib directory (atc, cuda, meam, etc) except linalg
-  (2) file = create src/MAKE/MINE/Makefile.auto
-    use -m switch for Makefile.machine to start from,
-      else use existing Makefile.auto
-    adds settings needed for installed accelerator packages
-    existing Makefile.auto is NOT changed unless "file" action is specified
-  (3) clean = invoke "make clean-auto" to insure full build
+  (2) file = create a new src/MAKE/MINE/Makefile.auto
+    if file not specified, existing Makefile.auto is NOT changed
+      except by -m switch, which will copy Makefile.machine to Makefile.auto
+      note that exe action can add an -m switch, as described below
+    if file is specified, new Makefile.auto is created
+      if "-m machine" specified (or added by exe),
+        start with existing Makefile.machine, else existing Makefile.auto
+      if "-m none" specified, start Makefile.auto from scratch
+        must use -cc and -mpi switches to specify compiler and MPI
+      settings for these switches will alter Makefile.auto
+        -s, -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
+      if these accelerator packages are installed, they induce settings
+        that will alter Makefile.auto: opt, user-omp, user-intel, kokkos
+     use -z switch to copy final Makefile.auto to new filename
+  (3) clean = invoke "make clean-auto" to insure clean build on current files
     useful if compiler flags have changed
   (4) exe or machine = build LAMMPS
     machine can be any existing Makefile.machine suffix
-      machine is converted to "exe" action, as well as:
+      machine is converted to "exe" action, and additionally:
         "-m machine" is added if -m switch is not specified
         "-o machine" is added if -o switch is not specified
         if either "-m"  or "-o" are specified, they are not overridden
     does not invoke any lib builds, since libs could be previously built
-    exe always builds using src/MAKE/MINE/Makefile.auto
-      if file action also specified, it creates Makefile.auto
+    exe ALWAYS builds using src/MAKE/MINE/Makefile.auto
+      if file action also specified, it creates a new Makefile.auto
       else if -m switch specified,
         existing Makefile.machine is copied to create Makefile.auto
       else Makefile.auto must already exist and is not changed
-    produces src/lmp_auto, or error message if unsuccessful
+    build produces src/lmp_auto, or error message if unsuccessful
       use -o switch to copy src/lmp_auto to new filename
+      use -z switch to copy src/MAKE/MINE/Makefile.auto to new filename
 """
   
   def check(self):
     if not self.inlist: error("-a args are invalid")
-    alist = []
-    machine = 0
-    nlib = 0
+    libs = []
+    cleans = []
+    files = []
+    exes = []
     for one in self.inlist:
-      if one in alist: error("An action is duplicated")
       if one.startswith("lib-"):
         lib = one[4:]
         if lib != "all" and lib not in libclasses: error("Actions are invalid")
-        alist.insert(nlib,one)
-        nlib += 1
+        libs.append(one)
       elif one == "file":
-        if nlib == 0: alist.insert(0,"file")
-        else: alist.insert(1,"file")
+        files.append(one)
       elif one == "clean":
-        if nlib == 0: alist.insert(0,"clean")
-        elif "file" not in alist: alist.insert(1,"clean")
-        else: alist.insert(2,"clean")
+        cleans.append(one)
       elif one == "exe":
-        if machine == 0: alist.append("exe")
-        else: error("Actions are invalid")
-        machine = 1
-      # one action can be unknown in case is a machine (checked in setup)
-      elif machine == 0:
-        alist.append(one)
-        machine = 1
-      else: error("Actions are invalid")
-    self.alist = alist
+        exes.append(one)
+      # one action can be unknown, must be a machine (checked in setup)
+      else:
+        exes.append(one)
+    if len(set(libs)) != len(libs) or \
+       len(cleans) > 1 or len(files) > 1 or len(exes) > 1:
+      error("Actions are invalid")
+    self.alist = [action for actions in [libs,cleans,files,exes] \
+                           for action in actions]
 
   # dedup list of actions concatenated from two lists
   # current self.inlist = specified -a switch + redo command -a switch
@@ -220,18 +235,18 @@ class Actions:
   
   def lib(self,suffix):
     if suffix != "all":
-      print "building",suffix,"library ..."
-      str = "%s.build()" % suffix
-      exec(str)
+      print("building",suffix,"library ...")
+      txt = "%s.build()" % suffix
+      exec(txt)
     else:
       final = packages.final
       for one in packages.lib:
         if final[one]:
           if "user" in one: pkg = one[5:]
           else: pkg = one
-          print "building",pkg,"library ..."
-          str = "%s.build()" % pkg
-          exec(str)
+          print("building",pkg,"library ...")
+          txt = "%s.build()" % pkg
+          exec(txt)
 
   # read Makefile.machine
   # if caller = "file", edit via switches
@@ -240,9 +255,9 @@ class Actions:
   
   def file(self,caller):
 
-    # if caller = "file", create from mpi or read from makefile.machine or auto
-    # if caller = "exe" and "file" action already invoked, read from auto
-    # if caller = "exe" and no "file" action, read from makefile.machine or auto
+    # if caller="file", create from mpi or read from Makefile.machine or auto
+    # if caller="exe" and "file" action already invoked, read from auto
+    # if caller="exe" and no "file" action, read from Makefile.machine or auto
     
     if caller == "file":
       if makefile and makefile.machine == "none":
@@ -266,44 +281,32 @@ class Actions:
     if caller == "file":
             
       # add compiler/linker and default CCFLAGS,LINKFLAGS
-      # if cc.wrap, add wrapper setting for nvcc or mpi = ompi/mpich
-      # if cc.wwrap, add 2nd wrapper setting for mpi = ompi/mpich
+      # if cc.wrap, add wrapper setting for mpi = ompi/mpich
       # precompiler = env variable setting for OpenMPI wrapper compiler
       
       if cc:
         make.setvar("CC",cc.compiler)
         make.setvar("LINK",cc.compiler)
         if cc.wrap:
+          if cc.wrap == "nvcc":
+            wrapper = os.path.abspath("../lib/kokkos/config/nvcc_wrapper")
+          else: wrapper = cc.wrap
           abbrev = cc.abbrev
-          if abbrev == "nvcc":
-            make.addvar("CC","-ccbin=%s" % cc.wrap)
-            make.addvar("LINK","-ccbin=%s" % cc.wrap)
-          elif abbrev == "mpi":
-            txt = commands.getoutput("mpicxx -show")
-            if "-lmpich" in txt:
-              make.addvar("CC","-cxx=%s" % cc.wrap)
-              make.addvar("LINK","-cxx=%s" % cc.wrap)
-            elif "-lmpi" in txt:
-              make.addvar("OMPI_CXX",cc.wrap,"cc")
-              precompiler = "env OMPI_CXX=%s " % cc.wrap
+          if abbrev == "mpi":
+            if cc.parent == "mpich":
+              make.addvar("CC","-cxx=%s" % wrapper)
+              make.addvar("LINK","-cxx=%s" % wrapper)
+            elif cc.parent == "openmpi":
+              make.addvar("export OMPI_CXX",wrapper,"cc")
+              precompiler = "env OMPI_CXX=%s " % wrapper
             else: error("Could not add MPI wrapper compiler, " +
                         "did not recognize OpenMPI or MPICH")
-        if cc.wwrap:
-          txt = commands.getoutput("mpicxx -show")
-          if "-lmpich" in txt:
-            make.addvar("CC","-Xcompiler -cxx=%s" % cc.wwrap)
-            make.addvar("LINK","-Xcompiler -cxx=%s" % cc.wwrap)
-          elif "-lmpi" in txt:
-            make.addvar("OMPI_CXX",cc.wwrap,"cc")
-            precompiler = "env OMPI_CXX=%s " % cc.wwrap
-          else: error("Could not add MPI wrapper compiler, " +
-                      "did not recognize OpenMPI or MPICH")
         make.setvar("CCFLAGS","-g")
         make.addvar("CCFLAGS","-O3")
         make.setvar("LINKFLAGS","-g")
         make.addvar("LINKFLAGS","-O")
-
-# add MPI settings
+        
+      # add MPI settings
 
       if mpi:
         make.delvar("MPI_INC","*")
@@ -333,92 +336,115 @@ class Actions:
           make.addvar("MPI_LIB","-lmpi_stubs")
 
       # add accelerator package CCFLAGS and LINKFLAGS and variables
-      # pre = "" if compiler not nvcc,
-      #   else "-Xcompiler " to pass flag thru to wrapper compiler
           
       compiler = precompiler + ' '.join(make.getvar("CC"))
       linker = precompiler + ' '.join(make.getvar("LINK"))
-      if "nvcc" in compiler: pre = "-Xcompiler "
-      else: pre = ""
             
       final = packages.final
       if final["opt"]:
-        if compile_check(compiler,pre + "-restrict",0):
-          make.addvar("CCFLAGS",pre + "-restrict")
+        if compile_check(compiler,"-restrict",0):
+          make.addvar("CCFLAGS","-restrict")
           
       if final["user-omp"]:
-        if compile_check(compiler,pre + "-restrict",0):
-          make.addvar("CCFLAGS",pre + "-restrict")
-        #if "nvcc" not in compiler:
-          if compile_check(compiler,pre + "-fopenmp",1):
-            make.addvar("CCFLAGS",pre + "-fopenmp")
-            make.addvar("LINKFLAGS",pre + "-fopenmp")
+        if compile_check(compiler,"-fopenmp",1):
+          make.addvar("CCFLAGS","-fopenmp")
+          make.addvar("LINKFLAGS","-fopenmp")
+        if compile_check(compiler,"-restrict",0):
+          make.addvar("CCFLAGS","-restrict")
 
       if final["user-intel"]:
         if intel.mode == "cpu":
-          if compile_check(compiler,pre + "-fopenmp",1):
-            make.addvar("CCFLAGS",pre + "-fopenmp")
-            make.addvar("LINKFLAGS",pre + "-fopenmp")
-          make.addvar("CCFLAGS",pre + "-DLAMMPS_MEMALIGN=64")
-          if compile_check(compiler,pre + "-restrict",1):
-            make.addvar("CCFLAGS",pre + "-restrict")
-          if compile_check(compiler,pre + "-xHost",1):
-            make.addvar("CCFLAGS",pre + "-xHost")
-            make.addvar("LINKFLAGS",pre + "-xHost")
-          if compile_check(compiler,pre + "-fno-alias",1):
-            make.addvar("CCFLAGS",pre + "-fno-alias")
-          if compile_check(compiler,pre + "-ansi-alias",1):
-            make.addvar("CCFLAGS",pre + "-ansi-alias")
-          if compile_check(compiler,pre + "-override-limits",1):
-            make.addvar("CCFLAGS",pre + "-override-limits")
-          make.delvar("CCFLAGS",pre + "-DLMP_INTEL_OFFLOAD")
-          make.delvar("LINKFLAGS",pre + "-offload")
+          make.delvar("CCFLAGS","-O*")
+          make.addvar("CCFLAGS","-O2")
+          if compile_check(compiler,"-openmp",1):
+            make.addvar("CCFLAGS","-openmp")
+          if compile_check(compiler,"-restrict",1):
+            make.addvar("CCFLAGS","-restrict")
+          if compile_check(compiler,"-no-offload",1):
+            make.addvar("CCFLAGS","-no-offload")
+          if compile_check(compiler,"-fno-alias",1):
+            make.addvar("CCFLAGS","-fno-alias")
+          if compile_check(compiler,"-ansi-alias",1):
+            make.addvar("CCFLAGS","-ansi-alias")
+          if compile_check(compiler,"-xAVX",1):
+            make.addvar("CCFLAGS","-xAVX")
+          if compile_check(compiler,"-fp-model fast=2",1):
+            make.addvar("CCFLAGS","-fp-model fast=2")
+          if compile_check(compiler,"-no-prec-div",1):
+            make.addvar("CCFLAGS","-no-prec-div")
+          if compile_check(compiler,"-override-limits",1):
+            make.addvar("CCFLAGS","-override-limits")
+          make.addvar("CCFLAGS","-DLAMMPS_MEMALIGN=64")
+          make.delvar("CCFLAGS","-DLMP_INTEL_OFFLOAD")
+
+          make.delvar("LINKFLAGS","-O*")
+          make.addvar("LINKFLAGS","-O2")
+          if link_check(linker,"-openmp","",1):
+            make.addvar("LINKFLAGS","-openmp")
+          if link_check(linker,"-xAVX","",1):
+            make.addvar("LINKFLAGS","-xAVX")
+          if link_check(linker,"-fpmodel fast=2","",1):
+            make.addvar("LINKFLAGS","-fpmodel fast=2")
+          if link_check(linker,"-no-prec-div","",1):
+            make.addvar("LINKFLAGS","-no-prec-div")
+          if link_check(linker,"-override-limits","",1):
+            make.addvar("LINKFLAGS","-override-limits")
+          make.delvar("LINKFLAGS","-offload")
+
+          if link_check(linker,"","-ltbbmalloc",1):
+            make.addvar("LIB","-ltbbmalloc")
+          if link_check(linker,"","-ltbbmalloc_proxy",1):
+            make.addvar("LIB","-ltbbmalloc_proxy")
+            
         elif intel.mode == "phi":
-          if compile_check(compiler,pre + "-fopenmp",1):
-            make.addvar("CCFLAGS",pre + "-fopenmp")
-            make.addvar("LINKFLAGS",pre + "-fopenmp")
-          make.addvar("CCFLAGS",pre + "-DLAMMPS_MEMALIGN=64")
-          if compile_check(compiler,pre + "-restrict",1):
-            make.addvar("CCFLAGS",pre + "-restrict")
-          if compile_check(compiler,pre + "-xHost",1):
-            make.addvar("CCFLAGS",pre + "-xHost")
-          make.addvar("CCFLAGS",pre + "-DLMP_INTEL_OFFLOAD")
-          if compile_check(compiler,pre + "-fno-alias",1):
-            make.addvar("CCFLAGS",pre + "-fno-alias")
-          if compile_check(compiler,pre + "-ansi-alias",1):
-            make.addvar("CCFLAGS",pre + "-ansi-alias")
-          if compile_check(compiler,pre + "-override-limits",1):
-            make.addvar("CCFLAGS",pre + "-override-limits")
-          if compile_check(compiler,pre + '-offload-option,mic,compiler,' +
+          if compile_check(compiler,"-fopenmp",1):
+            make.addvar("CCFLAGS","-fopenmp")
+            make.addvar("LINKFLAGS","-fopenmp")
+          make.addvar("CCFLAGS","-DLAMMPS_MEMALIGN=64")
+          if compile_check(compiler,"-restrict",1):
+            make.addvar("CCFLAGS","-restrict")
+          if compile_check(compiler,"-xHost",1):
+            make.addvar("CCFLAGS","-xHost")
+          make.addvar("CCFLAGS","-DLMP_INTEL_OFFLOAD")
+          if compile_check(compiler,"-fno-alias",1):
+            make.addvar("CCFLAGS","-fno-alias")
+          if compile_check(compiler,"-ansi-alias",1):
+            make.addvar("CCFLAGS","-ansi-alias")
+          if compile_check(compiler,"-override-limits",1):
+            make.addvar("CCFLAGS","-override-limits")
+          if compile_check(compiler,'-offload-option,mic,compiler,' +
                           '"-fp-model fast=2 -mGLOB_default_function_attrs=' +
                           '\\"gather_scatter_loop_unroll=4\\""',1):
-            make.addvar("CCFLAGS",pre + '-offload-option,mic,compiler,' +
+            make.addvar("CCFLAGS",'-offload-option,mic,compiler,' +
                         '"-fp-model fast=2 -mGLOB_default_function_attrs=' +
                         '\\"gather_scatter_loop_unroll=4\\""')
-          if link_check(linker,"-offload",1):
-            make.addvar("LINKFLAGS",pre + "-offload")
+          if link_check(linker,"-offload","",1):
+            make.addvar("LINKFLAGS","-offload")
 
       if final["kokkos"]:
         if kokkos.mode == "omp":
-          make.addvar("OMP","yes","lmp")
-          make.delvar("CUDA")
-          make.delvar("MIC")
+          make.delvar("KOKKOS_DEVICES","*")
+          make.delvar("KOKKOS_ARCH","*")
+          make.addvar("KOKKOS_DEVICES","OpenMP","lmp")
+          if kokkos.archcpu:
+            make.addvar("KOKKOS_ARCH",kokkos.archcpu,"lmp")
         elif kokkos.mode == "cuda":
-          if "nvcc" not in compiler:
-            error("Kokkos/cuda build appears to not be " +
-                  "using NVIDIA nvcc compiler",0)
-          make.addvar("OMP","yes","lmp")
-          make.addvar("CUDA","yes","lmp")
-          make.delvar("MIC")
-          if kokkos.archflag:
-            make.delvar("CCFLAGS","-arch=sm_*")
-            make.addvar("CCFLAGS","-arch=sm_%s" % kokkos.arch)
+          make.delvar("KOKKOS_DEVICES","*")
+          make.delvar("KOKKOS_ARCH","*")
+          make.addvar("KOKKOS_DEVICES","Cuda, OpenMP","lmp")
+          if kokkos.archgpu:
+            if kokkos.archgpu[0] == "3": value = "Kepler" + kokkos.archgpu
+            elif kokkos.archgpu[0] == "2": value = "Fermi" + kokkos.archgpu
+            else: error("Unrecognized Kokkos archgpu setting")
+          if kokkos.archcpu: value += ", %s" % kokkos.archcpu
+          make.addvar("KOKKOS_ARCH",value,"lmp")
         elif kokkos.mode == "phi":
-          make.addvar("OMP","yes","lmp")
-          make.addvar("MIC","yes","lmp")
-          make.delvar("CUDA")
+          make.delvar("KOKKOS_DEVICES","*")
+          make.delvar("KOKKOS_ARCH","*")
+          make.addvar("KOKKOS_DEVICES","OpenMP","lmp")
+          make.addvar("KOKKOS_ARCH","KNC","lmp")
 
-      # add LMP settings
+      # add LMP_INC ifdef settings
       
       if settings:
         list = settings.inlist
@@ -438,6 +464,8 @@ class Actions:
             make.delvar("LMP_INC","-DLAMMPS_SMALLBIG")
             make.delvar("LMP_INC","-DLAMMPS_BIGBIG")
             make.addvar("LMP_INC","-DLAMMPS_SMALLSMALL")
+          elif one == "exceptions": make.addvar("LMP_INC","-DLAMMPS_EXCEPTIONS")
+          elif one == "#exception": make.delvar("LMP_INC","-DLAMMPS_EXCEPTIONS")
           
       # add FFT, JPG, PNG settings
 
@@ -484,18 +512,33 @@ class Actions:
             if png.incdir: make.addvar("JPG_INC","-I%s" % png.incdir)
             if png.libdir: make.addvar("JPG_PATH","-L%s" % png.libdir)
 
+      # finally after all other settings, add explicit flags
+
+      if flags:
+        for var,action,flist in flags.flags:
+          values = make.getvar(var)
+          if values == None:
+            error("Flags for a non-existent Makefile.auto variable")
+          for flag in flist:
+            flag = "-" + flag
+            if action == "add": make.addvar(var,flag)
+            elif action == "del": make.delvar(var,flag)
+
     # set self.stubs if Makefile.auto uses STUBS lib in MPI settings
 
-    if "-lmpi_stubs" in make.getvar("MPI_LIB"): self.stubs = 1
+    if make.getvar("MPI_LIB") and "-lmpi_stubs" in make.getvar("MPI_LIB"):
+      self.stubs = 1
     else: self.stubs = 0
     
     # write out Makefile.auto
     # unless caller = "exe" and "file" action already invoked
-
+    
     if caller == "file" or "file" not in self.alist:
+      # make certain that 'MAKE/MINE' folder exists.
+      subprocess.check_output("mkdir -p %s/MAKE/MINE" % dir.src,
+                              stderr=subprocess.STDOUT,shell=True)
       make.write("%s/MAKE/MINE/Makefile.auto" % dir.src,1)
-      print "Created src/MAKE/MINE/Makefile.auto"
-
+      print("Created src/MAKE/MINE/Makefile.auto")
       
     # test full compile and link
     # unless caller = "file" and "exe" action will be invoked later
@@ -505,16 +548,17 @@ class Actions:
     ccflags = ' '.join(make.getvar("CCFLAGS"))
     linker = precompiler + ' '.join(make.getvar("LINK"))
     linkflags = ' '.join(make.getvar("LINKFLAGS"))
+    libs = ' '.join(make.getvar("LIB"))
     if not compile_check(compiler,ccflags,1):
       error("Test of compilation failed")
-    if not link_check(linker,linkflags,1): error("Test of link failed")
+    if not link_check(linker,linkflags,libs,1): error("Test of link failed")
 
   # invoke "make clean-auto" to force clean before build
     
   def clean(self):
-    str = "cd %s; make clean-auto" % dir.src
-    commands.getoutput(str)
-    if verbose: print "Performed make clean-auto"
+    txt = "cd %s; make clean-auto" % dir.src
+    subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+    print("Performed make clean-auto")
 
   # build LAMMPS using Makefile.auto and -j setting
   # invoke self.file() first, to test makefile compile/link
@@ -523,30 +567,44 @@ class Actions:
     
   def exe(self):
     self.file("exe")
-    commands.getoutput("cd %s; rm -f lmp_auto" % dir.src)
+    subprocess.check_output("cd %s; rm -f lmp_auto" % dir.src,stderr=subprocess.STDOUT,shell=True)
     if self.stubs and not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
-      print "building serial STUBS library ..."
-      str = "cd %s/STUBS; make clean; make" % dir.src
-      txt = commands.getoutput(str)
+      print("building serial STUBS library ...")
+      tmp = "cd %s/STUBS; make clean; make" % dir.src
+      txt = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode()
       if not os.path.isfile("%s/STUBS/libmpi_stubs.a" % dir.src):
-        print txt
+        print(txt)
         error('Unsuccessful "make stubs"')
-      print "Created src/STUBS/libmpi_stubs.a"
-    if jmake: str = "cd %s; make -j %d auto" % (dir.src,jmake.n)
-    else: str = "cd %s; make auto" % dir.src
-    txt = commands.getoutput(str)
-    if verbose: print txt
+      print("Created src/STUBS/libmpi_stubs.a")
+
+    # special hack for shannon GPU cluster
+    # must use "srun make" if on it and building w/ GPU package, else just make
+    # this is b/c Cuda libs are not all available on host
+
+    make = "make"
+    if "shannon" == platform.node() and packages.final["gpu"]:
+      make = "srun make"
+      
+    if jmake: tmp = "cd %s; %s -j %d auto" % (dir.src,make,jmake.n)
+    else: tmp = "cd %s; %s auto" % (dir.src,make)
+    
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(tmp,shell=True)
+    else:
+      print(tmp)
+      try: subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/lmp_auto" % dir.src):
-      if not verbose: print txt
       error('Unsuccessful "make auto"')
-    elif not output: print "Created src/lmp_auto"
+    elif not output: print("Created src/lmp_auto")
     
 # dir switch
 
-class Dir:
+class Dir(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
       
   def help(self):
     return """
@@ -578,7 +636,7 @@ class Dir:
 
 # help switch
 
-class Help:
+class Help(object):
   def __init__(self,list): pass
 
   def help(self):
@@ -592,20 +650,20 @@ Syntax: Make.py switch args ...
     list one or more actions, in any order
     machine is a Makefile.machine suffix
   one-letter switches:
-    -d (dir), -j (jmake), -m (makefile), -o (output),
-    -p (packages), -r (redo), -s (settings), -v (verbose)
+    -d (dir), -j (jmake), -m (makefile), -o (output), -p (packages),
+    -r (redo), -s (settings), -v (verbose), -z (makefile output)
   switches for libs:
-    -atc, -awpmd, -colvars, -cuda
-    -gpu, -meam, -poems, -qmmm, -reax, -voronoi
+    -atc, -awpmd, -colvars, -cuda, -gpu, -h5md,
+    -meam, -poems, -python, -qmmm, -reax, -voronoi
   switches for build and makefile options:
-    -intel, -kokkos, -cc, -mpi, -fft, -jpg, -png
+    -intel, -kokkos, -cc, -flags, -mpi, -fft, -jpg, -png
 """
 
 # jmake switch
   
-class Jmake:
+class Jmake(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -624,9 +682,9 @@ class Jmake:
         
 # makefile switch
 
-class Makefile:
+class Makefile(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -643,9 +701,9 @@ class Makefile:
     
 # output switch
 
-class Output:
+class Output(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -660,10 +718,9 @@ class Output:
 
 # packages switch
   
-class Packages:
+class Packages(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
 
   def help(self):
     return """
@@ -671,7 +728,7 @@ class Packages:
   list of packages to install or uninstall in order specified
   operates on set of packages currently installed
   valid package names:
-    and LAMMPS standard or user package (type "make package" to see list)
+    any LAMMPS standard or user package (type "make package" to see list)
     prefix by yes/no to install/uninstall (see abbrevs)
       yes-molecule, yes-user-atc, no-molecule, no-user-atc
   can use LAMMPS categories (type "make package" to see list)
@@ -759,14 +816,14 @@ class Packages:
     # key = package name, value = 1 if currently installed, else 0
 
     original = {}
-    str = "cd %s; make ps" % dir.src
-    output = commands.getoutput(str).split('\n')
+    tmp = "cd %s; make ps" % dir.src
+    output = subprocess.check_output(tmp,stderr=subprocess.STDOUT,shell=True).decode().split('\n')
     pattern = "Installed\s+(\w+): package (\S+)"
     for line in output:
       m = re.search(pattern,line)
       if not m: continue
       pkg = m.group(2).lower()
-      if pkg not in all: error('Package list does not math "make ps" results')
+      if pkg not in all: error('Package list does not match "make ps" results')
       if m.group(1) == "NO": original[pkg] = 0      
       elif m.group(1) == "YES": original[pkg] = 1
 
@@ -783,7 +840,7 @@ class Packages:
         yes = 0
       if pkg in all:
         final[pkg] = yes
-      elif pkg == "std":
+      elif pkg == "std" or pkg == "standard":
         for pkg in std: final[pkg] = yes
       elif pkg == "user":
         for pkg in user: final[pkg] = yes
@@ -803,35 +860,42 @@ class Packages:
   # install packages in plist
     
   def install(self):
-    if self.plist: print "Installing packages ..."
+    if self.plist: print("Installing packages ...")
     for one in self.plist:
       if one == "orig": continue
-      commands.getoutput("cd %s; make %s" % (dir.src,one))
+      subprocess.check_output("cd %s; make %s" % (dir.src,one),
+                              stderr=subprocess.STDOUT,shell=True)
     if self.plist and verbose:
-      txt = commands.getoutput("cd %s; make ps" % dir.src)
-      print "Package status after installation:"
-      print txt
+      txt = subprocess.check_output("cd %s; make ps" % dir.src,
+                                    stderr=subprocess.STDOUT,
+                                    shell=True).decode()
+      print("Package status after installation:")
+      print(txt)
       
   # restore packages to original list if requested
   # order of re-install should not matter matter b/c of Depend.sh
   
   def uninstall(self):
     if not self.plist or self.plist[-1] != "orig": return
-    print "Restoring packages to original state ..."
-    commands.getoutput("cd %s; make no-all" % dir.src)
+    print("Restoring packages to original state ...")
+    subprocess.check_output("cd %s; make no-all" % dir.src,
+                            stderr=subprocess.STDOUT,shell=True)
     for one in self.all:
       if self.original[one]:
-        commands.getoutput("cd %s; make yes-%s" % (dir.src,one))
+        subprocess.check_output("cd %s; make yes-%s" % (dir.src,one),
+                                stderr=subprocess.STDOUT,shell=True)
     if verbose:
-      txt = commands.getoutput("cd %s; make ps" % dir.src)
-      print "Restored package status:"
-      print txt
+      txt = subprocess.check_output("cd %s; make ps" % dir.src,
+                                    stderr=subprocess.STDOUT,
+                                    shell=True).decode()
+      print("Restored package status:")
+      print(txt)
       
 # redo switch
     
-class Redo:
+class Redo(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -894,8 +958,8 @@ class Redo:
       if words[0][-1] == ':': label = words[0][:-1]
       else: label = None
       if not self.labels:
-        if label: commands.append(' '.join(words[1:]))
-        else: commands.append(line)
+        if label: subprocess.append(' '.join(words[1:]))
+        else: subprocess.append(line)
       else:
         if not label: continue
         dict[label] = ' '.join(words[1:])
@@ -904,22 +968,28 @@ class Redo:
         
     for label in self.labels:
       if label not in dict: error("Redo label not in redo file")
-      commands.append(dict[label])
+      subprocess.append(dict[label])
 
     self.commands = commands
 
 # settings switch
 
-class Settings:
+class Settings(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
 -s set1 set2 ...
-  possible settings = gzip smallbig bigbig smallsmall
-  add each setting as LAMMPS setting to created Makefile.auto
-  if -s not specified, no settings are changed in Makefile.auto
+  possible settings = gzip #gzip ffmpeg #ffmpeg
+                      smallbig bigbig smallsmall exceptions #exceptions
+  alter LAMMPS ifdef settings in Makefile.auto
+    only happens if new Makefile.auto is created by use of "file" action
+  gzip and #gzip turn on/off LAMMPS_GZIP setting
+  ffmpeg and #ffmpeg turn on/off LAMMPS_FFMPEG setting
+  smallbig, bigbig, smallsmall turn on LAMMPS_SMALLBIG, etc
+    and turn off other two
+  exceptions and #exceptions turn on/off LAMMPS_EXCEPTIONS setting
 """
   
   def check(self):
@@ -929,9 +999,9 @@ class Settings:
   
 # verbose switch
 
-class Verbose:
+class Verbose(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
   
   def help(self):
     return """
@@ -943,16 +1013,34 @@ class Verbose:
   def check(self):
     if len(self.inlist): error("-v args are invalid")
 
+# zoutput switch for making copy of final Makefile.auto
+
+class Zoutput(object):
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+
+  def help(self):
+    return """
+-z machine
+  copy created/used src/MAKE/MINE/Makefile.auto to Makefile.machine in same dir
+  copy created/used lib/*/Makefile.auto and lib/*/Makefile.lammps to
+    Makefile_lib.machine and Makefile_lib_lammps.machine in same dir
+  this can be used to preserve the machine Makefile and lib Makefiles
+"""
+
+  def check(self):
+    if len(self.inlist) != 1: error("-z args are invalid")
+    self.machine = self.inlist[0]
+
 # ----------------------------------------------------------------
 # lib classes, one per LAMMPS auxiliary lib
 # ----------------------------------------------------------------
 
 # ATC lib
 
-class ATC:
+class ATC(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -983,23 +1071,28 @@ class ATC:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
     
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    subprocess.check_output("cd %s; make -f Makefile.auto clean" %
+                            libdir,stderr=subprocess.STDOUT,shell=True)
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
+    
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/libatc.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/atc library")
-    else: print "Created lib/atc library"
+    else: print("Created lib/atc library")
     
 # AWPMD lib
 
-class AWPMD:
+class AWPMD(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "mpicc"
     self.lammpsflag = 0
 
@@ -1030,23 +1123,28 @@ class AWPMD:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    subprocess.check_output("cd %s; make -f Makefile.auto clean" %
+                            libdir,stderr=subprocess.STDOUT,shell=True)
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+   
     if not os.path.isfile("%s/libawpmd.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/awpmd library")
-    else: print "Created lib/awpmd library"
+    else: print("Created lib/awpmd library")
 
 # COLVARS lib
 
-class COLVARS:
+class COLVARS(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1077,33 +1175,38 @@ class COLVARS:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    subprocess.check_output("cd %s; make -f Makefile.auto clean" %
+                            libdir,stderr=subprocess.STDOUT,shell=True)
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/libcolvars.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/colvars library")
-    else: print "Created lib/colvars library"
+    else: print("Created lib/colvars library")
 
 # CUDA lib
 
-class CUDA:
+class CUDA(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "double"
-    self.arch = "31"
+    self.arch = "35"
 
   def help(self):
     return """
--cuda mode=double arch=31
+-cuda mode=double arch=35
   all args are optional and can be in any order
   mode = double or mixed or single (def = double)
-  arch = M (def = 31)
-    M = 31 for Kepler
+  arch = M (def = 35)
+    M = 31,35,37,etc for Kepler
     M = 20 for CC2.0 (GF100/110, e.g. C2050,GTX580,GTX470)
     M = 21 for CC2.1 (GF104/114,  e.g. GTX560, GTX460, GTX450)
     M = 13 for CC1.3 (GF200, e.g. C1060, GTX285)
@@ -1125,39 +1228,46 @@ class CUDA:
           
   def build(self): 
     libdir = dir.lib + "/cuda"
-    commands.getoutput("cd %s; make clean" % libdir)
+    subprocess.check_output("cd %s; make clean" % libdir,
+                            stderr=subprocess.STDOUT,shell=True)
     if self.mode == "double": n = 2
     elif self.mode == "mixed": n = 3
     elif self.mode == "single": n = 1
-    if jmake: str = "cd %s; make -j %d precision=%d arch=%s" % \
+    if jmake: txt = "cd %s; make -j %d precision=%d arch=%s" % \
           (libdir,jmake.n,n,self.arch)
-    else: str = str = "cd %s; make precision=%d arch=%s" % \
+    else: txt = "cd %s; make precision=%d arch=%s" % \
           (libdir,n,self.arch)
-    txt = commands.getoutput(str)
-    if verbose: print txt
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/liblammpscuda.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/cuda library")
-    else: print "Created lib/cuda library"
+    else: print("Created lib/cuda library")
 
 # GPU lib
 
-class GPU:
+class GPU(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "linux.double"
-    self.lammpsflag = self.modeflag = self.archflag = 0
+    self.lammpsflag = self.modeflag = self.archflag = self.homeflag = 0
 
   def help(self):
     return """
--gpu make=suffix lammps=suffix2 mode=double arch=N
+-gpu make=suffix lammps=suffix2 mode=double arch=N home=path
   all args are optional and can be in any order
   make = use Makefile.suffix (def = linux.double)
   lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
   mode = double or mixed or single (def = CUDA_PREC in makefile)
-  arch = 31 (Kepler) or 21 (Fermi) (def = CUDA_ARCH in makefile)
+  arch = 3x (x = digit for Kepler) or 2x (x = digit for Fermi)
+         (def = CUDA_ARCH in makefile)
+  home = path to Cuda, e.g. /usr/local/cuda (def = CUDA_HOME in makefile)
 """
 
   def check(self):
@@ -1176,6 +1286,9 @@ class GPU:
       elif words[0] == "arch":
         self.arch = words[1]
         self.archflag = 1
+      elif words[0] == "home":
+        self.home = words[1]
+        self.homeflag = 1
       else: error("-gpu args are invalid")
       if self.modeflag and (self.mode != "double" and
                             self.mode != "mixed" and
@@ -1185,6 +1298,8 @@ class GPU:
         error("-gpu args are invalid")
 
   def build(self):
+    global gpubuildflag
+    gpubuildflag = 1
     libdir = dir.lib + "/gpu"
     make = MakeReader("%s/Makefile.%s" % (libdir,self.make))
     if self.modeflag:
@@ -1196,27 +1311,92 @@ class GPU:
         make.setvar("CUDA_PRECISION","-D_SINGLE_SINGLE")
     if self.archflag:
       make.setvar("CUDA_ARCH","-arch=sm_%s" % self.arch)
+    if self.homeflag:
+      make.setvar("CUDA_HOME",self.home)
     if self.lammpsflag:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    # special hack for shannon GPU cluster
+    # must use "srun make" if on it, else just make
+    # this is b/c Cuda libs are not all available on host
+
+    make = "make"
+    if "shannon" == platform.node(): make = "srun make"
+
+    subprocess.check_output("cd %s; %s -f Makefile.auto clean" %
+                            (libdir,make),stderr=subprocess.STDOUT,shell=True)
+    if jmake: txt = "cd %s; %s -j %d -f Makefile.auto" % (libdir,make,jmake.n)
+    else: txt = "cd %s; %s -f Makefile.auto" % (libdir,make)
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/libgpu.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/gpu library")
-    else: print "Created lib/gpu library"
+    else: print("Created lib/gpu library")
+
+# H5MD lib
+
+class H5MD(object):
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+    self.make = "h5cc"
+    self.lammpsflag = 0
+
+  def help(self):
+    return """
+-h5md make=suffix lammps=suffix2
+  all args are optional and can be in any order
+  make = use Makefile.suffix (def = h5cc)
+  lammps = use Makefile.lammps.suffix2 (def = EXTRAMAKE in makefile)
+"""
+
+  def check(self):
+    if self.inlist != None and len(self.inlist) == 0:
+      error("-h5md args are invalid")
+    for one in self.inlist:
+      words = one.split('=')
+      if len(words) != 2: error("-h5md args are invalid")
+      if words[0] == "make": self.make = words[1]
+      elif words[0] == "lammps": 
+        self.lammps = words[1]
+        self.lammpsflag = 1
+      else: error("-h5md args are invalid")
+
+  def build(self):
+    libdir = dir.lib + "/h5md"
+    make = MakeReader("%s/Makefile.%s" % (libdir,self.make))
+    if self.lammpsflag:
+      make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
+    make.write("%s/Makefile.auto" % libdir)
+
+    subprocess.check_output("cd %s; make clean" % libdir,
+                            stderr=subprocess.STDOUT,shell=True)
+    txt = "cd %s; make" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
+    if not os.path.isfile("%s/libch5md.a" % libdir) or \
+          not os.path.isfile("%s/Makefile.lammps" % libdir):
+      error("Unsuccessful build of lib/h5md library")
+    else: print("Created lib/h5md library")
 
 # MEAM lib
 
-class MEAM:
+class MEAM(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1247,23 +1427,28 @@ class MEAM:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
+    subprocess.check_output("cd %s; make -f Makefile.auto clean" %
+                            libdir,stderr=subprocess.STDOUT,shell=True)
     # do not use -j for MEAM build, parallel build does not work
-    str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    txt = "cd %s; make -f Makefile.auto" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/libmeam.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/meam library")
-    else: print "Created lib/meam library"
+    else: print("Created lib/meam library")
 
 # POEMS lib
 
-class POEMS:
+class POEMS(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "g++"
     self.lammpsflag = 0
 
@@ -1294,23 +1479,64 @@ class POEMS:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    subprocess.check_output("cd %s; make -f Makefile.auto clean" % libdir,
+                            stderr=subprocess.STDOUT,shell=True)
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/libpoems.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/poems library")
-    else: print "Created lib/poems library"
+    else: print("Created lib/poems library")
+
+# PYTHON lib
+
+class PYTHON(object):
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+    self.make = "g++"
+    self.lammpsflag = 0
+
+  def help(self):
+    return """
+-python lammps=suffix
+  arg is optional, use Makefile.lammps if not specified
+  lammps = use Makefile.lammps.suffix
+"""
+
+  def check(self):
+    if self.inlist != None and len(self.inlist) == 0:
+      error("-python args are invalid")
+    for one in self.inlist:
+      words = one.split('=')
+      if len(words) != 2: error("-python args are invalid")
+      if words[0] == "lammps": 
+        self.lammps = words[1]
+        self.lammpsflag = 1
+      else: error("-python args are invalid")
+
+  def build(self):
+    libdir = dir.lib + "/python"
+    if self.lammpsflag:
+      subprocess.check_output("cd %s; cp Makefile.lammps.%s Makefile.lammps" %
+                              (libdir,self.lammps))
+    if not os.path.isfile("%s/Makefile.lammps.%s" % (libdir,self.lammps)):
+      error("Unsuccessful creation of lib/python/Makefile.lammps.%s file" %
+            self.lammps)
+    else: print("Created lib/python/Makefile.lammps file")
 
 # QMMM lib
 
-class QMMM:
+class QMMM(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1341,23 +1567,28 @@ class QMMM:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    subprocess.check_output("cd %s; make -f Makefile.auto clean" %
+                            libdir,stderr=subprocess.STDOUT,shell=True)
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
+
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+   
     if not os.path.isfile("%s/libqmmm.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/qmmm library")
-    else: print "Created lib/qmmm library"
+    else: print("Created lib/qmmm library")
 
 # REAX lib
 
-class REAX:
+class REAX(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.make = "gfortran"
     self.lammpsflag = 0
 
@@ -1388,23 +1619,28 @@ class REAX:
       make.setvar("EXTRAMAKE","Makefile.lammps.%s" % self.lammps)
     make.write("%s/Makefile.auto" % libdir)
 
-    commands.getoutput("cd %s; make -f Makefile.auto clean" % libdir)
-    if jmake: str = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
-    else: str = "cd %s; make -f Makefile.auto" % libdir
-    txt = commands.getoutput(str)
-    if verbose: print txt
+    cmd = "cd %s; make -f Makefile.auto clean" % libdir
+    subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
+    if jmake: txt = "cd %s; make -j %d -f Makefile.auto" % (libdir,jmake.n)
+    else: txt = "cd %s; make -f Makefile.auto" % libdir
+    
+    # if verbose, print output as build proceeds, else only print if fails
+
+    if verbose: subprocess.call(txt,shell=True)
+    else:
+      try: subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      except subprocess.CalledProcessError as e: print(e.output)
+
     if not os.path.isfile("%s/libreax.a" % libdir) or \
           not os.path.isfile("%s/Makefile.lammps" % libdir):
-      if not verbose: print txt
       error("Unsuccessful build of lib/reax library")
-    else: print "Created lib/reax library"
+    else: print("Created lib/reax library")
 
 # VORONOI lib
 
-class VORONOI:
+class VORONOI(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.install = ""
     
   def help(self):
@@ -1430,9 +1666,10 @@ class VORONOI:
     if not self.install: return
     libdir = dir.lib + "/voronoi"
     cmd = "cd %s; python install.py %s" % (libdir,self.install)
-    txt = commands.getoutput(cmd)
-    if verbose: print txt
-    print "Created lib/voronoi library"
+    txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,
+                                  shell=True).decode()
+    if verbose: print(txt)
+    print("Created lib/voronoi library")
 
 # ----------------------------------------------------------------
 # build classes for intel, kokkos build options
@@ -1440,10 +1677,9 @@ class VORONOI:
 
 # Intel class
 
-class Intel:
+class Intel(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.mode = "cpu"
 
   def help(self):
@@ -1462,26 +1698,32 @@ class Intel:
 
 # Kokkos class
 
-class Kokkos:
+class Kokkos(object):
   def __init__(self,list):
-    if list == None: self.inlist = None
-    else: self.inlist = list[:]
-    self.mode = "omp"
-    self.archflag = 0
+    self.inlist = copy.copy(list)
+    self.mode = ""
+    self.archgpu = None
+    self.archcpu = None
     
   def help(self):
     return """
--kokkos mode arch=N
+-kokkos mode archgpu=N archcpu=SNB
   mode is not optional, arch is optional
-  mode = omp or cuda or phi (def = omp if -kokkos is not used)
+  mode = omp or cuda or phi (def = KOKKOS_DEVICES setting in Makefile )
     build Kokkos package for omp or cuda or phi
-  arch = 31 (Kepler) or 21 (Fermi) (def = -arch setting in Makefile)
+    sets KOKKOS_DEVICES to "OpenMP" (omp, phi) or "Cuda, OpenMP" (cuda)
+  archgpu = number like 35 (Kepler) or 21 (Fermi) (def = none)
+    sets KOKKOS_ARCH for GPU to appropriate value
+  archcpu = SNB or HSW or BGQ or Power7 or Power8 (def = none)
+    for CPU = SandyBridge, Haswell, BGQ, Power7, Power8
+    sets KOKKOS_ARCH for GPU to appropriate value
 """
 
   def check(self):
+    print(self.inlist)
     if self.inlist != None and len(self.inlist) == 0:
       error("-kokkos args are invalid")
-
+      
     if self.inlist == None: return
     if len(self.inlist) < 1: error("-kokkos args are invalid")
     self.mode = self.inlist[0]
@@ -1490,41 +1732,37 @@ class Kokkos:
     for one in self.inlist[1:]:
       words = one.split('=')
       if len(words) != 2: error("-kokkos args are invalid")
-      if words[0] == "arch":
-        self.arch = words[1]
-        self.archflag = 1
+      if words[0] == "archgpu": self.archgpu = words[1]
+      elif words[0] == "archcpu": self.archcpu = words[1]
       else: error("-kokkos args are invalid")
       
 # ----------------------------------------------------------------
-# makefile classes for CC, MPI, JPG, PNG, FFT settings
+# makefile classes for CC, FLAGS, MPI, JPG, PNG, FFT settings
 # ----------------------------------------------------------------
 
 # Cc class
 
-class Cc:
+class Cc(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.compiler = self.abbrev = ""
-    self.wrap = self.wabbrev = ""
-    self.wwrap = ""
+    self.wrap = ""
+    self.parent = ""
 
   def help(self):
     return """
--cc compiler wrap=wcompiler wwrap=wwcompiler
-  change CC setting in makefile
+-cc compiler wrap=wcompiler,parent
+  alter CC setting in Makefile.auto
+    only happens if new Makefile.auto is created by use of "file" action
   compiler is required, all other args are optional
-  compiler = any string with g++ or icc or icpc or nvcc
+  compiler = any string with g++ or icc or icpc
              or mpi (or mpicxx, mpiCC, mpiicpc, etc)
     can be compiler name or full path to compiler
     mpi by itself is changed to mpicxx
-  wcompiler = g++ or icc or icpc or mpi (or mpicxx, mpiCC, mpiicpc, etc)
-    can only be used when compiler is a wrapper (mpi or nvcc)
-    mpi and variants can only be used with compiler = nvcc
-    mpi by itself is changed to mpicxx
-    specify compiler for wrapper to use in CC setting
-  wwcompiler = g++ or icc or icpc
-    can only be used when wcompiler is itself a wrapper (mpi)
-    specify compiler for wrapper of wrapper to use in CC setting
+  wcompiler = compiler for mpi wrapper to use
+    use nvcc for building for Kokkos/cuda with provided nvcc_wrapper
+  parent = openmpi or mpich
+    parent style determines syntax for setting low-level compiler
 """
 
   def check(self):
@@ -1536,47 +1774,77 @@ class Cc:
     elif self.compiler.startswith("mpi"):
       self.abbrev = "mpi"
     elif self.compiler == "g++" or self.compiler == "icc" or \
-          self.compiler == "icpc" or self.compiler == "nvcc":
+          self.compiler == "icpc":
       self.abbrev = self.compiler
     elif "mpi" in self.compiler: self.abbrev = "mpi"
     elif "g++" in self.compiler: self.abbrev = "g++"
     elif "icc" in self.compiler: self.abbrev = "icc"
     elif "icpc" in self.compiler: self.abbrev = "icpc"
-    elif "nvcc" in self.compiler: self.abbrev = "nvcc"
     else: error("-cc args are invalid")
     for one in self.inlist[1:]:
       words = one.split('=')
       if len(words) != 2: error("-cc args are invalid")
+      args = words[1].split(',')
+      if len(args) != 2: error("-cc args are invalid")
       if words[0] == "wrap":
-        if self.abbrev != "mpi" and self.abbrev != "nvcc":
-          error("-cc compiler is not a wrapper")
-        self.wrap = words[1]
-        if self.wrap == "mpi":
-          self.wrap = "mpicxx"
-          self.wabbrev = "mpi"
-        elif self.wrap.startswith("mpi"):
-          self.wabbrev = "mpi"
-        elif self.compiler == "g++" or self.compiler == "icc" or \
-              self.compiler == "icpc":
-          self.wabbrev = self.wrap
-      elif words[0] == "wwrap":
-        self.wwrap = words[1]
-        if self.wabbrev != "mpi": error("-cc wrap is not a wrapper")
-        if self.wwrap != "g++" and self.wwrap != "icc" and self.wwrap != "icpc":
-          error("-cc args are invalid")
+        if self.abbrev != "mpi": error("-cc compiler is not a wrapper")
+        self.wrap = args[0]
+        self.parent = args[1]
       else: error("-cc args are invalid")
 
+# Flags class
+
+class Flags(object):
+  def __init__(self,list):
+    self.inlist = copy.copy(list)
+    self.flags = []
+    
+  def help(self):
+    return """
+-flags var action N f1 f2 ... var action N f1 f2 ... 
+  alter variable settings (flags) in Makefile.auto
+    only happens if new Makefile.auto is created by use of "file" action
+  var = CCFLAGS, LINKFLAGS, LIB, etc
+    any variable in Makefile.auto, must already exist
+  action = add or del
+  N = # of flags to follow
+  f1,f2,etc = flag to add or delete
+    "-" char will be prepended to each flag
+      for example: add 4 g O3 xHost "fp-model fast=2"
+      will add: -g -O3 -xHost -fp-model fast=2
+    for add: if flag already exists, no change is made
+    for delete: flag of form "-O*", will delete any wildcard match
+    for -O,-O2,-O3,etc: existing -O* will first be removed
+"""
+
+  def check(self):
+    if len(self.inlist) < 1: error("-flags args are invalid")
+    narg = len(self.inlist)
+    i = 0
+    while i < narg:
+      if i+3 > narg: error("-flags args are invalid")
+      var = self.inlist[i]
+      action = self.inlist[i+1]
+      if action != "add" and action != "del": error("-flags args are invalid")
+      nflag = int(self.inlist[i+2])
+      i += 3
+      if i+nflag > narg: error("-flags args are invalid")
+      flags = self.inlist[i:i+nflag]
+      self.flags.append([var,action,flags])
+      i += nflag
+      
 # Mpi class
 
-class Mpi:
+class Mpi(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.style = self.dir = ""
                 
   def help(self):
     return """
 -mpi style dir=path
-  change MPI settings in makefile
+  alter MPI settings in Makefile.auto
+    only happens if new Makefile.auto is created by use of "file" action
   style is required, all other args are optional
   style = mpi or mpich or ompi or serial
     mpi = no MPI settings (assume compiler is MPI wrapper)
@@ -1601,21 +1869,22 @@ class Mpi:
 
 # Fft class
 
-class Fft:
+class Fft(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.dir = self.incdir = self.libdir = ""
 
   def help(self):
     return """
 -fft mode lib=libname dir=homedir idir=incdir ldir=libdir
-  change FFT settings in makefile
+  alter FFT settings in Makefile.auto
+    only happens if new Makefile.auto is created by use of "file" action
   mode is required, all other args are optional
-  removes all current FFT variable settings
-  mode = none or fftw or fftw3 of ...
+  first removes all current FFT variable settings
+  mode = none or fftw or fftw3 or ...
     adds -DFFT_MODE setting
   lib = name of FFT library to link with (def is libname = mode)
-    adds -lliblib setting, e.g. -llibfftw3
+    adds -llib{libname} setting, e.g. -llibfftw3
   dir = home dir for include and library files (def = none)
     adds -Idir/include and -Ldir/lib settings
     if set, overrides idir and ldir args
@@ -1640,15 +1909,17 @@ class Fft:
 
 # Jpg class
 
-class Jpg:
+class Jpg(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 
   def help(self):
     return """
 -jpg flag dir=homedir idir=incdir ldir=libdir
+  alter JPG settings in Makefile.auto
+    only happens if new Makefile.auto is created by use of "file" action
   change JPG settings in makefile
   all args are optional, flag must come first if specified
   flag = yes or no (def = yes)
@@ -1677,16 +1948,17 @@ class Jpg:
 
 # Png class
 
-class Png:
+class Png(object):
   def __init__(self,list):
-    self.inlist = list[:]
+    self.inlist = copy.copy(list)
     self.on = 1
     self.dir = self.incdir = self.libdir = ""
 
   def help(self):
     return """
 -png flag dir=homedir idir=incdir ldir=libdir
-  change PNG settings in makefile
+  alter PNG settings in Makefile.auto
+    only happens if new Makefile.auto is created by use of "file" action
   all args are optional, flag must come first if specified
   flag = yes or no (def = yes)
     include or exclude PNG support
@@ -1718,7 +1990,7 @@ class Png:
 
 # read, tweak, and write a Makefile
 
-class MakeReader:
+class MakeReader(object):
 
   # read a makefile
   # flag = 0 if file is full path name
@@ -1752,7 +2024,8 @@ class MakeReader:
     # varinfo = list of variable info: (name, name with whitespace for print)
     # add index into varinfo to newlines
     # ccindex = index of "CC =" line, to add OMPI var before it
-    # lmpindex = index of "LAMMPS-specific settings" line to add KOKKOS vars before it
+    # lmpindex = index of "LAMMPS-specific settings"
+    #   line to add KOKKOS vars before it
     
     var = {}
     varinfo = []
@@ -1826,7 +2099,7 @@ class MakeReader:
   # add value to var
   # do not add if value already defined by var
   # if var not defined,
-  #   create new variable using where
+  #   create new variable using "where"
   #   where="cc", line before "CC =" line, use ":="
   #   where="lmp", 2 lines before "LAMMPS-specific settings" line, use "="
   
@@ -1857,8 +2130,12 @@ class MakeReader:
   # if var or value not defined, ignore it
       
   def delvar(self,var,value=None):
+    #if var == "KOKKOS_DEVICES":
+    #  print self.var,value
     if var not in self.var: return
-    if not value: del self.var[var]
+    if not value:
+      del self.var[var]
+      #print "AGAIN",self.var
     elif value and value[-1] != '*':
       if value not in self.var[var]: return
       self.var[var].remove(value)
@@ -1882,14 +2159,14 @@ class MakeReader:
       if not line.isdigit():
         if flag and i == 0:
           line = "# auto = makefile auto-generated by Make.py"
-        print >>fp,line
+        print(line, file=fp)
       else:
         index = int(line)
         name = self.varinfo[index][0]
         txt = self.varinfo[index][1]
         if name not in self.var: continue
         values = self.var[name]
-        print >>fp,"%s%s" % (txt,' '.join(values))
+        print("%s%s" % (txt,' '.join(values)), file=fp)
   
 # ----------------------------------------------------------------
 # main program
@@ -1903,9 +2180,11 @@ class MakeReader:
 cmd_switches,cmd_switch_order = parse_args(sys.argv[1:])
 
 if "v" in cmd_switches:
-  print "Command-line parsing:"
-  for switch in cmd_switch_order:
-    print "  %s: %s" % (switch,' '.join(cmd_switches[switch]))
+  # debug
+  #print "Command-line parsing:"
+  #for switch in cmd_switch_order:
+  #  print "  %s: %s" % (switch,' '.join(cmd_switches[switch]))
+  pass
 
 # check for redo switch, process redo file
 # redolist = list of commands to execute
@@ -1956,7 +2235,7 @@ while 1:
       switches[switch] = cmd_switches[switch]
 
     argstr = switch2str(switches,switch_order)
-    print "Redo command: Make.py",argstr
+    print("Redo command: Make.py",argstr)
   else:
     switches = cmd_switches
     switch_order = cmd_switch_order
@@ -1975,9 +2254,8 @@ while 1:
   for switch in switches:
     if len(switch) == 1 and switch in abbrevs:
       i = abbrevs.index(switch)
-      capitalized = switchclasses[i][0].upper() + switchclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (switchclasses[i],switch,capitalized,switch)
+          (switchclasses[i],switch,switchclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in libclasses:
       i = libclasses.index(switch)
@@ -1986,15 +2264,13 @@ while 1:
       exec(txt)
     elif switch in buildclasses:
       i = buildclasses.index(switch)
-      capitalized = buildclasses[i][0].upper() + buildclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (buildclasses[i],switch,capitalized,switch)
+          (buildclasses[i],switch,buildclasses[i].capitalize(),switch)
       exec(txt)
     elif switch in makeclasses:
       i = makeclasses.index(switch)
-      capitalized = makeclasses[i][0].upper() + makeclasses[i][1:]
       txt = '%s = classes["%s"] = %s(switches["%s"])' % \
-          (makeclasses[i],switch,capitalized,switch)
+          (makeclasses[i],switch,makeclasses[i].capitalize(),switch)
       exec(txt)
     else: error("Unknown command-line switch -%s" % switch)
 
@@ -2002,10 +2278,10 @@ while 1:
 
   if help or (actions and "-h" in actions.inlist) or not switches:
     if not help: help = Help(None)
-    print help.help()
+    print(help.help())
     for switch in switch_order:
       if switch == "h": continue
-      print classes[switch].help()[1:]
+      print(classes[switch].help()[1:])
     sys.exit()
 
   # create needed default classes if not specified with switch
@@ -2019,8 +2295,7 @@ while 1:
     exec(txt)
 
   for one in buildclasses:
-    capitalized = one[0].upper() + one[1:]
-    txt = "if not %s: %s = %s(None)" % (one,one,capitalized)
+    txt = "if not %s: %s = %s(None)" % (one,one,one.capitalize())
     exec(txt)
 
   # error check on args for all classes
@@ -2046,7 +2321,7 @@ while 1:
       if 'o' not in switches:
         switches['o'] = [machine]
         switch_order.insert(-1,'o')
-        output = classes['o'] = Makefile(switches['o'])
+        output = classes['o'] = Output(switches['o'])
         output.check()
 
   # perform actions
@@ -2055,7 +2330,7 @@ while 1:
 
   if actions:
     for action in actions.alist:
-      print "Action %s ..." % action
+      print("Action %s ..." % action)
       if action.startswith("lib-"): actions.lib(action[4:])
       elif action == "file": actions.file("file")
       elif action == "clean": actions.clean()
@@ -2063,18 +2338,39 @@ while 1:
 
   packages.uninstall()
   
-  # create output file if requested and exe action performed
+  # create copy of executable if requested, and exe action performed
 
   if output and actions and "exe" in actions.alist:
     txt = "cp %s/lmp_auto %s/lmp_%s" % (dir.src,dir.cwd,output.machine)
-    commands.getoutput(txt)
-    print "Created lmp_%s in %s" % (output.machine,dir.cwd)
+    subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+    print("Created lmp_%s in %s" % (output.machine,dir.cwd))
 
+  # create copy of Makefile.auto if requested, and file or exe action performed
+  # ditto for library Makefile.auto and Makefile.lammps files
+
+  if zoutput and actions and \
+        ("file" in actions.alist or "exe" in actions.alist):
+    txt = "cp %s/MAKE/MINE/Makefile.auto %s/MAKE/MINE/Makefile.%s" % \
+        (dir.src,dir.src,zoutput.machine)
+    subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+    print("Created Makefile.%s in %s/MAKE/MINE" % (zoutput.machine,dir.src))
+    if gpubuildflag:
+      txt = "cp %s/gpu/Makefile.auto %s/MAKE/MINE/Makefile_gpu.%s" % \
+          (dir.lib,dir.src,zoutput.machine)
+      subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      print("Created Makefile_gpu.%s in %s/MAKE/MINE" % \
+          (zoutput.machine,dir.src))
+      txt = "cp %s/gpu/Makefile.lammps %s/MAKE/MINE/Makefile_gpu_lammps.%s" % \
+          (dir.lib,dir.src,zoutput.machine)
+      subprocess.check_output(txt,stderr=subprocess.STDOUT,shell=True)
+      print("Created Makefile_gpu_lammps.%s in %s/MAKE/MINE" % \
+          (zoutput.machine,dir.src))
+      
   # write current Make.py command to src/Make.py.last
 
   fp = open("%s/Make.py.last" % dir.src,'w')
-  print >>fp,"# last invoked Make.py command"
-  print >>fp,switch2str(switches,switch_order)
+  print("# last invoked Make.py command", file=fp)
+  print(switch2str(switches,switch_order), file=fp)
   fp.close()
   
   # if not redoflag, done

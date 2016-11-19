@@ -97,6 +97,10 @@ class PairREAX : public Pair {
 
 /* ERROR/WARNING messages:
 
+W: pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c
+
+Self-explanatory.
+
 E: Reax_defs.h setting for NATDEF is too small
 
 Edit the setting in the ReaxFF library and re-compile the

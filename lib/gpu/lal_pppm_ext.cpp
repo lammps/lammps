@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ static PPPM<PRECISION,ACC_PRECISION,double,_lgpu_double4> PPPMD;
 // ---------------------------------------------------------------------------
 template <class grdtyp, class memtyp>
 grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
-                       FILE *screen, const int order, const int nxlo_out, 
+                       FILE *screen, const int order, const int nxlo_out,
                        const int nylo_out, const int nzlo_out,
                        const int nxhi_out, const int nyhi_out,
                        const int nzhi_out, grdtyp **rho_coeff,
@@ -82,7 +82,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                            split,success);
 
     pppm.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -91,7 +91,7 @@ grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
 }
 
 float * pppm_gpu_init_f(const int nlocal, const int nall, FILE *screen,
-                        const int order, const int nxlo_out, 
+                        const int order, const int nxlo_out,
                         const int nylo_out, const int nzlo_out,
                         const int nxhi_out, const int nyhi_out,
                         const int nzhi_out, float **rho_coeff,
@@ -102,7 +102,7 @@ float * pppm_gpu_init_f(const int nlocal, const int nall, FILE *screen,
                          nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,vd_brick,
                          slab_volfactor,nx_pppm,ny_pppm,nz_pppm,split,success);
   if (split==false && respa==false)
-    PPPMF.device->set_single_precompute(&PPPMF);                         
+    PPPMF.device->set_single_precompute(&PPPMF);
   return b;
 }
 
@@ -133,20 +133,20 @@ void pppm_gpu_forces_f(double **f) {
 }
 
 double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
-                         const int order, const int nxlo_out, 
+                         const int order, const int nxlo_out,
                          const int nylo_out, const int nzlo_out,
                          const int nxhi_out, const int nyhi_out,
                          const int nzhi_out, double **rho_coeff,
                          double **vd_brick, const double slab_volfactor,
                          const int nx_pppm, const int ny_pppm,
-                         const int nz_pppm, const bool split, 
+                         const int nz_pppm, const bool split,
                          const bool respa, int &success) {
   double *b=pppm_gpu_init(PPPMD,nlocal,nall,screen,order,nxlo_out,nylo_out,
                           nzlo_out,nxhi_out,nyhi_out,nzhi_out,rho_coeff,
                           vd_brick,slab_volfactor,nx_pppm,ny_pppm,nz_pppm,
-                          split,success);                        
+                          split,success);
   if (split==false && respa==false)
-    PPPMD.device->set_double_precompute(&PPPMD);                         
+    PPPMD.device->set_double_precompute(&PPPMD);
   return b;
 }
 

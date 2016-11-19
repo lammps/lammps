@@ -7,6 +7,29 @@
 # in liquid water (as well as hexagonal ice, type II ice, and
 # low-density super-cooled liquid/amorphous water phases).
 
+####
+# 
+# NOTE: THIS FILE IS INTENDED FOR SIMULATIONS OF PURE WATER ONLY.
+#       IF YOU HAVE OTHER ATOMS IN YOUR SYSTEM (BESIDES WATER),
+#       YOU MUST REPLACE THIS LINE:
+#
+#   pair_coeff    * * sw system.in.sw mW
+#
+#       WITH THIS LINE:
+#
+#   pair_coeff    * * sw system.in.sw mW NULL NULL NULL
+#
+#       ...IN THE FILE BELOW.
+#
+#   (Note:The number of "NULL" entries in the list should match the
+#         number of other atom types defined somewhere in your simulation.
+#         In the "3bodyWater+hydrocarbons_MW+TraPPE" example, there are 3 
+#         types of carbon defined in "trappe1998.lt", so "NULL" appears 3 times.
+####
+
+
+
+
 WatMW {
   write("Data Atoms") {
     $atom:mW $mol:. @atom:mW 0.0  0.0 0.0 0.0
@@ -30,7 +53,7 @@ WatMW {
     # --Now indicate which atom type(s) are simulated using the "sw" pair style 
     # -- In this case only one of the atom types is used (the mW water "atom").
 
-    pair_coeff    * * sw system.in.sw mW NULL NULL NULL
+    pair_coeff    * * sw system.in.sw mW    # SEE COMMENT ABOVE
 
     # -- Unfortunately LAMMPS itself does not understand molemlate syntax, so
     # -- the atoms are identified by order in the list, not by name.  (The "mW" 

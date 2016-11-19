@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -54,7 +54,10 @@
 #include <Kokkos_Atomic.hpp>
 #include <impl/Kokkos_Error.hpp>
 
+// Defines to enable experimental Qthread functionality
+
 #define QTHREAD_LOCAL_PRIORITY
+#define CLONED_TASKS
 
 #include <qthread/qthread.h>
 
@@ -88,8 +91,8 @@ int s_worker_reduce_end   = 0 ; /* End of worker reduction memory    */
 int s_worker_shared_end   = 0 ; /* Total of worker scratch memory    */
 int s_worker_shared_begin = 0 ; /* Beginning of worker shared memory */
 
-QthreadExecFunctionPointer s_active_function = 0 ;
-const void               * s_active_function_arg = 0 ;
+QthreadExecFunctionPointer volatile s_active_function = 0 ;
+const void               * volatile s_active_function_arg = 0 ;
 
 } /* namespace */
 } /* namespace Impl */
@@ -98,6 +101,21 @@ const void               * s_active_function_arg = 0 ;
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+
+int Qthread::is_initialized()
+{
+  return Impl::s_number_workers != 0 ;
+}
+
+int Qthread::concurrency()
+{
+  return Impl::s_number_workers_per_shepherd ;
+}
+
+int Qthread::in_parallel()
+{
+  return Impl::s_active_function != 0 ;
+}
 
 void Qthread::initialize( int thread_count )
 {
@@ -153,6 +171,10 @@ void Qthread::initialize( int thread_count )
   }
 
   Impl::QthreadExec::resize_worker_scratch( 256 , 256 );
+
+  // Init the array for used for arbitrarily sized atomics
+  Impl::init_lock_array_host_space();
+
 }
 
 void Qthread::finalize()
@@ -199,7 +221,22 @@ namespace {
 
 aligned_t driver_exec_all( void * arg )
 {
-  (*s_active_function)( ** worker_exec() , s_active_function_arg );
+  QthreadExec & exec = **worker_exec();
+
+  (*s_active_function)( exec , s_active_function_arg );
+
+/*
+  fprintf( stdout
+         , "QthreadExec driver worker(%d:%d) shepherd(%d:%d) shepherd_worker(%d:%d) done\n"
+         , exec.worker_rank()
+         , exec.worker_size()
+         , exec.shepherd_rank()
+         , exec.shepherd_size()
+         , exec.shepherd_worker_rank()
+         , exec.shepherd_worker_size()
+         );
+  fflush(stdout);
+*/
 
   return 0 ;
 }
@@ -231,7 +268,25 @@ aligned_t driver_resize_worker_scratch( void * arg )
 
   while ( lock_end );
 
+/*
+  fprintf( stdout
+         , "QthreadExec resize worker(%d:%d) shepherd(%d:%d) shepherd_worker(%d:%d) done\n"
+         , (**exec).worker_rank()
+         , (**exec).worker_size()
+         , (**exec).shepherd_rank()
+         , (**exec).shepherd_size()
+         , (**exec).shepherd_worker_rank()
+         , (**exec).shepherd_worker_size()
+         );
+  fflush(stdout);
+*/
+
   //----------------------------------------
+
+  if ( ! ok ) {
+    fprintf( stderr , "Kokkos::QthreadExec resize failed\n" );
+    fflush( stderr );
+  }
 
   return 0 ;
 }
@@ -250,6 +305,11 @@ void verify_is_process( const char * const label , bool not_active = false )
   }
 }
 
+}
+
+int QthreadExec::worker_per_shepherd()
+{
+  return s_number_workers_per_shepherd ;
 }
 
 QthreadExec::QthreadExec()
@@ -274,8 +334,9 @@ QthreadExec::QthreadExec()
 void QthreadExec::clear_workers()
 {
   for ( int iwork = 0 ; iwork < s_number_workers ; ++iwork ) {
-    free( s_exec[iwork] );
+    QthreadExec * const exec = s_exec[iwork] ;
     s_exec[iwork] = 0 ;
+    free( exec );
   }
 }
 
@@ -297,6 +358,11 @@ void QthreadExec::resize_worker_scratch( const int reduce_size , const int share
   if ( s_worker_reduce_end < exec_all_reduce_alloc ||
        s_worker_shared_end < shepherd_shared_end ) {
 
+/*
+  fprintf( stdout , "QthreadExec::resize\n");
+  fflush(stdout);
+*/
+
     // Clear current worker memory before allocating new worker memory
     clear_workers();
 
@@ -306,18 +372,34 @@ void QthreadExec::resize_worker_scratch( const int reduce_size , const int share
     s_worker_shared_end   = shepherd_shared_end ;
 
     // Need to query which shepherd this main 'process' is running...
+ 
+    const int main_shep = qthread_shep();
 
     // Have each worker resize its memory for proper first-touch
+#if 0
     for ( int jshep = 0 ; jshep < s_number_shepherds ; ++jshep ) {
-    for ( int i = jshep ? 0 : 1 ; i < s_number_workers_per_shepherd ; ++i ) {
-
-      // Unit tests hang with this call:
-      //
-      // qthread_fork_to_local_priority( driver_resize_workers , NULL , NULL , jshep );
-      //
-
+    for ( int i = jshep != main_shep ? 0 : 1 ; i < s_number_workers_per_shepherd ; ++i ) {
       qthread_fork_to( driver_resize_worker_scratch , NULL , NULL , jshep );
     }}
+#else
+    // If this function is used before the 'qthread.task_policy' unit test
+    // the 'qthread.task_policy' unit test fails with a seg-fault within libqthread.so.
+    for ( int jshep = 0 ; jshep < s_number_shepherds ; ++jshep ) {
+      const int num_clone = jshep != main_shep ? s_number_workers_per_shepherd : s_number_workers_per_shepherd - 1 ;
+
+      if ( num_clone ) {
+        const int ret = qthread_fork_clones_to_local_priority
+          ( driver_resize_worker_scratch   /* function */
+          , NULL                           /* function data block */
+          , NULL                           /* pointer to return value feb */
+          , jshep                          /* shepherd number */
+          , num_clone - 1                  /* number of instances - 1 */
+          );
+
+        assert(ret == QTHREAD_SUCCESS);
+      }
+    }
+#endif
 
     driver_resize_worker_scratch( NULL );
 
@@ -342,6 +424,11 @@ void QthreadExec::exec_all( Qthread & , QthreadExecFunctionPointer func , const 
 {
   verify_is_process("QthreadExec::exec_all(...)",true);
 
+/*
+  fprintf( stdout , "QthreadExec::exec_all\n");
+  fflush(stdout);
+*/
+
   s_active_function     = func ;
   s_active_function_arg = arg ;
 
@@ -349,16 +436,30 @@ void QthreadExec::exec_all( Qthread & , QthreadExecFunctionPointer func , const 
  
   const int main_shep = qthread_shep();
 
+#if 0
   for ( int jshep = 0 , iwork = 0 ; jshep < s_number_shepherds ; ++jshep ) {
   for ( int i = jshep != main_shep ? 0 : 1 ; i < s_number_workers_per_shepherd ; ++i , ++iwork ) {
-
-    // Unit tests hang with this call:
-    //
-    // qthread_fork_to_local_priority( driver_exec_all , NULL , NULL , jshep );
-    //
-
     qthread_fork_to( driver_exec_all , NULL , NULL , jshep );
   }}
+#else
+  // If this function is used before the 'qthread.task_policy' unit test
+  // the 'qthread.task_policy' unit test fails with a seg-fault within libqthread.so.
+  for ( int jshep = 0 ; jshep < s_number_shepherds ; ++jshep ) {
+    const int num_clone = jshep != main_shep ? s_number_workers_per_shepherd : s_number_workers_per_shepherd - 1 ;
+
+    if ( num_clone ) {
+      const int ret = qthread_fork_clones_to_local_priority
+        ( driver_exec_all   /* function */
+        , NULL              /* function data block */
+        , NULL              /* pointer to return value feb */
+        , jshep             /* shepherd number */
+        , num_clone - 1     /* number of instances - 1 */
+        );
+
+      assert(ret == QTHREAD_SUCCESS);
+    }
+  }
+#endif
 
   driver_exec_all( NULL );
 
@@ -369,6 +470,36 @@ void QthreadExec::exec_all( Qthread & , QthreadExecFunctionPointer func , const 
 void * QthreadExec::exec_all_reduce_result()
 {
   return s_exec[0]->m_scratch_alloc ;
+}
+
+} /* namespace Impl */
+} /* namespace Kokkos */
+
+namespace Kokkos {
+namespace Impl {
+
+QthreadTeamPolicyMember::QthreadTeamPolicyMember()
+  : m_exec( **worker_exec() )
+  , m_team_shared(0,0)
+  , m_team_size( 1 )
+  , m_team_rank( 0 )
+  , m_league_size(1)
+  , m_league_end(1)
+  , m_league_rank(0)
+{
+  m_exec.shared_reset( m_team_shared );
+}
+
+QthreadTeamPolicyMember::QthreadTeamPolicyMember( const QthreadTeamPolicyMember::TaskTeam & )
+  : m_exec( **worker_exec() )
+  , m_team_shared(0,0)
+  , m_team_size( s_number_workers_per_shepherd )
+  , m_team_rank( m_exec.shepherd_worker_rank() )
+  , m_league_size(1)
+  , m_league_end(1)
+  , m_league_rank(0)
+{
+  m_exec.shared_reset( m_team_shared );
 }
 
 } /* namespace Impl */

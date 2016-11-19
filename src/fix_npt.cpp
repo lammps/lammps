@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_npt.h"
 #include "modify.h"
 #include "error.h"
@@ -46,7 +46,7 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
@@ -64,5 +64,5 @@ FixNPT::FixNPT(LAMMPS *lmp, int narg, char **arg) :
   newarg[3] = id_temp;
   modify->add_compute(4,newarg);
   delete [] newarg;
-  pflag = 1;
+  pcomputeflag = 1;
 }

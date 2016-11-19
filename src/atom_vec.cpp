@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "atom_vec.h"
 #include "atom.h"
 #include "force.h"
@@ -33,7 +33,7 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   mass_type = dipole_type = 0;
   forceclearflag = 0;
   size_data_bonus = 0;
-  cudable = kokkosable = 0;
+  kokkosable = 0;
 
   nargcopy = 0;
   argcopy = NULL;
@@ -81,8 +81,6 @@ void AtomVec::init()
   deform_groupbit = domain->deform_groupbit;
   h_rate = domain->h_rate;
 
-  if (lmp->cuda != NULL && !cudable)
-    error->all(FLERR,"USER-CUDA package requires a cuda enabled atom_style");
   if (lmp->kokkos != NULL && !kokkosable)
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
@@ -265,7 +263,7 @@ int AtomVec::pack_angle(tagint **buf)
 void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT "\n",
             index,buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
     index++;
@@ -321,7 +319,7 @@ void AtomVec::pack_dihedral(tagint **buf)
 void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
             index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;
@@ -377,7 +375,7 @@ void AtomVec::pack_improper(tagint **buf)
 void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
   for (int i = 0; i < n; i++) {
-    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " " 
+    fprintf(fp,"%d " TAGINT_FORMAT " " TAGINT_FORMAT " "
             TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
             index,buf[i][0],buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
     index++;

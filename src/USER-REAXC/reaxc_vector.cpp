@@ -34,7 +34,7 @@ void rvec_Copy( rvec dest, rvec src )
 }
 
 
-void rvec_Scale( rvec ret, real c, rvec v )
+void rvec_Scale( rvec ret, double c, rvec v )
 {
   ret[0] = c * v[0], ret[1] = c * v[1], ret[2] = c * v[2];
 }
@@ -46,21 +46,13 @@ void rvec_Add( rvec ret, rvec v )
 }
 
 
-void rvec_ScaledAdd( rvec ret, real c, rvec v )
+void rvec_ScaledAdd( rvec ret, double c, rvec v )
 {
   ret[0] += c * v[0], ret[1] += c * v[1], ret[2] += c * v[2];
 }
 
 
-void rvec_Sum( rvec ret, rvec v1 ,rvec v2 )
-{
-  ret[0] = v1[0] + v2[0];
-  ret[1] = v1[1] + v2[1];
-  ret[2] = v1[2] + v2[2];
-}
-
-
-void rvec_ScaledSum( rvec ret, real c1, rvec v1 ,real c2, rvec v2 )
+void rvec_ScaledSum( rvec ret, double c1, rvec v1 ,double c2, rvec v2 )
 {
   ret[0] = c1 * v1[0] + c2 * v2[0];
   ret[1] = c1 * v1[1] + c2 * v2[1];
@@ -68,23 +60,9 @@ void rvec_ScaledSum( rvec ret, real c1, rvec v1 ,real c2, rvec v2 )
 }
 
 
-real rvec_Dot( rvec v1, rvec v2 )
+double rvec_Dot( rvec v1, rvec v2 )
 {
   return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
-}
-
-
-real rvec_ScaledDot( real c1, rvec v1, real c2, rvec v2 )
-{
-  return (c1*c2) * (v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]);
-}
-
-
-void rvec_Multiply( rvec r, rvec v1, rvec v2 )
-{
-  r[0] = v1[0] * v2[0];
-  r[1] = v1[1] * v2[1];
-  r[2] = v1[2] * v2[2];
 }
 
 
@@ -96,30 +74,6 @@ void rvec_iMultiply( rvec r, ivec v1, rvec v2 )
 }
 
 
-void rvec_Divide( rvec r, rvec v1, rvec v2 )
-{
-  r[0] = v1[0] / v2[0];
-  r[1] = v1[1] / v2[1];
-  r[2] = v1[2] / v2[2];
-}
-
-
-void rvec_iDivide( rvec r, rvec v1, ivec v2 )
-{
-  r[0] = v1[0] / v2[0];
-  r[1] = v1[1] / v2[1];
-  r[2] = v1[2] / v2[2];
-}
-
-
-void rvec_Invert( rvec r, rvec v )
-{
-  r[0] = 1. / v[0];
-  r[1] = 1. / v[1];
-  r[2] = 1. / v[2];
-}
-
-
 void rvec_Cross( rvec ret, rvec v1, rvec v2 )
 {
   ret[0] = v1[1] * v2[2] - v1[2] * v2[1];
@@ -128,35 +82,15 @@ void rvec_Cross( rvec ret, rvec v1, rvec v2 )
 }
 
 
-void rvec_OuterProduct( rtensor r, rvec v1, rvec v2 )
-{
-  int i, j;
-
-  for( i = 0; i < 3; ++i )
-    for( j = 0; j < 3; ++j )
-      r[i][j] = v1[i] * v2[j];
-}
-
-
-real rvec_Norm_Sqr( rvec v )
+double rvec_Norm_Sqr( rvec v )
 {
   return SQR(v[0]) + SQR(v[1]) + SQR(v[2]);
 }
 
 
-real rvec_Norm( rvec v )
+double rvec_Norm( rvec v )
 {
   return sqrt( SQR(v[0]) + SQR(v[1]) + SQR(v[2]) );
-}
-
-
-int rvec_isZero( rvec v )
-{
-  if( fabs(v[0]) > ALMOST_ZERO ||
-      fabs(v[1]) > ALMOST_ZERO ||
-      fabs(v[2]) > ALMOST_ZERO )
-    return 0;
-  return 1;
 }
 
 
@@ -187,16 +121,6 @@ void rtensor_MatVec( rvec ret, rtensor m, rvec v )
 }
 
 
-void rtensor_Scale( rtensor ret, real c, rtensor m )
-{
-  int i, j;
-
-  for( i = 0; i < 3; ++i )
-    for( j = 0; j < 3; ++j )
-      ret[i][j] = c * m[i][j];
-}
-
-
 void rtensor_MakeZero( rtensor t )
 {
   t[0][0] = t[0][1] = t[0][2] = 0;
@@ -217,7 +141,7 @@ void ivec_Copy( ivec dest, ivec src )
 }
 
 
-void ivec_Scale( ivec dest, real C, ivec src )
+void ivec_Scale( ivec dest, double C, ivec src )
 {
   dest[0] = (int)(C * src[0]);
   dest[1] = (int)(C * src[1]);

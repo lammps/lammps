@@ -39,7 +39,7 @@ class FixRigid : public Fix {
   void write_restart_file(char *);
   virtual double compute_scalar();
   virtual int modify_param(int, char **) {return 0;}
-  
+
   double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -51,6 +51,7 @@ class FixRigid : public Fix {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  void enforce2d();
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
@@ -58,7 +59,7 @@ class FixRigid : public Fix {
   double extract_ke();
   double extract_erotational();
   double compute_array(int, int);
-    
+
  protected:
   int me,nprocs;
   double dtv,dtf,dtq;
@@ -72,6 +73,7 @@ class FixRigid : public Fix {
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
+  int nlinear;              // # of linear rigid bodies
   int *nrigid;              // # of atoms in each rigid body
   int *mol2body;            // convert mol-ID to rigid body index
   int *body2mol;            // convert rigid body index to mol-ID
@@ -120,14 +122,14 @@ class FixRigid : public Fix {
   int pstat_flag;           // NPT settings
   double p_start[3],p_stop[3];
   double p_period[3],p_freq[3];
-  int p_flag[3];  
+  int p_flag[3];
   int pcouple,pstyle;
   int p_chain;
 
   int allremap;              // remap all atoms
   int dilate_group_bit;      // mask for dilation group
   char *id_dilate;           // group name to dilate
-  
+
   class RanMars *random;
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
@@ -141,7 +143,8 @@ class FixRigid : public Fix {
   void set_v();
   void setup_bodies_static();
   void setup_bodies_dynamic();
-  void readfile(int, double *, double **, double **, double **, int *);
+  void readfile(int, double *, double **, double **, double **,
+                imageint *, int *);
 };
 
 }

@@ -34,11 +34,17 @@ class BodyNparticle : public Body {
 
   int pack_border_body(struct AtomVecBody::Bonus *, double *);
   int unpack_border_body(struct AtomVecBody::Bonus *, double *);
-  void data_body(int, int, int, char **, char **);
+  void data_body(int, int, int, int *, double *);
+  double radius_body(int, int, int *, double *);
 
   int noutrow(int);
   int noutcol();
   void output(int, int, double *);
+  int image(int, double, double, int *&, double **&);
+
+ private:
+  int *imflag;
+  double **imdata;
 };
 
 }
@@ -51,11 +57,6 @@ class BodyNparticle : public Body {
 E: Invalid body nparticle command
 
 Arguments in atom-style command are not correct.
-
-E: Invalid format in Bodies section of data file
-
-The specified number of integer or floating point values does not
-appear.
 
 E: Incorrect # of integer values in Bodies section of data file
 

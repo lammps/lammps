@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    (based on Stillinger-Weber pair style)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_nb3b_harmonic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define DELTA 4
 #define SMALL 0.001
-#define PI 3.141592653589793238462643383279 
+#define PI 3.141592653589793238462643383279
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,6 +52,7 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp)
   nparams = maxparam = 0;
   params = NULL;
   elem2param = NULL;
+  map = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -79,9 +80,8 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
-  tagint itag,jtag;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl;
-  double rsq,rsq1,rsq2;
+  double xtmp,ytmp,ztmp,evdwl;
+  double rsq1,rsq2;
   double delr1[3],delr2[3],fj[3],fk[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -91,7 +91,6 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  tagint *tag = atom->tag;
   int *type = atom->type;
 
   inum = list->inum;
@@ -103,44 +102,13 @@ void PairNb3bHarmonic::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itag = tag[i];
     itype = map[type[i]];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    // two-body interactions, skip half of them
-
     jlist = firstneigh[i];
     jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtag = tag[j];
-
-      if (itag > jtag) {
-	if ((itag+jtag) % 2 == 0) continue;
-      } else if (itag < jtag) {
-	if ((itag+jtag) % 2 == 1) continue;
-      } else {
-	if (x[j][2] < ztmp) continue;
-	if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
-	if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
-      }
-
-      jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      ijparam = elem2param[itype][jtype][jtype];
-      if (rsq > params[ijparam].cutsq) continue;
-
-    }
-
     jnumm1 = jnum - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {
@@ -202,7 +170,7 @@ void PairNb3bHarmonic::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings 
+   global settings
 ------------------------------------------------------------------------- */
 
 void PairNb3bHarmonic::settings(int narg, char **arg)
@@ -258,9 +226,9 @@ void PairNb3bHarmonic::coeff(int narg, char **arg)
   }
 
   // read potential file and initialize potential parameters
-  
+
   read_file(arg[2]);
-  setup();
+  setup_params();
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -420,7 +388,7 @@ void PairNb3bHarmonic::read_file(char *file)
     params[nparams].cutoff = atof(words[5]);
 
     if (params[nparams].k_theta < 0.0 || params[nparams].theta0 < 0.0 ||
-        params[nparams].cutoff < 0.0) 
+        params[nparams].cutoff < 0.0)
       error->all(FLERR,"Illegal nb3b/harmonic parameter");
 
     nparams++;
@@ -431,7 +399,7 @@ void PairNb3bHarmonic::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairNb3bHarmonic::setup()
+void PairNb3bHarmonic::setup_params()
 {
   int i,j,k,m,n;
   double rtmp;
@@ -448,13 +416,13 @@ void PairNb3bHarmonic::setup()
       for (k = 0; k < nelements; k++) {
 	n = -1;
 	for (m = 0; m < nparams; m++) {
-	  if (i == params[m].ielement && j == params[m].jelement && 
+	  if (i == params[m].ielement && j == params[m].jelement &&
 	      k == params[m].kelement) {
 	    if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
 	    n = m;
 	  }
 	}
-//	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
+	if (n < 0) error->all(FLERR,"Potential file is missing an entry");
 	elem2param[i][j][k] = n;
       }
 
@@ -462,7 +430,7 @@ void PairNb3bHarmonic::setup()
 
   // set cutsq using shortcut to reduce neighbor list for accelerated
   // calculations. cut must remain unchanged as it is a potential parameter
-  // (cut = a*sigma) 
+  // (cut = a*sigma)
 
   for (m = 0; m < nparams; m++) {
 
@@ -480,12 +448,12 @@ void PairNb3bHarmonic::setup()
     rtmp = sqrt(params[m].cutsq);
     if (rtmp > cutmax) cutmax = rtmp;
   }
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
 
-void PairNb3bHarmonic::threebody(Param *paramij, Param *paramik, 
+void PairNb3bHarmonic::threebody(Param *paramij, Param *paramik,
                                  Param *paramijk,
                                  double rsq1, double rsq2,
                                  double *delr1, double *delr2,
@@ -495,32 +463,32 @@ void PairNb3bHarmonic::threebody(Param *paramij, Param *paramik,
   double r1,r2,c,s,a,a11,a12,a22;
 
   // angle (cos and sin)
-  
+
   r1 = sqrt(rsq1);
   r2 = sqrt(rsq2);
-  
+
   c = delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2];
   c /= r1*r2;
-  
+
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
-  
+
   s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
   s = 1.0/s;
-  
+
   // force & energy
-  
+
   dtheta = acos(c) - paramijk->theta0;
   tk = paramijk->k_theta * dtheta;
-  
+
   if (eflag) eng = tk*dtheta;
-  
+
   a = -2.0 * tk * s;
   a11 = a*c / rsq1;
   a12 = -a / (r1*r2);
   a22 = a*c / rsq2;
-  
+
   fj[0] = a11*delr1[0] + a12*delr2[0];
   fj[1] = a11*delr1[1] + a12*delr2[1];
   fj[2] = a11*delr1[2] + a12*delr2[2];

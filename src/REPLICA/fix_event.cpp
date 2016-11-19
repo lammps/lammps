@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL), Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_event.h"
 #include "atom.h"
 #include "update.h"
@@ -33,7 +33,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), xevent(NULL), xold(NULL), vold(NULL),
+  imageold(NULL), xorig(NULL), vorig(NULL), imageorig(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix event command");
 
@@ -41,14 +42,6 @@ FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
 
   // perform initial allocation of atom-based array
   // register with Atom class
-
-  xevent = NULL;
-  xold = NULL;
-  vold = NULL;
-  imageold = NULL;
-  xorig = NULL;
-  vorig = NULL;
-  imageorig = NULL;
 
   grow_arrays(atom->nmax);
   atom->add_callback(0);

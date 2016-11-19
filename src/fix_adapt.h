@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixAdapt : public Fix {
  public:
   int diamflag;        // 1 if atom diameters will vary, for AtomVecGranular
-  int chgflag; 
+  int chgflag;
 
   FixAdapt(class LAMMPS *, int, char **);
   ~FixAdapt();
@@ -57,6 +57,7 @@ class FixAdapt : public Fix {
     double *scalar,scalar_orig;
     double **array,**array_orig;
     int aparam;
+    class Pair *pair;
   };
 
   Adapt *adapt;
@@ -98,6 +99,10 @@ Self-explanatory
 E: Fix adapt pair style param not supported
 
 The pair style does not know about the parameter you specified.
+
+E: Fix adapt pair style param is not compatible
+
+Self-explanatory
 
 E: Fix adapt type pair range is not valid for pair hybrid sub-style
 

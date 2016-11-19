@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
     Contributing authors: 
-             Rodrigo Freitas   (Unicamp/Brazil) - rodrigohb@gmail.com
+             Rodrigo Freitas (UC Berkeley) - rodrigof@berkeley.edu
+             Mark Asta (UC Berkeley) - mdasta@berkeley.edu
              Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
 ------------------------------------------------------------------------- */
 
@@ -65,9 +66,9 @@ class FixTISpring : public Fix {
   double lambda;      // Coupling parameter.
   double dlambda;     // Lambda variation with t.
   double linfo[2];    // Current lambda status.
-  int    t_switch;    // Total switching steps.
-  int    t_equil;     // Equilibration time.
-  int    t0;          // Initial time.
+  bigint t_switch;    // Total switching steps.
+  bigint t_equil;     // Equilibration time.
+  bigint t0;          // Initial time.
   int    sf;          // Switching function option.
   int    nlevels_respa;
 };

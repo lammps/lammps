@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "comm.h"
 #include "universe.h"
 #include "atom.h"
@@ -33,7 +33,7 @@
 #include "error.h"
 
 #ifdef _OPENMP
-#include "omp.h"
+#include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;
@@ -56,6 +56,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   mode = 0;
   bordergroup = 0;
   cutghostuser = 0.0;
+  cutusermulti = NULL;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -86,7 +87,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   } else if (getenv("OMP_NUM_THREADS") == NULL) {
     nthreads = 1;
     if (me == 0)
-      error->warning(FLERR,"OMP_NUM_THREADS environment is not set.");
+      error->message(FLERR,"OMP_NUM_THREADS environment is not set. "
+                           "Defaulting to 1 thread.");
   } else {
     nthreads = omp_get_max_threads();
   }
@@ -114,6 +116,7 @@ Comm::~Comm()
   memory->destroy(xsplit);
   memory->destroy(ysplit);
   memory->destroy(zsplit);
+  memory->destroy(cutusermulti);
   delete [] customfile;
   delete [] outfile;
 }
@@ -132,13 +135,18 @@ void Comm::copy_arrays(Comm *oldcomm)
                    "comm:grid2proc");
     memcpy(&grid2proc[0][0][0],&oldcomm->grid2proc[0][0][0],
            (procgrid[0]*procgrid[1]*procgrid[2])*sizeof(int));
-    
+
     memory->create(xsplit,procgrid[0]+1,"comm:xsplit");
     memory->create(ysplit,procgrid[1]+1,"comm:ysplit");
     memory->create(zsplit,procgrid[2]+1,"comm:zsplit");
     memcpy(xsplit,oldcomm->xsplit,(procgrid[0]+1)*sizeof(double));
     memcpy(ysplit,oldcomm->ysplit,(procgrid[1]+1)*sizeof(double));
     memcpy(zsplit,oldcomm->zsplit,(procgrid[2]+1)*sizeof(double));
+  }
+
+  if (oldcomm->cutusermulti) {
+    memory->create(cutusermulti,atom->ntypes+1,"comm:cutusermulti");
+    memcpy(cutusermulti,oldcomm->cutusermulti,atom->ntypes+1);
   }
 
   if (customfile) {
@@ -188,14 +196,14 @@ void Comm::init()
 
   for (int i = 0; i < modify->nfix; i++)
     size_border += modify->fix[i]->comm_border;
-  
+
   // per-atom limits for communication
   // maxexchange = max # of datums in exchange comm, set in exchange()
   // maxforward = # of datums in largest forward comm
   // maxreverse = # of datums in largest reverse comm
   // query pair,fix,compute,dump for their requirements
   // pair style can force reverse comm even if newton off
- 	 
+
   maxforward = MAX(size_forward,size_border);
   maxreverse = size_reverse;
 
@@ -234,9 +242,17 @@ void Comm::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (strcmp(arg[iarg+1],"single") == 0) mode = SINGLE;
-      else if (strcmp(arg[iarg+1],"multi") == 0) mode = MULTI;
-      else error->all(FLERR,"Illegal comm_modify command");
+      if (strcmp(arg[iarg+1],"single") == 0) {
+        // need to reset cutghostuser when switching comm mode
+        if (mode == MULTI) cutghostuser = 0.0;
+        memory->destroy(cutusermulti);
+        cutusermulti = NULL;
+        mode = SINGLE;
+      } else if (strcmp(arg[iarg+1],"multi") == 0) {
+        // need to reset cutghostuser when switching comm mode
+        if (mode == SINGLE) cutghostuser = 0.0;
+        mode = MULTI;
+      } else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
@@ -249,10 +265,36 @@ void Comm::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (mode == MULTI)
+        error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
       cutghostuser = force->numeric(FLERR,arg[iarg+1]);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"cutoff/multi") == 0) {
+      int i,nlo,nhi;
+      double cut;
+      if (mode == SINGLE)
+        error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
+      if (domain->box_exist == 0)
+        error->all(FLERR,
+                   "Cannot set cutoff/multi before simulation box is defined");
+      const int ntypes = atom->ntypes;
+      if (iarg+3 > narg)
+        error->all(FLERR,"Illegal comm_modify command");
+      if (cutusermulti == NULL) {
+        memory->create(cutusermulti,ntypes+1,"comm:cutusermulti");
+        for (i=0; i < ntypes+1; ++i)
+          cutusermulti[i] = -1.0;
+      }
+      force->bounds(FLERR,arg[iarg+1],ntypes,nlo,nhi,1);
+      cut = force->numeric(FLERR,arg[iarg+2]);
+      cutghostuser = MAX(cutghostuser,cut);
+      if (cut < 0.0)
+        error->all(FLERR,"Invalid cutoff in comm_modify command");
+      for (i=nlo; i<=nhi; ++i)
+        cutusermulti[i] = cut;
+      iarg += 3;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
@@ -314,7 +356,7 @@ void Comm::set_processors(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"numa") == 0) {
         gridflag = NUMA;
 
-      } else if (strcmp(arg[iarg],"custom") == 0) {
+      } else if (strcmp(arg[iarg+1],"custom") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = CUSTOM;
         delete [] customfile;
@@ -337,7 +379,7 @@ void Comm::set_processors(int narg, char **arg)
                strcmp(arg[iarg+1],"zxy") == 0 ||
                strcmp(arg[iarg+1],"zyx") == 0) {
         mapflag = XYZ;
-        strcpy(xyz,arg[iarg+1]);
+        strncpy(xyz,arg[iarg+1],3);
       } else error->all(FLERR,"Illegal processors command");
       iarg += 2;
 
@@ -646,6 +688,10 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
   int nbytes = n*nper;
   int maxbytes;
   MPI_Allreduce(&nbytes,&maxbytes,1,MPI_INT,MPI_MAX,world);
+
+  // no need to communicate without data
+
+  if (maxbytes == 0) return;
 
   char *buf,*bufcopy;
   memory->create(buf,maxbytes,"comm:buf");

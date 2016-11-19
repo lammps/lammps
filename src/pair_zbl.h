@@ -46,6 +46,7 @@ class PairZBL : public Pair {
   double e_zbl(double, int, int);
   double dzbldr(double, int, int);
   double d2zbldr2(double, int, int);
+  void set_coeff(int, int, double, double);
 };
 
 namespace PairZBLConstants {

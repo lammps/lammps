@@ -101,4 +101,9 @@ E: Core/shell partners were not all found
 
 Could not find or more atoms in the bond pairs.
 
+E: Temperature compute degrees of freedom < 0
+
+This should not happen if you are calculating the temperature
+on a valid set of atoms.
+
 */

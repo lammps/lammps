@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "dump_atom.h"
 #include "domain.h"
 #include "atom.h"
@@ -45,13 +45,14 @@ void DumpAtom::init_style()
   if (image_flag == 0) size_one = 5;
   else size_one = 8;
 
-  // default format depends on image flags
+  // format = copy of default or user-specified line format
+  // default depends on image flags
 
   delete [] format;
-  if (format_user) {
-    int n = strlen(format_user) + 2;
+  if (format_line_user) {
+    int n = strlen(format_line_user) + 2;
     format = new char[n];
-    strcpy(format,format_user);
+    strcpy(format,format_line_user);
     strcat(format,"\n");
   } else {
     char *str;
@@ -214,9 +215,9 @@ void DumpAtom::header_item(bigint ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS %s\n",boundstr);
-  fprintf(fp,"%g %g\n",boxxlo,boxxhi);
-  fprintf(fp,"%g %g\n",boxylo,boxyhi);
-  fprintf(fp,"%g %g\n",boxzlo,boxzhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxxlo,boxxhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxylo,boxyhi);
+  fprintf(fp,"%-1.16e %-1.16e\n",boxzlo,boxzhi);
   fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 
@@ -229,9 +230,9 @@ void DumpAtom::header_item_triclinic(bigint ndump)
   fprintf(fp,"ITEM: NUMBER OF ATOMS\n");
   fprintf(fp,BIGINT_FORMAT "\n",ndump);
   fprintf(fp,"ITEM: BOX BOUNDS xy xz yz %s\n",boundstr);
-  fprintf(fp,"%g %g %g\n",boxxlo,boxxhi,boxxy);
-  fprintf(fp,"%g %g %g\n",boxylo,boxyhi,boxxz);
-  fprintf(fp,"%g %g %g\n",boxzlo,boxzhi,boxyz);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxxlo,boxxhi,boxxy);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxylo,boxyhi,boxxz);
+  fprintf(fp,"%-1.16e %-1.16e %-1.16e\n",boxzlo,boxzhi,boxyz);
   fprintf(fp,"ITEM: ATOMS %s\n",columns);
 }
 
@@ -422,9 +423,9 @@ int DumpAtom::convert_image(int n, double *mybuf)
     }
 
     offset += sprintf(&sbuf[offset],format,
-                      static_cast<tagint> (mybuf[m]), 
+                      static_cast<tagint> (mybuf[m]),
                       static_cast<int> (mybuf[m+1]),
-                      mybuf[m+2],mybuf[m+3],mybuf[m+4], 
+                      mybuf[m+2],mybuf[m+3],mybuf[m+4],
                       static_cast<int> (mybuf[m+5]),
                       static_cast<int> (mybuf[m+6]),
                       static_cast<int> (mybuf[m+7]));

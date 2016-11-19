@@ -1,7 +1,7 @@
 The VORONOI package adds a compute voronoi/atom command which
 calculates a Voronoi tesselation of the system.
 
-It uses the Voro++ library, available at http://math.lbl.gov/voro++ to
+It uses the Voro++ library, available at http://math.lbl.gov/voro++/ to
 compute the tesselation locally on each processor.  Voro++ was
 developed by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
 Laboratory.

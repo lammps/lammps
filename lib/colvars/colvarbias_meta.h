@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARBIAS_META_H
 #define COLVARBIAS_META_H
@@ -27,23 +27,13 @@ public:
   /// Communication between different replicas
   Communication comm;
 
-  /// Constructor
-  colvarbias_meta(std::string const &conf, char const *key);
-
-  /// Default constructor
-  colvarbias_meta();
-
-  /// Destructor
+  colvarbias_meta(char const *key);
+  virtual int init(std::string const &conf);
   virtual ~colvarbias_meta();
-
-  virtual cvm::real update();
-
+  virtual int update();
   virtual std::istream & read_restart(std::istream &is);
-
   virtual std::ostream & write_restart(std::ostream &os);
-
   virtual int setup_output();
-
   virtual void write_pmf();
 
   class hill;
@@ -156,6 +146,14 @@ protected:
 
   /// \brief Biasing temperature in well-tempered metadynamics
   cvm::real  bias_temperature;
+
+  // EBmeta parameters
+  bool       ebmeta;
+  colvar_grid_scalar* target_dist;
+  std::string target_dist_file;
+  cvm::real target_dist_volume;
+  size_t ebmeta_equil_steps;
+
 
   /// \brief Try to read the restart information by allocating new
   /// grids before replacing the current ones (used e.g. in
@@ -278,7 +276,7 @@ public:
       W(W_in),
       centers(cv.size()),
       widths(cv.size()),
-      it(cvm::it),
+      it(cvm::step_absolute()),
       replica(replica_in)
   {
     for (size_t i = 0; i < cv.size(); i++) {

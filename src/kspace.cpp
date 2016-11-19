@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "kspace.h"
 #include "atom.h"
 #include "comm.h"
@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 
 KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
@@ -88,12 +89,10 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   eatom = NULL;
   vatom = NULL;
 
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
-
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+  copymode = 0;
 
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;
@@ -149,6 +148,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 KSpace::~KSpace()
 {
+  if (copymode) return;
+
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(gcons);
@@ -307,6 +308,15 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
 {
   double table_accuracy = 0.0;
   int nctb = force->pair->ncoultablebits;
+  if (comm->me == 0) {
+    char str[128];
+    if (nctb)
+      sprintf(str,"Using %d-bit tables for long-range coulomb",nctb);
+    else
+      sprintf(str,"Using polynomial approximation for long-range coulomb");
+    error->warning(FLERR,str);
+  }
+
   if (nctb) {
     double empirical_precision[17];
     empirical_precision[6] =  6.99E-03;
@@ -394,7 +404,7 @@ void KSpace::lamda2xvector(double *lamda, double *v)
 
 /* ----------------------------------------------------------------------
    convert a sphere in box coords to an ellipsoid in lamda (0-1)
-   coords and return the tight (axis-aligned) bounding box, does not 
+   coords and return the tight (axis-aligned) bounding box, does not
    preserve vector magnitude
    see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
    http://yiningkarlli.blogspot.com/2013/02/
@@ -412,7 +422,7 @@ void KSpace::kspacebbox(double r, double *b)
   xz = h[4];
   xy = h[5];
 
-  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy + 
+  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy +
          xy*xy*yz*yz)/(lx*ly*lz);
   b[1] = r*sqrt(lz*lz + yz*yz)/(ly*lz);
   b[2] = r/lz;
@@ -551,7 +561,7 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"eigtol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       splittol = atof(arg[iarg+1]);
-      if (splittol >= 1.0) 
+      if (splittol >= 1.0)
         error->all(FLERR,"Kspace_modify eigtol must be smaller than one");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure/scalar") == 0) {

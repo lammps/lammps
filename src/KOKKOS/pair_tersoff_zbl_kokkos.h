@@ -23,7 +23,7 @@ PairStyle(tersoff/zbl/kk/host,PairTersoffZBLKokkos<LMPHostType>)
 #ifndef LMP_PAIR_TERSOFF_ZBL_KOKKOS_H
 #define LMP_PAIR_TERSOFF_ZBL_KOKKOS_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pair_kokkos.h"
 #include "pair_tersoff_zbl.h"
 #include "neigh_list_kokkos.h"
@@ -38,6 +38,8 @@ struct TagPairTersoffZBLComputeFullA{};
 
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairTersoffZBLComputeFullB{};
+
+struct TagPairTersoffZBLComputeShortNeigh{};
 
 template<class DeviceType>
 class PairTersoffZBLKokkos : public PairTersoffZBL {
@@ -77,6 +79,8 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairTersoffZBLComputeFullB<NEIGHFLAG,EVFLAG>, const int&) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairTersoffZBLComputeShortNeigh, const int&) const;
   KOKKOS_INLINE_FUNCTION
   double ters_fc_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
 
@@ -143,7 +147,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   void vec3_scaleadd(const F_FLOAT k, const double x[3], const double y[3], double * const z) const {
     z[0] = k*x[0]+y[0]; z[1] = k*x[1]+y[1]; z[2] = k*x[2]+y[2];
   }
-	        
+
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
@@ -152,7 +156,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 	    	  bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;Z_i=0;Z_j=0;ZBLcut=0;ZBLexpscale=0;};
     params_ters(int i){powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
 	    	  bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;Z_i=0;Z_j=0;ZBLcut=0;ZBLexpscale=0;};
-    F_FLOAT powerm, gamma, lam3, c, d, h, powern, beta, lam2, bigb, bigr, 
+    F_FLOAT powerm, gamma, lam3, c, d, h, powern, beta, lam2, bigb, bigr,
 	    bigd, lam1, biga, cutsq, c1, c2, c3, c4, Z_i, Z_j, ZBLcut, ZBLexpscale;
   };
 
@@ -164,15 +168,15 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void v_tally3(EV_FLOAT &ev, const int &i, const int &j, const int &k, 
+  void v_tally3(EV_FLOAT &ev, const int &i, const int &j, const int &k,
 		F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const;
 
   KOKKOS_INLINE_FUNCTION
-  void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k, 
+  void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
 		F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
   void allocate();
-  void setup();
+  void setup_params();
 
   KOKKOS_INLINE_FUNCTION
   double fermi_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
@@ -186,10 +190,11 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_ters***,
-    Kokkos::LayoutRight,DeviceType>::t_dev_const paramskk;
+    Kokkos::LayoutRight,DeviceType>::t_dev_const_um paramskk;
   // hardwired to space for 15 atom types
   //params_ters m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
+  int inum; 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
@@ -209,9 +214,11 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   typename ArrayTypes<DeviceType>::t_int_1d_randomread d_numneigh;
   //NeighListKokkos<DeviceType> k_list;
 
-  class AtomKokkos *atomKK;
   int neighflag,newton_pair;
   int nlocal,nall,eflag,vflag;
+
+  Kokkos::View<int**,DeviceType> d_neighbors_short;
+  Kokkos::View<int*,DeviceType> d_numneigh_short;
 
   // ZBL
   F_FLOAT global_a_0;                // Bohr radius for Coulomb repulsion
@@ -227,5 +234,13 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Pair tersoff/zbl/kk requires metal or real units
+
+This is a current restriction of this pair potential.
+
+E: Cannot use chosen neighbor list style with tersoff/zbl/kk
+
+Self-explanatory.
 
 */

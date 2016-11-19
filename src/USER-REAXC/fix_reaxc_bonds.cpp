@@ -15,8 +15,8 @@
    Contributing author: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_ave_atom.h"
 #include "fix_reaxc_bonds.h"
 #include "atom.h"
@@ -108,6 +108,9 @@ void FixReaxCBonds::setup(int vflag)
 void FixReaxCBonds::init()
 {
   reaxc = (PairReaxC *) force->pair_match("reax/c",1);
+  if (reaxc == NULL)
+    reaxc = (PairReaxC *) force->pair_match("reax/c/kk",1);
+
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                   "pair_style reax/c");
 
@@ -243,7 +246,7 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local, 
+void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
                                int natoms, int maxnum)
 {
   int i, j, k, itype;

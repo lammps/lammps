@@ -32,7 +32,7 @@ class DeleteAtoms : protected Pointers {
 
  private:
   int *dlist;
-  int compress_flag,bond_flag,mol_flag;
+  int allflag,compress_flag,bond_flag,mol_flag;
   std::map<tagint,int> *hash;
 
   void delete_group(int, char **);
@@ -111,8 +111,8 @@ E: Cannot use delete_atoms bond yes with atom_style template
 This is because the bonds for that atom style are hardwired in the
 molecule template.
 
-E: Cannot delete_atoms mol yes for non-molecular systems
+E: Delete_atoms mol yes requires atom attribute molecule
 
-Self-explanatory.
+Cannot use this option with a non-molecular system.
 
 */

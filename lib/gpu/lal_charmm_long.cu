@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
@@ -31,14 +31,14 @@ texture<int2> q_tex;
 
 __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict lj1,
-                            const int lj_types, 
+                            const int lj_types,
                             const __global numtyp *restrict sp_lj,
                             const __global int *dev_nbor,
                             const __global int *dev_packed,
                             __global acctyp4 *restrict ans,
-                            __global acctyp *restrict engv, 
-                            const int eflag, const int vflag, const int inum, 
-                            const int nbor_pitch, 
+                            __global acctyp *restrict engv,
+                            const int eflag, const int vflag, const int inum,
+                            const int nbor_pitch,
                             const __global numtyp *restrict q_,
                             const numtyp cut_coulsq, const numtyp qqrd2e,
                             const numtyp g_ewald, const numtyp denom_lj,
@@ -61,7 +61,7 @@ __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
@@ -93,7 +93,7 @@ __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
           force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq);
-            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/ 
+            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/
                              denom_lj;
             switch1 *= switch1;
             switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/
@@ -130,7 +130,7 @@ __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
             if (rsq > cut_lj_innersq)
               e *= switch1;
             energy+=factor_lj*e;
-          } 
+          }
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -148,19 +148,19 @@ __kernel void k_charmm_long(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_charmm_long_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_charmm_long_fast(const __global numtyp4 *restrict x_,
                                  const __global numtyp2 *restrict ljd_in,
-                                 const __global numtyp *restrict sp_lj_in, 
-                                 const __global int *dev_nbor, 
-                                 const __global int *dev_packed, 
+                                 const __global numtyp *restrict sp_lj_in,
+                                 const __global int *dev_nbor,
+                                 const __global int *dev_packed,
                                  __global acctyp4 *restrict ans,
-                                 __global acctyp *restrict engv, 
-                                 const int eflag, const int vflag, 
-                                 const int inum, const int nbor_pitch, 
+                                 __global acctyp *restrict engv,
+                                 const int eflag, const int vflag,
+                                 const int inum, const int nbor_pitch,
                                  const __global numtyp *restrict q_,
                                  const numtyp cut_coulsq, const numtyp qqrd2e,
                                  const numtyp g_ewald, const numtyp denom_lj,
-                                 const numtyp cut_bothsq, const numtyp cut_ljsq, 
+                                 const numtyp cut_bothsq, const numtyp cut_ljsq,
                                  const numtyp cut_lj_innersq,
                                  const int t_per_atom) {
   int tid, ii, offset;
@@ -174,7 +174,7 @@ __kernel void k_charmm_long_fast(const __global numtyp4 *restrict x_,
     ljd[tid]=ljd_in[tid];
   if (tid+BLOCK_BIO_PAIR<MAX_BIO_SHARED_TYPES)
     ljd[tid+BLOCK_BIO_PAIR]=ljd_in[tid+BLOCK_BIO_PAIR];
-  
+
   acctyp energy=(acctyp)0;
   acctyp e_coul=(acctyp)0;
   acctyp4 f;
@@ -182,16 +182,16 @@ __kernel void k_charmm_long_fast(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
@@ -229,7 +229,7 @@ __kernel void k_charmm_long_fast(const __global numtyp4 *restrict x_,
           force_lj = factor_lj*((numtyp)12.0 * lj3 - (numtyp)6.0 * lj4);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq);
-            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/ 
+            numtyp switch2 = (numtyp)12.0*rsq*switch1*(rsq-cut_lj_innersq)/
                              denom_lj;
             switch1 *= switch1;
             switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/

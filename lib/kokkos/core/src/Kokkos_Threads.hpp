@@ -2,8 +2,8 @@
 //@HEADER
 // ************************************************************************
 //
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 //
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -76,13 +76,15 @@ public:
   //! Tag this class as a kokkos execution space
   typedef Threads                  execution_space ;
   typedef Kokkos::HostSpace        memory_space ;
+
+  //! This execution space preferred device_type
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
+
   typedef Kokkos::LayoutRight      array_layout ;
   typedef memory_space::size_type  size_type ;
 
   typedef ScratchMemorySpace< Threads >  scratch_memory_space ;
 
-  //! For backward compatibility
-  typedef Threads                  device_type ;
 
   //@}
   /*------------------------------------------------------------------------*/
@@ -152,12 +154,15 @@ public:
    *  If the 'use_' arguments are not supplied the hwloc is queried
    *  to use all available cores.
    */
-  static void initialize( unsigned threads_count = 1 ,
+  static void initialize( unsigned threads_count = 0 ,
                           unsigned use_numa_count = 0 ,
                           unsigned use_cores_per_numa = 0 ,
                           bool allow_asynchronous_threadpool = false );
 
   static int is_initialized();
+
+  /** \brief  Return the maximum amount of concurrency.  */
+  static int concurrency();
 
   static Threads & instance( int = 0 );
 
@@ -203,7 +208,10 @@ struct VerifyExecutionCanAccessMemorySpace
 #include <Kokkos_ExecPolicy.hpp>
 #include <Kokkos_Parallel.hpp>
 #include <Threads/Kokkos_ThreadsExec.hpp>
+#include <Threads/Kokkos_ThreadsTeam.hpp>
 #include <Threads/Kokkos_Threads_Parallel.hpp>
+
+#include <KokkosExp_MDRangePolicy.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------

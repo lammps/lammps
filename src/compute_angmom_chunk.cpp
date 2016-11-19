@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_angmom_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -25,8 +25,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) : 
-  Compute(lmp, narg, arg)
+ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) :
+  Compute(lmp, narg, arg),
+  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), angmom(NULL), angmomall(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute angmom/chunk command");
 
@@ -48,9 +49,6 @@ ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) :
 
   nchunk = 1;
   maxchunk = 0;
-  massproc = masstotal = NULL;
-  com = comall = NULL;
-  angmom = angmomall = NULL;
   allocate();
 }
 
@@ -136,9 +134,11 @@ void ComputeAngmomChunk::compute_array()
   MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
 
   for (int i = 0; i < nchunk; i++) {
-    comall[i][0] /= masstotal[i];
-    comall[i][1] /= masstotal[i];
-    comall[i][2] /= masstotal[i];
+    if (masstotal[i] > 0.0) {
+      comall[i][0] /= masstotal[i];
+      comall[i][1] /= masstotal[i];
+      comall[i][2] /= masstotal[i];
+    }
   }
 
   // compute angmom for each chunk

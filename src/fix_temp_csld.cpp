@@ -15,9 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_temp_csld.h"
 #include "atom.h"
 #include "force.h"
@@ -41,7 +41,8 @@ enum{CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  vhold(NULL), tstr(NULL), id_temp(NULL), random(NULL)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 
@@ -138,7 +139,7 @@ void FixTempCSLD::init()
 
   if (has_shake > 0)
     error->all(FLERR,"Fix temp/csld is not compatible with fix rattle or fix shake");
-  
+
   // check variable
 
   if (tstr) {
@@ -183,6 +184,10 @@ void FixTempCSLD::end_of_step()
   double t_current = temperature->compute_scalar();
   double ekin_old = t_current * 0.5 * temperature->dof * force->boltz;
 
+  // there is nothing to do, if there are no degrees of freedom
+
+  if (temperature->dof < 1) return;
+
   double * const * const v = atom->v;
   const int * const mask = atom->mask;
   const int * const type = atom->type;
@@ -218,7 +223,7 @@ void FixTempCSLD::end_of_step()
       v[i][2] = vz;
     }
   }
-  
+
   // mixing factors
   const double c1 = exp(-update->dt/t_period);
   const double c2 = sqrt((1.0-c1*c1)*t_target/temperature->compute_scalar());

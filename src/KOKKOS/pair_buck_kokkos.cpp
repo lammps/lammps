@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_buck_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -120,7 +120,6 @@ void PairBuckKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
   EV_FLOAT ev = pair_compute<PairBuckKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -216,7 +215,7 @@ void PairBuckKokkos<DeviceType>::init_style()
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa) 
+    if (respa)
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
@@ -280,7 +279,10 @@ double PairBuckKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairBuckKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairBuckKokkos<LMPHostType>;
 #endif
+}
+

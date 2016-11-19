@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_sdk_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -113,7 +113,6 @@ void PairLJSDKKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   EV_FLOAT ev = pair_compute<PairLJSDKKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -212,7 +211,6 @@ void PairLJSDKKokkos<DeviceType>::allocate()
   d_cutsq = k_cutsq.template view<DeviceType>();
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJSDK::params",n+1,n+1);
   params = k_params.d_view;
-  printf("Allocating: %i\n",n);
 }
 
 /* ----------------------------------------------------------------------
@@ -242,7 +240,7 @@ void PairLJSDKKokkos<DeviceType>::init_style()
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa) 
+    if (respa)
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
@@ -252,7 +250,7 @@ void PairLJSDKKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value && 
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
@@ -308,7 +306,10 @@ double PairLJSDKKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJSDKKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJSDKKokkos<LMPHostType>;
 #endif
+}
+

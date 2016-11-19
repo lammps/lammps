@@ -1,0 +1,31 @@
+# Input File for DPD fluid under isoenergetic conditions using the VV-SSA integration scheme
+log             log.dpde-shardlow
+boundary        p p p
+
+units           metal  # ev, ps
+atom_style      dpd
+read_data       data.dpde
+
+comm_modify 	mode single vel yes
+mass            1 100.0
+
+pair_style      dpd/fdt/energy 10.0 245455
+pair_coeff      1 1 0.075 0.022 3.2E-5 10.00
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check no once no
+
+timestep        0.001
+
+compute         dpdU all dpd
+variable        totEnergy equal pe+ke+c_dpdU[1]+c_dpdU[2]
+
+thermo          1
+thermo_style    custom step temp pe ke v_totEnergy
+thermo_modify   format float %15.10f
+
+fix             1 all shardlow
+fix             2 all nve
+fix             3 all eos/cv 0.0005
+
+run             100

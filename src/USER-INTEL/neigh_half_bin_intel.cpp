@@ -15,6 +15,8 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+//#define OUTER_CHUNK 1
+
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
@@ -26,13 +28,21 @@
 #include <omp.h>
 #endif
 
+#ifdef LMP_USE_AVXCD
+#include "intel_simd.h"
+#endif
+
+#ifdef OUTER_CHUNK
+#include "intel_simd.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(push,target(mic))
 #endif
 
-#define ofind_special(which, special, nspecial, i, tag, special_flag) \
+#define ofind_special(which, special, nspecial, i, tag)		      \
 {                                                                     \
   which = 0;                                                          \
   const int n1 = nspecial[i * 3];                                     \
@@ -42,20 +52,30 @@ using namespace LAMMPS_NS;
   for (int s = 0; s < n3; s++) {                                      \
     if (sptr[s] == tag) {                                             \
       if (s < n1) {                                                   \
-        if (special_flag[1] == 0) which = -1;                         \
-        else if (special_flag[1] == 1) which = 0;                     \
-        else which = 1;                                               \
+        which = 1;						      \
       } else if (s < n2) {                                            \
-        if (special_flag[2] == 0) which = -1;                         \
-        else if (special_flag[2] == 1) which = 0;                     \
-        else which = 2;                                               \
+        which = 2;						      \
       } else {                                                        \
-        if (special_flag[3] == 0) which = -1;                         \
-        else if (special_flag[3] == 1) which = 0;                     \
-        else which = 3;                                               \
+        which = 3;						      \
       }                                                               \
     }                                                                 \
   }                                                                   \
+}
+
+#define ominimum_image_check(answer, dx, dy, dz)                      \
+{								      \
+  answer = 0;							      \
+  if (xperiodic && fabs(dx) > xprd_half) answer = 1;		      \
+  if (yperiodic && fabs(dy) > yprd_half) answer = 1;		      \
+  if (zperiodic && fabs(dz) > zprd_half) answer = 1;		      \
+}
+
+#define dminimum_image_check(answer, dx, dy, dz)                      \
+{								      \
+  answer = 0;							      \
+  if (domain->xperiodic && fabs(dx) > domain->xprd_half) answer = 1;  \
+  if (domain->yperiodic && fabs(dy) > domain->yprd_half) answer = 1;  \
+  if (domain->zperiodic && fabs(dz) > domain->zprd_half) answer = 1;  \
 }
 
 #ifdef _LMP_INTEL_OFFLOAD
@@ -63,7 +83,8 @@ using namespace LAMMPS_NS;
 #endif
 
 template <class flt_t, class acc_t>
-void Neighbor::bin_atoms(void * xin, int * _noalias const atombin) {
+void Neighbor::bin_atoms(void * xin, int * _noalias const atombin,
+			 int * _noalias const binpacked) {
   const ATOM_T * _noalias const x = (const ATOM_T * _noalias const)xin;
   int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -106,6 +127,14 @@ void Neighbor::bin_atoms(void * xin, int * _noalias const atombin) {
       binhead[ibin] = i;
     }
   }
+  int newhead = 0;
+  for (i = 0; i < mbins; i++) {
+    int j = binhead[i];
+    binhead[i] = newhead;
+    for ( ; j >= 0; j = bins[j])
+      binpacked[newhead++] = j;
+  }
+  binhead[mbins] = newhead;
 }
 
 /* ----------------------------------------------------------------------
@@ -127,29 +156,54 @@ void Neighbor::half_bin_no_newton_intel(NeighList *list)
   int host_start = off_end;;
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->full_host_list()) host_start = 0;
-  if (exclude) 
+  if (exclude)
     error->all(FLERR, "Exclusion lists not yet supported for Intel offload");
   #endif
+  if (list->nstencil > INTEL_MAX_STENCIL_CHECK)
+    error->all(FLERR, "Too many neighbor bins for USER-INTEL package.");
 
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    hbnni<float,double>(1, list, fix->get_mixed_buffers(),
-                        0, off_end, fix);
-    hbnni<float,double>(0, list, fix->get_mixed_buffers(),
-                        host_start, nlocal,fix);
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    hbnni<double,double>(1, list, fix->get_double_buffers(),
-                         0, off_end, fix);
-    hbnni<double,double>(0, list, fix->get_double_buffers(),
-                         host_start, nlocal, fix);
+  int need_ic = 0;
+  if (atom->molecular)
+    dminimum_image_check(need_ic, cutneighmax, cutneighmax, cutneighmax);
+
+  if (need_ic) {
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      hbnni<float,double,1>(1, list, fix->get_mixed_buffers(),
+			    0, off_end, fix);
+      hbnni<float,double,1>(0, list, fix->get_mixed_buffers(),
+			    host_start, nlocal,fix);
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      hbnni<double,double,1>(1, list, fix->get_double_buffers(),
+			     0, off_end, fix);
+      hbnni<double,double,1>(0, list, fix->get_double_buffers(),
+			     host_start, nlocal, fix);
+    } else {
+      hbnni<float,float,1>(1, list, fix->get_single_buffers(),
+			   0, off_end, fix);
+      hbnni<float,float,1>(0, list, fix->get_single_buffers(),
+			   host_start, nlocal, fix);
+    }
   } else {
-    hbnni<float,float>(1, list, fix->get_single_buffers(),
-                       0, off_end, fix);
-    hbnni<float,float>(0, list, fix->get_single_buffers(),
-                       host_start, nlocal, fix);
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      hbnni<float,double,0>(1, list, fix->get_mixed_buffers(),
+			    0, off_end, fix);
+      hbnni<float,double,0>(0, list, fix->get_mixed_buffers(),
+			    host_start, nlocal,fix);
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      hbnni<double,double,0>(1, list, fix->get_double_buffers(),
+			     0, off_end, fix);
+      hbnni<double,double,0>(0, list, fix->get_double_buffers(),
+			     host_start, nlocal, fix);
+    } else {
+      hbnni<float,float,0>(1, list, fix->get_single_buffers(),
+			   0, off_end, fix);
+      hbnni<float,float,0>(0, list, fix->get_single_buffers(),
+			   host_start, nlocal, fix);
+    }
   }
 }
 
-template <class flt_t, class acc_t>
+template <class flt_t, class acc_t, int need_ic>
 void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
                      const int astart, const int aend, void *fix_in) {
   IntelBuffers<flt_t,acc_t> *buffers = (IntelBuffers<flt_t,acc_t> *)buffers_in;
@@ -160,7 +214,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
   if (offload) {
     fix->start_watch(TIME_PACK);
     buffers->grow(nall, atom->nlocal, comm->nthreads, aend);
-    buffers->grow_nbor(list, atom->nlocal, aend);
+    buffers->grow_nbor(list, atom->nlocal, comm->nthreads, aend);
 
     ATOM_T biga;
     biga.x = INTEL_BIGP;
@@ -175,14 +229,15 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
 				sizeof(ATOM_T));
       buffers->thr_pack(ifrom, ito, 0);
     }
     fix->stop_watch(TIME_PACK);
 
     fix->start_watch(TIME_HOST_NEIGHBOR);
-    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin());
+    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin(),
+			   buffers->get_binpacked());
     if (INTEL_MIC_NBOR_PAD > 1)
       pad = INTEL_MIC_NBOR_PAD * sizeof(float) / sizeof(flt_t);
   } else {
@@ -249,6 +304,14 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
   const int nthreads = tnum;
   const int maxnbors = buffers->get_max_nbors();
   int * _noalias const atombin = buffers->get_atombin();
+  const int * _noalias const binpacked = buffers->get_binpacked();
+
+  const int xperiodic = domain->xperiodic;
+  const int yperiodic = domain->yperiodic;
+  const int zperiodic = domain->zperiodic;
+  const flt_t xprd_half = domain->xprd_half;
+  const flt_t yprd_half = domain->yprd_half;
+  const flt_t zprd_half = domain->zprd_half;
 
   // Make sure dummy coordinates to eliminate loop remainder not within cutoff
   {
@@ -262,7 +325,6 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
 
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
-  const int * _noalias const special_flag = this->special_flag;
   const int * _noalias const bins = this->bins;
   const int cop = fix->coprocessor_number();
   const int separate_buffers = fix->separate_buffers();
@@ -271,8 +333,8 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     in(tag:length(tag_size) alloc_if(0) free_if(0)) \
     in(special:length(special_size*maxspecial) alloc_if(0) free_if(0)) \
     in(nspecial:length(special_size*3) alloc_if(0) free_if(0)) \
-    in(bins:length(nall) alloc_if(0) free_if(0)) \
-    in(binhead:length(mbins) alloc_if(0) free_if(0)) \
+    in(bins,binpacked:length(nall) alloc_if(0) free_if(0)) \
+    in(binhead:length(mbins+1) alloc_if(0) free_if(0)) \
     in(cutneighsq:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
@@ -280,15 +342,15 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(atombin:length(aend) alloc_if(0) free_if(0)) \
     in(stencil:length(nstencil) alloc_if(0) free_if(0)) \
-    in(special_flag:length(0) alloc_if(0) free_if(0)) \
-    in(maxnbors,nthreads,maxspecial,nstencil,pad_width,offload) \
+    in(maxnbors,nthreads,maxspecial,nstencil,pad_width,offload,nall)  \
     in(separate_buffers, astart, aend, nlocal, molecular, ntypes) \
+    in(xperiodic, yperiodic, zperiodic, xprd_half, yprd_half, zprd_half) \
     out(overflow:length(5) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
     signal(tag)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
@@ -299,8 +361,24 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
     overflow[LMP_GHOST_MAX] = -1;
     #endif
 
+    int nstencilp = 0;
+    int binstart[INTEL_MAX_STENCIL], binend[INTEL_MAX_STENCIL];
+    for (int k = 0; k < nstencil; k++) {
+      binstart[nstencilp] = stencil[k];
+      int end = stencil[k] + 1;
+      for (int kk = k + 1; kk < nstencil; kk++) {
+        if (stencil[kk-1]+1 == stencil[kk]) {
+          end++;
+          k++;
+        } else break;
+      }
+      binend[nstencilp] = end;
+      nstencilp++;
+    }
+
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(numneigh,overflow)
+    #pragma omp parallel default(none) \
+      shared(numneigh, overflow, nstencilp, binstart, binend)
     #endif
     {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -318,6 +396,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
       const int list_size = (ito + tid + 1) * maxnbors;
       int ct = (ifrom + tid) * maxnbors;
       int *neighptr = firstneigh + ct;
+
       for (int i = ifrom; i < ito; i++) {
         int j, k, n, n2, itype, jtype, ibin;
         double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
@@ -338,9 +417,12 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
 
         ibin = atombin[i];
 
-        for (k = 0; k < nstencil; k++) {
-          for (j = binhead[ibin + stencil[k]]; j >= 0; j = bins[j]) {
-            if (j <= i) continue;
+        for (k = 0; k < nstencilp; k++) {
+          const int bstart = binhead[ibin + binstart[k]];
+          const int bend = binhead[ibin + binend[k]];
+          for (int jj = bstart; jj < bend; jj++) {
+            const int j = binpacked[jj];
+             if (j <= i) continue;
 
             jtype = x[j].w;
             #ifndef _LMP_INTEL_OFFLOAD
@@ -353,13 +435,29 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
             rsq = delx * delx + dely * dely + delz * delz;
             if (rsq <= cutneighsq[ioffset + jtype]) {
               if (j < nlocal) {
-                neighptr[n++] = j;
+                if (need_ic) {
+                  int no_special;
+                  ominimum_image_check(no_special, delx, dely, delz);
+                  if (no_special)
+                    neighptr[n++] = -j - 1;
+		  else
+                    neighptr[n++] = j;
+                } else
+                  neighptr[n++] = j;
                 #ifdef _LMP_INTEL_OFFLOAD
 		if (j < lmin) lmin = j;
 		if (j > lmax) lmax = j;
                 #endif
               } else {
-                neighptr[n2++] = j;
+                if (need_ic) {
+                  int no_special;
+                  ominimum_image_check(no_special, delx, dely, delz);
+                  if (no_special)
+                    neighptr[n2++] = -j - 1;
+		  else
+                    neighptr[n2++] = j;
+                } else
+                  neighptr[n2++] = j;
 	        #ifdef _LMP_INTEL_OFFLOAD
 		if (j < gmin) gmin = j;
 		if (j > gmax) gmax = j;
@@ -373,7 +471,16 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
         cnumneigh[i] = ct;
         if (n > maxnbors) *overflow = 1;
         for (k = maxnbors; k < n2; k++) neighptr[n++] = neighptr[k];
-        while( (n % pad_width) != 0 ) neighptr[n++] = nall;
+
+        const int edge = (n % pad_width);
+        if (edge) {
+          const int pad_end = n + (pad_width - edge);
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma loop_count min=1, max=15, avg=8
+          #endif
+          for ( ; n < pad_end; n++)
+            neighptr[n] = nall;
+        }
         numneigh[i] = n;
         while((n % (INTEL_DATA_ALIGN / sizeof(int))) != 0) n++;
         ct += n;
@@ -422,17 +529,21 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
           const int jnum = numneigh[i];
           for (int jj = 0; jj < jnum; jj++) {
             const int j = jlist[jj];
-            ofind_special(which, special, nspecial, i, tag[j], special_flag);
+	    if (need_ic && j < 0) {
+	      which = 0;
+	      jlist[jj] = -j - 1;
+	    } else
+              ofind_special(which, special, nspecial, i, tag[j]);
             #ifdef _LMP_INTEL_OFFLOAD
 	    if (j >= nlocal) {
-	      if (j == nall) 
+	      if (j == nall)
 		jlist[jj] = nall_offset;
-	      else if (which > 0) 
+	      else if (which) 
 		jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
 	      else jlist[jj]-=ghost_offset;
             } else
             #endif
-	      if (which > 0) jlist[jj] = j ^ (which << SBBITS);
+	      if (which) jlist[jj] = j ^ (which << SBBITS);
           }
         }
       }
@@ -453,7 +564,7 @@ void Neighbor::hbnni(const int offload, NeighList *list, void *buffers_in,
       }
       #endif
     } // end omp
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end offload
@@ -504,48 +615,114 @@ void Neighbor::half_bin_newton_intel(NeighList *list)
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->full_host_list()) host_start = 0;
   offload_noghost = fix->offload_noghost();
-  if (exclude) 
+  if (exclude)
     error->all(FLERR, "Exclusion lists not yet supported for Intel offload");
   #endif
+  if (list->nstencil / 2 > INTEL_MAX_STENCIL_CHECK)
+    error->all(FLERR, "Too many neighbor bins for USER-INTEL package.");
 
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    if (offload_noghost) {
-      hbni<float,double,1>(1, list, fix->get_mixed_buffers(),
-                           0, off_end, fix);
-      hbni<float,double,1>(0, list, fix->get_mixed_buffers(),
-                           host_start, nlocal, fix, off_end);
+  int need_ic = 0;
+  if (atom->molecular)
+    dminimum_image_check(need_ic, cutneighmax, cutneighmax, cutneighmax);
+
+  if (need_ic) {
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+	hbni<float,double,1,1>(1, list, fix->get_mixed_buffers(),
+	                       0, off_end, fix);
+	hbni<float,double,1,1>(0, list, fix->get_mixed_buffers(),
+	                       host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+	hbni<float,double,0,1>(1, list, fix->get_mixed_buffers(),
+	                       0, off_end, fix);
+	hbni<float,double,0,1>(0, list, fix->get_mixed_buffers(),
+	                       host_start, nlocal, fix);
+      }
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbni<double,double,1,1>(1, list, fix->get_double_buffers(),
+                                0, off_end, fix);
+        hbni<double,double,1,1>(0, list, fix->get_double_buffers(),
+                                host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbni<double,double,0,1>(1, list, fix->get_double_buffers(),
+                                0, off_end, fix);
+        hbni<double,double,0,1>(0, list, fix->get_double_buffers(),
+                                host_start, nlocal, fix);
+      }
     } else {
-      hbni<float,double,0>(1, list, fix->get_mixed_buffers(),
-                           0, off_end, fix);
-      hbni<float,double,0>(0, list, fix->get_mixed_buffers(),
-                           host_start, nlocal, fix);
-    }
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    if (offload_noghost) {
-      hbni<double,double,1>(1, list, fix->get_double_buffers(),
-                            0, off_end, fix);
-      hbni<double,double,1>(0, list, fix->get_double_buffers(),
-                            host_start, nlocal, fix, off_end);
-    } else {
-      hbni<double,double,0>(1, list, fix->get_double_buffers(),
-                            0, off_end, fix);
-      hbni<double,double,0>(0, list, fix->get_double_buffers(),
-                            host_start, nlocal, fix);
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbni<float,float,1,1>(1, list, fix->get_single_buffers(), 0, off_end,
+	                      fix);
+        hbni<float,float,1,1>(0, list, fix->get_single_buffers(),
+                              host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbni<float,float,0,1>(1, list, fix->get_single_buffers(), 0, off_end,
+	                      fix);
+        hbni<float,float,0,1>(0, list, fix->get_single_buffers(),
+                              host_start, nlocal, fix);
+      }
     }
   } else {
-    if (offload_noghost) {
-      hbni<float,float,1>(1, list, fix->get_single_buffers(), 0, off_end, fix);
-      hbni<float,float,1>(0, list, fix->get_single_buffers(),
-                          host_start, nlocal, fix, off_end);
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+	hbni<float,double,1,0>(1, list, fix->get_mixed_buffers(),
+	                       0, off_end, fix);
+	hbni<float,double,1,0>(0, list, fix->get_mixed_buffers(),
+	                       host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+	hbni<float,double,0,0>(1, list, fix->get_mixed_buffers(),
+	                       0, off_end, fix);
+	hbni<float,double,0,0>(0, list, fix->get_mixed_buffers(),
+	                       host_start, nlocal, fix);
+      }
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbni<double,double,1,0>(1, list, fix->get_double_buffers(),
+                                0, off_end, fix);
+        hbni<double,double,1,0>(0, list, fix->get_double_buffers(),
+                                host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbni<double,double,0,0>(1, list, fix->get_double_buffers(),
+                                0, off_end, fix);
+        hbni<double,double,0,0>(0, list, fix->get_double_buffers(),
+                                host_start, nlocal, fix);
+      }
     } else {
-      hbni<float,float,0>(1, list, fix->get_single_buffers(), 0, off_end, fix);
-      hbni<float,float,0>(0, list, fix->get_single_buffers(),
-                          host_start, nlocal, fix);
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbni<float,float,1,0>(1, list, fix->get_single_buffers(), 0, off_end,
+	                      fix);
+        hbni<float,float,1,0>(0, list, fix->get_single_buffers(),
+                              host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbni<float,float,0,0>(1, list, fix->get_single_buffers(), 0, off_end,
+	                      fix);
+        hbni<float,float,0,0>(0, list, fix->get_single_buffers(),
+                              host_start, nlocal, fix);
+      }
     }
   }
 }
 
-template <class flt_t, class acc_t, int offload_noghost>
+template <class flt_t, class acc_t, int offload_noghost, int need_ic>
 void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
                     const int astart, const int aend, void *fix_in,
                     const int offload_end) {
@@ -557,7 +734,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
   if (offload) {
     fix->start_watch(TIME_PACK);
     buffers->grow(nall, atom->nlocal, comm->nthreads, aend);
-    buffers->grow_nbor(list, atom->nlocal, aend);
+    buffers->grow_nbor(list, atom->nlocal, comm->nthreads, aend);
 
     ATOM_T biga;
     biga.x = INTEL_BIGP;
@@ -572,21 +749,22 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
 				sizeof(ATOM_T));
       buffers->thr_pack(ifrom, ito, 0);
     }
     fix->stop_watch(TIME_PACK);
 
     fix->start_watch(TIME_HOST_NEIGHBOR);
-    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin());
+    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin(),
+			   buffers->get_binpacked());
     if (INTEL_MIC_NBOR_PAD > 1)
       pad = INTEL_MIC_NBOR_PAD * sizeof(float) / sizeof(flt_t);
   } else {
     fix->start_watch(TIME_HOST_NEIGHBOR);
     if (INTEL_NBOR_PAD > 1)
       pad = INTEL_NBOR_PAD * sizeof(float) / sizeof(flt_t);
-  }    
+  }
   const int pad_width = pad;
 
   if (aend-astart == 0) {
@@ -649,6 +827,14 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
   const int nthreads = tnum;
   const int maxnbors = buffers->get_max_nbors();
   int * _noalias const atombin = buffers->get_atombin();
+  const int * _noalias const binpacked = buffers->get_binpacked();
+
+  const int xperiodic = domain->xperiodic;
+  const int yperiodic = domain->yperiodic;
+  const int zperiodic = domain->zperiodic;
+  const flt_t xprd_half = domain->xprd_half;
+  const flt_t yprd_half = domain->yprd_half;
+  const flt_t zprd_half = domain->zprd_half;
 
   // Make sure dummy coordinates to eliminate loop remainder not within cutoff
   {
@@ -662,7 +848,6 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
 
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
-  const int * _noalias const special_flag = this->special_flag;
   const int * _noalias const bins = this->bins;
   const int cop = fix->coprocessor_number();
   const int separate_buffers = fix->separate_buffers();
@@ -671,8 +856,8 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     in(tag:length(tag_size) alloc_if(0) free_if(0)) \
     in(special:length(special_size*maxspecial) alloc_if(0) free_if(0)) \
     in(nspecial:length(special_size*3) alloc_if(0) free_if(0)) \
-    in(bins:length(nall) alloc_if(0) free_if(0)) \
-    in(binhead:length(mbins) alloc_if(0) free_if(0)) \
+    in(bins,binpacked:length(nall) alloc_if(0) free_if(0)) \
+    in(binhead:length(mbins+1) alloc_if(0) free_if(0)) \
     in(cutneighsq:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
@@ -680,15 +865,15 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(atombin:length(aend) alloc_if(0) free_if(0)) \
     in(stencil:length(nstencil) alloc_if(0) free_if(0)) \
-    in(special_flag:length(0) alloc_if(0) free_if(0)) \
     in(maxnbors,nthreads,maxspecial,nstencil,e_nall,offload,pad_width) \
     in(offload_end,separate_buffers,astart, aend, nlocal, molecular, ntypes) \
+    in(xperiodic, yperiodic, zperiodic, xprd_half, yprd_half, zprd_half) \
     out(overflow:length(5) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
     signal(tag)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
@@ -699,130 +884,271 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
     overflow[LMP_GHOST_MAX] = -1;
     #endif
 
+    int nstencilp = 0;
+    int binstart[INTEL_MAX_STENCIL], binend[INTEL_MAX_STENCIL];
+    for (int k = 0; k < nstencil; k++) {
+      binstart[nstencilp] = stencil[k];
+      int end = stencil[k] + 1;
+      for (int kk = k + 1; kk < nstencil; kk++) {
+        if (stencil[kk-1]+1 == stencil[kk]) {
+	  end++;
+	  k++;
+        } else break;
+      }
+      binend[nstencilp] = end;
+      nstencilp++;
+    }
+
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(numneigh, overflow)
+    #pragma omp parallel default(none) \
+      shared(numneigh, overflow, nstencilp, binstart, binend)
     #endif
     {
       #ifdef _LMP_INTEL_OFFLOAD
       int lmin = e_nall, lmax = -1, gmin = e_nall, gmax = -1;
       #endif
-      
+
       const int num = aend - astart;
       int tid, ifrom, ito;
+
+      #ifdef OUTER_CHUNK
+      const int swidth = ip_simd::SIMD_type<flt_t>::width();
+      IP_PRE_omp_range_id_vec(ifrom, ito, tid, num, nthreads, swidth);
+      ifrom += astart;
+      ito += astart;
+      int e_ito = ito;
+      if (ito == num) {
+	int imod = ito % swidth;
+	if (imod) e_ito += swidth - imod;
+      }
+      const int list_size = (e_ito + tid * 2 + 2) * maxnbors;
+      #else
+      const int swidth = 1;
       IP_PRE_omp_range_id(ifrom, ito, tid, num, nthreads);
       ifrom += astart;
       ito += astart;
+      const int list_size = (ito + tid * 2 + 2) * maxnbors;
+      #endif
 
       int which;
 
-      const int list_size = (ito + tid + 1) * maxnbors;
-      int ct = (ifrom + tid) * maxnbors;
+      int pack_offset = maxnbors * swidth;
+      int ct = (ifrom + tid * 2) * maxnbors;
       int *neighptr = firstneigh + ct;
+      const int obound = pack_offset + maxnbors * 2;
+
+      int max_chunk = 0;
+      int lane = 0;
       for (int i = ifrom; i < ito; i++) {
-        int j, k, n, n2, itype, jtype, ibin;
-        double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
-
-        n = 0;
-	n2 = maxnbors;
-
-        xtmp = x[i].x;
-        ytmp = x[i].y;
-        ztmp = x[i].z;
-        itype = x[i].w;
+        const flt_t xtmp = x[i].x;
+        const flt_t ytmp = x[i].y;
+        const flt_t ztmp = x[i].z;
+        const int itype = x[i].w;
         const int ioffset = ntypes * itype;
 
         // loop over rest of atoms in i's bin, ghosts are at end of linked list
         // if j is owned atom, store it, since j is beyond i in linked list
         // if j is ghost, only store if j coords are "above/to the right" of i
 
-        for (j = bins[i]; j >= 0; j = bins[j]) {
+	int raw_count = pack_offset;
+        for (int j = bins[i]; j >= 0; j = bins[j]) {
           if (j >= nlocal) {
+	    #ifdef _LMP_INTEL_OFFLOAD
             if (offload_noghost && offload) continue;
+	    #endif
             if (x[j].z < ztmp) continue;
             if (x[j].z == ztmp) {
               if (x[j].y < ytmp) continue;
               if (x[j].y == ytmp && x[j].x < xtmp) continue;
             }
-          } else if (offload_noghost && i < offload_end) continue;
-
-          jtype = x[j].w;
-          #ifndef _LMP_INTEL_OFFLOAD
-          if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+          } 
+          #ifdef _LMP_INTEL_OFFLOAD
+          else if (offload_noghost && i < offload_end) continue;
 	  #endif
 
-          delx = xtmp - x[j].x;
-          dely = ytmp - x[j].y;
-          delz = ztmp - x[j].z;
-          rsq = delx * delx + dely * dely + delz * delz;
-
-          if (rsq <= cutneighsq[ioffset + jtype]) {
-	    if (j < nlocal) {
-	      neighptr[n++] = j;
-	      #ifdef _LMP_INTEL_OFFLOAD
-	      if (j < lmin) lmin = j;
-	      if (j > lmax) lmax = j;
-              #endif
-	    } else {
-	      neighptr[n2++] = j;
-	      #ifdef _LMP_INTEL_OFFLOAD
-	      if (j < gmin) gmin = j;
-	      if (j > gmax) gmax = j;
-              #endif
-            }
+          #ifndef _LMP_INTEL_OFFLOAD
+          if (exclude) {
+	    const int jtype = x[j].w;
+	    if (exclusion(i,j,itype,jtype,mask,molecule)) continue;
 	  }
-        }
+	  #endif
+
+	  neighptr[raw_count++] = j;
+	}
+
         // loop over all atoms in other bins in stencil, store every pair
 
-        ibin = atombin[i];
-
-        for (k = 0; k < nstencil; k++) {
-          for (j = binhead[ibin + stencil[k]]; j >= 0; j = bins[j]) {
-            if (offload_noghost) {
-              if (j < nlocal) {
-                if (i < offload_end) continue;
-              } else if (offload) continue;
-            }
-
-            jtype = x[j].w;
-            #ifndef _LMP_INTEL_OFFLOAD
-            if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        const int ibin = atombin[i];
+	if (exclude) {
+	  for (int k = 0; k < nstencilp; k++) {
+	    const int bstart = binhead[ibin + binstart[k]];
+	    const int bend = binhead[ibin + binend[k]];
+	    #ifndef _LMP_INTEL_OFFLOAD
+	    #ifdef INTEL_VMASK
+	    #pragma simd
 	    #endif
+	    #endif
+	    for (int jj = bstart; jj < bend; jj++) {
+	      const int j = binpacked[jj];
+	      
+              #ifdef _LMP_INTEL_OFFLOAD
+              if (offload_noghost) {
+                if (j < nlocal) {
+                  if (i < offload_end) continue;
+                } else if (offload) continue;
+              }
+	      #endif
 
-            delx = xtmp - x[j].x;
-            dely = ytmp - x[j].y;
-            delz = ztmp - x[j].z;
-            rsq = delx * delx + dely * dely + delz * delz;
-            if (rsq <= cutneighsq[ioffset + jtype]) {
-	      if (j < nlocal) {
-		neighptr[n++] = j;
-                #ifdef _LMP_INTEL_OFFLOAD
-		if (j < lmin) lmin = j;
-		if (j > lmax) lmax = j;
-                #endif
-	      } else {
-		neighptr[n2++] = j;
-	        #ifdef _LMP_INTEL_OFFLOAD
-		if (j < gmin) gmin = j;
-		if (j > gmax) gmax = j;
-                #endif
-	      }
+              #ifndef _LMP_INTEL_OFFLOAD
+	      const int jtype = x[j].w;
+	      if (exclusion(i,j,itype,jtype,mask,molecule)) continue;
+	      #endif
+
+	      neighptr[raw_count++] = j;
 	    }
-          }
-        }
-        ilist[i] = i;
+	  }
+	} else {
+	  for (int k = 0; k < nstencilp; k++) {
+	    const int bstart = binhead[ibin + binstart[k]];
+	    const int bend = binhead[ibin + binend[k]];
+	    #ifndef _LMP_INTEL_OFFLOAD
+	    #ifdef INTEL_VMASK
+	    #pragma simd
+	    #endif
+	    #endif
+	    for (int jj = bstart; jj < bend; jj++) {
+	      const int j = binpacked[jj];
+	      
+              #ifdef _LMP_INTEL_OFFLOAD
+              if (offload_noghost) {
+                if (j < nlocal) {
+                  if (i < offload_end) continue;
+                } else if (offload) continue;
+              }
+	      #endif
 
-        cnumneigh[i] = ct;
-        if (n > maxnbors) *overflow = 1;
-	for (k = maxnbors; k < n2; k++) neighptr[n++] = neighptr[k];
-        while( (n % pad_width) != 0 ) neighptr[n++] = e_nall;
-        numneigh[i] = n;
-	while((n % (INTEL_DATA_ALIGN / sizeof(int))) != 0) n++;
-        ct += n;
-        neighptr += n;
-	if (ct + n + maxnbors > list_size) {
-	  *overflow = 1;
-	  ct = (ifrom + tid) * maxnbors;
+	      neighptr[raw_count++] = j;
+	    }
+	  }
 	}
+
+	if (raw_count > obound) *overflow = 1;
+
+        #if defined(LMP_SIMD_COMPILER)
+	#ifdef _LMP_INTEL_OFFLOAD
+	int vlmin = lmin, vlmax = lmax, vgmin = gmin, vgmax = gmax;
+	#if __INTEL_COMPILER+0 > 1499
+	#pragma vector aligned
+        #pragma simd reduction(max:vlmax,vgmax) reduction(min:vlmin, vgmin)
+	#endif
+	#else
+	#pragma vector aligned
+        #pragma simd
+	#endif
+	#endif
+	for (int u = pack_offset; u < raw_count; u++) {
+          int j = neighptr[u];
+          const flt_t delx = xtmp - x[j].x;
+          const flt_t dely = ytmp - x[j].y;
+          const flt_t delz = ztmp - x[j].z;
+	  const int jtype = x[j].w;
+          const flt_t rsq = delx * delx + dely * dely + delz * delz;
+          if (rsq > cutneighsq[ioffset + jtype]) 
+	    neighptr[u] = e_nall;
+	  else {
+	    if (need_ic) {
+	      int no_special;
+	      ominimum_image_check(no_special, delx, dely, delz);
+	      if (no_special)
+		neighptr[u] = -j - 1;
+	    }
+            #ifdef _LMP_INTEL_OFFLOAD
+            if (j < nlocal) {
+              if (j < vlmin) vlmin = j;
+              if (j > vlmax) vlmax = j;
+            } else {
+              if (j < vgmin) vgmin = j;
+              if (j > vgmax) vgmax = j;
+            }
+            #endif
+	  }
+	}
+        #ifdef _LMP_INTEL_OFFLOAD
+	lmin = MIN(lmin,vlmin);
+	gmin = MIN(gmin,vgmin);
+	lmax = MAX(lmax,vlmax);
+	gmax = MAX(gmax,vgmax);
+        #endif
+
+        int n = lane, n2 = pack_offset;
+	for (int u = pack_offset; u < raw_count; u++) {
+	  const int j = neighptr[u];
+	  int pj = j;
+	  if (pj < e_nall) {
+	    if (need_ic)
+	      if (pj < 0) pj = -pj - 1;
+
+	    if (pj < nlocal) {
+	      neighptr[n] = j;
+	      n += swidth;
+	    } else
+	      neighptr[n2++] = j;
+	  }
+	}
+	int ns = (n - lane) / swidth;
+	for (int u = pack_offset; u < n2; u++) {
+	  neighptr[n] = neighptr[u];
+	  n += swidth;
+	}
+
+        ilist[i] = i;
+        cnumneigh[i] = ct + lane;
+	ns += n2 - pack_offset;
+	#ifndef OUTER_CHUNK
+        int edge = (ns % pad_width);
+        if (edge) {
+          const int pad_end = ns + (pad_width - edge);
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma loop_count min=1, max=15, avg=8
+          #endif
+          for ( ; ns < pad_end; ns++)
+            neighptr[ns] = e_nall;
+        }
+	#endif
+        numneigh[i] = ns;
+
+	#ifdef OUTER_CHUNK
+	if (ns > max_chunk) max_chunk = ns;
+	lane++;
+	if (lane == swidth) {
+	  ct += max_chunk * swidth;
+	  const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
+	  int edge = (ct % alignb);
+	  if (edge) ct += alignb - edge;
+	  neighptr = firstneigh + ct;
+	  max_chunk = 0;
+	  pack_offset = maxnbors * swidth;
+	  lane = 0;
+	  if (ct + obound > list_size) {
+            if (i < ito - 1) {
+	      *overflow = 1;
+	      ct = (ifrom + tid * 2) * maxnbors;
+            }
+	  }
+	}
+	#else
+	ct += ns;
+	const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
+	edge = (ct % alignb);
+	if (edge) ct += alignb - edge;
+	neighptr = firstneigh + ct;
+	if (ct + obound > list_size) {
+	  if (i < ito - 1) {
+	    *overflow = 1;
+	    ct = (ifrom + tid * 2) * maxnbors;
+	  }
+	}
+	#endif
       }
 
       if (*overflow == 1)
@@ -846,7 +1172,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
       int ghost_offset = 0, nall_offset = e_nall;
       if (separate_buffers) {
 	int nghost = overflow[LMP_GHOST_MAX] + 1 - overflow[LMP_GHOST_MIN];
-	if (nghost < 0) nghost = 0;
+ 	if (nghost < 0) nghost = 0;
 	if (offload) {
 	  ghost_offset = overflow[LMP_GHOST_MIN] - overflow[LMP_LOCAL_MAX] - 1;
 	  nall_offset = overflow[LMP_LOCAL_MAX] + 1 + nghost;
@@ -861,20 +1187,32 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
         for (int i = ifrom; i < ito; ++i) {
           int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
+	  #ifndef OUTER_CHUNK
+          #if defined(LMP_SIMD_COMPILER)
+	  #pragma vector aligned
+          #pragma simd
+	  #endif
           for (int jj = 0; jj < jnum; jj++) {
+	  #else
+	  const int trip = jnum * swidth;
+          for (int jj = 0; jj < trip; jj+= swidth) {
+	  #endif
             const int j = jlist[jj];
-            ofind_special(which, special, nspecial, i, tag[j],
-                          special_flag);
+	    if (need_ic && j < 0) {
+	      which = 0;
+	      jlist[jj] = -j - 1;
+            } else
+              ofind_special(which, special, nspecial, i, tag[j]);
 	    #ifdef _LMP_INTEL_OFFLOAD
 	    if (j >= nlocal) {
 	      if (j == e_nall)
 		jlist[jj] = nall_offset;
-	      else if (which > 0) 
+	      else if (which) 
 		jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
 	      else jlist[jj]-=ghost_offset;
             } else
 	    #endif
-            if (which > 0) jlist[jj] = j ^ (which << SBBITS);
+            if (which) jlist[jj] = j ^ (which << SBBITS);
           }
         }
       }
@@ -895,7 +1233,7 @@ void Neighbor::hbni(const int offload, NeighList *list, void *buffers_in,
       }
       #endif
     } // end omp
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end offload
@@ -946,50 +1284,114 @@ void Neighbor::half_bin_newton_tri_intel(NeighList *list)
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->full_host_list()) host_start = 0;
   offload_noghost = fix->offload_noghost();
-  if (exclude) 
+  if (exclude)
     error->all(FLERR, "Exclusion lists not yet supported for Intel offload");
   #endif
+  if (list->nstencil / 2 > INTEL_MAX_STENCIL_CHECK)
+    error->all(FLERR, "Too many neighbor bins for USER-INTEL package.");
 
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    if (offload_noghost) {
-      hbnti<float,double,1>(1, list, fix->get_mixed_buffers(),
-			    0, off_end, fix);
-      hbnti<float,double,1>(0, list, fix->get_mixed_buffers(),
-			    host_start, nlocal, fix, off_end);
+  int need_ic = 0;
+  if (atom->molecular)
+    dminimum_image_check(need_ic, cutneighmax, cutneighmax, cutneighmax);
+
+  if (need_ic) {
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbnti<float,double,1,1>(1, list, fix->get_mixed_buffers(),
+  			        0, off_end, fix);
+        hbnti<float,double,1,1>(0, list, fix->get_mixed_buffers(),
+  			        host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbnti<float,double,0,1>(1, list, fix->get_mixed_buffers(),
+	  		        0, off_end, fix);
+        hbnti<float,double,0,1>(0, list, fix->get_mixed_buffers(),
+			        host_start, nlocal, fix);
+      }
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbnti<double,double,1,1>(1, list, fix->get_double_buffers(),
+	  		         0, off_end, fix);
+        hbnti<double,double,1,1>(0, list, fix->get_double_buffers(),
+			         host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbnti<double,double,0,1>(1, list, fix->get_double_buffers(),
+			         0, off_end, fix);
+        hbnti<double,double,0,1>(0, list, fix->get_double_buffers(),
+			         host_start, nlocal, fix);
+      }
     } else {
-      hbnti<float,double,0>(1, list, fix->get_mixed_buffers(),
-			    0, off_end, fix);
-      hbnti<float,double,0>(0, list, fix->get_mixed_buffers(),
-			    host_start, nlocal, fix);
-    }
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    if (offload_noghost) {
-      hbnti<double,double,1>(1, list, fix->get_double_buffers(),
-			     0, off_end, fix);
-      hbnti<double,double,1>(0, list, fix->get_double_buffers(),
-			     host_start, nlocal, fix, off_end);
-    } else {
-      hbnti<double,double,0>(1, list, fix->get_double_buffers(),
-			     0, off_end, fix);
-      hbnti<double,double,0>(0, list, fix->get_double_buffers(),
-			     host_start, nlocal, fix);
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbnti<float,float,1,1>(1, list, fix->get_single_buffers(),
+	  		       0, off_end, fix);
+        hbnti<float,float,1,1>(0, list, fix->get_single_buffers(),
+			       host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbnti<float,float,0,1>(1, list, fix->get_single_buffers(),
+			       0, off_end, fix);
+        hbnti<float,float,0,1>(0, list, fix->get_single_buffers(),
+			       host_start, nlocal, fix);
+      }
     }
   } else {
-    if (offload_noghost) {
-      hbnti<float,float,1>(1, list, fix->get_single_buffers(),
-			   0, off_end, fix);
-      hbnti<float,float,1>(0, list, fix->get_single_buffers(),
-			   host_start, nlocal, fix, off_end);
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbnti<float,double,1,0>(1, list, fix->get_mixed_buffers(),
+  			        0, off_end, fix);
+        hbnti<float,double,1,0>(0, list, fix->get_mixed_buffers(),
+  			        host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbnti<float,double,0,0>(1, list, fix->get_mixed_buffers(),
+	  		        0, off_end, fix);
+        hbnti<float,double,0,0>(0, list, fix->get_mixed_buffers(),
+			        host_start, nlocal, fix);
+      }
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbnti<double,double,1,0>(1, list, fix->get_double_buffers(),
+	  		         0, off_end, fix);
+        hbnti<double,double,1,0>(0, list, fix->get_double_buffers(),
+			         host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbnti<double,double,0,0>(1, list, fix->get_double_buffers(),
+			         0, off_end, fix);
+        hbnti<double,double,0,0>(0, list, fix->get_double_buffers(),
+			         host_start, nlocal, fix);
+      }
     } else {
-      hbnti<float,float,0>(1, list, fix->get_single_buffers(),
-			   0, off_end, fix);
-      hbnti<float,float,0>(0, list, fix->get_single_buffers(),
-			   host_start, nlocal, fix);
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        hbnti<float,float,1,0>(1, list, fix->get_single_buffers(),
+	  		       0, off_end, fix);
+        hbnti<float,float,1,0>(0, list, fix->get_single_buffers(),
+			       host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        hbnti<float,float,0,0>(1, list, fix->get_single_buffers(),
+			       0, off_end, fix);
+        hbnti<float,float,0,0>(0, list, fix->get_single_buffers(),
+			       host_start, nlocal, fix);
+      }
     }
   }
 }
 
-template <class flt_t, class acc_t, int offload_noghost>
+template <class flt_t, class acc_t, int offload_noghost, int need_ic>
 void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
                      const int astart, const int aend, void *fix_in,
 		     const int offload_end) {
@@ -997,11 +1399,13 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
   FixIntel *fix = (FixIntel *)fix_in;
   const int nall = atom->nlocal + atom->nghost;
   int pad = 1;
+  if (list->nstencil > INTEL_MAX_STENCIL)
+    error->all(FLERR, "Too many neighbor bins for USER-INTEL package.");
 
   if (offload) {
     fix->start_watch(TIME_PACK);
     buffers->grow(nall, atom->nlocal, comm->nthreads, aend);
-    buffers->grow_nbor(list, atom->nlocal, aend);
+    buffers->grow_nbor(list, atom->nlocal, comm->nthreads, aend);
 
     ATOM_T biga;
     biga.x = INTEL_BIGP;
@@ -1016,14 +1420,15 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, nall, nthreads,
 				sizeof(ATOM_T));
       buffers->thr_pack(ifrom, ito, 0);
     }
     fix->stop_watch(TIME_PACK);
 
     fix->start_watch(TIME_HOST_NEIGHBOR);
-    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin());
+    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin(),
+			   buffers->get_binpacked());
     if (INTEL_MIC_NBOR_PAD > 1)
       pad = INTEL_MIC_NBOR_PAD * sizeof(float) / sizeof(flt_t);
   } else {
@@ -1093,6 +1498,14 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
   const int nthreads = tnum;
   const int maxnbors = buffers->get_max_nbors();
   int * _noalias const atombin = buffers->get_atombin();
+  const int * _noalias const binpacked = buffers->get_binpacked();
+
+  const int xperiodic = domain->xperiodic;
+  const int yperiodic = domain->yperiodic;
+  const int zperiodic = domain->zperiodic;
+  const flt_t xprd_half = domain->xprd_half;
+  const flt_t yprd_half = domain->yprd_half;
+  const flt_t zprd_half = domain->zprd_half;
 
   // Make sure dummy coordinates to eliminate loop remainder not within cutoff
   {
@@ -1106,7 +1519,6 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
 
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
-  const int * _noalias const special_flag = this->special_flag;
   const int * _noalias const bins = this->bins;
   const int cop = fix->coprocessor_number();
   const int separate_buffers = fix->separate_buffers();
@@ -1115,8 +1527,8 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     in(tag:length(tag_size) alloc_if(0) free_if(0)) \
     in(special:length(special_size*maxspecial) alloc_if(0) free_if(0)) \
     in(nspecial:length(special_size*3) alloc_if(0) free_if(0)) \
-    in(bins:length(nall) alloc_if(0) free_if(0)) \
-    in(binhead:length(mbins) alloc_if(0) free_if(0)) \
+    in(bins,binpacked:length(nall) alloc_if(0) free_if(0)) \
+    in(binhead:length(mbins+1) alloc_if(0) free_if(0)) \
     in(cutneighsq:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
@@ -1124,15 +1536,15 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(atombin:length(aend) alloc_if(0) free_if(0)) \
     in(stencil:length(nstencil) alloc_if(0) free_if(0)) \
-    in(special_flag:length(0) alloc_if(0) free_if(0)) \
     in(maxnbors,nthreads,maxspecial,nstencil,offload_end,pad_width,e_nall) \
     in(offload,separate_buffers, astart, aend, nlocal, molecular, ntypes) \
+    in(xperiodic, yperiodic, zperiodic, xprd_half, yprd_half, zprd_half) \
     out(overflow:length(5) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
     signal(tag)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
@@ -1143,36 +1555,48 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
     overflow[LMP_GHOST_MAX] = -1;
     #endif
 
+    int nstencilp = 0;
+    int binstart[INTEL_MAX_STENCIL], binend[INTEL_MAX_STENCIL];
+    for (int k = 0; k < nstencil; k++) {
+      binstart[nstencilp] = stencil[k];
+      int end = stencil[k] + 1;
+      for (int kk = k + 1; kk < nstencil; kk++) {
+        if (stencil[kk-1]+1 == stencil[kk]) {
+          end++;
+          k++;
+        } else break;
+      }
+      binend[nstencilp] = end;
+      nstencilp++;
+    }
+
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(numneigh, overflow)
+    #pragma omp parallel default(none) \
+      shared(numneigh, overflow, nstencilp, binstart, binend)
     #endif
     {
       #ifdef _LMP_INTEL_OFFLOAD
       int lmin = e_nall, lmax = -1, gmin = e_nall, gmax = -1;
       #endif
 
-      const int num = aend-astart;
+      const int num = aend - astart;
       int tid, ifrom, ito;
-      IP_PRE_omp_range_id(ifrom,ito,tid,num,nthreads);
+      IP_PRE_omp_range_id(ifrom, ito, tid, num, nthreads);
       ifrom += astart;
       ito += astart;
 
       int which;
 
-      const int list_size = (ito + tid + 1) * maxnbors;
-      int ct = (ifrom + tid) * maxnbors;
+      const int list_size = (ito + tid * 2 + 2) * maxnbors;
+      int ct = (ifrom + tid * 2) * maxnbors;
       int *neighptr = firstneigh + ct;
+      const int obound = maxnbors * 3;
+
       for (int i = ifrom; i < ito; i++) {
-        int j, k, n, n2, itype, jtype, ibin;
-        double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
-
-        n = 0;
-        n2 = maxnbors;
-
-        xtmp = x[i].x;
-        ytmp = x[i].y;
-        ztmp = x[i].z;
-        itype = x[i].w;
+        const flt_t xtmp = x[i].x;
+        const flt_t ytmp = x[i].y;
+        const flt_t ztmp = x[i].z;
+        const int itype = x[i].w;
         const int ioffset = ntypes * itype;
 
         // loop over all atoms in bins in stencil
@@ -1181,15 +1605,22 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
         //         (equal zyx and j <= i)
         // latter excludes self-self interaction but allows superposed atoms
 
-        ibin = atombin[i];
+        const int ibin = atombin[i];
 
-        for (k = 0; k < nstencil; k++) {
-          for (j = binhead[ibin + stencil[k]]; j >= 0; j = bins[j]) {
+	int raw_count = maxnbors;
+        for (int k = 0; k < nstencilp; k++) {
+          const int bstart = binhead[ibin + binstart[k]];
+          const int bend = binhead[ibin + binend[k]];
+          for (int jj = bstart; jj < bend; jj++) {
+            const int j = binpacked[jj];
+
+	    #ifdef _LMP_INTEL_OFFLOAD
 	    if (offload_noghost) {
               if (j < nlocal) {
                 if (i < offload_end) continue;
               } else if (offload) continue;
             }
+	    #endif
 
             if (x[j].z < ztmp) continue;
             if (x[j].z == ztmp) {
@@ -1200,46 +1631,104 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
               }
             }
 
-            jtype = x[j].w;
             #ifndef _LMP_INTEL_OFFLOAD
-            if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+            if (exclude) {
+	      const int jtype = x[j].w;
+	      if (exclusion(i,j,itype,jtype,mask,molecule)) continue;
+	    }
 	    #endif
 
-            delx = xtmp - x[j].x;
-            dely = ytmp - x[j].y;
-            delz = ztmp - x[j].z;
-            rsq = delx * delx + dely * dely + delz * delz;
-            if (rsq <= cutneighsq[ioffset + jtype]) {
-              if (j < nlocal) {
-                neighptr[n++] = j;
-                #ifdef _LMP_INTEL_OFFLOAD
-		if (j < lmin) lmin = j;
-		if (j > lmax) lmax = j;
-                #endif
-	      }  else {
-                neighptr[n2++] = j;
-  	        #ifdef _LMP_INTEL_OFFLOAD
-		if (j < gmin) gmin = j;
-		if (j > gmax) gmax = j;
-                #endif
-	      }
+	    neighptr[raw_count++] = j;
+	  }
+	}
+	if (raw_count > obound)
+	  *overflow = 1;
+
+        #if defined(LMP_SIMD_COMPILER)
+	#ifdef _LMP_INTEL_OFFLOAD
+	int vlmin = lmin, vlmax = lmax, vgmin = gmin, vgmax = gmax;
+	#if __INTEL_COMPILER+0 > 1499
+	#pragma vector aligned
+        #pragma simd reduction(max:vlmax,vgmax) reduction(min:vlmin, vgmin)
+	#endif
+	#else
+	#pragma vector aligned
+        #pragma simd
+	#endif
+	#endif
+	for (int u = maxnbors; u < raw_count; u++) {
+          int j = neighptr[u];
+          const flt_t delx = xtmp - x[j].x;
+          const flt_t dely = ytmp - x[j].y;
+          const flt_t delz = ztmp - x[j].z;
+	  const int jtype = x[j].w;
+          const flt_t rsq = delx * delx + dely * dely + delz * delz;
+          if (rsq > cutneighsq[ioffset + jtype]) 
+	    neighptr[u] = e_nall;
+	  else {
+            if (need_ic) {
+	      int no_special;
+	      ominimum_image_check(no_special, delx, dely, delz);
+	      if (no_special)
+	        neighptr[u] = -j - 1;
+	    }
+
+            #ifdef _LMP_INTEL_OFFLOAD
+            if (j < nlocal) {
+              if (j < vlmin) vlmin = j;
+              if (j > vlmax) vlmax = j;
+            } else {
+              if (j < vgmin) vgmin = j;
+              if (j > vgmax) vgmax = j;
             }
+            #endif
           }
         }
-        ilist[i] = i;
 
+        int n = 0, n2 = maxnbors;
+	for (int u = maxnbors; u < raw_count; u++) {
+	  const int j = neighptr[u];
+	  int pj = j;
+	  if (pj < e_nall) {
+	    if (need_ic)
+	      if (pj < 0) pj = -pj - 1;
+
+	    if (pj < nlocal)
+	      neighptr[n++] = j;
+	    else
+	      neighptr[n2++] = j;
+	  }
+	}
+	int ns = n;
+	for (int u = maxnbors; u < n2; u++)
+	  neighptr[n++] = neighptr[u];
+
+        ilist[i] = i;
         cnumneigh[i] = ct;
-        if (n > maxnbors) *overflow = 1;
-        for (k = maxnbors; k < n2; k++) neighptr[n++] = neighptr[k];
-        while( (n % pad_width) != 0 ) neighptr[n++] = e_nall;
-        numneigh[i] = n;
-        while((n % (INTEL_DATA_ALIGN / sizeof(int))) != 0) n++;
-        ct += n;
-        neighptr += n;
-        if (ct + n + maxnbors > list_size) {
-          *overflow = 1;
-          ct = (ifrom + tid) * maxnbors;
+	ns += n2 - maxnbors;
+
+        int edge = (ns % pad_width);
+        if (edge) {
+          const int pad_end = ns + (pad_width - edge);
+          #if defined(LMP_SIMD_COMPILER)
+          #pragma loop_count min=1, max=15, avg=8
+          #endif
+          for ( ; ns < pad_end; ns++)
+            neighptr[ns] = e_nall;
         }
+        numneigh[i] = ns;
+
+	ct += ns;
+	const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
+	edge = (ct % alignb);
+	if (edge) ct += alignb - edge;
+	neighptr = firstneigh + ct;
+	if (ct + obound > list_size) {
+	  if (i < ito - 1) {
+	    *overflow = 1;
+	    ct = (ifrom + tid * 2) * maxnbors;
+	  }
+	}
       }
 
       if (*overflow == 1)
@@ -1278,19 +1767,27 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
         for (int i = ifrom; i < ito; ++i) {
           int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
+          #if defined(LMP_SIMD_COMPILER)
+	  #pragma vector aligned
+          #pragma simd
+	  #endif
           for (int jj = 0; jj < jnum; jj++) {
             const int j = jlist[jj];
-            ofind_special(which, special, nspecial, i, tag[j], special_flag);
+	    if (need_ic && j < 0) {
+	      which = 0;
+	      jlist[jj] = -j - 1;
+	    } else
+              ofind_special(which, special, nspecial, i, tag[j]);
             #ifdef _LMP_INTEL_OFFLOAD
 	    if (j >= nlocal) {
-	      if (j == e_nall) 
+	      if (j == e_nall)
 		jlist[jj] = nall_offset;
-	      else if (which > 0) 
+	      else if (which) 
 		jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
 	      else jlist[jj]-=ghost_offset;
             } else
             #endif
-	      if (which > 0) jlist[jj] = j ^ (which << SBBITS);
+	      if (which) jlist[jj] = j ^ (which << SBBITS);
           }
         }
       }
@@ -1311,7 +1808,7 @@ void Neighbor::hbnti(const int offload, NeighList *list, void *buffers_in,
       }
       #endif
     } // end omp
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end offload
@@ -1365,45 +1862,111 @@ void Neighbor::full_bin_intel(NeighList *list)
   if (exclude)
     error->all(FLERR, "Exclusion lists not yet supported for Intel offload");
   #endif
+  if (list->nstencil > INTEL_MAX_STENCIL_CHECK)
+    error->all(FLERR, "Too many neighbor bins for USER-INTEL package.");
 
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    if (offload_noghost) {
-      fbi<float,double,1>(1, list, fix->get_mixed_buffers(),
-                          0, off_end, fix);
-      fbi<float,double,1>(0, list, fix->get_mixed_buffers(),
-                          host_start, nlocal, fix, off_end);
+  int need_ic = 0;
+  if (atom->molecular)
+    dminimum_image_check(need_ic, cutneighmax, cutneighmax, cutneighmax);
+
+  if (need_ic) {
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        fbi<float,double,1,1>(1, list, fix->get_mixed_buffers(),
+                              0, off_end, fix);
+        fbi<float,double,1,1>(0, list, fix->get_mixed_buffers(),
+                              host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        fbi<float,double,0,1>(1, list, fix->get_mixed_buffers(),
+                              0, off_end, fix);
+        fbi<float,double,0,1>(0, list, fix->get_mixed_buffers(),
+                              host_start, nlocal, fix);
+      }
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        fbi<double,double,1,1>(1, list, fix->get_double_buffers(),
+                               0, off_end, fix);
+        fbi<double,double,1,1>(0, list, fix->get_double_buffers(),
+                               host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        fbi<double,double,0,1>(1, list, fix->get_double_buffers(),
+                               0, off_end, fix);
+        fbi<double,double,0,1>(0, list, fix->get_double_buffers(),
+                               host_start, nlocal, fix);
+      }
     } else {
-      fbi<float,double,0>(1, list, fix->get_mixed_buffers(),
-                          0, off_end, fix);
-      fbi<float,double,0>(0, list, fix->get_mixed_buffers(),
-                          host_start, nlocal, fix);
-    }
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    if (offload_noghost) {
-      fbi<double,double,1>(1, list, fix->get_double_buffers(),
-                           0, off_end, fix);
-      fbi<double,double,1>(0, list, fix->get_double_buffers(),
-                           host_start, nlocal, fix, off_end);
-    } else {
-      fbi<double,double,0>(1, list, fix->get_double_buffers(),
-                           0, off_end, fix);
-      fbi<double,double,0>(0, list, fix->get_double_buffers(),
-                           host_start, nlocal, fix);
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        fbi<float,float,1,1>(1, list, fix->get_single_buffers(), 0, off_end,
+			     fix);
+        fbi<float,float,1,1>(0, list, fix->get_single_buffers(),
+                             host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        fbi<float,float,0,1>(1, list, fix->get_single_buffers(), 0, off_end,
+			     fix);
+        fbi<float,float,0,1>(0, list, fix->get_single_buffers(),
+                             host_start, nlocal, fix);
+      }
     }
   } else {
-    if (offload_noghost) {
-      fbi<float,float,1>(1, list, fix->get_single_buffers(), 0, off_end, fix);
-      fbi<float,float,1>(0, list, fix->get_single_buffers(),
-                         host_start, nlocal, fix, off_end);
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        fbi<float,double,1,0>(1, list, fix->get_mixed_buffers(),
+                              0, off_end, fix);
+        fbi<float,double,1,0>(0, list, fix->get_mixed_buffers(),
+                              host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        fbi<float,double,0,0>(1, list, fix->get_mixed_buffers(),
+                              0, off_end, fix);
+        fbi<float,double,0,0>(0, list, fix->get_mixed_buffers(),
+                              host_start, nlocal, fix);
+      }
+    } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        fbi<double,double,1,0>(1, list, fix->get_double_buffers(),
+                               0, off_end, fix);
+        fbi<double,double,1,0>(0, list, fix->get_double_buffers(),
+                               host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        fbi<double,double,0,0>(1, list, fix->get_double_buffers(),
+                               0, off_end, fix);
+        fbi<double,double,0,0>(0, list, fix->get_double_buffers(),
+                               host_start, nlocal, fix);
+      }
     } else {
-      fbi<float,float,0>(1, list, fix->get_single_buffers(), 0, off_end, fix);
-      fbi<float,float,0>(0, list, fix->get_single_buffers(),
-                         host_start, nlocal, fix);
+      #ifdef _LMP_INTEL_OFFLOAD
+      if (offload_noghost) {
+        fbi<float,float,1,0>(1, list, fix->get_single_buffers(), 0, off_end,
+			     fix);
+        fbi<float,float,1,0>(0, list, fix->get_single_buffers(),
+                             host_start, nlocal, fix, off_end);
+      } else
+      #endif
+      {
+        fbi<float,float,0,0>(1, list, fix->get_single_buffers(), 0, off_end,
+			     fix);
+        fbi<float,float,0,0>(0, list, fix->get_single_buffers(),
+                             host_start, nlocal, fix);
+      }
     }
   }
 }
 
-template <class flt_t, class acc_t, int offload_noghost>
+template <class flt_t, class acc_t, int offload_noghost, int need_ic>
 void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
                     const int astart, const int aend, void *fix_in,
                     const int offload_end) {
@@ -1412,10 +1975,12 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
   const int nall = atom->nlocal + atom->nghost;
   int pad = 1;
 
+  const int pack_width = fix->nbor_pack_width();
+
   if (offload) {
     fix->start_watch(TIME_PACK);
     buffers->grow(nall, atom->nlocal, comm->nthreads, aend);
-    buffers->grow_nbor(list, atom->nlocal, aend);
+    buffers->grow_nbor(list, atom->nlocal, comm->nthreads, aend, pack_width);
 
     ATOM_T biga;
     biga.x = INTEL_BIGP;
@@ -1437,7 +2002,8 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
     fix->stop_watch(TIME_PACK);
 
     fix->start_watch(TIME_HOST_NEIGHBOR);
-    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin());
+    bin_atoms<flt_t,acc_t>(buffers->get_x(), buffers->get_atombin(),
+			   buffers->get_binpacked());
   } else {
     fix->start_watch(TIME_HOST_NEIGHBOR);
   }
@@ -1503,6 +2069,14 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
   const int nthreads = tnum;
   const int maxnbors = buffers->get_max_nbors();
   int * _noalias const atombin = buffers->get_atombin();
+  const int * _noalias const binpacked = buffers->get_binpacked();
+
+  const int xperiodic = domain->xperiodic;
+  const int yperiodic = domain->yperiodic;
+  const int zperiodic = domain->zperiodic;
+  const flt_t xprd_half = domain->xprd_half;
+  const flt_t yprd_half = domain->yprd_half;
+  const flt_t zprd_half = domain->zprd_half;
 
   // Make sure dummy coordinates to eliminate loop remainder not within cutoff
   {
@@ -1516,7 +2090,6 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
 
   #ifdef _LMP_INTEL_OFFLOAD
   const int * _noalias const binhead = this->binhead;
-  const int * _noalias const special_flag = this->special_flag;
   const int * _noalias const bins = this->bins;
   const int cop = fix->coprocessor_number();
   const int separate_buffers = fix->separate_buffers();
@@ -1525,8 +2098,8 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
     in(tag:length(tag_size) alloc_if(0) free_if(0)) \
     in(special:length(special_size*maxspecial) alloc_if(0) free_if(0)) \
     in(nspecial:length(special_size*3) alloc_if(0) free_if(0)) \
-    in(bins:length(nall) alloc_if(0) free_if(0)) \
-    in(binhead:length(mbins) alloc_if(0) free_if(0)) \
+    in(bins,binpacked:length(nall) alloc_if(0) free_if(0)) \
+    in(binhead:length(mbins+1) alloc_if(0) free_if(0)) \
     in(cutneighsq:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
@@ -1534,15 +2107,15 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
     in(ilist:length(0) alloc_if(0) free_if(0)) \
     in(atombin:length(aend) alloc_if(0) free_if(0)) \
     in(stencil:length(nstencil) alloc_if(0) free_if(0)) \
-    in(special_flag:length(0) alloc_if(0) free_if(0)) \
-    in(maxnbors,nthreads,maxspecial,nstencil,e_nall,offload) \
+    in(maxnbors,nthreads,maxspecial,nstencil,e_nall,offload,pack_width)	\
     in(offload_end,separate_buffers,astart, aend, nlocal, molecular, ntypes) \
+    in(xperiodic, yperiodic, zperiodic, xprd_half, yprd_half, zprd_half) \
     out(overflow:length(5) alloc_if(0) free_if(0)) \
     out(timer_compute:length(1) alloc_if(0) free_if(0)) \
     signal(tag)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
@@ -1553,8 +2126,24 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
     overflow[LMP_GHOST_MAX] = -1;
     #endif
 
+    int nstencilp = 0;
+    int binstart[INTEL_MAX_STENCIL], binend[INTEL_MAX_STENCIL];
+    for (int k = 0; k < nstencil; k++) {
+      binstart[nstencilp] = stencil[k];
+      int end = stencil[k] + 1;
+      for (int kk = k + 1; kk < nstencil; kk++) {
+        if (stencil[kk-1]+1 == stencil[kk]) {
+          end++;
+          k++;
+        } else break;
+      }
+      binend[nstencilp] = end;
+      nstencilp++;
+    }
+
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) shared(numneigh, overflow)
+    #pragma omp parallel default(none) \
+      shared(numneigh, overflow, nstencilp, binstart, binend)
     #endif
     {
       #ifdef _LMP_INTEL_OFFLOAD
@@ -1563,97 +2152,200 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
 
       const int num = aend - astart;
       int tid, ifrom, ito;
-      IP_PRE_omp_range_id(ifrom, ito, tid, num, nthreads);
+
+      IP_PRE_omp_range_id_vec(ifrom, ito, tid, num, nthreads, pack_width);
       ifrom += astart;
       ito += astart;
-
+      int e_ito = ito;
+      if (ito == num) {
+	int imod = ito % pack_width;
+	if (imod) e_ito += pack_width - imod;
+      }
+      const int list_size = (e_ito + tid * 2 + 2) * maxnbors;
       int which;
-
-      const int list_size = (ito + tid + 1) * maxnbors;
-      int ct = (ifrom + tid) * maxnbors;
+      int pack_offset = maxnbors * pack_width;
+      int ct = (ifrom + tid * 2) * maxnbors;
       int *neighptr = firstneigh + ct;
+      const int obound = pack_offset + maxnbors * 2;
+
+      int max_chunk = 0;
+      int lane = 0;
       for (int i = ifrom; i < ito; i++) {
-        int j, k, n, n2, itype, jtype, ibin;
-        double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
-
-        n = 0;
-        n2 = maxnbors;
-
-        xtmp = x[i].x;
-        ytmp = x[i].y;
-        ztmp = x[i].z;
-        itype = x[i].w;
+        const flt_t xtmp = x[i].x;
+        const flt_t ytmp = x[i].y;
+        const flt_t ztmp = x[i].z;
+        const int itype = x[i].w;
         const tagint itag = tag[i];
         const int ioffset = ntypes * itype;
 
+        const int ibin = atombin[i];
+	int raw_count = pack_offset;
+
         // loop over all atoms in surrounding bins in stencil including self
         // skip i = j
-
-        ibin = atombin[i];
-
-        for (k = 0; k < nstencil; k++) {
-          for (j = binhead[ibin + stencil[k]]; j >= 0; j = bins[j]) {
-            if (i == j) continue;
-
-            if (offload_noghost) {
-              if (j < nlocal) {
-                if (i < offload_end) continue;
-              } else if (offload) continue;
-            }
-
-            jtype = x[j].w;
+	if (exclude) {
+	  for (int k = 0; k < nstencilp; k++) {
+	    const int bstart = binhead[ibin + binstart[k]];
+	    const int bend = binhead[ibin + binend[k]];
             #ifndef _LMP_INTEL_OFFLOAD
-            if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+	    #ifdef INTEL_VMASK
+            #pragma simd
+	    #endif
             #endif
+	    for (int jj = bstart; jj < bend; jj++) {
+	      int j = binpacked[jj];
 
-            delx = xtmp - x[j].x;
-            dely = ytmp - x[j].y;
-            delz = ztmp - x[j].z;
-            rsq = delx * delx + dely * dely + delz * delz;
-            if (rsq <= cutneighsq[ioffset + jtype]) {
-	      const int jtag = tag[j];
-              int flist = 0;
-	      if (itag > jtag) {
-		if ((itag+jtag) % 2 == 0) flist = 1;
-	      } else if (itag < jtag) {
-		if ((itag+jtag) % 2 == 1) flist = 1;
-	      } else {
-		if (x[j].z < ztmp) flist = 1;
-		else if (x[j].z == ztmp && x[j].y < ytmp) flist = 1;
-		else if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) 
-		  flist = 1;
-	      }
-	      if (flist)
-		neighptr[n2++] = j;
-	      else
-		neighptr[n++] = j;
-	      
+	      if (i == j) j=e_nall;
+	    
               #ifdef _LMP_INTEL_OFFLOAD
-	      if (j < nlocal) {
-                if (j < lmin) lmin = j;
-                if (j > lmax) lmax = j;
-              } else {
-                if (j < gmin) gmin = j;
-                if (j > gmax) gmax = j;
+	      if (offload_noghost) {
+                if (j < nlocal) {
+                  if (i < offload_end) continue;
+                } else if (offload) continue;
               }
-              #endif
+	      #endif
+
+              #ifndef _LMP_INTEL_OFFLOAD
+	      const int jtype = x[j].w;
+	      if (exclusion(i,j,itype,jtype,mask,molecule)) continue;
+	      #endif
+
+	      neighptr[raw_count++] = j;
             }
           }
-        }
-        ilist[i] = i;
+	} else {
+	  for (int k = 0; k < nstencilp; k++) {
+	    const int bstart = binhead[ibin + binstart[k]];
+	    const int bend = binhead[ibin + binend[k]];
+            #ifndef _LMP_INTEL_OFFLOAD
+	    #ifdef INTEL_VMASK
+            #pragma simd
+            #endif
+            #endif
+	    for (int jj = bstart; jj < bend; jj++) {
+	      int j = binpacked[jj];
 
-        cnumneigh[i] = ct;
-        if (n > maxnbors) *overflow = 1;
-	atombin[i] = n;
-        for (k = maxnbors; k < n2; k++) neighptr[n++] = neighptr[k];
-        numneigh[i] = n;
-        while((n % (INTEL_DATA_ALIGN / sizeof(int))) != 0) n++;
-        ct += n;
-        neighptr += n;
-        if (ct + n + maxnbors > list_size) {
-          *overflow = 1;
-          ct = (ifrom + tid) * maxnbors;
+	      if (i == j) j=e_nall;
+	    
+              #ifdef _LMP_INTEL_OFFLOAD
+	      if (offload_noghost) {
+                if (j < nlocal) {
+                  if (i < offload_end) continue;
+                } else if (offload) continue;
+              }
+	      #endif
+
+	      neighptr[raw_count++] = j;
+            }
+          }
+	}
+
+	if (raw_count > obound) *overflow = 1;
+
+        #if defined(LMP_SIMD_COMPILER)
+	#ifdef _LMP_INTEL_OFFLOAD
+	int vlmin = lmin, vlmax = lmax, vgmin = gmin, vgmax = gmax;
+	#if __INTEL_COMPILER+0 > 1499
+	#pragma vector aligned
+        #pragma simd reduction(max:vlmax,vgmax) reduction(min:vlmin, vgmin)
+	#endif
+	#else
+	#pragma vector aligned
+        #pragma simd
+	#endif
+	#endif
+	for (int u = pack_offset; u < raw_count; u++) {
+          int j = neighptr[u];
+          const flt_t delx = xtmp - x[j].x;
+          const flt_t dely = ytmp - x[j].y;
+          const flt_t delz = ztmp - x[j].z;
+          const int jtype = x[j].w;
+          const flt_t rsq = delx * delx + dely * dely + delz * delz;
+          if (rsq > cutneighsq[ioffset + jtype]) 
+	    neighptr[u] = e_nall;
+	  else {
+            if (need_ic) {
+              int no_special;
+              ominimum_image_check(no_special, delx, dely, delz);
+              if (no_special)
+                neighptr[u] = -j - 1;
+            }
+            #ifdef _LMP_INTEL_OFFLOAD
+            if (j < nlocal) {
+              if (j < vlmin) vlmin = j;
+              if (j > vlmax) vlmax = j;
+            } else {
+              if (j < vgmin) vgmin = j;
+              if (j > vgmax) vgmax = j;
+            }
+            #endif
+	  }
+	}
+        #ifdef _LMP_INTEL_OFFLOAD
+	lmin = MIN(lmin,vlmin);
+	gmin = MIN(gmin,vgmin);
+	lmax = MAX(lmax,vlmax);
+	gmax = MAX(gmax,vgmax);
+        #endif
+
+        int n = lane, n2 = pack_offset;
+	for (int u = pack_offset; u < raw_count; u++) {
+	  const int j = neighptr[u];
+	  int pj = j;
+	  if (pj < e_nall) {
+	    if (need_ic)
+	      if (pj < 0) pj = -pj - 1;
+	
+	    const int jtag = tag[pj];
+	    int flist = 0;
+	    if (itag > jtag) {
+	      if ((itag+jtag) % 2 == 0) flist = 1;
+	    } else if (itag < jtag) {
+	      if ((itag+jtag) % 2 == 1) flist = 1;
+	    } else {
+              if (x[pj].z < ztmp) flist = 1;
+	      else if (x[pj].z == ztmp && x[pj].y < ytmp) flist = 1;
+	      else if (x[pj].z == ztmp && x[pj].y == ytmp && x[pj].x < xtmp) 
+	      flist = 1;
+	    }
+	    if (flist) {
+	      neighptr[n2++] = j;
+	    } else {
+	      neighptr[n] = j;
+	      n += pack_width;
+	    }
+          }
         }
+	int ns = (n - lane) / pack_width;
+	atombin[i] = ns;
+	for (int u = pack_offset; u < n2; u++) {
+	  neighptr[n] = neighptr[u];
+	  n += pack_width;
+	}
+
+        ilist[i] = i;
+        cnumneigh[i] = ct + lane;
+	ns += n2 - pack_offset;
+        numneigh[i] = ns;
+
+	if (ns > max_chunk) max_chunk = ns;
+	lane++;
+	if (lane == pack_width) {
+	  ct += max_chunk * pack_width;
+	  const int alignb = (INTEL_DATA_ALIGN / sizeof(int));
+	  const int edge = (ct % alignb);
+	  if (edge) ct += alignb - edge;
+	  neighptr = firstneigh + ct;
+	  max_chunk = 0;
+	  pack_offset = maxnbors * pack_width;
+	  lane = 0;
+	  if (ct + obound > list_size) {
+  	    if (i < ito - 1) {
+	      *overflow = 1;
+	      ct = (ifrom + tid * 2) * maxnbors;
+	    }
+          }
+	}
       }
 
       if (*overflow == 1)
@@ -1692,20 +2384,25 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
         for (int i = ifrom; i < ito; ++i) {
           int * _noalias jlist = firstneigh + cnumneigh[i];
           const int jnum = numneigh[i];
-          for (int jj = 0; jj < jnum; jj++) {
+
+	  const int trip = jnum * pack_width;
+          for (int jj = 0; jj < trip; jj+=pack_width) {
             const int j = jlist[jj];
-            ofind_special(which, special, nspecial, i, tag[j],
-                          special_flag);
+	    if (need_ic && j < 0) {
+	      which = 0;
+	      jlist[jj] = -j - 1;
+	    } else
+              ofind_special(which, special, nspecial, i, tag[j]);
             #ifdef _LMP_INTEL_OFFLOAD
             if (j >= nlocal) {
               if (j == e_nall)
                 jlist[jj] = nall_offset;
-              else if (which > 0)
+              else if (which)
                 jlist[jj] = (j-ghost_offset) ^ (which << SBBITS);
               else jlist[jj]-=ghost_offset;
             } else
             #endif
-            if (which > 0) jlist[jj] = j ^ (which << SBBITS);
+            if (which) jlist[jj] = j ^ (which << SBBITS);
           }
         }
       }
@@ -1725,7 +2422,7 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
       }
       #endif
     } // end omp
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end offload
@@ -1755,3 +2452,4 @@ void Neighbor::fbi(const int offload, NeighList *list, void *buffers_in,
     #endif
   }
 }
+

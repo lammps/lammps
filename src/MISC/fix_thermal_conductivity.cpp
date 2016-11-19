@@ -16,10 +16,10 @@
                         for swapping atoms of different masses
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_thermal_conductivity.h"
 #include "atom.h"
 #include "force.h"
@@ -36,7 +36,8 @@ using namespace FixConst;
 
 FixThermalConductivity::FixThermalConductivity(LAMMPS *lmp,
                                                int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  index_lo(NULL), index_hi(NULL), ke_lo(NULL), ke_hi(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix thermal/conductivity command");
 

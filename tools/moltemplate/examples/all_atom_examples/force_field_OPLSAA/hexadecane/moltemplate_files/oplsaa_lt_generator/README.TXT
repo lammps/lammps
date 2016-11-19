@@ -15,7 +15,7 @@ so that it only contains atom types you plan to have in your simulation
 (see below for details).  Then run the opls_moltemplate.py script this way:
 
 
-python oplsaa_moltemplate.py  oplsaa_subset.prm
+oplsaa_moltemplate.py  oplsaa_subset.prm
 
 
 This will create a file named "oplsaa.lt"

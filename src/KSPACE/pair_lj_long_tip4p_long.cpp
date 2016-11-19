@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
                          Rolf Isele-Holder (Aachen University)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_long_tip4p_long.h"
 #include "angle.h"
 #include "atom.h"
@@ -48,7 +48,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongTIP4PLong::PairLJLongTIP4PLong(LAMMPS *lmp) : 
+PairLJLongTIP4PLong::PairLJLongTIP4PLong(LAMMPS *lmp) :
   PairLJLongCoulLong(lmp)
 {
   dispersionflag = tip4pflag = 1;
@@ -90,7 +90,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
   double *x1,*x2;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
- 
+
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -133,7 +133,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -180,7 +180,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       if (rsq < cut_ljsq[itype][jtype]) {			// lj
         r2inv = 1.0/rsq;
        	if (order6) {					// long-range lj
@@ -198,7 +198,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 	      register double f = special_lj[ni], t = rn*(1.0-f);
 	      forcelj = f*(rn *= rn)*lj1i[jtype]-
 	        g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*lj2i[jtype];
-	      if (eflag) 
+	      if (eflag)
 	        evdwl = f*rn*lj3i[jtype]-g6*((a2+1.0)*a2+0.5)*x2+t*lj4i[jtype];
 	    }
           }
@@ -245,12 +245,12 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 	      	             evdwl,0.0,forcelj,delx,dely,delz);
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
               hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
@@ -278,7 +278,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
         }
 
 	// test current rsq against cutoff and compute Coulombic force
-      
+
         if (rsq < cut_coulsq && order1) {
 	  r2inv = 1.0 / rsq;
 	  if (!ncoultablebits || rsq <= tabinnersq) {
@@ -290,7 +290,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 	    prefactor = qqrd2e * qtmp*q[j]/r;
 	    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
 	    if (factor_coul < 1.0) {
-	      forcecoul -= (1.0-factor_coul)*prefactor; 
+	      forcecoul -= (1.0-factor_coul)*prefactor;
 	    }
 	  } else {
 	    union_int_float_t rsq_lookup;
@@ -408,7 +408,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -447,7 +447,7 @@ void PairLJLongTIP4PLong::compute(int eflag, int vflag)
 	    }
 	    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
- 
+
           if (evflag) ev_tally_tip4p(key,vlist,v,ecoul,alpha);
 	}
       }
@@ -512,7 +512,7 @@ void PairLJLongTIP4PLong::compute_inner()
   ilist = listinner->ilist;
   numneigh = listinner->numneigh;
   firstneigh = listinner->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -557,9 +557,9 @@ void PairLJLongTIP4PLong::compute_inner()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
-        r2inv = 1.0/rsq;				
+        r2inv = 1.0/rsq;
 	register double rn = r2inv*r2inv*r2inv;
 	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
 	else {					// special case
@@ -581,12 +581,12 @@ void PairLJLongTIP4PLong::compute_inner()
 	f[j][2] -= delz*forcelj;
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus && order1) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
               hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
@@ -614,7 +614,7 @@ void PairLJLongTIP4PLong::compute_inner()
         }
 
 	// test current rsq against cutoff and compute Coulombic force
-      
+
         if (rsq < cut_coulsq && rsq < cut_out_off_sq) {
 	  r2inv = 1.0 / rsq;
           qri = qqrd2e*qtmp;
@@ -688,7 +688,7 @@ void PairLJLongTIP4PLong::compute_inner()
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -755,7 +755,7 @@ void PairLJLongTIP4PLong::compute_middle()
   ilist = listmiddle->ilist;
   numneigh = listmiddle->numneigh;
   firstneigh = listmiddle->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -800,9 +800,9 @@ void PairLJLongTIP4PLong::compute_middle()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
-        r2inv = 1.0/rsq;				
+        r2inv = 1.0/rsq;
 	register double rn = r2inv*r2inv*r2inv;
 	if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
 	else {					// special case
@@ -828,12 +828,12 @@ void PairLJLongTIP4PLong::compute_middle()
 	f[j][2] -= delz*forcelj;
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus && order1) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
               hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
@@ -861,7 +861,7 @@ void PairLJLongTIP4PLong::compute_middle()
         }
 
 	// test current rsq against cutoff and compute Coulombic force
-      
+
         if (rsq < cut_coulsq &&  rsq >= cut_in_off_sq && rsq <= cut_out_off_sq) {
 	  r2inv = 1.0 / rsq;
           qri = qqrd2e*qtmp;
@@ -939,7 +939,7 @@ void PairLJLongTIP4PLong::compute_middle()
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -974,7 +974,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq,qri;
   int respa_flag;
- 
+
   evdwl = ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
@@ -1016,7 +1016,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 
   double cut_in_off = cut_respa[2];
   double cut_in_on = cut_respa[3];
-  
+
   double cut_in_diff = cut_in_on - cut_in_off;
   double cut_in_off_sq = cut_in_off*cut_in_off;
   double cut_in_on_sq = cut_in_on*cut_in_on;
@@ -1025,7 +1025,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
   ilist = listouter->ilist;
   numneigh = listouter->numneigh;
   firstneigh = listouter->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -1072,7 +1072,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
-        
+
       respa_coul = 0;
       respa_lj = 0;
       if (rsq < cut_ljsq[itype][jtype]) {			// lj
@@ -1141,7 +1141,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 	f[j][0] -= delx*forcelj;
 	f[j][1] -= dely*forcelj;
 	f[j][2] -= delz*forcelj;
-      
+
         if (evflag) {
           fvirial = forcelj + respa_lj*r2inv;
           ev_tally(i,j,nlocal,newton_pair,
@@ -1149,12 +1149,12 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
         }
       }
 
-      
+
       // adjust rsq and delxyz for off-site O charge(s)
       // ADDITIONAL REQEUST REQUIRED HERE!!!!!
 
       if (rsq < cut_coulsqplus) {
-        if (itype == typeO || jtype == typeO) { 
+        if (itype == typeO || jtype == typeO) {
 	  if (jtype == typeO) {
             if (hneigh[j][0] < 0) {
               hneigh[j][0] = jH1 = atom->map(tag[j] + 1);
@@ -1229,7 +1229,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
                 ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
               }
             }
-          } 
+          }
 
           cforce = forcecoul * r2inv;
           fvirial = (forcecoul + respa_coul) * r2inv;
@@ -1342,7 +1342,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 
             fH[0] = 0.5 * alpha * fd[0];
             fH[1] = 0.5 * alpha * fd[1];
-            fH[2] = 0.5 * alpha * fd[2]; 
+            fH[2] = 0.5 * alpha * fd[2];
 
 	    f[j][0] += fO[0];
 	    f[j][1] += fO[1];
@@ -1368,7 +1368,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 
               fH[0] = 0.5 * alpha * fd[0];
               fH[1] = 0.5 * alpha * fd[1];
-              fH[2] = 0.5 * alpha * fd[2]; 
+              fH[2] = 0.5 * alpha * fd[2];
 
 	      domain->closest_image(x[j],x[jH1],xH1);
 	      domain->closest_image(x[j],x[jH2],xH2);
@@ -1384,7 +1384,7 @@ void PairLJLongTIP4PLong::compute_outer(int eflag, int vflag)
 	    vlist[n++] = jH1;
 	    vlist[n++] = jH2;
 	  }
- 
+
           if (evflag) ev_tally_tip4p(key,vlist,v,ecoul,alpha);
         }
       }
@@ -1404,12 +1404,12 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   ewald_order = 0;
   options(arg, 6);
   options(++arg, 1);
-  if (!comm->me && ewald_order&(1<<6)) 
+  if (!comm->me && ewald_order&(1<<6))
     error->warning(FLERR,"Mixing forced for lj coefficients");
-  if (!comm->me && ewald_order==((1<<1)|(1<<6))) 
+  if (!comm->me && ewald_order==((1<<1)|(1<<6)))
     error->warning(FLERR,
                    "Using largest cutoff for pair_style lj/long/tip4p/long");
-  if (!((ewald_order^ewald_off)&(1<<1))) 
+  if (!((ewald_order^ewald_off)&(1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style lj/long/tip4p/long");
   typeO = force->inumeric(FLERR,arg[1]);
@@ -1422,8 +1422,8 @@ void PairLJLongTIP4PLong::settings(int narg, char **arg)
   cut_lj_global = force->numeric(FLERR,arg[6]);
   if (narg == 8) cut_coul = cut_lj_global;
   else cut_coul = force->numeric(FLERR,arg[7]);
- 
-  
+
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -1442,7 +1442,7 @@ void PairLJLongTIP4PLong::init_style()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style lj/long/tip4p/long requires atom IDs");
-  if (!force->newton_pair) 
+  if (!force->newton_pair)
     error->all(FLERR,"Pair style lj/long/tip4p/long requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/long/tip4p/long requires atom attribute q");
@@ -1573,10 +1573,10 @@ void *PairLJLongTIP4PLong::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
 
   const char *ids[] = {
-    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "cut_coul", 
+    "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "cut_coul",
     "ewald_mix", "cut_LJ", NULL};
   void *ptrs[] = {
-    lj4, sigma, epsilon, &ewald_order, &cut_coul, &cut_coul, 
+    lj4, sigma, epsilon, &ewald_order, &cut_coul, &cut_coul,
     &mix_flag, &cut_lj_global, NULL};
   int i;
 
@@ -1587,7 +1587,7 @@ void *PairLJLongTIP4PLong::extract(const char *str, int &dim)
 
     if (strcmp(ids[i],str) == 0)
       return ptrs[i];
- 
+
     ++i;
   }
   return NULL;

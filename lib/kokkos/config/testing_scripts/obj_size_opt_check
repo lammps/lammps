@@ -1,0 +1,287 @@
+#! /usr/bin/env python
+
+"""
+Compute the size at which the current compiler will start to
+significantly scale back optimization.
+
+The CPP file being modified will need the following tags.
+// JGF_DUPLICATE_BEGIN - Put before start of function to duplicate
+// JGF_DUPLICATE_END - Put after end of function to duplcate
+// JGF_DUPE function_name(args); - Put anywhere where it's legal to
+put a function call but not in your timing section.
+
+The program will need to output the string:
+FOM: <number>
+This will represent the program's performance
+"""
+
+import argparse, sys, os, doctest, subprocess, re, time
+
+VERBOSE = False
+
+###############################################################################
+def parse_command_line(args, description):
+###############################################################################
+    parser = argparse.ArgumentParser(
+        usage="""\n%s <cppfile> <build-command> <run-command> [--verbose]
+OR
+%s --help
+OR
+%s --test
+
+\033[1mEXAMPLES:\033[0m
+    > %s foo.cpp 'make -j4' foo
+""" % ((os.path.basename(args[0]), ) * 4),
+
+description=description,
+
+formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
+
+    parser.add_argument("cppfile", help="Name of file to modify.")
+
+    parser.add_argument("buildcmd", help="Build command")
+
+    parser.add_argument("execmd", help="Run command")
+
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Print extra information")
+
+    parser.add_argument("-s", "--start", type=int, default=1,
+                        help="Starting number of dupes")
+
+    parser.add_argument("-e", "--end", type=int, default=1000,
+                        help="Ending number of dupes")
+
+    parser.add_argument("-n", "--repeat", type=int, default=10,
+                        help="Number of times to repeat an individial execution. Best value will be taken.")
+
+    parser.add_argument("-t", "--template", action="store_true",
+                        help="Use templating instead of source copying to increase object size")
+
+    parser.add_argument("-c", "--csv", action="store_true",
+                        help="Print results as CSV")
+
+    args = parser.parse_args(args[1:])
+
+    if (args.verbose):
+        global VERBOSE
+        VERBOSE = True
+
+    return args.cppfile, args.buildcmd, args.execmd, args.start, args.end, args.repeat, args.template, args.csv
+
+###############################################################################
+def verbose_print(msg, override=None):
+###############################################################################
+    if ( (VERBOSE and not override is False) or override):
+        print msg
+
+###############################################################################
+def error_print(msg):
+###############################################################################
+    print >> sys.stderr, msg
+
+###############################################################################
+def expect(condition, error_msg):
+###############################################################################
+    """
+    Similar to assert except doesn't generate an ugly stacktrace. Useful for
+    checking user error, not programming error.
+    """
+    if (not condition):
+        raise SystemExit("FAIL: %s" % error_msg)
+
+###############################################################################
+def run_cmd(cmd, ok_to_fail=False, input_str=None, from_dir=None, verbose=None,
+            arg_stdout=subprocess.PIPE, arg_stderr=subprocess.PIPE):
+###############################################################################
+    verbose_print("RUN: %s" % cmd, verbose)
+
+    if (input_str is not None):
+        stdin = subprocess.PIPE
+    else:
+        stdin = None
+
+    proc = subprocess.Popen(cmd,
+                            shell=True,
+                            stdout=arg_stdout,
+                            stderr=arg_stderr,
+                            stdin=stdin,
+                            cwd=from_dir)
+    output, errput = proc.communicate(input_str)
+    output = output.strip() if output is not None else output
+    stat = proc.wait()
+
+    if (ok_to_fail):
+        return stat, output, errput
+    else:
+        if (arg_stderr is not None):
+            errput = errput if errput is not None else open(arg_stderr.name, "r").read()
+            expect(stat == 0, "Command: '%s' failed with error '%s'" % (cmd, errput))
+        else:
+            expect(stat == 0, "Command: '%s' failed. See terminal output" % cmd)
+        return output
+
+###############################################################################
+def build_and_run(source, cppfile, buildcmd, execmd, repeat):
+###############################################################################
+    open(cppfile, 'w').writelines(source)
+
+    run_cmd(buildcmd)
+
+    best = None
+    for i in xrange(repeat):
+        wait_for_quiet_machine()
+        output = run_cmd(execmd)
+
+        current = None
+        fom_regex = re.compile(r'^FOM: ([0-9.]+)$')
+        for line in output.splitlines():
+            m = fom_regex.match(line)
+            if (m is not None):
+                current = float(m.groups()[0])
+                break
+
+        expect(current is not None, "No lines in output matched FOM regex")
+
+        if (best is None or best < current):
+            best = current
+
+    return best
+
+###############################################################################
+def wait_for_quiet_machine():
+###############################################################################
+    while(True):
+        time.sleep(2)
+
+        # The first iteration of top gives garbage results
+        idle_pct_raw = run_cmd("top -bn2 | grep 'Cpu(s)' | tr ',' ' ' | tail -n 1 | awk '{print $5}'")
+
+        idle_pct_re = re.compile(r'^([0-9.]+)%id$')
+        m = idle_pct_re.match(idle_pct_raw)
+
+        expect(m is not None, "top not returning output in expected form")
+
+        idle_pct = float(m.groups()[0])
+        if (idle_pct < 95):
+            error_print("Machine is too busy, waiting for it to become free")
+        else:
+            break
+
+###############################################################################
+def add_n_dupes(curr_lines, num_dupes, template):
+###############################################################################
+    function_name  = None
+    function_invocation = None
+    function_lines = []
+
+    function_re = re.compile(r'^.* (\w+) *[(]')
+    function_inv_re = re.compile(r'^.*JGF_DUPE: +(.+)$')
+
+    # Get function lines
+    record = False
+    definition_insertion_point = None
+    invocation_insertion_point = None
+    for idx, line in enumerate(curr_lines):
+        if ("JGF_DUPLICATE_BEGIN" in line):
+            record = True
+            m = function_re.match(curr_lines[idx+1])
+            expect(m is not None, "Could not find function in line '%s'" % curr_lines[idx+1])
+            function_name = m.groups()[0]
+
+        elif ("JGF_DUPLICATE_END" in line):
+            record = False
+            definition_insertion_point = idx + 1
+
+        elif (record):
+            function_lines.append(line)
+
+        elif ("JGF_DUPE" in line):
+            m = function_inv_re.match(line)
+            expect(m is not None, "Could not find function invocation example in line '%s'" % line)
+            function_invocation = m.groups()[0]
+            invocation_insertion_point = idx + 1
+
+    expect(function_name is not None, "Could not find name of dupe function")
+    expect(function_invocation is not None, "Could not find function invocation point")
+
+    expect(definition_insertion_point < invocation_insertion_point, "fix me")
+
+    dupe_func_defs = []
+    dupe_invocations = ["int jgf_rand = std::rand();\n", "if (false) {}\n"]
+
+    for i in xrange(num_dupes):
+        if (not template):
+            dupe_func = list(function_lines)
+            dupe_func[0] = dupe_func[0].replace(function_name, "%s%d" % (function_name, i))
+            dupe_func_defs.extend(dupe_func)
+
+        dupe_invocations.append("else if (jgf_rand == %d) " % i)
+        if (template):
+            dupe_call = function_invocation.replace(function_name, "%s<%d>" % (function_name, i)) + "\n"
+        else:
+            dupe_call = function_invocation.replace(function_name, "%s%d" % (function_name, i))  + "\n"
+        dupe_invocations.append(dupe_call)
+
+    curr_lines[invocation_insertion_point:invocation_insertion_point] = dupe_invocations
+    curr_lines[definition_insertion_point:definition_insertion_point] = dupe_func_defs
+
+###############################################################################
+def report(num_dupes, curr_lines, object_file, orig_fom, curr_fom, csv=False, is_first_report=False):
+###############################################################################
+    fom_change = (curr_fom - orig_fom) / orig_fom
+
+    if (csv):
+        if (is_first_report):
+            print "num_dupes, obj_byte_size, loc, fom, pct_diff"
+
+        print "%s, %s, %s, %s, %s" % (num_dupes, os.path.getsize(object_file), len(curr_lines), curr_fom, fom_change*100)
+    else:
+        print "========================================================"
+        print "For number of dupes:", num_dupes
+        print "Object file size (bytes):", os.path.getsize(object_file)
+        print "Lines of code:", len(curr_lines)
+        print "Field of merit:", curr_fom
+        print "Change pct:", fom_change*100
+
+###############################################################################
+def obj_size_opt_check(cppfile, buildcmd, execmd, start, end, repeat, template, csv=False):
+###############################################################################
+    orig_source_lines = open(cppfile, 'r').readlines()
+
+    backup_file = "%s.orig" % cppfile
+    object_file = "%s.o" % os.path.splitext(cppfile)[0]
+    os.rename(cppfile, backup_file)
+
+    orig_fom = build_and_run(orig_source_lines, cppfile, buildcmd, execmd, repeat)
+    report(0, orig_source_lines, object_file, orig_fom, orig_fom, csv=csv, is_first_report=True)
+
+    i = start
+    while (i < end):
+        curr_lines = list(orig_source_lines)
+        add_n_dupes(curr_lines, i, template)
+
+        curr_fom = build_and_run(curr_lines, cppfile, buildcmd, execmd, repeat)
+
+        report(i, curr_lines, object_file, orig_fom, curr_fom, csv=csv)
+
+        i *= 2 # make growth function configurable?
+
+    os.remove(cppfile)
+    os.rename(backup_file, cppfile)
+
+###############################################################################
+def _main_func(description):
+###############################################################################
+    if ("--test" in sys.argv):
+        test_results = doctest.testmod(verbose=True)
+        sys.exit(1 if test_results.failed > 0 else 0)
+
+    cppfile, buildcmd, execmd, start, end, repeat, template, csv = parse_command_line(sys.argv, description)
+
+    obj_size_opt_check(cppfile, buildcmd, execmd, start, end, repeat, template, csv)
+
+###############################################################################
+if (__name__ == "__main__"):
+    _main_func(__doc__)

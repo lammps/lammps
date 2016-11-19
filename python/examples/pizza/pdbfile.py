@@ -6,6 +6,9 @@
 # certain rights in this software.  This software is distributed under 
 # the GNU General Public License.
 
+# for python3 compatibility
+from __future__ import print_function
+
 # pdb tool
 
 oneline = "Read, write PDB files in combo with LAMMPS snapshots"
@@ -83,7 +86,7 @@ class pdbfile:
     elif len(args) == 2:
       filestr = args[0]
       self.data = args[1]
-    else: raise StandardError, "invalid args for pdb()"
+    else: raise StandardError("invalid args for pdb()")
 
     # flist = full list of all PDB input file names
     # append .pdb if needed
@@ -97,14 +100,14 @@ class pdbfile:
       for i in xrange(len(flist)):
         if flist[i][-4:] != ".pdb": flist[i] += ".pdb"
       if len(flist) == 0:
-        raise StandardError,"no PDB file specified"
+        raise StandardError("no PDB file specified")
       self.files = flist
     else: self.files = []
 
     if len(self.files) > 1 and self.data:
-      raise StandardError, "cannot use multiple PDB files with data object"
+      raise StandardError("cannot use multiple PDB files with data object")
     if len(self.files) == 0 and not self.data:
-      raise StandardError, "no input PDB file(s)"
+      raise StandardError("no input PDB file(s)")
 
     # grab PDB file from http://rcsb.org if not a local file
     
@@ -112,7 +115,7 @@ class pdbfile:
       try:
         open(self.files[0],'r').close()
       except:
-        print "downloading %s from http://rcsb.org" % self.files[0]
+        print("downloading %s from http://rcsb.org" % self.files[0])
         fetchstr = "http://www.rcsb.org/pdb/cgi/export.cgi/%s?format=PDB&pdbId=2cpk&compression=None" % self.files[0]
         urllib.urlretrieve(fetchstr,self.files[0])
 
@@ -142,20 +145,20 @@ class pdbfile:
         which,time,flag = self.data.iterator(flag)
         if flag == -1: break
         self.convert(f,which)
-        print >>f,"END"
-        print time,
+        print("END",file=f)
+        print(time,end='')
         sys.stdout.flush()
         n += 1
 
     else:
       for file in self.files:
         f.write(open(file,'r').read())
-        print >>f,"END"
-        print file,
+        print("END",file=f)
+        print(file,end='')
         sys.stdout.flush()
         
     f.close()
-    print "\nwrote %d datasets to %s in PDB format" % (n,file)
+    print("\nwrote %d datasets to %s in PDB format" % (n,file))
 
   # --------------------------------------------------------------------
   # write series of numbered PDB files
@@ -190,7 +193,7 @@ class pdbfile:
         self.convert(f,which)
         f.close()
         
-        print time,
+        print(time,end='')
         sys.stdout.flush()
         n += 1
 
@@ -210,12 +213,12 @@ class pdbfile:
         f = open(file,'w')
         f.write(open(infile,'r').read())
         f.close()
-        print file,
+        print(file,end='')
         sys.stdout.flush()
         
         n += 1
 
-    print "\nwrote %d datasets to %s*.pdb in PDB format" % (n,root)
+    print("\nwrote %d datasets to %s*.pdb in PDB format" % (n,root))
 
   # --------------------------------------------------------------------
   # write a single PDB file
@@ -280,10 +283,10 @@ class pdbfile:
         if self.atomlines.has_key(id):
           (begin,end) = self.atomlines[id]
           line = "%s%8.3f%8.3f%8.3f%s" % (begin,atom[2],atom[3],atom[4],end)
-          print >>f,line,
+          print(line,file=f,end='')
     else:
       for atom in atoms:
         begin = "ATOM %6d %2d   R00     1    " % (atom[0],atom[1])
         middle = "%8.3f%8.3f%8.3f" %  (atom[2],atom[3],atom[4])
         end = "  1.00  0.00    NONE"
-        print >>f,begin+middle+end
+        print(begin+middle+end,file=f)

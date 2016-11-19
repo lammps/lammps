@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_class2_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -114,7 +114,6 @@ void PairLJClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // loop over neighbors of my atoms
 
   EV_FLOAT ev = pair_compute<PairLJClass2Kokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -210,7 +209,7 @@ void PairLJClass2Kokkos<DeviceType>::init_style()
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa) 
+    if (respa)
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
@@ -220,7 +219,7 @@ void PairLJClass2Kokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value && 
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
@@ -274,8 +273,10 @@ double PairLJClass2Kokkos<DeviceType>::init_one(int i, int j)
 }
 
 
-
+namespace LAMMPS_NS {
 template class PairLJClass2Kokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJClass2Kokkos<LMPHostType>;
 #endif
+}
+

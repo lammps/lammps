@@ -59,30 +59,30 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
                           const F_FLOAT &vb3x, const F_FLOAT &vb3y, const F_FLOAT &vb3z) const;
 
  protected:
-  
+
   class NeighborKokkos *neighborKK;
- 
+
   typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d improperlist;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  DAT::t_efloat_1d d_eatom;
-  DAT::t_virial_array d_vatom;
+  Kokkos::DualView<E_FLOAT*,Kokkos::LayoutRight,DeviceType> k_eatom;
+  Kokkos::DualView<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType> k_vatom;
+  Kokkos::View<E_FLOAT*,Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_eatom;
+  Kokkos::View<F_FLOAT*[6],Kokkos::LayoutRight,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > d_vatom;
 
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  DAT::tdual_int_scalar k_warning_flag;
-  typename AT::t_int_scalar d_warning_flag;
-  HAT::t_int_scalar h_warning_flag;
+  Kokkos::DualView<int,DeviceType> k_warning_flag;
+  typename Kokkos::DualView<int,DeviceType>::t_dev d_warning_flag;
+  typename Kokkos::DualView<int,DeviceType>::t_host h_warning_flag;
 
-  DAT::tdual_ffloat_1d k_k;
-  DAT::tdual_ffloat_1d k_chi;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_k;
+  Kokkos::DualView<F_FLOAT*,DeviceType> k_chi;
 
-  DAT::t_ffloat_1d d_k;
-  DAT::t_ffloat_1d d_chi;
+  typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_k;
+  typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_chi;
 
   virtual void allocate();
 };

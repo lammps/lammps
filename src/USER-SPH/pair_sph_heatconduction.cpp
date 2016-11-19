@@ -11,8 +11,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "pair_sph_heatconduction.h"
 #include "atom.h"
 #include "force.h"
@@ -172,8 +172,8 @@ void PairSPHHeatConduction::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(arg[1], atom->ntypes, jlo, jhi);
+  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
+  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
 
   double alpha_one = force->numeric(FLERR,arg[2]);
   double cut_one   = force->numeric(FLERR,arg[3]);

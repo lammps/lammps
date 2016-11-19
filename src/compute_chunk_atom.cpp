@@ -11,9 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+// NOTE: allow for bin center to be variables for sphere/cylinder
+
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_chunk_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -27,14 +29,17 @@
 #include "group.h"
 #include "input.h"
 #include "variable.h"
+#include "math_const.h"
 #include "memory.h"
 #include "error.h"
 
 #include <map>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
-enum{BIN1D,BIN2D,BIN3D,TYPE,MOLECULE,COMPUTE,FIX,VARIABLE};
+enum{BIN1D,BIN2D,BIN3D,BINSPHERE,BINCYLINDER,
+     TYPE,MOLECULE,COMPUTE,FIX,VARIABLE};
 enum{LOWER,CENTER,UPPER,COORD};
 enum{BOX,LATTICE,REDUCED};
 enum{NODISCARD,MIXED,YESDISCARD};
@@ -51,7 +56,11 @@ ComputeChunkAtom *ComputeChunkAtom::cptr;
 /* ---------------------------------------------------------------------- */
 
 ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  chunk_volume_vec(NULL), coord(NULL), ichunk(NULL), chunkID(NULL),
+  cfvid(NULL), idregion(NULL), region(NULL), cchunk(NULL), fchunk(NULL),
+  varatom(NULL), id_fix(NULL), fixstore(NULL), lockfix(NULL), chunk(NULL),
+  exclude(NULL), hash(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute chunk/atom command");
 
@@ -92,6 +101,46 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     readdim(narg,arg,iarg+6,2);
     iarg += 9;
 
+  } else if (strcmp(arg[3],"bin/sphere") == 0) {
+    binflag = 1;
+    which = BINSPHERE;
+    ncoord = 1;
+    iarg = 4;
+    if (iarg+6 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
+    sorigin_user[0] = force->numeric(FLERR,arg[iarg]);
+    sorigin_user[1] = force->numeric(FLERR,arg[iarg+1]);
+    sorigin_user[2] = force->numeric(FLERR,arg[iarg+2]);
+    sradmin_user = force->numeric(FLERR,arg[iarg+3]);
+    sradmax_user = force->numeric(FLERR,arg[iarg+4]);
+    nsbin = force->inumeric(FLERR,arg[iarg+5]);
+    iarg += 6;
+  } else if (strcmp(arg[3],"bin/cylinder") == 0) {
+    binflag = 1;
+    which = BINCYLINDER;
+    ncoord = 2;
+    iarg = 4;
+    readdim(narg,arg,iarg,0);
+    iarg += 3;
+    if (dim[0] == 0) {
+      cdim1 = 1;
+      cdim2 = 2;
+    } else if (dim[0] == 1) {
+      cdim1 = 0;
+      cdim2 = 2;
+    } else {
+      cdim1 = 0;
+      cdim2 = 1;
+    }
+    if (iarg+5 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
+    corigin_user[dim[0]] = 0.0;
+    corigin_user[cdim1] = force->numeric(FLERR,arg[iarg]);
+    corigin_user[cdim2] = force->numeric(FLERR,arg[iarg+1]);
+    cradmin_user = force->numeric(FLERR,arg[iarg+2]);
+    cradmax_user = force->numeric(FLERR,arg[iarg+3]);
+
+    ncbin = force->inumeric(FLERR,arg[iarg+4]);
+    iarg += 5;
+
   } else if (strcmp(arg[3],"type") == 0) {
     which = TYPE;
     iarg = 4;
@@ -99,8 +148,8 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     which = MOLECULE;
     iarg = 4;
 
-  } else if (strstr(arg[3],"c_") == arg[3] || 
-             strstr(arg[3],"f_") == arg[3] || 
+  } else if (strstr(arg[3],"c_") == arg[3] ||
+             strstr(arg[3],"f_") == arg[3] ||
              strstr(arg[3],"v_") == arg[3]) {
     if (arg[3][0] == 'c') which = COMPUTE;
     else if (arg[3][0] == 'f') which = FIX;
@@ -114,11 +163,11 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     char *ptr = strchr(suffix,'[');
     if (ptr) {
       if (suffix[strlen(suffix)-1] != ']')
-        error->all(FLERR,"Illegal fix ave/atom command");
+        error->all(FLERR,"Illegal compute chunk/atom command");
       argindex = atoi(ptr+1);
       *ptr = '\0';
     } else argindex = 0;
-    
+
     n = strlen(suffix) + 1;
     cfvid = new char[n];
     strcpy(cfvid,suffix);
@@ -146,6 +195,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   maxflag[1] = UPPER;
   maxflag[2] = UPPER;
   scaleflag = LATTICE;
+  pbcflag = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
@@ -172,7 +222,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (limit && !compress) limitfirst = 1;
       iarg += 2;
       if (limit) {
-        if (iarg+1 > narg) 
+        if (iarg+1 > narg)
           error->all(FLERR,"Illegal compute chunk/atom command");
         if (strcmp(arg[iarg+1],"max") == 0) limitstyle = LIMITMAX;
         else if (strcmp(arg[iarg+1],"exact") == 0) limitstyle = LIMITEXACT;
@@ -209,11 +259,11 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal compute chunk/atom command");
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
       else minflag[idim] = COORD;
-      if (minflag[idim] == COORD) 
+      if (minflag[idim] == COORD)
         minvalue[idim] = force->numeric(FLERR,arg[iarg+2]);
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
       else maxflag[idim] = COORD;
-      if (maxflag[idim] == COORD) 
+      if (maxflag[idim] == COORD)
         maxvalue[idim] = force->numeric(FLERR,arg[iarg+3]);
       else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 4;
@@ -222,6 +272,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = BOX;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = LATTICE;
       else if (strcmp(arg[iarg+1],"reduced") == 0) scaleflag = REDUCED;
+      else error->all(FLERR,"Illegal compute chunk/atom command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"pbc") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
+      if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
       else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 2;
     } else error->all(FLERR,"Illegal compute chunk/atom command");
@@ -251,24 +307,43 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks
 
-  if (which == MOLECULE && !atom->molecule_flag) 
+  if (which == MOLECULE && !atom->molecule_flag)
     error->all(FLERR,"Compute chunk/atom molecule for non-molecular system");
 
   if (!binflag && discard == MIXED)
     error->all(FLERR,"Compute chunk/atom without bins "
                "cannot use discard mixed");
-  if (which == BIN1D && delta[0] <= 0.0) 
+  if (which == BIN1D && delta[0] <= 0.0)
     error->all(FLERR,"Illegal compute chunk/atom command");
   if (which == BIN2D && (delta[0] <= 0.0 || delta[1] <= 0.0))
     error->all(FLERR,"Illegal compute chunk/atom command");
-  if (which == BIN3D && 
+  if (which == BIN2D && (dim[0] == dim[1]))
+    error->all(FLERR,"Illegal compute chunk/atom command");
+  if (which == BIN3D &&
       (delta[0] <= 0.0 || delta[1] <= 0.0 || delta[2] <= 0.0))
       error->all(FLERR,"Illegal compute chunk/atom command");
+  if (which == BIN3D &&
+      (dim[0] == dim[1] || dim[1] == dim[2] || dim[0] == dim[2]))
+      error->all(FLERR,"Illegal compute chunk/atom command");
+  if (which == BINSPHERE) {
+    if (domain->dimension == 2 && sorigin_user[2] != 0.0) 
+      error->all(FLERR,"Compute chunk/atom sphere z origin must be 0.0 for 2d");
+    if (sradmin_user < 0.0 || sradmin_user >= sradmax_user || nsbin < 1)
+      error->all(FLERR,"Illegal compute chunk/atom command");
+  }
+  if (which == BINCYLINDER) {
+    if (delta[0] <= 0.0)
+      error->all(FLERR,"Illegal compute chunk/atom command");
+    if (domain->dimension == 2 && dim[0] != 2) 
+      error->all(FLERR,"Compute chunk/atom cylinder axis must be z for 2d");
+    if (cradmin_user < 0.0 || cradmin_user >= cradmax_user || ncbin < 1)
+      error->all(FLERR,"Illegal compute chunk/atom command");
+  }
 
   if (which == COMPUTE) {
     int icompute = modify->find_compute(cfvid);
     if (icompute < 0)
-      error->all(FLERR,"Compute ID for compute chunk/atom does not exist");
+      error->all(FLERR,"Compute ID for compute chunk /atom does not exist");
     if (modify->compute[icompute]->peratom_flag == 0)
       error->all(FLERR,
                  "Compute chunk/atom compute does not calculate "
@@ -326,22 +401,48 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     zscale = domain->lattice->zlattice;
   } else xscale = yscale = zscale = 1.0;
 
-  // apply scaling factors
+  // apply scaling factors and cylinder dims orthogonal to axis
 
   if (binflag) {
     double scale;
-    if (which == BIN1D) ndim = 1;
-    if (which == BIN2D) ndim = 2;
-    if (which == BIN3D) ndim = 3;
-    for (int idim = 0; idim < ndim; idim++) {
-      if (dim[idim] == 0) scale = xscale;
-      else if (dim[idim] == 1) scale = yscale;
-      else if (dim[idim] == 2) scale = zscale;
-      delta[idim] *= scale;
-      invdelta[idim] = 1.0/delta[idim];
-      if (originflag[idim] == COORD) origin[idim] *= scale;
-      if (minflag[idim] == COORD) minvalue[idim] *= scale;
-      if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
+    if (which == BIN1D || which == BIN2D || which == BIN3D || 
+        which == BINCYLINDER) {
+      if (which == BIN1D || which == BINCYLINDER) ndim = 1;
+      if (which == BIN2D) ndim = 2;
+      if (which == BIN3D) ndim = 3;
+      for (int idim = 0; idim < ndim; idim++) {
+	if (dim[idim] == 0) scale = xscale;
+	else if (dim[idim] == 1) scale = yscale;
+	else if (dim[idim] == 2) scale = zscale;
+	delta[idim] *= scale;
+	invdelta[idim] = 1.0/delta[idim];
+	if (originflag[idim] == COORD) origin[idim] *= scale;
+	if (minflag[idim] == COORD) minvalue[idim] *= scale;
+	if (maxflag[idim] == COORD) maxvalue[idim] *= scale;
+      }
+    } else if (which == BINSPHERE) {
+      sorigin_user[0] *= xscale;
+      sorigin_user[1] *= yscale;
+      sorigin_user[2] *= zscale;
+      sradmin_user *= xscale;     // radii are scaled by xscale
+      sradmax_user *= xscale;
+    } else if (which == BINCYLINDER) {
+      if (dim[0] == 0) {
+        corigin_user[cdim1] *= yscale;
+        corigin_user[cdim2] *= zscale;
+        cradmin_user *= yscale;     // radii are scaled by first non-axis dim
+        cradmax_user *= yscale;
+      } else if (dim[0] == 1) {
+        corigin_user[cdim1] *= xscale;
+        corigin_user[cdim2] *= zscale;
+        cradmin_user *= xscale;
+        cradmax_user *= xscale;
+      } else {
+        corigin_user[cdim1] *= xscale;
+        corigin_user[cdim2] *= yscale;
+        cradmin_user *= xscale;
+        cradmax_user *= xscale;
+      }
     }
   }
 
@@ -349,7 +450,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   chunk = NULL;
-  nmaxint = 0;
+  nmaxint = -1;
   ichunk = NULL;
   exclude = NULL;
 
@@ -452,7 +553,7 @@ void ComputeChunkAtom::init()
       if (molecule[i] > maxone) maxone = molecule[i];
     tagint maxall;
     MPI_Allreduce(&maxone,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    if (maxall > MAXSMALLINT) 
+    if (maxall > MAXSMALLINT)
       error->all(FLERR,"Molecule IDs too large for compute chunk/atom");
   }
 
@@ -476,7 +577,7 @@ void ComputeChunkAtom::init()
 
   // create/destroy fix STORE for persistent chunk IDs as needed
   // need to do this if idsflag = ONCE or locks will be used by other commands
-  // need to wait until init() so that fix ave/chunk command(s) are in place
+  // need to wait until init() so that fix command(s) are in place
   //   they increment lockcount if they lock this compute
   // fixstore ID = compute-ID + COMPUTE_STORE, fix group = compute group
   // fixstore initializes all values to 0.0
@@ -486,14 +587,15 @@ void ComputeChunkAtom::init()
     id_fix = new char[n];
     strcpy(id_fix,id);
     strcat(id_fix,"_COMPUTE_STORE");
-  
-    char **newarg = new char*[5];
+
+    char **newarg = new char*[6];
     newarg[0] = id_fix;
     newarg[1] = group->names[igroup];
     newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "1";
+    newarg[3] = (char *) "peratom";
     newarg[4] = (char *) "1";
-    modify->add_fix(5,newarg);
+    newarg[5] = (char *) "1";
+    modify->add_fix(6,newarg);
     fixstore = (FixStore *) modify->fix[modify->nfix-1];
     delete [] newarg;
   }
@@ -519,7 +621,7 @@ void ComputeChunkAtom::setup()
 /* ----------------------------------------------------------------------
    only called by classes that use per-atom computes in standard way
      dump, variable, thermo output, other computes, etc
-   not called by fix ave/chunk or compute chunk commands
+   not called by fix chunk or compute chunk commands
      they invoke setup_chunks() and compute_ichunk() directly
 ------------------------------------------------------------------------- */
 
@@ -529,13 +631,13 @@ void ComputeChunkAtom::compute_peratom()
 
   // grow floating point chunk vector if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(chunk);
     nmax = atom->nmax;
     memory->create(chunk,nmax,"chunk/atom:chunk");
     vector_atom = chunk;
   }
-  
+
   setup_chunks();
   compute_ichunk();
 
@@ -547,11 +649,11 @@ void ComputeChunkAtom::compute_peratom()
 
 /* ----------------------------------------------------------------------
    set lock, so that nchunk will not change from startstep to stopstep
-   called by fix ave/chunk for duration of its Nfreq epoch
-   OK if called by multiple fix ave/chunk commands
+   called by fix for duration of time it requires lock
+   OK if called by multiple fix commands
      error if all callers do not have same duration
      last caller holds the lock, so it can also unlock
-   lockstop can be positive for final step of finite-size time window
+   stopstep can be positive for final step of finite-size time window
    or can be -1 for infinite-size time window
 ------------------------------------------------------------------------- */
 
@@ -565,7 +667,7 @@ void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
   }
 
   if (startstep != lockstart || stopstep != lockstop)
-    error->all(FLERR,"Two fix ave commands using "
+    error->all(FLERR,"Two fix commands using "
                "same compute chunk/atom command in incompatible ways");
 
   // set lock to last calling Fix, since it will be last to unlock()
@@ -575,7 +677,7 @@ void ComputeChunkAtom::lock(Fix *fixptr, bigint startstep, bigint stopstep)
 
 /* ----------------------------------------------------------------------
    unset lock
-   can only be done by fix ave/chunk command that holds the lock
+   can only be done by fix command that holds the lock
 ------------------------------------------------------------------------- */
 
 void ComputeChunkAtom::unlock(Fix *fixptr)
@@ -672,13 +774,13 @@ void ComputeChunkAtom::compute_ichunk()
   // if newly calculated IDs need to persist, store them in fixstore
   // yes if idsflag = ONCE or idsflag = NFREQ and lock is in place
 
-  if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) { 
+  if (idsflag == ONCE || (idsflag == NFREQ && lockfix)) {
     double *vstore = fixstore->vstore;
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) vstore[i] = ichunk[i];
   }
 
-  // one-time check if which = MOLECULE and 
+  // one-time check if which = MOLECULE and
   // any chunks do not contain all atoms in the molecule
 
   if (molcheck) {
@@ -693,7 +795,7 @@ void ComputeChunkAtom::compute_ichunk()
      all atoms will be assigned a chunk ID from 1 to Nchunk, or 0
    also setup any internal state needed to quickly assign atoms to chunks
    called from compute_peratom() and also directly from
-     fix ave/chunk and compute chunk commands
+     fix chunk and compute chunk commands
 ------------------------------------------------------------------------- */
 
 int ComputeChunkAtom::setup_chunks()
@@ -722,12 +824,20 @@ int ComputeChunkAtom::setup_chunks()
   // assign chunk IDs to atoms
   // will exclude atoms not in group or in optional region
   // for binning styles, need to setup bins and their volume first
+  //   else chunk_volume_scalar = entire box volume
   // IDs are needed to scan for max ID and for compress()
 
   if (binflag) {
-    nchunk = setup_bins();
+    if (which == BIN1D || which == BIN2D || which == BIN3D)
+      nchunk = setup_xyz_bins();
+    else if (which == BINSPHERE) nchunk = setup_sphere_bins();
+    else if (which == BINCYLINDER) nchunk = setup_cylinder_bins();
     bin_volumes();
+  } else {
+    chunk_volume_scalar = domain->xprd * domain->yprd;
+    if (domain->dimension == 3) chunk_volume_scalar *= domain->zprd;
   }
+
   assign_chunk_ids();
 
   // set nchunk for chunk styles other than binning
@@ -735,14 +845,14 @@ int ComputeChunkAtom::setup_chunks()
 
   if (which == TYPE) nchunk = atom->ntypes;
   else if (!binflag) {
-    
+
     int nlocal = atom->nlocal;
     int hi = -1;
     for (int i = 0; i < nlocal; i++) {
       if (exclude[i]) continue;
       if (ichunk[i] > hi) hi = ichunk[i];
     }
-      
+
     MPI_Allreduce(&hi,&nchunk,1,MPI_INT,MPI_MAX,world);
     if (nchunk <= 0) nchunk = 1;
   }
@@ -784,7 +894,7 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   // grow integer chunk index vector if necessary
 
-  if (atom->nlocal > nmaxint) {
+  if (atom->nmax > nmaxint) {
     memory->destroy(ichunk);
     memory->destroy(exclude);
     nmaxint = atom->nmax;
@@ -805,7 +915,7 @@ void ComputeChunkAtom::assign_chunk_ids()
 
   if (regionflag) {
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit && 
+      if (mask[i] & groupbit &&
           region->match(x[i][0],x[i][1],x[i][2])) exclude[i] = 0;
       else exclude[i] = 1;
     }
@@ -823,6 +933,8 @@ void ComputeChunkAtom::assign_chunk_ids()
     if (which == BIN1D) atom2bin1d();
     else if (which == BIN2D) atom2bin2d();
     else if (which == BIN3D) atom2bin3d();
+    else if (which == BINSPHERE) atom2binsphere();
+    else if (which == BINCYLINDER) atom2bincylinder();
 
   } else if (which == TYPE) {
     int *type = atom->type;
@@ -880,7 +992,7 @@ void ComputeChunkAtom::assign_chunk_ids()
     }
 
   } else if (which == VARIABLE) {
-    if (nlocal > maxvar) {
+    if (atom->nmax > maxvar) {
       maxvar = atom->nmax;
       memory->destroy(varatom);
       memory->create(varatom,maxvar,"chunk/atom:varatom");
@@ -927,7 +1039,7 @@ void ComputeChunkAtom::compress_chunk_ids()
   bigint nbone = n;
   bigint nball;
   MPI_Allreduce(&nbone,&nball,1,MPI_LMP_BIGINT,MPI_SUM,world);
-                            
+
   // create my list of populated IDs
 
   int *list = NULL;
@@ -958,9 +1070,9 @@ void ComputeChunkAtom::compress_chunk_ids()
     displs[0] = 0;
     for (int iproc = 1; iproc < nprocs; iproc++)
       displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-    
+
     // allgatherv acquires list of populated IDs from all procs
-    
+
     MPI_Allgatherv(list,n,MPI_INT,listall,recvcounts,displs,MPI_INT,world);
 
     // add all unique IDs in listall to my hash
@@ -1034,7 +1146,7 @@ void ComputeChunkAtom::check_molecules()
 
   if (!compress) {
     for (int i = 0; i < nlocal; i++) {
-      if (molecule[i] > 0 && molecule[i] <= nchunk && 
+      if (molecule[i] > 0 && molecule[i] <= nchunk &&
           ichunk[i] == 0) flag = 1;
     }
   } else {
@@ -1044,7 +1156,7 @@ void ComputeChunkAtom::check_molecules()
       if (hash->find(molid) != hash->end() && ichunk[i] == 0) flag = 1;
     }
   }
-  
+
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall && comm->me == 0)
@@ -1053,12 +1165,12 @@ void ComputeChunkAtom::check_molecules()
 }
 
 /* ----------------------------------------------------------------------
-   setup spatial bins and their extent and coordinates
+   setup xyz spatial bins and their extent and coordinates
    return nbins = # of bins, will become # of chunks
    called from setup_chunks()
 ------------------------------------------------------------------------- */
 
-int ComputeChunkAtom::setup_bins()
+int ComputeChunkAtom::setup_xyz_bins()
 {
   int i,j,k,m,n,idim;
   double lo,hi,coord1,coord2;
@@ -1068,7 +1180,6 @@ int ComputeChunkAtom::setup_bins()
   // allocate and initialize arrays based on new bin count
 
   double binlo[3],binhi[3];
-  double *prd;
   if (scaleflag == REDUCED) {
     binlo[0] = domain->boxlo_lamda[0];
     binlo[1] = domain->boxlo_lamda[1];
@@ -1076,7 +1187,6 @@ int ComputeChunkAtom::setup_bins()
     binhi[0] = domain->boxhi_lamda[0];
     binhi[1] = domain->boxhi_lamda[1];
     binhi[2] = domain->boxhi_lamda[2];
-    prd = domain->prd_lamda;
   } else {
     binlo[0] = domain->boxlo[0];
     binlo[1] = domain->boxlo[1];
@@ -1084,7 +1194,6 @@ int ComputeChunkAtom::setup_bins()
     binhi[0] = domain->boxhi[0];
     binhi[1] = domain->boxhi[1];
     binhi[2] = domain->boxhi[2];
-    prd = domain->prd;
   }
 
   if (minflag[0] == COORD) binlo[0] = minvalue[0];
@@ -1125,7 +1234,6 @@ int ComputeChunkAtom::setup_bins()
     offset[m] = lo;
     nlayers[m] = static_cast<int> ((hi-lo) * invdelta[m] + 0.5);
     nbins *= nlayers[m];
-    chunk_volume_scalar *= delta[m]/prd[idim];
   }
 
   // allocate and set bin coordinates
@@ -1166,6 +1274,146 @@ int ComputeChunkAtom::setup_bins()
 }
 
 /* ----------------------------------------------------------------------
+   setup spherical spatial bins and their single coordinate
+   return nsphere = # of bins, will become # of chunks
+   called from setup_chunks()
+------------------------------------------------------------------------- */
+
+int ComputeChunkAtom::setup_sphere_bins()
+{
+  // convert sorigin_user to sorigin
+  // sorigin,srad are always in box units, for orthogonal or triclinic domains
+  // lamda2x works for either orthogonal or triclinic
+
+  if (scaleflag == REDUCED) {
+    domain->lamda2x(sorigin_user,sorigin);
+    sradmin = sradmin_user * (domain->boxhi[0]-domain->boxlo[0]);
+    sradmax = sradmax_user * (domain->boxhi[0]-domain->boxlo[0]);
+  } else {
+    sorigin[0] = sorigin_user[0];
+    sorigin[1] = sorigin_user[1];
+    sorigin[2] = sorigin_user[2];
+    sradmin = sradmin_user;
+    sradmax = sradmax_user;
+  }
+
+  // if pbcflag set, sradmax must be < 1/2 box in any periodic dim
+  // treat orthongonal and triclinic the same
+  // check every time bins are created
+
+  if (pbcflag) {
+    double *prd_half = domain->prd_half;
+    int *periodicity = domain->periodicity;
+    int flag = 0;
+    if (periodicity[0] && sradmax > prd_half[0]) flag = 1;
+    if (periodicity[1] && sradmax > prd_half[1]) flag = 1;
+    if (domain->dimension == 3 && 
+        periodicity[2] && sradmax > prd_half[2]) flag = 1;
+    if (flag) 
+      error->all(FLERR,"Compute chunk/atom bin/sphere radius "
+                 "is too large for periodic box");
+  }
+
+  sinvrad = nsbin / (sradmax-sradmin);
+
+  // allocate and set bin coordinates
+  // coord = midpt of radii for a spherical shell
+
+  memory->destroy(coord);
+  memory->create(coord,nsbin,1,"chunk/atom:coord");
+
+  double rlo,rhi;
+
+  for (int i = 0; i < nsbin; i++) {
+    rlo = sradmin + i * (sradmax-sradmin) / nsbin;
+    rhi = sradmin + (i+1) * (sradmax-sradmin) / nsbin;
+    if (i == nsbin-1) rhi = sradmax;
+    coord[i][0] = 0.5 * (rlo+rhi);
+  }
+
+  return nsbin;
+}
+
+/* ----------------------------------------------------------------------
+   setup cylindrical spatial bins and their single coordinate
+   return nsphere = # of bins, will become # of chunks
+   called from setup_chunks()
+------------------------------------------------------------------------- */
+
+int ComputeChunkAtom::setup_cylinder_bins()
+{
+  // setup bins along cylinder axis
+  // ncplane = # of axis bins
+
+  ncplane = setup_xyz_bins();
+
+  // convert corigin_user to corigin
+  // corigin is always in box units, for orthogonal or triclinic domains
+  // lamda2x works for either orthogonal or triclinic
+
+  if (scaleflag == REDUCED) {
+    domain->lamda2x(corigin_user,corigin);
+    cradmin = cradmin_user * (domain->boxhi[cdim1]-domain->boxlo[cdim1]);
+    cradmax = cradmax_user * (domain->boxhi[cdim1]-domain->boxlo[cdim1]);
+  } else {
+    corigin[cdim1] = corigin_user[cdim1];
+    corigin[cdim2] = corigin_user[cdim2];
+    cradmin = cradmin_user;
+    cradmax = cradmax_user;
+  }
+
+  // if pbcflag set, sradmax must be < 1/2 box in any periodic non-axis dim
+  // treat orthongonal and triclinic the same
+  // check every time bins are created
+
+  if (pbcflag) {
+    double *prd_half = domain->prd_half;
+    int *periodicity = domain->periodicity;
+    int flag = 0;
+    if (periodicity[cdim1] && sradmax > prd_half[cdim1]) flag = 1;
+    if (periodicity[cdim2] && sradmax > prd_half[cdim2]) flag = 1;
+    if (flag) 
+      error->all(FLERR,"Compute chunk/atom bin/cylinder radius "
+                 "is too large for periodic box");
+  }
+
+  cinvrad = ncbin / (cradmax-cradmin);
+
+  // allocate and set radial bin coordinates
+  // radial coord = midpt of radii for a cylindrical shell
+  // axiscoord = saved bin coords along cylndrical axis
+  // radcoord = saved bin coords in radial direction
+
+  double **axiscoord = coord;
+  memory->create(coord,ncbin,1,"chunk/atom:coord");
+  double **radcoord = coord;
+
+  double rlo,rhi;
+
+  for (int i = 0; i < ncbin; i++) {
+    rlo = cradmin + i * (cradmax-cradmin) / ncbin;
+    rhi = cradmin + (i+1) * (cradmax-cradmin) / ncbin;
+    if (i == ncbin-1) rhi = cradmax;
+    coord[i][0] = 0.5 * (rlo+rhi);
+  }
+
+  // create array of combined coords for all bins
+
+  memory->create(coord,ncbin*ncplane,2,"chunk/atom:coord");
+  int m = 0;
+  for (int i = 0; i < ncbin; i++)
+    for (int j = 0; j < ncplane; j++) {
+      coord[m][0] = radcoord[i][0];
+      coord[m][1] = axiscoord[j][0];
+      m++;
+    }
+  memory->destroy(axiscoord);
+  memory->destroy(radcoord);
+
+  return ncbin*ncplane;
+}
+
+/* ----------------------------------------------------------------------
    calculate chunk volumes = bin volumes
    scalar if all bins have same volume
    vector if per-bin volumes are different
@@ -1183,10 +1431,43 @@ void ComputeChunkAtom::bin_volumes()
     for (int m = 0; m < ndim; m++)
       chunk_volume_scalar *= delta[m]/prd[dim[m]];
 
-  } else {
+  } else if (which == BINSPHERE) {
     memory->destroy(chunk_volume_vec);
     memory->create(chunk_volume_vec,nchunk,"chunk/atom:chunk_volume_vec");
-    // fill in the vector values
+    double rlo,rhi,vollo,volhi;
+    for (int i = 0; i < nchunk; i++) {
+      rlo = sradmin + i * (sradmax-sradmin) / nsbin;
+      rhi = sradmin + (i+1) * (sradmax-sradmin) / nsbin;
+      if (i == nchunk-1) rhi = sradmax;
+      vollo = 4.0/3.0 * MY_PI * rlo*rlo*rlo;
+      volhi = 4.0/3.0 * MY_PI * rhi*rhi*rhi;
+      chunk_volume_vec[i] = volhi - vollo;
+    }
+
+  } else if (which == BINCYLINDER) {
+    memory->destroy(chunk_volume_vec);
+    memory->create(chunk_volume_vec,nchunk,"chunk/atom:chunk_volume_vec");
+
+    // slabthick = delta of bins along cylinder axis
+
+    double *prd;
+    if (scaleflag == REDUCED) prd = domain->prd_lamda;
+    else prd = domain->prd;
+    double slabthick = domain->prd[dim[0]] * delta[0]/prd[dim[0]];
+
+    // area lo/hi of concentric circles in radial direction
+
+    int iradbin;
+    double rlo,rhi,arealo,areahi;
+    for (int i = 0; i < nchunk; i++) {
+      iradbin = i / ncplane;
+      rlo = cradmin + iradbin * (cradmax-cradmin) / ncbin;
+      rhi = cradmin + (iradbin+1) * (cradmax-cradmin) / ncbin;
+      if (iradbin == ncbin-1) rhi = cradmax;
+      arealo = MY_PI * rlo*rlo;
+      areahi = MY_PI * rhi*rhi;
+      chunk_volume_vec[i] = (areahi-arealo) * slabthick;
+    }
   }
 }
 
@@ -1233,10 +1514,10 @@ void ComputeChunkAtom::atom2bin1d()
       if (xremap < boxlo[idim]) xremap += prd[idim];
       if (xremap >= boxhi[idim]) xremap -= prd[idim];
     }
-      
+
     ibin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
     if (xremap < offset[0]) ibin--;
-      
+
     if (discard == MIXED) {
       if (!minflag[idim]) ibin = MAX(ibin,0);
       else if (ibin < 0) {
@@ -1255,7 +1536,7 @@ void ComputeChunkAtom::atom2bin1d()
       exclude[i] = 1;
       continue;
     }
-      
+
     ichunk[i] = ibin+1;
   }
 
@@ -1307,10 +1588,10 @@ void ComputeChunkAtom::atom2bin2d()
       if (xremap < boxlo[idim]) xremap += prd[idim];
       if (xremap >= boxhi[idim]) xremap -= prd[idim];
     }
-      
+
     i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
     if (xremap < offset[0]) i1bin--;
-      
+
     if (discard == MIXED) {
       if (!minflag[idim]) i1bin = MAX(i1bin,0);
       else if (i1bin < 0) {
@@ -1346,7 +1627,7 @@ void ComputeChunkAtom::atom2bin2d()
         continue;
       }
       if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
-      else if (i2bin > nlayer1m1) {
+      else if (i2bin > nlayer2m1) {
         exclude[i] = 1;
         continue;
       }
@@ -1415,7 +1696,7 @@ void ComputeChunkAtom::atom2bin3d()
 
     i1bin = static_cast<int> ((xremap - offset[0]) * invdelta[0]);
     if (xremap < offset[0]) i1bin--;
-    
+
     if (discard == MIXED) {
       if (!minflag[idim]) i1bin = MAX(i1bin,0);
       else if (i1bin < 0) {
@@ -1434,7 +1715,7 @@ void ComputeChunkAtom::atom2bin3d()
       exclude[i] = 1;
       continue;
     }
-    
+
     yremap = x[i][jdim];
     if (periodicity[jdim]) {
       if (yremap < boxlo[jdim]) yremap += prd[jdim];
@@ -1451,7 +1732,7 @@ void ComputeChunkAtom::atom2bin3d()
         continue;
       }
       if (!maxflag[jdim]) i2bin = MIN(i2bin,nlayer2m1);
-      else if (i2bin > nlayer1m1) {
+      else if (i2bin > nlayer2m1) {
         exclude[i] = 1;
         continue;
       }
@@ -1490,7 +1771,7 @@ void ComputeChunkAtom::atom2bin3d()
       exclude[i] = 1;
       continue;
     }
-    
+
     ibin = i1bin*nlayers[1]*nlayers[2] + i2bin*nlayers[2] + i3bin;
     ichunk[i] = ibin+1;
   }
@@ -1499,7 +1780,182 @@ void ComputeChunkAtom::atom2bin3d()
 }
 
 /* ----------------------------------------------------------------------
+   assign each atom to a spherical bin
+------------------------------------------------------------------------- */
+
+void ComputeChunkAtom::atom2binsphere()
+{
+  int i,ibin;
+  double dx,dy,dz,r;
+  double xremap,yremap,zremap;
+
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+  double *prd = domain->prd;
+  double *prd_half = domain->prd_half;
+  int *periodicity = domain->periodicity;
+
+  // remap each atom's relevant coords back into box via PBC if necessary
+  // apply discard rule based on rmin and rmax
+
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    if (exclude[i]) continue;
+
+    xremap = x[i][0];
+    if (periodicity[0]) {
+      if (xremap < boxlo[0]) xremap += prd[0];
+      if (xremap >= boxhi[0]) xremap -= prd[0];
+    }
+    yremap = x[i][1];
+    if (periodicity[1]) {
+      if (xremap < boxlo[1]) yremap += prd[1];
+      if (xremap >= boxhi[1]) yremap -= prd[1];
+    }
+    zremap = x[i][2];
+    if (periodicity[2]) {
+      if (xremap < boxlo[2]) zremap += prd[2];
+      if (xremap >= boxhi[2]) zremap -= prd[2];
+    }
+
+    dx = xremap - sorigin[0];
+    dy = yremap - sorigin[1];
+    dz = zremap - sorigin[2];
+
+    // if requested, apply PBC to distance from sphere center
+    // treat orthogonal and triclinic the same
+    //   with dx,dy,dz = lengths independent of each other
+    // so do not use domain->minimum_image() which couples for triclinic
+
+    if (pbcflag) {
+      if (periodicity[0]) {
+        if (fabs(dx) > prd_half[0]) {
+          if (dx < 0.0) dx += prd[0];
+          else dx -= prd[0];
+        }
+      }
+      if (periodicity[1]) {
+        if (fabs(dy) > prd_half[1]) {
+          if (dy < 0.0) dy += prd[1];
+          else dy -= prd[1];
+        }
+      }
+      if (periodicity[2]) {
+        if (fabs(dz) > prd_half[2]) {
+          if (dz < 0.0) dz += prd[2];
+          else dz -= prd[2];
+        }
+      }
+    }
+
+    r = sqrt(dx*dx + dy*dy + dz*dz);
+
+    ibin = static_cast<int> ((r - sradmin) * sinvrad);
+    if (r < sradmin) ibin--;
+
+    if (discard == MIXED || discard == NODISCARD) {
+      ibin = MAX(ibin,0);
+      ibin = MIN(ibin,nchunk-1);
+    } else if (ibin < 0 || ibin >= nchunk) {
+      exclude[i] = 1;
+      continue;
+    }
+
+    ichunk[i] = ibin+1;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   assign each atom to a cylindrical bin
+------------------------------------------------------------------------- */
+
+void ComputeChunkAtom::atom2bincylinder()
+{
+  int i,rbin,kbin;
+  double d1,d2,r;
+  double remap1,remap2;
+
+  // first use atom2bin1d() to bin all atoms along cylinder axis
+
+  atom2bin1d();
+
+  // now bin in radial direction
+  // kbin = bin along cylinder axis
+  // rbin = bin in radial direction
+
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+  double *prd = domain->prd;
+  double *prd_half = domain->prd_half;
+  int *periodicity = domain->periodicity;
+
+  // remap each atom's relevant coords back into box via PBC if necessary
+  // apply discard rule based on rmin and rmax
+
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    if (exclude[i]) continue;
+    kbin = ichunk[i] - 1;
+
+    remap1 = x[i][cdim1];
+    if (periodicity[cdim1]) {
+      if (remap1 < boxlo[cdim1]) remap1 += prd[cdim1];
+      if (remap1 >= boxhi[cdim1]) remap1 -= prd[cdim1];
+    }
+    remap2 = x[i][cdim2];
+    if (periodicity[cdim2]) {
+      if (remap2 < boxlo[cdim2]) remap2 += prd[cdim2];
+      if (remap2 >= boxhi[cdim2]) remap2 -= prd[cdim2];
+    }
+
+    d1 = remap1 - corigin[cdim1];
+    d2 = remap2 - corigin[cdim2];
+
+    // if requested, apply PBC to distance from cylinder axis
+    // treat orthogonal and triclinic the same
+    //   with d1,d2 = lengths independent of each other
+
+    if (pbcflag) {
+      if (periodicity[cdim1]) {
+        if (fabs(d1) > prd_half[cdim1]) {
+          if (d1 < 0.0) d1 += prd[cdim1];
+          else d1 -= prd[cdim1];
+        }
+      }
+      if (periodicity[cdim2]) {
+        if (fabs(d2) > prd_half[cdim2]) {
+          if (d2 < 0.0) d2 += prd[cdim2];
+          else d2 -= prd[cdim2];
+        }
+      }
+    }
+
+    r = sqrt(d1*d1 + d2*d2);
+
+    rbin = static_cast<int> ((r - cradmin) * cinvrad);
+    if (r < cradmin) rbin--;
+
+    if (discard == MIXED || discard == NODISCARD) {
+      rbin = MAX(rbin,0);
+      rbin = MIN(rbin,ncbin-1);
+    } else if (rbin < 0 || rbin >= ncbin) {
+      exclude[i] = 1;
+      continue;
+    }
+
+    // combine axis and radial bin indices to set ichunk
+
+    ichunk[i] = rbin*ncplane + kbin + 1;
+  }
+}
+
+/* ----------------------------------------------------------------------
    process args for one dimension of binning info
+   set dim, originflag, origin, delta
 ------------------------------------------------------------------------- */
 
 void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
@@ -1508,6 +1964,7 @@ void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
   if (strcmp(arg[iarg],"x") == 0) dim[idim] = 0;
   else if (strcmp(arg[iarg],"y") == 0) dim[idim] = 1;
   else if (strcmp(arg[iarg],"z") == 0) dim[idim] = 2;
+  else error->all(FLERR,"Illegal compute chunk/atom command");
 
   if (dim[idim] == 2 && domain->dimension == 2)
     error->all(FLERR,"Cannot use compute chunk/atom bin z for 2d model");
@@ -1516,9 +1973,9 @@ void ComputeChunkAtom::readdim(int narg, char **arg, int iarg, int idim)
   else if (strcmp(arg[iarg+1],"center") == 0) originflag[idim] = CENTER;
   else if (strcmp(arg[iarg+1],"upper") == 0) originflag[idim] = UPPER;
   else originflag[idim] = COORD;
-  if (originflag[idim] == COORD) 
+  if (originflag[idim] == COORD)
     origin[idim] = force->numeric(FLERR,arg[iarg+1]);
-  
+
   delta[idim] = force->numeric(FLERR,arg[iarg+2]);
 }
 
@@ -1541,7 +1998,7 @@ void ComputeChunkAtom::set_arrays(int i)
 
 double ComputeChunkAtom::memory_usage()
 {
-  double bytes = 2*nmaxint * sizeof(int);          // ichunk,exclude
+  double bytes = 2*MAX(nmaxint,0) * sizeof(int);   // ichunk,exclude
   bytes += nmax * sizeof(double);                  // chunk
   bytes += ncoord*nchunk * sizeof(double);         // coord
   if (compress) bytes += nchunk * sizeof(int);     // chunkID

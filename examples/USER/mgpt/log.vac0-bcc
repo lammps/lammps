@@ -1,0 +1,55 @@
+LAMMPS (23 Oct 2015)
+# script for mgpt t=0 eos with unrelaxed vacancy in bcc lattice:
+# input for unrelaxed vacancy formation energy at constant atomic volume
+
+echo screen
+Lattice spacing in x,y,z = 6.23363 6.23363 6.23363
+Created orthogonal box = (0 0 0) to (31.1681 31.1681 31.1681)
+  1 by 1 by 1 MPI processor grid
+Created 250 atoms
+Deleted 1 atoms, new total = 249
+Reading potential file Ta6.8x.mgpt.potin with DATE: 2015-07-30
+Neighbor list info ...
+  2 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13.1618
+  ghost atom cutoff = 13.1618
+  binsize = 6.58091 -> bins = 5 5 5
+Memory usage per processor = 3.54478 Mbytes
+Step Volume Temp PotEng TotEng Press 
+       0      30278.4            0   -73.996387   -73.996387 -6.3426731e+08 
+Loop time of 1.90735e-06 on 1 procs for 0 steps with 249 atoms
+
+0.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.907e-06  |            |       |100.00
+
+Nlocal:    249 ave 249 max 249 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1479 ave 1479 max 1479 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    7936 ave 7936 max 7936 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  15872 ave 15872 max 15872 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 15872
+Ave neighs/atom = 63.743
+Neighbor list builds = 0
+Dangerous builds = 0
+number of atoms = 249
+atomic volume (a.u.) = 121.6
+total energy (ry/atom) = -0.594348488796036
+pressure (gpa) = -0.634267307139601
+249   121.6   -147.992773710213   -0.634267307139601
+121.6   -0.594348488796036   -0.634267307139601
+Total wall time: 0:00:00

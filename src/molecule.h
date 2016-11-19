@@ -23,13 +23,16 @@ class Molecule : protected Pointers {
   char *id;   // template id of this molecule, same for all molecules in set
   int nset;   // if first in set, # of molecules in this set
               // else 0 if not first in set
+  int last;   // 1 if last molecule in set, else 0
 
   // number of atoms,bonds,etc in molecule
+  // nibody,ndbody = # of integer/double fields in body
 
   int natoms;
   int nbonds,nangles,ndihedrals,nimpropers;
   int ntypes;
   int nbondtypes,nangletypes,ndihedraltypes,nimpropertypes;
+  int nibody,ndbody;
 
   // max bond,angle,etc per atom
 
@@ -42,6 +45,7 @@ class Molecule : protected Pointers {
   int bondflag,angleflag,dihedralflag,improperflag;
   int nspecialflag,specialflag;
   int shakeflag,shakeflagflag,shakeatomflag,shaketypeflag;
+  int bodyflag,ibodyflag,dbodyflag;
 
   // 1 if attribute defined or computed, 0 if not
 
@@ -62,15 +66,15 @@ class Molecule : protected Pointers {
   int *num_bond;       // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
   tagint **bond_atom;
-  
+
   int *num_angle;
   int **angle_type;
   tagint **angle_atom1,**angle_atom2,**angle_atom3;
-  
+
   int *num_dihedral;
   int **dihedral_type;
   tagint **dihedral_atom1,**dihedral_atom2,**dihedral_atom3,**dihedral_atom4;
-  
+
   int *num_improper;
   int **improper_type;
   tagint **improper_atom1,**improper_atom2,**improper_atom3,**improper_atom4;
@@ -82,6 +86,10 @@ class Molecule : protected Pointers {
   tagint **shake_atom;
   int **shake_type;
 
+  class AtomVecBody *avec_body;
+  int *ibodyparams;         // integer and double body params
+  double *dbodyparams;
+
   double center[3];         // geometric center of molecule
   double masstotal;         // total mass of molecule
   double com[3];            // center of mass of molecule
@@ -92,7 +100,7 @@ class Molecule : protected Pointers {
 
   double maxradius;    // max radius of any atom in molecule
   double molradius;    // radius of molecule from geometric center
-                       // including finite-size particle radii 
+                       // including finite-size particle radii
   int comatom;         // index (1-Natom) of atom closest to COM
   double maxextent;    // furthest any atom in molecule is from comatom
 
@@ -101,7 +109,10 @@ class Molecule : protected Pointers {
   double **dxbody;     // displacement of each atom relative to COM
                        // in body frame (diagonalized interia tensor)
 
-  Molecule(class LAMMPS *, char *, char *);
+  double *quat_external;   // orientation imposed by external class
+                           // e.g. FixPour or CreateAtoms
+  
+  Molecule(class LAMMPS *, int, char **, int &);
   ~Molecule();
   void compute_center();
   void compute_mass();
@@ -113,7 +124,10 @@ class Molecule : protected Pointers {
   int me;
   FILE *fp;
   int *count;
-
+  int toffset,boffset,aoffset,doffset,ioffset;
+  int autospecial;
+  double sizescale;
+  
   void read(int);
   void coords(char *);
   void types(char *);
@@ -126,9 +140,11 @@ class Molecule : protected Pointers {
   void impropers(int, char *);
   void nspecial_read(int, char *);
   void special_read(char *);
+  void special_generate();
   void shakeflag_read(char *);
   void shakeatom_read(char *);
   void shaketype_read(char *);
+  void body(int, int, char *);
 
   void initialize();
   void allocate();
@@ -149,6 +165,12 @@ class Molecule : protected Pointers {
 
 /* ERROR/WARNING messages:
 
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
 E: Molecule template ID must be alphanumeric or underscore characters
 
 Self-explanatory.
@@ -165,7 +187,27 @@ E: Molecule file z center-of-mass must be 0.0 for 2d
 
 Self-explanatory.
 
-E: No atom count in molecule file
+E: Molecule file requires atom style body
+
+Self-explanatory.
+
+E: No count or invalid atom count in molecule file
+
+The number of atoms must be specified.
+
+E: Invalid bond count in molecule file
+
+Self-explanatory.
+
+E: Invalid angle count in molecule file
+
+Self-explanatory.
+
+E: Invalid dihedral count in molecule file
+
+Self-explanatory.
+
+E: Invalid improper count in molecule file
 
 Self-explanatory.
 
@@ -193,6 +235,10 @@ E: Molecule file shake flags not before shake bonds
 
 The order of the two sections is important.
 
+E: Molecule file has body params but no setting for them
+
+Self-explanatory.
+
 E: Unknown section in molecule file
 
 Self-explanatory.
@@ -205,15 +251,35 @@ E: Molecule file has special flags but no bonds
 
 Self-explanatory.
 
-E: Molecule file has bonds but no special flags
-
-Self-explanatory.
-
 E: Molecule file shake info is incomplete
 
 All 3 SHAKE sections are needed.
 
+E: Molecule file has no Body Integers section
+
+Self-explanatory.
+
+E: Molecule file has no Body Doubles section
+
+Self-explanatory.
+
+E: Molecule natoms must be 1 for body particle
+
+Self-explanatory.
+
+E: Molecule sizescale must be 1.0 for body particle
+
+Self-explanatory.
+
+E: Invalid Coords section in molecule file
+
+Self-explanatory.
+
 E: Molecule file z coord must be 0.0 for 2d
+
+Self-explanatory.
+
+E: Invalid Types section in molecule file
 
 Self-explanatory.
 
@@ -221,19 +287,39 @@ E: Invalid atom type in molecule file
 
 Atom types must range from 1 to specified # of types.
 
+E: Invalid Charges section in molecule file
+
+Self-explanatory.
+
+E: Invalid Diameters section in molecule file
+
+Self-explanatory.
+
 E: Invalid atom diameter in molecule file
 
 Diameters must be >= 0.0.
 
+E: Invalid Masses section in molecule file
+
+Self-explanatory.
+
 E: Invalid atom mass in molecule file
 
 Masses must be > 0.0.
+
+E: Invalid Bonds section in molecule file
+
+Self-explanatory.
 
 E: Invalid atom ID in Bonds section of molecule file
 
 Self-explanatory.
 
 E: Invalid bond type in Bonds section of molecule file
+
+Self-explanatory.
+
+E: Invalid Angles section in molecule file
 
 Self-explanatory.
 
@@ -245,11 +331,19 @@ E: Invalid angle type in Angles section of molecule file
 
 Self-explanatory.
 
+E: Invalid Dihedrals section in molecule file
+
+Self-explanatory.
+
 E: Invalid atom ID in dihedrals section of molecule file
 
 Self-explanatory.
 
 E: Invalid dihedral type in dihedrals section of molecule file
+
+Self-explanatory.
+
+E: Invalid Impropers section in molecule file
 
 Self-explanatory.
 
@@ -261,6 +355,10 @@ E: Invalid improper type in impropers section of molecule file
 
 Self-explanatory.
 
+E: Invalid Special Bond Counts section in molecule file
+
+Self-explanatory.
+
 E: Molecule file special list does not match special count
 
 The number of values in an atom's special list does not match count.
@@ -268,6 +366,10 @@ The number of values in an atom's special list does not match count.
 E: Invalid special atom index in molecule file
 
 Self-explanatory.
+
+E: Molecule auto special bond generation overflow
+
+Counts exceed maxspecial setting for other atoms in system.
 
 E: Invalid shake flag in molecule file
 
@@ -282,6 +384,14 @@ E: Invalid shake bond type in molecule file
 Self-explanatory.
 
 E: Invalid shake angle type in molecule file
+
+Self-explanatory.
+
+E: Too few values in body section of molecule file
+
+Self-explanatory.
+
+E: Too many values in body section of molecule file
 
 Self-explanatory.
 

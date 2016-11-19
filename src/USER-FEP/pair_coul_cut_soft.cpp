@@ -15,10 +15,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_cut_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -179,13 +179,13 @@ void PairCoulCutSoft::settings(int narg, char **arg)
 
 void PairCoulCutSoft::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) 
+  if (narg < 3 || narg > 4)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double lambda_one = force->numeric(FLERR,arg[2]);
 
@@ -357,7 +357,7 @@ double PairCoulCutSoft::single(int i, int j, int itype, int jtype,
     denc = sqrt(lam2[itype][jtype] + rsq);
     forcecoul = force->qqrd2e * lam1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
-  } else forcecoul = 0.0; 
+  } else forcecoul = 0.0;
   fforce = factor_coul*forcecoul;
 
   if (rsq < cutsq[itype][jtype])

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_meso_e_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -28,8 +28,8 @@ using namespace LAMMPS_NS;
 ComputeMesoEAtom::ComputeMesoEAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Number of arguments for compute meso_e/atom command != 3");
-  if (atom->e_flag != 1) error->all(FLERR,"compute meso_e/atom command requires atom_style with energy (e.g. meso)");
+  if (narg != 3) error->all(FLERR,"Number of arguments for compute meso/e/atom command != 3");
+  if (atom->e_flag != 1) error->all(FLERR,"compute meso/e/atom command requires atom_style with energy (e.g. meso)");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -65,7 +65,7 @@ void ComputeMesoEAtom::compute_peratom()
 
   // grow evector array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->sfree(evector);
     nmax = atom->nmax;
     evector = (double *) memory->smalloc(nmax*sizeof(double),"evector/atom:evector");

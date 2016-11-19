@@ -18,7 +18,7 @@ DumpStyle(custom/mpiio,DumpCustomMPIIO)
 #else
 
 #ifndef LMP_DUMP_CUSTOM_MPIIO_H
-#define LMP_DUMP_CUSTOM_MPII0_H
+#define LMP_DUMP_CUSTOM_MPIIO_H
 
 #include "dump_custom.h"
 

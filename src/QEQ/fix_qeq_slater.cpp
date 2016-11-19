@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_slater.h"
 #include "atom.h"
 #include "comm.h"
@@ -42,8 +42,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) : 
-  FixQEq(lmp, narg, arg) 
+FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
+  FixQEq(lmp, narg, arg)
 {
   alpha = 0.20;
 
@@ -64,7 +64,7 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqSlater::init()
 {
-  if (!atom->q_flag) 
+  if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/slater requires atom attribute q");
 
   ngroup = group->count(igroup);
@@ -78,7 +78,7 @@ void FixQEqSlater::init()
 
   int ntypes = atom->ntypes;
   for (int i = 1; i <= ntypes; i++) {
-    if (zeta[i] == 0.0) 
+    if (zeta[i] == 0.0)
       error->all(FLERR,"Invalid param file for fix qeq/slater");
   }
 
@@ -90,14 +90,6 @@ void FixQEqSlater::init()
 
 void FixQEqSlater::extract_streitz()
 {
-  int ntypes = atom->ntypes;
-
-  memory->create(chi,ntypes+1,"qeq:chi");
-  memory->create(eta,ntypes+1,"qeq:eta");
-  memory->create(gamma,ntypes+1,"qeq:gamma");
-  memory->create(zeta,ntypes+1,"qeq:zeta");
-  memory->create(zcore,ntypes+1,"qeq:zcore");
-
   Pair *pair = force->pair_match("coul/streitz",1);
   if (pair == NULL) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
   int tmp;
@@ -106,7 +98,7 @@ void FixQEqSlater::extract_streitz()
   gamma = (double *) pair->extract("gamma",tmp);
   zeta = (double *) pair->extract("zeta",tmp);
   zcore = (double *) pair->extract("zcore",tmp);
-  if (chi == NULL || eta == NULL || gamma == NULL 
+  if (chi == NULL || eta == NULL || gamma == NULL
                   || zeta == NULL || zcore == NULL)
     error->all(FLERR,
 	"Fix qeq/slater could not extract params from pair coul/streitz");
@@ -230,7 +222,7 @@ void FixQEqSlater::compute_H()
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqSlater::calculate_H(double zei, double zej, double zj, 
+double FixQEqSlater::calculate_H(double zei, double zej, double zj,
 		double r, double &zjtmp)
 {
   double rinv = 1.0/r;
@@ -283,7 +275,7 @@ double FixQEqSlater::calculate_H(double zei, double zej, double zj,
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj, 
+double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
 		double r, double &zjtmp)
 {
   double rinv = 1.0/r;
@@ -339,14 +331,14 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
          ((zei+zej)*(zei+zej)*(zei+zej)*(zej-zei)*(zej-zei)*(zej-zei));
 
     eshift = -exp2zirsh*(e1+e3/rc) - exp2zjrsh*(e2+e4/rc);
-    ci_fifj = -exp2zir*(e1+e3/r) - exp2zjr*(e2+e4/r) 
+    ci_fifj = -exp2zir*(e1+e3/r) - exp2zjr*(e2+e4/r)
 	      - eshift - (r-rc)*fshift;
   }
 
   etmp1 = erfcr/r - erfcrc/rc;
   etmp2 = 1.00 * (ci_jfi - ci_fifj);
   etmp3 = 0.50 * (etmp1 + ci_fifj);
-  
+
   zjtmp += qqrd2e * zj * etmp2;
   return qqrd2e * etmp3;
 

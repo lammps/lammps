@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : nguyentd@ornl.gov
  ***************************************************************************/
 
@@ -37,7 +37,7 @@ template <class numtyp, class acctyp>
 BuckCoulLongT::~BuckCoulLongT() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int BuckCoulLongT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -45,8 +45,8 @@ int BuckCoulLongT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int BuckCoulLongT::init(const int ntypes, double **host_cutsq,
-                       double **host_rhoinv, double **host_buck1, double **host_buck2, 
-                       double **host_a, double **host_c, double **host_offset, 
+                       double **host_rhoinv, double **host_buck1, double **host_buck2,
+                       double **host_a, double **host_c, double **host_offset,
                        double *host_special_lj, const int nlocal,
                        const int nall, const int max_nbors,
                        const int maxspecial, const double cell_size,
@@ -83,11 +83,11 @@ int BuckCoulLongT::init(const int ntypes, double **host_cutsq,
 
   coeff2.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,coeff2,host_write,host_a,host_c,
-		         host_offset);
-  
+                         host_offset);
+
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack1(ntypes,lj_types,cutsq,host_write,host_cutsq);
-  
+
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
     host_write[i]=host_special_lj[i];
@@ -139,7 +139,7 @@ void BuckCoulLongT::loop(const bool _eflag, const bool _vflag) {
     vflag=1;
   else
     vflag=0;
-  
+
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -150,16 +150,16 @@ void BuckCoulLongT::loop(const bool _eflag, const bool _vflag) {
     this->k_pair_fast.set_size(GX,BX);
     this->k_pair_fast.run(&this->atom->x, &coeff1, &coeff2, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->ans->force, &this->ans->engv, &eflag, 
+                          &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch, &this->atom->q,
-                          &cutsq, &_cut_coulsq, &_qqrd2e, 
+                          &cutsq, &_cut_coulsq, &_qqrd2e,
                           &_g_ewald, &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &coeff1,  &coeff2, &_lj_types, &sp_lj, 
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+    this->k_pair.run(&this->atom->x, &coeff1,  &coeff2, &_lj_types, &sp_lj,
+                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                    &this->ans->force, &this->ans->engv, &eflag, &vflag,
-                   &ainum, &nbor_pitch, &this->atom->q, &cutsq, 
+                   &ainum, &nbor_pitch, &this->atom->q, &cutsq,
                    &_cut_coulsq, &_qqrd2e, &_g_ewald, &this->_threads_per_atom);
   }
   this->time_pair.stop();

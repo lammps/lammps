@@ -15,10 +15,10 @@
    Contributing authors: Stan Moore (SNL), Christian Trott (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_eam_kokkos.h"
@@ -128,7 +128,6 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMInitialize>(0,nall),*this);
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMInitialize>(0,nlocal),*this);
-  DeviceType::fence();
 
   // loop over neighbors of my atoms
 
@@ -151,7 +150,6 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelA<HALFTHREAD,0> >(0,inum),*this);
       }
     }
-    DeviceType::fence();
 
     // communicate and sum densities (on the host)
 
@@ -169,7 +167,6 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelB<0> >(0,inum),*this);
-    DeviceType::fence();
 
   } else if (neighflag == FULL) {
 
@@ -179,7 +176,6 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<1> >(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<0> >(0,inum),*this);
-    DeviceType::fence();
   }
 
   if (eflag) {
@@ -234,7 +230,6 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -278,7 +273,7 @@ void PairEAMKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value && 
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
     !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
     kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
@@ -294,7 +289,7 @@ void PairEAMKokkos<DeviceType>::init_style()
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with pair eam/kk");
   }
-  
+
 }
 
 /* ----------------------------------------------------------------------
@@ -409,7 +404,7 @@ void PairEAMKokkos<DeviceType>::interpolate(int n, double delta, double *f, t_ho
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf, 
+int PairEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist, int iswap_in, DAT::tdual_xfloat_1d &buf,
                                int pbc_flag, int *pbc)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
@@ -447,7 +442,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMUnpackForwardComm, const in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, 
+int PairEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
   int i,j;
@@ -514,7 +509,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
 
   // rho = density at each atom
   // loop over neighbors of my atoms
-  
+
   // The rho array is atomic for Half/Thread neighbor style
   Kokkos::View<F_FLOAT*, typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > rho = v_rho;
 
@@ -554,7 +549,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
                     d_rhor_spline(d_type2rhor_ij,m,5))*p + d_rhor_spline(d_type2rhor_ij,m,6);
       }
     }
-  
+
   }
   rho[i] += rhotmp;
 }
@@ -566,7 +561,6 @@ template<class DeviceType>
 template<int EFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelB<EFLAG>, const int &ii, EV_FLOAT& ev) const {
-
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
   // if rho > rhomax (e.g. due to close approach of two atoms),
@@ -589,7 +583,6 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelB<EFLAG>, const int &
     if (eflag_global) ev.evdwl += phi;
     if (eflag_atom) d_eatom[i] += phi;
   }
-
 }
 
 template<class DeviceType>
@@ -642,7 +635,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
       rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p + 
                   d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
     }
-  
+
   }
   d_rho[i] += rhotmp;
 
@@ -874,7 +867,9 @@ void PairEAMKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
   }
 }
 
+namespace LAMMPS_NS {
 template class PairEAMKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairEAMKokkos<LMPHostType>;
 #endif
+}

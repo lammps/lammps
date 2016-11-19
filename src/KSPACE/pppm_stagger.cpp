@@ -15,11 +15,11 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "pppm_stagger.h"
 #include "atom.h"
 #include "gridcomm.h"
@@ -51,8 +51,9 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPMStagger::PPPMStagger(LAMMPS *lmp, int narg, char **arg) : 
-  PPPM(lmp, narg, arg)
+PPPMStagger::PPPMStagger(LAMMPS *lmp, int narg, char **arg) :
+  PPPM(lmp, narg, arg), 
+  gf_b2(NULL)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/stagger command");
   stagger_flag = 1;
@@ -144,7 +145,7 @@ void PPPMStagger::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");
@@ -160,7 +161,7 @@ void PPPMStagger::compute(int eflag, int vflag)
 
     particle_map();
     make_rho();
-    
+
     // all procs communicate density values from their ghost cells
     //   to fully sum contribution in their 3d bricks
     // remap from 3d decomposition to FFT decomposition
@@ -177,14 +178,14 @@ void PPPMStagger::compute(int eflag, int vflag)
 
     // all procs communicate E-field values
     // to fill ghost cells surrounding their 3d bricks
-    
+
     if (differentiation_flag == 1) cg->forward_comm(this,FORWARD_AD);
     else cg->forward_comm(this,FORWARD_IK);
 
     // extra per-atom energy/virial communication
 
     if (evflag_atom) {
-      if (differentiation_flag == 1 && vflag_atom) 
+      if (differentiation_flag == 1 && vflag_atom)
         cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
       else if (differentiation_flag == 0)
         cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
@@ -228,13 +229,13 @@ void PPPMStagger::compute(int eflag, int vflag)
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) 
+    for (i = 0; i < 6; i++)
       virial[i] = 0.5*qscale*volume*virial_all[i]/float(nstagger);
   }
 
   // per-atom energy/virial
   // energy includes self-energy correction
-  // notal accounts for TIP4P tallying eatom/vatom for ghost atoms
+  // ntotal accounts for TIP4P tallying eatom/vatom for ghost atoms
 
   if (evflag_atom) {
     double *q = atom->q;
@@ -679,7 +680,7 @@ void PPPMStagger::particle_map()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;

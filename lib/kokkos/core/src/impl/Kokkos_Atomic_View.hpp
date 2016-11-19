@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -45,8 +45,8 @@
 
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Atomic.hpp>
-namespace Kokkos {
-namespace Impl {
+
+namespace Kokkos { namespace Impl {
 
 //The following tag is used to prevent an implicit call of the constructor when trying
 //to assign a literal 0 int ( = 0 );
@@ -391,7 +391,14 @@ public:
   typename ViewTraits::value_type* ptr;
 
   KOKKOS_INLINE_FUNCTION
-  AtomicViewDataHandle(typename ViewTraits::value_type* ptr_):ptr(ptr_){}
+  AtomicViewDataHandle()
+    : ptr(NULL)
+  {}
+
+  KOKKOS_INLINE_FUNCTION
+  AtomicViewDataHandle(typename ViewTraits::value_type* ptr_)
+    :ptr(ptr_)
+  {}
 
   template<class iType>
   KOKKOS_INLINE_FUNCTION
@@ -418,31 +425,6 @@ struct Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<8> {
   typedef int64_t type;
 };
 
-// Must be non-const, atomic access trait, and 32 or 64 bit type for true atomics.
-template<class ViewTraits>
-class ViewDataHandle<
-  ViewTraits ,
-  typename enable_if<
-    ( ! is_same<typename ViewTraits::const_value_type,typename ViewTraits::value_type>::value) &&
-    ( ViewTraits::memory_traits::Atomic )
-  >::type >
-{
-private:
-//  typedef typename if_c<(sizeof(typename ViewTraits::const_value_type)==4) || 
-//                        (sizeof(typename ViewTraits::const_value_type)==8), 
-//                         int, Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars >::type 
-//                   atomic_view_possible; 
-  typedef typename Kokkos_Atomic_is_only_allowed_with_32bit_and_64bit_scalars<sizeof(typename ViewTraits::const_value_type)>::type enable_atomic_type;
-  typedef ViewDataHandle self_type;
-
-public:
-  enum {  ReturnTypeIsReference = false };
-
-  typedef Impl::AtomicViewDataHandle<ViewTraits> handle_type;
-  typedef Impl::AtomicDataElement<ViewTraits>    return_type;
-};
-
-}
-}
+}} // namespace Kokkos::Impl
 
 #endif

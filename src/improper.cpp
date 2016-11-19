@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "improper.h"
 #include "atom.h"
 #include "comm.h"
@@ -38,9 +38,6 @@ Improper::Improper(LAMMPS *lmp) : Pointers(lmp)
   vatom = NULL;
   setflag = NULL;
 
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
-
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
@@ -51,7 +48,7 @@ Improper::Improper(LAMMPS *lmp) : Pointers(lmp)
 /* ---------------------------------------------------------------------- */
 
 Improper::~Improper()
-{ 
+{
   if (copymode) return;
 
   memory->destroy(eatom);
@@ -64,10 +61,12 @@ Improper::~Improper()
 
 void Improper::init()
 {
-  if (!allocated && atom->nimpropertypes) 
+  if (!allocated && atom->nimpropertypes)
     error->all(FLERR,"Improper coeffs are not set");
   for (int i = 1; i <= atom->nimpropertypes; i++)
     if (setflag[i] == 0) error->all(FLERR,"All improper coeffs are not set");
+
+  init_style();
 }
 
 /* ----------------------------------------------------------------------
@@ -94,12 +93,12 @@ void Improper::ev_setup(int eflag, int vflag)
   if (eflag_atom && atom->nmax > maxeatom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);
-    memory->create(eatom,comm->nthreads*maxeatom,"bond:eatom");
+    memory->create(eatom,comm->nthreads*maxeatom,"improper:eatom");
   }
   if (vflag_atom && atom->nmax > maxvatom) {
     maxvatom = atom->nmax;
     memory->destroy(vatom);
-    memory->create(vatom,comm->nthreads*maxvatom,6,"bond:vatom");
+    memory->create(vatom,comm->nthreads*maxvatom,6,"improper:vatom");
   }
 
   // zero accumulators

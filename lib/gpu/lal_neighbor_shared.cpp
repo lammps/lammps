@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -51,8 +51,8 @@ void NeighborShared::clear() {
 void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor,
                                      const std::string flags) {
   if (_compiled)
-  	return;
-  	
+          return;
+
   _gpu_nbor=gpu_nbor;
   if (_gpu_nbor==0) {
     nbor_program=new UCL_Program(dev);

@@ -40,7 +40,7 @@ class BaseDPD {
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
     * \param k_name name for the kernel for force calculation
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -81,7 +81,7 @@ class BaseDPD {
     * \note host_inum is 0 if the host is performing neighboring
     * \note nlocal+host_inum=total number local particles
     * \note olist_size=0 **/
-  inline void resize_local(const int inum, const int host_inum, 
+  inline void resize_local(const int inum, const int host_inum,
                            const int max_nbors, bool &success) {
     nbor->resize(inum,host_inum,max_nbors,success);
   }
@@ -129,20 +129,20 @@ class BaseDPD {
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
                const double cpu_time, bool &success, tagint *tag,
-               double **v, const double dtinvsqrt, const int seed, 
+               double **v, const double dtinvsqrt, const int seed,
                const int timestep, const int nlocal, double *boxlo, double *prd);
 
   /// Pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
-                tagint **special, const bool eflag, const bool vflag, 
-                const bool eatom, const bool vatom, int &host_start, 
+                tagint **special, const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
                 double **v, const double dtinvsqrt, const int seed,
                 const int timestep, double *boxlo, double *prd);
 
-  // -------------------------- DEVICE DATA ------------------------- 
+  // -------------------------- DEVICE DATA -------------------------
 
   /// Device Properties and Atom and Neighbor storage
   Device<numtyp,acctyp> *device;

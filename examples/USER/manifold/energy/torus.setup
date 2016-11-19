@@ -1,0 +1,3 @@
+boundary f f f
+read_data torus.data
+variable manifold_params string "10.0 4.0"

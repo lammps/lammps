@@ -13,7 +13,7 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_sdk_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -56,6 +56,7 @@ void PairLJSDKOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -71,6 +72,7 @@ void PairLJSDKOMP::compute(int eflag, int vflag)
       else eval_thr<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }

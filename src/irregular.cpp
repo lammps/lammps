@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "irregular.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -313,7 +313,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
 #ifdef LAMMPS_RS_ALLREDUCE_INPLACE
   MPI_Allreduce(MPI_IN_PLACE,work1,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work1[me];
-#else 
+#else
 #ifdef LAMMPS_RS_ALLREDUCE
   MPI_Allreduce(work1,work2,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work2[me];
@@ -559,7 +559,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 #ifdef LAMMPS_RS_ALLREDUCE_INPLACE
   MPI_Allreduce(MPI_IN_PLACE,work1,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work1[me];
-#else 
+#else
 #ifdef LAMMPS_RS_ALLREDUCE
   MPI_Allreduce(work1,work2,nprocs,MPI_INT,MPI_SUM,world);
   nrecv_proc = work2[me];

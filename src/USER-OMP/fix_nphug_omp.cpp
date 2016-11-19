@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_nphug_omp.h"
 #include "modify.h"
 #include "error.h"
@@ -21,10 +21,10 @@
 #include "force.h"
 #include "domain.h"
 #include "group.h"
-#include "math.h"
+#include <math.h>
 #include "memory.h"
 #include "comm.h"
-#include "math.h"
+#include <math.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +34,7 @@ enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 /* ---------------------------------------------------------------------- */
 
 FixNPHugOMP::FixNPHugOMP(LAMMPS *lmp, int narg, char **arg) :
-  FixNHOMP(lmp, narg, arg)
+  FixNHOMP(lmp, narg, arg), pe(NULL), id_pe(NULL)
 {
 
   // Prevent masses from being updated every timestep
@@ -135,7 +135,7 @@ FixNPHugOMP::FixNPHugOMP(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
@@ -153,7 +153,7 @@ FixNPHugOMP::FixNPHugOMP(LAMMPS *lmp, int narg, char **arg) :
   newarg[3] = id_temp;
   modify->add_compute(4,newarg);
   delete [] newarg;
-  pflag = 1;
+  pcomputeflag = 1;
 
   // create a new compute potential energy compute
 

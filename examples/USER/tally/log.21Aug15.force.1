@@ -1,0 +1,136 @@
+LAMMPS (21 Aug 2015-ICMS)
+  using 1 OpenMP thread(s) per MPI task
+
+units		real
+atom_style	full
+
+read_data	data.spce
+  orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  4500 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  3000 bonds
+  reading angles ...
+  1500 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+
+pair_style	lj/cut/coul/long 12.0 12.0
+kspace_style	pppm 1.0e-4
+
+pair_coeff	1 1 0.15535 3.166
+pair_coeff	* 2 0.0000 0.0000
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 1.0
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  2 = max # of special neighbors
+
+neighbor        2.0 bin
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  1500 = # of frozen angles
+fix		2 all nvt temp 300.0 300.0 100.0
+
+group		one molecule 1 2
+6 atoms in group one
+
+# the following section shows equivalences between using the pe/tally compute and other computes and thermo keywords
+
+# compute pairwise force between two molecules and everybody
+compute		fpa one group/group all pair yes kspace no boundary no
+# tally pairwise force between two molecules and the all molecules
+compute		c1 one force/tally all
+# tally the force of all with all (should be zero)
+compute		c2 all force/tally all
+# collect per atom data. only reduce over the first group.
+compute		one one reduce sum c_c1[1] c_c1[2] c_c1[3]
+compute		red all reduce sum c_c2[1] c_c2[2] c_c2[3]
+# determine magnitude of force
+variable	fpa equal sqrt(c_fpa[1]*c_fpa[1]+c_fpa[2]*c_fpa[2]+c_fpa[3]*c_fpa[3])
+variable	for equal sqrt(c_one[1]*c_one[1]+c_one[2]*c_one[2]+c_one[3]*c_one[3])
+# round to 10**-10 absolute precision.
+variable	ref equal round(1e10*sqrt(c_red[1]*c_red[1]+c_red[2]*c_red[2]+c_red[3]*c_red[3]))*1e-10
+
+velocity	all create 300 432567 dist uniform
+
+timestep	2.0
+
+# v_fpa and v_for and c_c1, c_fpa[] and c_one[] should all each have the same value. v_ref and c_c2 should be zero
+thermo_style    custom step v_fpa v_for c_c1 c_fpa[1] c_one[1] c_fpa[2] c_one[2] c_fpa[3] c_one[3] v_ref  c_c2
+thermo		10
+
+run 50
+PPPM initialization ...
+  G vector (1/distance) = 0.218482
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0319435
+  estimated relative force accuracy = 9.61968e-05
+  using double precision FFTs
+  3d grid and FFT values/proc = 8000 3375
+WARNING: Compute force/tally only called from pair style (../compute_force_tally.cpp:75)
+WARNING: Compute force/tally only called from pair style (../compute_force_tally.cpp:75)
+Neighbor list info ...
+  2 neighbor list requests
+  update every 1 steps, delay 10 steps, check yes
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7 -> bins = 6 6 6
+Memory usage per processor = 16.7648 Mbytes
+Step fpa for c1 fpa[1] one[1] fpa[2] one[2] fpa[3] one[3] ref c2 
+       0    22.732789    22.732789    22.732789   -17.068392   -17.068392   -8.8345214   -8.8345214   -12.140878   -12.140878            0            0 
+      10    11.736915    11.736915    11.736915   -3.3898298   -3.3898298     9.119272     9.119272   -6.5652948   -6.5652948            0            0 
+      20    5.6119761    5.6119761    5.6119761  -0.60028931  -0.60028931   -4.4479886   -4.4479886     3.368876     3.368876            0            0 
+      30    17.292617    17.292617    17.292617    6.1793856    6.1793856   -10.593927   -10.593927    12.190919    12.190919            0            0 
+      40    18.664226    18.664226    18.664226    5.4725079    5.4725079    -6.933046    -6.933046    16.441955    16.441955            0            0 
+      50    12.130282    12.130282    12.130282   -1.0321244   -1.0321244    8.0032646    8.0032646   -9.0568326   -9.0568326            0            0 
+
+Loop time of 4.11825 on 1 procs for 50 steps with 4500 atoms
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 2.098 ns/day  11.440 hours/ns  12.141 timesteps/s
+
+MPI task timings breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.5286     | 3.5286     | 3.5286     |   0.0 | 85.68
+Bond    | 6.1274e-05 | 6.1274e-05 | 6.1274e-05 |   0.0 |  0.00
+Kspace  | 0.1937     | 0.1937     | 0.1937     |   0.0 |  4.70
+Neigh   | 0.31454    | 0.31454    | 0.31454    |   0.0 |  7.64
+Comm    | 0.01037    | 0.01037    | 0.01037    |   0.0 |  0.25
+Output  | 0.039355   | 0.039355   | 0.039355   |   0.0 |  0.96
+Modify  | 0.029273   | 0.029273   | 0.029273   |   0.0 |  0.71
+Other   |            | 0.002351   |            |       |  0.06
+
+Nlocal:    4500 ave 4500 max 4500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    21131 ave 21131 max 21131 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.60198e+06 ave 2.60198e+06 max 2.60198e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2601984
+Ave neighs/atom = 578.219
+Ave special neighs/atom = 2
+Neighbor list builds = 4
+Dangerous builds = 1
+
+Total wall time: 0:00:04

@@ -18,10 +18,10 @@
    and Aidan Thompson's Tersoff code in LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
@@ -56,6 +56,8 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   NCo = NULL;
   bbij = NULL;
+  map = NULL;
+  esm = NULL;
 
   nelements = 0;
   elements = NULL;
@@ -71,7 +73,7 @@ PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
   phin = NULL;
   dphin = NULL;
   erpaw = NULL;
-  
+
   sht_num = NULL;
   sht_first = NULL;
 
@@ -485,7 +487,7 @@ void PairComb::coeff(int narg, char **arg)
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
-  setup();
+  setup_params();
 
   n = atom->ntypes;
 
@@ -770,7 +772,7 @@ void PairComb::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairComb::setup()
+void PairComb::setup_params()
 {
   int i,j,k,m,n;
 
@@ -1243,7 +1245,9 @@ double PairComb::comb_bij_d(double zeta, Param *param)
   if (tmp > param->c1) return param->beta * -0.5*pow(tmp,-1.5);
   if (tmp > param->c2)
     return param->beta * (-0.5*pow(tmp,-1.5) *
-                          (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
+			  // error in negligible 2nd term fixed 9/30/2015
+			  // (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
+                          (1.0 - (1.0 +  1.0/(2.0*param->powern)) *
                            pow(tmp,-param->powern)));
   if (tmp < param->c4) return 0.0;
   if (tmp < param->c3)
@@ -1419,10 +1423,15 @@ void PairComb::sm_table()
   // direct 1/r energy with Slater 1S orbital overlap
 
   for (i = 0; i < n; i++) {
+    if (map[i+1] < 0) continue;
     r = drin;
-    itype = params[i].ielement;
+    itype = params[map[i+1]].ielement;
     iparam_i = elem2param[itype][itype][itype];
     z = params[iparam_i].esm1;
+
+    if (comm->me == 0 && screen)
+      fprintf(screen,"  element[%d] = %-2s, z = %g\n",i+1,elements[map[i+1]],z);
+
     for (j = 0; j < ncoul; j++) {
       exp2er = exp(-2.0 * z * r);
       phin[j][i] = 1.0 - exp2er * (1.0 + 2.0 * z * r * (1.0 + z * r));
@@ -1432,10 +1441,12 @@ void PairComb::sm_table()
   }
 
   for (i = 0; i < n; i ++) {
+    if (map[i+1] < 0) continue;
     for (j = 0; j < n; j ++) {
+      if (map[j+1] < 0) continue;
       r = drin;
       if (j == i) {
-        itype = params[i].ielement;
+        itype = params[map[i+1]].ielement;
         inty = intype[itype][itype];
         iparam_i = elem2param[itype][itype][itype];
         z = params[iparam_i].esm1;
@@ -1460,8 +1471,8 @@ void PairComb::sm_table()
           r += dra;
         }
       } else if (j != i) {
-        itype = params[i].ielement;
-        jtype = params[j].ielement;
+        itype = params[map[i+1]].ielement;
+        jtype = params[map[j+1]].ielement;
         inty = intype[itype][jtype];
         iparam_ij = elem2param[itype][jtype][jtype];
         ea = params[iparam_ij].esm1;
@@ -1779,7 +1790,6 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
     if (mask[i] & groupbit)
       eneg += qf[i];
   }
-  double enegtot;
   MPI_Allreduce(&eneg,&enegtot,1,MPI_DOUBLE,MPI_SUM,world);
   return enegtot;
 }
@@ -1991,7 +2001,7 @@ void PairComb::Over_cor(Param *param, double rsq1, int NCoi,
 
 /* ---------------------------------------------------------------------- */
 
-int PairComb::pack_forward_comm(int n, int *list, double *buf, 
+int PairComb::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,m;

@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_gromacs_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -132,8 +132,6 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev = pair_compute<PairLJGromacsKokkos<DeviceType>,CoulLongTable<0> >
       (this,(NeighListKokkos<DeviceType>*)list);
 
-  DeviceType::fence();
-
   if (eflag) {
     eng_vdwl += ev.evdwl;
     eng_coul += 0.0;
@@ -172,7 +170,7 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
     const F_FLOAT r = sqrt(rsq);
     const F_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
     const F_FLOAT fswitch = r*tlj*tlj*
-	    ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) + 
+	    ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) +
 	     (STACKPARAMS?m_params[itype][jtype].ljsw2:params(itype,jtype).ljsw2)*tlj);
     forcelj += fswitch;
   }
@@ -191,7 +189,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
 
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj = r6inv * 
+  F_FLOAT englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
   englj += (STACKPARAMS?m_params[itype][jtype].ljsw5:params(itype,jtype).ljsw5);
@@ -200,7 +198,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
     const F_FLOAT r = sqrt(rsq);
     const F_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
     const F_FLOAT eswitch = tlj*tlj*tlj *
-	    ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) + 
+	    ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) +
 	     (STACKPARAMS?m_params[itype][jtype].ljsw4:params(itype,jtype).ljsw4)*tlj);
     englj += eswitch;
   }
@@ -327,7 +325,10 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
   return cutone;
 }
 
+namespace LAMMPS_NS {
 template class PairLJGromacsKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJGromacsKokkos<LMPHostType>;
 #endif
+}
+

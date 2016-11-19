@@ -15,10 +15,10 @@
    Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_wolf_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -104,7 +104,6 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   q = atomKK->k_q.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
@@ -174,7 +173,6 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       }
     }
   }
-  DeviceType::fence();
 
   if (eflag_global) eng_coul += ev.ecoul;
   if (vflag_global) {
@@ -251,7 +249,6 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
   const X_FLOAT ytmp = x(i,1);
   const X_FLOAT ztmp = x(i,2);
   const F_FLOAT qtmp = q[i];
-  const int itype = type(i);
 
   if (eflag) {
     const F_FLOAT qisq = qtmp*qtmp;
@@ -277,7 +274,6 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
     const X_FLOAT delz = ztmp - x(j,2);
-    const int jtype = type(j);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cut_coulsq) {
@@ -426,12 +422,15 @@ void PairCoulWolfKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-KOKKOS_INLINE_FUNCTION 
+KOKKOS_INLINE_FUNCTION
 int PairCoulWolfKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
 }
 
+namespace LAMMPS_NS {
 template class PairCoulWolfKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairCoulWolfKokkos<LMPHostType>;
 #endif
+}
+

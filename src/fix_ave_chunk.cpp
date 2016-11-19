@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_chunk.h"
 #include "atom.h"
 #include "update.h"
@@ -32,15 +32,22 @@ using namespace FixConst;
 
 enum{V,F,DENSITY_NUMBER,DENSITY_MASS,MASS,TEMPERATURE,COMPUTE,FIX,VARIABLE};
 enum{SAMPLE,ALL};
-enum{ONE,RUNNING,WINDOW};
 enum{NOSCALE,ATOM};
+enum{ONE,RUNNING,WINDOW};
 
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
 FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalues(0), nrepeat(0),
+  which(NULL), argindex(NULL), value2index(NULL), ids(NULL),
+  fp(NULL), idchunk(NULL), varatom(NULL),
+  count_one(NULL), count_many(NULL), count_sum(NULL),
+  values_one(NULL), values_many(NULL), values_sum(NULL),
+  count_total(NULL), count_list(NULL),
+  values_total(NULL), values_list(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/chunk command");
 
@@ -57,16 +64,25 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nfreq;
   no_change_box = 1;
 
+  // expand args if any have wildcard character "*"
+
+  int expand = 0;
+  char **earg;
+  int nargnew = input->expand_args(narg-7,&arg[7],1,earg);
+
+  if (earg != &arg[7]) expand = 1;
+  arg = earg;
+
   // parse values until one isn't recognized
 
-  int iarg = 7;
-  which = new int[narg-iarg];
-  argindex = new int[narg-iarg];
-  ids = new char*[narg-iarg];
-  value2index = new int[narg-iarg];
-  nvalues = 0;
+  which = new int[nargnew];
+  argindex = new int[nargnew];
+  ids = new char*[nargnew];
+  value2index = new int[nargnew];
 
-  while (iarg < narg) {
+  int iarg = 0;
+  while (iarg < nargnew) {
+
     ids[nvalues] = NULL;
 
     if (strcmp(arg[iarg],"vx") == 0) {
@@ -132,28 +148,38 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
   }
 
+  if (nvalues == 0) error->all(FLERR,"No values in fix ave/chunk command");
+
   // optional args
 
   normflag = ALL;
-  ave = ONE;
   scaleflag = ATOM;
-  fp = NULL;
+  ave = ONE;
   nwindow = 0;
   biasflag = 0;
   id_bias = NULL;
   adof = domain->dimension;
   cdof = 0.0;
   overwrite = 0;
+  format_user = NULL;
+  format = (char *) " %g";
   char *title1 = NULL;
   char *title2 = NULL;
   char *title3 = NULL;
 
-  while (iarg < narg) {
+  while (iarg < nargnew) {
     if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (strcmp(arg[iarg+1],"all") == 0) normflag = ALL;
-      else if (strcmp(arg[iarg+1],"sample") == 0) normflag = SAMPLE;
-      else error->all(FLERR,"Illegal fix ave/chunk command");
+      if (strcmp(arg[iarg+1],"all") == 0) {
+	normflag = ALL;
+	scaleflag = ATOM;
+      } else if (strcmp(arg[iarg+1],"sample") == 0) {
+	normflag = SAMPLE;
+	scaleflag = ATOM;
+      } else if (strcmp(arg[iarg+1],"none") == 0) {
+	normflag = SAMPLE;
+	scaleflag = NOSCALE;
+      } else error->all(FLERR,"Illegal fix ave/chunk command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
@@ -168,12 +194,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
-    } else if (strcmp(arg[iarg],"scale") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (strcmp(arg[iarg+1],"none") == 0) scaleflag = NOSCALE;
-      else if (strcmp(arg[iarg+1],"atom") == 0) scaleflag = ATOM;
-      else error->all(FLERR,"Illegal fix ave/chunk command");
-      iarg += 2;
 
     } else if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg)
@@ -208,6 +228,14 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"format") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
+      delete [] format_user;
+      int n = strlen(arg[iarg+1]) + 2;
+      format_user = new char[n];
+      sprintf(format_user," %s",arg[iarg+1]);
+      format = format_user;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title1;
@@ -236,7 +264,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/chunk command");
-  if (nfreq % nevery || (nrepeat-1)*nevery >= nfreq)
+  if (nfreq % nevery || nrepeat*nevery > nfreq)
     error->all(FLERR,"Illegal fix ave/chunk command");
   if (ave != RUNNING && overwrite)
     error->all(FLERR,"Illegal fix ave/chunk command");
@@ -298,7 +326,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // increment lock counter in compute chunk/atom
   // only if nrepeat > 1 or ave = RUNNING/WINDOW,
-  //   so that locking spans multiple timesteps 
+  //   so that locking spans multiple timesteps
 
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
@@ -313,6 +341,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   // print file comment lines
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n",
                  id,arg[1]);
@@ -326,24 +355,35 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         if (ncoord == 0) fprintf(fp,"# Chunk Ncount");
         else if (ncoord == 1) fprintf(fp,"# Chunk Coord1 Ncount");
         else if (ncoord == 2) fprintf(fp,"# Chunk Coord1 Coord2 Ncount");
-        else if (ncoord == 3) 
+        else if (ncoord == 3)
           fprintf(fp,"# Chunk Coord1 Coord2 Coord3 Ncount");
       } else {
         if (ncoord == 0) fprintf(fp,"# Chunk OrigID Ncount");
         else if (ncoord == 1) fprintf(fp,"# Chunk OrigID Coord1 Ncount");
         else if (ncoord == 2) fprintf(fp,"# Chunk OrigID Coord1 Coord2 Ncount");
-        else if (ncoord == 3) 
+        else if (ncoord == 3)
           fprintf(fp,"# Chunk OrigID Coord1 Coord2 Coord3 Ncount");
       }
-      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",arg[7+i]);
+      for (int i = 0; i < nvalues; i++) fprintf(fp," %s",earg[i]);
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing file header");
+
     filepos = ftell(fp);
   }
 
   delete [] title1;
   delete [] title2;
   delete [] title3;
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+  // wait to do this until after file comment lines are printed
+
+  if (expand) {
+    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    memory->sfree(earg);
+  }
 
   // this fix produces a global array
   // size_array_rows is variable and set by allocate()
@@ -398,7 +438,6 @@ FixAveChunk::~FixAveChunk()
   if (fp && me == 0) fclose(fp);
 
   memory->destroy(varatom);
-
   memory->destroy(count_one);
   memory->destroy(count_many);
   memory->destroy(count_sum);
@@ -422,6 +461,24 @@ FixAveChunk::~FixAveChunk()
   }
 
   delete [] idchunk;
+  which = NULL;
+  argindex = NULL;
+  ids = NULL;
+  value2index = NULL;
+  fp = NULL;
+  varatom = NULL;
+  count_one = NULL;
+  count_many = NULL;
+  count_sum = NULL;
+  count_total = NULL;
+  count_list = NULL;
+  values_one = NULL;
+  values_many = NULL;
+  values_sum = NULL;
+  values_total = NULL;
+  values_list = NULL;
+  idchunk = NULL;
+  cchunk = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -510,7 +567,7 @@ void FixAveChunk::end_of_step()
   // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid) 
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
     error->all(FLERR,"Invalid timestep reset for fix ave/chunk");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
@@ -525,8 +582,8 @@ void FixAveChunk::end_of_step()
   //   if ave = RUNNING/WINDOW and not yet locked:
   //     set forever, will be unlocked in fix destructor
   // wrap setup_chunks in clearstep/addstep b/c it may invoke computes
-  //   both nevery and nfreq are future steps, 
-  //   since call below to cchunk->ichunk() 
+  //   both nevery and nfreq are future steps,
+  //   since call below to cchunk->ichunk()
   //     does not re-invoke internal cchunk compute on this same step
 
   if (irepeat == 0) {
@@ -650,15 +707,15 @@ void FixAveChunk::end_of_step()
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
-            values_one[index][m] += 
+            values_one[index][m] +=
               (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * rmass[i];
           }
       } else {
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit && ichunk[i] > 0) {
             index = ichunk[i]-1;
-            values_one[index][m] += 
-              (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) * 
+            values_one[index][m] +=
+              (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
               mass[type[i]];
           }
       }
@@ -704,7 +761,7 @@ void FixAveChunk::end_of_step()
     // evaluate atom-style variable
 
     } else if (which[m] == VARIABLE) {
-      if (nlocal > maxvar) {
+      if (atom->nmax > maxvar) {
         maxvar = atom->nmax;
         memory->destroy(varatom);
         memory->create(varatom,maxvar,"ave/chunk:varatom");
@@ -744,7 +801,7 @@ void FixAveChunk::end_of_step()
       if (count_many[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == TEMPERATURE)
-            values_many[m][j] += mvv2e*values_one[m][j] / 
+            values_many[m][j] += mvv2e*values_one[m][j] /
               ((cdof + adof*count_many[m]) * boltz);
           else if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS ||
                    scaleflag == NOSCALE)
@@ -813,13 +870,20 @@ void FixAveChunk::end_of_step()
   }
 
   // DENSITYs are additionally normalized by chunk volume
-  // only relevant if chunks are spatial bins
+  // use scalar or vector values for volume(s)
+  // if chunks are not spatial bins, chunk_volume_scalar = 1.0
 
   for (j = 0; j < nvalues; j++)
     if (which[j] == DENSITY_NUMBER || which[j] == DENSITY_MASS) {
-      double chunk_volume = cchunk->chunk_volume_scalar;
-      for (m = 0; m < nchunk; m++)
-        values_sum[m][j] /= chunk_volume;
+      if (cchunk->chunk_volume_vec) {
+        double *chunk_volume_vec = cchunk->chunk_volume_vec;
+        for (m = 0; m < nchunk; m++)
+          values_sum[m][j] /= chunk_volume_vec[m];
+      } else {
+        double chunk_volume_scalar = cchunk->chunk_volume_scalar;
+        for (m = 0; m < nchunk; m++)
+          values_sum[m][j] /= chunk_volume_scalar;
+      }
     }
 
   // if ave = ONE, only single Nfreq timestep value is needed
@@ -866,6 +930,7 @@ void FixAveChunk::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
@@ -881,7 +946,7 @@ void FixAveChunk::end_of_step()
         for (m = 0; m < nchunk; m++) {
           fprintf(fp,"  %d %g",m+1,count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 1) {
@@ -889,7 +954,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %g %g",m+1,coord[m][0],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 2) {
@@ -897,7 +962,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %g %g %g",m+1,coord[m][0],coord[m][1],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 3) {
@@ -905,7 +970,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %g %g %g %g",m+1,
                   coord[m][0],coord[m][1],coord[m][2],count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       }
@@ -915,7 +980,7 @@ void FixAveChunk::end_of_step()
         for (m = 0; m < nchunk; m++) {
           fprintf(fp,"  %d %d %g",m+1,chunkID[m],count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 1) {
@@ -924,7 +989,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %d %g %g",m+1,j,coord[j-1][0],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 2) {
@@ -933,7 +998,7 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %d %g %g %g",m+1,j,coord[j-1][0],coord[j-1][1],
                   count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       } else if (ncoord == 3) {
@@ -942,16 +1007,19 @@ void FixAveChunk::end_of_step()
           fprintf(fp,"  %d %d %g %g %g %g",m+1,j,coord[j-1][0],
                   coord[j-1][1],coord[j-1][2],count_total[m]/normcount);
           for (i = 0; i < nvalues; i++)
-            fprintf(fp," %g",values_total[m][i]/normcount);
+            fprintf(fp,format,values_total[m][i]/normcount);
           fprintf(fp,"\n");
         }
       }
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing averaged chunk data");
 
     fflush(fp);
+
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 }

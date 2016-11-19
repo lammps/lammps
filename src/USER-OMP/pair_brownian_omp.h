@@ -40,6 +40,7 @@ class PairBrownianOMP : public PairBrownian, public ThrOMP {
 
  protected:
   class RanMars **random_thr;
+  int nthreads;
 
  private:
   template <int LOGFLAG, int EVFLAG, int NEWTON_PAIR>

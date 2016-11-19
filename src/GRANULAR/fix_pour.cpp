@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_pour.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -42,11 +42,15 @@ enum{ONE,RANGE,POLY};
 enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 #define EPSILON 0.001
+#define SMALL 1.0e-10
 
 /* ---------------------------------------------------------------------- */
 
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL), 
+  idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL), 
+  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL), 
+  displs(NULL), random(NULL), random2(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
@@ -123,10 +127,10 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix pour molecule must have coordinates");
       if (onemols[i]->typeflag == 0)
         error->all(FLERR,"Fix pour molecule must have atom types");
-      if (ntype+onemols[i]->ntypes <= 0 || 
+      if (ntype+onemols[i]->ntypes <= 0 ||
           ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix pour mol command");
-      
+
       if (atom->molecular == 2 && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix pour molecule template ID must be same "
                    "as atom style template ID");
@@ -156,7 +160,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   memory->create(coords,natom_max,4,"pour:coords");
   memory->create(imageflags,natom_max,"pour:imageflags");
 
-  // find current max atom and molecule IDs if necessary
+  // find max atom and molecule IDs just once
 
   if (idnext) find_maxid();
 
@@ -238,7 +242,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     } else if (dstyle == POLY) {
       volume_one = 0.0;
       for (int i = 0; i < npoly; i++)
-        volume_one += (4.0/3.0 * MY_PI * 
+        volume_one += (4.0/3.0 * MY_PI *
           radius_poly[i]*radius_poly[i]*radius_poly[i]) * frac_poly[i];
     }
   } else {
@@ -301,7 +305,7 @@ int FixPour::setmask()
 
 void FixPour::init()
 {
-  if (domain->triclinic) 
+  if (domain->triclinic)
     error->all(FLERR,"Cannot use fix pour with triclinic box");
 
   // insure gravity fix exists
@@ -378,7 +382,14 @@ void FixPour::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // find current max atom and molecule IDs if necessary
+  // clear ghost count and any ghost bonus data internal to AtomVec
+  // same logic as beginning of Comm::exchange()
+  // do it now b/c inserting atoms will overwrite ghost atoms
+
+  atom->nghost = 0;
+  atom->avec->clear_bonus();
+
+  // find current max atom and molecule IDs on every insertion step
 
   if (!idnext) find_maxid();
 
@@ -516,7 +527,7 @@ void FixPour::pre_exchange()
           // default to 0.5, if radii not defined in Molecule
           //   same as atom->avec->create_atom(), invoked below
 
-          if (onemols[imol]->radiusflag) 
+          if (onemols[imol]->radiusflag)
             coords[i][3] = onemols[imol]->radius[i];
           else coords[i][3] = 0.5;
 
@@ -638,7 +649,11 @@ void FixPour::pre_exchange()
           radtmp = newcoord[3];
           atom->radius[n] = radtmp;
           atom->rmass[n] = 4.0*MY_PI/3.0 * radtmp*radtmp*radtmp * denstmp;
-        } else atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
+        } else {
+	  onemols[imol]->quat_external = quat;
+	  atom->add_molecule_atom(onemols[imol],m,n,maxtag_all);
+	}
+	
         modify->create_attribute(n);
       }
     }
@@ -667,11 +682,12 @@ void FixPour::pre_exchange()
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
   // if global map exists, reset it now instead of waiting for comm
-  // since adding atoms messes up ghosts
+  //   since other pre-exchange fixes may use it
+  //   invoke map_init() b/c atom count has grown
 
   if (ninserted_atoms) {
     atom->natoms += ninserted_atoms;
-    if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+    if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
       atom->nbonds += onemols[imol]->nbonds * ninserted_mols;
@@ -682,7 +698,6 @@ void FixPour::pre_exchange()
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
     if (atom->map_style) {
-      atom->nghost = 0;
       atom->map_init();
       atom->map_set();
     }
@@ -726,12 +741,19 @@ void FixPour::find_maxid()
    return 1 if yes, 0 if no
    for ATOM mode, use delta with maximum size for inserted atoms
    for MOLECULE mode, use delta with max radius of inserted molecules
+   if ignore line/tri set, ignore line or tri particles
    account for PBC in overlap decision via outside() and minimum_image()
 ------------------------------------------------------------------------- */
 
 int FixPour::overlap(int i)
 {
   double delta;
+
+  if (ignoreflag) {
+    if (ignoreline && atom->line[i] >= 0) return 0;
+    if (ignoretri && atom->tri[i] >= 0) return 0;
+  }
+
   if (mode == ATOM) delta = atom->radius[i] + radius_max;
   else delta = atom->radius[i] + molradius_max;
 
@@ -781,7 +803,7 @@ int FixPour::outside(int dim, double value, double lo, double hi)
     } else {
       if (value < lo || value > hi) return 1;
     }
-  } 
+  }
 
   if (value < lo || value > hi) return 1;
   return 0;
@@ -819,7 +841,7 @@ void FixPour::xyz_random(double h, double *coord)
 double FixPour::radius_sample()
 {
   if (dstyle == ONE) return radius_one;
-  if (dstyle == RANGE) return radius_lo + 
+  if (dstyle == RANGE) return radius_lo +
                          random->uniform()*(radius_hi-radius_lo);
 
   double value = random->uniform();
@@ -849,6 +871,7 @@ void FixPour::options(int narg, char **arg)
   shakeflag = 0;
   idshake = NULL;
   idnext = 0;
+  ignoreflag = ignoreline = ignoretri = 0;
   dstyle = ONE;
   radius_max = radius_one = 0.5;
   radius_poly = frac_poly = NULL;
@@ -881,13 +904,13 @@ void FixPour::options(int narg, char **arg)
       molfrac[nmol-1] = 1.0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"molfrac") == 0) {
-      if (mode != MOLECULE) error->all(FLERR,"Illegal fix deposit command");
-      if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix deposit command");
+      if (mode != MOLECULE) error->all(FLERR,"Illegal fix pour command");
+      if (iarg+nmol+1 > narg) error->all(FLERR,"Illegal fix pour command");
       molfrac[0] = force->numeric(FLERR,arg[iarg+1]);
-      for (int i = 1; i < nmol; i++) 
+      for (int i = 1; i < nmol; i++)
         molfrac[i] = molfrac[i-1] + force->numeric(FLERR,arg[iarg+i+1]);
-      if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON) 
-        error->all(FLERR,"Illegal fix deposit command");
+      if (molfrac[nmol-1] < 1.0-EPSILON || molfrac[nmol-1] > 1.0+EPSILON)
+        error->all(FLERR,"Illegal fix pour command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
 
@@ -914,6 +937,13 @@ void FixPour::options(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"next") == 0) idnext = 1;
       else error->all(FLERR,"Illegal fix pour command");
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"ignore") == 0) {
+      if (atom->line_flag) ignoreline = 1;
+      if (atom->tri_flag) ignoretri = 1;
+      if (ignoreline || ignoretri) ignoreflag = 1;
+      iarg += 1;
+
     } else if (strcmp(arg[iarg],"diam") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
       if (strcmp(arg[iarg+1],"one") == 0) {
@@ -927,6 +957,7 @@ void FixPour::options(int narg, char **arg)
         dstyle = RANGE;
         radius_lo = 0.5 * force->numeric(FLERR,arg[iarg+2]);
         radius_hi = 0.5 * force->numeric(FLERR,arg[iarg+3]);
+        if (radius_lo > radius_hi) error->all(FLERR,"Illegal fix pour command");
         radius_max = radius_hi;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"poly") == 0) {
@@ -934,7 +965,7 @@ void FixPour::options(int narg, char **arg)
         dstyle = POLY;
         npoly = force->inumeric(FLERR,arg[iarg+2]);
         if (npoly <= 0) error->all(FLERR,"Illegal fix pour command");
-        if (iarg+3 + 2*npoly > narg) 
+        if (iarg+3 + 2*npoly > narg)
           error->all(FLERR,"Illegal fix pour command");
         radius_poly = new double[npoly];
         frac_poly = new double[npoly];
@@ -949,7 +980,7 @@ void FixPour::options(int narg, char **arg)
         }
         double sum = 0.0;
         for (int i = 0; i < npoly; i++) sum += frac_poly[i];
-        if (sum != 1.0)
+        if (fabs(sum - 1.0) > SMALL)
           error->all(FLERR,"Fix pour polydisperse fractions do not sum to 1.0");
       } else error->all(FLERR,"Illegal fix pour command");
 
@@ -957,6 +988,7 @@ void FixPour::options(int narg, char **arg)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
       density_lo = force->numeric(FLERR,arg[iarg+1]);
       density_hi = force->numeric(FLERR,arg[iarg+2]);
+      if (density_lo > density_hi) error->all(FLERR,"Illegal fix pour command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"vol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix pour command");
@@ -974,6 +1006,8 @@ void FixPour::options(int narg, char **arg)
         vxhi = force->numeric(FLERR,arg[iarg+2]);
         vylo = force->numeric(FLERR,arg[iarg+3]);
         vyhi = force->numeric(FLERR,arg[iarg+4]);
+        if (vxlo > vxhi || vylo > vyhi) 
+          error->all(FLERR,"Illegal fix pour command");
         vz = force->numeric(FLERR,arg[iarg+5]);
         iarg += 6;
       } else {
@@ -982,6 +1016,7 @@ void FixPour::options(int narg, char **arg)
         vxhi = force->numeric(FLERR,arg[iarg+2]);
         vy = force->numeric(FLERR,arg[iarg+3]);
         vz = 0.0;
+        if (vxlo > vxhi) error->all(FLERR,"Illegal fix pour command");
         iarg += 4;
       }
     } else error->all(FLERR,"Illegal fix pour command");
@@ -1008,23 +1043,24 @@ void *FixPour::extract(const char *str, int &itype)
 
     } else {
 
-      // find a molecule in template with matching type
+      // loop over onemols molecules
+      // skip a molecule with no atoms as large as itype
 
+      oneradius = 0.0;
       for (int i = 0; i < nmol; i++) {
-        if (itype-ntype > onemols[i]->ntypes) continue;
+        if (itype > ntype+onemols[i]->ntypes) continue;
         double *radius = onemols[i]->radius;
         int *type = onemols[i]->type;
         int natoms = onemols[i]->natoms;
 
-        // check radii of matching types in Molecule
+        // check radii of atoms in Molecule with matching types
         // default to 0.5, if radii not defined in Molecule
         //   same as atom->avec->create_atom(), invoked in pre_exchange()
 
-        oneradius = 0.0;
         for (int i = 0; i < natoms; i++)
-          if (type[i] == itype-ntype) {
+          if (type[i]+ntype == itype) {
             if (radius) oneradius = MAX(oneradius,radius[i]);
-            else oneradius = 0.5;
+            else oneradius = MAX(oneradius,0.5);
           }
       }
     }

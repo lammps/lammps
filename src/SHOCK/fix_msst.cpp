@@ -17,9 +17,9 @@
    See Reed, Fried, Joannopoulos, Phys Rev Lett, 90, 235503 (2003)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_msst.h"
 #include "atom.h"
 #include "force.h"
@@ -40,7 +40,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), old_velocity(NULL), rfix(NULL), 
+  id_temp(NULL), id_press(NULL), id_pe(NULL), temperature(NULL), 
+  pressure(NULL), pe(NULL), atoms_allocated(0)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix msst command");
 

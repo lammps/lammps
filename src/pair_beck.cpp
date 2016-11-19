@@ -15,9 +15,9 @@
    Contributing author: Jonathan Zimmerman (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_beck.h"
 #include "atom.h"
 #include "comm.h"
@@ -199,8 +199,8 @@ void PairBeck::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double AA_one = force->numeric(FLERR,arg[2]);
   double BB_one = force->numeric(FLERR,arg[3]);

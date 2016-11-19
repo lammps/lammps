@@ -23,7 +23,7 @@ PairStyle(eam/alloy/kk/host,PairEAMAlloyKokkos<LMPHostType>)
 #ifndef LMP_PAIR_EAM_ALLOY_KOKKOS_H
 #define LMP_PAIR_EAM_ALLOY_KOKKOS_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pair_kokkos.h"
 #include "pair_eam.h"
 #include "neigh_list_kokkos.h"
@@ -61,6 +61,7 @@ class PairEAMAlloyKokkos : public PairEAM {
   virtual ~PairEAMAlloyKokkos();
   virtual void compute(int, int);
   void init_style();
+  void *extract(const char *, int &) { return NULL; }
   void coeff(int, char **);
 
   KOKKOS_INLINE_FUNCTION
@@ -71,7 +72,7 @@ class PairEAMAlloyKokkos : public PairEAM {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMAlloyInitialize, const int&) const;
-  
+
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMAlloyKernelA<NEIGHFLAG,NEWTON_PAIR>, const int&) const;
@@ -106,7 +107,7 @@ class PairEAMAlloyKokkos : public PairEAM {
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
-  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&, 
+  virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
                                int, int *);
   virtual void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
@@ -178,6 +179,24 @@ class PairEAMAlloyKokkos : public PairEAM {
 
 E: Cannot use chosen neighbor list style with pair eam/kk/alloy
 
-That style is not supported by Kokkos.
+Self-explanatory.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: No matching element in EAM potential file
+
+The EAM potential file does not contain elements that match the
+requested elements.
+
+E: Cannot open EAM potential file %s
+
+The specified EAM potential file cannot be opened.  Check that the
+path and name are correct.
+
+E: Incorrect element names in EAM potential file
+
+The element names in the EAM file do not match those requested.
 
 */

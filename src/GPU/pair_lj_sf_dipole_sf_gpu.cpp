@@ -2,12 +2,12 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
@@ -15,9 +15,9 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_lj_sf_dipole_sf_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "gpu_extra.h"
 
 using namespace LAMMPS_NS;
@@ -40,20 +40,20 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int dplsf_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                   double **host_lj2, double **host_lj3, double **host_lj4, 
-                   double *special_lj, const int nlocal, 
+                   double **host_lj2, double **host_lj3, double **host_lj4,
+                   double *special_lj, const int nlocal,
                    const int nall, const int max_nbors, const int maxspecial,
                    const double cell_size, int &gpu_mode, FILE *screen,
                    double **host_cut_ljsq, double **host_cut_coulsq,
                    double *host_special_coul, const double qqrd2e);
 void dplsf_gpu_clear();
 int ** dplsf_gpu_compute_n(const int ago, const int inum,
-                           const int nall, double **host_x, int *host_type, 
+                           const int nall, double **host_x, int *host_type,
                            double *sublo, double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
-                           bool &success, double *host_q, double **host_mu, 
+                           bool &success, double *host_q, double **host_mu,
                            double *boxlo, double *prd);
 void dplsf_gpu_compute(const int ago, const int inum,
                        const int nall, double **host_x, int *host_type,
@@ -66,13 +66,13 @@ double dplsf_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSFDipoleSFGPU::PairLJSFDipoleSFGPU(LAMMPS *lmp) : PairLJSFDipoleSF(lmp), 
+PairLJSFDipoleSFGPU::PairLJSFDipoleSFGPU(LAMMPS *lmp) : PairLJSFDipoleSF(lmp),
   gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
-  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error); 
+  GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
 /* ----------------------------------------------------------------------
@@ -90,12 +90,12 @@ void PairLJSFDipoleSFGPU::compute(int eflag, int vflag)
 {
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
-  
+
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;  
+  int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
     inum = atom->nlocal;
     firstneigh = dplsf_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
@@ -103,7 +103,7 @@ void PairLJSFDipoleSFGPU::compute(int eflag, int vflag)
                                      atom->tag, atom->nspecial, atom->special,
                                      eflag, vflag, eflag_atom, vflag_atom,
                                      host_start, &ilist, &numneigh, cpu_time,
-                                     success, atom->q, atom->mu, domain->boxlo, 
+                                     success, atom->q, atom->mu, domain->boxlo,
                                      domain->prd);
   } else {
     inum = list->inum;
@@ -133,8 +133,8 @@ void PairLJSFDipoleSFGPU::init_style()
 {
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/sf/gpu requires atom attributes q, mu, torque");
-  
-  if (force->newton_pair) 
+
+  if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with dipole/sf/gpu pair style");
 
   if (strcmp(update->unit_style,"electron") == 0)
@@ -261,7 +261,7 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             forcecoulz += pre1*delz;
           }
 
-          if (mu[i][3] > 0.0 && mu[j][3] > 0.0) { 
+          if (mu[i][3] > 0.0 && mu[j][3] > 0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
@@ -269,7 +269,7 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             pdotp = mu[i][0]*mu[j][0] + mu[i][1]*mu[j][1] + mu[i][2]*mu[j][2];
             pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
             pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
-      
+
             afac = 1.0 - rsq*rsq * rcutcoul2inv*rcutcoul2inv;
             pre1 = afac * ( pdotp - 3.0 * r2inv * pidotr * pjdotr );
             aforcecoulx = pre1*delx;
@@ -282,15 +282,15 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             bforcecoulx = bfac * (pjdotr*mu[i][0]+pidotr*mu[j][0]-presf*delx);
             bforcecouly = bfac * (pjdotr*mu[i][1]+pidotr*mu[j][1]-presf*dely);
             bforcecoulz = bfac * (pjdotr*mu[i][2]+pidotr*mu[j][2]-presf*delz);
-	    
+
             forcecoulx += 3.0 * r5inv * ( aforcecoulx + bforcecoulx );
             forcecouly += 3.0 * r5inv * ( aforcecouly + bforcecouly );
             forcecoulz += 3.0 * r5inv * ( aforcecoulz + bforcecoulz );
-	    
+
             pre2 = 3.0 * bfac * r5inv * pjdotr;
             pre3 = 3.0 * bfac * r5inv * pidotr;
             pre4 = -bfac * r3inv;
-	    
+
             crossx = pre4 * (mu[i][1]*mu[j][2] - mu[i][2]*mu[j][1]);
             crossy = pre4 * (mu[i][2]*mu[j][0] - mu[i][0]*mu[j][2]);
             crossz = pre4 * (mu[i][0]*mu[j][1] - mu[i][1]*mu[j][0]);
@@ -303,13 +303,13 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             tjzcoul += -crossz + pre3 * (mu[j][0]*dely - mu[j][1]*delx);
           }
 
-          if (mu[i][3] > 0.0 && q[j] != 0.0) { 
+          if (mu[i][3] > 0.0 && q[j] != 0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
-            pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz; 
+            pidotr = mu[i][0]*delx + mu[i][1]*dely + mu[i][2]*delz;
             rcutcoul2inv=1.0/cut_coulsq[itype][jtype];
             pre1 = 3.0 * q[j] * r5inv * pidotr * (1-rsq*rcutcoul2inv);
-            pqfac = 1.0 - 3.0*rsq*rcutcoul2inv + 
+            pqfac = 1.0 - 3.0*rsq*rcutcoul2inv +
               2.0*rsq*sqrt(rsq)*rcutcoul2inv*sqrt(rcutcoul2inv);
             pre2 = q[j] * r3inv * pqfac;
 
@@ -321,7 +321,7 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             tizcoul += pre2 * (mu[i][0]*dely - mu[i][1]*delx);
           }
 
-          if (mu[j][3] > 0.0 && qtmp != 0.0) { 
+          if (mu[j][3] > 0.0 && qtmp != 0.0) {
             r3inv = r2inv*rinv;
             r5inv = r3inv*r2inv;
             pjdotr = mu[j][0]*delx + mu[j][1]*dely + mu[j][2]*delz;
@@ -337,7 +337,7 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
             tjxcoul += -pre2 * (mu[j][1]*delz - mu[j][2]*dely);
             tjycoul += -pre2 * (mu[j][2]*delx - mu[j][0]*delz);
             tjzcoul += -pre2 * (mu[j][0]*dely - mu[j][1]*delx);
-          } 
+          }
         }
 
         // LJ interaction
@@ -345,22 +345,22 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv*r2inv*r2inv;
           forceljcut = r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype])*r2inv;
-	  
+
           rcutlj2inv = 1.0 / cut_ljsq[itype][jtype];
           rcutlj6inv = rcutlj2inv * rcutlj2inv * rcutlj2inv;
-          forceljsf = (lj1[itype][jtype]*rcutlj6inv - lj2[itype][jtype]) * 
+          forceljsf = (lj1[itype][jtype]*rcutlj6inv - lj2[itype][jtype]) *
           rcutlj6inv * rcutlj2inv;
 
           forcelj = factor_lj * (forceljcut - forceljsf);
         } else forcelj = 0.0;
-	  
+
         // total force
 
         fq = factor_coul*qqrd2e;
         fx = fq*forcecoulx + delx*forcelj;
         fy = fq*forcecouly + dely*forcelj;
         fz = fq*forcecoulz + delz*forcelj;
-	
+
         // force & torque accumulation
 
         f[i][0] += fx;
@@ -376,7 +376,7 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
               pow((1.0-sqrt(rsq)/sqrt(cut_coulsq[itype][jtype])),2);
             if (mu[i][3] > 0.0 && mu[j][3] > 0.0)
               ecoul += bfac * (r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr);
-            if (mu[i][3] > 0.0 && q[j] != 0.0) 
+            if (mu[i][3] > 0.0 && q[j] != 0.0)
               ecoul += -q[j]*r3inv * pqfac * pidotr;
             if (mu[j][3] > 0.0 && qtmp != 0.0)
               ecoul += qtmp*r3inv * qpfac * pjdotr;
@@ -389,9 +389,9 @@ void PairLJSFDipoleSFGPU::cpu_compute(int start, int inum, int eflag, int vflag,
               rsq*rcutlj2inv +
               rcutlj6inv*(-7*lj3[itype][jtype]*rcutlj6inv+4*lj4[itype][jtype]);
             evdwl *= factor_lj;
-          } else evdwl = 0.0; 
-        } 
-        
+          } else evdwl = 0.0;
+        }
+
         if (evflag) ev_tally_xyz_full(i,evdwl,ecoul,
                                       fx,fy,fz,delx,dely,delz);
       }

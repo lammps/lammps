@@ -16,9 +16,9 @@
                         Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_spring_rg.h"
 #include "atom.h"
 #include "update.h"
@@ -42,6 +42,10 @@ FixSpringRG::FixSpringRG(LAMMPS *lmp, int narg, char **arg) :
   rg0_flag = 0;
   if (strcmp(arg[4],"NULL") == 0) rg0_flag = 1;
   else rg0 = force->numeric(FLERR,arg[4]);
+
+  dynamic_group_allow = 1;
+  respa_level_support = 1;
+  ilevel_respa = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -70,8 +74,10 @@ void FixSpringRG::init()
     rg0_flag = 0;
   }
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -81,9 +87,9 @@ void FixSpringRG::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -94,6 +100,8 @@ void FixSpringRG::post_force(int vflag)
   // compute current Rg and center-of-mass
 
   double xcm[3];
+  if (group->dynamic[igroup])
+    masstotal = group->mass(igroup);
   group->xcm(igroup,masstotal,xcm);
   double rg = group->gyration(igroup,masstotal,xcm);
 
@@ -108,6 +116,7 @@ void FixSpringRG::post_force(int vflag)
   int *type = atom->type;
   imageint *image = atom->image;
   double *mass = atom->mass;
+  double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
   double massfrac;
@@ -120,10 +129,14 @@ void FixSpringRG::post_force(int vflag)
       dy = unwrap[1] - xcm[1];
       dz = unwrap[2] - xcm[2];
       term1 = 2.0 * k * (1.0 - rg0/rg);
-      massfrac = mass[type[i]]/masstotal;
-      f[i][0] -= term1*dx*massfrac;
-      f[i][1] -= term1*dy*massfrac;
-      f[i][2] -= term1*dz*massfrac;
+      if (masstotal > 0.0) {
+        if (rmass) massfrac = rmass[i]/masstotal;
+        else  massfrac = mass[type[i]]/masstotal;
+
+        f[i][0] -= term1*dx*massfrac;
+        f[i][1] -= term1*dy*massfrac;
+        f[i][2] -= term1*dz*massfrac;
+      }
     }
 }
 
@@ -131,5 +144,5 @@ void FixSpringRG::post_force(int vflag)
 
 void FixSpringRG::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }

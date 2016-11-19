@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
-#include "dirent.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
+#include <dirent.h>
 #include "read_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -60,7 +60,9 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT,BOUNDMIN};
+     IMAGEINT,BOUNDMIN,TIMESTEP,
+     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
+     COMM_MODE,COMM_CUTOFF,COMM_VEL};
 
 #define LB_FACTOR 1.1
 
@@ -108,13 +110,13 @@ void ReadRestart::command(int narg, char **arg)
   if (strstr(arg[0],".mpiio")) mpiioflag = 1;
   else mpiioflag = 0;
 
-  if (multiproc && mpiioflag) 
+  if (multiproc && mpiioflag)
     error->all(FLERR,
                "Read restart MPI-IO input not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);
-    if (!mpiio->mpiio_exists) 
+    if (!mpiio->mpiio_exists)
       error->all(FLERR,"Reading from MPI-IO filename when "
                  "MPIIO package is not installed");
   }
@@ -185,7 +187,10 @@ void ReadRestart::command(int narg, char **arg)
 
   // close header file if in multiproc mode
 
-  if (multiproc && me == 0) fclose(fp);
+  if (multiproc && me == 0) {
+    fclose(fp);
+    fp = NULL;
+  }
 
   // read per-proc info
 
@@ -229,7 +234,7 @@ void ReadRestart::command(int narg, char **arg)
     }
 
     for (int iproc = 0; iproc < nprocs_file; iproc++) {
-      if (read_int() != PERPROC) 
+      if (read_int() != PERPROC)
         error->all(FLERR,"Invalid flag in peratom section of restart file");
 
       n = read_int();
@@ -261,7 +266,10 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (me == 0) fclose(fp);
+    if (me == 0) {
+      fclose(fp);
+      fp = NULL;
+    }
   }
 
   // input of multiple native files with procs <= files
@@ -286,16 +294,16 @@ void ReadRestart::command(int narg, char **arg)
       }
 
       fread(&flag,sizeof(int),1,fp);
-      if (flag != PROCSPERFILE) 
+      if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       int procsperfile;
       fread(&procsperfile,sizeof(int),1,fp);
 
       for (int i = 0; i < procsperfile; i++) {
         fread(&flag,sizeof(int),1,fp);
-        if (flag != PERPROC) 
+        if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
-        
+
         fread(&n,sizeof(int),1,fp);
         if (n > maxbuf) {
           maxbuf = n;
@@ -309,6 +317,7 @@ void ReadRestart::command(int narg, char **arg)
       }
 
       fclose(fp);
+      fp = NULL;
     }
 
     delete [] procfile;
@@ -333,7 +342,7 @@ void ReadRestart::command(int narg, char **arg)
     int fileproc = static_cast<int> ((bigint) icluster * nprocs/nfile);
     int fcluster = static_cast<int> ((bigint) fileproc * nfile/nprocs);
     if (fcluster < icluster) fileproc++;
-    int fileprocnext = 
+    int fileprocnext =
       static_cast<int> ((bigint) (icluster+1) * nprocs/nfile);
     fcluster = static_cast<int> ((bigint) fileprocnext * nfile/nprocs);
     if (fcluster < icluster+1) fileprocnext++;
@@ -362,7 +371,7 @@ void ReadRestart::command(int narg, char **arg)
 
     if (filereader) {
       fread(&flag,sizeof(int),1,fp);
-      if (flag != PROCSPERFILE) 
+      if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       fread(&procsperfile,sizeof(int),1,fp);
     }
@@ -374,7 +383,7 @@ void ReadRestart::command(int narg, char **arg)
     for (int i = 0; i < procsperfile; i++) {
       if (filereader) {
         fread(&flag,sizeof(int),1,fp);
-        if (flag != PERPROC) 
+        if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
         fread(&n,sizeof(int),1,fp);
@@ -410,7 +419,10 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (filereader) fclose(fp);
+    if (filereader && fp != NULL) {
+      fclose(fp);
+      fp = NULL;
+    }
     MPI_Comm_free(&clustercomm);
   }
 
@@ -639,7 +651,7 @@ void ReadRestart::file_search(char *infile, char *outfile)
 
 void ReadRestart::header(int incompatible)
 {
-  int xperiodic,yperiodic,zperiodic;
+  int xperiodic(-1),yperiodic(-1),zperiodic(-1);
 
   // read flags and fields until flag = -1
 
@@ -654,7 +666,7 @@ void ReadRestart::header(int incompatible)
         if (screen) fprintf(screen,"  restart file = %s, LAMMPS = %s\n",
                             version,universe->version);
       }
-      if (incompatible) 
+      if (incompatible)
         error->all(FLERR,"Restart file incompatible with current version");
       delete [] version;
 
@@ -717,7 +729,7 @@ void ReadRestart::header(int incompatible)
           procgrid[1] != comm->user_procgrid[1]) flag = 1;
       if (comm->user_procgrid[2] != 0 &&
           procgrid[2] != comm->user_procgrid[2]) flag = 1;
-      if (flag && me == 0) 
+      if (flag && me == 0)
         error->warning(FLERR,"Restart file used different 3d processor grid");
 
     // don't set newton_pair, leave input script value unchanged
@@ -744,8 +756,8 @@ void ReadRestart::header(int incompatible)
       if (force->newton_pair || force->newton_bond) force->newton = 1;
       else force->newton = 0;
 
-      // set boundary settings from restart file
-      // warn if different and input script settings are not default
+    // set boundary settings from restart file
+    // warn if different and input script settings are not default
 
     } else if (flag == XPERIODIC) {
       xperiodic = read_int();
@@ -781,6 +793,9 @@ void ReadRestart::header(int incompatible)
       domain->boundary[2][0] = boundary[2][0];
       domain->boundary[2][1] = boundary[2][1];
 
+      if (xperiodic < 0 || yperiodic < 0 || zperiodic < 0)
+        error->all(FLERR,"Illegal or unset periodicity in restart");
+
       domain->periodicity[0] = domain->xperiodic = xperiodic;
       domain->periodicity[1] = domain->yperiodic = yperiodic;
       domain->periodicity[2] = domain->zperiodic = zperiodic;
@@ -810,7 +825,7 @@ void ReadRestart::header(int incompatible)
       char **argcopy = new char*[nargcopy];
       for (int i = 0; i < nargcopy; i++)
         argcopy[i] = read_string();
-      atom->create_avec(style,nargcopy,argcopy,0);
+      atom->create_avec(style,nargcopy,argcopy,1);
       for (int i = 0; i < nargcopy; i++) delete [] argcopy[i];
       delete [] argcopy;
       delete [] style;
@@ -866,6 +881,27 @@ void ReadRestart::header(int incompatible)
       read_int();
       read_double_vec(3,&force->special_coul[1]);
 
+    } else if (flag == TIMESTEP) {
+      update->dt = read_double();
+
+    } else if (flag == ATOM_ID) {
+      atom->tag_enable = read_int();
+    } else if (flag == ATOM_MAP_STYLE) {
+      atom->map_style = read_int();
+    } else if (flag == ATOM_MAP_USER) {
+      atom->map_user  = read_int();
+    } else if (flag == ATOM_SORTFREQ) {
+      atom->sortfreq = read_int();
+    } else if (flag == ATOM_SORTBIN) {
+      atom->userbinsize = read_double();
+
+    } else if (flag == COMM_MODE) {
+      comm->mode = read_int();
+    } else if (flag == COMM_CUTOFF) {
+      comm->cutghostuser = read_double();
+    } else if (flag == COMM_VEL) {
+      comm->ghost_velocity = read_int();
+
     } else error->all(FLERR,"Invalid flag in header section of restart file");
 
     flag = read_int();
@@ -904,31 +940,31 @@ void ReadRestart::force_fields()
 
     if (flag == PAIR) {
       style = read_string();
-      force->create_pair(style,0);
+      force->create_pair(style,1);
       delete [] style;
       force->pair->read_restart(fp);
 
     } else if (flag == BOND) {
       style = read_string();
-      force->create_bond(style,0);
+      force->create_bond(style,1);
       delete [] style;
       force->bond->read_restart(fp);
 
     } else if (flag == ANGLE) {
       style = read_string();
-      force->create_angle(style,0);
+      force->create_angle(style,1);
       delete [] style;
       force->angle->read_restart(fp);
 
     } else if (flag == DIHEDRAL) {
       style = read_string();
-      force->create_dihedral(style,0);
+      force->create_dihedral(style,1);
       delete [] style;
       force->dihedral->read_restart(fp);
 
     } else if (flag == IMPROPER) {
       style = read_string();
-      force->create_improper(style,0);
+      force->create_improper(style,1);
       delete [] style;
       force->improper->read_restart(fp);
 
@@ -960,7 +996,7 @@ void ReadRestart::file_layout()
       if (mpiioflag && mpiioflag_file == 0)
         error->all(FLERR,"Restart file is not a MPI-IO file");
 
-      if (mpiioflag) { 
+      if (mpiioflag) {
         bigint *nproc_chunk_offsets;
         memory->create(nproc_chunk_offsets,nprocs,
                        "write_restart:nproc_chunk_offsets");
@@ -980,45 +1016,45 @@ void ReadRestart::file_layout()
           int *nproc_chunk_number;
           memory->create(nproc_chunk_number,nprocs,
                          "write_restart:nproc_chunk_number");
-          
+
           fread(all_written_send_sizes,sizeof(int),nprocs_file,fp);
-          
+
           int init_chunk_number = nprocs_file/nprocs;
           int num_extra_chunks = nprocs_file - (nprocs*init_chunk_number);
-          
+
           for (int i = 0; i < nprocs; i++) {
             if (i < num_extra_chunks)
               nproc_chunk_number[i] = init_chunk_number+1;
             else
               nproc_chunk_number[i] = init_chunk_number;
           }
-          
+
           int all_written_send_sizes_index = 0;
           bigint current_offset = 0;
           for (int i=0;i<nprocs;i++) {
             nproc_chunk_offsets[i] = current_offset;
             nproc_chunk_sizes[i] = 0;
             for (int j=0;j<nproc_chunk_number[i];j++) {
-              nproc_chunk_sizes[i] += 
+              nproc_chunk_sizes[i] +=
                 all_written_send_sizes[all_written_send_sizes_index];
-              current_offset += 
-                (all_written_send_sizes[all_written_send_sizes_index] * 
+              current_offset +=
+                (all_written_send_sizes[all_written_send_sizes_index] *
                  sizeof(double));
               all_written_send_sizes_index++;
             }
-          
+
           }
           memory->destroy(all_written_send_sizes);
           memory->destroy(nproc_chunk_number);
         }
 
         // scatter chunk sizes and offsets to all procs
-        
+
         MPI_Scatter(nproc_chunk_sizes, 1, MPI_LMP_BIGINT,
                     &assignedChunkSize , 1, MPI_LMP_BIGINT, 0,world);
         MPI_Scatter(nproc_chunk_offsets, 1, MPI_LMP_BIGINT,
                     &assignedChunkOffset , 1, MPI_LMP_BIGINT, 0,world);
-        
+
         memory->destroy(nproc_chunk_sizes);
         memory->destroy(nproc_chunk_offsets);
       }
@@ -1053,10 +1089,10 @@ void ReadRestart::magic_string()
   int count;
   if (me == 0) count = fread(str,sizeof(char),n,fp);
   MPI_Bcast(&count,1,MPI_INT,0,world);
-  if (count < n) 
+  if (count < n)
     error->all(FLERR,"Invalid LAMMPS restart file");
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0) 
+  if (strcmp(str,MAGIC_STRING) != 0)
     error->all(FLERR,"Invalid LAMMPS restart file");
   delete [] str;
 }
@@ -1066,9 +1102,7 @@ void ReadRestart::magic_string()
 
 void ReadRestart::endian()
 {
-  int endian;
-  if (me == 0) fread(&endian,sizeof(int),1,fp);
-  MPI_Bcast(&endian,1,MPI_INT,0,world);
+  int endian = read_int();
   if (endian == ENDIAN) return;
   if (endian == ENDIANSWAP)
     error->all(FLERR,"Restart file byte ordering is swapped");
@@ -1080,9 +1114,7 @@ void ReadRestart::endian()
 
 int ReadRestart::version_numeric()
 {
-  int vn;
-  if (me == 0) fread(&vn,sizeof(int),1,fp);
-  MPI_Bcast(&vn,1,MPI_INT,0,world);
+  int vn = read_int();
   if (vn != VERSION_NUMERIC) return 1;
   return 0;
 }
@@ -1094,7 +1126,8 @@ int ReadRestart::version_numeric()
 int ReadRestart::read_int()
 {
   int value;
-  if (me == 0) fread(&value,sizeof(int),1,fp);
+  if ((me == 0) && (fread(&value,sizeof(int),1,fp) < 1))
+    value = -1;
   MPI_Bcast(&value,1,MPI_INT,0,world);
   return value;
 }
@@ -1106,7 +1139,8 @@ int ReadRestart::read_int()
 bigint ReadRestart::read_bigint()
 {
   bigint value;
-  if (me == 0) fread(&value,sizeof(bigint),1,fp);
+  if ((me == 0) && (fread(&value,sizeof(bigint),1,fp) < 1))
+    value = -1;
   MPI_Bcast(&value,1,MPI_LMP_BIGINT,0,world);
   return value;
 }
@@ -1118,7 +1152,8 @@ bigint ReadRestart::read_bigint()
 double ReadRestart::read_double()
 {
   double value;
-  if (me == 0) fread(&value,sizeof(double),1,fp);
+  if ((me == 0) && (fread(&value,sizeof(double),1,fp) < 1))
+    value = 0.0;
   MPI_Bcast(&value,1,MPI_DOUBLE,0,world);
   return value;
 }
@@ -1130,9 +1165,8 @@ double ReadRestart::read_double()
 
 char *ReadRestart::read_string()
 {
-  int n;
-  if (me == 0) fread(&n,sizeof(int),1,fp);
-  MPI_Bcast(&n,1,MPI_INT,0,world);
+  int n = read_int();
+  if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
   if (me == 0) fread(value,sizeof(char),n,fp);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
@@ -1141,22 +1175,22 @@ char *ReadRestart::read_string()
 
 /* ----------------------------------------------------------------------
    read vector of N ints from restart file and bcast them
-   do not bcast them, caller does that if required
 ------------------------------------------------------------------------- */
 
 void ReadRestart::read_int_vec(int n, int *vec)
 {
+  if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
   if (me == 0) fread(vec,sizeof(int),n,fp);
   MPI_Bcast(vec,n,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
    read vector of N doubles from restart file and bcast them
-   do not bcast them, caller does that if required
 ------------------------------------------------------------------------- */
 
 void ReadRestart::read_double_vec(int n, double *vec)
 {
+  if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
   if (me == 0) fread(vec,sizeof(double),n,fp);
   MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

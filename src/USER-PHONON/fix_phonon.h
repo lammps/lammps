@@ -22,6 +22,7 @@
 
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 
 FixStyle(phonon,FixPhonon)
@@ -31,12 +32,17 @@ FixStyle(phonon,FixPhonon)
 #ifndef FIX_PHONON_H
 #define FIX_PHONON_H
 
+#ifdef FFT_SINGLE
+typedef float FFT_SCALAR;
+#define MPI_FFT_SCALAR MPI_FLOAT
+#else
+typedef double FFT_SCALAR;
+#define MPI_FFT_SCALAR MPI_DOUBLE
+#endif
+
 #include <complex>
 #include "fix.h"
 #include <map>
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
 
 namespace LAMMPS_NS {
 
@@ -72,7 +78,7 @@ class FixPhonon : public Fix {
   int mynpt,mynq,fft_nsend;
   int *fft_cnts, *fft_disp;
   int fft_dim, fft_dim2;
-  double *fft_data;
+  FFT_SCALAR *fft_data;
   
   tagint itag;                                  // index variables
   int idx, idq;                                 // more index variables

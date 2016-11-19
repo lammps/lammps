@@ -24,9 +24,9 @@ timestep	0.001
 
 fix             1 all nve/sphere
 fix		2 all gravity 1.0 spherical 0.0 -180.0
-fix		xwalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 &
+fix		xwalls all wall/gran hertz/history 4000.0 NULL 100.0 NULL 0 1 &
 		xplane 0 100
-fix		ywalls all wall/gran 4000.0 NULL 100.0 NULL 0 1 &
+fix		ywalls all wall/gran hertz/history 4000.0 NULL 100.0 NULL 0 1 &
 		yplane 0 NULL
  
 region          slab block 1.0 99.0 30 34.5 -0.5 0.5 units box

@@ -16,10 +16,10 @@
      Based on fix qeq/reax by H. Metin Aktulga
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq.h"
 #include "atom.h"
 #include "comm.h"
@@ -46,14 +46,22 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), list(NULL), chi(NULL), eta(NULL), 
+  gamma(NULL), zeta(NULL), zcore(NULL), chizj(NULL), shld(NULL), 
+  s(NULL), t(NULL), s_hist(NULL), t_hist(NULL), Hdia_inv(NULL), b_s(NULL), 
+  b_t(NULL), p(NULL), q(NULL), r(NULL), d(NULL), 
+  qf(NULL), q1(NULL), q2(NULL), qv(NULL)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
-  
+
   nevery = force->inumeric(FLERR,arg[3]);
   cutoff = force->numeric(FLERR,arg[4]);
   tolerance = force->numeric(FLERR,arg[5]);
   maxiter = force->inumeric(FLERR,arg[6]);
+
+  // check for sane arguments
+  if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
+    error->all(FLERR,"Illegal fix qeq command");
 
   alpha = 0.20;
   swa = 0.0;
@@ -92,6 +100,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   q1 = NULL;
   q2 = NULL;
   streitz_flag = 0;
+  qv = NULL;
 
   comm_forward = comm_reverse = 1;
 
@@ -101,7 +110,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   s_hist = t_hist = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
-  
+
   for( int i = 0; i < atom->nmax; i++ )
     for (int j = 0; j < nprev; ++j )
       s_hist[i][j] = t_hist[i][j] = atom->q[i];
@@ -170,6 +179,8 @@ void FixQEq::allocate_storage()
   memory->create(qf,nmax,"qeq:qf");
   memory->create(q1,nmax,"qeq:q1");
   memory->create(q2,nmax,"qeq:q2");
+
+  memory->create(qv,nmax,"qeq:qv");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -192,6 +203,8 @@ void FixQEq::deallocate_storage()
   memory->destroy( qf );
   memory->destroy( q1 );
   memory->destroy( q2 );
+
+  memory->destroy( qv );
 }
 
 /* ---------------------------------------------------------------------- */
@@ -273,7 +286,8 @@ void FixQEq::setup_pre_force(int vflag)
   if (force->newton_pair == 0)
     error->all(FLERR,"QEQ with 'newton pair off' not supported");
 
-  neighbor->build_one(list);
+  // should not be needed
+  // neighbor->build_one(list);
 
   deallocate_storage();
   allocate_storage();
@@ -318,6 +332,8 @@ void FixQEq::init_storage()
     qf[i] = 0.0;
     q1[i] = 0.0;
     q2[i] = 0.0;
+
+    qv[i] = 0.0;
   }
 }
 
@@ -618,7 +634,7 @@ double FixQEq::parallel_dot( double *v1, double *v2, int n)
     if (atom->mask[i] & groupbit)
       my_dot += v1[i] * v2[i];
   }
-  
+
   MPI_Allreduce( &my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world );
 
   return res;

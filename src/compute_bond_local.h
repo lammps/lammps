@@ -30,17 +30,17 @@ class ComputeBondLocal : public Compute {
   ~ComputeBondLocal();
   void init();
   void compute_local();
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   double memory_usage();
 
  private:
   int nvalues;
   int ncount;
   int *bstyle;
-  int singleflag;
+  int singleflag,velflag,ghostvelflag,initflag;
 
   int nmax;
-  double *vector;
-  double **array;
 
   int compute_bonds(int);
   void reallocate(int);

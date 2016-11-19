@@ -47,7 +47,7 @@ class FixAddForce : public Fix {
   int xvar,yvar,zvar,evar,xstyle,ystyle,zstyle,estyle;
   double foriginal[4],foriginal_all[4];
   int force_flag;
-  int nlevels_respa;
+  int ilevel_respa;
 
   int maxatom;
   double **sforce;

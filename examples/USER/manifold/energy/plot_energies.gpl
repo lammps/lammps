@@ -1,0 +1,78 @@
+# Gnuplot script to plot the energies.
+#
+
+#set term pngcairo size 800,600 solid color
+#set output 'energy_conservation.png'
+
+set term epslatex size 14cm,10cm standalone color
+set output 'energy_conservation.tex'
+
+E0S = 0.263720171785176
+E0C = 0.680969247210183
+E0T = 0.393139981206627
+E0P = -1.16336568585219
+E1S = 0.168915271276422
+E1C = 0.615216219988708
+E1T = 0.318731094092091
+E1P = -1.29808304730092
+
+set grid
+set xlabel 'Time (LJ units)'
+set ylabel 'Relative energy deviation $(\mathcal{H}(t) - \mathcal{H}(0))/\mathcal{H}(0)$'
+set title 'Energy drift for RATTLE-M on various surfaces'
+
+set key opaque box top left
+
+set log x
+
+col_S = '#CC0000'
+col_C = '#00CC00'
+col_T = '#0000CC'
+col_P = '#000000'
+
+set multiplot
+
+set xrange[10:5e6]
+set yrange[-0.02:0.02]
+
+set ytics ( "$-2.0~10^{-2}$" -2e-2,   "$-1.5~10^{-2}$" -1.5e-2,      "$-1.0~10^{-2}$" -1e-2 \
+          , "$-0.5~10^{-2}$" -0.5e-2, "$0$" 0, "$0.5~10^{-2}$" 0.5e-2, "$1.0~10^{-2}$" 1e-2   \
+          ,  "$1.5~10^{-2}$"  1.5e-2, "$2.0~10^{-2}$" 2e-2 )
+
+plot 'long_run_lj_cut/thermo.sphere.dat'   u 1:($4/E1S-1) w l lw 2 lc rgb col_S ti 'S, Truncated' \
+   , 'long_run_lj_cut/thermo.cylinder.dat' u 1:($4/E1C-1) w l lw 2 lc rgb col_C ti 'C, Truncated' \
+   , 'long_run_lj_cut/thermo.torus.dat'    u 1:($4/E1T-1) w l lw 2 lc rgb col_T ti 'T, Truncated' \
+   , 'long_run_lj_cut/thermo.plane.dat'    u 1:($4/E1P-1) w l lw 2 lc rgb col_P ti 'P, Truncated' \
+   , 'thermo.sphere.dat'   u 1:($4/E0S-1) w p pt 2 ps 1 lc rgb col_S ti 'S, Smoothed'   \
+   , 'thermo.cylinder.dat' u 1:($4/E0C-1) w p pt 4 ps 1 lc rgb col_C ti 'C, Smoothed' \
+   , 'thermo.torus.dat'    u 1:($4/E0T-1) w p pt 6 ps 1 lc rgb col_T ti 'T, Smoothed'    \
+   , 'thermo.plane.dat'    u 1:($4/E0P-1) w p pt 8 ps 1 lc rgb col_P ti 'P, Smoothed'
+
+set origin 0.285,0.106
+set size 0.55,0.4
+
+set object 1 rectangle from graph 0,0 to graph 1,1 fillcolor rgb "white" behind
+
+set xlabel ''
+set ylabel ''
+set title ''
+set xrange[10:500000]
+set yrange[-1.5e-5:1.5e-5]
+set ytics 
+set format y "%0.1t 10^{%T}"
+set grid
+unset key
+
+#set ytics ( "$-1.5~10^{-5}$" -1.5e-5, "$-1.0~10^{-5}$" -1e-5, "$-0.5~10^{-5}$" -0.5e-5, \
+#            "$0$" 0, "$0.5~10^{-5}$" 0.5e-5, "$1.0~10^{-5}$" 1.0e-5, "$1.5~10^{-5}$" 1.5e-5 )
+
+set ytics ( "$-1.8~10^{-5}$" -1.8e-5, "$-1.2~10^{-5}$" -1.2e-5, "$-0.6~10^{-5}$" -0.6e-5, \
+            "$0$" 0, "$0.6~10^{-5}$" 0.6e-5, "$1.2~10^{-5}$" 1.2e-5, "$1.8~10^{-5}$" 1.8e-5 )
+
+set title 'Smoothed only' offset 0,-0.5
+plot 'thermo.sphere.dat'   u 1:($4/E0S - 1) w p pt 2 ps 1 lc rgb col_S \
+   , 'thermo.cylinder.dat' u 1:($4/E0C - 1) w p pt 4 ps 1 lc rgb col_C \
+   , 'thermo.torus.dat'    u 1:($4/E0T - 1) w p pt 6 ps 1 lc rgb col_T \
+   , 'thermo.plane.dat'    u 1:($4/E0P - 1) w p pt 8 ps 1 lc rgb col_P
+
+unset multiplot

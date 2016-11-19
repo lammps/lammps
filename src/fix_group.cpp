@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_group.h"
 #include "group.h"
 #include "update.h"
@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "region.h"
 #include "modify.h"
+#include "respa.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -31,7 +32,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+idregion(NULL), idvar(NULL)
 {
   // dgroupbit = bitmask of dynamic group
   // group ID is last part of fix ID
@@ -46,11 +48,9 @@ FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // process optional args
 
   regionflag = 0;
-  idregion = NULL;
   varflag = 0;
-  idvar = NULL;
   nevery = 1;
-  
+
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
@@ -96,6 +96,7 @@ int FixGroup::setmask()
 {
   int mask = 0;
   mask |= POST_INTEGRATE;
+  mask |= POST_INTEGRATE_RESPA;
   return mask;
 }
 
@@ -108,6 +109,9 @@ void FixGroup::init()
 
   if (group->dynamic[igroup])
     error->all(FLERR,"Group dynamic parent group cannot be dynamic");
+
+  if (strstr(update->integrate_style,"respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // set current indices for region and variable
 
@@ -145,7 +149,7 @@ void FixGroup::init()
     }
   }
 
-  if (warn && comm->me == 0) 
+  if (warn && comm->me == 0)
     error->warning(FLERR,"One or more dynamic groups may not be "
                    "updated at correct point in timestep");
 }
@@ -170,6 +174,13 @@ void FixGroup::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
+void FixGroup::post_integrate_respa(int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa-1) post_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixGroup::set_group()
 {
   int nlocal = atom->nlocal;
@@ -184,7 +195,7 @@ void FixGroup::set_group()
     input->variable->compute_atom(ivar,igroup,var,1,0);
     modify->addstep_compute(update->ntimestep + nevery);
   }
-  
+
   // update region in case it has a variable dependence or is dynamic
 
   if (regionflag) region->prematch();

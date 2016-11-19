@@ -16,10 +16,10 @@
                          Christian Burisch (Bochum Univeristy, Germany)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_tmd.h"
 #include "atom.h"
 #include "update.h"
@@ -39,7 +39,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+nfileevery(0), fp(NULL), xf(NULL), xold(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tmd command");
 
@@ -54,8 +55,6 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  xf = NULL;
-  xold = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
@@ -85,6 +84,8 @@ FixTMD::FixTMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   }
 
   masstotal = group->mass(igroup);
+  if (masstotal == 0.0)
+    error->all(FLERR,"Cannot use fix TMD on massless group");
 
   // rho_start = initial rho
   // xold = initial x or 0.0 if not in group
@@ -155,10 +156,7 @@ void FixTMD::init()
   int flag = 0;
   for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"tmd") == 0) flag = 1;
-    if (flag && strcmp(modify->fix[i]->style,"nve") == 0) flag = 2;
-    if (flag && strcmp(modify->fix[i]->style,"nvt") == 0) flag = 2;
-    if (flag && strcmp(modify->fix[i]->style,"npt") == 0) flag = 2;
-    if (flag && strcmp(modify->fix[i]->style,"nph") == 0) flag = 2;
+    if (flag && modify->fix[i]->time_integrate) flag = 2;
   }
   if (flag == 2) error->all(FLERR,"Fix tmd must come after integration fixes");
 
@@ -393,7 +391,7 @@ void FixTMD::readfile(char *file)
 
   char *buffer = new char[CHUNK*MAXLINE];
   char *next,*bufptr;
-  int i,m,nlines,imageflag,ix,iy,iz;
+  int i,m,n,nlines,imageflag,ix,iy,iz;
   tagint itag;
   double x,y,z,xprd,yprd,zprd;
 
@@ -402,7 +400,7 @@ void FixTMD::readfile(char *file)
   char *eof = NULL;
   xprd = yprd = zprd = -1.0;
 
-  while (!eof) {
+  do {
     if (me == 0) {
       m = 0;
       for (nlines = 0; nlines < CHUNK; nlines++) {
@@ -414,7 +412,7 @@ void FixTMD::readfile(char *file)
       m++;
     }
 
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    MPI_Bcast(&eof,sizeof(char *)/sizeof(char),MPI_CHAR,0,world);
     MPI_Bcast(&nlines,1,MPI_INT,0,world);
     MPI_Bcast(&m,1,MPI_INT,0,world);
     MPI_Bcast(buffer,m,MPI_CHAR,0,world);
@@ -457,10 +455,17 @@ void FixTMD::readfile(char *file)
       }
 
       if (imageflag)
-        sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg %d %d %d",
-               &itag,&x,&y,&z,&ix,&iy,&iz);
+        n = sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg %d %d %d",
+                   &itag,&x,&y,&z,&ix,&iy,&iz);
       else
-        sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg",&itag,&x,&y,&z);
+        n = sscanf(bufptr,TAGINT_FORMAT " %lg %lg %lg",&itag,&x,&y,&z);
+
+      if (n < 0) {
+        if (me == 0) error->warning(FLERR,"Ignoring empty or incorrectly"
+                                    " formatted line in target file");
+        bufptr = next + 1;
+        continue;
+      }
 
       m = atom->map(itag);
       if (m >= 0 && m < nlocal && mask[m] & groupbit) {
@@ -475,10 +480,9 @@ void FixTMD::readfile(char *file)
         }
         ncount++;
       }
-
       bufptr = next + 1;
     }
-  }
+  } while (eof != NULL);
 
   // clean up
 

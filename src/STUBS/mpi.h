@@ -14,7 +14,7 @@
 #ifndef MPI_STUBS
 #define MPI_STUBS
 
-#include "stdlib.h"
+#include <stdlib.h>
 
 /* use C bindings for MPI interface */
 
@@ -64,7 +64,7 @@ extern "C" {
 
 #define MPI_MAX_PROCESSOR_NAME 128
 
-typedef void MPI_User_function(void *invec, void *inoutvec, 
+typedef void MPI_User_function(void *invec, void *inoutvec,
                                int *len, MPI_Datatype *datatype);
 
 /* MPI data structs */
@@ -79,7 +79,8 @@ typedef struct _MPI_Status MPI_Status;
 int MPI_Init(int *argc, char ***argv);
 int MPI_Initialized(int *flag);
 int MPI_Finalized(int *flag);
-void MPI_Get_processor_name(char *name, int *resultlen);
+int MPI_Get_processor_name(char *name, int *resultlen);
+int MPI_Get_version(int *major, int *minor);
 
 int MPI_Comm_rank(MPI_Comm comm, int *me);
 int MPI_Comm_size(MPI_Comm comm, int *nprocs);
@@ -89,11 +90,11 @@ double MPI_Wtime();
 
 int MPI_Type_size(int, int *);
 
-int MPI_Send(void *buf, int count, MPI_Datatype datatype,
+int MPI_Send(const void *buf, int count, MPI_Datatype datatype,
              int dest, int tag, MPI_Comm comm);
-int MPI_Isend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Isend(const void *buf, int count, MPI_Datatype datatype,
               int source, int tag, MPI_Comm comm, MPI_Request *request);
-int MPI_Rsend(void *buf, int count, MPI_Datatype datatype,
+int MPI_Rsend(const void *buf, int count, MPI_Datatype datatype,
               int dest, int tag, MPI_Comm comm);
 int MPI_Recv(void *buf, int count, MPI_Datatype datatype,
              int source, int tag, MPI_Comm comm, MPI_Status *status);
@@ -103,7 +104,7 @@ int MPI_Wait(MPI_Request *request, MPI_Status *status);
 int MPI_Waitall(int n, MPI_Request *request, MPI_Status *status);
 int MPI_Waitany(int count, MPI_Request *request, int *index,
                 MPI_Status *status);
-int MPI_Sendrecv(void *sbuf, int scount, MPI_Datatype sdatatype,
+int MPI_Sendrecv(const void *sbuf, int scount, MPI_Datatype sdatatype,
                   int dest, int stag, void *rbuf, int rcount,
                   MPI_Datatype rdatatype, int source, int rtag,
                   MPI_Comm comm, MPI_Status *status);
@@ -126,7 +127,7 @@ int MPI_Cart_shift(MPI_Comm comm, int direction, int displ,
                    int *source, int *dest);
 int MPI_Cart_rank(MPI_Comm comm, int *coords, int *rank);
 
-int MPI_Type_contiguous(int count, MPI_Datatype oldtype, 
+int MPI_Type_contiguous(int count, MPI_Datatype oldtype,
                         MPI_Datatype *newtype);
 int MPI_Type_commit(MPI_Datatype *datatype);
 int MPI_Type_free(MPI_Datatype *datatype);
@@ -157,8 +158,8 @@ int MPI_Gather(void *sendbuf, int sendcount, MPI_Datatype sendtype,
 int MPI_Gatherv(void *sendbuf, int sendcount, MPI_Datatype sendtype,
                 void *recvbuf, int *recvcounts, int *displs,
                 MPI_Datatype recvtype, int root, MPI_Comm comm);
-int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype, 
-                void *recvbuf, int recvcount, MPI_Datatype recvtype, 
+int MPI_Scatter(void *sendbuf, int sendcount, MPI_Datatype sendtype,
+                void *recvbuf, int recvcount, MPI_Datatype recvtype,
                 int root, MPI_Comm comm);
 int MPI_Scatterv(void *sendbuf, int *sendcounts, int *displs,
                  MPI_Datatype sendtype, void *recvbuf, int recvcount,

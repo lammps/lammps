@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tfmc.h"
-#include "mpi.h"
-#include "string.h"
-#include "math.h"
-#include "float.h"
+#include <mpi.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -37,17 +37,18 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  xd(NULL), rotflag(0), random_num(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tfmc command");
 
   // although we are not doing MD, we would like to use tfMC as an MD "drop in"
   time_integrate = 1;
-  
+
   d_max = force->numeric(FLERR,arg[3]);
   T_set = force->numeric(FLERR,arg[4]);
   seed = force->inumeric(FLERR,arg[5]);
-  
+
   if (d_max <= 0) error->all(FLERR,"Fix tfmc displacement length must be > 0");
   if (T_set <= 0) error->all(FLERR,"Fix tfmc temperature must be > 0");
   if (seed <= 0) error->all(FLERR,"Illegal fix tfmc random seed");
@@ -76,16 +77,17 @@ FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
   // error checks
   if (comflag)
     if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 ||
-        zflag < 0 || zflag > 1) 
+        zflag < 0 || zflag > 1)
       error->all(FLERR,"Illegal fix tfmc command");
-    if (xflag + yflag + zflag == 0) 
-      comflag = 0;
+
+  if (xflag + yflag + zflag == 0)
+    comflag = 0;
 
   if (rotflag) {
     xd = NULL;
     nmax = -1;
   }
-  
+
   random_num = new RanMars(lmp,seed + comm->me);
 }
 
@@ -125,7 +127,7 @@ void FixTFMC::init()
 
   // obtain lowest mass in the system
   // We do this here, in init(), rather than in initial_integrate().
-  // This might seem somewhat odd: after all, another atom could be added with a 
+  // This might seem somewhat odd: after all, another atom could be added with a
   // mass smaller than mass_min (in the case of a per-particle mass), so mass_min
   // should change during the run. However, this would imply that the overall
   // meaning of the input Delta is not very well-defined, because its meaning
@@ -174,7 +176,7 @@ void FixTFMC::initial_integrate(int vflag)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // in case we wish to track (and zero) the com movement 
+  // in case we wish to track (and zero) the com movement
   if (comflag) {
     xcm_d[0] = 0.0;
     xcm_d[1] = 0.0;
@@ -228,9 +230,12 @@ void FixTFMC::initial_integrate(int vflag)
   // zero com motion
   if (comflag == 1 && group->count(igroup) != 0) {
     MPI_Allreduce(xcm_d,xcm_dall,3,MPI_DOUBLE,MPI_SUM,world);
-    xcm_dall[0] /= masstotal;
-    xcm_dall[1] /= masstotal;
-    xcm_dall[2] /= masstotal;
+    if (masstotal > 0.0) {
+      xcm_dall[0] /= masstotal;
+      xcm_dall[1] /= masstotal;
+      xcm_dall[2] /= masstotal;
+    } else xcm_dall[0] = xcm_dall[1] = xcm_dall[2] = 0.0;
+    
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (xflag) x[i][0] -= xcm_dall[0];
@@ -249,11 +254,11 @@ void FixTFMC::initial_integrate(int vflag)
     tagint *image = atom->image;
     group->xcm(igroup,masstotal,cm);
 
-    // to zero rotations, we can employ the same principles the 
-	// velocity command uses to zero the angular momentum. of course, 
-	// there is no (conserved) momentum in MC, but we can substitute 
+    // to zero rotations, we can employ the same principles the
+	// velocity command uses to zero the angular momentum. of course,
+	// there is no (conserved) momentum in MC, but we can substitute
 	// "velocities" by a displacement vector and proceed from there.
-	// this of course requires "forking" group->angmom(), which is 
+	// this of course requires "forking" group->angmom(), which is
 	// what we do here.
 
     double p[3];

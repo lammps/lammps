@@ -32,6 +32,7 @@ class FixGroup : public Fix {
   void init();
   void setup(int);
   void post_integrate();
+  void post_integrate_respa(int,int);
 
  private:
   int gbit,gbitinverse;
@@ -39,6 +40,8 @@ class FixGroup : public Fix {
   int iregion,ivar;
   char *idregion,*idvar;
   class Region *region;
+
+  int nlevels_respa;
 
   void set_group();
 };

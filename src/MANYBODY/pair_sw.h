@@ -55,10 +55,12 @@ class PairSW : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
+  int maxshort;                 // size of short neighbor list array
+  int *neighshort;              // short neighbor list array
 
   virtual void allocate();
   void read_file(char *);
-  virtual void setup();
+  virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);

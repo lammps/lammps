@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_wall_reflect.h"
 #include "atom.h"
 #include "comm.h"
@@ -34,7 +34,8 @@ enum{NONE=0,EDGE,CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nwall(0)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
 
@@ -58,7 +59,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg],"zlo") == 0) newwall = ZLO;
       else if (strcmp(arg[iarg],"zhi") == 0) newwall = ZHI;
 
-      for (int m = 0; m < nwall; m++)
+      for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
           error->all(FLERR,"Wall defined twice in fix wall/reflect command");
 
@@ -142,6 +143,8 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallReflect::~FixWallReflect()
 {
+  if (copymode) return;
+
   for (int m = 0; m < nwall; m++)
     if (wallstyle[m] == VARIABLE) delete [] varstr[m];
 }

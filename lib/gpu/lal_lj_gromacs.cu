@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : nguyentd@ornl.gov
 // ***************************************************************************/
 
@@ -35,8 +35,8 @@ __kernel void k_lj_gromacs(const __global numtyp4 *restrict x_,
                            const __global int *dev_nbor,
                            const __global int *dev_packed,
                            __global acctyp4 *restrict ans,
-                           __global acctyp *restrict engv, 
-                           const int eflag, const int vflag, const int inum, 
+                           __global acctyp *restrict engv,
+                           const int eflag, const int vflag, const int inum,
                            const int nbor_pitch, const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
@@ -59,7 +59,7 @@ __kernel void k_lj_gromacs(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
@@ -83,7 +83,7 @@ __kernel void k_lj_gromacs(const __global numtyp4 *restrict x_,
       if (rsq<lj1[mtype].z) {
         numtyp r2inv=ucl_recip(rsq);
         numtyp force_lj, force, r6inv, t;
-        
+
         r6inv = r2inv*r2inv*r2inv;
         force_lj = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         if (rsq > lj1[mtype].w) {
@@ -91,7 +91,7 @@ __kernel void k_lj_gromacs(const __global numtyp4 *restrict x_,
           t = r - lj3[mtype].z;
           numtyp fswitch = r*t*t*(ljsw[mtype].x + ljsw[mtype].y*t);
           force_lj += fswitch;
-        } 
+        }
 
         force = factor_lj*force_lj * r2inv;
 
@@ -149,22 +149,22 @@ __kernel void k_lj_gromacs_fast(const __global numtyp4 *restrict x_,
     lj3[tid]=lj3_in[tid];
     ljsw[tid]=ljsw_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
@@ -184,11 +184,11 @@ __kernel void k_lj_gromacs_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-      
+
       if (rsq<lj1[mtype].z) {
         numtyp r2inv=ucl_recip(rsq);
         numtyp force_lj, force, r6inv, t;
-        
+
         r6inv = r2inv*r2inv*r2inv;
         force_lj = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         if (rsq > lj1[mtype].w) {
@@ -196,7 +196,7 @@ __kernel void k_lj_gromacs_fast(const __global numtyp4 *restrict x_,
           t = r - lj3[mtype].z;
           numtyp fswitch = r*t*t*(ljsw[mtype].x + ljsw[mtype].y*t);
           force_lj += fswitch;
-        } 
+        }
 
         force = factor_lj*force_lj * r2inv;
 

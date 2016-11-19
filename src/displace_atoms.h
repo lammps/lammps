@@ -27,10 +27,15 @@ namespace LAMMPS_NS {
 class DisplaceAtoms : protected Pointers {
  public:
   DisplaceAtoms(class LAMMPS *);
+  ~DisplaceAtoms();
   void command(int, char **);
 
  private:
+  int igroup,groupbit;
   int scaleflag;
+  double *mvec;
+
+  void move(int, char *, double);
   void options(int, char **);
 };
 
@@ -73,5 +78,13 @@ Self-explanatory.
 W: Lost atoms via displace_atoms: original %ld current %ld
 
 The command options you have used caused atoms to be lost.
+
+E: Variable name for displace_atoms does not exist
+
+Self-explanatory.
+
+E: Variable for displace_atoms is invalid style
+
+It must be an equal-style or atom-style variable.
 
 */

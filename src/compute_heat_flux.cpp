@@ -16,8 +16,8 @@
                          Mario Pinto (Computational Research Lab, Pune, India)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "compute_heat_flux.h"
 #include "atom.h"
 #include "update.h"
@@ -33,7 +33,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_ke(NULL), id_pe(NULL), id_stress(NULL)
 {
   if (narg != 6) error->all(FLERR,"Illegal compute heat/flux command");
 

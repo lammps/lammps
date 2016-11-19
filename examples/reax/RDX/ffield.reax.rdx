@@ -1,4 +1,4 @@
-Reactive MD-force field nitramines (RDX/HMX/TATB/PETN): Strachan, A.; et al. Phys. Rev. Lett. 2003, 91, 098301
+DATE: 2010-02-19 CONTRIBUTOR: Aidan Thompson, athomps@sandia.gov CITATION: Strachan et al, Phys Rev Lett, 91, 098301 (2003) COMMENT: Reactive MD-force field nitramines (RDX/HMX/TATB/PETN): Strachan, A.; et al. Phys. Rev. Lett. 2003, 91, 098301
  39       ! Number of general parameters                                        
    50.0000 !Overcoordination parameter                                          
     9.4514 !Overcoordination parameter                                          

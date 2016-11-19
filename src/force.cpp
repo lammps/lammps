@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "ctype.h"
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "force.h"
 #include "style_bond.h"
 #include "style_angle.h"
@@ -78,7 +78,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 
   // fill pair map with pair styles listed in style_pair.h
 
-  pair_map = new std::map<std::string,PairCreator>();
+  pair_map = new PairCreatorMap();
 
 #define PAIR_CLASS
 #define PairStyle(key,Class) \
@@ -86,6 +86,51 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
 #include "style_pair.h"
 #undef PairStyle
 #undef PAIR_CLASS
+
+  bond_map = new BondCreatorMap();
+
+#define BOND_CLASS
+#define BondStyle(key,Class) \
+  (*bond_map)[#key] = &bond_creator<Class>;
+#include "style_bond.h"
+#undef BondStyle
+#undef BOND_CLASS
+
+  angle_map = new AngleCreatorMap();
+
+#define ANGLE_CLASS
+#define AngleStyle(key,Class) \
+  (*angle_map)[#key] = &angle_creator<Class>;
+#include "style_angle.h"
+#undef AngleStyle
+#undef ANGLE_CLASS
+
+  dihedral_map = new DihedralCreatorMap();
+
+#define DIHEDRAL_CLASS
+#define DihedralStyle(key,Class) \
+  (*dihedral_map)[#key] = &dihedral_creator<Class>;
+#include "style_dihedral.h"
+#undef DihedralStyle
+#undef DIHEDRAL_CLASS
+
+  improper_map = new ImproperCreatorMap();
+
+#define IMPROPER_CLASS
+#define ImproperStyle(key,Class) \
+  (*improper_map)[#key] = &improper_creator<Class>;
+#include "style_improper.h"
+#undef ImproperStyle
+#undef IMPROPER_CLASS
+
+  kspace_map = new KSpaceCreatorMap();
+
+#define KSPACE_CLASS
+#define KSpaceStyle(key,Class) \
+  (*kspace_map)[#key] = &kspace_creator<Class>;
+#include "style_kspace.h"
+#undef KSpaceStyle
+#undef KSPACE_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,7 +151,19 @@ Force::~Force()
   if (improper) delete improper;
   if (kspace) delete kspace;
 
+  pair = NULL;
+  bond = NULL;
+  angle = NULL;
+  dihedral = NULL;
+  improper = NULL;
+  kspace = NULL;
+
   delete pair_map;
+  delete bond_map;
+  delete angle_map;
+  delete dihedral_map;
+  delete improper_map;
+  delete kspace_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -121,6 +178,13 @@ void Force::init()
   if (angle) angle->init();
   if (dihedral) dihedral->init();
   if (improper) improper->init();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Force::setup()
+{
+  if (pair) pair->setup();
 }
 
 /* ----------------------------------------------------------------------
@@ -191,10 +255,11 @@ Pair *Force::pair_creator(LAMMPS *lmp)
    return ptr to Pair class if matches word or matches hybrid sub-style
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
-   return NULL if no match or multiple sub-styles match
+   if nsub > 0, match Nth hybrid sub-style
+   return NULL if no match or if nsub=0 and multiple sub-styles match
 ------------------------------------------------------------------------- */
 
-Pair *Force::pair_match(const char *word, int exact)
+Pair *Force::pair_match(const char *word, int exact, int nsub)
 {
   int iwhich,count;
 
@@ -209,6 +274,7 @@ Pair *Force::pair_match(const char *word, int exact)
           (!exact && strstr(hybrid->keywords[i],word))) {
         iwhich = i;
         count++;
+        if (nsub == count) return hybrid->styles[iwhich];
       }
     if (count == 1) return hybrid->styles[iwhich];
 
@@ -220,8 +286,28 @@ Pair *Force::pair_match(const char *word, int exact)
           (!exact && strstr(hybrid->keywords[i],word))) {
         iwhich = i;
         count++;
+        if (nsub == count) return hybrid->styles[iwhich];
       }
     if (count == 1) return hybrid->styles[iwhich];
+  }
+
+  return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   return style name of Pair class that matches Pair ptr
+   called by Neighbor::print_neigh_info()
+   return NULL if no match
+------------------------------------------------------------------------- */
+
+char *Force::pair_match_ptr(Pair *ptr)
+{
+  if (ptr == pair) return pair_style;
+
+  if (strstr(pair_style,"hybrid")) {
+    PairHybrid *hybrid = (PairHybrid *) pair;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
   }
 
   return NULL;
@@ -252,44 +338,42 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      
-      if (0) return NULL;
-
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BondStyle
-#undef BOND_CLASS
+      if (bond_map->find(estyle) != bond_map->end()) {
+        BondCreator bond_creator = (*bond_map)[estyle];
+        return bond_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-      
-      if (0) return NULL;
-
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BondStyle
-#undef BOND_CLASS
+      if (bond_map->find(estyle) != bond_map->end()) {
+        BondCreator bond_creator = (*bond_map)[estyle];
+        return bond_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (bond_map->find(style) != bond_map->end()) {
+    BondCreator bond_creator = (*bond_map)[style];
+    return bond_creator(lmp);
+  }
 
-#define BOND_CLASS
-#define BondStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_bond.h"
-#undef BOND_CLASS
-
-  else error->all(FLERR,"Unknown bond style");
+  error->all(FLERR,"Unknown bond style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per bond style in style_bond.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Bond *Force::bond_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -332,43 +416,57 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      
-      if (0) return NULL;
-
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef AngleStyle
-#undef ANGLE_CLASS
+      if (angle_map->find(estyle) != angle_map->end()) {
+        AngleCreator angle_creator = (*angle_map)[estyle];
+        return angle_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-      
-      if (0) return NULL;
-
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef AngleStyle
-#undef ANGLE_CLASS
+      if (angle_map->find(estyle) != angle_map->end()) {
+        AngleCreator angle_creator = (*angle_map)[estyle];
+        return angle_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (angle_map->find(style) != angle_map->end()) {
+    AngleCreator angle_creator = (*angle_map)[style];
+    return angle_creator(lmp);
+  }
 
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_angle.h"
-#undef ANGLE_CLASS
+  error->all(FLERR,"Unknown angle style");
+  return NULL;
+}
 
-  else error->all(FLERR,"Unknown angle style");
+/* ----------------------------------------------------------------------
+   one instance per angle style in style_angle.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Angle *Force::angle_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
+
+/* ----------------------------------------------------------------------
+   return ptr to current angle class or hybrid sub-class if matches style
+------------------------------------------------------------------------- */
+
+Angle *Force::angle_match(const char *style)
+{
+  if (strcmp(angle_style,style) == 0) return angle;
+  else if (strcmp(angle_style,"hybrid") == 0) {
+    AngleHybrid *hybrid = (AngleHybrid *) angle;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+  }
   return NULL;
 }
 
@@ -397,44 +495,56 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
+      if (dihedral_map->find(estyle) != dihedral_map->end()) {
+        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        return dihedral_creator(lmp);
+      }
     }
 
-    if (lmp->suffix) {
+    if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
+      if (dihedral_map->find(estyle) != dihedral_map->end()) {
+        DihedralCreator dihedral_creator = (*dihedral_map)[estyle];
+        return dihedral_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (dihedral_map->find(style) != dihedral_map->end()) {
+    DihedralCreator dihedral_creator = (*dihedral_map)[style];
+    return dihedral_creator(lmp);
+  }
 
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
+  error->all(FLERR,"Unknown dihedral style");
+  return NULL;
+}
 
-  else error->all(FLERR,"Unknown dihedral style");
+/* ----------------------------------------------------------------------
+   one instance per dihedral style in style_dihedral.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Dihedral *Force::dihedral_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to current angle class or hybrid sub-class if matches style
+------------------------------------------------------------------------- */
+
+Dihedral *Force::dihedral_match(const char *style)
+{
+  if (strcmp(dihedral_style,style) == 0) return dihedral;
+  else if (strcmp(dihedral_style,"hybrid") == 0) {
+    DihedralHybrid *hybrid = (DihedralHybrid *) dihedral;
+    for (int i = 0; i < hybrid->nstyles; i++)
+      if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
+  }
   return NULL;
 }
 
@@ -463,44 +573,42 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix);
-
-      if (0) return NULL;
-
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef ImproperStyle
-#undef IMPROPER_CLASS
+      if (improper_map->find(estyle) != improper_map->end()) {
+        ImproperCreator improper_creator = (*improper_map)[estyle];
+        return improper_creator(lmp);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       char estyle[256];
       sprintf(estyle,"%s/%s",style,lmp->suffix2);
-
-      if (0) return NULL;
-
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef ImproperStyle
-#undef IMPROPER_CLASS
+      if (improper_map->find(estyle) != improper_map->end()) {
+        ImproperCreator improper_creator = (*improper_map)[estyle];
+        return improper_creator(lmp);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(style,"none") == 0) return NULL;
+  if (improper_map->find(style) != improper_map->end()) {
+    ImproperCreator improper_creator = (*improper_map)[style];
+    return improper_creator(lmp);
+  }
 
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-  else if (strcmp(style,#key) == 0) return new Class(lmp);
-#include "style_improper.h"
-#undef IMPROPER_CLASS
-
-  else error->all(FLERR,"Unknown improper style");
+  error->all(FLERR,"Unknown improper style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per improper style in style_improper.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+Improper *Force::improper_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -511,7 +619,7 @@ Improper *Force::improper_match(const char *style)
 {
   if (strcmp(improper_style,style) == 0) return improper;
   else if (strcmp(improper_style,"hybrid") == 0) {
-    ImproperHybrid *hybrid = (ImproperHybrid *) bond;
+    ImproperHybrid *hybrid = (ImproperHybrid *) improper;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (strcmp(hybrid->keywords[i],style) == 0) return hybrid->styles[i];
   }
@@ -547,44 +655,42 @@ KSpace *Force::new_kspace(int narg, char **arg, int trysuffix, int &sflag)
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[0],lmp->suffix);
-
-      if (0) return NULL;
-
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSpaceStyle
-#undef KSPACE_CLASS
+      if (kspace_map->find(estyle) != kspace_map->end()) {
+        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        return kspace_creator(lmp, narg-1, &arg[1]);
+      }
     }
 
     if (lmp->suffix2) {
       sflag = 1;
       char estyle[256];
       sprintf(estyle,"%s/%s",arg[0],lmp->suffix2);
-
-      if (0) return NULL;
-
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-      else if (strcmp(estyle,#key) == 0) return new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSpaceStyle
-#undef KSPACE_CLASS
+      if (kspace_map->find(estyle) != kspace_map->end()) {
+        KSpaceCreator kspace_creator = (*kspace_map)[estyle];
+        return kspace_creator(lmp, narg-1, &arg[1]);
+      }
     }
   }
 
   sflag = 0;
   if (strcmp(arg[0],"none") == 0) return NULL;
+  if (kspace_map->find(arg[0]) != kspace_map->end()) {
+    KSpaceCreator kspace_creator = (*kspace_map)[arg[0]];
+    return kspace_creator(lmp, narg-1, &arg[1]);
+  }
 
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) return  new Class(lmp,narg-1,&arg[1]);
-#include "style_kspace.h"
-#undef KSPACE_CLASS
-
-  else error->all(FLERR,"Unknown kspace style");
+  error->all(FLERR,"Unknown kspace style");
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   one instance per kspace style in style_kspace.h
+------------------------------------------------------------------------- */
+
+template <typename T>
+KSpace *Force::kspace_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -729,7 +835,8 @@ void Force::set_special(int narg, char **arg)
    return nlo,nhi
 ------------------------------------------------------------------------- */
 
-void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
+void Force::bounds(const char *file, int line, char *str,
+                   int nmax, int &nlo, int &nhi, int nmin)
 {
   char *ptr = strchr(str,'*');
 
@@ -749,8 +856,8 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
     nhi = atoi(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
-    error->all(FLERR,"Numeric index is out of bounds");
+  if (nlo < nmin || nhi > nmax || nlo > nhi)
+    error->all(file,line,"Numeric index is out of bounds");
 }
 
 /* ----------------------------------------------------------------------
@@ -762,8 +869,8 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
    return nlo,nhi
 ------------------------------------------------------------------------- */
 
-void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi, 
-                      bigint nmin)
+void Force::boundsbig(const char *file, int line, char *str,
+                      bigint nmax, bigint &nlo, bigint &nhi, bigint nmin)
 {
   char *ptr = strchr(str,'*');
 
@@ -783,8 +890,8 @@ void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi,
     nhi = ATOBIGINT(ptr+1);
   }
 
-  if (nlo < nmin || nhi > nmax) 
-    error->all(FLERR,"Numeric index is out of bounds");
+  if (nlo < nmin || nhi > nmax || nlo > nhi)
+    error->all(file,line,"Numeric index is out of bounds");
 }
 
 /* ----------------------------------------------------------------------
@@ -822,11 +929,11 @@ double Force::numeric(const char *file, int line, char *str)
 
 int Force::inumeric(const char *file, int line, char *str)
 {
-  if (!str) 
+  if (!str)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
   int n = strlen(str);
-  if (n == 0) 
+  if (n == 0)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
 
@@ -847,11 +954,11 @@ int Force::inumeric(const char *file, int line, char *str)
 
 bigint Force::bnumeric(const char *file, int line, char *str)
 {
-  if (!str) 
+  if (!str)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
   int n = strlen(str);
-  if (n == 0) 
+  if (n == 0)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
 
@@ -872,11 +979,11 @@ bigint Force::bnumeric(const char *file, int line, char *str)
 
 tagint Force::tnumeric(const char *file, int line, char *str)
 {
-  if (!str) 
+  if (!str)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
   int n = strlen(str);
-  if (n == 0) 
+  if (n == 0)
     error->all(file,line,
                "Expected integer parameter in input script or data file");
 
@@ -905,7 +1012,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(name,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
     return fp;
   }
@@ -934,7 +1041,7 @@ FILE *Force::open_potential(const char *name)
 
   fp = fopen(newpath,"r");
   if (fp) {
-    potential_date(fp,name);
+    if (comm->me == 0) potential_date(fp,name);
     rewind(fp);
   }
 
@@ -954,7 +1061,7 @@ const char *Force::potential_name(const char *path)
 
 #if defined(_WIN32)
   // skip over the disk drive part of windows pathnames
-  if (isalpha(path[0]) && path[1] == ':') 
+  if (isalpha(path[0]) && path[1] == ':')
     path += 2;
 #endif
 

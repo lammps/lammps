@@ -22,16 +22,17 @@
 #include <stdio.h>
 
 #include "memory.h"
+#include "timer.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ThrData::ThrData(int tid)
+ThrData::ThrData(int tid, Timer *t)
   : _f(0),_torque(0),_erforce(0),_de(0),_drho(0),_mu(0),_lambda(0),_rhoB(0),
-    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid)
+    _D_values(0),_rho(0),_fp(0),_rho1d(0),_drho1d(0),_tid(tid), _timer(t)
 {
-  // nothing else to do here.
+  _timer_active = 0;
 }
 
 
@@ -41,6 +42,30 @@ void ThrData::check_tid(int tid)
 {
   if (tid != _tid)
     fprintf(stderr,"WARNING: external and internal tid mismatch %d != %d\n",tid,_tid);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ThrData::_stamp(enum Timer::ttype flag)
+{
+  // do nothing until it gets set to 0 in ::setup()
+  if (_timer_active < 0) return;
+
+  if (flag == Timer::START) {
+    _timer_active = 1;
+  }
+
+  if (_timer_active) _timer->stamp(flag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ThrData::get_time(enum Timer::ttype flag)
+{
+  if (_timer)
+    return _timer->get_wall(flag);
+  else
+    return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,32 +84,29 @@ void ThrData::init_force(int nall, double **f, double **torque,
   eatom_pair=eatom_bond=eatom_angle=eatom_dihed=eatom_imprp=eatom_kspce=NULL;
   vatom_pair=vatom_bond=vatom_angle=vatom_dihed=vatom_imprp=vatom_kspce=NULL;
 
-  _f = f + _tid*nall;
-  if (nall > 0)
+  if (nall >= 0 && f) {
+    _f = f + _tid*nall;
     memset(&(_f[0][0]),0,nall*3*sizeof(double));
+  } else _f = NULL;
 
-  if (torque) {
+  if (nall >= 0 && torque) {
     _torque = torque + _tid*nall;
-    if (nall > 0)
-      memset(&(_torque[0][0]),0,nall*3*sizeof(double));
+    memset(&(_torque[0][0]),0,nall*3*sizeof(double));
   } else _torque = NULL;
 
-  if (erforce) {
+  if (nall >= 0 && erforce) {
     _erforce = erforce + _tid*nall;
-    if (nall > 0)
-      memset(&(_erforce[0]),0,nall*sizeof(double));
+    memset(&(_erforce[0]),0,nall*sizeof(double));
   } else _erforce = NULL;
 
-  if (de) {
+  if (nall >= 0 && de) {
     _de = de + _tid*nall;
-    if (nall > 0)
-      memset(&(_de[0]),0,nall*sizeof(double));
+    memset(&(_de[0]),0,nall*sizeof(double));
   } else _de = NULL;
 
-  if (drho) {
+  if (nall >= 0 && drho) {
     _drho = drho + _tid*nall;
-    if (nall > 0)
-      memset(&(_drho[0]),0,nall*sizeof(double));
+    memset(&(_drho[0]),0,nall*sizeof(double));
   } else _drho = NULL;
 }
 
@@ -94,9 +116,10 @@ void ThrData::init_force(int nall, double **f, double **torque,
 
 void ThrData::init_eam(int nall, double *rho)
 {
-  _rho = rho + _tid*nall;
-  if (nall > 0)
+  if (nall >= 0 && rho) {
+    _rho = rho + _tid*nall;
     memset(_rho, 0, nall*sizeof(double));
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,9 +128,9 @@ void ThrData::init_adp(int nall, double *rho, double **mu, double **lambda)
 {
   init_eam(nall, rho);
 
-  _mu = mu + _tid*nall;
-  _lambda = lambda + _tid*nall;
-  if (nall > 0) {
+  if (nall >= 0 && mu && lambda) {
+    _mu = mu + _tid*nall;
+    _lambda = lambda + _tid*nall;
     memset(&(_mu[0][0]), 0, nall*3*sizeof(double));
     memset(&(_lambda[0][0]), 0, nall*6*sizeof(double));
   }
@@ -119,9 +142,9 @@ void ThrData::init_cdeam(int nall, double *rho, double *rhoB, double *D_values)
 {
   init_eam(nall, rho);
 
-  _rhoB = rhoB + _tid*nall;
-  _D_values = D_values + _tid*nall;
-  if (nall > 0) {
+  if (nall >= 0 && rhoB && D_values) {
+    _rhoB = rhoB + _tid*nall;
+    _D_values = D_values + _tid*nall;
     memset(_rhoB, 0, nall*sizeof(double));
     memset(_D_values, 0, nall*sizeof(double));
   }
@@ -133,9 +156,10 @@ void ThrData::init_eim(int nall, double *rho, double *fp)
 {
   init_eam(nall, rho);
 
-  _fp = fp + _tid*nall;
-  if (nall > 0)
+  if (nall >= 0 && fp) {
+    _fp = fp + _tid*nall;
     memset(_fp,0,nall*sizeof(double));
+  }
 }
 
 /* ----------------------------------------------------------------------

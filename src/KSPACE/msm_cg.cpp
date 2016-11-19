@@ -15,11 +15,11 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "atom.h"
 #include "gridcomm.h"
 #include "domain.h"
@@ -42,7 +42,8 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg)
+MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg),
+  is_charged(NULL)
 {
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style msm/cg command");
@@ -53,7 +54,6 @@ MSMCG::MSMCG(LAMMPS *lmp, int narg, char **arg) : MSM(lmp, narg, arg)
   else smallq = SMALLQ;
 
   num_charged = -1;
-  is_charged = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -101,7 +101,7 @@ void MSMCG::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     memory->destroy(is_charged);
     nmax = atom->nmax;
@@ -314,7 +314,7 @@ void MSMCG::particle_map()
   int flag = 0;
   int i;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   for (int j = 0; j < num_charged; j++) {

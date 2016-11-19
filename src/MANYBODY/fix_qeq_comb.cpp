@@ -15,10 +15,10 @@
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_comb.h"
 #include "pair_comb3.h"
 #include "fix_qeq_comb.h"
@@ -33,19 +33,21 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
-#include "iostream"
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
+  fp(NULL), comb(NULL), comb3(NULL), qf(NULL), q1(NULL), q2(NULL)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
   peratom_freq = 1;
+  respa_level_support = 1;
+  ilevel_respa = 0;
 
   nevery = force->inumeric(FLERR,arg[3]);
   precision = force->numeric(FLERR,arg[4]);
@@ -56,8 +58,6 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   MPI_Comm_rank(world,&me);
 
   // optional args
-
-  fp = NULL;
 
   int iarg = 5;
   while (iarg < narg) {
@@ -126,8 +126,10 @@ void FixQEQComb::init()
   if (comb == NULL && comb3 == NULL)
     error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
@@ -141,9 +143,9 @@ void FixQEQComb::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
   firstflag = 0;
 }
@@ -276,7 +278,7 @@ void FixQEQComb::post_force(int vflag)
 
 void FixQEQComb::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -290,7 +292,7 @@ double FixQEQComb::memory_usage()
 }
 /* ---------------------------------------------------------------------- */
 
-int FixQEQComb::pack_forward_comm(int n, int *list, double *buf, 
+int FixQEQComb::pack_forward_comm(int n, int *list, double *buf,
                                   int pbc_flag, int *pbc)
 {
   int i,j,m;

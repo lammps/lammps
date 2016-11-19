@@ -14,12 +14,13 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
 class Variable : protected Pointers {
+ friend class Info;
  public:
   Variable(class LAMMPS *);
   ~Variable();
@@ -34,21 +35,19 @@ class Variable : protected Pointers {
 
   int equalstyle(int);
   int atomstyle(int);
+  int vectorstyle(int);
   char *pythonstyle(char *, char *);
+  int internalstyle(int);
 
   char *retrieve(char *);
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
+  int compute_vector(int, double **);
+  void internal_set(int, double);
+
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
-
-  void equal_save(int, char *&);
-  void equal_restore(int, char *);
-  void equal_override(int, double);
-
-  unsigned int data_mask(int ivar);
-  unsigned int data_mask(char *str);
 
  private:
   int me;
@@ -61,23 +60,33 @@ class Variable : protected Pointers {
   int *pad;                // 1 = pad loop/uloop variables with 0s, 0 = no pad
   class VarReader **reader;   // variable that reads from file
   char ***data;            // str value of each variable's values
+  double *dvalue;          // single numeric value for internal variables
 
-  int *eval_in_progress;   // flag if evaluation of variable is in progress
+  struct VecVar {
+    int n,nmax;
+    bigint currentstep;
+    double *values;
+  };
+  VecVar *vecs;
+
+  int *eval_in_progress;       // flag if evaluation of variable is in progress
+  int treetype;                // ATOM or VECTOR flag for formula evaluation
 
   class RanMars *randomequal;   // random number generator for equal-style vars
   class RanMars *randomatom;    // random number generator for atom-style vars
 
-  int precedence[17];      // precedence level of math operators
-                           // set length to include up to OR in enum
+  int precedence[18];      // precedence level of math operators
+                           // set length to include up to XOR in enum
 
   class Python *python;    // ptr to embedded Python interpreter
 
-  struct Tree {            // parse tree for atom-style variables
-    double value;          // single scalar  
+  struct Tree {            // parse tree for atom-style or vector-style variables
+    double value;          // single scalar
     double *array;         // per-atom or per-type list of doubles
     int *iarray;           // per-atom list of ints
     bigint *barray;        // per-atom list of bigints
     int type;              // operation, see enum{} in variable.cpp
+    int nvector;           // length of array for vector-style variable
     int nstride;           // stride between atoms if array is a 2d array
     int selfalloc;         // 1 if array is allocated here, else 0
     int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
@@ -93,6 +102,8 @@ class Variable : protected Pointers {
   double evaluate(char *, Tree **);
   double collapse_tree(Tree *);
   double eval_tree(Tree *, int);
+  int size_tree_vector(Tree *);
+  int compare_tree_vector(int, int);
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&);
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &);
@@ -148,6 +159,10 @@ E: Universe/uloop variable count < # of partitions
 
 A universe or uloop style variable must specify a number of values >= to the
 number of processor partitions.
+
+E: Cannot open temporary file for world counter.
+
+Self-explanatory.
 
 E: All universe/uloop variables must have same # of values
 
@@ -410,6 +425,18 @@ Self-explanatory.
 E: Invalid variable style in special function next
 
 Only file-style or atomfile-style variables can be used with next().
+
+E: Invalid is_active() function in variable formula
+
+Self-explanatory.
+
+E: Invalid is_available() function in variable formula
+
+Self-explanatory.
+
+E: Invalid is_defined() function in variable formula
+
+Self-explanatory.
 
 E: Indexed per-atom vector in variable formula without atom map
 

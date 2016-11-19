@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -44,6 +44,7 @@
 #ifndef KOKKOS_VIEWSUPPORT_HPP
 #define KOKKOS_VIEWSUPPORT_HPP
 
+#include <algorithm>
 #include <Kokkos_ExecPolicy.hpp>
 #include <impl/Kokkos_Shape.hpp>
 
@@ -113,156 +114,6 @@ namespace Impl {
 template< class ExecSpace , class Type , bool Initialize >
 struct ViewDefaultConstruct
 { ViewDefaultConstruct( Type * , size_t ) {} };
-
-
-/** \brief  ViewDataHandle provides the type of the 'data handle' which the view
- *          uses to access data with the [] operator. It also provides
- *          an allocate function and a function to extract a raw ptr from the
- *          data handle. ViewDataHandle also defines an enum ReferenceAble which
- *          specifies whether references/pointers to elements can be taken and a
- *          'return_type' which is what the view operators will give back.
- *          Specialisation of this object allows three things depending
- *          on ViewTraits and compiler options:
- *          (i)   Use special allocator (e.g. huge pages/small pages and pinned memory)
- *          (ii)  Use special data handle type (e.g. add Cuda Texture Object)
- *          (iii) Use special access intrinsics (e.g. texture fetch and non-caching loads)
- */
-template< class StaticViewTraits , class Enable = void >
-struct ViewDataHandle {
-
-  enum { ReturnTypeIsReference = true };
-
-  typedef typename StaticViewTraits::value_type * handle_type;
-  typedef typename StaticViewTraits::value_type & return_type;
-};
-
-template< class StaticViewTraits , class Enable = void >
-class ViewDataManagement : public ViewDataHandle< StaticViewTraits > {
-private:
-
-  template< class , class > friend class ViewDataManagement ;
-
-  struct PotentiallyManaged  {};
-  struct StaticallyUnmanaged {};
-
-  /* Statically unmanaged if traits or not executing in host-accessible memory space */
-  typedef typename
-    Impl::if_c< StaticViewTraits::is_managed &&
-                Impl::is_same< Kokkos::HostSpace
-                             , Kokkos::Impl::ActiveExecutionMemorySpace >::value
-              , PotentiallyManaged
-              , StaticallyUnmanaged
-              >::type StaticManagementTag ;
-
-  enum { Unmanaged     = 0x01
-       , Noncontiguous = 0x02
-       };
-
-  enum { DefaultTraits = Impl::is_same< StaticManagementTag , StaticallyUnmanaged >::value ? Unmanaged : 0 };
-
-  unsigned m_traits ; ///< Runtime traits
-
-
-  template< class T >
-  inline static
-  unsigned assign( const ViewDataManagement<T> & rhs , const PotentiallyManaged & )
-    { return rhs.m_traits | ( rhs.is_managed() && Kokkos::HostSpace::in_parallel() ? unsigned(Unmanaged) : 0u ); }
-
-  template< class T >
-  KOKKOS_INLINE_FUNCTION static
-  unsigned assign( const ViewDataManagement<T> & rhs , const StaticallyUnmanaged & )
-    { return rhs.m_traits | Unmanaged ; }
-
-  inline
-  void increment( const void * ptr , const PotentiallyManaged & ) const
-    { if ( is_managed() ) StaticViewTraits::memory_space::increment( ptr ); }
-  
-  inline
-  void decrement( const void * ptr , const PotentiallyManaged & ) const
-    { if ( is_managed() ) StaticViewTraits::memory_space::decrement( ptr ); }
-  
-  KOKKOS_INLINE_FUNCTION
-  void increment( const void * , const StaticallyUnmanaged & ) const {}
-  
-  KOKKOS_INLINE_FUNCTION
-  void decrement( const void * , const StaticallyUnmanaged & ) const {}
-
-public:
-
-  typedef typename ViewDataHandle< StaticViewTraits >::handle_type handle_type;
-
-  KOKKOS_INLINE_FUNCTION
-  ViewDataManagement() : m_traits( DefaultTraits ) {}
-
-  KOKKOS_INLINE_FUNCTION
-  ViewDataManagement( const ViewDataManagement & rhs )
-    : m_traits( assign( rhs , StaticManagementTag() ) ) {}
-
-  KOKKOS_INLINE_FUNCTION
-  ViewDataManagement & operator = ( const ViewDataManagement & rhs )
-    { m_traits = assign( rhs , StaticManagementTag() ); return *this ; }
-
-  template< class SVT >
-  KOKKOS_INLINE_FUNCTION
-  ViewDataManagement( const ViewDataManagement<SVT> & rhs )
-    : m_traits( assign( rhs , StaticManagementTag() ) ) {}
-
-  template< class SVT >
-  KOKKOS_INLINE_FUNCTION
-  ViewDataManagement & operator = ( const ViewDataManagement<SVT> & rhs )
-    { m_traits = assign( rhs , StaticManagementTag() ); return *this ; }
-
-  KOKKOS_INLINE_FUNCTION
-  bool is_managed() const { return ! ( m_traits & Unmanaged ); }
-
-  KOKKOS_INLINE_FUNCTION
-  bool is_contiguous() const { return ! ( m_traits & Noncontiguous ); }
-
-  KOKKOS_INLINE_FUNCTION
-  void set_unmanaged() { m_traits |= Unmanaged ; }
-
-  KOKKOS_INLINE_FUNCTION
-  void set_noncontiguous() { m_traits |= Noncontiguous ; }
-
-
-  KOKKOS_INLINE_FUNCTION
-  void increment( handle_type handle ) const
-    { increment( ( typename StaticViewTraits::value_type *) handle , StaticManagementTag() ); }
-
-  KOKKOS_INLINE_FUNCTION
-  void decrement( handle_type handle ) const
-    { decrement( ( typename StaticViewTraits::value_type *) handle , StaticManagementTag() ); }
-
-
-  KOKKOS_INLINE_FUNCTION
-  void increment( const void * ptr ) const
-    { increment( ptr , StaticManagementTag() ); }
-
-  KOKKOS_INLINE_FUNCTION
-  void decrement( const void * ptr ) const
-    { decrement( ptr , StaticManagementTag() ); }
-
-
-  template< bool Initialize >
-  static
-  handle_type allocate( const std::string & label
-                      , const Impl::ViewOffset< typename StaticViewTraits::shape_type
-                                              , typename StaticViewTraits::array_layout > & offset_map )
-    {
-      typedef typename StaticViewTraits::execution_space  execution_space ;
-      typedef typename StaticViewTraits::memory_space     memory_space ;
-      typedef typename StaticViewTraits::value_type       value_type ;
-
-      const size_t count = offset_map.capacity();
-
-      value_type * ptr = (value_type*) memory_space::allocate( label , sizeof(value_type) * count );
-
-        // Default construct within the view's execution space.
-      (void) ViewDefaultConstruct< execution_space , value_type , Initialize >( ptr , count );
-
-      return typename ViewDataHandle< StaticViewTraits >::handle_type(ptr);
-    }
-};
 
 } // namespace Impl
 } // namespace Kokkos
@@ -342,9 +193,9 @@ struct ViewDefaultConstruct< ExecSpace , Type , true >
 {
   Type * const m_ptr ;
 
-  KOKKOS_INLINE_FUNCTION
-  void operator()( const typename ExecSpace::size_type i ) const
-    { new( m_ptr + i ) Type(); }
+  KOKKOS_FORCEINLINE_FUNCTION
+  void operator()( const typename ExecSpace::size_type& i ) const
+    { m_ptr[i] = Type(); }
 
   ViewDefaultConstruct( Type * pointer , size_t capacity )
     : m_ptr( pointer )
@@ -355,7 +206,8 @@ struct ViewDefaultConstruct< ExecSpace , Type , true >
     }
 };
 
-template< class OutputView , unsigned Rank = OutputView::Rank >
+template< class OutputView , unsigned Rank = OutputView::Rank ,
+          class Enabled = void >
 struct ViewFill
 {
   typedef typename OutputView::const_value_type  const_value_type ;
@@ -414,8 +266,8 @@ struct ViewAllocateWithoutInitializing {
   const std::string label ;
 
   ViewAllocateWithoutInitializing() : label() {}
-  ViewAllocateWithoutInitializing( const std::string & arg_label ) : label( arg_label ) {}
-  ViewAllocateWithoutInitializing( const char * const  arg_label ) : label( arg_label ) {}
+  explicit ViewAllocateWithoutInitializing( const std::string & arg_label ) : label( arg_label ) {}
+  explicit ViewAllocateWithoutInitializing( const char * const  arg_label ) : label( arg_label ) {}
 };
 
 struct ViewAllocate {
@@ -527,7 +379,7 @@ struct ViewRawPointerProp< Traits , T ,
   )>::type >
   : public Kokkos::Impl::true_type
 {
-  typedef size_t size_type ; 
+  typedef size_t size_type ;
 };
 
 } // namespace Impl

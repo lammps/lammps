@@ -20,7 +20,7 @@ FixStyle(ave/correlate,FixAveCorrelate)
 #ifndef LMP_FIX_AVE_CORRELATE_H
 #define LMP_FIX_AVE_CORRELATE_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -125,9 +125,17 @@ E: Fix ave/correlate variable is not equal-style variable
 
 Self-explanatory.
 
+E: Error writing file header
+
+Something in the output to the file triggered an error.
+
 E: Invalid timestep reset for fix ave/correlate
 
 Resetting the timestep has invalidated the sequence of timesteps this
 fix needs to process.
+
+E: Error writing out correlation data
+
+Something in the output to the file triggered an error.
 
 */

@@ -195,7 +195,7 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   inet   = ((narg > 5) && (strcmp(arg[5],"unix") == 0) ) ? 0 : 1;
   master = (comm->me==0) ? 1 : 0;
   // check if forces should be reinitialized and set flag
-  reset_flag = ((narg > 6) || (strcmp(arg[5],"reset") == 0) ) ? 1 : 0;
+  reset_flag = ((narg > 6 && (strcmp(arg[5],"reset") == 0 )) || ((narg > 5) && (strcmp(arg[5],"reset") == 0)) ) ? 1 : 0;
 
   hasdata = bsize = 0;
 

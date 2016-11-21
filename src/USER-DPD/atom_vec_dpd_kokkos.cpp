@@ -1205,6 +1205,8 @@ int AtomVecDPDKokkos::unpack_comm_hybrid(int n, int first, double *buf)
     h_uCond(i) = buf[m++];
     h_uMech(i) = buf[m++];
     h_uChem(i) = buf[m++];
+    h_uCG(i) = buf[m++];
+    h_uCGnew(i) = buf[m++];
   }
   return m;
 }

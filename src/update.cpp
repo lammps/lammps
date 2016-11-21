@@ -166,8 +166,8 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0;
     force->femtosecond = 1.0;
     force->qelectron = 1.0;
-    force->qBm2f = 1.60217646e-19 / 1.66054e-27 / 1e15; // coulomb per electron charge / kg per amu / fs per s
-    force->ddr2e = 0.0; // not yet
+    force->qBm2f = 9.648526744e-8; //1.60217646e-19 / 1.66054e-27 / 1e15; // coulomb per electron charge / kg per amu / fs per s
+    force->ddr2e = 3.6947076e-5; // 
 
     dt = 1.0;
     neighbor->skin = 2.0;
@@ -189,8 +189,8 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0;
     force->femtosecond = 1.0e-3;
     force->qelectron = 1.0;
-    force->qBm2f = 1.60217646e-19 / 1.66054e-27 / 1e12; // coulomb per electron charge / kg per amu / ps per s
-    force->ddr2e = 0.0; // not yet
+    force->qBm2f = 9.648526744e-5; //1.60217646e-19 / 1.66054e-27 / 1e12; // coulomb per electron charge / kg per amu / ps per s
+    force->ddr2e = 1.6021765e-12;  
 
     dt = 0.001;
     neighbor->skin = 2.0;
@@ -212,8 +212,8 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0e-10;
     force->femtosecond = 1.0e-15;
     force->qelectron = 1.6021765e-19;
-    force->qBm2f = 1 / 1 / 1; // coulomb per coulomb / kg per kg / s per s
-    force->ddr2e = 0.0; // not yet
+    force->qBm2f = 1; // 1 / 1 / 1; // coulomb per coulomb / kg per kg / s per s
+    force->ddr2e = 1e-7; // vac permeability constant / 4pi
 
     dt = 1.0e-8;
     neighbor->skin = 0.001;
@@ -235,8 +235,8 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0e-8;
     force->femtosecond = 1.0e-15;
     force->qelectron = 4.8032044e-10;
-    force->qBm2f = 3.356e-10 / 1.66054e-24 / 1; // coulomb per statcoulomb / g per amu / s per s
-    force->ddr2e = 0.0; // not yet
+    force->qBm2f = 2.021029304e14; // 3.356e-10 / 1.66054e-24 / 1; // coulomb per statcoulomb / g per amu / s per s
+    force->ddr2e = 1.112650e-21; 
 
     dt = 1.0e-8;
     neighbor->skin = 0.1;
@@ -258,8 +258,8 @@ void Update::set_units(const char *style)
     force->angstrom = 1.88972612;
     force->femtosecond = 41.34137413;
     force->qelectron = 1.0;
-    force->qBm2f = 1.60217646e-19 / 1.66054e-27 / 1e15; // coulomb per electron charge / kg per amu / fs per s
-    force->ddr2e = 0.0; // not yet
+    force->qBm2f = 9.648526744e-8; // coulomb per electron charge / kg per amu / fs per s
+    force->ddr2e = 3.115737e-8; 
 
     dt = 0.001;
     neighbor->skin = 2.0;
@@ -281,8 +281,8 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0e-4;
     force->femtosecond = 1.0e-9;
     force->qelectron = 1.6021765e-7;
-    force->qBm2f = 1e-12 / 1.66054e-12 / 1e6; // coulomb per picocoulomb / kg per picogram / ms per s
-    force->ddr2e = 0.0; // not yet
+    force->qBm2f = 6.022137377e-7; // coulomb per picocoulomb / kg per picogram / ms per s
+    force->ddr2e = 1e-10; 
 
     dt = 2.0;
     neighbor->skin = 0.1;
@@ -304,8 +304,8 @@ void Update::set_units(const char *style)
     force->angstrom = 1.0e-1;
     force->femtosecond = 1.0e-6;
     force->qelectron = 1.0;
-    force->qBm2f = 1.60217646e-19 / 1.66054e-6 / 1e9; // coulomb per electron charge / kg per attogram / ns per s
-    force->ddr2e = 0.0; // not yet
+    force->qBm2f = 9.648526744e-23; // 1.60217646e-19 / 1.66054e-6 / 1e9; // coulomb per electron charge / kg per attogram / ns per s
+    force->ddr2e = 2.566971e-15; 
 
     dt = 0.00045;
     neighbor->skin = 0.1;

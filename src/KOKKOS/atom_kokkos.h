@@ -51,6 +51,12 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_2d k_improper_type;
   DAT::tdual_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
+
+// USER-DPD package
+  DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
+                       k_rho,k_dpdTheta,k_duChem;
+
+
   AtomKokkos(class LAMMPS *);
   ~AtomKokkos();
 

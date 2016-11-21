@@ -11,8 +11,8 @@ atom_style      full
 pair_style      lj/cut 5.0
 
 # LJ particles
-print           "This is replica: ${rep}"
 log             ${rep}/log.lammps.${rep}
+print           "This is replica: ${rep}"
 
 read_data       ${rep}/lj.data
 
@@ -26,6 +26,6 @@ fix             fxnpt all npt temp ${T0} ${T0} 1000.0 iso ${press} ${press} 1000
 fix             fxgREM all grem ${lambda} -.03 -30000 fxnpt
 thermo_modify   press fxgREM_press
 
-grem            10000 100 ${lambda} fxgREM fxnpt 10294 98392 #${walker}
+temper/grem            10000 100 ${lambda} fxgREM fxnpt 10294 98392 #${walker}
 
 #write_data      ${rep}/lj-out.data

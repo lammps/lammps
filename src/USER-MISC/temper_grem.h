@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(grem,TemperGrem)
+CommandStyle(temper/grem,TemperGrem)
 
 #else
 

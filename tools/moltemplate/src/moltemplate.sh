@@ -3,14 +3,14 @@
 
 
 # Author: Andrew Jewett (jewett.aij at g mail)
-#         http://www.chem.ucsb.edu/~sheagroup
+#         http://www.moltemplate.org
 # License: 3-clause BSD License  (See LICENSE.TXT)
 # Copyright (c) 2012, Regents of the University of California
 # All rights reserved.
 
 G_PROGRAM_NAME="moltemplate.sh"
-G_VERSION="1.34"
-G_DATE="2015-11-18"
+G_VERSION="1.40"
+G_DATE="2016-10-19"
 
 echo "${G_PROGRAM_NAME} v${G_VERSION} ${G_DATE}" >&2
 echo "" >&2
@@ -99,9 +99,15 @@ IFS=$OIFS
 
 
 
-IMOLPATH=""
-if [ -n "${MOLTEMPLATE_PATH}" ]; then
-  IMOLPATH="-importpath \"${MOLTEMPLATE_PATH}\""
+# Directory moltemplate looks for popular force-fields files:
+#IMOLPATH=""
+#if [ -n "${MOLTEMPLATE_PATH}" ]; then
+#  IMOLPATH="-importpath \"${MOLTEMPLATE_PATH}\""
+#fi
+if [ -d "${SCRIPT_DIR}/moltemplate_force_fields" ]; then
+    IMOLPATH="-importpath \"${SCRIPT_DIR}/moltemplate_force_fields\""
+else
+    IMOLPATH=""
 fi
 
 # command that invokes lttree.py
@@ -130,6 +136,7 @@ data_masses="Data Masses"
 data_velocities="Data Velocities"
 data_bonds="Data Bonds"
 data_bond_list="Data Bond List"
+data_bonds_atomid_atomid="Data Bonds AtomId AtomId"
 data_angles="Data Angles"
 data_dihedrals="Data Dihedrals"
 data_impropers="Data Impropers"
@@ -141,6 +148,7 @@ data_pair_coeffs="Data Pair Coeffs"
 data_pairij_coeffs="Data PairIJ Coeffs"
 
 # interactions-by-type (not id. This is not part of the LAMMPS standard.)
+data_chargepairs_by_type="Data Charge Pairs By Type"
 data_bonds_by_type="Data Bonds By Type"
 data_angles_by_type="Data Angles By Type"
 data_dihedrals_by_type="Data Dihedrals By Type"
@@ -177,6 +185,7 @@ in_prefix_no_space="In"
 in_init="In Init"
 in_settings="In Settings"
 in_coords="In Coords"
+in_charges="In Charges"
 
 #     If present, the various "In " files contain commands which should be 
 #     included by the user in their LAMMPS input script. (This task is left
@@ -528,8 +537,8 @@ while [ "$i" -lt "$ARGC" ]; do
             echo "-----------------------" >&2
             echo "" >&2
             echo "Error: The \"-atomstyle\" argument should be followed by an atom style." >&2
-            echo "       (See the \"atom_style\" command in the LAMMPS documentation.\n" >&2
-            echo "        Note: hybrid atom styles are allowed but should be enclosed in quotes.)\n" >&2
+            echo "       (See the \"atom_style\" command in the LAMMPS documentation." >&2
+            echo "        Note: hybrid atom styles are allowed but should be enclosed in quotes.)" >&2
             exit 8
         fi
 
@@ -600,10 +609,10 @@ done
 
 
 if [ -z "$ATOM_STYLE" ]; then
-  #echo '########################################################\n' >&2
-  #echo '##            WARNING: atom_style unspecified         ##\n' >&2
-  #echo '##              Assuming atom_style = \"full\"          ##\n' >&2
-  #echo '########################################################\n' >&2
+  #echo '########################################################' >&2
+  #echo '##            WARNING: atom_style unspecified         ##' >&2
+  #echo '##              Assuming atom_style = \"full\"          ##' >&2
+  #echo '########################################################' >&2
   ATOM_STYLE="full"
 fi
 
@@ -703,20 +712,77 @@ if [ -s "${data_atoms}" ]; then
     fi
     mv -f "${data_atoms}.tmp" "${data_atoms}"
 else
-    echo "Error: There are no atoms in your system." >&2
+    echo "Error: There are no atoms in your system. Suggestions:" >&2
     echo "" >&2
-    echo "        Make sure that the object(s) you created are indeed molecules." >&2
-    echo "        (Molecule objects must contain at least one" >&2
-    echo "         write(\"${data_atoms}\") command.)" >&2
+    echo "       Make sure that you have the correct number of curly parenthesis {}." >&2
+    echo "       (Extra \"}\" parenthesis can cause this error.)" >&2
     echo "" >&2
-    echo "       (This error often occurs if you instantiated an object" >&2
-    echo "        which you thought was a molecule, but it is actually" >&2
-    echo "        only a namespace, a force-field name or category" >&2
-    echo "        containing the definitions of other molecules.)" >&2
+    echo "       Your files must contain at least one" >&2
+    echo "           write(\"${data_atoms}\")" >&2
+    echo "       command.  These commands are typically located somewhere in" >&2
+    echo "       one of the molecule object(s) you have defined." >&2
+    echo "" >&2
+    echo "       This error often occurs if your input files lack \"new\" commands." >&2
+    echo "       Once you have defined a type of molecule, you must create a copy" >&2
+    echo "       of it using \"new\", if you want it to appear in your simulation." >&2
+    echo "       See the moltemplate manual or online tutorials for examples." >&2
+    echo "" >&2
+    echo "       (This error also occurs if you instantiated an object using \"new\"" >&2
+    echo "       which you thought was a molecule, but it is actually only a" >&2
+    echo "       namespace, a force-field name or category containing only the" >&2
+    echo "       definitions of other molecules, lacking any atoms of its own.)" >&2
     echo "" >&2
     exit 200
 fi
 
+
+
+
+# ---------------- ChargePairs By Type ------------------
+# Assign atom charge according to who they are bonded to
+    
+if [ -s "$data_chargepairs_by_type" ]; then
+    echo "Looking up partial charge contributions from bonds" >&2
+    #-- Generate a file containing bondid bondtype atomid1 atomid2 --
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/chargepairs_by_type.py" \
+         -atom-style "$ATOM_STYLE" \
+         -atoms "${data_atoms}.template" \
+         -bonds "${data_bonds}.template" \
+         -bond-list "${data_bond_list}.template" \
+         -chargepairsbytype "${data_chargepairs_by_type}.template" \
+         > gen_charges.template.tmp; then
+        exit 4
+    fi
+
+    # ---- cleanup: ----
+    # ---- Create or re-build the "${in_charges}.template" file ----
+    # Instert these lines into the "${in_charges}.template" file which includes
+    # the newly generated interactions. (Note: these are in .template format)
+
+    cp gen_charges.template.tmp new_charges.template.tmp
+    if [ -s "${in_charges}.template" ]; then
+        # Then append existing "Bonds" to the end of the generated interactions
+        # (Hopefully this way they will override those interactions.)
+        cat "${in_charges}.template" >> new_charges.template.tmp 
+    fi
+    mv -f new_charges.template.tmp "${in_charges}.template"
+
+    # ---- Re-build (render) the "$in_charges" file ----
+    # Now substitute these variable values (assignments) into the variable 
+    # names present in the .template file.  (We want to convert the file from 
+    # a .template format into an ordinary (numeric) LAMMPS data-section format.)
+    if ! $PYTHON_COMMAND "${SCRIPT_DIR}/ttree_render.py" \
+         ttree_assignments.txt \
+         < "${in_charges}.template" \
+         >> "${in_charges}"; then
+        exit 6
+    fi
+    echo "" >&2
+
+    rm -f gen_charges.template.tmp new_charges.template.tmp 
+
+    echo "" >&2
+fi
 
 
 
@@ -731,15 +797,15 @@ fi
 if [ -s "${data_bond_list}.template" ]; then
 
     if [ ! -s "$data_bonds_by_type" ]; then
-        echo "Error: You have a \"Data Bond List\", section somewhere\n"
-        echo "       without a \"Data Bonds By Type\" section to support it.\n"
-        echo "       (Did you mean to use \"Data Bonds\" instead?)\n"
+        echo "Error: You have a \"Data Bond List\", section somewhere"
+        echo "       without a \"Data Bonds By Type\" section to support it."
+        echo "       (Did you mean to use \"Data Bonds\" instead?)"
         echo "Details:"
-        echo "       Unlike the \"Data Bonds\" section, the \"Data Bond List\" section\n"
-        echo "       allows the user to omit the bond types.  Instead moltemplate attempts\n"
-        echo "       to infer the type of bond by considering the pair of atom types.\n"
-        echo "       However you must define a \"Data Bonds By Type\" section\n"
-        echo "       to make this feature work (or use \"Data Bonds\" instead).\n"
+        echo "       Unlike the \"Data Bonds\" section, the \"Data Bond List\" section"
+        echo "       allows the user to omit the bond types.  Instead moltemplate attempts"
+        echo "       to infer the type of bond by considering the pair of atom types."
+        echo "       However you must define a \"Data Bonds By Type\" section"
+        echo "       to make this feature work (or use \"Data Bonds\" instead)."
 
         exit 15
     fi
@@ -808,7 +874,17 @@ if [ -s "${data_bond_list}.template" ]; then
     echo "" >&2
 
     rm -f gen_bonds.template.tmp new_bonds.template.tmp 
+
+    echo "" >&2
+
 fi
+
+
+
+
+
+
+
 
 
 
@@ -833,9 +909,9 @@ for FILE in "$data_angles_by_type"*.template; do
     else
         echo "(using the rules in \"$SUBGRAPH_SCRIPT\")" >&2
         if [ ! -s "${SCRIPT_DIR}/nbody_alternate_symmetry/$SUBGRAPH_SCRIPT" ]; then
-            echo "Error: File \"$SUBGRAPH_SCRIPT\" not found.\n" >&2
-	    echo "       It should be located in this directory:\n" >&2
-            echo "       ${SCRIPT_DIR}/nbody_alternate_symmetry/\n" >&2
+            echo "Error: File \"$SUBGRAPH_SCRIPT\" not found." >&2
+	    echo "       It should be located in this directory:" >&2
+            echo "       ${SCRIPT_DIR}/nbody_alternate_symmetry/" >&2
             exit 4
         fi
     fi
@@ -926,9 +1002,9 @@ for FILE in "$data_dihedrals_by_type"*.template; do
     else
         echo "(using the rules in \"$SUBGRAPH_SCRIPT\")" >&2
         if [ ! -s "${SCRIPT_DIR}/nbody_alternate_symmetry/$SUBGRAPH_SCRIPT" ]; then
-            echo "Error: File \"$SUBGRAPH_SCRIPT\" not found.\n" >&2
-	    echo "       It should be located in this directory:\n" >&2
-            echo "       ${SCRIPT_DIR}/nbody_alternate_symmetry/\n" >&2
+            echo "Error: File \"$SUBGRAPH_SCRIPT\" not found." >&2
+	    echo "       It should be located in this directory:" >&2
+            echo "       ${SCRIPT_DIR}/nbody_alternate_symmetry/" >&2
             exit 4
         fi
     fi
@@ -1021,9 +1097,9 @@ for FILE in "$data_impropers_by_type"*.template; do
     else
         echo "(using the rules in \"$SUBGRAPH_SCRIPT\")" >&2
         if [ ! -s "${SCRIPT_DIR}/nbody_alternate_symmetry/$SUBGRAPH_SCRIPT" ]; then
-            echo "Error: File \"$SUBGRAPH_SCRIPT\" not found.\n" >&2
-	    echo "       It should be located in this directory:\n" >&2
-            echo "       ${SCRIPT_DIR}/nbody_alternate_symmetry/\n" >&2
+            echo "Error: File \"$SUBGRAPH_SCRIPT\" not found." >&2
+	    echo "       It should be located in this directory:" >&2
+            echo "       ${SCRIPT_DIR}/nbody_alternate_symmetry/" >&2
             exit 4
         fi
     fi
@@ -1837,6 +1913,7 @@ OIFS=$IFS
 #IFS=$'\n'
 IFS="
 "
+rm -f ttree_replacements.txt >/dev/null 2>&1 || true
 for file in $MOLTEMPLATE_TEMP_FILES; do
     if [ -e "$file" ]; then
         rm -f "output_ttree/$file" >/dev/null 2>&1 || true

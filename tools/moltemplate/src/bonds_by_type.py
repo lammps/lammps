@@ -118,7 +118,7 @@ def LookupBondTypes(bond_types,
                 bondid_n = bond_ids_offset + len(bond_ids) + 1
                 bond_ids.append(prefix+str(bondid_n)+suffix)
                 bond_pairs.append( (ttree_lex.EscCharStrToChar(tokens[0]),
-                                        ttree_lex.EscCharStrToChar(tokens[1])) )
+                                    ttree_lex.EscCharStrToChar(tokens[1])) )
             else:
                 raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
 
@@ -129,16 +129,6 @@ def LookupBondTypes(bond_types,
                                     ttree_lex.EscCharStrToChar(tokens[2])) )
             else:
                 raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
-
-        #elif section_name == "Data Bonds BondType AtomId AtomId":
-        #    if len(tokens) == 3:
-        #        bondid_n = bond_ids_offset + len(bond_ids) + 1
-        #        bond_ids.append(prefix+str(bondid_n)+suffix)
-        #        bond_types.append(ttree_lex.EscCharStrToChar(tokens[0]))
-        #        bond_pairs.append( (ttree_lex.EscCharStrToChar(tokens[1]),
-        #                            ttree_lex.EscCharStrToChar(tokens[2])) )
-        #    else:
-        #        raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
 
         else:
             raise(ttree_lex.InputError('Internal Error ('+g_program_name+'): Unknown section name: \"'+section_name+'\"'))
@@ -204,7 +194,6 @@ def LookupBondTypes(bond_types,
         atomtype1 = atomids2types[atomid1]
         atomtype2 = atomids2types[atomid2]
 
-        #for n in range(0, len(typepattern_to_coefftypes)):
         for typepattern, coefftype in typepattern_to_coefftypes:
 
             # use string comparisons to check if atom types match the pattern
@@ -241,7 +230,7 @@ if __name__ == "__main__":
 
     try:
         fname_atoms = None
-        fname_bonds = None
+        fname_bond_list = None
         fname_bondsbytype = None
         section_name = 'Data Bond List'  # (This will be replaced later.)
         atom_style = 'full'
@@ -277,7 +266,7 @@ if __name__ == "__main__":
                 if i+1 >= len(argv):
                     raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a file name containing lines of\n'
                                      '       text which might appear in the "Bonds" section of a LAMMPS data file.\n')
-                fname_bonds = argv[i+1]
+                fname_bond_list = argv[i+1]
                 del(argv[i:i+2])
 
             elif argv[i].lower() == '-bond-list':
@@ -285,7 +274,7 @@ if __name__ == "__main__":
                     raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a file name\n')
                     #raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a file name containing lines of\n'
                     #                 '       text which might appear in the "Bonds No Types" section of a LAMMPS data file.\n')
-                fname_bonds = argv[i+1]
+                fname_bond_list = argv[i+1]
                 section_name = "Data Bond List"
                 del(argv[i:i+2])
 
@@ -344,7 +333,7 @@ if __name__ == "__main__":
         bond_pairs = []
 
         fatoms = open(fname_atoms, 'r')
-        fbonds = open(fname_bonds, 'r')
+        fbonds = open(fname_bond_list, 'r')
         fbondsbytype = open(fname_bondsbytype, 'r')
         lines_atoms = fatoms.readlines()
         lines_bonds = fbonds.readlines()

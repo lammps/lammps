@@ -926,7 +926,7 @@ class OSrcLoc(object):
         self.infile = infile
         self.lineno = lineno
         OSrcLoc.count += 1
-        self.order = OSrcLoc.count
+        self.order = OSrcLoc.count # keep track of how many times it was called
 
     def __lt__(self, x):
         return self.order < x.order
@@ -996,7 +996,7 @@ class VarRef(object):
 
 class VarNPtr(object):
     """
-    Every time a variable appears in a template, it has has a "descritpor".
+    Every time a variable appears in a template, it has has a "descriptor".
     For example, consider the variable 
        "$atom:CA"
     This is a string which encodes 3 pieces of information.
@@ -1009,7 +1009,6 @@ class VarNPtr(object):
                            is relevant everywhere, and is not molecule or class
                            specific.  All variables have a category node, which
                            is often not explicitly defined to by the user.
-                           It must be inferred/determined.)
                            (Category node = the root "/", in the example above.)
     3) the leaf node:      This is a node whose ".name" member matches the name 
                            of a variable.  This node is created for this purpose
@@ -1554,7 +1553,7 @@ class TemplateLexer(TtreeShlex):
         #sys.stderr.write('-----------------------------------\n')
         #
         # Here is the result:
-        self.wordterminators = '(),={|}' + \
+        self.wordterminators = '(){|}' + \
                                    self.whitespace + \
                                    self.quotes + \
                                    self.escape + \
@@ -1564,6 +1563,11 @@ class TemplateLexer(TtreeShlex):
         # self.quotes     = '\'"'
         # self.escape     = '\\'
         # self.commenters = '#'
+        #  Note: I do not terminate on these characters: +-=*'"`
+        # because they appear in the names of atom types in many force-fields.
+        # Also * characters are needed for variables containing wildcards
+        # in the name (which will be dealt with later).
+
 
         self.source_triggers=set(['include','import'])
         self.source_triggers_x=set(['import']) 
@@ -2022,6 +2026,8 @@ class TemplateLexer(TtreeShlex):
             provided.  By default it is empty.
 
         """
+
+        src_loc_begin = SrcLoc(self.infile, self.lineno)
         orig_wordterm = self.wordterminators
         self.wordterminators = self.wordterminators.replace(left_paren,'').replace(right_paren,'')
 
@@ -2043,13 +2049,19 @@ class TemplateLexer(TtreeShlex):
             token = self.get_token()
             if ((type(token) is not str) or
                 (token == '')):
-                raise InputError('Error near or before '+self.error_leader()+'\n'
-                                 'Invalid expression: \"'+expr_str+'\"')
+                raise InputError('Error somewhere between '+
+                                 self.error_leader(src_loc_begin.infile,
+                                                   src_loc_begin.lineno)
+                                  + 'and ' + self.error_leader()+'\n'
+                                 'Invalid expression: \"'+expr_str[0:760]+'\"')
             expr_str += token
             paren_depth = expr_str.count(left_paren) - expr_str.count(right_paren)
         if (paren_depth != 0):
-            raise InputError('Error near or before '+self.error_leader()+'\n'
-                             'Invalid expression: \"'+expr_str+'\"')
+            raise InputError('Error somewhere between '+
+                                 self.error_leader(src_loc_begin.infile,
+                                                   src_loc_begin.lineno)
+                                  + 'and ' + self.error_leader()+'\n'
+                             'Invalid expression: \"'+expr_str[0:760]+'\"')
         self.wordterminators = orig_wordterm
         return expr_str
 

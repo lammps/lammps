@@ -272,7 +272,7 @@ void TemperGrem::command(int narg, char **arg)
       partner_world = lambda2world[partner_set_lambda];
       partner = world2root[partner_world];
     }
-    
+
     // compute weights
     volume = domain->xprd * domain->yprd * domain->zprd;
     enth = pe + (pressref * volume);

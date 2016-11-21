@@ -144,7 +144,6 @@ void FixNVESphere::initial_integrate(int vflag)
 
     if (dlm == NODLM) {
 
-//      if(atom->mu_flag){
         // d_mu/dt = omega cross mu
         // renormalize mu to dipole length
         for (int i = 0; i < nlocal; i++)
@@ -159,24 +158,6 @@ void FixNVESphere::initial_integrate(int vflag)
               mu[i][1] = g[1]*scale;
               mu[i][2] = g[2]*scale;
             }
-//      }
-/*
-      if(atom->bmu_flag){
-        for (int i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
-            if (bmu[i][3] > 0.0) {
-              g[0] = bmu[i][0] + dtv * (omega[i][1]*bmu[i][2]-omega[i][2]*bmu[i][1]);
-              g[1] = bmu[i][1] + dtv * (omega[i][2]*bmu[i][0]-omega[i][0]*bmu[i][2]);
-              g[2] = bmu[i][2] + dtv * (omega[i][0]*bmu[i][1]-omega[i][1]*bmu[i][0]);
-              msq = g[0]*g[0] + g[1]*g[1] + g[2]*g[2];
-              scale = bmu[i][3]/sqrt(msq);
-              bmu[i][0] = g[0]*scale;
-              bmu[i][1] = g[1]*scale;
-              bmu[i][2] = g[2]*scale;
-            }
-      }
-*/    
- 
     } else {
 
       // integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme

@@ -44,11 +44,8 @@ FixBfield::FixBfield(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix bfield command");
 
   dynamic_group_allow = 0;
-  vector_flag = 1;
   scalar_flag = 1;
-  size_vector = 3;
   global_freq = 1;
-  extvector = 1;
   extscalar = 1;
 
   xstr = ystr = zstr = NULL;
@@ -218,7 +215,6 @@ if(qflag){
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
-        //dtfm = dtf / rmass[i];
         c1 = qBm2f*q[i]/rmass[i];
         omega[0] = c1*B[0];
         omega[1] = c1*B[1];
@@ -231,7 +227,6 @@ if(qflag){
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
 
-        //dtfm = dtf / mass[type[i]];
         c1 = qBm2f*q[i]/mass[type[i]];
         omega[0] = c1*B[0];
         omega[1] = c1*B[1];
@@ -430,6 +425,7 @@ void FixBfield::post_integrate()
 }
 /* ----------------------------------------------------------------------
     no force, torque = bmu cross B
+    delta pe = -(bmu dot B)
 ------------------------------------------------------------------------- */
 
 void FixBfield::post_force(int vflag)
@@ -450,7 +446,7 @@ void FixBfield::post_force(int vflag)
       region->prematch();
   }
 
-  // fsum[0] = "potential energy" for added torque
+  // potential energy for added torque
   fsum[0] = 0.0;
   force_flag = 0;
 
@@ -466,6 +462,10 @@ void FixBfield::post_force(int vflag)
     if (mask[i] & groupbit) {
       if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
 
+      // no units conversion since
+      // B always in units T
+      // bmu in always in energy/T
+      // for all unit styles, torque and defined in the same units
       tx = B[2]*bmu[i][1] - B[1]*bmu[i][2];
       ty = B[0]*bmu[i][2] - B[2]*bmu[i][0];
       tz = B[1]*bmu[i][0] - B[0]*bmu[i][1];

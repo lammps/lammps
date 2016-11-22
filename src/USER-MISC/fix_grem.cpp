@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Edyta Malolepsza (Broad Institute)
-   Contributing author: David Stelter (Boston University)
-   Contributing author: Tom Keyes (Boston University)
+   Contributing authors: Edyta Malolepsza (Broad Institute)
+                         David Stelter (Boston University)
+                         Tom Keyes (Boston University)
 ------------------------------------------------------------------------- */
 
 #include <string.h>

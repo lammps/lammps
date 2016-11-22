@@ -104,8 +104,8 @@ npt"_fix_nh.html, "thermo_modify"_thermo_modify.html
 :line
 
 :link(Kim)
-[(Kim)] Kim, Keyes, Straub, J. Chem. Phys., 132, 224107 (2010).
+[(Kim)] Kim, Keyes, Straub, J Chem. Phys, 132, 224107 (2010).
 
 :link(Malolepsza)
-[(Malolepsza)] Malolepsza, Secor, Keyes, J. Phys. Chem. B. 119 (42), 
+[(Malolepsza)] Malolepsza, Secor, Keyes, J Phys Chem B 119 (42),
 13379-13384 (2015).

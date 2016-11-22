@@ -601,6 +601,7 @@ void Dump::sort()
     }
 
     // proclist[i] = which proc Ith datum will be sent to
+    // proc assignment is inverted if sortorder = DESCEND
 
     if (sortcol == 0) {
       tagint min = MAXTAGINT;
@@ -639,6 +640,7 @@ void Dump::sort()
       for (i = 0; i < nme; i++) {
         value = buf[i*size_one + sortcolm1];
         iproc = static_cast<int> ((value-minall)/range * nprocs);
+        if (sortorder == DESCEND) iproc = nprocs-1 - iproc;
         proclist[i] = iproc;
       }
     }

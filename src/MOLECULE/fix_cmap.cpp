@@ -12,20 +12,20 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Implementation of the CHARMM CMAP; adds an extra energy term for the
-   peptide backbone dihedrals.  The tools/ch2lmp/charmm2lammps.pl
-   conversion script, which generates an extra section in the LAMMPS data
-   file, is needed in order to generate the info used by this fix style.
-
    Contributing authors:
    Xiaohu Hu, CMB/ORNL (hux2@ornl.gov)
    David Hyde-Volpe, Tigran Abramyan, and Robert A. Latour (Clemson University)
    Chris Lorenz (Kings College-London)
 
+   Implementation of the CHARMM CMAP; adds an extra energy term for the
+   peptide backbone dihedrals.  The tools/ch2lmp/charmm2lammps.pl
+   conversion script, which generates an extra section in the LAMMPS data
+   file, is needed in order to generate the info used by this fix style.
+
    References:
    - MacKerell et al., J. Am. Chem. Soc. 126(2004):698-699.
    - MacKerell et al., J. Comput. Chem. 25(2004):1400-1415.
- -------------------------------------------------------------------------*/
+------------------------------------------------------------------------- */
 
 #include <mpi.h>
 #include <math.h>

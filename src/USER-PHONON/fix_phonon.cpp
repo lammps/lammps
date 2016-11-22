@@ -10,9 +10,9 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
-   Contributing authors:
-     Ling-Ti Kong
+   Contributing author: Ling-Ti Kong
 
    Contact:
      School of Materials Science and Engineering,

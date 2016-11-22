@@ -5,8 +5,8 @@ Examples:
 ---------------------------------------------------
 
   lj-single:
-    This example is the simplest case scenerio utilizing the generalized 
-    ensembled defined by fix_grem. It utilizes only 1 replica and requires 
+    This example is the simplest case scenario utilizing the generalized 
+    ensemble defined by fix_grem. It utilizes only 1 replica and requires 
     the LAMMPS executable to be run as usual:
 
     mpirun -np 4 lmp_mpi -in in.gREM-npt
@@ -18,8 +18,11 @@ Examples:
 
   lj-6rep:
     This example utilizes an external python script to handle swaps between
-    replicas. Included is run.sh, which requires the path to the LAMMPS 
-    executable. If complied with mpi, multiple processors can be used as:
+    replicas. Included is run.sh, which requires the path to your LAMMPS 
+    executable. The python script is fragile as it relies on parsing output files 
+    from the LAMMPS run and moving LAMMPS data files between directories. Use 
+    caution if modifying this example further. If complied with mpi, multiple 
+    processors can be used as:
 
     ./run.sh $NUM_PROCS
 
@@ -43,7 +46,7 @@ Examples:
     This is an example using the internal replica exchange module. While fast 
     in comparison to the python version, it requires substantial resources 
     (at least 1 proc per replica). Instead of stopping LAMMPS every exchange
-    attempt, all replicas are run concurrantly, and exchanges take place 
+    attempt, all replicas are run concurrently, and exchanges take place 
     internally. This requires use of LAMMPS partition mode, via the command 
     line using the -p flag. Input files require world type variables defining 
     the parameters of each replica. The included example with 4 replicas must 

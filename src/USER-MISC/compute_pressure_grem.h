@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(pressure/grem,ComputePressureGrem)
+ComputeStyle(PRESSURE/GREM,ComputePressureGrem)
 
 #else
 
@@ -80,12 +80,12 @@ E: Must use 'kspace_modify pressure/scalar no' for tensor components with kspace
 Otherwise MSM will compute only a scalar pressure.  See the kspace_modify
 command for details on this setting.
 
-E: Fix grem ID for compute pressure/grem does not exist
+E: Fix grem ID for compute PRESSURE/GREM does not exist
 
-Compute pressure/grem was passed an invalid fix id
+Compute PRESSURE/GREM was passed an invalid fix id
 
 E: Cannot extract gREM scale factor from fix grem
 
-The fix id passed to compute pressure/grem refers to an incompatible fix
+The fix id passed to compute PRESSURE/GREM refers to an incompatible fix
 
 */

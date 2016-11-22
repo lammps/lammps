@@ -1,0 +1,16 @@
+# -------- WARNING: --------
+
+This software is experimental, and the force-fields and equilbration protocols
+have not been tested carefully by me.  There is no gaurantee that the simulation
+will reproduce the behavior of real hexadecane molecules, 
+(or even of hexadecane molecules simulated using AMBER, which should
+ be using the same force-field).
+
+# -------- REQUEST FOR HELP: --------
+
+However, if you notice a problem with this example, please report it.
+I confess I do not have a lot of experience running all-atom simulations.
+Peer-review is the only way to improve this software (or any software).
+Other suggestions are also welcome!
+
+(Contact jewett.aij@gmail.com, 2013-10-16)

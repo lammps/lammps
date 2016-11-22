@@ -1,0 +1,16 @@
+import "spc.lt"     # <- defines the "SPC" (water) molecule type (uses OPLSAA)
+
+# Periodic boundary conditions:
+write_once("Data Boundary") {
+   0.0  41.40  xlo xhi
+   0.0  41.40  ylo yhi
+   0.0  41.40  zlo zhi
+}
+
+# The next command generates a (rather dense) cubic lattice with
+# spacing 3.45 Angstroms. (The pressure must be equilibrated later.)
+
+waters = new SPC [12].move(0.00, 0.00, 3.45) 
+                 [12].move(0.00, 3.45, 0.00) 
+                 [12].move(3.45, 0.00, 0.00)
+

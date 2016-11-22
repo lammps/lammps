@@ -1,0 +1,35 @@
+
+import "al_cell.lt"  # <- this defines the unit cell for aluminum
+
+# Periodic boundary conditions:
+write_once("Data Boundary") {
+   0.0  40.50  xlo xhi
+   0.0  40.50  ylo yhi
+   0.0  40.50  zlo zhi
+}
+
+# The next command generates an array of 10x10x10 AlCell unit cells with
+# spacing 4.05 Angstroms.
+
+unitcells = new AlCell [10].move(0.00, 0.00, 4.05)
+                       [10].move(0.00, 4.05, 0.00)
+                       [10].move(4.05, 0.00, 0.00)
+
+
+
+
+
+
+
+
+
+
+
+
+################################################################
+# The next command is not necessary:
+#
+ create_var { $mol } # <-This forces all of the Al atoms in the crystal
+#                     #   to share the same molecule ID number.
+#                     #   Molecule ID numbers are not necessary.  Ignore this.
+#

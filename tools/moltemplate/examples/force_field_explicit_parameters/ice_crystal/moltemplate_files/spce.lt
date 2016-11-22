@@ -1,0 +1,52 @@
+# file "spce.lt" 
+#
+#    H1     H2
+#      \   /
+#        O
+
+SPCE {
+
+  write_once("In Init") {
+    # -- Default styles (for solo "SPCE" water) --
+    units        real
+    atom_style   full
+    # (Hybrid force fields were not necessary but are used for portability.)
+    pair_style   hybrid lj/charmm/coul/long 9.0 10.0 10.0
+    bond_style   hybrid harmonic
+    angle_style  hybrid harmonic
+    kspace_style pppm 0.0001
+    pair_modify  mix arithmetic
+  }
+
+  write("Data Atoms") {
+    $atom:O  $mol:. @atom:O -0.8476  0.0000000 0.00000 0.000000
+    $atom:H1 $mol:. @atom:H  0.4238  0.8164904 0.00000  0.5773590
+    $atom:H2 $mol:. @atom:H  0.4238  -0.8164904 0.00000 0.5773590
+  }
+
+  write_once("Data Masses") {
+    @atom:O 15.9994
+    @atom:H 1.008
+  }
+
+  write("Data Bonds") {
+    $bond:OH1 @bond:OH $atom:O $atom:H1
+    $bond:OH2 @bond:OH $atom:O $atom:H2
+  }
+
+  write("Data Angles") {
+    $angle:HOH @angle:HOH $atom:H1 $atom:O $atom:H2
+  }
+
+  write_once("In Settings") {
+    bond_coeff   @bond:OH     harmonic                 1000.0  1.0 
+    angle_coeff  @angle:HOH   harmonic                 1000.0  109.47
+    pair_coeff   @atom:O @atom:O  lj/charmm/coul/long  0.1553  3.166 
+    pair_coeff   @atom:H @atom:H  lj/charmm/coul/long  0.0     2.058
+    group spce type  @atom:O  @atom:H
+    fix fSHAKE spce shake 0.0001 10 100 b @bond:OH a @angle:HOH
+    # (Remember to "unfix" fSHAKE during minimization.)
+  }
+
+} # end of definition of "SPCE" water molecule type
+

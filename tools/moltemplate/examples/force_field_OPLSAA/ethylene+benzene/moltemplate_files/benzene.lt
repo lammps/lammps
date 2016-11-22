@@ -1,0 +1,45 @@
+import "oplsaa.lt"
+
+# The "oplsaa.lt" file contains force-field definitions and masses for the 
+# atoms in your system.  See oplsaa_lt_generator/README.TXT for details.
+
+# Note:
+# Atom type @atom:90 corresponds to "Aromatic C"
+# Atom type @atom:91 corresponds to "Aromatic H-C"
+
+Benzene inherits OPLSAA {
+
+  write('Data Atoms') {
+    $atom:C1  $mol @atom:90   0.00    5.274   1.999  -8.568  # "Aromatic C"
+    $atom:C2  $mol @atom:90   0.00    6.627   2.018  -8.209  # "Aromatic C"
+    $atom:C3  $mol @atom:90   0.00    7.366   0.829  -8.202  # "Aromatic C"
+    $atom:C4  $mol @atom:90   0.00    6.752  -0.379  -8.554  # "Aromatic C"
+    $atom:C5  $mol @atom:90   0.00    5.399  -0.398  -8.912  # "Aromatic C"
+    $atom:C6  $mol @atom:90   0.00    4.660   0.791  -8.919  # "Aromatic C"
+    $atom:H11  $mol @atom:91  0.00    4.704   2.916  -8.573  # "Aromatic H-C"
+    $atom:H21  $mol @atom:91  0.00    7.101   2.950  -7.938  # "Aromatic H-C"
+    $atom:H31  $mol @atom:91  0.00    8.410   0.844  -7.926  # "Aromatic H-C"
+    $atom:H41  $mol @atom:91  0.00    7.322  -1.296  -8.548  # "Aromatic H-C"
+    $atom:H51  $mol @atom:91  0.00    4.925  -1.330  -9.183  # "Aromatic H-C"
+    $atom:H61  $mol @atom:91  0.00    3.616   0.776  -9.196  # "Aromatic H-C"
+  }
+  # Note: You don't have to specify the charge in this example because
+  #       we are using the OPLSAA force-field assigns this by atom-type.
+  #       Just leave these numbers as 0.00 for now.
+
+  write('Data Bond List') {
+    $bond:C12  $atom:C1 $atom:C2
+    $bond:C23  $atom:C2 $atom:C3
+    $bond:C34  $atom:C3 $atom:C4
+    $bond:C45  $atom:C4 $atom:C5
+    $bond:C56  $atom:C5 $atom:C6
+    $bond:C61  $atom:C6 $atom:C1
+    $bond:C1H1 $atom:C1 $atom:H11
+    $bond:C2H2 $atom:C2 $atom:H21
+    $bond:C3H3 $atom:C3 $atom:H31
+    $bond:C4H4 $atom:C4 $atom:H41
+    $bond:C5H5 $atom:C5 $atom:H51
+    $bond:C6H6 $atom:C6 $atom:H61
+  }
+
+} # Benzene

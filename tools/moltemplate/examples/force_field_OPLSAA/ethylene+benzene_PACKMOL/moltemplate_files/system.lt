@@ -1,0 +1,21 @@
+import "ethylene.lt"  # <- defines the "Ethylene" molecule type.
+import "benzene.lt"  # <- defines the "Benzene" molecule type.
+
+
+# Periodic boundary conditions:
+write_once("Data Boundary") {
+   0.0  80.00  xlo xhi
+   0.0  80.00  ylo yhi
+   0.0  80.00  zlo zhi
+}
+
+
+# Create 1000 ethylenes and 500 benzenes
+# List them in the same order they appear in the PACKMOL .inp file(s).
+
+ethylenes = new Ethylene[1000]
+benzenes  = new Benzene[500]
+
+# Note: We can omit the .move() and .rot() commands which normally appear
+#       after the "new" command because we will be using a separate program
+#       (PACKMOL) to generate the coordinates of these molecules.

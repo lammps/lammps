@@ -1,0 +1,52 @@
+# PREREQUISITES:
+#
+#     You must use moltemplate.sh to create 3 files:
+#        system.data  system.in.init  system.in.settings
+#     (Follow the instructions in README_setup.sh, 
+#      or run the file as a script using ./README_setup.sh)
+#
+# ------------------------------- Initialization Section --------------------
+
+include         "system.in.init"
+
+# ------------------------------- Atom Definition Section -------------------
+
+read_data       "system.data"
+
+# ------------------------------- Settings Section --------------------------
+
+include         "system.in.settings"
+include         "system.in.charges"
+
+
+# ------------------------------- Run Section -------------------------------
+
+
+# -- minimization protocol --
+
+# Note: The minimization step is not necessary in this example.  However
+#       in general, it's always a good idea to minimize the system beforehand.
+#       (The "fShakeSPCE" fix was defined in system.in.settings. 
+#        It is incompatible with "minimize", so we disable it first.)
+#unfix         fShakeSPCE
+thermo        50
+minimize 1.0e-4 1.0e-6 100000 400000
+
+# Now read "system.in.settings" in order to enable fShakeSPCE again:
+#include       system.in.settings
+
+# Optional: write the coordinates after minimization
+write_data   system_after_min.data
+
+
+# -- simulation protocol --
+
+
+timestep        1.0
+dump            1 all custom 2500 traj_npt.lammpstrj id mol type x y z ix iy iz
+fix             fxnpt all npt temp 300.0 300.0 100.0 iso 1.0 1.0 1000.0 drag 1.0
+thermo          100
+
+run             2000000
+
+write_data   system_after_npt.data

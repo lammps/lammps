@@ -51,7 +51,7 @@ for exchange in arange(starting_ex,max_exchange):
 		os.chdir(path+"/%s" % lambdas[l])
 		#os.system("cp restart_file restart_file%d" % exchange)
                 if (nproc > 1):
-                    os.system("mpirun -np %d " + lmp + " -in ../" + inp + " -var lambda %g -var eta %g -var enthalpy %g > output" % (nproc, lambdas[l], eta, H))
+                    os.system("mpirun -np %d " % (nproc) + lmp + " -in ../" + inp + " -var lambda %g -var eta %g -var enthalpy %g > output" % (lambdas[l], eta, H))
                 if (nproc == 1):
                     os.system(lmp + " -in ../" + inp + " -var lambda %g -var eta %g -var enthalpy %g > output" % (lambdas[l], eta, H))
 		os.system("grep -v '[a-zA-Z]' output | awk '{if(NF==6 && NR>19)print $0}' | awk '{print $3}' >ent")
@@ -60,7 +60,6 @@ for exchange in arange(starting_ex,max_exchange):
 		aver_enthalpy[l] = mean(ee[-1])
 #		os.system("mv dump.dcd dump%d.dcd" % exchange)
 		os.system("mv log.lammps log%d.lammps" % exchange)
-#		os.system("rm output")
 		os.system("mv final_restart_file final_restart_file%d" % exchange)
 		os.system("mv ent ent%d" % exchange)
 		os.system("bzip2 log%d.lammps ent%d" % (exchange,exchange))

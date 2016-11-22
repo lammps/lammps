@@ -256,7 +256,7 @@ void Dump::init()
       if (maxall-minall+1 == isize) {
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
-        idlo = static_cast<int> (range*me/nprocs + minall);
+        idlo = static_cast<tagint> (range*me/nprocs + minall);
         tagint idhi = static_cast<tagint> (range*(me+1)/nprocs + minall);
 
         tagint lom1 = static_cast<tagint> ((idlo-1-minall)/range * nprocs);

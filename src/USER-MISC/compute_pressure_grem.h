@@ -13,38 +13,29 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(pressure,ComputePressure)
+ComputeStyle(pressure/grem,ComputePressureGrem)
 
 #else
 
-#ifndef LMP_COMPUTE_PRESSURE_H
-#define LMP_COMPUTE_PRESSURE_H
+#ifndef LMP_COMPUTE_PRESSURE_GREM_H
+#define LMP_COMPUTE_PRESSURE_GREM_H
 
-#include "compute.h"
+#include "compute_pressure.h"
 
 namespace LAMMPS_NS {
 
-class ComputePressure : public Compute {
+class ComputePressureGrem : public ComputePressure {
  public:
-  ComputePressure(class LAMMPS *, int, char **);
-  virtual ~ComputePressure();
+  ComputePressureGrem(class LAMMPS *, int, char **);
+  virtual ~ComputePressureGrem();
   virtual void init();
   virtual double compute_scalar();
   virtual void compute_vector();
-  void reset_extra_compute_fix(const char *);
 
  protected:
-  double boltz,nktv2p,inv_volume;
-  int nvirial,dimension;
-  double **vptr;
-  double *kspace_virial;
-  Compute *temperature;
-  char *id_temp;
-  double virial[6];
-  int keflag,pairflag,bondflag,angleflag,dihedralflag,improperflag;
-  int fixflag,kspaceflag;
-
-  void virial_compute(int, int);
+  // Access to gREM fix scale factor
+  char   *fix_grem;
+  double *scale_grem;
 };
 
 }
@@ -88,5 +79,13 @@ E: Must use 'kspace_modify pressure/scalar no' for tensor components with kspace
 
 Otherwise MSM will compute only a scalar pressure.  See the kspace_modify
 command for details on this setting.
+
+E: Fix grem ID for compute pressure/grem does not exist
+
+Compute pressure/grem was passed an invalid fix id
+
+E: Cannot extract gREM scale factor from fix grem
+
+The fix id passed to compute pressure/grem refers to an incompatible fix
 
 */

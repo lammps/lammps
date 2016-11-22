@@ -38,16 +38,32 @@ class ComputePsiNGift : public Compute {
   double memory_usage();
 
  private:
+
+  typedef double coord_t;         // coordinate type
+  typedef double coord2_t;  // must be big enough to hold 2*max(|coordinate|)^2  
+
   int nmax;
   double Npsi;
-  
+    
   double sphere_step;
   double cutsq;
   class NeighList *list;
   double **PsiN;
-  
+ 
+  struct Point{
+  int key;
+  ComputePsiNGift::coord_t x, y;
+	bool operator <(const Point &p) const {
+		return x < p.x || (x == p.x && y < p.y);
+	}
+  };
+
+  ComputePsiNGift::coord2_t cross(const Point &O, const Point &A, const Point &B);
+  std::vector<ComputePsiNGift::Point> convex_hull(std::vector<ComputePsiNGift::Point> P);
+
   double calculatePhi(double delx,double dely);
-  std::vector<int> createHull(int i,std::vector<int> keys,std::vector<double> distance);
+  std::vector<int> createHull(int i,std::vector<int> keys,std::vector<double> distance, std::vector<double> angle);
+  std::vector<int> createHull(int i,std::vector<int> keys,std::vector<double> distance, double** &x);
   std::vector<double> sort(std::vector<double> array);
   void sort2arraysbyvalue(std::vector<int> &keys,std::vector<double> &distance);
     /*

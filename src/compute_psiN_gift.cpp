@@ -28,6 +28,8 @@
 #include "error.h"
 #include "complex"
 #include "vector"
+#include "algorithm"
+#include "iterator"
 
 
 
@@ -106,19 +108,18 @@ void ComputePsiNGift::init_list(int id, NeighList *ptr)
 void ComputePsiNGift::compute_peratom()
 {
     
-    
   int i,j,ii,jj,inum,jnum,n,nn;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   
- 
   double cosA,sinA,phi;
   
+  std::complex<double> psi = std::complex<double>(0.0);
+  std::complex<double> j1 = std::complex<double>(0.0,1.0);
   
-  std::complex<double> psi =std::complex<double>(0.0);
-  std::complex<double> j1 =std::complex<double>(0.0,1.0);
-  
-  std::vector<int> hull;
+  std::vector<int> hull;  // id of atoms of closest hull
+  std::vector<Point> cvx_hull;
   std::vector<int>::iterator it;
+
   int *image = atom->image;
   nn=0;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -150,21 +151,22 @@ void ComputePsiNGift::compute_peratom()
   double **x = atom->x;
   int *mask = atom->mask;
   int nall = atom->nlocal + atom->nghost;
-   double PI= 4*atan(1); //Pi
+  double PI= 4*atan(1); //Pi
   //Reset counters
   for (i=0;i<inum;i++) PsiN[i]==0;
   
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    std::vector <int> neib_keys;
-    std::vector <double> distance;
+    std::vector<int> neib_keys;
+    std::vector<double> distance;
+    std::vector<double> angle;
+    std::vector<ComputePsiNGift::Point> neib_points;
     if (mask[i] & groupbit) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
       jlist = firstneigh[i];
       jnum = numneigh[i];
-
       n = 0;
       for (jj = 0; jj < jnum; jj++) {
 	    j = jlist[jj];
@@ -173,59 +175,119 @@ void ComputePsiNGift::compute_peratom()
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-              
         rsq = delx*delx + dely*dely;
         if (rsq < cutsq)
         {
            neib_keys.push_back(j);
            distance.push_back(sqrt(rsq));
-           
+           angle.push_back(calculatePhi(delx,dely));
+           Point p;
+           p.key=j;
+           if (delx !=0) {
+           p.x=delx/rsq;
+           } else{
+           p.x=0;
+           };
+           if (dely !=0){
+           p.y=dely/rsq;
+           } else {
+           p.y=0;
+           }
+           neib_points.push_back(p);
         }
       }
       
       //Pishem suda
-       hull = createHull(i,neib_keys,distance);
-                
-       std::complex<double> psi =std::complex<double>(0.0);
-          
-        for(int bb=0;bb<hull.size();bb++)
+       //hull = createHull(i,neib_keys,distance,angle);
+       cvx_hull=convex_hull(neib_points);
+
+       std::complex<double> psi = std::complex<double>(0.0);
+
+       /*for (int kk =0; kk < cvx_hull.size();kk++)
+        {
+          printf("%i:%i\n",j,cvx_hull[kk].key);
+        }*/
+
+   
+        for(int bb=0;bb<cvx_hull.size();bb++)
         {  
          
-          delx = x[hull[bb]][0] - xtmp;
-          dely = x[hull[bb]][1] - ytmp; 
+          delx = x[cvx_hull[bb].key][0] - xtmp;
+          dely = x[cvx_hull[bb].key][1] - ytmp; 
                    
           phi=calculatePhi(delx,dely);
           psi=psi+exp(j1*phi*Npsi);
           nn=nn+1;
-          
-          //if(phi/PI*180>360)
-          //{
-//          printf("x0,y0,x1,y1,phi=%f,%f,%f,%f.%f\n",xtmp,ytmp,x[hull[bb]][0],x[hull[bb]][1],phi/PI*180);
- //         }
         }
       
         
-        PsiN[i][0] = abs(psi);
-        PsiN[i][1] = psi.real();
-        PsiN[i][2] = psi.imag();
-        PsiN[i][3] = hull.size();
-     
+        PsiN[i][0] = abs(psi);  // module
+        PsiN[i][1] = psi.real(); // real part
+        PsiN[i][2] = psi.imag(); // image part
+        PsiN[i][3] = cvx_hull.size(); //near atoms
      
      }
     }  
      
   }
   
+//typedef double coord_t;   // coordinate type
+//typedef double coord2_t;  // must be big enough to hold 2*max(|coordinate|)^2
 
 
-std::vector<int> ComputePsiNGift::createHull(int i,std::vector<int> keys,std::vector<double> distance)
+// 2D cross product of OA and OB vectors, i.e. z-component of their 3D cross product.
+// Returns a positive value, if OAB makes a counter-clockwise turn,
+// negative for clockwise turn, and zero if the points are collinear.
+ComputePsiNGift::coord2_t ComputePsiNGift::cross(const Point &O, const Point &A, const Point &B)
+{
+	return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+}
+
+// Returns a list of points on the convex hull in counter-clockwise order.
+// Note: the last point in the returned list is the same as the first one.
+std::vector<ComputePsiNGift::Point> ComputePsiNGift::convex_hull(std::vector<ComputePsiNGift::Point> P)
+{
+	int n = P.size(), k = 0;
+	std::vector<Point> H(2*n);
+
+	// Sort points lexicographically
+	std::sort(P.begin(), P.end());
+
+	// Build lower hull
+	for (int i = 0; i < n; ++i) {
+		while (k >= 2 && cross(H[k-2], H[k-1], P[i]) <= 0) k--;
+		H[k++] = P[i];
+	}
+
+	// Build upper hull
+	for (int i = n-2, t = k+1; i >= 0; i--) {
+		while (k >= t && cross(H[k-2], H[k-1], P[i]) <= 0) k--;
+		H[k++] = P[i];
+	}
+
+	H.resize(k-1);
+	return H;
+}
+
+
+std::vector<int> ComputePsiNGift::createHull(int i,std::vector<int> keys,std::vector<double> distance,double** &x)
+{
+    
+    
+
+
+}
+
+
+
+std::vector<int> ComputePsiNGift::createHull(int i,std::vector<int> keys,std::vector<double> distance, std::vector<double> angle)
 {
    
-  std::vector<int> hull;
-  sort2arraysbyvalue(keys,distance);
-  
-  
-   
+ std::vector<int> hull;
+ sort2arraysbyvalue(keys,distance);
+
+ 
+
  if(distance.size()>0){
      
  double prev_distance=distance[0];
@@ -257,8 +319,6 @@ std::vector<double> ComputePsiNGift::sort(std::vector<double> array)
 {
    for (int ii=0;ii<array.size()-1;ii++)
    {
-        
-       
        if(array[ii]>array[ii+1])
        {
            
@@ -269,11 +329,12 @@ std::vector<double> ComputePsiNGift::sort(std::vector<double> array)
            printf("afterswitch=%f,%f\n",array[ii],array[ii+1]);
            ii=0;
        }
-       
    }
    return array;
-    
 }
+
+
+
 
 void ComputePsiNGift::sort2arraysbyvalue(std::vector<int> &keys,std::vector<double> &distance)
 {
@@ -295,7 +356,6 @@ void ComputePsiNGift::sort2arraysbyvalue(std::vector<int> &keys,std::vector<doub
            tmp_distance=distance[ii];
            distance[ii]=distance[ii+1];
            distance[ii+1]=tmp_distance;
-         //  printf("afterswitch=%f,%f\n",distance[ii],distance[ii+1]);
            ii=-1;
        }
        
@@ -321,7 +381,6 @@ double ComputePsiNGift::calculatePhi(double delx,double dely)
  // printf("delx=%f,dely=%f\n",delx,dely);  
  double cosA=delx/sqrt(delx*delx+dely*dely);
  double sinA=dely/sqrt(delx*delx+dely*dely);
-     
   
     if (sinA>=0 & cosA>=0  ) phi=asin(sinA);
     if (sinA>=0 & cosA < 0 ) phi=acos(cosA);

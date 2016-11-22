@@ -779,6 +779,8 @@
 /pair_tersoff.h
 /pair_tersoff_mod.cpp
 /pair_tersoff_mod.h
+/pair_tersoff_mod_c.cpp
+/pair_tersoff_mod_c.h
 /pair_tersoff_table.cpp
 /pair_tersoff_table.h
 /pair_tersoff_zbl.cpp

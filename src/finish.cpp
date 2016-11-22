@@ -865,7 +865,7 @@ void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
   time_cpu = tmp/nprocs*100.0;
 
   // % variance from the average as measure of load imbalance
-  if (time > 1.0e-10)
+  if ((time_sq/time - time) > 1.0e-10)
     time_sq = sqrt(time_sq/time - time)*100.0;
   else
     time_sq = 0.0;
@@ -917,7 +917,7 @@ void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
   time_std /= nthreads;
   time_total /= nthreads;
 
-  if (time_avg > 1.0e-10)
+  if ((time_std/time_avg -time_avg) > 1.0e-10)
     time_std = sqrt(time_std/time_avg - time_avg)*100.0;
   else
     time_std = 0.0;

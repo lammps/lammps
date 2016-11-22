@@ -49,7 +49,7 @@ variable        vol_one equal ${l0}^2 # volume of one particle -- assuming unit 
 variable        skin equal ${h} # Verlet list range
 neighbor        ${skin} bin
 set             group all volume ${vol_one}
-set             group all smd_mass_density ${rho}
+set             group all smd/mass/density ${rho}
 set             group all diameter ${h} # set SPH kernel radius
 
 ####################################################################################################
@@ -83,9 +83,9 @@ fix             integration_fix tlsph smd/integrate_tlsph
 ####################################################################################################
 # SPECIFY TRAJECTORY OUTPUT
 ####################################################################################################
-compute         S all smd/tlsph_stress # Cauchy stress tensor
-compute         E all smd/tlsph_strain # Green-Lagrange strain tensor
-compute         nn all smd/tlsph_num_neighs # number of neighbors for each particle
+compute         S all smd/tlsph/stress # Cauchy stress tensor
+compute         E all smd/tlsph/strain # Green-Lagrange strain tensor
+compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
 dump            dump_id all custom 10 dump.LAMMPS id type x y z vx vy vz &
                         c_S[1] c_S[2] c_S[4] c_nn &
                         c_E[1] c_E[2] c_E[4] &

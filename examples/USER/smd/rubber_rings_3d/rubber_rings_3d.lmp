@@ -88,11 +88,11 @@ fix             integration_fix tlsph smd/integrate_tlsph
 # SPECIFY TRAJECTORY OUTPUT
 ####################################################################################################
 variable        dumpFreq equal 30
-compute         S all smd/tlsph_stress # Cauchy stress tensor
-compute         nn all smd/tlsph_num_neighs # number of neighbors for each particle
-compute         cr all smd/contact_radius
-compute         p all smd/plastic_strain
-compute         eint all smd/internal_energy
+compute         S all smd/tlsph/stress # Cauchy stress tensor
+compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
+compute         cr all smd/contact/radius
+compute         p all smd/plastic/strain
+compute         eint all smd/internal/energy
 compute         alleint all reduce sum c_eint
 variable        etot equal c_alleint+ke+pe
 

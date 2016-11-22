@@ -124,11 +124,11 @@ fix             integration_fix_solids solids smd/integrate_tlsph
 ####################################################################################################
 # SPECIFY TRAJECTORY OUTPUT
 ####################################################################################################
-compute         eint all smd/internal_energy
-compute         contact_radius all smd/contact_radius
-compute         S solids smd/tlsph_stress
-compute         nn water smd/ulsph_num_neighs
-compute         epl solids smd/plastic_strain
+compute         eint all smd/internal/energy
+compute         contact_radius all smd/contact/radius
+compute         S solids smd/tlsph/stress
+compute         nn water smd/ulsph/num/neighs
+compute         epl solids smd/plastic/strain
 compute         vol all smd/volume
 compute         rho all smd/rho
 

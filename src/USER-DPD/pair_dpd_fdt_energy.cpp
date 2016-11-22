@@ -43,6 +43,9 @@ using namespace LAMMPS_NS;
 PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
 {
   random = NULL;
+  duCond = NULL;
+  duMech = NULL;
+  splitFDT_flag = false;
 
   comm_reverse = 2;
 }
@@ -59,10 +62,8 @@ PairDPDfdtEnergy::~PairDPDfdtEnergy()
     memory->destroy(a0);
     memory->destroy(sigma);
     memory->destroy(kappa);
-    if (!splitFDT_flag) {
-      memory->destroy(duCond);
-      memory->destroy(duMech);
-    }
+    memory->destroy(duCond);
+    memory->destroy(duMech);
   }
 
   if (random) delete random;

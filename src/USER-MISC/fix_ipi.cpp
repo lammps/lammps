@@ -30,6 +30,7 @@
 #include "compute.h"
 #include "comm.h"
 #include "neighbor.h"
+#include "irregular.h"
 #include "domain.h"
 #include "compute_pressure.h"
 #include <errno.h>
@@ -171,7 +172,7 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
 /* ---------------------------------------------------------------------- */
 
 FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), irregular(NULL)
 {
   /* format for fix:
    *  fix  num  group_id ipi host port [unix]
@@ -191,8 +192,11 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   host = strdup(arg[3]);
   port = force->inumeric(FLERR,arg[4]);
 
-  inet   = ((narg > 5) && (strcmp(arg[5],"unix") ==0) ) ? 0 : 1;
+  inet   = ((narg > 5) && (strcmp(arg[5],"unix") == 0) ) ? 0 : 1;
   master = (comm->me==0) ? 1 : 0;
+  // check if forces should be reinitialized and set flag
+  reset_flag = ((narg > 6 && (strcmp(arg[5],"reset") == 0 )) || ((narg > 5) && (strcmp(arg[5],"reset") == 0)) ) ? 1 : 0;
+
   hasdata = bsize = 0;
 
   // creates a temperature compute for all atoms
@@ -212,6 +216,9 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   newarg[4] = (char *) "virial";
   modify->add_compute(5,newarg);
   delete [] newarg;
+
+  // create instance of Irregular class
+  irregular = new Irregular(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -222,6 +229,7 @@ FixIPI::~FixIPI()
   free(host);
   modify->delete_compute("IPI_TEMP");
   modify->delete_compute("IPI_PRESS");
+  delete irregular;
 }
 
 
@@ -331,10 +339,12 @@ void FixIPI::initial_integrate(int vflag)
   domain->xz = cellh[2]*posconv;
   domain->yz = cellh[5]*posconv;
 
-  // signal that the box has (or may have) changed
+  // do error checks on simulation box and set small for triclinic boxes
+  domain->set_initial_box();
+  // reset global and local box using the new box dimensions
   domain->reset_box();
+  // signal that the box has (or may have) changed
   domain->box_change = 1;
-  if (kspace_flag) force->kspace->setup();
 
   // picks local atoms from the buffer
   double **x = atom->x;
@@ -347,6 +357,36 @@ void FixIPI::initial_integrate(int vflag)
       x[i][1]=buffer[3*(atom->tag[i]-1)+1]*posconv;
       x[i][2]=buffer[3*(atom->tag[i]-1)+2]*posconv;
     }
+  }
+
+  // insure atoms are in current box & update box via shrink-wrap
+  // has to be be done before invoking Irregular::migrate_atoms()
+  //   since it requires atoms be inside simulation box
+
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  domain->reset_box();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // move atoms to new processors via irregular()
+  // only needed if migrate_check() says an atom moves to far
+  if (domain->triclinic) domain->x2lamda(atom->nlocal);
+  if (irregular->migrate_check()) irregular->migrate_atoms();
+  if (domain->triclinic) domain->lamda2x(atom->nlocal);
+
+  // check if kspace solver is used
+  if (reset_flag && kspace_flag) {
+    // reset kspace, pair, angles, ... b/c simulation box might have changed.
+    //   kspace->setup() is in some cases not enough since, e.g., g_ewald needs
+    //   to be reestimated due to changes in box dimensions.
+    force->init();
+    // setup_grid() is necessary for pppm since init() is not calling
+    //   setup() nor setup_grid() upon calling init().
+    if (force->kspace->pppmflag) force->kspace->setup_grid();
+    // other kspace styles might need too another setup()?
+  } else if (!reset_flag && kspace_flag) {
+    // original version
+    force->kspace->setup();
   }
 
   // compute PE. makes sure that it will be evaluated at next step

@@ -7,23 +7,24 @@
 # All rights reserved.
 
 """
-    bonds_by_type.py reads a LAMMPS data file (or an excerpt of a LAMMPS)
+    chargepairs_by_type.py reads a LAMMPS data file (or an excerpt of a LAMMPS)
     data file containing bonded many-body interactions by atom type
-    (and bond type), and generates a list of additional interactions
-    in LAMMPS format consistent with those type (to the standard out).
+    (and bond type), and generates a list of atom charges in LAMMPS input
+    script format consistent with those types (to the standard out).
 
     Typical Usage:
 
-    bonds_by_type.py -atoms atoms.data \\
-                     -bonds bonds.data \\
-                     -bondsbytype bonds_by_type.data \\
-                     > new_bonds.data
+    chargepairs_by_type.py -atoms atoms.data \\
+                           -bonds bonds.data \\
+                           -chargepairsbytype chargepairs_by_type.data \\
+                           > list_of_atom_charges.in
 
 """
 
 #                     -bonds-ids-atom-pairs bonds_ids_atom_pairs.data \\
 
 import sys
+from collections import defaultdict
 #from extract_lammps_data import *
 #from nbody_by_type_lib import GenInteractions_str
 import ttree_lex
@@ -32,26 +33,26 @@ from lttree_styles import AtomStyle2ColNames, ColNames2AidAtypeMolid
 
 
 
-def LookupBondTypes(bond_types,
-                    bond_ids,
-                    bond_pairs,
-                    lines_atoms,
-                    lines_bonds,
-                    lines_bondsbytype,
-                    atom_style,
-                    section_name,
-                    prefix='',
-                    suffix='',
-                    bond_ids_offset=0):
-                    #report_progress = False):
+def LookupChargePairs(chargebyatomid,
+                      #bond_ids,
+                      #bond_pairs,
+                      lines_atoms,
+                      lines_bonds,
+                      lines_bond_list,
+                      lines_chargepairsbytype,
+                      atom_style,
+                      section_name,
+                      prefix='',
+                      suffix=''):
+                      #bond_ids_offset=0):
+                      #report_progress = False):
     """
-    LookupBondTypes() looks up bond types.
+    LookupChargePairs() looks up partial-charge pair contributions from the
+    types of atoms participating in a bond.
 
     Output:
-    ...It looks up the corresponding type of each bond and store it in the 
-       "bond_types" list.  (If the bond_ids were not specified by the user, 
-       generate them and store them in the bond_ids list.)
-
+    ...It looks up the corresponding change in the partial charges for
+       each pair of atoms and stores this in the "chargebyatomid" dictionary.
 
     Input (continued):
        This function requires:
@@ -60,12 +61,9 @@ def LookupBondTypes(bond_types,
                                        or "Data Bonds AtomId AtomId" sections)
     ...and a list of atom types
         stored in the lines_atoms variable (from the "Data Atoms" section)
-    ...and a list of bond-types-as-a-function-of-atom-types
-        stored in the lines_bondsbytype (from the "Data Bonds By Type" section)
 
-    Generated bond_ids (if applicable) are of the form 
-      prefix + str(number) + suffix
-        (where "number" begins at bond_ids_offset+1)
+    ...and a list of charge-pairs-as-a-function-of-atom-types
+        stored in the lines_chargepairsbytype (from the "Data Bonds By Type" section)
 
     """
 
@@ -94,67 +92,90 @@ def LookupBondTypes(bond_types,
             atomids2types[atomid] = atomtype
 
 
-    assert(isinstance(bond_ids, list))
-    assert(isinstance(bond_types, list))
-    assert(isinstance(bond_pairs, list))
-    del bond_ids[:]
-    del bond_types[:]
-    del bond_pairs[:]
+    #assert(isinstance(bond_ids, list))
+    #assert(isinstance(bond_types, list))
+    #assert(isinstance(bond_pairs, list))
+    #del bond_ids[:]
+    #del bond_types[:]
+    #del bond_pairs[:]
+    bond_pairs = []
+
+    for ie in range(0, len(lines_bond_list)):
+        line = lines_bond_list[ie].strip()
+        if '#' in line:
+            icomment = line.find('#')
+            line = (line[:icomment]).strip()
+        if len(line) == 0:
+            continue
+        tokens = ttree_lex.SplitQuotedString(line)
+        if len(tokens) == 3:
+            #bond_ids.append(ttree_lex.EscCharStrToChar(tokens[0]))
+            bond_pairs.append( (ttree_lex.EscCharStrToChar(tokens[1]),
+                                ttree_lex.EscCharStrToChar(tokens[2])) )
+        else:
+            raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
+
 
     for ie in range(0, len(lines_bonds)):
-
         line = lines_bonds[ie].strip()
         if '#' in line:
             icomment = line.find('#')
             line = (line[:icomment]).strip()
-
         if len(line) == 0:
             continue
-
         tokens = ttree_lex.SplitQuotedString(line)
-
-        if section_name == "Data Bonds AtomId AtomId":
-            if len(tokens) == 2:
-                bondid_n = bond_ids_offset + len(bond_ids) + 1
-                bond_ids.append(prefix+str(bondid_n)+suffix)
-                bond_pairs.append( (ttree_lex.EscCharStrToChar(tokens[0]),
-                                    ttree_lex.EscCharStrToChar(tokens[1])) )
-            else:
-                raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
-
-        elif section_name == "Data Bond List":
-            if len(tokens) == 3:
-                bond_ids.append(ttree_lex.EscCharStrToChar(tokens[0]))
-                bond_pairs.append( (ttree_lex.EscCharStrToChar(tokens[1]),
-                                    ttree_lex.EscCharStrToChar(tokens[2])) )
-            else:
-                raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
-
+        if len(tokens) == 4:
+            #bond_ids.append(ttree_lex.EscCharStrToChar(tokens[0]))
+            #bond_types.append(ttree_lex.EscCharStrToChar(tokens[1]))
+            bond_pairs.append( (ttree_lex.EscCharStrToChar(tokens[2]),
+                                ttree_lex.EscCharStrToChar(tokens[3])) )
         else:
-            raise(ttree_lex.InputError('Internal Error ('+g_program_name+'): Unknown section name: \"'+section_name+'\"'))
+            raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
+
+
+
+    #for ie in range(0, len(lines_bonds_atomid_atomid)):
+    #    line = lines_bonds_atomid_atomid[ie].strip()
+    #    if '#' in line:
+    #        icomment = line.find('#')
+    #        line = (line[:icomment]).strip()
+    #    if len(line) == 0:
+    #        continue
+    #    tokens = ttree_lex.SplitQuotedString(line)
+    #    if len(tokens) == 2:
+    #        #bondid_n = bond_ids_offset + len(bond_ids) + 1
+    #        #bond_ids.append(prefix+str(bondid_n)+suffix)
+    #        bond_pairs.append( (ttree_lex.EscCharStrToChar(tokens[0]),
+    #                            ttree_lex.EscCharStrToChar(tokens[1])) )
+    #    else:
+    #        raise(ttree_lex.InputError('Incorrect number of columns on line '+str(ie+1)+' of \"'+section_name+'\" section.'))
+
 
 
     assert(len(bond_types) == 0)
-    typepattern_to_coefftypes = []
+    typepattern_to_chargepairs = []
+    warning_unassigned_chargepairs = None
 
-    for i in range(0, len(lines_bondsbytype)):
-        line = lines_bondsbytype[i].strip()
+    for i in range(0, len(lines_chargepairsbytype)):
+        line = lines_chargepairsbytype[i].strip()
         if '#' in line:
             icomment = line.find('#')
             line = (line[:icomment]).strip()
         if len(line) > 0:
             tokens = ttree_lex.SplitQuotedString(line)
 
-            if (len(tokens) != 3):
-                raise(ttree_lex.InputError('Error: Wrong number of columns in the \"Bonds By Type\" section of data file.\n'
+            if (len(tokens) != 4):
+                raise(ttree_lex.InputError('Error: Wrong number of columns in the \"Charge Pairs By Type\" section of data file.\n'
                                  'Offending line:\n'+
                                  '\"'+line+'\"\n'
-                                 'Expected 3 columns\n'))
+                                 'Expected 4 columns\n'))
 
-            coefftype = ttree_lex.EscCharStrToChar(tokens[0])
+            chargepair = (float(tokens[2]),
+                          float(tokens[3]))
+                                                     
             typepattern = []
 
-            for typestr in tokens[1:]:
+            for typestr in tokens[:2]:
                 if ((len(typestr) >= 2) and 
                     (typestr[0] == '/') and (typestr[-1] == '/')):
                     regex_str = typestr[1:-1]
@@ -162,18 +183,10 @@ def LookupBondTypes(bond_types,
                 else:
                     typepattern.append(ttree_lex.EscCharStrToChar(typestr))
 
-            typepattern_to_coefftypes.append([typepattern, coefftype])
-            
+            typepattern_to_chargepairs.append([typepattern, chargepair])
 
 
-    assert(len(bond_ids) == len(bond_pairs))
-
-    for ie in range(0,len(bond_ids)):
-        bond_types.append(None)
-
-    for ie in range(0, len(bond_ids)):
-        bondid = bond_ids[ie]
-        (atomid1, atomid2) = bond_pairs[ie]
+    for atomid1, atomid2 in bond_pairs:
 
         if atomid1 not in atomids2types:
             raise ttree_lex.InputError('Error: atom \"'+atomid1+'\" not defined in \"Data Atoms\".\n'
@@ -191,26 +204,39 @@ def LookupBondTypes(bond_types,
                                        '       \"ttree_assignments.txt\" file for:\n'
                                        '       \"'+atomid2+'\"\n')
 
+
         atomtype1 = atomids2types[atomid1]
         atomtype2 = atomids2types[atomid2]
 
-        for typepattern, coefftype in typepattern_to_coefftypes:
-
+        for typepattern, chargepair in typepattern_to_chargepairs:
             # use string comparisons to check if atom types match the pattern
-            if (ttree_lex.MatchesAll((atomtype1, atomtype2), typepattern) or
-                ttree_lex.MatchesAll((atomtype2, atomtype1), typepattern)):
+            if ttree_lex.MatchesAll((atomtype1, atomtype2), typepattern):
                 # ("MatchesAll()" defined in "ttree_lex.py")
+                chargebyatomid[atomid1] += chargepair[0]
+                chargebyatomid[atomid2] += chargepair[1]
+            elif ttree_lex.MatchesAll((atomtype2, atomtype1), typepattern):
+                chargebyatomid[atomid1] += chargepair[1]
+                chargebyatomid[atomid2] += chargepair[0]
+            else:
+                if not warning_unassigned_chargepairs:
+                    warning_unassigned_chargepairs = (atomid1, atomid2)
 
-                bond_types[ie] = coefftype
 
-    for ie in range(0, len(bond_ids)):
-        if not bond_types[ie]:
-            (atomid1, atomid2) = bond_pairs[ie]
-            atomtype1 = atomids2types[atomid1]
-            atomtype2 = atomids2types[atomid2]
-            raise ttree_lex.InputError('Error: No bond types defined for the bond between\n'
-                              '       atoms '+atomid1+' (type '+atomtype1+')\n'
-                              '         and '+atomid2+' (type '+atomtype2+')\n')
+    if warning_unassigned_chargepairs:
+        sys.stderr.write('---------------------------------------------------------------------------\n'
+                         'Warning: bonds found between atoms with no partial-charge rules.\n'
+                         '         This means that somewhere you are using a force-field\n'
+                         '         which assigns atomic charge according to the bonds these atoms\n'
+                         '         participate in, AND at least one pair of bonded atoms does NOT have\n'
+                         '         a rule defined to assign charges to that pair of atoms.\n'
+                         '         This can happen if there is a problem with the force-field file\n'
+                         '         OR if you are defining the charges for these atoms manually\n'
+                         '         In the later case, it is not a problem.\n'
+                         '         The first bond with this problem is between this pair of atoms:\n'
+                         '            '+str(warning_unassigned_chargepairs[0])+'\n'
+                         '            '+str(warning_unassigned_chargepairs[1])+'\n'
+                         '---------------------------------------------------------------------------\n')           
+
 
 
 
@@ -218,7 +244,7 @@ def LookupBondTypes(bond_types,
 if __name__ == "__main__":
 
     g_program_name = __file__.split('/')[-1]  # = 'nbody_by_type.py'
-    g_date_str     = '2015-11-09'
+    g_date_str     = '2016-10-16'
     g_version_str  = '0.11'
 
     #######  Main Code Below: #######
@@ -230,8 +256,9 @@ if __name__ == "__main__":
 
     try:
         fname_atoms = None
+        fname_bonds = None
         fname_bond_list = None
-        fname_bondsbytype = None
+        fname_chargepairsbytype = None
         section_name = 'Data Bond List'  # (This will be replaced later.)
         atom_style = 'full'
         prefix=''
@@ -266,7 +293,7 @@ if __name__ == "__main__":
                 if i+1 >= len(argv):
                     raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a file name containing lines of\n'
                                      '       text which might appear in the "Bonds" section of a LAMMPS data file.\n')
-                fname_bond_list = argv[i+1]
+                fname_bonds = argv[i+1]
                 del(argv[i:i+2])
 
             elif argv[i].lower() == '-bond-list':
@@ -278,14 +305,16 @@ if __name__ == "__main__":
                 section_name = "Data Bond List"
                 del(argv[i:i+2])
 
-            elif argv[i].lower() == '-bondsbytype':
+            elif ((argv[i].lower() == '-chargepairsbytype') or 
+                  (argv[i].lower() == '-chargepairs-by-type') or 
+                  (argv[i].lower() == '-charge-pairs-by-type')):
                 if i+1 >= len(argv):
                     raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a file name\n')
 
                     #raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a file name containing\n'
                     #                 '       text which might appear in the "'+section_name+' By Type" section\n'
                     #                 '       of a LAMMPS data file.\n')
-                fname_bondsbytype = argv[i+1]
+                fname_chargepairsbytype = argv[i+1]
                 del(argv[i:i+2])
 
             elif ((argv[i].lower() == '-atom-style') or 
@@ -295,22 +324,6 @@ if __name__ == "__main__":
                                      '       (Or single quoted string which includes a space-separated\n'
                                      '       list of column names.)\n')
                 atom_style = argv[i+1]
-                del(argv[i:i+2])
-
-            elif argv[i].lower() == '-prefix':
-                if i+1 >= len(argv):
-                    raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a prefix string\n'
-                                     '       (a string you want to appear to the left of the integer\n'
-                                     '        which counts the bonded interactions you have generated.)\n')
-                prefix = argv[i+1]
-                del(argv[i:i+2])
-
-            elif argv[i].lower() == '-suffix':
-                if i+1 >= len(argv):
-                    raise ttree_lex.InputError('Error: '+argv[i]+' flag should be followed by a suffix string\n'
-                                     '       (a string you want to appear to the right of the integer\n'
-                                     '        which counts the bonded interactions you have generated.)\n')
-                prefix = argv[i+1]
                 del(argv[i:i+2])
 
             elif argv[i][0] == '-':
@@ -329,40 +342,46 @@ if __name__ == "__main__":
                              '       (The actual problem may be earlier in the argument list.)\n')
 
         bond_types = []
-        bond_ids = []
-        bond_pairs = []
-
         fatoms = open(fname_atoms, 'r')
-        fbonds = open(fname_bond_list, 'r')
-        fbondsbytype = open(fname_bondsbytype, 'r')
+        lines_bonds = []
+        lines_bond_list = []
+        fbonds = fbond_list = None
+        try:
+            if fname_bonds != None:
+                fbonds = open(fname_bonds, 'r')
+                lines_bonds = fbonds.readlines()
+                fbonds.close()
+        except IOError: 
+            pass
+        try:
+            if fname_bond_list != None:
+                fbond_list = open(fname_bond_list, 'r')
+                lines_bond_list = fbond_list.readlines()
+                fbond_list.close()
+        except IOError: 
+            pass
+        if ((len(lines_bonds) == 0) and (len(lines_bond_list) == 0)):
+            sys.stderr.write('Error('+g_program_name+'): No bonds defined for this system\n'
+                             '      (This error may be a bug in moltemplate.)\n')
+        fchargepairsbytype = open(fname_chargepairsbytype, 'r')
         lines_atoms = fatoms.readlines()
-        lines_bonds = fbonds.readlines()
-        lines_bondsbytype = fbondsbytype.readlines()
+        
+        lines_chargepairsbytype = fchargepairsbytype.readlines()
         fatoms.close()
-        fbonds.close()
-        fbondsbytype.close()
+        fchargepairsbytype.close()
+        chargebyatomid = defaultdict(float)
 
-        LookupBondTypes(bond_types,
-                        bond_ids,
-                        bond_pairs,
-                        lines_atoms,
-                        lines_bonds,
-                        lines_bondsbytype,
-                        atom_style,
-                        section_name,
-                        prefix='',
-                        suffix='')
+        LookupChargePairs(chargebyatomid,
+                          lines_atoms,
+                          lines_bonds,
+                          lines_bond_list,
+                          lines_chargepairsbytype,
+                          atom_style,
+                          section_name)
 
-        assert(len(bond_types) == len(bond_ids) == len(bond_pairs))
-
-        ie=0
-        N = len(bond_types)
-        for ie in range(0, N):
-            sys.stdout.write(bond_ids[ie] + ' ' +
-                             bond_types[ie] + ' ' +
-                             bond_pairs[ie][0] + ' ' +
-                             bond_pairs[ie][1] + '\n')
-
+        for atomid, charge in chargebyatomid.items():
+            sys.stdout.write('  set atom ' + str(atomid) +
+                             ' charge ' + str(charge) + '\n')
 
     except (ValueError, ttree_lex.InputError) as err:
         sys.stderr.write('\n'+str(err)+'\n')

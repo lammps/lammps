@@ -24,7 +24,7 @@ write_once("In Init") {
 write_once("Data Boundary") {
   0.0 36.0 xlo xhi
   0.0 36.0 ylo yhi
-  0.0 36.0 zlo zhi
+  -18.0 18.0 zlo zhi
 }
 
 

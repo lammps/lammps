@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+
    Variant of the harmonic angle potential for use with the
    lj/sdk potential for coarse grained MD simulations.
-   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include <math.h>

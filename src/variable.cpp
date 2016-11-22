@@ -11,11 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
-#include "ctype.h"
-#include "unistd.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <unistd.h>
 #include "variable.h"
 #include "universe.h"
 #include "atom.h"
@@ -28,14 +28,16 @@
 #include "compute.h"
 #include "fix.h"
 #include "fix_store.h"
+#include "force.h"
 #include "output.h"
 #include "thermo.h"
 #include "random_mars.h"
 #include "math_const.h"
 #include "atom_masks.h"
+#include "python_wrapper.h"
 #include "memory.h"
+#include "info.h"
 #include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,24 +46,26 @@ using namespace MathConst;
 #define MAXLEVEL 4
 #define MAXLINE 256
 #define CHUNK 1024
-#define VALUELENGTH 64
+#define VALUELENGTH 64               // also in python.cpp
+#define MAXFUNCARG 6
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
 enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM};
+     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
 enum{ARG,OP};
 
 // customize by adding a function
-// if add before OR,
+// if add before XOR:
 // also set precedence level in constructor and precedence length in *.h
 
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
-     NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
+     NOT,EQ,NE,LT,LE,GT,GE,AND,OR,XOR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
-     RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,STRIDE,
-     VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
-     VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY};
+     RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
+     STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
+     IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
+     VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
 // customize by adding a special function
 
@@ -88,6 +92,8 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   pad = NULL;
   reader = NULL;
   data = NULL;
+  dvalue = NULL;
+  vecs = NULL;
 
   eval_in_progress = NULL;
 
@@ -97,7 +103,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   // customize by assigning a precedence level
 
   precedence[DONE] = 0;
-  precedence[OR] = 1;
+  precedence[OR] = precedence[XOR] = 1;
   precedence[AND] = 2;
   precedence[EQ] = precedence[NE] = 3;
   precedence[LT] = precedence[LE] = precedence[GT] = precedence[GE] = 4;
@@ -105,6 +111,10 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   precedence[MULTIPLY] = precedence[DIVIDE] = precedence[MODULO] = 6;
   precedence[CARAT] = 7;
   precedence[UNARY] = precedence[NOT] = 8;
+
+  // Python wrapper, real or dummy
+
+  python = new Python(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,6 +127,7 @@ Variable::~Variable()
     if (style[i] == LOOP || style[i] == ULOOP) delete [] data[i][0];
     else for (int j = 0; j < num[i]; j++) delete [] data[i][j];
     delete [] data[i];
+    if (style[i] == VECTOR) memory->destroy(vecs[i].values);
   }
   memory->sfree(names);
   memory->destroy(style);
@@ -125,11 +136,15 @@ Variable::~Variable()
   memory->destroy(pad);
   memory->sfree(reader);
   memory->sfree(data);
+  memory->sfree(dvalue);
+  memory->sfree(vecs);
 
   memory->destroy(eval_in_progress);
 
   delete randomequal;
   delete randomatom;
+
+  delete python;
 }
 
 /* ----------------------------------------------------------------------
@@ -254,8 +269,11 @@ void Variable::set(int narg, char **arg)
 
     if (universe->me == 0) {
       FILE *fp = fopen("tmp.lammps.variable","w");
+      if (fp == NULL)
+        error->one(FLERR,"Cannot open temporary file for world counter.");
       fprintf(fp,"%d\n",universe->nworlds);
       fclose(fp);
+      fp = NULL;
     }
 
     for (int jvar = 0; jvar < nvar; jvar++)
@@ -308,6 +326,7 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
     data[nvar][1] = new char[VALUELENGTH];
+    strcpy(data[nvar][1],"(undefined)");
 
   // SCALARFILE for strings or numbers
   // which = 1st value
@@ -362,6 +381,7 @@ void Variable::set(int narg, char **arg)
     data[nvar] = new char*[num[nvar]];
     copy(2,&arg[2],data[nvar]);
     data[nvar][2] = new char[VALUELENGTH];
+    strcpy(data[nvar][2],"(undefined)");
 
   // EQUAL
   // replace pre-existing var if also style EQUAL (allows it to be reset)
@@ -386,6 +406,7 @@ void Variable::set(int narg, char **arg)
       data[nvar] = new char*[num[nvar]];
       copy(1,&arg[2],data[nvar]);
       data[nvar][1] = new char[VALUELENGTH];
+      strcpy(data[nvar][1],"(undefined)");
     }
 
   // ATOM
@@ -412,9 +433,85 @@ void Variable::set(int narg, char **arg)
       copy(1,&arg[2],data[nvar]);
     }
 
+  // VECTOR
+  // replace pre-existing var if also style VECTOR (allows it to be reset)
+  // num = 1, which = 1st value
+  // data = 1 value, string to eval
+
+  } else if (strcmp(arg[1],"vector") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != VECTOR)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      delete [] data[ivar][0];
+      copy(1,&arg[2],data[ivar]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = VECTOR;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      copy(1,&arg[2],data[nvar]);
+    }
+
+  // PYTHON
+  // replace pre-existing var if also style PYTHON (allows it to be reset)
+  // num = 2, which = 1st value
+  // data = 2 values, 1st is Python func to invoke, 2nd is filled by invoke
+
+  } else if (strcmp(arg[1],"python") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    if (!python->python_exists)
+      error->all(FLERR,"LAMMPS is not built with Python embedded");
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != PYTHON)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      delete [] data[ivar][0];
+      copy(1,&arg[2],data[ivar]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = PYTHON;
+      num[nvar] = 2;
+      which[nvar] = 1;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      copy(1,&arg[2],data[nvar]);
+      data[nvar][1] = new char[VALUELENGTH];
+      strcpy(data[nvar][1],"(undefined)");
+    }
+
+  // INTERNAL
+  // replace pre-existing var if also style INTERNAL (allows it to be reset)
+  // num = 1, for string representation of dvalue, set by retrieve()
+  // dvalue = numeric initialization from 2nd arg, reset by internal_set()
+
+  } else if (strcmp(arg[1],"internal") == 0) {
+    if (narg != 3) error->all(FLERR,"Illegal variable command");
+    int ivar = find(arg[0]);
+    if (ivar >= 0) {
+      if (style[ivar] != INTERNAL)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      dvalue[nvar] = force->numeric(FLERR,arg[2]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = INTERNAL;
+      num[nvar] = 1;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      data[nvar] = new char*[num[nvar]];
+      data[nvar][0] = new char[VALUELENGTH];
+      dvalue[nvar] = force->numeric(FLERR,arg[2]);
+    }
+
   } else error->all(FLERR,"Illegal variable command");
 
-  // set name of variable, if not replacing (STRING/EQUAL/ATOM)
+  // set name of variable, if not replacing one flagged with replaceflag
   // name must be all alphanumeric chars or underscores
 
   if (replaceflag) return;
@@ -446,6 +543,23 @@ void Variable::set(char *name, int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   set existing STRING variable to str
+   return 0 if successful
+   return -1 if variable doesn't exist or isn't a STRING variable
+   called via library interface, so external programs can set variables
+------------------------------------------------------------------------- */
+
+int Variable::set_string(char *name, char *str)
+{
+  int ivar = find(name);
+  if (ivar < 0) return -1;
+  if (style[ivar] != STRING) return -1;
+  delete [] data[ivar][0];
+  copy(1,&str,data[ivar]);
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    increment variable(s)
    return 0 if OK if successfully incremented
    return 1 if any variable is exhausted, free the variable to allow re-use
@@ -462,18 +576,20 @@ int Variable::next(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     ivar = find(arg[iarg]);
-    if (ivar == -1) error->all(FLERR,"Invalid variable in next command");
+    if (ivar < 0) error->all(FLERR,"Invalid variable in next command");
     if (style[ivar] == ULOOP && style[find(arg[0])] == UNIVERSE) continue;
     else if (style[ivar] == UNIVERSE && style[find(arg[0])] == ULOOP) continue;
     else if (style[ivar] != style[find(arg[0])])
       error->all(FLERR,"All variables in next command must be same style");
   }
 
-  // invalid styles STRING or EQUAL or WORLD or ATOM or GETENV or FORMAT
+  // invalid styles: STRING, EQUAL, WORLD, ATOM, VECTOR, GETENV,
+  //                 FORMAT, PYTHON, INTERNAL
 
   int istyle = style[find(arg[0])];
-  if (istyle == STRING || istyle == EQUAL || istyle == WORLD
-      || istyle == GETENV || istyle == ATOM || istyle == FORMAT)
+  if (istyle == STRING || istyle == EQUAL || istyle == WORLD ||
+      istyle == GETENV || istyle == ATOM || istyle == VECTOR || 
+      istyle == FORMAT || istyle == PYTHON || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
   // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
@@ -484,7 +600,7 @@ int Variable::next(int narg, char **arg)
       int iarg = 0;
       for (iarg = 0; iarg < narg; iarg++)
         if (strcmp(arg[iarg],names[i]) == 0) break;
-      if (iarg == narg) 
+      if (iarg == narg)
         error->universe_one(FLERR,"Next command must list all "
                             "universe and uloop variables");
     }
@@ -557,6 +673,7 @@ int Variable::next(int narg, char **arg)
       fprintf(fp,"%d\n",nextindex+1);
       //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
+      fp = NULL;
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
       if (universe->uscreen)
         fprintf(universe->uscreen,
@@ -587,27 +704,135 @@ int Variable::next(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   search for name in list of variables names
+   return index or -1 if not found
+------------------------------------------------------------------------- */
+
+int Variable::find(char *name)
+{
+  if(name==NULL) return -1;
+  for (int i = 0; i < nvar; i++)
+    if (strcmp(name,names[i]) == 0) return i;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values in all VarReaders via fix STORE
+   called when atom is created
+------------------------------------------------------------------------- */
+
+void Variable::set_arrays(int i)
+{
+  for (int i = 0; i < nvar; i++)
+    if (reader[i] && style[i] == ATOMFILE)
+      reader[i]->fixstore->vstore[i] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   called by python command in input script
+   simply pass input script line args to Python class
+------------------------------------------------------------------------- */
+
+void Variable::python_command(int narg, char **arg)
+{
+  if (!python->python_exists)
+    error->all(FLERR,"LAMMPS is not built with Python embedded");
+  python->command(narg,arg);
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if variable is EQUAL or INTERNAL or PYTHON numeric style, 0 if not
+   this is checked before call to compute_equal() to return a double
+------------------------------------------------------------------------- */
+
+int Variable::equalstyle(int ivar)
+{
+  if (style[ivar] == EQUAL || style[ivar] == INTERNAL) return 1;
+  if (style[ivar] == PYTHON) {
+    int ifunc = python->variable_match(data[ivar][0],names[ivar],1);
+    if (ifunc < 0) return 0;
+    else return 1;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if variable is ATOM or ATOMFILE style, 0 if not
+   this is checked before call to compute_atom() to return a vector of doubles
+------------------------------------------------------------------------- */
+
+int Variable::atomstyle(int ivar)
+{
+  if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if variable is VECTOR style, 0 if not
+   this is checked before call to compute_vector() to return a vector of doubles
+------------------------------------------------------------------------- */
+
+int Variable::vectorstyle(int ivar)
+{
+  if (style[ivar] == VECTOR) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   check if variable with name is PYTHON and matches funcname
+   called by Python class before it invokes a Python function
+   return data storage so Python function can return a value for this variable
+   return NULL if not a match
+------------------------------------------------------------------------- */
+
+char *Variable::pythonstyle(char *name, char *funcname)
+{
+  int ivar = find(name);
+  if (ivar < 0) return NULL;
+  if (style[ivar] != PYTHON) return NULL;
+  if (strcmp(data[ivar][0],funcname) != 0) return NULL;
+  return data[ivar][1];
+}
+
+/* ----------------------------------------------------------------------
+   return 1 if variable is INTERNAL style, 0 if not
+   this is checked before call to set_internal() to assure it can be set
+------------------------------------------------------------------------- */
+
+int Variable::internalstyle(int ivar)
+{
+  if (style[ivar] == INTERNAL) return 1;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    return ptr to the data text associated with a variable
-   if INDEX or WORLD or UNIVERSE or STRING or SCALARFILE var, 
+   if INDEX or WORLD or UNIVERSE or STRING or SCALARFILE,
      return ptr to stored string
-   if LOOP or ULOOP var, write int to data[0] and return ptr to string
-   if EQUAL var, evaluate variable and put result in str
-   if FORMAT var, evaluate its variable and put formatted result in str
-   if GETENV var, query environment and put result in str
-   if ATOM or ATOMFILE var, return NULL
-   return NULL if no variable with name or which value is bad,
+   if LOOP or ULOOP, write int to data[0] and return ptr to string
+   if EQUAL, evaluate variable and put result in str
+   if FORMAT, evaluate its variable and put formatted result in str
+   if GETENV, query environment and put result in str
+   if PYTHON, evaluate Python function, it will put result in str
+   if INTERNAL, convert dvalue and put result in str
+   if ATOM or ATOMFILE or VECTOR, return NULL
+   return NULL if no variable with name, or which value is bad,
      caller must respond
 ------------------------------------------------------------------------- */
 
 char *Variable::retrieve(char *name)
 {
   int ivar = find(name);
-  if (ivar == -1) return NULL;
+  if (ivar < 0) return NULL;
   if (which[ivar] >= num[ivar]) return NULL;
 
-  char *str;
+  if (eval_in_progress[ivar])
+    error->all(FLERR,"Variable has circular dependency");
+  eval_in_progress[ivar] = 1;
+
+  char *str = NULL;
   if (style[ivar] == INDEX || style[ivar] == WORLD ||
-      style[ivar] == UNIVERSE || style[ivar] == STRING || 
+      style[ivar] == UNIVERSE || style[ivar] == STRING ||
       style[ivar] == SCALARFILE) {
     str = data[ivar][which[ivar]];
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
@@ -631,7 +856,7 @@ char *Variable::retrieve(char *name)
     int jvar = find(data[ivar][0]);
     if (jvar == -1) return NULL;
     if (!equalstyle(jvar)) return NULL;
-    double answer = evaluate(data[jvar][0],NULL);
+    double answer = compute_equal(jvar);
     sprintf(data[ivar][2],data[ivar][1],answer);
     str = data[ivar][2];
   } else if (style[ivar] == GETENV) {
@@ -644,22 +869,45 @@ char *Variable::retrieve(char *name)
     }
     strcpy(data[ivar][1],result);
     str = data[ivar][1];
-  } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return NULL;
+  } else if (style[ivar] == PYTHON) {
+    int ifunc = python->variable_match(data[ivar][0],names[ivar],0);
+    if (ifunc < 0)
+      error->all(FLERR,"Python variable does not match Python function");
+    python->invoke_function(ifunc,data[ivar][1]);
+    str = data[ivar][1];
+  } else if (style[ivar] == INTERNAL) {
+    sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
+    str = data[ivar][0];
+  } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
+	     style[ivar] == VECTOR) return NULL;
+  
+  eval_in_progress[ivar] = 0;
 
   return str;
 }
 
 /* ----------------------------------------------------------------------
    return result of equal-style variable evaluation
+   can be EQUAL or INTERNAL style or PYTHON numeric style
+   for PYTHON, don't need to check python->variable_match() error return,
+     since caller will have already checked via equalstyle()
 ------------------------------------------------------------------------- */
 
 double Variable::compute_equal(int ivar)
 {
-  if (eval_in_progress[ivar]) 
+  if (eval_in_progress[ivar])
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
-  double value = evaluate(data[ivar][0],NULL);
+  double value = 0.0;
+  if (style[ivar] == EQUAL) value = evaluate(data[ivar][0],NULL);
+  else if (style[ivar] == INTERNAL) value = dvalue[ivar];
+  else if (style[ivar] == PYTHON) {
+    int ifunc = python->find(data[ivar][0]);
+    if (ifunc < 0) error->all(FLERR,"Python variable has no function");
+    python->invoke_function(ifunc,data[ivar][1]);
+    value = atof(data[ivar][1]);
+  }
 
   eval_in_progress[ivar] = 0;
   return value;
@@ -668,6 +916,7 @@ double Variable::compute_equal(int ivar)
 /* ----------------------------------------------------------------------
    return result of immediate equal-style variable evaluation
    called from Input::substitute()
+   don't need to flag eval_in_progress since is an immediate variable
 ------------------------------------------------------------------------- */
 
 double Variable::compute_equal(char *str)
@@ -687,15 +936,21 @@ void Variable::compute_atom(int ivar, int igroup,
 {
   Tree *tree;
   double *vstore;
-  
-  if (eval_in_progress[ivar]) 
+
+  if (eval_in_progress[ivar])
     error->all(FLERR,"Variable has circular dependency");
   eval_in_progress[ivar] = 1;
 
   if (style[ivar] == ATOM) {
+    treetype = ATOM;
     evaluate(data[ivar][0],&tree);
     collapse_tree(tree);
-  } else vstore = reader[ivar]->fix->vstore;
+  } else vstore = reader[ivar]->fixstore->vstore;
+
+  if (result == NULL) {
+    eval_in_progress[ivar] = 0;
+    return;
+  }
 
   int groupbit = group->bitmask[igroup];
   int *mask = atom->mask;
@@ -737,79 +992,65 @@ void Variable::compute_atom(int ivar, int igroup,
   }
 
   if (style[ivar] == ATOM) free_tree(tree);
-
   eval_in_progress[ivar] = 0;
 }
 
 /* ----------------------------------------------------------------------
-   search for name in list of variables names
-   return index or -1 if not found
+   compute result of vector-style variable evaluation
+   return length of vector and result pointer to vector values
+     if length == 0 or -1 (mismatch), generate an error
+   if variable already computed on this timestep, just return
+   else evaulate the formula and its length, store results in VecVar entry
 ------------------------------------------------------------------------- */
 
-int Variable::find(char *name)
+int Variable::compute_vector(int ivar, double **result)
 {
-  for (int i = 0; i < nvar; i++)
-    if (strcmp(name,names[i]) == 0) return i;
-  return -1;
+  Tree *tree;
+  if (vecs[ivar].currentstep == update->ntimestep) {
+    *result = vecs[ivar].values;
+    return vecs[ivar].n;
+  }
+
+  if (eval_in_progress[ivar])
+    error->all(FLERR,"Variable has circular dependency");
+  eval_in_progress[ivar] = 1;
+
+  treetype = VECTOR;
+  evaluate(data[ivar][0],&tree);
+  collapse_tree(tree);
+  int nlen = size_tree_vector(tree);
+  if (nlen == 0) error->all(FLERR,"Vector-style variable has zero length");
+  if (nlen < 0) error->all(FLERR,
+                           "Inconsistent lengths in vector-style variable");
+
+  // (re)allocate space for results if necessary
+
+  if (nlen > vecs[ivar].nmax) {
+    memory->destroy(vecs[ivar].values);
+    vecs[ivar].nmax = nlen;
+    memory->create(vecs[ivar].values,vecs[ivar].nmax,"variable:values");
+  }
+
+  vecs[ivar].n = nlen;
+  vecs[ivar].currentstep = update->ntimestep;
+  double *vec = vecs[ivar].values;
+  for (int i = 0; i < nlen; i++)
+    vec[i] = eval_tree(tree,i);
+
+  free_tree(tree);
+  eval_in_progress[ivar] = 0;
+
+  *result = vec;
+  return nlen;
 }
 
 /* ----------------------------------------------------------------------
-   return 1 if variable is EQUAL style, 0 if not
+   set value stored by INTERNAL style ivar
 ------------------------------------------------------------------------- */
 
-int Variable::equalstyle(int ivar)
+void Variable::internal_set(int ivar, double value)
 {
-  if (style[ivar] == EQUAL) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   return 1 if variable is ATOM or ATOMFILE style, 0 if not
-------------------------------------------------------------------------- */
-
-int Variable::atomstyle(int ivar)
-{
-  if (style[ivar] == ATOM || style[ivar] == ATOMFILE) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   save copy of EQUAL style ivar formula in copy
-   allocate copy here, later equal_restore() call will free it
-   insure data[ivar][0] is of VALUELENGTH since will be overridden
-------------------------------------------------------------------------- */
-
-void Variable::equal_save(int ivar, char *&copy)
-{
-  int n = strlen(data[ivar][0]) + 1;
-  copy = new char[n];
-  strcpy(copy,data[ivar][0]);
-  delete [] data[ivar][0];
-  data[ivar][0] = new char[VALUELENGTH];
-}
-
-/* ----------------------------------------------------------------------
-   restore formula string of EQUAL style ivar from copy
-   then free copy, allocated in equal_save()
-------------------------------------------------------------------------- */
-
-void Variable::equal_restore(int ivar, char *copy)
-{
-  delete [] data[ivar][0];
-  int n = strlen(copy) + 1;
-  data[ivar][0] = new char[n];
-  strcpy(data[ivar][0],copy);
-  delete [] copy;
-}
-
-/* ----------------------------------------------------------------------
-   override EQUAL style ivar formula with value converted to string
-   data[ivar][0] was set to length 64 in equal_save()
-------------------------------------------------------------------------- */
-
-void Variable::equal_override(int ivar, double value)
-{
-  sprintf(data[ivar][0],"%.15g",value);
+  dvalue[ivar] = value;
 }
 
 /* ----------------------------------------------------------------------
@@ -851,11 +1092,19 @@ void Variable::grow()
   memory->grow(which,maxvar,"var:which");
   memory->grow(pad,maxvar,"var:pad");
 
-  reader = (VarReader **) 
+  reader = (VarReader **)
     memory->srealloc(reader,maxvar*sizeof(VarReader *),"var:reader");
   for (int i = old; i < maxvar; i++) reader[i] = NULL;
 
   data = (char ***) memory->srealloc(data,maxvar*sizeof(char **),"var:data");
+  memory->grow(dvalue,maxvar,"var:dvalue");
+
+  vecs = (VecVar *) memory->srealloc(vecs,maxvar*sizeof(VecVar),"var:vecvar");
+  for (int i = old; i < maxvar; i++) {
+    vecs[i].nmax = 0;
+    vecs[i].currentstep = -1;
+    vecs[i].values = NULL;
+  }
 
   memory->grow(eval_in_progress,maxvar,"var:eval_in_progress");
   for (int i = 0; i < maxvar; i++) eval_in_progress[i] = 0;
@@ -877,9 +1126,10 @@ void Variable::copy(int narg, char **from, char **to)
 
 /* ----------------------------------------------------------------------
    recursive evaluation of a string str
-   str is an equal-style or atom-style formula containing one or more items:
+   str is an equal-style or atom-style or vector-style formula
+     containing one or more items:
      number = 0.0, -5.45, 2.8e-4, ...
-     constant = PI
+     constant = PI, version, yes, no, on, off
      thermo keyword = ke, vol, atoms, ...
      math operation = (),-x,x+y,x-y,x*y,x/y,x^y,
                       x==y,x!=y,x<y,x<=y,x>y,x>=y,x&&y,x||y,
@@ -894,7 +1144,7 @@ void Variable::copy(int narg, char **from, char **to)
      variable = v_name, v_name[i]
    equal-style variables passes in tree = NULL:
      evaluate the formula, return result as a double
-   atom-style variable passes in tree = non-NULL:
+   atom-style and vector-style variables pass in tree = non-NULL:
      parse the formula but do not evaluate it
      create a parse tree and return it
 ------------------------------------------------------------------------- */
@@ -973,7 +1223,8 @@ double Variable::evaluate(char *str, Tree **tree)
         Tree *newtree = new Tree();
         newtree->type = VALUE;
         newtree->value = atof(number);
-        newtree->left = newtree->middle = newtree->right = NULL;
+        newtree->first = newtree->second = NULL;
+        newtree->extra = 0;
         treestack[ntreestack++] = newtree;
       } else argstack[nargstack++] = atof(number);
 
@@ -1004,27 +1255,29 @@ double Variable::evaluate(char *str, Tree **tree)
       // compute
       // ----------------
 
-      if (strncmp(word,"c_",2) == 0) {
+      if (strncmp(word,"c_",2) == 0 || strncmp(word,"C_",2) == 0) {
         if (domain->box_exist == 0)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
 
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
+	// uppercase used to force access of 
+	// global vector vs global scalar, and global array vs global vector
 
-        int icompute = modify->find_compute(id);
-        if (icompute < 0) 
+	int lowercase = 1;
+	if (word[0] == 'C') lowercase = 0;
+
+        int icompute = modify->find_compute(word+2);
+        if (icompute < 0)
           error->all(FLERR,"Invalid compute ID in variable formula");
         Compute *compute = modify->compute[icompute];
-        delete [] id;
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
         // nbracket = # of bracket pairs
-        // index1,index2 = int inside each bracket pair
+        // index1,index2 = int inside each bracket pair, possibly an atom ID
 
-        int nbracket,index1,index2;
+        int nbracket;
+        tagint index1,index2;
         if (str[i] != '[') nbracket = 0;
         else {
           nbracket = 1;
@@ -1039,9 +1292,9 @@ double Variable::evaluate(char *str, Tree **tree)
           }
         }
 
-        // c_ID = scalar from global scalar
+        // c_ID = scalar from global scalar, must be lowercase
 
-        if (nbracket == 0 && compute->scalar_flag) {
+        if (nbracket == 0 && compute->scalar_flag && lowercase) {
 
           if (update->whichflag == 0) {
             if (compute->invoked_scalar != update->ntimestep)
@@ -1057,15 +1310,17 @@ double Variable::evaluate(char *str, Tree **tree)
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // c_ID[i] = scalar from global vector
+        // c_ID[i] = scalar from global vector, must be lowercase
 
-        } else if (nbracket == 1 && compute->vector_flag) {
+        } else if (nbracket == 1 && compute->vector_flag && lowercase) {
 
-          if (index1 > compute->size_vector)
+          if (index1 > compute->size_vector &&
+              compute->size_vector_variable == 0)
             error->all(FLERR,"Variable formula compute vector "
                        "is accessed out-of-range");
           if (update->whichflag == 0) {
@@ -1077,20 +1332,24 @@ double Variable::evaluate(char *str, Tree **tree)
             compute->invoked_flag |= INVOKED_VECTOR;
           }
 
-          value1 = compute->vector[index1-1];
+          if (compute->size_vector_variable &&
+              index1 > compute->size_vector) value1 = 0.0;
+          else value1 = compute->vector[index1-1];
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // c_ID[i][j] = scalar from global array
+        // c_ID[i][j] = scalar from global array, must be lowercase
 
-        } else if (nbracket == 2 && compute->array_flag) {
+        } else if (nbracket == 2 && compute->array_flag && lowercase) {
 
-          if (index1 > compute->size_array_rows)
+          if (index1 > compute->size_array_rows &&
+              compute->size_array_rows_variable == 0)
             error->all(FLERR,"Variable formula compute array "
                        "is accessed out-of-range");
           if (index2 > compute->size_array_cols)
@@ -1105,14 +1364,79 @@ double Variable::evaluate(char *str, Tree **tree)
             compute->invoked_flag |= INVOKED_ARRAY;
           }
 
-          value1 = compute->array[index1-1][index2-1];
+          if (compute->size_array_rows_variable &&
+              index1 > compute->size_array_rows) value1 = 0.0;
+          else value1 = compute->array[index1-1][index2-1];
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
+
+        // c_ID = vector from global vector, lowercase or uppercase
+	
+        } else if (nbracket == 0 && compute->vector_flag) {
+
+          if (tree == NULL)
+            error->all(FLERR,
+                       "Compute global vector in equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,
+                       "Compute global vector in atom-style variable formula");
+	  if (compute->size_vector == 0) 
+            error->all(FLERR,"Variable formula compute vector is zero length");
+          if (update->whichflag == 0) {
+            if (compute->invoked_vector != update->ntimestep)
+              error->all(FLERR,"Compute used in variable between runs "
+                         "is not current");
+          } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+            compute->compute_vector();
+            compute->invoked_flag |= INVOKED_VECTOR;
+          }
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = compute->vector;
+	  newtree->nvector = compute->size_vector;
+          newtree->nstride = 1;
+          newtree->selfalloc = 0;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
+
+        // c_ID[i] = vector from global array, lowercase or uppercase
+	
+        } else if (nbracket == 1 && compute->array_flag) {
+
+          if (tree == NULL)
+            error->all(FLERR,
+                       "Compute global vector in equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,
+                       "Compute global vector in atom-style variable formula");
+	  if (compute->size_array_rows == 0) 
+            error->all(FLERR,"Variable formula compute array is zero length");
+          if (update->whichflag == 0) {
+            if (compute->invoked_array != update->ntimestep)
+              error->all(FLERR,"Compute used in variable between runs "
+                         "is not current");
+          } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+            compute->compute_array();
+            compute->invoked_flag |= INVOKED_ARRAY;
+          }
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = &compute->array[0][index1-1];
+	  newtree->nvector = compute->size_array_rows;
+          newtree->nstride = compute->size_array_cols;
+          newtree->selfalloc = 0;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
 
         // c_ID[i] = scalar from per-atom vector
 
@@ -1165,6 +1489,9 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,
                        "Per-atom compute in equal-style variable formula");
+          if (treetype == VECTOR)
+            error->all(FLERR,
+                       "Per-atom compute in vector-style variable formula");
           if (update->whichflag == 0) {
             if (compute->invoked_peratom != update->ntimestep)
               error->all(FLERR,"Compute used in variable between runs "
@@ -1179,7 +1506,8 @@ double Variable::evaluate(char *str, Tree **tree)
           newtree->array = compute->vector_atom;
           newtree->nstride = 1;
           newtree->selfalloc = 0;
-          newtree->left = newtree->middle = newtree->right = NULL;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
           treestack[ntreestack++] = newtree;
 
         // c_ID[i] = vector from per-atom array
@@ -1190,6 +1518,9 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,
                        "Per-atom compute in equal-style variable formula");
+          if (treetype == VECTOR)
+            error->all(FLERR,
+                       "Per-atom compute in vector-style variable formula");
           if (index1 > compute->size_peratom_cols)
             error->all(FLERR,"Variable formula compute array "
                        "is accessed out-of-range");
@@ -1210,7 +1541,8 @@ double Variable::evaluate(char *str, Tree **tree)
             newtree->array = NULL;
           newtree->nstride = compute->size_peratom_cols;
           newtree->selfalloc = 0;
-          newtree->left = newtree->middle = newtree->right = NULL;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
           treestack[ntreestack++] = newtree;
 
         } else error->all(FLERR,"Mismatched compute in variable formula");
@@ -1219,26 +1551,28 @@ double Variable::evaluate(char *str, Tree **tree)
       // fix
       // ----------------
 
-      } else if (strncmp(word,"f_",2) == 0) {
+      } else if (strncmp(word,"f_",2) == 0 || strncmp(word,"F_",2) == 0) {
         if (domain->box_exist == 0)
           error->all(FLERR,
                      "Variable evaluation before simulation box is defined");
 
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
+	// uppercase used to force access of 
+	// global vector vs global scalar, and global array vs global vector
 
-        int ifix = modify->find_fix(id);
+	int lowercase = 1;
+	if (word[0] == 'F') lowercase = 0;
+
+        int ifix = modify->find_fix(word+2);
         if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
         Fix *fix = modify->fix[ifix];
-        delete [] id;
 
         // parse zero or one or two trailing brackets
         // point i beyond last bracket
         // nbracket = # of bracket pairs
-        // index1,index2 = int inside each bracket pair
+        // index1,index2 = int inside each bracket pair, possibly an atom ID
 
-        int nbracket,index1,index2;
+        int nbracket;
+        tagint index1,index2;
         if (str[i] != '[') nbracket = 0;
         else {
           nbracket = 1;
@@ -1253,9 +1587,9 @@ double Variable::evaluate(char *str, Tree **tree)
           }
         }
 
-        // f_ID = scalar from global scalar
+        // f_ID = scalar from global scalar, must be lowercase
 
-        if (nbracket == 0 && fix->scalar_flag) {
+        if (nbracket == 0 && fix->scalar_flag && lowercase) {
 
           if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
             error->all(FLERR,"Fix in variable not computed at compatible time");
@@ -1265,17 +1599,19 @@ double Variable::evaluate(char *str, Tree **tree)
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // f_ID[i] = scalar from global vector
+        // f_ID[i] = scalar from global vector, must be lowercase
 
-        } else if (nbracket == 1 && fix->vector_flag) {
+        } else if (nbracket == 1 && fix->vector_flag && lowercase) {
 
-          if (index1 > fix->size_vector)
-            error->all(FLERR,
-                       "Variable formula fix vector is accessed out-of-range");
+          if (index1 > fix->size_vector &&
+              fix->size_vector_variable == 0)
+            error->all(FLERR,"Variable formula fix vector is "
+                       "accessed out-of-range");
           if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
             error->all(FLERR,"Fix in variable not computed at compatible time");
 
@@ -1284,15 +1620,17 @@ double Variable::evaluate(char *str, Tree **tree)
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
-        // f_ID[i][j] = scalar from global array
+        // f_ID[i][j] = scalar from global array, must be lowercase
 
-        } else if (nbracket == 2 && fix->array_flag) {
+        } else if (nbracket == 2 && fix->array_flag && lowercase) {
 
-          if (index1 > fix->size_array_rows)
+          if (index1 > fix->size_array_rows &&
+              fix->size_array_rows_variable == 0)
             error->all(FLERR,
                        "Variable formula fix array is accessed out-of-range");
           if (index2 > fix->size_array_cols)
@@ -1306,9 +1644,72 @@ double Variable::evaluate(char *str, Tree **tree)
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
+
+        // f_ID = vector from global vector, lowercase or uppercase
+
+        } else if (nbracket == 0 && fix->vector_flag) {
+
+          if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+            error->all(FLERR,"Fix in variable not computed at compatible time");
+          if (tree == NULL)
+            error->all(FLERR,"Fix global vector in "
+                       "equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,"Fix global vector in "
+                       "atom-style variable formula");
+	  if (fix->size_vector == 0) 
+            error->all(FLERR,"Variable formula fix vector is zero length");
+
+	  int nvec = fix->size_vector;
+	  double *vec;
+	  memory->create(vec,nvec,"variable:values");
+	  for (int m = 0; m < nvec; m++)
+	    vec[m] = fix->compute_vector(m);
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = vec;
+	  newtree->nvector = nvec;
+          newtree->nstride = 1;
+          newtree->selfalloc = 1;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
+
+        // f_ID[i] = vector from global array, lowercase or uppercase
+
+        } else if (nbracket == 1 && fix->array_flag) {
+
+          if (update->whichflag > 0 && update->ntimestep % fix->global_freq)
+            error->all(FLERR,"Fix in variable not computed at compatible time");
+          if (tree == NULL)
+            error->all(FLERR,"Fix global vector in "
+                       "equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,"Fix global vector in "
+                       "atom-style variable formula");
+	  if (fix->size_array_rows == 0) 
+            error->all(FLERR,"Variable formula fix array is zero length");
+
+	  int nvec = fix->size_array_rows;
+	  double *vec;
+	  memory->create(vec,nvec,"variable:values");
+	  for (int m = 0; m < nvec; m++)
+	    vec[m] = fix->compute_array(m,index1-1);
+
+          Tree *newtree = new Tree();
+          newtree->type = VECTORARRAY;
+          newtree->array = vec;
+	  newtree->nvector = nvec;
+          newtree->nstride = 1;
+          newtree->selfalloc = 1;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
+          treestack[ntreestack++] = newtree;
 
         // f_ID[i] = scalar from per-atom vector
 
@@ -1360,7 +1761,8 @@ double Variable::evaluate(char *str, Tree **tree)
           newtree->array = fix->vector_atom;
           newtree->nstride = 1;
           newtree->selfalloc = 0;
-          newtree->left = newtree->middle = newtree->right = NULL;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
           treestack[ntreestack++] = newtree;
 
         // f_ID[i] = vector from per-atom array
@@ -1385,7 +1787,8 @@ double Variable::evaluate(char *str, Tree **tree)
             newtree->array = NULL;
           newtree->nstride = fix->size_peratom_cols;
           newtree->selfalloc = 0;
-          newtree->left = newtree->middle = newtree->right = NULL;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
           treestack[ntreestack++] = newtree;
 
         } else error->all(FLERR,"Mismatched fix in variable formula");
@@ -1395,11 +1798,8 @@ double Variable::evaluate(char *str, Tree **tree)
       // ----------------
 
       } else if (strncmp(word,"v_",2) == 0) {
-        n = strlen(word) - 2 + 1;
-        char *id = new char[n];
-        strcpy(id,&word[2]);
 
-        int ivar = find(id);
+        int ivar = find(word+2);
         if (ivar < 0)
           error->all(FLERR,"Invalid variable name in variable formula");
         if (eval_in_progress[ivar])
@@ -1408,9 +1808,10 @@ double Variable::evaluate(char *str, Tree **tree)
         // parse zero or one trailing brackets
         // point i beyond last bracket
         // nbracket = # of bracket pairs
-        // index = int inside bracket
+        // index = int inside bracket, possibly an atom ID
 
-        int nbracket,index;
+        int nbracket;
+        tagint index;
         if (str[i] != '[') nbracket = 0;
         else {
           nbracket = 1;
@@ -1419,18 +1820,36 @@ double Variable::evaluate(char *str, Tree **tree)
           i = ptr-str+1;
         }
 
-        // v_name = scalar from non atom/atomfile variable
+        // v_name = scalar from internal-style variable
+        // access value directly
 
-        if (nbracket == 0 && style[ivar] != ATOM && style[ivar] != ATOMFILE) {
+        if (nbracket == 0 && style[ivar] == INTERNAL) {
 
-          char *var = retrieve(id);
+          value1 = dvalue[ivar];
+          if (tree) {
+            Tree *newtree = new Tree();
+            newtree->type = VALUE;
+            newtree->value = value1;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
+            treestack[ntreestack++] = newtree;
+          } else argstack[nargstack++] = value1;
+
+        // v_name = scalar from non atom/atomfile & non vector-style variable
+        // access value via retrieve()
+
+        } else if (nbracket == 0 && style[ivar] != ATOM && 
+                   style[ivar] != ATOMFILE && style[ivar] != VECTOR) {
+
+          char *var = retrieve(word+2);
           if (var == NULL)
             error->all(FLERR,"Invalid variable evaluation in variable formula");
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = atof(var);
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = atof(var);
 
@@ -1442,6 +1861,10 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,
                        "Atom-style variable in equal-style variable formula");
+	  if (treetype == VECTOR)
+            error->all(FLERR,
+                       "Atom-style variable in vector-style variable formula");
+
           Tree *newtree;
           evaluate(data[ivar][0],&newtree);
           treestack[ntreestack++] = newtree;
@@ -1453,13 +1876,43 @@ double Variable::evaluate(char *str, Tree **tree)
           if (tree == NULL)
             error->all(FLERR,"Atomfile-style variable in "
                        "equal-style variable formula");
+	  if (treetype == VECTOR)
+            error->all(FLERR,"Atomfile-style variable in "
+                       "vector-style variable formula");
+
           Tree *newtree = new Tree();
           newtree->type = ATOMARRAY;
-          newtree->array = reader[ivar]->fix->vstore;
+          newtree->array = reader[ivar]->fixstore->vstore;
           newtree->nstride = 1;
           newtree->selfalloc = 0;
-          newtree->left = newtree->middle = newtree->right = NULL;
+          newtree->first = newtree->second = NULL;
+          newtree->nextra = 0;
           treestack[ntreestack++] = newtree;
+
+        // v_name = vector from vector-style variable
+        // evaluate the vector-style variable, put result in newtree
+
+	} else if (nbracket == 0 && style[ivar] == VECTOR) {
+
+          if (tree == NULL)
+            error->all(FLERR,
+                       "Vector-style variable in equal-style variable formula");
+          if (treetype == ATOM)
+            error->all(FLERR,
+                       "Vector-style variable in atom-style variable formula");
+
+	  double *vec;
+	  int nvec = compute_vector(ivar,&vec);
+
+	  Tree *newtree = new Tree();
+	  newtree->type = VECTORARRAY;
+	  newtree->array = vec;
+	  newtree->nvector = nvec;
+	  newtree->nstride = 1;
+	  newtree->selfalloc = 0;
+	  newtree->first = newtree->second = NULL;
+	  newtree->nextra = 0;
+	  treestack[ntreestack++] = newtree;
 
         // v_name[N] = scalar from atom-style variable
         // compute the per-atom variable in result
@@ -1478,12 +1931,30 @@ double Variable::evaluate(char *str, Tree **tree)
 
         } else if (nbracket && style[ivar] == ATOMFILE) {
 
-          peratom2global(1,NULL,reader[ivar]->fix->vstore,1,index,
+          peratom2global(1,NULL,reader[ivar]->fixstore->vstore,1,index,
                          tree,treestack,ntreestack,argstack,nargstack);
 
-        } else error->all(FLERR,"Mismatched variable in variable formula");
+        // v_name[N] = scalar from vector-style variable
+        // compute the vector-style variable, extract single value
 
-        delete [] id;
+        } else if (nbracket && style[ivar] == VECTOR) {
+
+	  double *vec;
+	  int nvec = compute_vector(ivar,&vec);
+	  if (index <= 0 || index > nvec)
+	    error->all(FLERR,"Invalid index into vector-style variable");
+	  int m = index;   // convert from tagint to int
+
+          if (tree) {
+            Tree *newtree = new Tree();
+            newtree->type = VALUE;
+            newtree->value = vec[m-1];
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
+            treestack[ntreestack++] = newtree;
+          } else argstack[nargstack++] = vec[m-1];
+
+        } else error->all(FLERR,"Mismatched variable in variable formula");
 
       // ----------------
       // math/group/special function or atom value/vector or
@@ -1521,7 +1992,7 @@ double Variable::evaluate(char *str, Tree **tree)
                        "Variable evaluation before simulation box is defined");
 
           ptr = &str[i];
-          int id = int_between_brackets(ptr,1);
+          tagint id = int_between_brackets(ptr,1);
           i = ptr-str+1;
 
           peratom2global(0,word,NULL,0,id,
@@ -1548,7 +2019,8 @@ double Variable::evaluate(char *str, Tree **tree)
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
 
@@ -1568,7 +2040,8 @@ double Variable::evaluate(char *str, Tree **tree)
             Tree *newtree = new Tree();
             newtree->type = VALUE;
             newtree->value = value1;
-            newtree->left = newtree->middle = newtree->right = NULL;
+            newtree->first = newtree->second = NULL;
+            newtree->nextra = 0;
             treestack[ntreestack++] = newtree;
           } else argstack[nargstack++] = value1;
         }
@@ -1615,9 +2088,9 @@ double Variable::evaluate(char *str, Tree **tree)
         op = AND;
         i++;
       } else if (onechar == '|') {
-        if (str[i+1] != '|')
-          error->all(FLERR,"Invalid syntax in variable formula");
-        op = OR;
+        if (str[i+1] == '|') op = OR;
+        else if (str[i+1] == '^') op = XOR;
+        else error->all(FLERR,"Invalid syntax in variable formula");
         i++;
       } else op = DONE;
 
@@ -1645,12 +2118,13 @@ double Variable::evaluate(char *str, Tree **tree)
           Tree *newtree = new Tree();
           newtree->type = opprevious;
           if (opprevious == UNARY) {
-            newtree->left = treestack[--ntreestack];
-            newtree->middle = newtree->right = NULL;
+            newtree->first = treestack[--ntreestack];
+            newtree->second = NULL;
+            newtree->nextra = 0;
           } else {
-            newtree->right = treestack[--ntreestack];
-            newtree->middle = NULL;
-            newtree->left = treestack[--ntreestack];
+            newtree->second = treestack[--ntreestack];
+            newtree->first = treestack[--ntreestack];
+            newtree->nextra = 0;
           }
           treestack[ntreestack++] = newtree;
 
@@ -1706,6 +2180,10 @@ double Variable::evaluate(char *str, Tree **tree)
           } else if (opprevious == OR) {
             if (value1 != 0.0 || value2 != 0.0) argstack[nargstack++] = 1.0;
             else argstack[nargstack++] = 0.0;
+          } else if (opprevious == XOR) {
+            if ((value1 == 0.0 && value2 != 0.0) || 
+                (value1 != 0.0 && value2 == 0.0)) argstack[nargstack++] = 1.0;
+            else argstack[nargstack++] = 0.0;
           }
         }
       }
@@ -1738,16 +2216,16 @@ double Variable::evaluate(char *str, Tree **tree)
 
 /* ----------------------------------------------------------------------
    one-time collapse of an atom-style variable parse tree
-   tree was created by one-time parsing of formula string via evaulate()
-   only keep tree nodes that depend on 
-     ATOMARRAY, TYPEARRAY, INTARRAY, BIGINTARRAY
+   tree was created by one-time parsing of formula string via evaluate()
+   only keep tree nodes that depend on
+     ATOMARRAY, TYPEARRAY, INTARRAY, BIGINTARRAY, VECTOR
    remainder is converted to single VALUE
    this enables optimal eval_tree loop over atoms
    customize by adding a function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
-     ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
+     stride(x,y,z),vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
      gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
@@ -1760,38 +2238,39 @@ double Variable::collapse_tree(Tree *tree)
   if (tree->type == TYPEARRAY) return 0.0;
   if (tree->type == INTARRAY) return 0.0;
   if (tree->type == BIGINTARRAY) return 0.0;
+  if (tree->type == VECTORARRAY) return 0.0;
 
   if (tree->type == ADD) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = arg1 + arg2;
     return tree->value;
   }
 
   if (tree->type == SUBTRACT) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = arg1 - arg2;
     return tree->value;
   }
 
   if (tree->type == MULTIPLY) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = arg1 * arg2;
     return tree->value;
   }
 
   if (tree->type == DIVIDE) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg2 == 0.0) error->one(FLERR,"Divide by 0 in variable formula");
     tree->value = arg1 / arg2;
@@ -1799,9 +2278,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == MODULO) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg2 == 0.0) error->one(FLERR,"Modulo 0 in variable formula");
     tree->value = fmod(arg1,arg2);
@@ -1809,9 +2288,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == CARAT) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg2 == 0.0) error->one(FLERR,"Power by 0 in variable formula");
     tree->value = pow(arg1,arg2);
@@ -1819,16 +2298,16 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == UNARY) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = -arg1;
     return tree->value;
   }
 
   if (tree->type == NOT) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 == 0.0) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1836,9 +2315,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == EQ) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 == arg2) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1846,9 +2325,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == NE) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 != arg2) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1856,9 +2335,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == LT) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 < arg2) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1866,9 +2345,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == LE) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 <= arg2) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1876,9 +2355,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == GT) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 > arg2) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1886,9 +2365,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == GE) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 >= arg2) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1896,9 +2375,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == AND) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 != 0.0 && arg2 != 0.0) tree->value = 1.0;
     else tree->value = 0.0;
@@ -1906,18 +2385,29 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == OR) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 != 0.0 || arg2 != 0.0) tree->value = 1.0;
     else tree->value = 0.0;
     return tree->value;
   }
 
+  if (tree->type == XOR) {
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if ((arg1 == 0.0 && arg2 != 0.0) || (arg1 != 0.0 && arg2 == 0.0))
+      tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
   if (tree->type == SQRT) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 < 0.0)
       error->one(FLERR,"Sqrt of negative value in variable formula");
@@ -1926,16 +2416,16 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == EXP) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = exp(arg1);
     return tree->value;
   }
 
   if (tree->type == LN) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 <= 0.0)
       error->one(FLERR,"Log of zero/negative value in variable formula");
@@ -1944,8 +2434,8 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == LOG) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 <= 0.0)
       error->one(FLERR,"Log of zero/negative value in variable formula");
@@ -1954,40 +2444,40 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == ABS) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = fabs(arg1);
     return tree->value;
   }
 
   if (tree->type == SIN) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = sin(arg1);
     return tree->value;
   }
 
   if (tree->type == COS) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = cos(arg1);
     return tree->value;
   }
 
   if (tree->type == TAN) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = tan(arg1);
     return tree->value;
   }
 
   if (tree->type == ASIN) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 < -1.0 || arg1 > 1.0)
       error->one(FLERR,"Arcsin of invalid value in variable formula");
@@ -1996,8 +2486,8 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == ACOS) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 < -1.0 || arg1 > 1.0)
       error->one(FLERR,"Arccos of invalid value in variable formula");
@@ -2006,17 +2496,17 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == ATAN) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = atan(arg1);
     return tree->value;
   }
 
   if (tree->type == ATAN2) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = atan2(arg1,arg2);
     return tree->value;
@@ -2025,10 +2515,10 @@ double Variable::collapse_tree(Tree *tree)
   // random() or normal() do not become a single collapsed value
 
   if (tree->type == RANDOM) {
-    collapse_tree(tree->left);
-    collapse_tree(tree->middle);
+    collapse_tree(tree->first);
+    collapse_tree(tree->second);
     if (randomatom == NULL) {
-      int seed = static_cast<int> (collapse_tree(tree->right));
+      int seed = static_cast<int> (collapse_tree(tree->extra[0]));
       if (seed <= 0)
         error->one(FLERR,"Invalid math function in variable formula");
       randomatom = new RanMars(lmp,seed+me);
@@ -2037,12 +2527,12 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == NORMAL) {
-    collapse_tree(tree->left);
-    double sigma = collapse_tree(tree->middle);
+    collapse_tree(tree->first);
+    double sigma = collapse_tree(tree->second);
     if (sigma < 0.0)
       error->one(FLERR,"Invalid math function in variable formula");
     if (randomatom == NULL) {
-      int seed = static_cast<int> (collapse_tree(tree->right));
+      int seed = static_cast<int> (collapse_tree(tree->extra[0]));
       if (seed <= 0)
         error->one(FLERR,"Invalid math function in variable formula");
       randomatom = new RanMars(lmp,seed+me);
@@ -2051,33 +2541,33 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == CEIL) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = ceil(arg1);
     return tree->value;
   }
 
   if (tree->type == FLOOR) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = floor(arg1);
     return tree->value;
   }
 
   if (tree->type == ROUND) {
-    arg1 = collapse_tree(tree->left);
-    if (tree->left->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    if (tree->first->type != VALUE) return 0.0;
     tree->type = VALUE;
     tree->value = MYROUND(arg1);
     return tree->value;
   }
 
   if (tree->type == RAMP) {
-    arg1 = collapse_tree(tree->left);
-    arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     double delta = update->ntimestep - update->beginstep;
     if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -2086,9 +2576,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == STAGGER) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->left));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->right));
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue1 <= ivalue2)
       error->one(FLERR,"Invalid math function in variable formula");
@@ -2100,11 +2590,11 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == LOGFREQ) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->left));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->middle));
-    int ivalue3 = static_cast<int> (collapse_tree(tree->right));
-    if (tree->left->type != VALUE || tree->middle->type != VALUE ||
-        tree->right->type != VALUE) return 0.0;
+    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
       error->one(FLERR,"Invalid math function in variable formula");
@@ -2119,12 +2609,36 @@ double Variable::collapse_tree(Tree *tree)
     return tree->value;
   }
 
+  if (tree->type == LOGFREQ2) {
+    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (update->ntimestep < ivalue1) tree->value = ivalue1;
+    else {
+      tree->value = ivalue1;
+      double delta = ivalue1*(ivalue3-1.0)/ivalue2;
+      int count = 0;
+      while (update->ntimestep >= tree->value) {
+	tree->value += delta;
+	count++;
+	if (count % ivalue2 == 0) delta *= ivalue3;
+      }
+    }
+    tree->value = ceil(tree->value);
+    return tree->value;
+  }
+
   if (tree->type == STRIDE) {
-    int ivalue1 = static_cast<int> (collapse_tree(tree->left));
-    int ivalue2 = static_cast<int> (collapse_tree(tree->middle));
-    int ivalue3 = static_cast<int> (collapse_tree(tree->right));
-    if (tree->left->type != VALUE || tree->middle->type != VALUE ||
-        tree->right->type != VALUE) return 0.0;
+    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (ivalue1 < 0 || ivalue2 < 0 || ivalue3 <= 0 || ivalue1 > ivalue2)
       error->one(FLERR,"Invalid math function in variable formula");
@@ -2132,15 +2646,55 @@ double Variable::collapse_tree(Tree *tree)
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       tree->value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (tree->value > ivalue2) tree->value = 9.0e18;
-    } else tree->value = 9.0e18;
+      if (tree->value > ivalue2) tree->value = MAXBIGINT;
+    } else tree->value = MAXBIGINT;
+    return tree->value;
+  }
+
+  if (tree->type == STRIDE2) {
+    int ivalue1 = static_cast<int> (collapse_tree(tree->first));
+    int ivalue2 = static_cast<int> (collapse_tree(tree->second));
+    int ivalue3 = static_cast<int> (collapse_tree(tree->extra[0]));
+    int ivalue4 = static_cast<int> (collapse_tree(tree->extra[1]));
+    int ivalue5 = static_cast<int> (collapse_tree(tree->extra[2]));
+    int ivalue6 = static_cast<int> (collapse_tree(tree->extra[3]));
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE || tree->extra[1]->type != VALUE ||
+	tree->extra[2]->type != VALUE || tree->extra[3]->type != VALUE)
+      return 0.0;
+    tree->type = VALUE;
+    if (ivalue1 < 0 || ivalue2 < 0 || ivalue3 <= 0 || ivalue1 > ivalue2)
+      error->one(FLERR,"Invalid math function in variable formula");
+    if (ivalue4 < 0 || ivalue5 < 0 || ivalue6 <= 0 || ivalue4 > ivalue5)
+      error->one(FLERR,"Invalid math function in variable formula");
+    if (ivalue4 < ivalue1 || ivalue5 > ivalue2)
+      error->one(FLERR,"Invalid math function in variable formula");
+    bigint istep;
+    if (update->ntimestep < ivalue1) istep = ivalue1;
+    else if (update->ntimestep < ivalue2) {
+      if (update->ntimestep < ivalue4 || update->ntimestep > ivalue5) {
+        int offset = update->ntimestep - ivalue1;
+        istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
+        if (update->ntimestep < ivalue2 && istep > ivalue4)
+          tree->value = ivalue4;
+      } else {
+        int offset = update->ntimestep - ivalue4;
+        istep = ivalue4 + (offset/ivalue6)*ivalue6 + ivalue6;
+        if (istep > ivalue5) {
+          int offset = ivalue5 - ivalue1;
+          istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
+          if (istep > ivalue2) istep = MAXBIGINT;
+        }
+      }
+    } else istep = MAXBIGINT;
+    tree->value = istep;
     return tree->value;
   }
 
   if (tree->type == VDISPLACE) {
-    double arg1 = collapse_tree(tree->left);
-    double arg2 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->right->type != VALUE) return 0.0;
+    double arg1 = collapse_tree(tree->first);
+    double arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     double delta = update->ntimestep - update->beginstep;
     tree->value = arg1 + arg2*delta*update->dt;
@@ -2148,11 +2702,11 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == SWIGGLE) {
-    double arg1 = collapse_tree(tree->left);
-    double arg2 = collapse_tree(tree->middle);
-    double arg3 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->middle->type != VALUE ||
-        tree->right->type != VALUE) return 0.0;
+    double arg1 = collapse_tree(tree->first);
+    double arg2 = collapse_tree(tree->second);
+    double arg3 = collapse_tree(tree->extra[0]);
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
       error->one(FLERR,"Invalid math function in variable formula");
@@ -2163,11 +2717,11 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == CWIGGLE) {
-    double arg1 = collapse_tree(tree->left);
-    double arg2 = collapse_tree(tree->middle);
-    double arg3 = collapse_tree(tree->right);
-    if (tree->left->type != VALUE || tree->middle->type != VALUE ||
-        tree->right->type != VALUE) return 0.0;
+    double arg1 = collapse_tree(tree->first);
+    double arg2 = collapse_tree(tree->second);
+    double arg3 = collapse_tree(tree->extra[0]);
+    if (tree->first->type != VALUE || tree->second->type != VALUE ||
+        tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg3 == 0.0)
       error->one(FLERR,"Invalid math function in variable formula");
@@ -2187,14 +2741,15 @@ double Variable::collapse_tree(Tree *tree)
 }
 
 /* ----------------------------------------------------------------------
-   evaluate an atom-style variable parse tree for atom I
+   evaluate an atom-style or vector-style variable parse tree
+   index I = atom I or vector index I
    tree was created by one-time parsing of formula string via evaulate()
    customize by adding a function:
      sqrt(),exp(),ln(),log(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
-     ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z),
-     gmask(x),rmask(x),grmask(x,y)
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
+     stride(x,y,z),stride2(x,y,z),vdisplace(x,y),swiggle(x,y,z),
+     cwiggle(x,y,z),gmask(x),rmask(x),grmask(x,y)
 ---------------------------------------------------------------------- */
 
 double Variable::eval_tree(Tree *tree, int i)
@@ -2206,121 +2761,129 @@ double Variable::eval_tree(Tree *tree, int i)
   if (tree->type == TYPEARRAY) return tree->array[atom->type[i]];
   if (tree->type == INTARRAY) return (double) tree->iarray[i*tree->nstride];
   if (tree->type == BIGINTARRAY) return (double) tree->barray[i*tree->nstride];
+  if (tree->type == VECTORARRAY) return tree->array[i*tree->nstride];
 
   if (tree->type == ADD)
-    return eval_tree(tree->left,i) + eval_tree(tree->right,i);
+    return eval_tree(tree->first,i) + eval_tree(tree->second,i);
   if (tree->type == SUBTRACT)
-    return eval_tree(tree->left,i) - eval_tree(tree->right,i);
+    return eval_tree(tree->first,i) - eval_tree(tree->second,i);
   if (tree->type == MULTIPLY)
-    return eval_tree(tree->left,i) * eval_tree(tree->right,i);
+    return eval_tree(tree->first,i) * eval_tree(tree->second,i);
   if (tree->type == DIVIDE) {
-    double denom = eval_tree(tree->right,i);
+    double denom = eval_tree(tree->second,i);
     if (denom == 0.0) error->one(FLERR,"Divide by 0 in variable formula");
-    return eval_tree(tree->left,i) / denom;
+    return eval_tree(tree->first,i) / denom;
   }
   if (tree->type == MODULO) {
-    double denom = eval_tree(tree->right,i);
+    double denom = eval_tree(tree->second,i);
     if (denom == 0.0) error->one(FLERR,"Modulo 0 in variable formula");
-    return fmod(eval_tree(tree->left,i),denom);
+    return fmod(eval_tree(tree->first,i),denom);
   }
   if (tree->type == CARAT) {
-    double exponent = eval_tree(tree->right,i);
+    double exponent = eval_tree(tree->second,i);
     if (exponent == 0.0) error->one(FLERR,"Power by 0 in variable formula");
-    return pow(eval_tree(tree->left,i),exponent);
+    return pow(eval_tree(tree->first,i),exponent);
   }
-  if (tree->type == UNARY) return -eval_tree(tree->left,i);
+  if (tree->type == UNARY) return -eval_tree(tree->first,i);
 
   if (tree->type == NOT) {
-    if (eval_tree(tree->left,i) == 0.0) return 1.0;
+    if (eval_tree(tree->first,i) == 0.0) return 1.0;
     else return 0.0;
   }
   if (tree->type == EQ) {
-    if (eval_tree(tree->left,i) == eval_tree(tree->right,i)) return 1.0;
+    if (eval_tree(tree->first,i) == eval_tree(tree->second,i)) return 1.0;
     else return 0.0;
   }
   if (tree->type == NE) {
-    if (eval_tree(tree->left,i) != eval_tree(tree->right,i)) return 1.0;
+    if (eval_tree(tree->first,i) != eval_tree(tree->second,i)) return 1.0;
     else return 0.0;
   }
   if (tree->type == LT) {
-    if (eval_tree(tree->left,i) < eval_tree(tree->right,i)) return 1.0;
+    if (eval_tree(tree->first,i) < eval_tree(tree->second,i)) return 1.0;
     else return 0.0;
   }
   if (tree->type == LE) {
-    if (eval_tree(tree->left,i) <= eval_tree(tree->right,i)) return 1.0;
+    if (eval_tree(tree->first,i) <= eval_tree(tree->second,i)) return 1.0;
     else return 0.0;
   }
   if (tree->type == GT) {
-    if (eval_tree(tree->left,i) > eval_tree(tree->right,i)) return 1.0;
+    if (eval_tree(tree->first,i) > eval_tree(tree->second,i)) return 1.0;
     else return 0.0;
   }
   if (tree->type == GE) {
-    if (eval_tree(tree->left,i) >= eval_tree(tree->right,i)) return 1.0;
+    if (eval_tree(tree->first,i) >= eval_tree(tree->second,i)) return 1.0;
     else return 0.0;
   }
   if (tree->type == AND) {
-    if (eval_tree(tree->left,i) != 0.0 && eval_tree(tree->right,i) != 0.0)
+    if (eval_tree(tree->first,i) != 0.0 && eval_tree(tree->second,i) != 0.0)
       return 1.0;
     else return 0.0;
   }
   if (tree->type == OR) {
-    if (eval_tree(tree->left,i) != 0.0 || eval_tree(tree->right,i) != 0.0)
+    if (eval_tree(tree->first,i) != 0.0 || eval_tree(tree->second,i) != 0.0)
+      return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == XOR) {
+    if ((eval_tree(tree->first,i) == 0.0 && eval_tree(tree->second,i) != 0.0) 
+        ||
+        (eval_tree(tree->first,i) != 0.0 && eval_tree(tree->second,i) == 0.0))
       return 1.0;
     else return 0.0;
   }
 
   if (tree->type == SQRT) {
-    arg1 = eval_tree(tree->left,i);
+    arg1 = eval_tree(tree->first,i);
     if (arg1 < 0.0)
       error->one(FLERR,"Sqrt of negative value in variable formula");
     return sqrt(arg1);
   }
   if (tree->type == EXP)
-    return exp(eval_tree(tree->left,i));
+    return exp(eval_tree(tree->first,i));
   if (tree->type == LN) {
-    arg1 = eval_tree(tree->left,i);
+    arg1 = eval_tree(tree->first,i);
     if (arg1 <= 0.0)
       error->one(FLERR,"Log of zero/negative value in variable formula");
     return log(arg1);
   }
   if (tree->type == LOG) {
-    arg1 = eval_tree(tree->left,i);
+    arg1 = eval_tree(tree->first,i);
     if (arg1 <= 0.0)
       error->one(FLERR,"Log of zero/negative value in variable formula");
     return log10(arg1);
   }
   if (tree->type == ABS)
-    return fabs(eval_tree(tree->left,i));
+    return fabs(eval_tree(tree->first,i));
 
   if (tree->type == SIN)
-    return sin(eval_tree(tree->left,i));
+    return sin(eval_tree(tree->first,i));
   if (tree->type == COS)
-    return cos(eval_tree(tree->left,i));
+    return cos(eval_tree(tree->first,i));
   if (tree->type == TAN)
-    return tan(eval_tree(tree->left,i));
+    return tan(eval_tree(tree->first,i));
 
   if (tree->type == ASIN) {
-    arg1 = eval_tree(tree->left,i);
+    arg1 = eval_tree(tree->first,i);
     if (arg1 < -1.0 || arg1 > 1.0)
       error->one(FLERR,"Arcsin of invalid value in variable formula");
     return asin(arg1);
   }
   if (tree->type == ACOS) {
-    arg1 = eval_tree(tree->left,i);
+    arg1 = eval_tree(tree->first,i);
     if (arg1 < -1.0 || arg1 > 1.0)
       error->one(FLERR,"Arccos of invalid value in variable formula");
     return acos(arg1);
   }
   if (tree->type == ATAN)
-    return atan(eval_tree(tree->left,i));
+    return atan(eval_tree(tree->first,i));
   if (tree->type == ATAN2)
-    return atan2(eval_tree(tree->left,i),eval_tree(tree->right,i));
+    return atan2(eval_tree(tree->first,i),eval_tree(tree->second,i));
 
   if (tree->type == RANDOM) {
-    double lower = eval_tree(tree->left,i);
-    double upper = eval_tree(tree->middle,i);
+    double lower = eval_tree(tree->first,i);
+    double upper = eval_tree(tree->second,i);
     if (randomatom == NULL) {
-      int seed = static_cast<int> (eval_tree(tree->right,i));
+      int seed = static_cast<int> (eval_tree(tree->extra[0],i));
       if (seed <= 0)
         error->one(FLERR,"Invalid math function in variable formula");
       randomatom = new RanMars(lmp,seed+me);
@@ -2328,12 +2891,12 @@ double Variable::eval_tree(Tree *tree, int i)
     return randomatom->uniform()*(upper-lower)+lower;
   }
   if (tree->type == NORMAL) {
-    double mu = eval_tree(tree->left,i);
-    double sigma = eval_tree(tree->middle,i);
+    double mu = eval_tree(tree->first,i);
+    double sigma = eval_tree(tree->second,i);
     if (sigma < 0.0)
       error->one(FLERR,"Invalid math function in variable formula");
     if (randomatom == NULL) {
-      int seed = static_cast<int> (eval_tree(tree->right,i));
+      int seed = static_cast<int> (eval_tree(tree->extra[0],i));
       if (seed <= 0)
         error->one(FLERR,"Invalid math function in variable formula");
       randomatom = new RanMars(lmp,seed+me);
@@ -2342,15 +2905,15 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == CEIL)
-    return ceil(eval_tree(tree->left,i));
+    return ceil(eval_tree(tree->first,i));
   if (tree->type == FLOOR)
-    return floor(eval_tree(tree->left,i));
+    return floor(eval_tree(tree->first,i));
   if (tree->type == ROUND)
-    return MYROUND(eval_tree(tree->left,i));
+    return MYROUND(eval_tree(tree->first,i));
 
   if (tree->type == RAMP) {
-    arg1 = eval_tree(tree->left,i);
-    arg2 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->first,i);
+    arg2 = eval_tree(tree->second,i);
     double delta = update->ntimestep - update->beginstep;
     if (delta != 0.0) delta /= update->endstep - update->beginstep;
     arg = arg1 + delta*(arg2-arg1);
@@ -2358,8 +2921,8 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == STAGGER) {
-    int ivalue1 = static_cast<int> (eval_tree(tree->left,i));
-    int ivalue2 = static_cast<int> (eval_tree(tree->right,i));
+    int ivalue1 = static_cast<int> (eval_tree(tree->first,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->second,i));
     if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue1 <= ivalue2)
       error->one(FLERR,"Invalid math function in variable formula");
     int lower = update->ntimestep/ivalue1 * ivalue1;
@@ -2370,9 +2933,9 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == LOGFREQ) {
-    int ivalue1 = static_cast<int> (eval_tree(tree->left,i));
-    int ivalue2 = static_cast<int> (eval_tree(tree->middle,i));
-    int ivalue3 = static_cast<int> (eval_tree(tree->right,i));
+    int ivalue1 = static_cast<int> (eval_tree(tree->first,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->second,i));
+    int ivalue3 = static_cast<int> (eval_tree(tree->extra[0],i));
     if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
       error->one(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) arg = ivalue1;
@@ -2386,33 +2949,89 @@ double Variable::eval_tree(Tree *tree, int i)
     return arg;
   }
 
+  if (tree->type == LOGFREQ2) {
+    int ivalue1 = static_cast<int> (eval_tree(tree->first,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->second,i));
+    int ivalue3 = static_cast<int> (eval_tree(tree->extra[0],i));
+    if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (update->ntimestep < ivalue1) arg = ivalue1;
+    else {
+      arg = ivalue1;
+      double delta = ivalue1*(ivalue3-1.0)/ivalue2;
+      int count = 0;
+      while (update->ntimestep >= arg) {
+	arg += delta;
+	count++;
+	if (count % ivalue2 == 0) delta *= ivalue3;
+      }
+    }
+    arg = ceil(arg);
+    return arg;
+  }
+
   if (tree->type == STRIDE) {
-    int ivalue1 = static_cast<int> (eval_tree(tree->left,i));
-    int ivalue2 = static_cast<int> (eval_tree(tree->middle,i));
-    int ivalue3 = static_cast<int> (eval_tree(tree->right,i));
+    int ivalue1 = static_cast<int> (eval_tree(tree->first,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->second,i));
+    int ivalue3 = static_cast<int> (eval_tree(tree->extra[0],i));
     if (ivalue1 < 0 || ivalue2 < 0 || ivalue3 <= 0 || ivalue1 > ivalue2)
       error->one(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) arg = ivalue1;
     else if (update->ntimestep < ivalue2) {
       int offset = update->ntimestep - ivalue1;
       arg = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (arg > ivalue2) arg = 9.0e18;
-    } else arg = 9.0e18;
+      if (arg > ivalue2) arg = MAXBIGINT;
+    } else arg = MAXBIGINT;
+    return arg;
+  }
+
+  if (tree->type == STRIDE2) {
+    int ivalue1 = static_cast<int> (eval_tree(tree->first,i));
+    int ivalue2 = static_cast<int> (eval_tree(tree->second,i));
+    int ivalue3 = static_cast<int> (eval_tree(tree->extra[0],i));
+    int ivalue4 = static_cast<int> (eval_tree(tree->extra[1],i));
+    int ivalue5 = static_cast<int> (eval_tree(tree->extra[2],i));
+    int ivalue6 = static_cast<int> (eval_tree(tree->extra[3],i));
+    if (ivalue1 < 0 || ivalue2 < 0 || ivalue3 <= 0 || ivalue1 > ivalue2)
+      error->one(FLERR,"Invalid math function in variable formula");
+    if (ivalue4 < 0 || ivalue5 < 0 || ivalue6 <= 0 || ivalue4 > ivalue5)
+      error->one(FLERR,"Invalid math function in variable formula");
+    if (ivalue4 < ivalue1 || ivalue5 > ivalue2)
+      error->one(FLERR,"Invalid math function in variable formula");
+    bigint istep;
+    if (update->ntimestep < ivalue1) istep = ivalue1;
+    else if (update->ntimestep < ivalue2) {
+      if (update->ntimestep < ivalue4 || update->ntimestep > ivalue5) {
+        int offset = update->ntimestep - ivalue1;
+        istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
+        if (update->ntimestep < ivalue2 && istep > ivalue4)
+          tree->value = ivalue4;
+      } else {
+        int offset = update->ntimestep - ivalue4;
+        istep = ivalue4 + (offset/ivalue6)*ivalue6 + ivalue6;
+        if (istep > ivalue5) {
+          int offset = ivalue5 - ivalue1;
+          istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
+          if (istep > ivalue2) istep = MAXBIGINT;
+        }
+      }
+    } else istep = MAXBIGINT;
+    arg = istep;
     return arg;
   }
 
   if (tree->type == VDISPLACE) {
-    arg1 = eval_tree(tree->left,i);
-    arg2 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->first,i);
+    arg2 = eval_tree(tree->second,i);
     double delta = update->ntimestep - update->beginstep;
     arg = arg1 + arg2*delta*update->dt;
     return arg;
   }
 
   if (tree->type == SWIGGLE) {
-    arg1 = eval_tree(tree->left,i);
-    arg2 = eval_tree(tree->middle,i);
-    arg3 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->first,i);
+    arg2 = eval_tree(tree->second,i);
+    arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
       error->one(FLERR,"Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
@@ -2422,9 +3041,9 @@ double Variable::eval_tree(Tree *tree, int i)
   }
 
   if (tree->type == CWIGGLE) {
-    arg1 = eval_tree(tree->left,i);
-    arg2 = eval_tree(tree->middle,i);
-    arg3 = eval_tree(tree->right,i);
+    arg1 = eval_tree(tree->first,i);
+    arg2 = eval_tree(tree->second,i);
+    arg3 = eval_tree(tree->extra[0],i);
     if (arg3 == 0.0)
       error->one(FLERR,"Invalid math function in variable formula");
     double delta = update->ntimestep - update->beginstep;
@@ -2456,17 +3075,54 @@ double Variable::eval_tree(Tree *tree, int i)
   return 0.0;
 }
 
+/* ----------------------------------------------------------------------
+   scan entire tree, find size of vectors for vector-style variable
+   return N for consistent vector size
+   return 0 for no vector size, caller flags as error
+   return -1 for inconsistent vector size, caller flags as error
+------------------------------------------------------------------------- */
+
+int Variable::size_tree_vector(Tree *tree)
+{
+  int nsize = 0;
+  if (tree->type == VECTORARRAY) nsize = tree->nvector;
+  if (tree->first) nsize = compare_tree_vector(nsize,
+                                               size_tree_vector(tree->first));
+  if (tree->second) nsize = compare_tree_vector(nsize,
+                                                size_tree_vector(tree->second));
+  if (tree->nextra) {
+    for (int i = 0; i < tree->nextra; i++) 
+      nsize = compare_tree_vector(nsize,size_tree_vector(tree->extra[i]));
+  }
+  return nsize;
+}
+
+/* ----------------------------------------------------------------------
+   compare size of two vectors for vector-style variable
+   return positive size if same or one has no size 0
+   return -1 error if one is already error or not same positive size
+------------------------------------------------------------------------- */
+
+int Variable::compare_tree_vector(int i, int j)
+{
+  if (i < 0 || j < 0) return -1;
+  if (i == 0 || j == 0) return MAX(i,j);
+  if (i != j) return -1;
+  return i;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void Variable::free_tree(Tree *tree)
 {
-  if (tree->left) free_tree(tree->left);
-  if (tree->middle) free_tree(tree->middle);
-  if (tree->right) free_tree(tree->right);
+  if (tree->first) free_tree(tree->first);
+  if (tree->second) free_tree(tree->second);
+  if (tree->nextra) {
+    for (int i = 0; i < tree->nextra; i++) free_tree(tree->extra[i]);
+    delete [] tree->extra;
+  }
 
-  if (tree->type == ATOMARRAY && tree->selfalloc)
-    memory->destroy(tree->array);
-
+  if (tree->selfalloc) memory->destroy(tree->array);
   delete tree;
 }
 
@@ -2502,6 +3158,7 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
 
 /* ----------------------------------------------------------------------
    find int between brackets and return it
+   return a tagint, since value can be an atom ID
    ptr initially points to left bracket
    return it pointing to right bracket
    error if no right bracket or brackets are empty or index = 0
@@ -2509,9 +3166,10 @@ int Variable::find_matching_paren(char *str, int i,char *&contents)
    if varallow = 1: also allow for v_name, where name is variable name
 ------------------------------------------------------------------------- */
 
-int Variable::int_between_brackets(char *&ptr, int varallow)
+tagint Variable::int_between_brackets(char *&ptr, int varallow)
 {
-  int varflag,index;
+  int varflag;
+  tagint index;
 
   char *start = ++ptr;
 
@@ -2538,24 +3196,20 @@ int Variable::int_between_brackets(char *&ptr, int varallow)
 
   *ptr = '\0';
 
-  // evaluate index as variable or as simple integer via atoi()
+  // evaluate index as floating point variable or as tagint via ATOTAGINT()
 
   if (varflag) {
     char *id = start+2;
     int ivar = find(id);
     if (ivar < 0)
       error->all(FLERR,"Invalid variable name in variable formula");
-    if (eval_in_progress[ivar])
-      error->all(FLERR,"Variable has circular dependency");
 
     char *var = retrieve(id);
     if (var == NULL)
       error->all(FLERR,"Invalid variable evaluation in variable formula");
-    index = static_cast<int> (atof(var));
+    index = static_cast<tagint> (atof(var));
 
-  } else {
-    index = atoi(start);
-  }
+  } else index = ATOTAGINT(start);
 
   *ptr = ']';
 
@@ -2568,13 +3222,14 @@ int Variable::int_between_brackets(char *&ptr, int varallow)
    process a math function in formula
    push result onto tree or arg stack
    word = math function
-   contents = str between parentheses with one,two,three args
+   contents = str between parentheses with comma-separated args
    return 0 if not a match, 1 if successfully processed
    customize by adding a math function:
      sqrt(),exp(),ln(),log(),abs(),sin(),cos(),tan(),asin(),acos(),atan(),
      atan2(y,x),random(x,y,z),normal(x,y,z),ceil(),floor(),round(),
-     ramp(x,y),stagger(x,y),logfreq(x,y,z),stride(x,y,z),
-     vdisplace(x,y),swiggle(x,y,z),cwiggle(x,y,z)
+     ramp(x,y),stagger(x,y),logfreq(x,y,z),logfreq2(x,y,z),
+     stride(x,y,z),stride2(x,y,z,a,b,c),vdisplace(x,y),swiggle(x,y,z),
+     cwiggle(x,y,z)
 ------------------------------------------------------------------------- */
 
 int Variable::math_function(char *word, char *contents, Tree **tree,
@@ -2585,7 +3240,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"sqrt") && strcmp(word,"exp") &&
       strcmp(word,"ln") && strcmp(word,"log") &&
-      strcmp(word,"abs") && 
+      strcmp(word,"abs") &&
       strcmp(word,"sin") && strcmp(word,"cos") &&
       strcmp(word,"tan") && strcmp(word,"asin") &&
       strcmp(word,"acos") && strcmp(word,"atan") &&
@@ -2593,80 +3248,56 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       strcmp(word,"normal") && strcmp(word,"ceil") &&
       strcmp(word,"floor") && strcmp(word,"round") &&
       strcmp(word,"ramp") && strcmp(word,"stagger") &&
-      strcmp(word,"logfreq") && strcmp(word,"stride") &&
-      strcmp(word,"vdisplace") &&
-      strcmp(word,"swiggle") && strcmp(word,"cwiggle"))
+      strcmp(word,"logfreq") && strcmp(word,"logfreq2") &&
+      strcmp(word,"stride") && strcmp(word,"stride2") &&
+      strcmp(word,"vdisplace") && strcmp(word,"swiggle") &&
+      strcmp(word,"cwiggle"))
     return 0;
 
-  // parse contents for arg1,arg2,arg3 separated by commas
-  // ptr1,ptr2 = location of 1st and 2nd comma, NULL if none
+  // parse contents for comma-separated args
+  // narg = number of args, args = strings between commas
 
-  char *arg1,*arg2,*arg3;
-  char *ptr1,*ptr2;
-
-  ptr1 = find_next_comma(contents);
-  if (ptr1) {
-    *ptr1 = '\0';
-    ptr2 = find_next_comma(ptr1+1);
-    if (ptr2) *ptr2 = '\0';
-  } else ptr2 = NULL;
-
-  int n = strlen(contents) + 1;
-  arg1 = new char[n];
-  strcpy(arg1,contents);
-  int narg = 1;
-  if (ptr1) {
-    n = strlen(ptr1+1) + 1;
-    arg2 = new char[n];
-    strcpy(arg2,ptr1+1);
-    narg = 2;
-  } else arg2 = NULL;
-  if (ptr2) {
-    n = strlen(ptr2+1) + 1;
-    arg3 = new char[n];
-    strcpy(arg3,ptr2+1);
-    narg = 3;
-  } else arg3 = NULL;
-
-  // evaluate args
+  char *args[MAXFUNCARG];
+  int narg = parse_args(contents,args);
 
   Tree *newtree;
-  double value1,value2,value3;
+  double value1,value2;
+  double values[MAXFUNCARG-2];
 
   if (tree) {
     newtree = new Tree();
+    newtree->first = newtree->second = NULL;
+    newtree->nextra = 0;
     Tree *argtree;
-    if (narg == 1) {
-      evaluate(arg1,&argtree);
-      newtree->left = argtree;
-      newtree->middle = newtree->right = NULL;
-    } else if (narg == 2) {
-      evaluate(arg1,&argtree);
-      newtree->left = argtree;
-      newtree->middle = NULL;
-      evaluate(arg2,&argtree);
-      newtree->right = argtree;
-    } else if (narg == 3) {
-      evaluate(arg1,&argtree);
-      newtree->left = argtree;
-      evaluate(arg2,&argtree);
-      newtree->middle = argtree;
-      evaluate(arg3,&argtree);
-      newtree->right = argtree;
+    evaluate(args[0],&argtree);
+    newtree->first = argtree;
+    if (narg > 1) {
+      evaluate(args[1],&argtree);
+      newtree->second = argtree;
+      if (narg > 2) {
+        newtree->nextra = narg-2;
+        newtree->extra = new Tree*[narg-2];
+        for (int i = 2; i < narg; i++) {
+          evaluate(args[i],&argtree);
+          newtree->extra[i-2] = argtree;
+        }
+      }
     }
     treestack[ntreestack++] = newtree;
+
   } else {
-    if (narg == 1) {
-      value1 = evaluate(arg1,NULL);
-    } else if (narg == 2) {
-      value1 = evaluate(arg1,NULL);
-      value2 = evaluate(arg2,NULL);
-    } else if (narg == 3) {
-      value1 = evaluate(arg1,NULL);
-      value2 = evaluate(arg2,NULL);
-      value3 = evaluate(arg3,NULL);
+    value1 = evaluate(args[0],NULL);
+    if (narg > 1) {
+      value2 = evaluate(args[1],NULL);
+      if (narg > 2) {
+        for (int i = 2; i < narg; i++)
+          values[i-2] = evaluate(args[i],NULL);
+      }
     }
   }
+
+  // individual math functions
+  // customize by adding a function
 
   if (strcmp(word,"sqrt") == 0) {
     if (narg != 1)
@@ -2758,7 +3389,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     if (tree) newtree->type = RANDOM;
     else {
       if (randomequal == NULL) {
-        int seed = static_cast<int> (value3);
+        int seed = static_cast<int> (values[0]);
         if (seed <= 0)
           error->all(FLERR,"Invalid math function in variable formula");
         randomequal = new RanMars(lmp,seed);
@@ -2773,7 +3404,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       if (value2 < 0.0)
         error->all(FLERR,"Invalid math function in variable formula");
       if (randomequal == NULL) {
-        int seed = static_cast<int> (value3);
+        int seed = static_cast<int> (values[0]);
         if (seed <= 0)
           error->all(FLERR,"Invalid math function in variable formula");
         randomequal = new RanMars(lmp,seed);
@@ -2836,7 +3467,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     else {
       int ivalue1 = static_cast<int> (value1);
       int ivalue2 = static_cast<int> (value2);
-      int ivalue3 = static_cast<int> (value3);
+      int ivalue3 = static_cast<int> (values[0]);
       if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 || ivalue2 >= ivalue3)
         error->all(FLERR,"Invalid math function in variable formula");
       double value;
@@ -2851,6 +3482,31 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       argstack[nargstack++] = value;
     }
 
+  } else if (strcmp(word,"logfreq2") == 0) {
+    if (narg != 3)
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (tree) newtree->type = LOGFREQ2;
+    else {
+      int ivalue1 = static_cast<int> (value1);
+      int ivalue2 = static_cast<int> (value2);
+      int ivalue3 = static_cast<int> (values[0]);
+      if (ivalue1 <= 0 || ivalue2 <= 0 || ivalue3 <= 0 )
+        error->all(FLERR,"Invalid math function in variable formula");
+      double value;
+      if (update->ntimestep < ivalue1) value = ivalue1;
+      else {
+        value = ivalue1;
+	double delta = ivalue1*(ivalue3-1.0)/ivalue2;
+	int count = 0;
+        while (update->ntimestep >= value) {
+	  value += delta;
+	  count++;
+	  if (count % ivalue2 == 0) delta *= ivalue3;
+	}
+      }
+      argstack[nargstack++] = ceil(value);
+    }
+
   } else if (strcmp(word,"stride") == 0) {
     if (narg != 3)
       error->all(FLERR,"Invalid math function in variable formula");
@@ -2858,7 +3514,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
     else {
       int ivalue1 = static_cast<int> (value1);
       int ivalue2 = static_cast<int> (value2);
-      int ivalue3 = static_cast<int> (value3);
+      int ivalue3 = static_cast<int> (values[0]);
       if (ivalue1 < 0 || ivalue2 < 0 || ivalue3 <= 0 || ivalue1 > ivalue2)
         error->one(FLERR,"Invalid math function in variable formula");
       double value;
@@ -2866,8 +3522,46 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       else if (update->ntimestep < ivalue2) {
         int offset = update->ntimestep - ivalue1;
         value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-        if (value > ivalue2) value = 9.0e18;
-      } else value = 9.0e18;
+        if (value > ivalue2) value = MAXBIGINT;
+      } else value = MAXBIGINT;
+      argstack[nargstack++] = value;
+    }
+
+  } else if (strcmp(word,"stride2") == 0) {
+    if (narg != 6)
+      error->all(FLERR,"Invalid math function in variable formula");
+    if (tree) newtree->type = STRIDE2;
+    else {
+      int ivalue1 = static_cast<int> (value1);
+      int ivalue2 = static_cast<int> (value2);
+      int ivalue3 = static_cast<int> (values[0]);
+      int ivalue4 = static_cast<int> (values[1]);
+      int ivalue5 = static_cast<int> (values[2]);
+      int ivalue6 = static_cast<int> (values[3]);
+      if (ivalue1 < 0 || ivalue2 < 0 || ivalue3 <= 0 || ivalue1 > ivalue2)
+        error->one(FLERR,"Invalid math function in variable formula");
+      if (ivalue4 < 0 || ivalue5 < 0 || ivalue6 <= 0 || ivalue4 > ivalue5)
+        error->one(FLERR,"Invalid math function in variable formula");
+      if (ivalue4 < ivalue1 || ivalue5 > ivalue2)
+	error->one(FLERR,"Invalid math function in variable formula");
+      bigint istep;
+      if (update->ntimestep < ivalue1) istep = ivalue1;
+      else if (update->ntimestep < ivalue2) {
+        if (update->ntimestep < ivalue4 || update->ntimestep > ivalue5) {
+          int offset = update->ntimestep - ivalue1;
+          istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
+          if (update->ntimestep < ivalue4 && istep > ivalue4) istep = ivalue4;
+        } else {
+          int offset = update->ntimestep - ivalue4;
+          istep = ivalue4 + (offset/ivalue6)*ivalue6 + ivalue6;
+          if (istep > ivalue5) {
+            int offset = ivalue5 - ivalue1;
+            istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
+            if (istep > ivalue2) istep = MAXBIGINT;
+          }
+        }
+      } else istep = MAXBIGINT;
+      double value = istep;
       argstack[nargstack++] = value;
     }
 
@@ -2890,10 +3584,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       error->all(FLERR,"Cannot use swiggle in variable formula between runs");
     if (tree) newtree->type = CWIGGLE;
     else {
-      if (value3 == 0.0)
+      if (values[0] == 0.0)
         error->all(FLERR,"Invalid math function in variable formula");
       double delta = update->ntimestep - update->beginstep;
-      double omega = 2.0*MY_PI/value3;
+      double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*sin(omega*delta*update->dt);
       argstack[nargstack++] = value;
     }
@@ -2905,18 +3599,18 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
       error->all(FLERR,"Cannot use cwiggle in variable formula between runs");
     if (tree) newtree->type = CWIGGLE;
     else {
-      if (value3 == 0.0)
+      if (values[0] == 0.0)
         error->all(FLERR,"Invalid math function in variable formula");
       double delta = update->ntimestep - update->beginstep;
-      double omega = 2.0*MY_PI/value3;
+      double omega = 2.0*MY_PI/values[0];
       double value = value1 + value2*(1.0-cos(omega*delta*update->dt));
       argstack[nargstack++] = value;
     }
   }
 
-  delete [] arg1;
-  delete [] arg2;
-  delete [] arg3;
+  // delete stored args
+
+  for (int i = 0; i < narg; i++) delete [] args[i];
 
   return 1;
 }
@@ -2949,39 +3643,15 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
       strcmp(word,"omega"))
     return 0;
 
-  // parse contents for arg1,arg2,arg3 separated by commas
-  // ptr1,ptr2 = location of 1st and 2nd comma, NULL if none
+  // parse contents for comma-separated args
+  // narg = number of args, args = strings between commas
 
-  char *arg1,*arg2,*arg3;
-  char *ptr1,*ptr2;
-
-  ptr1 = find_next_comma(contents);
-  if (ptr1) {
-    *ptr1 = '\0';
-    ptr2 = find_next_comma(ptr1+1);
-    if (ptr2) *ptr2 = '\0';
-  } else ptr2 = NULL;
-
-  int n = strlen(contents) + 1;
-  arg1 = new char[n];
-  strcpy(arg1,contents);
-  int narg = 1;
-  if (ptr1) {
-    n = strlen(ptr1+1) + 1;
-    arg2 = new char[n];
-    strcpy(arg2,ptr1+1);
-    narg = 2;
-  } else arg2 = NULL;
-  if (ptr2) {
-    n = strlen(ptr2+1) + 1;
-    arg3 = new char[n];
-    strcpy(arg3,ptr2+1);
-    narg = 3;
-  } else arg3 = NULL;
+  char *args[MAXFUNCARG];
+  int narg = parse_args(contents,args);
 
   // group to operate on
 
-  int igroup = group->find(arg1);
+  int igroup = group->find(args[0]);
   if (igroup == -1)
     error->all(FLERR,"Group ID in variable formula does not exist");
 
@@ -2991,83 +3661,83 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"count") == 0) {
     if (narg == 1) value = group->count(igroup);
-    else if (narg == 2) value = group->count(igroup,region_function(arg2));
+    else if (narg == 2) value = group->count(igroup,region_function(args[1]));
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"mass") == 0) {
     if (narg == 1) value = group->mass(igroup);
-    else if (narg == 2) value = group->mass(igroup,region_function(arg2));
+    else if (narg == 2) value = group->mass(igroup,region_function(args[1]));
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"charge") == 0) {
     if (narg == 1) value = group->charge(igroup);
-    else if (narg == 2) value = group->charge(igroup,region_function(arg2));
+    else if (narg == 2) value = group->charge(igroup,region_function(args[1]));
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"xcm") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
     } else if (narg == 3) {
-      int iregion = region_function(arg3);
+      int iregion = region_function(args[2]);
       double masstotal = group->mass(igroup,iregion);
       group->xcm(igroup,masstotal,xcm,iregion);
     } else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"x") == 0) value = xcm[0];
-    else if (strcmp(arg2,"y") == 0) value = xcm[1];
-    else if (strcmp(arg2,"z") == 0) value = xcm[2];
+    if (strcmp(args[1],"x") == 0) value = xcm[0];
+    else if (strcmp(args[1],"y") == 0) value = xcm[1];
+    else if (strcmp(args[1],"z") == 0) value = xcm[2];
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"vcm") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double vcm[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
       group->vcm(igroup,masstotal,vcm);
     } else if (narg == 3) {
-      int iregion = region_function(arg3);
+      int iregion = region_function(args[2]);
       double masstotal = group->mass(igroup,iregion);
       group->vcm(igroup,masstotal,vcm,iregion);
     } else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"x") == 0) value = vcm[0];
-    else if (strcmp(arg2,"y") == 0) value = vcm[1];
-    else if (strcmp(arg2,"z") == 0) value = vcm[2];
+    if (strcmp(args[1],"x") == 0) value = vcm[0];
+    else if (strcmp(args[1],"y") == 0) value = vcm[1];
+    else if (strcmp(args[1],"z") == 0) value = vcm[2];
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"fcm") == 0) {
     double fcm[3];
     if (narg == 2) group->fcm(igroup,fcm);
-    else if (narg == 3) group->fcm(igroup,fcm,region_function(arg3));
+    else if (narg == 3) group->fcm(igroup,fcm,region_function(args[2]));
     else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"x") == 0) value = fcm[0];
-    else if (strcmp(arg2,"y") == 0) value = fcm[1];
-    else if (strcmp(arg2,"z") == 0) value = fcm[2];
+    if (strcmp(args[1],"x") == 0) value = fcm[0];
+    else if (strcmp(args[1],"y") == 0) value = fcm[1];
+    else if (strcmp(args[1],"z") == 0) value = fcm[2];
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"bound") == 0) {
     double minmax[6];
     if (narg == 2) group->bounds(igroup,minmax);
-    else if (narg == 3) group->bounds(igroup,minmax,region_function(arg3));
+    else if (narg == 3) group->bounds(igroup,minmax,region_function(args[2]));
     else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"xmin") == 0) value = minmax[0];
-    else if (strcmp(arg2,"xmax") == 0) value = minmax[1];
-    else if (strcmp(arg2,"ymin") == 0) value = minmax[2];
-    else if (strcmp(arg2,"ymax") == 0) value = minmax[3];
-    else if (strcmp(arg2,"zmin") == 0) value = minmax[4];
-    else if (strcmp(arg2,"zmax") == 0) value = minmax[5];
+    if (strcmp(args[1],"xmin") == 0) value = minmax[0];
+    else if (strcmp(args[1],"xmax") == 0) value = minmax[1];
+    else if (strcmp(args[1],"ymin") == 0) value = minmax[2];
+    else if (strcmp(args[1],"ymax") == 0) value = minmax[3];
+    else if (strcmp(args[1],"zmin") == 0) value = minmax[4];
+    else if (strcmp(args[1],"zmax") == 0) value = minmax[5];
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"gyration") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3];
     if (narg == 1) {
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       value = group->gyration(igroup,masstotal,xcm);
     } else if (narg == 2) {
-      int iregion = region_function(arg2);
+      int iregion = region_function(args[1]);
       double masstotal = group->mass(igroup,iregion);
       group->xcm(igroup,masstotal,xcm,iregion);
       value = group->gyration(igroup,masstotal,xcm,iregion);
@@ -3075,68 +3745,68 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   } else if (strcmp(word,"ke") == 0) {
     if (narg == 1) value = group->ke(igroup);
-    else if (narg == 2) value = group->ke(igroup,region_function(arg2));
+    else if (narg == 2) value = group->ke(igroup,region_function(args[1]));
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"angmom") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],lmom[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->angmom(igroup,xcm,lmom);
     } else if (narg == 3) {
-      int iregion = region_function(arg3);
+      int iregion = region_function(args[2]);
       double masstotal = group->mass(igroup,iregion);
       group->xcm(igroup,masstotal,xcm,iregion);
       group->angmom(igroup,xcm,lmom,iregion);
     } else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"x") == 0) value = lmom[0];
-    else if (strcmp(arg2,"y") == 0) value = lmom[1];
-    else if (strcmp(arg2,"z") == 0) value = lmom[2];
+    if (strcmp(args[1],"x") == 0) value = lmom[0];
+    else if (strcmp(args[1],"y") == 0) value = lmom[1];
+    else if (strcmp(args[1],"z") == 0) value = lmom[2];
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"torque") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],tq[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->torque(igroup,xcm,tq);
     } else if (narg == 3) {
-      int iregion = region_function(arg3);
+      int iregion = region_function(args[2]);
       double masstotal = group->mass(igroup,iregion);
       group->xcm(igroup,masstotal,xcm,iregion);
       group->torque(igroup,xcm,tq,iregion);
     } else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"x") == 0) value = tq[0];
-    else if (strcmp(arg2,"y") == 0) value = tq[1];
-    else if (strcmp(arg2,"z") == 0) value = tq[2];
+    if (strcmp(args[1],"x") == 0) value = tq[0];
+    else if (strcmp(args[1],"y") == 0) value = tq[1];
+    else if (strcmp(args[1],"z") == 0) value = tq[2];
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"inertia") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],inertia[3][3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->inertia(igroup,xcm,inertia);
     } else if (narg == 3) {
-      int iregion = region_function(arg3);
+      int iregion = region_function(args[2]);
       double masstotal = group->mass(igroup,iregion);
       group->xcm(igroup,masstotal,xcm,iregion);
       group->inertia(igroup,xcm,inertia,iregion);
     } else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"xx") == 0) value = inertia[0][0];
-    else if (strcmp(arg2,"yy") == 0) value = inertia[1][1];
-    else if (strcmp(arg2,"zz") == 0) value = inertia[2][2];
-    else if (strcmp(arg2,"xy") == 0) value = inertia[0][1];
-    else if (strcmp(arg2,"yz") == 0) value = inertia[1][2];
-    else if (strcmp(arg2,"xz") == 0) value = inertia[0][2];
+    if (strcmp(args[1],"xx") == 0) value = inertia[0][0];
+    else if (strcmp(args[1],"yy") == 0) value = inertia[1][1];
+    else if (strcmp(args[1],"zz") == 0) value = inertia[2][2];
+    else if (strcmp(args[1],"xy") == 0) value = inertia[0][1];
+    else if (strcmp(args[1],"yz") == 0) value = inertia[1][2];
+    else if (strcmp(args[1],"xz") == 0) value = inertia[0][2];
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"omega") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],angmom[3],inertia[3][3],omega[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3145,22 +3815,22 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
       group->inertia(igroup,xcm,inertia);
       group->omega(angmom,inertia,omega);
     } else if (narg == 3) {
-      int iregion = region_function(arg3);
+      int iregion = region_function(args[2]);
       double masstotal = group->mass(igroup,iregion);
       group->xcm(igroup,masstotal,xcm,iregion);
       group->angmom(igroup,xcm,angmom,iregion);
       group->inertia(igroup,xcm,inertia,iregion);
       group->omega(angmom,inertia,omega);
     } else error->all(FLERR,"Invalid group function in variable formula");
-    if (strcmp(arg2,"x") == 0) value = omega[0];
-    else if (strcmp(arg2,"y") == 0) value = omega[1];
-    else if (strcmp(arg2,"z") == 0) value = omega[2];
+    if (strcmp(args[1],"x") == 0) value = omega[0];
+    else if (strcmp(args[1],"y") == 0) value = omega[1];
+    else if (strcmp(args[1],"z") == 0) value = omega[2];
     else error->all(FLERR,"Invalid group function in variable formula");
   }
 
-  delete [] arg1;
-  delete [] arg2;
-  delete [] arg3;
+  // delete stored args
+
+  for (int i = 0; i < narg; i++) delete [] args[i];
 
   // save value in tree or on argstack
 
@@ -3168,7 +3838,8 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     Tree *newtree = new Tree();
     newtree->type = VALUE;
     newtree->value = value;
-    newtree->left = newtree->middle = newtree->right = NULL;
+    newtree->first = newtree->second = NULL;
+    newtree->nextra = 0;
     treestack[ntreestack++] = newtree;
   } else argstack[nargstack++] = value;
 
@@ -3211,39 +3882,17 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
   if (strcmp(word,"sum") && strcmp(word,"min") && strcmp(word,"max") &&
       strcmp(word,"ave") && strcmp(word,"trap") && strcmp(word,"slope") &&
-      strcmp(word,"gmask") && strcmp(word,"rmask") && 
-      strcmp(word,"grmask") && strcmp(word,"next"))
+      strcmp(word,"gmask") && strcmp(word,"rmask") &&
+      strcmp(word,"grmask") && strcmp(word,"next") &&
+      strcmp(word,"is_active") && strcmp(word,"is_defined") &&
+      strcmp(word,"is_available"))
     return 0;
 
-  // parse contents for arg1,arg2,arg3 separated by commas
-  // ptr1,ptr2 = location of 1st and 2nd comma, NULL if none
+  // parse contents for comma-separated args
+  // narg = number of args, args = strings between commas
 
-  char *arg1,*arg2,*arg3;
-  char *ptr1,*ptr2;
-
-  ptr1 = find_next_comma(contents);
-  if (ptr1) {
-    *ptr1 = '\0';
-    ptr2 = find_next_comma(ptr1+1);
-    if (ptr2) *ptr2 = '\0';
-  } else ptr2 = NULL;
-
-  int n = strlen(contents) + 1;
-  arg1 = new char[n];
-  strcpy(arg1,contents);
-  int narg = 1;
-  if (ptr1) {
-    n = strlen(ptr1+1) + 1;
-    arg2 = new char[n];
-    strcpy(arg2,ptr1+1);
-    narg = 2;
-  } else arg2 = NULL;
-  if (ptr2) {
-    n = strlen(ptr2+1) + 1;
-    arg3 = new char[n];
-    strcpy(arg3,ptr2+1);
-    narg = 3;
-  } else arg3 = NULL;
+  char *args[MAXFUNCARG];
+  int narg = parse_args(contents,args);
 
   // special functions that operate on global vectors
 
@@ -3259,23 +3908,27 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     else if (strcmp(word,"trap") == 0) method = TRAP;
     else if (strcmp(word,"slope") == 0) method = SLOPE;
 
-    if (narg != 1) 
+    if (narg != 1)
       error->all(FLERR,"Invalid special function in variable formula");
 
     Compute *compute = NULL;
     Fix *fix = NULL;
+    int ivar = -1;
     int index,nvec,nstride;
+    char *ptr1,*ptr2;
 
-    if (strstr(arg1,"c_") == arg1) {
-      ptr1 = strchr(arg1,'[');
+    // argument is compute
+
+    if (strstr(args[0],"c_") == args[0]) {
+      ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = int_between_brackets(ptr2,0);
+        index = (int) int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
-      int icompute = modify->find_compute(&arg1[2]);
-      if (icompute < 0) 
+      int icompute = modify->find_compute(&args[0][2]);
+      if (icompute < 0)
         error->all(FLERR,"Invalid compute ID in variable formula");
       compute = modify->compute[icompute];
       if (index == 0 && compute->vector_flag) {
@@ -3305,15 +3958,17 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         nstride = compute->size_array_cols;
       } else error->all(FLERR,"Mismatched compute in variable formula");
 
-    } else if (strstr(arg1,"f_") == arg1) {
-      ptr1 = strchr(arg1,'[');
+    // argument is fix
+
+    } else if (strstr(args[0],"f_") == args[0]) {
+      ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = int_between_brackets(ptr2,0);
+        index = (int) int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
-      int ifix = modify->find_fix(&arg1[2]);
+      int ifix = modify->find_fix(&args[0][2]);
       if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
       fix = modify->fix[ifix];
       if (index == 0 && fix->vector_flag) {
@@ -3330,6 +3985,31 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         nvec = fix->size_array_rows;
         nstride = fix->size_array_cols;
       } else error->all(FLERR,"Mismatched fix in variable formula");
+
+    // argument is vector-style variable
+
+    } else if (strstr(args[0],"v_") == args[0]) {
+      ptr1 = strchr(args[0],'[');
+      if (ptr1) {
+        ptr2 = ptr1;
+        index = (int) int_between_brackets(ptr2,0);
+        *ptr1 = '\0';
+      } else index = 0;
+
+      if (index) 
+	error->all(FLERR,"Invalid special function in variable formula");
+      ivar = find(&args[0][2]);
+      if (ivar < 0) 
+        error->all(FLERR,"Invalid special function in variable formula");
+      if (style[ivar] != VECTOR) 
+	error->all(FLERR,
+                   "Mis-matched special function variable in variable formula");
+      if (eval_in_progress[ivar]) 
+        error->all(FLERR,"Variable has circular dependency");
+
+      double *vec;
+      nvec = compute_vector(ivar,&vec);
+      nstride = 1;
 
     } else error->all(FLERR,"Invalid special function in variable formula");
 
@@ -3385,11 +4065,33 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         }
       }
       if (method == TRAP) {
-        if (index) value -= 0.5*fix->compute_array(0,index-1) + 
+        if (index) value -= 0.5*fix->compute_array(0,index-1) +
                      0.5*fix->compute_array(nvec-1,index-1);
-        else value -= 0.5*fix->compute_vector(0) + 
+        else value -= 0.5*fix->compute_vector(0) +
                0.5*fix->compute_vector(nvec-1);
       }
+    }
+
+    if (ivar >= 0) {
+      double one;
+      double *vec = vecs[ivar].values;
+      for (int i = 0; i < nvec; i++) {
+	one = vec[i];
+        if (method == SUM) value += one;
+        else if (method == XMIN) value = MIN(value,one);
+        else if (method == XMAX) value = MAX(value,one);
+        else if (method == AVE) value += one;
+        else if (method == TRAP) value += one;
+        else if (method == SLOPE) {
+          if (nvec > 1) xvalue = (double) i / (nvec-1);
+          else xvalue = 0.0;
+          sx += xvalue;
+          sy += one;
+          sxx += xvalue*xvalue;
+          sxy += xvalue*one;
+        }
+      }
+      if (method == TRAP) value -= 0.5*vec[0] + 0.5*vec[nvec-1];
     }
 
     if (method == AVE) value /= nvec;
@@ -3407,7 +4109,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       Tree *newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
-      newtree->left = newtree->middle = newtree->right = NULL;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
 
@@ -3416,61 +4119,64 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
   } else if (strcmp(word,"gmask") == 0) {
     if (tree == NULL)
       error->all(FLERR,"Gmask function in equal-style variable formula");
-    if (narg != 1) 
+    if (narg != 1)
       error->all(FLERR,"Invalid special function in variable formula");
 
-    int igroup = group->find(arg1);
+    int igroup = group->find(args[0]);
     if (igroup == -1)
       error->all(FLERR,"Group ID in variable formula does not exist");
 
     Tree *newtree = new Tree();
     newtree->type = GMASK;
     newtree->ivalue1 = group->bitmask[igroup];
-    newtree->left = newtree->middle = newtree->right = NULL;
+    newtree->first = newtree->second = NULL;
+    newtree->nextra = 0;
     treestack[ntreestack++] = newtree;
 
   } else if (strcmp(word,"rmask") == 0) {
     if (tree == NULL)
       error->all(FLERR,"Rmask function in equal-style variable formula");
-    if (narg != 1) 
+    if (narg != 1)
       error->all(FLERR,"Invalid special function in variable formula");
 
-    int iregion = region_function(arg1);
+    int iregion = region_function(args[0]);
     domain->regions[iregion]->prematch();
 
     Tree *newtree = new Tree();
     newtree->type = RMASK;
     newtree->ivalue1 = iregion;
-    newtree->left = newtree->middle = newtree->right = NULL;
+    newtree->first = newtree->second = NULL;
+    newtree->nextra = 0;
     treestack[ntreestack++] = newtree;
 
   } else if (strcmp(word,"grmask") == 0) {
     if (tree == NULL)
       error->all(FLERR,"Grmask function in equal-style variable formula");
-    if (narg != 2) 
+    if (narg != 2)
       error->all(FLERR,"Invalid special function in variable formula");
 
-    int igroup = group->find(arg1);
+    int igroup = group->find(args[0]);
     if (igroup == -1)
       error->all(FLERR,"Group ID in variable formula does not exist");
-    int iregion = region_function(arg2);
+    int iregion = region_function(args[1]);
     domain->regions[iregion]->prematch();
 
     Tree *newtree = new Tree();
     newtree->type = GRMASK;
     newtree->ivalue1 = group->bitmask[igroup];
     newtree->ivalue2 = iregion;
-    newtree->left = newtree->middle = newtree->right = NULL;
+    newtree->first = newtree->second = NULL;
+    newtree->nextra = 0;
     treestack[ntreestack++] = newtree;
 
   // special function for file-style or atomfile-style variables
 
   } else if (strcmp(word,"next") == 0) {
-    if (narg != 1) 
+    if (narg != 1)
       error->all(FLERR,"Invalid special function in variable formula");
 
-    int ivar = find(arg1);
-    if (ivar == -1)
+    int ivar = find(args[0]);
+    if (ivar < 0)
       error->all(FLERR,"Variable ID in variable formula does not exist");
 
     // SCALARFILE has single current value, read next one
@@ -3485,7 +4191,8 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
         Tree *newtree = new Tree();
         newtree->type = VALUE;
         newtree->value = value;
-        newtree->left = newtree->middle = newtree->right = NULL;
+        newtree->first = newtree->second = NULL;
+        newtree->nextra = 0;
         treestack[ntreestack++] = newtree;
       } else argstack[nargstack++] = value;
 
@@ -3494,12 +4201,12 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     // set selfalloc = 1 so result will be deleted by free_tree() after eval
 
     } else if (style[ivar] == ATOMFILE) {
-      if (tree == NULL) 
+      if (tree == NULL)
         error->all(FLERR,"Atomfile variable in equal-style variable formula");
 
       double *result;
       memory->create(result,atom->nlocal,"variable:result");
-      memcpy(result,reader[ivar]->fix->vstore,atom->nlocal*sizeof(double));
+      memcpy(result,reader[ivar]->fixstore->vstore,atom->nlocal*sizeof(double));
 
       int done = reader[ivar]->read_peratom();
       if (done) remove(ivar);
@@ -3509,15 +4216,70 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       newtree->array = result;
       newtree->nstride = 1;
       newtree->selfalloc = 1;
-      newtree->left = newtree->middle = newtree->right = NULL;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
       treestack[ntreestack++] = newtree;
 
     } else error->all(FLERR,"Invalid variable style in special function next");
+
+  } else if (strcmp(word,"is_active") == 0) {
+    if (narg != 2)
+      error->all(FLERR,"Invalid is_active() function in variable formula");
+
+    Info info(lmp);
+    value = (info.is_active(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_available") == 0) {
+    if (narg != 2)
+      error->all(FLERR,"Invalid is_available() function in variable formula");
+
+    Info info(lmp);
+    value = (info.is_available(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_defined") == 0) {
+    if (narg != 2)
+      error->all(FLERR,"Invalid is_defined() function in variable formula");
+
+    Info info(lmp);
+    value = (info.is_defined(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = NULL;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
   }
 
-  delete [] arg1;
-  delete [] arg2;
-  delete [] arg3;
+  // delete stored args
+
+  for (int i = 0; i < narg; i++) delete [] args[i];
 
   return 1;
 }
@@ -3526,20 +4288,29 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
    extract a global value from a per-atom quantity in a formula
    flag = 0 -> word is an atom vector
    flag = 1 -> vector is a per-atom compute or fix quantity with nstride
-   id = positive global ID of atom, converted to local index
+   id = global ID of atom, converted to local index
    push result onto tree or arg stack
    customize by adding an atom vector:
      id,mass,type,mol,x,y,z,vx,vy,vz,fx,fy,fz,q
 ------------------------------------------------------------------------- */
 
 void Variable::peratom2global(int flag, char *word,
-                              double *vector, int nstride, int id,
+                              double *vector, int nstride, tagint id,
                               Tree **tree, Tree **treestack, int &ntreestack,
                               double *argstack, int &nargstack)
 {
+  // error check for ID larger than any atom
+  // int_between_brackets() already checked for ID <= 0
+
   if (atom->map_style == 0)
     error->all(FLERR,
                "Indexed per-atom vector in variable formula without atom map");
+
+  if (id > atom->map_tag_max)
+    error->all(FLERR,"Variable atom ID is too large");
+
+  // if ID does not exist, index will be -1 for all procs,
+  // and mine will be set to 0.0
 
   int index = atom->map(id);
 
@@ -3554,7 +4325,7 @@ void Variable::peratom2global(int flag, char *word,
       }
       else if (strcmp(word,"type") == 0) mine = atom->type[index];
       else if (strcmp(word,"mol") == 0) {
-        if (!atom->molecule_flag) 
+        if (!atom->molecule_flag)
           error->one(FLERR,"Variable uses atom property that isn't allocated");
         mine = atom->molecule[index];
       }
@@ -3568,7 +4339,7 @@ void Variable::peratom2global(int flag, char *word,
       else if (strcmp(word,"fy") == 0) mine = atom->f[index][1];
       else if (strcmp(word,"fz") == 0) mine = atom->f[index][2];
       else if (strcmp(word,"q") == 0) {
-        if (!atom->q_flag) 
+        if (!atom->q_flag)
           error->one(FLERR,"Variable uses atom property that isn't allocated");
         mine = atom->q[index];
       }
@@ -3585,7 +4356,8 @@ void Variable::peratom2global(int flag, char *word,
     Tree *newtree = new Tree();
     newtree->type = VALUE;
     newtree->value = value;
-    newtree->left = newtree->middle = newtree->right = NULL;
+    newtree->first = newtree->second = NULL;
+    newtree->nextra = 0;
     treestack[ntreestack++] = newtree;
   } else argstack[nargstack++] = value;
 }
@@ -3634,7 +4406,8 @@ void Variable::atom_vector(char *word, Tree **tree,
   newtree->type = ATOMARRAY;
   newtree->nstride = 3;
   newtree->selfalloc = 0;
-  newtree->left = newtree->middle = newtree->right = NULL;
+  newtree->first = newtree->second = NULL;
+  newtree->nextra = 0;
   treestack[ntreestack++] = newtree;
 
   if (strcmp(word,"id") == 0) {
@@ -3662,7 +4435,7 @@ void Variable::atom_vector(char *word, Tree **tree,
     newtree->iarray = atom->type;
 
   } else if (strcmp(word,"mol") == 0) {
-    if (!atom->molecule_flag) 
+    if (!atom->molecule_flag)
       error->one(FLERR,"Variable uses atom property that isn't allocated");
     if (sizeof(tagint) == sizeof(smallint)) {
       newtree->type = INTARRAY;
@@ -3693,25 +4466,69 @@ void Variable::atom_vector(char *word, Tree **tree,
 /* ----------------------------------------------------------------------
    check if word matches a constant
    return 1 if yes, else 0
-   customize by adding a constant: PI
+   customize by adding a constant: PI, version
 ------------------------------------------------------------------------- */
 
 int Variable::is_constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return 1;
+  if (strcmp(word,"version") == 0) return 1;
+  if (strcmp(word,"yes") == 0) return 1;
+  if (strcmp(word,"no") == 0) return 1;
+  if (strcmp(word,"on") == 0) return 1;
+  if (strcmp(word,"off") == 0) return 1;
+  if (strcmp(word,"true") == 0) return 1;
+  if (strcmp(word,"false") == 0) return 1;
   return 0;
 }
 
 /* ----------------------------------------------------------------------
    process a constant in formula
-   customize by adding a constant: PI
+   customize by adding a constant: PI, version
 ------------------------------------------------------------------------- */
 
 double Variable::constant(char *word)
 {
   if (strcmp(word,"PI") == 0) return MY_PI;
+  if (strcmp(word,"version") == 0) return atof(universe->num_ver);
+  if (strcmp(word,"yes") == 0) return 1.0;
+  if (strcmp(word,"no") == 0) return 0.0;
+  if (strcmp(word,"on") == 0) return 1.0;
+  if (strcmp(word,"off") == 0) return 0.0;
+  if (strcmp(word,"true") == 0) return 1.0;
+  if (strcmp(word,"false") == 0) return 0.0;
   return 0.0;
 }
+
+/* ----------------------------------------------------------------------
+   parse string for comma-separated args
+   store copy of each arg in args array
+   max allowed # of args = MAXFUNCARG
+------------------------------------------------------------------------- */
+
+int Variable::parse_args(char *str, char **args)
+{
+  int n;
+  char *ptrnext;
+
+  int narg = 0;
+  char *ptr = str;
+
+  while (ptr && narg < MAXFUNCARG) {
+    ptrnext = find_next_comma(ptr);
+    if (ptrnext) *ptrnext = '\0';
+    n = strlen(ptr) + 1;
+    args[narg] = new char[n];
+    strcpy(args[narg],ptr);
+    narg++;
+    ptr = ptrnext;
+    if (ptr) ptr++;
+  }
+
+  if (ptr) error->all(FLERR,"Too many args in variable function");
+  return narg;
+}
+
 
 /* ----------------------------------------------------------------------
    find next comma in str
@@ -3737,9 +4554,10 @@ char *Variable::find_next_comma(char *str)
 void Variable::print_tree(Tree *tree, int level)
 {
   printf("TREE %d: %d %g\n",level,tree->type,tree->value);
-  if (tree->left) print_tree(tree->left,level+1);
-  if (tree->middle) print_tree(tree->middle,level+1);
-  if (tree->right) print_tree(tree->right,level+1);
+  if (tree->first) print_tree(tree->first,level+1);
+  if (tree->second) print_tree(tree->second,level+1);
+  if (tree->nextra)
+    for (int i = 0; i < tree->nextra; i++) print_tree(tree->extra[i],level+1);
   return;
 }
 
@@ -3784,7 +4602,7 @@ double Variable::evaluate_boolean(char *str)
     // ----------------
 
     else if (onechar == '(') {
-      if (expect == OP) 
+      if (expect == OP)
         error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = OP;
 
@@ -3805,7 +4623,7 @@ double Variable::evaluate_boolean(char *str)
     // ----------------
 
     } else if (isdigit(onechar) || onechar == '.' || onechar == '-') {
-      if (expect == OP) 
+      if (expect == OP)
         error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = OP;
 
@@ -3831,7 +4649,7 @@ double Variable::evaluate_boolean(char *str)
     // ----------------
 
     } else if (isalpha(onechar)) {
-      if (expect == OP) 
+      if (expect == OP)
         error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = OP;
 
@@ -3882,9 +4700,9 @@ double Variable::evaluate_boolean(char *str)
         op = AND;
         i++;
       } else if (onechar == '|') {
-        if (str[i+1] != '|')
-          error->all(FLERR,"Invalid Boolean syntax in if command");
-        op = OR;
+        if (str[i+1] == '|') op = OR;
+        else if (str[i+1] == '^') op = XOR;
+        else error->all(FLERR,"Invalid Boolean syntax in if command");
         i++;
       } else op = DONE;
 
@@ -3895,7 +4713,7 @@ double Variable::evaluate_boolean(char *str)
         continue;
       }
 
-      if (expect == ARG) 
+      if (expect == ARG)
         error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = ARG;
 
@@ -3968,6 +4786,12 @@ double Variable::evaluate_boolean(char *str)
           if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
           if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
+        } else if (opprevious == XOR) {
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if ((value1 == 0.0 && value2 != 0.0) ||
+              (value1 != 0.0 && value2 == 0.0))
+            argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         }
 
         argstack[nargstack++].flag = 0;
@@ -3989,93 +4813,18 @@ double Variable::evaluate_boolean(char *str)
   return argstack[0].value;
 }
 
-/* ---------------------------------------------------------------------- */
-
-unsigned int Variable::data_mask(int ivar)
-{
-  if (eval_in_progress[ivar]) return EMPTY_MASK;
-  eval_in_progress[ivar] = 1;
-  unsigned int datamask = data_mask(data[ivar][0]);
-  eval_in_progress[ivar] = 0;
-  return datamask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-unsigned int Variable::data_mask(char *str)
-{
-  unsigned int datamask = EMPTY_MASK;
-
-  for (unsigned int i = 0; i < strlen(str)-2; i++) {
-    int istart = i;
-    while (isalnum(str[i]) || str[i] == '_') i++;
-    int istop = i-1;
-
-    int n = istop - istart + 1;
-    char *word = new char[n+1];
-    strncpy(word,&str[istart],n);
-    word[n] = '\0';
-
-    // ----------------
-    // compute
-    // ----------------
-
-    if ((strncmp(word,"c_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Variable evaluation before simulation box is defined");
-
-      n = strlen(word) - 2 + 1;
-      char *id = new char[n];
-      strcpy(id,&word[2]);
-
-      int icompute = modify->find_compute(id);
-      if (icompute < 0) 
-        error->all(FLERR,"Invalid compute ID in variable formula");
-
-      datamask &= modify->compute[icompute]->data_mask();
-
-      delete [] id;
-    }
-
-    if ((strncmp(word,"f_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Variable evaluation before simulation box is defined");
-      
-      n = strlen(word) - 2 + 1;
-      char *id = new char[n];
-      strcpy(id,&word[2]);
-      
-      int ifix = modify->find_fix(id);
-      if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
-      
-      datamask &= modify->fix[ifix]->data_mask();
-      delete [] id;
-    }
-    
-    if ((strncmp(word,"v_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      int ivar = find(word);
-      datamask &= data_mask(ivar);
-    }
-
-    delete [] word;
-  }
-
-  return datamask;
-}
-
 /* ----------------------------------------------------------------------
    class to read variable values from a file
    for flag = SCALARFILE, reads one value per line
    for flag = ATOMFILE, reads set of one value per atom
 ------------------------------------------------------------------------- */
 
-VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) : 
+VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   Pointers(lmp)
 {
   me = comm->me;
   style = flag;
+  fp = NULL;
 
   if (me == 0) {
     fp = fopen(file,"r");
@@ -4084,13 +4833,13 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       sprintf(str,"Cannot open file variable file %s",file);
       error->one(FLERR,str);
     }
-  } else fp = NULL;
+  }
 
   // if atomfile-style variable, must store per-atom values read from file
   // allocate a new fix STORE, so they persist
   // id = variable-ID + VARIABLE_STORE, fix group = all
 
-  fix = NULL;
+  fixstore = NULL;
   id_fix = NULL;
   buffer = NULL;
 
@@ -4104,14 +4853,15 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
     strcpy(id_fix,name);
     strcat(id_fix,"_VARIABLE_STORE");
 
-    char **newarg = new char*[5];
+    char **newarg = new char*[6];
     newarg[0] = id_fix;
     newarg[1] = (char *) "all";
     newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "0";
-    newarg[4] = (char *) "1";
-    modify->add_fix(5,newarg);
-    fix = (FixStore *) modify->fix[modify->nfix-1];
+    newarg[3] = (char *) "peratom";
+    newarg[4] = (char *) "0";
+    newarg[5] = (char *) "1";
+    modify->add_fix(6,newarg);
+    fixstore = (FixStore *) modify->fix[modify->nfix-1];
     delete [] newarg;
 
     buffer = new char[CHUNK*MAXLINE];
@@ -4122,11 +4872,14 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
 VarReader::~VarReader()
 {
-  if (me == 0) fclose(fp);
+  if (me == 0) {
+    fclose(fp);
+    fp = NULL;
+  }
 
   // check modify in case all fixes have already been deleted
 
-  if (fix) {
+  if (fixstore) {
     if (modify) modify->delete_fix(id_fix);
     delete [] id_fix;
     delete [] buffer;
@@ -4182,7 +4935,7 @@ int VarReader::read_peratom()
   // set all per-atom values to 0.0
   // values that appear in file will overwrite this
 
-  double *vstore = fix->vstore;
+  double *vstore = fixstore->vstore;
 
   int nlocal = atom->nlocal;
   for (i = 0; i < nlocal; i++) vstore[i] = 0.0;
@@ -4207,7 +4960,7 @@ int VarReader::read_peratom()
   if (n == 0) return 1;
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  bigint nlines = ATOBIGINT(str);
+  bigint nlines = force->bnumeric(FLERR,str);
   tagint map_tag_max = atom->map_tag_max;
 
   bigint nread = 0;

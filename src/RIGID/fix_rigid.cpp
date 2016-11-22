@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_rigid.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -42,9 +42,9 @@ enum{SINGLE,MOLECULE,GROUP};
 enum{NONE,XYZ,XY,YZ,XZ};
 enum{ISO,ANISO,TRICLINIC};
 
-#define MAXLINE 256
+#define MAXLINE 1024
 #define CHUNK 1024
-#define ATTRIBUTE_PERBODY 11
+#define ATTRIBUTE_PERBODY 20
 
 #define TOLERANCE 1.0e-6
 #define EPSILON 1.0e-7
@@ -56,7 +56,16 @@ enum{ISO,ANISO,TRICLINIC};
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), step_respa(NULL), 
+  infile(NULL), nrigid(NULL), mol2body(NULL), body2mol(NULL), 
+  body(NULL), displace(NULL), masstotal(NULL), xcm(NULL), 
+  vcm(NULL), fcm(NULL), inertia(NULL), ex_space(NULL), 
+  ey_space(NULL), ez_space(NULL), angmom(NULL), omega(NULL), 
+  torque(NULL), quat(NULL), imagebody(NULL), fflag(NULL), 
+  tflag(NULL), langextra(NULL), sum(NULL), all(NULL), 
+  remapflag(NULL), xcmimage(NULL), eflags(NULL), orient(NULL), 
+  dorient(NULL), id_dilate(NULL), random(NULL), avec_ellipsoid(NULL), 
+  avec_line(NULL), avec_tri(NULL)
 {
   int i,ibody;
 
@@ -66,6 +75,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   rigid_flag = 1;
   virial_flag = 1;
   create_attribute = 1;
+  dof_flag = 1;
+  enforce2d_flag = 1;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -75,6 +86,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   extended = orientflag = dorientflag = 0;
   body = NULL;
+  xcmimage = NULL;
   displace = NULL;
   eflags = NULL;
   orient = NULL;
@@ -130,7 +142,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     tagint itmp;
     MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    if (itmp+1 > MAXSMALLINT) 
+    if (itmp+1 > MAXSMALLINT)
       error->all(FLERR,"Too many molecules for fix rigid");
     maxmol = (int) itmp;
 
@@ -248,6 +260,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     if (domain->dimension == 2) fflag[i][2] = tflag[i][0] = tflag[i][1] = 0.0;
   }
 
+  // number of linear rigid bodies is counted later
+  nlinear = 0;
+
   // parse optional args
 
   int seed;
@@ -265,18 +280,18 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   pcouple = NONE;
   pstyle = ANISO;
   dimension = domain->dimension;
-  
+
   for (int i = 0; i < 3; i++) {
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
   }
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
 
       int mlo,mhi;
-      force->bounds(arg[iarg+1],nbody,mlo,mhi);
+      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
@@ -307,7 +322,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
 
       int mlo,mhi;
-      force->bounds(arg[iarg+1],nbody,mlo,mhi);
+      force->bounds(FLERR,arg[iarg+1],nbody,mlo,mhi);
 
       double xflag,yflag,zflag;
       if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
@@ -336,7 +351,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"langevin") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid") != 0 && strcmp(style,"rigid/nve") != 0)
+      if (strcmp(style,"rigid") != 0 && strcmp(style,"rigid/nve") != 0 &&
+          strcmp(style,"rigid/omp") != 0 && strcmp(style,"rigid/nve/omp") != 0)
         error->all(FLERR,"Illegal fix rigid command");
       langflag = 1;
       t_start = force->numeric(FLERR,arg[iarg+1]);
@@ -350,7 +366,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0)
+      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0 &&
+          strcmp(style,"rigid/nvt/omp") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0)
         error->all(FLERR,"Illegal fix rigid command");
       tstat_flag = 1;
       t_start = force->numeric(FLERR,arg[iarg+1]);
@@ -360,12 +378,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"iso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0)
-	      error->all(FLERR,"Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0 &&
+          strcmp(style,"rigid/nph/omp") != 0)
+        error->all(FLERR,"Illegal fix rigid command");
       pcouple = XYZ;
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = 
+      p_period[0] = p_period[1] = p_period[2] =
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
@@ -376,11 +396,13 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0)
-	      error->all(FLERR,"Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0 &&
+          strcmp(style,"rigid/nph/omp") != 0)
+        error->all(FLERR,"Illegal fix rigid command");
       p_start[0] = p_start[1] = p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = p_stop[1] = p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
-      p_period[0] = p_period[1] = p_period[2] = 
+      p_period[0] = p_period[1] = p_period[2] =
         force->numeric(FLERR,arg[iarg+3]);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
@@ -391,6 +413,10 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0 &&
+          strcmp(style,"rigid/nph/omp") != 0)
+        error->all(FLERR,"Illegal fix rigid command");
       p_start[0] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[0] = force->numeric(FLERR,arg[iarg+2]);
       p_period[0] = force->numeric(FLERR,arg[iarg+3]);
@@ -399,6 +425,10 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0 &&
+          strcmp(style,"rigid/nph/omp") != 0)
+        error->all(FLERR,"Illegal fix rigid command");
       p_start[1] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[1] = force->numeric(FLERR,arg[iarg+2]);
       p_period[1] = force->numeric(FLERR,arg[iarg+3]);
@@ -407,6 +437,10 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0 &&
+          strcmp(style,"rigid/nph/omp") != 0)
+        error->all(FLERR,"Illegal fix rigid command");
       p_start[2] = force->numeric(FLERR,arg[iarg+1]);
       p_stop[2] = force->numeric(FLERR,arg[iarg+2]);
       p_period[2] = force->numeric(FLERR,arg[iarg+3]);
@@ -424,8 +458,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg) 
-        error->all(FLERR,"Illegal fix rigid nvt/npt/nph command");
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal fix rigid npt/nph command");
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else {
         allremap = 0;
@@ -442,7 +476,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"tparam") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0)
+      if (strcmp(style,"rigid/nvt") != 0 && strcmp(style,"rigid/npt") != 0 &&
+          strcmp(style,"rigid/nvt/omp") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0)
         error->all(FLERR,"Illegal fix rigid command");
       t_chain = force->inumeric(FLERR,arg[iarg+1]);
       t_iter = force->inumeric(FLERR,arg[iarg+2]);
@@ -451,7 +487,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"pchain") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0)
+      if (strcmp(style,"rigid/npt") != 0 && strcmp(style,"rigid/nph") != 0 &&
+          strcmp(style,"rigid/npt/omp") != 0 &&
+          strcmp(style,"rigid/nph/omp") != 0)
         error->all(FLERR,"Illegal fix rigid command");
       p_chain = force->inumeric(FLERR,arg[iarg+1]);
       iarg += 2;
@@ -467,16 +505,16 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else error->all(FLERR,"Illegal fix rigid command");
   }
-  
+
   // set pstat_flag
 
   pstat_flag = 0;
-  for (int i = 0; i < 3; i++) 
+  for (int i = 0; i < 3; i++)
     if (p_flag[i]) pstat_flag = 1;
 
   if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
-  
+
   // initialize Marsaglia RNG with processor-unique seed
 
   if (langflag) random = new RanMars(lmp,seed + me);
@@ -523,12 +561,9 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   MINUSPI = -MY_PI;
   TWOPI = 2.0*MY_PI;
 
-  // if infile set, only setup rigid bodies once, using info from file
-  // this means users cannot change atom properties like mass between runs
-  // if they do, bodies will not reflect the changes
+  // wait to setup bodies until first init() using current atom properties
 
-  staticflag = 0;
-  if (infile) setup_bodies_static();
+  setupflag = 0;
 
   // print statistics
 
@@ -554,9 +589,10 @@ FixRigid::~FixRigid()
   memory->destroy(mol2body);
   memory->destroy(body2mol);
 
-  // delete locally stored arrays
+  // delete locally stored per-atom arrays
 
   memory->destroy(body);
+  memory->destroy(xcmimage);
   memory->destroy(displace);
   memory->destroy(eflags);
   memory->destroy(orient);
@@ -644,10 +680,18 @@ void FixRigid::init()
     step_respa = ((Respa *) update->integrate)->step;
 
   // setup rigid bodies, using current atom info
-  // allows resetting of atom properties like mass between runs
-  // only do this if not using an infile, else was called in constructor
+  // only do initialization once, b/c properties may not be re-computable
+  //   especially if overlapping particles
+  // do not do dynamic init if read body properties from infile
+  //   this is b/c the infile defines the static and dynamic properties
+  //   and may not be computable if contain overlapping particles
+  //   setup_bodies_static() reads infile itself
 
-  if (!infile) setup_bodies_static();
+  if (!setupflag) {
+    setup_bodies_static();
+    if (!infile) setup_bodies_dynamic();
+    setupflag = 1;
+  }
 
   // temperature scale factor
 
@@ -656,8 +700,19 @@ void FixRigid::init()
     ndof += fflag[ibody][0] + fflag[ibody][1] + fflag[ibody][2];
     ndof += tflag[ibody][0] + tflag[ibody][1] + tflag[ibody][2];
   }
+  ndof -= nlinear;
   if (ndof > 0.0) tfactor = force->mvv2e / (ndof * force->boltz);
   else tfactor = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   invoke pre_neighbor() to insure body xcmimage flags are reset
+     needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
+------------------------------------------------------------------------- */
+
+void FixRigid::setup_pre_neighbor()
+{
+  pre_neighbor();
 }
 
 /* ----------------------------------------------------------------------
@@ -668,12 +723,6 @@ void FixRigid::init()
 void FixRigid::setup(int vflag)
 {
   int i,n,ibody;
-
-  // setup_bodies_dynamic sets vcm and angmom
-  // so angmom_to_omega() and set_v() below will set per-atom vels correctly
-  // re-calling it every run allows reset of body/atom velocities between runs
-
-  setup_bodies_dynamic();
 
   // fcm = force on center-of-mass of each rigid body
 
@@ -701,7 +750,6 @@ void FixRigid::setup(int vflag)
 
   // torque = torque on each rigid body
 
-  imageint *image = atom->image;
   double **x = atom->x;
 
   double dx,dy,dz;
@@ -714,7 +762,7 @@ void FixRigid::setup(int vflag)
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     dx = unwrap[0] - xcm[ibody][0];
     dy = unwrap[1] - xcm[ibody][1];
     dz = unwrap[2] - xcm[ibody][2];
@@ -765,6 +813,7 @@ void FixRigid::setup(int vflag)
   for (ibody = 0; ibody < nbody; ibody++)
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
+
   set_v();
 
   // guesstimate virial as 2x the set_v contribution
@@ -858,7 +907,7 @@ void FixRigid::post_force(int vflag)
       langextra[i][0] = gamma1*vcm[i][0] + gamma2*(random->uniform()-0.5);
       langextra[i][1] = gamma1*vcm[i][1] + gamma2*(random->uniform()-0.5);
       langextra[i][2] = gamma1*vcm[i][2] + gamma2*(random->uniform()-0.5);
-
+      
       gamma1 = -1.0 / t_period / ftm2v;
       gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
       langextra[i][3] = inertia[i][0]*gamma1*omega[i][0] +
@@ -873,6 +922,31 @@ void FixRigid::post_force(int vflag)
   MPI_Bcast(&langextra[0][0],6*nbody,MPI_DOUBLE,0,world);
 }
 
+/* ----------------------------------------------------------------------
+   called from FixEnforce2d post_force() for 2d problems
+   zero all body values that should be zero for 2d model
+------------------------------------------------------------------------- */
+
+void FixRigid::enforce2d()
+{
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    xcm[ibody][2] = 0.0;
+    vcm[ibody][2] = 0.0;
+    fcm[ibody][2] = 0.0;
+    torque[ibody][0] = 0.0;
+    torque[ibody][1] = 0.0;
+    angmom[ibody][0] = 0.0;
+    angmom[ibody][1] = 0.0;
+    omega[ibody][0] = 0.0;
+    omega[ibody][1] = 0.0;
+    if (langflag) {
+      langextra[ibody][2] = 0.0;
+      langextra[ibody][3] = 0.0;
+      langextra[ibody][4] = 0.0;
+    }
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixRigid::final_integrate()
@@ -882,7 +956,6 @@ void FixRigid::final_integrate()
 
   // sum over atoms to get force and torque on rigid body
 
-  imageint *image = atom->image;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -901,7 +974,7 @@ void FixRigid::final_integrate()
     sum[ibody][1] += f[i][1];
     sum[ibody][2] += f[i][2];
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     dx = unwrap[0] - xcm[ibody][0];
     dy = unwrap[1] - xcm[ibody][1];
     dz = unwrap[2] - xcm[ibody][2];
@@ -965,56 +1038,6 @@ void FixRigid::final_integrate()
   set_v();
 }
 
-/* ----------------------------------------------------------------------
-   apply evolution operators to quat, quat momentum
-   see Miller paper cited in fix rigid/nvt and fix rigid/npt
-------------------------------------------------------------------------- */
-
-void FixRigid::no_squish_rotate(int k, double *p, double *q,
-                                double *inertia, double dt) const
-{
-  double phi,c_phi,s_phi,kp[4],kq[4];
-
-  // apply permuation operator on p and q, get kp and kq
-
-  if (k == 1) {
-    kq[0] = -q[1];  kp[0] = -p[1];
-    kq[1] =  q[0];  kp[1] =  p[0];
-    kq[2] =  q[3];  kp[2] =  p[3];
-    kq[3] = -q[2];  kp[3] = -p[2];
-  } else if (k == 2) {
-    kq[0] = -q[2];  kp[0] = -p[2];
-    kq[1] = -q[3];  kp[1] = -p[3];
-    kq[2] =  q[0];  kp[2] =  p[0];
-    kq[3] =  q[1];  kp[3] =  p[1];
-  } else if (k == 3) {
-    kq[0] = -q[3];  kp[0] = -p[3];
-    kq[1] =  q[2];  kp[1] =  p[2];
-    kq[2] = -q[1];  kp[2] = -p[1];
-    kq[3] =  q[0];  kp[3] =  p[0];
-  }
-
-  // obtain phi, cosines and sines
-
-  phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  if (fabs(inertia[k-1]) < 1e-6) phi *= 0.0;
-  else phi /= 4.0 * inertia[k-1];
-  c_phi = cos(dt * phi);
-  s_phi = sin(dt * phi);
-
-  // advance p and q
-
-  p[0] = c_phi*p[0] + s_phi*kp[0];
-  p[1] = c_phi*p[1] + s_phi*kp[1];
-  p[2] = c_phi*p[2] + s_phi*kp[2];
-  p[3] = c_phi*p[3] + s_phi*kp[3];
-
-  q[0] = c_phi*q[0] + s_phi*kq[0];
-  q[1] = c_phi*q[1] + s_phi*kq[1];
-  q[2] = c_phi*q[2] + s_phi*kq[2];
-  q[3] = c_phi*q[3] + s_phi*kq[3];
-}
-
 /* ---------------------------------------------------------------------- */
 
 void FixRigid::initial_integrate_respa(int vflag, int ilevel, int iloop)
@@ -1040,72 +1063,54 @@ void FixRigid::final_integrate_respa(int ilevel, int iloop)
    done during pre_neighbor so will be after call to pbc()
      and after fix_deform::pre_exchange() may have flipped box
    use domain->remap() in case xcm is far away from box
-     due to 1st definition of rigid body or due to box flip
-   if don't do this, then atoms of a body which drifts far away
-     from a triclinic box will be remapped back into box
-     with huge displacements when the box tilt changes via set_x()
-   adjust image flag of body and image flags of all atoms in body
+     due to first-time definition of rigid body in setup_bodies_static()
+     or due to box flip
+   also adjust imagebody = rigid body image flags, due to xcm remap
+   also reset body xcmimage flags of all atoms in bodies
+   xcmimage flags are relative to xcm so that body can be unwrapped
+   if don't do this, would need xcm to move with true image flags
+     then a body could end up very far away from box
+     set_xv() will then compute huge displacements every step to
+       reset coords of all body atoms to be back inside the box,
+       ditto for triclinic box flip, which causes numeric problems
 ------------------------------------------------------------------------- */
 
 void FixRigid::pre_neighbor()
 {
-  imageint original,oldimage,newimage;
-
-  for (int ibody = 0; ibody < nbody; ibody++) {
-    original = imagebody[ibody];
+  for (int ibody = 0; ibody < nbody; ibody++)
     domain->remap(xcm[ibody],imagebody[ibody]);
+  image_shift();
+}
 
-    if (original == imagebody[ibody]) remapflag[ibody][3] = 0;
-    else {
-      oldimage = original & IMGMASK;
-      newimage = imagebody[ibody] & IMGMASK;
-      remapflag[ibody][0] = newimage - oldimage;
-      oldimage = (original >> IMGBITS) & IMGMASK;
-      newimage = (imagebody[ibody] >> IMGBITS) & IMGMASK;
-      remapflag[ibody][1] = newimage - oldimage;
-      oldimage = original >> IMG2BITS;
-      newimage = imagebody[ibody] >> IMG2BITS;
-      remapflag[ibody][2] = newimage - oldimage;
-      remapflag[ibody][3] = 1;
-    }
-  }
+/* ----------------------------------------------------------------------
+   reset body xcmimage flags of atoms in bodies
+   xcmimage flags are relative to xcm so that body can be unwrapped
+   xcmimage = true image flag - imagebody flag
+------------------------------------------------------------------------- */
 
-  // adjust image flags of any atom in a rigid body whose xcm was remapped
-  // subtracting remapflag = new-old keeps ix,iy,iz near 0
-  //   so body is always in central simulation box
+void FixRigid::image_shift()
+{
+  int ibody;
+  imageint tdim,bdim,xdim[3];
 
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  int ibody;
-  imageint idim,otherdims;
-
   for (int i = 0; i < nlocal; i++) {
-    if (body[i] == -1) continue;
-    if (remapflag[body[i]][3] == 0) continue;
+    if (body[i] < 0) continue;
     ibody = body[i];
 
-    if (remapflag[ibody][0]) {
-      idim = image[i] & IMGMASK;
-      otherdims = image[i] ^ idim;
-      idim -= remapflag[ibody][0];
-      idim &= IMGMASK;
-      image[i] = otherdims | idim;
-    }
-    if (remapflag[ibody][1]) {
-      idim = (image[i] >> IMGBITS) & IMGMASK;
-      otherdims = image[i] ^ (idim << IMGBITS);
-      idim -= remapflag[ibody][1];
-      idim &= IMGMASK;
-      image[i] = otherdims | (idim << IMGBITS);
-    }
-    if (remapflag[ibody][2]) {
-      idim = image[i] >> IMG2BITS;
-      otherdims = image[i] ^ (idim << IMG2BITS);
-      idim -= remapflag[ibody][2];
-      idim &= IMGMASK;
-      image[i] = otherdims | (idim << IMG2BITS);
-    }
+    tdim = image[i] & IMGMASK;
+    bdim = imagebody[ibody] & IMGMASK;
+    xdim[0] = IMGMAX + tdim - bdim;
+    tdim = (image[i] >> IMGBITS) & IMGMASK;
+    bdim = (imagebody[ibody] >> IMGBITS) & IMGMASK;
+    xdim[1] = IMGMAX + tdim - bdim;
+    tdim = image[i] >> IMG2BITS;
+    bdim = imagebody[ibody] >> IMG2BITS;
+    xdim[2] = IMGMAX + tdim - bdim;
+
+    xcmimage[i] = (xdim[2] << IMG2BITS) | (xdim[1] << IMGBITS) | xdim[0];
   }
 }
 
@@ -1118,8 +1123,8 @@ int FixRigid::dof(int tgroup)
 {
   // cannot count DOF correctly unless setup_bodies_static() has been called
 
-  if (!staticflag) {
-    if (comm->me == 0) 
+  if (!setupflag) {
+    if (comm->me == 0)
       error->warning(FLERR,"Cannot count rigid body degrees-of-freedom "
                      "before bodies are initialized");
     return 0;
@@ -1141,7 +1146,9 @@ int FixRigid::dof(int tgroup)
 
   for (int i = 0; i < nlocal; i++)
     if (body[i] >= 0 && mask[i] & tgroupbit) {
-      if (extended && eflags[i]) mcount[body[i]]++;
+      // do not count point particles or point dipoles as extended particles
+      // a spheroid dipole will be counted as extended
+      if (extended && (eflags[i] & ~(POINT | DIPOLE))) mcount[body[i]]++;
       else ncount[body[i]]++;
     }
 
@@ -1172,12 +1179,16 @@ int FixRigid::dof(int tgroup)
   // 2d body with any finite-size M should have 3 dof, remove (2N+3M) - 3
 
   int n = 0;
+  nlinear = 0;
   if (domain->dimension == 3) {
     for (int ibody = 0; ibody < nbody; ibody++)
       if (nall[ibody]+mall[ibody] == nrigid[ibody]) {
         n += 3*nall[ibody] + 6*mall[ibody] - 6;
         if (inertia[ibody][0] == 0.0 || inertia[ibody][1] == 0.0 ||
-            inertia[ibody][2] == 0.0) n++;
+            inertia[ibody][2] == 0.0) {
+          n++;
+          nlinear++;
+        }
       }
   } else if (domain->dimension == 2) {
     for (int ibody = 0; ibody < nbody; ibody++)
@@ -1224,7 +1235,6 @@ void FixRigid::set_xv()
   double xy,xz,yz;
   double ione[3],exone[3],eyone[3],ezone[3],vr[6],p[3][3];
 
-  imageint *image = atom->image;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -1249,9 +1259,9 @@ void FixRigid::set_xv()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    xbox = (image[i] & IMGMASK) - IMGMAX;
-    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
     // save old positions and velocities for virial
 
@@ -1406,7 +1416,6 @@ void FixRigid::set_v()
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   double xprd = domain->xprd;
@@ -1455,9 +1464,9 @@ void FixRigid::set_v()
       fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
       fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
 
-      xbox = (image[i] & IMGMASK) - IMGMAX;
-      ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (image[i] >> IMG2BITS) - IMGMAX;
+      xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+      ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
       if (triclinic == 0) {
         x0 = x[i][0] + xbox*xprd;
@@ -1527,12 +1536,11 @@ void FixRigid::set_v()
 }
 
 /* ----------------------------------------------------------------------
-   initialization of static rigid body attributes
-   called from init() so body/atom properties can be changed between runs
-   unless reading from infile, in which case called once from constructor
+   one-time initialization of static rigid body attributes
    sets extended flags, masstotal, center-of-mass
    sets Cartesian and diagonalized inertia tensor
-   sets body image flags, but only on first call
+   sets body image flags
+   may read some properties from infile
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_static()
@@ -1618,11 +1626,17 @@ void FixRigid::setup_bodies_static()
     }
   }
 
+  // set body xcmimage flags = true image flags
+
+  imageint *image = atom->image;
+  for (i = 0; i < nlocal; i++)
+    if (body[i] >= 0) xcmimage[i] = image[i];
+    else xcmimage[i] = 0;
+
   // compute masstotal & center-of-mass of each rigid body
   // error if image flag is not 0 in a non-periodic dim
 
   double **x = atom->x;
-  imageint *image = atom->image;
 
   int *periodicity = domain->periodicity;
   double xprd = domain->xprd;
@@ -1641,9 +1655,9 @@ void FixRigid::setup_bodies_static()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    xbox = (image[i] & IMGMASK) - IMGMAX;
-    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
     if (rmass) massone = rmass[i];
     else massone = mass[type[i]];
 
@@ -1677,25 +1691,33 @@ void FixRigid::setup_bodies_static()
     xcm[ibody][2] = all[ibody][2]/masstotal[ibody];
   }
 
-  // overwrite masstotal and center-of-mass with file values
+  // set vcm, angmom = 0.0 in case infile is used
+  // and doesn't overwrite all body's values
+  // since setup_bodies_dynamic() will not be called
+
+  for (ibody = 0; ibody < nbody; ibody++) {
+    vcm[ibody][0] = vcm[ibody][1] = vcm[ibody][2] = 0.0;
+    angmom[ibody][0] = angmom[ibody][1] = angmom[ibody][2] = 0.0;
+  }
+
+  // set rigid body image flags to default values
+
+  for (ibody = 0; ibody < nbody; ibody++)
+    imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) |
+      ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+
+  // overwrite masstotal, center-of-mass, image flags with file values
   // inbody[i] = 0/1 if Ith rigid body is initialized by file
 
   int *inbody;
   if (infile) {
     memory->create(inbody,nbody,"rigid:inbody");
     for (ibody = 0; ibody < nbody; ibody++) inbody[ibody] = 0;
-    readfile(0,masstotal,xcm,inbody);
+    readfile(0,masstotal,xcm,vcm,angmom,imagebody,inbody);
   }
 
-  // set image flags for each rigid body to default values
-  // then remap the xcm of each body back into simulation box if needed
-  // staticflag check insures this in only done once, not on successive runs
-
-  if (!staticflag) {
-    for (ibody = 0; ibody < nbody; ibody++)
-      imagebody[ibody] = ((imageint) IMGMAX << IMG2BITS) | 
-        ((imageint) IMGMAX << IMGBITS) | IMGMAX;
-  }
+  // remap the xcm of each body back into simulation box
+  //   and reset body and atom xcmimage flags via pre_neighbor()
 
   pre_neighbor();
 
@@ -1712,9 +1734,9 @@ void FixRigid::setup_bodies_static()
     if (body[i] < 0) continue;
     ibody = body[i];
 
-    xbox = (image[i] & IMGMASK) - IMGMAX;
-    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -1796,7 +1818,7 @@ void FixRigid::setup_bodies_static()
 
   // overwrite Cartesian inertia tensor with file values
 
-  if (infile) readfile(1,NULL,all,inbody);
+  if (infile) readfile(1,NULL,all,NULL,NULL,NULL,inbody);
 
   // diagonalize inertia tensor for each body via Jacobi rotations
   // inertia = 3 eigenvalues = principal moments of inertia
@@ -1867,9 +1889,9 @@ void FixRigid::setup_bodies_static()
 
     ibody = body[i];
 
-    xbox = (image[i] & IMGMASK) - IMGMAX;
-    ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
     if (triclinic == 0) {
       xunwrap = x[i][0] + xbox*xprd;
@@ -1993,7 +2015,7 @@ void FixRigid::setup_bodies_static()
 
   MPI_Allreduce(sum[0],all[0],6*nbody,MPI_DOUBLE,MPI_SUM,world);
 
-  // error check that re-computed momemts of inertia match diagonalized ones
+  // error check that re-computed moments of inertia match diagonalized ones
   // do not do test for bodies with params read from infile
 
   double norm;
@@ -2028,19 +2050,12 @@ void FixRigid::setup_bodies_static()
   }
 
   if (infile) memory->destroy(inbody);
-
-  // static properties have now been initialized once
-  // used to prevent re-initialization which would re-read infile
-
-  staticflag = 1;
 }
 
 /* ----------------------------------------------------------------------
-   initialization of dynamic rigid body attributes
+   one-time initialization of dynamic rigid body attributes
    set vcm and angmom, computed explicitly from constituent particles
-   OK if wrong for overlapping particles,
-     since is just setting vcm/angmom at start of run,
-     which can be estimated value
+   not done if body properites read from file, e.g. for overlapping particles
 ------------------------------------------------------------------------- */
 
 void FixRigid::setup_bodies_dynamic()
@@ -2055,7 +2070,6 @@ void FixRigid::setup_bodies_dynamic()
   double **v = atom->v;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  imageint *image = atom->image;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
@@ -2076,7 +2090,7 @@ void FixRigid::setup_bodies_dynamic()
     sum[ibody][1] += v[i][1] * massone;
     sum[ibody][2] += v[i][2] * massone;
 
-    domain->unmap(x[i],image[i],unwrap);
+    domain->unmap(x[i],xcmimage[i],unwrap);
     dx = unwrap[0] - xcm[ibody][0];
     dy = unwrap[1] - xcm[ibody][1];
     dz = unwrap[2] - xcm[ibody][2];
@@ -2135,21 +2149,24 @@ void FixRigid::setup_bodies_dynamic()
 
 /* ----------------------------------------------------------------------
    read per rigid body info from user-provided file
-   which = 0 to read total mass and center-of-mass, store in vec and array
-   which = 1 to read 6 moments of inertia, store in array
+   which = 0 to read everthing except 6 moments of inertia
+   which = 1 to read 6 moments of inertia
    flag inbody = 0 for bodies whose info is read from file
    nlines = # of lines of rigid body info
    one line = rigid-ID mass xcm ycm zcm ixx iyy izz ixy ixz iyz
+              vxcm vycm vzcm lx ly lz ix iy iz
 ------------------------------------------------------------------------- */
 
-void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
+void FixRigid::readfile(int which, double *vec,
+                        double **array1, double **array2, double **array3,
+                        imageint *ivec, int *inbody)
 {
-  int j,nchunk,id,eofflag;
+  int j,nchunk,id,eofflag,xbox,ybox,zbox;
   int nlines;
   FILE *fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE];
-  
+
   if (me == 0) {
     fp = fopen(infile,"r");
     if (fp == NULL) {
@@ -2188,49 +2205,61 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 
     if (nwords != ATTRIBUTE_PERBODY)
       error->all(FLERR,"Incorrect rigid body format in fix rigid file");
-    
+
     // loop over lines of rigid body attributes
     // tokenize the line into values
     // id = rigid body ID
     // use ID as-is for SINGLE, as mol-ID for MOLECULE, as-is for GROUP
-    // for which = 0, store mass/com in vec/array
-    // for which = 1, store interia tensor array, invert 3,4,5 values to Voigt
+    // for which = 0, store all but inertia in vecs and arrays
+    // for which = 1, store inertia tensor array, invert 3,4,5 values to Voigt
 
     for (int i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
-      
+
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
-      
+
       id = atoi(values[0]);
       if (rstyle == MOLECULE) {
-        if (id <= 0 || id > maxmol) 
+        if (id <= 0 || id > maxmol)
           error->all(FLERR,"Invalid rigid body ID in fix rigid file");
         id = mol2body[id];
       } else id--;
 
-      if (id < 0 || id >= nbody) 
+      if (id < 0 || id >= nbody)
         error->all(FLERR,"Invalid rigid body ID in fix rigid file");
       inbody[id] = 1;
 
       if (which == 0) {
         vec[id] = atof(values[1]);
-        array[id][0] = atof(values[2]);
-        array[id][1] = atof(values[3]);
-        array[id][2] = atof(values[4]);
+        array1[id][0] = atof(values[2]);
+        array1[id][1] = atof(values[3]);
+        array1[id][2] = atof(values[4]);
+        array2[id][0] = atof(values[11]);
+        array2[id][1] = atof(values[12]);
+        array2[id][2] = atof(values[13]);
+        array3[id][0] = atof(values[14]);
+        array3[id][1] = atof(values[15]);
+        array3[id][2] = atof(values[16]);
+        xbox = atoi(values[17]);
+        ybox = atoi(values[18]);
+        zbox = atoi(values[19]);
+        ivec[id] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+          (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+          (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
       } else {
-        array[id][0] = atof(values[5]);
-        array[id][1] = atof(values[6]);
-        array[id][2] = atof(values[7]);
-        array[id][3] = atof(values[10]);
-        array[id][4] = atof(values[9]);
-        array[id][5] = atof(values[8]);
+        array1[id][0] = atof(values[5]);
+        array1[id][1] = atof(values[6]);
+        array1[id][2] = atof(values[7]);
+        array1[id][3] = atof(values[10]);
+        array1[id][4] = atof(values[9]);
+        array1[id][5] = atof(values[8]);
       }
 
       buf = next + 1;
     }
-    
+
     nread += nchunk;
   }
 
@@ -2241,7 +2270,7 @@ void FixRigid::readfile(int which, double *vec, double **array, int *inbody)
 }
 
 /* ----------------------------------------------------------------------
-   write out restart info for mass, COM, inertia tensor to file
+   write out restart info for mass, COM, inertia tensor, image flags to file
    identical format to infile option, so info can be read in when restarting
    only proc 0 writes list of global bodies to file
 ------------------------------------------------------------------------- */
@@ -2268,6 +2297,7 @@ void FixRigid::write_restart_file(char *file)
   // Ispace = P Idiag P_transpose
   // P is stored column-wise in exyz_space
 
+  int xbox,ybox,zbox;
   double p[3][3],pdiag[3][3],ispace[3][3];
 
   int id;
@@ -2279,11 +2309,20 @@ void FixRigid::write_restart_file(char *file)
     MathExtra::times3_diag(p,inertia[i],pdiag);
     MathExtra::times3_transpose(pdiag,p,ispace);
 
+    xbox = (imagebody[i] & IMGMASK) - IMGMAX;
+    ybox = (imagebody[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    zbox = (imagebody[i] >> IMG2BITS) - IMGMAX;
+
     fprintf(fp,"%d %-1.16e %-1.16e %-1.16e %-1.16e "
-            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e\n",
+            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
+            "%-1.16e %-1.16e %-1.16e %-1.16e %-1.16e %-1.16e "
+            "%d %d %d\n",
             id,masstotal[i],xcm[i][0],xcm[i][1],xcm[i][2],
             ispace[0][0],ispace[1][1],ispace[2][2],
-            ispace[0][1],ispace[0][2],ispace[1][2]);
+            ispace[0][1],ispace[0][2],ispace[1][2],
+            vcm[i][0],vcm[i][1],vcm[i][2],
+            angmom[i][0],angmom[i][1],angmom[i][2],
+            xbox,ybox,zbox);
   }
 
   fclose(fp);
@@ -2297,6 +2336,7 @@ double FixRigid::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
+  bytes += nmax * sizeof(imageint);
   bytes += nmax*3 * sizeof(double);
   bytes += maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
@@ -2314,11 +2354,22 @@ double FixRigid::memory_usage()
 void FixRigid::grow_arrays(int nmax)
 {
   memory->grow(body,nmax,"rigid:body");
+  memory->grow(xcmimage,nmax,"rigid:xcmimage");
   memory->grow(displace,nmax,3,"rigid:displace");
   if (extended) {
     memory->grow(eflags,nmax,"rigid:eflags");
     if (orientflag) memory->grow(orient,nmax,orientflag,"rigid:orient");
     if (dorientflag) memory->grow(dorient,nmax,3,"rigid:dorient");
+  }
+
+  // check for regrow of vatom
+  // must be done whether per-atom virial is accumulated on this step or not
+  //   b/c this is only time grow_array() may be called
+  // need to regrow b/c vatom is calculated before and after atom migration
+
+  if (nmax > maxvatom) {
+    maxvatom = atom->nmax;
+    memory->grow(vatom,maxvatom,6,"fix:vatom");
   }
 }
 
@@ -2329,6 +2380,7 @@ void FixRigid::grow_arrays(int nmax)
 void FixRigid::copy_arrays(int i, int j, int delflag)
 {
   body[j] = body[i];
+  xcmimage[j] = xcmimage[i];
   displace[j][0] = displace[i][0];
   displace[j][1] = displace[i][1];
   displace[j][2] = displace[i][2];
@@ -2342,6 +2394,13 @@ void FixRigid::copy_arrays(int i, int j, int delflag)
       dorient[j][2] = dorient[i][2];
     }
   }
+
+  // must also copy vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[j][k] = vatom[i][k];
 }
 
 /* ----------------------------------------------------------------------
@@ -2351,9 +2410,17 @@ void FixRigid::copy_arrays(int i, int j, int delflag)
 void FixRigid::set_arrays(int i)
 {
   body[i] = -1;
+  xcmimage[i] = 0;
   displace[i][0] = 0.0;
   displace[i][1] = 0.0;
   displace[i][2] = 0.0;
+
+  // must also zero vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[i][k] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -2362,13 +2429,14 @@ void FixRigid::set_arrays(int i)
 
 int FixRigid::pack_exchange(int i, double *buf)
 {
-  buf[0] = body[i];
-  buf[1] = displace[i][0];
-  buf[2] = displace[i][1];
-  buf[3] = displace[i][2];
-  if (!extended) return 4;
+  buf[0] = ubuf(body[i]).d;
+  buf[1] = ubuf(xcmimage[i]).d;
+  buf[2] = displace[i][0];
+  buf[3] = displace[i][1];
+  buf[4] = displace[i][2];
+  if (!extended) return 5;
 
-  int m = 4;
+  int m = 5;
   buf[m++] = eflags[i];
   for (int j = 0; j < orientflag; j++)
     buf[m++] = orient[i][j];
@@ -2377,6 +2445,14 @@ int FixRigid::pack_exchange(int i, double *buf)
     buf[m++] = dorient[i][1];
     buf[m++] = dorient[i][2];
   }
+
+  // must also pack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      buf[m++] = vatom[i][k];
+
   return m;
 }
 
@@ -2386,13 +2462,14 @@ int FixRigid::pack_exchange(int i, double *buf)
 
 int FixRigid::unpack_exchange(int nlocal, double *buf)
 {
-  body[nlocal] = static_cast<int> (buf[0]);
-  displace[nlocal][0] = buf[1];
-  displace[nlocal][1] = buf[2];
-  displace[nlocal][2] = buf[3];
-  if (!extended) return 4;
+  body[nlocal] = (int) ubuf(buf[0]).i;
+  xcmimage[nlocal] = (imageint) ubuf(buf[1]).i;
+  displace[nlocal][0] = buf[2];
+  displace[nlocal][1] = buf[3];
+  displace[nlocal][2] = buf[4];
+  if (!extended) return 5;
 
-  int m = 4;
+  int m = 5;
   eflags[nlocal] = static_cast<int> (buf[m++]);
   for (int j = 0; j < orientflag; j++)
     orient[nlocal][j] = buf[m++];
@@ -2401,6 +2478,14 @@ int FixRigid::unpack_exchange(int nlocal, double *buf)
     dorient[nlocal][1] = buf[m++];
     dorient[nlocal][2] = buf[m++];
   }
+
+  // must also unpack vatom if per-atom virial calculated on this timestep
+  // since vatom is calculated before and after atom migration
+
+  if (vflag_atom)
+    for (int k = 0; k < 6; k++)
+      vatom[nlocal][k] = buf[m++];
+
   return m;
 }
 
@@ -2507,7 +2592,7 @@ double FixRigid::extract_ke()
 {
   double ke = 0.0;
   for (int i = 0; i < nbody; i++)
-    ke += masstotal[i] * 
+    ke += masstotal[i] *
       (vcm[i][0]*vcm[i][0] + vcm[i][1]*vcm[i][1] + vcm[i][2]*vcm[i][2]);
 
   return 0.5*ke;

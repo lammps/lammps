@@ -15,9 +15,9 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_box_relax.h"
 #include "atom.h"
 #include "domain.h"
@@ -41,7 +41,8 @@ enum{ISO,ANISO,TRICLINIC};
 /* ---------------------------------------------------------------------- */
 
 FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  id_temp(NULL), id_press(NULL), tflag(0), pflag(0)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix box/relax command");
 

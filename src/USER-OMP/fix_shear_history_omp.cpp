@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdio.h"
+#include <string.h>
+#include <stdio.h>
 #include "fix_shear_history_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -38,7 +38,6 @@ using namespace FixConst;
 
 void FixShearHistoryOMP::pre_exchange()
 {
-
   const int nthreads = comm->nthreads;
   maxtouch = 0;
 
@@ -56,10 +55,10 @@ void FixShearHistoryOMP::pre_exchange()
     int i,j,ii,jj,m,n,inum,jnum;
     int *ilist,*jlist,*numneigh,**firstneigh;
     int *touch,**firsttouch;
-    double *shear,*allshear,**firstshear;
+    double *shear,*shearj,*allshear,**firstshear;
 
     MyPage <tagint> &ipg = ipage[tid];
-    MyPage <double[3]> &dpg = dpage[tid];
+    MyPage <double> &dpg = dpage[tid];
     ipg.reset();
     dpg.reset();
 
@@ -117,7 +116,7 @@ void FixShearHistoryOMP::pre_exchange()
       if ((i >= lfrom) && (i < lto)) {
         n = npartner[i];
         partner[i] = ipg.get(n);
-        shearpartner[i] = dpg.get(n);
+        shearpartner[i] = dpg.get(dnum*n);
         if (partner[i] == NULL || shearpartner[i] == NULL)
           error->one(FLERR,"Shear history overflow, boost neigh_modify one");
       }
@@ -143,21 +142,16 @@ void FixShearHistoryOMP::pre_exchange()
           j &= NEIGHMASK;
 
           if ((i >= lfrom) && (i < lto)) {
-            m = npartner[i];
+            m = npartner[i]++;
             partner[i][m] = tag[j];
-            shearpartner[i][m][0] = shear[0];
-            shearpartner[i][m][1] = shear[1];
-            shearpartner[i][m][2] = shear[2];
-            npartner[i]++;
+            memcpy(&shearpartner[i][dnum*m],shear,dnumbytes);
           }
 
           if ((j >= lfrom) && (j < lto)) {
-            m = npartner[j];
+            m = npartner[j]++;
             partner[j][m] = tag[i];
-            shearpartner[j][m][0] = -shear[0];
-            shearpartner[j][m][1] = -shear[1];
-            shearpartner[j][m][2] = -shear[2];
-            npartner[j]++;
+            shearj = &shearpartner[j][dnum*m];
+            for (n = 0; n < dnum; n++) shearj[n] = -shear[n];
           }
         }
       }

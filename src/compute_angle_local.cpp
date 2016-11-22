@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "compute_angle_local.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -55,8 +55,6 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -164,8 +162,8 @@ int ComputeAngleLocal::compute_angles(int flag)
         atom3 = atom->map(angle_atom3[atom2][i]);
       } else {
         if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
-        tagprev = tag[atom1] - iatom - 1;
-        atype = atom->map(onemols[imol]->angle_type[atom2][i]);
+        atype = onemols[imol]->angle_type[atom2][i];
+        tagprev = tag[atom2] - iatom - 1;
         atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i]+tagprev);
         atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i]+tagprev);
       }

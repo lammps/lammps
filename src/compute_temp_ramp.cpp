@@ -11,15 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "compute_temp_ramp.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
-#include "modify.h"
 #include "fix.h"
 #include "domain.h"
 #include "lattice.h"
@@ -117,7 +116,8 @@ ComputeTempRamp::~ComputeTempRamp()
 
 void ComputeTempRamp::setup()
 {
-  fix_dof = -1;
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof_compute();
 }
 
@@ -125,10 +125,9 @@ void ComputeTempRamp::setup()
 
 void ComputeTempRamp::dof_compute()
 {
-  if (fix_dof) adjust_dof_fix();
-  double natoms = group->count(igroup);
-  int nper = domain->dimension;
-  dof = nper * natoms;
+  adjust_dof_fix();
+  natoms_temp = group->count(igroup);
+  dof = domain->dimension * natoms_temp;
   dof -= extra_dof + fix_dof;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
@@ -171,6 +170,8 @@ double ComputeTempRamp::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0)
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
@@ -243,7 +244,7 @@ void ComputeTempRamp::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
+  if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/ramp:vbiasall");

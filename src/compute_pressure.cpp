@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_pressure.h"
 #include "atom.h"
 #include "update.h"
@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  vptr(NULL), id_temp(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pressure command");
   if (igroup) error->all(FLERR,"Compute pressure must use group all");
@@ -96,7 +97,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (keflag && id_temp == NULL) 
+  if (keflag && id_temp == NULL)
     error->all(FLERR,"Compute pressure requires temperature ID "
 	       "to include kinetic energy");
 
@@ -222,8 +223,8 @@ void ComputePressure::compute_vector()
     error->all(FLERR,"Virial was not tallied on needed timestep");
 
   if (force->kspace && kspace_virial && force->kspace->scalar_pressure_flag)
-    error->all(FLERR,"Kspace_modify pressure/scalar no required "
-               "for components of pressure tensor with kspace_style msm");
+    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' for "
+	       "tensor components with kspace_style msm");
 
   // invoke temperature if it hasn't been already
 
@@ -285,9 +286,9 @@ void ComputePressure::virial_compute(int n, int ndiag)
   if (kspace_virial)
     for (i = 0; i < n; i++) virial[i] += kspace_virial[i];
 
-  // LJ long-range tail correction
+  // LJ long-range tail correction, only if pair contributions are included
 
-  if (force->pair && force->pair->tail_flag)
+  if (force->pair && pairflag && force->pair->tail_flag)
     for (i = 0; i < ndiag; i++) virial[i] += force->pair->ptail * inv_volume;
 }
 

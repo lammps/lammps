@@ -1,4 +1,4 @@
-LAMMPS data file from msi2lmp v3.8 for water-class1
+LAMMPS data file. msi2lmp v3.9.7 / 24 Oct 2015 / CGCMM for water-class1
 
       3 atoms
       2 bonds
@@ -16,27 +16,27 @@ LAMMPS data file from msi2lmp v3.8 for water-class1
 
 Masses
 
-   1  15.999400
-   2   1.007970
+   1  15.999400 # otip
+   2   1.007970 # htip
 
-Pair Coeffs
+Pair Coeffs # lj/cut/coul/long
 
-   1   0.1520725945   3.1506561105 
-   2   0.0000000000   0.0000000000 
+   1   0.1520725945   3.1506561105 # otip
+   2   0.0000000000   0.0000000000 # htip
 
-Bond Coeffs
+Bond Coeffs # harmonic
 
-  1   540.6336     0.9570 
+   1   540.6336     0.9570 # otip-htip
 
-Angle Coeffs
+Angle Coeffs # harmonic
 
-  1    50.0000   104.5200 
+   1    50.0000   104.5200 # htip-otip-htip
 
-Atoms
+Atoms # full
 
-      1      1   1 -0.834000     5.000000000     5.000000000     5.000000000
-      2      1   2  0.417000     4.000000000     5.000000000     5.000000000
-      3      1   2  0.417000     5.000000000     4.000000000     5.000000000
+      1      1   1 -0.834000     5.000000000     5.000000000     5.000000000   0   0   0 # otip
+      2      1   2  0.417000     4.000000000     5.000000000     5.000000000   0   0   0 # htip
+      3      1   2  0.417000     5.000000000     4.000000000     5.000000000   0   0   0 # htip
 
 Bonds
 

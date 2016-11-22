@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
   class PPPMDispOMP : public PPPMDisp, public ThrOMP {
  public:
   PPPMDispOMP(class LAMMPS *, int, char **);
-  virtual ~PPPMDispOMP () {};
+  virtual ~PPPMDispOMP ();
   virtual void compute(int, int);
 
  protected:
@@ -41,7 +41,7 @@ namespace LAMMPS_NS {
   virtual void particle_map(double,double,double,
                             double,int**,int,int,
                             int,int,int,int,int,int);
-                                
+
 
   virtual void fieldforce_c_ik();
   virtual void fieldforce_c_ad();

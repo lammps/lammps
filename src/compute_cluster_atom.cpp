@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_cluster_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -34,7 +34,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  clusterID(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cluster/atom command");
 
@@ -46,7 +47,6 @@ ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 1;
 
   nmax = 0;
-  clusterID = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,7 +71,7 @@ void ComputeClusterAtom::init()
   // need an occasional full neighbor list
   // full required so that pair of atoms on 2 procs both set their clusterID
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->half = 0;
@@ -104,7 +104,7 @@ void ComputeClusterAtom::compute_peratom()
 
   // grow clusterID array if necessary
 
-  if (atom->nlocal+atom->nghost > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(clusterID);
     nmax = atom->nmax;
     memory->create(clusterID,nmax,"cluster/atom:clusterID");

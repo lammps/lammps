@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "error.h"
 #include "universe.h"
 #include "output.h"
@@ -21,7 +22,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(LAMMPS *lmp) : Pointers(lmp) {}
+Error::Error(LAMMPS *lmp) : Pointers(lmp) {
+#ifdef LAMMPS_EXCEPTIONS
+  last_error_message = NULL;
+  last_error_type = ERROR_NONE;
+#endif
+}
 
 /* ----------------------------------------------------------------------
    called by all procs in universe
@@ -47,8 +53,14 @@ void Error::universe_all(const char *file, int line, const char *str)
   }
   if (universe->ulogfile) fclose(universe->ulogfile);
 
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  throw LAMMPSException(msg);
+#else
   MPI_Finalize();
   exit(1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -61,7 +73,14 @@ void Error::universe_one(const char *file, int line, const char *str)
   if (universe->uscreen)
     fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
             universe->me,str,file,line);
+
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+  throw LAMMPSAbortException(msg, universe->uworld);
+#else
   MPI_Abort(universe->uworld,1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -95,6 +114,16 @@ void Error::all(const char *file, int line, const char *str)
     if (logfile) fprintf(logfile,"ERROR: %s (%s:%d)\n",str,file,line);
   }
 
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR: %s (%s:%d)\n", str, file, line);
+
+  if (universe->nworlds > 1) {
+    throw LAMMPSAbortException(msg, universe->uworld);
+  }
+
+  throw LAMMPSException(msg);
+#else
   if (output) delete output;
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
@@ -102,6 +131,7 @@ void Error::all(const char *file, int line, const char *str)
   if (universe->nworlds > 1) MPI_Abort(universe->uworld,1);
   MPI_Finalize();
   exit(1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -121,7 +151,14 @@ void Error::one(const char *file, int line, const char *str)
     if (universe->uscreen)
       fprintf(universe->uscreen,"ERROR on proc %d: %s (%s:%d)\n",
               universe->me,str,file,line);
+
+#ifdef LAMMPS_EXCEPTIONS
+  char msg[100];
+  sprintf(msg, "ERROR on proc %d: %s (%s:%d)\n", me, str, file, line);
+  throw LAMMPSAbortException(msg, world);
+#else
   MPI_Abort(world,1);
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -154,7 +191,7 @@ void Error::message(const char *file, int line, const char *str, int logflag)
    no abort, so insure all procs in world call, else will hang
 ------------------------------------------------------------------------- */
 
-void Error::done()
+void Error::done(int status)
 {
   MPI_Barrier(world);
 
@@ -163,5 +200,45 @@ void Error::done()
   if (logfile) fclose(logfile);
 
   MPI_Finalize();
-  exit(1);
+  exit(status);
 }
+
+#ifdef LAMMPS_EXCEPTIONS
+/* ----------------------------------------------------------------------
+   return the last error message reported by LAMMPS (only used if
+   compiled with -DLAMMPS_EXCEPTIONS)
+------------------------------------------------------------------------- */
+
+char * Error::get_last_error() const
+{
+  return last_error_message;
+}
+
+/* ----------------------------------------------------------------------
+   return the type of the last error reported by LAMMPS (only used if
+   compiled with -DLAMMPS_EXCEPTIONS)
+------------------------------------------------------------------------- */
+
+ErrorType Error::get_last_error_type() const
+{
+  return last_error_type;
+}
+
+/* ----------------------------------------------------------------------
+   set the last error message and error type
+   (only used if compiled with -DLAMMPS_EXCEPTIONS)
+------------------------------------------------------------------------- */
+
+void Error::set_last_error(const char * msg, ErrorType type)
+{
+  delete [] last_error_message;
+
+  if(msg) {
+    last_error_message = new char[strlen(msg)+1];
+    strcpy(last_error_message, msg);
+  } else {
+    last_error_message = NULL;
+  }
+  last_error_type = type;
+}
+#endif

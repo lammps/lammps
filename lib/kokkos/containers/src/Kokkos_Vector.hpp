@@ -1,15 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -37,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -46,7 +44,7 @@
 #ifndef KOKKOS_VECTOR_HPP
 #define KOKKOS_VECTOR_HPP
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_DualView.hpp>
 
 /* Drop in replacement for std::vector based on Kokkos::DualView
@@ -55,10 +53,9 @@
  */
   namespace Kokkos {
 
-template <typename Scalar, class Device = Kokkos::DefaultExecutionSpace >
-class vector : public DualView<Scalar*,LayoutLeft,Device> {
-public:
-  typedef Device device_type;
+template< class Scalar, class Arg1Type = void>
+class vector : public DualView<Scalar*,LayoutLeft,Arg1Type> {
+
   typedef Scalar value_type;
   typedef Scalar* pointer;
   typedef const Scalar* const_pointer;
@@ -71,27 +68,31 @@ private:
   size_t _size;
   typedef size_t size_type;
   float _extra_storage;
-  typedef DualView<Scalar*,LayoutLeft,Device> DV;
+  typedef DualView<Scalar*,LayoutLeft,Arg1Type> DV;
 
 
 public:
+#ifdef KOKKOS_CUDA_USE_UVM
+  KOKKOS_INLINE_FUNCTION Scalar& operator() (int i) const {return DV::h_view(i);};
+  KOKKOS_INLINE_FUNCTION Scalar& operator[] (int i) const {return DV::h_view(i);};
+#else
   inline Scalar& operator() (int i) const {return DV::h_view(i);};
   inline Scalar& operator[] (int i) const {return DV::h_view(i);};
-
+#endif
 
   /* Member functions which behave like std::vector functions */
 
   vector():DV() {
     _size = 0;
     _extra_storage = 1.1;
-    DV::modified_host = 1;
+    DV::modified_host() = 1;
   };
 
 
-  vector(int n, Scalar val=Scalar()):DualView<Scalar*,LayoutLeft,Device>("Vector",size_t(n*(1.1))) {
+  vector(int n, Scalar val=Scalar()):DualView<Scalar*,LayoutLeft,Arg1Type>("Vector",size_t(n*(1.1))) {
     _size = n;
     _extra_storage = 1.1;
-    DV::modified_host = 1;
+    DV::modified_host() = 1;
 
     assign(n,val);
   }
@@ -117,16 +118,16 @@ public:
 
           /* Assign value either on host or on device */
 
-    if( DV::modified_host >= DV::modified_device ) {
+    if( DV::modified_host() >= DV::modified_device() ) {
       set_functor_host f(DV::h_view,val);
       parallel_for(n,f);
-      DV::t_host::device_type::fence();
-      DV::modified_host++;
+      DV::t_host::execution_space::fence();
+      DV::modified_host()++;
     } else {
       set_functor f(DV::d_view,val);
       parallel_for(n,f);
-      DV::t_dev::device_type::fence();
-      DV::modified_device++;
+      DV::t_dev::execution_space::fence();
+      DV::modified_device()++;
     }
   }
 
@@ -135,7 +136,7 @@ public:
   }
 
   void push_back(Scalar val) {
-    DV::modified_host++;
+    DV::modified_host()++;
     if(_size == capacity()) {
       size_t new_size = _size*_extra_storage;
       if(new_size == _size) new_size++;
@@ -235,10 +236,10 @@ public:
   }
 
   void on_host() {
-    DV::modified_host = DV::modified_device + 1;
+    DV::modified_host() = DV::modified_device() + 1;
   }
   void on_device() {
-    DV::modified_device = DV::modified_host + 1;
+    DV::modified_device() = DV::modified_host() + 1;
   }
 
   void set_overallocation(float extra) {
@@ -248,7 +249,7 @@ public:
 
 public:
   struct set_functor {
-    typedef typename DV::t_dev::device_type device_type;
+    typedef typename DV::t_dev::execution_space execution_space;
     typename DV::t_dev _data;
     Scalar _val;
 
@@ -262,7 +263,7 @@ public:
   };
 
   struct set_functor_host {
-    typedef typename DV::t_host::device_type device_type;
+    typedef typename DV::t_host::execution_space execution_space;
     typename DV::t_host _data;
     Scalar _val;
 

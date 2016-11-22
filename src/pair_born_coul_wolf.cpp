@@ -15,10 +15,10 @@
    Contributing author: Yongfeng Zhang (INL), yongfeng.zhang@inl.gov
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_born_coul_wolf.h"
 #include "atom.h"
 #include "comm.h"
@@ -115,7 +115,7 @@ void PairBornCoulWolf::compute(int eflag, int vflag)
 
     qisq = qtmp*qtmp;
     e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
-    if (evflag) ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
+    if (eflag) ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -245,8 +245,8 @@ void PairBornCoulWolf::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double a_one = force->numeric(FLERR,arg[2]);
   double rho_one = force->numeric(FLERR,arg[3]);
@@ -284,7 +284,7 @@ void PairBornCoulWolf::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style born/coul/wolf requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 }

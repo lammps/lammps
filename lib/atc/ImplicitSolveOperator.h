@@ -21,37 +21,31 @@ class FE_Engine;
  *  @brief Helper class to compute matrix-free product for use with IML++ solvers
  */
 class ImplicitSolveOperator {
-
  public:
-
   /** Constructor */
-  ImplicitSolveOperator(ATC_Coupling * atc,
-                        /*const*/ FE_Engine * feEngine,
-                        const PhysicsModel * physicsModel);
-
+  ImplicitSolveOperator(double alpha, double dt);
   /** Destructor */
   virtual ~ImplicitSolveOperator() {};
-
   /** pure virtual operator to compute Ax, for equation Ax=b */
-  virtual DENS_VEC operator * (DENS_VEC x) const = 0;
-
+  virtual DENS_VEC operator * (const DENS_VEC &x) const;
   /** pure virtual method to return the rhs vector b */
-  virtual DENS_VEC rhs() = 0;
-
+  virtual void R(const DENS_VEC &f, DENS_VEC &v) const = 0;
+  /** pure virtual method to return the rhs vector b */
+  virtual DENS_VEC r() const;
   /** pure virtual method to return preconditioner */
-  virtual DiagonalMatrix<double> preconditioner(FIELDS & fields) = 0;
-
+  virtual DiagonalMatrix<double> preconditioner() const;
+  /** finalize */
+  virtual void solution(const DENS_MAT & dx, DENS_MAT &x) const = 0;
+  virtual void rhs(const DENS_MAT & r, DENS_MAT &rhs) const = 0;
  protected:
-
-  /** Pointer to atc */
-  ATC_Coupling * atc_;
-
-  /** Pointer to FE_Engine */
-  /*const*/ FE_Engine * feEngine_;
-
-  /** Pointer to PhysicsModel */
-  const PhysicsModel * physicsModel_;
-
+  int n_,dof_;
+  DENS_VEC x0_;             // condensed previous
+  mutable DENS_VEC x_;      // condensed current
+  DENS_VEC R0_;        // condensed previous
+  mutable DENS_VEC R_; // condensed current
+  double dt_; // timestep
+  double alpha_; // implicit/explicit parameter (0 -> explicit, else implicit)
+  double epsilon0_; // small parameter to compute increment 
 };
 
 /**
@@ -59,69 +53,37 @@ class ImplicitSolveOperator {
  *  @brief Class to perform A*x operation for electron temperature solution
  */
 class FieldImplicitSolveOperator : public ImplicitSolveOperator {
-
  public:
-
   /** Constructor */
   FieldImplicitSolveOperator(ATC_Coupling * atc,
-                             /*const*/ FE_Engine * fe_Engine,
                              FIELDS & fields,
-                             const FieldName electronField,
+                             const FieldName f,
                              const Array2D< bool > & rhsMask,
                              const PhysicsModel * physicsModel,
-                             double simTime,
-                             double dt,
-                             double alpha);
-
+                             double simTime, double dt, double alpha = 0.5);
   /** Destructor */
   virtual ~FieldImplicitSolveOperator() {};
-
-  /** operator to compute A*x for the electron temperature equation */
-  virtual DENS_VEC operator * (DENS_VEC x) const;
-
-  /** method to return the rhs vector b */
-  virtual DENS_VEC rhs();
-
-  /** method to return preconditioner (identity matrix) */
-  virtual DIAG_MAT preconditioner(FIELDS & fields);
-
+  virtual void R(const DENS_VEC &f, DENS_VEC &v) const;
+  virtual void solution(const DENS_MAT & dx, DENS_MAT &x) const;
+  virtual void rhs(const DENS_MAT & r, DENS_MAT &rhs) const;
  protected:
-  // field name of ODE to solve
-  FieldName fieldName_;
-
-  // Reference to current fields (passed in constructor)
-  FIELDS & fields_;
-
+  void to_all(const VECTOR& free, MATRIX& all) const;
+  void to_free(const MATRIX& all, VECTOR& free) const;
+  FieldName fieldName_; // field name of ODE to solve
+  ATC_Coupling * atc_; /** Pointer to atc */
+  const PhysicsModel * physicsModel_; /** Pointer to PhysicsModel */
+  FIELDS & fields0_; // Reference to current fields (passed in constructor)
   // Local fields
-  mutable FIELDS fieldsNp1_;
-
-  // Vector to hold current temperature
-  DENS_VEC TnVect_;
-
-  // Old and new RHS maps (not including inverse mass)
-  FIELDS RnMap_;
-  mutable FIELDS RnpMap_;
-
-  // Matrices/vectors to hold electron temperature components of RHS
-  // vectors (including inverse mass)
-  DENS_VEC RnVect_;
-  mutable DENS_VEC RnpVect_;
-
+  mutable FIELDS fields_; // full
+  // set of fixed nodes
+  std::map<int,int> freeNodes_;
+  // masks
   Array2D<bool> rhsMask_;
   Array<FieldName> massMask_;
-
+  // right hand side of dot x = R(x)
+  mutable FIELDS rhs_; // full
   // simulation time
   double time_;
-
-  // timestep
-  double dt_;
-
-  // implicit/explicit parameter (0 -> explicit, else implicit)
-  double alpha_;
-
-  // small parameter to compute increment 
-  double epsilon0_;
-
 };
 
 } // namespace ATC

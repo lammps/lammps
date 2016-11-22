@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "minimize.h"
 #include "domain.h"
 #include "update.h"
@@ -36,6 +36,9 @@ void Minimize::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Minimize command before simulation box is defined");
 
+  // ignore minimize command, if walltime limit was already reached
+  if (timer->is_timeout()) return;
+
   update->etol = force->numeric(FLERR,arg[0]);
   update->ftol = force->numeric(FLERR,arg[1]);
   update->nsteps = force->inumeric(FLERR,arg[2]);
@@ -47,16 +50,20 @@ void Minimize::command(int narg, char **arg)
   update->whichflag = 2;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
 
+  if (lmp->kokkos)
+    error->all(FLERR,"Cannot yet use minimize with Kokkos");
+
   lmp->init();
+  timer->init_timeout();
   update->minimize->setup();
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
   update->minimize->run(update->nsteps);
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop();
 
   update->minimize->cleanup();
 

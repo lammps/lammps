@@ -2,8 +2,8 @@
 //@HEADER
 // ************************************************************************
 //
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 //
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -35,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 //
 // ************************************************************************
 //@HEADER
@@ -96,6 +96,28 @@ T atomic_exchange(
   return *((T*)&tmp);
 }
 
+template < typename T >
+__inline__ __device__
+T atomic_exchange( volatile T * const dest ,
+    typename ::Kokkos::Impl::enable_if<
+                  ( sizeof(T) != 4 )
+               && ( sizeof(T) != 8 )
+             , const T >::type& val )
+{
+  T return_val;
+  // This is a way to (hopefully) avoid dead lock in a warp
+  int done = 1;
+  while ( done > 0 ) {
+    done++;
+    if( Impl::lock_address_cuda_space( (void*) dest ) ) {
+      return_val = *dest;
+      *dest = val;
+      Impl::unlock_address_cuda_space( (void*) dest );
+      done = 0;
+    }
+  }
+  return return_val;
+}
 /** \brief  Atomic exchange for any type with compatible size */
 template< typename T >
 __inline__ __device__
@@ -119,6 +141,17 @@ void atomic_assign(
   (void) atomicExch( ((type*)dest) , *((type*)&val) );
 }
 
+template< typename T >
+__inline__ __device__
+void atomic_assign(
+  volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) != sizeof(int) &&
+                                    sizeof(T) != sizeof(unsigned long long int)
+                                  , const T & >::type val )
+{
+  (void) atomic_exchange(dest,val);
+}
+
 //----------------------------------------------------------------------------
 
 #elif defined(KOKKOS_ATOMICS_USE_GCC) || defined(KOKKOS_ATOMICS_USE_INTEL)
@@ -135,7 +168,15 @@ T atomic_exchange( volatile T * const dest ,
 
   type assumed ;
 
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    T val_T ;
+    type val_type ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } old ;
+#else
   union { T val_T ; type val_type ; } old ;
+#endif
 
   old.val_T = *dest ;
 
@@ -145,6 +186,64 @@ T atomic_exchange( volatile T * const dest ,
   } while ( assumed != old.val_type );
 
   return old.val_T ;
+}
+
+#if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
+template< typename T >
+KOKKOS_INLINE_FUNCTION
+T atomic_exchange( volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(Impl::cas128_t)
+                                  , const T & >::type val )
+{
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+
+  oldval.t = *dest ;
+  newval.t = val;
+
+  do {
+    assume.i = oldval.i ;
+    oldval.i = Impl::cas128( (volatile Impl::cas128_t*) dest , assume.i , newval.i );
+  } while ( assume.i != oldval.i );
+
+  return oldval.t ;
+}
+#endif
+
+//----------------------------------------------------------------------------
+
+template < typename T >
+inline
+T atomic_exchange( volatile T * const dest ,
+    typename ::Kokkos::Impl::enable_if<
+                  ( sizeof(T) != 4 )
+               && ( sizeof(T) != 8 )
+              #if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
+               && ( sizeof(T) != 16 )
+              #endif
+                 , const T >::type& val )
+{
+  while( !Impl::lock_address_host_space( (void*) dest ) );
+  T return_val = *dest;
+  // Don't use the following line of code here:
+  //
+  //const T tmp = *dest = val;
+  //
+  // Instead, put each assignment in its own statement.  This is
+  // because the overload of T::operator= for volatile *this should
+  // return void, not volatile T&.  See Kokkos #177:
+  //
+  // https://github.com/kokkos/kokkos/issues/177
+  *dest = val;
+  const T tmp = *dest;
+  #ifndef KOKKOS_COMPILER_CLANG
+  (void) tmp;
+  #endif
+  Impl::unlock_address_host_space( (void*) dest );
+  return return_val;
 }
 
 template< typename T >
@@ -159,7 +258,15 @@ void atomic_assign( volatile T * const dest ,
 
   type assumed ;
 
+#ifdef KOKKOS_HAVE_CXX11
+  union U {
+    T val_T ;
+    type val_type ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } old ;
+#else
   union { T val_T ; type val_type ; } old ;
+#endif
 
   old.val_T = *dest ;
 
@@ -169,6 +276,50 @@ void atomic_assign( volatile T * const dest ,
   } while ( assumed != old.val_type );
 }
 
+#if defined( KOKKOS_ENABLE_ASM ) && defined ( KOKKOS_USE_ISA_X86_64 )
+template< typename T >
+KOKKOS_INLINE_FUNCTION
+void atomic_assign( volatile T * const dest ,
+  typename Kokkos::Impl::enable_if< sizeof(T) == sizeof(Impl::cas128_t)
+                                  , const T & >::type val )
+{
+  union U {
+    Impl::cas128_t i ;
+    T t ;
+    KOKKOS_INLINE_FUNCTION U() {};
+  } assume , oldval , newval ;
+
+  oldval.t = *dest ;
+  newval.t = val;
+  do {
+    assume.i = oldval.i ;
+    oldval.i = Impl::cas128( (volatile Impl::cas128_t*) dest , assume.i , newval.i);
+  } while ( assume.i != oldval.i );
+}
+#endif
+
+template < typename T >
+inline
+void atomic_assign( volatile T * const dest ,
+    typename ::Kokkos::Impl::enable_if<
+                  ( sizeof(T) != 4 )
+               && ( sizeof(T) != 8 )
+              #if defined(KOKKOS_ENABLE_ASM) && defined ( KOKKOS_USE_ISA_X86_64 )
+               && ( sizeof(T) != 16 )
+              #endif
+                 , const T >::type& val )
+{
+  while( !Impl::lock_address_host_space( (void*) dest ) );
+  // This is likely an aggregate type with a defined
+  // 'volatile T & operator = ( const T & ) volatile'
+  // member.  The volatile return value implicitly defines a
+  // dereference that some compilers (gcc 4.7.2) warn is being ignored.
+  // Suppress warning by casting return to void.
+  //(void)( *dest = val );
+  *dest = val;
+
+  Impl::unlock_address_host_space( (void*) dest );
+}
 //----------------------------------------------------------------------------
 
 #elif defined( KOKKOS_ATOMICS_USE_OMP31 )
@@ -199,8 +350,6 @@ void atomic_assign( volatile T * const dest , const T val )
 }
 
 #endif
-
-//----------------------------------------------------------------------------
 
 } // namespace Kokkos
 

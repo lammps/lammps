@@ -20,7 +20,7 @@ CommandStyle(read_restart,ReadRestart)
 #ifndef LMP_READ_RESTART_H
 #define LMP_READ_RESTART_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -33,7 +33,6 @@ class ReadRestart : protected Pointers {
  private:
   int me,nprocs,nprocs_file,multiproc_file;
   FILE *fp;
-  int nfix_restart_global,nfix_restart_peratom;
 
   int multiproc;             // 0 = proc 0 writes for all
                              // else # of procs writing files
@@ -42,7 +41,6 @@ class ReadRestart : protected Pointers {
 
   int mpiioflag;               // 1 for MPIIO output, else 0
   class RestartMPIIO *mpiio;   // MPIIO for restart file input
-  int numChunksAssigned;
   bigint assignedChunkSize;
   MPI_Offset assignedChunkOffset,headerOffset;
 
@@ -99,11 +97,13 @@ E: Invalid flag in peratom section of restart file
 
 The format of this section of the file is not correct.
 
-E: Did not assign all atoms correctly
+E: Did not assign all restart atoms correctly
 
-Atoms read in from a data file were not assigned correctly to
-processors.  This is likely due to some atom coordinates being
-outside a non-periodic simulation box.
+Atoms read in from the restart file were not assigned correctly to
+processors.  This is likely due to some atom coordinates being outside
+a non-periodic simulation box.  Normally this should not happen.  You
+may wish to use the "remap" option on the read_restart command to see
+if this helps.
 
 E: Cannot open dir to search for restart file
 
@@ -172,6 +172,10 @@ W: Restart file used different boundary settings, using restart file values
 
 Your input script cannot change these restart file settings.
 
+E: Illegal or unset periodicity in restart
+
+This error should not normally occur unless the restart file is invalid.
+
 E: Invalid flag in header section of restart file
 
 Unrecognized entry in restart file.
@@ -215,5 +219,17 @@ E: Restart file byte ordering is not recognized
 
 The file does not appear to be a LAMMPS restart file since it doesn't
 contain a recognized byte-orderomg flag at the beginning.
+
+E: Illegal size string or corrupt restart
+
+This error should not normally occur unless the restart file is invalid.
+
+E: Illegal size integer vector read requested
+
+This error should not normally occur unless the restart file is invalid.
+
+E: Illegal size double vector read requested
+
+This error should not normally occur unless the restart file is invalid.
 
 */

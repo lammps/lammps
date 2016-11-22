@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "rerun.h"
 #include "read_dump.h"
 #include "domain.h"
@@ -66,17 +65,18 @@ void Rerun::command(int narg, char **arg)
   int nskip = 1;
   int startflag = 0;
   int stopflag = 0;
-  bigint start,stop;
+  bigint start = -1;
+  bigint stop = -1;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      first = ATOBIGINT(arg[iarg+1]);
+      first = force->bnumeric(FLERR,arg[iarg+1]);
       if (first < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"last") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      last = ATOBIGINT(arg[iarg+1]);
+      last = force->bnumeric(FLERR,arg[iarg+1]);
       if (last < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
@@ -92,13 +92,13 @@ void Rerun::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       startflag = 1;
-      start = ATOBIGINT(arg[iarg+1]);
+      start = force->bnumeric(FLERR,arg[iarg+1]);
       if (start < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
       stopflag = 1;
-      stop = ATOBIGINT(arg[iarg+1]);
+      stop = force->bnumeric(FLERR,arg[iarg+1]);
       if (stop < 0) error->all(FLERR,"Illegal rerun command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {
@@ -143,7 +143,7 @@ void Rerun::command(int narg, char **arg)
   lmp->init();
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
 
   bigint ntimestep = rd->seek(first,0);
   if (ntimestep < 0)
@@ -173,7 +173,7 @@ void Rerun::command(int narg, char **arg)
   output->next_thermo = update->ntimestep;
   output->write(update->ntimestep);
 
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop();
 
   update->integrate->cleanup();
 

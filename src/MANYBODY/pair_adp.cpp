@@ -16,10 +16,10 @@
                          Chandra Veer Singh (Cornell)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_adp.h"
 #include "atom.h"
 #include "force.h"
@@ -44,6 +44,7 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   fp = NULL;
   mu = NULL;
   lambda = NULL;
+  map = NULL;
 
   setfl = NULL;
 
@@ -492,7 +493,7 @@ void PairADP::coeff(int narg, char **arg)
     for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
-        if (i == j) atom->set_mass(i,setfl->mass[map[i]]);
+        if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
         count++;
       }
     }
@@ -513,7 +514,7 @@ void PairADP::init_style()
   file2array();
   array2spline();
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------
@@ -933,7 +934,7 @@ void PairADP::grab(FILE *fp, int n, double *list)
 
 /* ---------------------------------------------------------------------- */
 
-int PairADP::pack_forward_comm(int n, int *list, double *buf, 
+int PairADP::pack_forward_comm(int n, int *list, double *buf,
                                int pbc_flag, int *pbc)
 {
   int i,j,m;

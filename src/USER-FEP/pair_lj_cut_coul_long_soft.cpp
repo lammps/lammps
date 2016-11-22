@@ -16,10 +16,10 @@
    Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_long_soft.h"
 #include "atom.h"
 #include "comm.h"
@@ -139,10 +139,10 @@ void PairLJCutCoulLongSoft::compute(int eflag, int vflag)
           expm2 = exp(-grij*grij);
           t = 1.0 / (1.0 + EWALD_P*grij);
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          
+
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
-          
+
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
@@ -150,7 +150,7 @@ void PairLJCutCoulLongSoft::compute(int eflag, int vflag)
         if (rsq < cut_ljsq[itype][jtype]) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
         } else forcelj = 0.0;
 
@@ -173,7 +173,7 @@ void PairLJCutCoulLongSoft::compute(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
@@ -254,7 +254,7 @@ void PairLJCutCoulLongSoft::compute_inner()
         if (rsq < cut_ljsq[itype][jtype]) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
         } else forcelj = 0.0;
 
@@ -349,7 +349,7 @@ void PairLJCutCoulLongSoft::compute_middle()
         if (rsq < cut_ljsq[itype][jtype]) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
         } else forcelj = 0.0;
 
@@ -447,10 +447,10 @@ void PairLJCutCoulLongSoft::compute_outer(int eflag, int vflag)
           expm2 = exp(-grij*grij);
           t = 1.0 / (1.0 + EWALD_P*grij);
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-          
+
           denc = sqrt(lj4[itype][jtype] + rsq);
           fprefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
-          
+
           forcecoul = fprefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
 
           if (rsq > cut_in_off_sq) {
@@ -471,7 +471,7 @@ void PairLJCutCoulLongSoft::compute_outer(int eflag, int vflag)
         if (rsq < cut_ljsq[itype][jtype] && rsq > cut_in_off_sq) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+          forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
           if (rsq < cut_in_on_sq) {
             rsw = (sqrt(rsq) - cut_in_off)/cut_in_diff;
@@ -498,7 +498,9 @@ void PairLJCutCoulLongSoft::compute_outer(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+            r4sig6 = rsq*rsq / lj2[itype][jtype];
+            denlj = lj3[itype][jtype] + rsq*r4sig6;
+            evdwl = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
               (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
@@ -513,10 +515,12 @@ void PairLJCutCoulLongSoft::compute_outer(int eflag, int vflag)
           if (rsq <= cut_in_off_sq) {
             r4sig6 = rsq*rsq / lj2[itype][jtype];
             denlj = lj3[itype][jtype] + rsq*r4sig6;
-            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
               (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
           } else if (rsq < cut_in_on_sq) {
-            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+            r4sig6 = rsq*rsq / lj2[itype][jtype];
+            denlj = lj3[itype][jtype] + rsq*r4sig6;
+            forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
               (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
           }
           fpair = forcecoul + factor_lj*forcelj;
@@ -594,8 +598,8 @@ void PairLJCutCoulLongSoft::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
@@ -637,32 +641,32 @@ void PairLJCutCoulLongSoft::init_style()
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
 
-    if (respa == 0) irequest = neighbor->request(this);
+    if (respa == 0) irequest = neighbor->request(this,instance_me);
     else if (respa == 1) {
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     } else {
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 1;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 2;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this);
+      irequest = neighbor->request(this,instance_me);
       neighbor->requests[irequest]->id = 3;
       neighbor->requests[irequest]->half = 0;
       neighbor->requests[irequest]->respaouter = 1;
     }
 
-  } else irequest = neighbor->request(this);
+  } else irequest = neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -720,7 +724,7 @@ double PairLJCutCoulLongSoft::init_one(int i, int j)
   lj4[i][j] = alphac  * (1.0 - lambda[i][j])*(1.0 - lambda[i][j]);
 
   if (offset_flag) {
-    double denlj = lj3[i][j] + pow(sigma[i][j] / cut_lj[i][j], 6.0);
+    double denlj = lj3[i][j] + pow(cut_lj[i][j] / sigma[i][j], 6.0);
     offset[i][j] = lj1[i][j] * 4.0 * epsilon[i][j] * (1.0/(denlj*denlj) - 1.0/denlj);
   } else offset[i][j] = 0.0;
 
@@ -759,9 +763,9 @@ double PairLJCutCoulLongSoft::init_one(int i, int j)
     double rc3 = cut_lj[i][j]*cut_lj[i][j]*cut_lj[i][j];
     double rc6 = rc3*rc3;
     double rc9 = rc3*rc6;
-    etail_ij = 8.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+    etail_ij = 8.0*MY_PI*all[0]*all[1]* lj1[i][j] * epsilon[i][j] *
       sig6 * (sig6 - 3.0*rc6) / (9.0*rc9);
-    ptail_ij = 16.0*MY_PI*all[0]*all[1]*epsilon[i][j] *
+    ptail_ij = 16.0*MY_PI*all[0]*all[1]* lj1[i][j] * epsilon[i][j] *
       sig6 * (2.0*sig6 - 3.0*rc6) / (9.0*rc9);
   }
 
@@ -906,11 +910,11 @@ double PairLJCutCoulLongSoft::single(int i, int j, int itype, int jtype,
     expm2 = exp(-grij*grij);
     t = 1.0 / (1.0 + EWALD_P*grij);
     erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-    
+
     denc = sqrt(lj4[itype][jtype] + rsq);
     prefactor = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
-    
+
     forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
     if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
@@ -918,7 +922,7 @@ double PairLJCutCoulLongSoft::single(int i, int j, int itype, int jtype,
   if (rsq < cut_ljsq[itype][jtype]) {
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
-    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] * 
+    forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
       (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
   } else forcelj = 0.0;
 
@@ -933,7 +937,7 @@ double PairLJCutCoulLongSoft::single(int i, int j, int itype, int jtype,
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] * 
+    philj = lj1[itype][jtype] * 4.0 * epsilon[itype][jtype] *
       (1.0/(denlj*denlj) - 1.0/denlj) - offset[itype][jtype];
     eng += factor_lj*philj;
   }

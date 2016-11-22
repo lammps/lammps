@@ -160,8 +160,12 @@ namespace ATC {
       // update time filter
       
       if (timeFilterManager->need_reset()) {
-        
-        timeFilter_ = timeFilterManager->construct(TimeFilterManager::IMPLICIT_UPDATE);
+        if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
+          timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT_IMPLICIT);
+        }
+        else {
+          timeFilter_ = timeFilterManager->construct(TimeFilterManager::IMPLICIT_UPDATE);
+        }
       }
                          
       if (timeFilterManager->filter_dynamics()) {
@@ -189,7 +193,7 @@ namespace ATC {
           break;
         }
         default:
-          throw ATC_Error("Unknown kinetostat type in Kinetostat::initialize");
+          throw ATC_Error("Kinetostat::construct_methods - Unknown filtered kinetostat type");
         }
       }
       else {
@@ -209,13 +213,52 @@ namespace ATC {
         case DYNAMICS: {
           if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
             if (couplingMode_ == GHOST_FLUX) {
-              regulatorMethod_ = new KinetostatFluxGhost(this);
+              if (md_fixed_nodes(VELOCITY)) {
+                if (!md_flux_nodes(VELOCITY) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
+                  // there are fixed nodes but no fluxes
+                  regulatorMethod_ = new KinetostatFixed(this);
+                }
+                else {
+                  // there are both fixed and flux nodes
+                  regulatorMethod_ = new KinetostatFluxFixed(this);
+                }
+              }
+              else {
+                // there are only flux nodes
+                regulatorMethod_ = new KinetostatFluxGhost(this);
+              }
             }
             else if (couplingMode_ == FIXED) {
-              regulatorMethod_ = new KinetostatFixed(this);
+              if (md_flux_nodes(VELOCITY)) {
+                if (!md_fixed_nodes(VELOCITY) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
+                  // there are fluxes but no fixed or coupled nodes
+                  regulatorMethod_ = new KinetostatFlux(this);
+                }
+                else {
+                  // there are both fixed and flux nodes
+                  regulatorMethod_ = new KinetostatFluxFixed(this);
+                }
+              }
+              else {
+                // there are only fixed nodes
+                regulatorMethod_ = new KinetostatFixed(this);
+              }
             }
             else if (couplingMode_ == FLUX) {
-              regulatorMethod_ = new KinetostatFlux(this);
+              if (md_fixed_nodes(VELOCITY)) {
+                if (!md_flux_nodes(VELOCITY) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
+                  // there are fixed nodes but no fluxes
+                  regulatorMethod_ = new KinetostatFixed(this);
+                }
+                else {
+                  // there are both fixed and flux nodes
+                  regulatorMethod_ = new KinetostatFluxFixed(this);
+                }
+              }
+              else {
+                // there are only flux nodes
+                regulatorMethod_ = new KinetostatFlux(this);
+              }
             }
             break;
           }
@@ -239,7 +282,7 @@ namespace ATC {
           }
         }
         default:
-          throw ATC_Error("Unknown kinetostat type in Kinetostat::initialize");
+          throw ATC_Error("Kinetostat::construct_methods - Unknown kinetostat type");
         }
         AtomicRegulator::reset_method();
       }
@@ -259,10 +302,10 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  KinetostatShapeFunction::KinetostatShapeFunction(Kinetostat *kinetostat,
+  KinetostatShapeFunction::KinetostatShapeFunction(AtomicRegulator *kinetostat,
                                                    const string & regulatorPrefix) :
     RegulatorShapeFunction(kinetostat,regulatorPrefix),
-    kinetostat_(kinetostat),
+    mdMassMatrix_(atc_->set_mass_mat_md(VELOCITY)),
     timeFilter_(atomicRegulator_->time_filter()),
     nodalAtomicLambdaForce_(NULL),
     lambdaForceFiltered_(NULL),
@@ -271,8 +314,8 @@ namespace ATC {
     atomMasses_(NULL)
   {
     // data associated with stage 3 in ATC_Method::initialize
-    lambda_ = kinetostat->regulator_data(regulatorPrefix_+"LambdaMomentum",nsd_);
-    lambdaForceFiltered_ = kinetostat_->regulator_data("LambdaForceFiltered",nsd_);
+    lambda_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaMomentum",nsd_);
+    lambdaForceFiltered_ = atomicRegulator_->regulator_data("LambdaForceFiltered",nsd_);
   }
 
   //--------------------------------------------------------
@@ -331,9 +374,8 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  GlcKinetostat::GlcKinetostat(Kinetostat *kinetostat) :
+  GlcKinetostat::GlcKinetostat(AtomicRegulator *kinetostat) :
     KinetostatShapeFunction(kinetostat),
-    mdMassMatrix_(atc_->set_mass_mat_md(VELOCITY)),
     atomPositions_(NULL)
   {
     // do nothing
@@ -418,7 +460,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  DisplacementGlc::DisplacementGlc(Kinetostat * kinetostat) :
+  DisplacementGlc::DisplacementGlc(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
     nodalAtomicMassWeightedDisplacement_(NULL),
     nodalDisplacements_(atc_->field(DISPLACEMENT))
@@ -538,7 +580,7 @@ namespace ATC {
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (Upsilon)_Ii
     rhs = nodalAtomicMassWeightedDisplacement_->quantity();
-    rhs -= ((atc_->mass_mat_md(VELOCITY)).quantity())*(nodalDisplacements_.quantity());
+    rhs -= (mdMassMatrix_.quantity())*(nodalDisplacements_.quantity());
   }
 
   //--------------------------------------------------------
@@ -620,7 +662,7 @@ namespace ATC {
     _nodalAtomicLambdaForceOut_ = nodalAtomicLambdaForce_->quantity();
     DENS_MAT & lambda(lambda_->set_quantity());
     if ((atc_->lammps_interface())->rank_zero()) {
-      outputData[regulatorPrefix_+"Lambda"] = &lambda;
+      outputData[regulatorPrefix_+"LambdaMomentum"] = &lambda;
       outputData[regulatorPrefix_+"NodalLambdaForce"] = &(_nodalAtomicLambdaForceOut_);
     }
   }
@@ -635,7 +677,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  DisplacementGlcFiltered::DisplacementGlcFiltered(Kinetostat * kinetostat) :
+  DisplacementGlcFiltered::DisplacementGlcFiltered(AtomicRegulator * kinetostat) :
     DisplacementGlc(kinetostat),
     nodalAtomicDisplacements_(atc_->nodal_atomic_field(DISPLACEMENT))
   {
@@ -667,7 +709,7 @@ namespace ATC {
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (Upsilon)_Ii
     double coef = 1./(timeFilter_->unfiltered_coefficient_pre_s1(dt));
-    rhs = coef*((atc_->mass_mat_md(VELOCITY)).quantity())*(nodalAtomicDisplacements_.quantity() - nodalDisplacements_.quantity());
+    rhs = coef*(mdMassMatrix_.quantity())*(nodalAtomicDisplacements_.quantity() - nodalDisplacements_.quantity());
   }
 
   //--------------------------------------------------------
@@ -704,7 +746,7 @@ namespace ATC {
     DENS_MAT & lambda(lambda_->set_quantity());
     DENS_MAT & lambdaForceFiltered(lambdaForceFiltered_->set_quantity());
     if ((atc_->lammps_interface())->rank_zero()) {
-      outputData[regulatorPrefix_+"Lambda"] = &lambda;
+      outputData[regulatorPrefix_+"LambdaMomentum"] = &lambda;
       outputData[regulatorPrefix_+"NodalLambdaForce"] = &lambdaForceFiltered;
     }
   }
@@ -719,7 +761,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  VelocityGlc::VelocityGlc(Kinetostat * kinetostat) :
+  VelocityGlc::VelocityGlc(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
     nodalAtomicMomentum_(NULL),
     nodalVelocities_(atc_->field(VELOCITY))
@@ -739,19 +781,22 @@ namespace ATC {
     create_node_maps();
 
     // set up shape function matrix
-    if (this->use_local_shape_functions()) {
-      lambdaAtomMap_ = new AtomToElementset(atc_,elementMask_);
-      interscaleManager.add_per_atom_int_quantity(lambdaAtomMap_,
-                                                  regulatorPrefix_+"LambdaAtomMap");
-      shapeFunctionMatrix_ = new LocalLambdaCouplingMatrix(atc_,
-                                                           lambdaAtomMap_,
-                                                           nodeToOverlapMap_);
+    shapeFunctionMatrix_ = interscaleManager.per_atom_sparse_matrix(regulatorPrefix_+"LambdaCouplingMatrixMomentum");
+    if (!shapeFunctionMatrix_) {
+      if (this->use_local_shape_functions()) {
+        lambdaAtomMap_ = new AtomToElementset(atc_,elementMask_);
+        interscaleManager.add_per_atom_int_quantity(lambdaAtomMap_,
+                                                    regulatorPrefix_+"LambdaAtomMap");
+        shapeFunctionMatrix_ = new LocalLambdaCouplingMatrix(atc_,
+                                                             lambdaAtomMap_,
+                                                             nodeToOverlapMap_);
+      }
+      else {
+        shapeFunctionMatrix_ = new LambdaCouplingMatrix(atc_,nodeToOverlapMap_);
+      }
+      interscaleManager.add_per_atom_sparse_matrix(shapeFunctionMatrix_,
+                                                   regulatorPrefix_+"LambdaCouplingMatrixMomentum");
     }
-    else {
-      shapeFunctionMatrix_ = new LambdaCouplingMatrix(atc_,nodeToOverlapMap_);
-    }
-    interscaleManager.add_per_atom_sparse_matrix(shapeFunctionMatrix_,
-                                                 regulatorPrefix_+"LambdaCouplingMatrixMomentum");
 
     // set linear solver strategy
     if (atomicRegulator_->use_lumped_lambda_solve()) {
@@ -774,7 +819,7 @@ namespace ATC {
                                                               atomKinetostatForce_,
                                                               interscaleManager.per_atom_sparse_matrix("Interpolant"));
     interscaleManager.add_dense_matrix(nodalAtomicLambdaForce_,
-                                            regulatorPrefix_+"NodalAtomicLambdaForce");
+                                       regulatorPrefix_+"NodalAtomicLambdaForce");
     
     // nodal momentum restricted from atoms
     nodalAtomicMomentum_ = interscaleManager.dense_matrix("NodalAtomicMomentum");
@@ -807,6 +852,7 @@ namespace ATC {
   {
     double dtLambda = 0.5*dt;
     compute_kinetostat(dtLambda);
+    apply_kinetostat(dtLambda);
   }
 
   //--------------------------------------------------------
@@ -817,6 +863,7 @@ namespace ATC {
   {
     double dtLambda = 0.5*dt;
     compute_kinetostat(dtLambda);
+    apply_kinetostat(dtLambda);
   }
 
   //--------------------------------------------------------
@@ -843,11 +890,26 @@ namespace ATC {
 
     // set up rhs
     DENS_MAT rhs(nNodes_,nsd_);
-    set_kinetostat_rhs(rhs,dt);
+    this->set_kinetostat_rhs(rhs,dt);
     
     // solve linear system for lambda
     solve_for_lambda(rhs,lambda_->set_quantity());
+#ifdef OBSOLETE
+    // compute nodal atomic power
+    compute_nodal_lambda_force(dt);
 
+    // apply kinetostat to atoms
+    apply_to_atoms(atomVelocities_,atomLambdas_->quantity());
+#endif
+  }
+
+  //--------------------------------------------------------
+  //  apply_kinetostat
+  //            manages the application of the
+  //            kinetostat equations and variables
+  //--------------------------------------------------------
+  void VelocityGlc::apply_kinetostat(double dt)
+  {
     // compute nodal atomic power
     compute_nodal_lambda_force(dt);
 
@@ -864,7 +926,7 @@ namespace ATC {
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (\dot{Upsilon})_Ii
     rhs = nodalAtomicMomentum_->quantity();
-    rhs -= ((atc_->mass_mat_md(VELOCITY)).quantity())*(nodalVelocities_.quantity());
+    rhs -= (mdMassMatrix_.quantity())*(nodalVelocities_.quantity());
   }
 
   //--------------------------------------------------------
@@ -934,7 +996,7 @@ namespace ATC {
   {
     _nodalAtomicLambdaForceOut_ = nodalAtomicLambdaForce_->quantity();
     if ((atc_->lammps_interface())->rank_zero()) {
-      outputData[regulatorPrefix_+"Lambda"] = &(lambda_->set_quantity());
+      outputData[regulatorPrefix_+"LambdaMomentum"] = &(lambda_->set_quantity());
       outputData[regulatorPrefix_+"NodalLambdaForce"] = &(_nodalAtomicLambdaForceOut_);
     }
   }
@@ -949,7 +1011,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  VelocityGlcFiltered::VelocityGlcFiltered(Kinetostat *kinetostat) 
+  VelocityGlcFiltered::VelocityGlcFiltered(AtomicRegulator *kinetostat) 
     : VelocityGlc(kinetostat),
       nodalAtomicVelocities_(atc_->nodal_atomic_field(VELOCITY))
   {
@@ -981,7 +1043,7 @@ namespace ATC {
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (Upsilon)_Ii
     double coef = 1./(timeFilter_->unfiltered_coefficient_pre_s1(dt));
-    rhs = coef*((atc_->mass_mat_md(VELOCITY)).quantity())*(nodalAtomicVelocities_.quantity() - nodalVelocities_.quantity());
+    rhs = coef*(mdMassMatrix_.quantity())*(nodalAtomicVelocities_.quantity() - nodalVelocities_.quantity());
   }
 
   //--------------------------------------------------------
@@ -1030,7 +1092,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  StressFlux::StressFlux(Kinetostat * kinetostat) :
+  StressFlux::StressFlux(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
     nodalForce_(atc_->field_rhs(VELOCITY)),
     nodalAtomicForce_(NULL),
@@ -1295,7 +1357,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  StressFluxGhost::StressFluxGhost(Kinetostat * kinetostat) :
+  StressFluxGhost::StressFluxGhost(AtomicRegulator * kinetostat) :
     StressFlux(kinetostat)
   {
     // flag for performing boundary flux calculation
@@ -1376,7 +1438,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  StressFluxFiltered::StressFluxFiltered(Kinetostat * kinetostat) :
+  StressFluxFiltered::StressFluxFiltered(AtomicRegulator * kinetostat) :
     StressFlux(kinetostat),
     nodalAtomicVelocity_(atc_->nodal_atomic_field(VELOCITY))
   {
@@ -1473,13 +1535,24 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  KinetostatGlcFs::KinetostatGlcFs(Kinetostat * kinetostat,
+  KinetostatGlcFs::KinetostatGlcFs(AtomicRegulator * kinetostat,
                                    const string & regulatorPrefix) :
     KinetostatShapeFunction(kinetostat,regulatorPrefix),
-    velocity_(atc_->field(VELOCITY))
+    velocity_(atc_->field(VELOCITY)),
+    //timeFilter_(atomicRegulator_->time_filter()),
+    //nodalAtomicLambdaForce_(NULL),
+    //lambdaPowerFiltered_(NULL),
+    //atomKinetostatForces_(NULL),
+    //atomMasses_(NULL),
+    nodalAtomicMomentum_(NULL),
+    isFirstTimestep_(true),
+    atomPredictedVelocities_(NULL),
+    nodalAtomicPredictedMomentum_(NULL),
+    dtFactor_(0.)
   {
     // constuct/obtain data corresponding to stage 3 of ATC_Method::initialize
-    nodalAtomicLambdaForce_ = kinetostat_->regulator_data(regulatorPrefix_+"NodalAtomicLambdaForce",nsd_);
+    nodalAtomicLambdaForce_ = atomicRegulator_->regulator_data(regulatorPrefix_+"NodalAtomicLambdaForce",nsd_);
+    lambdaForceFiltered_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaForceFiltered",1);
   }
 
   //--------------------------------------------------------
@@ -1488,10 +1561,9 @@ namespace ATC {
   //--------------------------------------------------------
   void KinetostatGlcFs::construct_transfers()
   {
-    InterscaleManager & interscaleManager(atc_->interscale_manager());
-
     // base class transfers
     KinetostatShapeFunction::construct_transfers();
+    InterscaleManager & interscaleManager(atc_->interscale_manager());
 
     // get data from manager
     nodalAtomicMomentum_ = interscaleManager.dense_matrix("NodalAtomicMomentum");
@@ -1501,6 +1573,21 @@ namespace ATC {
     atomKinetostatForce_ = new AtomicKinetostatForceStress(atc_,atomLambdas);
     interscaleManager.add_per_atom_quantity(atomKinetostatForce_,
                                             regulatorPrefix_+"AtomKinetostatForce");
+
+    // predicted momentum quantities:  atom velocities, atom momenta, and restricted atom momenta
+    // MAKE THINGS WORK WITH ONLY ONE PREDICTED VELOCITY AND DERIVED QUANTITIES, CHECK IT EXISTS
+    atomPredictedVelocities_ = new AtcAtomQuantity<double>(atc_,nsd_);
+    interscaleManager.add_per_atom_quantity(atomPredictedVelocities_,
+                                            regulatorPrefix_+"AtomicPredictedVelocities");
+    AtomicMomentum * atomPredictedMomentum = new AtomicMomentum(atc_,
+                                                                atomPredictedVelocities_);
+    interscaleManager.add_per_atom_quantity(atomPredictedMomentum,
+                                            regulatorPrefix_+"AtomicPredictedMomentum");
+    nodalAtomicPredictedMomentum_ = new AtfShapeFunctionRestriction(atc_,
+                                                                    atomPredictedMomentum,
+                                                                    interscaleManager.per_atom_sparse_matrix("Interpolant"));
+    interscaleManager.add_dense_matrix(nodalAtomicPredictedMomentum_,
+                                       regulatorPrefix_+"NodalAtomicPredictedMomentum");
   }
 
   //--------------------------------------------------------
@@ -1510,10 +1597,6 @@ namespace ATC {
   void KinetostatGlcFs::initialize()
   {
     KinetostatShapeFunction::initialize();
-
-    // set up workspaces
-    _deltaMomentum_.reset(nNodes_,nsd_);
-    _lambdaForceOutput_.reset(nNodes_,nsd_);
     
     TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
     if (!timeFilterManager->end_equilibrate()) {
@@ -1536,102 +1619,7 @@ namespace ATC {
       timeFilter_->initialize(nodalAtomicLambdaForce_->quantity());
     }
 
-    compute_rhs_map();
-  }
-
-  //--------------------------------------------------------
-  //  compute_rhs_map
-  //    creates mapping from all nodes to those to which
-  //    the kinetostat applies
-  //--------------------------------------------------------
-  void KinetostatGlcFs::compute_rhs_map()
-  {
-    rhsMap_.resize(overlapToNodeMap_->nRows(),1);
-    DENS_MAT rhsMapGlobal(nNodes_,1);
-    const set<int> & applicationNodes(applicationNodes_->quantity());
-    for (int i = 0; i < nNodes_; i++) {
-      if (applicationNodes.find(i) != applicationNodes.end()) {
-        rhsMapGlobal(i,0) = 1.;
-      }
-      else {
-        rhsMapGlobal(i,0) = 0.;
-      }
-    }
-    map_unique_to_overlap(rhsMapGlobal,rhsMap_);
-  }
-
-  //--------------------------------------------------------
-  //  apply_pre_predictor:
-  //    apply the kinetostat to the atoms in the
-  //    pre-predictor integration phase
-  //--------------------------------------------------------
-  void KinetostatGlcFs::apply_pre_predictor(double dt)
-  {
-    DENS_MAT & lambdaForceFiltered(lambdaForceFiltered_->set_quantity());
-    DENS_MAT & nodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
-
-    // update filtered forces
-    timeFilter_->apply_pre_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
-
-    // apply lambda force to atoms and compute instantaneous lambda force 
-    this->apply_to_atoms(atomVelocities_,nodalAtomicMomentum_,
-                         atomKinetostatForce_->quantity(),
-                         nodalAtomicLambdaForce,0.5*dt);
-
-    // update nodal variables for first half of timestep
-    this->add_to_momentum(nodalAtomicLambdaForce,_deltaMomentum_,0.5*dt);
-    atc_->apply_inverse_mass_matrix(_deltaMomentum_,VELOCITY);
-    velocity_ += _deltaMomentum_;
-
-    // start update of filtered lambda force
-    nodalAtomicLambdaForce = 0.;
-    timeFilter_->apply_post_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
-  }
- 
-  //--------------------------------------------------------
-  //  apply_post_corrector:
-  //    apply the kinetostat to the atoms in the
-  //    post-corrector integration phase
-  //--------------------------------------------------------
-  void KinetostatGlcFs::apply_post_corrector(double dt)
-  {
-    // compute the kinetostat equation and update lambda
-    this->compute_lambda(dt);
-
-    DENS_MAT & lambdaForceFiltered(lambdaForceFiltered_->set_quantity());
-    DENS_MAT & nodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
-
-    // update filtered force
-    timeFilter_->apply_pre_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
-
-    // apply lambda force to atoms and compute instantaneous lambda force 
-    this->apply_to_atoms(atomVelocities_,nodalAtomicMomentum_,
-                         atomKinetostatForce_->quantity(),
-                         nodalAtomicLambdaForce,0.5*dt);
-
-    // update nodal variables for first half of timestep
-    this->add_to_momentum(nodalAtomicLambdaForce,_deltaMomentum_,0.5*dt);
-    nodalAtomicLambdaForce *= 2./dt;
-    atc_->apply_inverse_mass_matrix(_deltaMomentum_,VELOCITY);
-    velocity_ += _deltaMomentum_;
-
-    // start update of filtered lambda force
-    timeFilter_->apply_post_step2(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
-  }
-
-  //--------------------------------------------------------
-  //  compute_kinetostat
-  //            manages the solution and application of the
-  //            kinetostat equations and variables
-  //--------------------------------------------------------
-  void KinetostatGlcFs::compute_lambda(double dt)
-  {
-    // set up rhs for lambda equation
-    this->set_kinetostat_rhs(rhs_,0.5*dt);
-
-    // solve linear system for lambda
-    DENS_MAT & lambda(lambda_->set_quantity());
-    solve_for_lambda(rhs_,lambda);
+    atomKinetostatForce_->quantity(); // initialize
   }
 
   //--------------------------------------------------------
@@ -1660,6 +1648,124 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
+  //  full_prediction:
+  //    flag to perform a full prediction calcalation
+  //    for lambda rather than using the old value
+  //--------------------------------------------------------
+  bool KinetostatGlcFs::full_prediction()
+  {
+    if (isFirstTimestep_ || ((atc_->atom_to_element_map_type() == EULERIAN)
+                             && (atc_->atom_to_element_map_frequency() > 1)
+                             && (atc_->step() % atc_->atom_to_element_map_frequency() == 0 ))) {
+      return true;
+    }
+    return false;
+  }
+
+  //--------------------------------------------------------
+  //  apply_pre_predictor:
+  //    apply the kinetostat to the atoms in the
+  //    pre-predictor integration phase
+  //--------------------------------------------------------
+  void KinetostatGlcFs::apply_pre_predictor(double dt)
+  {
+    DENS_MAT & lambdaForceFiltered(lambdaForceFiltered_->set_quantity());
+    DENS_MAT & nodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
+
+    // update filtered forces
+    timeFilter_->apply_pre_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
+
+    // apply lambda force to atoms and compute instantaneous lambda force 
+    this->apply_to_atoms(atomVelocities_,nodalAtomicMomentum_,
+                         atomKinetostatForce_->quantity(),
+                         nodalAtomicLambdaForce,0.5*dt);
+
+    // update nodal variables for first half of timestep
+    this->add_to_momentum(nodalAtomicLambdaForce,deltaMomentum_,0.5*dt);
+    atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
+    velocity_ += deltaMomentum_;
+
+    // start update of filtered lambda force
+    nodalAtomicLambdaForce = 0.;
+    timeFilter_->apply_post_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
+  }
+
+  //--------------------------------------------------------
+  //  apply_pre_corrector:
+  //    apply the thermostat to the atoms in the first part
+  //    of the corrector step of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetostatGlcFs::apply_pre_corrector(double dt)
+  {
+    (*atomPredictedVelocities_) = atomVelocities_->quantity();
+
+    // do full prediction if we just redid the shape functions
+    if (full_prediction()) {
+      this->compute_lambda(dt);
+    }
+
+    // apply lambda force to atoms and compute instantaneous lambda power to predict second half of time step
+    DENS_MAT & myNodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
+    apply_to_atoms(atomPredictedVelocities_,
+                   nodalAtomicPredictedMomentum_,
+                   atomKinetostatForce_->quantity(),
+                   myNodalAtomicLambdaForce,0.5*dt);
+    
+    // update predicted nodal variables for second half of time step
+    this->add_to_momentum(myNodalAtomicLambdaForce,deltaMomentum_,0.5*dt);
+    atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
+    velocity_ += deltaMomentum_;
+  }
+ 
+  //--------------------------------------------------------
+  //  apply_post_corrector:
+  //    apply the kinetostat to the atoms in the
+  //    post-corrector integration phase
+  //--------------------------------------------------------
+  void KinetostatGlcFs::apply_post_corrector(double dt)
+  {
+    // remove predicted force effects
+    DENS_MAT & myVelocity(velocity_.set_quantity());
+    myVelocity -= deltaMomentum_;
+
+    // compute the kinetostat equation and update lambda
+    this->compute_lambda(dt);
+
+    // apply lambda force to atoms and compute instantaneous lambda force for second half of time step
+    DENS_MAT & nodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
+    this->apply_to_atoms(atomVelocities_,nodalAtomicMomentum_,
+                         atomKinetostatForce_->quantity(),
+                         nodalAtomicLambdaForce,0.5*dt);
+
+    // start update of filtered lambda force
+    timeFilter_->apply_post_step2(lambdaForceFiltered_->set_quantity(),
+                                  nodalAtomicLambdaForce,dt);
+
+    // update nodal variables for first half of timestep
+    this->add_to_momentum(nodalAtomicLambdaForce,deltaMomentum_,0.5*dt);
+    atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
+    velocity_ += deltaMomentum_;
+
+    
+    isFirstTimestep_ = false;
+  }
+
+  //--------------------------------------------------------
+  //  compute_kinetostat
+  //            manages the solution and application of the
+  //            kinetostat equations and variables
+  //--------------------------------------------------------
+  void KinetostatGlcFs::compute_lambda(double dt)
+  {
+    // set up rhs for lambda equation
+    this->set_kinetostat_rhs(rhs_,0.5*dt);
+
+    // solve linear system for lambda
+    DENS_MAT & lambda(lambda_->set_quantity());
+    solve_for_lambda(rhs_,lambda);
+  }
+
+  //--------------------------------------------------------
   //  output:
   //    adds all relevant output to outputData
   //--------------------------------------------------------
@@ -1671,7 +1777,7 @@ namespace ATC {
     _lambdaForceOutput_ *= (2./dt);
     DENS_MAT & lambda(lambda_->set_quantity());
     if ((atc_->lammps_interface())->rank_zero()) {
-      outputData[regulatorPrefix_+"Lambda"] = &lambda;
+      outputData[regulatorPrefix_+"LambdaMomentum"] = &lambda;
       outputData[regulatorPrefix_+"NodalLambdaForce"] = &(_lambdaForceOutput_);
     }
   }
@@ -1686,7 +1792,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  KinetostatFlux::KinetostatFlux(Kinetostat * kinetostat,
+  KinetostatFlux::KinetostatFlux(AtomicRegulator * kinetostat,
                                  const string & regulatorPrefix) :
     KinetostatGlcFs(kinetostat,regulatorPrefix),
     momentumSource_(atc_->atomic_source(VELOCITY)),
@@ -1697,7 +1803,7 @@ namespace ATC {
     fieldMask_(VELOCITY,FLUX) = true;
 
     // constuct/obtain data corresponding to stage 3 of ATC_Method::initialize
-    nodalGhostForceFiltered_ = kinetostat_->regulator_data(regulatorPrefix_+"NodalGhostForceFiltered",nsd_);
+    nodalGhostForceFiltered_ = atomicRegulator_->regulator_data(regulatorPrefix_+"NodalGhostForceFiltered",nsd_);
   }
 
   //--------------------------------------------------------
@@ -1711,8 +1817,6 @@ namespace ATC {
     // set up node mappings
     create_node_maps();
 
-    
-    // set up linear solver
     // set up data for linear solver
     shapeFunctionMatrix_ = new LambdaCouplingMatrix(atc_,nodeToOverlapMap_);
     interscaleManager.add_per_atom_sparse_matrix(shapeFunctionMatrix_,
@@ -1770,6 +1874,9 @@ namespace ATC {
     else {
       // we can grab lambda power variables using time integrator and atc transfer in cases for equilibration
     }
+
+    // timestep factor
+    dtFactor_ = 1.;
   }
 
   //--------------------------------------------------------
@@ -1781,13 +1888,16 @@ namespace ATC {
     InterscaleManager & interscaleManager(atc_->interscale_manager());
 
     // matrix requires all entries even if localized for correct lumping
-    regulatedNodes_ = new RegulatedNodes(atc_);
-    interscaleManager.add_set_int(regulatedNodes_,
-                                  regulatorPrefix_+"KinetostatRegulatedNodes");
-
+    regulatedNodes_ = interscaleManager.set_int(regulatorPrefix_+"KinetostatRegulatedNodes");
+    if (!regulatedNodes_) {
+      regulatedNodes_ = new RegulatedNodes(atc_);
+      interscaleManager.add_set_int(regulatedNodes_,
+                                    regulatorPrefix_+"KinetostatRegulatedNodes");
+    }
+    
     // if localized monitor nodes with applied fluxes
     if (atomicRegulator_->use_localized_lambda()) {
-      if ((kinetostat_->coupling_mode() == Kinetostat::FLUX) && (atomicRegulator_->boundary_integration_type() != NO_QUADRATURE)) {
+      if ((atomicRegulator_->coupling_mode() == Kinetostat::FLUX) && (atomicRegulator_->boundary_integration_type() != NO_QUADRATURE)) {
         // include boundary nodes
         applicationNodes_ = new FluxBoundaryNodes(atc_);
         
@@ -1809,9 +1919,12 @@ namespace ATC {
     // special set of boundary elements for boundary flux quadrature  
     if ((atomicRegulator_->boundary_integration_type() == FE_INTERPOLATION)
         && (atomicRegulator_->use_localized_lambda())) {
-      elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
-      interscaleManager.add_dense_matrix_bool(elementMask_,
-                                                   regulatorPrefix_+"BoundaryElementMask");
+      elementMask_ = interscaleManager.dense_matrix_bool(regulatorPrefix_+"BoundaryElementMask");
+      if (!elementMask_) {
+        elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
+        interscaleManager.add_dense_matrix_bool(elementMask_,
+                                                regulatorPrefix_+"BoundaryElementMask");
+      }
     }
   }
 
@@ -1849,6 +1962,25 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
+  //  add_to_momentum:
+  //            determines what if any contributions to the
+  //            finite element equations are needed for
+  //            consistency with the kinetostat
+  //--------------------------------------------------------
+  void KinetostatFlux::add_to_momentum(const DENS_MAT & nodalLambdaForce,
+                                       DENS_MAT & deltaMomentum,
+                                       double dt)
+  {
+    deltaMomentum.resize(nNodes_,nsd_);
+    const DENS_MAT & boundaryFlux(boundaryFlux_[VELOCITY].quantity());
+    for (int i = 0; i < nNodes_; i++) {
+      for (int j = 0; j < nsd_; j++) {
+        deltaMomentum(i,j) = nodalLambdaForce(i,j) + dt*boundaryFlux(i,j);
+      }
+    }
+  }
+
+  //--------------------------------------------------------
   //  set_kinetostat_rhs
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
@@ -1880,25 +2012,6 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  add_to_momentum:
-  //            determines what if any contributions to the
-  //            finite element equations are needed for
-  //            consistency with the kinetostat
-  //--------------------------------------------------------
-  void KinetostatFlux::add_to_momentum(const DENS_MAT & nodalLambdaForce,
-                                       DENS_MAT & deltaMomentum,
-                                       double dt)
-  {
-    deltaMomentum.resize(nNodes_,nsd_);
-    const DENS_MAT & boundaryFlux(boundaryFlux_[VELOCITY].quantity());
-    for (int i = 0; i < nNodes_; i++) {
-      for (int j = 0; j < nsd_; j++) {
-        deltaMomentum(i,j) = nodalLambdaForce(i,j) + dt*boundaryFlux(i,j);
-      }
-    }
-  }
-
-  //--------------------------------------------------------
   //  reset_filtered_ghost_force:
   //    resets the kinetostat generated ghost force to a
   //    prescribed value
@@ -1918,7 +2031,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  KinetostatFluxGhost::KinetostatFluxGhost(Kinetostat * kinetostat,
+  KinetostatFluxGhost::KinetostatFluxGhost(AtomicRegulator * kinetostat,
                                            const string & regulatorPrefix) :
     KinetostatFlux(kinetostat,regulatorPrefix)
   {
@@ -1934,7 +2047,7 @@ namespace ATC {
   {
     KinetostatFlux::construct_transfers();
     if (!nodalGhostForce_) {
-      throw ATC_Error("StressFluxGhost::StressFluxGhost - ghost atoms must be specified");
+      throw ATC_Error("KinetostatFluxGhost::KinetostatFluxGhost - ghost atoms must be specified");
     }
   }
 
@@ -1999,11 +2112,10 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and kinetostat data
   //--------------------------------------------------------
-  KinetostatFixed::KinetostatFixed(Kinetostat * kinetostat,
+  KinetostatFixed::KinetostatFixed(AtomicRegulator * kinetostat,
                                    const string & regulatorPrefix) :
     KinetostatGlcFs(kinetostat,regulatorPrefix),
-    mdMassMatrix_(atc_->set_mass_mat_md(VELOCITY)),
-    isFirstTimestep_(true)
+    filterCoefficient_(1.)
   {
     // do nothing
   }
@@ -2050,6 +2162,15 @@ namespace ATC {
     // reset data to zero
     deltaFeMomentum_.reset(nNodes_,nsd_);
     deltaNodalAtomicMomentum_.reset(nNodes_,nsd_);
+
+    // initialize filtered energy
+    TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
+    if (!timeFilterManager->end_equilibrate()) {
+      nodalAtomicMomentumFiltered_ = nodalAtomicMomentum_->quantity();
+    }
+
+    // timestep factor
+    dtFactor_ = 0.5;
   }
 
   //--------------------------------------------------------
@@ -2074,31 +2195,37 @@ namespace ATC {
   void KinetostatFixed::construct_regulated_nodes()
   {
     InterscaleManager & interscaleManager(atc_->interscale_manager());
+    regulatedNodes_ = interscaleManager.set_int(regulatorPrefix_+"RegulatedNodes");
 
-    if (!atomicRegulator_->use_localized_lambda()) {
-      regulatedNodes_ = new RegulatedNodes(atc_);
-    }
-    else if (kinetostat_->coupling_mode() == Kinetostat::FLUX) {
-      regulatedNodes_ = new FixedNodes(atc_);
-    }
-    else if (kinetostat_->coupling_mode() == Kinetostat::FIXED) {
-      // include boundary nodes
-      regulatedNodes_ = new FixedBoundaryNodes(atc_);
-    }
-    else {
-      throw ATC_Error("ThermostatFixed::construct_regulated_nodes - couldn't determine set of regulated nodes");
-    }
+    if (!regulatedNodes_) {
+      if (!atomicRegulator_->use_localized_lambda()) {
+        regulatedNodes_ = new RegulatedNodes(atc_);
+      }
+      else if (atomicRegulator_->coupling_mode() == Kinetostat::FLUX) {
+        regulatedNodes_ = new FixedNodes(atc_);
+      }
+      else if (atomicRegulator_->coupling_mode() == Kinetostat::FIXED) {
+          // include boundary nodes
+          regulatedNodes_ = new FixedBoundaryNodes(atc_);
+      }
+      else {
+        throw ATC_Error("KinetostatFixed::construct_regulated_nodes - couldn't determine set of regulated nodes");
+      }
      
-    interscaleManager.add_set_int(regulatedNodes_,
-                                  regulatorPrefix_+"RegulatedNodes");
+      interscaleManager.add_set_int(regulatedNodes_,
+                                    regulatorPrefix_+"RegulatedNodes");
+    }
 
     applicationNodes_ = regulatedNodes_;
 
     // special set of boundary elements for defining regulated atoms 
     if (atomicRegulator_->use_localized_lambda()) {
-      elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
-      interscaleManager.add_dense_matrix_bool(elementMask_,
-                                                   regulatorPrefix_+"BoundaryElementMask");
+      elementMask_ = interscaleManager.dense_matrix_bool(regulatorPrefix_+"BoundaryElementMask");
+      if (!elementMask_) {
+        elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
+        interscaleManager.add_dense_matrix_bool(elementMask_,
+                                                regulatorPrefix_+"BoundaryElementMask");
+      }
     }
   }
 
@@ -2134,51 +2261,8 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  apply_pre_predictor:
-  //    apply the kinetostat to the atoms in the
-  //    pre-predictor integration phase
-  //--------------------------------------------------------
-  void KinetostatFixed::apply_pre_predictor(double dt)
-  {
-    // initialize values to be track change in finite element energy over the timestep
-    initialize_delta_nodal_atomic_momentum(dt);
-    initialFeMomentum_ = -1.*((mdMassMatrix_.quantity())*(velocity_.quantity())); // initially stored as negative for efficiency
-
-    KinetostatGlcFs::apply_pre_predictor(dt);
-  }
- 
-  //--------------------------------------------------------
-  //  apply_post_corrector:
-  //    apply the kinetostat to the atoms in the
-  //    post-corrector integration phase
-  //--------------------------------------------------------
-  void KinetostatFixed::apply_post_corrector(double dt)
-  {  
-    KinetostatGlcFs::apply_post_corrector(dt);
-
-    // update filtered momentum with lambda force
-    DENS_MAT & myNodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
-    timeFilter_->apply_post_step2(nodalAtomicMomentumFiltered_.set_quantity(),
-                                  myNodalAtomicLambdaForce,dt);
-
-    if (halve_force()) {
-      // Halve lambda force due to fixed temperature constraints
-      // 1) makes up for poor initial condition
-      // 2) accounts for possibly large value of lambda when atomic shape function values change
-      //    from eulerian mapping after more than 1 timestep
-      //    avoids unstable oscillations arising from 
-      //    thermostat having to correct for error introduced in lambda changing the 
-      //    shape function matrices
-      *lambda_ *= 0.5;
-    }
-    
-    isFirstTimestep_ = false;
-  }
-
-  //--------------------------------------------------------
-  //  compute_kinetostat
-  //            manages the solution and application of the
-  //            kinetostat equations and variables
+  //  compute_lambda
+  //   sets up and solves linear system for lambda
   //--------------------------------------------------------
   void KinetostatFixed::compute_lambda(double dt)
   {
@@ -2194,27 +2278,65 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  set_kinetostat_rhs
-  //            sets up the RHS of the kinetostat equations
-  //            for the coupling parameter lambda
+  //  apply_pre_predictor:
+  //    apply the kinetostat to the atoms in the
+  //    pre-predictor integration phase
   //--------------------------------------------------------
-  void KinetostatFixed::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void KinetostatFixed::apply_pre_predictor(double dt)
   {
-    // for essential bcs (fixed nodes) :
-    // form rhs : (delUpsV - delUps)/dt
-    const set<int> & regulatedNodes(regulatedNodes_->quantity());
-    double factor = (1./dt);
-    for (int i = 0; i < nNodes_; i++) {
-      if (regulatedNodes.find(i) != regulatedNodes.end()) {
-        for (int j = 0; j < nsd_; j++) {
-          rhs(i,j) = factor*(deltaNodalAtomicMomentum_(i,j) - deltaFeMomentum_(i,j));
-        }
-      }
-      else {
-        for (int j = 0; j < nsd_; j++) {
-          rhs(i,j) = 0.;
-        }
-      }
+    // initialize values to be track change in finite element energy over the timestep
+    initialize_delta_nodal_atomic_momentum(dt);
+    initialFeMomentum_ = -1.*((mdMassMatrix_.quantity())*(velocity_.quantity())); // initially stored as negative for efficiency
+
+    KinetostatGlcFs::apply_pre_predictor(dt);
+  }
+
+  //--------------------------------------------------------
+  //  apply_pre_corrector:
+  //    apply the kinetostat to the atoms in the first part
+  //    of the corrector step of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetostatFixed::apply_pre_corrector(double dt)
+  {
+    // do full prediction if we just redid the shape functions
+    if (full_prediction()) {
+      _tempNodalAtomicMomentumFiltered_ = nodalAtomicMomentumFiltered_.quantity();
+    }
+
+   KinetostatGlcFs::apply_pre_corrector(dt);
+
+    if (full_prediction()) {
+      // reset temporary variables
+      nodalAtomicMomentumFiltered_ = _tempNodalAtomicMomentumFiltered_;
+    }
+  }
+ 
+  //--------------------------------------------------------
+  //  apply_post_corrector:
+  //    apply the kinetostat to the atoms in the
+  //    post-corrector integration phase
+  //--------------------------------------------------------
+  void KinetostatFixed::apply_post_corrector(double dt)
+  {  
+    
+    bool halveForce = halve_force();
+
+    KinetostatGlcFs::apply_post_corrector(dt);
+
+    // update filtered momentum with lambda force
+    DENS_MAT & myNodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
+    timeFilter_->apply_post_step2(nodalAtomicMomentumFiltered_.set_quantity(),
+                                  myNodalAtomicLambdaForce,dt);
+
+    if (halveForce) {
+      // Halve lambda force due to fixed temperature constraints
+      // 1) makes up for poor initial condition
+      // 2) accounts for possibly large value of lambda when atomic shape function values change
+      //    from eulerian mapping after more than 1 timestep
+      //    avoids unstable oscillations arising from 
+      //    thermostat having to correct for error introduced in lambda changing the 
+      //    shape function matrices
+      *lambda_ *= 0.5;
     }
   }
 
@@ -2243,4 +2365,144 @@ namespace ATC {
       }
     }
   }
+
+  //--------------------------------------------------------
+  //  set_kinetostat_rhs
+  //            sets up the RHS of the kinetostat equations
+  //            for the coupling parameter lambda
+  //--------------------------------------------------------
+  void KinetostatFixed::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  {
+    // for essential bcs (fixed nodes) :
+    // form rhs : (delUpsV - delUps)/dt
+    const set<int> & regulatedNodes(regulatedNodes_->quantity());
+    double factor = (1./dt);
+    for (int i = 0; i < nNodes_; i++) {
+      if (regulatedNodes.find(i) != regulatedNodes.end()) {
+        for (int j = 0; j < nsd_; j++) {
+          rhs(i,j) = factor*(deltaNodalAtomicMomentum_(i,j) - deltaFeMomentum_(i,j));
+        }
+      }
+      else {
+        for (int j = 0; j < nsd_; j++) {
+          rhs(i,j) = 0.;
+        }
+      }
+    }
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class KinetostatFluxFixed
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  KinetostatFluxFixed::KinetostatFluxFixed(AtomicRegulator * kinetostat,
+                                           bool constructKinetostats) :
+    RegulatorMethod(kinetostat),
+    kinetostatFlux_(NULL),
+    kinetostatFixed_(NULL),
+    kinetostatBcs_(NULL)
+  {
+    if (constructKinetostats) {
+      if (kinetostat->coupling_mode(VELOCITY) == AtomicRegulator::GHOST_FLUX) {
+        kinetostatFlux_ = new KinetostatFluxGhost(kinetostat,regulatorPrefix_+"Flux");
+      }
+      else {
+        kinetostatFlux_ = new KinetostatFlux(kinetostat,regulatorPrefix_+"Flux");
+      }
+      kinetostatFixed_ = new KinetostatFixed(kinetostat,regulatorPrefix_+"Fixed");
+
+      // need to choose BC type based on coupling mode
+      if (kinetostat->coupling_mode() == AtomicRegulator::FLUX || kinetostat->coupling_mode(VELOCITY) == AtomicRegulator::GHOST_FLUX) {
+        kinetostatBcs_ = kinetostatFlux_;
+      }
+      else if (kinetostat->coupling_mode() == AtomicRegulator::FIXED) {
+        kinetostatBcs_ = kinetostatFixed_;
+      }
+      else {
+        throw ATC_Error("KinetostatFluxFixed::constructor - invalid kinetostat type provided");
+      }
+    }
+  }
+
+  //--------------------------------------------------------
+  //  Destructor
+  //--------------------------------------------------------
+  KinetostatFluxFixed::~KinetostatFluxFixed()
+  {
+    if (kinetostatFlux_) delete kinetostatFlux_;
+    if (kinetostatFixed_) delete kinetostatFixed_;
+  }
+
+  //--------------------------------------------------------
+  //  constructor_transfers
+  //    instantiates or obtains all dependency managed data
+  //--------------------------------------------------------
+  void KinetostatFluxFixed::construct_transfers()
+  {
+    kinetostatFlux_->construct_transfers();
+    kinetostatFixed_->construct_transfers();
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initializes all method data
+  //--------------------------------------------------------
+  void KinetostatFluxFixed::initialize()
+  {
+    kinetostatFlux_->initialize();
+    kinetostatFixed_->initialize();
+  }
+
+  //--------------------------------------------------------
+  //  apply_predictor:
+  //    apply the thermostat to the atoms in the first step
+  //    of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetostatFluxFixed::apply_pre_predictor(double dt)
+  {
+    kinetostatFlux_->apply_pre_predictor(dt);
+    kinetostatFixed_->apply_pre_predictor(dt);
+  }
+
+  //--------------------------------------------------------
+  //  apply_pre_corrector:
+  //    apply the thermostat to the atoms in the first part
+  //    of the corrector step of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetostatFluxFixed::apply_pre_corrector(double dt)
+  {
+    kinetostatFlux_->apply_pre_corrector(dt);
+    if (kinetostatFixed_->full_prediction()) {
+      atc_->set_fixed_nodes();
+    }
+    kinetostatFixed_->apply_pre_corrector(dt);
+  }
+
+  //--------------------------------------------------------
+  //  apply_post_corrector:
+  //    apply the thermostat to the atoms in the second part
+  //    of the corrector step of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetostatFluxFixed::apply_post_corrector(double dt)
+  {
+    kinetostatFlux_->apply_post_corrector(dt);
+    atc_->set_fixed_nodes();
+    kinetostatFixed_->apply_post_corrector(dt);
+  }
+
+  //--------------------------------------------------------
+  //  output:
+  //    adds all relevant output to outputData
+  //--------------------------------------------------------
+  void KinetostatFluxFixed::output(OUTPUT_LIST & outputData)
+  {
+    kinetostatFlux_->output(outputData);
+    kinetostatFixed_->output(outputData);
+  }
+
 };

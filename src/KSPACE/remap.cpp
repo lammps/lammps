@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdio.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include "remap.h"
 
 #define PACK_DATA FFT_SCALAR
@@ -64,8 +64,7 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
 {
   // use point-to-point communication
 
-  if (!plan->usecollective) { 
-    MPI_Status status;
+  if (!plan->usecollective) {
     int i,isend,irecv;
     FFT_SCALAR *scratch;
 
@@ -105,14 +104,14 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
     // unpack all messages from scratch -> out
 
     for (i = 0; i < plan->nrecv; i++) {
-      MPI_Waitany(plan->nrecv,plan->request,&irecv,&status);
+      MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
       plan->unpack(&scratch[plan->recv_bufloc[irecv]],
                    &out[plan->recv_offset[irecv]],&plan->unpackplan[irecv]);
     }
 
   // use All2Allv collective for remap communication
 
-  } else { 
+  } else {
     if (plan->commringlen > 0) {
       int isend,irecv;
 
@@ -125,9 +124,9 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf,
       for (int i=0;i<plan->nrecv;i++)
         recvBufferSize += plan->recv_size[i];
 
-      FFT_SCALAR *packedSendBuffer 
+      FFT_SCALAR *packedSendBuffer
         = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * sendBufferSize);
-      FFT_SCALAR *packedRecvBuffer 
+      FFT_SCALAR *packedRecvBuffer
         = (FFT_SCALAR *) malloc(sizeof(FFT_SCALAR) * recvBufferSize);
 
       int *sendcnts = (int *) malloc(sizeof(int) * plan->commringlen);
@@ -455,14 +454,14 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // create sub-comm rank list
 
-  if (plan->usecollective) { 
+  if (plan->usecollective) {
     plan->commringlist = NULL;
 
     // merge recv and send rank lists
-    // ask Steve Plimpton about method to more accurately determine 
+    // ask Steve Plimpton about method to more accurately determine
     // maximum number of procs contributing to pencil
 
-    int maxcommsize = nprocs;  
+    int maxcommsize = nprocs;
     int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
     int commringlen = 0;
 

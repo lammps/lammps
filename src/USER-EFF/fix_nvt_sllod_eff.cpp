@@ -11,7 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
+#include <stdlib.h>
 #include "fix_nvt_sllod_eff.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -57,7 +58,7 @@ FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -122,7 +123,7 @@ void FixNVTSllodEff::nh_v_temp()
       v[i][1] = v[i][1]*factor_eta - dthalf*vdelu[1];
       v[i][2] = v[i][2]*factor_eta - dthalf*vdelu[2];
       temperature->restore_bias(i,v[i]);
-      if (fabs(spin[i])==1)
+      if (abs(spin[i])==1)
         ervel[i] = ervel[i]*factor_eta -
           dthalf*sqrt(vdelu[0]*vdelu[0]+vdelu[1]*vdelu[1]+vdelu[2]*vdelu[2]);
     }

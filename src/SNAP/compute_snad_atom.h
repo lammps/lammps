@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -21,7 +21,7 @@ ComputeStyle(snad/atom,ComputeSNADAtom)
 #define LMP_COMPUTE_SNAD_ATOM_H
 
 #include "compute.h"
- 
+
 namespace LAMMPS_NS {
 
 class ComputeSNADAtom : public Compute {
@@ -52,3 +52,25 @@ class ComputeSNADAtom : public Compute {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Compute snad/atom requires a pair style be defined
+
+Self-explanatory.
+
+E: Compute snad/atom cutoff is longer than pairwise cutoff
+
+Self-explanatory.
+
+W: More than one compute snad/atom
+
+Self-explanatory.
+
+*/

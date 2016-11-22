@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "math.h"
+#include <string.h>
+#include <math.h>
 #include "fix_nvt_eff.h"
 #include "group.h"
 #include "modify.h"
@@ -46,5 +46,5 @@ FixNVTEff::FixNVTEff(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 }

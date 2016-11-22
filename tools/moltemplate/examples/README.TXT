@@ -20,5 +20,5 @@ You can run these scripts using
       lmp_linux -i run.in.npt
 (The name of your lammps binary, "lmp_linux" in this example, may vary. 
  Sometimes, these scripts must be run in a certain order.  For example
- it may be necessary to run run.in.min to minimize the system before 
- you can run the other scripts.  These files have not been optimized.)
+ it may be necessary to run run.in.min to minimize the system before you can use run.in.npt, and later run.in.nvt.  The README_run.sh file in each subdirectory
+ specifies indicates the order.  These files have not been optimized.)

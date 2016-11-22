@@ -24,6 +24,7 @@ using ATC_Utility::split_values;
 using ATC_Utility::plane_coords;
 using ATC_Utility::norm3;
 using ATC_Utility::to_string;
+using ATC_Utility::tolerance;
 
 
 
@@ -113,55 +114,24 @@ namespace ATC {
         if (strcmp(arg[argIdx],"plane")==0) 
         {
           argIdx++;
-          string n(arg[argIdx++]);
-          int idir = -1, isgn = 0; 
-          int i2dir = -1, i3dir = -1;
-          double x2min = 0.0, x2max = 0.0, x3min = 0.0, x3max = 0.0;
-          string_to_index(n, idir, isgn);
-          double x =  parse_minmax(arg[argIdx++]);
-          if (narg > argIdx ) {
-            if (string_to_index(arg[argIdx],i2dir)) {
-              argIdx++;
-              x2min = parse_min(arg[argIdx++]); 
-              x2max = parse_max(arg[argIdx++]);
-            }
-          }
-          if (narg > argIdx ) {
-            if (string_to_index(arg[argIdx],i3dir)) {
-              argIdx++;
-              x3min = parse_min(arg[argIdx++]);
-              x3max = parse_max(arg[argIdx++]);
-            }
-          }
-          if (i2dir >= 0 && 
-            ((i2dir == idir) || (i2dir == idir) || (i2dir == idir) ) ) 
-          {
-            throw ATC_Error( "inconsistent directions in create_faceset plane");  
-          }
-          if (narg > argIdx && (strcmp(arg[argIdx++],"units") == 0)) 
-          {} 
-          else 
-          {
-            if      (idir == 0) { x *= xscale_; }
-            else if (idir == 1) { x *= yscale_; }
-            else if (idir == 2) { x *= zscale_; }
-            if (i2dir >=0) {
-              if      (i2dir == 0) { x2min *= xscale_;  x2max *= xscale_; }
-              else if (i2dir == 1) { x2min *= yscale_;  x2max *= yscale_; }
-              else if (i2dir == 2) { x2min *= zscale_;  x2max *= zscale_; }
-            }
-            if (i3dir >=0) {
-              if      (i3dir == 0) { x3min *= xscale_;  x2max *= xscale_; }
-              else if (i3dir == 1) { x3min *= yscale_;  x3max *= yscale_; }
-              else if (i3dir == 2) { x3min *= zscale_;  x3max *= zscale_; }
-            }
-          }
-          if (i2dir >=0) {
-            create_faceset(tag, x, idir, isgn, i2dir, x2min, x2max, 
-                                               i3dir, x3min, x3max);
+          int ndir, idir[3], isgn;
+          double xlimits[3][2];
+          parse_plane(argIdx, narg, arg, ndir, idir, isgn, xlimits);
+          if (xlimits[idir[1]][0] == xlimits[idir[1]][1]) 
+            split_values(xlimits[idir[1]][0],xlimits[idir[1]][1]);
+          if (xlimits[idir[2]][0] == xlimits[idir[2]][1]) 
+            split_values(xlimits[idir[2]][0],xlimits[idir[2]][1]);
+          parse_units(argIdx,narg,arg,
+            xlimits[0][0],xlimits[0][1],
+            xlimits[1][0],xlimits[1][1],
+            xlimits[2][0],xlimits[2][1]);
+          if (ndir > 1) {
+            create_faceset(tag, xlimits[idir[0]][0], idir[0], isgn, 
+              idir[1], xlimits[idir[1]][0], xlimits[idir[1]][1], 
+              idir[2], xlimits[idir[2]][0], xlimits[idir[2]][1]);
           }
           else {
-            create_faceset(tag, x, idir, isgn);
+            create_faceset(tag, xlimits[idir[0]][0], idir[0], isgn);
           }
           match = true;
         }
@@ -178,18 +148,7 @@ namespace ATC {
           bool outward = true;
           if (narg > argIdx && (strcmp(arg[argIdx++],"in") == 0)) 
             outward = false;
-
-          if (narg > argIdx && (strcmp(arg[argIdx++],"units") == 0)) {}
-          else 
-          { // scale from lattice units to physical units
-            xmin *= xscale_;
-            xmax *= xscale_;
-            ymin *= yscale_;
-            ymax *= yscale_;
-            zmin *= zscale_;
-            zmax *= zscale_;
-          }
-          
+          parse_units(argIdx,narg,arg, xmin,xmax,ymin,ymax,zmin,zmax);
           create_faceset(tag, xmin, xmax, ymin, ymax, zmin, zmax, outward);
           match = true;
         }
@@ -212,13 +171,33 @@ namespace ATC {
       Coordinates are assumed to be in lattice units.
     */
       else if (strcmp(arg[1],"create_nodeset")==0) {
-        string tag  = arg[2];
-        double xmin = parse_min(arg[3]);
-        double xmax = parse_max(arg[4]);
-        double ymin = parse_min(arg[5]);
-        double ymax = parse_max(arg[6]);
-        double zmin = parse_min(arg[7]);
-        double zmax = parse_max(arg[8]);
+        int argIdx = 2;
+        string tag  = arg[argIdx++];
+        double xmin, xmax, ymin, ymax, zmin, zmax;
+        if (strcmp(arg[argIdx],"plane")==0) {
+          argIdx++;
+          int ndir, idir[3], isgn;
+          double xlimits[3][2];
+          parse_plane(argIdx, narg, arg, ndir, idir, isgn, xlimits);
+          xmin = xlimits[0][0];
+          xmax = xlimits[0][1];
+          ymin = xlimits[1][0];
+          ymax = xlimits[1][1];
+          zmin = xlimits[2][0];
+          zmax = xlimits[2][1];
+        }
+        else {
+          xmin = parse_min(arg[argIdx++]);
+          xmax = parse_max(arg[argIdx++]);
+          ymin = parse_min(arg[argIdx++]);
+          ymax = parse_max(arg[argIdx++]);
+          zmin = parse_min(arg[argIdx++]);
+          zmax = parse_max(arg[argIdx++]);
+        }
+        if (xmin == xmax) split_values(xmin,xmax);
+        if (ymin == ymax) split_values(ymin,ymax);
+        if (zmin == zmax) split_values(zmin,zmax);
+        parse_units(argIdx,narg,arg, xmin,xmax,ymin,ymax,zmin,zmax);
         create_nodeset(tag, xmin, xmax, ymin, ymax, zmin, zmax);
         match = true;
       }
@@ -268,7 +247,8 @@ namespace ATC {
       Coordinates are assumed to be in lattice units.
     */
       else if (strcmp(arg[1],"create_elementset")==0) {
-        string tag  = arg[2];
+        int argIdx = 2;
+        string tag  = arg[argIdx++];
         double xmin = 0;
         double xmax = 0;
         double ymin = 0;
@@ -276,15 +256,19 @@ namespace ATC {
         double zmin = 0;
         double zmax = 0;
         if (narg > 4) {
-          xmin = parse_min(arg[3]);
-          xmax = parse_max(arg[4]);
-          ymin = parse_min(arg[5]);
-          ymax = parse_max(arg[6]);
-          zmin = parse_min(arg[7]);
-          zmax = parse_max(arg[8]);
+          xmin = parse_min(arg[argIdx++]);
+          xmax = parse_max(arg[argIdx++]);
+          ymin = parse_min(arg[argIdx++]);
+          ymax = parse_max(arg[argIdx++]);
+          zmin = parse_min(arg[argIdx++]);
+          zmax = parse_max(arg[argIdx++]);
+          if (xmin == xmax) split_values(xmin,xmax);
+          if (ymin == ymax) split_values(ymin,ymax);
+          if (zmin == zmax) split_values(zmin,zmax);
+          parse_units(argIdx,narg,arg, xmin,xmax,ymin,ymax,zmin,zmax);
         }
         else {
-          string regionName = arg[3];
+          string regionName = arg[argIdx++];
           LammpsInterface::instance()->
           region_bounds(regionName.c_str(),xmin,xmax,ymin,ymax,zmin,zmax);
         }
@@ -355,15 +339,85 @@ namespace ATC {
     return match;
   }
   // -------------------------------------------------------------
+  void FE_Mesh::parse_units(int & argIdx, int narg, char ** arg,
+    double & xmin, double & xmax, double & ymin, double & ymax, 
+    double & zmin, double & zmax)
+  {
+    if (narg > argIdx && (strcmp(arg[argIdx++],"units") == 0)) {}
+    else 
+    { // scale from lattice units to physical units
+      xmin *= xscale_; xmax *= xscale_;
+      ymin *= yscale_; ymax *= yscale_;
+      zmin *= zscale_; zmax *= zscale_;
+    }
+  }
+  // -------------------------------------------------------------
+  //   parse plane
+  // -------------------------------------------------------------
+  void FE_Mesh::parse_plane(int & argIdx, int narg, char ** arg,  
+    int & ndir, int * idir, int & isgn, double xlimits[][2])
+  {
+    ndir = 0;
+    xlimits[0][0] = parse_min("-INF");
+    xlimits[0][1] = parse_max("INF");
+    xlimits[1][0] = parse_min("-INF");
+    xlimits[1][1] = parse_max("INF");
+    xlimits[2][0] = parse_min("-INF");
+    xlimits[2][1] = parse_max("INF");
+    string n(arg[argIdx++]);
+    int i1dir = -1, i2dir = -1, i3dir = -1;
+    string_to_index(n, i1dir, isgn);
+    idir[ndir++] = i1dir;
+    idir[ndir]   = (i1dir+1) % 3;
+    idir[ndir+1] = (i1dir+2) % 3;
+    xlimits[i1dir][0] =  parse_minmax(arg[argIdx++]);
+    xlimits[i1dir][1] = xlimits[i1dir][0];
+    if (narg > argIdx ) {
+      if (string_to_index(arg[argIdx],i2dir)) {
+        argIdx++;
+        xlimits[i2dir][0] = parse_min(arg[argIdx++]); 
+        xlimits[i2dir][1] = parse_max(arg[argIdx++]);
+        idir[ndir++] = i2dir;
+      }
+      if (narg > argIdx ) {
+        if (string_to_index(arg[argIdx],i3dir)) {
+          argIdx++;
+          xlimits[i3dir][0] = parse_min(arg[argIdx++]); 
+          xlimits[i3dir][1] = parse_max(arg[argIdx++]);
+        }
+      }
+      else {
+        i3dir = 0;
+        if      ((i1dir == 0 && i2dir == 1) || (i1dir == 1 && i2dir == 0) ) {
+          i3dir = 2;
+        }
+        else if ((i1dir == 0 && i2dir == 2) || (i1dir == 2 && i2dir == 0) ) {
+          i3dir = 1;
+        }
+      }
+      idir[ndir++] = i3dir;
+    }
+    if ((idir[0]==idir[1]) || (idir[0]==idir[2]) || (idir[1]==idir[2]) ) {
+      throw ATC_Error( "inconsistent directions in plane:"+to_string(idir[0]+1)+" "+to_string(idir[1]+1)+" "+to_string(idir[2]+1));  
+    }
+  }
+  // -------------------------------------------------------------
   //   initialize
   // -------------------------------------------------------------
   void FE_Mesh::initialize(void) 
   {
+
     bool aligned = is_aligned();
     if (!aligned) {
       feElement_->set_projection_guess(CENTROID_LINEARIZED);
       ATC::LammpsInterface::instance()->print_msg_once("WARNING: mesh is not aligned with the coordinate directions atom-to-element mapping will be expensive");
       // if HEX8 -> orient();
+    }
+    bool twoD = is_two_dimensional(); 
+    if (twoD) {
+      feElement_->set_projection_guess(TWOD_ANALYTIC);
+      if (feElement_->order()< 3) hasPlanarFaces_ = true; 
+      ATC::LammpsInterface::instance()->print_msg_once(" mesh is two dimensional");
     }
   }
   //-----------------------------------------------------------------
@@ -702,7 +756,7 @@ namespace ATC {
   //   elementset_to_nodeset
   // -------------------------------------------------------------
   void FE_Mesh::elementset_to_nodeset
-    (const set<int> & elemSet, set<int> & nodeSet) const
+    (const set<int> & elemSet, set<int>  nodeSet) const
   {
     int npe = num_nodes_per_element();
     set<int>::const_iterator itr;
@@ -721,7 +775,7 @@ namespace ATC {
   //   elementset_to_nodeset
   // -------------------------------------------------------------
   void FE_Mesh::elementset_to_nodeset
-    (const string & name, set<int> & nodeSet) const
+    (const string & name, set<int>  nodeSet) const
   {
     if (name == "all")
       for (int ielem = 0; ielem < nElts_; ielem++) 
@@ -747,6 +801,13 @@ namespace ATC {
         }
       }
     }
+  }
+  set<int>  FE_Mesh::elementset_to_nodeset
+    (const string & name) const
+  {
+    set<int> nset;
+    elementset_to_nodeset(name,nset);
+    return nset;
   }
 
   // -------------------------------------------------------------
@@ -944,17 +1005,6 @@ namespace ATC {
       throw ATC_Error( message);
     }
 
-    if (xmin == xmax) split_values(xmin,xmax);
-    if (ymin == ymax) split_values(ymin,ymax);
-    if (zmin == zmax) split_values(zmin,zmax);
-
-    xmin *= xscale_;
-    xmax *= xscale_;
-    ymin *= yscale_;
-    ymax *= yscale_;
-    zmin *= zscale_;
-    zmax *= zscale_;
-
     set<int> nodeSet;
 
     // Loop over nodes and add their unique id's to the set if they're
@@ -1003,17 +1053,6 @@ namespace ATC {
       throw ATC_Error( message);
     }
 
-    if (xmin == xmax) split_values(xmin,xmax);
-    if (ymin == ymax) split_values(ymin,ymax);
-    if (zmin == zmax) split_values(zmin,zmax);
-
-    xmin *= xscale_;
-    xmax *= xscale_;
-    ymin *= yscale_;
-    ymax *= yscale_;
-    zmin *= zscale_;
-    zmax *= zscale_;
-
     set<int> nodeSet;
 
     // Loop over nodes and add their unique id's to the set if they're
@@ -1059,10 +1098,6 @@ namespace ATC {
     FACE_SET_MAP::iterator iter = faceSetMap_.find(name);
     if (iter != faceSetMap_.end()) 
       throw ATC_Error( "A faceset with name " + name + " is already defined.");
-
-    if (xmin == xmax) split_values(xmin,xmax);
-    if (ymin == ymax) split_values(ymin,ymax);
-    if (zmin == zmax) split_values(zmin,zmax);
 
     set<PAIR> faceSet;
     // Loop over face and add their unique id's to the set if they concide
@@ -1147,7 +1182,7 @@ namespace ATC {
                                int nIdx2, double x2lo, double x2hi,
                                int nIdx3, double x3lo, double x3hi)
   {
-    // note scaling done by caller and split_values is tricky with orientation
+    double xtol = tolerance(xRef);
     // Make sure we don't already have a faceset with this name
     FACE_SET_MAP::iterator iter = faceSetMap_.find(name);
     if (iter != faceSetMap_.end()) 
@@ -1170,7 +1205,7 @@ namespace ATC {
         for (int inode = 0; inode < npf; inode++) {
           int node = connectivity_(face_conn(iface,inode),ielem);
           double x = nodalCoords_(nIdx,node);
-          if ( fabs(x-xRef) > tol){ in = false; break;}
+          if ( fabs(x-xRef) > xtol){ in = false; break;}
           if (finite2) {
             double y = nodalCoords_(nIdx2,node);
             if ( y < x2lo || y > x2hi){ in = false; break;}
@@ -1226,17 +1261,6 @@ namespace ATC {
       string message("An elementset with name "+name+" is already defined.");
       throw ATC_Error( message);
     }
-
-    if (xmin == xmax) split_values(xmin,xmax);
-    if (ymin == ymax) split_values(ymin,ymax);
-    if (zmin == zmax) split_values(zmin,zmax);
-
-    xmin *= xscale_;
-    xmax *= xscale_;
-    ymin *= yscale_;
-    ymax *= yscale_;
-    zmin *= zscale_;
-    zmax *= zscale_;
 
     set<int> nodeSet;
 
@@ -1758,9 +1782,7 @@ namespace ATC {
   }
 
   FE_3DMesh::~FE_3DMesh() {
-    //if (tree_)               delete tree_; 
-    
-    // not sure why, commenting out for now - JZ 2/28/13
+    if (tree_) delete tree_; 
   }
 
   // -------------------------------------------------------------
@@ -2498,6 +2520,7 @@ namespace ATC {
                                      const double zscale)
     : hx_(hx), hy_(hy), hz_(hz)
   {
+    tree_ = NULL;
     hasPlanarFaces_ = true;
     xscale_ = xscale;
     yscale_ = yscale;

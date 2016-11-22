@@ -120,8 +120,8 @@ Must have periodic x,y dimensions and non-periodic z dimension to use
 
 E: KSpace style is incompatible with Pair style
 
-Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Setting a kspace style requires that a pair style with matching
+long-range Coulombic or dispersion components be used.
 
 E: Unsupported mixing rule in kspace_style ewald/disp
 
@@ -137,13 +137,14 @@ This feature is not yet supported.
 
 E: Cannot use Ewald/disp solver on system with no charge, dipole, or LJ particles
 
-No atoms in system have a non-zero charge or dipole, or are LJ particles.  Change
-charges/dipoles or change options of the kspace solver/pair style.
+No atoms in system have a non-zero charge or dipole, or are LJ
+particles.  Change charges/dipoles or change options of the kspace
+solver/pair style.
 
 W: System is not charge neutral, net charge = %g
 
-The total charge on all atoms on the system is not 0.0, which
-is not valid for the long-range Coulombic solvers.
+The total charge on all atoms on the system is not 0.0.
+For some KSpace solvers this is only a warning.
 
 W: Ewald/disp Newton solver failed, using old method to estimate g_ewald
 

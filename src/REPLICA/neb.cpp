@@ -11,11 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
+// due to OpenMPI bug which sets INT64_MAX via its mpi.h
+//   before lmptype.h can set flags to insure it is done correctly
+
 #include "lmptype.h"
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "neb.h"
 #include "universe.h"
 #include "atom.h"
@@ -118,7 +122,7 @@ void NEB::command(int narg, char **arg)
 
   if (etol < 0.0) error->all(FLERR,"Illegal NEB command");
   if (ftol < 0.0) error->all(FLERR,"Illegal NEB command");
-  if (nevery == 0) error->universe_all(FLERR,"Illegal NEB command");
+  if (nevery <= 0) error->universe_all(FLERR,"Illegal NEB command");
   if (n1steps % nevery || n2steps % nevery)
     error->universe_all(FLERR,"Illegal NEB command");
 
@@ -133,10 +137,6 @@ void NEB::command(int narg, char **arg)
   // error checks
 
   if (nreplica == 1) error->all(FLERR,"Cannot use NEB with a single replica");
-  if (nreplica != universe->nprocs)
-    error->all(FLERR,"Can only use NEB with 1-processor replicas");
-  if (atom->sortfreq > 0)
-    error->all(FLERR,"Cannot use NEB with atom_modify sort enabled");
   if (atom->map_style == 0)
     error->all(FLERR,"Cannot use NEB unless atom map exists");
 
@@ -203,7 +203,7 @@ void NEB::run()
   update->endstep = update->laststep = update->firststep + n1steps;
   update->nsteps = n1steps;
   update->max_eval = n1steps;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps for NEB");
 
   update->minimize->setup();
@@ -224,11 +224,11 @@ void NEB::run()
 
   // perform regular NEB for n1steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
-  // break induced if converged
+  // break out of while loop early if converged
   // damped dynamic min styles insure all replicas converge together
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
 
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
@@ -236,7 +236,7 @@ void NEB::run()
     if (update->minimize->stop_condition) break;
   }
 
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop();
 
   update->minimize->cleanup();
 
@@ -271,7 +271,7 @@ void NEB::run()
   update->endstep = update->laststep = update->firststep + n2steps;
   update->nsteps = n2steps;
   update->max_eval = n2steps;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
   update->minimize->init();
@@ -298,7 +298,7 @@ void NEB::run()
   // damped dynamic min styles insure all replicas converge together
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
 
   while (update->minimize->niter < n2steps) {
     update->minimize->run(nevery);
@@ -306,7 +306,7 @@ void NEB::run()
     if (update->minimize->stop_condition) break;
   }
 
-  timer->barrier_stop(TIME_LOOP);
+  timer->barrier_stop();
 
   update->minimize->cleanup();
 
@@ -414,11 +414,11 @@ void NEB::readfile(char *file, int flag)
 
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
-      
+
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
         values[j] = strtok(NULL," \t\n\r\f");
-      
+
       // adjust atom coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas
       // for flag = 1, replace existing coord with new coord
@@ -527,7 +527,7 @@ void NEB::open(char *file)
 
 /* ----------------------------------------------------------------------
    query fix NEB for info on each replica
-   proc 0 prints current NEB status
+   universe proc 0 prints current NEB status
 ------------------------------------------------------------------------- */
 
 void NEB::print_status()
@@ -548,6 +548,7 @@ void NEB::print_status()
   if (output->thermo->normflag) one[0] /= atom->natoms;
   if (me == 0)
     MPI_Allgather(one,nall,MPI_DOUBLE,&all[0][0],nall,MPI_DOUBLE,roots);
+  MPI_Bcast(&all[0][0],nall*nreplica,MPI_DOUBLE,0,world);
 
   rdist[0] = 0.0;
   for (int i = 1; i < nreplica; i++)

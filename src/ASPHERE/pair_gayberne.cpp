@@ -15,10 +15,10 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_gayberne.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -297,8 +297,8 @@ void PairGayBerne::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
@@ -350,7 +350,7 @@ void PairGayBerne::init_style()
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec) error->all(FLERR,"Pair gayberne requires atom style ellipsoid");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   // per-type shape precalculations
   // require that atom shapes are identical within each type

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "fix_setforce.h"
 #include "atom.h"
 #include "update.h"
@@ -34,7 +34,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  xstr(NULL), ystr(NULL), zstr(NULL), idregion(NULL), sforce(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix setforce command");
 
@@ -43,7 +44,8 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 3;
   global_freq = 1;
   extvector = 1;
-
+  respa_level_support = 1;
+  ilevel_respa = nlevels_respa = 0;
   xstr = ystr = zstr = NULL;
 
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -99,7 +101,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   force_flag = 0;
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
 
-  maxatom = atom->nmax;
+  maxatom = 1;
   memory->create(sforce,maxatom,3,"setforce:sforce");
 }
 
@@ -107,6 +109,8 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
 
 FixSetForce::~FixSetForce()
 {
+  if (copymode) return;
+
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;
@@ -170,8 +174,11 @@ void FixSetForce::init()
     varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (strstr(update->integrate_style,"respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
+    else ilevel_respa = nlevels_respa-1;
+  }
 
   // cannot use non-zero forces for a minimization since no energy is integrated
   // use fix addforce instead
@@ -229,7 +236,7 @@ void FixSetForce::post_force(int vflag)
 
   // reallocate sforce array if necessary
 
-  if (varflag == ATOM && nlocal > maxatom) {
+  if (varflag == ATOM && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(sforce);
     memory->create(sforce,maxatom,3,"setforce:sforce");
@@ -288,9 +295,9 @@ void FixSetForce::post_force(int vflag)
 
 void FixSetForce::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  // set force to desired value on outermost level, 0.0 on other levels
+  // set force to desired value on requested level, 0.0 on other levels
 
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
   else {
     Region *region = NULL;
     if (iregion >= 0) {
@@ -342,6 +349,6 @@ double FixSetForce::compute_vector(int n)
 double FixSetForce::memory_usage()
 {
   double bytes = 0.0;
-  if (varflag == ATOM) bytes = atom->nmax*3 * sizeof(double);
+  if (varflag == ATOM) bytes = maxatom*3 * sizeof(double);
   return bytes;
 }

@@ -599,7 +599,6 @@ void Neighbor::full_multi_omp(NeighList *list)
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
             else which = 0;
-            which = find_special(special[i],nspecial[i],tag[j]);
             if (which == 0) neighptr[n++] = j;
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = j;

@@ -20,7 +20,7 @@ CommandStyle(write_restart,WriteRestart)
 #ifndef LMP_WRITE_RESTART_H
 #define LMP_WRITE_RESTART_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -36,6 +36,7 @@ class WriteRestart : protected Pointers {
   int me,nprocs;
   FILE *fp;
   bigint natoms;         // natoms (sum of nlocal) to write into file
+  int noinit;
 
   int multiproc;             // 0 = proc 0 writes for all
                              // else # of procs writing files
@@ -62,7 +63,7 @@ class WriteRestart : protected Pointers {
   void write_int(int, int);
   void write_bigint(int, bigint);
   void write_double(int, double);
-  void write_string(int, char *);
+  void write_string(int, const char *);
   void write_int_vec(int, int, int *);
   void write_double_vec(int, int, double *);
 };

@@ -34,6 +34,7 @@ class LinearSolver {
   };
 
   enum LinearSolveConstraintHandlingType {
+    AUTO_HANDLE_CONSTRAINTS=-1, 
     NO_CONSTRAINTS=0,
     CONDENSE_CONSTRAINTS,
     PENALIZE_CONSTRAINTS

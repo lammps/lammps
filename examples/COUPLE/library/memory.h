@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Memory {
  public:

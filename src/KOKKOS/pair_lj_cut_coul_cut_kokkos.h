@@ -44,7 +44,9 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   double init_one(int, int);
 
   struct params_lj_coul{
+    KOKKOS_INLINE_FUNCTION
     params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    KOKKOS_INLINE_FUNCTION
     params_lj_coul(int i){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
   };
@@ -74,7 +76,7 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
 
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,
-    Kokkos::LayoutRight,DeviceType>::t_dev_const params;
+    Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   // hardwired to space for 15 atom types
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
@@ -98,7 +100,7 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cut_coulsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cut_coulsq;
 
-  class AtomKokkos *atomKK;
+
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
@@ -127,5 +129,19 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+Self-explanatory.
+
+E: Cannot use chosen neighbor list style with lj/cut/coul/cut/kk
+
+That style is not supported by Kokkos.
 
 */

@@ -17,7 +17,7 @@
 /* -----------------------------------------------------------------------
    Copyright (2009) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the Simplified BSD License.
    ----------------------------------------------------------------------- */
 
@@ -40,13 +40,13 @@
 #include "ucl_types.h"
 
 namespace ucl_opencl {
-    
+
 // --------------------------------------------------------------------------
 // - COMMAND QUEUE STUFF
 // --------------------------------------------------------------------------
-typedef cl_command_queue command_queue; 
+typedef cl_command_queue command_queue;
 typedef cl_context context_type;
-  
+
 inline void ucl_sync(cl_command_queue &cq) {
   CL_SAFE_CALL(clFinish(cq));
 }
@@ -76,19 +76,19 @@ struct OCLProperties {
 
 /// Class for looking at data parallel device properties
 /** \note Calls to change the device outside of the class results in incorrect
-  *       behavior 
+  *       behavior
   * \note There is no error checking for indexing past the number of devices **/
 class UCL_Device {
  public:
   /// Collect properties for every device on the node
    /** \note You must set the active GPU with set() before using the device **/
   inline UCL_Device();
-  
+
   inline ~UCL_Device();
 
   /// Return the number of platforms (0 if error or no platforms)
   inline int num_platforms() { return _num_platforms; }
-  
+
   /// Return a string with name and info of the current platform
   inline std::string platform_name();
 
@@ -104,38 +104,38 @@ class UCL_Device {
     * be allocated for use. clear() is called to delete any contexts and
     * associated data from previous calls to set(). **/
   inline int set(int num);
-  
+
   /// Delete any context and associated data stored from a call to set()
   inline void clear();
 
   /// Get the current device number
   inline int device_num() { return _device; }
-  
+
   /// Returns the context for the current device
   inline cl_context & context() { return _context; }
-  
+
   /// Returns the default stream for the current device
   inline command_queue & cq() { return cq(_default_cq); }
-  
+
   /// Returns the stream indexed by i
   inline command_queue & cq(const int i) { return _cq[i]; }
-  
+
   /// Set the default command queue
-  /** \param i index of the command queue (as added by push_command_queue()) 
+  /** \param i index of the command queue (as added by push_command_queue())
       If i is 0, the command queue created with device initialization is
       used **/
   inline void set_command_queue(const int i) { _default_cq=i; }
-  
+
   /// Block until all commands in the default stream have completed
   inline void sync() { sync(_default_cq); }
-  
+
   /// Block until all commands in the specified stream have completed
   inline void sync(const int i) { ucl_sync(cq(i)); }
-  
+
   /// Get the number of command queues currently available on device
-  inline int num_queues() 
+  inline int num_queues()
     { return _cq.size(); }
-  
+
   /// Add a command queue for device computations (with profiling enabled)
   inline void push_command_queue() {
     cl_int errorv;
@@ -143,7 +143,7 @@ class UCL_Device {
     _cq.back()=clCreateCommandQueue(_context,_cl_device,
                                     CL_QUEUE_PROFILING_ENABLE,&errorv);
     if (errorv!=CL_SUCCESS) {
-      std::cerr << "Could not create command queue on device: " << name() 
+      std::cerr << "Could not create command queue on device: " << name()
                 << std::endl;
       UCL_GERYON_EXIT;
     }
@@ -160,76 +160,76 @@ class UCL_Device {
   /// Get the current OpenCL device name
   inline std::string name() { return name(_device); }
   /// Get the OpenCL device name
-  inline std::string name(const int i) 
+  inline std::string name(const int i)
     { return std::string(_properties[i].name); }
 
   /// Get a string telling the type of the current device
   inline std::string device_type_name() { return device_type_name(_device); }
   /// Get a string telling the type of the device
   inline std::string device_type_name(const int i);
-  
+
   /// Get current device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
   inline int device_type() { return device_type(_device); }
   /// Get device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
   inline int device_type(const int i);
-  
+
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory() { return shared_memory(_device); }
   /// Returns true if host memory is efficiently addressable from device
-  inline bool shared_memory(const int i) 
+  inline bool shared_memory(const int i)
     { return _shared_mem_device(_properties[i].device_type); }
-  
+
   /// Returns true if double precision is support for the current device
   inline bool double_precision() { return double_precision(_device); }
   /// Returns true if double precision is support for the device
-  inline bool double_precision(const int i) 
+  inline bool double_precision(const int i)
     {return _properties[i].double_precision;}
-   
+
   /// Get the number of compute units on the current device
   inline unsigned cus() { return cus(_device); }
   /// Get the number of compute units
-  inline unsigned cus(const int i) 
+  inline unsigned cus(const int i)
     { return _properties[i].compute_units; }
 
   /// Get the gigabytes of global memory in the current device
   inline double gigabytes() { return gigabytes(_device); }
   /// Get the gigabytes of global memory
-  inline double gigabytes(const int i) 
+  inline double gigabytes(const int i)
     { return static_cast<double>(_properties[i].global_mem)/1073741824; }
 
   /// Get the bytes of global memory in the current device
   inline size_t bytes() { return bytes(_device); }
   /// Get the bytes of global memory
   inline size_t bytes(const int i) { return _properties[i].global_mem; }
-  
+
   /// Return the GPGPU revision number for current device
   //inline double revision() { return revision(_device); }
   /// Return the GPGPU revision number
-  //inline double revision(const int i) 
+  //inline double revision(const int i)
   //  { return //static_cast<double>(_properties[i].minor)/10+_properties[i].major;}
-  
+
   /// Clock rate in GHz for current device
   inline double clock_rate() { return clock_rate(_device); }
   /// Clock rate in GHz
   inline double clock_rate(const int i) { return _properties[i].clock*1e-3;}
-  
+
   /// Return the address alignment in bytes
   inline int alignment() { return alignment(_device); }
   /// Return the address alignment in bytes
   inline int alignment(const int i) { return _properties[i].alignment; }
-               
+
   /// Return the timer resolution
   inline size_t timer_resolution() { return timer_resolution(_device); }
   /// Return the timer resolution
-  inline size_t timer_resolution(const int i) 
+  inline size_t timer_resolution(const int i)
     { return _properties[i].timer_resolution; }
-    
+
   /// Get the maximum number of threads per block
   inline size_t group_size() { return group_size(_device); }
   /// Get the maximum number of threads per block
-  inline size_t group_size(const int i) 
+  inline size_t group_size(const int i)
     { return _properties[i].work_group_size; }
-  
+
   /// Return the maximum memory pitch in bytes for current device
   inline size_t max_pitch() { return max_pitch(_device); }
   /// Return the maximum memory pitch in bytes
@@ -254,7 +254,7 @@ class UCL_Device {
     { return fission_by_counts(_device); }
   /// True if splitting device into subdevices by specified counts supported
   inline bool fission_by_counts(const int i)
-    { return _properties[i].partition_counts; }    
+    { return _properties[i].partition_counts; }
   /// True if splitting device into subdevices by affinity domains supported
   inline bool fission_by_affinity()
     { return fission_by_affinity(_device); }
@@ -271,10 +271,10 @@ class UCL_Device {
 
   /// List all devices along with all properties
   inline void print_all(std::ostream &out);
-  
+
   /// Return the OpenCL type for the device
   inline cl_device_id & cl_device() { return _cl_device; }
- 
+
  private:
   int _num_platforms;          // Number of platforms
   int _platform;               // UCL_Device ID for current platform
@@ -287,7 +287,7 @@ class UCL_Device {
   std::vector<cl_device_id> _cl_devices;  // OpenCL IDs for all devices
   int _num_devices;                       // Number of devices
   std::vector<OCLProperties> _properties; // Properties for each device
-  
+
   inline void add_properties(cl_device_id);
   inline int create_context();
   int _default_cq;
@@ -300,7 +300,7 @@ UCL_Device::UCL_Device() {
   // --- Get Number of Platforms
   cl_uint nplatforms;
   cl_int errorv=clGetPlatformIDs(20,_cl_platforms,&nplatforms);
-  
+
   if (errorv!=CL_SUCCESS) {
     _num_platforms=0;
     return;
@@ -328,18 +328,18 @@ void UCL_Device::clear() {
 int UCL_Device::set_platform(int pid) {
   clear();
   cl_int errorv;
-  
+
   _cl_device=0;
   _device=-1;
   _num_devices=0;
   _default_cq=0;
- 
+
   #ifdef UCL_DEBUG
   assert(pid<num_platforms());
   #endif
   _platform=pid;
   _cl_platform=_cl_platforms[_platform];
-  
+
   // --- Get Number of Devices
   cl_uint n;
   errorv=clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,0,NULL,&n);
@@ -351,7 +351,7 @@ int UCL_Device::set_platform(int pid) {
   cl_device_id device_list[_num_devices];
   CL_SAFE_CALL(clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,n,device_list,
                               &n));
-  
+
   // --- Store properties for each device
   for (int i=0; i<_num_devices; i++) {
     _cl_devices.push_back(device_list[i]);
@@ -385,7 +385,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   OCLProperties op;
   char buffer[1024];
   cl_bool ans_bool;
-    
+
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_NAME,1024,buffer,NULL));
   op.name=buffer;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_GLOBAL_MEM_SIZE,
@@ -409,8 +409,8 @@ void UCL_Device::add_properties(cl_device_id device_list) {
                                NULL));
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_MEM_BASE_ADDR_ALIGN,
                                sizeof(cl_uint),&op.alignment,NULL));
-  op.alignment/=8;                               
-  
+  op.alignment/=8;
+
   // Determine if double precision is supported
   cl_uint double_width;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
@@ -420,11 +420,11 @@ void UCL_Device::add_properties(cl_device_id device_list) {
     op.double_precision=false;
   else
     op.double_precision=true;
-  
+
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PROFILING_TIMER_RESOLUTION,
                                sizeof(size_t),&op.timer_resolution,NULL));
-  
+
 
   op.ecc_support=false;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
@@ -432,7 +432,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
                                sizeof(ans_bool),&ans_bool,NULL));
   if (ans_bool==CL_TRUE)
     op.ecc_support=true;
-  
+
   op.c_version="";
   op.partition_equal=false;
   op.partition_counts=false;
@@ -458,30 +458,30 @@ void UCL_Device::add_properties(cl_device_id device_list) {
     else if (pinfo[i]==CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN)
       op.partition_affinity=true;
   }
-  
+
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PARTITION_MAX_SUB_DEVICES,
                                sizeof(cl_uint),&op.max_sub_devices,NULL));
   #endif
-  
+
   _properties.push_back(op);
 }
 
 std::string UCL_Device::platform_name() {
   char info[1024];
-  
+
   CL_SAFE_CALL(clGetPlatformInfo(_cl_platform,CL_PLATFORM_VENDOR,1024,info,
                                  NULL));
   std::string ans=std::string(info)+' ';
-  
+
   CL_SAFE_CALL(clGetPlatformInfo(_cl_platform,CL_PLATFORM_NAME,1024,info,
                                  NULL));
   ans+=std::string(info)+' ';
-  
+
   CL_SAFE_CALL(clGetPlatformInfo(_cl_platform,CL_PLATFORM_VERSION,1024,info,
                NULL));
   ans+=std::string(info);
-  
+
   return ans;
 }
 
@@ -512,7 +512,7 @@ int UCL_Device::device_type(const int i) {
 // Set the CUDA device to the specified device number
 int UCL_Device::set(int num) {
   clear();
-  
+
   cl_device_id device_list[_num_devices];
   cl_uint n;
   CL_SAFE_CALL(clGetDeviceIDs(_cl_platform,CL_DEVICE_TYPE_ALL,_num_devices,
@@ -557,7 +557,7 @@ void UCL_Device::print_all(std::ostream &out) {
         << _properties[i].work_item_size[1] << " x "
         << _properties[i].work_item_size[2] << std::endl;
     //out << "  Maximum sizes of each dimension of a grid:     "
-    //    << _properties[i].maxGridSize[0] << " x " 
+    //    << _properties[i].maxGridSize[0] << " x "
     //    << _properties[i].maxGridSize[1] << " x "
     //    << _properties[i].maxGridSize[2] << std::endl;
     //out << "  Maximum memory pitch:                          "

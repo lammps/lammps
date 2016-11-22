@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "kspace.h"
 #include "atom.h"
 #include "comm.h"
@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 
 KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
@@ -61,15 +62,16 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   order_6 = 5;
   gridflag_6 = 0;
   gewaldflag_6 = 0;
-    
+  auto_disp_flag = 0;
+
   slabflag = 0;
   differentiation_flag = 0;
   slab_volfactor = 1;
   suffix_flag = Suffix::NONE;
   adjust_cutoff_flag = 1;
   scalar_pressure_flag = 0;
-  qsum_update_flag = 0;
-  warn_neutral = 1;
+  warn_nonneutral = 1;
+  warn_nocharge = 1;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
@@ -87,12 +89,10 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   eatom = NULL;
   vatom = NULL;
 
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
-
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
+  copymode = 0;
 
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;
@@ -148,6 +148,8 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 KSpace::~KSpace()
 {
+  if (copymode) return;
+
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(gcons);
@@ -259,10 +261,10 @@ void KSpace::ev_setup(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
    compute qsum,qsqsum,q2 and give error/warning if not charge neutral
-   only called initially or when particle count changes
+   called initially, when particle count changes, when charges are changed
 ------------------------------------------------------------------------- */
 
-void KSpace::qsum_qsq(int flag)
+void KSpace::qsum_qsq()
 {
   const double * const q = atom->q;
   const int nlocal = atom->nlocal;
@@ -279,21 +281,22 @@ void KSpace::qsum_qsq(int flag)
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-  if (qsqsum == 0.0)
-    error->all(FLERR,"Cannot use kspace solver on system with no charge");
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge) {
+    error->warning(FLERR,"Using kspace solver on system with no charge");
+    warn_nocharge = 0;
+  }
 
   q2 = qsqsum * force->qqrd2e;
 
   // not yet sure of the correction needed for non-neutral systems
+  // so issue warning or error
 
   if (fabs(qsum) > SMALL) {
     char str[128];
     sprintf(str,"System is not charge neutral, net charge = %g",qsum);
-    if (warn_neutral && (comm->me == 0)) {
-      if (flag) error->all(FLERR,str);
-      else error->warning(FLERR,str);
-    }
-    warn_neutral = 0;
+    if (!warn_nonneutral) error->all(FLERR,str);
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,str);
+    warn_nonneutral = 2;
   }
 }
 
@@ -305,6 +308,15 @@ double KSpace::estimate_table_accuracy(double q2_over_sqrt, double spr)
 {
   double table_accuracy = 0.0;
   int nctb = force->pair->ncoultablebits;
+  if (comm->me == 0) {
+    char str[128];
+    if (nctb)
+      sprintf(str,"Using %d-bit tables for long-range coulomb",nctb);
+    else
+      sprintf(str,"Using polynomial approximation for long-range coulomb");
+    error->warning(FLERR,str);
+  }
+
   if (nctb) {
     double empirical_precision[17];
     empirical_precision[6] =  6.99E-03;
@@ -357,7 +369,7 @@ void KSpace::x2lamdaT(double *v, double *lamda)
 
 void KSpace::lamda2xT(double *lamda, double *v)
 {
-  double h[5];
+  double h[6];
   h[0] = domain->h[0];
   h[1] = domain->h[1];
   h[2] = domain->h[2];
@@ -392,7 +404,7 @@ void KSpace::lamda2xvector(double *lamda, double *v)
 
 /* ----------------------------------------------------------------------
    convert a sphere in box coords to an ellipsoid in lamda (0-1)
-   coords and return the tight (axis-aligned) bounding box, does not 
+   coords and return the tight (axis-aligned) bounding box, does not
    preserve vector magnitude
    see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
    http://yiningkarlli.blogspot.com/2013/02/
@@ -410,7 +422,7 @@ void KSpace::kspacebbox(double r, double *b)
   xz = h[4];
   xy = h[5];
 
-  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy + 
+  b[0] = r*sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz + lz*lz*xy*xy +
          xy*xy*yz*yz)/(lx*ly*lz);
   b[1] = r*sqrt(lz*lz + yz*yz)/(ly*lz);
   b[2] = r/lz;
@@ -549,13 +561,19 @@ void KSpace::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"eigtol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       splittol = atof(arg[iarg+1]);
-      if (splittol >= 1.0) 
+      if (splittol >= 1.0)
         error->all(FLERR,"Kspace_modify eigtol must be smaller than one");
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure/scalar") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) scalar_pressure_flag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) scalar_pressure_flag = 0;
+      else error->all(FLERR,"Illegal kspace_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"disp/auto") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
+      if (strcmp(arg[iarg+1],"yes") == 0) auto_disp_flag = 1;
+      else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
       else error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
     } else error->all(FLERR,"Illegal kspace_modify command");

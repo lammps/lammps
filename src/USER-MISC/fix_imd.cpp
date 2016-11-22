@@ -713,12 +713,12 @@ void FixIMD::setup(int)
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
-  MPI_Status status;
-  MPI_Request request;
   int tmp, ndata;
   struct commdata *buf = static_cast<struct commdata *>(comm_buf);
 
   if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
     tagint *taglist = new tagint[num_coords];
     int numtag=0; /* counter to map atom tags to a 0-based consecutive index list */
 
@@ -763,7 +763,7 @@ void FixIMD::setup(int)
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
@@ -1012,12 +1012,12 @@ void FixIMD::post_force(int vflag)
     comm_buf = memory->smalloc(maxbuf,"imd:comm_buf");
   }
 
-  MPI_Status status;
-  MPI_Request request;
   int tmp, ndata;
   buf = static_cast<struct commdata *>(comm_buf);
 
   if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
     /* collect data into new array. we bypass the IMD API to save
      * us one extra copy of the data. */
     msglen = 3*sizeof(float)*num_coords+IMDHEADERSIZE;
@@ -1145,7 +1145,7 @@ void FixIMD::post_force(int vflag)
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
@@ -1205,6 +1205,7 @@ void * imdsock_create(void) {
   s = (imdsocket *) malloc(sizeof(imdsocket));
   if (s != NULL)
     memset(s, 0, sizeof(imdsocket));
+  else return NULL;
 
   if ((s->sd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
     printf("Failed to open socket.");
@@ -1344,19 +1345,6 @@ int imdsock_selwrite(void *v, int sec) {
 
 /*************************************************************************/
 /* start of imd API code. */
-/* Only works with aligned 4-byte quantities, will cause a bus error */
-/* on some platforms if used on unaligned data.                      */
-void swap4_aligned(void *v, long ndata) {
-  int *data = (int *) v;
-  long i;
-  int *N;
-  for (i=0; i<ndata; i++) {
-    N = data + i;
-    *N=(((*N>>24)&0xff) | ((*N&0xff)<<24) |
-        ((*N>>8)&0xff00) | ((*N&0xff00)<<8));
-  }
-}
-
 
 /** structure used to perform byte swapping operations */
 typedef union {
@@ -1429,12 +1417,6 @@ static int32 imd_writen(void *s, const char *ptr, int32 n) {
     ptr += nwritten;
   }
   return n;
-}
-
-int imd_disconnect(void *s) {
-  IMDheader header;
-  imd_fill_header(&header, IMD_DISCONNECT, 0);
-  return (imd_writen(s, (char *)&header, IMDHEADERSIZE) != IMDHEADERSIZE);
 }
 
 int imd_handshake(void *s) {

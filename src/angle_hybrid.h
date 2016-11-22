@@ -20,7 +20,7 @@ AngleStyle(hybrid,AngleHybrid)
 #ifndef LMP_ANGLE_HYBRID_H
 #define LMP_ANGLE_HYBRID_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -77,6 +77,14 @@ Self-explanatory.
 E: Angle style hybrid cannot have none as an argument
 
 Self-explanatory.
+
+E: BondAngle coeff for hybrid angle has invalid format
+
+No "ba" field should appear in data file entry.
+
+E: BondBond coeff for hybrid angle has invalid format
+
+No "bb" field should appear in data file entry.
 
 E: Angle coeff for hybrid has invalid style
 

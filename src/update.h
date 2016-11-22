@@ -15,6 +15,8 @@
 #define LMP_UPDATE_H
 
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -46,6 +48,15 @@ class Update : protected Pointers {
   class Min *minimize;
   char *minimize_style;
 
+  typedef Integrate *(*IntegrateCreator)(LAMMPS *,int,char**);
+  typedef Min *(*MinimizeCreator)(LAMMPS *);
+
+  typedef std::map<std::string,IntegrateCreator> IntegrateCreatorMap;
+  typedef std::map<std::string,MinimizeCreator> MinimizeCreatorMap;
+
+  IntegrateCreatorMap *integrate_map;
+  MinimizeCreatorMap *minimize_map;
+
   Update(class LAMMPS *);
   ~Update();
   void init();
@@ -60,6 +71,8 @@ class Update : protected Pointers {
  private:
   void new_integrate(char *, int, char **, int, int &);
 
+  template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
+  template <typename T> static Min *minimize_creator(LAMMPS *);
 };
 
 }
@@ -67,14 +80,6 @@ class Update : protected Pointers {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: USER-CUDA mode requires CUDA variant of run style
-
-CUDA mode is enabled, so the run style must include a cuda suffix.
-
-E: USER-CUDA mode requires CUDA variant of min style
-
-CUDA mode is enabled, so the min style must include a cuda suffix.
 
 E: Illegal ... command
 
@@ -89,10 +94,6 @@ Self-explanatory.
 E: Timestep must be >= 0
 
 Specified timestep is invalid.
-
-E: Too big a timestep
-
-Specified timestep is too large.
 
 E: Cannot reset timestep with a time-dependent fix defined
 

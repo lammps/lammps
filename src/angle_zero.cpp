@@ -1,0 +1,154 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Carsten Svaneborg (SDU)
+------------------------------------------------------------------------- */
+
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
+#include "angle_zero.h"
+#include "atom.h"
+#include "force.h"
+#include "comm.h"
+#include "math_const.h"
+#include "memory.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+using namespace MathConst;
+
+/* ---------------------------------------------------------------------- */
+
+AngleZero::AngleZero(LAMMPS *lmp) : Angle(lmp), coeffflag(1) {}
+
+/* ---------------------------------------------------------------------- */
+
+AngleZero::~AngleZero()
+{
+  if (allocated && !copymode) {
+    memory->destroy(setflag);
+    memory->destroy(theta0);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleZero::compute(int eflag, int vflag)
+{
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleZero::settings(int narg, char **arg)
+{
+  if ((narg != 0) && (narg != 1))
+    error->all(FLERR,"Illegal angle_style command");
+
+  if (narg == 1) {
+    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
+    else error->all(FLERR,"Illegal angle_style command");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleZero::allocate()
+{
+  allocated = 1;
+  int n = atom->nangletypes;
+
+  memory->create(theta0,n+1,"angle:theta0");
+  memory->create(setflag,n+1,"angle:setflag");
+  for (int i = 1; i <= n; i++) setflag[i] = 0;
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more types
+------------------------------------------------------------------------- */
+
+void AngleZero::coeff(int narg, char **arg)
+{
+  if ((narg < 1) || (coeffflag && narg > 2))
+    error->all(FLERR,"Incorrect args for angle coefficients");
+
+  if (!allocated) allocate();
+
+  int ilo,ihi;
+  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+
+  double theta0_one = 0.0;
+  if (coeffflag && (narg == 2))
+    theta0_one = force->numeric(FLERR,arg[1]);
+
+  // convert theta0 from degrees to radians
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    setflag[i] = 1;
+    theta0[i] = theta0_one/180.0 * MY_PI;
+    count++;
+  }
+
+  if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
+}
+
+/* ---------------------------------------------------------------------- */
+
+double AngleZero::equilibrium_angle(int i)
+{
+  return theta0[i];
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes out coeffs to restart file
+------------------------------------------------------------------------- */
+
+void AngleZero::write_restart(FILE *fp) {
+  fwrite(&theta0[1],sizeof(double),atom->nangletypes,fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads coeffs from restart file, bcasts them
+------------------------------------------------------------------------- */
+
+void AngleZero::read_restart(FILE *fp)
+{
+  allocate();
+
+  if (comm->me == 0) {
+    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+  }
+  MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
+
+  for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
+}
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void AngleZero::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g\n",i,theta0[i]/MY_PI*180.0);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double AngleZero::single(int type, int i1, int i2, int i3)
+{
+  return 0.0;
+}

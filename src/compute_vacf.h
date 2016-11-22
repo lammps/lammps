@@ -30,6 +30,7 @@ class ComputeVACF : public Compute {
   ~ComputeVACF();
   void init();
   virtual void compute_vector();
+  void set_arrays(int);
 
  protected:
   bigint nvacf;

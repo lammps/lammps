@@ -89,7 +89,7 @@ class AtomVecLine : public AtomVec {
   imageint *image;
   double **x,**v,**f;
   tagint *molecule;
-  double *rmass;
+  double *rmass,*radius;
   double **omega,**torque;
   int *line;
 

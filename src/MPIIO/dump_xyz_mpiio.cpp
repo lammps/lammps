@@ -15,9 +15,9 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dump_xyz_mpiio.h"
 #include "atom.h"
 #include "force.h"
@@ -220,9 +220,11 @@ void DumpXYZMPIIO::write()
 
 void DumpXYZMPIIO::init_style()
 {
+  // format = copy of default or user-specified line format
+
   delete [] format;
   char *str;
-  if (format_user) str = format_user;
+  if (format_line_user) str = format_line_user;
   else str = format_default;
 
   int n = strlen(str) + 2;
@@ -249,8 +251,6 @@ void DumpXYZMPIIO::init_style()
 
 void DumpXYZMPIIO::write_header(bigint n)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
@@ -262,7 +262,7 @@ void DumpXYZMPIIO::write_header(bigint n)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -279,8 +279,6 @@ void DumpXYZMPIIO::write_data(int n, double *mybuf)
 
 void DumpXYZMPIIO::write_string(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
 #if defined(_OPENMP)
@@ -300,7 +298,7 @@ void DumpXYZMPIIO::write_string(int n, double *mybuf)
     offsetFromHeader = ((incPrefix-bigintNsme)*sizeof(char));
   }
   else { // write data
-    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,&mpiStatus);
+    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,MPI_STATUS_IGNORE);
     if (flush_flag)
       MPI_File_sync(mpifh);
   }

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_tri_lj.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -442,8 +442,8 @@ void PairTriLJ::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
@@ -474,9 +474,9 @@ void PairTriLJ::init_style()
   avec = (AtomVecTri *) atom->style_match("tri");
   if (!avec) error->all(FLERR,"Pair tri/lj requires atom style tri");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
- 
+
 /* ----------------------------------------------------------------------
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
@@ -513,7 +513,7 @@ double PairTriLJ::init_one(int i, int j)
 ------------------------------------------------------------------------- */
 
 void PairTriLJ::discretize(int i, double sigma,
-                          double *c1, double *c2, double *c3)
+                           double *c1, double *c2, double *c3)
 {
   double centroid[3],dc1[3],dc2[3],dc3[3];
 

@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
 #include "min_cg.h"
 #include "atom.h"
 #include "update.h"
@@ -26,10 +25,6 @@ using namespace LAMMPS_NS;
 // EPS_ENERGY = minimum normalization for energy tolerance
 
 #define EPS_ENERGY 1.0e-8
-
-// same as in other min classes
-
-enum{MAXITER,MAXEVAL,ETOL,FTOL,DOWNHILL,ZEROALPHA,ZEROFORCE,ZEROQUAD};
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,6 +62,10 @@ int MinCG::iterate(int maxiter)
   gg = fnorm_sqr();
 
   for (int iter = 0; iter < maxiter; iter++) {
+
+    if (timer->check_timeout(niter))
+      return TIMEOUT;
+
     ntimestep = ++update->ntimestep;
     niter++;
 
@@ -176,7 +175,7 @@ int MinCG::iterate(int maxiter)
     if (output->next == ntimestep) {
       timer->stamp();
       output->write(ntimestep);
-      timer->stamp(TIME_OUTPUT);
+      timer->stamp(Timer::OUTPUT);
     }
   }
 

@@ -38,20 +38,20 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   int i, j, pj, natoms;
   int start_i, end_i, flag;
   rc_tagint orig_i, orig_j;
-  real p_vdW1, p_vdW1i;
-  real powr_vdW1, powgi_vdW1;
-  real tmp, r_ij, fn13, exp1, exp2;
-  real Tap, dTap, dfn13, CEvd, CEclmb, de_core;
-  real dr3gamij_1, dr3gamij_3;
-  real e_ele, e_vdW, e_core, SMALL = 0.0001;
-  real e_lg, de_lg, r_ij5, r_ij6, re6;
+  double p_vdW1, p_vdW1i;
+  double powr_vdW1, powgi_vdW1;
+  double tmp, r_ij, fn13, exp1, exp2;
+  double Tap, dTap, dfn13, CEvd, CEclmb, de_core;
+  double dr3gamij_1, dr3gamij_3;
+  double e_ele, e_vdW, e_core, SMALL = 0.0001;
+  double e_lg, de_lg, r_ij5, r_ij6, re6;
   rvec temp, ext_press;
   two_body_parameters *twbp;
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
 
   // Tallying variables:
-  real pe_vdw, f_tmp, delij[3];
+  double pe_vdw, f_tmp, delij[3];
 
   natoms = system->n;
   far_nbrs = (*lists) + FAR_NBRS;
@@ -212,10 +212,10 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
   int type_i, type_j, tmin, tmax;
   int start_i, end_i, flag;
   rc_tagint orig_i, orig_j;
-  real r_ij, base, dif;
-  real e_vdW, e_ele;
-  real CEvd, CEclmb, SMALL = 0.0001;
-  real f_tmp, delij[3];
+  double r_ij, base, dif;
+  double e_vdW, e_ele;
+  double CEvd, CEclmb, SMALL = 0.0001;
+  double f_tmp, delij[3];
 
   rvec temp, ext_press;
   far_neighbor_data *nbr_pj;
@@ -265,7 +265,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       /* Cubic Spline Interpolation */
       r = (int)(r_ij * t->inv_dx);
       if( r == 0 )  ++r;
-      base = (real)(r+1) * t->dx;
+      base = (double)(r+1) * t->dx;
       dif = r_ij - base;
 
       e_vdW = ((t->vdW[r].d*dif + t->vdW[r].c)*dif + t->vdW[r].b)*dif +
@@ -319,7 +319,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
 {
   int  i, type_i;
-  real q, en_tmp;
+  double q, en_tmp;
 
   data->my_en.e_pol = 0.0;
   for( i = 0; i < system->n; i++ ) {
@@ -338,16 +338,16 @@ void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
 }
 
 void LR_vdW_Coulomb( reax_system *system, storage *workspace,
-        control_params *control, int i, int j, real r_ij, LR_data *lr )
+        control_params *control, int i, int j, double r_ij, LR_data *lr )
 {
-  real p_vdW1 = system->reax_param.gp.l[28];
-  real p_vdW1i = 1.0 / p_vdW1;
-  real powr_vdW1, powgi_vdW1;
-  real tmp, fn13, exp1, exp2;
-  real Tap, dTap, dfn13;
-  real dr3gamij_1, dr3gamij_3;
-  real e_core, de_core;
-  real e_lg, de_lg, r_ij5, r_ij6, re6;
+  double p_vdW1 = system->reax_param.gp.l[28];
+  double p_vdW1i = 1.0 / p_vdW1;
+  double powr_vdW1, powgi_vdW1;
+  double tmp, fn13, exp1, exp2;
+  double Tap, dTap, dfn13;
+  double dr3gamij_1, dr3gamij_3;
+  double e_core, de_core;
+  double e_lg, de_lg, r_ij5, r_ij6, re6;
   two_body_parameters *twbp;
 
   twbp = &(system->reax_param.tbp[i][j]);

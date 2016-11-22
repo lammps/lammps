@@ -85,13 +85,19 @@ class AtomVecBody : public AtomVec {
   // manipulate Bonus data structure for extra atom info
 
   void clear_bonus();
-  void data_body(int, int, int, char **, char **);
+  void data_body(int, int, int, int *, double *);
 
+  // methods used by other classes to query/set body info
+  
+  double radius_body(int, int, int *, double *);
+  void set_quat(int, double *);
+  
  private:
   tagint *tag;
   int *type,*mask;
   imageint *image;
   double **x,**v,**f;
+  double *radius;
   double *rmass;
   double **angmom,**torque;
   int *body;
@@ -122,7 +128,7 @@ E: Invalid atom_style body command
 
 No body style argument was provided.
 
-E: Invalid body style
+E: Unknown body style
 
 The choice of body style is unknown.
 
@@ -140,6 +146,10 @@ E: Invalid density in Atoms section of data file
 Density value cannot be <= 0.0.
 
 E: Assigning body parameters to non-body atom
+
+Self-explanatory.
+
+E: Assigning quat to non-body atom
 
 Self-explanatory.
 

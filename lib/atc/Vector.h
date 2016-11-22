@@ -52,6 +52,7 @@ public:
   static bool same_size(const Vector &a, const Vector &b);
 
  protected:
+  void _set_equal(const Matrix<T> &r);
   //* don't allow this
   Vector& operator=(const Vector &r);
 };
@@ -114,11 +115,11 @@ DenseVector<T> operator*(const T s, const Vector<T> &v)
 ///////////////////////////////////////////////////////////////////////////////
 //* inverse scaling operator - must always create memory
 template<typename T>
-DenseMatrix<T> operator/(const Vector<T> &v, const T s)
+DenseVector<T> operator/(const Vector<T> &v, const T s)
 {
   DenseVector<T> r(v);
   r*=(1.0/s); // for integer types this may be worthless
-  return ;
+  return r;
 }
 ///////////////////////////////////////////////////////////////////////////////
 //* Operator for Vector-Vector sum
@@ -199,7 +200,34 @@ inline bool Vector<T>::same_size(const Vector &a, const Vector &b)
 {
   return a.same_size(b); 
 }
-
+//----------------------------------------------------------------------------
+// general matrix assignment (for densely packed matrices)
+//----------------------------------------------------------------------------
+template<typename T>
+void Vector<T>::_set_equal(const Matrix<T> &r)
+{
+  this->resize(r.nRows(), r.nCols());
+  const Matrix<T> *pr = &r;
+#ifdef OBSOLETE
+  if (const SparseMatrix<T> *ps = dynamic_cast<const SparseMatrix<T>*>(pr))//sparse_cast(pr)) 
+    copy_sparse_to_matrix(ps, *this);
+  
+  else if (dynamic_cast<const DiagonalMatrix<T>*>(pr))//diag_cast(pr))  // r is Diagonal?
+  {
+    this->zero();
+    for (INDEX i=0; i<r.size(); i++) (*this)(i,i) = r[i];
+  }
+  else memcpy(this->ptr(), r.ptr(), r.size()*sizeof(T));
+#else
+  const Vector<T>         *pv = dynamic_cast<const Vector<T>*>         (pr);
+  if (pv)  this->copy(pv->ptr(),pv->nRows());
+  else
+  {
+    std::cout <<"Error in general vector assignment\n";
+    exit(1);
+  }
+#endif
+}
 } // end namespace
 
 

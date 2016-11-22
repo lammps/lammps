@@ -1,0 +1,25 @@
+# -- Init section --
+
+include system.in.init
+
+# -- Atom definition section --
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# Optional: Make sure the pairwise energies look reasonable:
+pair_write 1 4 1001 r 0.00000000001 5.05 test_chap-B.dat C-B 0 0
+pair_write 2 4 1001 r 0.00000000001 5.05 test_chap-L.dat C-L 0 0
+pair_write 3 4 1001 r 0.00000000001 5.05 test_chap-N.dat C-N 0 0
+
+
+# -- Run section --
+
+dump            1 all custom 50 traj_min.lammpstrj id mol type x y z ix iy iz
+
+minimize 1.0e-5 1.0e-7 500 2000
+
+write_data  system_after_min.data

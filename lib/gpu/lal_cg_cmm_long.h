@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ class CGCMMLong : public BaseCharge<numtyp, acctyp> {
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -40,8 +40,8 @@ class CGCMMLong : public BaseCharge<numtyp, acctyp> {
   int init(const int ntypes, double **host_cutsq, int ** cg_type,
            double **host_lj1, double **host_lj2, double **host_lj3,
            double **host_lj4, double **host_offset, double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen, double **host_cut_ljsq,
            const double host_cut_coulsq, double *host_special_coul,
            const double qqrd2e, const double g_ewald);
@@ -58,7 +58,7 @@ class CGCMMLong : public BaseCharge<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// lj1.x = cutsq, lj1.y = cutsq_vdw, lj1.z = lj1, lj1.w = lj2, 
+  /// lj1.x = cutsq, lj1.y = cutsq_vdw, lj1.z = lj1, lj1.w = lj2,
   UCL_D_Vec<numtyp4> lj1;
   /// lj3.x = cg_type, lj3.y = lj3, lj3.z = lj4, lj3.w = offset
   UCL_D_Vec<numtyp4> lj3;
@@ -68,7 +68,7 @@ class CGCMMLong : public BaseCharge<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
   numtyp _cut_coulsq, _qqrd2e, _g_ewald;

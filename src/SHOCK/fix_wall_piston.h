@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 class FixWallPiston : public Fix {
  public:
   FixWallPiston(class LAMMPS *, int, char **);
+  virtual ~FixWallPiston();
   int setmask();
   void post_integrate();
   void initial_integrate(int);

@@ -13,7 +13,7 @@ CXX = mpicxx   # replace with your C++ compiler
 # Flags for Fortran compiler, C++ compiler, and C preprocessor, respectively
 FFLAGS = -O2 -fPIC
 CXXFLAGS = -O2 -fPIC
-CPPFLAGS =
+CPPFLAGS = -DOMPI_SKIP_MPICXX=1 -DMPICH_SKIP_MPICXX
 
 all : liblammps_fortran.a liblammps_fortran.so
 

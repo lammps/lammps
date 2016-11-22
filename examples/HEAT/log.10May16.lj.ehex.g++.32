@@ -1,0 +1,256 @@
+
+# heat flux
+variable J          equal 0.15
+
+# timestep
+variable dt         equal 0.007
+
+# cutoff radius for shifted LJ-potential
+variable rc         equal 3.0
+
+# simulation time for the production run
+variable tprod      equal 5000
+
+# total number of timesteps
+variable Nprod      equal floor(${tprod}/${dt})
+variable Nprod      equal floor(5000/${dt})
+variable Nprod      equal floor(5000/0.007)
+
+# equilibrated steady state configuration
+read_data           "data.lj"
+  orthogonal box = (-5.28998 -5.28998 -10.58) to (5.28998 5.28998 10.58)
+  2 by 2 by 8 MPI processor grid
+  reading atoms ...
+  2000 atoms
+  reading velocities ...
+  2000 velocities
+
+# use LJ shifted force pair style
+pair_style      lj/sf ${rc}
+pair_style      lj/sf 3
+
+# with coefficients eps = 1, sigma = 1, and rc = 3.0
+pair_coeff      1 1 1.0 1.0 ${rc}
+pair_coeff      1 1 1.0 1.0 3
+
+# increase neigbor skin because of the large timestep
+neighbor  0.8 bin
+
+# options used for fix ave/time; sample the quantities every 10 steps
+variable    Nsamp    equal 10
+variable    Nrepeat  equal floor(${Nprod}/${Nsamp})
+variable    Nrepeat  equal floor(714285/${Nsamp})
+variable    Nrepeat  equal floor(714285/10)
+variable    Nevery   equal ${Nsamp}*${Nrepeat}
+variable    Nevery   equal 10*${Nrepeat}
+variable    Nevery   equal 10*71428
+
+# box dimensions
+variable Lz  equal zhi-zlo
+variable Lx  equal xhi-xlo
+variable Ly  equal yhi-ylo
+
+# reservoir width in z-direction
+variable delta     equal 2.
+
+# specify z-extents of both reservoirs
+variable zlo_Thi   equal -${Lz}/4.-${delta}/2.
+variable zlo_Thi   equal -21.16/4.-${delta}/2.
+variable zlo_Thi   equal -21.16/4.-2/2.
+variable zhi_Thi   equal ${zlo_Thi}+${delta}
+variable zhi_Thi   equal -6.29+${delta}
+variable zhi_Thi   equal -6.29+2
+variable zlo_Tlo   equal ${zlo_Thi}+${Lz}/2.
+variable zlo_Tlo   equal -6.29+${Lz}/2.
+variable zlo_Tlo   equal -6.29+21.16/2.
+variable zhi_Tlo   equal ${zlo_Tlo}+${delta}
+variable zhi_Tlo   equal 4.29+${delta}
+variable zhi_Tlo   equal 4.29+2
+
+# resolution for fix ave/spatial
+variable dz        equal ${Lz}/60
+variable dz        equal 21.16/60
+
+# compute per-atom kinetic energy and temperature, respectively
+# NOTE: In this example we ignored the centre of mass (com) velocities
+#       of the individual bins for simplicity. However, we took that
+#       into account for the publication.
+compute        ke        all   ke/atom
+variable       T         atom  c_ke/1.5
+
+# specify the reservoirs
+region         Thi_region     block  INF INF INF INF  ${zlo_Thi} ${zhi_Thi}
+region         Thi_region     block  INF INF INF INF  -6.29 ${zhi_Thi}
+region         Thi_region     block  INF INF INF INF  -6.29 -4.29
+region         Tlo_region     block  INF INF INF INF  ${zlo_Tlo} ${zhi_Tlo}
+region         Tlo_region     block  INF INF INF INF  4.29 ${zhi_Tlo}
+region         Tlo_region     block  INF INF INF INF  4.29 6.29
+
+# compute the temperature of the individual region
+compute        cTlo  all temp/region Tlo_region
+compute        cThi  all temp/region Thi_region
+
+# calculate the energy flux from the specified heat flux
+variable       F  equal  ${J}*${Lx}*${Ly}*2.
+variable       F  equal  0.15*${Lx}*${Ly}*2.
+variable       F  equal  0.15*10.57996*${Ly}*2.
+variable       F  equal  0.15*10.57996*10.57996*2.
+
+# use fix ehex to create the gradient
+# hot reservoir
+fix            fHi all ehex 1 +${F} region Thi_region
+fix            fHi all ehex 1 +33.58066608048 region Thi_region
+
+# cold reservoir
+fix            fLo all ehex 1 -${F} region Tlo_region
+fix            fLo all ehex 1 -33.58066608048 region Tlo_region
+
+# use velocity Verlet for integration
+fix            fNVEGrad  all   nve
+
+# calculate the centre of mass velocity of the entire box (vcmx, vcmy, vcmz)
+variable vcmx equal "vcm(all,x)"
+variable vcmy equal "vcm(all,y)"
+variable vcmz equal "vcm(all,z)"
+variable vcm2 equal v_vcmx*v_vcmx+v_vcmy*v_vcmy+v_vcmz*v_vcmz
+
+# specify the timestep
+timestep  ${dt}
+timestep  0.007
+
+# frequency for console output
+thermo    10000
+
+# print timestep, temperature, total energy and v_com^2 to console
+thermo_style   custom step temp etotal v_vcm2
+
+# calculate spatial average of temperature
+compute	       cchT  all  chunk/atom bin/1d z lower ${dz}
+compute	       cchT  all  chunk/atom bin/1d z lower 0.352666666666667
+fix            fchT  all  ave/chunk  ${Nsamp} ${Nrepeat} ${Nevery} cchT v_T file out.Tlj_ehex
+fix            fchT  all  ave/chunk  10 ${Nrepeat} ${Nevery} cchT v_T file out.Tlj_ehex
+fix            fchT  all  ave/chunk  10 71428 ${Nevery} cchT v_T file out.Tlj_ehex
+fix            fchT  all  ave/chunk  10 71428 714280 cchT v_T file out.Tlj_ehex
+
+# compute the total energy
+compute   cKe all ke
+compute   cPe all pe
+variable  E   equal c_cKe+c_cPe
+
+# track the time evolution of the total energy
+fix       fE  all ave/time ${Nsamp} 1000 10000 v_E file out.Elj_ehex
+fix       fE  all ave/time 10 1000 10000 v_E file out.Elj_ehex
+
+# production run
+run            ${Nprod}
+run            714285
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.8
+  ghost atom cutoff = 3.8
+  binsize = 1.9 -> bins = 6 6 12
+Memory usage per processor = 2.40563 Mbytes
+Step Temp TotEng vcm2 
+       0   0.72367949   -4.1076054 7.0171467e-30 
+   10000   0.72399955   -4.1075876 6.3569796e-30 
+   20000   0.72200145   -4.1076527 9.4131743e-30 
+   30000    0.7189538   -4.1076266 9.9917978e-30 
+   40000   0.72493542   -4.1075882 1.2907194e-29 
+   50000   0.71651186   -4.1076193 1.6114353e-29 
+   60000   0.73095328    -4.107638 1.6281247e-29 
+   70000   0.70276229   -4.1074716 1.5732538e-29 
+   80000   0.71186017   -4.1075456 1.9714873e-29 
+   90000    0.7277987   -4.1076333 1.9683783e-29 
+  100000   0.74378417   -4.1076831 2.008245e-29 
+  110000    0.7066978   -4.1074049 1.8623846e-29 
+  120000   0.72500229   -4.1075844 2.117713e-29 
+  130000   0.72008927   -4.1076012 2.3931505e-29 
+  140000   0.72772233   -4.1076511 2.1582564e-29 
+  150000   0.73860983   -4.1077211 2.4705578e-29 
+  160000   0.72961264   -4.1074785 2.7170029e-29 
+  170000   0.71734552   -4.1074323 2.4675122e-29 
+  180000   0.70571153   -4.1074453 2.2384488e-29 
+  190000   0.72598398   -4.1076489 2.6149518e-29 
+  200000   0.71654285   -4.1075445 2.2884041e-29 
+  210000   0.70521682   -4.1075104 2.1544528e-29 
+  220000   0.72901276    -4.107639 2.2758013e-29 
+  230000   0.73245466   -4.1075811 2.4878827e-29 
+  240000   0.71163454   -4.1074882 2.072386e-29 
+  250000   0.72347298   -4.1075939 2.0114174e-29 
+  260000   0.71577745   -4.1075268 1.8020948e-29 
+  270000   0.71563876   -4.1075331 1.726083e-29 
+  280000   0.71472187   -4.1076037 1.5702905e-29 
+  290000   0.71640897   -4.1075095 1.3652432e-29 
+  300000   0.71189676   -4.1074701 1.3273904e-29 
+  310000   0.73110074   -4.1075712 1.2920349e-29 
+  320000   0.73650669    -4.107631 1.3923757e-29 
+  330000   0.69674914   -4.1074138 1.4152976e-29 
+  340000   0.72631298   -4.1077512 1.386547e-29 
+  350000   0.72730004   -4.1077609 1.6375273e-29 
+  360000   0.73133088   -4.1076599 1.4915012e-29 
+  370000   0.71990302   -4.1075023 1.4387132e-29 
+  380000   0.70764996   -4.1075914 1.4723241e-29 
+  390000    0.7255125   -4.1077323 1.6664958e-29 
+  400000    0.7326785   -4.1077028 1.5203345e-29 
+  410000   0.71953373   -4.1075658 2.0232789e-29 
+  420000   0.71143005    -4.107548 2.229431e-29 
+  430000   0.74033148   -4.1076115 2.657992e-29 
+  440000    0.7267839   -4.1077112 2.9458629e-29 
+  450000   0.71505305    -4.107557 2.9103833e-29 
+  460000    0.7089713   -4.1075146 3.3253897e-29 
+  470000   0.72444212   -4.1076379 3.1465484e-29 
+  480000   0.72079711   -4.1075868 2.8388782e-29 
+  490000   0.71267656   -4.1074868 3.2128913e-29 
+  500000   0.70974489   -4.1076207 3.5271604e-29 
+  510000    0.7053828   -4.1074928 3.7845378e-29 
+  520000   0.71396356    -4.107609 3.520462e-29 
+  530000   0.71637729   -4.1075377 3.131853e-29 
+  540000   0.72648522   -4.1075216 2.9893315e-29 
+  550000    0.7012357   -4.1074612 2.9823982e-29 
+  560000   0.71040667   -4.1074729 2.9340227e-29 
+  570000   0.73041709   -4.1074866 3.398074e-29 
+  580000   0.71814185    -4.107633 3.4865255e-29 
+  590000   0.72128126   -4.1074578 3.6128155e-29 
+  600000   0.72342897    -4.107554 3.1929655e-29 
+  610000   0.71695081   -4.1075492 3.110134e-29 
+  620000    0.7144036   -4.1076465 3.734556e-29 
+  630000   0.74624251   -4.1076366 3.9372399e-29 
+  640000   0.72448733   -4.1076427 4.0683832e-29 
+  650000   0.71347763   -4.1075844 4.2153755e-29 
+  660000   0.72287745   -4.1075678 4.3130586e-29 
+  670000   0.71618749   -4.1075379 4.1023799e-29 
+  680000   0.71846662   -4.1075145 4.0775831e-29 
+  690000   0.72276205   -4.1076277 4.6351083e-29 
+  700000   0.71712649   -4.1077598 4.6374261e-29 
+  710000   0.71280668   -4.1074476 4.8082341e-29 
+  714285   0.72291151   -4.1075743 4.8273006e-29 
+Loop time of 170.968 on 32 procs for 714285 steps with 2000 atoms
+
+Performance: 2526790.532 tau/day, 4177.894 timesteps/s
+100.0% CPU use with 32 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 68.213     | 77.684     | 85.031     |  57.6 | 45.44
+Neigh   | 8.8658     | 9.609      | 10.196     |  14.8 |  5.62
+Comm    | 49.931     | 56.883     | 67.495     |  60.5 | 33.27
+Output  | 0.013727   | 0.014771   | 0.014943   |   0.2 |  0.01
+Modify  | 20.448     | 22.358     | 25.099     |  32.3 | 13.08
+Other   |            | 4.419      |            |       |  2.58
+
+Nlocal:    62.5 ave 69 max 55 min
+Histogram: 2 1 3 5 3 4 2 8 2 2
+Nghost:    1371 ave 1405 max 1338 min
+Histogram: 2 4 6 4 0 3 4 3 1 5
+Neighs:    6007.94 ave 6893 max 5323 min
+Histogram: 4 6 3 3 5 2 1 2 2 4
+
+Total # of neighbors = 192254
+Ave neighs/atom = 96.127
+Neighbor list builds = 40326
+Dangerous builds = 0
+
+Total wall time: 0:02:50

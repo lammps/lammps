@@ -189,13 +189,13 @@ namespace ATC {
   //--------------------------------------------------------
   //  initialize
   //--------------------------------------------------------
-  void SmallMoleculeSet::initialize()
+  void SmallMoleculeSet::initialize(std::map<int, double> * globalAtomsPerMolecule)
   {
     // make sure newton_bond is off, otherwise use large molecule set
     if (lammps_->newton_bond())
       throw ATC_Error("Cannot use newton_bond with small molecules");
 
-    MoleculeSet::initialize();
+    MoleculeSet::initialize(globalAtomsPerMolecule);
   }
 
   //--------------------------------------------------------

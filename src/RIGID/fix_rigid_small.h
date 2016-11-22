@@ -28,6 +28,8 @@ FixStyle(rigid/small,FixRigidSmall)
 namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
+  friend class ComputeRigidLocal;
+
  public:
   // static variable for ring communication callback to access class data
 
@@ -61,6 +63,7 @@ class FixRigidSmall : public Fix {
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  void enforce2d();
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
@@ -78,9 +81,10 @@ class FixRigidSmall : public Fix {
   double MINUSPI,TWOPI;
 
   char *infile;             // file to read rigid body attributes from
-  int staticflag;           // 1 if static body properties are setup, else 0
+  int setupflag;            // 1 if body properties are setup, else 0
   int commflag;             // various modes of forward/reverse comm
   int nbody;                // total # of rigid bodies
+  int nlinear;              // total # of linear rigid bodies
   tagint maxmol;            // max mol-ID
   double maxextent;         // furthest distance from body owner to body atom
 
@@ -117,15 +121,16 @@ class FixRigidSmall : public Fix {
                         // ID = tag of atom that owns body
   int *atom2body;       // index of owned/ghost body this atom is in, -1 if not
                         // can point to original or any image of the body
+  imageint *xcmimage;   // internal image flags for atoms in rigid bodies
+                        // set relative to in-box xcm of each body
   double **displace;    // displacement of each atom in body coords
+  int *eflags;          // flags for extended particles
+  double **orient;      // orientation vector of particle wrt rigid body
+  double **dorient;     // orientation of dipole mu wrt rigid body
 
-  int *eflags;              // flags for extended particles
-  double **orient;          // orientation vector of particle wrt rigid body
-  double **dorient;         // orientation of dipole mu wrt rigid body
-
-  int extended;             // 1 if any particles have extended attributes
-  int orientflag;           // 1 if particles store spatial orientation
-  int dorientflag;          // 1 if particles store dipole orientation
+  int extended;         // 1 if any particles have extended attributes
+  int orientflag;       // 1 if particles store spatial orientation
+  int dorientflag;      // 1 if particles store dipole orientation
 
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
@@ -153,12 +158,12 @@ class FixRigidSmall : public Fix {
   class RanMars *random;            // RNG
 
   int tstat_flag,pstat_flag;        // 0/1 = no/yes thermostat/barostat
-  
+
   int t_chain,t_iter,t_order;
 
   double p_start[3],p_stop[3];
   double p_period[3],p_freq[3];
-  int p_flag[3];  
+  int p_flag[3];
   int pcouple,pstyle;
   int p_chain;
 
@@ -182,6 +187,7 @@ class FixRigidSmall : public Fix {
   double *rsqclose;
   double rsqfar;
 
+  void image_shift();
   void set_xv();
   void set_v();
   void create_bodies();
@@ -231,10 +237,9 @@ E: Molecule template ID for fix rigid/small does not exist
 
 Self-explanatory.
 
-W: Molecule template for fix rigid/small has multiple molecules
+E: Fix rigid/small nvt/npt/nph dilate group ID does not exist
 
-The fix rigid/small command will only recoginze molecules of a single
-type, i.e. the first molecule in the template.
+Self-explanatory.
 
 E: Fix rigid/small molecule must have coordinates
 
@@ -270,6 +275,15 @@ E: Fix rigid/small atom has non-zero image flag in a non-periodic dimension
 
 Image flags for non-periodic dimensions should not be set.
 
+E: One or more rigid bodies are a single particle
+
+Self-explanatory.
+
+E: Inconsistent use of finite-size particles by molecule template molecules
+
+Not all of the molecules define a radius for their constituent
+particles.
+
 E: Insufficient Jacobi rotations for rigid body
 
 Eigensolve for rigid body was not sufficiently accurate.
@@ -287,10 +301,6 @@ correct.
 E: Unexpected end of fix rigid/small file
 
 A read operation from the file failed.
-
-E: Fix rigid file has no lines
-
-Self-explanatory.
 
 E: Incorrect rigid body format in fix rigid/small file
 

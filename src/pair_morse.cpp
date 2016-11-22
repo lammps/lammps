@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_morse.h"
 #include "atom.h"
 #include "comm.h"
@@ -175,12 +176,13 @@ void PairMorse::settings(int narg, char **arg)
 
 void PairMorse::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 5 || narg > 6) 
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double d0_one = force->numeric(FLERR,arg[2]);
   double alpha_one = force->numeric(FLERR,arg[3]);
@@ -345,4 +347,15 @@ double PairMorse::single(int i, int j, int itype, int jtype, double rsq,
 
   phi = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
   return factor_lj*phi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairMorse::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"d0") == 0) return (void *) d0;
+  if (strcmp(str,"r0") == 0) return (void *) r0;
+  if (strcmp(str,"alpha") == 0) return (void *) alpha;
+  return NULL;
 }

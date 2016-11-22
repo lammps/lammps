@@ -27,11 +27,11 @@ static CoulDSF<PRECISION,ACC_PRECISION> CDMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int cdsf_gpu_init(const int ntypes, const int inum, const int nall, 
+int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
                   const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen,
-                  const double host_cut_coulsq, double *host_special_coul, 
-                  const double qqrd2e, const double e_shift, const double f_shift, 
+                  const double host_cut_coulsq, double *host_special_coul,
+                  const double qqrd2e, const double e_shift, const double f_shift,
                   const double alpha) {
   CDMF.clear();
   gpu_mode=CDMF.device->gpu_mode();
@@ -55,8 +55,8 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=CDMF.init(ntypes, inum, nall, 300, maxspecial, cell_size, 
-                      gpu_split, screen, host_cut_coulsq, host_special_coul, 
+    init_ok=CDMF.init(ntypes, inum, nall, 300, maxspecial, cell_size,
+                      gpu_split, screen, host_cut_coulsq, host_special_coul,
                       qqrd2e, e_shift, f_shift, alpha);
 
   CDMF.device->world_barrier();
@@ -73,12 +73,12 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=CDMF.init(ntypes, inum, nall, 300, maxspecial, cell_size, 
-                        gpu_split, screen, host_cut_coulsq, host_special_coul, 
+      init_ok=CDMF.init(ntypes, inum, nall, 300, maxspecial, cell_size,
+                        gpu_split, screen, host_cut_coulsq, host_special_coul,
                         qqrd2e, e_shift, f_shift, alpha);
 
     CDMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -95,7 +95,7 @@ void cdsf_gpu_clear() {
 
 int** cdsf_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial, 
+                         double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum, const double cpu_time,
@@ -105,8 +105,8 @@ int** cdsf_gpu_compute_n(const int ago, const int inum_full,
                       subhi, tag, nspecial, special, eflag, vflag, eatom,
                       vatom, host_start, ilist, jnum, cpu_time, success,
                       host_q, boxlo, prd);
-}  
-			
+}
+
 void cdsf_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,

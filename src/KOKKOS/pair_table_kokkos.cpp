@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_table_kokkos.h"
 #include "kokkos.h"
 #include "atom.h"
@@ -98,7 +98,6 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 
   if (neighflag == FULL || neighflag == FULLCLUSTER) no_virial_fdotr_compute = 1;
 
-  double evdwl = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -148,12 +147,12 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         f_type;
       f_type f(this,(NeighListKokkos<DeviceType>*) list);
       #ifdef KOKKOS_HAVE_CUDA
-        const int teamsize = Kokkos::Impl::is_same<typename f_type::device_type, Kokkos::Cuda>::value ? 256 : 1;
+        const int teamsize = Kokkos::Impl::is_same<DeviceType, Kokkos::Cuda>::value ? 32 : 1;
       #else
         const int teamsize = 1;
       #endif
-      const int nteams = (list->inum*f_type::vectorization::increment+teamsize-1)/teamsize;
-      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize);
+      const int nteams = (list->inum*+teamsize-1)/teamsize;
+      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize,NeighClusterSize);
       if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
       else Kokkos::parallel_for(config,f);
     }
@@ -183,17 +182,16 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         f_type;
       f_type f(this,(NeighListKokkos<DeviceType>*) list);
       #ifdef KOKKOS_HAVE_CUDA
-        const int teamsize = Kokkos::Impl::is_same<typename f_type::device_type, Kokkos::Cuda>::value ? 256 : 1;
+        const int teamsize = Kokkos::Impl::is_same<DeviceType, Kokkos::Cuda>::value ? 32 : 1;
       #else
         const int teamsize = 1;
       #endif
-      const int nteams = (list->inum*f_type::vectorization::increment+teamsize-1)/teamsize;
-      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize);
+      const int nteams = (list->inum*+teamsize-1)/teamsize;
+      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize,NeighClusterSize);
       if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
       else Kokkos::parallel_for(config,f);
     }
   }
-  DeviceType::fence();
 
   if (eflag) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -369,7 +367,7 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
       h_table->f2(i,j) = tb->f2[j];
   }
 
-  
+
   Kokkos::deep_copy(d_table->nshiftbits,h_table->nshiftbits);
   Kokkos::deep_copy(d_table->nmask,h_table->nmask);
   Kokkos::deep_copy(d_table->innersq,h_table->innersq);
@@ -466,12 +464,12 @@ void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
 
   if (allocated) {
     memory->destroy(setflag);
-    
+
     d_table_const.tabindex = d_table->tabindex = typename ArrayTypes<DeviceType>::t_int_2d();
     h_table->tabindex = typename ArrayTypes<LMPHostType>::t_int_2d();
 
-    d_table_const.cutsq = d_table->cutsq = typename ArrayTypes<DeviceType>::t_ffloat_2d();  
-    h_table->cutsq = typename ArrayTypes<LMPHostType>::t_ffloat_2d();  
+    d_table_const.cutsq = d_table->cutsq = typename ArrayTypes<DeviceType>::t_ffloat_2d();
+    h_table->cutsq = typename ArrayTypes<LMPHostType>::t_ffloat_2d();
   }
   allocated = 0;
 
@@ -490,8 +488,8 @@ void PairTableKokkos<DeviceType>::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -1250,7 +1248,7 @@ void *PairTableKokkos<DeviceType>::extract(const char *str, int &dim)
 template<class DeviceType>
 void PairTableKokkos<DeviceType>::init_style()
 {
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
   neighflag = lmp->kokkos->neighflag;
   int irequest = neighbor->nrequest - 1;
 
@@ -1376,8 +1374,11 @@ void PairTableKokkos<DeviceType>::cleanup_copy() {
   h_table=NULL; d_table=NULL;
 }
 
+namespace LAMMPS_NS {
 template class PairTableKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairTableKokkos<LMPHostType>;
 #endif
+
+}
 

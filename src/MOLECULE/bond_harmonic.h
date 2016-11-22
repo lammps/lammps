@@ -20,7 +20,7 @@ BondStyle(harmonic,BondHarmonic)
 #ifndef LMP_BOND_HARMONIC_H
 #define LMP_BOND_HARMONIC_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -40,7 +40,7 @@ class BondHarmonic : public Bond {
  protected:
   double *k,*r0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

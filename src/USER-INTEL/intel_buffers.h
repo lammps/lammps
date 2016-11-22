@@ -39,17 +39,24 @@ class IntelBuffers {
  public:
   typedef struct { flt_t x,y,z; int w; } atom_t;
   typedef struct { flt_t w,i,j,k; } quat_t;
-  typedef struct { flt_t x,y,z,w; } vec3_t;  
+  typedef struct { flt_t x,y,z,w; } vec3_t;
   typedef struct { flt_t x,y,z,w; } vec4_t;
   typedef struct { acc_t x,y,z,w; } vec3_acc_t;
-    
+
   IntelBuffers(class LAMMPS *lmp_in);
   ~IntelBuffers();
 
   inline int get_stride(int nall) {
     int stride;
-    IP_PRE_get_stride(stride, nall, sizeof(vec3_acc_t), 
-			 lmp->atom->torque);
+    IP_PRE_get_stride(stride, nall, sizeof(vec3_acc_t),
+                         lmp->atom->torque);
+    return stride;
+  }
+
+  template <class stype>
+  inline int get_scalar_stride(const int n) {
+    int stride;
+    IP_PRE_get_stride(stride, n, sizeof(stype), 0);
     return stride;
   }
 
@@ -68,23 +75,20 @@ class IntelBuffers {
     free_local();
   }
 
-  inline void grow_nbor(NeighList *list, const int nlocal,
-                        const int offload_end) {
+  inline void grow_nbor(NeighList *list, const int nlocal, const int nthreads,
+                        const int offload_end, const int pack_width=1) {
     grow_local(list, offload_end);
-    if (offload_end) {
-      grow_nmax();
+    grow_nmax(offload_end);
+    if (offload_end)
       grow_binhead();
-    }
-    grow_nbor_list(list, nlocal, offload_end);
+    grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
   }
 
   void free_nmax();
 
-  inline void grow_nmax() {
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (lmp->atom->nmax > _off_map_nmax)
-      _grow_nmax();
-    #endif
+  inline void grow_nmax(const int offload_end) {
+    if (lmp->atom->nmax > _host_nmax)
+      _grow_nmax(offload_end);
   }
 
   void free_local();
@@ -95,7 +99,7 @@ class IntelBuffers {
   }
 
   void free_binhead();
-  
+
   inline void grow_binhead() {
     #ifdef _LMP_INTEL_OFFLOAD
     if (lmp->neighbor->maxhead > _off_map_maxhead)
@@ -103,18 +107,33 @@ class IntelBuffers {
     #endif
   }
 
+  void free_ccache();
+  void grow_ccache(const int off_flag, const int nthreads, const int width=1);
+  inline int ccache_stride() { return _ccache_stride; }
+  inline flt_t * get_ccachex() { return _ccachex; }
+  inline flt_t * get_ccachey() { return _ccachey; }
+  inline flt_t * get_ccachez() { return _ccachez; }
+  inline flt_t * get_ccachew() { return _ccachew; }
+  inline int * get_ccachei() { return _ccachei; }
+  inline int * get_ccachej() { return _ccachej; }
+  #ifdef LMP_USE_AVXCD
+  inline int ccache_stride3() { return _ccache_stride3; }
+  inline acc_t * get_ccachef() { return _ccachef; }
+  #endif
+
   inline int get_max_nbors() {
     int mn = lmp->neighbor->oneatom * sizeof(int) /
         (INTEL_ONEATOM_FACTOR * INTEL_DATA_ALIGN);
     return mn * INTEL_DATA_ALIGN / sizeof(int);
   }
-  
+
   void free_nbor_list();
 
   inline void grow_nbor_list(NeighList *list, const int nlocal,
-                             const int offload_end) {
+                             const int nthreads, const int offload_end,
+			     const int pack_width) {
     if (nlocal > _list_alloc_atoms)
-      _grow_nbor_list(list, nlocal, offload_end);
+      _grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
     #ifdef _LMP_INTEL_OFFLOAD
     else if (offload_end > 0 && _off_map_stencil != list->stencil)
       _grow_stencil(list);
@@ -127,35 +146,36 @@ class IntelBuffers {
   inline int * cnumneigh(const NeighList *list) { return _cnumneigh; }
 
   inline int * get_atombin() { return _atombin; }
-  inline atom_t * get_x(const int offload = 1) { 
+  inline int * get_binpacked() { return _binpacked; }
+  inline atom_t * get_x(const int offload = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_x;
     #endif
-    return _x; 
+    return _x;
   }
-  inline flt_t * get_q(const int offload = 1) { 
+  inline flt_t * get_q(const int offload = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_q;
     #endif
-    return _q; 
+    return _q;
   }
-  inline quat_t * get_quat(const int offload = 1) { 
+  inline quat_t * get_quat(const int offload = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_quat;
     #endif
-    return _quat; 
+    return _quat;
   }
   inline vec3_acc_t * get_f() { return _f; }
   inline acc_t * get_ev_global() { return _ev_global; }
   inline acc_t * get_ev_global_host() { return _ev_global_host; }
-  inline void zero_ev() 
+  inline void zero_ev()
     { for (int i = 0; i < 8; i++) _ev_global[i] = _ev_global_host[i] = 0.0; }
   inline flt_t ** get_cutneighsq() { return _cutneighsq; }
   inline int get_off_threads() { return _off_threads; }
   #ifdef _LMP_INTEL_OFFLOAD
-  inline void set_off_params(const int n, const int cop, 
-			     const int separate_buffers) 
-    { _off_threads = n; _cop = cop; _separate_buffers = separate_buffers; } 
+  inline void set_off_params(const int n, const int cop,
+			     const int separate_buffers)
+    { _off_threads = n; _cop = cop; _separate_buffers = separate_buffers; }
   inline vec3_acc_t * get_off_f() { return _off_f; }
   #endif
 
@@ -180,7 +200,7 @@ class IntelBuffers {
   }
 
   #ifdef _LMP_INTEL_OFFLOAD
-  inline void thr_pack_cop(const int ifrom, const int ito, 
+  inline void thr_pack_cop(const int ifrom, const int ito,
 			   const int offset, const bool dotype = false) {
     double ** x = lmp->atom->x + offset;
     if (dotype == false) {
@@ -202,7 +222,7 @@ class IntelBuffers {
     }
   }
 
-  inline void thr_pack_host(const int ifrom, const int ito, 
+  inline void thr_pack_host(const int ifrom, const int ito,
 			    const int offset) {
     double ** x = lmp->atom->x + offset;
     for (int i = ifrom; i < ito; i++) {
@@ -212,7 +232,7 @@ class IntelBuffers {
     }
   }
 
-  inline void pack_sep_from_single(const int host_min_local, 
+  inline void pack_sep_from_single(const int host_min_local,
 				   const int used_local,
 				   const int host_min_ghost,
 				   const int used_ghost) {
@@ -232,6 +252,12 @@ class IntelBuffers {
 	     used_ghost * sizeof(flt_t));
     }
   }
+
+  inline int need_tag() { return _need_tag; }
+  inline void need_tag(const int nt) { _need_tag = nt; }
+  #else
+  inline int need_tag() { return 0; }
+  inline void need_tag(const int nt) { }
   #endif
 
   double memory_usage(const int nthreads);
@@ -251,9 +277,18 @@ class IntelBuffers {
   int * _list_alloc;
   int * _cnumneigh;
   int * _atombin;
+  int * _binpacked;
 
   flt_t **_cutneighsq;
   int _ntypes;
+
+  int _ccache_stride;
+  flt_t *_ccachex, *_ccachey, *_ccachez, *_ccachew;
+  int *_ccachei, *_ccachej;
+  #ifdef LMP_USE_AVXCD
+  int _ccache_stride3;
+  acc_t * _ccachef;
+  #endif
 
   #ifdef _LMP_INTEL_OFFLOAD
   int _separate_buffers;
@@ -261,24 +296,25 @@ class IntelBuffers {
   flt_t *_host_q;
   quat_t *_host_quat;
   vec3_acc_t *_off_f;
-  int _off_map_nmax, _off_map_maxhead, _cop;
+  int _off_map_nmax, _off_map_maxhead, _cop, _off_ccache;
   int *_off_map_ilist;
   int *_off_map_stencil, *_off_map_special, *_off_map_nspecial, *_off_map_tag;
   int *_off_map_binhead, *_off_map_bins, *_off_map_numneigh;
   bool _off_list_alloc;
+  int _need_tag;
   #endif
-  
-  int _buf_size, _buf_local_size;
+
+  int _buf_size, _buf_local_size, _host_nmax;
   _alignvar(acc_t _ev_global[8],64);
   _alignvar(acc_t _ev_global_host[8],64);
 
   void _grow(const int nall, const int nlocal, const int nthreads,
 	     const int offload_end);
-  void _grow_nmax();
+  void _grow_nmax(const int offload_end);
   void _grow_local(NeighList *list, const int offload_end);
   void _grow_binhead();
-  void _grow_nbor_list(NeighList *list, const int nlocal,
-                       const int offload_end);
+  void _grow_nbor_list(NeighList *list, const int nlocal, const int nthreads,
+                       const int offload_end, const int pack_width);
   void _grow_stencil(NeighList *list);
 };
 

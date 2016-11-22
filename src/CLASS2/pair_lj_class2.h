@@ -29,9 +29,9 @@ class PairLJClass2 : public Pair {
   PairLJClass2(class LAMMPS *);
   virtual ~PairLJClass2();
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -46,7 +46,7 @@ class PairLJClass2 : public Pair {
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

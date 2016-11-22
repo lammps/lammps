@@ -692,11 +692,11 @@ def CheckCommonFileNames(filename,
                              'Output file name (\"'+filename+'\") does not match,\n'
                              'yet overlaps closely with reserved lttree-file name.\n'
                              'Perhaps you meant \"'+in_init+'\"?')
-        elif (write_command != 'write_once'):
-            raise InputError('Probable typo in '+ErrorLeader(srcloc.infile,srcloc.lineno)+'\n\n'+
-                             'When using moltemplate.sh to build LAMMPS input files, you probably do not\n'
-                             'want to use the '+write_command+'() command with \"'+filename+'\".\n'
-                             'You should probably use write_once(\"'+filename+'\") instead.\n')
+        #elif (write_command != 'write_once'):
+        #    raise InputError('Probable typo in '+ErrorLeader(srcloc.infile,srcloc.lineno)+'\n\n'+
+        #                     'When using moltemplate.sh to build LAMMPS input files, you probably do not\n'
+        #                     'want to use the '+write_command+'() command with \"'+filename+'\".\n'
+        #                     'You should probably use write_once(\"'+filename+'\") instead.\n')
 
     elif ((filename.lower() == 'settings') or
           (filename.lower() == 'in settings') or
@@ -1596,7 +1596,7 @@ def CheckSyntaxStatic(context_node,
 
 
     # Recursively invoke AssignVarPtrs() on all (non-leaf) child nodes:
-    for child in context_node.children:
+    for child in context_node.children.values():
         CheckSyntaxStatic(child,
                           root_node, 
                           atom_column_names,
@@ -1945,8 +1945,8 @@ def LttreeCheckParseArgs(argv, settings):
 if __name__ == "__main__":
 
     g_program_name = __file__.split('/')[-1]  # = 'lttree_check.py'
-    g_version_str  = '0.73'
-    g_date_str     = '2013-8-06'
+    g_version_str  = '0.76'
+    g_date_str     = '2014-12-19'
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+'\n')
 
     try:
@@ -1976,10 +1976,10 @@ if __name__ == "__main__":
         sys.stderr.write(' done\n'+g_program_name+':    looking up classes...')
         static_tree_root.LookupStaticRefs()
         sys.stderr.write(' done\n'+g_program_name+':    looking up @variables...')
-        AssignVarPtrs(static_tree_root,
-                      search_instance_commands=False)
-        AssignVarPtrs(static_tree_root,
-                      search_instance_commands=True)
+        AssignStaticVarPtrs(static_tree_root,
+                            search_instance_commands=False)
+        AssignStaticVarPtrs(static_tree_root,
+                            search_instance_commands=True)
         sys.stderr.write(' done\n')
         #sys.stderr.write(' done\n\nclass_def_tree = ' + str(static_tree_root) + '\n\n')
 

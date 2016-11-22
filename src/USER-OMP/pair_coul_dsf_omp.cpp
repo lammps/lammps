@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_coul_dsf_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -62,6 +62,7 @@ void PairCoulDSFOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -77,6 +78,7 @@ void PairCoulDSFOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -138,14 +140,14 @@ void PairCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
         r2inv = 1.0/rsq;
 
         r = sqrt(rsq);
-        prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
+        prefactor = qqrd2e*qtmp*q[j]/r;
         erfcd = exp(-alpha*alpha*rsq);
         t = 1.0 / (1.0 + EWALD_P*alpha*r);
         erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
         forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                  r*f_shift) * r;
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         fpair = forcecoul * r2inv;
-        if (EFLAG) ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -155,6 +157,11 @@ void PairCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
           f[j].y -= dely*fpair;
           f[j].z -= delz*fpair;
         }
+
+        if (EFLAG) {
+          ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+        } else ecoul = 0.0;
 
         if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
                                  0.0,ecoul,fpair,delx,dely,delz,thr);

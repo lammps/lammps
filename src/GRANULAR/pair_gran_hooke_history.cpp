@@ -15,10 +15,10 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_gran_hooke_history.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -46,10 +46,9 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   history = 1;
   fix_history = NULL;
 
-  single_extra = 4;
-  svector = new double[4];
+  single_extra = 10;
+  svector = new double[10];
 
-  computeflag = 0;
   neighprev = 0;
 
   nmax = 0;
@@ -100,7 +99,6 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
-  computeflag = 1;
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
 
@@ -131,10 +129,9 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -211,13 +208,8 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         // if I or J part of rigid body, use body mass
         // if I or J is frozen, meff is other particle
 
-        if (rmass) {
-          mi = rmass[i];
-          mj = rmass[j];
-        } else {
-          mi = mass[type[i]];
-          mj = mass[type[j]];
-        }
+        mi = rmass[i];
+        mj = rmass[j];
         if (fix_rigid) {
           if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
           if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
@@ -304,7 +296,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         torque[i][1] -= radi*tor2;
         torque[i][2] -= radi*tor3;
 
-        if (j < nlocal) {
+        if (newton_pair || j < nlocal) {
           f[j][0] -= fx;
           f[j][1] -= fy;
           f[j][2] -= fz;
@@ -313,11 +305,13 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
           torque[j][2] -= radj*tor3;
         }
 
-        if (evflag) ev_tally_xyz(i,j,nlocal,0,
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
                                  0.0,0.0,fx,fy,fz,delx,dely,delz);
       }
     }
   }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -377,8 +371,8 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -401,18 +395,18 @@ void PairGranHookeHistory::init_style()
 
   // error and warning checks
 
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Pair granular requires atom style sphere");
+  if (!atom->radius_flag || !atom->rmass_flag)
+    error->all(FLERR,"Pair granular requires atom attributes radius, rmass");
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
   // need a granular neigh list and optionally a granular history neigh list
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->gran = 1;
   if (history) {
-    irequest = neighbor->request(this);
+    irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->id = 1;
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->granhistory = 1;
@@ -422,22 +416,21 @@ void PairGranHookeHistory::init_style()
   dt = update->dt;
 
   // if shear history is stored:
-  // check if newton flag is valid
   // if first init, create Fix needed for storing shear history
 
-  if (history && force->newton_pair == 1)
-    error->all(FLERR,
-               "Pair granular with shear history requires newton pair off");
-
   if (history && fix_history == NULL) {
-    char **fixarg = new char*[3];
+    char dnumstr[16];
+    sprintf(dnumstr,"%d",3);
+    char **fixarg = new char*[4];
     fixarg[0] = (char *) "SHEAR_HISTORY";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "SHEAR_HISTORY";
-    modify->add_fix(3,fixarg,1);
+    fixarg[3] = dnumstr;
+    modify->add_fix(4,fixarg,1);
     delete [] fixarg;
     fix_history = (FixShearHistory *) modify->fix[modify->nfix-1];
     fix_history->pair = this;
+    neighbor->requests[irequest]->fix_history = fix_history;
   }
 
   // check for FixFreeze and set freeze_group_bit
@@ -474,12 +467,12 @@ void PairGranHookeHistory::init_style()
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
     if (ipour >= 0) {
       itype = i;
-      onerad_dynamic[i] = 
+      onerad_dynamic[i] =
         *((double *) modify->fix[ipour]->extract("radius",itype));
     }
     if (idep >= 0) {
       itype = i;
-      onerad_dynamic[i] = 
+      onerad_dynamic[i] =
         *((double *) modify->fix[idep]->extract("radius",itype));
     }
   }
@@ -499,6 +492,14 @@ void PairGranHookeHistory::init_style()
                 MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,
                 MPI_DOUBLE,MPI_MAX,world);
+
+  // set fix which stores history info
+
+  if (history) {
+    int ifix = modify->find_fix("SHEAR_HISTORY");
+    if (ifix < 0) error->all(FLERR,"Could not find pair fix ID");
+    fix_history = (FixShearHistory *) modify->fix[ifix];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -625,7 +626,7 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
 
   if (rsq >= radsum*radsum) {
     fforce = 0.0;
-    svector[0] = svector[1] = svector[2] = svector[3] = 0.0;
+    for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
     return 0.0;
   }
 
@@ -670,17 +671,10 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   // if I or J is frozen, meff is other particle
 
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
   int *mask = atom->mask;
 
-  if (rmass) {
-    mi = rmass[i];
-    mj = rmass[j];
-  } else {
-    mi = mass[type[i]];
-    mj = mass[type[j]];
-  }
+  mi = rmass[i];
+  mj = rmass[j];
   if (fix_rigid) {
     // NOTE: insure mass_rigid is current for owned+ghost atoms?
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
@@ -711,13 +705,13 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
   // reset neighprev to 0 as necessary
 
   int jnum = list->numneigh[i];
-  int *touch = list->listgranhistory->firstneigh[i];
+  int *jlist = list->firstneigh[i];
   double *allshear = list->listgranhistory->firstdouble[i];
 
   for (int jj = 0; jj < jnum; jj++) {
     neighprev++;
     if (neighprev >= jnum) neighprev = 0;
-    if (touch[neighprev] == j) break;
+    if (jlist[neighprev] == j) break;
   }
 
   double *shear = &allshear[3*neighprev];
@@ -749,19 +743,29 @@ double PairGranHookeHistory::single(int i, int j, int itype, int jtype,
     } else fs1 = fs2 = fs3 = fs = 0.0;
   }
 
-  // set all forces and return no energy
+  // set force and return no energy
 
   fforce = ccel;
+
+  // set single_extra quantities
+
   svector[0] = fs1;
   svector[1] = fs2;
   svector[2] = fs3;
   svector[3] = fs;
+  svector[4] = vn1;
+  svector[5] = vn2;
+  svector[6] = vn3;
+  svector[7] = vt1;
+  svector[8] = vt2;
+  svector[9] = vt3;
+
   return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf, 
+int PairGranHookeHistory::pack_forward_comm(int n, int *list, double *buf,
                                             int pbc_flag, int *pbc)
 {
   int i,j,m;
@@ -784,15 +788,6 @@ void PairGranHookeHistory::unpack_forward_comm(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++)
     mass_rigid[i] = buf[m++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void *PairGranHookeHistory::extract(const char *str, int &dim)
-{
-  dim = 0;
-  if (strcmp(str,"computeflag") == 0) return (void *) &computeflag;
-  return NULL;
 }
 
 /* ----------------------------------------------------------------------

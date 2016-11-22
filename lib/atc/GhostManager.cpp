@@ -4,6 +4,13 @@
 #include "LammpsInterface.h"
 #include "ATC_Error.h"
 
+using std::vector;
+using std::set;
+using std::pair;
+using std::map;
+using std::stringstream;
+using ATC_Utility::to_string;
+
 namespace ATC {
 
   //--------------------------------------------------------
@@ -19,10 +26,7 @@ namespace ATC {
     ghostModifier_(NULL),
     atc_(atc),
     boundaryDynamics_(NO_BOUNDARY_DYNAMICS),
-    needReset_(true),
-    kappa_(0.),
-    gamma_(0.),
-    mu_(0.)
+    needReset_(true)
   {
     // do nothing
   }
@@ -73,18 +77,30 @@ namespace ATC {
     }
     else if (strcmp(arg[argIndex],"damped_harmonic")==0) {
       argIndex++;
-      kappa_ = atof(arg[argIndex++]);
-      gamma_ = atof(arg[argIndex++]);
-      mu_    = atof(arg[argIndex]);
+      kappa_.push_back(atof(arg[argIndex++]));
+      gamma_.push_back(atof(arg[argIndex++]));
+      mu_.push_back(atof(arg[argIndex]));
       boundaryDynamics_ = DAMPED_HARMONIC;
+      needReset_ = true;
+      return true;
+    }
+    else if (strcmp(arg[argIndex],"damped_layers")==0) {
+      argIndex++;
+      while (argIndex < narg) {
+        kappa_.push_back(atof(arg[argIndex++]));
+        gamma_.push_back(atof(arg[argIndex++]));
+        mu_.push_back(atof(arg[argIndex++]));
+      }
+      
+      boundaryDynamics_ = DAMPED_LAYERS;
       needReset_ = true;
       return true;
     }
     else if (strcmp(arg[argIndex],"coupled")==0) {
       boundaryDynamics_ = COUPLED;
-      kappa_ = 0.;
-      gamma_ = 0.;
-      mu_    = 0.;
+      kappa_.push_back(0.);
+      gamma_.push_back(0.);
+      mu_.push_back(0.);
       needReset_ = true;
       return true;
     }
@@ -121,6 +137,11 @@ namespace ATC {
     case COUPLED:
     case DAMPED_HARMONIC: {
       ghostModifier_ = new GhostModifierDampedHarmonic(this,kappa_,gamma_,mu_);
+      ghostModifier_->set_integrate_atoms(true);
+      break;
+    }
+    case DAMPED_LAYERS: {
+      ghostModifier_ = new GhostModifierDampedHarmonicLayers(this,kappa_,gamma_,mu_);
       ghostModifier_->set_integrate_atoms(true);
       break;
     }
@@ -357,8 +378,9 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   GhostModifierDampedHarmonic::GhostModifierDampedHarmonic(GhostManager * ghostManager,
-                                                           double kappa,
-                                                           double gamma, double mu) :
+                                                           const vector<double> & kappa,
+                                                           const vector<double> & gamma,
+                                                           const vector<double> & mu) :
     GhostModifierPrescribed(ghostManager),
     atomVelocities_(NULL),
     atomFeVelocity_(NULL),
@@ -396,13 +418,18 @@ namespace ATC {
     k0_ = LammpsInterface::instance()->bond_stiffness(i,j,rsq);
   }
 
+#if true
   //--------------------------------------------------------
   //  initial_integrate_velocity
   //    velocity update in first part of velocity-verlet
   //--------------------------------------------------------
   void GhostModifierDampedHarmonic::init_integrate_velocity(double dt)
   {
-    atomTimeIntegrator_->init_integrate_velocity(mu_*dt);
+#if true
+    atomTimeIntegrator_->init_integrate_velocity(mu_[0]*dt);
+#else
+    atomTimeIntegrator_->init_integrate_velocity(dt);
+#endif
   }
       
   //--------------------------------------------------------
@@ -413,7 +440,7 @@ namespace ATC {
   {
     atomTimeIntegrator_->init_integrate_position(dt);
   }
-
+#endif
   //--------------------------------------------------------
   //  final_integrate
   //    velocity update in second part of velocity-verlet
@@ -430,11 +457,265 @@ namespace ATC {
     _forces_ = atomFeDisplacement;
     _forces_ += atomRefPositions;
     _forces_ -= atomPositions;
-    _forces_ *= kappa_;
-    _forces_ += gamma_*(atomFeVelocity - atomVelocities);
+    _forces_ *= kappa_[0];
+    _forces_ += gamma_[0]*(atomFeVelocity - atomVelocities);
+#if true
+#else
+    _forces_ *= 1./mu_[0];
+#endif
     *atomForces_ = _forces_;
 
-    atomTimeIntegrator_->final_integrate(mu_*dt);
+#if true
+    atomTimeIntegrator_->final_integrate(mu_[0]*dt);
+#else
+    atomTimeIntegrator_->final_integrate(dt);
+#endif
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class GhostModifierDampedHarmonicLayers
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  GhostModifierDampedHarmonicLayers::GhostModifierDampedHarmonicLayers(GhostManager * ghostManager,
+                                                                       const vector<double> & kappa,
+                                                                       const vector<double> & gamma,
+                                                                       const vector<double> & mu) :
+    GhostModifierDampedHarmonic(ghostManager,kappa,gamma,mu),
+    ghostToBoundaryDistance_(NULL),
+    layerId_(NULL)
+  {
+   
+    // do nothing
+  }
+
+  //--------------------------------------------------------
+  //  construct_transfers
+  //    sets/constructs all required dependency managed data
+  //--------------------------------------------------------
+  void GhostModifierDampedHarmonicLayers::construct_transfers()
+  {
+    GhostModifierDampedHarmonic::construct_transfers();
+    
+    InterscaleManager & interscaleManager((ghostManager_->atc())->interscale_manager());
+
+    // transfer for distance to boundary
+    ghostToBoundaryDistance_ = new AtcAtomQuantity<double>(ghostManager_->atc(),
+                                                           1,GHOST);
+    interscaleManager.add_per_atom_quantity(ghostToBoundaryDistance_,
+                                            "GhostToBoundaryDistance");
+
+    // transfer from ghost atom to its layer id
+    layerId_ = new AtcAtomQuantity<int>(ghostManager_->atc(),
+                                        1,GHOST);
+    interscaleManager.add_per_atom_int_quantity(layerId_,"GhostLayerId");
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initialize all data and variables before a run
+  //--------------------------------------------------------
+  void GhostModifierDampedHarmonicLayers::initialize()
+  {
+     compute_distances();
+     int nlayers = find_layers();
+     if (nlayers > ((int)gamma_.size())) throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize not enough damping factors specfied " + to_string(gamma_.size()));
+  }
+
+  //--------------------------------------------------------
+  //  find atomic mononlayers
+  //--------------------------------------------------------
+  bool compare( pair<int,double> a, pair<int,double> b) { 
+    return (a.second < b.second);
+  }
+  int GhostModifierDampedHarmonicLayers::find_layers()
+  {
+    DENS_MAT & d(ghostToBoundaryDistance_->set_quantity());
+    DenseMatrix<int> & ids = layerId_->set_quantity();
+    
+    // get distances for every ghost atom for sorting
+    // size arrays of length number of processors
+    int commSize = LammpsInterface::instance()->comm_size();
+    int * procCounts = new int[commSize];
+    int * procOffsets = new int[commSize];
+
+    // get size information from all processors
+    int localGhosts = d.nRows();
+    LammpsInterface::instance()->int_allgather(localGhosts,procCounts);
+    procOffsets[0] = 0;
+    int totalGhosts = 0;
+    for (int i = 0; i < commSize-1; ++i) {
+      totalGhosts += procCounts[i];
+      procOffsets[i+1] = totalGhosts;
+    }
+    totalGhosts += procCounts[commSize-1];
+    double * globalDistances = new double[totalGhosts];
+
+    // allgather distances
+    LammpsInterface::instance()->allgatherv(d.ptr(), localGhosts,
+                                            globalDistances, procCounts, procOffsets);
+
+    // add to distances vector with -1 ids
+    // convert to STL for sort
+    vector< pair <int,double> > distances;
+    distances.resize(totalGhosts);
+    int myRank = LammpsInterface::instance()->comm_rank();
+    int j = 0;
+    for (int i = 0; i < totalGhosts; ++i) {
+      if (i >= procOffsets[myRank] && i < procOffsets[myRank] + procCounts[myRank]) {
+        distances[i] = pair <int,double> (j++,globalDistances[i]);
+      }
+      else {
+        distances[i] = pair <int,double> (-1,globalDistances[i]);
+      }
+    }
+    delete [] globalDistances;
+    delete [] procCounts;
+    delete [] procOffsets;
+
+    std::sort(distances.begin(),distances.end(),compare);
+    double min = (distances[0]).second;
+    double a = LammpsInterface::instance()->max_lattice_constant();
+    double tol = a/4;
+    double xlayer = min; // nominal position of layer
+    int ilayer =0;
+    vector<int> counts(1);
+    counts[0] = 0;
+    for (vector<pair<int,double> >::const_iterator itr = distances.begin();
+         itr != distances.end(); itr++) {
+       int id = (*itr).first;
+       double d = (*itr).second;
+       if (fabs(d-xlayer) > tol) {
+         counts.push_back(0);
+         ilayer++;
+         xlayer = d;
+       }
+       if (id > -1) {
+         ids(id,0) = ilayer;
+       }
+       counts[ilayer]++;
+    }
+    int nlayers = ilayer;
+    stringstream msg;
+    msg << nlayers << " boundary layers:\n";
+    for (int i = 0; i < nlayers; ++i) {
+      msg << i+1 << ": " << counts[i] << "\n";
+    }
+    ATC::LammpsInterface::instance()->print_msg_once(msg.str());
+    return nlayers;
+  }
+   
+  //--------------------------------------------------------
+  //  compute distances to boundary faces
+  //--------------------------------------------------------
+  void GhostModifierDampedHarmonicLayers::compute_distances()
+  {
+    // get fe mesh
+    const FE_Mesh * feMesh = ((ghostManager_->atc())->fe_engine())->fe_mesh();
+    InterscaleManager & interscaleManager((ghostManager_->atc())->interscale_manager());
+
+    // get elements in which ghosts reside
+    const DenseMatrix<int> & elementHasGhost((interscaleManager.dense_matrix_int("ElementHasGhost"))->quantity());
+    // get type of each node
+    const DenseMatrix<int> & nodeType((interscaleManager.dense_matrix_int("NodalGeometryType"))->quantity());
+
+    // create map from those elements to pair<DENS_VEC,DENS_VEC> (centroid, normal)
+    map<int, pair<DENS_VEC,DENS_VEC> > elementToFace;
+    int nsd = (ghostManager_->atc())->nsd();
+    int nfe = feMesh->num_faces_per_element();
+    DENS_MAT nodalCoords(nsd,nfe);
+    DENS_VEC centroid(nsd), normal(nsd);
+    Array<int> faceNodes;
+    bool isBoundaryFace;
+    for (int elt = 0; elt < elementHasGhost.nRows(); ++elt) {
+      if (elementHasGhost(elt,0)) {
+        // loop over all faces
+        int face;
+        for (face = 0; face < nfe; ++face) {
+          // get the nodes in a face
+          feMesh->face_connectivity_unique(PAIR(elt,face),faceNodes);
+
+          // identify the boundary face by the face which contains only boundary nodes
+          isBoundaryFace = true; 
+          for (int i = 0; i < faceNodes.size(); ++i) {
+            if (nodeType(faceNodes(i),0) != BOUNDARY) {
+              isBoundaryFace = false;
+              break;
+            }
+          }
+
+          if (isBoundaryFace) {
+            break;
+          }
+        }
+        if (face == nfe) {
+          throw ATC_Error("GhostModifierDampedHarmonicLayers::initialize - Could not find boundary face for element " + to_string(elt));
+        }
+
+        // for each boundary face get the centroid by the average position of the nodes comprising it
+        feMesh->face_coordinates(PAIR(elt,face),nodalCoords);
+        centroid = 0.;
+        for (int i = 0; i < nodalCoords.nRows(); ++i) {
+          for (int j = 0; j < nodalCoords.nCols(); ++j) {
+            centroid(i) += nodalCoords(i,j);
+          }
+        }
+        centroid *= -1./double(nfe); // -1 gets outward normal from ATC region => all distances should be > 0
+        
+        // for each boundary face get the normal
+        // ASSUMES all faces are planar
+        feMesh->face_normal(PAIR(elt,face),0,normal);
+
+        elementToFace[elt] = pair<DENS_VEC,DENS_VEC>(centroid,normal);
+      }
+    }
+
+    // for each atom compute (atom_pos - element->face_centroid) dot element_->face_normal
+    // get atom to element map for ghosts
+    PerAtomQuantity<int> * ghostToElementMap = interscaleManager.per_atom_int_quantity("AtomGhostElement");
+    const DenseMatrix<int> & ghostToElement(ghostToElementMap->quantity());
+    DENS_MAT & distance(ghostToBoundaryDistance_->set_quantity());
+    const DENS_MAT & atomPositions(atomPositions_->quantity());
+    DENS_VEC diff(nsd);
+    for (int i = 0; i < distance.nRows(); ++i) {
+      int elt = ghostToElement(i,0);
+      const DENS_VEC & c(elementToFace[elt].first);
+      const DENS_VEC & n(elementToFace[elt].second);
+      for (int j = 0; j < nsd; ++j) {
+        diff(j) = atomPositions(i,j) - c(j);
+      }
+      distance(i,0) = diff.dot(n); // should always be positive
+    }
+  }
+
+  
+  //--------------------------------------------------------
+  //  final_integrate
+  //    velocity update in second part of velocity-verlet
+  //--------------------------------------------------------
+  void GhostModifierDampedHarmonicLayers::final_integrate(double dt)
+  {
+
+    const DENS_MAT & atomPositions(atomPositions_->quantity());
+    const DENS_MAT & atomVelocities(atomVelocities_->quantity());
+    const DENS_MAT & atomFeDisplacement(atomFeDisplacement_->quantity());
+    const DENS_MAT & atomFeVelocity(atomFeVelocity_->quantity());
+    const DENS_MAT & atomRefPositions(atomRefPositions_->quantity());
+
+    _forces_ = atomFeDisplacement;
+    _forces_ += atomRefPositions;
+    _forces_ -= atomPositions;
+
+    _forces_ *= kappa_[0];
+    _forces_ += gamma_[0]*(atomFeVelocity - atomVelocities);
+    _forces_ *= 1./mu_[0];
+    *atomForces_ = _forces_;
+
+    atomTimeIntegrator_->final_integrate(dt);
   }
 
   //--------------------------------------------------------

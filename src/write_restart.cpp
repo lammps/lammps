@@ -11,9 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "write_restart.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -60,7 +59,9 @@ enum{VERSION,SMALLINT,TAGINT,BIGINT,
      SPECIAL_LJ,SPECIAL_COUL,
      MASS,PAIR,BOND,ANGLE,DIHEDRAL,IMPROPER,
      MULTIPROC,MPIIO,PROCSPERFILE,PERPROC,
-     IMAGEINT};
+     IMAGEINT,BOUNDMIN,TIMESTEP,
+     ATOM_ID,ATOM_MAP_STYLE,ATOM_MAP_USER,ATOM_SORTFREQ,ATOM_SORTBIN,
+     COMM_MODE,COMM_CUTOFF,COMM_VEL};
 
 enum{IGNORE,WARN,ERROR};                    // same as thermo.cpp
 
@@ -71,6 +72,8 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
+  noinit = 0;
+  fp = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -109,23 +112,30 @@ void WriteRestart::command(int narg, char **arg)
   // init entire system since comm->exchange is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
-  if (comm->me == 0 && screen)
-    fprintf(screen,"System init for write_restart ...\n");
-  lmp->init();
+  if (noinit == 0) {
+    if (comm->me == 0 && screen)
+      fprintf(screen,"System init for write_restart ...\n");
+    lmp->init();
 
-  // move atoms to new processors before writing file
-  // do setup_pre_exchange to force update of per-atom info if needed
-  // enforce PBC in case atoms are outside box
-  // call borders() to rebuild atom map since exchange() destroys map
+    // move atoms to new processors before writing file
+    // enforce PBC in case atoms are outside box
+    // call borders() to rebuild atom map since exchange() destroys map
+    // NOTE: removed call to setup_pre_exchange
+    //   used to be needed by fixShearHistory for granular
+    //   to move history info from neigh list to atoms between runs
+    //   but now that is done via FIx::post_run()
+    //   don't think any other fix needs this or should do it
+    //   e.g. fix evaporate should not delete more atoms
 
-  modify->setup_pre_exchange();
-  if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  comm->setup();
-  comm->exchange();
-  comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    // modify->setup_pre_exchange();
+    if (domain->triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    domain->reset_box();
+    comm->setup();
+    comm->exchange();
+    comm->borders();
+    if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  }
 
   // write single restart file
 
@@ -143,13 +153,13 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
 
   // error checks
 
-  if (multiproc && mpiioflag) 
+  if (multiproc && mpiioflag)
     error->all(FLERR,
                "Restart file MPI-IO output not allowed with % in filename");
 
   if (mpiioflag) {
     mpiio = new RestartMPIIO(lmp);
-    if (!mpiio->mpiio_exists) 
+    if (!mpiio->mpiio_exists)
       error->all(FLERR,"Writing to MPI-IO filename when "
                  "MPIIO package is not installed");
   }
@@ -179,7 +189,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
                    "without % in restart file name");
       int nper = force->inumeric(FLERR,arg[iarg+1]);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
-      
+
       multiproc = nprocs/nper;
       if (nprocs % nper) multiproc++;
       fileproc = me/nper * nper;
@@ -204,7 +214,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       fileproc = static_cast<int> ((bigint) icluster * nprocs/nfile);
       int fcluster = static_cast<int> ((bigint) fileproc * nfile/nprocs);
       if (fcluster < icluster) fileproc++;
-      int fileprocnext = 
+      int fileprocnext =
         static_cast<int> ((bigint) (icluster+1) * nprocs/nfile);
       fcluster = static_cast<int> ((bigint) fileprocnext * nfile/nprocs);
       if (fcluster < icluster+1) fileprocnext++;
@@ -213,6 +223,9 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       else filewriter = 0;
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"noinit") == 0) {
+      noinit = 1;
+      iarg++;
     } else error->all(FLERR,"Illegal write_restart command");
   }
 }
@@ -302,7 +315,10 @@ void WriteRestart::write(char *file)
   //   write PROCSPERFILE into new file
 
   if (multiproc) {
-    if (me == 0) fclose(fp);
+    if (me == 0 && fp) {
+      fclose(fp);
+      fp = NULL;
+    }
 
     char *multiname = new char[strlen(file) + 16];
     char *ptr = strchr(file,'%');
@@ -381,7 +397,10 @@ void WriteRestart::write(char *file)
   // MPI-IO output to single file
 
   if (mpiioflag) {
-    if (me == 0) fclose(fp);
+    if (me == 0 && fp) {
+      fclose(fp);
+      fp = NULL;
+    }
     mpiio->openForWrite(file);
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
@@ -394,10 +413,10 @@ void WriteRestart::write(char *file)
 
   else {
     int tmp,recv_size;
-    MPI_Status status;
-    MPI_Request request;
 
     if (filewriter) {
+      MPI_Status status;
+      MPI_Request request;
       for (int iproc = 0; iproc < nclusterprocs; iproc++) {
         if (iproc) {
           MPI_Irecv(buf,max_size,MPI_DOUBLE,me+iproc,0,world,&request);
@@ -405,13 +424,14 @@ void WriteRestart::write(char *file)
           MPI_Wait(&request,&status);
           MPI_Get_count(&status,MPI_DOUBLE,&recv_size);
         } else recv_size = send_size;
-        
+
         write_double_vec(PERPROC,recv_size,buf);
       }
       fclose(fp);
+      fp = NULL;
 
     } else {
-      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,&status);
+      MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
       MPI_Rsend(buf,send_size,MPI_DOUBLE,fileproc,0,world);
     }
   }
@@ -450,6 +470,14 @@ void WriteRestart::header()
   write_int(ZPERIODIC,domain->zperiodic);
   write_int_vec(BOUNDARY,6,&domain->boundary[0][0]);
 
+  // added field for shrink-wrap boundaries with minimum - 2 Jul 2015
+
+  double minbound[6];
+  minbound[0] = domain->minxlo; minbound[1] = domain->minxhi;
+  minbound[2] = domain->minylo; minbound[3] = domain->minyhi;
+  minbound[4] = domain->minzlo; minbound[5] = domain->minzhi;
+  write_double_vec(BOUNDMIN,6,minbound);
+
   // write atom_style and its args
 
   write_string(ATOM_STYLE,atom->atom_style);
@@ -484,6 +512,18 @@ void WriteRestart::header()
 
   write_double_vec(SPECIAL_LJ,3,&force->special_lj[1]);
   write_double_vec(SPECIAL_COUL,3,&force->special_coul[1]);
+
+  write_double(TIMESTEP,update->dt);
+
+  write_int(ATOM_ID,atom->tag_enable);
+  write_int(ATOM_MAP_STYLE,atom->map_style);
+  write_int(ATOM_MAP_USER,atom->map_user);
+  write_int(ATOM_SORTFREQ,atom->sortfreq);
+  write_double(ATOM_SORTBIN,atom->userbinsize);
+
+  write_int(COMM_MODE,comm->mode);
+  write_double(COMM_CUTOFF,comm->cutghostuser);
+  write_int(COMM_VEL,comm->ghost_velocity);
 
   // -1 flag signals end of header
 
@@ -641,7 +681,7 @@ void WriteRestart::write_double(int flag, double value)
    write a flag and a char string (including NULL) into restart file
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write_string(int flag, char *value)
+void WriteRestart::write_string(int flag, const char *value)
 {
   int n = strlen(value) + 1;
   fwrite(&flag,sizeof(int),1,fp);

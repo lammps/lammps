@@ -30,9 +30,12 @@ class ComputeMSD : public Compute {
   virtual ~ComputeMSD();
   void init();
   virtual void compute_vector();
+  void set_arrays(int);
 
  protected:
-  int comflag;
+  int comflag;   // comflag = 1 if reference moves with center of mass
+  int avflag;    // avflag = 1 if using average position as reference
+  int naverage;  // number of samples for average position
   bigint nmsd;
   double masstotal;
   char *id_fix;

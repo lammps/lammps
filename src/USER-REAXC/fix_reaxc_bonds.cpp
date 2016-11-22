@@ -15,9 +15,8 @@
    Contributing author: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_ave_atom.h"
 #include "fix_reaxc_bonds.h"
 #include "atom.h"
@@ -109,6 +108,9 @@ void FixReaxCBonds::setup(int vflag)
 void FixReaxCBonds::init()
 {
   reaxc = (PairReaxC *) force->pair_match("reax/c",1);
+  if (reaxc == NULL)
+    reaxc = (PairReaxC *) force->pair_match("reax/c/kk",1);
+
   if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                   "pair_style reax/c");
 
@@ -244,7 +246,7 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
 
 /* ---------------------------------------------------------------------- */
 
-void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local, 
+void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
                                int natoms, int maxnum)
 {
   int i, j, k, itype;
@@ -256,7 +258,6 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
 
   double cutof3 = reaxc->control->bg_cut;
   MPI_Request irequest, irequest2;
-  MPI_Status istatus;
 
   if (me == 0 ){
     fprintf(fp,"# Timestep " BIGINT_FORMAT " \n",ntimestep);
@@ -276,7 +277,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         nlocal_tmp = nlocal;
       } else {
         MPI_Irecv(&buf[0],nbuf,MPI_DOUBLE,inode,0,world,&irequest);
-        MPI_Wait(&irequest,&istatus);
+        MPI_Wait(&irequest,MPI_STATUS_IGNORE);
         nlocal_tmp = nint(buf[0]);
       }
       j = 2;
@@ -309,7 +310,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
     }
   } else {
     MPI_Isend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world,&irequest2);
-    MPI_Wait(&irequest2,&istatus);
+    MPI_Wait(&irequest2,MPI_STATUS_IGNORE);
   }
   if(me ==0) fprintf(fp,"# \n");
 

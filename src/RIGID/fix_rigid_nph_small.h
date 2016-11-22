@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -38,16 +38,16 @@ class FixRigidNPHSmall : public FixRigidNHSmall {
 
 /* ERROR/WARNING messages:
 
-E: Pressure control must be used with fix rigid nph/small
+E: Pressure control must be used with fix nph/small
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Temperature control must not be used with fix rigid/nph/small
+E: Temperature control must not be used with fix nph/small
 
-UNDOCUMENTED
+Self-explanatory.
 
-E: Target pressure for fix rigid/nph/small cannot be 0.0
+E: Target pressure for fix rigid/nph cannot be < 0.0
 
-UNDOCUMENTED
+Self-explanatory.
 
 */

@@ -15,9 +15,8 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
-#include "math.h"
+#include <mpi.h>
+#include <math.h>
 #include "fix_qeq_comb_omp.h"
 #include "fix_omp.h"
 #include "atom.h"
@@ -60,12 +59,14 @@ void FixQEQCombOMP::init()
   comb = (PairComb *) force->pair_match("comb/omp",1);
   if (comb == NULL)
     comb = (PairComb *) force->pair_match("comb",1);
-  if (comb == NULL) 
+  if (comb == NULL)
     error->all(FLERR,"Must use pair_style comb or "
                "comb/omp with fix qeq/comb/omp");
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/comb group has no atoms");
@@ -78,7 +79,7 @@ void FixQEQCombOMP::init()
      if (fix->get_neighbor()) use_omp = 1;
   }
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->omp = use_omp;
 }
 

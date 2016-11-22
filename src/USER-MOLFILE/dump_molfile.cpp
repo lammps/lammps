@@ -81,7 +81,7 @@ DumpMolfile::DumpMolfile(LAMMPS *lmp, int narg, char **arg)
   // allocate global array for atom coords
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT/sizeof(float))
+  if (n > static_cast<bigint>(MAXSMALLINT/3/sizeof(float)))
     error->all(FLERR,"Too many atoms for dump molfile");
   if (n < 1)
     error->all(FLERR,"Not enough atoms for dump molfile");
@@ -234,10 +234,10 @@ void DumpMolfile::write()
   sort();
 
   int tmp,nlines;
-  MPI_Status status;
-  MPI_Request request;
 
   if (me == 0) {
+    MPI_Status status;
+    MPI_Request request;
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(buf,maxbuf*size_one,MPI_DOUBLE,iproc,0,world,&request);
@@ -251,7 +251,7 @@ void DumpMolfile::write()
     }
 
   } else {
-    MPI_Recv(&tmp,0,MPI_INT,0,0,world,&status);
+    MPI_Recv(&tmp,0,MPI_INT,0,0,world,MPI_STATUS_IGNORE);
     MPI_Rsend(buf,nme*size_one,MPI_DOUBLE,0,0,world);
   }
 }
@@ -387,6 +387,7 @@ void DumpMolfile::write_data(int n, double *mybuf)
 
       if (need_structure) {
         mf->property(MFI::P_NAME,types,typenames);
+        mf->property(MFI::P_TYPE,types,typenames);
 
         if (atom->molecule_flag)
           mf->property(MFI::P_RESI,molids);

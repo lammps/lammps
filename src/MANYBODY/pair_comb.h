@@ -37,6 +37,7 @@ class PairComb : public Pair {
   double memory_usage();
 
   virtual double yasu_char(double *, int &);
+  double enegtot;
 
  protected:
   struct Param {
@@ -86,7 +87,7 @@ class PairComb : public Pair {
 
   void allocate();
   virtual void read_file(char *);
-  void setup();
+  void setup_params();
   virtual void repulsive(Param *, double, double &, int,
                          double &, double, double);
   double zeta(Param *, double, double, double *, double *);
@@ -229,13 +230,11 @@ invalid.
 
 E: Potential file has duplicate entry
 
-The potential file for a SW or Tersoff potential has more than
-one entry for the same 3 ordered elements.
+The potential file has more than one entry for the same element.
 
 E: Potential file is missing an entry
 
-The potential file for a SW or Tersoff potential does not have a
-needed entry.
+The potential file does not have a needed entry.
 
 W: Pair COMB charge %.10f with force %.10f hit min barrier
 

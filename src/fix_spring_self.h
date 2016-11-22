@@ -51,7 +51,7 @@ class FixSpringSelf : public Fix {
   double k,espring;
   double **xoriginal;         // original coords of atoms
   int xflag, yflag, zflag;
-  int nlevels_respa;
+  int ilevel_respa;
 };
 
 }

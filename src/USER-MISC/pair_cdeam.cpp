@@ -17,10 +17,10 @@
                         Germany Department of Materials Science
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_cdeam.h"
 #include "atom.h"
 #include "force.h"
@@ -494,7 +494,7 @@ void PairCDEAM::read_h_coeff(char *filename)
 
 /* ---------------------------------------------------------------------- */
 
-int PairCDEAM::pack_forward_comm(int n, int *list, double *buf, 
+int PairCDEAM::pack_forward_comm(int n, int *list, double *buf,
                                  int pbc_flag, int *pbc)
 {
         int i,j,m;

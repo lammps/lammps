@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -51,11 +51,11 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Pair style dipole/cut/gpu requires atom attribute q
+E: Pair dipole/sf/gpu requires atom attributes q, mu, torque
 
-The atom style defined does not have this attribute.
+The atom style defined does not one or more of these attributes.
 
-E: Cannot use newton pair with dipole/cut/gpu pair style
+E: Cannot use newton pair with dipole/sf/gpu pair style
 
 Self-explanatory.
 

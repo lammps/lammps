@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_contact_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  contact(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute contact/atom command");
 
@@ -41,7 +42,6 @@ ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
   comm_reverse = 1;
 
   nmax = 0;
-  contact = NULL;
 
   // error checks
 
@@ -71,7 +71,7 @@ void ComputeContactAtom::init()
 
   // need an occasional neighbor list
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->gran = 1;
   neighbor->requests[irequest]->pair = 0;

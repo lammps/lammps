@@ -14,7 +14,7 @@
 #ifndef LMP_LAMMPS_H
 #define LMP_LAMMPS_H
 
-#include "stdio.h"
+#include <stdio.h>
 
 namespace LAMMPS_NS {
 
@@ -42,25 +42,29 @@ class LAMMPS {
   FILE *screen;                  // screen output
   FILE *logfile;                 // logfile
 
+  double initclock;              // wall clock at instantiation
+
   char *suffix,*suffix2;         // suffixes to add to input script style names
   int suffix_enable;             // 1 if suffixes are enabled, 0 if disabled
+  char *exename;                 // pointer to argv[0]
+  char ***packargs;              // arguments for cmdline package commands
+  int num_package;               // number of cmdline package commands
   int cite_enable;               // 1 if generating log.cite, 0 if disabled
 
-  class Cuda *cuda;              // CUDA accelerator class
   class KokkosLMP *kokkos;       // KOKKOS accelerator class
+  class AtomKokkos *atomKK;      // KOKKOS version of Atom class
 
   class CiteMe *citeme;          // citation info
 
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
   void create();
-  void post_create(int, int *, int *, char **);
+  void post_create();
   void init();
   void destroy();
 
  private:
   void help();
-  void print_style(const char *, int &);
   LAMMPS() {};                   // prohibit using the default constructor
   LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor
 };
@@ -80,7 +84,7 @@ E: Cannot use -reorder after -partition
 
 Self-explanatory.  See doc page discussion of command-line switches.
 
-E: Processor partitions are inconsistent
+E: Processor partitions do not match number of allocated processors
 
 The total number of processors in all partitions must match the number
 of processors LAMMPS is running on.
@@ -160,9 +164,33 @@ This error occurs whenthe sizes of smallint, imageint, tagint, bigint,
 as defined in src/lmptype.h are not what is expected.  Contact
 the developers if this occurs.
 
-E: Cannot use -cuda on without USER-CUDA installed
+E: Cannot use -cuda on and -kokkos on together
 
-The USER-CUDA package must be installed via "make yes-user-cuda"
-before LAMMPS is built.
+This is not allowed since both packages can use GPUs.
+
+E: Cannot use -kokkos on without KOKKOS installed
+
+Self-explanatory.
+
+E: Using suffix gpu without GPU package installed
+
+Self-explanatory.
+
+E: Using suffix intel without USER-INTEL package installed
+
+Self-explanatory.
+
+E: Using suffix kk without KOKKOS package enabled
+
+Self-explanatory.
+
+E: Using suffix omp without USER-OMP package installed
+
+Self-explanatory.
+
+E: Too many -pk arguments in command line
+
+The string formed by concatenating the arguments is too long.  Use a
+package command in the input script instead.
 
 */

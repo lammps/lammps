@@ -16,6 +16,7 @@
 
 #include "neighbor.h"
 #include "neigh_list_kokkos.h"
+#include "neigh_bond_kokkos.h"
 #include "kokkos_type.h"
 #include <math.h>
 
@@ -135,7 +136,7 @@ class NeighborKokkosExecute
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
     resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
     h_resize = Kokkos::create_mirror_view(resize);
 #else
     h_resize = resize;
@@ -143,7 +144,7 @@ class NeighborKokkosExecute
     h_resize() = 1;
     new_maxneighs = typename AT::
       t_int_scalar("NeighborKokkosFunctor::new_maxneighs");
-#ifndef KOKKOS_USE_UVM
+#ifndef KOKKOS_USE_CUDA_UVM
     h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
 #else
     h_new_maxneighs = new_maxneighs;
@@ -156,6 +157,10 @@ class NeighborKokkosExecute
   template<int HalfNeigh, int GhostNewton>
   KOKKOS_FUNCTION
   void build_Item(const int &i) const;
+
+  template<int HalfNeigh>
+  KOKKOS_FUNCTION
+  void build_Item_Ghost(const int &i) const;
 
   template<int ClusterSize>
   KOKKOS_FUNCTION
@@ -203,6 +208,42 @@ class NeighborKokkosExecute
   }
 
   KOKKOS_INLINE_FUNCTION
+  int coord2bin(const X_FLOAT & x,const X_FLOAT & y,const X_FLOAT & z, int* i) const
+  {
+    int ix,iy,iz;
+
+    if (x >= bboxhi[0])
+      ix = static_cast<int> ((x-bboxhi[0])*bininvx) + nbinx;
+    else if (x >= bboxlo[0]) {
+      ix = static_cast<int> ((x-bboxlo[0])*bininvx);
+      ix = MIN(ix,nbinx-1);
+    } else
+      ix = static_cast<int> ((x-bboxlo[0])*bininvx) - 1;
+
+    if (y >= bboxhi[1])
+      iy = static_cast<int> ((y-bboxhi[1])*bininvy) + nbiny;
+    else if (y >= bboxlo[1]) {
+      iy = static_cast<int> ((y-bboxlo[1])*bininvy);
+      iy = MIN(iy,nbiny-1);
+    } else
+      iy = static_cast<int> ((y-bboxlo[1])*bininvy) - 1;
+
+    if (z >= bboxhi[2])
+      iz = static_cast<int> ((z-bboxhi[2])*bininvz) + nbinz;
+    else if (z >= bboxlo[2]) {
+      iz = static_cast<int> ((z-bboxlo[2])*bininvz);
+      iz = MIN(iz,nbinz-1);
+    } else
+      iz = static_cast<int> ((z-bboxlo[2])*bininvz) - 1;
+
+    i[0] = ix - mbinxlo;
+    i[1] = iy - mbinylo;
+    i[2] = iz - mbinzlo;
+
+    return (iz-mbinzlo)*mbiny*mbinx + (iy-mbinylo)*mbinx + (ix-mbinxlo);
+  }
+
+  KOKKOS_INLINE_FUNCTION
   int exclusion(const int &i,const int &j, const int &itype,const int &jtype) const;
 
   KOKKOS_INLINE_FUNCTION
@@ -240,10 +281,10 @@ struct NeighborKokkosBuildFunctor {
   const NeighborKokkosExecute<Device> c;
   const size_t sharedsize;
 
-  NeighborKokkosBuildFunctor(const NeighborKokkosExecute<Device> &_c, 
+  NeighborKokkosBuildFunctor(const NeighborKokkosExecute<Device> &_c,
                              const size_t _sharedsize):c(_c),
                              sharedsize(_sharedsize) {};
-  
+
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON>(i);
@@ -255,6 +296,23 @@ struct NeighborKokkosBuildFunctor {
   }
   size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
+};
+
+template<class Device,int HALF_NEIGH>
+struct NeighborKokkosBuildFunctorGhost {
+  typedef Device device_type;
+
+  const NeighborKokkosExecute<Device> c;
+  const size_t sharedsize;
+
+  NeighborKokkosBuildFunctorGhost(const NeighborKokkosExecute<Device> &_c,
+                             const size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int & i) const {
+    c.template build_Item_Ghost<HALF_NEIGH>(i);
+  }
 };
 
 template<class Device,int ClusterSize>
@@ -274,18 +332,42 @@ struct NeighborClusterKokkosBuildFunctor {
   }
 };
 
+template<class DeviceType>
+struct TagNeighborCheckDistance{};
+
+template<class DeviceType>
+struct TagNeighborXhold{};
+
 class NeighborKokkos : public Neighbor {
  public:
-  class AtomKokkos *atomKK;
+  typedef int value_type;
+
+
 
   int nlist_host;                       // pairwise neighbor lists on Host
   NeighListKokkos<LMPHostType> **lists_host;
   int nlist_device;                     // pairwise neighbor lists on Device
   NeighListKokkos<LMPDeviceType> **lists_device;
 
+  NeighBondKokkos<LMPHostType> neighbond_host;
+  NeighBondKokkos<LMPDeviceType> neighbond_device;
+
+  DAT::tdual_int_2d k_bondlist;
+  DAT::tdual_int_2d k_anglelist;
+  DAT::tdual_int_2d k_dihedrallist;
+  DAT::tdual_int_2d k_improperlist;
+
   NeighborKokkos(class LAMMPS *);
   ~NeighborKokkos();
   void init();
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagNeighborCheckDistance<DeviceType>, const int&, int&) const;
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagNeighborXhold<DeviceType>, const int&) const;
 
  private:
   int atoms_per_bin;
@@ -300,6 +382,12 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
 
+  DAT::tdual_x_array x;
+  DAT::tdual_x_array xhold;
+
+  X_FLOAT deltasq;
+  int device_flag;
+
   void init_cutneighsq_kokkos(int);
   int init_lists_kokkos();
   void init_list_flags1_kokkos(int);
@@ -309,11 +397,16 @@ class NeighborKokkos : public Neighbor {
   void init_ex_bit_kokkos();
   void init_ex_mol_bit_kokkos();
   void choose_build(int, NeighRequest *);
-  void build_kokkos(int);
+  virtual int check_distance();
+  template<class DeviceType> int check_distance_kokkos();
+  virtual void build(int);
+  template<class DeviceType> void build_kokkos(int);
   void setup_bins_kokkos(int);
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();
   void modify_mol_group_grow_kokkos();
+  void init_topology_kokkos();
+  void build_topology_kokkos();
 
   typedef void (NeighborKokkos::*PairPtrHost)
     (class NeighListKokkos<LMPHostType> *);
@@ -322,7 +415,7 @@ class NeighborKokkos : public Neighbor {
     (class NeighListKokkos<LMPDeviceType> *);
   PairPtrDevice *pair_build_device;
 
-  template<class DeviceType,int HALF_NEIGH>
+  template<class DeviceType,int HALF_NEIGH, int GHOST>
   void full_bin_kokkos(NeighListKokkos<DeviceType> *list);
   template<class DeviceType>
   void full_bin_cluster_kokkos(NeighListKokkos<DeviceType> *list);
@@ -340,5 +433,15 @@ class NeighborKokkos : public Neighbor {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: KOKKOS package only supports 'bin' neighbor lists
+
+Self-explanatory.
+
+E: Too many local+ghost atoms for neighbor list
+
+The number of nlocal + nghost atoms on a processor
+is limited by the size of a 32-bit integer with 2 bits
+removed for masking 1-2, 1-3, 1-4 neighbors.
 
 */

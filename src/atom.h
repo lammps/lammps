@@ -15,6 +15,8 @@
 #define LMP_ATOM_H
 
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -76,6 +78,25 @@ class Atom : protected Pointers {
   double *rho,*drho,*e,*de,*cv;
   double **vest;
 
+  // USER-SMD package
+
+  double *contact_radius;
+  double **smd_data_9;
+  double **smd_stress;
+  double *eff_plastic_strain;
+  double *eff_plastic_strain_rate;
+  double *damage;
+
+  // USER-DPD package
+
+  double *uCond,*uMech,*uChem,*uCGnew,*uCG;
+  double *duChem;
+  double *dpdTheta;
+  int nspecies_dpd;
+  int *ssaAIR; // Shardlow Splitting Algorithm Active Interaction Region number
+
+  // molecular info
+
   int **nspecial;               // 0,1,2 = cummulative # of 1-2,1-3,1-4 neighs
   tagint **special;             // IDs of 1-2,1-3,1-4 neighs of each atom
   int maxspecial;               // special[nlocal][maxspecial]
@@ -103,11 +124,6 @@ class Atom : protected Pointers {
   char **iname,**dname;
   int nivector,ndvector;
 
-  // used by USER-CUDA to flag used per-atom arrays
-
-  unsigned int datamask;
-  unsigned int datamask_ext;
-
   // atom style and per-atom array existence flags
   // customize by adding new flag
 
@@ -122,6 +138,18 @@ class Atom : protected Pointers {
   int vfrac_flag,spin_flag,eradius_flag,ervel_flag,erforce_flag;
   int cs_flag,csforce_flag,vforce_flag,ervelforce_flag,etag_flag;
   int rho_flag,e_flag,cv_flag,vest_flag;
+  int dpd_flag;
+
+  // USER-SMD package
+
+  int smd_flag;
+  int contact_radius_flag;
+  int smd_data_9_flag;
+  int smd_stress_flag;
+  int x0_flag;
+  int eff_plastic_strain_flag;
+  int eff_plastic_strain_rate_flag;
+  int damage_flag;
 
   // Peridynamics scale factor, used by dump cfg
 
@@ -160,10 +188,17 @@ class Atom : protected Pointers {
 
   int sortfreq;             // sort atoms every this many steps, 0 = off
   bigint nextsort;          // next timestep to sort on
+  double userbinsize;       // requested sort bin size
 
   // indices of atoms with same ID
 
   int *sametag;      // sametag[I] = next atom with same ID, -1 if no more
+
+  // AtomVec factory types and map
+
+  typedef AtomVec *(*AtomVecCreator)(LAMMPS *);
+  typedef std::map<std::string,AtomVecCreator> AtomVecCreatorMap;
+  AtomVecCreatorMap *avec_map;
 
   // functions
 
@@ -172,7 +207,7 @@ class Atom : protected Pointers {
 
   void settings(class Atom *);
   void create_avec(const char *, int, char **, int);
-  class AtomVec *new_avec(const char *, int, int &);
+  virtual class AtomVec *new_avec(const char *, int, int &);
   void init();
   void setup();
 
@@ -184,26 +219,26 @@ class Atom : protected Pointers {
 
   int parse_data(const char *);
   int count_words(const char *);
+  int count_words(const char *, char *);
 
   void deallocate_topology();
 
-  void data_atoms(int, char *);
-  void data_vels(int, char *);
-
-  void data_bonds(int, char *, int *);
-  void data_angles(int, char *, int *);
-  void data_dihedrals(int, char *, int *);
-  void data_impropers(int, char *, int *);
-
-  void data_bonus(int, char *, class AtomVec *);
-  void data_bodies(int, char *, class AtomVecBody *);
-
+  void data_atoms(int, char *, tagint, int, int, double *);
+  void data_vels(int, char *, tagint);
+  void data_bonds(int, char *, int *, tagint, int);
+  void data_angles(int, char *, int *, tagint, int);
+  void data_dihedrals(int, char *, int *, tagint, int);
+  void data_impropers(int, char *, int *, tagint, int);
+  void data_bonus(int, char *, class AtomVec *, tagint);
+  void data_bodies(int, char *, class AtomVecBody *, tagint);
+  void data_fix_compute_variable(int, int);
+  
   virtual void allocate_type_arrays();
-  void set_mass(const char *);
-  void set_mass(int, double);
-  void set_mass(int, char **);
+  void set_mass(const char *, int, const char *, int);
+  void set_mass(const char *, int, int, double);
+  void set_mass(const char *, int, int, char **);
   void set_mass(double *);
-  void check_mass();
+  void check_mass(const char *, int);
 
   int radius_consistency(int, double &);
   int shape_consistency(int, double &, double &, double &);
@@ -219,10 +254,10 @@ class Atom : protected Pointers {
   void delete_callback(const char *, int);
   void update_callback(int);
 
-  int find_custom(char *, int &);
-  int add_custom(char *, int);
+  int find_custom(const char *, int &);
+  int add_custom(const char *, int);
   void remove_custom(int, int);
-  
+
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
   void *extract(char *);
@@ -281,7 +316,6 @@ class Atom : protected Pointers {
   int *binhead;                   // 1st atom in each bin
   int *next;                      // next atom in bin
   int *permute;                   // permutation vector
-  double userbinsize;             // requested sort bin size
   double bininvx,bininvy,bininvz; // inverse actual bin sizes
   double bboxlo[3],bboxhi[3];     // bounding box of my sub-domain
 
@@ -290,6 +324,9 @@ class Atom : protected Pointers {
 
   void setup_sort_bins();
   int next_prime(int);
+
+ private:
+  template <typename T> static AtomVec *avec_creator(LAMMPS *);
 };
 
 }
@@ -302,7 +339,7 @@ E: Atom IDs must be used for molecular systems
 
 Atom IDs are used to identify and find partner atoms in bonds.
 
-E: Invalid atom style
+E: Unknown atom style
 
 The choice of atom style is unknown.
 
@@ -330,23 +367,31 @@ E: Atom_modify sort and first options cannot be used together
 
 Self-explanatory.
 
-E: Atom ID is negative
+E: One or more Atom IDs is negative
 
-Self-explanatory.
+Atom IDs must be positive integers.
 
-E: Atom ID is too big
+E: One or more atom IDs is too big
 
 The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
 setting in your Makefile.  See Section_start 2.2 of the manual for
 more details.
 
-E: Atom ID is zero
+E: One or more atom IDs is zero
 
 Either all atoms IDs must be zero or none of them.
 
-E: Not all atom IDs are 0
+E: Non-zero atom IDs with atom_modify id = no
 
-Either all atoms IDs must be zero or none of them.
+Self-explanatory.
+
+E: All atom IDs = 0 but atom_modify id = yes
+
+Self-explanatory.
+
+E: Duplicate atom IDs exist
+
+Self-explanatory.
 
 E: New atom IDs exceed maximum allowed ID
 
@@ -356,6 +401,10 @@ E: Incorrect atom format in data file
 
 Number of values per atom line in the data file is not consistent with
 the atom style.
+
+E: Invalid atom type in Atoms section of data file
+
+Atom types must range from 1 to specified # of types.
 
 E: Incorrect velocity format in data file
 

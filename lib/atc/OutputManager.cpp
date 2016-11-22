@@ -57,8 +57,8 @@ OutputManager::OutputManager(string outputPrefix, set<int> & otypes)
     fullTextOutput_(otypes.count(FULL_GNUPLOT)),
     vtkOutput_(otypes.count(VTK)),
     tensorToComponents_(false), // paraview does not support tensors
-    vectorToComponents_(false)
-    
+    vectorToComponents_(false),
+    warnTooManyCols_(true)
 {}
 //-----------------------------------------------------------------------------
 //*
@@ -461,9 +461,10 @@ void OutputManager::write_data_ensight(string field_name, const MATRIX *field_da
   if (use_component_names(type)){
     nfiles = ndof;
     if (nfiles > kFileNameSize) {
-      if (ATC::LammpsInterface::instance()->rank_zero()) {
+      if (warnTooManyCols_ && ATC::LammpsInterface::instance()->rank_zero()) {
+        warnTooManyCols_ = false;
         stringstream ss;
-        ss << " only writing " << kFileNameSize
+        ss << "WARNING: only writing " << kFileNameSize
            << " components of " <<  field_name << " which has " << ndof;
         ATC::LammpsInterface::instance()->print_msg(ss.str());
       }

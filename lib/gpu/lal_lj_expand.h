@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : ibains@nvidia.com
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ class LJExpand : public BaseAtomic<numtyp, acctyp> {
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -40,15 +40,15 @@ class LJExpand : public BaseAtomic<numtyp, acctyp> {
   int init(const int ntypes, double **host_cutsq, double **host_lj1,
            double **host_lj2, double **host_lj3, double **host_lj4,
            double **host_offset, double **host_shift, double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen);
-  
+
   /// Send updated coeffs from host to device (to be compatible with fix adapt)
   void reinit(const int ntypes, double **host_cutsq,
               double **host_lj1, double **host_lj2, double **host_lj3,
               double **host_lj4, double **host_offset, double **host_shift);
-  
+
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
@@ -71,7 +71,7 @@ class LJExpand : public BaseAtomic<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
  private:

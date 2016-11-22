@@ -1,6 +1,6 @@
 This directory contains Python code which wraps LAMMPS as a library
 and allows the LAMMPS library interface to be invoked from Python,
-either from a script or interactively.
+either from a Python script or using Python interactively.
 
 Details on the Python interface to LAMMPS and how to build LAMMPS as a
 shared library, for use with Python, are given in
@@ -8,24 +8,29 @@ doc/Section_python.html and in doc/Section_start.html#start_5.
 
 Basically you need to follow these steps in the src directory:
 
-% make makeshlib                # creates Makefile.shlib
-% make -f Makefile.shlib g++    # build for whatever machine target you wish
+% make g++ mode=shlib           # build for whatever machine target you wish
 % make install-python           # may need to do this via sudo
 
-You can replace the last step with running the python/install.py
-script directly to give you more control over where two relevant files
-are installed, or by setting environment variables in your shell
-script.  See doc/Section_python.html for details.
+You can replace the last step by a one-time setting of environment
+variables in your shell script.  Or you can run the python/install.py
+script directly to give you more control over where the two relevant
+files are installed.  See doc/Section_python.html for details.
 
-You can then launch Python and instantiate an instance of LAMMPS:
+You should then be able to launch Python and instantiate an instance
+of LAMMPS:
 
 % python
 >>> from lammps import lammps
 >>> lmp = lammps()
 
 If that gives no errors, you have succesfully wrapped LAMMPS with
-Python.  See doc/Section_python.html#py_5 for tests you can then use
+Python.  See doc/Section_python.html#py_7 for tests you can then use
 to run LAMMPS both in serial or parallel thru Python.
+
+Note that you can also invoke Python code from within a LAMMPS input
+script, using the "python" command.  See the doc/python.html doc page
+for details.  The Python code you invoke can also call back to LAMMPS
+using the same interface described here for wrapping LAMMPS.
 
 -------------------------------------------------------------------
 
@@ -34,7 +39,8 @@ scripts in the examples sub-directory:
 
 trivial.py          read/run a LAMMPS input script thru Python
 demo.py	  	    invoke various LAMMPS library interface routines
-simple.py	    mimic operation of examples/COUPLE/simple/simple.cpp
+simple.py	    parallel example, mimicing examples/COUPLE/simple/simple.cpp
+split.py            parallel example
 mc.py               Monte Carlo energy relaxation wrapper on LAMMPS
 gui.py		    GUI go/stop/temperature-slider to control LAMMPS
 plot.py		    real-time temeperature plot with GnuPlot via Pizza.py
@@ -72,30 +78,53 @@ The latter link is to the open-source version.
 
 -------------------------------------------------------------------
 
+Each example script has more documentation in the file that explains
+how to use it and what it is doing.
+
 You can run a particular script in either of the following ways:
 
 % trivial.py in.trivial
 % python -i trivial.py in.trivial
 
 The former assumes that you have changed the first line of the script
-to point to the Python installed on your box.
+to point to the Python installed on your box and made the script
+exectable (e.g. chmod +x trivial.py).
 
-Run the Python scripts with the following LAMMPS input scripts and
-arguments:
+The example scripts take the following arguments.  The in.* args are
+LAMPS input scripts.
 
 trivial.py in.trivial
 demo.py
-simple.py in.simple
+simple.py in.simple      # can run in parallel (see below)
+split.py in.simple       # can run in parallel (see below)
+
 gui.py in.gui 100
 plot.py in.plot 10 1000 thermo_temp
 viz_tool.py in.viz 100 5000
 vizplotgui_tool.py in.viz 100 thermo_temp
 
-You can un-comment the Pypar calls if you want to run these in
-parallel.  Then, for example, you can type:
+To run LAMMPS in parallel from Python, so something like this:
 
-% mpirun -np 4 trivial.py in.trivial
-% mpirun -np 4 python trivial.py in.trivial
+% mpirun -np 4 simple.py in.simple
+% mpirun -np 4 python split.py in.simple
 
-Each script has more documentation in the file that explains how to
-use it and what it is doing.
+If you run simple.py as-is, this will invoke P instances of a
+one-processor run, where both Python and LAMMPS will run on single
+processors.  Each running job will read the same input file, and write
+to same log.lammps file, which isn't too useful.
+
+However, if you have either the Pypar or mpi4py packages installed in
+your Python, and uncomment the Pypar or mpi4py code in simple.py, then
+the above commands will invoke 1 instance of a P-processor run.  Both
+Python and LAMMPS will run on P processors.  The job will read the
+input file and write a single log.lammps file.
+
+The split.py script can also be run in parallel.  It uses mpi4py
+version 2.0.0 (or later), which makes it possible to pass a
+communicator when creating the LAMMPS object and thus run multiple
+instances of LAMMPS at the same time, each on a different subset of
+MPI ranks.  Or run LAMMPS on one subset and some other program on the
+rest of the MPI ranks, concurrently.  See comments in the split.py
+script for more details.
+
+

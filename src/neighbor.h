@@ -49,11 +49,12 @@ class Neighbor : protected Pointers {
   class NeighRequest **requests;   // from Pair, Fix, Compute, Command classes
   int maxrequest;
 
-  int old_style;                   // previous run info to avoid
-  int old_nrequest;                // re-creation of pairwise neighbor lists
-  int old_triclinic;
-  int old_pgsize;
-  int old_oneatom;
+  int old_style,old_nrequest;      // previous run info to avoid
+  int old_triclinic,old_pgsize;    // re-creation of pairwise neighbor lists
+  int old_oneatom,old_every;
+  int old_delay,old_check;
+  double old_cutoff;
+
   class NeighRequest **old_requests;
 
   int nlist;                       // pairwise neighbor lists
@@ -68,21 +69,28 @@ class Neighbor : protected Pointers {
   int nimproperlist;               // list of impropers to compute
   int **improperlist;
 
+  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
+
+  // methods
+
   Neighbor(class LAMMPS *);
   virtual ~Neighbor();
   virtual void init();
-  int request(void *);              // another class requests a neighbor list
+  int request(void *, int instance=0);  // another class requests a neigh list
   void print_lists_of_lists();      // debug print out
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int topoflag=1);  // create all neighbor lists (pair,bond)
   virtual void build_topology();    // create all topology neighbor lists
-  void build_one(class NeighList *list, int preflag=0);  // create a single neighbor list
+  void build_one(class NeighList *list,
+                 int preflag=0);    // create a single one-time neigh list
   void set(int, char **);           // set neighbor style and skin distance
+  void reset_timestep(bigint);      // reset of timestep counter
   void modify_params(int, char**);  // modify parameters that control builds
   bigint memory_usage();
   int exclude_setting();
+  void exclusion_group_group_delete(int, int);  // rm a group-group exclusion
 
  protected:
   int me,nprocs;
@@ -102,7 +110,6 @@ class Neighbor : protected Pointers {
   double *cuttypesq;               // cuttype squared
 
   double triggersq;                // trigger = build when atom moves this dist
-  int cluster_check;               // 1 if check bond/angle/etc satisfies minimg
 
   double **xhold;                      // atom coords at last neighbor build
   int maxhold;                         // size of xhold array
@@ -168,6 +175,10 @@ class Neighbor : protected Pointers {
   int *glist;                  // lists to grow atom arrays every reneigh
   int *slist;                  // lists to grow stencil arrays every reneigh
 
+  double *zeroes;              // vector of zeroes for shear history init
+
+  // methods
+
   void bin_atoms();                     // bin all atoms
   double bin_distance(int, int, int);   // distance between binx
   int coord2bin(double *);              // mapping atom coord to a bin
@@ -185,9 +196,16 @@ class Neighbor : protected Pointers {
   virtual int init_lists_kokkos() {return 0;}
   virtual void init_list_flags1_kokkos(int) {}
   virtual void init_list_flags2_kokkos(int) {}
+  virtual void init_ex_type_kokkos(int) {}
+  virtual void init_ex_bit_kokkos() {}
+  virtual void init_ex_mol_bit_kokkos() {}
   virtual void init_list_grow_kokkos(int) {}
   virtual void build_kokkos(int) {}
   virtual void setup_bins_kokkos(int) {}
+  virtual void init_topology_kokkos() {}
+  virtual void build_topology_kokkos() {}
+
+  int copymode;
 
   // pairwise build functions
 
@@ -213,17 +231,12 @@ class Neighbor : protected Pointers {
   void full_bin_ghost(class NeighList *);
   void full_multi(class NeighList *);
 
-  void half_from_full_no_newton(class NeighList *);
-  void half_from_full_newton(class NeighList *);
-  void skip_from(class NeighList *);
-  void skip_from_granular(class NeighList *);
-  void skip_from_respa(class NeighList *);
-  void copy_from(class NeighList *);
-
   void granular_nsq_no_newton(class NeighList *);
   void granular_nsq_newton(class NeighList *);
+  void granular_nsq_newton_onesided(class NeighList *);
   void granular_bin_no_newton(class NeighList *);
   void granular_bin_newton(class NeighList *);
+  void granular_bin_newton_onesided(class NeighList *);
   void granular_bin_newton_tri(class NeighList *);
 
   void respa_nsq_no_newton(class NeighList *);
@@ -231,6 +244,15 @@ class Neighbor : protected Pointers {
   void respa_bin_no_newton(class NeighList *);
   void respa_bin_newton(class NeighList *);
   void respa_bin_newton_tri(class NeighList *);
+
+  void half_from_full_no_newton(class NeighList *);
+  void half_from_full_newton(class NeighList *);
+  void skip_from(class NeighList *);
+  void skip_from_granular(class NeighList *);
+  void skip_from_granular_off2on(class NeighList *);
+  void skip_from_granular_off2on_onesided(class NeighList *);
+  void skip_from_respa(class NeighList *);
+  void copy_from(class NeighList *);
 
   // include prototypes for multi-threaded neighbor lists
   // builds or their corresponding dummy versions
@@ -294,6 +316,13 @@ class Neighbor : protected Pointers {
   void improper_all();                // improper list with all impropers
   void improper_template();           // improper list with templated bonds
   void improper_partial();            // exclude certain impropers
+
+  // SSA neighboring for USER-DPD
+
+  void half_bin_newton_ssa(NeighList *);
+  void half_from_full_newton_ssa(class NeighList *);
+  void stencil_half_bin_2d_ssa(class NeighList *, int, int, int);
+  void stencil_half_bin_3d_ssa(class NeighList *, int, int, int);
 
   // find_special: determine if atom j is in special list of atom i
   // if it is not, return 0
@@ -381,11 +410,9 @@ The number of nlocal + nghost atoms on a processor
 is limited by the size of a 32-bit integer with 2 bits
 removed for masking 1-2, 1-3, 1-4 neighbors.
 
-W: Building an occasional neighobr list when atoms may have moved too far
+E: Trying to build an occasional neighbor list before initialization completed
 
-This can cause LAMMPS to crash when the neighbor list is built.
-The solution is to check for building the regular neighbor lists
-more frequently.
+This is not allowed.  Source code caller needs to be modified.
 
 E: Domain too large for neighbor bins
 

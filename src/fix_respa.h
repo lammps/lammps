@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixRespa : public Fix {
   friend class Respa;
   friend class FixShake;
-  friend class FixShake2;
+  friend class FixRattle;
 
  public:
   FixRespa(class LAMMPS *, int, char **);
@@ -43,7 +43,9 @@ class FixRespa : public Fix {
 
  private:
   int nlevels;
-  double ***f_level;            // force at each rRESPA level
+  int store_torque;  // 1 if torques should be stored in addition to forces
+  double ***f_level; // force at each rRESPA level
+  double ***t_level; // torque at each rRESPA level
 };
 
 }

@@ -1,0 +1,13 @@
+This package provides alternative styles that allow compressed file I/O
+via compression libraries. This is similar to what is enabled through
+using the -DLAMMPS_GZIP preprocessor flag, but it does not open a pipe
+to an external executable that handles the compression. These styles
+use library calls to libraries like zlib instead and thus have to be
+compiled using the library header files and linked to the respective
+library. This provides an alternative for compressed file I/O on systems
+where using a pipe can cause problems, e.g. when using RDMA communication
+with pinned memory like clusters with Infiniband or Myrinet.
+
+At the moment a few selected dump styles are supported
+for writing via this packaging. 
+

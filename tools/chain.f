@@ -18,10 +18,10 @@ c includes image flags in data file so chains can be unraveled later
      $     yboundlo,yboundhi,zboundlo,zboundhi
       real*8 random
  900  format(a)
- 901  format(2f10.6,a)
+ 901  format(2f15.6,a)
  902  format(i3,f5.1)
  903  format(i10,i8,i8,3f10.4,3i4)
- 904  format(i6,i3,2i6)
+ 904  format(i9,i3,2i9)
 
 c read chain definitions
 

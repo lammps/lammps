@@ -58,6 +58,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Non-numeric box dimensions - simulation unstable
+
+The box size has apparently blown up.
+
 E: Out of range atoms - cannot compute PPPM
 
 One or more atoms are attempting to map their charge to a PPPM grid

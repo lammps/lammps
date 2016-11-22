@@ -40,10 +40,11 @@ class PairAIREBOOMP : public PairAIREBO, public ThrOMP {
                          int vflag_atom, ThrData * const thr);
 
   void FREBO_thr(int ifrom, int ito, int evflag, int eflag,
-                 int vflag_atom, ThrData * const thr);
+                 int vflag_atom, double *pv0, ThrData * const thr);
   void FLJ_thr(int ifrom, int ito, int evflag, int eflag,
-               int vflag_atom, ThrData * const thr);
-  void TORSION_thr(int ifrom, int ito, int evflag, int eflag, ThrData * const thr);
+               int vflag_atom, double *pv1, ThrData * const thr);
+  void TORSION_thr(int ifrom, int ito, int evflag, int eflag,
+                   double *pv2, ThrData * const thr);
   void REBO_neigh_thr();
 };
 

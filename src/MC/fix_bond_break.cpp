@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_bond_break.h"
 #include "update.h"
 #include "respa.h"
@@ -36,7 +36,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  partner(NULL), finalpartner(NULL), distsq(NULL), probability(NULL), broken(NULL), copy(NULL), random(NULL)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 
@@ -98,15 +99,12 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   // allocate arrays local to this fix
 
   nmax = 0;
-  partner = finalpartner = NULL;
-  distsq = NULL;
 
   maxbreak = 0;
-  broken = NULL;
 
   // copy = special list for one atom
   // size = ms^2 + ms is sufficient
-  // b/c in rebuild_special() neighs of all 1-2s are added,
+  // b/c in rebuild_special_one() neighs of all 1-2s are added,
   //   then a dedup(), then neighs of all 1-3s are added, then final dedup()
   // this means intermediate size cannot exceed ms^2 + ms
 
@@ -402,7 +400,7 @@ void FixBondBreak::check_ghosts()
 
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall) 
+  if (flagall)
     error->all(FLERR,"Fix bond/break needs ghost atoms from further away");
   lastcheck = update->ntimestep;
 }
@@ -463,9 +461,9 @@ void FixBondBreak::update_topology()
       if (improperflag) break_impropers(i,id1,id2);
     }
 
-    if (influenced) rebuild_special(i);
+    if (influenced) rebuild_special_one(i);
   }
-  
+
   int newton_bond = force->newton_bond;
 
   int all;
@@ -492,7 +490,7 @@ void FixBondBreak::update_topology()
    affects 1-3 and 1-4 neighs due to other atom's augmented 1-2 neighs
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::rebuild_special(int m)
+void FixBondBreak::rebuild_special_one(int m)
 {
   int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;
@@ -829,7 +827,7 @@ void FixBondBreak::print_bb()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::print_copy(const char *str, tagint m, 
+void FixBondBreak::print_copy(const char *str, tagint m,
                               int n1, int n2, int n3, int *v)
 {
   printf("%s %i: %d %d %d nspecial: ",str,m,n1,n2,n3);
@@ -841,7 +839,7 @@ void FixBondBreak::print_copy(const char *str, tagint m,
 
 double FixBondBreak::compute_vector(int n)
 {
-  if (n == 1) return (double) breakcount;
+  if (n == 0) return (double) breakcount;
   return (double) breakcounttotal;
 }
 

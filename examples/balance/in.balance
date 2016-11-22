@@ -39,7 +39,7 @@ fix             10 all balance 50 0.9 rcb
 
 #compute         1 all property/atom proc
 #variable        p atom c_1%10
-#dump            2 all custom 50 tmp2.dump id v_p x y z
+#dump            2 all custom 50 tmp.dump id v_p x y z
 
 #dump            3 all image 50 image.*.jpg v_p type &
 #                adiam 1.0 view 0 0 zoom 1.8 subbox yes 0.02

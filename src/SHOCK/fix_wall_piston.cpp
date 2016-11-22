@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_wall_piston.h"
 #include "atom.h"
 #include "modify.h"
@@ -33,7 +33,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), randomt(NULL), gfactor1(NULL), gfactor2(NULL)
 {
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -41,6 +41,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix wall/piston command");
 
   randomt = NULL;
+  gfactor1 = gfactor2 = NULL;
   tempflag = 0;
   scaleflag = 1;
   roughflag = 0;
@@ -50,7 +51,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   rampNL3flag = 0;
   rampNL4flag = 0;
   rampNL5flag = 0;
-  z0 = vz = 0.0;
+  t_target = z0 = vx = vy = vz = 0.0;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
 
   int iarg = 3;
@@ -146,6 +147,15 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
     maxvy = vy;
     maxvz = vz;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixWallPiston::~FixWallPiston()
+{
+  delete[] gfactor2;
+  delete[] gfactor1;
+  delete randomt;
 }
 
 /* ---------------------------------------------------------------------- */

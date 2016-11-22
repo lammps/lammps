@@ -294,6 +294,12 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = NULL;
       fi(i++) = args[idx++];
     }
     tag_ = "piecewise_linear";
+    stringstream ss;
+    ss << "created piecewise function : " << n << " \n";
+    for (i = 0; i < n; i++) {
+      ss << xi(i) << " " << fi(i) << "\n";
+    }
+    ATC::LammpsInterface::instance()->print_msg_once(ss.str());
   }
   double PiecewiseLinearFunction::f(double * x, double t)
   {

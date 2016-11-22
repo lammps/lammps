@@ -16,6 +16,10 @@
 
 #include "pointers.h"
 
+#ifdef LAMMPS_EXCEPTIONS
+#include "exceptions.h"
+#endif
+
 namespace LAMMPS_NS {
 
 class Error : protected Pointers {
@@ -30,7 +34,17 @@ class Error : protected Pointers {
   void one(const char *, int, const char *);
   void warning(const char *, int, const char *, int = 1);
   void message(const char *, int, const char *, int = 1);
-  void done();
+  void done(int = 0); // 1 would be fully backwards compatible
+
+#ifdef LAMMPS_EXCEPTIONS
+  char *    get_last_error() const;
+  ErrorType get_last_error_type() const;
+  void   set_last_error(const char * msg, ErrorType type = ERROR_NORMAL);
+
+ private:
+  char * last_error_message;
+  ErrorType last_error_type;
+#endif
 };
 
 }

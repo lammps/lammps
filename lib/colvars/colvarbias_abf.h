@@ -1,6 +1,4 @@
-/************************************************************************
- * Headers for the ABF and histogram biases                             *
- ************************************************************************/
+// -*- c++ -*-
 
 #ifndef COLVARBIAS_ABF_H
 #define COLVARBIAS_ABF_H
@@ -21,28 +19,29 @@ class colvarbias_abf : public colvarbias {
 
 public:
 
-  colvarbias_abf (std::string const &conf, char const *key);
-  ~colvarbias_abf ();
-
-  cvm::real update ();
+  colvarbias_abf(char const *key);
+  virtual int init(std::string const &conf);
+  virtual ~colvarbias_abf();
+  virtual int update();
 
 private:
 
   /// Filename prefix for human-readable gradient/sample count output
-  std::string	output_prefix;
+  std::string  output_prefix;
 
   /// Base filename(s) for reading previous gradient data (replaces data from restart file)
   std::vector<std::string> input_prefix;
 
-  bool		apply_bias;
   bool		update_bias;
   bool		hide_Jacobian;
   size_t	full_samples;
   size_t	min_samples;
-  /// frequency for updating output files (default: same as restartFreq?)
+  /// frequency for updating output files
   int		output_freq;
   /// Write combined files with a history of all output data?
   bool      b_history_files;
+  /// Write CZAR output file for stratified eABF (.zgrad)
+  bool      b_czar_window_file;
   size_t    history_freq;
 
   /// Cap applied biasing force?
@@ -51,20 +50,43 @@ private:
 
   // Internal data and methods
 
-  std::vector<int>  bin, force_bin;
-  gradient_t	    force;
+  std::vector<int>  bin, force_bin, z_bin;
+  gradient_t    system_force, applied_force;
 
   /// n-dim grid of free energy gradients
   colvar_grid_gradient  *gradients;
   /// n-dim grid of number of samples
   colvar_grid_count     *samples;
+  /// n-dim grid: average force on "real" coordinate for eABF z-based estimator
+  colvar_grid_gradient  *z_gradients;
+  /// n-dim grid of number of samples on "real" coordinate for eABF z-based estimator
+  colvar_grid_count     *z_samples;
+  /// n-dim grid contining CZAR estimator of "real" free energy gradients
+  colvar_grid_gradient  *czar_gradients;
+
+  inline int update_system_force(size_t i)
+  {
+    if (colvars[i]->is_enabled(f_cv_subtract_applied_force)) {
+      // this colvar is already subtracting the ABF force
+      system_force[i] = colvars[i]->total_force().real_value;
+    } else {
+      system_force[i] = colvars[i]->total_force().real_value
+        - colvar_forces[i].real_value;
+    }
+    if (cvm::debug())
+      cvm::log("ABF System force calc: cv " + cvm::to_str(i) +
+               " fs " + cvm::to_str(system_force[i]) +
+               " = ft " + cvm::to_str(colvars[i]->total_force().real_value) +
+               " - fa " + cvm::to_str(colvar_forces[i].real_value));
+    return COLVARS_OK;
+  }
 
   // shared ABF
   bool     shared_on;
   size_t   shared_freq;
   int   shared_last_step;
   // Share between replicas -- may be called independently of update
-  virtual void replica_share();
+  virtual int replica_share();
 
   // Store the last set for shared ABF
   colvar_grid_gradient  *last_gradients;
@@ -79,40 +101,15 @@ private:
   virtual int bin_count(int bin_index);
 
   /// Write human-readable FE gradients and sample count
-  void		  write_gradients_samples (const std::string &prefix, bool append = false);
-  void		  write_last_gradients_samples (const std::string &prefix, bool append = false);
+  void		  write_gradients_samples(const std::string &prefix, bool append = false);
+  void		  write_last_gradients_samples(const std::string &prefix, bool append = false);
 
   /// Read human-readable FE gradients and sample count (if not using restart)
-  void		  read_gradients_samples ();
+  void		  read_gradients_samples();
 
-  std::istream& read_restart  (std::istream&);
-  std::ostream& write_restart (std::ostream&);
-};
-
-
-/// Histogram "bias" (does as the name says)
-class colvarbias_histogram : public colvarbias {
-
-public:
-
-  colvarbias_histogram (std::string const &conf, char const *key);
-  ~colvarbias_histogram ();
-
-  cvm::real update ();
-
-private:
-
-  /// n-dim histogram
-  colvar_grid_count    *grid;
-  std::vector<int>  bin;
-  std::string	  out_name;
-
-  int		  output_freq;
-  void		  write_grid ();
-  std::ofstream	  grid_os;  /// Stream for writing grid to disk
-
-  std::istream& read_restart  (std::istream&);
-  std::ostream& write_restart (std::ostream&);
+  std::istream& read_restart(std::istream&);
+  std::ostream& write_restart(std::ostream&);
 };
 
 #endif
+

@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "replicate.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "special.h"
+#include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
 
@@ -112,9 +113,13 @@ void Replicate::command(int narg, char **arg)
 
   // old = original atom class
   // atom = new replicated atom class
+  // also set atomKK for Kokkos version of Atom class
 
   Atom *old = atom;
-  atom = new Atom(lmp);
+  atomKK = NULL;
+  if (lmp->kokkos) atom = atomKK = new AtomKokkos(lmp);
+  else atom = new Atom(lmp);
+
   atom->settings(old);
   atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy,0);
 

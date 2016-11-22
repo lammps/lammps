@@ -63,13 +63,13 @@ class FixPeriNeigh : public Fix {
   int maxpartner;            // max # of peridynamic neighs for any atom
   int *npartner;             // # of neighbors for each atom
   tagint **partner;          // neighs for each atom, stored as global IDs
-  double **deviatorextention; // Deviatoric extention     
-  double **deviatorBackextention; // Deviatoric back extention 
-  double **deviatorPlasticextension; // Deviatoric plastic extension 
+  double **deviatorextention; // Deviatoric extention
+  double **deviatorBackextention; // Deviatoric back extention
+  double **deviatorPlasticextension; // Deviatoric plastic extension
   double *lambdaValue;
   double **r0;               // initial distance to partners
   double **r1;               // instanteneous distance to partners
-  double *thetaValue;        // dilatation 
+  double *thetaValue;        // dilatation
   double *vinter;            // sum of vfrac for bonded neighbors
   double *wvolume;           // weighted volume of particle
   int isPMB,isLPS,isVES,isEPS;  // which flavor of PD

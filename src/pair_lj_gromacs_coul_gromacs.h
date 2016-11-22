@@ -31,8 +31,8 @@ class PairLJGromacsCoulGromacs : public Pair {
   virtual void compute(int, int);
   virtual void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  virtual void init_style();
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
@@ -49,7 +49,7 @@ class PairLJGromacsCoulGromacs : public Pair {
   double **ljsw1,**ljsw2,**ljsw3,**ljsw4,**ljsw5;
   double coulsw1,coulsw2,coulsw3,coulsw4,coulsw5;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

@@ -116,7 +116,7 @@ namespace ATC {
     else if (strcmp(arg[argIndx],"electron_integration")==0) {
       argIndx++;
       nsubcycle_ = 1;
-      if (strcmp(arg[argIndx],"explicit")==0) {
+      if      (strcmp(arg[argIndx],"explicit")==0) {
         electronTimeIntegration_ = TimeIntegrator::EXPLICIT;
         match = true;
       }
@@ -124,8 +124,16 @@ namespace ATC {
         electronTimeIntegration_ = TimeIntegrator::IMPLICIT;
         match = true;
       }
+      else if (strcmp(arg[argIndx],"direct")==0) {
+        electronTimeIntegration_ = TimeIntegrator::DIRECT;
+        match = true;
+      }
       else if (strcmp(arg[argIndx],"steady")==0) {
         electronTimeIntegration_ = TimeIntegrator::STEADY;
+        match = true;
+      }
+      else if (strcmp(arg[argIndx],"off")==0) {
+        electronTimeIntegration_ = TimeIntegrator::NONE;
         match = true;
       }
       if (narg > ++argIndx) nsubcycle_ = atoi(arg[argIndx]);
@@ -155,6 +163,10 @@ namespace ATC {
     for (int i = 0; i < NUM_FLUX; i++) {
       rhsMask(ELECTRON_TEMPERATURE,i) = atc_->fieldMask_(ELECTRON_TEMPERATURE,i);
     }
+    if (electronTimeIntegration_ == TimeIntegrator::NONE) {
+      temperatureIntegrator_ = NULL;
+      return;
+    }
     if (temperatureIntegrator_) delete temperatureIntegrator_;
     if (electronTimeIntegration_ == TimeIntegrator::STEADY) {
       throw ATC_Error("not implemented");
@@ -165,11 +177,14 @@ namespace ATC {
         ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_, 
         rhsMask, alpha);
     }
-    else {
+    else if (electronTimeIntegration_ == TimeIntegrator::EXPLICIT) {
       temperatureIntegrator_ = new FieldExplicitEulerIntegrator(
         ELECTRON_TEMPERATURE, physicsModel_, atc_->feEngine_, atc_, 
         rhsMask);
     }
+    double dt = atc_->lammpsInterface_->dt();
+    double time = atc_->time();
+    temperatureIntegrator_->initialize(dt,time,atc_->fields_);
 
 
     // set up mass matrix
@@ -184,17 +199,27 @@ namespace ATC {
   //--------------------------------------------------------
   void ExtrinsicModelTwoTemperature::pre_init_integrate()
   {
+#ifdef ATC_VERBOSE
+    ATC::LammpsInterface::instance()->print_msg_once("start ttm evolution",true,false);
+#endif
+
     double dt = atc_->lammpsInterface_->dt();
     double time = atc_->time();
 
     // integrate fast electron variable/s
     // note: atc calls set_sources in pre_final_integrate
     atc_->set_fixed_nodes();
-    double idt = dt/nsubcycle_;
-    for (int i = 0; i < nsubcycle_ ; ++i) {
-      temperatureIntegrator_->update(idt,time,atc_->fields_,rhs_);
+    if (! atc_->prescribedDataMgr_->all_fixed(ELECTRON_TEMPERATURE)
+      && temperatureIntegrator_ )  {
+      double idt = dt/nsubcycle_;
+      for (int i = 0; i < nsubcycle_ ; ++i) {
+        temperatureIntegrator_->update(idt,time,atc_->fields_,rhs_);
+      }
     }
 
+#ifdef ATC_VERBOSE
+    ATC::LammpsInterface::instance()->print_msg_once("...done",false,true);
+#endif
   }
 
   //--------------------------------------------------------

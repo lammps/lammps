@@ -44,7 +44,7 @@ class PairCoulCut : public Pair {
   double cut_global;
   double **cut,**scale;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

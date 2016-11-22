@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_wall_region.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -34,7 +34,8 @@ enum{LJ93,LJ126,COLLOID,HARMONIC};
 /* ---------------------------------------------------------------------- */
 
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  idregion(NULL)
 {
   if (narg != 8) error->all(FLERR,"Illegal fix wall/region command");
 
@@ -44,6 +45,8 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  respa_level_support = 1;
+  ilevel_respa = 0;
 
   // parse args
 
@@ -151,8 +154,10 @@ void FixWallRegion::init()
     offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
   }
 
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+  if (strstr(update->integrate_style,"respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -162,9 +167,9 @@ void FixWallRegion::setup(int vflag)
   if (strstr(update->integrate_style,"verlet"))
     post_force(vflag);
   else {
-    ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
-    post_force_respa(vflag,nlevels_respa-1,0);
-    ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+    ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag,ilevel_respa,0);
+    ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -182,9 +187,6 @@ void FixWallRegion::post_force(int vflag)
   int i,m,n;
   double rinv,fx,fy,fz,tooclose;
 
-  eflag = 0;
-  ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
-
   double **x = atom->x;
   double **f = atom->f;
   double *radius = atom->radius;
@@ -199,6 +201,11 @@ void FixWallRegion::post_force(int vflag)
   // region->match() insures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
   // in COLLOID case, r <= radius is an error
+  // initilize ewall after region->prematch(),
+  //   so a dynamic region can access last timestep values
+
+  eflag = 0;
+  ewall[0] = ewall[1] = ewall[2] = ewall[3] = 0.0;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -235,7 +242,7 @@ void FixWallRegion::post_force(int vflag)
       }
     }
 
-  if (onflag) error->one(FLERR,"Particle on or inside surface of region "
+  if (onflag) error->one(FLERR,"Particle outside surface of region "
                          "used in fix wall/region");
 }
 
@@ -243,7 +250,7 @@ void FixWallRegion::post_force(int vflag)
 
 void FixWallRegion::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (ilevel == nlevels_respa-1) post_force(vflag);
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -29,10 +29,10 @@ class PairLJClass2CoulCut : public Pair {
   PairLJClass2CoulCut(class LAMMPS *);
   virtual ~PairLJClass2CoulCut();
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  virtual void init_style();
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -48,7 +48,7 @@ class PairLJClass2CoulCut : public Pair {
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

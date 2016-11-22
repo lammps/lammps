@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_temp_rescale.h"
 #include "atom.h"
 #include "force.h"
@@ -37,7 +37,8 @@ enum{CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  tstr(NULL), id_temp(NULL), tflag(0)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale command");
 
@@ -133,6 +134,13 @@ void FixTempRescale::init()
 void FixTempRescale::end_of_step()
 {
   double t_current = temperature->compute_scalar();
+
+  // there is nothing to do, if there are no degrees of freedom
+
+  if (temperature->dof < 1) return;
+
+  // protect against division by zero
+
   if (t_current == 0.0)
     error->all(FLERR,"Computed temperature for fix temp/rescale cannot be 0.0");
 

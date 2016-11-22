@@ -19,33 +19,33 @@ directories for instructions on how to build the packages with
 different precisions.  The GPU and USER-CUDA sub-sections of the
 doc/Section_accelerate.html file also describes this process.
 
-Make.py -d ~/lammps -j 16 -p #all orig -m linux -o cpu exe
-Make.py -d ~/lammps -j 16 -p #all opt orig -m linux -o opt exe
-Make.py -d ~/lammps -j 16 -p #all omp orig -m linux -o omp exe
+Make.py -d ~/lammps -j 16 -p #all orig -m linux -o cpu -a exe
+Make.py -d ~/lammps -j 16 -p #all opt orig -m linux -o opt -a exe
+Make.py -d ~/lammps -j 16 -p #all omp orig -m linux -o omp -a exe
 Make.py -d ~/lammps -j 16 -p #all gpu orig -m linux \
-        -gpu mode=double arch=20 -o gpu_double libs exe
+        -gpu mode=double arch=20 -o gpu_double -a libs exe
 Make.py -d ~/lammps -j 16 -p #all gpu orig -m linux \
-        -gpu mode=mixed arch=20 -o gpu_mixed libs exe
+        -gpu mode=mixed arch=20 -o gpu_mixed -a libs exe
 Make.py -d ~/lammps -j 16 -p #all gpu orig -m linux \
-        -gpu mode=single arch=20 -o gpu_single libs exe
+        -gpu mode=single arch=20 -o gpu_single -a libs exe
 Make.py -d ~/lammps -j 16 -p #all cuda orig -m linux \
-        -cuda mode=double arch=20 -o cuda_double libs exe
+        -cuda mode=double arch=20 -o cuda_double -a libs exe
 Make.py -d ~/lammps -j 16 -p #all cuda orig -m linux \
-        -cuda mode=mixed arch=20 -o cuda_mixed libs exe
+        -cuda mode=mixed arch=20 -o cuda_mixed -a libs exe
 Make.py -d ~/lammps -j 16 -p #all cuda orig -m linux \
-        -cuda mode=single arch=20 -o cuda_single libs exe
-Make.py -d ~/lammps -j 16 -p #all intel orig -m linux -o intel_cpu exe
-Make.py -d ~/lammps -j 16 -p #all kokkos orig -m linux -o kokkos_omp exe
+        -cuda mode=single arch=20 -o cuda_single -a libs exe
+Make.py -d ~/lammps -j 16 -p #all intel orig -m linux -o intel_cpu -a exe
+Make.py -d ~/lammps -j 16 -p #all kokkos orig -m linux -o kokkos_omp -a exe
 Make.py -d ~/lammps -j 16 -p #all kokkos orig -kokkos cuda arch=20 \
-        -m cuda -o kokkos_cuda exe
+        -m cuda -o kokkos_cuda -a exe
 
 Make.py -d ~/lammps -j 16 -p #all opt omp gpu cuda intel kokkos orig \
         -gpu mode=double arch=20 -cuda mode=double arch=20 -m linux \
-        -o all libs exe
+        -o all -a libs exe
 
 Make.py -d ~/lammps -j 16 -p #all opt omp gpu cuda intel kokkos orig \
         -kokkos cuda arch=20 -gpu mode=double arch=20 \
-        -cuda mode=double arch=20 -m cuda -o all_cuda libs exe
+        -cuda mode=double arch=20 -m cuda -o all_cuda -a libs exe
 
 ------------------------------------------------------------------------
 

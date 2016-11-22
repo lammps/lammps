@@ -47,6 +47,8 @@ namespace ATC {
           elementSources_[thisField](ielem,idof) = NULL;          
         }
       }
+      // node based sources
+      nodalSources_[thisField].reset(nNodes_,thisSize);
     }
   }
 
@@ -113,7 +115,6 @@ namespace ATC {
    const int thisIndex, 
    const XT_Function * f)
   {
-    using std::set;
     set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
@@ -130,7 +131,6 @@ namespace ATC {
    const int thisIndex, 
    const XT_Function * f)
   {
-    using std::set;
     // fix fields 
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
@@ -144,7 +144,6 @@ namespace ATC {
    const int thisIndex, 
    const XT_Function * f)
   {
-    using std::set;
     set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     fix_field(nodeSet,thisField,thisIndex,f);
   }
@@ -156,7 +155,6 @@ namespace ATC {
    const FieldName thisField, 
    const int thisIndex)
   {
-    using std::set;
     set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nodesetName);
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
@@ -269,6 +267,36 @@ namespace ATC {
     }
   }
 //-------------------------------------------------------------------------
+//  fix_open
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::fix_open
+  (const string facesetName, 
+   const FieldName thisField)
+  {
+    const set< pair <int,int> > * fset 
+      = & ( (feEngine_->fe_mesh())->faceset(facesetName));
+    set< pair<int,int> >::const_iterator iset;
+    for (iset = fset->begin(); iset != fset->end(); iset++) {
+      pair<int,int>  face = *iset;
+      facesOpen_[thisField].insert(face); // uniquely insert this face
+    }
+  }
+//-------------------------------------------------------------------------
+//  unfix_open
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::unfix_open
+  (const string facesetName, 
+   const FieldName thisField) 
+  {
+    const set< pair <int,int> > * fset 
+      = & ( (feEngine_->fe_mesh())->faceset(facesetName));
+    set< pair<int,int> >::const_iterator iset;
+    for (iset = fset->begin(); iset != fset->end(); iset++) {
+      pair<int,int>  face = *iset;
+      facesOpen_[thisField].erase(face);
+    }
+  }
+//-------------------------------------------------------------------------
 //  fix_source
 //-------------------------------------------------------------------------
   void PrescribedDataManager::fix_source
@@ -277,13 +305,29 @@ namespace ATC {
    const int thisIndex, 
    const XT_Function *f)
   {
-    using std::set;
     set<int> elemSet = (feEngine_->fe_mesh())->elementset(elemsetName);
     set<int>::const_iterator iset;
     for (iset = elemSet.begin(); iset != elemSet.end(); iset++) {
       int ielem = *iset;
       // fix source
       elementSources_[thisField](ielem,thisIndex) = (XT_Function*) f;
+    }
+  }
+//-------------------------------------------------------------------------
+//  fix_source
+//-------------------------------------------------------------------------
+  void PrescribedDataManager::fix_source
+  (const FieldName thisField, 
+   const int thisIndex, 
+   const set<pair<int,double> > & s)
+  {
+    set<pair<int,double> >::const_iterator iset;
+    DENS_MAT & n(nodalSources_[thisField].set_quantity());
+    for (iset = s.begin(); iset != s.end(); iset++) {
+      pair<int,double> p = *iset;
+      int inode = p.first;
+      double v = p.second;
+      n(inode,thisIndex) = v;
     }
   }
 //-------------------------------------------------------------------------
@@ -294,7 +338,6 @@ namespace ATC {
    const FieldName thisField, 
    const int thisIndex)
   {
-    using std::set;
     set<int> elemSet = (feEngine_->fe_mesh())->elementset(elemsetName);
     set<int>::const_iterator iset;
     for (iset = elemSet.begin(); iset != elemSet.end(); iset++) {
@@ -457,6 +500,7 @@ namespace ATC {
   
     // compute internal sources
     feEngine_->add_sources(fieldMask,t,elementSources_,sources);
+    feEngine_->add_sources(fieldMask,t,nodalSources_,sources);
 
     // mask out nodes with essential bcs
     for (field = fieldSizes_.begin(); field!=fieldSizes_.end(); field++) {

@@ -18,7 +18,7 @@ DumpStyle(xyz/mpiio,DumpXYZMPIIO)
 #else
 
 #ifndef LMP_DUMP_XYZ_MPIIO_H
-#define LMP_DUMP_XYZ_MPII0_H
+#define LMP_DUMP_XYZ_MPIIO_H
 
 #include "dump_xyz.h"
 
@@ -63,7 +63,7 @@ class DumpXYZMPIIO : public DumpXYZ {
 
 /* ERROR/WARNING messages:
 
-E: Cannot open dump file
+E: Cannot open dump file %s
 
 The output file for the dump command cannot be opened.  Check that the
 path and name are correct.

@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -52,11 +52,11 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Pair style lj/cut/coul/debye/gpu requires atom attribute q
+E: Pair style coul/debye/gpu requires atom attribute q
 
 The atom style defined does not have this attribute.
 
-E: Cannot use newton pair with lj/cut/coul/debye/gpu pair style
+E: Cannot use newton pair with coul/debye/gpu pair style
 
 Self-explanatory.
 

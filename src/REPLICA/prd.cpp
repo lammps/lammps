@@ -15,11 +15,15 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
+// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
+// due to OpenMPI bug which sets INT64_MAX via its mpi.h
+//   before lmptype.h can set flags to insure it is done correctly
+
 #include "lmptype.h"
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "prd.h"
 #include "universe.h"
 #include "update.h"
@@ -47,6 +51,8 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
+
+enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 /* ---------------------------------------------------------------------- */
 
@@ -110,28 +116,33 @@ void PRD::command(int narg, char **arg)
   int color = me;
   MPI_Comm_split(universe->uworld,color,0,&comm_replica);
 
-  // equal_size_replicas = 1 if all replicas have same # of procs
-  // no longer used
+  // comm mode for inter-replica exchange of coords
 
-  //flag = 0;
-  //if (nreplica*nprocs == nprocs_universe) flag = 1;
-  //MPI_Allreduce(&flag,&equal_size_replicas,1,MPI_INT,MPI_MIN,
-  //              universe->uworld);
+  if (nreplica == nprocs_universe && atom->sortfreq == 0) 
+    cmode = SINGLE_PROC_DIRECT;
+  else if (nreplica == nprocs_universe) cmode = SINGLE_PROC_MAP;
+  else cmode = MULTI_PROC;
 
-  // workspace for inter-replica communication via gathers
+  // workspace for inter-replica communication
 
   natoms = atom->natoms;
 
-  displacements = NULL;
   tagall = NULL;
   xall = NULL;
   imageall = NULL;
 
-  if (nreplica != nprocs_universe) {
-    displacements = new int[nprocs];
+  if (cmode != SINGLE_PROC_DIRECT) {
     memory->create(tagall,natoms,"prd:tagall");
     memory->create(xall,natoms,3,"prd:xall");
     memory->create(imageall,natoms,"prd:imageall");
+  }
+
+  counts = NULL;
+  displacements = NULL;
+
+  if (cmode == MULTI_PROC) {
+    memory->create(counts,nprocs,"prd:counts");
+    memory->create(displacements,nprocs,"prd:displacements");
   }
 
   // random_select = same RNG for each replica, for multiple event selection
@@ -154,7 +165,7 @@ void PRD::command(int narg, char **arg)
   // create Velocity class for velocity creation in dephasing
   // pass it temperature compute, loop_setting, dist_setting settings
 
-  atom->check_mass();
+  atom->check_mass(FLERR);
   velocity = new Velocity(lmp);
   velocity->init_external("all");
 
@@ -216,7 +227,7 @@ void PRD::command(int narg, char **arg)
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + nsteps;
   update->restrict_output = 1;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many timesteps");
 
   lmp->init();
@@ -234,7 +245,7 @@ void PRD::command(int narg, char **arg)
   if (domain->box_change)
     error->all(FLERR,"Cannot use PRD with a changing box");
 
-  // cannot use PRD with time-dependent fixes or regions or atom sorting
+  // cannot use PRD with time-dependent fixes or regions
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->time_depend)
@@ -243,9 +254,6 @@ void PRD::command(int narg, char **arg)
   for (int i = 0; i < domain->nregion; i++)
     if (domain->regions[i]->dynamic_check())
       error->all(FLERR,"Cannot use PRD with a time-dependent region defined");
-
-  if (atom->sortfreq > 0)
-    error->all(FLERR,"Cannot use PRD with atom_modify sort enabled");
 
   // perform PRD simulation
 
@@ -274,8 +282,8 @@ void PRD::command(int narg, char **arg)
   share_event(0,0,0);
 
   timer->init();
-  timer->barrier_start(TIME_LOOP);
-  time_start = timer->array[TIME_LOOP];
+  timer->barrier_start();
+  time_start = timer->get_wall(Timer::TOTAL);
 
   log_event();
 
@@ -301,8 +309,8 @@ void PRD::command(int narg, char **arg)
   time_dephase = time_dynamics = time_quench = time_comm = time_output = 0.0;
   bigint clock = 0;
 
-  timer->barrier_start(TIME_LOOP);
-  time_start = timer->array[TIME_LOOP];
+  timer->barrier_start();
+  time_start = timer->get_wall(Timer::TOTAL);
 
   int istep = 0;
 
@@ -329,11 +337,11 @@ void PRD::command(int narg, char **arg)
     // decrement clock by random time at which 1 or more events occurred
 
     int frac_t_event = t_event;
-    for (int i = 0; i <= fix_event->ncoincident; i++) {
+    for (int i = 0; i < fix_event->ncoincident; i++) {
       int frac_rand = static_cast<int> (random_clock->uniform() * t_event);
       frac_t_event = MIN(frac_t_event,frac_rand);
     }
-    int decrement = frac_t_event*universe->nworlds;
+    int decrement = (t_event - frac_t_event)*universe->nworlds;
     clock -= decrement;
 
     // share event across replicas
@@ -382,7 +390,7 @@ void PRD::command(int narg, char **arg)
     lmp->init();
     update->integrate->setup();
 
-    timer->barrier_start(TIME_LOOP);
+    timer->barrier_start();
 
     if (t_corr > 0) replicate(ireplica);
     if (temp_flag == 0) {
@@ -392,16 +400,16 @@ void PRD::command(int narg, char **arg)
                       universe->uworld);
     }
 
-    timer->barrier_stop(TIME_LOOP);
-    time_comm += timer->array[TIME_LOOP];
+    timer->barrier_stop();
+    time_comm += timer->get_wall(Timer::TOTAL);
 
     // write restart file of hot coords
 
     if (restart_flag) {
-      timer->barrier_start(TIME_LOOP);
+      timer->barrier_start();
       output->write_restart(update->ntimestep);
-      timer->barrier_stop(TIME_LOOP);
-      time_output += timer->array[TIME_LOOP];
+      timer->barrier_stop();
+      time_output += timer->get_wall(Timer::TOTAL);
     }
 
     if (stepmode == 0) istep = update->ntimestep - update->beginstep;
@@ -412,14 +420,14 @@ void PRD::command(int narg, char **arg)
 
   // set total timers and counters so Finish() will process them
 
-  timer->array[TIME_LOOP] = time_start;
-  timer->barrier_stop(TIME_LOOP);
+  timer->set_wall(Timer::TOTAL, time_start);
+  timer->barrier_stop();
 
-  timer->array[TIME_PAIR] = time_dephase;
-  timer->array[TIME_BOND] = time_dynamics;
-  timer->array[TIME_KSPACE] = time_quench;
-  timer->array[TIME_COMM] = time_comm;
-  timer->array[TIME_OUTPUT] = time_output;
+  timer->set_wall(Timer::DEPHASE, time_dephase);
+  timer->set_wall(Timer::DYNAMICS, time_dynamics);
+  timer->set_wall(Timer::QUENCH, time_quench);
+  timer->set_wall(Timer::REPCOMM, time_comm);
+  timer->set_wall(Timer::REPOUT, time_output);
 
   neighbor->ncalls = nbuild;
   neighbor->ndanger = ndanger;
@@ -429,12 +437,14 @@ void PRD::command(int narg, char **arg)
       fprintf(universe->uscreen,
               "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
-              timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::TOTAL),nprocs_universe,
+              nsteps,atom->natoms);
     if (universe->ulogfile)
       fprintf(universe->ulogfile,
               "Loop time of %g on %d procs for %d steps with " BIGINT_FORMAT
               " atoms\n",
-              timer->array[TIME_LOOP],nprocs_universe,nsteps,atom->natoms);
+              timer->get_wall(Timer::TOTAL),nprocs_universe,
+              nsteps,atom->natoms);
   }
 
   if (me == 0) {
@@ -457,10 +467,11 @@ void PRD::command(int narg, char **arg)
 
   // clean up
 
-  delete [] displacements;
   memory->destroy(tagall);
   memory->destroy(xall);
   memory->destroy(imageall);
+  memory->destroy(counts);
+  memory->destroy(displacements);
 
   delete [] id_compute;
   MPI_Comm_free(&comm_replica);
@@ -504,6 +515,7 @@ void PRD::dephase()
       if (compute_event->compute_scalar() > 0.0) {
         fix_event->restore_state_dephase();
         update->ntimestep -= t_dephase;
+        log_event();
       } else {
         fix_event->restore_state_quench();
         done = 1;
@@ -536,10 +548,10 @@ void PRD::dynamics(int nsteps, double &time_category)
   //modify->addstep_compute_all(update->ntimestep);
   bigint ncalls = neighbor->ncalls;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
   update->integrate->run(nsteps);
-  timer->barrier_stop(TIME_LOOP);
-  time_category += timer->array[TIME_LOOP];
+  timer->barrier_stop();
+  time_category += timer->get_wall(Timer::TOTAL);
 
   nbuild += neighbor->ncalls - ncalls;
   ndanger += neighbor->ndanger;
@@ -563,7 +575,7 @@ void PRD::quench()
   update->whichflag = 2;
   update->nsteps = maxiter;
   update->endstep = update->laststep = update->firststep + maxiter;
-  if (update->laststep < 0 || update->laststep > MAXBIGINT)
+  if (update->laststep < 0)
     error->all(FLERR,"Too many iterations");
 
   // full init works
@@ -578,10 +590,10 @@ void PRD::quench()
 
   int ncalls = neighbor->ncalls;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
   update->minimize->run(maxiter);
-  timer->barrier_stop(TIME_LOOP);
-  time_quench += timer->array[TIME_LOOP];
+  timer->barrier_stop();
+  time_quench += timer->get_wall(Timer::TOTAL);
 
   if (neighbor->ncalls == ncalls) quench_reneighbor = 0;
   else quench_reneighbor = 1;
@@ -614,7 +626,7 @@ int PRD::check_event(int replica_num)
   if (compute_event->compute_scalar() > 0.0) worldflag = 1;
   if (replica_num >= 0 && replica_num != universe->iworld) worldflag = 0;
 
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
 
   if (me == 0) MPI_Allreduce(&worldflag,&universeflag,1,
                              MPI_INT,MPI_SUM,comm_replica);
@@ -650,8 +662,8 @@ int PRD::check_event(int replica_num)
     MPI_Bcast(&ireplica,1,MPI_INT,0,world);
   }
 
-  timer->barrier_stop(TIME_LOOP);
-  time_comm += timer->array[TIME_LOOP];
+  timer->barrier_stop();
+  time_comm += timer->get_wall(Timer::TOTAL);
 
   return ireplica;
 }
@@ -667,14 +679,14 @@ int PRD::check_event(int replica_num)
 
 void PRD::share_event(int ireplica, int flag, int decrement)
 {
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
 
   // communicate quenched coords to all replicas and store as event
   // decrement event counter if flag = 0 since not really an event
 
   replicate(ireplica);
-  timer->barrier_stop(TIME_LOOP);
-  time_comm += timer->array[TIME_LOOP];
+  timer->barrier_stop();
+  time_comm += timer->get_wall(Timer::TOTAL);
 
   // adjust time for last correlated event check (not on first event)
 
@@ -690,7 +702,7 @@ void PRD::share_event(int ireplica, int flag, int decrement)
   if (flag != 2) delta *= universe->nworlds;
   if (delta > 0 && flag != 2) delta -= decrement;
   delta += corr_adjust;
-  
+
   // delta passed to store_event_prd() should make its clock update
   //   be consistent with clock in main PRD loop
   // don't change the clock or timestep if this is a restart
@@ -712,21 +724,21 @@ void PRD::share_event(int ireplica, int flag, int decrement)
   // addstep_compute_all insures eng/virial are calculated if needed
 
   if (output->ndump && universe->iworld == 0) {
-    timer->barrier_start(TIME_LOOP);
+    timer->barrier_start();
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
     output->write_dump(update->ntimestep);
-    timer->barrier_stop(TIME_LOOP);
-    time_output += timer->array[TIME_LOOP];
+    timer->barrier_stop();
+    time_output += timer->get_wall(Timer::TOTAL);
   }
 
   // restore and communicate hot coords to all replicas
 
   fix_event->restore_state_quench();
-  timer->barrier_start(TIME_LOOP);
+  timer->barrier_start();
   replicate(ireplica);
-  timer->barrier_stop(TIME_LOOP);
-  time_comm += timer->array[TIME_LOOP];
+  timer->barrier_stop();
+  time_comm += timer->get_wall(Timer::TOTAL);
 }
 
 /* ----------------------------------------------------------------------
@@ -735,13 +747,13 @@ void PRD::share_event(int ireplica, int flag, int decrement)
 
 void PRD::log_event()
 {
-  timer->array[TIME_LOOP] = time_start;
+  timer->set_wall(Timer::TOTAL, time_start);
   if (universe->me == 0) {
     if (universe->uscreen)
       fprintf(universe->uscreen,
               BIGINT_FORMAT " %.3f " BIGINT_FORMAT " %d %d %d %d\n",
               fix_event->event_timestep,
-              timer->elapsed(TIME_LOOP),
+              timer->elapsed(Timer::TOTAL),
               fix_event->clock,
               fix_event->event_number,fix_event->correlated_event,
               fix_event->ncoincident,
@@ -750,7 +762,7 @@ void PRD::log_event()
       fprintf(universe->ulogfile,
               BIGINT_FORMAT " %.3f " BIGINT_FORMAT " %d %d %d %d\n",
               fix_event->event_timestep,
-              timer->elapsed(TIME_LOOP),
+              timer->elapsed(Timer::TOTAL),
               fix_event->clock,
               fix_event->event_number,fix_event->correlated_event,
               fix_event->ncoincident,
@@ -760,10 +772,10 @@ void PRD::log_event()
 
 /* ----------------------------------------------------------------------
   communicate atom coords and image flags in ireplica to all other replicas
-  one proc per replica:
+  if one proc per replica:
     direct overwrite via bcast
-  else atoms could be stored in different order or on different procs:
-    collect to root proc of event replica
+  else atoms could be stored in different order on a proc or on different procs:
+    gather to root proc of event replica
     bcast to roots of other replicas
     bcast within each replica
     each proc extracts info for atoms it owns using atom IDs
@@ -771,57 +783,96 @@ void PRD::log_event()
 
 void PRD::replicate(int ireplica)
 {
-  int nreplica = universe->nworlds;
-  int nprocs_universe = universe->nprocs;
   int i,m;
 
-  if (nreplica == nprocs_universe) {
-    MPI_Bcast(atom->image,atom->nlocal,MPI_INT,ireplica,comm_replica);
+  // -----------------------------------------------------
+  // 3 cases: two for single proc per replica
+  //          one for multiple procs per replica
+  // -----------------------------------------------------
+
+  // single proc per replica, no atom sorting
+  // direct bcast of image and x
+
+  if (cmode == SINGLE_PROC_DIRECT) {
     MPI_Bcast(atom->x[0],3*atom->nlocal,MPI_DOUBLE,ireplica,comm_replica);
+    MPI_Bcast(atom->image,atom->nlocal,MPI_LMP_IMAGEINT,ireplica,comm_replica);
+    return;
+  }
 
-  } else {
-    int *counts = new int[nprocs];
+  // single proc per replica, atom sorting is enabled
+  // bcast atom IDs, x, image via tagall, xall, imageall
+  // recv procs use atom->map() to match received info to owned atoms
 
-    if (universe->iworld == ireplica) {
-      MPI_Gather(&atom->nlocal,1,MPI_INT,counts,1,MPI_INT,0,world);
-      displacements[0] = 0;
-      for (i = 0; i < nprocs-1; i++)
-        displacements[i+1] = displacements[i] + counts[i];
-      MPI_Gatherv(atom->tag,atom->nlocal,MPI_LMP_TAGINT,
-                  tagall,counts,displacements,MPI_LMP_TAGINT,0,world);
-      MPI_Gatherv(atom->image,atom->nlocal,MPI_INT,
-                        imageall,counts,displacements,MPI_INT,0,world);
-      for (i = 0; i < nprocs; i++) counts[i] *= 3;
-      for (i = 0; i < nprocs-1; i++)
-        displacements[i+1] = displacements[i] + counts[i];
-      MPI_Gatherv(atom->x[0],3*atom->nlocal,MPI_DOUBLE,
-                        xall[0],counts,displacements,MPI_DOUBLE,0,world);
-    }
-
-    if (me == 0) {
-      MPI_Bcast(tagall,natoms,MPI_INT,ireplica,comm_replica);
-      MPI_Bcast(imageall,natoms,MPI_INT,ireplica,comm_replica);
-      MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
-    }
-
-    MPI_Bcast(tagall,natoms,MPI_INT,0,world);
-    MPI_Bcast(imageall,natoms,MPI_INT,0,world);
-    MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,0,world);
-
+  if (cmode == SINGLE_PROC_MAP) {
     double **x = atom->x;
+    tagint *tag = atom->tag;
+    imageint *image = atom->image;
     int nlocal = atom->nlocal;
 
-    for (i = 0; i < natoms; i++) {
-      m = atom->map(tagall[i]);
-      if (m >= 0 && m < nlocal) {
-        x[m][0] = xall[i][0];
-        x[m][1] = xall[i][1];
-        x[m][2] = xall[i][2];
-        atom->image[m] = imageall[i];
-      }
+    if (universe->iworld == ireplica) {
+      memcpy(tagall,tag,nlocal*sizeof(tagint));
+      memcpy(xall[0],x[0],3*nlocal*sizeof(double));
+      memcpy(imageall,image,nlocal*sizeof(imageint));
     }
 
-    delete [] counts;
+    MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,ireplica,comm_replica);
+    MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
+    MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,ireplica,comm_replica);
+
+    for (i = 0; i < nlocal; i++) {
+      m = atom->map(tagall[i]);
+      x[m][0] = xall[i][0];
+      x[m][1] = xall[i][1];
+      x[m][2] = xall[i][2];
+      atom->image[m] = imageall[i];
+    }
+
+    return;
+  }
+
+  // multiple procs per replica
+  // MPI_Gather all atom IDs, x, image to root proc of ireplica
+  // bcast to root of other replicas
+  // bcast within each replica
+  // each proc extracts info for atoms it owns via atom->map()
+  // NOTE: assumes imagint and tagint are always the same size
+
+  if (universe->iworld == ireplica) {
+    MPI_Gather(&atom->nlocal,1,MPI_INT,counts,1,MPI_INT,0,world);
+    displacements[0] = 0;
+    for (i = 0; i < nprocs-1; i++)
+      displacements[i+1] = displacements[i] + counts[i];
+    MPI_Gatherv(atom->tag,atom->nlocal,MPI_LMP_TAGINT,
+                tagall,counts,displacements,MPI_LMP_TAGINT,0,world);
+    MPI_Gatherv(atom->image,atom->nlocal,MPI_LMP_IMAGEINT,
+                imageall,counts,displacements,MPI_LMP_IMAGEINT,0,world);
+    for (i = 0; i < nprocs; i++) counts[i] *= 3;
+    for (i = 0; i < nprocs-1; i++)
+      displacements[i+1] = displacements[i] + counts[i];
+    MPI_Gatherv(atom->x[0],3*atom->nlocal,MPI_DOUBLE,
+                xall[0],counts,displacements,MPI_DOUBLE,0,world);
+  }
+  
+  if (me == 0) {
+    MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,ireplica,comm_replica);
+    MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,ireplica,comm_replica);
+    MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,ireplica,comm_replica);
+  }
+  
+  MPI_Bcast(tagall,natoms,MPI_LMP_TAGINT,0,world);
+  MPI_Bcast(imageall,natoms,MPI_LMP_IMAGEINT,0,world);
+  MPI_Bcast(xall[0],3*natoms,MPI_DOUBLE,0,world);
+  
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+  
+  for (i = 0; i < natoms; i++) {
+    m = atom->map(tagall[i]);
+    if (m < 0 || m >= nlocal) continue;
+    x[m][0] = xall[i][0];
+    x[m][1] = xall[i][1];
+    x[m][2] = xall[i][2];
+    atom->image[m] = imageall[i];
   }
 }
 

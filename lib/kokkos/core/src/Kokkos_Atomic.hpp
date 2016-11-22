@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -68,11 +68,14 @@
 #define KOKKOS_ATOMIC_HPP
 
 #include <Kokkos_Macros.hpp>
+#include <Kokkos_HostSpace.hpp>
 #include <impl/Kokkos_Traits.hpp>
 
 //----------------------------------------------------------------------------
-
-#if defined( __CUDA_ARCH__ )
+#if defined(_WIN32)
+#define KOKKOS_ATOMICS_USE_WINDOWS
+#else
+#if defined( __CUDA_ARCH__ ) && defined( KOKKOS_HAVE_CUDA )
 
 // Compiling NVIDIA device code, must use Cuda atomics:
 
@@ -87,7 +90,8 @@
 // Preference: GCC, INTEL, OMP31
 
 #if defined( KOKKOS_COMPILER_GNU ) || \
-    defined( KOKKOS_COMPILER_CLANG )
+    defined( KOKKOS_COMPILER_CLANG ) || \
+    ( defined ( KOKKOS_COMPILER_NVCC ) && defined ( __GNUC__ ) )
 
 #define KOKKOS_ATOMICS_USE_GCC
 
@@ -107,8 +111,51 @@
 #endif
 
 #endif /* Not pre-selected atomic implementation */
+#endif
 
 //----------------------------------------------------------------------------
+
+// Forward decalaration of functions supporting arbitrary sized atomics
+// This is necessary since Kokkos_Atomic.hpp is internally included very early
+// through Kokkos_HostSpace.hpp as well as the allocation tracker.
+#ifdef KOKKOS_HAVE_CUDA
+namespace Kokkos {
+namespace Impl {
+/// \brief Aquire a lock for the address
+///
+/// This function tries to aquire the lock for the hash value derived
+/// from the provided ptr. If the lock is successfully aquired the
+/// function returns true. Otherwise it returns false.
+__device__ inline
+bool lock_address_cuda_space(void* ptr);
+
+/// \brief Release lock for the address
+///
+/// This function releases the lock for the hash value derived
+/// from the provided ptr. This function should only be called
+/// after previously successfully aquiring a lock with
+/// lock_address.
+__device__ inline
+void unlock_address_cuda_space(void* ptr);
+}
+}
+#endif
+
+
+namespace Kokkos {
+template <typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_add(volatile T * const dest, const T src);
+
+// Atomic increment
+template<typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_increment(volatile T* a);
+
+template<typename T>
+KOKKOS_INLINE_FUNCTION
+void atomic_decrement(volatile T* a);
+}
 
 namespace Kokkos {
 
@@ -124,10 +171,23 @@ const char * atomic_query_version()
   return "KOKKOS_ATOMICS_USE_INTEL" ;
 #elif defined( KOKKOS_ATOMICS_USE_OMP31 )
   return "KOKKOS_ATOMICS_USE_OMP31" ;
+#elif defined( KOKKOS_ATOMICS_USE_WINDOWS )
+  return "KOKKOS_ATOMICS_USE_WINDOWS";
 #endif
 }
 
 } // namespace Kokkos
+
+#ifdef _WIN32
+#include "impl/Kokkos_Atomic_Windows.hpp"
+#else
+
+//----------------------------------------------------------------------------
+// Atomic Assembly
+//
+// Implements CAS128-bit in assembly
+
+#include "impl/Kokkos_Atomic_Assembly.hpp"
 
 //----------------------------------------------------------------------------
 // Atomic exchange
@@ -157,6 +217,33 @@ const char * atomic_query_version()
 #include "impl/Kokkos_Atomic_Fetch_Add.hpp"
 
 //----------------------------------------------------------------------------
+// Atomic increment
+//
+// template<class T>
+// T atomic_increment(volatile T* const dest)
+// { dest++; }
+
+#include "impl/Kokkos_Atomic_Increment.hpp"
+
+//----------------------------------------------------------------------------
+// Atomic Decrement
+//
+// template<class T>
+// T atomic_decrement(volatile T* const dest)
+// { dest--; }
+
+#include "impl/Kokkos_Atomic_Decrement.hpp"
+
+//----------------------------------------------------------------------------
+// Atomic fetch and sub
+//
+// template<class T>
+// T atomic_fetch_sub(volatile T* const dest, const T val)
+// { T tmp = *dest ; *dest -= val ; return tmp ; }
+
+#include "impl/Kokkos_Atomic_Fetch_Sub.hpp"
+
+//----------------------------------------------------------------------------
 // Atomic fetch and or
 //
 // template<class T>
@@ -173,6 +260,7 @@ const char * atomic_query_version()
 // { T tmp = *dest ; *dest = tmp & val ; return tmp ; }
 
 #include "impl/Kokkos_Atomic_Fetch_And.hpp"
+#endif /*Not _WIN32*/
 
 //----------------------------------------------------------------------------
 // Memory fence
@@ -193,7 +281,25 @@ const char * atomic_query_version()
 
 #include "impl/Kokkos_Volatile_Load.hpp"
 
+#ifndef _WIN32
 #include "impl/Kokkos_Atomic_Generic.hpp"
+#endif
+//----------------------------------------------------------------------------
+// This atomic-style macro should be an inlined function, not a macro
+
+#if defined( KOKKOS_COMPILER_GNU ) && !defined(__PGIC__)
+
+  #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) __builtin_prefetch(addr,0,0)
+  #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) __builtin_prefetch(addr,1,0)
+
+#else
+
+  #define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
+  #define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
+
+#endif
+
+//----------------------------------------------------------------------------
 
 #endif /* KOKKOS_ATOMIC_HPP */
 

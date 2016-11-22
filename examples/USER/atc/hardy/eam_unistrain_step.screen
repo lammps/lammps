@@ -1,110 +1,11 @@
-LAMMPS (30 Aug 2013)
-units		metal
-atom_style	atomic
-# create domain
-lattice         fcc 3.615 origin 0.25 0.25 0.25
-Lattice spacing in x,y,z = 3.615 3.615 3.615
-region		simRegion block -18 18 -3 3 -3 3
-region		feRegion block -18 18 -3 3 -3 3
-boundary	f p p
-create_box	1 simRegion
-Created orthogonal box = (-65.07 -10.845 -10.845) to (65.07 10.845 10.845)
-  4 by 1 by 1 MPI processor grid
-# create atoms
-region		mdRegion block -17 17 -3 3 -3 3
-create_atoms	1 region mdRegion
-Created 4896 atoms
-mass		1 63.550
-# specify interal atoms
-region		mdInternal block -16 16 -3 3 -3 3
-group		internal region mdInternal
-4608 atoms in group internal
-# specify inter-atomic potential
-pair_style	eam
-pair_coeff  	* * ../../../../potentials/Cu_u3.eam
-# specify neighbor/re-neighboring parameters
-neighbor	0.3 bin
-neigh_modify	every 10 delay 0 check no
-# setup thermal output
-thermo		10
-thermo_style custom step pe ke press lx ly lz
-#               ID  group atc PhysicsType ParameterFile
-fix             AtC internal atc hardy
-ATC: constructing kernel field estimate
- ATC: version 2.0
- ATC: peratom PE compute created with ID: 3
-fix_modify      AtC kernel step 9.0375
-# fix_modify      AtC atom_element_map eulerian 1
-fix_modify      AtC fields none
-fix_modify      AtC fields add mass_density displacement stress internal_energy
-fix_modify      AtC gradients add displacement
-# fix_modify	AtC  on_the_fly kernel on
-# fix_modify	AtC  on_the_fly bond on
-#               ID  part keywords    nx ny nz region
-fix_modify      AtC mesh create 9 1 1 feRegion f p p
- ATC: created uniform mesh with 40 nodes, 10 unique nodes, and 9 elements
-# equilibrate MD field
-timestep 0.001
-reset_timestep	0
-run 		1
-Setting up run ...
- ATC: computing bond matrix ..........done
-Memory usage per processor = 34.3603 Mbytes
-Step PotEng KinEng Press Lx Ly Lz 
-       0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-       1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.00491542 on 4 procs for 1 steps with 4896 atoms
+No protocol specified
+--------------------------------------------------------------------------
+mpirun was unable to launch the specified application as it could not access
+or execute an executable:
 
-Pair  time (%) = 0.00442022 (89.9257)
-Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000348747 (7.09496)
-Outpt time (%) = 6.56247e-05 (1.33508)
-Other time (%) = 8.08239e-05 (1.64429)
+Executable: ../../../lmp_openmpi
+Node: mithrandir
 
-Nlocal:    1224 ave 1296 max 1152 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:    2259 ave 2592 max 1926 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    32508 ave 34992 max 29952 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-FullNghs:  65016 ave 69984 max 60048 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-
-Total # of neighbors = 260064
-Ave neighs/atom = 53.1176
-Neighbor list builds = 0
-Dangerous builds = 0
-displace_atoms	all ramp x -0.6507 0.6507 x -65.07 65.07
-Displacing atoms ...
-fix_modify	AtC  output eam_unistrain_stepFE 1 text
- ATC: Warning : text output can create _LARGE_ files
- ATC: output custom names:
-
-run		1
-Setting up run ...
- ATC: computing bond matrix ..........done
-Memory usage per processor = 34.3603 Mbytes
-Step PotEng KinEng Press Lx Ly Lz 
-       1   -17252.771            0   -14787.592       130.14        21.69        21.69 
-       2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.0609433 on 4 procs for 1 steps with 4896 atoms
-
-Pair  time (%) = 0.00458765 (7.52773)
-Neigh time (%) = 0 (0)
-Comm  time (%) = 0.000336945 (0.552883)
-Outpt time (%) = 0.000727952 (1.19447)
-Other time (%) = 0.0552908 (90.7249)
-
-Nlocal:    1224 ave 1296 max 1152 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:    2259 ave 2592 max 1926 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    32508 ave 34992 max 29952 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-FullNghs:  65016 ave 69984 max 60048 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-
-Total # of neighbors = 260064
-Ave neighs/atom = 53.1176
-Neighbor list builds = 0
-Dangerous builds = 0
+while attempting to start process rank 0.
+--------------------------------------------------------------------------
+4 total processes failed to start

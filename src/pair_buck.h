@@ -47,7 +47,7 @@ class PairBuck : public Pair {
   double **a,**rho,**c;
   double **rhoinv,**buck1,**buck2,**offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

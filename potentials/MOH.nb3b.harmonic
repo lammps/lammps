@@ -1,4 +1,4 @@
-# DATE: 2013-06-28 CONTRIBUTOR: Todd Zeitler, tzeitle@sandia.gov CITATION: none 
+# DATE: 2016-07-29 CONTRIBUTOR: Todd Zeitler, tzeitle@sandia.gov CITATION: none 
 # nb3b/harmonic (nonbonded 3-body harmonic) parameters for various elements
 #
 # multiple entries can be added to this file, LAMMPS reads the ones it needs
@@ -14,8 +14,31 @@
 # (jik)-->determines k, theta_0 for i-j-k angle term
 #
 # ielem jelem kelem	k     theta_0 cutoff
+   O     O     O        0.00    0.00    0.00
+   O     O     M        0.00    0.00    0.00
+   O     O     H        0.00    0.00    0.00
    O     M     M  	0.00    0.00    2.80
-   O     H     H        0.00    0.00    1.20
+   O     M     O        0.00    0.00    0.00
    O     M     H  	6.35  120.00	0.00
+   O     H     H        0.00    0.00    1.20
+   O     H     O        0.00    0.00    0.00
    O     H     M  	6.35  120.00    0.00
+   M     M     M        0.00    0.00    0.00
+   M     M     H        0.00    0.00    0.00
+   M     M     O        0.00    0.00    0.00
+   M     O     O  	0.00    0.00    2.80
+   M     O     M  	0.00    0.00    2.80
+   M     O     H  	6.35  120.00	0.00
+   M     H     H        0.00    0.00    0.00
+   M     H     M        0.00    0.00    0.00
+   M     H     O        0.00    0.00    0.00
+   H     H     H        0.00    0.00    0.00
+   H     H     M        0.00    0.00    0.00
+   H     H     O        0.00    0.00    0.00
+   H     O     O        0.00    0.00    1.20
+   H     O     H        0.00    0.00    1.20
+   H     O     M  	6.35  120.00    0.00
+   H     M     M        0.00    0.00    0.00
+   H     M     O        0.00    0.00    0.00
+   H     M     H        0.00    0.00    0.00
 	

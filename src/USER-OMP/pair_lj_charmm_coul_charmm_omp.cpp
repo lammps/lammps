@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_charmm_coul_charmm_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -52,6 +52,7 @@ void PairLJCharmmCoulCharmmOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -67,6 +68,7 @@ void PairLJCharmmCoulCharmmOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -134,9 +136,7 @@ void PairLJCharmmCoulCharmmOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (rsq > cut_coul_innersq) {
             switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
               (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) * invdenom_coul;
-            switch2 = 12.0*rsq * (cut_coulsq-rsq) *
-              (rsq-cut_coul_innersq) * invdenom_coul;
-            forcecoul *= switch1 + switch2;
+            forcecoul *= switch1;
           }
           forcecoul *= factor_coul;
         } else forcecoul = 0.0;

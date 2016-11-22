@@ -7,18 +7,20 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <fstream>
 #include <utility>
 #include "mpi.h"
-#include "lammps.h"
-#include "modify.h"
-#include "memory.h"
-#include "random_park.h"
+#include "../../src/lmptype.h"
+#include "../../src/lammps.h"
+#include "../../src/comm.h"
+#include "../../src/modify.h"
+#include "../../src/memory.h"
+#include "../../src/random_park.h"
 typedef LAMMPS_NS::RanPark* RNG_POINTER;
-#include "lmptype.h"
-#include "compute.h"
+#include "../../src/compute.h"
 typedef const LAMMPS_NS::Compute* COMPUTE_POINTER;
-#include "update.h"
-#include "min.h"
+#include "../../src/update.h"
+#include "../../src/min.h"
 #include "ATC_Error.h"
 #include "ATC_TypeDefs.h"
 #include "MatrixDef.h"
@@ -89,6 +91,14 @@ class LammpsInterface {
     REAL,
     METAL,
     SI
+  };
+
+  // Enumeration for atom data style
+  enum AtomStyle {
+    UNKNOWN_STYLE=0,
+    ATOMIC_STYLE,
+    CHARGE_STYLE,
+    FULL_STYLE
   };
 
   // Provides a struct for easily passing/recovering data about SparseMats
@@ -212,10 +222,14 @@ class LammpsInterface {
     MPI_Wrappers::send(lammps_->world, send_buf, send_size);
   }
   void allgatherv(double * send_buf, int send_count,
-               double * rec_buf, int * rec_counts, int * displacements) const
+                  double * rec_buf, int * rec_counts, int * displacements) const
   {
     MPI_Wrappers::allgatherv(lammps_->world, send_buf, send_count, rec_buf,
                              rec_counts, displacements);
+  }
+  void int_allgather(int send, int* recv)
+  {
+    MPI_Wrappers::int_allgather(lammps_->world,send,recv);
   }
   void int_scatter(int * send_buf, int * rec_buf, int count = 1)
   {
@@ -232,6 +246,16 @@ class LammpsInterface {
   void stop(std::string msg="") const
   {
     MPI_Wrappers::stop(lammps_->world, msg);
+  }
+  std::string read_file(std::string filename) const;
+  void write_file(std::string filename, std::string contents, 
+     std::ofstream::openmode mode = std::ofstream::out) const {
+     if (! comm_rank()) {
+       std::ofstream f(filename.c_str(),mode);
+       f << contents;
+       f.close();
+     } 
+     // ignore other ranks and assume they are consistent
   }
 // end MPI --------------------------------------------------------------------
 

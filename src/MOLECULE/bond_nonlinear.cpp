@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_nonlinear.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -123,7 +123,7 @@ void BondNonlinear::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
 
   double epsilon_one = force->numeric(FLERR,arg[1]);
   double r0_one = force->numeric(FLERR,arg[2]);

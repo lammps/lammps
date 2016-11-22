@@ -7,8 +7,10 @@
    assign these integers in a way which may violate these restrictions
    and the user has little control over this.
 
-   Right now, the only thing this script does is swap the I and J integers in
-   "pair_coeff I J ..." commands.  Later changes may be added.
+   This script:
+   swaps the I and J integers in    "pair_coeff I J ..." commands when I > J
+   
+   Other features may be added later   
 
 """
 

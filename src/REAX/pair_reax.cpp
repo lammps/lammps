@@ -20,11 +20,11 @@
      and Ardi Van Duin's original ReaxFF code
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_reax.h"
 #include "pair_reax_fortran.h"
 #include "atom.h"
@@ -45,6 +45,10 @@ using namespace LAMMPS_NS;
 
 PairREAX::PairREAX(LAMMPS *lmp) : Pair(lmp)
 {
+  if (comm->me == 0)
+    error->warning(FLERR,"The pair_style reax command will be deprecated "
+                   "soon - users should switch to pair_style reax/c");
+
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
@@ -562,7 +566,7 @@ void PairREAX::init_style()
   if (strcmp(update->unit_style,"real") != 0 && comm->me == 0)
     error->warning(FLERR,"Not using real units with pair reax");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->newton = 2;
 
   FORTRAN(readc, READC)();
@@ -623,7 +627,7 @@ double PairREAX::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairREAX::pack_forward_comm(int n, int *list, double *buf, 
+int PairREAX::pack_forward_comm(int n, int *list, double *buf,
                                 int pbc_flag, int *pbc)
 {
   int i,j,m;

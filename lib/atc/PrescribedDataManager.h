@@ -71,6 +71,14 @@ namespace ATC {
     /** */
     const std::map<PAIR, Array<UXT_Function*> > *
       robin_functions(FieldName fieldName) { return & faceSourcesRobin_[fieldName]; }
+    /** */
+    OPEN_SURFACE * open_faces(void) { return & facesOpen_; }
+    bool has_open_face(FieldName fieldName) const { 
+       return ((facesOpen_.find(fieldName)->second).size() > 0) ;
+    }
+    /** */
+    const std::set<PAIR> *
+      open_faces(FieldName fieldName) { return & facesOpen_[fieldName]; }
     
     /** query initial state */
     bool is_initially_fixed(const int node, 
@@ -134,7 +142,8 @@ namespace ATC {
                   const int thisIndex=0)  const
     { 
        return (fixed_nodes(thisField,thisIndex).size() == 0 )
-           && (faceSourcesRobin_.size() == 0);
+           && (faceSourcesRobin_.size() == 0)
+           && (facesOpen_.size() == 0);
     }
 
     /** */
@@ -319,12 +328,19 @@ namespace ATC {
     void unfix_robin(const std::string facesetName,
                     const FieldName thisField, 
                     const int thisIndex);
+    void fix_open  (const std::string facesetName,
+                    const FieldName thisField);
+    void unfix_open(const std::string facesetName,
+                    const FieldName thisField);
     /** un/set sources */
-    void fix_source(const std::string nodesetName,
+    void fix_source(const std::string elemsetName,
                     const FieldName thisField, 
                     const int thisIndex, 
                     const XT_Function * f);
-    void unfix_source(const std::string nodesetName,
+    void fix_source( const FieldName thisField, 
+                    const int thisIndex, 
+                    const std::set<std::pair<int,double> >  & source);
+    void unfix_source(const std::string elemsetName,
                       const FieldName thisField, 
                       const int thisIndex);
     /** get initial conditions  */
@@ -381,8 +397,12 @@ namespace ATC {
     /** sources :  UXT_Function * f = faceSourcesRobin_[field][face](idof) */
     std::map < FieldName, std::map < std::pair <int, int>, Array < UXT_Function * > > > 
       faceSourcesRobin_;
+    /** sources :  facesOpen_[field][face] */
+    std::map < FieldName, std::set < std::pair <int, int> > > 
+      facesOpen_;
     /** sources :  XT_Function * f = elementSources_[field](ielem,idof) */
     std::map < FieldName, Array2D < XT_Function * > > elementSources_;
+    FIELDS nodalSources_;
 
     /** values of bcs in a compact set */
     std::map < FieldName, BCS > bcValues_;

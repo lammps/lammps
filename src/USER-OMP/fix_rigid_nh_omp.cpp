@@ -57,36 +57,7 @@ typedef struct { double x,y,z; } dbl3_t;
 void FixRigidNHOMP::initial_integrate(int vflag)
 {
   double scale_r,scale_t[3],scale_v[3];
-  
-  // compute target temperature
-  // update thermostat chains coupled to particles
-  
-  if (tstat_flag) {
-    compute_temp_target();
-    nhc_temp_integrate();
-  }
 
-  // compute target pressure
-  // update epsilon dot
-  // update thermostat coupled to barostat
-  
-  if (pstat_flag) {
-    nhc_press_integrate();
-    
-    if (pstyle == ISO) {
-      temperature->compute_scalar();
-      pressure->compute_scalar();
-    } else {
-      temperature->compute_vector();
-      pressure->compute_vector();
-    }
-    couple();
-    pressure->addstep(update->ntimestep+1);
-  
-    compute_press_target();
-    nh_epsilon_dot();
-  }  
-  
   // compute scale variables
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
@@ -99,7 +70,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     scale_t[0] = scale_t[1] = scale_t[2] = tmp;
     tmp = exp(-dtq * eta_dot_r[0]);
     scale_r = tmp;
-  } 
+  }
 
   if (pstat_flag) {
     akin_t = akin_r = 0.0;
@@ -115,7 +86,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     tmp = dtq * epsilon_dot[2];
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
-    
+
   // update xcm, vcm, quat, conjqm and angmom
   double akt=0.0, akr=0.0;
   int ibody;
@@ -126,24 +97,24 @@ void FixRigidNHOMP::initial_integrate(int vflag)
   for (ibody = 0; ibody < nbody; ibody++) {
     double mbody[3],tbody[3],fquat[4];
     const double dtf2 = dtf * 2.0;
-    
+
     // step 1.1 - update vcm by 1/2 step
-    
+
     const double dtfm = dtf / masstotal[ibody];
     vcm[ibody][0] += dtfm * fcm[ibody][0] * fflag[ibody][0];
     vcm[ibody][1] += dtfm * fcm[ibody][1] * fflag[ibody][1];
     vcm[ibody][2] += dtfm * fcm[ibody][2] * fflag[ibody][2];
-    
+
     if (tstat_flag || pstat_flag) {
       vcm[ibody][0] *= scale_t[0];
       vcm[ibody][1] *= scale_t[1];
       vcm[ibody][2] *= scale_t[2];
-      
+
       double tmp = vcm[ibody][0]*vcm[ibody][0] + vcm[ibody][1]*vcm[ibody][1] +
         vcm[ibody][2]*vcm[ibody][2];
       akt += masstotal[ibody]*tmp;
     }
-    
+
     // step 1.2 - update xcm by full step
 
     if (!pstat_flag) {
@@ -155,56 +126,56 @@ void FixRigidNHOMP::initial_integrate(int vflag)
       xcm[ibody][1] += scale_v[1] * vcm[ibody][1];
       xcm[ibody][2] += scale_v[2] * vcm[ibody][2];
     }
-    
+
     // step 1.3 - apply torque (body coords) to quaternion momentum
-    
+
     torque[ibody][0] *= tflag[ibody][0];
     torque[ibody][1] *= tflag[ibody][1];
     torque[ibody][2] *= tflag[ibody][2];
-    
+
     MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
                                 torque[ibody],tbody);
     MathExtra::quatvec(quat[ibody],tbody,fquat);
-    
+
     conjqm[ibody][0] += dtf2 * fquat[0];
     conjqm[ibody][1] += dtf2 * fquat[1];
     conjqm[ibody][2] += dtf2 * fquat[2];
     conjqm[ibody][3] += dtf2 * fquat[3];
-    
+
     if (tstat_flag || pstat_flag) {
       conjqm[ibody][0] *= scale_r;
       conjqm[ibody][1] *= scale_r;
       conjqm[ibody][2] *= scale_r;
       conjqm[ibody][3] *= scale_r;
     }
-    
+
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
-  
-    no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(1,conjqm[ibody],quat[ibody],inertia[ibody],dtv);
-    no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-    no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
-  
+
+    MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(1,conjqm[ibody],quat[ibody],inertia[ibody],dtv);
+    MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+    MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
+
     // update exyz_space
     // transform p back to angmom
     // update angular velocity
-    
+
     MathExtra::q_to_exyz(quat[ibody],ex_space[ibody],ey_space[ibody],
                          ez_space[ibody]);
     MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
     MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
                       mbody,angmom[ibody]);
-    
+
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
     angmom[ibody][2] *= 0.5;
-    
+
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
-    
+
     if (tstat_flag || pstat_flag) {
-      akr += angmom[ibody][0]*omega[ibody][0] + 
+      akr += angmom[ibody][0]*omega[ibody][0] +
         angmom[ibody][1]*omega[ibody][1] + angmom[ibody][2]*omega[ibody][2];
     }
   } // end of parallel for
@@ -214,18 +185,34 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     akin_r = akr;
   }
 
+  // compute target temperature
+  // update thermostat chains using akin_t and akin_r
+  // refer to update_nhcp() in Kamberaj et al.
+
+  if (tstat_flag) {
+    compute_temp_target();
+    nhc_temp_integrate();
+  }
+
+  // update thermostat chains coupled with barostat
+  // refer to update_nhcb() in Kamberaj et al.
+
+  if (pstat_flag) {
+    nhc_press_integrate();
+  }
+
   // virial setup before call to set_xv
 
   if (vflag) v_setup(vflag);
   else evflag = 0;
-  
+
   // remap simulation box by 1/2 step
 
   if (pstat_flag) remap();
-  
+
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega
-  
+
   if (triclinic)
     if (evflag)
       set_xv_thr<1,1>();
@@ -243,7 +230,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
   if (pstat_flag) {
     remap();
     if (kspace_flag) force->kspace->setup();
-  }  
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -253,7 +240,7 @@ void FixRigidNHOMP::final_integrate()
   double scale_t[3],scale_r;
 
   // compute scale variables
-  
+
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_r = 1.0;
 
@@ -261,21 +248,20 @@ void FixRigidNHOMP::final_integrate()
     double tmp = exp(-1.0 * dtq * eta_dot_t[0]);
     scale_t[0] = scale_t[1] = scale_t[2] = tmp;
     scale_r = exp(-1.0 * dtq * eta_dot_r[0]);
-  } 
-  
+  }
+
   if (pstat_flag) {
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
     scale_r *= exp(-dtq * (pdim * mtk_term2));
-    
+
     akin_t = akin_r = 0.0;
   }
-  
+
   double * const * _noalias const x = atom->x;
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const double * const * const torque_one = atom->torque;
-  const imageint * _noalias const image = atom->image;
   const int nlocal = atom->nlocal;
 
   // sum over atoms to get force and torque on rigid body
@@ -294,7 +280,7 @@ void FixRigidNHOMP::final_integrate()
        if (ibody < 0) continue;
 
        double unwrap[3];
-       domain->unmap(x[i],image[i],unwrap);
+       domain->unmap(x[i],xcmimage[i],unwrap);
        const double dx = unwrap[0] - xcm[0][0];
        const double dy = unwrap[1] - xcm[0][1];
        const double dz = unwrap[2] - xcm[0][2];
@@ -320,7 +306,7 @@ void FixRigidNHOMP::final_integrate()
 
      // we likely have only a rather number of groups so we loops
      // over bodies and thread over all atoms for each of them.
-     
+
      for (int ib = 0; ib < nbody; ++ib) {
        double s0=0.0,s1=0.0,s2=0.0,s3=0.0,s4=0.0,s5=0.0;
        int i;
@@ -337,7 +323,7 @@ void FixRigidNHOMP::final_integrate()
 	 s2 += f[i].z;
 
 	 double unwrap[3];
-	 domain->unmap(x[i],image[i],unwrap);
+	 domain->unmap(x[i],xcmimage[i],unwrap);
 	 const double dx = unwrap[0] - xcm[ibody][0];
 	 const double dy = unwrap[1] - xcm[ibody][1];
 	 const double dz = unwrap[2] - xcm[ibody][2];
@@ -375,13 +361,13 @@ void FixRigidNHOMP::final_integrate()
 #else
        const int tid = 0;
 #endif
- 
+
        for (int i = 0; i < nlocal; i++) {
 	 const int ibody = body[i];
 	 if ((ibody < 0) || (ibody % nthreads != tid)) continue;
 
 	 double unwrap[3];
-	 domain->unmap(x[i],image[i],unwrap);
+	 domain->unmap(x[i],xcmimage[i],unwrap);
 	 const double dx = unwrap[0] - xcm[ibody][0];
 	 const double dy = unwrap[1] - xcm[ibody][1];
 	 const double dz = unwrap[2] - xcm[ibody][2];
@@ -437,28 +423,28 @@ void FixRigidNHOMP::final_integrate()
       vcm[ibody][1] *= scale_t[1];
       vcm[ibody][2] *= scale_t[2];
     }
-    
+
     vcm[ibody][0] += dtfm * fcm[ibody][0] * fflag[ibody][0];
     vcm[ibody][1] += dtfm * fcm[ibody][1] * fflag[ibody][1];
     vcm[ibody][2] += dtfm * fcm[ibody][2] * fflag[ibody][2];
-    
+
     if (pstat_flag) {
       double tmp = vcm[ibody][0]*vcm[ibody][0] + vcm[ibody][1]*vcm[ibody][1] +
         vcm[ibody][2]*vcm[ibody][2];
       akt += masstotal[ibody]*tmp;
     }
-    
+
     // update conjqm, then transform to angmom, set velocity again
     // virial is already setup from initial_integrate
-    
+
     torque[ibody][0] *= tflag[ibody][0];
     torque[ibody][1] *= tflag[ibody][1];
     torque[ibody][2] *= tflag[ibody][2];
-    
+
     MathExtra::transpose_matvec(ex_space[ibody],ey_space[ibody],
                                 ez_space[ibody],torque[ibody],tbody);
     MathExtra::quatvec(quat[ibody],tbody,fquat);
-    
+
     if (tstat_flag || pstat_flag) {
       conjqm[ibody][0] = scale_r * conjqm[ibody][0] + dtf2 * fquat[0];
       conjqm[ibody][1] = scale_r * conjqm[ibody][1] + dtf2 * fquat[1];
@@ -474,17 +460,17 @@ void FixRigidNHOMP::final_integrate()
     MathExtra::invquatvec(quat[ibody],conjqm[ibody],mbody);
     MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],
                       mbody,angmom[ibody]);
-    
+
     angmom[ibody][0] *= 0.5;
     angmom[ibody][1] *= 0.5;
-    angmom[ibody][2] *= 0.5;  
-    
+    angmom[ibody][2] *= 0.5;
+
     MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
                                ez_space[ibody],inertia[ibody],omega[ibody]);
-    
+
     if (pstat_flag) {
-      akr += angmom[ibody][0]*omega[ibody][0] + 
-        angmom[ibody][1]*omega[ibody][1] + 
+      akr += angmom[ibody][0]*omega[ibody][0] +
+        angmom[ibody][1]*omega[ibody][1] +
         angmom[ibody][2]*omega[ibody][2];
     }
   } // end of parallel for
@@ -504,26 +490,28 @@ void FixRigidNHOMP::final_integrate()
       set_v_thr<0,1>();
   else
     set_v_thr<0,0>();
-  
-  // compute temperature and pressure tensor
-  // couple to compute current pressure components
-  // trigger virial computation on next timestep
-  
+
+  // compute current temperature
   if (tcomputeflag) t_current = temperature->compute_scalar();
+
+  // compute current and target pressures
+  // update epsilon dot using akin_t and akin_r
+
   if (pstat_flag) {
-    if (pstyle == ISO) pressure->compute_scalar();
-    else pressure->compute_vector();
+    if (pstyle == ISO) {
+      temperature->compute_scalar();
+      pressure->compute_scalar();
+    } else {
+      temperature->compute_vector();
+      pressure->compute_vector();
+    }
     couple();
     pressure->addstep(update->ntimestep+1);
-  }
 
-  if (pstat_flag) nh_epsilon_dot();  
-  
-  // update eta_dot_t and eta_dot_r
-  // update eta_dot_b
-      
-  if (tstat_flag) nhc_temp_integrate();
-  if (pstat_flag) nhc_press_integrate();  
+    compute_press_target();
+
+    nh_epsilon_dot();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -535,11 +523,11 @@ void FixRigidNHOMP::remap()
   const int nlocal = atom->nlocal;
 
   // epsilon is not used, except for book-keeping
-  
+
   for (int i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
-  
+
   // convert pertinent atoms and rigid bodies to lamda coords
-  
+
   if (allremap) domain->x2lamda(nlocal);
   else {
     int i;
@@ -550,13 +538,13 @@ void FixRigidNHOMP::remap()
       if (mask[i] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
   }
-  
+
   if (nrigid)
     for (int i = 0; i < nrigidfix; i++)
       modify->fix[rfix[i]]->deform(0);
-  
+
   // reset global and local box to new size/shape
-  
+
   for (int i = 0; i < 3; i++) {
     if (p_flag[i]) {
       const double oldlo = domain->boxlo[i];
@@ -570,9 +558,9 @@ void FixRigidNHOMP::remap()
 
   domain->set_global_box();
   domain->set_local_box();
-  
+
   // convert pertinent atoms and rigid bodies back to box coords
-  
+
   if (allremap) domain->lamda2x(nlocal);
   else {
     int i;
@@ -606,7 +594,6 @@ void FixRigidNHOMP::set_xv_thr()
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
-  const imageint * _noalias const image = atom->image;
 
   double v0=0.0,v1=0.0,v2=0.0,v3=0.0,v4=0.0,v5=0.0;
 
@@ -633,9 +620,9 @@ void FixRigidNHOMP::set_xv_thr()
     const dbl3_t &vcmi = * ((dbl3_t *) vcm[ibody]);
     const dbl3_t &omegai = * ((dbl3_t *) omega[ibody]);
 
-    const int xbox = (image[i] & IMGMASK) - IMGMAX;
-    const int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    const int zbox = (image[i] >> IMG2BITS) - IMGMAX;
+    const int xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+    const int ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+    const int zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
     const double deltax = xbox*xprd + (TRICLINIC ? ybox*xy + zbox*xz : 0.0);
     const double deltay = ybox*yprd + (TRICLINIC ? zbox*yz : 0.0);
     const double deltaz = zbox*zprd;
@@ -808,7 +795,6 @@ void FixRigidNHOMP::set_v_thr()
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
-  const imageint * _noalias const image = atom->image;
 
   const double xprd = domain->xprd;
   const double yprd = domain->yprd;
@@ -861,9 +847,9 @@ void FixRigidNHOMP::set_v_thr()
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
 
-      const int xbox = (image[i] & IMGMASK) - IMGMAX;
-      const int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      const int zbox = (image[i] >> IMG2BITS) - IMGMAX;
+      const int xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
+      const int ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
+      const int zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
       const double deltax = xbox*xprd + (TRICLINIC ? ybox*xy + zbox*xz : 0.0);
       const double deltay = ybox*yprd + (TRICLINIC ? zbox*yz : 0.0);
       const double deltaz = zbox*zprd;
@@ -915,7 +901,7 @@ void FixRigidNHOMP::set_v_thr()
     }
   }
 
-  // set omega, angmom of each extended particle 
+  // set omega, angmom of each extended particle
   // XXX: extended particle info not yet multi-threaded
 
   if (extended) {

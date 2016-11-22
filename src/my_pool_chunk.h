@@ -30,7 +30,7 @@ inputs:
 methods:
    T *get(index) = return ptr/index to unused chunk of size maxchunk
    T *get(N,index) = return ptr/index to unused chunk of size N
-                     minchunk < N < maxchunk required
+                     minchunk <= N <= maxchunk required
    put(index) = return indexed chunk to pool (same index returned by get)
    int size() = return total size of allocated pages in bytes
 public varaibles:
@@ -43,7 +43,7 @@ public varaibles:
 #ifndef LAMMPS_MY_POOL_CHUNK_H
 #define LAMMPS_MY_POOL_CHUNK_H
 
-#include "stdlib.h"
+#include <stdlib.h>
 
 namespace LAMMPS_NS {
 
@@ -148,8 +148,10 @@ class MyPoolChunk {
   }
 
   // return indexed chunk to pool via free list
+  // index = -1 if no allocated chunk
 
   void put(int index) {
+    if (index < 0) return;
     int ipage = index/chunkperpage;
     int ibin = whichbin[ipage];
     nchunk--;

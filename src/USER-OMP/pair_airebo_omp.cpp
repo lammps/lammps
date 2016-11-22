@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_airebo_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -47,6 +47,8 @@ PairAIREBOOMP::PairAIREBOOMP(LAMMPS *lmp) :
 
 void PairAIREBOOMP::compute(int eflag, int vflag)
 {
+  double pv0=0.0,pv1=0.0,pv2=0.0;
+
   if (eflag || vflag) {
     ev_setup(eflag,vflag);
   } else evflag = vflag_fdotr = vflag_atom = 0;
@@ -58,21 +60,27 @@ void PairAIREBOOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel default(none) shared(eflag,vflag) reduction(+:pv0,pv1,pv2)
 #endif
   {
     int ifrom, ito, tid;
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
-    FREBO_thr(ifrom,ito,evflag,eflag,vflag_atom,thr);
-    if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,thr);
-    if (torflag) TORSION_thr(ifrom,ito,evflag,eflag,thr);
+    FREBO_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv0,thr);
+    if (ljflag) FLJ_thr(ifrom,ito,evflag,eflag,vflag_atom,&pv1,thr);
+    if (torflag) TORSION_thr(ifrom,ito,evflag,eflag,&pv2,thr);
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  pvector[0] = pv0;
+  pvector[1] = pv1;
+  pvector[2] = pv2;
 }
 
 /* ----------------------------------------------------------------------
@@ -584,9 +592,9 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
         cos321 = MAX(cos321,-1.0);
         Sp2(cos321,thmin,thmax,dcut321);
         sin321 = sqrt(1.0 - cos321*cos321);
-        sink2i = 1.0/(sin321*sin321);
-        rik2i = 1.0/(r21mag*r21mag);
-        if (sin321 != 0.0) {
+        if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+          sink2i = 1.0/(sin321*sin321);
+          rik2i = 1.0/(r21mag*r21mag);
           rr = (r23mag*r23mag)-(r21mag*r21mag);
           rjk[0] = r21[0]-r23[0];
           rjk[1] = r21[1]-r23[1];
@@ -621,10 +629,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
               cos234 = MIN(cos234,1.0);
               cos234 = MAX(cos234,-1.0);
               sin234 = sqrt(1.0 - cos234*cos234);
-              sinl2i = 1.0/(sin234*sin234);
-              rjl2i = 1.0/(r34mag*r34mag);
 
-              if (sin234 != 0.0) {
+              if ((sin234 > TOL) && (r34mag > TOL)) {  // XXX was sin234 != 0.0
+                sinl2i = 1.0/(sin234*sin234);
+                rjl2i = 1.0/(r34mag*r34mag);
                 w34 = Sp(r34mag,rcmin[jtype][ltype],rcmaxp[jtype][ltype],dw34);
                 rr = (r23mag*r23mag)-(r34mag*r34mag);
                 ril[0] = r23[0]+r34[0];
@@ -655,7 +663,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
                 cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
                 om1234 = cwnum/cwnom;
                 cw = om1234;
-                Etmp += ((1.0-(om1234*om1234))*w21*w34) *
+                Etmp += ((1.0-square(om1234))*w21*w34) *
                   (1.0-tspjik)*(1.0-tspijl);
 
                 dt1dik = (rik2i)-(dctik*sink2i*cos321);
@@ -682,7 +690,7 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 
                 aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                   (1.0-tspjik)*(1.0-tspijl);
-                aaa1 = -prefactor*(1.0-(om1234*om1234)) *
+                aaa1 = -prefactor*(1.0-square(om1234)) *
                   (1.0-tspjik)*(1.0-tspijl);
                 aaa2 = aaa1*w21*w34;
                 at2 = aa*cwnum;
@@ -1025,8 +1033,8 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
       // evaluate splines g and derivatives dg
 
       g = gSpline(cosijl,NjiC+NjiH,jtype,&dgdc,&dgdN);
-      Etmp = Etmp+(wjl*g*exp(lamdaijl));
-      tmp3 = tmp3+(wjl*dgdN*exp(lamdaijl));
+      Etmp += (wjl*g*exp(lamdaijl));
+      tmp3 += (wjl*dgdN*exp(lamdaijl));
       NconjtmpJ = NconjtmpJ+(kronecker(ltype,0)*wjl*Sp(Nlj,Nmin,Nmax,dS));
     }
   }
@@ -1095,7 +1103,6 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
               ril[1] = rij[1]+rjl[1];
               ril[2] = rij[2]+rjl[2];
               ril2 = (ril[0]*ril[0])+(ril[1]*ril[1])+(ril[2]*ril[2]);
-              rijrjl = 2.0*rijmag*rjlmag;
               rjl2 = rjlmag*rjlmag;
               costmp = 0.5*(rij2+rjl2-ril2)/rijmag/rjlmag;
               tspijl = Sp2(costmp,thmin,thmax,dtsijl);
@@ -1118,7 +1125,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
                                 (crosskij[1]*crossijl[1]) +
                                 (crosskij[2]*crossijl[2])) /
                                (crosskijmag*crossijlmag));
-                Etmp += ((1.0-(omkijl*omkijl))*wik*wjl) *
+                Etmp += ((1.0-square(omkijl))*wik*wjl) *
                   (1.0-tspjik)*(1.0-tspijl);
               }
             }
@@ -1146,6 +1153,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
     REBO_neighs_i = REBO_firstneigh[i];
     for (k = 0; k < REBO_numneigh[i]; k++) {
       atomk = REBO_neighs_i[k];
+      ktype = map[type[atomk]];
       if (atomk != atomj) {
         lamdajik = 0.0;
         rik[0] = x[atomi][0]-x[atomk][0];
@@ -1512,10 +1520,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
           cos321 = MIN(cos321,1.0);
           cos321 = MAX(cos321,-1.0);
           sin321 = sqrt(1.0 - cos321*cos321);
-          sink2i = 1.0/(sin321*sin321);
-          rik2i = 1.0/(r21mag*r21mag);
 
-          if (sin321 != 0.0) {
+          if ((sin321 > TOL) && (r21mag > TOL)) { // XXX was sin321 != 0.0
+            sink2i = 1.0/(sin321*sin321);
+            rik2i = 1.0/(r21mag*r21mag);
             rr = (rijmag*rijmag)-(r21mag*r21mag);
             rjk[0] = r21[0]-rij[0];
             rjk[1] = r21[1]-rij[1];
@@ -1549,10 +1557,10 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
                 cos234 = MIN(cos234,1.0);
                 cos234 = MAX(cos234,-1.0);
                 sin234 = sqrt(1.0 - cos234*cos234);
-                sinl2i = 1.0/(sin234*sin234);
-                rjl2i = 1.0/(r34mag*r34mag);
 
-                if (sin234 != 0.0) {
+                if ((sin234 > TOL) && (r34mag > TOL)) { // XXX was sin234 != 0.0
+                  sinl2i = 1.0/(sin234*sin234);
+                  rjl2i = 1.0/(r34mag*r34mag);
                   w34 = Sp(r34mag,rcmin[jtype][ltype],
                            rcmaxp[jtype][ltype],dw34);
                   rr = (r23mag*r23mag)-(r34mag*r34mag);
@@ -1584,7 +1592,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
                   cwnom = r21mag*r34mag*r23mag*r23mag*sin321*sin234;
                   om1234 = cwnum/cwnom;
                   cw = om1234;
-                  Etmp += ((1.0-(om1234*om1234))*w21*w34) *
+                  Etmp += ((1.0-square(om1234))*w21*w34) *
                     (1.0-tspjik)*(1.0-tspijl);
 
                   dt1dik = (rik2i)-(dctik*sink2i*cos321);
@@ -1614,7 +1622,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 
                   aa = (prefactor*2.0*cw/cwnom)*w21*w34 *
                     (1.0-tspjik)*(1.0-tspijl);
-                  aaa1 = -prefactor*(1.0-(om1234*om1234)) *
+                  aaa1 = -prefactor*(1.0-square(om1234)) *
                     (1.0-tspjik)*(1.0-tspijl);
                   aaa2 = aaa1*w21*w34;
                   at2 = aa*cwnum;
@@ -1834,7 +1842,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double rij[3], double rijmag
 ------------------------------------------------------------------------- */
 
 void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
-                              int vflag_atom, ThrData * const thr)
+                              int vflag_atom, double *pv0, ThrData * const thr)
 {
   int i,j,k,m,ii,itype,jtype;
   tagint itag,jtag;
@@ -1919,7 +1927,7 @@ void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
       f[j][1] -= dely*fpair;
       f[j][2] -= delz*fpair;
 
-      if (eflag) evdwl = VR + bij*VA;
+      if (eflag) *pv0 += evdwl = VR + bij*VA;
       if (evflag) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
                                evdwl,0.0,fpair,delx,dely,delz,thr);
     }
@@ -1932,7 +1940,7 @@ void PairAIREBOOMP::FREBO_thr(int ifrom, int ito, int evflag, int eflag,
 ------------------------------------------------------------------------- */
 
 void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
-                            int vflag_atom, ThrData * const thr)
+                            int vflag_atom, double *pv1, ThrData * const thr)
 {
   int i,j,k,m,ii,jj,kk,mm,jnum,itype,jtype,ktype,mtype;
   tagint itag,jtag;
@@ -2014,6 +2022,8 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
       // if outside of 2-path cutoff but inside 4-path cutoff,
       //   best = 0.0, test 3-,4-paths
       // if inside 2-path cutoff, best = wij, only test 3-,4-paths if best < 1
+      npath = testpath = done = 0;
+      best = 0.0;
 
       if (rijsq >= cutljsq[itype][jtype]) continue;
       rij = sqrt(rijsq);
@@ -2030,7 +2040,6 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
         else testpath = 0;
       }
 
-      done = 0;
       if (testpath) {
 
         // test all 3-body paths = I-K-J
@@ -2051,7 +2060,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
           if (rsq < rcmaxsq[itype][ktype]) {
             rik = sqrt(rsq);
             wik = Sp(rik,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
-          } else wik = 0.0;
+          } else { dwik = wik = 0.0; rikS = rik = 1.0; }
 
           if (wik > best) {
             deljk[0] = x[j][0] - x[k][0];
@@ -2064,19 +2073,19 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
               if (wik*wkj > best) {
                 best = wik*wkj;
                 npath = 3;
-                 atomk = k;
-                    delikS[0] = delik[0];
-                    delikS[1] = delik[1];
-                    delikS[2] = delik[2];
-                    rikS = rik;
-                    wikS = wik;
-                    dwikS = dwik;
-                    deljkS[0] = deljk[0];
-                    deljkS[1] = deljk[1];
-                    deljkS[2] = deljk[2];
-                    rkjS = rkj;
-                    wkjS = wkj;
-                    dwkjS = dwkj;
+                atomk = k;
+                delikS[0] = delik[0];
+                delikS[1] = delik[1];
+                delikS[2] = delik[2];
+                rikS = rik;
+                wikS = wik;
+                dwikS = dwik;
+                deljkS[0] = deljk[0];
+                deljkS[1] = deljk[1];
+                deljkS[2] = deljk[2];
+                rkjS = rkj;
+                wkjS = wkj;
+                dwkjS = dwkj;
                 if (best == 1.0) {
                   done = 1;
                   break;
@@ -2101,7 +2110,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
               if (rsq < rcmaxsq[ktype][mtype]) {
                 rkm = sqrt(rsq);
                 wkm = Sp(rkm,rcmin[ktype][mtype],rcmax[ktype][mtype],dwkm);
-              } else wkm = 0.0;
+              } else { dwkm = wkm = 0.0; rkmS = rkm = 1.0; }
 
               if (wik*wkm > best) {
                 deljm[0] = x[j][0] - x[m][0];
@@ -2125,13 +2134,13 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
                     atomm = m;
                     delkmS[0] = delkm[0];
                     delkmS[1] = delkm[1];
-                        delkmS[2] = delkm[2];
+                    delkmS[2] = delkm[2];
                     rkmS = rkm;
                     wkmS = wkm;
                     dwkmS = dwkm;
                     deljmS[0] = deljm[0];
                     deljmS[1] = deljm[1];
-                       deljmS[2] = deljm[2];
+                    deljmS[2] = deljm[2];
                     rmjS = rmj;
                     wmjS = wmj;
                     dwmjS = dwmj;
@@ -2175,11 +2184,20 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
         dslw = 0.0;
       }
 
-      r2inv = 1.0/rijsq;
-      r6inv = r2inv*r2inv*r2inv;
+      if (morseflag) {
 
-      vdw = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
-      dvdw = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
+        const double exr = exp(-rij*lj4[itype][jtype]);
+        vdw = lj1[itype][jtype]*exr*(lj2[itype][jtype]*exr - 2);
+        dvdw = lj3[itype][jtype]*exr*(1-lj2[itype][jtype]*exr);
+
+      } else {
+
+        r2inv = 1.0/rijsq;
+        r6inv = r2inv*r2inv*r2inv;
+
+        vdw = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+        dvdw = -r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]) / rij;
+      }
 
       // VLJ now becomes vdw * slw, derivaties, etc.
 
@@ -2207,7 +2225,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
       f[j][1] -= delij[1]*fpair;
       f[j][2] -= delij[2]*fpair;
 
-      if (eflag) evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
+      if (eflag) *pv1 += evdwl = VA*Stb + (1.0-Str)*cij*VLJ;
       if (evflag) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
                                evdwl,0.0,fpair,delij[0],delij[1],delij[2],thr);
 
@@ -2247,7 +2265,7 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
           if (vflag_atom)
             v_tally3_thr(atomi,atomj,atomk,fi,fj,delikS,deljkS,thr);
 
-        } else {
+        } else if (npath == 4) {
           fpair1 = dC*dwikS*wkmS*wmjS / rikS;
           fi[0] = delikS[0]*fpair1;
           fi[1] = delikS[1]*fpair1;
@@ -2296,8 +2314,8 @@ void PairAIREBOOMP::FLJ_thr(int ifrom, int ito, int evflag, int eflag,
    torsional forces and energy
 ------------------------------------------------------------------------- */
 
-void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
-                                int evflag, int eflag, ThrData * const thr)
+void PairAIREBOOMP::TORSION_thr(int ifrom, int ito, int evflag, int eflag,
+                                double *pv2, ThrData * const thr)
 {
   int i,j,k,l,ii;
   tagint itag,jtag;
@@ -2450,7 +2468,7 @@ void PairAIREBOOMP::TORSION_thr(int ifrom, int ito,
           Ec = 256.0*ekijl/405.0;
           Vtors = (Ec*(powint(cw2,5)))-(ekijl/10.0);
 
-          if (eflag) evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
+          if (eflag) *pv2 += evdwl = Vtors*w21*w23*w34*(1.0-tspjik)*(1.0-tspijl);
 
           dndij[0] = (cross234[1]*del21[2])-(cross234[2]*del21[1]);
           dndij[1] = (cross234[2]*del21[0])-(cross234[0]*del21[2]);

@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_cut_coul_cut_kokkos.h"
 #include "kokkos.h"
 #include "atom_kokkos.h"
@@ -89,8 +89,6 @@ void PairLJCutCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL || neighflag == FULLCLUSTER) no_virial_fdotr_compute = 1;
 
-  double evdwl = 0.0;
-  double ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
 
@@ -124,8 +122,6 @@ void PairLJCutCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairLJCutCoulCutKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
-
-  DeviceType::fence();
 
   if (eflag) {
     eng_vdwl += ev.evdwl;
@@ -341,7 +337,10 @@ double PairLJCutCoulCutKokkos<DeviceType>::init_one(int i, int j)
 
 
 
+namespace LAMMPS_NS {
 template class PairLJCutCoulCutKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
 template class PairLJCutCoulCutKokkos<LMPHostType>;
 #endif
+}
+

@@ -18,12 +18,11 @@
      triclinic added by Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "pppm.h"
 #include "atom.h"
 #include "comm.h"
@@ -65,10 +64,22 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg), 
+  factors(NULL), density_brick(NULL), vdx_brick(NULL), vdy_brick(NULL), vdz_brick(NULL),
+  u_brick(NULL), v0_brick(NULL), v1_brick(NULL), v2_brick(NULL), v3_brick(NULL),
+  v4_brick(NULL), v5_brick(NULL), greensfn(NULL), vg(NULL), fkx(NULL), fky(NULL),
+  fkz(NULL), density_fft(NULL), work1(NULL), work2(NULL), gf_b(NULL), rho1d(NULL),
+  rho_coeff(NULL), drho1d(NULL), drho_coeff(NULL), sf_precoeff1(NULL), sf_precoeff2(NULL),
+  sf_precoeff3(NULL), sf_precoeff4(NULL), sf_precoeff5(NULL), sf_precoeff6(NULL),
+  acons(NULL), density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL),
+  density_B_fft(NULL), fft1(NULL), fft2(NULL), remap(NULL), cg(NULL), cg_peratom(NULL),
+  part2grid(NULL), boxlo(NULL)
 {
+  peratom_allocate_flag = 0;
+  group_allocate_flag = 0;
+
   if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm command");
- 
+
   pppmflag = 1;
   group_group_enable = 1;
 
@@ -92,7 +103,7 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   vg = NULL;
   fkx = fky = fkz = NULL;
 
-  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 = 
+  sf_precoeff1 = sf_precoeff2 = sf_precoeff3 =
     sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
 
   density_A_brick = density_B_brick = NULL;
@@ -108,9 +119,6 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
   nmax = 0;
   part2grid = NULL;
-
-  peratom_allocate_flag = 0;
-  group_allocate_flag = 0;
 
   // define acons coefficients for estimation of kspace errors
   // see JCP 109, pg 7698 for derivation of coefficients
@@ -153,6 +161,8 @@ PPPM::PPPM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
 
 PPPM::~PPPM()
 {
+  if (copymode) return;
+
   delete [] factors;
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
@@ -183,7 +193,7 @@ void PPPM::init()
                "slab correction");
   if (domain->dimension == 2) error->all(FLERR,
                                          "Cannot use PPPM with 2d simulation");
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"PPPM can only currently be used with "
                         "comm_style brick");
 
@@ -231,7 +241,7 @@ void PPPM::init()
     int *p_typeA = (int *) force->pair->extract("typeA",itmp);
     int *p_typeB = (int *) force->pair->extract("typeB",itmp);
     if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all(FLERR,"Pair style is incompatible with KSpace style");
+      error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
     qdist = *p_qdist;
     typeO = *p_typeO;
     typeH = *p_typeH;
@@ -258,7 +268,7 @@ void PPPM::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(0);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -305,7 +315,7 @@ void PPPM::init()
     order--;
     iteration++;
   }
-  
+
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
   if (!overlap_allowed && cgtmp->ghost_overlap())
     error->all(FLERR,"PPPM grid stencil extends "
@@ -384,6 +394,16 @@ void PPPM::setup()
   if (triclinic) {
     setup_triclinic();
     return;
+  }
+
+  // perform some checks to avoid illegal boundaries with read_data
+
+  if (slabflag == 0 && domain->nonperiodic > 0)
+    error->all(FLERR,"Cannot use nonperiodic boundaries with PPPM");
+  if (slabflag) {
+    if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
+        domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
+      error->all(FLERR,"Incorrect boundaries with slab PPPM");
   }
 
   int i,j,k,n;
@@ -608,6 +628,17 @@ void PPPM::compute(int eflag, int vflag)
     cg_peratom->setup();
   }
 
+  // if atom count has changed, update qsum and qsqsum
+
+  if (atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+
+  // return if there are no charges
+
+  if (qsqsum == 0.0) return;
+
   // convert atoms from box to lamda coords
 
   if (triclinic == 0) boxlo = domain->boxlo;
@@ -618,7 +649,7 @@ void PPPM::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"pppm:part2grid");
@@ -653,7 +684,7 @@ void PPPM::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    if (differentiation_flag == 1 && vflag_atom) 
+    if (differentiation_flag == 1 && vflag_atom)
       cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
     else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
@@ -666,15 +697,6 @@ void PPPM::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) fieldforce_peratom();
-
-  // update qsum and qsqsum, if needed
-
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
-  }
 
   // sum global energy across procs and add in volume-dependent term
 
@@ -701,7 +723,7 @@ void PPPM::compute(int eflag, int vflag)
 
   // per-atom energy/virial
   // energy includes self-energy correction
-  // notal accounts for TIP4P tallying eatom/vatom for ghost atoms
+  // ntotal accounts for TIP4P tallying eatom/vatom for ghost atoms
 
   if (evflag_atom) {
     double *q = atom->q;
@@ -1062,7 +1084,7 @@ void PPPM::set_grid_global()
     }
 
     // scale grid for triclinic skew
-    
+
     if (triclinic) {
       double tmp[3];
       tmp[0] = nx_pppm/xprd;
@@ -1154,7 +1176,7 @@ double PPPM::compute_qopt()
 {
   double qopt = 0.0;
   double *prd = domain->prd;
-  
+
   const double xprd = prd[0];
   const double yprd = prd[1];
   const double zprd = prd[2];
@@ -1441,7 +1463,7 @@ void PPPM::set_grid_local()
       nzhi_in = nzhi_out = nz_pppm - 1;
     nzhi_out = MIN(nzhi_out,nz_pppm-1);
   }
-    
+
   // decomposition of FFT mesh
   // global indices range from 0 to N-1
   // proc owns entire x-dimension, clumps of columns in y,z dimensions
@@ -1879,7 +1901,7 @@ void PPPM::particle_map()
 
   int flag = 0;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   for (int i = 0; i < nlocal; i++) {
@@ -2761,7 +2783,7 @@ void PPPM::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
     FFT_SCALAR *dest = &density_brick[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -3338,7 +3360,7 @@ void PPPM::poisson_groups(int AA_flag)
   }
 
   // triclinic system
-  
+
   if (triclinic) {
     poisson_groups_triclinic();
     return;
@@ -3453,7 +3475,7 @@ void PPPM::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
     if (!((mask[i] & groupbit_A) && (mask[i] & groupbit_B)))
       if (AA_flag) continue;
 
-    if (mask[i] & groupbit_A) { 
+    if (mask[i] & groupbit_A) {
       qsum_A += q[i];
       dipole_A += q[i]*x[i][2];
       dipole_r2_A += q[i]*x[i][2]*x[i][2];

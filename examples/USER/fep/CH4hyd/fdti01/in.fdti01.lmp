@@ -30,51 +30,54 @@ pair_coeff    1    4  lj/cut/tip4p/long/soft   0.0000   1.0000  0.0  # C4H Hw
 pair_coeff    2    3  lj/cut/tip4p/long/soft   0.0699   2.8126  0.0  # H Ow
 pair_coeff    2    4  lj/cut/tip4p/long/soft   0.0000   1.0000  0.0  # H Hw
 
-variable nsteps equal 2500000
-variable nprint equal ${nsteps}/500
-variable ndump equal ${nsteps}/100
+variable TK equal 300.0
+variable PBAR equal 1.0
 
-variable temp equal 300.0
-variable press equal 1.0
-
-fix fSHAKE all shake 0.0001 20 ${nprint} b 2 a 2
+fix SHAKE all shake 0.0001 20 0 b 2 a 2
 
 neighbor 2.0 bin
 
-timestep 2.0
+timestep 1.0
 
-velocity all create ${temp} 12345
+velocity all create ${TK} 12345
 
 thermo_style multi
-thermo ${nprint}
+thermo 5000
 
-fix fNPT all npt temp ${temp} ${temp} 100 iso ${press} ${press} 1000
+fix TPSTAT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 1000
 
-run 250000
+set type 1*2 charge 0.0
 
+run 100000
 reset_timestep 0
 
 variable lambda equal ramp(0.0,1.0)
+variable q1 equal -0.24*v_lambda
+variable q2 equal  0.06*v_lambda
 
-fix fADAPT all adapt/fep 125000 pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_lambda after yes
+fix ADAPT all adapt/fep 100000 &
+  pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_lambda &
+  atom charge 1 v_q1 &
+  atom charge 2 v_q2 &
+  after yes
 
+fix PRINT all print 100000 "adapt  lambda = ${lambda}  q1 = ${q1}  q2 = ${q2}"
+  
 variable dlambda equal 0.002
+variable dq1 equal -0.24*v_dlambda
+variable dq2 equal  0.06*v_dlambda
 
-compute cFEP all fep ${temp} pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_dlambda
+compute FEP all fep ${TK} &
+  pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_dlambda &
+  atom charge 1 v_dq1 &
+  atom charge 2 v_dq2
 
-fix fFEP all ave/time 25 4000 125000 c_cFEP[1] c_cFEP[2] file fdti01.lmp
+fix FEP all ave/time 20 4000 100000 c_FEP[1] c_FEP[2] file fdti01.lmp
 
-# compute cRDF all rdf 100 3 3 3 4 4 4
-# fix fRDF all ave/time 2000 500 ${nsteps} c_cRDF file rdf.lammps mode vector
+dump TRAJ all custom 20000 dump.lammpstrj id mol type element x y z ix iy iz
+dump_modify TRAJ element C H O H
 
-group owater type 3
-compute cMSD owater msd
-fix fMSD owater ave/time 1 1 ${ndump} c_cMSD[1] c_cMSD[2] c_cMSD[3] c_cMSD[4] file msd.lammps
-
-dump dCONF all custom ${ndump} dump.lammpstrj id mol type element x y z ix iy iz
-dump_modify dCONF element C H O H
-
-run ${nsteps}
+run 2000000
 
 # write_restart restart.*.lmp
 write_data data.*.lmp

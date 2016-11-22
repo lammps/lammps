@@ -5,7 +5,7 @@ OCL_CPP = x86_64-w64-mingw32-g++ -O3 -march=core2 -mtune=core2 -mpc64 \
 	-I../../tools/mingw-cross/mpich2-win64/include/ \
         -DMPICH_IGNORE_CXX_SEEK
  
-OCL_LINK = -Wl,--enable-stdcall-fixup -L$(CUDA_HOME)/../Obj_mingw64 -lOpenCL \
+OCL_LINK = -static -Wl,--enable-stdcall-fixup -L$(CUDA_HOME)/../Obj_mingw64 -Wl,-Bdynamic,-lOpenCL,-Bstatic \
 	-L../../tools/mingw-cross/mpich2-win64/lib -lmpi
 OCL_PREC = -D_SINGLE_DOUBLE
 OCL_TUNE = -DFERMI_OCL

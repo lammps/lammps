@@ -35,6 +35,7 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_cg_cmm.o $(OBJ_DIR)/lal_cg_cmm_ext.o \
        $(OBJ_DIR)/lal_cg_cmm_long.o $(OBJ_DIR)/lal_cg_cmm_long_ext.o \
        $(OBJ_DIR)/lal_eam.o $(OBJ_DIR)/lal_eam_ext.o \
+       $(OBJ_DIR)/lal_eam_fs_ext.o $(OBJ_DIR)/lal_eam_alloy_ext.o \
        $(OBJ_DIR)/lal_buck.o $(OBJ_DIR)/lal_buck_ext.o \
        $(OBJ_DIR)/lal_buck_coul.o $(OBJ_DIR)/lal_buck_coul_ext.o \
        $(OBJ_DIR)/lal_buck_coul_long.o $(OBJ_DIR)/lal_buck_coul_long_ext.o \
@@ -57,8 +58,13 @@ OBJS = $(OBJ_DIR)/lal_atom.o $(OBJ_DIR)/lal_answer.o \
        $(OBJ_DIR)/lal_lj_coul_msm.o $(OBJ_DIR)/lal_lj_coul_msm_ext.o \
        $(OBJ_DIR)/lal_lj_gromacs.o $(OBJ_DIR)/lal_lj_gromacs_ext.o \
        $(OBJ_DIR)/lal_dpd.o $(OBJ_DIR)/lal_dpd_ext.o \
+       $(OBJ_DIR)/lal_tersoff.o $(OBJ_DIR)/lal_tersoff_ext.o \
+       $(OBJ_DIR)/lal_tersoff_zbl.o $(OBJ_DIR)/lal_tersoff_zbl_ext.o \
+       $(OBJ_DIR)/lal_tersoff_mod.o $(OBJ_DIR)/lal_tersoff_mod_ext.o \
        $(OBJ_DIR)/lal_coul.o $(OBJ_DIR)/lal_coul_ext.o \
-       $(OBJ_DIR)/lal_coul_debye.o $(OBJ_DIR)/lal_coul_debye_ext.o
+       $(OBJ_DIR)/lal_coul_debye.o $(OBJ_DIR)/lal_coul_debye_ext.o \
+       $(OBJ_DIR)/lal_zbl.o $(OBJ_DIR)/lal_zbl_ext.o \
+       $(OBJ_DIR)/lal_lj_cubic.o $(OBJ_DIR)/lal_lj_cubic_ext.o
 
 KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/neighbor_cpu_cl.h $(OBJ_DIR)/pppm_cl.h \
@@ -82,7 +88,11 @@ KERS = $(OBJ_DIR)/device_cl.h $(OBJ_DIR)/atom_cl.h \
        $(OBJ_DIR)/sw_cl.h $(OBJ_DIR)/beck_cl.h $(OBJ_DIR)/mie_cl.h \
        $(OBJ_DIR)/soft_cl.h $(OBJ_DIR)/lj_coul_msm_cl.h \
        $(OBJ_DIR)/lj_gromacs_cl.h $(OBJ_DIR)/dpd_cl.h \
-       $(OBJ_DIR)/coul_cl.h $(OBJ_DIR)/coul_debye_cl.h
+       $(OBJ_DIR)/lj_gauss_cl.h $(OBJ_DIR)/dzugutov_cl.h \
+       $(OBJ_DIR)/tersoff_cl.h $(OBJ_DIR)/tersoff_zbl_cl.h \
+       $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/coul_cl.h \
+       $(OBJ_DIR)/coul_debye_cl.h $(OBJ_DIR)/zbl_cl.h \
+       $(OBJ_DIR)/lj_cubic_cl.h
 
 
 OCL_EXECS = $(BIN_DIR)/ocl_get_devices
@@ -287,8 +297,14 @@ $(OBJ_DIR)/eam_cl.h: lal_eam.cu $(PRE1_H)
 $(OBJ_DIR)/lal_eam.o: $(ALL_H) lal_eam.h lal_eam.cpp  $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/eam_cl.h $(OBJ_DIR)/lal_base_atomic.o
 	$(OCL) -o $@ -c lal_eam.cpp -I$(OBJ_DIR)
 
-$(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_charge.h
+$(OBJ_DIR)/lal_eam_ext.o: $(ALL_H) lal_eam.h lal_eam_ext.cpp lal_base_atomic.h
 	$(OCL) -o $@ -c lal_eam_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_fs_ext.o: $(ALL_H) lal_eam.h lal_eam_fs_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_eam_fs_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_eam_alloy_ext.o: $(ALL_H) lal_eam.h lal_eam_alloy_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_eam_alloy_ext.cpp -I$(OBJ_DIR)
 
 $(OBJ_DIR)/buck_cl.h: lal_buck.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh buck $(PRE1_H) lal_buck.cu $(OBJ_DIR)/buck_cl.h;
@@ -488,6 +504,33 @@ $(OBJ_DIR)/lal_dpd.o: $(ALL_H) lal_dpd.h lal_dpd.cpp  $(OBJ_DIR)/dpd_cl.h $(OBJ_
 $(OBJ_DIR)/lal_dpd_ext.o: $(ALL_H) lal_dpd.h lal_dpd_ext.cpp lal_base_dpd.h
 	$(OCL) -o $@ -c lal_dpd_ext.cpp -I$(OBJ_DIR)
 
+$(OBJ_DIR)/tersoff_cl.h: lal_tersoff.cu lal_tersoff_extra.h $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh tersoff $(PRE1_H) lal_tersoff_extra.h lal_tersoff.cu $(OBJ_DIR)/tersoff_cl.h;
+
+$(OBJ_DIR)/lal_tersoff.o: $(ALL_H) lal_tersoff.h lal_tersoff.cpp  $(OBJ_DIR)/tersoff_cl.h $(OBJ_DIR)/tersoff_cl.h $(OBJ_DIR)/lal_base_three.o
+	$(OCL) -o $@ -c lal_tersoff.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_tersoff_ext.o: $(ALL_H) lal_tersoff.h lal_tersoff_ext.cpp lal_base_three.h
+	$(OCL) -o $@ -c lal_tersoff_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/tersoff_zbl_cl.h: lal_tersoff_zbl.cu lal_tersoff_zbl_extra.h $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh tersoff_zbl $(PRE1_H) lal_tersoff_zbl_extra.h lal_tersoff_zbl.cu $(OBJ_DIR)/tersoff_zbl_cl.h;
+
+$(OBJ_DIR)/lal_tersoff_zbl.o: $(ALL_H) lal_tersoff_zbl.h lal_tersoff_zbl.cpp  $(OBJ_DIR)/tersoff_zbl_cl.h $(OBJ_DIR)/tersoff_zbl_cl.h $(OBJ_DIR)/lal_base_three.o
+	$(OCL) -o $@ -c lal_tersoff_zbl.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_tersoff_zbl_ext.o: $(ALL_H) lal_tersoff_zbl.h lal_tersoff_zbl_ext.cpp lal_base_three.h
+	$(OCL) -o $@ -c lal_tersoff_zbl_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/tersoff_mod_cl.h: lal_tersoff_mod.cu lal_tersoff_mod_extra.h $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh tersoff_mod $(PRE1_H) lal_tersoff_mod_extra.h lal_tersoff_mod.cu $(OBJ_DIR)/tersoff_mod_cl.h;
+
+$(OBJ_DIR)/lal_tersoff_mod.o: $(ALL_H) lal_tersoff_mod.h lal_tersoff_mod.cpp  $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/tersoff_mod_cl.h $(OBJ_DIR)/lal_base_three.o
+	$(OCL) -o $@ -c lal_tersoff_mod.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_tersoff_mod_ext.o: $(ALL_H) lal_tersoff_mod.h lal_tersoff_mod_ext.cpp lal_base_three.h
+	$(OCL) -o $@ -c lal_tersoff_mod_ext.cpp -I$(OBJ_DIR)
+
 $(OBJ_DIR)/coul_cl.h: lal_coul.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh coul $(PRE1_H) lal_coul.cu $(OBJ_DIR)/coul_cl.h;
 
@@ -506,6 +549,24 @@ $(OBJ_DIR)/lal_coul_debye.o: $(ALL_H) lal_coul_debye.h lal_coul_debye.cpp  $(OBJ
 $(OBJ_DIR)/lal_coul_debye_ext.o: $(ALL_H) lal_coul_debye.h lal_coul_debye_ext.cpp lal_base_charge.h
 	$(OCL) -o $@ -c lal_coul_debye_ext.cpp -I$(OBJ_DIR)
 
+$(OBJ_DIR)/zbl_cl.h: lal_zbl.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh zbl $(PRE1_H) lal_zbl.cu $(OBJ_DIR)/zbl_cl.h;
+
+$(OBJ_DIR)/lal_zbl.o: $(ALL_H) lal_zbl.h lal_zbl.cpp  $(OBJ_DIR)/zbl_cl.h $(OBJ_DIR)/zbl_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_zbl.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_zbl_ext.o: $(ALL_H) lal_zbl.h lal_zbl_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_zbl_ext.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lj_cubic_cl.h: lal_lj_cubic.cu $(PRE1_H)
+	$(BSH) ./geryon/file_to_cstr.sh lj_cubic $(PRE1_H) lal_lj_cubic.cu $(OBJ_DIR)/lj_cubic_cl.h;
+
+$(OBJ_DIR)/lal_lj_cubic.o: $(ALL_H) lal_lj_cubic.h lal_lj_cubic.cpp  $(OBJ_DIR)/lj_cubic_cl.h $(OBJ_DIR)/lj_cubic_cl.h $(OBJ_DIR)/lal_base_atomic.o
+	$(OCL) -o $@ -c lal_lj_cubic.cpp -I$(OBJ_DIR)
+
+$(OBJ_DIR)/lal_lj_cubic_ext.o: $(ALL_H) lal_lj_cubic.h lal_lj_cubic_ext.cpp lal_base_atomic.h
+	$(OCL) -o $@ -c lal_lj_cubic_ext.cpp -I$(OBJ_DIR)
+
 $(BIN_DIR)/ocl_get_devices: ./geryon/ucl_get_devices.cpp
 	$(OCL) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_OPENCL $(OCL_LINK) 
 
@@ -516,8 +577,8 @@ $(OCL_LIB): $(OBJS) $(PTXS)
 opencl: $(OCL_EXECS)
 
 clean:
-	rm -rf $(EXECS) $(OCL_EXECS) $(OCL_LIB) $(OBJS) $(KERS) *.linkinfo
+	-rm -rf $(EXECS) $(OCL_EXECS) $(OCL_LIB) $(OBJS) $(KERS) *.linkinfo
 
 veryclean: clean
-	rm -rf *~ *.linkinfo
+	-rm -rf *~ *.linkinfo
 

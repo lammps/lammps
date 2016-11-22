@@ -33,10 +33,24 @@ class DumpCustom : public Dump {
   int nevery;                // dump frequency for output
   int iregion;               // -1 if no region, else which region
   char *idregion;            // region ID
-  int nthresh;               // # of defined threshholds
-  int *thresh_array;         // array to threshhhold on for each nthresh
-  int *thresh_op;            // threshhold operation for each nthresh
-  double *thresh_value;      // threshhold value for each nthresh
+
+  int nthresh;               // # of defined thresholds
+  int nthreshlast;           // # of defined thresholds with value = LAST
+
+  int *thresh_array;         // array to threshold on for each nthresh
+  int *thresh_op;            // threshold operation for each nthresh
+  double *thresh_value;      // threshold value for each nthresh
+  int *thresh_last;          // for threshold value = LAST,
+                             // index into thresh_fix
+                             // -1 if not LAST, value is numeric
+
+  class FixStore **thresh_fix;  // stores values for each threshold LAST
+  char **thresh_fixID;          // IDs of thresh_fixes
+  int *thresh_first;            // 1 the first time a FixStore values accessed
+
+  int expand;                // flag for whether field args were expanded
+  char **earg;               // field names with wildcard expansion
+  int nargnew;               // size of earg
 
   int *vtype;                // type of each vector (INT, DOUBLE)
   char **vformat;            // format string for each vector element
@@ -46,7 +60,7 @@ class DumpCustom : public Dump {
   int nchoose;               // # of selected atoms
   int maxlocal;              // size of atom selection and variable arrays
   int *choose;               // local indices of selected atoms
-  double *dchoose;           // value for each atom to threshhold against
+  double *dchoose;           // value for each atom to threshold against
   int *clist;                // compressed list of indices of selected atoms
 
   int nfield;                // # of keywords listed by user
@@ -216,24 +230,28 @@ E: Could not find dump custom variable name
 
 Self-explanatory.
 
+E: Could not find custom per-atom property ID
+
+Self-explanatory.
+
 E: Region ID for dump custom does not exist
 
 Self-explanatory.
 
-E: Threshhold for an atom property that isn't allocated
+E: Compute used in dump between runs is not current
 
-A dump threshhold has been requested on a quantity that is
+The compute was not invoked on the current timestep, therefore it
+cannot be used in a dump between runs.
+
+E: Threshold for an atom property that isn't allocated
+
+A dump threshold has been requested on a quantity that is
 not defined by the atom style used in this simulation.
 
 E: Dumping an atom property that isn't allocated
 
 The chosen atom style does not define the per-atom quantity being
 dumped.
-
-E: Dumping an atom quantity that isn't allocated
-
-Only per-atom quantities that are defined for the atom style being
-used are allowed.
 
 E: Dump custom compute does not compute per-atom info
 
@@ -271,6 +289,14 @@ E: Dump custom variable is not atom-style variable
 
 Only atom-style variables generate per-atom quantities, needed for
 dump output.
+
+E: Custom per-atom property ID is not floating point
+
+Self-explanatory.
+
+E: Custom per-atom property ID is not integer
+
+Self-explanatory.
 
 E: Illegal ... command
 
@@ -338,7 +364,15 @@ E: Dump modify variable is not atom-style variable
 
 Self-explanatory.
 
-E: Invalid dump_modify threshhold operator
+E: Could not find dump modify custom atom floating point property ID
+
+Self-explanatory.
+
+E: Could not find dump modify custom atom integer property ID
+
+Self-explanatory.
+
+E: Invalid dump_modify threshold operator
 
 Operator keyword used for threshold specification in not recognized.
 

@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_cut_coul_dsf_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -62,6 +62,7 @@ void PairLJCutCoulDSFOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -77,6 +78,7 @@ void PairLJCutCoulDSFOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -122,7 +124,7 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
     jnum = numneigh[i];
     fxtmp=fytmp=fztmp=0.0;
 
-    if (EVFLAG) {
+    if (EFLAG) {
       double e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
       ev_tally_thr(this,i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0,thr);
     }
@@ -145,19 +147,20 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv*r2inv*r2inv;
           forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-          forcelj *= factor_lj;
         } else forcelj = 0.0;
 
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
-          prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
+          prefactor = qqrd2e*qtmp*q[j]/r;
           erfcd = exp(-alpha*alpha*r*r);
           t = 1.0 / (1.0 + EWALD_P*alpha*r);
           erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
           forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
-            r*f_shift) * r;
+                                   r*f_shift) * r;
+          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
-        fpair = (forcecoul + forcelj) * r2inv;
+
+        fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;
@@ -171,12 +174,13 @@ void PairLJCutCoulDSFOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (EFLAG) {
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-              offset[itype][jtype];
+                    offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
 
-         if (rsq < cut_coulsq) {
-           ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+          if (rsq < cut_coulsq) {
+            ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
         }
 

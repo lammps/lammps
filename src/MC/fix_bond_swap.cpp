@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_bond_swap.h"
 #include "atom.h"
 #include "force.h"
@@ -52,7 +52,9 @@ static const char cite_fix_bond_swap[] =
 /* ---------------------------------------------------------------------- */
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  tflag(0), alist(NULL), id_temp(NULL), type(NULL), x(NULL), list(NULL),
+  temperature(NULL), random(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
 
@@ -166,7 +168,7 @@ void FixBondSwap::init()
 
   // need a half neighbor list, built every Nevery steps
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->occasional = 1;
@@ -240,7 +242,7 @@ void FixBondSwap::post_integrate()
   // randomize list of my owned atoms that are in fix group
   // grow atom list if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(alist);
     nmax = atom->nmax;
     memory->create(alist,nmax,"bondswap:alist");
@@ -652,7 +654,7 @@ int FixBondSwap::modify_param(int narg, char **arg)
     strcpy(id_temp,arg[1]);
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0) 
+    if (icompute < 0)
       error->all(FLERR,"Could not find fix_modify temperature ID");
     temperature = modify->compute[icompute];
 

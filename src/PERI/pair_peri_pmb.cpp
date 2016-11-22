@@ -15,10 +15,10 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "float.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <float.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_peri_pmb.h"
 #include "atom.h"
 #include "domain.h"
@@ -312,8 +312,8 @@ void PairPeriPMB::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double kspring_one = force->numeric(FLERR,arg[2]);
   double cut_one = force->numeric(FLERR,arg[3]);
@@ -359,7 +359,7 @@ void PairPeriPMB::init_style()
 {
   // error checks
 
-  if (!atom->peri_flag) 
+  if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
   if (atom->map_style == 0)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
@@ -387,7 +387,7 @@ void PairPeriPMB::init_style()
     if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
   if (ifix_peri == -1) error->all(FLERR,"Fix peri neigh does not exist");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

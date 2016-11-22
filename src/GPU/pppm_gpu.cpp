@@ -15,12 +15,11 @@
    Contributing authors: Mike Brown (ORNL), Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "pppm_gpu.h"
 #include "atom.h"
 #include "comm.h"
@@ -154,7 +153,7 @@ void PPPMGPU::init()
 
   bool respa_value=false;
   if (strstr(update->integrate_style,"respa"))
-    respa_value=true;  
+    respa_value=true;
 
   if (order>8)
     error->all(FLERR,"Cannot use order greater than 8 with pppm/gpu.");
@@ -203,7 +202,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   // invoke allocate_peratom() if needed for first time
 
   if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = evflag_atom = eflag_global = vflag_global = 
+  else evflag = evflag_atom = eflag_global = vflag_global =
         eflag_atom = vflag_atom = 0;
 
   // If need per-atom energies/virials, allocate per-atom arrays here
@@ -240,7 +239,7 @@ void PPPMGPU::compute(int eflag, int vflag)
 
     // extend size of per-atom arrays if necessary
 
-    if (atom->nlocal > nmax) {
+    if (atom->nmax > nmax) {
       memory->destroy(part2grid);
       nmax = atom->nmax;
       memory->create(part2grid,nmax,3,"pppm:part2grid");
@@ -273,7 +272,7 @@ void PPPMGPU::compute(int eflag, int vflag)
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
-    if (differentiation_flag == 1 && vflag_atom) 
+    if (differentiation_flag == 1 && vflag_atom)
       cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
     else if (differentiation_flag == 0)
       cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
@@ -291,13 +290,11 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   if (evflag_atom) fieldforce_peratom();
 
-  // update qsum and qsqsum, if needed
+  // update qsum and qsqsum, if atom count has changed and energy needed
 
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
+  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
   }
 
   // sum energy across procs and add in volume-dependent term
@@ -639,7 +636,7 @@ void PPPMGPU::unpack_reverse(int flag, FFT_SCALAR *buf, int nlist, int *list)
     FFT_SCALAR *dest = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } 
+  }
 }
 
 /* ----------------------------------------------------------------------

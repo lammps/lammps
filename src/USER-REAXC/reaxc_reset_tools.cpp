@@ -111,34 +111,11 @@ void Reset_Timing( reax_timing *rt )
 
 void Reset_Workspace( reax_system *system, storage *workspace )
 {
-  memset( workspace->total_bond_order, 0, system->total_cap * sizeof( real ) );
+  memset( workspace->total_bond_order, 0, system->total_cap * sizeof( double ) );
   memset( workspace->dDeltap_self, 0, system->total_cap * sizeof( rvec ) );
-  memset( workspace->CdDelta, 0, system->total_cap * sizeof( real ) );
+  memset( workspace->CdDelta, 0, system->total_cap * sizeof( double ) );
   memset( workspace->f, 0, system->total_cap * sizeof( rvec ) );
 
-}
-
-
-void Reset_Grid( grid *g )
-{
-  int i, j, k;
-
-  for( i = 0; i < g->ncells[0]; i++ )
-    for( j = 0; j < g->ncells[1]; j++ )
-      for( k = 0; k < g->ncells[2]; k++ ) {
-        g->cells[i][j][k].top = 0;
-        g->cells[i][j][k].str = 0;
-        g->cells[i][j][k].end = 0;
-      }
-}
-
-
-void Reset_Out_Buffers( mpi_out_data *out_buf, int n )
-{
-  int i;
-
-  for( i = 0; i < n; ++i )
-    out_buf[i].cnt = 0;
 }
 
 

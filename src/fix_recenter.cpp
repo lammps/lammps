@@ -15,8 +15,8 @@
    Contributing author: Naveen Michaud-Agrawal (Johns Hopkins U)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_recenter.h"
 #include "atom.h"
 #include "group.h"
@@ -52,8 +52,7 @@ FixRecenter::FixRecenter(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
   global_freq = 1;
-
-/* ---------------------------------------------------------------------- */
+  dynamic_group_allow = 1;
 
   if (strcmp(arg[3],"NULL") == 0) xflag = 0;
   else if (strcmp(arg[3],"INIT") == 0) xinitflag = 1;
@@ -129,7 +128,8 @@ void FixRecenter::init()
     else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
   }
   if (flag && comm->me == 0)
-    error->warning(FLERR,"Fix recenter should come after all other integration fixes");
+    error->warning(FLERR,"Fix recenter should come after all other "
+                   "integration fixes");
 
   masstotal = group->mass(igroup);
 
@@ -185,6 +185,9 @@ void FixRecenter::initial_integrate(int vflag)
   // current COM
 
   double xcm[3];
+  if (group->dynamic[igroup])
+    masstotal = group->mass(igroup);
+
   group->xcm(igroup,masstotal,xcm);
 
   // shift coords by difference between actual COM and requested COM

@@ -39,7 +39,7 @@ class FixRigid : public Fix {
   void write_restart_file(char *);
   virtual double compute_scalar();
   virtual int modify_param(int, char **) {return 0;}
-  
+
   double memory_usage();
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -47,9 +47,11 @@ class FixRigid : public Fix {
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
 
+  void setup_pre_neighbor();
   void pre_neighbor();
   int dof(int);
   void deform(int);
+  void enforce2d();
   void reset_dt();
   void zero_momentum();
   void zero_rotation();
@@ -57,7 +59,7 @@ class FixRigid : public Fix {
   double extract_ke();
   double extract_erotational();
   double compute_array(int, int);
-    
+
  protected:
   int me,nprocs;
   double dtv,dtf,dtq;
@@ -67,10 +69,11 @@ class FixRigid : public Fix {
 
   char *infile;             // file to read rigid body attributes from
   int rstyle;               // SINGLE,MOLECULE,GROUP
-  int staticflag;           // 1 if static body properties are setup, else 0
+  int setupflag;            // 1 if body properties are setup, else 0
 
   int dimension;            // # of dimensions
   int nbody;                // # of rigid bodies
+  int nlinear;              // # of linear rigid bodies
   int *nrigid;              // # of atoms in each rigid body
   int *mol2body;            // convert mol-ID to rigid body index
   int *body2mol;            // convert rigid body index to mol-ID
@@ -102,6 +105,8 @@ class FixRigid : public Fix {
   int orientflag;           // 1 if particles store spatial orientation
   int dorientflag;          // 1 if particles store dipole orientation
 
+  imageint *xcmimage;       // internal image flags for atoms in rigid bodies
+                            // set relative to in-box xcm of each body
   int *eflags;              // flags for extended particles
   double **orient;          // orientation vector of particle wrt rigid body
   double **dorient;         // orientation of dipole mu wrt rigid body
@@ -117,14 +122,14 @@ class FixRigid : public Fix {
   int pstat_flag;           // NPT settings
   double p_start[3],p_stop[3];
   double p_period[3],p_freq[3];
-  int p_flag[3];  
+  int p_flag[3];
   int pcouple,pstyle;
   int p_chain;
 
   int allremap;              // remap all atoms
   int dilate_group_bit;      // mask for dilation group
   char *id_dilate;           // group name to dilate
-  
+
   class RanMars *random;
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
@@ -133,12 +138,13 @@ class FixRigid : public Fix {
   int POINT,SPHERE,ELLIPSOID,LINE,TRIANGLE,DIPOLE;   // bitmasks for eflags
   int OMEGA,ANGMOM,TORQUE;
 
-  void no_squish_rotate(int, double *, double *, double *, double) const;
+  void image_shift();
   void set_xv();
   void set_v();
   void setup_bodies_static();
   void setup_bodies_dynamic();
-  void readfile(int, double *, double **, int *);
+  void readfile(int, double *, double **, double **, double **,
+                imageint *, int *);
 };
 
 }
@@ -206,7 +212,7 @@ NPT/NPH fix must be defined in input script after all rigid fixes,
 else the rigid fix contribution to the pressure virial is
 incorrect.
 
-W: Cannot count rigid body degrees-of-freedom before bodies are fully initialized
+W: Cannot count rigid body degrees-of-freedom before bodies are initialized
 
 This means the temperature associated with the rigid bodies may be
 incorrect on this timestep.

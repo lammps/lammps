@@ -44,7 +44,9 @@ class PairLJCutKokkos : public PairLJCut {
   double init_one(int, int);
 
   struct params_lj{
+    KOKKOS_INLINE_FUNCTION
     params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    KOKKOS_INLINE_FUNCTION
     params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
   };
@@ -68,13 +70,16 @@ class PairLJCutKokkos : public PairLJCut {
 
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
-  typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const params;
+  typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   params_lj m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 15 atom types
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_x_array c_x;
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
+
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
   typename ArrayTypes<DeviceType>::t_tagint_1d tag;
@@ -85,7 +90,7 @@ class PairLJCutKokkos : public PairLJCut {
   typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
-  class AtomKokkos *atomKK;
+
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
@@ -115,5 +120,19 @@ class PairLJCutKokkos : public PairLJCut {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+Self-explanatory.
+
+E: Cannot use chosen neighbor list style with lj/cut/kk
+
+That style is not supported by Kokkos.
 
 */

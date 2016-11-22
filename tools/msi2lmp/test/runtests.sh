@@ -79,7 +79,7 @@ do \
 done
 
 # OPLS-AA tests 
-for m in ethane
+for m in ethane decane
 do \
     before=$errors
     vglog=${m}-oplsaa.chk
@@ -152,6 +152,9 @@ do \
     [ $leak = 0 ] && [ $viol = 0 ] && rm ${vglog}
     counter=$(expr $counter + 6)
 done
+
+echo "Total error count: $errors / $counter"
+echo
 
 echo "Total error count: $errors / $counter"
 echo

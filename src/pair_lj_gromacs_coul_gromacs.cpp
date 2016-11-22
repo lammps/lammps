@@ -15,10 +15,10 @@
    Contributing author: Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_gromacs_coul_gromacs.h"
 #include "atom.h"
 #include "comm.h"
@@ -41,7 +41,8 @@ PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp)
 
 PairLJGromacsCoulGromacs::~PairLJGromacsCoulGromacs()
 {
-  if (allocated) {
+  if (!copymode) {
+   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
@@ -56,6 +57,7 @@ PairLJGromacsCoulGromacs::~PairLJGromacsCoulGromacs()
     memory->destroy(ljsw3);
     memory->destroy(ljsw4);
     memory->destroy(ljsw5);
+   }
   }
 }
 
@@ -245,8 +247,8 @@ void PairLJGromacsCoulGromacs::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
@@ -274,7 +276,7 @@ void PairLJGromacsCoulGromacs::init_style()
     error->all(FLERR,
                "Pair style lj/gromacs/coul/gromacs requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;

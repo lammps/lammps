@@ -15,7 +15,7 @@
 #define LMP_MPIIO_H
 
 // true interface to MPIIO package
-// used when MPIIO pacakge is installed
+// used when MPIIO package is installed
 
 #ifdef LMP_MPIIO
 

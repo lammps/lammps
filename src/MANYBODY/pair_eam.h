@@ -20,13 +20,15 @@ PairStyle(eam,PairEAM)
 #ifndef LMP_PAIR_EAM_H
 #define LMP_PAIR_EAM_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
+
 class PairEAM : public Pair {
  public:
+  friend class FixSemiGrandCanonicalMC;   // Alex Stukowski option
 
   // public variables so USER-ATC package can access them
 
@@ -52,6 +54,7 @@ class PairEAM : public Pair {
   void init_style();
   double init_one(int, int);
   double single(int, int, int, int, double, double, double, double &);
+  virtual void *extract(const char *, int &);
 
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
@@ -63,6 +66,7 @@ class PairEAM : public Pair {
  protected:
   int nmax;                   // allocated size of per-atom arrays
   double cutforcesq;
+  double **scale;
 
   // per-atom arrays
 
@@ -99,8 +103,8 @@ class PairEAM : public Pair {
   };
   Fs *fs;
 
-  void allocate();
-  void array2spline();
+  virtual void allocate();
+  virtual void array2spline();
   void interpolate(int, double, double *, double **);
   void grab(FILE *, int, double *);
 

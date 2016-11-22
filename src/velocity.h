@@ -35,7 +35,8 @@ class Velocity : protected Pointers {
  private:
   int igroup,groupbit;
   int style;
-  int dist_flag,sum_flag,momentum_flag,rotation_flag,loop_flag,scale_flag,rfix;
+  int dist_flag,sum_flag,momentum_flag,rotation_flag;
+  int bias_flag,loop_flag,scale_flag,rfix;
   double xscale,yscale,zscale;
   class Compute *temperature;
 
@@ -138,5 +139,13 @@ temperature.
 E: Fix ID for velocity does not exist
 
 Self-explanatory.
+
+E: Cannot use velocity bias command without temp keyword
+
+Self-explanatory.
+
+E: Velocity temperature ID does calculate a velocity bias
+
+The specified compute must compute a bias for temperature.
 
 */

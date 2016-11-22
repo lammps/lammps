@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -30,7 +30,7 @@ class CHARMMLong : public BaseCharge<numtyp, acctyp> {
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
     * \param gpu_split fraction of particles handled by device
-    * 
+    *
     * Returns:
     * -  0 if successfull
     * - -1 if fix gpu not found
@@ -40,12 +40,12 @@ class CHARMMLong : public BaseCharge<numtyp, acctyp> {
   int init(const int ntypes, double host_cut_bothsq,
            double **host_lj1, double **host_lj2, double **host_lj3,
            double **host_lj4, double **host_offset, double *host_special_lj,
-           const int nlocal, const int nall, const int max_nbors, 
-           const int maxspecial, const double cell_size, 
+           const int nlocal, const int nall, const int max_nbors,
+           const int maxspecial, const double cell_size,
            const double gpu_split, FILE *screen, double host_cut_ljsq,
            const double host_cut_coulsq, double *host_special_coul,
            const double qqrd2e, const double g_ewald,
-           const double cut_lj_innersq, const double denom_lj, 
+           const double cut_lj_innersq, const double denom_lj,
            double **epsilon, double **sigma, const bool mix_arithmetic);
 
   /// Clear all host and device data
@@ -70,7 +70,7 @@ class CHARMMLong : public BaseCharge<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  /// Number of atom types 
+  /// Number of atom types
   int _lj_types;
 
   numtyp _qqrd2e, _g_ewald, _denom_lj;

@@ -9,7 +9,9 @@ examples/USER/awpmd.
 This package uses an external library in lib/awpmd which must be
 compiled before making LAMMPS.  See the lib/awpmd/README file and the
 LAMMPS manual for information on building LAMMPS with external
-libraries.
+libraries.  The settings in the Makefile.lammps file in that directory
+must be correct for LAMMPS to build correctly with this package
+installed.
 
 The person who created this package is Ilya Valuev at the JIHT in
 Russia (valuev at physik.hu-berlin.de).  Contact him directly if you

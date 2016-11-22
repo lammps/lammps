@@ -1,7 +1,7 @@
 #############################################################
 # WARNING: THIS FILE HAS NOT BEEN TESTED!
 # (If you use this file in a simulation, please email me to let me know
-#  if it worked.  -Andrew 2012-10,   (jewett dot aij at gmail dot com))
+#  if it worked.  -Andrew 2014-5,   (jewett dot aij at gmail dot com))
 #########################################################
 # There are two different versions of TIP3P:
 #
@@ -21,28 +21,6 @@
 
 
 TIP3P_1983 {
-
-  write_once("In Init") {
-    # -- Default styles (for solo "TIP3P_1983" water) --
-    units        real
-    atom_style   full
-
-    # I'm not sure exactly which cutoffs distances are traditionally used in
-    # in the 1983 "TIP3P" model by Jorgensen model, (used by CHARMM).
-    # (See the Price JCP 2004 paper for a review.)
-    #   My first guess was this:
-    # pair_style   hybrid lj/charmm/coul/charmm 7.5 8.0 10.0 10.5
-    # However, in the LAMMPS "peptide" example, they use these parameters:
-
-    pair_style   hybrid lj/charmm/coul/long 8.0 10.0 10.0
-
-    # ...alternately, if this does not work, try this:
-    # pair_style  hybrid lj/charmm/coul/long 10.0 10.5 10.0 10.5
-
-    bond_style   hybrid harmonic
-    angle_style  hybrid harmonic
-    pair_modify  mix arithmetic
-  }
 
   write("Data Atoms") {
     $atom:O  $mol:. @atom:O -0.834   0.0000000   0.00000 0.000000
@@ -72,31 +50,29 @@ TIP3P_1983 {
     ####  There are two choices for for the O-O interactions
     #########################################################################
     ####  O-O nonbonded interactions
-    #   For the 1983 Jorgensen version of TIP3P use:
 
-    pair_coeff  @atom:O @atom:O  lj/charmm/coul/charmm 0.1521 3.1507
+    #   For the 1983 Jorgensen version of TIP3P use:
+    pair_coeff  @atom:O  @atom:O   lj/charmm/coul/charmm 0.1521 3.1507
 
     #   For the 2004 Price & Brooks version of TIP3P use:
-    # pair_coeff  @atom:O @atom:O  lj/charmm/coul/long 0.102 3.188
+    #pair_coeff  @atom:O  @atom:O   lj/charmm/coul/long 0.102 3.188
+
     #########################################################################
     ####  There are three choices for for the O-H and H-H interactions
     #########################################################################
-    #### 1) CHARMM uses an arithmetic mixing-rule for the O-H sigma parameter
-
-    pair_coeff  @atom:H @atom:H  lj/charmm/coul/charmm 0.0460 0.4000
-    pair_coeff  @atom:O @atom:H  lj/charmm/coul/charmm 0.0836 1.7753 #arithmetic
-
+    #### 1) The original Jorgensen 1983 and 2004 Price & Brooks models have no
+    #     mixed OH or HH interactions. For this behavior, uncomment these lines:
+    pair_coeff  @atom:H  @atom:H   lj/charmm/coul/charmm  0.00 0.4000
+    pair_coeff  @atom:O  @atom:H   lj/charmm/coul/charmm  0.00 1.7753
     #########################################################################
-    #### 2) OPLS-AA uses geometric a mixing-fule for the O-H sigma parameter,
+    #### 2) CHARMM uses an arithmetic mixing-rule for the O-H sigma parameter
+    #pair_coeff @atom:H  @atom:H  lj/charmm/coul/charmm 0.0460 0.4000
+    #pair_coeff @atom:O  @atom:H  lj/charmm/coul/charmm 0.0836 1.7753#arithmetic
+    #########################################################################
+    #### 3) OPLS-AA uses geometric a mixing-fule for the O-H sigma parameter,
     ####    If you want to use this, uncomment the following two lines:
-    # pair_coeff  @atom:H @atom:H  lj/charmm/coul/charmm 0.0460 0.4000
-    # pair_coeff  @atom:O @atom:H lj/charmm/coul/charmm 0.0836 1.1226 #geometric
-    #########################################################################
-    #### 3) The original Jorgensen 1983 parameterization has no OH or HH 
-    #      lennard-jones interactions.  (?? I think ??)
-    # For this behavior, uncomment these lines:
-    # pair_coeff  @atom:H @atom:H  lj/charmm/coul/charmm 0.00 0.4000
-    # pair_coeff  @atom:O @atom:H lj/charmm/coul/charmm  0.00 1.7753
+    #pair_coeff @atom:H  @atom:H  lj/charmm/coul/charmm 0.0460 0.4000
+    #pair_coeff @atom:O  @atom:H  lj/charmm/coul/charmm 0.0836 1.1226 #geometric
     #########################################################################
 
     # Define a group for the tip3p water molecules:
@@ -106,6 +82,26 @@ TIP3P_1983 {
     #           (Most implementations use this, but it is optional.)
     fix fShakeTIP3P tip3p shake 0.0001 10 100 b @bond:OH a @angle:HOH
     # (Remember to "unfix" fShakeTIP3P during minimization.)
+  }
+
+
+  write_once("In Init") {
+    # -- Default styles (for solo "TIP3P_1983" water) --
+    units        real
+    atom_style   full
+
+    # I'm not sure exactly which cutoffs distances are traditionally used in
+    # in the 1983 "TIP3P" model by Jorgensen model, (used by CHARMM).
+    # (See the Price JCP 2004 paper for a review.)
+    #   My first guess was this:
+    pair_style   hybrid lj/charmm/coul/charmm 7.5 8.0 10.0 10.5
+    
+    # However, in the LAMMPS "peptide" example, they use these parameters:
+    # pair_style   hybrid lj/charmm/coul/long 8.0 10.0 10.0
+
+    bond_style   hybrid harmonic
+    angle_style  hybrid harmonic
+    #pair_modify  mix arithmetic  # LEAVE THIS UNSPECIFIED!
   }
 
 } # "TIP3P_1983" water molecule type

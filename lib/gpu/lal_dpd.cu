@@ -37,7 +37,7 @@ texture<int4,1> vel_tex;
 #define _USE_UNIFORM_SARU_LCG
 #endif
 
-// References: 
+// References:
 // 1. Y. Afshar, F. Schmid, A. Pishevar, S. Worley, Comput. Phys. Comm. 184 (2013), 1119–1128.
 // 2. C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput. Phys. Comm. 230 (2011), 7191-7201.
 // PRNG period = 3666320093*2^32 ~ 2^64 ~ 10^19
@@ -49,9 +49,9 @@ texture<int4,1> vel_tex;
 #define TWO_N32 0.232830643653869628906250e-9f /* 2^-32 */
 
 // specifically implemented for steps = 1; high = 1.0; low = -1.0
-// returns uniformly distributed random numbers u in [-1.0;1.0] 
-// using the inherent LCG, then multiply u with sqrt(3) to "match" 
-// with a normal random distribution. 
+// returns uniformly distributed random numbers u in [-1.0;1.0]
+// using the inherent LCG, then multiply u with sqrt(3) to "match"
+// with a normal random distribution.
 // Afshar et al. mutlplies u in [-0.5;0.5] with sqrt(12)
 // Curly brackets to make variables local to the scope.
 #ifdef _USE_UNIFORM_SARU_LCG
@@ -80,8 +80,8 @@ texture<int4,1> vel_tex;
 #endif
 
 // specifically implemented for steps = 1; high = 1.0; low = -1.0
-// returns uniformly distributed random numbers u in [-1.0;1.0] using TEA8 
-// then multiply u with sqrt(3) to "match" with a normal random distribution 
+// returns uniformly distributed random numbers u in [-1.0;1.0] using TEA8
+// then multiply u with sqrt(3) to "match" with a normal random distribution
 // Afshar et al. mutlplies u in [-0.5;0.5] with sqrt(12)
 #ifdef _USE_UNIFORM_SARU_TEA8
 #define SQRT3 (numtyp)1.7320508075688772935274463
@@ -119,7 +119,7 @@ texture<int4,1> vel_tex;
 #endif
 
 // specifically implemented for steps = 1; high = 1.0; low = -1.0
-// returns two uniformly distributed random numbers r1 and r2 in [-1.0;1.0], 
+// returns two uniformly distributed random numbers r1 and r2 in [-1.0;1.0],
 // and uses the polar method (Marsaglia's) to transform to a normal random value
 // This is used to compared with CPU DPD using RandMars::gaussian()
 #ifdef _USE_GAUSSIAN_SARU_LCG
@@ -160,20 +160,20 @@ texture<int4,1> vel_tex;
   randnum = r2*fac;                                                           \
 }
 #endif
-                                                                             
-__kernel void k_dpd(const __global numtyp4 *restrict x_, 
+
+__kernel void k_dpd(const __global numtyp4 *restrict x_,
                     const __global numtyp4 *restrict coeff,
-                    const int lj_types, 
-                    const __global numtyp *restrict sp_lj, 
-                    const __global int * dev_nbor, 
-                    const __global int * dev_packed, 
-                    __global acctyp4 *restrict ans, 
-                    __global acctyp *restrict engv, 
+                    const int lj_types,
+                    const __global numtyp *restrict sp_lj,
+                    const __global int * dev_nbor,
+                    const __global int * dev_packed,
+                    __global acctyp4 *restrict ans,
+                    __global acctyp *restrict engv,
                     const int eflag, const int vflag, const int inum,
-                    const int nbor_pitch, 
+                    const int nbor_pitch,
                     const __global numtyp4 *restrict v_,
                     const __global numtyp *restrict cutsq,
-                    const numtyp dtinvsqrt, const int seed, 
+                    const numtyp dtinvsqrt, const int seed,
                     const int timestep, const int tstat_only,
                     const int t_per_atom) {
   int tid, ii, offset;
@@ -185,13 +185,13 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
   acctyp virial[6];
   for (int i=0; i<6; i++)
     virial[i]=(acctyp)0;
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
@@ -199,7 +199,7 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
 
     numtyp factor_dpd;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_dpd = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -214,7 +214,7 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       int mtype=itype*lj_types+jtype;
       if (rsq<cutsq[mtype]) {
         numtyp r=ucl_sqrt(rsq);
@@ -231,8 +231,8 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
         if (tag1 > tag2) {
           tag1 = jtag; tag2 = itag;
         }
-        
-        numtyp randnum = (numtyp)0.0;  
+
+        numtyp randnum = (numtyp)0.0;
         saru(tag1, tag2, seed, timestep, randnum);
 
         // conservative force = a0 * wd, or 0 if tstat only
@@ -244,7 +244,7 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
         force -= coeff[mtype].y*wd*wd*dot*rinv;
         force += coeff[mtype].z*wd*randnum*dtinvsqrt;
         force*=factor_dpd*rinv;
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
@@ -254,7 +254,7 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
           // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
           // eng shifted to 0.0 at cutoff
           numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
-          energy+=factor_dpd*e; 
+          energy+=factor_dpd*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;
@@ -272,23 +272,23 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
   } // if ii
 }
 
-__kernel void k_dpd_fast(const __global numtyp4 *restrict x_, 
+__kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict coeff_in,
-                         const __global numtyp *restrict sp_lj_in, 
-                         const __global int * dev_nbor, 
-                         const __global int * dev_packed, 
-                         __global acctyp4 *restrict ans, 
-                         __global acctyp *restrict engv, 
-                         const int eflag, const int vflag, const int inum, 
+                         const __global numtyp *restrict sp_lj_in,
+                         const __global int * dev_nbor,
+                         const __global int * dev_packed,
+                         __global acctyp4 *restrict ans,
+                         __global acctyp *restrict engv,
+                         const int eflag, const int vflag, const int inum,
                          const int nbor_pitch,
                          const __global numtyp4 *restrict v_,
                          const __global numtyp *restrict cutsq,
-                         const numtyp dtinvsqrt, const int seed, 
+                         const numtyp dtinvsqrt, const int seed,
                          const int timestep, const int tstat_only,
                          const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
-  
+
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
   if (tid<4)
@@ -296,7 +296,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
   }
-  
+
   acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
@@ -305,7 +305,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
     virial[i]=(acctyp)0;
 
   __syncthreads();
-  
+
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
     __local int n_stride;
@@ -320,7 +320,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_dpd;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
-  
+
       int j=dev_packed[nbor];
       factor_dpd = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
@@ -335,7 +335,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
-        
+
       if (rsq<cutsq[mtype]) {
         numtyp r=ucl_sqrt(rsq);
         if (r < EPSILON) continue;
@@ -351,8 +351,8 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
         if (tag1 > tag2) {
           tag1 = jtag; tag2 = itag;
         }
-        
-        numtyp randnum = (numtyp)0.0;  
+
+        numtyp randnum = (numtyp)0.0;
         saru(tag1, tag2, seed, timestep, randnum);
 
         // conservative force = a0 * wd, or 0 if tstat only
@@ -364,7 +364,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
         force -= coeff[mtype].y*wd*wd*dot*rinv;
         force += coeff[mtype].z*wd*randnum*dtinvsqrt;
         force*=factor_dpd*rinv;
-      
+
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
@@ -374,7 +374,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
           // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
           // eng shifted to 0.0 at cutoff
           numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
-          energy+=factor_dpd*e; 
+          energy+=factor_dpd*e;
         }
         if (vflag>0) {
           virial[0] += delx*delx*force;

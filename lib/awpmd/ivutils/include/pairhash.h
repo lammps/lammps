@@ -317,7 +317,6 @@ public:
   virtual int init(size_t n, int smanaged=-1){
     size=n;
     return recmatrix<T>::init(n,n,smanaged);
-    int managed=recmatrix<T>::parr.managed();  
   } 
 
   sqmatrix(size_t n):size(0){ 

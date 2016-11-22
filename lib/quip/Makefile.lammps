@@ -1,0 +1,30 @@
+# Settings that the LAMMPS build will import when this package library is used
+
+# include ${QUIP_ROOT}/Makefiles/Makefile.${QUIP_ARCH}
+
+F95=$(shell egrep 'F95[ ]*=' ${QUIP_ROOT}/arch/Makefile.${QUIP_ARCH} | sed 's/.*F95[ ]*=[ ]*//')
+
+ifeq (${QUIP_ROOT},)
+$(error Environment variable QUIP_ROOT must be set.)
+endif
+
+ifeq (${QUIP_ARCH},)
+$(error Environment variable QUIP_ARCH must be set.)
+endif
+
+include ${QUIP_ROOT}/build/${QUIP_ARCH}/Makefile.inc
+include ${QUIP_ROOT}/Makefile.rules
+
+quip_SYSLIB = -lquip
+quip_SYSLIB += ${NETCDF_SYSLIBS}
+quip_SYSLIB += ${MATH_LINKOPTS}
+
+ifeq (${F95},gfortran)
+	quip_SYSLIB += -lgfortran
+else ifeq (${F95},ifort)
+	quip_SYSLIB += -lifcore -lifport
+else
+$(error fortran compiler >>${F95}<< not recognised. Edit lib/quip/Makefile.lammps to specify the fortran library your linker should link to)
+endif
+
+quip_SYSPATH = -L${QUIP_ROOT}/build/${QUIP_ARCH}

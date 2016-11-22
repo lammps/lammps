@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_dynamic.h"
 #include "atom.h"
 #include "comm.h"
@@ -39,8 +39,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) : 
-  FixQEq(lmp, narg, arg) 
+FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
+  FixQEq(lmp, narg, arg)
 {
   qdamp = 0.10;
   qstep = 0.02;
@@ -64,18 +64,19 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqDynamic::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/dynamic requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR,"Fix qeq/dynamic requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/dynamic group has no atoms");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
   neighbor->requests[irequest]->half = 1;
   neighbor->requests[irequest]->full = 0;
 
-  if (tolerance < 1e-4) 
+  if (tolerance < 1e-4)
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
 		    " for damped dynamics");
@@ -101,9 +102,6 @@ void FixQEqDynamic::pre_force(int vflag)
   double enegmax = 0.0;
 
   if (update->ntimestep % nevery) return;
-
-  n = atom->nlocal;
-  N = atom->nlocal + atom->nghost;
 
   if( atom->nmax > nmax ) reallocate_storage();
 
@@ -162,13 +160,13 @@ void FixQEqDynamic::pre_force(int vflag)
   if (comm->me == 0) {
     if (iloop == maxiter) {
       char str[128];
-      sprintf(str,"Charges did not converge at step "BIGINT_FORMAT
+      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
 		  ": %lg",update->ntimestep,enegchk);
       error->warning(FLERR,str);
     }
   }
 
-  if (force->kspace) force->kspace->setup();
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -213,6 +211,7 @@ double FixQEqDynamic::compute_eneg()
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
+	j &= NEIGHMASK;
 
         delr[0] = x[i][0] - x[j][0];
         delr[1] = x[i][1] - x[j][1];
@@ -229,6 +228,7 @@ double FixQEqDynamic::compute_eneg()
     }
   }
 
+  pack_flag = 2;
   comm->reverse_comm_fix(this);
 
   // sum charge force on each node and return it
@@ -256,7 +256,7 @@ int FixQEqDynamic::pack_forward_comm(int n, int *list, double *buf,
   else if( pack_flag == 2 )
     for(m = 0; m < n; m++) buf[m] = qf[list[m]];
 
-  return n;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -277,7 +277,7 @@ int FixQEqDynamic::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
   for(m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
-  return n;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

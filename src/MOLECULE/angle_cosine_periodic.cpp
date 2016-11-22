@@ -15,8 +15,8 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "angle_cosine_periodic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -57,7 +57,7 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
   int i,i1,i2,i3,n,m,type,b_factor;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double eangle,f1[3],f3[3];
-  double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22;
+  double rsq1,rsq2,r1,r2,c,a,a11,a12,a22;
   double tn,tn_1,tn_2,un,un_1,un_2;
 
   eangle = 0.0;
@@ -119,10 +119,6 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
     un = 1.0;
     un_1 = 2.0;
     un_2 = 0.0;
-
-    s = sqrt(1.0 - c*c);
-    if (s < SMALL) s = SMALL;
-    s = 1.0/s;
 
     // force & energy
 
@@ -205,7 +201,7 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nangletypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
 
   double c_one = force->numeric(FLERR,arg[1]);
   int b_one = force->inumeric(FLERR,arg[2]);

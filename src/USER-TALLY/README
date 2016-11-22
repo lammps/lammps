@@ -1,0 +1,27 @@
+This package provides computes styles that use a particular hook
+to accumulate information about pairwise interactions directly
+as part of the pairwise force computation. It inserts additional
+function calls into the Pair::ev_tally() method. Several LAMMPS
+users have asked for such a facility over time.
+
+The currently provided compute styles are mostly meant as a
+demonstration for how to use this facility and provide an
+alternative approach to using features like compute group/group
+or compute heat/flux. Its application is limited to pairwise 
+additive potentials that use the standard Pair::ev_tally()
+method to accumulate energy (and virial).
+
+Nevertheless, since those compute styles are executed directly
+using information that has already been computed, they should
+usually be more efficient than their counterparts.
+
+There are example scripts for using this package in examples/USER/tally
+
+The person who created this package is Axel Kohlmeyer (akohlmey@gmail.com)
+at Temple University with a little help and inspiration from
+Loris Ercole (SISSA/ISAS Trieste), who contributed compute heat/flux/tally.
+
+Additional contributed compute style for this package are welcome.
+Please contact Axel, if you have questions about the implementation.
+
+

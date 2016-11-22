@@ -25,10 +25,10 @@
  * 24-Sep-11 - AS: Adapted code to new interface of Error::one() function.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_meam_spline.h"
 #include "atom.h"
 #include "force.h"
@@ -495,11 +495,11 @@ void PairMEAMSpline::init_style()
                 error->all(FLERR,"Pair style meam/spline requires newton pair on");
 
         // Need both full and half neighbor list.
-        int irequest_full = neighbor->request(this);
+        int irequest_full = neighbor->request(this,instance_me);
         neighbor->requests[irequest_full]->id = 1;
         neighbor->requests[irequest_full]->half = 0;
         neighbor->requests[irequest_full]->full = 1;
-        int irequest_half = neighbor->request(this);
+        int irequest_half = neighbor->request(this,instance_me);
         neighbor->requests[irequest_half]->id = 2;
         neighbor->requests[irequest_half]->half = 0;
         neighbor->requests[irequest_half]->half_from_full = 1;
@@ -526,7 +526,7 @@ double PairMEAMSpline::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf, 
+int PairMEAMSpline::pack_forward_comm(int n, int *list, double *buf,
                                       int pbc_flag, int *pbc)
 {
         int* list_iter = list;

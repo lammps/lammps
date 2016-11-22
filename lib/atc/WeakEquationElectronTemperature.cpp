@@ -130,16 +130,18 @@ bool WeakEquationElectronTemperatureJouleHeating::N_integrand(
   const Material * material,
   DENS_MAT &flux) const
 {
+  
   // call base class to get electron_temperature terms
   WeakEquationElectronTemperature::N_integrand(fields, grad_fields, material, flux);
+  // Joule heating = -I.grad Psi = J.grad Psi \approx J.E
   DENS_MAT jouleHeating; 
-  material->electron_flux (fields, grad_fields, _J_);
+  material->electron_flux (fields, grad_fields, _J_); 
   material->electric_field(fields, grad_fields, _E_);
   jouleHeating = _J_[0].mult_by_element(_E_[0]);
   for (DENS_MAT_VEC::size_type i=1; i < _J_.size(); i++)
     jouleHeating += _J_[i].mult_by_element(_E_[i]);
   jouleHeating *= eV2E_;
-  flux += jouleHeating;
+  flux -= jouleHeating; 
   return true;
 }
 
@@ -151,7 +153,7 @@ bool WeakEquationElectronTemperatureJouleHeating::N_integrand(
 //  Constructor
 //--------------------------------------------------------------
 WeakEquationElectronTemperatureConvection::WeakEquationElectronTemperatureConvection()
-  : WeakEquationElectronTemperature()
+  : WeakEquationElectronTemperatureJouleHeating()
 {
   int nSD = 3; 
   _convectiveFlux_.assign(nSD, DENS_MAT()); 
@@ -174,7 +176,7 @@ void WeakEquationElectronTemperatureConvection::B_integrand(
 {
   // add diffusion term
   
-  WeakEquationElectronTemperature::B_integrand(fields, grad_fields, material, flux);
+  WeakEquationElectronTemperatureJouleHeating::B_integrand(fields, grad_fields, material, flux);
   //flux[0] = 0.;
   //flux[1] = 0.;
   //flux[2] = 0.;
@@ -195,7 +197,8 @@ bool WeakEquationElectronTemperatureConvection::N_integrand(
   DENS_MAT &flux) const
 {
   // call base class to get electron_temperature terms
-  WeakEquationElectronTemperature::N_integrand(fields, grad_fields, material, flux);
+  WeakEquationElectronTemperatureJouleHeating::N_integrand(fields, grad_fields, material, flux);
+#ifdef TEST
   // add exchange with kinetic energy
   DENS_MAT keExchange;
   DENS_MAT capacity;
@@ -220,7 +223,7 @@ bool WeakEquationElectronTemperatureConvection::N_integrand(
   keExchange *= capacity;
   
   flux -= keExchange;
-
+#endif
   return true;  
 }
 

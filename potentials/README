@@ -36,37 +36,34 @@ new log file and see that the potential file changed, which could
 affect your simulation results.
 
 A small amount of metadata is included in the first line of each file
-in order to track the provenance of each file. The metadata is indicated
-by a keyword followed by white space, followed by the metadata,
-followed by whitespace. The metadata is intended to be straightforward and
-human-readable, while still conforming to a standard format.
+in order to track the provenance of each file. The metadata is
+indicated by a keyword followed by white space, followed by the
+metadata, followed by whitespace. The metadata is intended to be
+straightforward and human-readable, while still conforming to a
+standard format.
 
-DATE: Format is "yyyy-mm-dd". This indicates the date of a
-significant change to the file. Multiple entries can 
-appear in reverse chronological order. As described
-above, the first of these will be printed to the 
-screen and log file when it is read
-by a LAMMPS input script. 
+DATE: Format is "yyyy-mm-dd". This indicates the date of a significant
+change to the file. Multiple entries can appear in reverse
+chronological order. As described above, the first of these will be
+printed to the screen and log file when it is read by a LAMMPS input
+script.
 
 CONTRIBUTOR: Format is "name[, email address]". This indicates the person
 who contributed the file and/or who is best able to provide more details
 about its provenance.
 
-CITATION: Format is "surname[[, surname] and surname], Publication abbreviation
-with spaces and no periods, volume, page[-page], (year)"
+CITATION: Format is "surname[[, surname] and surname], Publication
+abbreviation with spaces and no periods, volume, page[-page], (year)"
 
-COMMENT: This one is optional and is used to hold any other text that can not go elsewhere.
+COMMENT: This one is optional and is used to hold any other text that
+can not go elsewhere.
 
-If the first line of the file is always skipped by 
-the file reader,
-then the first line should begin with the DATE keyword. 
-If the file format 
-supports comment lines, then the first line 
-should be a comment line with the metadata
-e.g. "# DATE: 2010-01-01..."
-If the first line of the file is required to 
-begin with data, then the metadata will
-be appended to the first line e.g. "7 DATE: 2010-01-01..."
+If the first line of the file is always skipped by the file reader,
+then the first line should begin with the DATE keyword.  If the file
+format supports comment lines, then the first line should be a comment
+line with the metadata e.g. "# DATE: 2010-01-01..."  If the first line
+of the file is required to begin with data, then the metadata will be
+appended to the first line e.g. "7 DATE: 2010-01-01..."
 
 The prefix of each file indicates the element(s) it is parameterized
 for.  An additional lower-case identification tag may be appended.
@@ -79,7 +76,6 @@ The suffix of each file indicates the pair style it is used with:
 
 adp           ADP angular dependent potential
 airebo	      AI-REBO and REBO potentials
-bop	      BOP potential, analytic form
 bop.table     BOP potential, tabulated form
 cdeam         concentration-dependent EAM
 comb          COMB potential
@@ -93,12 +89,17 @@ lcbop         LCBOP long-range bond-order potential
 meam	      modified EAM (MEAM) library and individual elements/alloys
 meam.spline   modified EAM (MEAM) spline potential
 meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
+mgpt          model generalized pseudopotential theory (MGPT) potential
 nb3b.harmonic nonbonded 3-body harmonic potential
+poly          polymorphic 3-body potential
 reax	      ReaxFF potential (see README.reax for more info)
+smtbq         second moment tight binding QEq (SMTBQ) potential
 snap          SNAP potential
 snapcoeff     SNAP potential
 snapparam     SNAP potential
+streitz       Coulombic portion of Streitz-Mintmire potential
 sw	      Stillinger-Weber potential
 tersoff	      Tersoff potential
 tersoff.mod   modified Tersoff potential
 tersoff.zbl   Tersoff with ZBL core
+vashishta     Vashishta 2-body and 3-body potential

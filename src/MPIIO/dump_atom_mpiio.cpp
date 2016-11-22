@@ -15,7 +15,7 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "dump_atom_mpiio.h"
 #include "domain.h"
 #include "atom.h"
@@ -33,7 +33,6 @@ using namespace LAMMPS_NS;
 #define MAX_TEXT_HEADER_SIZE 4096
 #define DUMP_BUF_CHUNK_SIZE 16384
 #define DUMP_BUF_INCREMENT_SIZE 4096
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -202,18 +201,19 @@ void DumpAtomMPIIO::init_style()
   if (image_flag == 0) size_one = 5;
   else size_one = 8;
 
-  // default format depends on image flags
+  // format = copy of default or user-specified line format
+  // default depends on image flags
 
   delete [] format;
-  if (format_user) {
-    int n = strlen(format_user) + 2;
+  if (format_line_user) {
+    int n = strlen(format_line_user) + 2;
     format = new char[n];
-    strcpy(format,format_user);
+    strcpy(format,format_line_user);
     strcat(format,"\n");
   } else {
     char *str;
-    if (image_flag == 0) str = (char *) "%d %d %g %g %g";
-    else str = (char *) "%d %d %g %g %g %d %d %d";
+    if (image_flag == 0) str = (char *) TAGINT_FORMAT " %d %g %g %g";
+    else str = (char *) TAGINT_FORMAT " %d %g %g %g %d %d %d";
     int n = strlen(str) + 2;
     format = new char[n];
     strcpy(format,str);
@@ -276,8 +276,6 @@ void DumpAtomMPIIO::write_header(bigint ndump)
 
 void DumpAtomMPIIO::header_binary(bigint ndump)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc((2*sizeof(bigint)) + (9*sizeof(int)) + (6*sizeof(double)));
@@ -321,7 +319,7 @@ void DumpAtomMPIIO::header_binary(bigint ndump)
   }
   else { // write data
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -331,8 +329,6 @@ void DumpAtomMPIIO::header_binary(bigint ndump)
 
 void DumpAtomMPIIO::header_binary_triclinic(bigint ndump)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc((2*sizeof(bigint)) + (9*sizeof(int)) + (6*sizeof(double)));
@@ -387,7 +383,7 @@ void DumpAtomMPIIO::header_binary_triclinic(bigint ndump)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_BYTE,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -397,8 +393,6 @@ void DumpAtomMPIIO::header_binary_triclinic(bigint ndump)
 
 void DumpAtomMPIIO::header_item(bigint ndump)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
@@ -417,7 +411,7 @@ void DumpAtomMPIIO::header_item(bigint ndump)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -427,9 +421,6 @@ void DumpAtomMPIIO::header_item(bigint ndump)
 
 void DumpAtomMPIIO::header_item_triclinic(bigint ndump)
 {
-
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
     headerBuffer = (char *) malloc(MAX_TEXT_HEADER_SIZE);
@@ -448,7 +439,7 @@ void DumpAtomMPIIO::header_item_triclinic(bigint ndump)
   else { // write data
 
     if (me == 0)
-      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,&mpiStatus);
+      MPI_File_write_at(mpifh,mpifo,headerBuffer,headerSize,MPI_CHAR,MPI_STATUS_IGNORE);
     mpifo += headerSize;
     free(headerBuffer);
   }
@@ -466,7 +457,6 @@ void DumpAtomMPIIO::write_data(int n, double *mybuf)
 
 void DumpAtomMPIIO::write_binary(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
   n *= size_one;
 
   if (performEstimate) {
@@ -484,7 +474,7 @@ void DumpAtomMPIIO::write_binary(int n, double *mybuf)
     memory->create(bufWithSize,byteBufSize,"dump:bufWithSize");
     memcpy(bufWithSize,(char*)(&n),sizeof(int));
     memcpy(&((char*)bufWithSize)[sizeof(int)],mybuf,(n*sizeof(double)));
-    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,bufWithSize,byteBufSize,MPI_BYTE,&mpiStatus);
+    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,bufWithSize,byteBufSize,MPI_BYTE,MPI_STATUS_IGNORE);
     memory->destroy(bufWithSize);
 
     if (flush_flag)
@@ -496,8 +486,6 @@ void DumpAtomMPIIO::write_binary(int n, double *mybuf)
 
 void DumpAtomMPIIO::write_string(int n, double *mybuf)
 {
-  MPI_Status mpiStatus;
-
   if (performEstimate) {
 
 #if defined(_OPENMP)
@@ -517,7 +505,7 @@ void DumpAtomMPIIO::write_string(int n, double *mybuf)
     offsetFromHeader = ((incPrefix-bigintNsme)*sizeof(char));
   }
   else {
-    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,&mpiStatus);
+    MPI_File_write_at_all(mpifh,mpifo+offsetFromHeader,sbuf,nsme,MPI_CHAR,MPI_STATUS_IGNORE);
     if (flush_flag)
       MPI_File_sync(mpifh);
   }

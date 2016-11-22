@@ -3,6 +3,10 @@
 
 mode=$1
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 # arg1 = file, arg2 = file it depends on
 
 action () {
@@ -23,8 +27,11 @@ action () {
 }
 
 # force rebuild of files with LMP_MPIIO switch
+# also read/write restart so their *.d dependence on changed mpiio.h is rebuilt
 
 touch ../mpiio.h
+touch ../read_restart.cpp
+touch ../write_restart.cpp
 
 # all package files with no dependencies
 

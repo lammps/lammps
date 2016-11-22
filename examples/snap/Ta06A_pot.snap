@@ -1,3 +1,5 @@
+# DATE: 2014-09-05 CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014) 
+
 # Definition of SNAP potential Ta_Cand06A
 # Assumes 1 LAMMPS atom type
  
@@ -7,10 +9,9 @@ variable zblz equal 73
 
 # Specify hybrid with SNAP, ZBL
 
-pair_style hybrid/overlay &
-zbl ${zblcutinner} ${zblcutouter} &
-snap
-pair_coeff * * zbl 0.0 # Needed to activate hybrid cross-types
-pair_coeff 1 1 zbl ${zblz}
+pair_style hybrid/overlay snap &
+zbl ${zblcutinner} ${zblcutouter}
+
+pair_coeff 1 1 zbl ${zblz} ${zblz}
 pair_coeff * * snap Ta06A.snapcoeff Ta Ta06A.snapparam Ta
 

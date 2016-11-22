@@ -15,7 +15,7 @@
    Contributing author: Hasan Metin Aktulga, Purdue University
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
    Per-atom energy/virial added by Ray Shan (Sandia)
-   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by 
+   Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by
    	Ray Shan (Sandia)
    Hybrid and hybrid/overlay compatibility added by Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
@@ -125,6 +125,8 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 
 PairReaxC::~PairReaxC()
 {
+  if (copymode) return;
+
   if (fix_reax) modify->delete_fix("REAXC");
 
   if (setup_flag) {
@@ -245,14 +247,14 @@ void PairReaxC::settings(int narg, char **arg)
     } else if (strcmp(arg[iarg],"safezone") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->safezone = force->numeric(FLERR,arg[iarg+1]);
-      if (system->safezone < 0.0) 
+      if (system->safezone < 0.0)
 	error->all(FLERR,"Illegal pair_style reax/c safezone command");
-      system->saferzone = system->safezone + 0.2;
+      system->saferzone = system->safezone*1.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       system->mincap = force->inumeric(FLERR,arg[iarg+1]);
-      if (system->mincap < 0) 
+      if (system->mincap < 0)
 	error->all(FLERR,"Illegal pair_style reax/c mincap command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
@@ -279,7 +281,16 @@ void PairReaxC::coeff( int nargs, char **args )
 
   // read ffield file
 
-  Read_Force_Field(args[2], &(system->reax_param), control);
+  char *file = args[2];
+  FILE *fp;
+  fp = force->open_potential(file);
+  if (fp != NULL)
+    Read_Force_Field(fp, &(system->reax_param), control);
+  else {
+      char str[128];
+      sprintf(str,"Cannot open ReaxFF potential file %s",file);
+      error->all(FLERR,str);
+  }
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if NULL
@@ -305,7 +316,7 @@ void PairReaxC::coeff( int nargs, char **args )
       }
 
   // error check
-  if (itmp != n) 
+  if (itmp != n)
     error->all(FLERR,"Non-existent ReaxFF type");
 
   for (int i = 1; i <= n; i++)
@@ -337,7 +348,7 @@ void PairReaxC::init_style( )
 
   int iqeq;
   for (iqeq = 0; iqeq < modify->nfix; iqeq++)
-    if (strcmp(modify->fix[iqeq]->style,"qeq/reax") == 0) break;
+    if (strstr(modify->fix[iqeq]->style,"qeq/reax")) break;
   if (iqeq == modify->nfix && qeqflag == 1)
     error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
 
@@ -359,7 +370,7 @@ void PairReaxC::init_style( )
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->newton = 2;
   neighbor->requests[irequest]->ghost = 1;
 
@@ -377,7 +388,6 @@ void PairReaxC::init_style( )
     delete [] fixarg;
     fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -440,15 +450,6 @@ void PairReaxC::setup( )
 
     ReAllocate( system, control, data, workspace, &lists, mpi_data );
   }
-
-  ngroup = 0;
-  int ngroup_sum = 0;
-  for (int i = 0; i < list->inum; i++) {
-    ngroup ++;
-  }
-  MPI_Allreduce( &ngroup, &ngroup_sum, 1, MPI_INT, MPI_SUM, world );
-  ngroup = ngroup_sum;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -573,7 +574,7 @@ void PairReaxC::compute(int eflag, int vflag)
       memory->create(tmpid,nmax,MAXSPECBOND,"pair:tmpid");
       memory->create(tmpbo,nmax,MAXSPECBOND,"pair:tmpbo");
     }
-   
+
     for (i = 0; i < system->N; i ++)
       for (j = 0; j < MAXSPECBOND; j ++) {
         tmpbo[i][j] = 0.0;
@@ -770,14 +771,14 @@ void *PairReaxC::extract(const char *str, int &dim)
 double PairReaxC::memory_usage()
 {
   double bytes = 0.0;
-  
+
   // From pair_reax_c
   bytes += 1.0 * system->N * sizeof(int);
   bytes += 1.0 * system->N * sizeof(double);
 
   // From reaxc_allocate: BO
   bytes += 1.0 * system->total_cap * sizeof(reax_atom);
-  bytes += 19.0 * system->total_cap * sizeof(real);
+  bytes += 19.0 * system->total_cap * sizeof(double);
   bytes += 3.0 * system->total_cap * sizeof(int);
 
   // From reaxc_lists

@@ -1,8 +1,8 @@
-This directory has 4 scripts that compute the viscosity (eta) of a
-Lennard-Jones fluid using 4 different methods.  See the discussion in
+This directory has 5 scripts that compute the viscosity (eta) of a
+Lennard-Jones fluid using 5 different methods.  See the discussion in
 Section 6.21 of the manual for an overview of the methods and pointers
 to doc pages for the commands which implement them.  Citations for the
-various methods can also be found in the manaul.
+various methods can also be found in the manual.
 
 These scripts are provided for illustration purposes.  No guarantee is
 made that the systems are fully equilibrated or that the runs are long
@@ -10,16 +10,17 @@ enough to generate good statistics and highly accurate results.
 
 -------------
 
-These are the 4 methods for compute viscosity.  The first 3 are
-non-equilibrium methods; the last is an equilibrium method.
+These are the 5 methods for computing viscosity.  The first 3 are
+non-equilibrium methods; the last 2 are equilibrium methods.
 
 in.wall = move a wall to shear the fluid between two walls
 in.nemd = use fix deform and fix nvt/sllod to perform a NEMD shear simulation
 in.mp = use fix viscosity and the Muller-Plathe method
 in.gk = use the Green-Kubo method
+in.einstein = use the Einstein version of Green-Kubo method
 
 All the systems have around 800 atoms.  The NEMD methods run for short
-times; the G-K system needs to run longer to generate good statistics.
+times; the G-K and Einstein systems need to run longer to generate good statistics.
 
 The scripts were all run on a single processor.  They all run in a
 minute or so and produce the accompanying log files and profile files
@@ -70,6 +71,16 @@ dY = 1/2 of Y box length
 eta = 0.997 = running average output as last log file column
 
 (4) in.gk.2d
+
+eta is computed directly within the script, by performing a time
+integration of the formula discussed in Section 6.21 of the manual,
+analagous to the formula for thermal conductivity given on the compute
+heat/flux doc page - the resulting value prints at the end of the run
+and is in the log file
+
+eta = 1.07
+
+(5) in.einstein.2d
 
 eta is computed directly within the script, by performing a time
 integration of the formula discussed in Section 6.21 of the manual,

@@ -12,13 +12,13 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Stephen Bond (SNL) and 
-                         Andrew Baczewski (Michigan State/SNL) 
+   Contributing authors: Stephen Bond (SNL) and
+                         Andrew Baczewski (Michigan State/SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 #include "fix_gld.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -43,7 +43,8 @@ using namespace FixConst;
 ------------------------------------------------------------------------- */
 
 FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), 
+  step_respa(NULL), prony_c(NULL), prony_tau(NULL), s_gld(NULL), random(NULL)
 {
   int narg_min = 8;
   // Check to make sure we have the minimal number of inputs
@@ -129,8 +130,8 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"zero") == 0) {
-      if (iarg+2 > narg) { 
-	error->all(FLERR, "Illegal fix gld command"); 
+      if (iarg+2 > narg) {
+	error->all(FLERR, "Illegal fix gld command");
       }
       if (strcmp(arg[iarg+1],"no") == 0) {
       } else if (strcmp(arg[iarg+1],"yes") == 0) {
@@ -139,11 +140,11 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
 	error->all(FLERR,"Illegal fix gld command");
       }
       iarg += 2;
-    } 
+    }
     else if (strcmp(arg[iarg],"frozen") == 0) {
        if (iarg+2 > narg) {
           error->all(FLERR, "Illegal fix gld command");
-       } 
+       }
        if (strcmp(arg[iarg+1],"no") == 0) {
        } else if (strcmp(arg[iarg+1],"yes") == 0) {
          freezeflag = 1;
@@ -157,7 +158,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
              }
            }
          }
-       } else { 
+       } else {
           error->all(FLERR, "Illegal fix gld command");
        }
        iarg += 2;
@@ -233,7 +234,7 @@ void FixGLD::initial_integrate(int vflag)
   double *rmass = atom->rmass;
   double *mass = atom->mass;
   int *type = atom->type;
-  int *mask = atom->mask;  
+  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
@@ -271,19 +272,19 @@ void FixGLD::initial_integrate(int vflag)
 	  double rmult = sqrt(2.0*kT*ck/dtv)*(1.-theta)/ftm2v;
 
           // random force
-#ifdef GLD_GAUSSIAN_DISTRO          
+#ifdef GLD_GAUSSIAN_DISTRO
           fran[0] = rmult*random->gaussian();
-          fran[1] = rmult*random->gaussian();         
-          fran[2] = rmult*random->gaussian();         
-#endif                            
-                           
-#ifdef GLD_UNIFORM_DISTRO          
+          fran[1] = rmult*random->gaussian();
+          fran[2] = rmult*random->gaussian();
+#endif
+
+#ifdef GLD_UNIFORM_DISTRO
           rmult *= sqrt(12.0); // correct variance of uniform distribution
           fran[0] = rmult*(random->uniform() - 0.5);
           fran[1] = rmult*(random->uniform() - 0.5);
           fran[2] = rmult*(random->uniform() - 0.5);
 #endif
-         
+
           // sum of random forces
 	  fsum[0] += fran[0];
 	  fsum[1] += fran[1];
@@ -358,7 +359,7 @@ void FixGLD::initial_integrate(int vflag)
           s_gld[i][k]   += fran[0];
           s_gld[i][k+1] += fran[1];
           s_gld[i][k+2] += fran[2];
-	 
+
 	  icoeff += 1;
 
 	}
@@ -465,7 +466,7 @@ void FixGLD::final_integrate_respa(int ilevel, int iloop)
 
 /* ----------------------------------------------------------------------
    Called when a change to the target temperature is requested mid-run
-------------------------------------------------------------------------- */ 
+------------------------------------------------------------------------- */
 
 void FixGLD::reset_target(double t_new)
 {
@@ -486,10 +487,10 @@ void FixGLD::reset_dt()
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
- 
+
 double FixGLD::memory_usage()
 {
-  double bytes = atom->nmax*3*prony_terms*sizeof(double);  
+  double bytes = atom->nmax*3*prony_terms*sizeof(double);
   return bytes;
 }
 
@@ -542,8 +543,8 @@ int FixGLD::unpack_exchange(int nlocal, double *buf)
 
 
 /* ----------------------------------------------------------------------
-   Pack extended variables assoc. w/ atom i into buffer for 
-   writing to a restart file 
+   Pack extended variables assoc. w/ atom i into buffer for
+   writing to a restart file
 ------------------------------------------------------------------------- */
 
 int FixGLD::pack_restart(int i, double *buf)
@@ -582,7 +583,7 @@ void FixGLD::unpack_restart(int nlocal, int nth)
 }
 
 /* ----------------------------------------------------------------------
-   Returns the number of items in atomic restart data associated with 
+   Returns the number of items in atomic restart data associated with
    local atom nlocal.  Used in determining the total extra data stored by
    fixes on a given processor.
 ------------------------------------------------------------------------- */
@@ -603,7 +604,7 @@ int FixGLD::maxsize_restart()
 }
 
 /* ----------------------------------------------------------------------
-   Initializes the extended variables to equilibrium distribution 
+   Initializes the extended variables to equilibrium distribution
    at t_start.
 ------------------------------------------------------------------------- */
 

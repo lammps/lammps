@@ -15,6 +15,8 @@
 #define LMP_OUTPUT_H
 
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -57,6 +59,11 @@ class Output : protected Pointers {
   char *restart2a,*restart2b;  // names of double restart files
   class WriteRestart *restart; // class for writing restart files
 
+
+  typedef Dump *(*DumpCreator)(LAMMPS *,int,char**);
+  typedef std::map<std::string,DumpCreator> DumpCreatorMap;
+  DumpCreatorMap *dump_map;
+
   Output(class LAMMPS *);
   ~Output();
   void init();
@@ -75,6 +82,9 @@ class Output : protected Pointers {
   void create_restart(int, char **); // create Restart and restart files
 
   void memory_usage();               // print out memory usage
+
+ private:
+  template <typename T> static Dump *dump_creator(LAMMPS *, int, char **);
 };
 
 }
@@ -119,6 +129,10 @@ E: Thermo every variable returned a bad timestep
 
 The variable must return a timestep greater than the current timestep.
 
+E: Thermo_modify every variable returned a bad timestep
+
+The returned timestep is less than or equal to the current timestep.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -137,7 +151,7 @@ E: Invalid dump frequency
 
 Dump frequency must be 1 or greater.
 
-E: Invalid dump style
+E: Unknown dump style
 
 The choice of dump style is unknown.
 

@@ -58,7 +58,7 @@ class PairLJCutCoulLong : public Pair {
   double qdist;             // TIP4P distance from O site to negative charge
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

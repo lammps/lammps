@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "fix_ave_atom.h"
 #include "atom.h"
 #include "domain.h"
@@ -35,7 +35,9 @@ enum{X,V,F,COMPUTE,FIX,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), 
+  ids(NULL), array(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");
 
@@ -43,76 +45,90 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   nrepeat = force->inumeric(FLERR,arg[4]);
   peratom_freq = force->inumeric(FLERR,arg[5]);
 
-  // parse remaining values
+  nvalues = narg - 6;
 
-  which = new int[narg-6];
-  argindex = new int[narg-6];
-  ids = new char*[narg-6];
-  value2index = new int[narg-6];
-  nvalues = 0;
+  // expand args if any have wildcard character "*"
+  // this can reset nvalues
 
-  int iarg = 6;
-  while (iarg < narg) {
-    ids[nvalues] = NULL;
+  int expand = 0;
+  char **earg;
+  nvalues = input->expand_args(nvalues,&arg[6],1,earg);
 
-    if (strcmp(arg[iarg],"x") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"y") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 1;
-    } else if (strcmp(arg[iarg],"z") == 0) {
-      which[nvalues] = X;
-      argindex[nvalues++] = 2;
+  if (earg != &arg[6]) expand = 1;
+  arg = earg;
 
-    } else if (strcmp(arg[iarg],"vx") == 0) {
-      which[nvalues] = V;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"vy") == 0) {
-      which[nvalues] = V;
-      argindex[nvalues++] = 1;
-    } else if (strcmp(arg[iarg],"vz") == 0) {
-      which[nvalues] = V;
-      argindex[nvalues++] = 2;
+  // parse values
 
-    } else if (strcmp(arg[iarg],"fx") == 0) {
-      which[nvalues] = F;
-      argindex[nvalues++] = 0;
-    } else if (strcmp(arg[iarg],"fy") == 0) {
-      which[nvalues] = F;
-      argindex[nvalues++] = 1;
-    } else if (strcmp(arg[iarg],"fz") == 0) {
-      which[nvalues] = F;
-      argindex[nvalues++] = 2;
+  which = new int[nvalues];
+  argindex = new int[nvalues];
+  ids = new char*[nvalues];
+  value2index = new int[nvalues];
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
-               strncmp(arg[iarg],"f_",2) == 0 ||
-               strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+  for (int i = 0; i < nvalues; i++) {
+    ids[i] = NULL;
 
-      int n = strlen(arg[iarg]);
+    if (strcmp(arg[i],"x") == 0) {
+      which[i] = X;
+      argindex[i] = 0;
+    } else if (strcmp(arg[i],"y") == 0) {
+      which[i] = X;
+      argindex[i] = 1;
+    } else if (strcmp(arg[i],"z") == 0) {
+      which[i] = X;
+      argindex[i] = 2;
+
+    } else if (strcmp(arg[i],"vx") == 0) {
+      which[i] = V;
+      argindex[i] = 0;
+    } else if (strcmp(arg[i],"vy") == 0) {
+      which[i] = V;
+      argindex[i] = 1;
+    } else if (strcmp(arg[i],"vz") == 0) {
+      which[i] = V;
+      argindex[i] = 2;
+
+    } else if (strcmp(arg[i],"fx") == 0) {
+      which[i] = F;
+      argindex[i] = 0;
+    } else if (strcmp(arg[i],"fy") == 0) {
+      which[i] = F;
+      argindex[i] = 1;
+    } else if (strcmp(arg[i],"fz") == 0) {
+      which[i] = F;
+      argindex[i] = 2;
+
+    } else if (strncmp(arg[i],"c_",2) == 0 ||
+               strncmp(arg[i],"f_",2) == 0 ||
+               strncmp(arg[i],"v_",2) == 0) {
+      if (arg[i][0] == 'c') which[i] = COMPUTE;
+      else if (arg[i][0] == 'f') which[i] = FIX;
+      else if (arg[i][0] == 'v') which[i] = VARIABLE;
+
+      int n = strlen(arg[i]);
       char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+      strcpy(suffix,&arg[i][2]);
 
       char *ptr = strchr(suffix,'[');
       if (ptr) {
         if (suffix[strlen(suffix)-1] != ']')
           error->all(FLERR,"Illegal fix ave/atom command");
-        argindex[nvalues] = atoi(ptr+1);
+        argindex[i] = atoi(ptr+1);
         *ptr = '\0';
-      } else argindex[nvalues] = 0;
+      } else argindex[i] = 0;
 
       n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      nvalues++;
+      ids[i] = new char[n];
+      strcpy(ids[i],suffix);
       delete [] suffix;
 
     } else error->all(FLERR,"Illegal fix ave/atom command");
+  }
 
-    iarg++;
+  // if wildcard expansion occurred, free earg memory from exapnd_args()
+
+  if (expand) {
+    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    memory->sfree(earg);
   }
 
   // setup and error check
@@ -120,7 +136,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (nevery <= 0 || nrepeat <= 0 || peratom_freq <= 0)
     error->all(FLERR,"Illegal fix ave/atom command");
-  if (peratom_freq % nevery || (nrepeat-1)*nevery >= peratom_freq)
+  if (peratom_freq % nevery || nrepeat*nevery > peratom_freq)
     error->all(FLERR,"Illegal fix ave/atom command");
 
   for (int i = 0; i < nvalues; i++) {
@@ -178,7 +194,6 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  array = NULL;
   grow_arrays(atom->nmax);
   atom->add_callback(0);
 
@@ -196,6 +211,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // once in end_of_step() can set timestep for ones actually invoked
 
   irepeat = 0;
+  nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
@@ -279,9 +295,13 @@ void FixAveAtom::end_of_step()
   int i,j,m,n;
 
   // skip if not step which requires doing something
+  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
+    error->all(FLERR,"Invalid timestep reset for fix ave/atom");
   if (ntimestep != nvalid) return;
+  nvalid_last = nvalid;
 
   // zero if first step
 
@@ -375,6 +395,8 @@ void FixAveAtom::end_of_step()
   nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
+  if (array == NULL) return;
+
   // average the final result for the Nfreq timestep
 
   double repeat = nrepeat;
@@ -451,11 +473,4 @@ bigint FixAveAtom::nextvalid()
     nvalid -= (nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
   return nvalid;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveAtom::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/atom missed timestep");
 }

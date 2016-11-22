@@ -35,9 +35,9 @@ class PairLJSDK : public Pair {
   PairLJSDK(LAMMPS *);
   virtual ~PairLJSDK();
   virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
+  virtual void settings(int, char **);
+  virtual void coeff(int, char **);
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -63,7 +63,7 @@ class PairLJSDK : public Pair {
 
   double cut_global;
 
-  void allocate();
+  virtual void allocate();
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();

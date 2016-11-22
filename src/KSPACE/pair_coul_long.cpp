@@ -15,10 +15,10 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -55,13 +55,15 @@ PairCoulLong::PairCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulLong::~PairCoulLong()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(scale);
+      memory->destroy(scale);
+    }
+    if (ftable) free_tables();
   }
-  if (ftable) free_tables();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -213,8 +215,8 @@ void PairCoulLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -237,7 +239,7 @@ void PairCoulLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -269,6 +271,13 @@ double PairCoulLong::init_one(int i, int j)
 void PairCoulLong::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
+
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++) {
+      fwrite(&setflag[i][j],sizeof(int),1,fp);
+      if (setflag[i][j])
+        fwrite(&scale[i][j],sizeof(double),1,fp);
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -280,6 +289,18 @@ void PairCoulLong::read_restart(FILE *fp)
   read_restart_settings(fp);
 
   allocate();
+
+  int i,j;
+  int me = comm->me;
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (setflag[i][j]) {
+        if (me == 0) fread(&scale[i][j],sizeof(double),1,fp);
+        MPI_Bcast(&scale[i][j],1,MPI_DOUBLE,0,world);
+      }
+    }
 }
 
 /* ----------------------------------------------------------------------

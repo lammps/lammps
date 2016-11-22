@@ -1,0 +1,88 @@
+This is a simple example of showing the computation of virutal x-ray 
+and electron diffraction patterns for Ni.  
+
+In addition to the LAMMPS output, a simple visualizaiton of the electron 
+diffraction data is included.  The visualization was created using the VisIt 
+Open Source visualiztion software develeoped at Larrence Livermore National 
+Laboraatory (https://wci.llnl.gov/simulation/computer-codes/visit/).
+
+Below is a step by step guide to produce similar images:
+
+a) Open the diffraction .vtk files in VisIt 
+
+b) Click add->pseudocolor->intensity;
+
+*Note, green name means its ready to be drawn
+
+c) Click Draw;
+
+*Note, you will see the full rectangular mesh grid which is what we
+ are wanting.
+
+We need to remove ghost data (those values set to -1).
+
+d) Select intensity plot;
+
+Click Operators->Selection->Isovolume;
+Double click isovolume (under intensity plot);
+Change lower bound to 0;
+Click Apply;
+Click Dismiss;
+Click Draw;
+ 
+*Note, now you will see only where there was valid intensity data (if you 
+don't use Zone it will be a sphere).  But most intensity are low so color 
+the intensity by log scale.
+
+e) Select intensity plot
+
+Double click Pseudocolor;
+Change Scale to Log;
+Check Mimimum Limit;
+Input non-zero minimum limit (i.e. 1);
+Click Apply;
+Click Dismiss;
+
+Note, clicking apply will change the scale automatically.  But unless
+you have used Zone and a thin dR_Ewald you likely have lots of extra
+data visualized that does not intersect the Ewald sphere.  Next, we
+want to take a spherical slice to mimic the intersection of Ewald's
+sphere with reciprocal space.
+
+f) Select intensity plot;
+Click Operators->Slicing>Spherical Slice;
+Double click Spherical Slice;
+Change the origin/radius to represent the center of your Ewald sphere;
+      **(i.e. 39.84063 0 0) and radius (i.e. 39.84063) for lambda = 0.251 **
+Click Apply;
+Click Dismiss;
+Click Draw;
+
+This is the saed pattern, but we are not guaranteed to be aligned correctly 
+with the zone axis.
+
+g) On the menu bar... select Controls -> View;
+
+Change View Normal to the zone axis of choice (i.e. -1 0 0);
+Adjust Up Vector if desired (i.e. 0 1 0);
+Turn off Perspective view;
+Click Apply;
+Click Dismiss;
+
+*Note that for the primary x, y, and z zone axis you can use the drop 
+own Align to axis.  However, it is likely that there is a bunch of extra 
+annotations on the image that don't look appealing.
+
+h) On the menu bar... select Control-> Annotation;
+
+*Here you can change what is visualized along side the data and how
+you display axis information.  I typically turn most all the display
+information off.
+
+i) Save the image
+
+Click File-> Set save options
+Click Save
+
+** Note, further fine tuning can be achieved by adjusing the color table and 
+max/min values **

@@ -15,9 +15,10 @@
    Contributing author: Andres Jaramillo-Botero (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "compute_temp_deform_eff.h"
 #include "domain.h"
 #include "atom.h"
@@ -70,15 +71,9 @@ ComputeTempDeformEff::~ComputeTempDeformEff()
 
 void ComputeTempDeformEff::init()
 {
-  int i;
-
-  fix_dof = 0;
-  for (i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
-  dof_compute();
-
   // check fix deform remap settings
 
+  int i;
   for (i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"deform") == 0) {
       if (((FixDeform *) modify->fix[i])->remapflag == X_REMAP &&
@@ -88,15 +83,26 @@ void ComputeTempDeformEff::init()
       break;
     }
   if (i == modify->nfix && comm->me == 0)
-    error->warning(FLERR,"Using compute temp/deform/eff with no fix deform defined");
+    error->warning(FLERR,
+                   "Using compute temp/deform/eff with no fix deform defined");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempDeformEff::setup()
+{
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
+  dof_compute();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeTempDeformEff::dof_compute()
 {
-  double natoms = group->count(igroup);
-  dof = domain->dimension * natoms;
+  adjust_dof_fix();
+  natoms_temp = group->count(igroup);
+  dof = domain->dimension * natoms_temp;
   dof -= extra_dof + fix_dof;
 
   // just include nuclear dof
@@ -108,12 +114,13 @@ void ComputeTempDeformEff::dof_compute()
   int one = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      if (fabs(spin[i]) == 1) one++;
+      if (abs(spin[i]) == 1) one++;
     }
   int nelectrons;
   MPI_Allreduce(&one,&nelectrons,1,MPI_INT,MPI_SUM,world);
 
   // Assume 3/2 k T per nucleus
+
   dof -= domain->dimension * nelectrons;
 
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
@@ -161,12 +168,14 @@ double ComputeTempDeformEff::compute_scalar()
       if (mass) {
         t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
               vthermal[2]*vthermal[2])* mass[type[i]];
-        if (fabs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
+        if (abs(spin[i])==1) t += mefactor*mass[type[i]]*ervel[i]*ervel[i];
       }
     }
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0)
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
@@ -213,7 +222,7 @@ void ComputeTempDeformEff::compute_vector()
       t[3] += massone * vthermal[0]*vthermal[1];
       t[4] += massone * vthermal[0]*vthermal[2];
       t[5] += massone * vthermal[1]*vthermal[2];
-      if (fabs(spin[i])==1) {
+      if (abs(spin[i])==1) {
         t[0] += mefactor * massone * ervel[i]*ervel[i];
         t[1] += mefactor * massone * ervel[i]*ervel[i];
         t[2] += mefactor * massone * ervel[i]*ervel[i];
@@ -255,7 +264,7 @@ void ComputeTempDeformEff::remove_bias_all()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (nlocal > maxbias) {
+  if (atom->nmax > maxbias) {
     memory->destroy(vbiasall);
     maxbias = atom->nmax;
     memory->create(vbiasall,maxbias,3,"temp/deform/eff:vbiasall");

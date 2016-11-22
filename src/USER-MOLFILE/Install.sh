@@ -3,6 +3,10 @@
 
 mode=$1
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 # arg1 = file, arg2 = file it depends on
 
 action () {
@@ -40,10 +44,10 @@ if (test $1 = 1) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*USER-MOLFILE.*$/d' ../Makefile.package.settings
+    sed -i -e '/^include.*molfile.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/USER-MOLFILE\/Makefile.lammps
+include ..\/..\/lib\/molfile\/Makefile.lammps
 ' ../Makefile.package.settings
   fi
 
@@ -54,7 +58,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*USER-MOLFILE.*$/d' ../Makefile.package.settings
+    sed -i -e '/^include.*molfile.*$/d' ../Makefile.package.settings
   fi
 
 fi

@@ -84,6 +84,7 @@ class AtomVecChargeKokkos : public AtomVecKokkos {
 
   void sync(ExecutionSpace space, unsigned int mask);
   void modified(ExecutionSpace space, unsigned int mask);
+  void sync_overlapping_device(ExecutionSpace space, unsigned int mask);
 
  protected:
   tagint *tag;
@@ -122,5 +123,14 @@ class AtomVecChargeKokkos : public AtomVecKokkos {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Per-processor system is too big
+
+The number of owned atoms plus ghost atoms on a single
+processor must fit in 32-bit integer.
+
+E: Invalid atom type in Atoms section of data file
+
+Atom types must range from 1 to specified # of types.
 
 */

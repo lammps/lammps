@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_gran_hertz_history_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -47,7 +47,6 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
-  computeflag = 1;
   const int shearupdate = (update->setupflag) ? 0 : 1;
 
   // update rigid body info for owned & ghost atoms if using FixRigid masses
@@ -78,23 +77,36 @@ void PairGranHertzHistoryOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
-    if (evflag)
-      if (shearupdate) eval<1,1>(ifrom, ito, thr);
-      else eval<1,0>(ifrom, ito, thr);
-    else
-      if (shearupdate) eval<0,1>(ifrom, ito, thr);
-      else eval<0,0>(ifrom, ito, thr);
+    if (evflag) {
+      if (shearupdate) {
+        if (force->newton_pair) eval<1,1,1>(ifrom, ito, thr);
+        else eval<1,1,0>(ifrom, ito, thr);
+      } else {
+        if (force->newton_pair) eval<1,0,1>(ifrom, ito, thr);
+        else eval<1,0,0>(ifrom, ito, thr);
+      }
+    } else {
+      if (shearupdate) {
+        if (force->newton_pair) eval<0,1,1>(ifrom, ito, thr);
+        else eval<0,1,0>(ifrom, ito, thr);
+      } else {
+        if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
+        else eval<0,0,0>(ifrom, ito, thr);
+      }
+    }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 
-template <int EVFLAG, int SHEARUPDATE>
+template <int EVFLAG, int SHEARUPDATE, int NEWTON_PAIR>
 void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
+  int i,j,ii,jj,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz;
   double radi,radj,radsum,rsq,r,rinv,rsqinv;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
@@ -112,10 +124,8 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const * const omega = atom->omega;
   const double * const radius = atom->radius;
   const double * const rmass = atom->rmass;
-  const double * const mass = atom->mass;
   double * const * const f = thr->get_f();
   double * const * const torque = thr->get_torque();
-  const int * const type = atom->type;
   const int * const mask = atom->mask;
   const int nlocal = atom->nlocal;
   double fxtmp,fytmp,fztmp;
@@ -132,7 +142,6 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
   for (ii = iifrom; ii < iito; ++ii) {
 
     i = ilist[ii];
-    itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -146,7 +155,6 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtype = type[j];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -199,13 +207,8 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
         // if I or J part of rigid body, use body mass
         // if I or J is frozen, meff is other particle
 
-        if (rmass) {
-          mi = rmass[i];
-          mj = rmass[j];
-        } else {
-          mi = mass[itype];
-          mj = mass[jtype];
-        }
+        mi = rmass[i];
+        mj = rmass[j];
         if (fix_rigid) {
           if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
           if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
@@ -293,7 +296,7 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
         t2tmp -= radi*tor2;
         t3tmp -= radi*tor3;
 
-        if (j < nlocal) {
+        if (NEWTON_PAIR || j < nlocal) {
           f[j][0] -= fx;
           f[j][1] -= fy;
           f[j][2] -= fz;
@@ -302,7 +305,7 @@ void PairGranHertzHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
           torque[j][2] -= radj*tor3;
         }
 
-        if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,/* newton_pair */ 0,
+        if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
                                      0.0,0.0,fx,fy,fz,delx,dely,delz,thr);
 
       }

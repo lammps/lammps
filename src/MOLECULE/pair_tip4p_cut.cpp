@@ -15,8 +15,8 @@
    Contributing author: Pavel Elkind (Gothenburg University)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "pair_tip4p_cut.h"
 #include "atom.h"
 #include "force.h"
@@ -30,7 +30,7 @@
 #include "memory.h"
 #include "error.h"
 
-using namespace LAMMPS_NS; 
+using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
@@ -387,8 +387,8 @@ void PairTIP4PCut::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -419,8 +419,8 @@ void PairTIP4PCut::init_style()
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == NULL)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
-  
-  neighbor->request(this);
+
+  neighbor->request(this,instance_me);
 
   // set alpha parameter
 

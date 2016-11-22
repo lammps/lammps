@@ -5,6 +5,10 @@ mode=$1
 
 # arg1 = file, arg2 = file it depends on
 
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
+
 action () {
   if (test $mode = 0) then
     rm -f ../$1
@@ -34,7 +38,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*atc[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/atc -I../../src |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/atc |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/atc |' ../Makefile.package
 
 #   sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/atc |' ../Makefile.package

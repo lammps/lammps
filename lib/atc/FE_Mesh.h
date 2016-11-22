@@ -154,7 +154,7 @@ namespace ATC {
     AliasArray<int> element_connectivity_unique(const int eltID) const;
 
     void face_connectivity(const PAIR & faceID,
-                                  Array<int> & nodes) const
+                           Array<int> & nodes) const
     { int nNodesPerFace = num_nodes_per_face();
       nodes.reset(nNodesPerFace);
       int eltID = faceID.first;
@@ -271,9 +271,10 @@ namespace ATC {
                                        std::set<int> &nodeSet) const;
 
     void elementset_to_nodeset(const std::string &name, 
-                               std::set<int> &nodeSet) const;
+                               std::set<int> nodeSet) const;
     void elementset_to_nodeset(const std::set<int> &elemSet, 
-                               std::set<int> &nodeSet) const;
+                               std::set<int> nodeSet) const;
+    std::set<int> elementset_to_nodeset(const std::string &name) const;
 
     /** convert faceset to nodeset in _unique_ node numbering */
     void faceset_to_nodeset(const std::string &name, 
@@ -400,6 +401,12 @@ namespace ATC {
     bool is_owned_elt(int elt) const;
     
   protected:
+
+    void parse_plane(int & argIdx, int narg, char ** arg,  
+      int & ndir, int * idir, int & isgn, double xlimits[][2]);
+
+    void parse_units(int & argIdx, int narg, char ** arg,  
+      double & xmin, double & xmax, double & ymin, double & ymax, double & zmin, double & zmax);
 
     /** will this mesh use data decomposition? */
     bool decomposition_;
@@ -581,7 +588,8 @@ namespace ATC {
     void distribute_mesh_data();
   protected:
     /** create global-to-unique node mapping */
-    virtual void setup_periodicity(double tol = 1.e-8);
+    virtual void setup_periodicity(double tol);
+    virtual void setup_periodicity() { setup_periodicity(1.e-8); }
     void fix_periodicity  (int idim);
     int find_boundary_nodes(int idim, std::set<int> & nodes);
     bool match_nodes(int idim, std::set<int> & top, std::set<int> & bot,
@@ -684,7 +692,7 @@ namespace ATC {
     void departition_mesh(void);
     
     virtual void element_size(const int ielem, 
-                              double hx, double hy, double hz) 
+                              double &hx, double &hy, double &hz)
     { hx = L_[0]/n_[0]; hy = L_[1]/n_[1]; hz = L_[2]/n_[2]; }
 
     virtual double min_element_size(void) const
@@ -699,6 +707,6 @@ namespace ATC {
 
   };
 
-}; // namespace ATC_Transfer
+} // namespace ATC_Transfer
 
 #endif // FE_MESH_H

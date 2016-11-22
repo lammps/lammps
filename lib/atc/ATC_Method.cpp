@@ -52,6 +52,7 @@ namespace ATC {
     atomGhostCoarseGrainingPositions_(NULL),
     atomProcGhostCoarseGrainingPositions_(NULL),
     atomReferencePositions_(NULL),
+    nNodes_(0),
     nsd_(lammpsInterface_->dimension()),
     xref_(NULL),
     readXref_(false),
@@ -355,7 +356,6 @@ pecified
           }
         }
 
-
       /*! \page man_boundary_integral fix_modify AtC output boundary_integral 
         \section syntax
         fix_modify AtC output boundary_integral [field] faceset [name]
@@ -412,7 +412,7 @@ pecified
 
       /*! \page man_output_elementset fix_modify AtC output elementset
         \section syntax
-        fix_modify AtC output volume_integral <eset_name> <field> {`
+        fix_modify AtC output volume_integral <eset_name> <field> 
         - set_name (string) = name of elementset to be integrated over
         - fieldname (string) = name of field to integrate
         csum = creates nodal sum over nodes in specified nodeset \n
@@ -508,6 +508,25 @@ pecified
           match = true;
         }
       }
+    else if (strcmp(arg[argIdx],"write")==0) {
+      argIdx++;
+      FieldName thisField;
+      int thisIndex;
+      parse_field(arg,argIdx,thisField,thisIndex);
+      string nsetName(arg[argIdx++]);
+      string filename(arg[argIdx++]);
+      stringstream  f;
+      set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nsetName);
+      set<int>::const_iterator iset;
+      const DENS_MAT & field =(fields_.find(thisField)->second).quantity();
+      for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
+        int inode = *iset;
+        double v = field(inode,thisIndex);
+        f << inode << " " << std::setprecision(17) << v << "\n";
+      }
+      LammpsInterface::instance()->write_file(filename,f.str());
+      match = true;
+    }
     // add a species for tracking
     /*! \page man_add_species fix_modify AtC add_species
       \section syntax
@@ -907,7 +926,7 @@ pecified
       \section syntax
       fix_modify AtC kernel_bandwidth <value> 
       \section examples
-       <TT> fix_modify atc reset_time 8 </TT> \n
+       <TT> fix_modify atc kernel_bandwidth 8 </TT> \n
       \section description
       Sets a maximum parallel bandwidth for the kernel functions during parallel communication.  If the command is not issued, the default will be to assume the bandwidth of the kernel matrix corresponds to the number of sampling locations.
       \section restrictions
@@ -1076,6 +1095,22 @@ pecified
 
     return match; // return to FixATC
   
+  }
+
+  //--------------------------------------------------
+  // helper function for parser
+  // handles : "displacement x"  and "temperature" by indexing argIdx
+  // for fluxes : only normal fluxes can be prescribed
+  //--------------------------------------------------
+  void ATC_Method::parse_field(/*const*/ char ** args, int & argIdx,
+                               FieldName & thisField)
+  {
+    string thisName = args[argIdx++];
+    thisField = string_to_field(thisName);
+    map<FieldName,int>::const_iterator iter = fieldSizes_.find(thisField);
+    if (iter == fieldSizes_.end()) {
+      throw ATC_Error("Bad field name: "+thisName);
+    }
   }
 
   //--------------------------------------------------
@@ -1266,6 +1301,33 @@ pecified
           readXref_ = false;
         }
 
+        // ensure initial configuration is consistent with element set
+        
+        if (internalElementSet_.size() && groupbitGhost_) {
+          int *mask = lammpsInterface_->atom_mask();
+          int nlocal = lammpsInterface_->nlocal();
+          const FE_Mesh * feMesh = feEngine_->fe_mesh();
+          const set<int> & elementSet(feMesh->elementset(internalElementSet_));
+          int element;
+          DENS_VEC coords(nsd_);
+          for (int i = 0; i < nlocal; ++i) {
+            if (mask[i] & groupbit_ || mask[i] & groupbitGhost_) {
+              for (int j = 0; j < nsd_; j++) {
+                coords(j) = xref_[i][j];
+              }
+              element = feMesh->map_to_element(coords);
+              if (elementSet.find(element) == elementSet.end()) {
+                mask[i] |= groupbitGhost_;
+                mask[i] &= ~groupbit_;
+              }
+              else {
+                mask[i] &= ~groupbitGhost_;
+                mask[i] |= groupbit_;
+              }
+            }
+          }
+        }
+
         // set up maps from lammps to atc indexing
         reset_nlocal();
       }
@@ -1321,6 +1383,12 @@ pecified
     // 6e) atomic output for 0th step
     update_peratom_output();
 
+    massMatInv_.reset(nNodes_,nNodes_);
+    feEngine_->compute_lumped_mass_matrix(massMatInv_);
+    for (int i = 0; i < nNodes_; ++i)  {
+      massMatInv_(i,i) = 1./massMatInv_(i,i);
+    }
+    
     // clear need for resets
     needReset_ = false;
 
@@ -1792,12 +1860,7 @@ pecified
 
       }
     }
-
-    return m;
-    //int mySize = 3;
-    //if (num_bond)
-    //  mySize += 1 + lammpsInterface_->bond_per_atom();
-    //return mySize;
+    return m;  // total amount of data sent
   }
 
   //-----------------------------------------------------------------
@@ -1825,6 +1888,17 @@ pecified
       }
 
     }
+  }
+
+  //-----------------------------------------------------------------
+  //
+  //-----------------------------------------------------------------
+  int ATC_Method::comm_forward()
+  {
+    int size = 3;
+    if (lammpsInterface_->num_bond()) 
+      { size += lammpsInterface_->bond_per_atom()+1; }
+    return size;
   }
 
   //-----------------------------------------------------------------
@@ -2195,6 +2269,8 @@ pecified
 
     // get number of atoms
     int natoms = 0;
+    int ncols = 0;
+    int style = LammpsInterface::CHARGE_STYLE;
     if (LammpsInterface::instance()->rank_zero()) {
       in.open(filename);
       string msg;
@@ -2204,10 +2280,45 @@ pecified
       in.getline(line,lineSize); // header
       in.getline(line,lineSize); // blank line
       in >> natoms;
-      in.close();
       stringstream ss; 
-      ss << "found " << natoms << " atoms in reference file";
+      ss << "found " << natoms << " atoms in reference " << filename ;
+      while(in.good()) {
+        in.getline(line,lineSize);
+        string str(line);
+        int pos = str.find("Atoms");           
+        if (pos > -1) {
+          in.getline(line,lineSize); // blank line
+          break;
+        }
+      }
+      in.getline(line,lineSize);
+      std::vector<std::string> tokens;
+      ATC_Utility::command_strings(line, tokens);
+      ncols = tokens.size();
+      switch (ncols) {
+      // atomic: id type x y z
+      case 5:
+      case 8:
+         ss << " style:atomic";
+         style = LammpsInterface::ATOMIC_STYLE;
+         break;
+      // charge: id type q x y z 
+      // molecule : id molecule-ID type x y z
+      case 6:
+         ss << " style:charge";
+         style = LammpsInterface::CHARGE_STYLE;
+         break;
+      // full  : id molecule-ID type q x y z
+      case 7:
+         ss << " style:full";
+         style = LammpsInterface::FULL_STYLE;
+         break;
+      default: 
+         throw ATC_Error("cannot determine atom style, columns:"+to_string(ncols));
+         break;
+      }
       LammpsInterface::instance()->print_msg(ss.str());
+      in.close();
     }
     LammpsInterface::instance()->int_broadcast(&natoms);
 
@@ -2224,12 +2335,17 @@ pecified
         }
       }
     }
-    int nread = 0,type = -1, tag = -1, count = 0;
-    double x[3]={0,0,0};
+    int nread = 0,type = -1, tag = -1, count = 0, mId = -1;
+    double x[3]={0,0,0}, q =0;
     while (nread < natoms) {
       if (LammpsInterface::instance()->rank_zero()) {
          in.getline(line,lineSize);
          stringstream ss (line,stringstream::in | stringstream::out);
+         if      (style == LammpsInterface::CHARGE_STYLE) 
+         ss >> tag >> type >> q >> x[0] >> x[1] >> x[2]; 
+         else if (style == LammpsInterface::FULL_STYLE) 
+         ss >> tag >> mId >> type >> q >> x[0] >> x[1] >> x[2]; 
+         else
          ss >> tag >> type >> x[0] >> x[1] >> x[2]; 
          nread++;
       }

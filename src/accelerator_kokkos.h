@@ -22,6 +22,7 @@
 #include "kokkos.h"
 #include "atom_kokkos.h"
 #include "comm_kokkos.h"
+#include "comm_tiled_kokkos.h"
 #include "domain_kokkos.h"
 #include "neighbor_kokkos.h"
 #include "modify_kokkos.h"
@@ -33,6 +34,7 @@
 
 #include "atom.h"
 #include "comm_brick.h"
+#include "comm_tiled.h"
 #include "domain.h"
 #include "neighbor.h"
 #include "modify.h"
@@ -43,6 +45,7 @@ class KokkosLMP {
  public:
   int kokkos_exists;
   int num_threads;
+  int ngpu;
   int numa;
 
   KokkosLMP(class LAMMPS *, int, char **) {kokkos_exists = 0;}
@@ -54,14 +57,24 @@ class KokkosLMP {
 
 class AtomKokkos : public Atom {
  public:
+  tagint **k_special;
   AtomKokkos(class LAMMPS *lmp) : Atom(lmp) {}
   ~AtomKokkos() {}
+  void sync(const ExecutionSpace space, unsigned int mask) {}
+  void modified(const ExecutionSpace space, unsigned int mask) {}
 };
 
 class CommKokkos : public CommBrick {
  public:
   CommKokkos(class LAMMPS *lmp) : CommBrick(lmp) {}
   ~CommKokkos() {}
+};
+
+class CommTiledKokkos : public CommTiled {
+ public:
+  CommTiledKokkos(class LAMMPS *lmp) : CommTiled(lmp) {}
+  CommTiledKokkos(class LAMMPS *lmp, Comm *oldcomm) : CommTiled(lmp,oldcomm) {}
+  ~CommTiledKokkos() {}
 };
 
 class DomainKokkos : public Domain {
@@ -80,6 +93,14 @@ class ModifyKokkos : public Modify {
  public:
   ModifyKokkos(class LAMMPS *lmp) : Modify(lmp) {}
   ~ModifyKokkos() {}
+};
+
+class DAT {
+ public:
+  typedef double tdual_xfloat_1d;
+  typedef double tdual_FFT_SCALAR_1d;
+  typedef int t_int_1d;
+  typedef int tdual_int_2d;
 };
 
 }

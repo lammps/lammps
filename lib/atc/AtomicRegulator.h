@@ -140,7 +140,8 @@ namespace ATC {
     /** returns a pointer to the DENS_MAN associated with the tag, creates a new data member if necessary */
     DENS_MAN * regulator_data(const std::string tag, int nCols);
     /** can externally set regulator dynamic contributions */
-    virtual void reset_lambda_contribution(const DENS_MAT & target, const FieldName field=NUM_TOTAL_FIELDS) {};
+    virtual void reset_lambda_contribution(const DENS_MAT & target, const FieldName field) {};
+    virtual void reset_lambda_contribution(const DENS_MAT & target) { reset_lambda_contribution(target,NUM_TOTAL_FIELDS); }
     /** returns a const pointer to the DENS_MAN associated with the tag, or NULL */
     const DENS_MAN * regulator_data(const std::string tag) const;
     /** return the maximum number of iterations */
@@ -403,6 +404,9 @@ namespace ATC {
     /** pre-"run" initialization */
     virtual void initialize();
 
+    /** sets lambda to an initial value */
+    virtual void set_lambda_to_value(double value) {*lambda_ = value;}
+
     /** reset number of local atoms, as well as atomic data */
     virtual void reset_nlocal();
 
@@ -412,6 +416,9 @@ namespace ATC {
 
     /** compute boundary flux, requires regulator input since it is part of the coupling scheme */
     virtual void compute_boundary_flux(FIELDS & fields);
+
+    /** access to nodes the thermostat is applied to */
+    const SetDependencyManager<int> * application_nodes() const {return applicationNodes_;};
 
     /** determine if local shape function matrices are needed */
     virtual bool use_local_shape_functions() const {return false;};
@@ -448,7 +455,7 @@ namespace ATC {
     DENS_MAN * lambda_;
 
     /** lambda at atomic locations */
-    ProtectedAtomQuantity<double> * atomLambdas_;
+    PerAtomQuantity<double> * atomLambdas_;
 
     /** shape function matrix for use in GLC solve */
     PerAtomSparseMatrix<double> * shapeFunctionMatrix_;
@@ -469,13 +476,13 @@ namespace ATC {
     LambdaMatrixSolver * matrixSolver_;
 
     /** set of nodes used to construct matrix */
-    RegulatedNodes * regulatedNodes_;
+    SetDependencyManager<int> * regulatedNodes_;
 
     /** set of nodes on which lambda is non-zero */
-    RegulatedNodes * applicationNodes_;
+    SetDependencyManager<int> * applicationNodes_;
 
     /** set of nodes needed for localized boundary quadrature */
-    RegulatedNodes * boundaryNodes_;
+    SetDependencyManager<int> * boundaryNodes_;
 
     /** mapping from all nodes to overlap nodes: -1 is no overlap, otherwise entry is overlap index */
     NodeToSubset * nodeToOverlapMap_;
@@ -490,7 +497,7 @@ namespace ATC {
     DIAG_MAN * atomicWeights_;
 
     /** element mask for boundary elements corresponding to nodeToOverlapMap_ */
-    ElementMaskNodeSet * elementMask_;
+    MatrixDependencyManager<ATC_matrix::DenseMatrix, bool> * elementMask_;
 
     /** maps atoms from atc indexing to regulator indexing */
     LargeToSmallAtomMap * lambdaAtomMap_;
@@ -565,7 +572,7 @@ namespace ATC {
   
   public:
         
-    LambdaMatrixSolverLumped(SPAR_MAN & matrixTemplate, SPAR_MAN * shapeFunctionMatrix, int maxIterations, double tolerance, const RegulatedNodes * applicationNodes, const NodeToSubset * nodeToOverlapMap);
+    LambdaMatrixSolverLumped(SPAR_MAN & matrixTemplate, SPAR_MAN * shapeFunctionMatrix, int maxIterations, double tolerance, const SetDependencyManager<int> * applicationNodes, const NodeToSubset * nodeToOverlapMap);
         
     virtual ~LambdaMatrixSolverLumped(){};
 
@@ -581,7 +588,7 @@ namespace ATC {
     DIAG_MAT lumpedMatrix_;
 
     /** set of regulated nodes */
-    const RegulatedNodes * applicationNodes_;
+    const SetDependencyManager<int> * applicationNodes_;
 
     /** mapping from all nodes to overlap nodes: -1 is no overlap, otherwise entry is overlap index */
     const NodeToSubset * nodeToOverlapMap_;

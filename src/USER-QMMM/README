@@ -4,6 +4,13 @@ in a LAMMPS input script.
 This fix enables LAMMPS to be used in a QM/MM simulation, currently
 only in combination with pw.x code from the Quantum ESPRESSO package.
 
+This package uses an external library in lib/qmmm which must be
+compiled before making LAMMPS.  See the lib/qmmm/README file and the
+LAMMPS manual for information on building LAMMPS with external
+libraries.  The settings in the Makefile.lammps file in that directory
+must be correct for LAMMPS to build correctly with this package
+installed.
+
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
 

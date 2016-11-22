@@ -15,8 +15,8 @@
    Contributing authors: Chris Lorenz and Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "bond_quartic.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -203,7 +203,7 @@ void BondQuartic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
 
   double k_one = force->numeric(FLERR,arg[1]);
   double b1_one = force->numeric(FLERR,arg[2]);
@@ -236,7 +236,7 @@ void BondQuartic::init_style()
   if (force->angle || force->dihedral || force->improper)
     error->all(FLERR,
                "Bond style quartic cannot be used with 3,4-body interactions");
-  if (atom->molecular == 2) 
+  if (atom->molecular == 2)
     error->all(FLERR,
                "Bond style quartic cannot be used with atom style template");
 

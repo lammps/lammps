@@ -142,9 +142,9 @@ namespace ATC {
   //--------------------------------------------------------
   //  output
   //--------------------------------------------------------
-  void ChargeRegulator::output(OUTPUT_LIST & outputData)
+  void ChargeRegulator::output(OUTPUT_LIST & outputData) const
   {
-    map<string, ChargeRegulatorMethod *>::iterator itr;
+    map<string, ChargeRegulatorMethod *>::const_iterator itr;
     for (itr = regulators_.begin();
          itr != regulators_.end(); itr++) { itr->second->output(outputData);}
   }

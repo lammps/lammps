@@ -659,8 +659,8 @@ if __name__ == "__main__":
 
     """
     g_program_name = __file__.split('/')[-1]  # ='lttree.py'
-    g_date_str     = '2013-9-19'
-    g_version_str  = '0.73'
+    g_date_str     = '2014-12-19'
+    g_version_str  = '0.75'
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
@@ -731,7 +731,6 @@ if __name__ == "__main__":
         WriteFiles(files_content)
         sys.stderr.write(' done\n')
 
-        # Step 11: Now write the variable bindings/assignments table.
         # Now write the variable bindings/assignments table.
         sys.stderr.write('writing \"ttree_assignments.txt\" file...')
         open('ttree_assignments.txt', 'w').close() # <-- erase previous version.

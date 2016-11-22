@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_snap.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -23,10 +23,11 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "sna.h"
-#include "memory.h"
-#include "error.h"
 #include "openmp_snap.h"
 #include "domain.h"
+#include "memory.h"
+#include "error.h"
+
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -103,7 +104,7 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
 PairSNAP::~PairSNAP()
 {
   if (nelements) {
-    for (int i = 0; i < nelements; i++) 
+    for (int i = 0; i < nelements; i++)
       delete[] elements[i];
     delete[] elements;
     memory->destroy(radelem);
@@ -120,7 +121,7 @@ PairSNAP::~PairSNAP()
     double timeave[5];
     double timeave_mpi[5];
     double timemax_mpi[5];
-    
+
     for (int i = 0; i < 5; i++) {
       time[i] = 0;
       timeave[i] = 0;
@@ -134,7 +135,7 @@ PairSNAP::~PairSNAP()
     MPI_Reduce(timeave, timeave_mpi, 5, MPI_DOUBLE, MPI_SUM, 0, world);
     MPI_Reduce(time, timemax_mpi, 5, MPI_DOUBLE, MPI_MAX, 0, world);
 #endif
-    
+
     for (int tid = 0; tid<nthreads; tid++)
       delete sna[tid];
     delete [] sna;
@@ -196,7 +197,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
     jnum = numneigh[i];
 
     // insure rij, inside, wj, and rcutij are of size jnum
-      
+
     snaptr->grow_rij(jnum);
 
     // rij[][3] = displacements between atom I and those neighbors
@@ -215,7 +216,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       int jtype = type[j];
       int jelem = map[jtype];
-      
+
       if (rsq < cutsq[itype][jtype]&&rsq>1e-20) {
 	snaptr->rij[ninside][0] = delx;
 	snaptr->rij[ninside][1] = dely;
@@ -228,7 +229,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
     }
 
     // compute Ui, Zi, and Bi for atom I
-    
+
     snaptr->compute_ui(ninside);
     snaptr->compute_zi();
     if (!gammaoneflag) {
@@ -256,7 +257,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
 
       for (int k = 1; k <= ncoeff; k++) {
 	double bgb;
-	if (gammaoneflag) 
+	if (gammaoneflag)
 	  bgb = coeffi[k];
 	else bgb = coeffi[k]*
 	       gamma*pow(snaptr->bvec[k-1],gamma-1.0);
@@ -280,7 +281,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
     }
 
     if (eflag) {
-	
+
       // evdwl = energy of atom I, sum over coeffs_k * Bi_k
 
       evdwl = coeffi[0];
@@ -296,7 +297,7 @@ void PairSNAP::compute_regular(int eflag, int vflag)
     }
 
   }
-  
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -572,7 +573,7 @@ void PairSNAP::compute_optimized(int eflag, int vflag)
 
         for (k = 1; k <= ncoeff; k++) {
 	  double bgb;
-	  if (gammaoneflag) 
+	  if (gammaoneflag)
 	    bgb = coeffi[k];
 	  else bgb = coeffi[k]*
 		 gamma*pow(sna[tid]->bvec[k-1],gamma-1.0);
@@ -741,7 +742,6 @@ void PairSNAP::load_balance()
   int* procgrid = comm->procgrid;
 
   int nlocal_up,nlocal_down;
-  MPI_Status status;
   MPI_Request request;
 
   double sub_mid[3];
@@ -750,15 +750,7 @@ void PairSNAP::load_balance()
 
   if (comm->cutghostuser <
       neighbor->cutneighmax+extra_cutoff())
-    error->all(FLERR,"Communication cutoff is too small "
-               "for SNAP micro load balancing.\n"
-               "Typically this can happen, if you change "
-               "the neighbor skin after your pair_style "
-               "command or if your box dimensions grow "
-               "during the run.\n"
-               "You need to set it via "
-               "'communicate single cutoff NUMBER' "
-               "to the needed length.");
+    error->all(FLERR,"Communication cutoff too small for SNAP micro load balancing");
 
   int nrecv = ghostinum;
   int totalsend = 0;
@@ -802,9 +794,9 @@ void PairSNAP::load_balance()
         // two stage process, first upstream movement, then downstream
 
         MPI_Sendrecv(&nlocal,1,MPI_INT,sendproc,0,
-                     &nlocal_up,1,MPI_INT,recvproc,0,world,&status);
+                     &nlocal_up,1,MPI_INT,recvproc,0,world,MPI_STATUS_IGNORE);
         MPI_Sendrecv(&nlocal,1,MPI_INT,recvproc,0,
-                     &nlocal_down,1,MPI_INT,sendproc,0,world,&status);
+                     &nlocal_down,1,MPI_INT,sendproc,0,world,MPI_STATUS_IGNORE);
         nsend = 0;
 
         // send upstream
@@ -835,7 +827,7 @@ void PairSNAP::load_balance()
         if (nlocal < nlocal_down-1) {
           nlocal++;
           int get_tag = -1;
-          MPI_Recv(&get_tag,1,MPI_INT,sendproc,0,world,&status);
+          MPI_Recv(&get_tag,1,MPI_INT,sendproc,0,world,MPI_STATUS_IGNORE);
 
           // if get_tag -1 the other process didnt have local atoms to send
 
@@ -907,9 +899,9 @@ void PairSNAP::load_balance()
         // second pass through the grid
 
         MPI_Sendrecv(&nlocal,1,MPI_INT,sendproc,0,
-                     &nlocal_up,1,MPI_INT,recvproc,0,world,&status);
+                     &nlocal_up,1,MPI_INT,recvproc,0,world,MPI_STATUS_IGNORE);
         MPI_Sendrecv(&nlocal,1,MPI_INT,recvproc,0,
-                     &nlocal_down,1,MPI_INT,sendproc,0,world,&status);
+                     &nlocal_down,1,MPI_INT,sendproc,0,world,MPI_STATUS_IGNORE);
 
         // send downstream
 
@@ -938,7 +930,7 @@ void PairSNAP::load_balance()
           nlocal++;
           int get_tag = -1;
 
-          MPI_Recv(&get_tag,1,MPI_INT,recvproc,0,world,&status);
+          MPI_Recv(&get_tag,1,MPI_INT,recvproc,0,world,MPI_STATUS_IGNORE);
 
           if (get_tag >= 0) {
             if (ghostinum >= ghostilist_max) {
@@ -1240,12 +1232,11 @@ void PairSNAP::settings(int narg, char **arg)
   // optional arguments
 
   for (int i=0; i < narg; i++) {
-    if (i+2>narg) error->all(FLERR,"Illegal pair_style command."
-			     " Too few arguments.");
+    if (i+2>narg) error->all(FLERR,"Illegal pair_style command");
     if (strcmp(arg[i],"nthreads")==0) {
       nthreads=force->inumeric(FLERR,arg[++i]);
 #if defined(LMP_USER_OMP)
-      error->all(FLERR,"Please set number of threads via package omp command");
+      error->all(FLERR,"Must set number of threads via package omp command");
 #else
       omp_set_num_threads(nthreads);
       comm->nthreads=nthreads;
@@ -1272,8 +1263,8 @@ void PairSNAP::settings(int narg, char **arg)
 
 	  double tmp = mincutoff + 0.1;
 	  sprintf(buffer, "Communication cutoff is too small "
-		  "for SNAP micro load balancing. "
-		  "It will be increased to: %lf.",mincutoff+0.1);
+		  "for SNAP micro load balancing, increased to %lf",
+		  mincutoff+0.1);
 	  if (comm->me==0)
 	    error->warning(FLERR,buffer);
 
@@ -1296,14 +1287,10 @@ void PairSNAP::settings(int narg, char **arg)
       if (strcmp(arg[i],"determine")==0)
 	schedule_user = 5;
       if (schedule_user == 0)
-	error->all(FLERR,"Illegal pair_style command."
-		   " Illegal schedule argument.");
+	error->all(FLERR,"Illegal pair_style command");
       continue;
     }
-    char buffer[255];
-    sprintf(buffer, "Illegal pair_style command."
-	    " Unrecognized argument: %s.\n",arg[i]);
-    error->all(FLERR,buffer);
+    error->all(FLERR,"Illegal pair_style command");
   }
 
   if (nthreads < 0)
@@ -1319,12 +1306,11 @@ void PairSNAP::settings(int narg, char **arg)
   // optimization flags set
 
   if (!use_optimized)
-    if (nthreads > 1 || 
-	use_shared_arrays || 
+    if (nthreads > 1 ||
+	use_shared_arrays ||
 	do_load_balance ||
 	schedule_user)
-      error->all(FLERR,"Illegal pair_style command."
-                 "Advanced options require setting 'optimized 1'.");
+      error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -1341,7 +1327,7 @@ void PairSNAP::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (nelements) {
-    for (int i = 0; i < nelements; i++) 
+    for (int i = 0; i < nelements; i++)
       delete[] elements[i];
     delete[] elements;
     memory->destroy(radelem);
@@ -1454,7 +1440,7 @@ void PairSNAP::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
@@ -1475,7 +1461,7 @@ void PairSNAP::init_style()
 double PairSNAP::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  return (radelem[map[i]] + 
+  return (radelem[map[i]] +
   	  radelem[map[j]])*rcutfac;
 }
 
@@ -1519,7 +1505,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = atom->count_words(line);
   }
-  if (nwords != 2) 
+  if (nwords != 2)
     error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
   // words = ptrs to all words in line
@@ -1534,20 +1520,20 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   int nelemfile = atoi(words[0]);
   ncoeff = atoi(words[1])-1;
 
-  // Set up element lists 
+  // Set up element lists
 
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeff+1,"pair:coeffelem");
 
   int *found = new int[nelements];
-  for (int ielem = 0; ielem < nelements; ielem++) 
+  for (int ielem = 0; ielem < nelements; ielem++)
     found[ielem] = 0;
 
   // Loop over elements in the SNAP coefficient file
 
   for (int ielemfile = 0; ielemfile < nelemfile; ielemfile++) {
- 
+
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == NULL) {
@@ -1556,13 +1542,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       } else n = strlen(line) + 1;
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) 
+    if (eof)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
 
     nwords = atom->count_words(line);
-    if (nwords != 3) 
+    if (nwords != 3)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
     iword = 0;
@@ -1583,7 +1569,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (strcmp(elemtmp,elements[ielem]) == 0) break;
     if (ielem == nelements) {
       if (comm->me == 0)
-	for (int icoeff = 0; icoeff <= ncoeff; icoeff++) 
+	for (int icoeff = 0; icoeff <= ncoeff; icoeff++)
 	  ptr = fgets(line,MAXLINE,fpcoeff);
       continue;
     }
@@ -1592,7 +1578,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
     if (found[ielem]) {
       if (comm->me == 0)
-	for (int icoeff = 0; icoeff <= ncoeff; icoeff++) 
+	for (int icoeff = 0; icoeff <= ncoeff; icoeff++)
 	  ptr = fgets(line,MAXLINE,fpcoeff);
       continue;
     }
@@ -1603,13 +1589,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
 
     if (comm->me == 0) {
-      if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n", 
+      if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n",
 			  elements[ielem], radelem[ielem], wjelem[ielem]);
-      if (logfile) fprintf(logfile,"SNAP Element = %s, Radius %g, Weight %g \n", 
+      if (logfile) fprintf(logfile,"SNAP Element = %s, Radius %g, Weight %g \n",
 			  elements[ielem], radelem[ielem], wjelem[ielem]);
     }
 
-    for (int icoeff = 0; icoeff <= ncoeff; icoeff++) { 
+    for (int icoeff = 0; icoeff <= ncoeff; icoeff++) {
       if (comm->me == 0) {
 	ptr = fgets(line,MAXLINE,fpcoeff);
 	if (ptr == NULL) {
@@ -1619,20 +1605,20 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       }
 
       MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) 
+      if (eof)
 	error->all(FLERR,"Incorrect format in SNAP coefficient file");
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
       nwords = atom->count_words(line);
-      if (nwords != 1) 
+      if (nwords != 1)
 	error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
       iword = 0;
       words[iword] = strtok(line,"' \t\n\r\f");
 
       coeffelem[ielem][icoeff] = atof(words[0]);
-      
+
     }
   }
 
@@ -1681,7 +1667,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     nwords = atom->count_words(line);
     if (nwords == 0) continue;
 
-    if (nwords != 2) 
+    if (nwords != 2)
       error->all(FLERR,"Incorrect format in SNAP parameter file");
 
     // words = ptrs to all words in line
@@ -1720,6 +1706,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   if (gamma == 1.0) gammaoneflag = 1;
   else gammaoneflag = 0;
+
+  delete[] found;
 }
 
 /* ----------------------------------------------------------------------

@@ -50,7 +50,7 @@ class FixGPU : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Cannot use fix GPU with USER-CUDA mode enabled
+E: Cannot use GPU package with USER-CUDA package enabled
 
 You cannot use both the GPU and USER-CUDA packages
 together.  Use one or the other.
@@ -60,15 +60,6 @@ E: Illegal ... command
 Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
-
-E: Cannot use force/neigh with triclinic box
-
-This is a current limitation of the GPU implementation
-in LAMMPS.
-
-E: Cannot use force/hybrid_neigh with triclinic box
-
-Self-explanatory.
 
 E: No OpenMP support compiled in
 
@@ -86,6 +77,14 @@ Neighbor list builds must be done on the CPU for this pair style.
 E: GPU split param must be positive for hybrid pair styles
 
 See the package gpu command.
+
+E: Cannot use package gpu neigh yes with triclinic box
+
+This is a current restriction in LAMMPS.
+
+W: Using package gpu without any pair style defined
+
+Self-explanatory.
 
 E: Cannot use neigh_modify exclude with GPU neighbor builds
 

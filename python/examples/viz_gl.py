@@ -8,6 +8,7 @@
 #          Nfreq = dump and viz shapshot every this many steps
 #          Nsteps = run for this many steps
 
+from __future__ import print_function
 import sys
 sys.path.append("./pizza")
 
@@ -15,7 +16,7 @@ sys.path.append("./pizza")
 
 argv = sys.argv
 if len(argv) != 4:
-  print "Syntax: viz_gl.py in.lammps Nfreq Nsteps"
+  print("Syntax: viz_gl.py in.lammps Nfreq Nsteps")
   sys.exit()
 
 infile = sys.argv[1]
@@ -48,7 +49,11 @@ ntimestep = 0
 # just proc 0 handles reading of dump file and viz
 
 if me == 0:
-  import Tkinter
+  tkroot = None
+  try: 
+    import Tkinter
+  except:
+    import tkinter as Tkinter
   tkroot = Tkinter.Tk()
   tkroot.withdraw()
 
@@ -79,5 +84,5 @@ while ntimestep < nsteps:
 lmp.command("run 0 pre no post yes")
 
 # uncomment if running in parallel via Pypar
-#print "Proc %d out of %d procs has" % (me,nprocs), lmp
+#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
 #pypar.finalize()

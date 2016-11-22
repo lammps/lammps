@@ -64,8 +64,8 @@ namespace ATC {
     virtual void initialize();
     virtual void apply_pre_force(double dt);
     virtual void apply_post_force(double dt);
-    virtual void output(OUTPUT_LIST & outputData);
-    virtual double compute_vector(int n) {return 0;} // TODO
+    virtual void output(OUTPUT_LIST & outputData) const;
+    virtual double compute_vector(int n) const {return 0;} // TODO
 
     void assign_poisson_solver(PoissonSolver * solver) { poissonSolver_ = solver;}  
     PoissonSolver * poisson_solver(void) { return poissonSolver_;} 

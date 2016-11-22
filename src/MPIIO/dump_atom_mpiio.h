@@ -18,7 +18,7 @@ DumpStyle(atom/mpiio,DumpAtomMPIIO)
 #else
 
 #ifndef LMP_DUMP_ATOM_MPIIO_H
-#define LMP_DUMP_ATOM_MPII0_H
+#define LMP_DUMP_ATOM_MPIIO_H
 
 #include "dump_atom.h"
 #include <stdlib.h>
@@ -76,7 +76,7 @@ class DumpAtomMPIIO : public DumpAtom {
 
 /* ERROR/WARNING messages:
 
-E: Cannot open dump file
+E: Cannot open dump file %s
 
 The output file for the dump command cannot be opened.  Check that the
 path and name are correct.

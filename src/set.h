@@ -98,7 +98,27 @@ E: Cannot set non-zero image flag for non-periodic dimension
 
 Self-explanatory.
 
-E: Cannot set meso_rho for this atom style
+E: Cannot set meso/e for this atom style
+
+Self-explanatory.
+
+E: Cannot set meso/cv for this atom style
+
+Self-explanatory.
+
+E: Cannot set meso/rho for this atom style
+
+Self-explanatory.
+
+E: Cannot set smd/mass/density for this atom style
+
+Self-explanatory.
+
+E: Cannot set smd/contact/radius for this atom style
+
+Self-explanatory.
+
+E: Cannot set dpd/theta for this atom style
 
 Self-explanatory.
 
@@ -143,6 +163,10 @@ E: Invalid length in set command
 Self-explanatory.
 
 E: Cannot set quaternion for atom that has none
+
+Self-explanatory.
+
+E: Cannot set quaternion with xy components for 2d system
 
 Self-explanatory.
 

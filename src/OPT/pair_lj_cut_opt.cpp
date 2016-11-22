@@ -18,7 +18,7 @@
      Vincent Natoli, Stone Ridge Technology
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "pair_lj_cut_opt.h"
 #include "atom.h"
 #include "force.h"

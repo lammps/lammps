@@ -15,9 +15,9 @@
    Contributing author: Axel Kohlmeyer (Temple)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_coul_long_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +32,7 @@
 #include "universe.h"
 #include "update.h"
 #include "domain.h"
-#include "string.h"
+#include <string.h>
 #include "kspace.h"
 #include "gpu_extra.h"
 
@@ -144,7 +144,14 @@ void PairCoulLongGPU::init_style()
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with coul/long/gpu pair style");
 
-  // Repeat cutsq calculation because done after call to init_style
+  // Call init_one calculation make sure scale is correct
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      if (setflag[i][j] != 0 || (setflag[i][i] != 0 && setflag[j][j] != 0)) {
+        double cut = init_one(i,j);
+      }
+    }
+  }
   double cell_size = cut_coul + neighbor->skin;
 
   cut_coulsq = cut_coul * cut_coul;
@@ -152,7 +159,7 @@ void PairCoulLongGPU::init_style()
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == NULL)
-    error->all(FLERR,"Pair style is incompatible with KSpace style");
+    error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
@@ -170,7 +177,7 @@ void PairCoulLongGPU::init_style()
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {
-    int irequest = neighbor->request(this);
+    int irequest = neighbor->request(this,instance_me);
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
@@ -181,7 +188,7 @@ void PairCoulLongGPU::init_style()
 void PairCoulLongGPU::reinit()
 {
   Pair::reinit();
-  
+
   cl_gpu_reinit(atom->ntypes+1, scale);
 }
 

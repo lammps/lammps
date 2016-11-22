@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -36,7 +36,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -46,8 +46,7 @@
 
 #include <typeinfo>
 #include <utility>
-#include <Kokkos_Macros.hpp>
-#include <Kokkos_Layout.hpp>
+#include <Kokkos_Core_fwd.hpp>
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_StaticAssert.hpp>
 
@@ -75,9 +74,6 @@ template< unsigned ScalarSize ,
           unsigned s6  = 1 ,
           unsigned s7  = 1 >
 struct Shape ;
-
-template< class ShapeType , class Layout >
-struct ShapeMap ;
 
 //----------------------------------------------------------------------------
 /** \brief  Shape equality if the value type, layout, and dimensions
@@ -239,7 +235,7 @@ struct AssertShapeBoundsAbort< Kokkos::HostSpace >
                      const size_t i6 , const size_t i7 );
 };
 
-template< class ExecutionDevice >
+template< class ExecutionSpace >
 struct AssertShapeBoundsAbort
 {
   KOKKOS_INLINE_FUNCTION
@@ -276,14 +272,14 @@ void assert_shape_bounds( const ShapeType & shape ,
   // Must supply at least as many indices as ranks.
   // Every index must be within bounds.
   const bool ok = ShapeType::rank <= arg_rank &&
-                  i0 < shape.N0 && 
-                  i1 < shape.N1 &&
-                  i2 < shape.N2 &&
-                  i3 < shape.N3 &&
-                  i4 < shape.N4 &&
-                  i5 < shape.N5 &&
-                  i6 < shape.N6 &&
-                  i7 < shape.N7 ;
+                  i0 < size_t(shape.N0) && 
+                  i1 < size_t(shape.N1) &&
+                  i2 < size_t(shape.N2) &&
+                  i3 < size_t(shape.N3) &&
+                  i4 < size_t(shape.N4) &&
+                  i5 < size_t(shape.N5) &&
+                  i6 < size_t(shape.N6) &&
+                  i7 < size_t(shape.N7) ;
 
   if ( ! ok ) {
     AssertShapeBoundsAbort< Kokkos::Impl::ActiveExecutionMemorySpace >
@@ -294,7 +290,7 @@ void assert_shape_bounds( const ShapeType & shape ,
   }
 }
 
-#if defined( KOKKOS_EXPRESSION_CHECK )
+#if defined( KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK )
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_1( S , I0 ) assert_shape_bounds(S,1,I0);
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_2( S , I0 , I1 ) assert_shape_bounds(S,2,I0,I1);
 #define KOKKOS_ASSERT_SHAPE_BOUNDS_3( S , I0 , I1 , I2 ) assert_shape_bounds(S,3,I0,I1,I2);
@@ -342,6 +338,32 @@ struct Shape< ScalarSize , 0, 1,1,1,1, 1,1,1,1 >
                unsigned = 0 , unsigned = 0 , unsigned = 0 , unsigned = 0 )
   {}
 };
+
+//----------------------------------------------------------------------------
+
+template< unsigned R > struct assign_shape_dimension ;
+
+#define KOKKOS_ASSIGN_SHAPE_DIMENSION( R ) \
+template<> \
+struct assign_shape_dimension< R > \
+{ \
+  template< class ShapeType > \
+  KOKKOS_INLINE_FUNCTION \
+  assign_shape_dimension( ShapeType & shape \
+                        , typename Impl::enable_if<( R < ShapeType::rank_dynamic ), size_t >::type n \
+                        ) { shape.N ## R = n ; } \
+};
+
+KOKKOS_ASSIGN_SHAPE_DIMENSION(0)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(1)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(2)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(3)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(4)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(5)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(6)
+KOKKOS_ASSIGN_SHAPE_DIMENSION(7)
+
+#undef KOKKOS_ASSIGN_SHAPE_DIMENSION
 
 //----------------------------------------------------------------------------
 // All-static dimension array

@@ -1,13 +1,13 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//   Kokkos: Manycore Performance-Portable Multidimensional Arrays
-//              Copyright (2012) Sandia Corporation
-//
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
+// 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
-//
+// 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
@@ -35,8 +35,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
-//
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// 
 // ************************************************************************
 //@HEADER
 */
@@ -46,6 +46,7 @@
 
 #include <cstddef>
 #include <iosfwd>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <Kokkos_HostSpace.hpp>
@@ -69,19 +70,21 @@ class Qthread {
 public:
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
-  //! The tag (what type of kokkos_object is this).
-  typedef Impl::ExecutionSpaceTag  kokkos_tag ;
 
-  typedef Qthread                  device_type ;
+  //! Tag this class as an execution space
   typedef Qthread                  execution_space ;
   typedef Kokkos::HostSpace        memory_space ;
-  typedef Qthread                  scratch_memory_space ;
-  typedef memory_space::size_type  size_type ;
+  //! This execution space preferred device_type
+  typedef Kokkos::Device<execution_space,memory_space> device_type;
+
   typedef Kokkos::LayoutRight      array_layout ;
-  typedef Kokkos::Qthread          host_mirror_device_type ;
+  typedef memory_space::size_type  size_type ;
+
+  typedef ScratchMemorySpace< Qthread > scratch_memory_space ;
 
   //@}
   /*------------------------------------------------------------------------*/
+
   /** \brief  Initialization will construct one or more instances */
   static Qthread & instance( int = 0 );
 
@@ -114,14 +117,12 @@ public:
 
   /*------------------------------------------------------------------------*/
 
-  Qthread( Impl::QthreadExec & e ) : m_exec(e) {}
+  static int in_parallel();
 
-  void * get_shmem( const int ) const ;
+  static int is_initialized();
 
-  static int team_recommended();
-  static int team_max();
-
-  /*------------------------------------------------------------------------*/
+  /** \brief  Return maximum amount of concurrency */
+  static int concurrency();
 
   static void initialize( int thread_count );
   static void finalize();
@@ -131,17 +132,30 @@ public:
 
   int shepherd_size() const ;
   int shepherd_worker_size() const ;
-
-private:
-
-  friend class Impl::QthreadExec ;
-
-  Impl::QthreadExec & m_exec ;
-
 };
 
 /*--------------------------------------------------------------------------*/
 
+} // namespace Kokkos
+
+/*--------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+namespace Kokkos {
+namespace Impl {
+
+template<>
+struct VerifyExecutionCanAccessMemorySpace
+  < Kokkos::Qthread::memory_space
+  , Kokkos::Qthread::scratch_memory_space
+  >
+{
+  enum { value = true };
+  inline static void verify( void ) { }
+  inline static void verify( const void * ) { }
+};
+
+} // namespace Impl
 } // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/

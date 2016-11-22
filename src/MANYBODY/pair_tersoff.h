@@ -31,7 +31,7 @@ class PairTersoff : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
+  virtual void init_style();
   double init_one(int, int);
 
  protected:
@@ -49,6 +49,7 @@ class PairTersoff : public Pair {
     double ZBLcut,ZBLexpscale;
     double c5,ca1,ca4;           // added for TersoffMOD
     double powern_del;
+    double c0;                   // added for TersoffMODC
   };
 
   Param *params;                // parameter set for an I-J-K interaction
@@ -59,10 +60,12 @@ class PairTersoff : public Pair {
   int nelements;                // # of unique elements
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
+  int maxshort;                 // size of short neighbor list array
+  int *neighshort;              // short neighbor list array
 
-  void allocate();
+  virtual void allocate();
   virtual void read_file(char *);
-  virtual void setup();
+  virtual void setup_params();
   virtual void repulsive(Param *, double, double &, int, double &);
   virtual double zeta(Param *, double, double, double *, double *);
   virtual void force_zeta(Param *, double, double, double &,
@@ -172,12 +175,10 @@ invalid.
 
 E: Potential file has duplicate entry
 
-The potential file for a SW or Tersoff potential has more than
-one entry for the same 3 ordered elements.
+The potential file has more than one entry for the same element.
 
 E: Potential file is missing an entry
 
-The potential file for a SW or Tersoff potential does not have a
-needed entry.
+The potential file does not have a needed entry.
 
 */

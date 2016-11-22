@@ -1,0 +1,47 @@
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+special_bonds lj/coul 0.0 0.0 0.5
+
+pair_style lj/cut/coul/long 12.0 12.0
+kspace_style pppm 1.0e-3
+
+comm_modify vel yes
+read_data data.swm4-ndp
+
+pair_coeff    1    1      0.210939     3.183950  # ODw ODw
+pair_coeff    *   2*      0.000000     0.0
+
+group ATOMS type 1:3
+group CORES type 1
+group DRUDES type 4
+
+variable TK equal 300.0
+variable TDK equal 1.0
+variable PBAR equal 1.0
+
+neighbor 2.0 bin
+
+timestep 1.0
+
+fix DRUDE all drude C N N D
+
+velocity ATOMS create ${TK} 12345
+velocity DRUDES create ${TDK} 12345
+
+delete_bonds ATOMS multi
+
+fix TEMP all langevin/drude ${TK} 100. 1256 ${TDK} 20. 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso ${PBAR} ${PBAR} 500.
+fix NVE DRUDES nve
+
+compute TEMP all temp/drude
+
+thermo_style custom step cpu etotal ke pe ebond eangle evdwl ecoul elong press vol temp c_TEMP[1] c_TEMP[2]
+thermo 20
+
+run 2000
+

@@ -19,9 +19,9 @@
             JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "min.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -182,8 +182,12 @@ void Min::init()
 
 void Min::setup()
 {
-  if (comm->me == 0 && screen) fprintf(screen,"Setting up minimization ...\n");
-
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Setting up %s style minimization ...\n",
+            update->minimize_style);
+    fprintf(screen,"  Unit style    : %s\n", update->unit_style);
+    timer->print_timeout(screen);
+  }
   update->setupflag = 1;
 
   // setup extra global dof due to fixes
@@ -208,7 +212,7 @@ void Min::setup()
   // ndoftotal = total dof for entire minimization problem
   // dof for atoms, extra per-atom, extra global
 
-  bigint ndofme = 3*atom->nlocal;
+  bigint ndofme = 3 * static_cast<bigint>(atom->nlocal);
   for (int m = 0; m < nextra_atom; m++)
     ndofme += extra_peratom[m]*atom->nlocal;
   MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
@@ -237,12 +241,21 @@ void Min::setup()
 
   // remove these restriction eventually
 
-  if (nextra_global && searchflag == 0)
-    error->all(FLERR,
-               "Cannot use a damped dynamics min style with fix box/relax");
-  if (nextra_atom && searchflag == 0)
-    error->all(FLERR,
-               "Cannot use a damped dynamics min style with per-atom DOF");
+  if (searchflag == 0) {
+    if (nextra_global)
+      error->all(FLERR,
+                 "Cannot use a damped dynamics min style with fix box/relax");
+    if (nextra_atom)
+      error->all(FLERR,
+                 "Cannot use a damped dynamics min style with per-atom DOF");
+  }
+
+  if (strcmp(update->minimize_style,"hftn") == 0) {
+    if (nextra_global)
+      error->all(FLERR, "Cannot use hftn min style with fix box/relax");
+    if (nextra_atom)
+      error->all(FLERR, "Cannot use hftn min style with per-atom DOF");
+  }
 
   // atoms may have migrated in comm->exchange()
 
@@ -250,6 +263,7 @@ void Min::setup()
 
   // compute all forces
 
+  force->setup();
   ev_set(update->ntimestep);
   force_clear();
   modify->setup_pre_force(vflag);
@@ -270,6 +284,7 @@ void Min::setup()
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   // update per-atom minimization variables stored by pair styles
@@ -350,6 +365,7 @@ void Min::setup_minimal(int flag)
     else force->kspace->compute_dummy(eflag,vflag);
   }
 
+  modify->pre_reverse(eflag,vflag);
   if (force->newton) comm->reverse_comm();
 
   // update per-atom minimization variables stored by pair styles
@@ -391,7 +407,7 @@ void Min::run(int n)
   // add ntimestep to all computes that store invocation times
   //   since are hardwiring call to thermo/dumps and computes may not be ready
 
-  if (stop_condition) {
+  if (stop_condition != MAXITER) {
     update->nsteps = niter;
 
     if (update->restrict_output == 0) {
@@ -418,6 +434,8 @@ void Min::run(int n)
 
 void Min::cleanup()
 {
+  modify->post_run();
+
   // stats for Finish to print
 
   efinal = ecurrent;
@@ -454,9 +472,13 @@ double Min::energy_force(int resetflag)
   if (nflag == 0) {
     timer->stamp();
     comm->forward_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
   } else {
-    if (modify->n_min_pre_exchange) modify->min_pre_exchange();
+    if (modify->n_min_pre_exchange) {
+      timer->stamp();
+      modify->min_pre_exchange();
+      timer->stamp(Timer::MODIFY);
+    }
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     if (domain->box_change) {
@@ -470,20 +492,24 @@ double Min::energy_force(int resetflag)
         update->ntimestep >= atom->nextsort) atom->sort();
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
     neighbor->build();
-    timer->stamp(TIME_NEIGHBOR);
+    timer->stamp(Timer::NEIGH);
   }
 
   ev_set(update->ntimestep);
   force_clear();
-  if (modify->n_min_pre_force) modify->min_pre_force(vflag);
 
   timer->stamp();
 
+  if (modify->n_min_pre_force) {
+    modify->min_pre_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
+
   if (pair_compute_flag) {
     force->pair->compute(eflag,vflag);
-    timer->stamp(TIME_PAIR);
+    timer->stamp(Timer::PAIR);
   }
 
   if (atom->molecular) {
@@ -491,17 +517,22 @@ double Min::energy_force(int resetflag)
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
     if (force->improper) force->improper->compute(eflag,vflag);
-    timer->stamp(TIME_BOND);
+    timer->stamp(Timer::BOND);
   }
 
   if (kspace_compute_flag) {
     force->kspace->compute(eflag,vflag);
-    timer->stamp(TIME_KSPACE);
+    timer->stamp(Timer::KSPACE);
+  }
+
+  if (modify->n_pre_reverse) {
+    modify->pre_reverse(eflag,vflag);
+    timer->stamp(Timer::MODIFY);
   }
 
   if (force->newton) {
     comm->reverse_comm();
-    timer->stamp(TIME_COMM);
+    timer->stamp(Timer::COMM);
   }
 
   // update per-atom minimization variables stored by pair styles
@@ -512,7 +543,11 @@ double Min::energy_force(int resetflag)
 
   // fixes that affect minimization
 
-  if (modify->n_min_post_force) modify->min_post_force(vflag);
+  if (modify->n_min_post_force) {
+     timer->stamp();
+     modify->min_post_force(vflag);
+     timer->stamp(Timer::MODIFY);
+  }
 
   // compute potential energy of system
   // normalize if thermo PE does
@@ -773,6 +808,7 @@ char *Min::stopstrings(int n)
                            "forces are zero",
                            "quadratic factors are zero",
                            "trust region too small",
-                           "HFTN minimizer error"};
+                           "HFTN minimizer error",
+                           "walltime limit reached"};
   return (char *) strings[n];
 }

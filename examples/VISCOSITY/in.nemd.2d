@@ -10,7 +10,7 @@ variable	rho equal 0.6
 variable        t equal 1.0
 variable	rc equal 2.5
 
-variable	srate equal 2.7
+variable	srate equal 2.7 # velocity of top edge
 
 # problem setup
 
@@ -22,7 +22,7 @@ neigh_modify	delay 0 every 1
 # problem setup
 
 lattice         sq2 ${rho}
-region          simbox prism 0 $y 0 $y -0.1 0.1 0.0 0.0 0.0
+region          simbox prism 0 $x 0 $y -0.1 0.1 0.0 0.0 0.0
 create_box      1 simbox
 create_atoms    1 box
 
@@ -48,12 +48,15 @@ unfix		2
 
 velocity	all scale $t
 
-variable	xyrate equal ${srate}/lx
+# shear rate defined relative to perpendicular dimension
+
+variable	xyrate equal ${srate}/ly 
 
 fix		1 all nvt/sllod temp $t $t 0.1
 fix		2 all deform 1 xy erate ${xyrate} remap v
-fix		4 all ave/spatial 20 250 5000 y center 0.05 vx &
-		  units reduced file profile.nemd.2d
+
+compute         layers all chunk/atom bin/1d y center 0.05 units reduced
+fix		4 all ave/chunk 20 250 5000 layers vx file profile.nemd.2d
 
 compute		usual all temp
 compute		tilt all temp/deform

@@ -65,34 +65,37 @@ void AngleDipoleOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (inum > 0) {
-      if (eflag)
+      if (evflag)
         eval<1>(ifrom, ito, thr);
       else
         eval<0>(ifrom, ito, thr);
     }
+    thr->timer(Timer::BOND);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 
 }
 
-template <int EFLAG>
+template <int EVFLAG>
 void AngleDipoleOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
   int iRef,iDip,iDummy,n,type;
   double delx,dely,delz;
-  double eangle,tangle;
+  double eangle,tangle,fi[3],fj[3];
   double r,cosGamma,deltaGamma,kdg,rmu;
+  double delTx, delTy, delTz;
+  double fx, fy, fz, fmod, fmod_sqrtff;
 
   const double * const * const x = atom->x;   // position vector
   const double * const * const mu = atom->mu; // point-dipole components and moment magnitude
+  double * const * const f = thr->get_f();
   double * const * const torque = thr->get_torque();
   const int * const * const anglelist = neighbor->anglelist;
   const int nlocal = atom->nlocal;
-  const double f1[3] = {0.0, 0.0, 0.0};
-  const double f3[3] = {0.0, 0.0, 0.0};
   eangle = 0.0;
 
   for (n = nfrom; n < nto; n++) {
@@ -112,16 +115,45 @@ void AngleDipoleOMP::eval(int nfrom, int nto, ThrData * const thr)
     deltaGamma = cosGamma - cos(gamma0[type]);
     kdg = k[type] * deltaGamma;
 
-    if (EFLAG) eangle = kdg * deltaGamma; // energy
+    if (EVFLAG) eangle = kdg * deltaGamma; // energy
 
     tangle = 2.0 * kdg / rmu;
 
-    torque[iDip][0] += tangle * (dely*mu[iDip][2] - delz*mu[iDip][1]);
-    torque[iDip][1] += tangle * (delz*mu[iDip][0] - delx*mu[iDip][2]);
-    torque[iDip][2] += tangle * (delx*mu[iDip][1] - dely*mu[iDip][0]);
+    delTx = tangle * (dely*mu[iDip][2] - delz*mu[iDip][1]);
+    delTy = tangle * (delz*mu[iDip][0] - delx*mu[iDip][2]);
+    delTz = tangle * (delx*mu[iDip][1] - dely*mu[iDip][0]);
+    
+    torque[iDip][0] += delTx;
+    torque[iDip][1] += delTy;
+    torque[iDip][2] += delTz;
+	
+    // Force couple that counterbalances dipolar torque
+    fx = dely*delTz - delz*delTy; // direction (fi): - r x (-T)
+    fy = delz*delTx - delx*delTz; 
+    fz = delx*delTy - dely*delTx;
 
-    if (EFLAG) // tally energy (virial=0 because force=0)
+    fmod = sqrt(delTx*delTx + delTy*delTy + delTz*delTz) / r; // magnitude
+    fmod_sqrtff = fmod / sqrt(fx*fx + fy*fy + fz*fz);
+
+    fi[0] = fx * fmod_sqrtff;
+    fi[1] = fy * fmod_sqrtff;
+    fi[2] = fz * fmod_sqrtff;
+
+    fj[0] = -fi[0];
+    fj[1] = -fi[1];
+    fj[2] = -fi[2];
+    
+    f[iDip][0] += fj[0];
+    f[iDip][1] += fj[1];
+    f[iDip][2] += fj[2];
+    
+    f[iRef][0] += fi[0];
+    f[iRef][1] += fi[1];
+    f[iRef][2] += fi[2];
+
+
+    if (EVFLAG) // virial = rij.fi = 0 (fj = -fi & fk = 0)
       ev_tally_thr(this,iRef,iDip,iDummy,nlocal,/* NEWTON_BOND */ 1,
-                   eangle,f1,f3,0.0,0.0,0.0,0.0,0.0,0.0,thr);
+                   eangle,fi,fj,0.0,0.0,0.0,0.0,0.0,0.0,thr);
   }
 }

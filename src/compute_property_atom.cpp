@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "compute_property_atom.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  index(NULL), pack_choice(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/atom command");
 
@@ -201,28 +202,28 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
-      if (!avec_ellipsoid && !avec_body) 
+      if (!avec_ellipsoid && !avec_body)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatw;
     } else if (strcmp(arg[iarg],"quati") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
-      if (!avec_ellipsoid && !avec_body) 
+      if (!avec_ellipsoid && !avec_body)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quati;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
-      if (!avec_ellipsoid && !avec_body) 
+      if (!avec_ellipsoid && !avec_body)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatj;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
       avec_ellipsoid = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
       avec_body = (AtomVecBody *) atom->style_match("body");
-      if (!avec_ellipsoid && !avec_body) 
+      if (!avec_ellipsoid && !avec_body)
         error->all(FLERR,"Compute property/atom for "
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_quatk;
@@ -352,8 +353,6 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  vector = NULL;
-  array = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -384,7 +383,7 @@ void ComputePropertyAtom::compute_peratom()
 
   // grow vector or array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     nmax = atom->nmax;
     if (nvalues == 1) {
       memory->destroy(vector);

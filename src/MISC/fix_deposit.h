@@ -20,7 +20,7 @@ FixStyle(deposit,FixDeposit)
 #ifndef LMP_FIX_DEPOSIT_H
 #define LMP_FIX_DEPOSIT_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -39,10 +39,10 @@ class FixDeposit : public Fix {
  private:
   int ninsert,ntype,nfreq,seed;
   int iregion,globalflag,localflag,maxattempt,rateflag,scaleflag,targetflag;
-  int mode,rigidflag,shakeflag,idnext;
-  double lo,hi,deltasq,nearsq,rate;
+  int mode,rigidflag,shakeflag,idnext,distflag;
+  double lo,hi,deltasq,nearsq,rate,sigma;
   double vxlo,vxhi,vylo,vyhi,vzlo,vzhi;
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+  double xlo,xhi,ylo,yhi,zlo,zhi,xmid,ymid,zmid;
   double tx,ty,tz;
   char *idregion;
   char *idrigid,*idshake;
@@ -153,6 +153,12 @@ E: Fix deposit and fix shake not using same molecule template ID
 
 Self-explanatory.
 
+W: Fix deposit near setting < possible overlap separation %g
+
+This test is performed for finite size particles with a diameter, not
+for point particles.  The near setting is smaller than the particle
+diameter which can lead to overlaps.
+
 W: Particle deposition was unsuccessful
 
 The fix deposit command was not able to insert as many atoms as
@@ -170,10 +176,5 @@ See the setting for tagint in the src/lmptype.h file.
 E: Molecule template ID for fix deposit does not exist
 
 Self-explanatory.
-
-W: Molecule template for fix deposit has multiple molecules
-
-The fix deposit command will only create molecules of a single type,
-i.e. the first molecule in the template.
 
 */

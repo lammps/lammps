@@ -25,6 +25,7 @@ KD_Tree *KD_Tree::create_KD_tree(const int nNodesPerElem, const int nNodes,
 
 KD_Tree::~KD_Tree() {
   delete sortedPts_;
+  delete candElems_;
   delete leftChild_;
   delete rightChild_;
 }
@@ -85,12 +86,16 @@ KD_Tree::KD_Tree(vector<Node> *points, vector<Elem> *elements,
   // Create child tree, or NULL if there's nothing to create
   if (candElems_->size() - leftElems->size() < 4 || leftElems->size() == 0) {
     leftChild_ = NULL;
+    delete leftPts;
+    delete leftElems;
   } else {
     leftChild_ = new KD_Tree(leftPts, leftElems, (dimension+1) % 3);
   }
   // Create child tree, or NULL if there's nothing to create
   if (candElems_->size() - rightElems->size() < 4 || rightElems->size() == 0) {
     rightChild_ = NULL;
+    delete rightPts;
+    delete rightElems;
   } else {
     rightChild_ = new KD_Tree(rightPts, rightElems, (dimension+1) % 3);
   }

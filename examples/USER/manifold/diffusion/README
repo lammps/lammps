@@ -1,0 +1,1 @@
+This example uses fix nve/manifold/rattle and a Langevin thermostat to generate Brownian motion on a few manifolds. A plotting script is included to plot the mean squared displacement against theoretical expectation. 

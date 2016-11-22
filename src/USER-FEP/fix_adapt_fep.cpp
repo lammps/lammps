@@ -15,9 +15,9 @@
    Charges by type and after option: Agilio Padua (Univ Blaise Pascal & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_adapt_fep.h"
 #include "atom.h"
 #include "update.h"
@@ -30,6 +30,7 @@
 #include "fix_store.h"
 #include "input.h"
 #include "variable.h"
+#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -51,6 +52,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   if (nevery < 0) error->all(FLERR,"Illegal fix adapt/fep command");
 
   dynamic_group_allow = 1;
+  create_attribute = 1;
 
   // count # of adaptations
 
@@ -93,9 +95,9 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       n = strlen(arg[iarg+2]) + 1;
       adapt[nadapt].pparam = new char[n];
       strcpy(adapt[nadapt].pparam,arg[iarg+2]);
-      force->bounds(arg[iarg+3],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+3],atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi);
-      force->bounds(arg[iarg+4],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+4],atom->ntypes,
                     adapt[nadapt].jlo,adapt[nadapt].jhi);
       if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
         n = strlen(&arg[iarg+5][2]) + 1;
@@ -121,10 +123,10 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
         adapt[nadapt].aparam = DIAMETER;
         diamflag = 1;
       } else if (strcmp(arg[iarg+1],"charge") == 0) {
-        adapt[nadapt].aparam = CHARGE; 
-        chgflag = 1; 
+        adapt[nadapt].aparam = CHARGE;
+        chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt/fep command");
-      force->bounds(arg[iarg+2],atom->ntypes,
+      force->bounds(FLERR,arg[iarg+2],atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi);
       if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
         int n = strlen(&arg[iarg+3][2]) + 1;
@@ -171,11 +173,6 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
     if (adapt[m].which == PAIR)
       memory->create(adapt[m].array_orig,n+1,n+1,"adapt:array_orig");
 
-  // when adapting charge and using kspace, 
-  // need to recompute additional params in kspace->setup()
-
-  if (chgflag && force->kspace) force->kspace->qsum_update_flag = 1;
-
   id_fix_diam = id_fix_chg = NULL;
 }
 
@@ -193,8 +190,6 @@ FixAdaptFEP::~FixAdaptFEP()
   }
   delete [] adapt;
 
-  if (chgflag && force->kspace) force->kspace->qsum_update_flag = 0;
-
   // check nfix in case all fixes have already been deleted
 
   if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
@@ -210,6 +205,7 @@ int FixAdaptFEP::setmask()
   int mask = 0;
   mask |= PRE_FORCE;
   mask |= POST_RUN;
+  mask |= PRE_FORCE_RESPA;
   return mask;
 }
 
@@ -228,11 +224,12 @@ void FixAdaptFEP::post_constructor()
   id_fix_diam = NULL;
   id_fix_chg = NULL;
 
-  char **newarg = new char*[5];
+  char **newarg = new char*[6];
   newarg[1] = group->names[igroup];
   newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "1";
+  newarg[3] = (char *) "peratom";
   newarg[4] = (char *) "1";
+  newarg[5] = (char *) "1";
 
   if (diamflag) {
     int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
@@ -240,7 +237,7 @@ void FixAdaptFEP::post_constructor()
     strcpy(id_fix_diam,id);
     strcat(id_fix_diam,"_FIX_STORE_DIAM");
     newarg[0] = id_fix_diam;
-    modify->add_fix(5,newarg);
+    modify->add_fix(6,newarg);
     fix_diam = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
@@ -263,7 +260,7 @@ void FixAdaptFEP::post_constructor()
     strcpy(id_fix_chg,id);
     strcat(id_fix_chg,"_FIX_STORE_CHG");
     newarg[0] = id_fix_chg;
-    modify->add_fix(5,newarg);
+    modify->add_fix(6,newarg);
     fix_chg = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
@@ -293,7 +290,7 @@ void FixAdaptFEP::init()
 
   if (group->dynamic[igroup])
     for (int i = 0; i < nadapt; i++)
-      if (adapt[i].which == ATOM) 
+      if (adapt[i].which == ATOM)
         error->all(FLERR,"Cannot use dynamic group with fix adapt/fep atom");
 
   // setup and error checks
@@ -324,7 +321,7 @@ void FixAdaptFEP::init()
       if (pair == NULL)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");
       void *ptr = pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL) 
+      if (ptr == NULL)
         error->all(FLERR,"Fix adapt/fep pair style param not supported");
 
       ad->pdim = 2;
@@ -372,7 +369,7 @@ void FixAdaptFEP::init()
   }
 
   // fixes that store initial per-atom values
-  
+
   if (id_fix_diam) {
     int ifix = modify->find_fix(id_fix_diam);
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
@@ -383,6 +380,9 @@ void FixAdaptFEP::init()
     if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
     fix_chg = (FixStore *) modify->fix[ifix];
   }
+
+  if (strstr(update->integrate_style,"respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -390,6 +390,14 @@ void FixAdaptFEP::init()
 void FixAdaptFEP::setup_pre_force(int vflag)
 {
   change_settings();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAdaptFEP::setup_pre_force_respa(int vflag, int ilevel)
+{
+  if (ilevel < nlevels_respa-1) return;
+  setup_pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -408,6 +416,14 @@ void FixAdaptFEP::pre_force(int vflag)
       return;
     change_settings();
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAdaptFEP::pre_force_respa(int vflag, int ilevel, int)
+{
+  if (ilevel < nlevels_respa-1) return;
+  pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -492,7 +508,7 @@ void FixAdaptFEP::change_settings()
         }
       } else if (ad->aparam == CHARGE) {
         int *atype = atom->type;
-        double *q = atom->q; 
+        double *q = atom->q;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
@@ -512,10 +528,9 @@ void FixAdaptFEP::change_settings()
 
   if (anypair) force->pair->reinit();
 
-  // re-setup KSpace if it exists and adapting charges
-  // since charges have changed
+  // reset KSpace charges if charges have changed
 
-  if (chgflag && force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ----------------------------------------------------------------------
@@ -568,5 +583,15 @@ void FixAdaptFEP::restore_settings()
   }
 
   if (anypair) force->pair->reinit();
-  if (chgflag && force->kspace) force->kspace->setup();
+  if (chgflag && force->kspace) force->kspace->qsum_qsq();
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixAdaptFEP::set_arrays(int i)
+{
+  if (fix_diam) fix_diam->vstore[i] = atom->radius[i];
+  if (fix_chg) fix_chg->vstore[i] = atom->q[i];
 }

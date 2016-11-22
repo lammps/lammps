@@ -16,12 +16,11 @@
    Original MSM class by: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "atom.h"
 #include "gridcomm.h"
@@ -45,7 +44,8 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 /* ---------------------------------------------------------------------- */
 
-MSMCGOMP::MSMCGOMP(LAMMPS *lmp, int narg, char **arg) : MSMOMP(lmp, narg, arg)
+MSMCGOMP::MSMCGOMP(LAMMPS *lmp, int narg, char **arg) : MSMOMP(lmp, narg, arg),
+  is_charged(NULL)
 {
   if ((narg < 1) || (narg > 2))
     error->all(FLERR,"Illegal kspace_style msm/cg/omp command");
@@ -56,7 +56,6 @@ MSMCGOMP::MSMCGOMP(LAMMPS *lmp, int narg, char **arg) : MSMOMP(lmp, narg, arg)
   else smallq = SMALLQ;
 
   num_charged = -1;
-  is_charged = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -104,7 +103,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     memory->destroy(is_charged);
     nmax = atom->nmax;
@@ -250,13 +249,11 @@ void MSMCGOMP::compute(int eflag, int vflag)
 
   if (evflag_atom) fieldforce_peratom();
 
-  // update qsum and qsqsum, if needed
+  // update qsum and qsqsum, if atom count has changed and energy needed
 
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
+  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
   }
 
   // sum global energy across procs and add in self-energy term
@@ -315,6 +312,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
     const int tid = 0;
 #endif
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -333,7 +331,7 @@ void MSMCGOMP::particle_map()
   int flag = 0;
   int i;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   // XXX: O(N). is it worth to add OpenMP here?

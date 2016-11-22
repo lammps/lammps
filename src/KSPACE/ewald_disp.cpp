@@ -15,11 +15,11 @@
    Contributing authors: Pieter in 't Veld (SNL), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "ewald_disp.h"
 #include "math_vector.h"
 #include "math_const.h"
@@ -45,14 +45,16 @@ enum{GEOMETRIC,ARITHMETIC,SIXTHPOWER};   // same as in pair.h
 
 /* ---------------------------------------------------------------------- */
 
-EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+EwaldDisp::EwaldDisp(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+  kenergy(NULL), kvirial(NULL), energy_self_peratom(NULL), virial_self_peratom(NULL),
+  ekr_local(NULL), hvec(NULL), kvec(NULL), B(NULL), cek_local(NULL), cek_global(NULL)
 {
   if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
 
   ewaldflag = dispersionflag = dipoleflag = 1;
   accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
 
-  memset(function, 0, EWALD_NORDER*sizeof(int));
+  memset(function, 0, EWALD_NFUNCS*sizeof(int));
   kenergy = kvirial = NULL;
   cek_local = cek_global = NULL;
   ekr_local = NULL;
@@ -140,13 +142,9 @@ void EwaldDisp::init()
   pair->init();  // so B is defined
   init_coeffs();
   init_coeff_sums();
-
-  double qsum, qsqsum, bsbsum;
-  qsum = qsqsum = bsbsum = 0.0;
-  if (function[0]) {
-    qsum = sum[0].x;
-    qsqsum = sum[0].x2;
-  }
+  if (function[0]) qsum_qsq();
+  else qsqsum = qsum = 0.0;
+  natoms_original = atom->natoms;
 
   // turn off coulombic if no charge
 
@@ -156,6 +154,8 @@ void EwaldDisp::init()
     nsums -= 1;
   }
 
+  double bsbsum = 0.0;
+  M2 = 0.0;
   if (function[1]) bsbsum = sum[1].x2;
   if (function[2]) bsbsum = sum[2].x2;
 
@@ -200,8 +200,8 @@ void EwaldDisp::init()
       //Try Newton Solver
       //Use old method to get guess
       g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoff;
-    
-      double g_ewald_new = 
+
+      double g_ewald_new =
         NewtonSolve(g_ewald,(*cutoff),natoms,shape_det(domain->h),b2);
       if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
       else error->warning(FLERR,"Ewald/disp Newton solver failed, "
@@ -210,7 +210,7 @@ void EwaldDisp::init()
       //Try Newton Solver
       //Use old method to get guess
       g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoff;
-      double g_ewald_new = 
+      double g_ewald_new =
         NewtonSolve(g_ewald,(*cutoff),natoms,shape_det(domain->h),M2);
       if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
       else error->warning(FLERR,"Ewald/disp Newton solver failed, "
@@ -245,9 +245,6 @@ void EwaldDisp::setup()
     nbox = 0;
     error->all(FLERR,"KSpace accuracy too low");
   }
-
-  if (qsum_update_flag)
-    error->all(FLERR,"Kspace style ewald/disp does not support dynamic charges");
 
   bigint natoms = atom->natoms;
   double err;
@@ -297,7 +294,8 @@ void EwaldDisp::setup()
    compute RMS accuracy for a dimension
 ------------------------------------------------------------------------- */
 
-double EwaldDisp::rms(int km, double prd, bigint natoms, double q2, double b2, double M2)
+double EwaldDisp::rms(int km, double prd, bigint natoms,
+                      double q2, double b2, double M2)
 {
   double value = 0.0;
 
@@ -382,11 +380,12 @@ void EwaldDisp::reallocate()
   delete [] kflag;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::reallocate_atoms()
 {
   if (eflag_atom || vflag_atom)
-    if (atom->nlocal > nmax) {
+    if (atom->nmax > nmax) {
       deallocate_peratom();
       allocate_peratom();
       nmax = atom->nmax;
@@ -399,6 +398,7 @@ void EwaldDisp::reallocate_atoms()
   nevec_max = nevec;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::allocate_peratom()
 {
@@ -408,6 +408,7 @@ void EwaldDisp::allocate_peratom()
       atom->nmax,EWALD_NFUNCS,"ewald/n:virial_self_peratom");
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::deallocate_peratom()                        // free memory
 {
@@ -422,6 +423,7 @@ void EwaldDisp::deallocate_peratom()                        // free memory
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::deallocate()                                // free memory
 {
@@ -433,6 +435,7 @@ void EwaldDisp::deallocate()                                // free memory
   delete [] cek_global;                cek_global = NULL;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::coefficients()
 {
@@ -479,6 +482,8 @@ void EwaldDisp::coefficients()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void EwaldDisp::init_coeffs()
 {
   int tmp;
@@ -488,8 +493,9 @@ void EwaldDisp::init_coeffs()
     double **b = (double **) force->pair->extract("B",tmp);
     delete [] B;
     B = new double[n+1];
+    B[0] = 0.0;
     bytes += (n+1)*sizeof(double);
-    for (int i=0; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
+    for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
   if (function[2]) {                                        // arithmetic 1/r^6
     double **epsilon = (double **) force->pair->extract("epsilon",tmp);
@@ -501,7 +507,9 @@ void EwaldDisp::init_coeffs()
     if (!(epsilon&&sigma))
       error->all(
           FLERR,"Epsilon or sigma reference not set by pair style in ewald/n");
-    for (int i=0; i<=n; ++i) {
+    for (int j=0; j<7; ++j)
+      *(bi++) = 0.0;
+    for (int i=1; i<=n; ++i) {
       eps_i = sqrt(epsilon[i][i]);
       sigma_i = sigma[i][i];
       sigma_n = 1.0;
@@ -512,6 +520,8 @@ void EwaldDisp::init_coeffs()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 void EwaldDisp::init_coeff_sums()
 {
   if (sums) return;                            // calculated only once
@@ -520,11 +530,19 @@ void EwaldDisp::init_coeff_sums()
   Sum sum_local[EWALD_MAX_NSUMS];
 
   memset(sum_local, 0, EWALD_MAX_NSUMS*sizeof(Sum));
-  if (function[0]) {                                        // 1/r
-    double *q = atom->q, *qn = q+atom->nlocal;
-    for (double *i=q; i<qn; ++i) {
-      sum_local[0].x += i[0]; sum_local[0].x2 += i[0]*i[0]; }
-  }
+  memset(sum,       0, EWALD_MAX_NSUMS*sizeof(Sum));
+
+  // now perform qsum and qsq via parent qsum_qsq()
+
+  sum_local[0].x = 0.0;
+  sum_local[0].x2 = 0.0;
+
+  //if (function[0]) {                                        // 1/r
+  //  double *q = atom->q, *qn = q+atom->nlocal;
+  //  for (double *i=q; i<qn; ++i) {
+  //    sum_local[0].x += i[0]; sum_local[0].x2 += i[0]*i[0]; }
+  //}
+
   if (function[1]) {                                        // geometric 1/r^6
     int *type = atom->type, *ntype = type+atom->nlocal;
     for (int *i=type; i<ntype; ++i) {
@@ -547,6 +565,7 @@ void EwaldDisp::init_coeff_sums()
   MPI_Allreduce(sum_local, sum, 2*EWALD_MAX_NSUMS, MPI_DOUBLE, MPI_SUM, world);
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::init_self()
 {
@@ -557,8 +576,8 @@ void EwaldDisp::init_self()
   memset(virial_self, 0, EWALD_NFUNCS*sizeof(double));
 
   if (function[0]) {                                        // 1/r
-    virial_self[0] = -0.5*MY_PI*qscale/(g2*volume)*sum[0].x*sum[0].x;
-    energy_self[0] = sum[0].x2*qscale*g1/MY_PIS-virial_self[0];
+    virial_self[0] = -0.5*MY_PI*qscale/(g2*volume)*qsum*qsum;
+    energy_self[0] = qsqsum*qscale*g1/MY_PIS-virial_self[0];
   }
   if (function[1]) {                                        // geometric 1/r^6
     virial_self[1] = MY_PI*MY_PIS*g3/(6.0*volume)*sum[1].x*sum[1].x;
@@ -575,6 +594,7 @@ void EwaldDisp::init_self()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::init_self_peratom()
 {
@@ -597,7 +617,7 @@ void EwaldDisp::init_self_peratom()
     double *qi = atom->q, *qn = qi + nlocal;
     for (; qi < qn; qi++, vi += EWALD_NFUNCS, ei += EWALD_NFUNCS) {
       double q = *qi;
-      *vi = cv*q*sum[0].x;
+      *vi = cv*q*qsum;
       *ei = ce*q*q-vi[0];
     }
   }
@@ -650,7 +670,6 @@ void EwaldDisp::init_self_peratom()
   }
 }
 
-
 /* ----------------------------------------------------------------------
    compute the EwaldDisp long-range force, energy, virial
 ------------------------------------------------------------------------- */
@@ -676,6 +695,14 @@ void EwaldDisp::compute(int eflag, int vflag)
   compute_ek();
   compute_force();
   //compute_surface(); // assume conducting metal (tinfoil) boundary conditions
+
+  // update qsum and qsqsum, if atom count has changed and energy needed
+
+  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
+    if (function[0]) qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+
   compute_energy();
   compute_energy_peratom();
   compute_virial();
@@ -758,6 +785,7 @@ void EwaldDisp::compute_ek()
   delete [] z;
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_force()
 {
@@ -863,6 +891,7 @@ void EwaldDisp::compute_force()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_surface()
 {
@@ -900,6 +929,7 @@ void EwaldDisp::compute_surface()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_energy()
 {
@@ -922,7 +952,7 @@ void EwaldDisp::compute_energy()
     if (func[0]) {                                        // 1/r
       sum[0] += *(ke++)*(cek->re*cek->re+cek->im*cek->im);
       if (func[3]) cek_coul = cek;
-      ++cek; 
+      ++cek;
     }
     if (func[1]) {                                        // geometric 1/r^6
       sum[1] += *(ke++)*(cek->re*cek->re+cek->im*cek->im); ++cek; }
@@ -947,6 +977,7 @@ void EwaldDisp::compute_energy()
   if (slabflag) compute_slabcorr();
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_energy_peratom()
 {
@@ -1039,6 +1070,7 @@ void EwaldDisp::compute_energy_peratom()
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 #define swap(a, b) { register double t = a; a= b; b = t; }
 
@@ -1103,6 +1135,7 @@ void EwaldDisp::compute_virial()
     }
 }
 
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_virial_dipole()
 {
@@ -1153,7 +1186,7 @@ void EwaldDisp::compute_virial_dipole()
         ++cek;
       }
       if (func[1]) {                                        // geometric 1/r^6
-        ke++; 
+        ke++;
         ++cek;
       }
       if (func[2]) {                                        // arithmetic 1/r^6
@@ -1196,8 +1229,9 @@ void EwaldDisp::compute_virial_dipole()
     for (int n = 0; n < 6; n++)
       virial[n] += sum[n];
   }
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 void EwaldDisp::compute_virial_peratom()
 {
@@ -1325,7 +1359,6 @@ void EwaldDisp::compute_virial_peratom()
   }
 }
 
-
 /* ----------------------------------------------------------------------
    Slab-geometry correction term to dampen inter-slab interactions between
    periodically repeating slabs.  Yields good approximation to 2D Ewald if
@@ -1342,9 +1375,6 @@ void EwaldDisp::compute_slabcorr()
   double **x = atom->x;
   double zprd = domain->zprd;
   int nlocal = atom->nlocal;
-
-  double qsum = 0.0;
-  if (function[0]) qsum = sum[0].x;
 
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) dipole += q[i]*x[i][2];
@@ -1401,7 +1431,8 @@ void EwaldDisp::compute_slabcorr()
   double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+  for (int i = 0; i < nlocal; i++)
+    f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
 
   // add on torque corrections
 
@@ -1416,10 +1447,10 @@ void EwaldDisp::compute_slabcorr()
 }
 
 /* ----------------------------------------------------------------------
-  Newton solver used to find g_ewald for LJ systems
- ------------------------------------------------------------------------- */
+   Newton solver used to find g_ewald for LJ systems
+------------------------------------------------------------------------- */
 
-double EwaldDisp::NewtonSolve(double x, double Rc, 
+double EwaldDisp::NewtonSolve(double x, double Rc,
                               bigint natoms, double vol, double b2)
 {
   double dx,tol;
@@ -1470,7 +1501,7 @@ double EwaldDisp::f(double x, double Rc, bigint natoms, double vol, double b2)
  Calculate numerical derivative f'(x)
  ------------------------------------------------------------------------- */
 
-double EwaldDisp::derivf(double x, double Rc, 
+double EwaldDisp::derivf(double x, double Rc,
                          bigint natoms, double vol, double b2)
 {
   double h = 0.000001;  //Derivative step-size

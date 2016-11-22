@@ -3,8 +3,14 @@
                           LAMMPS Intel(R) Package
                      --------------------------------
                      
-                        W. Michael Brown (Intel)
-                       michael.w.brown at intel.com
+             W. Michael Brown (Intel) michael.w.brown at intel.com
+                   Rodrigo Canales (RWTH Aachen University)
+                  Markus H�hnerbach (RWTH Aachen University)
+                           Stan Moore (Sandia)
+		   Ahmed E. Ismail (RWTH Aachen University)
+                   Paolo Bientinesi (RWTH Aachen University)
+                          Anupama Kurpad (Intel)
+                          Biswajit Mishra (Shell)
 
 -----------------------------------------------------------------------------
 
@@ -18,17 +24,20 @@ This package is based on the USER-OMP package and provides LAMMPS styles that:
 -----------------------------------------------------------------------------
 
 When using the suffix command with "intel", intel styles will be used if they
-exist; if they do not, and the USER-OMP package is installed and an omp version
-exists, that style will be used. For example, in the case the USER-OMP package
-is installed,
+exist. If the suffix command is used with "hybrid intel omp" and the USER-OMP 
+USER-OMP styles will be used whenever USER-INTEL styles are not available. This
+allow for running most styles in LAMMPS with threading.
 
-      kspace_style     pppm/intel 1e-4
+-----------------------------------------------------------------------------
 
-is equivalent to:
-
-      kspace_style     pppm/omp   1e-4
-
-because no pppm style has been implemented for the Intel package.
+The Long-Range Thread mode (LRT) in the Intel package currently uses
+pthreads by default. If pthreads are not supported in the build environment,
+the compile flag "-DLMP_INTEL_NOLRT" will disable the feature to allow for 
+builds without pthreads. Alternatively, "-DLMP_INTEL_LRT11" can be used to
+build with compilers that support threads using the C++11 standard. When using
+LRT mode, you might need to disable OpenMP affinity settings (e.g.
+export KMP_AFFINITY=none). LAMMPS will generate a warning if the settings
+need to be changed.
 
 -----------------------------------------------------------------------------
 
@@ -40,4 +49,21 @@ Intel compilers.
 
 For portability reasons, vectorization directives are currently only enabled 
 for Intel compilers. Using other compilers may result in significantly
-lower performance.
+lower performance. This behavior can be changed by defining 
+LMP_SIMD_COMPILER for the preprocessor (see intel_preprocess.h).
+
+-----------------------------------------------------------------------------
+
+By default, when running with offload to Intel(R) coprocessors, affinity
+for host MPI tasks and OpenMP threads is set automatically within the code.
+This currently requires the use of system calls. To disable at build time,
+compile with -DINTEL_OFFLOAD_NOAFFINITY.
+
+-----------------------------------------------------------------------------
+
+Vector intrinsics are temporarily being used for the Stillinger-Weber 
+potential to allow for advanced features in the AVX512 instruction set to
+be exploited on early hardware. We hope to see compiler improvements for
+AVX512 that will eliminate this requirement, so it is not recommended to
+develop code based on the intrinsics implementation. Please e-mail the 
+authors for more details.

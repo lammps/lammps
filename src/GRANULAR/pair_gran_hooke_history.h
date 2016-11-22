@@ -26,8 +26,6 @@ namespace LAMMPS_NS {
 
 class PairGranHookeHistory : public Pair {
  public:
-  int computeflag;
-
   PairGranHookeHistory(class LAMMPS *);
   virtual ~PairGranHookeHistory();
   virtual void compute(int, int);
@@ -44,7 +42,6 @@ class PairGranHookeHistory : public Pair {
   virtual double single(int, int, int, int, double, double, double, double &);
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
-  void *extract(const char *, int &);
   double memory_usage();
 
  protected:
@@ -86,9 +83,9 @@ E: Incorrect args for pair coefficients
 
 Self-explanatory.  Check the input script or data file.
 
-E: Pair granular requires atom style sphere
+E: Pair granular requires atom attributes radius, rmass
 
-Self-explanatory.
+The atom style defined does not have these attributes.
 
 E: Pair granular requires ghost atoms store velocity
 
@@ -98,5 +95,10 @@ E: Pair granular with shear history requires newton pair off
 
 This is a current restriction of the implementation of pair
 granular styles with history.
+
+E: Could not find pair fix ID
+
+A fix is created internally by the pair style to store shear
+history information.  You cannot delete it.
 
 */

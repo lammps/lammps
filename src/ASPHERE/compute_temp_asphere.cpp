@@ -15,8 +15,8 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_temp_asphere.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -38,7 +38,8 @@ enum{ROTATE,ALL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_bias(NULL), tbias(NULL), avec(NULL)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/asphere command");
 
@@ -55,7 +56,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"bias") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/asphere command");
       tempbias = 1;
       int n = strlen(arg[iarg+1]) + 1;
@@ -63,7 +64,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
       strcpy(id_bias,arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {
-      if (iarg+2 > narg) 
+      if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/asphere command");
       if (strcmp(arg[iarg+1],"rotate") == 0) mode = ROTATE;
       else if (strcmp(arg[iarg+1],"all") == 0) mode = ALL;
@@ -107,7 +108,7 @@ void ComputeTempAsphere::init()
 
   if (tempbias) {
     int i = modify->find_compute(id_bias);
-    if (i < 0) 
+    if (i < 0)
       error->all(FLERR,"Could not find compute ID for temperature bias");
     tbias = modify->compute[i];
     if (tbias->tempflag == 0)
@@ -116,10 +117,14 @@ void ComputeTempAsphere::init()
       error->all(FLERR,"Bias compute does not calculate a velocity bias");
     if (tbias->igroup != igroup)
       error->all(FLERR,"Bias compute group does not match compute group");
-    tbias->init();
-    tbias->setup();
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
     else tempbias = 1;
+
+    // init and setup bias compute because
+    // this compute's setup()->dof_compute() may be called first
+
+    tbias->init();
+    tbias->setup();
   }
 }
 
@@ -127,7 +132,8 @@ void ComputeTempAsphere::init()
 
 void ComputeTempAsphere::setup()
 {
-  fix_dof = -1;
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof_compute();
 }
 
@@ -135,14 +141,14 @@ void ComputeTempAsphere::setup()
 
 void ComputeTempAsphere::dof_compute()
 {
-  if (fix_dof) adjust_dof_fix();
+  adjust_dof_fix();
 
   // 6 dof for 3d, 3 dof for 2d
   // which dof are included also depends on mode
   // assume full rotation of extended particles
   // user should correct this via compute_modify if needed
 
-  double natoms = group->count(igroup);
+  natoms_temp = group->count(igroup);
   int nper;
   if (domain->dimension == 3) {
     if (mode == ALL) nper = 6;
@@ -151,12 +157,12 @@ void ComputeTempAsphere::dof_compute()
     if (mode == ALL) nper = 3;
     else nper = 1;
   }
-  dof = nper*natoms;
+  dof = nper*natoms_temp;
 
   // additional adjustments to dof
 
   if (tempbias == 1) {
-    if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms;
+    if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms_temp;
 
   } else if (tempbias == 2) {
     int *mask = atom->mask;
@@ -262,6 +268,8 @@ double ComputeTempAsphere::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic || tempbias == 2) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0)
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }

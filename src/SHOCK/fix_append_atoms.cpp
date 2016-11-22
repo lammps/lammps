@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_append_atoms.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -37,7 +37,8 @@ enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 /* ---------------------------------------------------------------------- */
 
 FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), randomx(NULL), randomt(NULL), basistype(NULL), 
+  spatialid(NULL), gfactor1(NULL), gfactor2(NULL)
 {
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -50,6 +51,7 @@ FixAppendAtoms::FixAppendAtoms(LAMMPS *lmp, int narg, char **arg) :
 
   scaleflag = 1;
   spatflag=0;
+  spatialid = NULL;
   xloflag = xhiflag = yloflag = yhiflag = zloflag = zhiflag = 0;
 
   tempflag = 0;
@@ -210,6 +212,7 @@ FixAppendAtoms::~FixAppendAtoms()
   delete [] basistype;
 
   if (ranflag) delete randomx;
+  if (spatflag) delete[] spatialid;
   if (tempflag) {
     delete randomt;
     delete [] gfactor1;
@@ -506,7 +509,7 @@ void FixAppendAtoms::pre_exchange()
     if (addtotal) {
       domain->reset_box();
       atom->natoms += addtotal;
-      if (atom->natoms < 0 || atom->natoms > MAXBIGINT)
+      if (atom->natoms < 0)
         error->all(FLERR,"Too many total atoms");
       if (atom->tag_enable) atom->tag_extend();
       if (atom->map_style) {

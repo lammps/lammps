@@ -15,9 +15,9 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "improper_class2.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -156,8 +156,8 @@ void ImproperClass2::compute(int eflag, int vflag)
         MPI_Comm_rank(world,&me);
         if (screen) {
           char str[128];
-          sprintf(str,"Improper problem: %d " BIGINT_FORMAT " " 
-                  TAGINT_FORMAT " " TAGINT_FORMAT " " 
+          sprintf(str,"Improper problem: %d " BIGINT_FORMAT " "
+                  TAGINT_FORMAT " " TAGINT_FORMAT " "
                   TAGINT_FORMAT " " TAGINT_FORMAT,
                   me,update->ntimestep,
                   atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
@@ -529,7 +529,7 @@ void ImproperClass2::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nimpropertypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
 
   int count = 0;
 
@@ -656,6 +656,9 @@ void ImproperClass2::angleangle(int eflag, int vflag)
     i3 = improperlist[n][2];
     i4 = improperlist[n][3];
     type = improperlist[n][4];
+
+    if ((aa_k1[type] == 0.0) && (aa_k2[type] == 0.0)
+        && (aa_k3[type] == 0.0)) continue;
 
     // difference vectors
 
@@ -816,7 +819,8 @@ void ImproperClass2::angleangle(int eflag, int vflag)
     if (evflag)
       ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,
                fabcd[0],fabcd[2],fabcd[3],
-               delxAB,delyAB,delzAB,delxBC,delyBC,delzBC,delxBD,delyBD,delzBD);
+               delxAB,delyAB,delzAB,delxBC,delyBC,delzBC,
+               delxBD-delxBC,delyBD-delyBC,delzBD-delzBC);
   }
 }
 
@@ -853,5 +857,5 @@ void ImproperClass2::write_data(FILE *fp)
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp,"%d %g %g %g %g %g %g\n",i,aa_k1[i],aa_k2[i],aa_k3[i],
             aa_theta0_1[i]*180.0/MY_PI,aa_theta0_2[i]*180.0/MY_PI,
-            aa_theta0_3[i]*180.0/MY_PI);  
+            aa_theta0_3[i]*180.0/MY_PI);
 }

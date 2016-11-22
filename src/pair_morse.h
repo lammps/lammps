@@ -40,6 +40,7 @@ class PairMorse : public Pair {
   void write_data(FILE *);
   void write_data_all(FILE *);
   double single(int, int, int, int, double, double, double, double &);
+  void *extract(const char *, int &);
 
  protected:
   double cut_global;

@@ -9,7 +9,7 @@
 //    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
 // __________________________________________________________________________
 //
-//    begin                : 
+//    begin                :
 //    email                : brownw@ornl.gov
 // ***************************************************************************/
 
@@ -48,17 +48,17 @@ texture<int2> q_tex;
 // Number of pencils per block for charge spread
 #define BLOCK_PENCILS (PPPM_BLOCK_1D/PENCIL_SIZE)
 
-__kernel void particle_map(const __global numtyp4 *restrict x_,  
+__kernel void particle_map(const __global numtyp4 *restrict x_,
                            const __global numtyp *restrict q_,
-                           const grdtyp delvolinv, const int nlocal, 
-                           __global int *restrict counts, 
-                           __global grdtyp4 *restrict ans, 
+                           const grdtyp delvolinv, const int nlocal,
+                           __global int *restrict counts,
+                           __global grdtyp4 *restrict ans,
                            const grdtyp b_lo_x, const grdtyp b_lo_y,
                            const grdtyp b_lo_z, const grdtyp delxinv,
                            const grdtyp delyinv, const grdtyp delzinv,
                            const int nlocal_x, const int nlocal_y,
                            const int nlocal_z, const int atom_stride,
-                           const int max_atoms, 
+                           const int max_atoms,
                            __global int *restrict error) {
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X;
@@ -76,7 +76,7 @@ __kernel void particle_map(const __global numtyp4 *restrict x_,
     grdtyp4 delta;
     fetch(delta.w,ii,q_tex);
     delta.w*=delvolinv;
-    
+
     if (delta.w!=(grdtyp)0.0) {
       delta.x=(p.x-b_lo_x)*delxinv;
       nx=delta.x;
@@ -85,14 +85,14 @@ __kernel void particle_map(const __global numtyp4 *restrict x_,
       delta.z=(p.z-b_lo_z)*delzinv;
       nz=delta.z;
 
-      if (delta.x<(grdtyp)0 || delta.y<(grdtyp)0 || delta.z<(grdtyp)0 || 
+      if (delta.x<(grdtyp)0 || delta.y<(grdtyp)0 || delta.z<(grdtyp)0 ||
           nx>=nlocal_x || ny>=nlocal_y || nz>=nlocal_z)
         *error=1;
       else {
         delta.x=nx+(grdtyp)0.5-delta.x;
         delta.y=ny+(grdtyp)0.5-delta.y;
         delta.z=nz+(grdtyp)0.5-delta.z;
-      
+
         int i=nz*nlocal_y*nlocal_x+ny*nlocal_x+nx;
         int old=atom_add(counts+i, 1);
         if (old>=max_atoms) {
@@ -107,9 +107,9 @@ __kernel void particle_map(const __global numtyp4 *restrict x_,
 
 /* --------------------------- */
 
-__kernel void make_rho(const __global int *restrict counts, 
+__kernel void make_rho(const __global int *restrict counts,
                        const __global grdtyp4 *restrict atoms,
-                       __global grdtyp *restrict brick, 
+                       __global grdtyp *restrict brick,
                        const __global grdtyp *restrict _rho_coeff,
                        const int atom_stride, const int npts_x,
                        const int npts_y, const int npts_z, const int nlocal_x,
@@ -118,15 +118,15 @@ __kernel void make_rho(const __global int *restrict counts,
   __local grdtyp rho_coeff[PPPM_MAX_SPLINE*PPPM_MAX_SPLINE];
   __local grdtyp front[BLOCK_PENCILS][PENCIL_SIZE+PPPM_MAX_SPLINE];
   __local grdtyp ans[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
-  
+
   int tid=THREAD_ID_X;
   if (tid<order2+order)
     rho_coeff[tid]=_rho_coeff[tid];
-    
+
   int pid=tid/PENCIL_SIZE;
   int fid=tid%PENCIL_SIZE;
   int fid_halo=PENCIL_SIZE+fid;
-  if (fid<order) 
+  if (fid<order)
     front[pid][fid_halo]=(grdtyp)0.0;
 
   __syncthreads();
@@ -163,7 +163,7 @@ __kernel void make_rho(const __global int *restrict counts,
           int natoms=fast_mul(counts[pos],atom_stride);
           for (int row=pos; row<natoms; row+=atom_stride) {
             grdtyp4 delta=atoms[row];
-      
+
             grdtyp rho1d_1=(grdtyp)0.0;
             grdtyp rho1d_2=(grdtyp)0.0;
             for (int k=order2+order-1; k > -1; k-=order) {
@@ -184,14 +184,14 @@ __kernel void make_rho(const __global int *restrict counts,
         z_pos+=z_stride;
       }
     }
-    
+
     __syncthreads();
     if (fid<order) {
       front[pid][fid]=front[pid][fid_halo];
       front[pid][fid_halo]=(grdtyp)0.0;
-    } else 
+    } else
       front[pid][fid]=(grdtyp)0.0;
-    
+
     for (int n=0; n<order; n++) {
       front[pid][fid+n]+=ans[n][tid];
       __syncthreads();
@@ -204,16 +204,16 @@ __kernel void make_rho(const __global int *restrict counts,
   }
 }
 
-__kernel void interp(const __global numtyp4 *restrict x_, 
+__kernel void interp(const __global numtyp4 *restrict x_,
                      const __global numtyp *restrict q_,
-                     const int nlocal, 
+                     const int nlocal,
                      const __global grdtyp4 *restrict brick,
-                     const __global grdtyp *restrict _rho_coeff, 
+                     const __global grdtyp *restrict _rho_coeff,
                      const int npts_x, const int npts_yx, const grdtyp b_lo_x,
                      const grdtyp b_lo_y, const grdtyp b_lo_z,
                      const grdtyp delxinv,  const grdtyp delyinv,
                      const grdtyp delzinv, const int order,
-                     const int order2, const grdtyp qqrd2e_scale, 
+                     const int order2, const grdtyp qqrd2e_scale,
                      __global acctyp4 *restrict ans) {
   __local grdtyp rho_coeff[PPPM_MAX_SPLINE*PPPM_MAX_SPLINE];
   __local grdtyp rho1d_0[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
@@ -223,9 +223,9 @@ __kernel void interp(const __global numtyp4 *restrict x_,
   if (tid<order2+order)
     rho_coeff[tid]=_rho_coeff[tid];
   __syncthreads();
-  
+
   int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
-  
+
   int nx,ny,nz;
   grdtyp tx,ty,tz;
 
@@ -260,7 +260,7 @@ __kernel void interp(const __global numtyp4 *restrict x_,
           rho1d_1[k][tid]=rho_coeff[l]+rho1d_1[k][tid]*dy;
         }
       }
-        
+
       int mz=fast_mul(nz,npts_yx)+nx;
       for (int n=0; n<order; n++) {
         grdtyp rho1d_2=(grdtyp)0.0;
@@ -270,19 +270,19 @@ __kernel void interp(const __global numtyp4 *restrict x_,
         int my=mz+fast_mul(ny,npts_x);
         for (int m=0; m<order; m++) {
           grdtyp y0=z0*rho1d_1[m][tid];
-  	      for (int l=0; l<order; l++) {
-  	        grdtyp x0=y0*rho1d_0[l][tid];
-  	        grdtyp4 el=brick[my+l];
-  	        ek.x-=x0*el.x;
-  	        ek.y-=x0*el.y;
-  	        ek.z-=x0*el.z;
-  	      }
+                for (int l=0; l<order; l++) {
+                  grdtyp x0=y0*rho1d_0[l][tid];
+                  grdtyp4 el=brick[my+l];
+                  ek.x-=x0*el.x;
+                  ek.y-=x0*el.y;
+                  ek.z-=x0*el.z;
+                }
           my+=npts_x;
         }
         mz+=npts_yx;
-  	  }
+            }
     }
     ans[ii]=ek;
-	}
+        }
 }
 

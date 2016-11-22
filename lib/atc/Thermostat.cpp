@@ -179,10 +179,12 @@ namespace ATC {
       TimeIntegrator::TimeIntegrationType myIntegrationType = (atc_->time_integrator(TEMPERATURE))->time_integration_type();
       TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
       if (timeFilterManager->need_reset() ) {
-        if (myIntegrationType == TimeIntegrator::GEAR)
-         timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT);
-        else if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP)
-         timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT_IMPLICIT);
+        if (myIntegrationType == TimeIntegrator::GEAR) {
+          timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT);
+        }
+        else if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
+          timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT_IMPLICIT);
+        }
       }
       
       if (timeFilterManager->filter_dynamics()) {
@@ -205,16 +207,16 @@ namespace ATC {
               if (md_flux_nodes(TEMPERATURE)) {
                 if (!md_fixed_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
                   // there are fluxes but no fixed or coupled nodes
-                  regulatorMethod_ = new ThermostatFluxFiltered(this);
+                  regulatorMethod_ = new ThermostatIntegratorFluxFiltered(this,lambdaMaxIterations_);
                 }
                 else {
                   // there are both fixed and flux nodes
-                  regulatorMethod_ = new ThermostatFluxFixedFiltered(this);
+                  regulatorMethod_ = new ThermostatFluxFixedFiltered(this,lambdaMaxIterations_);
                 }
               }
               else {
                 // there are only fixed nodes
-                regulatorMethod_ = new ThermostatFixedFiltered(this);
+                regulatorMethod_ = new ThermostatIntegratorFixedFiltered(this,lambdaMaxIterations_);
               }
             }
             else {
@@ -230,16 +232,16 @@ namespace ATC {
               if (md_fixed_nodes(TEMPERATURE)) {
                 if (!md_flux_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
                 // there are fixed nodes but no fluxes
-                regulatorMethod_ = new ThermostatFixedFiltered(this);
+                regulatorMethod_ = new ThermostatIntegratorFixedFiltered(this,lambdaMaxIterations_);
                 }
                 else {
                   // there are both fixed and flux nodes
-                  regulatorMethod_ = new ThermostatFluxFixedFiltered(this);
+                  regulatorMethod_ = new ThermostatFluxFixedFiltered(this,lambdaMaxIterations_);
                 }
               }
               else {
                 // there are only flux nodes
-                regulatorMethod_ = new ThermostatFluxFiltered(this);
+                regulatorMethod_ = new ThermostatIntegratorFluxFiltered(this,lambdaMaxIterations_);
               }
             }
             else {
@@ -287,16 +289,16 @@ namespace ATC {
               if (md_flux_nodes(TEMPERATURE)) {
                 if (!md_fixed_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
                   // there are fluxes but no fixed or coupled nodes
-                  regulatorMethod_ = new ThermostatFlux(this);
+                  regulatorMethod_ = new ThermostatIntegratorFlux(this,lambdaMaxIterations_);
                 }
                 else {
                   // there are both fixed and flux nodes
-                  regulatorMethod_ = new ThermostatFluxFixed(this);
+                  regulatorMethod_ = new ThermostatFluxFixed(this,lambdaMaxIterations_);
                 }
               }
               else {
                 // there are only fixed nodes
-                regulatorMethod_ = new ThermostatFixed(this);
+                regulatorMethod_ = new ThermostatIntegratorFixed(this,lambdaMaxIterations_);
               }
             }
             else {
@@ -312,16 +314,16 @@ namespace ATC {
               if (md_fixed_nodes(TEMPERATURE)) {
                 if (!md_flux_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
                   // there are fixed nodes but no fluxes
-                  regulatorMethod_ = new ThermostatFixed(this);
+                  regulatorMethod_ = new ThermostatIntegratorFixed(this,lambdaMaxIterations_);
                 }
                 else {
                   // there are both fixed and flux nodes
-                  regulatorMethod_ = new ThermostatFluxFixed(this);
+                  regulatorMethod_ = new ThermostatFluxFixed(this,lambdaMaxIterations_);
                 }
               }
               else {
                 // there are only flux nodes
-                regulatorMethod_ = new ThermostatFlux(this);
+                regulatorMethod_ = new ThermostatIntegratorFlux(this,lambdaMaxIterations_);
               }
             }
             else {
@@ -361,15 +363,14 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ThermostatShapeFunction::ThermostatShapeFunction(Thermostat * thermostat,
+  ThermostatShapeFunction::ThermostatShapeFunction(AtomicRegulator * thermostat,
                                                    const string & regulatorPrefix) :
     RegulatorShapeFunction(thermostat,regulatorPrefix),
-    thermostat_(thermostat),
     mdMassMatrix_(atc_->set_mass_mat_md(TEMPERATURE)),
     atomVelocities_(NULL)
   {
     fieldMask_(TEMPERATURE,FLUX) = true;
-    lambda_ = thermostat_->regulator_data(regulatorPrefix_+"LambdaEnergy",1); // data associated with stage 3 in ATC_Method::initialize
+    lambda_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1); // data associated with stage 3 in ATC_Method::initialize
   }
 
   //--------------------------------------------------------
@@ -411,8 +412,7 @@ namespace ATC {
                                                          regulatorPrefix_+"AtomVelocitySquared");
     }
   }
-  
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class ThermostatRescale
@@ -422,7 +422,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ThermostatRescale::ThermostatRescale(Thermostat * thermostat) :
+  ThermostatRescale::ThermostatRescale(AtomicRegulator * thermostat) :
     ThermostatShapeFunction(thermostat),
     nodalTemperature_(atc_->field(TEMPERATURE)),
     atomVelocityRescalings_(NULL)
@@ -456,21 +456,50 @@ namespace ATC {
                                             regulatorPrefix_+"AtomVelocityRescaling");
   }
 
+  //---------------------------------------------------------
+  //  set_weights:
+  //    set the diagonal weighting matrix to be the atomic
+  //    temperatures
+  //---------------------------------------------------------
+  void ThermostatRescale::set_weights()
+  {
+    weights_ = (atc_->interscale_manager()).per_atom_quantity("AtomicEnergyForTemperature");
+  }
+
   //--------------------------------------------------------
   //  apply_post_corrector:
   //    apply the thermostat in the post corrector phase
   //--------------------------------------------------------
   void ThermostatRescale::apply_post_corrector(double dt)
   {
-    // compute right-hand side
-    _rhs_ = mdMassMatrix_.quantity()*nodalTemperature_.quantity();
-    correct_rhs(_rhs_); // correct right-hand side for complex temperature definitions, e.g., when the potential energy is included
-    
-    // solve equations
-    solve_for_lambda(_rhs_,lambda_->set_quantity());
+    compute_thermostat(dt);
 
     // application of rescaling lambda due
     apply_to_atoms(atomVelocities_);
+  }
+
+  //--------------------------------------------------------
+  //  compute_thermostat
+  //            manages the solution of the
+  //            thermostat equations and variables
+  //--------------------------------------------------------
+  void ThermostatRescale::compute_thermostat(double dt)
+  {
+    // compute right-hand side
+    this->set_rhs(_rhs_);
+    
+    // solve equations
+    solve_for_lambda(_rhs_,lambda_->set_quantity());
+  }
+
+  //--------------------------------------------------------
+  //  set_rhs:
+  //    constructs the RHS vector with the target
+  //    temperature
+  //--------------------------------------------------------
+  void ThermostatRescale::set_rhs(DENS_MAT & rhs)
+  {
+    rhs = mdMassMatrix_.quantity()*nodalTemperature_.quantity();
   }
 
   //--------------------------------------------------------
@@ -491,7 +520,7 @@ namespace ATC {
   {
     DENS_MAT & lambda(lambda_->set_quantity());
     if ((atc_->lammps_interface())->rank_zero()) {
-      outputData["Lambda"] = &lambda;
+      outputData["LambdaEnergy"] = &lambda;
     }
   }
 
@@ -504,7 +533,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ThermostatRescaleMixedKePe::ThermostatRescaleMixedKePe(Thermostat * thermostat) :
+  ThermostatRescaleMixedKePe::ThermostatRescaleMixedKePe(AtomicRegulator * thermostat) :
     ThermostatRescale(thermostat),
     nodalAtomicFluctuatingPotentialEnergy_(NULL)
   {
@@ -525,6 +554,16 @@ namespace ATC {
       interscaleManager.dense_matrix("NodalAtomicFluctuatingPotentialEnergy");
   }
 
+  //---------------------------------------------------------
+  //  set_weights:
+  //    set the diagonal weighting matrix to be the atomic
+  //    temperatures
+  //---------------------------------------------------------
+  void ThermostatRescaleMixedKePe::set_weights()
+  {
+    weights_ = (atc_->interscale_manager()).per_atom_quantity("AtomicTwiceKineticEnergy");
+  }
+
   //--------------------------------------------------------
   //  initialize
   //    initializes all method data
@@ -543,130 +582,47 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  correct_rhs:
+  //  set_rhs:
   //    accounts for potential energy contribution to
   //    definition of atomic temperature
   //--------------------------------------------------------
-  void ThermostatRescaleMixedKePe::correct_rhs(DENS_MAT & rhs)
+  void ThermostatRescaleMixedKePe::set_rhs(DENS_MAT & rhs)
   {
+    ThermostatRescale::set_rhs(rhs);
     rhs -=  peMultiplier_*(nodalAtomicFluctuatingPotentialEnergy_->quantity());
     rhs /= keMultiplier_;
   }
- 
+
   //--------------------------------------------------------
   //--------------------------------------------------------
-  //  Class ThermostatGlcFs
+  //  Class ThermostatFsSolver
   //--------------------------------------------------------
   //--------------------------------------------------------
  
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ThermostatGlcFs::ThermostatGlcFs(Thermostat * thermostat,
-                                   const string & regulatorPrefix) :
-    ThermostatShapeFunction(thermostat,regulatorPrefix),
-    temperature_(atc_->field(TEMPERATURE)),
-    timeFilter_(atomicRegulator_->time_filter()),
-    nodalAtomicLambdaPower_(NULL),
-    lambdaPowerFiltered_(NULL),
-    atomThermostatForces_(NULL),
-    atomMasses_(NULL),
+  ThermostatFsSolver::ThermostatFsSolver(AtomicRegulator * thermostat,
+                                         int lambdaMaxIterations,
+                                         const string & regulatorPrefix) :
+    RegulatorShapeFunction(thermostat,regulatorPrefix),
+    lambdaMaxIterations_(lambdaMaxIterations),
     rhsLambdaSquared_(NULL),
-    isFirstTimestep_(true),
-    lambdaMaxIterations_(thermostat->lambda_max_iterations()),
-    nodalAtomicEnergy_(NULL),
-    atomPredictedVelocities_(NULL),
-    nodalAtomicPredictedEnergy_(NULL),
-    firstHalfAtomForces_(NULL),
-    dtFactor_(0.)
+    dtFactor_(1.)
   {
-    // construct/obtain data corresponding to stage 3 of ATC_Method::initialize
-    nodalAtomicLambdaPower_ = thermostat->regulator_data(regulatorPrefix_+"NodalAtomicLambdaPower",1);
-    lambdaPowerFiltered_ = thermostat_->regulator_data(regulatorPrefix_+"LambdaPowerFiltered",1);
-  }
-
-  //--------------------------------------------------------
-  //  constructor_transfers
-  //    instantiates or obtains all dependency managed data
-  //--------------------------------------------------------
-  void ThermostatGlcFs::construct_transfers()
-  {
-    ThermostatShapeFunction::construct_transfers();
-    InterscaleManager & interscaleManager(atc_->interscale_manager());
-
-    // get data from manager
-    atomMasses_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS),
-    nodalAtomicEnergy_ = interscaleManager.dense_matrix("NodalAtomicEnergy");
-    
-    // thermostat forces based on lambda and the atomic velocities
-    atomThermostatForces_ = new AtomicThermostatForce(atc_,atomLambdas_);
-    interscaleManager.add_per_atom_quantity(atomThermostatForces_,
-                                            regulatorPrefix_+"AtomThermostatForce");
-
-    // predicted temperature quantities:  atom velocities, atom energies, and restricted atom energies
-    AtcAtomQuantity<double> * atomPredictedVelocities = new AtcAtomQuantity<double>(atc_,nsd_);
-    interscaleManager.add_per_atom_quantity(atomPredictedVelocities,
-                                            regulatorPrefix_+"AtomicPredictedVelocities");
-    atomPredictedVelocities_ = atomPredictedVelocities;
-    AtomicEnergyForTemperature * atomPredictedEnergyForTemperature = new TwiceKineticEnergy(atc_,
-                                                                                            atomPredictedVelocities);
-    interscaleManager.add_per_atom_quantity(atomPredictedEnergyForTemperature,
-                                            regulatorPrefix_+"AtomicPredictedTwiceKineticEnergy");
-    nodalAtomicPredictedEnergy_ = new AtfShapeFunctionRestriction(atc_,
-                                                                  atomPredictedEnergyForTemperature,
-                                                                  interscaleManager.per_atom_sparse_matrix("Interpolant"));
-    interscaleManager.add_dense_matrix(nodalAtomicPredictedEnergy_,
-                                            regulatorPrefix_+"NodalAtomicPredictedEnergy");
+    fieldMask_(TEMPERATURE,FLUX) = true;
+    lambda_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1); // data associated with stage 3 in ATC_Method::initialize
   }
 
   //--------------------------------------------------------
   //  initialize
-  //    initializes all method data
-  //--------------------------------------------------------
-  void ThermostatGlcFs::initialize()
-  {
-    ThermostatShapeFunction::initialize();
-
-    // reset data to zero
-    deltaEnergy1_.reset(nNodes_,1);
-    deltaEnergy2_.reset(nNodes_,1);
-    _lambdaPowerOutput_.reset(nNodes_,1);
-    
-    TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
-    if (!timeFilterManager->end_equilibrate()) {
-      // we should reset lambda and lambdaForce to zero in this case
-      // implies an initial condition of 0 for the filtered nodal lambda power
-      // initial conditions will always be needed when using time filtering
-      // however, the fractional step scheme must assume the instantaneous
-      // nodal lambda power is 0 initially because all quantities are in delta form
-      *lambda_ = 0.; // ensures initial lambda force is zero
-      *nodalAtomicLambdaPower_ = 0.; // energy change due to thermostats
-      *lambdaPowerFiltered_ = 0.; // filtered energy change due to thermostats
-    }
-    else {
-      // we can grab lambda power variables using time integrator and atc transfer in cases for equilibration
-    }
-
-    // sets up time filter for cases where variables temporally filtered
-    if (timeFilterManager->need_reset()) {
-      // the form of this integrator implies no time filters that require history data can be used
-      timeFilter_->initialize(nodalAtomicLambdaPower_->quantity());
-    }
-
-    atomThermostatForces_->quantity(); // initialize
-    atomThermostatForces_->fix_quantity();
-    firstHalfAtomForces_ = atomThermostatForces_; // initialize
-
-    compute_rhs_map();
-  }
-
-  //--------------------------------------------------------
-  //  compute_rhs_map
   //    creates mapping from all nodes to those to which
   //    the thermostat applies
   //--------------------------------------------------------
-  void ThermostatGlcFs::compute_rhs_map()
+  void ThermostatFsSolver::initialize()
   {
+    RegulatorShapeFunction::initialize();
+
     rhsMap_.resize(overlapToNodeMap_->nRows(),1);
     DENS_MAT rhsMapGlobal(nNodes_,1);
     const set<int> & applicationNodes(applicationNodes_->quantity());
@@ -679,6 +635,228 @@ namespace ATC {
       }
     }
     map_unique_to_overlap(rhsMapGlobal,rhsMap_);
+  }
+
+  //---------------------------------------------------------
+  //  set_weights:
+  //    set the diagonal weighting matrix to be the atomic
+  //    temperatures
+  //---------------------------------------------------------
+  void ThermostatFsSolver::set_weights()
+  {
+    if (this->use_local_shape_functions()) {
+      VelocitySquaredMapped * myWeights = new VelocitySquaredMapped(atc_,lambdaAtomMap_);
+      weights_ = myWeights;
+      (atc_->interscale_manager()).add_per_atom_quantity(myWeights,
+                                                         regulatorPrefix_+"AtomVelocitySquaredMapped");
+    }
+    else {
+      VelocitySquared * myWeights = new VelocitySquared(atc_);
+      weights_ = myWeights;
+      (atc_->interscale_manager()).add_per_atom_quantity(myWeights,
+                                                         regulatorPrefix_+"AtomVelocitySquared");
+    }
+  }
+
+  //--------------------------------------------------------
+  //  compute_lambda:
+  //   solves linear system for lambda, if the
+  //   bool is true it iterators to a non-linear solution
+  //--------------------------------------------------------
+  void ThermostatFsSolver::compute_lambda(const DENS_MAT & rhs,
+                                          bool iterateSolution)
+  {
+    // solve linear system for lambda guess
+    DENS_MAT & lambda(lambda_->set_quantity());
+    solve_for_lambda(rhs,lambda);
+
+    // iterate to solution
+    if (iterateSolution) {
+      iterate_lambda(rhs);
+    }
+  }
+
+  //--------------------------------------------------------
+  //  iterate_lambda:
+  //    iteratively solves the equations for lambda
+  //    for the higher order dt corrections, assuming
+  //    an initial guess for lambda
+  //--------------------------------------------------------
+  void ThermostatFsSolver::iterate_lambda(const MATRIX & rhs)
+  {
+    int nNodeOverlap = overlapToNodeMap_->nRows();
+    DENS_VEC _lambdaOverlap_(nNodeOverlap);
+    DENS_MAT & lambda(lambda_->set_quantity());
+    map_unique_to_overlap(lambda,_lambdaOverlap_);
+    double factor = 0.5*dtFactor_*atc_->dt();
+
+    _lambdaOld_.resize(nNodes_,1);
+    _rhsOverlap_.resize(nNodeOverlap,1);
+    map_unique_to_overlap(rhs,_rhsOverlap_);
+    _rhsTotal_.resize(nNodeOverlap);
+
+    // solve assuming we get initial guess for lambda
+    double error(-1.);
+    for (int i = 0; i < lambdaMaxIterations_; ++i) {
+      _lambdaOld_ = lambda;
+
+      // solve the system with the new rhs
+      const DENS_MAT & rhsLambdaSquared(rhsLambdaSquared_->quantity());
+      for (int i = 0; i < nNodeOverlap; i++) {
+        if (rhsMap_(i,0) == 1.) {
+          _rhsTotal_(i) = _rhsOverlap_(i,0) + factor*rhsLambdaSquared(i,0);
+        }
+        else {
+          _rhsTotal_(i) = 0.;
+        }
+      }
+      matrixSolver_->execute(_rhsTotal_,_lambdaOverlap_);
+
+      // check convergence
+      map_overlap_to_unique(_lambdaOverlap_,lambda);
+      lambda_->force_reset();
+      DENS_MAT difference = lambda-_lambdaOld_;
+      error = difference.col_norm()/_lambdaOld_.col_norm();
+      if (error < tolerance_)
+        break;
+    }
+    
+    if (error >= tolerance_) {
+      stringstream message;
+      message << "WARNING: Iterative solve for lambda failed to converge after " << lambdaMaxIterations_ << " iterations, final tolerance was " << error << "\n";
+      ATC::LammpsInterface::instance()->print_msg(message.str());
+    }
+  }
+ 
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class ThermostatGlcFs
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  ThermostatGlcFs::ThermostatGlcFs(AtomicRegulator * thermostat,
+                                   int lambdaMaxIterations,
+                                   const string & regulatorPrefix) :
+    RegulatorMethod(thermostat,regulatorPrefix),
+    lambdaSolver_(NULL),
+    mdMassMatrix_(atc_->set_mass_mat_md(TEMPERATURE)),
+    atomVelocities_(NULL),
+    temperature_(atc_->field(TEMPERATURE)),
+    timeFilter_(atomicRegulator_->time_filter()),
+    nodalAtomicLambdaPower_(NULL),
+    lambdaPowerFiltered_(NULL),
+    atomLambdas_(NULL),
+    atomThermostatForces_(NULL),
+    atomMasses_(NULL),
+    isFirstTimestep_(true),
+    nodalAtomicEnergy_(NULL),
+    atomPredictedVelocities_(NULL),
+    nodalAtomicPredictedEnergy_(NULL),
+    firstHalfAtomForces_(NULL)
+  {
+    // construct/obtain data corresponding to stage 3 of ATC_Method::initialize
+    nodalAtomicLambdaPower_ = thermostat->regulator_data(regulatorPrefix_+"NodalAtomicLambdaPower",1);
+    lambdaPowerFiltered_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaPowerFiltered",1);
+  }
+
+  //--------------------------------------------------------
+  //  constructor_transfers
+  //    instantiates or obtains all dependency managed data
+  //--------------------------------------------------------
+  void ThermostatGlcFs::construct_transfers()
+  {
+    lambdaSolver_->construct_transfers();
+    InterscaleManager & interscaleManager(atc_->interscale_manager());
+
+    // get atom velocity data from manager
+    atomVelocities_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY);
+
+    // construct lambda evaluated at atom locations
+    atomLambdas_ = interscaleManager.per_atom_quantity(regulatorPrefix_+"AtomLambdaEnergy");
+    if (!atomLambdas_) {
+      DENS_MAN * lambda = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1);
+      atomLambdas_ = new FtaShapeFunctionProlongation(atc_,
+                                                      lambda,
+                                                      interscaleManager.per_atom_sparse_matrix("Interpolant"));
+      interscaleManager.add_per_atom_quantity(atomLambdas_,regulatorPrefix_+"AtomLambdaEnergy");
+    }
+
+    // get data from manager
+    atomMasses_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS),
+    nodalAtomicEnergy_ = interscaleManager.dense_matrix("NodalAtomicEnergy");
+    
+    // thermostat forces based on lambda and the atomic velocities
+    atomThermostatForces_ = new AtomicThermostatForce(atc_,atomLambdas_);
+    interscaleManager.add_per_atom_quantity(atomThermostatForces_,
+                                            regulatorPrefix_+"AtomThermostatForce");
+
+    // predicted temperature quantities:  atom velocities, atom energies, and restricted atom energies
+    atomPredictedVelocities_ = new AtcAtomQuantity<double>(atc_,atc_->nsd());
+    // MAKE THINGS WORK WITH ONLY ONE PREDICTED VELOCITY, CHECK IT EXISTS
+    interscaleManager.add_per_atom_quantity(atomPredictedVelocities_,
+                                            regulatorPrefix_+"AtomicPredictedVelocities");
+    AtomicEnergyForTemperature * atomPredictedEnergyForTemperature = new TwiceKineticEnergy(atc_,
+                                                                                            atomPredictedVelocities_);
+    interscaleManager.add_per_atom_quantity(atomPredictedEnergyForTemperature,
+                                            regulatorPrefix_+"AtomicPredictedTwiceKineticEnergy");
+    nodalAtomicPredictedEnergy_ = new AtfShapeFunctionRestriction(atc_,
+                                                                  atomPredictedEnergyForTemperature,
+                                                                  interscaleManager.per_atom_sparse_matrix("Interpolant"));
+    interscaleManager.add_dense_matrix(nodalAtomicPredictedEnergy_,
+                                       regulatorPrefix_+"NodalAtomicPredictedEnergy");
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initializes all method data
+  //--------------------------------------------------------
+  void ThermostatGlcFs::initialize()
+  {
+    RegulatorMethod::initialize();
+    
+    TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
+    if (!timeFilterManager->end_equilibrate()) {
+      // we should reset lambda and lambdaForce to zero in this case
+      // implies an initial condition of 0 for the filtered nodal lambda power
+      // initial conditions will always be needed when using time filtering
+      // however, the fractional step scheme must assume the instantaneous
+      // nodal lambda power is 0 initially because all quantities are in delta form
+      lambdaSolver_->initialize(); // ensures initial lambda force is zero
+      lambdaSolver_->set_lambda_to_value(0.);
+      *nodalAtomicLambdaPower_ = 0.; // energy change due to thermostats
+      *lambdaPowerFiltered_ = 0.; // filtered energy change due to thermostats
+    }
+    else {
+      lambdaSolver_->initialize();
+      // we can grab lambda power variables using time integrator and atc transfer in cases for equilibration
+    }
+
+    // sets up time filter for cases where variables temporally filtered
+    if (timeFilterManager->need_reset()) {
+      // the form of this integrator implies no time filters that require history data can be used
+      timeFilter_->initialize(nodalAtomicLambdaPower_->quantity());
+    }
+
+    atomThermostatForces_->quantity(); // initialize
+    atomThermostatForces_->fix_quantity();
+    firstHalfAtomForces_ = atomThermostatForces_; // initialize
+#ifdef OBSOLETE
+    compute_rhs_map();
+#endif
+  }
+
+  //--------------------------------------------------------
+  //  reset_atom_materials:
+  //    resets the localized atom to material map
+  //--------------------------------------------------------
+  void ThermostatGlcFs::reset_atom_materials(const Array<int> & elementToMaterialMap,
+                                             const MatrixDependencyManager<DenseMatrix, int> * atomElement)
+  {
+    lambdaSolver_->reset_atom_materials(elementToMaterialMap,
+                                        atomElement);
   }
 
   //--------------------------------------------------------
@@ -777,7 +955,8 @@ namespace ATC {
     
     // update predicted nodal variables for second half of time step
     this->add_to_energy(myNodalAtomicLambdaPower,deltaEnergy2_,0.5*dt);
-    deltaEnergy1_ += deltaEnergy2_; 
+    // following manipulations performed this way for efficiency
+    deltaEnergy1_ += deltaEnergy2_;
     atc_->apply_inverse_mass_matrix(deltaEnergy1_,TEMPERATURE);
     temperature_ += deltaEnergy1_;
   }
@@ -799,11 +978,13 @@ namespace ATC {
 
     // apply lambda force to atoms and compute instantaneous lambda power for second half of time step
     DENS_MAT & myNodalAtomicLambdaPower(nodalAtomicLambdaPower_->set_quantity());
-    atomThermostatForces_->unfix_quantity(); // allow computation of force applied by lambda
+    // allow computation of force applied by lambda using current velocities
+    atomThermostatForces_->unfix_quantity(); 
+    atomThermostatForces_->quantity();
+    atomThermostatForces_->fix_quantity();
     apply_to_atoms(atomVelocities_,nodalAtomicEnergy_,
                    atomThermostatForces_->quantity(),
                    myNodalAtomicLambdaPower,0.5*dt);
-    atomThermostatForces_->fix_quantity();
 
     // finalize filtered lambda power by adding latest contribution
     timeFilter_->apply_post_step2(lambdaPowerFiltered_->set_quantity(),
@@ -827,69 +1008,31 @@ namespace ATC {
                                        bool iterateSolution)
   {
     // set up rhs for lambda equation
-    rhs_.resize(nNodes_,1);
     this->set_thermostat_rhs(rhs_,0.5*dt);
-    
+
+    // solve system
+    lambdaSolver_->compute_lambda(rhs_,iterateSolution);
+#ifdef OBSOLETE
     // solve linear system for lambda guess
-    DENS_MAT & myLambda(lambda_->set_quantity());
-    solve_for_lambda(rhs_,myLambda);
+    DENS_MAT & lambda(lambda_->set_quantity());
+    solve_for_lambda(rhs_,lambda);
     
     // iterate to solution
     if (iterateSolution) {
       iterate_lambda(rhs_);
     }
+#endif
   }
 
   //--------------------------------------------------------
-  //  iterate_lambda:
-  //    iteratively solves the equations for lambda
-  //    for the higher order dt corrections, assuming
-  //    an initial guess for lambda
+  //  compute_boundary_flux
+  //    default computation of boundary flux based on
+  //    finite
   //--------------------------------------------------------
-  void ThermostatGlcFs::iterate_lambda(const MATRIX & rhs)
+  void ThermostatGlcFs::compute_boundary_flux(FIELDS & fields)
   {
-    int nNodeOverlap = overlapToNodeMap_->nRows();
-    DENS_VEC _lambdaOverlap_(nNodeOverlap);
-    DENS_MAT & lambda(lambda_->set_quantity());
-    map_unique_to_overlap(lambda,_lambdaOverlap_);
-    double factor = 0.5*dtFactor_*atc_->dt();
-
-    _lambdaOld_.resize(nNodes_,1);
-    _rhsOverlap_.resize(nNodeOverlap,1);
-    map_unique_to_overlap(rhs,_rhsOverlap_);
-    _rhsTotal_.resize(nNodeOverlap);
-
-    // solve assuming we get initial guess for lambda
-    double error(-1.);
-    for (int i = 0; i < lambdaMaxIterations_; ++i) {
-      _lambdaOld_ = lambda;
-
-      // solve the system with the new rhs
-      const DENS_MAT & rhsLambdaSquared(rhsLambdaSquared_->quantity());
-      for (int i = 0; i < nNodeOverlap; i++) {
-        if (rhsMap_(i,0) == 1.) {
-          _rhsTotal_(i) = _rhsOverlap_(i,0) + factor*rhsLambdaSquared(i,0);
-        }
-        else {
-          _rhsTotal_(i) = 0.;
-        }
-      }
-      matrixSolver_->execute(_rhsTotal_,_lambdaOverlap_);
-
-      // check convergence
-      map_overlap_to_unique(_lambdaOverlap_,lambda);
-      lambda_->force_reset();
-      DENS_MAT difference = lambda-_lambdaOld_;
-      error = difference.col_norm()/_lambdaOld_.col_norm();
-      if (error < tolerance_)
-        break;
-    }
     
-    if (error >= tolerance_) {
-      stringstream message;
-      message << " Iterative solve for lambda failed to converge after " << lambdaMaxIterations_ << " iterations, final tolerance was " << error << "\n";
-      ATC::LammpsInterface::instance()->print_msg(message.str());
-    }
+    lambdaSolver_->compute_boundary_flux(fields);
   }
 
   //--------------------------------------------------------
@@ -902,16 +1045,16 @@ namespace ATC {
     // approximate value for lambda power
     double dt =  LammpsInterface::instance()->dt();
     _lambdaPowerOutput_ *= (2./dt);
-    DENS_MAT & lambda(lambda_->set_quantity());
+    DENS_MAT & lambda((atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1))->set_quantity());
     if ((atc_->lammps_interface())->rank_zero()) {
-      outputData[regulatorPrefix_+"Lambda"] = &lambda;
+      outputData[regulatorPrefix_+"LambdaEnergy"] = &lambda;
       outputData[regulatorPrefix_+"NodalLambdaPower"] = &(_lambdaPowerOutput_);
     }
   }
 
   //--------------------------------------------------------
   //--------------------------------------------------------
-  //  Class ThermostatFlux
+  //  Class ThermostatSolverFlux
   //--------------------------------------------------------
   //--------------------------------------------------------
  
@@ -919,10 +1062,10 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatFlux::ThermostatFlux(Thermostat * thermostat,
-                                 const string & regulatorPrefix) :
-    ThermostatGlcFs(thermostat,regulatorPrefix),
-    heatSource_(atc_->atomic_source(TEMPERATURE))
+  ThermostatSolverFlux::ThermostatSolverFlux(AtomicRegulator * thermostat,
+                                             int lambdaMaxIterations,
+                                             const string & regulatorPrefix) :
+    ThermostatFsSolver(thermostat,lambdaMaxIterations,regulatorPrefix)
   {
     // do nothing
   }
@@ -931,7 +1074,7 @@ namespace ATC {
   //  constructor_transfers
   //    instantiates or obtains all dependency managed data
   //--------------------------------------------------------
-  void ThermostatFlux::construct_transfers()
+  void ThermostatSolverFlux::construct_transfers()
   {
     InterscaleManager & interscaleManager(atc_->interscale_manager());
 
@@ -955,15 +1098,21 @@ namespace ATC {
     }
 
     // base class transfers
-    ThermostatGlcFs::construct_transfers();
+    ThermostatFsSolver::construct_transfers();
 
     // add transfers for computation of extra RHS term accounting of O(lambda^2)
     // lambda squared followed by fractional step RHS contribution
-    PerAtomQuantity<double> * lambdaAtom(interscaleManager.per_atom_quantity(regulatorPrefix_+"AtomLambdaEnergy"));
+    atomLambdas_ = (interscaleManager.per_atom_quantity(regulatorPrefix_+"AtomLambdaEnergy"));
+    if (!atomLambdas_) {
+      atomLambdas_ = new FtaShapeFunctionProlongation(atc_,
+                                                      lambda_,
+                                                      interscaleManager.per_atom_sparse_matrix("Interpolant"));
+      interscaleManager.add_per_atom_quantity(atomLambdas_,regulatorPrefix_+"AtomLambdaEnergy");
+    }
     LambdaSquared * lambdaSquared = new LambdaSquared(atc_,
-                                                      atomMasses_,
+                                                      interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS),
                                                       weights_,
-                                                      lambdaAtom);
+                                                      atomLambdas_);
     interscaleManager.add_per_atom_quantity(lambdaSquared,
                                             regulatorPrefix_+"LambdaSquaredMapped");
     rhsLambdaSquared_ = new AtfShapeFunctionRestriction(atc_,lambdaSquared,shapeFunctionMatrix_);
@@ -972,30 +1121,21 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  initialize
-  //    initializes all method data
-  //--------------------------------------------------------
-  void ThermostatFlux::initialize()
-  {
-    ThermostatGlcFs::initialize();
-
-    // timestep factor
-    dtFactor_ = 1.;
-  }
-
-  //--------------------------------------------------------
   //  construct_regulated_nodes:
   //    constructs the set of nodes being regulated
   //--------------------------------------------------------
-  void ThermostatFlux::construct_regulated_nodes()
+  void ThermostatSolverFlux::construct_regulated_nodes()
   {
     InterscaleManager & interscaleManager(atc_->interscale_manager());
 
     // matrix requires all entries even if localized for correct lumping
-    regulatedNodes_ = new RegulatedNodes(atc_);
-    interscaleManager.add_set_int(regulatedNodes_,
-                                  regulatorPrefix_+"ThermostatRegulatedNodes");
-
+    regulatedNodes_ = interscaleManager.set_int(regulatorPrefix_+"ThermostatRegulatedNodes");
+    if (!regulatedNodes_) {
+      regulatedNodes_ = new RegulatedNodes(atc_);
+      interscaleManager.add_set_int(regulatedNodes_,
+                                    regulatorPrefix_+"ThermostatRegulatedNodes");
+    }
+    
     // if localized monitor nodes with applied fluxes
     if (atomicRegulator_->use_localized_lambda()) {
       if ((atomicRegulator_->coupling_mode() == Thermostat::FLUX) && (atomicRegulator_->boundary_integration_type() != NO_QUADRATURE)) {
@@ -1020,10 +1160,34 @@ namespace ATC {
     // special set of boundary elements for boundary flux quadrature  
     if ((atomicRegulator_->boundary_integration_type() == FE_INTERPOLATION)
         && (atomicRegulator_->use_localized_lambda())) {
-      elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
-      interscaleManager.add_dense_matrix_bool(elementMask_,
-                                                   regulatorPrefix_+"BoundaryElementMask");
+      elementMask_ = interscaleManager.dense_matrix_bool(regulatorPrefix_+"BoundaryElementMask");
+      if (!elementMask_) {
+        elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
+        interscaleManager.add_dense_matrix_bool(elementMask_,
+                                                regulatorPrefix_+"BoundaryElementMask");
+      }
     }
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class ThermostatIntegratorFlux
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+
+  //--------------------------------------------------------
+  //  Constructor
+  //         Grab references to ATC and thermostat data
+  //--------------------------------------------------------
+  ThermostatIntegratorFlux::ThermostatIntegratorFlux(AtomicRegulator * thermostat,
+                                                     int lambdaMaxIterations,
+                                                     const string & regulatorPrefix) :
+    ThermostatGlcFs(thermostat,lambdaMaxIterations,regulatorPrefix),
+    heatSource_(atc_->atomic_source(TEMPERATURE))
+  {
+    lambdaSolver_ = new ThermostatSolverFlux(thermostat,
+                                             lambdaMaxIterations,
+                                             regulatorPrefix);
   }
 
   //--------------------------------------------------------
@@ -1031,9 +1195,9 @@ namespace ATC {
   //    add in contributions from lambda power and boundary
   //    flux to the FE temperature
   //--------------------------------------------------------
-  void ThermostatFlux::add_to_energy(const DENS_MAT & nodalLambdaPower,
-                                     DENS_MAT & deltaEnergy,
-                                     double dt)
+  void ThermostatIntegratorFlux::add_to_energy(const DENS_MAT & nodalLambdaPower,
+                                               DENS_MAT & deltaEnergy,
+                                               double dt)
   {
     deltaEnergy.resize(nNodes_,1);
     const DENS_MAT & myBoundaryFlux(boundaryFlux_[TEMPERATURE].quantity());
@@ -1043,13 +1207,25 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
+  //  initialize
+  //    initializes all method data
+  //--------------------------------------------------------
+  void ThermostatIntegratorFlux::initialize()
+  {
+    ThermostatGlcFs::initialize();
+
+    // timestep factor
+    lambdaSolver_->set_timestep_factor(1.);
+  }
+
+  //--------------------------------------------------------
   //  set_thermostat_rhs:
   //    sets up the right-hand side including boundary
   //    fluxes (coupling & prescribed), heat sources, and
   //    fixed (uncoupled) nodes
   //--------------------------------------------------------
-  void ThermostatFlux::set_thermostat_rhs(DENS_MAT & rhs,
-                                          double dt)
+  void ThermostatIntegratorFlux::set_thermostat_rhs(DENS_MAT & rhs,
+                                                    double dt)
   {
     
     // only tested with flux != 0 + ess bc = 0
@@ -1059,7 +1235,9 @@ namespace ATC {
     // vs  Wagner, CMAME, 2008 eq(24) RHS_I = 2/(3kB) flux_I
     // fluxes are set in ATC transfer
     const DENS_MAT & heatSource(heatSource_.quantity());
-    const set<int> & applicationNodes(applicationNodes_->quantity());
+#if true
+    const set<int> & applicationNodes((lambdaSolver_->application_nodes())->quantity());
+    rhs.resize(nNodes_,1);
     for (int i = 0; i < nNodes_; i++) {
       if (applicationNodes.find(i) != applicationNodes.end()) {
         rhs(i,0) = heatSource(i,0);
@@ -1068,11 +1246,17 @@ namespace ATC {
         rhs(i,0) = 0.;
       }
     }
+#else
+    rhs.resize(nNodes_,1);
+    for (int i = 0; i < nNodes_; i++) {
+      rhs(i,0) = heatSource(i,0);
+    }
+#endif
   }
 
   //--------------------------------------------------------
   //--------------------------------------------------------
-  //  Class ThermostatFixed
+  //  Class ThermostatSolverFixed
   //--------------------------------------------------------
   //--------------------------------------------------------
  
@@ -1080,11 +1264,10 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatFixed::ThermostatFixed(Thermostat * thermostat,
-                                   const string & regulatorPrefix) :
-    ThermostatGlcFs(thermostat,regulatorPrefix),
-    atomThermostatForcesPredVel_(NULL),
-    filterCoefficient_(1.)
+  ThermostatSolverFixed::ThermostatSolverFixed(AtomicRegulator * thermostat,
+                                               int lambdaMaxIterations,
+                                               const string & regulatorPrefix) :
+    ThermostatFsSolver(thermostat,lambdaMaxIterations,regulatorPrefix)
   {
     // do nothing
   }
@@ -1093,7 +1276,7 @@ namespace ATC {
   //  constructor_transfers
   //    instantiates or obtains all dependency managed data
   //--------------------------------------------------------
-  void ThermostatFixed::construct_transfers()
+  void ThermostatSolverFixed::construct_transfers()
   {
     InterscaleManager & interscaleManager(atc_->interscale_manager());
 
@@ -1117,32 +1300,112 @@ namespace ATC {
     linearSolverType_ = AtomicRegulator::CG_SOLVE;
 
     // base class transfers, e.g. weights
-    ThermostatGlcFs::construct_transfers();
+    ThermostatFsSolver::construct_transfers();
 
     // add transfers for computation of extra RHS term accounting of O(lambda^2)
     // lambda squared followed by fractional step RHS contribution
-    PerAtomQuantity<double> * lambdaAtom(interscaleManager.per_atom_quantity(regulatorPrefix_+"AtomLambdaEnergy"));
+    atomLambdas_ = interscaleManager.per_atom_quantity(regulatorPrefix_+"AtomLambdaEnergy");
+    if (!atomLambdas_) {
+      atomLambdas_ = new FtaShapeFunctionProlongation(atc_,
+                                                      lambda_,
+                                                      interscaleManager.per_atom_sparse_matrix("Interpolant"));
+      interscaleManager.add_per_atom_quantity(atomLambdas_,regulatorPrefix_+"AtomLambdaEnergy");
+    }
     if (lambdaAtomMap_) {
       LambdaSquaredMapped * lambdaSquared = new LambdaSquaredMapped(atc_,
                                                                     lambdaAtomMap_,
-                                                                    atomMasses_,
+                                                                    interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS),
                                                                     weights_,
-                                                                    lambdaAtom);
+                                                                    atomLambdas_);
       interscaleManager.add_per_atom_quantity(lambdaSquared,
                                               regulatorPrefix_+"LambdaSquared");
       rhsLambdaSquared_ = new AtfShapeFunctionRestriction(atc_,lambdaSquared,shapeFunctionMatrix_);
     }
     else {
       LambdaSquared * lambdaSquared = new LambdaSquared(atc_,
-                                                        atomMasses_,
+                                                       interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_MASS),
                                                         weights_,
-                                                        lambdaAtom);
+                                                        atomLambdas_);
       interscaleManager.add_per_atom_quantity(lambdaSquared,
                                               regulatorPrefix_+"LambdaSquaredMapped");
       rhsLambdaSquared_ = new AtfShapeFunctionRestriction(atc_,lambdaSquared,shapeFunctionMatrix_);
     }
     interscaleManager.add_dense_matrix(rhsLambdaSquared_,
-                                            regulatorPrefix_+"RhsLambdaSquared");
+                                       regulatorPrefix_+"RhsLambdaSquared");
+  }
+
+  //--------------------------------------------------------
+  //  construct_regulated_nodes:
+  //    constructs the set of nodes being regulated
+  //--------------------------------------------------------
+  void ThermostatSolverFixed::construct_regulated_nodes()
+  {
+    InterscaleManager & interscaleManager(atc_->interscale_manager());
+    regulatedNodes_ = interscaleManager.set_int(regulatorPrefix_+"ThermostatRegulatedNodes");
+
+    if (!regulatedNodes_) {
+      if (!atomicRegulator_->use_localized_lambda()) {
+        regulatedNodes_ = new RegulatedNodes(atc_);
+      }
+      else if (atomicRegulator_->coupling_mode() == AtomicRegulator::FLUX) {
+        regulatedNodes_ = new FixedNodes(atc_);
+      }
+      else if (atomicRegulator_->coupling_mode() == AtomicRegulator::FIXED) {
+          // include boundary nodes
+          regulatedNodes_ = new FixedBoundaryNodes(atc_);
+      }
+      else {
+        throw ATC_Error("ThermostatSolverFixed::construct_regulated_nodes - couldn't determine set of regulated nodes");
+      }
+     
+      interscaleManager.add_set_int(regulatedNodes_,
+                                    regulatorPrefix_+"ThermostatRegulatedNodes");
+    }
+
+    applicationNodes_ = regulatedNodes_;
+
+    // special set of boundary elements for defining regulated atoms 
+    if (atomicRegulator_->use_localized_lambda()) {
+      elementMask_ = interscaleManager.dense_matrix_bool(regulatorPrefix_+"BoundaryElementMask");
+      if (!elementMask_) {
+        elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
+        interscaleManager.add_dense_matrix_bool(elementMask_,
+                                                regulatorPrefix_+"BoundaryElementMask");
+      }
+    }
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class ThermostatIntegratorFixed
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //         Grab references to ATC and thermostat data
+  //--------------------------------------------------------
+  ThermostatIntegratorFixed::ThermostatIntegratorFixed(AtomicRegulator * thermostat,
+                                                       int lambdaMaxIterations,
+                                                       const string & regulatorPrefix) :
+    ThermostatGlcFs(thermostat,lambdaMaxIterations,regulatorPrefix),
+    atomThermostatForcesPredVel_(NULL),
+    filterCoefficient_(1.)
+  {
+    lambdaSolver_ = new ThermostatSolverFixed(thermostat,
+                                              lambdaMaxIterations,
+                                              regulatorPrefix);
+  }
+
+  //--------------------------------------------------------
+  //  construct_regulated_nodes:
+  //    constructs the set of nodes being regulated
+  //--------------------------------------------------------
+  void ThermostatIntegratorFixed::construct_transfers()
+  {
+    ThermostatGlcFs::construct_transfers();
+
+    InterscaleManager & interscaleManager(atc_->interscale_manager());
 
     // predicted forces for halving update
     atomThermostatForcesPredVel_ = new AtomicThermostatForce(atc_,atomLambdas_,atomPredictedVelocities_);
@@ -1154,7 +1417,7 @@ namespace ATC {
   //  initialize
   //    initializes all method data
   //--------------------------------------------------------
-  void ThermostatFixed::initialize()
+  void ThermostatIntegratorFixed::initialize()
   {
     ThermostatGlcFs::initialize();
     InterscaleManager & interscaleManager(atc_->interscale_manager());
@@ -1175,7 +1438,7 @@ namespace ATC {
     }
 
     // timestep factor
-    dtFactor_ = 0.5;
+    lambdaSolver_->set_timestep_factor(0.5);
   }
 
   //--------------------------------------------------------
@@ -1183,7 +1446,7 @@ namespace ATC {
   //    flag to halve the lambda force for improved
   //    accuracy
   //--------------------------------------------------------
-  bool ThermostatFixed::halve_force()
+  bool ThermostatIntegratorFixed::halve_force()
   {
     if (isFirstTimestep_ || ((atc_->atom_to_element_map_type() == EULERIAN)
                              && (atc_->atom_to_element_map_frequency() > 1)
@@ -1194,47 +1457,12 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  construct_regulated_nodes:
-  //    constructs the set of nodes being regulated
-  //--------------------------------------------------------
-  void ThermostatFixed::construct_regulated_nodes()
-  {
-    InterscaleManager & interscaleManager(atc_->interscale_manager());
-
-    if (!atomicRegulator_->use_localized_lambda()) {
-      regulatedNodes_ = new RegulatedNodes(atc_);
-    }
-    else if (thermostat_->coupling_mode() == AtomicRegulator::FLUX) {
-      regulatedNodes_ = new FixedNodes(atc_);
-    }
-    else if (thermostat_->coupling_mode() == AtomicRegulator::FIXED) {
-      // include boundary nodes
-      regulatedNodes_ = new FixedBoundaryNodes(atc_);
-    }
-    else {
-      throw ATC_Error("ThermostatFixed::construct_regulated_nodes - couldn't determine set of regulated nodes");
-    }
-     
-    interscaleManager.add_set_int(regulatedNodes_,
-                                  regulatorPrefix_+"RegulatedNodes");
-
-    applicationNodes_ = regulatedNodes_;
-
-    // special set of boundary elements for defining regulated atoms 
-    if (atomicRegulator_->use_localized_lambda()) {
-      elementMask_ = new ElementMaskNodeSet(atc_,applicationNodes_);
-      interscaleManager.add_dense_matrix_bool(elementMask_,
-                                                   regulatorPrefix_+"BoundaryElementMask");
-    }
-  }
-
-  //--------------------------------------------------------
   //  initialize_delta_nodal_atomic_energy:
   //    initializes storage for the variable tracking
   //    the change in the nodal atomic energy
   //    that has occured over the past timestep
   //--------------------------------------------------------
-  void ThermostatFixed::initialize_delta_nodal_atomic_energy(double dt)
+  void ThermostatIntegratorFixed::initialize_delta_nodal_atomic_energy(double dt)
   {
     // initialize delta energy
     const DENS_MAT & myNodalAtomicEnergy(nodalAtomicEnergy_->quantity());
@@ -1249,7 +1477,7 @@ namespace ATC {
   //    computes the change in the nodal atomic energy
   //    that has occured over the past timestep
   //--------------------------------------------------------
-  void ThermostatFixed::compute_delta_nodal_atomic_energy(double dt)
+  void ThermostatIntegratorFixed::compute_delta_nodal_atomic_energy(double dt)
   {
     // set delta energy based on predicted atomic velocities
     const DENS_MAT & myNodalAtomicEnergy(nodalAtomicEnergy_->quantity());
@@ -1261,11 +1489,10 @@ namespace ATC {
 
   //--------------------------------------------------------
   //  compute_lambda:
-  //   sets up and solves linear system for lambda, if the
-  //   bool is true it iterators to a non-linear solution
+  //   sets up and solves linear system for lambda
   //--------------------------------------------------------
-  void ThermostatFixed::compute_lambda(double dt,
-                                       bool iterateSolution)
+  void ThermostatIntegratorFixed::compute_lambda(double dt,
+                                                 bool iterateSolution)
   {
     // compute predicted changes in nodal atomic energy
     compute_delta_nodal_atomic_energy(dt);
@@ -1282,7 +1509,7 @@ namespace ATC {
   //    apply the thermostat to the atoms in the first step
   //    of the Verlet algorithm
   //--------------------------------------------------------
-  void ThermostatFixed::apply_pre_predictor(double dt)
+  void ThermostatIntegratorFixed::apply_pre_predictor(double dt)
   {
     // initialize values to be track change in finite element energy over the timestep
     initialize_delta_nodal_atomic_energy(dt);
@@ -1296,7 +1523,7 @@ namespace ATC {
   //    apply the thermostat to the atoms in the first part
   //    of the corrector step of the Verlet algorithm
   //--------------------------------------------------------
-  void ThermostatFixed::apply_pre_corrector(double dt)
+  void ThermostatIntegratorFixed::apply_pre_corrector(double dt)
   {
     // do full prediction if we just redid the shape functions
     if (full_prediction()) {
@@ -1319,32 +1546,11 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
-  //  add_to_temperature
-  //    add in contributions from lambda power and boundary
-  //    flux to the FE temperature
-  //--------------------------------------------------------
-  void ThermostatFixed::add_to_energy(const DENS_MAT & nodalLambdaPower,
-                                      DENS_MAT & deltaEnergy,
-                                      double dt)
-  {
-    deltaEnergy.resize(nNodes_,1);
-    const set<int> & regulatedNodes(regulatedNodes_->quantity());
-    for (int i = 0; i < nNodes_; i++) {
-      if (regulatedNodes.find(i) != regulatedNodes.end()) {
-        deltaEnergy(i,0) = 0.;
-      }
-      else {
-        deltaEnergy(i,0) = nodalLambdaPower(i,0);
-      }
-    }
-  }
-
-  //--------------------------------------------------------
   //  apply_post_corrector:
   //    apply the thermostat to the atoms in the second part
   //    of the corrector step of the Verlet algorithm
   //--------------------------------------------------------
-  void ThermostatFixed::apply_post_corrector(double dt)
+  void ThermostatIntegratorFixed::apply_post_corrector(double dt)
   {
     
     bool halveForce = halve_force();
@@ -1364,7 +1570,7 @@ namespace ATC {
       //    avoids unstable oscillations arising from 
       //    thermostat having to correct for error introduced in lambda changing the 
       //    shape function matrices
-      *lambda_ *= 0.5;
+      lambdaSolver_->scale_lambda(0.5);
       firstHalfAtomForces_ = atomThermostatForcesPredVel_;
       atomThermostatForcesPredVel_->unfix_quantity();
     }
@@ -1374,18 +1580,47 @@ namespace ATC {
   }
 
   //--------------------------------------------------------
+  //  add_to_temperature
+  //    add in contributions from lambda power and boundary
+  //    flux to the FE temperature
+  //--------------------------------------------------------
+  void ThermostatIntegratorFixed::add_to_energy(const DENS_MAT & nodalLambdaPower,
+                                                DENS_MAT & deltaEnergy,
+                                                double dt)
+  {
+    deltaEnergy.resize(nNodes_,1);
+    
+    SetDependencyManager<int> * myRegulatedNodes =
+      (atc_->interscale_manager()).set_int(regulatorPrefix_+"ThermostatRegulatedNodes");
+    const set<int> & regulatedNodes(myRegulatedNodes->quantity());
+    
+    for (int i = 0; i < nNodes_; i++) {
+      if (regulatedNodes.find(i) != regulatedNodes.end()) {
+        deltaEnergy(i,0) = 0.;
+      }
+      else {
+        deltaEnergy(i,0) = nodalLambdaPower(i,0);
+      }
+    }
+  }
+
+  //--------------------------------------------------------
   //  set_thermostat_rhs:
   //    sets up the right-hand side including boundary
   //    fluxes (coupling & prescribed), heat sources, and
   //    fixed (uncoupled) nodes
   //--------------------------------------------------------
-  void ThermostatFixed::set_thermostat_rhs(DENS_MAT & rhs,
-                                           double dt)
+  void ThermostatIntegratorFixed::set_thermostat_rhs(DENS_MAT & rhs,
+                                                     double dt)
   {
     // for essential bcs (fixed nodes) :
     // form rhs : (delThetaV - delTheta)/dt
-    const set<int> & regulatedNodes(regulatedNodes_->quantity());
+    SetDependencyManager<int> * myRegulatedNodes =
+      (atc_->interscale_manager()).set_int(regulatorPrefix_+"ThermostatRegulatedNodes");
+    const set<int> & regulatedNodes(myRegulatedNodes->quantity());
     double factor = (1./dt)/keMultiplier_;
+    rhs.resize(nNodes_,1);
+    
     for (int i = 0; i < nNodes_; i++) {
       if (regulatedNodes.find(i) != regulatedNodes.end()) {
         rhs(i,0) = factor*(deltaNodalAtomicEnergy_(i,0) - deltaFeEnergy_(i,0));
@@ -1398,7 +1633,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //--------------------------------------------------------
-  //  Class ThermostatFluxFiltered
+  //  Class ThermostatIntegratorFluxFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
   
@@ -1406,9 +1641,10 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatFluxFiltered::ThermostatFluxFiltered(Thermostat * thermostat,
-                                                 const string & regulatorPrefix) :
-    ThermostatFlux(thermostat,regulatorPrefix)
+  ThermostatIntegratorFluxFiltered::ThermostatIntegratorFluxFiltered(AtomicRegulator * thermostat,
+                                                                     int lambdaMaxIterations,
+                                                                     const string & regulatorPrefix) :
+    ThermostatIntegratorFlux(thermostat,lambdaMaxIterations,regulatorPrefix)
   {
     // do nothing
   }
@@ -1417,9 +1653,9 @@ namespace ATC {
   //  initialize
   //    initializes all method data
   //--------------------------------------------------------
-  void ThermostatFluxFiltered::initialize()
+  void ThermostatIntegratorFluxFiltered::initialize()
   {
-    ThermostatFlux::initialize();
+    ThermostatIntegratorFlux::initialize();
 
     TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
     if (!timeFilterManager->end_equilibrate()) {
@@ -1435,10 +1671,10 @@ namespace ATC {
   //    apply the thermostat to the atoms in the second part
   //    of the corrector step of the Verlet algorithm
   //--------------------------------------------------------
-  void ThermostatFluxFiltered::apply_post_corrector(double dt)
+  void ThermostatIntegratorFluxFiltered::apply_post_corrector(double dt)
   {
     // compute lambda
-    ThermostatFlux::apply_post_corrector(dt);
+    ThermostatIntegratorFlux::apply_post_corrector(dt);
 
     // store data needed for filter inversion of heat flux for thermostat rhs
     instantHeatSource_ = rhs_;
@@ -1450,9 +1686,9 @@ namespace ATC {
   //    add in contributions from lambda power and boundary
   //    flux to the FE temperature
   //--------------------------------------------------------
-  void ThermostatFluxFiltered::add_to_energy(const DENS_MAT & nodalLambdaPower,
-                                             DENS_MAT & deltaEnergy,
-                                             double dt)
+  void ThermostatIntegratorFluxFiltered::add_to_energy(const DENS_MAT & nodalLambdaPower,
+                                                       DENS_MAT & deltaEnergy,
+                                                       double dt)
   {
     deltaEnergy.reset(nNodes_,1);
     double coef = timeFilter_->unfiltered_coefficient_post_s1(2.*dt);
@@ -1468,8 +1704,8 @@ namespace ATC {
   //    fluxes (coupling & prescribed), heat sources, and
   //    fixed (uncoupled) nodes
   //--------------------------------------------------------
-  void ThermostatFluxFiltered::set_thermostat_rhs(DENS_MAT & rhs,
-                                                  double dt)
+  void ThermostatIntegratorFluxFiltered::set_thermostat_rhs(DENS_MAT & rhs,
+                                                            double dt)
   {
     
     // only tested with flux != 0 + ess bc = 0
@@ -1488,7 +1724,10 @@ namespace ATC {
     double coefU2 = timeFilter_->unfiltered_coefficient_post_s1(2.*dt);
 
     const DENS_MAT & heatSource(heatSource_.quantity());
-    const set<int> & applicationNodes(applicationNodes_->quantity());
+    SetDependencyManager<int> * myApplicationNodes = 
+      (atc_->interscale_manager()).set_int(regulatorPrefix_+"ThermostatApplicationNodes");
+    const set<int> & applicationNodes(myApplicationNodes->quantity());
+    rhs.resize(nNodes_,1);
     for (int i = 0; i < nNodes_; i++) {
       if (applicationNodes.find(i) != applicationNodes.end()) {
         rhs(i,0) = heatSource(i,0) - coefF1*coefF2*heatSourceOld_(i,0) - coefU1*coefF2*instantHeatSource_(i,0);
@@ -1504,13 +1743,13 @@ namespace ATC {
   //  output:
   //    adds all relevant output to outputData
   //--------------------------------------------------------
-  void ThermostatFluxFiltered::output(OUTPUT_LIST & outputData)
+  void ThermostatIntegratorFluxFiltered::output(OUTPUT_LIST & outputData)
   {
     _lambdaPowerOutput_ = lambdaPowerFiltered_->quantity();
     // approximate value for lambda power
     double dt =  LammpsInterface::instance()->dt();
     _lambdaPowerOutput_ *= (2./dt);
-    DENS_MAT & lambda(lambda_->set_quantity());
+    DENS_MAT & lambda((atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1))->set_quantity());
     if ((atc_->lammps_interface())->rank_zero()) {
       outputData[regulatorPrefix_+"Lambda"] = &lambda;
       outputData[regulatorPrefix_+"NodalLambdaPower"] = &(_lambdaPowerOutput_);
@@ -1519,7 +1758,7 @@ namespace ATC {
 
   //--------------------------------------------------------
   //--------------------------------------------------------
-  //  Class ThermostatFixedFiltered
+  //  Class ThermostatIntegratorFixedFiltered
   //--------------------------------------------------------
   //--------------------------------------------------------
  
@@ -1527,9 +1766,10 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatFixedFiltered::ThermostatFixedFiltered(Thermostat * thermostat,
-                                                   const string & regulatorPrefix) :
-    ThermostatFixed(thermostat,regulatorPrefix)
+  ThermostatIntegratorFixedFiltered::ThermostatIntegratorFixedFiltered(AtomicRegulator * thermostat,
+                                                                       int lambdaMaxIterations,
+                                                                       const string & regulatorPrefix) :
+    ThermostatIntegratorFixed(thermostat,lambdaMaxIterations,regulatorPrefix)
   {
     // do nothing
   }
@@ -1542,7 +1782,7 @@ namespace ATC {
   //--------------------------------------------------------
   
   
-  void ThermostatFixedFiltered::initialize_delta_nodal_atomic_energy(double dt)
+  void ThermostatIntegratorFixedFiltered::initialize_delta_nodal_atomic_energy(double dt)
   {
     // initialize delta energy
     DENS_MAT & myNodalAtomicEnergyFiltered(nodalAtomicEnergyFiltered_.set_quantity());
@@ -1557,7 +1797,7 @@ namespace ATC {
   //    computes the change in the nodal atomic energy
   //    that has occured over the past timestep
   //--------------------------------------------------------
-  void ThermostatFixedFiltered::compute_delta_nodal_atomic_energy(double dt)
+  void ThermostatIntegratorFixedFiltered::compute_delta_nodal_atomic_energy(double dt)
   {
     // set delta energy based on predicted atomic velocities
     DENS_MAT & myNodalAtomicEnergyFiltered(nodalAtomicEnergyFiltered_.set_quantity());
@@ -1572,12 +1812,14 @@ namespace ATC {
   //    add in contributions from lambda power and boundary
   //    flux to the FE temperature
   //--------------------------------------------------------
-  void ThermostatFixedFiltered::add_to_energy(const DENS_MAT & nodalLambdaPower,
-                                              DENS_MAT & deltaEnergy,
-                                              double dt)
+  void ThermostatIntegratorFixedFiltered::add_to_energy(const DENS_MAT & nodalLambdaPower,
+                                                        DENS_MAT & deltaEnergy,
+                                                        double dt)
   {
     deltaEnergy.resize(nNodes_,1);
-    const set<int> & regulatedNodes(regulatedNodes_->quantity());
+    SetDependencyManager<int> * myRegulatedNodes =
+      (atc_->interscale_manager()).set_int(regulatorPrefix_+"ThermostatRegulatedNodes");
+    const set<int> & regulatedNodes(myRegulatedNodes->quantity());
     double coef = timeFilter_->unfiltered_coefficient_post_s1(2.*dt);
     for (int i = 0; i < nNodes_; i++) {
       if (regulatedNodes.find(i) != regulatedNodes.end()) {
@@ -1593,14 +1835,18 @@ namespace ATC {
   //    sets up the right-hand side for fixed
   //    (coupling & prescribed) temperature values
   //--------------------------------------------------------
-  void ThermostatFixedFiltered::set_thermostat_rhs(DENS_MAT & rhs,
-                                                   double dt)
+  void ThermostatIntegratorFixedFiltered::set_thermostat_rhs(DENS_MAT & rhs,
+                                                             double dt)
   {
-    // (b) for essential bcs (fixed nodes) :
+    // (b) for essential bcs (fixed nodes):
     // form rhs : (delThetaV - delTheta)/dt
-    const set<int> & regulatedNodes(regulatedNodes_->quantity());
+    SetDependencyManager<int> * myRegulatedNodes =
+      (atc_->interscale_manager()).set_int(regulatorPrefix_+"ThermostatRegulatedNodes");
+    const set<int> & regulatedNodes(myRegulatedNodes->quantity());
     double factor = (1./dt)/keMultiplier_;
     factor /= timeFilter_->unfiltered_coefficient_post_s1(2.*dt);
+    rhs.resize(nNodes_,1);
+    
     for (int i = 0; i < nNodes_; i++) {
       if (regulatedNodes.find(i) != regulatedNodes.end()) {
         rhs(i,0) = factor*(deltaNodalAtomicEnergy_(i,0) - deltaFeEnergy_(i,0));
@@ -1615,26 +1861,18 @@ namespace ATC {
   //  output:
   //    adds all relevant output to outputData
   //--------------------------------------------------------
-  void ThermostatFixedFiltered::output(OUTPUT_LIST & outputData)
+  void ThermostatIntegratorFixedFiltered::output(OUTPUT_LIST & outputData)
   {
      _lambdaPowerOutput_ = lambdaPowerFiltered_->quantity();
     // approximate value for lambda power
     double dt =  LammpsInterface::instance()->dt();
     _lambdaPowerOutput_ *= (2./dt);
-    DENS_MAT & lambda(lambda_->set_quantity());
+    DENS_MAT & lambda((atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1))->set_quantity());
     if ((atc_->lammps_interface())->rank_zero()) {
       outputData[regulatorPrefix_+"Lambda"] = &lambda;
       outputData[regulatorPrefix_+"NodalLambdaPower"] = &(_lambdaPowerOutput_);
     }
   }
-
-  
-  // have one for combined and one for lumped (lumped has two sub-thermostats)
-  // use node sets to call out fixed and fluxed locations
-  // derived off lumped lambda class that only considers certain atoms and certain nodes based on a mask
-  // move matrix solver construction to thermostats that actually do something
-  // thermostats can instantiate the type of shape function object they want in the future, for now we'll need hacks,
-  //    for now we'll have to construct them with appropriate shape function matrix
 
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -1645,7 +1883,8 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ThermostatFluxFixed::ThermostatFluxFixed(Thermostat * thermostat,
+  ThermostatFluxFixed::ThermostatFluxFixed(AtomicRegulator * thermostat,
+                                           int lambdaMaxIterations,
                                            bool constructThermostats) :
     RegulatorMethod(thermostat),
     thermostatFlux_(NULL),
@@ -1653,8 +1892,8 @@ namespace ATC {
     thermostatBcs_(NULL)
   {
     if (constructThermostats) {
-      thermostatFlux_ = new ThermostatFlux(thermostat,regulatorPrefix_+"Flux");
-      thermostatFixed_ = new ThermostatFixed(thermostat,regulatorPrefix_+"Fixed");
+      thermostatFlux_ = new ThermostatIntegratorFlux(thermostat,lambdaMaxIterations,regulatorPrefix_+"Flux");
+      thermostatFixed_ = new ThermostatIntegratorFixed(thermostat,lambdaMaxIterations,regulatorPrefix_+"Fixed");
 
       // need to choose BC type based on coupling mode
       if (thermostat->coupling_mode() == AtomicRegulator::FLUX) {
@@ -1694,8 +1933,8 @@ namespace ATC {
   //--------------------------------------------------------
   void ThermostatFluxFixed::initialize()
   {
-    thermostatFlux_->initialize();
     thermostatFixed_->initialize();
+    thermostatFlux_->initialize();
   }
 
   //--------------------------------------------------------
@@ -1754,11 +1993,12 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ThermostatFluxFixedFiltered::ThermostatFluxFixedFiltered(Thermostat * thermostat) :
-    ThermostatFluxFixed(thermostat,false)
+  ThermostatFluxFixedFiltered::ThermostatFluxFixedFiltered(AtomicRegulator * thermostat,
+                                                           int lambdaMaxIterations) :
+    ThermostatFluxFixed(thermostat,lambdaMaxIterations,false)
   {
-    thermostatFlux_ = new ThermostatFluxFiltered(thermostat,regulatorPrefix_+"Flux");
-    thermostatFixed_ = new ThermostatFixedFiltered(thermostat,regulatorPrefix_+"Fixed");
+    thermostatFlux_ = new ThermostatIntegratorFluxFiltered(thermostat,lambdaMaxIterations,regulatorPrefix_+"Flux");
+    thermostatFixed_ = new ThermostatIntegratorFixedFiltered(thermostat,lambdaMaxIterations,regulatorPrefix_+"Fixed");
 
     // need to choose BC type based on coupling mode
     if (thermostat->coupling_mode() == AtomicRegulator::FLUX) {
@@ -1779,7 +2019,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ThermostatGlc::ThermostatGlc(Thermostat * thermostat) :
+  ThermostatGlc::ThermostatGlc(AtomicRegulator * thermostat) :
     ThermostatShapeFunction(thermostat),
     timeFilter_(atomicRegulator_->time_filter()),
     lambdaPowerFiltered_(NULL),
@@ -1788,7 +2028,7 @@ namespace ATC {
     atomMasses_(NULL)
   {
     // consistent with stage 3 of ATC_Method::initialize
-    lambdaPowerFiltered_= thermostat_->regulator_data(regulatorPrefix_+"LambdaPowerFiltered",1);
+    lambdaPowerFiltered_= atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaPowerFiltered",1);
   }
 
   //--------------------------------------------------------
@@ -1836,7 +2076,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatPowerVerlet::ThermostatPowerVerlet(Thermostat * thermostat) :
+  ThermostatPowerVerlet::ThermostatPowerVerlet(AtomicRegulator * thermostat) :
     ThermostatGlc(thermostat),
     nodalTemperatureRoc_(atc_->field_roc(TEMPERATURE)),
     heatSource_(atc_->atomic_source(TEMPERATURE)),
@@ -2045,13 +2285,13 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatHooverVerlet::ThermostatHooverVerlet(Thermostat * thermostat) :
+  ThermostatHooverVerlet::ThermostatHooverVerlet(AtomicRegulator * thermostat) :
     ThermostatPowerVerlet(thermostat),
     lambdaHoover_(NULL),
     nodalAtomicHooverLambdaPower_(NULL)
   {
     // set up data consistent with stage 3 of ATC_Method::initialize
-    lambdaHoover_ = thermostat_->regulator_data(regulatorPrefix_+"LambdaHoover",1);
+    lambdaHoover_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaHoover",1);
     
   }
 
@@ -2171,7 +2411,7 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatPowerVerletFiltered::ThermostatPowerVerletFiltered(Thermostat * thermostat) :
+  ThermostatPowerVerletFiltered::ThermostatPowerVerletFiltered(AtomicRegulator * thermostat) :
     ThermostatPowerVerlet(thermostat),
     nodalTemperature2Roc_(atc_->field_2roc(TEMPERATURE)),
     fieldsRoc_(atc_->fields_roc()),
@@ -2263,13 +2503,13 @@ namespace ATC {
   //  Constructor
   //         Grab references to ATC and thermostat data
   //--------------------------------------------------------
-  ThermostatHooverVerletFiltered::ThermostatHooverVerletFiltered(Thermostat * thermostat) :
+  ThermostatHooverVerletFiltered::ThermostatHooverVerletFiltered(AtomicRegulator * thermostat) :
     ThermostatPowerVerletFiltered(thermostat),
     lambdaHoover_(NULL),
     nodalAtomicHooverLambdaPower_(NULL)
   {
     // consistent with stage 3 of ATC_Method::initialize
-    lambdaHoover_ = thermostat_->regulator_data("LambdaHoover",1);
+    lambdaHoover_ = atomicRegulator_->regulator_data("LambdaHoover",1);
   }
 
   //--------------------------------------------------------

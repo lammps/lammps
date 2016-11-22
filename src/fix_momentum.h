@@ -32,8 +32,9 @@ class FixMomentum : public Fix {
   void end_of_step();
 
  private:
-  int linear,angular;
+  int linear,angular,rescale;
   int xflag,yflag,zflag;
+  int dynamic;
   double masstotal;
 };
 

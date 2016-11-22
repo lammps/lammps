@@ -31,6 +31,10 @@ class AtomKokkos : public Atom {
   DAT::tdual_float_1d k_mass;
 
   DAT::tdual_float_1d k_q;
+  DAT::tdual_float_1d k_radius;
+  DAT::tdual_float_1d k_rmass;
+  DAT::tdual_v_array k_omega;
+  DAT::tdual_f_array k_torque;
   DAT::tdual_tagint_1d k_molecule;
   DAT::tdual_int_2d k_nspecial;
   DAT::tdual_tagint_2d k_special;
@@ -53,10 +57,13 @@ class AtomKokkos : public Atom {
   virtual void allocate_type_arrays();
   void sync(const ExecutionSpace space, unsigned int mask);
   void modified(const ExecutionSpace space, unsigned int mask);
+  void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
   virtual void sort();
   virtual void grow(unsigned int mask);
   virtual void deallocate_topology();
   void sync_modify(ExecutionSpace, unsigned int, unsigned int);
+ private:
+   class AtomVec *new_avec(const char *, int, int &);
 };
 
 template<class ViewType, class IndexView>
@@ -103,5 +110,9 @@ class SortFunctor {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: KOKKOS package requires a kokkos enabled atom_style
+
+Self-explanatory.
 
 */

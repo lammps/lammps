@@ -49,7 +49,7 @@ class DiagonalMatrix : public Matrix<T>
   void write_restart(FILE *f)     const;
 
   // Dump matrix contents to screen (not defined for all datatypes)
-  std::string to_string() const { return _data->to_string(); }
+  std::string to_string(int p=myPrecision) const { return _data->to_string(); }
 
   using Matrix<T>::matlab;
   void matlab(std::ostream &o, const std::string &s="D") const;
@@ -213,7 +213,7 @@ DiagonalMatrix<T>::DiagonalMatrix(INDEX rows, bool zero)
 //-----------------------------------------------------------------------------
 template<typename T>
 DiagonalMatrix<T>::DiagonalMatrix(const DiagonalMatrix<T>& c)
- : _data(NULL)
+ : Matrix<T>(), _data(NULL)
 {
   reset(c);
 }
@@ -222,7 +222,7 @@ DiagonalMatrix<T>::DiagonalMatrix(const DiagonalMatrix<T>& c)
 //-----------------------------------------------------------------------------
 template<typename T>
 DiagonalMatrix<T>::DiagonalMatrix(const Vector<T>& v)
- : _data(NULL)
+ : Matrix<T>(), _data(NULL)
 {
   reset(v);
 }
@@ -488,7 +488,7 @@ void DiagonalMatrix<T>::_set_equal(const Matrix<T> &r)
   else if (pv)  this->reset(*pv);
   else
   {
-    std::cout <<"Error in general sparse matrix assignment\n";
+    std::cout <<"Error in general diagonal matrix assignment\n";
     exit(1);
   }
 }

@@ -15,6 +15,7 @@
 #define LMP_KSPACE_H
 
 #include "pointers.h"
+#include "accelerator_kokkos.h"
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -45,24 +46,30 @@ class KSpace : protected Pointers {
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
   int differentiation_flag;
-  int neighrequest_flag;         // used to avoid obsolete construction 
+  int neighrequest_flag;         // used to avoid obsolete construction
                                  // of neighbor lists
-  int mixflag;                   // 1 if geometric mixing rules are enforced 
+  int mixflag;                   // 1 if geometric mixing rules are enforced
                                  // for LJ coefficients
   int slabflag;
   int scalar_pressure_flag;      // 1 if using MSM fast scalar pressure
-  int qsum_update_flag;          // 1 if setup() needs to call qsum_qsq()
   double slab_volfactor;
+
+  int warn_nonneutral;           // 0 = error if non-neutral system
+                                 // 1 = warn once if non-neutral system
+                                 // 2 = warn, but already warned
+  int warn_nocharge;             // 0 = already warned
+                                 // 1 = warn if zero charge
 
   int order,order_6,order_allocated;
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specifed accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
                                     // accurary = acc_rel * two_charge_force
-  double accuracy_real_6;           // real space accuracy for 
+  double accuracy_real_6;           // real space accuracy for
                                     // dispersion solver (force units)
-  double accuracy_kspace_6;         // reciprocal space accuracy for 
+  double accuracy_kspace_6;         // reciprocal space accuracy for
                                     // dispersion solver (force units)
+  int auto_disp_flag;		    // use automatic paramter generation for pppm/disp
   double two_charge_force;          // force in user units of two point
                                     // charges separated by 1 Angstrom
 
@@ -73,12 +80,11 @@ class KSpace : protected Pointers {
 
   int group_group_enable;         // 1 if style supports group/group calculation
 
-  unsigned int datamask;
-  unsigned int datamask_ext;
-
   // KOKKOS host/device flag and data masks
+
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
+  int copymode;
 
   int compute_flag;               // 0 if skip compute()
   int fftbench;                   // 0 if skip FFT timing
@@ -101,6 +107,10 @@ class KSpace : protected Pointers {
   void lamda2xvector(double *, double *);
   void kspacebbox(double, double *);
 
+  // public so can be called by commands that change charge
+
+  void qsum_qsq();
+
   // general child-class methods
 
   virtual void init() = 0;
@@ -114,6 +124,11 @@ class KSpace : protected Pointers {
   virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
   virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
 
+  virtual void pack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_forward_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void pack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+  virtual void unpack_reverse_kokkos(int, DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) {};
+
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
   virtual int timing_3d(int, double &) {return 0;}
@@ -124,7 +139,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164177
 ------------------------------------------------------------------------- */
 
-  double gamma(const double &rho) const 
+  double gamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order/2;
@@ -144,7 +159,7 @@ class KSpace : protected Pointers {
    see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
-  double dgamma(const double &rho) const 
+  double dgamma(const double &rho) const
   {
     if (rho <= 1.0) {
       const int split_order = order/2;
@@ -158,7 +173,7 @@ class KSpace : protected Pointers {
       return dg;
     } else return (-1.0/rho/rho);
   }
-  
+
   double **get_gcons() { return gcons; }
   double **get_dgcons() { return dgcons; }
 
@@ -168,7 +183,6 @@ class KSpace : protected Pointers {
   int minorder,overlap_allowed;
   int adjust_cutoff_flag;
   int suffix_flag;                  // suffix compatibility flag
-  int warn_neutral;                 // warn about non-neutral system if 1
   bigint natoms_original;
   double scale,qqrd2e;
   double qsum,qsqsum,q2;
@@ -182,7 +196,6 @@ class KSpace : protected Pointers {
   int kewaldflag;                   // 1 if kspace range set for Ewald sum
   int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
 
-  void qsum_qsq(int);
   void pair_check();
   void ev_setup(int, int);
   double estimate_table_accuracy(double, double);
@@ -205,8 +218,22 @@ No pair style is defined.
 
 E: KSpace style is incompatible with Pair style
 
-Setting a kspace style requires that a pair style with a long-range
-Coulombic or dispersion component be used.
+Setting a kspace style requires that a pair style with matching
+long-range Coulombic or dispersion components be used.
+
+W: Using kspace solver on system with no charge
+
+Self-explanatory.
+
+E: System is not charge neutral, net charge = %g
+
+The total charge on all atoms on the system is not 0.0.
+For some KSpace solvers this is an error.
+
+W: System is not charge neutral, net charge = %g
+
+The total charge on all atoms on the system is not 0.0.
+For some KSpace solvers this is only a warning.
 
 W: For better accuracy use 'pair_modify table 0'
 

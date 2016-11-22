@@ -14,8 +14,10 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
-#include "math.h"
+#include <math.h>
 #include "pointers.h"
+#include <map>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -90,6 +92,12 @@ class Domain : protected Pointers {
   int maxregion;                           // max # list can hold
   class Region **regions;                  // list of defined Regions
 
+  int copymode;
+
+  typedef Region *(*RegionCreator)(LAMMPS *,int,char**);
+  typedef std::map<std::string,RegionCreator> RegionCreatorMap;
+  RegionCreatorMap *region_map;
+
   Domain(class LAMMPS *);
   virtual ~Domain();
   virtual void init();
@@ -101,6 +109,7 @@ class Domain : protected Pointers {
   virtual void pbc();
   void image_check();
   void box_too_small_check();
+  void subbox_too_small_check(double);
   void minimum_image(double &, double &, double &);
   void minimum_image(double *);
   int closest_image(int, int);
@@ -112,6 +121,8 @@ class Domain : protected Pointers {
   void unmap(double *, imageint);
   void unmap(double *, imageint, double *);
   void image_flip(int, int, int);
+  int ownatom(double *);
+  
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(int, char **);
@@ -125,6 +136,8 @@ class Domain : protected Pointers {
   virtual void x2lamda(int);
   virtual void lamda2x(double *, double *);
   virtual void x2lamda(double *, double *);
+  int inside(double *);
+  int inside_nonperiodic(double *);
   void x2lamda(double *, double *, double *, double *);
   void bbox(double *, double *, double *, double *);
   void box_corners();
@@ -133,10 +146,10 @@ class Domain : protected Pointers {
 
   // minimum image convention check
   // return 1 if any distance > 1/2 of box size
-  // indicates a special neighbor is actually not in a bond, 
+  // indicates a special neighbor is actually not in a bond,
   //   but is a far-away image that should be treated as an unbonded neighbor
   // inline since called from neighbor build inner loop
-  // 
+  //
   inline int minimum_image_check(double dx, double dy, double dz) {
     if (xperiodic && fabs(dx) > xprd_half) return 1;
     if (yperiodic && fabs(dy) > yprd_half) return 1;
@@ -146,6 +159,9 @@ class Domain : protected Pointers {
 
  protected:
   double small[3];                  // fractions of box lengths
+
+ private:
+  template <typename T> static Region *region_creator(LAMMPS *,int,char**);
 };
 
 }
@@ -229,6 +245,15 @@ bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
 length, multiplying by the number of bonds in the interaction (e.g. 3
 for a dihedral) and adding a small amount of stretch.
 
+W: Proc sub-domain size < neighbor skin, could lead to lost atoms
+
+The decomposition of the physical domain (likely due to load
+balancing) has led to a processor's sub-domain being smaller than the
+neighbor skin in one or more dimensions.  Since reneighboring is
+triggered by atoms moving the skin distance, this may lead to lost
+atoms, if an atom moves all the way across a neighboring processor's
+sub-domain before reneighboring is triggered.
+
 E: Illegal ... command
 
 Self-explanatory.  Check the input script syntax and compare to the
@@ -239,7 +264,7 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Invalid region style
+E: Unknown region style
 
 The choice of region style is unknown.
 

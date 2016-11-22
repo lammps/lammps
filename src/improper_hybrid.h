@@ -20,7 +20,7 @@ ImproperStyle(hybrid,ImproperHybrid)
 #ifndef LMP_IMPROPER_HYBRID_H
 #define LMP_IMPROPER_HYBRID_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "improper.h"
 
 namespace LAMMPS_NS {
@@ -33,6 +33,7 @@ class ImproperHybrid : public Improper {
 
   ImproperHybrid(class LAMMPS *);
   ~ImproperHybrid();
+  void init_style();
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

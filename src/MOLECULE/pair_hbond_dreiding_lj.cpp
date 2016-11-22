@@ -15,10 +15,10 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_hbond_dreiding_lj.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -321,9 +321,9 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
-  force->bounds(arg[2],atom->ntypes,klo,khi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[2],atom->ntypes,klo,khi);
 
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
@@ -438,7 +438,7 @@ void PairHbondDreidingLJ::init_style()
 
   // full neighbor list request
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 }

@@ -30,11 +30,10 @@ class PairSW : public Pair {
   virtual ~PairSW();
   virtual void compute(int, int);
   void settings(int, char **);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   virtual double init_one(int, int);
   virtual void init_style();
 
- protected:
   struct Param {
     double epsilon,sigma;
     double littlea,lambda,gamma,costheta;
@@ -47,6 +46,7 @@ class PairSW : public Pair {
     int ielement,jelement,kelement;
   };
 
+ protected:
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
   char **elements;              // names of unique elements
@@ -55,10 +55,12 @@ class PairSW : public Pair {
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
+  int maxshort;                 // size of short neighbor list array
+  int *neighshort;              // short neighbor list array
 
   virtual void allocate();
   void read_file(char *);
-  void setup();
+  virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
   void threebody(Param *, Param *, Param *, double, double, double *, double *,
                  double *, double *, int, double &);
@@ -111,12 +113,10 @@ invalid.
 
 E: Potential file has duplicate entry
 
-The potential file for a SW or Tersoff potential has more than
-one entry for the same 3 ordered elements.
+The potential file has more than one entry for the same element.
 
 E: Potential file is missing an entry
 
-The potential file for a SW or Tersoff potential does not have a
-needed entry.
+The potential file does not have a needed entry.
 
 */

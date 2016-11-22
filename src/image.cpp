@@ -15,11 +15,11 @@
    Contributing author: Nathan Fabian (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "ctype.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
 #include "image.h"
 #include "math_extra.h"
 #include "random_mars.h"
@@ -294,7 +294,6 @@ void Image::clear()
 void Image::merge()
 {
   MPI_Request requests[3];
-  MPI_Status statuses[3];
 
   int nhalf = 1;
   while (nhalf < nprocs) nhalf *= 2;
@@ -307,8 +306,8 @@ void Image::merge()
       if (ssao)
         MPI_Irecv(surfacecopy,npixels*2,MPI_DOUBLE,
                   me+nhalf,0,world,&requests[2]);
-      if (ssao) MPI_Waitall(3,requests,statuses);
-      else MPI_Waitall(2,requests,statuses);
+      if (ssao) MPI_Waitall(3,requests,MPI_STATUS_IGNORE);
+      else MPI_Waitall(2,requests,MPI_STATUS_IGNORE);
 
       for (int i = 0; i < npixels; i++) {
         if (depthBuffer[i] < 0 || (depthcopy[i] >= 0 &&
@@ -1757,14 +1756,14 @@ int ColorMap::reset(int narg, char **arg)
       if (!islower(arg[n][0])) {
         mentry[i].lo = NUMERIC;
         mentry[i].lvalue = force->numeric(FLERR,arg[n]);
-      } else if (strcmp(arg[n],"min") == 0) mentry[i].single = MINVALUE;
-      else if (strcmp(arg[n],"max") == 0) mentry[i].single = MAXVALUE;
+      } else if (strcmp(arg[n],"min") == 0) mentry[i].lo = MINVALUE;
+      else if (strcmp(arg[n],"max") == 0) mentry[i].lo = MAXVALUE;
       else return 1;
       if (!islower(arg[n+1][0])) {
         mentry[i].hi = NUMERIC;
         mentry[i].hvalue = force->numeric(FLERR,arg[n+1]);
-      } else if (strcmp(arg[n+1],"min") == 0) mentry[i].single = MINVALUE;
-      else if (strcmp(arg[n+1],"max") == 0) mentry[i].single = MAXVALUE;
+      } else if (strcmp(arg[n+1],"min") == 0) mentry[i].hi = MINVALUE;
+      else if (strcmp(arg[n+1],"max") == 0) mentry[i].hi = MAXVALUE;
       else return 1;
       mentry[i].color = image->color2rgb(arg[n+2]);
       n += 3;
@@ -1817,7 +1816,7 @@ int ColorMap::reset(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   set explicit values for all min/max settings in color map 
+   set explicit values for all min/max settings in color map
      from min/max dynamic values
    set lo/hi current and lvalue/hvalue entries that are MIN/MAX VALUE
    called only once if mlo/mhi != MIN/MAX VALUE, else called repeatedly
@@ -1839,7 +1838,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
     if (mrange == ABSOLUTE) mentry[nentry-1].svalue = hicurrent;
     else mentry[nentry-1].svalue = 1.0;
 
-    // error in ABSOLUTE mode if new lo/hi current cause 
+    // error in ABSOLUTE mode if new lo/hi current cause
     // first/last entry to become lo > hi with adjacent entry
 
     if (mrange == ABSOLUTE) {

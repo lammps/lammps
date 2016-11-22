@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_nvt_sphere_omp.h"
 #include "group.h"
 #include "modify.h"
@@ -45,5 +45,5 @@ FixNVTSphereOMP::FixNVTSphereOMP(LAMMPS *lmp, int narg, char **arg) :
 
   modify->add_compute(3,newarg);
   delete [] newarg;
-  tflag = 1;
+  tcomputeflag = 1;
 }

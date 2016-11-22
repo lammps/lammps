@@ -43,7 +43,7 @@ class PPPMStagger : public PPPM {
   virtual void compute_gf_denom();
   virtual void compute_gf_ik();
   virtual void compute_gf_ad();
-  
+
   virtual void particle_map();
   virtual void make_rho();
   virtual void fieldforce_ik();
@@ -91,6 +91,10 @@ command-line option when running LAMMPS to see the offending line.
 E: Cannot (yet) use kspace_style pppm/stagger with triclinic systems
 
 This feature is not yet supported.
+
+E: Non-numeric box dimensions - simulation unstable
+
+The box size has apparently blown up.
 
 E: Out of range atoms - cannot compute PPPM
 

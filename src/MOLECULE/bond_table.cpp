@@ -15,9 +15,9 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "bond_table.h"
 #include "atom.h"
 #include "neighbor.h"
@@ -29,9 +29,10 @@
 
 using namespace LAMMPS_NS;
 
-enum{LINEAR,SPLINE};
+enum{NONE,LINEAR,SPLINE};
 
 #define MAXLINE 1024
+#define BIGNUM 1.0e300
 
 /* ---------------------------------------------------------------------- */
 
@@ -134,6 +135,7 @@ void BondTable::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal bond_style command");
 
+  tabstyle = NONE;
   if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in bond style table");
@@ -166,7 +168,7 @@ void BondTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nbondtypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -289,6 +291,7 @@ void BondTable::free_table(Table *tb)
 void BondTable::read_table(Table *tb, char *file, char *keyword)
 {
   char line[MAXLINE];
+  double emin = BIGNUM;
 
   // open file
 
@@ -304,7 +307,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   while (1) {
     if (fgets(line,MAXLINE,fp) == NULL)
       error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n") == strlen(line)) continue;    // blank line
+    if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
     if (strcmp(word,keyword) == 0) break;           // matching keyword
@@ -326,14 +329,65 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   // read r,e,f table values from file
 
   int itmp;
+  int cerror = 0;
+  int r0idx = -1;
+
   fgets(line,MAXLINE,fp);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg %lg %lg",
-      &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i]);
+    if (NULL == fgets(line,MAXLINE,fp))
+      error->one(FLERR,"Premature end of file in bond table");
+    if (4 != sscanf(line,"%d %lg %lg %lg",
+                    &itmp,&tb->rfile[i],&tb->efile[i],&tb->ffile[i])) ++cerror;
+    if (tb->efile[i] < emin) {
+      emin = tb->efile[i];
+      r0idx = i;
+    }
+  }
+  fclose(fp);
+
+  // infer r0 from minimum of potential, if not given explicitly
+
+  if ((tb->r0 == 0.0) && (r0idx >= 0)) tb->r0 = tb->rfile[r0idx];
+
+  // warn if force != dE/dr at any point that is not an inflection point
+  // check via secant approximation to dE/dr
+  // skip two end points since do not have surrounding secants
+  // inflection point is where curvature changes sign
+
+  double r,e,f,rprev,rnext,eprev,enext,fleft,fright;
+
+  int ferror = 0;
+  for (int i = 1; i < tb->ninput-1; i++) {
+    r = tb->rfile[i];
+    rprev = tb->rfile[i-1];
+    rnext = tb->rfile[i+1];
+    e = tb->efile[i];
+    eprev = tb->efile[i-1];
+    enext = tb->efile[i+1];
+    f = tb->ffile[i];
+    fleft = - (e-eprev) / (r-rprev);
+    fright = - (enext-e) / (rnext-r);
+    if (f < fleft && f < fright) ferror++;
+    if (f > fleft && f > fright) ferror++;
+    //printf("Values %d: %g %g %g\n",i,r,e,f);
+    //printf("  secant %d %d %g: %g %g %g\n",i,ferror,r,fleft,fright,f);
   }
 
-  fclose(fp);
+  if (ferror) {
+    char str[128];
+    sprintf(str,"%d of %d force values in table are inconsistent with -dE/dr.\n"
+            "  Should only be flagged at inflection points",ferror,tb->ninput);
+    error->warning(FLERR,str);
+  }
+
+  // warn if data was read incompletely, e.g. columns were missing
+
+  if (cerror) {
+    char str[128];
+    sprintf(str,"%d of %d lines in table were incomplete or could not be"
+            " parsed completely",cerror,tb->ninput);
+    error->warning(FLERR,str);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -531,17 +585,26 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 /* ----------------------------------------------------------------------
    calculate potential u and force f at distance x
-   insure x is between bond min/max
+   insure x is between bond min/max, exit with error if not
 ------------------------------------------------------------------------- */
 
 void BondTable::uf_lookup(int type, double x, double &u, double &f)
 {
   int itable;
   double fraction,a,b;
+  char estr[128];
 
   Table *tb = &tables[tabindex[type]];
-  x = MAX(x,tb->lo);
-  x = MIN(x,tb->hi);
+  if (x < tb->lo) {
+    sprintf(estr,"Bond length < table inner cutoff: "
+            "type %d length %g",type,x);
+    error->one(FLERR,estr);
+  }
+  if (x > tb->hi) {
+    sprintf(estr,"Bond length > table outer cutoff: "
+            "type %d length %g",type,x);
+    error->one(FLERR,estr);
+  }
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((x - tb->lo) * tb->invdelta);

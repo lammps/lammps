@@ -278,7 +278,7 @@ E: Fix srd requires ghost atoms store velocity
 
 Use the comm_modify vel yes command to enable this.
 
-E: Fix SRD no-slip requires atom attribute torque
+E: Fix srd no-slip requires atom attribute torque
 
 This is because the SRD collisions will impart torque to the solute
 particles.
@@ -287,6 +287,10 @@ E: Cannot change timestep once fix srd is setup
 
 This is because various SRD properties depend on the timestep
 size.
+
+E: Fix srd can only currently be used with comm_style brick
+
+This is a current restriction in LAMMPS.
 
 E: Cannot use fix wall/srd more than once
 
@@ -341,6 +345,16 @@ See the inside keyword if you want this message to be an error vs
 warning.
 
 W: SRD particle %d started inside big particle %d on step %ld bounce %d
+
+See the inside keyword if you want this message to be an error vs
+warning.
+
+E: SRD particle %d started inside wall %d on step %ld bounce %d
+
+See the inside keyword if you want this message to be an error vs
+warning.
+
+W: SRD particle %d started inside wall %d on step %ld bounce %d
 
 See the inside keyword if you want this message to be an error vs
 warning.

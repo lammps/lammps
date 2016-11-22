@@ -18,13 +18,14 @@ HEADERS  = msi2lmp.h Forcefield.h
 
 CC       = gcc
 CFLAGS   = -O -Wall -W -g 
+LDFLAGS  =
 FRCFILE  = cvff.frc
 FRCFILE2 = cff91.frc
 README   = README
 MKFILE   = Makefile
 
 $(TARGET) : $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) -lm
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $(TARGET) $(OBJS) -lm
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<

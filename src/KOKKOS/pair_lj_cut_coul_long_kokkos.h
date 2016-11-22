@@ -75,7 +75,7 @@ class PairLJCutCoulLongKokkos : public PairLJCutCoulLong {
 
   Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj_coul**,
-    Kokkos::LayoutRight,DeviceType>::t_dev_const params;
+    Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
   // hardwired to space for 15 atom types
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
@@ -87,6 +87,9 @@ class PairLJCutCoulLongKokkos : public PairLJCutCoulLong {
   typename ArrayTypes<DeviceType>::t_f_array f;
   typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_float_1d_randomread q;
+  
+  DAT::tdual_efloat_1d k_eatom;
+  DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
@@ -102,7 +105,7 @@ class PairLJCutCoulLongKokkos : public PairLJCutCoulLong {
   typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,
     d_ctable, d_dctable, d_etable, d_detable;
-  class AtomKokkos *atomKK;
+
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
@@ -143,5 +146,19 @@ class PairLJCutCoulLongKokkos : public PairLJCutCoulLong {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Cannot use Kokkos pair style with rRESPA inner/middle
+
+Self-explanatory.
+
+E: Cannot use chosen neighbor list style with lj/cut/coul/long/kk
+
+That style is not supported by Kokkos.
 
 */

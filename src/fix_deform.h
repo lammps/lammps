@@ -30,14 +30,14 @@ class FixDeform : public Fix {
   int dimflag[6];                  // which dims are deformed
 
   FixDeform(class LAMMPS *, int, char **);
-  ~FixDeform();
+  virtual ~FixDeform();
   int setmask();
   void init();
-  void pre_exchange();
-  void end_of_step();
+  virtual void pre_exchange();
+  virtual void end_of_step();
   double memory_usage();
 
- private:
+ protected:
   int triclinic,scaleflag,flipflag;
   int flip,flipxy,flipxz,flipyz;
   double *h_rate,*h_ratelo;

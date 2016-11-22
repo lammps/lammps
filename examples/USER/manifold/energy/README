@@ -1,0 +1,3 @@
+This example runs an NVE simulation on various manifolds and checks for energy conservation.
+The script "energy.sh" automates the running of LAMMPS for the different manifolds, and if gnuplot is installed, it makes a nice plot.
+

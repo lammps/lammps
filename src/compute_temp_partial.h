@@ -36,6 +36,7 @@ class ComputeTempPartial : public Compute {
   int dof_remove(int);
   void remove_bias(int, double *);
   void remove_bias_all();
+  void reapply_bias_all();
   void restore_bias(int, double *);
   void restore_bias_all();
   double memory_usage();
@@ -63,5 +64,10 @@ command-line option when running LAMMPS to see the offending line.
 E: Compute temp/partial cannot use vz for 2d systemx
 
 Self-explanatory.
+
+E: Temperature compute degrees of freedom < 0
+
+This should not happen if you are calculating the temperature
+on a valid set of atoms.
 
 */

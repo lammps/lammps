@@ -22,8 +22,7 @@ namespace ATC {
   KinetoThermostat::KinetoThermostat(ATC_Coupling * atc,
                                      const string & regulatorPrefix) :
     AtomicRegulator(atc,regulatorPrefix),
-    kinetostat_(atc,"Momentum"),
-    thermostat_(atc,"Energy")
+    couplingMaxIterations_(myCouplingMaxIterations)
   {
     // nothing to do
   }
@@ -47,12 +46,13 @@ namespace ATC {
   void KinetoThermostat::reset_lambda_contribution(const DENS_MAT & target,
                                                    const FieldName field)
   {
-    //TEMP_JAT
     if (field==VELOCITY) {
-      kinetostat_.reset_lambda_contribution(target);
+      DENS_MAN * lambdaForceFiltered = regulator_data("LambdaForceFiltered",atc_->nsd());
+      *lambdaForceFiltered = target;
     }
     else if (field == TEMPERATURE) {
-      thermostat_.reset_lambda_contribution(target);
+      DENS_MAN * lambdaPowerFiltered = regulator_data("LambdaPowerFiltered",1);
+      *lambdaPowerFiltered = target;
     }
     else {
       throw ATC_Error("KinetoThermostat::reset_lambda_contribution - invalid field given");
@@ -73,364 +73,631 @@ namespace ATC {
   //--------------------------------------------------------
   void KinetoThermostat::construct_methods()
   {
-// #ifdef WIP_JAT
-//     // get data associated with stages 1 & 2 of ATC_Method::initialize
-//     AtomicRegulator::construct_methods();
+    // get data associated with stages 1 & 2 of ATC_Method::initialize
+    AtomicRegulator::construct_methods();
 
-//     if (atc_->reset_methods()) {
-//       // eliminate existing methods
-//       delete_method();
+    if (atc_->reset_methods()) {
+      // eliminate existing methods
+      delete_method();
 
-//       // update time filter
-//       TimeIntegrator::TimeIntegrationType myIntegrationType = (atc_->time_integrator(TEMPERATURE))->time_integration_type();
-//       TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
-//       if (timeFilterManager->need_reset() ) {
-//         if (myIntegrationType == TimeIntegrator::GEAR)
-//          timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT);
-//         else if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP)
-//          timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT_IMPLICIT);
-//       }
+      // error check time integration methods
+      TimeIntegrator::TimeIntegrationType myEnergyIntegrationType = (atc_->time_integrator(TEMPERATURE))->time_integration_type();
+      TimeIntegrator::TimeIntegrationType myMomentumIntegrationType = (atc_->time_integrator(VELOCITY))->time_integration_type();
+      if (myEnergyIntegrationType != TimeIntegrator::FRACTIONAL_STEP || myMomentumIntegrationType != TimeIntegrator::FRACTIONAL_STEP) {
+        throw ATC_Error("KinetoThermostat::construct_methods - this scheme only valid with fractional step integration");
+      }
+
+      // update time filter
+      TimeFilterManager * timeFilterManager = atc_->time_filter_manager();
+      if (timeFilterManager->need_reset() ) {
+        timeFilter_ = timeFilterManager->construct(TimeFilterManager::EXPLICIT_IMPLICIT);
+      }
       
-//       if (timeFilterManager->filter_dynamics()) {
-//         switch (regulatorTarget_) {
-//         case NONE: {
-//           regulatorMethod_ = new RegulatorMethod(this);
-//           break;
-//         }
-//         case FIELD: { // error check, rescale and filtering not supported together
-//           throw ATC_Error("Cannot use rescaling thermostat with time filtering");
-//           break;
-//         }
-//         case DYNAMICS: {
-//           switch (couplingMode_) {
-//           case FIXED: {
-//             if (use_lumped_lambda_solve()) {
-//               throw ATC_Error("Thermostat:construct_methods - lumped lambda solve cannot be used with Hoover thermostats");
-//             }
-//             if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
-//               if (md_flux_nodes(TEMPERATURE)) {
-//                 if (!md_fixed_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
-//                   // there are fluxes but no fixed or coupled nodes
-//                   regulatorMethod_ = new ThermostatFluxFiltered(this);
-//                 }
-//                 else {
-//                   // there are both fixed and flux nodes
-//                   regulatorMethod_ = new ThermostatFluxFixedFiltered(this);
-//                 }
-//               }
-//               else {
-//                 // there are only fixed nodes
-//                 regulatorMethod_ = new ThermostatFixedFiltered(this);
-//               }
-//             }
-//             else {
-//               regulatorMethod_ = new ThermostatHooverVerletFiltered(this);
-//             }
-//             break;
-//           }
-//           case FLUX: {
-//             if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
-//               if (use_lumped_lambda_solve()) {
-//                 throw ATC_Error("Thermostat:construct_methods - lumped lambda solve has been depricated for fractional step thermostats");
-//               }
-//               if (md_fixed_nodes(TEMPERATURE)) {
-//                 if (!md_flux_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
-//                 // there are fixed nodes but no fluxes
-//                 regulatorMethod_ = new ThermostatFixedFiltered(this);
-//                 }
-//                 else {
-//                   // there are both fixed and flux nodes
-//                   regulatorMethod_ = new ThermostatFluxFixedFiltered(this);
-//                 }
-//               }
-//               else {
-//                 // there are only flux nodes
-//                 regulatorMethod_ = new ThermostatFluxFiltered(this);
-//               }
-//             }
-//             else {
-//               if (use_localized_lambda()) {
-//                 if (!((atc_->prescribed_data_manager())->no_fluxes(TEMPERATURE)) &&
-//                     atc_->boundary_integration_type() != NO_QUADRATURE) {
-//                   throw ATC_Error("Cannot use flux coupling with localized lambda");
-//                 }
-//               }
-//               regulatorMethod_ = new ThermostatPowerVerletFiltered(this);
-//             }
-//             break;
-//           }
-//           default:
-//             throw ATC_Error("Unknown coupling mode in Thermostat::initialize");
-//           }
-//           break;
-//         }
-//         default:
-//           throw ATC_Error("Unknown thermostat type in Thermostat::initialize");
-//         }
-//       }
-//       else {
-//         switch (regulatorTarget_) {
-//         case NONE: {
-//           regulatorMethod_ = new RegulatorMethod(this);
-//           break;
-//         }
-//         case FIELD: {
-//           if (atc_->temperature_def()==KINETIC)
-//             regulatorMethod_ = new ThermostatRescale(this);
-//           else if (atc_->temperature_def()==TOTAL)
-//             regulatorMethod_ = new ThermostatRescaleMixedKePe(this);
-//           else
-//             throw ATC_Error("Unknown temperature definition");
-//           break;
-//         }
-//         case DYNAMICS: {
-//           switch (couplingMode_) {
-//           case FIXED: {
-//             if (use_lumped_lambda_solve()) {
-//               throw ATC_Error("Thermostat:construct_methods - lumped lambda solve cannot be used with Hoover thermostats");
-//             }
-//             if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
-//               if (md_flux_nodes(TEMPERATURE)) {
-//                 if (!md_fixed_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
-//                   // there are fluxes but no fixed or coupled nodes
-//                   regulatorMethod_ = new ThermostatFlux(this);
-//                 }
-//                 else {
-//                   // there are both fixed and flux nodes
-//                   regulatorMethod_ = new ThermostatFluxFixed(this);
-//                 }
-//               }
-//               else {
-//                 // there are only fixed nodes
-//                 regulatorMethod_ = new ThermostatFixed(this);
-//               }
-//             }
-//             else {
-//               regulatorMethod_ = new ThermostatHooverVerlet(this);
-//             }
-//             break;
-//           }
-//           case FLUX: {
-//             if (myIntegrationType == TimeIntegrator::FRACTIONAL_STEP) {
-//               if (use_lumped_lambda_solve()) {
-//                 throw ATC_Error("Thermostat:construct_methods - lumped lambda solve has been depricated for fractional step thermostats");
-//               }
-//               if (md_fixed_nodes(TEMPERATURE)) {
-//                 if (!md_flux_nodes(TEMPERATURE) && (boundaryIntegrationType_ == NO_QUADRATURE)) {
-//                   // there are fixed nodes but no fluxes
-//                   regulatorMethod_ = new ThermostatFixed(this);
-//                 }
-//                 else {
-//                   // there are both fixed and flux nodes
-//                   regulatorMethod_ = new ThermostatFluxFixed(this);
-//                 }
-//               }
-//               else {
-//                 // there are only flux nodes
-//                 regulatorMethod_ = new ThermostatFlux(this);
-//               }
-//             }
-//             else {
-//               if (use_localized_lambda()) {
-//                 if (!((atc_->prescribed_data_manager())->no_fluxes(TEMPERATURE)) &&
-//                     atc_->boundary_integration_type() != NO_QUADRATURE) {
-//                   throw ATC_Error("Cannot use flux coupling with localized lambda");
-//                 }
-//               }
-//               regulatorMethod_ = new ThermostatPowerVerlet(this);
-//             }
-//             break;
-//           }
-//           default:
-//             throw ATC_Error("Unknown coupling mode in Thermostat::initialize");
-//           }
-//           break;
-//         }
-//         default:
-//           throw ATC_Error("Unknown thermostat target in Thermostat::initialize");
-//         }
-//       }
+      if (timeFilterManager->filter_dynamics()) {
+        switch (regulatorTarget_) {
+        case NONE: {
+          regulatorMethod_ = new RegulatorMethod(this);
+          break;
+        }
+        case FIELD: { // error check, rescale and filtering not supported together
+          throw ATC_Error("KinetoThermostat::construct_methods - Cannot use rescaling thermostat with time filtering");
+          break;
+        }
+        case DYNAMICS: {
+        }
+        default:
+          throw ATC_Error("Unknown thermostat type in Thermostat::initialize");
+        }
+      }
+      else {
+        switch (regulatorTarget_) {
+        case NONE: {
+          regulatorMethod_ = new RegulatorMethod(this);
+          break;
+        }
+        case FIELD: {
+          if (atc_->temperature_def()==KINETIC) {
+            regulatorMethod_ = new KinetoThermostatRescale(this,couplingMaxIterations_);
+          }
+          else if (atc_->temperature_def()==TOTAL) {
+            regulatorMethod_ = new KinetoThermostatRescaleMixedKePe(this,couplingMaxIterations_);
+          }
+          else
+            throw ATC_Error("Unknown temperature definition");
+          break;
+        }
+        default:
+          throw ATC_Error("Unknown thermostat target in Thermostat::initialize");
+        }
+      }
       
-//       AtomicRegulator::reset_method();
-//     }
-//     else {
-//       set_all_data_to_used();
-//     }
-// #endif
-    //TEMP_JAT
-    kinetostat_.construct_methods();
-    thermostat_.construct_methods();
-  }
-
-  //TEMP_JAT all functions which have explicit thermo and kinetostats need to be removed
-    //--------------------------------------------------------
-  //  reset_nlocal:
-  //    resizes lambda force if necessary
-  //--------------------------------------------------------
-  void KinetoThermostat::reset_nlocal()
-  {
-    kinetostat_.reset_nlocal();
-    thermostat_.reset_nlocal();
-  }
-  //--------------------------------------------------------
-  //  reset_atom_materials:
-  //    resets the localized atom to material map
-  //--------------------------------------------------------
-  void KinetoThermostat::reset_atom_materials(const Array<int> & elementToMaterialMap,
-                                             const MatrixDependencyManager<DenseMatrix, int> * atomElement)
-  {
-    kinetostat_.reset_atom_materials(elementToMaterialMap,
-                                     atomElement);
-    thermostat_.reset_atom_materials(elementToMaterialMap,
-                                     atomElement);
-  }
-  //--------------------------------------------------------
-  //  construct_transfers:
-  //    pass through to appropriate transfer constuctors
-  //--------------------------------------------------------
-  void KinetoThermostat::construct_transfers()
-  {
-    kinetostat_.construct_transfers();
-    thermostat_.construct_transfers();
-  }
-  //--------------------------------------------------------
-  //  initialize:
-  //    sets up methods before a run
-  //--------------------------------------------------------
-  void KinetoThermostat::initialize()
-  {
-    kinetostat_.initialize();
-    thermostat_.initialize();
-    needReset_ = false;
-  }
-  //--------------------------------------------------------
-  //  output:
-  //    pass through to appropriate output methods
-  //--------------------------------------------------------
-  void KinetoThermostat::output(OUTPUT_LIST & outputData) const
-  {
-    kinetostat_.output(outputData);
-    thermostat_.output(outputData);
-  }
-  //--------------------------------------------------------
-  //  finish:
-  //    pass through to appropriate end-of-run methods
-  //--------------------------------------------------------
-  void KinetoThermostat::finish()
-  {
-    kinetostat_.finish();
-    thermostat_.finish();
-  }
-    //--------------------------------------------------
-  // pack_fields
-  //   bundle all allocated field matrices into a list
-  //   for output needs
-  //--------------------------------------------------
-  void KinetoThermostat::pack_fields(RESTART_LIST & data)
-  {
-    kinetostat_.pack_fields(data);
-    thermostat_.pack_fields(data);
-  }
-  //--------------------------------------------------------
-  //  compute_boundary_flux:
-  //    computes the boundary flux to be consistent with
-  //    the controller
-  //--------------------------------------------------------
-  void KinetoThermostat::compute_boundary_flux(FIELDS & fields)
-  {
-    kinetostat_.compute_boundary_flux(fields);
-    thermostat_.compute_boundary_flux(fields);
-  }
-  //--------------------------------------------------------
-  //  add_to_rhs:
-  //    adds any controller contributions to the FE rhs 
-  //--------------------------------------------------------
-  void KinetoThermostat::add_to_rhs(FIELDS & rhs)
-  {
-    thermostat_.add_to_rhs(rhs);
-    kinetostat_.add_to_rhs(rhs);
-  }
-  //--------------------------------------------------------
-  //  apply_pre_predictor:
-  //    applies the controller in the pre-predictor
-  //    phase of the time integrator  
-  //--------------------------------------------------------
-  void KinetoThermostat::apply_pre_predictor(double dt, int timeStep)
-  {
-    thermostat_.apply_pre_predictor(dt,timeStep);
-    kinetostat_.apply_pre_predictor(dt,timeStep);
-  }
-  //--------------------------------------------------------
-  //  apply_mid_predictor:
-  //    applies the controller in the mid-predictor
-  //    phase of the time integrator  
-  //--------------------------------------------------------
-  void KinetoThermostat::apply_mid_predictor(double dt, int timeStep)
-  {
-    thermostat_.apply_mid_predictor(dt,timeStep);
-    kinetostat_.apply_mid_predictor(dt,timeStep);
-  }
-  //--------------------------------------------------------
-  //  apply_post_predictor:
-  //    applies the controller in the post-predictor
-  //    phase of the time integrator  
-  //--------------------------------------------------------
-  void KinetoThermostat::apply_post_predictor(double dt, int timeStep)
-  {
-    thermostat_.apply_post_predictor(dt,timeStep);
-    kinetostat_.apply_post_predictor(dt,timeStep);
-  }
-  //--------------------------------------------------------
-  //  apply_pre_corrector:
-  //    applies the controller in the pre-corrector phase
-  //    of the time integrator
-  //--------------------------------------------------------
-  void KinetoThermostat::apply_pre_corrector(double dt, int timeStep)
-  {
-    thermostat_.apply_pre_corrector(dt,timeStep);
-    kinetostat_.apply_pre_corrector(dt,timeStep);
-  }
-  //--------------------------------------------------------
-  //  apply_post_corrector:
-  //    applies the controller in the post-corrector phase
-  //    of the time integrator
-  //--------------------------------------------------------
-  void KinetoThermostat::apply_post_corrector(double dt, int timeStep)
-  {
-    thermostat_.apply_post_corrector(dt,timeStep);
-    kinetostat_.apply_post_corrector(dt,timeStep);
-  }
-  //--------------------------------------------------------
-  //  pre_exchange
-  //--------------------------------------------------------
-  void KinetoThermostat::pre_exchange()
-  {
-    thermostat_.pre_exchange();
-    kinetostat_.pre_exchange();
-  }
-  //--------------------------------------------------------
-  //  pre_force
-  //--------------------------------------------------------
-  void KinetoThermostat::pre_force()
-  {
-    thermostat_.pre_force();
-    kinetostat_.pre_force();
-  }
-  //--------------------------------------------------------
-  // coupling_mode
-  //-------------------------------------------------------
-  AtomicRegulator::RegulatorCouplingType KinetoThermostat::coupling_mode(const FieldName field) const
-  {
-    //TEMP_JAT
-    if (field==VELOCITY) {
-      return kinetostat_.coupling_mode();
-    }
-    else if (field == TEMPERATURE) {
-      return thermostat_.coupling_mode();
+      AtomicRegulator::reset_method();
     }
     else {
-      throw ATC_Error("KinetoThermostat::coupling_mode - invalid field given");
+      set_all_data_to_used();
     }
   }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class VelocityRescaleCombined
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //         Grab references to ATC and kinetostat data
+  //--------------------------------------------------------
+  VelocityRescaleCombined::VelocityRescaleCombined(AtomicRegulator * kinetostat) :
+    VelocityGlc(kinetostat),
+    velocity_(atc_->field(VELOCITY)),
+    thermostatCorrection_(NULL)
+  {
+    // do nothing
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initializes all data
+  //--------------------------------------------------------
+  void VelocityRescaleCombined::initialize()
+  {
+    VelocityGlc::initialize();
+    thermostatCorrection_ = (atc_->interscale_manager()).dense_matrix("NodalAtomicFluctuatingMomentumRescaled");
+  }
+
+  //--------------------------------------------------------
+  //  set_kinetostat_rhs
+  //            sets up the right-hand side of the
+  //            kinetostat equations
+  //--------------------------------------------------------
+  void VelocityRescaleCombined::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  {
+    rhs = ((atc_->mass_mat_md(VELOCITY)).quantity())*(velocity_.quantity());
+    rhs -= thermostatCorrection_->quantity();
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class ThermostatRescaleCombined
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  ThermostatRescaleCombined::ThermostatRescaleCombined(AtomicRegulator * thermostat) :
+    ThermostatRescale(thermostat),
+    kinetostatCorrection_(NULL)
+  {
+    // do nothing
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initializes all data
+  //--------------------------------------------------------
+  void ThermostatRescaleCombined::initialize()
+  {
+    ThermostatRescale::initialize();
+    kinetostatCorrection_ = (atc_->interscale_manager()).dense_matrix("NodalAtomicCombinedRescaleThermostatError");
+  }
+
+  //--------------------------------------------------------
+  //  set_rhs:
+  //    constructs the RHS vector with the target
+  //    temperature
+  //--------------------------------------------------------
+  void ThermostatRescaleCombined::set_rhs(DENS_MAT & rhs)
+  {
+    ThermostatRescale::set_rhs(rhs);
+    rhs -= kinetostatCorrection_->quantity();
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class KinetoThermostatRescale
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  KinetoThermostatRescale::KinetoThermostatRescale(AtomicRegulator * kinetoThermostat,
+                                                   int couplingMaxIterations) :
+    KinetoThermostatShapeFunction(kinetoThermostat,couplingMaxIterations),
+    atomVelocities_(NULL),
+    nodalVelocities_(atc_->field(VELOCITY)),
+    lambdaMomentum_(NULL),
+    lambdaEnergy_(NULL),
+    atomicFluctuatingVelocityRescaled_(NULL),
+    atomicStreamingVelocity_(NULL),
+    thermostat_(NULL),
+    kinetostat_(NULL)
+  {
+    thermostat_ = this->construct_rescale_thermostat();
+    kinetostat_ = new VelocityRescaleCombined(kinetoThermostat);
+    // data associated with stage 3 in ATC_Method::initialize
+    lambdaMomentum_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaMomentum",atc_->nsd());
+    lambdaEnergy_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaEnergy",1); 
+  }
+
+  //--------------------------------------------------------
+  //  Destructor
+  //--------------------------------------------------------
+  KinetoThermostatRescale::~KinetoThermostatRescale()
+  {
+    if (thermostat_) delete thermostat_;
+    if (kinetostat_) delete kinetostat_;
+  }
+
+  //--------------------------------------------------------
+  //  constructor_transfers
+  //    instantiates or obtains all dependency managed data
+  //--------------------------------------------------------
+  void KinetoThermostatRescale::construct_transfers()
+  {
+    // construct independent transfers first
+    thermostat_->construct_transfers();
+    kinetostat_->construct_transfers();
+
+    InterscaleManager & interscaleManager(atc_->interscale_manager());
+
+    // get atom velocity data from manager
+    atomVelocities_ = interscaleManager.fundamental_atom_quantity(LammpsInterface::ATOM_VELOCITY);
+
+    // transfers requiring terms from both regulators
+    // rescaled velocity fluctuations
+    atomicFluctuatingVelocityRescaled_ = new AtomicFluctuatingVelocityRescaled(atc_);
+    interscaleManager.add_per_atom_quantity(atomicFluctuatingVelocityRescaled_,
+                                            "AtomFluctuatingVelocityRescaled");
+
+    // streaming velocity component
+    atomicStreamingVelocity_ = interscaleManager.per_atom_quantity("AtomLambdaMomentum");
+
+    // rescaled momentum fluctuations, error term for kinetostat rhs
+    PerAtomQuantity<double> * tempAtom = new AtomicMomentum(atc_,
+                                                            atomicFluctuatingVelocityRescaled_);
+    interscaleManager.add_per_atom_quantity(tempAtom,"AtomFluctuatingMomentumRescaled");
+    DENS_MAN * tempNodes = new AtfShapeFunctionRestriction(atc_,
+                                                           tempAtom,
+                                                           interscaleManager.per_atom_sparse_matrix("Interpolant"));
+    interscaleManager.add_dense_matrix(tempNodes,
+                                       "NodalAtomicFluctuatingMomentumRescaled");
+
+    // error term for thermostat rhs
+    tempAtom = new AtomicCombinedRescaleThermostatError(atc_);
+    interscaleManager.add_per_atom_quantity(tempAtom,"AtomCombinedRescaleThermostatError");
+    tempNodes = new AtfShapeFunctionRestriction(atc_,
+                                                tempAtom,
+                                                interscaleManager.per_atom_sparse_matrix("Interpolant"));
+    interscaleManager.add_dense_matrix(tempNodes,
+                                       "NodalAtomicCombinedRescaleThermostatError");
+  }
+
+  //--------------------------------------------------------
+  //  construct_rescale_thermostat
+  //    constructs the appropriate rescaling thermostat
+  //    varied through inheritance
+  //--------------------------------------------------------
+  ThermostatRescale * KinetoThermostatRescale::construct_rescale_thermostat()
+  {
+    return new ThermostatRescaleCombined(atomicRegulator_);
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initializes all data
+  //--------------------------------------------------------
+  void KinetoThermostatRescale::initialize()
+  {
+    KinetoThermostatShapeFunction::initialize();
+    thermostat_->initialize();
+    kinetostat_->initialize();
+  }
+
+  //--------------------------------------------------------
+  //  apply_post_corrector:
+  //    apply the thermostat in the post corrector phase
+  //--------------------------------------------------------
+  void KinetoThermostatRescale::apply_post_corrector(double dt)
+  {
+    // initial guesses
+    lambdaMomentum_->set_quantity() = nodalVelocities_.quantity();
+    lambdaEnergy_->set_quantity() = 1.;
+
+    int iteration = 0;
+    double eErr, pErr;
+    while (iteration < couplingMaxIterations_) {
+      _lambdaMomentumOld_ = lambdaMomentum_->quantity();
+      _lambdaEnergyOld_ = lambdaEnergy_->quantity();
+
+      // update thermostat
+      thermostat_->compute_thermostat(dt);
+      
+      // update kinetostat
+      kinetostat_->compute_kinetostat(dt);
+
+      // check convergence
+      _diff_ = lambdaEnergy_->quantity() - _lambdaEnergyOld_;
+      eErr = _diff_.col_norm()/_lambdaEnergyOld_.col_norm();
+      _diff_ = lambdaMomentum_->quantity() - _lambdaMomentumOld_;
+      pErr = _diff_.col_norm()/_lambdaMomentumOld_.col_norm();
+      if (eErr < tolerance_ && pErr < tolerance_) {
+        break;
+      }
+      iteration++;
+    }
+    if (iteration == couplingMaxIterations_) {
+      stringstream message;
+      message << "WARNING: Iterative solve for lambda failed to converge after " << couplingMaxIterations_ << " iterations, final tolerance was " << std::max(eErr,pErr) << "\n";
+      ATC::LammpsInterface::instance()->print_msg(message.str());
+    }
+
+    // application of rescaling lambda due
+    apply_to_atoms(atomVelocities_);
+  }
+
+  //--------------------------------------------------------
+  //  apply_lambda_to_atoms:
+  //    applies the velocity rescale with an existing lambda
+  //    note oldAtomicQuantity and dt are not used
+  //--------------------------------------------------------
+  void KinetoThermostatRescale::apply_to_atoms(PerAtomQuantity<double> * atomVelocities)
+  {
+    *atomVelocities = atomicFluctuatingVelocityRescaled_->quantity() + atomicStreamingVelocity_->quantity();
+  }
+
+  //--------------------------------------------------------
+  //  output:
+  //    adds all relevant output to outputData
+  //--------------------------------------------------------
+  void KinetoThermostatRescale::output(OUTPUT_LIST & outputData)
+  {
+    thermostat_->output(outputData);
+    kinetostat_->output(outputData);
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class ThermostatRescaleMixedKePeCombined
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  ThermostatRescaleMixedKePeCombined::ThermostatRescaleMixedKePeCombined(AtomicRegulator * thermostat) :
+    ThermostatRescaleMixedKePe(thermostat),
+    kinetostatCorrection_(NULL)
+  {
+    // do nothing
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initializes all data
+  //--------------------------------------------------------
+  void ThermostatRescaleMixedKePeCombined::initialize()
+  {
+    ThermostatRescaleMixedKePe::initialize();
+    kinetostatCorrection_ = (atc_->interscale_manager()).dense_matrix("NodalAtomicCombinedRescaleThermostatError");
+  }
+
+  //--------------------------------------------------------
+  //  set_rhs:
+  //    constructs the RHS vector with the target
+  //    temperature
+  //--------------------------------------------------------
+  void ThermostatRescaleMixedKePeCombined::set_rhs(DENS_MAT & rhs)
+  {
+    ThermostatRescaleMixedKePe::set_rhs(rhs);
+    rhs -= kinetostatCorrection_->quantity();
+  }
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class KinetoThermostatRescaleMixedKePe
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  KinetoThermostatRescaleMixedKePe::KinetoThermostatRescaleMixedKePe(AtomicRegulator * kinetoThermostat,
+                                                                     int couplingMaxIterations) :
+    KinetoThermostatRescale(kinetoThermostat,couplingMaxIterations)
+  {
+    // do nothing
+  }
+
+  //--------------------------------------------------------
+  //  construct_rescale_thermostat
+  //    constructs the appropriate rescaling thermostat
+  //    varied through inheritance
+  //--------------------------------------------------------
+  ThermostatRescale * KinetoThermostatRescaleMixedKePe::construct_rescale_thermostat()
+  {
+    return new ThermostatRescaleMixedKePeCombined(atomicRegulator_);
+  }
+
+
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+  //  Class KinetoThermostatGlcFs
+  //--------------------------------------------------------
+  //--------------------------------------------------------
+ 
+  //--------------------------------------------------------
+  //  Constructor
+  //--------------------------------------------------------
+  KinetoThermostatGlcFs::KinetoThermostatGlcFs(AtomicRegulator * kinetoThermostat,
+                                               int couplingMaxIterations,
+                                               const string & regulatorPrefix) :
+    KinetoThermostatShapeFunction(kinetoThermostat,couplingMaxIterations,regulatorPrefix),
+    velocity_(atc_->field(VELOCITY)),
+    temperature_(atc_->field(TEMPERATURE)),
+    timeFilter_(atomicRegulator_->time_filter()),
+    nodalAtomicLambdaForce_(NULL),
+    lambdaForceFiltered_(NULL),
+    nodalAtomicLambdaPower_(NULL),
+    lambdaPowerFiltered_(NULL),
+    atomRegulatorForces_(NULL),
+    atomThermostatForces_(NULL),
+    atomMasses_(NULL),
+    atomVelocities_(NULL),
+    isFirstTimestep_(true),
+    nodalAtomicMomentum_(NULL),
+    nodalAtomicEnergy_(NULL),
+    atomPredictedVelocities_(NULL),
+    nodalAtomicPredictedMomentum_(NULL),
+    nodalAtomicPredictedEnergy_(NULL),
+    firstHalfAtomForces_(NULL),
+    dtFactor_(0.)
+  {
+    // construct/obtain data corresponding to stage 3 of ATC_Method::initialize
+    //nodalAtomicLambdaPower_ = thermostat->regulator_data(regulatorPrefix_+"NodalAtomicLambdaPower",1);
+    //lambdaPowerFiltered_ = thermostat_->regulator_data(regulatorPrefix_+"LambdaPowerFiltered",1);
+  }
+
+  //--------------------------------------------------------
+  //  constructor_transfers
+  //    instantiates or obtains all dependency managed data
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::construct_transfers()
+  {
+    // BASES INITIALIZE
+    // GRAB ANY COPIES FROM BASES
+
+    // TOTAL REGULATOR FORCE
+    // TOTAL FIRST HALF FORCE, IF NECESSARY
+  }
+
+  //--------------------------------------------------------
+  //  initialize
+  //    initializes all method data
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::initialize()
+  {
+    RegulatorMethod::initialize();
+
+    // INITIALIZE BASES
+
+    // MAKE SURE ANY NEEDED POINTERS FROM BASES ARE COPIED BY HERE
+  }
+
+  //--------------------------------------------------------
+  //  apply_to_atoms:
+  //     determines what if any contributions to the
+  //     atomic moition is needed for
+  //     consistency with the thermostat
+  //     and computes the instantaneous induced power
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::apply_to_atoms(PerAtomQuantity<double> * atomicVelocity,
+                                             const DENS_MAN * nodalAtomicMomentum,
+                                             const DENS_MAN * nodalAtomicEnergy,
+                                             const DENS_MAT & lambdaForce,
+                                             DENS_MAT & nodalAtomicLambdaForce,
+                                             DENS_MAT & nodalAtomicLambdaPower,
+                                             double dt)
+  {
+    // compute initial contributions to lambda force and power
+    nodalAtomicLambdaPower = nodalAtomicEnergy->quantity();
+    nodalAtomicLambdaPower *= -1.;
+    nodalAtomicLambdaForce = nodalAtomicMomentum->quantity();
+    nodalAtomicLambdaForce *= -1.;
+
+    // apply lambda force to atoms
+    _velocityDelta_ = lambdaForce;
+    _velocityDelta_ /= atomMasses_->quantity();
+    _velocityDelta_ *= dt;
+    (*atomicVelocity) += _velocityDelta_;
+
+    // finalize lambda force and power
+    nodalAtomicLambdaForce += nodalAtomicMomentum->quantity();
+    nodalAtomicLambdaPower += nodalAtomicEnergy->quantity();
+  }
+
+  //--------------------------------------------------------
+  //  full_prediction:
+  //    flag to perform a full prediction calcalation
+  //    for lambda rather than using the old value
+  //--------------------------------------------------------
+  bool KinetoThermostatGlcFs::full_prediction()
+  {
+    // CHECK BOTH BASES
+    return false;
+  }
+
+  //--------------------------------------------------------
+  //  apply_predictor:
+  //    apply the thermostat to the atoms in the first step
+  //    of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::apply_pre_predictor(double dt)
+  {
+    DENS_MAT & lambdaForceFiltered(lambdaForceFiltered_->set_quantity());
+    DENS_MAT & nodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
+    DENS_MAT & myLambdaPowerFiltered(lambdaPowerFiltered_->set_quantity());
+    DENS_MAT & myNodalAtomicLambdaPower(nodalAtomicLambdaPower_->set_quantity());
+
+    // update filtered forces power, equivalent to measuring changes in momentum and energy
+    timeFilter_->apply_pre_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
+    timeFilter_->apply_pre_step1(myLambdaPowerFiltered,myNodalAtomicLambdaPower,dt);
+
+    // apply lambda force to atoms and compute instantaneous lambda power for first half of time step
+    this->apply_to_atoms(atomVelocities_,nodalAtomicMomentum_,nodalAtomicEnergy_,
+                         firstHalfAtomForces_->quantity(),
+                         nodalAtomicLambdaForce,myNodalAtomicLambdaPower,0.5*dt);
+
+    // update nodal variables for first half of time step
+    // velocity
+    this->add_to_momentum(nodalAtomicLambdaForce,deltaMomentum_,0.5*dt);
+    atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
+    velocity_ += deltaMomentum_;
+    // temperature
+    this->add_to_energy(myNodalAtomicLambdaPower,deltaEnergy1_,0.5*dt);
+
+    // start update of filtered lambda force and power using temporary (i.e., 0 valued) quantities for first part of update
+    nodalAtomicLambdaForce = 0.;
+    timeFilter_->apply_post_step1(lambdaForceFiltered,nodalAtomicLambdaForce,dt);
+    myNodalAtomicLambdaPower = 0.;
+    timeFilter_->apply_post_step1(myLambdaPowerFiltered,myNodalAtomicLambdaPower,dt);
+  }
+
+  //--------------------------------------------------------
+  //  apply_pre_corrector:
+  //    apply the thermostat to the atoms in the first part
+  //    of the corrector step of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::apply_pre_corrector(double dt)
+  {
+    // CHECK WHEN CREATING PREDICTED VELOCITIES IN BASE REGULATORS, ONLY NEED ONE
+    (*atomPredictedVelocities_) = atomVelocities_->quantity();
+
+    // do full prediction if we just redid the shape functions
+    if (full_prediction()) {
+      this->compute_lambda(dt);
+      
+      atomThermostatForces_->unfix_quantity();  // allow update of atomic force applied by lambda
+    }
+
+    // apply lambda force to atoms and compute instantaneous lambda power to predict second half of time step
+    DENS_MAT & myNodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
+    DENS_MAT & myNodalAtomicLambdaPower(nodalAtomicLambdaPower_->set_quantity());
+    apply_to_atoms(atomPredictedVelocities_,
+                   nodalAtomicPredictedMomentum_,nodalAtomicPredictedEnergy_,
+                   firstHalfAtomForces_->quantity(),
+                   myNodalAtomicLambdaForce,myNodalAtomicLambdaPower,0.5*dt);
+
+    if (full_prediction())
+      atomThermostatForces_->fix_quantity();
+    
+    // SPLIT OUT FUNCTION TO CREATE DELTA VARIABLES IN BASES, ONLY NEED THESE
+    // update predicted nodal variables for second half of time step
+    // velocity
+    this->add_to_momentum(myNodalAtomicLambdaForce,deltaMomentum_,0.5*dt);
+    atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
+    velocity_ += deltaMomentum_;
+    // temperature
+    this->add_to_energy(myNodalAtomicLambdaPower,deltaEnergy2_,0.5*dt);
+    // following manipulations performed this way for efficiency
+    deltaEnergy1_ += deltaEnergy2_;
+    atc_->apply_inverse_mass_matrix(deltaEnergy1_,TEMPERATURE);
+    temperature_ += deltaEnergy1_;
+  }
+
+  //--------------------------------------------------------
+  //  apply_post_corrector:
+  //    apply the thermostat to the atoms in the second part
+  //    of the corrector step of the Verlet algorithm
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::apply_post_corrector(double dt)
+  {
+    // remove predicted power effects
+    // velocity
+    DENS_MAT & myVelocity(velocity_.set_quantity());
+    myVelocity -= deltaMomentum_;
+    // temperature
+    DENS_MAT & myTemperature(temperature_.set_quantity());
+    atc_->apply_inverse_mass_matrix(deltaEnergy2_,TEMPERATURE);
+    myTemperature -= deltaEnergy2_;
+
+    // set up equation and update lambda
+    this->compute_lambda(dt);
+
+    // apply lambda force to atoms and compute instantaneous lambda power for second half of time step
+    DENS_MAT & nodalAtomicLambdaForce(nodalAtomicLambdaForce_->set_quantity());
+    DENS_MAT & myNodalAtomicLambdaPower(nodalAtomicLambdaPower_->set_quantity());
+    // allow computation of force applied by lambda using current velocities
+    atomThermostatForces_->unfix_quantity();
+    atomThermostatForces_->quantity();
+    atomThermostatForces_->fix_quantity();
+    apply_to_atoms(atomVelocities_,nodalAtomicMomentum_,nodalAtomicEnergy_,
+                   atomRegulatorForces_->quantity(),
+                   nodalAtomicLambdaForce,myNodalAtomicLambdaPower,0.5*dt);
+
+    // finalize filtered lambda force and power by adding latest contribution
+    timeFilter_->apply_post_step2(lambdaForceFiltered_->set_quantity(),
+                                  nodalAtomicLambdaForce,dt);
+    timeFilter_->apply_post_step2(lambdaPowerFiltered_->set_quantity(),
+                                  myNodalAtomicLambdaPower,dt);
+
+    // update nodal variables for second half of time step
+    // velocity
+    this->add_to_momentum(nodalAtomicLambdaForce,deltaMomentum_,0.5*dt);
+    atc_->apply_inverse_mass_matrix(deltaMomentum_,VELOCITY);
+    velocity_ += deltaMomentum_;
+    // temperature
+    this->add_to_energy(myNodalAtomicLambdaPower,deltaEnergy2_,0.5*dt);
+    atc_->apply_inverse_mass_matrix(deltaEnergy2_,TEMPERATURE);
+    myTemperature += deltaEnergy2_;
+    
+    
+    isFirstTimestep_ = false;
+  }
+
+  //--------------------------------------------------------
+  //  compute_lambda:
+  //   sets up and solves linear system for lambda, if the
+  //   bool is true it iterators to a non-linear solution
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::compute_lambda(double dt,
+                                       bool iterateSolution)
+  {
+    // ITERATIVE SOLUTION
+  }
+
+  //--------------------------------------------------------
+  //  output:
+  //    adds all relevant output to outputData
+  //--------------------------------------------------------
+  void KinetoThermostatGlcFs::output(OUTPUT_LIST & outputData)
+  {
+    // DO NOT CALL INDIVIDUAL REGULATORS
+    // OUTPUT TOTAL FORCE AND TOTAL POWER 
+    // OUTPUT EACH LAMBDA
+  }
+
 
 };

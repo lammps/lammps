@@ -15,9 +15,9 @@
    Contributing author: Sai Jayaraman (University of Notre Dame)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "atom.h"
-#include "string.h"
+#include <string.h>
 #include "compute_ti.h"
 #include "update.h"
 #include "modify.h"
@@ -36,13 +36,14 @@ enum{PAIR,TAIL,KSPACE};
 /* ---------------------------------------------------------------------- */
 
 ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), nterms(0), which(NULL), ivar1(NULL), ivar2(NULL),
+  ilo(NULL), ihi(NULL), var1(NULL), var2(NULL), pptr(NULL), pstyle(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute ti command");
 
   peflag = 1;
   peratom_flag = 1;
-  peatomflag = 1; 
+  peatomflag = 1;
   scalar_flag = 1;
   extscalar = 1;
   timeflag = 1;
@@ -79,7 +80,7 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
     int n = strlen(arg[iarg]) + 1;
     pstyle[nterms] = new char[n];
     strcpy(pstyle[nterms],arg[iarg]);
-    force->bounds(arg[iarg+1],atom->ntypes,ilo[nterms],ihi[nterms]);
+    force->bounds(FLERR,arg[iarg+1],atom->ntypes,ilo[nterms],ihi[nterms]);
     iarg += 1;
 
     if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
@@ -166,7 +167,7 @@ double ComputeTI::compute_scalar()
 
   for (int m = 0; m < nterms; m++) {
     int total_flag = 0;
-    if ((ihi[m]-ilo[m])==atom->ntypes) total_flag = 1; 
+    if ((ihi[m]-ilo[m])==atom->ntypes) total_flag = 1;
     eng = 0.0;
     value1 = input->variable->compute_equal(ivar1[m]);
     value2 = input->variable->compute_equal(ivar2[m]);
@@ -176,26 +177,26 @@ double ComputeTI::compute_scalar()
       if (total_flag) {
         eng = pptr[m]->eng_vdwl + pptr[m]->eng_coul;
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
-      } 
-      else { 
+      }
+      else {
         int npair = nlocal;
         double *eatom = pptr[m]->eatom;
-        
+
         if (force->newton_pair) npair += atom->nghost;
-        for (int i = 0; i < npair; i++)    
-          if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) eng += eatom[i];  
+        for (int i = 0; i < npair; i++)
+          if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) eng += eatom[i];
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
       }
       dUdl += engall/value1 * value2;
-      
+
     } else if (which[m] == TAIL) {
       double vol = domain->xprd*domain->yprd*domain->zprd;
-      if (total_flag) 
+      if (total_flag)
         eng = force->pair->etail / vol;
       else {
-        eng = 0; 
+        eng = 0;
         for (int it = 1; it <= atom->ntypes; it++) {
-          int jt; 
+          int jt;
           if ((it >= ilo[m])&&(it <=ihi[m])) jt = it;
           else jt = ilo[m];
           for (; jt <=ihi[m];jt++) {
@@ -203,28 +204,28 @@ double ComputeTI::compute_scalar()
               force->pair->init_one(it,jt);
               eng += force->pair->etail_ij;
             }
-            if (it !=jt) eng += force->pair->etail_ij; 
+            if (it !=jt) eng += force->pair->etail_ij;
           }
         }
-        eng /= vol; 
+        eng /= vol;
       }
       dUdl += eng/value1 * value2;
-      
+
     } else if (which[m] == KSPACE) {
-      if (total_flag) 
+      if (total_flag)
         eng = force->kspace->energy;
-      else { 
+      else {
         double *eatom = force->kspace->eatom;
         for(int i = 0; i < nlocal; i++)
-          if ((ilo[m]<=type[i])&(ihi[m]>=type[i])) 
-            eng += eatom[i];  
+          if ((ilo[m]<=type[i])&(ihi[m]>=type[i]))
+            eng += eatom[i];
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);
         eng = engall;
       }
       dUdl += eng/value1 * value2;
     }
   }
-  
+
   scalar = dUdl;
   return scalar;
 }

@@ -15,7 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "improper_umbrella_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -60,6 +60,7 @@ void ImproperUmbrellaOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (inum > 0) {
@@ -76,6 +77,7 @@ void ImproperUmbrellaOMP::compute(int eflag, int vflag)
         else eval<0,0,0>(ifrom, ito, thr);
       }
     }
+    thr->timer(Timer::BOND);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -169,8 +171,8 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
       }
     }
 
-    if (c > 1.0) s = 1.0;
-    if (c < -1.0) s = -1.0;
+    if (c > 1.0) c = 1.0;
+    if (c < -1.0) c = -1.0;
 
     s = sqrt(1.0 - c*c);
     if (s < SMALL) s = SMALL;
@@ -252,8 +254,24 @@ void ImproperUmbrellaOMP::eval(int nfrom, int nto, ThrData * const thr)
       f[i4].z += f4[2]*a;
     }
 
-    if (EVFLAG)
+    if (EVFLAG) {
+
+      // get correct 4-body geometry for virial tally
+
+      vb1x = x[i1].x - x[i2].x;
+      vb1y = x[i1].y - x[i2].y;
+      vb1z = x[i1].z - x[i2].z;
+
+      vb2x = x[i3].x - x[i2].x;
+      vb2y = x[i3].y - x[i2].y;
+      vb2z = x[i3].z - x[i2].z;
+
+      vb3x = x[i4].x - x[i3].x;
+      vb3y = x[i4].y - x[i3].y;
+      vb3z = x[i4].z - x[i3].z;
+
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,eimproper,f1,f3,f4,
                    vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,thr);
+    }
   }
 }

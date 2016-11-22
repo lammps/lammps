@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 
 class CommKokkos : public CommBrick {
  public:
-  class AtomKokkos *atomKK;
+
 
   bool exchange_comm_classic;
   bool forward_comm_classic;
@@ -39,14 +39,15 @@ class CommKokkos : public CommBrick {
 
   void forward_comm_pair(class Pair *);    // forward comm from a Pair
   void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  void forward_comm_fix(class Fix *);      // forward comm from a Fix
-  void reverse_comm_fix(class Fix *);      // reverse comm from a Fix
+  void forward_comm_fix(class Fix *, int size=0);      // forward comm from a Fix
+  void reverse_comm_fix(class Fix *, int size=0);      // reverse comm from a Fix
   void forward_comm_compute(class Compute *);  // forward from a Compute
   void reverse_comm_compute(class Compute *);  // reverse from a Compute
   void forward_comm_dump(class Dump *);    // forward comm from a Dump
   void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
   template<class DeviceType> void forward_comm_device(int dummy);
+  template<class DeviceType> void forward_comm_pair_device(Pair *pair);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
@@ -71,5 +72,18 @@ class CommKokkos : public CommBrick {
 #endif
 
 /* ERROR/WARNING messages:
+
+E: Ghost velocity forward comm not yet implemented with Kokkos
+
+This is a current restriction.
+
+W: Fixes cannot send data in Kokkos communication, switching to classic communication
+
+This is current restriction with Kokkos.
+
+E: Required border comm not yet implemented with Kokkos
+
+There are various limitations in the communication options supported
+by Kokkos.
 
 */

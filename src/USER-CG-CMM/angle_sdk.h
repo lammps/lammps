@@ -21,7 +21,7 @@ AngleStyle(cg/cmm,AngleSDK)
 #ifndef LMP_ANGLE_SDK_H
 #define LMP_ANGLE_SDK_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "angle.h"
 
 namespace LAMMPS_NS {

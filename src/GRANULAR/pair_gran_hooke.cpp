@@ -15,9 +15,9 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
 #include "pair_gran_hooke.h"
 #include "atom.h"
 #include "force.h"
@@ -81,8 +81,6 @@ void PairGranHooke::compute(int eflag, int vflag)
   double **torque = atom->torque;
   double *radius = atom->radius;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
@@ -148,13 +146,8 @@ void PairGranHooke::compute(int eflag, int vflag)
         // if I or J part of rigid body, use body mass
         // if I or J is frozen, meff is other particle
 
-        if (rmass) {
-          mi = rmass[i];
-          mj = rmass[j];
-        } else {
-          mi = mass[type[i]];
-          mj = mass[type[j]];
-        }
+        mi = rmass[i];
+        mj = rmass[j];
         if (fix_rigid) {
           if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
           if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
@@ -246,7 +239,7 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
 
   if (rsq >= radsum*radsum) {
     fforce = 0.0;
-    svector[0] = svector[1] = svector[2] = svector[3] = 0.0;
+    for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
     return 0.0;
   }
 
@@ -291,18 +284,10 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
   // if I or J is frozen, meff is other particle
 
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
   int *mask = atom->mask;
 
-  if (rmass) {
-    mi = rmass[i];
-    mj = rmass[j];
-  } else {
-    mi = mass[type[i]];
-    mj = mass[type[j]];
-  }
-
+  mi = rmass[i];
+  mj = rmass[j];
   if (fix_rigid) {
     // NOTE: insure mass_rigid is current for owned+ghost atoms?
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
@@ -333,14 +318,25 @@ double PairGranHooke::single(int i, int j, int itype, int jtype, double rsq,
   if (vrel != 0.0) ft = MIN(fn,fs) / vrel;
   else ft = 0.0;
 
-  // set all forces and return no energy
+  // set force and return no energy
 
   fforce = ccel;
+
+
+  // set single_extra quantities
+
   svector[0] = -ft*vtr1;
   svector[1] = -ft*vtr2;
   svector[2] = -ft*vtr3;
   svector[3] = sqrt(svector[0]*svector[0] +
                     svector[1]*svector[1] +
                     svector[2]*svector[2]);
+  svector[4] = vn1;
+  svector[5] = vn2;
+  svector[6] = vn3;
+  svector[7] = vt1;
+  svector[8] = vt2;
+  svector[9] = vt3;
+
   return 0.0;
 }

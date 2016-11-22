@@ -183,6 +183,15 @@ namespace MPI_Wrappers {
     if (error != MPI_SUCCESS) throw ATC_Error("error in allgatherv "+to_string(error));
   }
 
+  void int_allgather(MPI_Comm comm, int send, int* recv)
+  {
+    int send_count = 1;
+    int recv_count = 1;
+    int error = MPI_Allgather(&send, send_count, MPI_INT,
+                              recv, recv_count,  MPI_INT, comm);
+    if (error != MPI_SUCCESS) throw ATC_Error("error in allgatherv "+to_string(error));
+  }
+
   void logical_or(MPI_Comm comm, void *send_buf, int *rec_buf, int count)
   {
     int error = MPI_Allreduce(send_buf, rec_buf, count, MPI_INT, MPI_LOR,

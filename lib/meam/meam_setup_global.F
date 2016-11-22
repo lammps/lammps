@@ -14,7 +14,7 @@ c
 c
 
       subroutine meam_setup_global(nelt, lat, z, ielement, atwt, alpha,
-     $     b0, b1, b2, b3, alat, esub, asub, 
+     $     b0, b1, b2, b3, alat, esub, asub,
      $     t0, t1, t2, t3, rozero, ibar)
 
       use meam_data

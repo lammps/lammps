@@ -15,13 +15,14 @@
    Contributing author: Axel Kohlmeyer (ICTP, Italy)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "fix_oneway.h"
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "region.h"
+#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,10 +40,10 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (narg < 6) error->all(FLERR,"Illegal fix oneway command");
 
   nevery = force->inumeric(FLERR,arg[3]);
-  if (nevery < 1) error->all(FLERR,"Illegal nevery value for fix oneway");
+  if (nevery < 1) error->all(FLERR,"Illegal fix oneway command");
 
   int len = strlen(arg[4]);
-  regionstr = new char[len];
+  regionstr = new char[len+1];
   strcpy(regionstr,arg[4]);
 
   if (strcmp(arg[5], "x") == 0) direction = X|PLUS;
@@ -81,7 +82,7 @@ void FixOneWay::init()
 {
   regionidx = domain->find_region(regionstr);
   if (regionidx < 0)
-    error->warning(FLERR,"Region for fix oneway does not exist");
+    error->all(FLERR,"Region for fix oneway does not exist");
 }
 
 /* ---------------------------------------------------------------------- */

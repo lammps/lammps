@@ -45,7 +45,7 @@ class FixAveForce : public Fix {
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   int iregion;
   double foriginal_all[4];
-  int nlevels_respa;
+  int nlevels_respa,ilevel_respa;
 };
 
 }

@@ -152,20 +152,20 @@ struct Vector_Nt {
   Vector_Nt(const A *beg) {
     for (int i=0; i<N; i++, ++beg)
       v[i]=*beg;
-  };
+  }
 
   //e construct from another vector
   template <class A>
   Vector_Nt(const Vector_Nt<A,N>& v1) {
     for (int i=0; i<N; i++) v[i]=v1[i];
-  };
+  }
 
   //r Копирует содержимое вектора в it
   template <class A>
   void copy_to(A *beg) const {  
     for (int i=0; i<N; i++, ++beg)
       *beg=v[i];
-  };
+  }
 
   //r получение элемента 
   inline T& operator[](int i) const { return (T&)v[i]; };
@@ -568,11 +568,11 @@ Vector_3 Reflect(Vector_3& ini, double t,Vector_3 &dir, double *box, int flag=0x
 
 inline vec_type vec_area(const Vector_2 &vect1, const Vector_2 &vect2) {
   return fabs(vect1[0]*vect2[1]-vect1[1]*vect2[0])/2;
-};
+}
 
 inline vec_type vec_area(const Vector_3 &vect1, const Vector_3 &vect2) {
   return (vect1%vect2).norm()/2;
-};
+}
 
 // remake for vec_type!
 

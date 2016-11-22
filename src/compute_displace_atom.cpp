@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "string.h"
+#include <math.h>
+#include <string.h>
 #include "compute_displace_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -29,12 +29,14 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  displace(NULL), id_fix(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute displace/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 4;
+  create_attribute = 1;
 
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
@@ -44,13 +46,14 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_fix,id);
   strcat(id_fix,"_COMPUTE_STORE");
 
-  char **newarg = new char*[5];
+  char **newarg = new char*[6];
   newarg[0] = id_fix;
   newarg[1] = group->names[igroup];
   newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "1";
-  newarg[4] = (char *) "3";
-  modify->add_fix(5,newarg);
+  newarg[3] = (char *) "peratom";
+  newarg[4] = (char *) "1";
+  newarg[5] = (char *) "3";
+  modify->add_fix(6,newarg);
   fix = (FixStore *) modify->fix[modify->nfix-1];
   delete [] newarg;
 
@@ -74,7 +77,6 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // per-atom displacement array
 
   nmax = 0;
-  displace = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +110,7 @@ void ComputeDisplaceAtom::compute_peratom()
 
   // grow local displacement array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(displace);
     nmax = atom->nmax;
     memory->create(displace,nmax,4,"displace/atom:displace");
@@ -166,6 +168,19 @@ void ComputeDisplaceAtom::compute_peratom()
       } else displace[i][0] = displace[i][1] =
                displace[i][2] = displace[i][3] = 0.0;
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's storage values, called when atom is created
+------------------------------------------------------------------------- */
+
+void ComputeDisplaceAtom::set_arrays(int i)
+{
+  double **xoriginal = fix->astore;
+  double **x = atom->x;
+  xoriginal[i][0] = x[i][0];
+  xoriginal[i][1] = x[i][1];
+  xoriginal[i][2] = x[i][2];
 }
 
 /* ----------------------------------------------------------------------

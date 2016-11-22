@@ -20,7 +20,7 @@ AngleStyle(charmm,AngleCharmm)
 #ifndef LMP_ANGLE_CHARMM_H
 #define LMP_ANGLE_CHARMM_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -30,7 +30,7 @@ class AngleCharmm : public Angle {
   AngleCharmm(class LAMMPS *);
   virtual ~AngleCharmm();
   virtual void compute(int, int);
-  void coeff(int, char **);
+  virtual void coeff(int, char **);
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -40,7 +40,7 @@ class AngleCharmm : public Angle {
  protected:
   double *k,*theta0,*k_ub,*r_ub;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

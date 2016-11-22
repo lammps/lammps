@@ -15,7 +15,7 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
+#include <string.h>
 #include "compute_plasticity_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -36,7 +36,7 @@ ComputePlasticityAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute plasticity/atom command");
-  
+
   if (!force->pair_match("peri/eps",1))
     error->all(FLERR,"Compute plasticity/atom cannot be used "
                "with this pair style");
@@ -82,7 +82,7 @@ void ComputePlasticityAtom::compute_peratom()
 
   // grow damage array if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(plasticity);
     nmax = atom->nmax;
     memory->create(plasticity,nmax,"plasticity/atom:plasticity");

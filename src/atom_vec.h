@@ -14,7 +14,7 @@
 #ifndef LMP_ATOM_VEC_H
 #define LMP_ATOM_VEC_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -43,9 +43,7 @@ class AtomVec : protected Pointers {
   class Molecule **onemols;            // list of molecules for style template
   int nset;                            // # of molecules in list
 
-  int cudable;                         // 1 if atom style is CUDA-enabled
   int kokkosable;                      // 1 if atom style is KOKKOS-enabled
-  int *maxsend;                        // CUDA-specific variable
 
   int nargcopy;          // copy of command-line args for atom_style command
   char **argcopy;        // used when AtomVec is realloced (restart,replicate)
@@ -113,7 +111,7 @@ class AtomVec : protected Pointers {
   void write_dihedral(FILE *, int, tagint **, int);
   void pack_improper(tagint **);
   void write_improper(FILE *, int, tagint **, int);
- 
+
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 
@@ -158,7 +156,7 @@ E: Invalid atom_style command
 
 Self-explanatory.
 
-E: USER-CUDA package requires a cuda enabled atom_style
+E: KOKKOS package requires a kokkos enabled atom_style
 
 Self-explanatory.
 

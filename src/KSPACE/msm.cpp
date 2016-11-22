@@ -15,12 +15,11 @@
    Contributing authors: Paul Crozier, Stan Moore, Stephen Bond, (all SNL)
 ------------------------------------------------------------------------- */
 
-#include "lmptype.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "math.h"
+#include <mpi.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "msm.h"
 #include "atom.h"
 #include "comm.h"
@@ -45,7 +44,19 @@ enum{REVERSE_RHO,REVERSE_AD,REVERSE_AD_PERATOM};
 enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
-MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
+MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg),
+  factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
+  ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
+  nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
+  nzlo_out(NULL), nxhi_out(NULL), nyhi_out(NULL), nzhi_out(NULL), ngrid(NULL),
+  active_flag(NULL), alpha(NULL), betax(NULL), betay(NULL), betaz(NULL), peratom_allocate_flag(0),
+  levels(0), world_levels(NULL), qgrid(NULL), egrid(NULL), v0grid(NULL), v1grid(NULL),
+  v2grid(NULL), v3grid(NULL), v4grid(NULL), v5grid(NULL), g_direct(NULL),
+  v0_direct(NULL), v1_direct(NULL), v2_direct(NULL), v3_direct(NULL), v4_direct(NULL),
+  v5_direct(NULL), g_direct_top(NULL), v0_direct_top(NULL), v1_direct_top(NULL),
+  v2_direct_top(NULL), v3_direct_top(NULL), v4_direct_top(NULL), v5_direct_top(NULL),
+  phi1d(NULL), dphi1d(NULL), procneigh_levels(NULL), cg(NULL), cg_peratom(NULL),
+  cg_all(NULL), cg_peratom_all(NULL), part2grid(NULL), boxlo(NULL)
 {
   if (narg < 1) error->all(FLERR,"Illegal kspace_style msm command");
 
@@ -97,10 +108,9 @@ MSM::MSM(LAMMPS *lmp, int narg, char **arg) : KSpace(lmp, narg, arg)
   egrid = NULL;
   v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = NULL;
 
-  levels = 0;
-
   peratom_allocate_flag = 0;
   scalar_pressure_flag = 1;
+  warn_nonneutral = 0;
 
   order = 10;
 }
@@ -148,7 +158,7 @@ void MSM::init()
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
-  if (comm->style != 0) 
+  if (comm->style != 0)
     error->universe_all(FLERR,"MSM can only currently be used with "
                         "comm_style brick");
 
@@ -165,7 +175,7 @@ void MSM::init()
 
   if (order%2 != 0) error->all(FLERR,"MSM order must be 4, 6, 8, or 10");
 
-  if (sizeof(FFT_SCALAR) != 8) 
+  if (sizeof(FFT_SCALAR) != 8)
     error->all(FLERR,"Cannot (yet) use single precision with MSM "
                "(remove -DFFT_SINGLE from Makefile and recompile)");
 
@@ -184,7 +194,7 @@ void MSM::init()
 
   scale = 1.0;
   qqrd2e = force->qqrd2e;
-  qsum_qsq(1);
+  qsum_qsq();
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
@@ -359,7 +369,7 @@ void MSM::setup()
   double ay = a;
   double az = a;
 
-  // transform the interaction sphere in box coords to an 
+  // transform the interaction sphere in box coords to an
   // ellipsoid in lamda (0-1) coords to
   // get the direct sum interaction limits for a triclinic system
 
@@ -408,7 +418,7 @@ void MSM::setup()
   else
     boxlo = domain->boxlo_lamda;
 
-  // ghost grid points depend on direct sum interaction limits, 
+  // ghost grid points depend on direct sum interaction limits,
   // so need to recompute local grid
 
   set_grid_local();
@@ -457,6 +467,17 @@ void MSM::compute(int eflag, int vflag)
     }
   }
 
+  // if atom count has changed, update qsum and qsqsum
+
+  if (atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
+  }
+
+  // return if there are no charges
+
+  if (qsqsum == 0.0) return;
+
   // invoke allocate_peratom() if needed for first time
 
   if (vflag_atom && !peratom_allocate_flag) {
@@ -477,7 +498,7 @@ void MSM::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(part2grid);
     nmax = atom->nmax;
     memory->create(part2grid,nmax,3,"msm:part2grid");
@@ -489,7 +510,7 @@ void MSM::compute(int eflag, int vflag)
   particle_map();
   make_rho();
 
-  // all procs reverse communicate charge density values from 
+  // all procs reverse communicate charge density values from
   // their ghost grid points
   // to fully sum contribution in their 3d grid
 
@@ -507,7 +528,6 @@ void MSM::compute(int eflag, int vflag)
     direct(n);
     restriction(n);
   }
-
 
   // compute direct interation for top grid level for nonperiodic
   //   and for second from top grid level for periodic
@@ -565,15 +585,6 @@ void MSM::compute(int eflag, int vflag)
   // calculate the per-atom energy/virial for my particles
 
   if (evflag_atom) fieldforce_peratom();
-
-  // update qsum and qsqsum, if needed
-
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
-  }
 
   // sum global energy across procs and add in self-energy term
 
@@ -1431,7 +1442,7 @@ void MSM::particle_map()
 
   int flag = 0;
 
-  if (!isfinite(boxlo[0]) || !isfinite(boxlo[1]) || !isfinite(boxlo[2]))
+  if (!ISFINITE(boxlo[0]) || !ISFINITE(boxlo[1]) || !ISFINITE(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   for (int i = 0; i < nlocal; i++) {
@@ -1711,7 +1722,7 @@ void MSM::direct(int n)
 
         egridn[icz][icy][icx] += esum;
 
-        if (vflag_atom) {
+        if (vflag_atom && !scalar_pressure_flag) {
           v0gridn[icz][icy][icx] += v0sum;
           v1gridn[icz][icy][icx] += v1sum;
           v2gridn[icz][icy][icx] += v2sum;
@@ -2074,7 +2085,7 @@ void MSM::direct_top(int n)
 
         egridn[icz][icy][icx] += esum;
 
-        if (vflag_atom) {
+        if (vflag_atom && !scalar_pressure_flag) {
           v0gridn[icz][icy][icx] += v0sum;
           v1gridn[icz][icy][icx] += v1sum;
           v2gridn[icz][icy][icx] += v2sum;
@@ -2911,7 +2922,7 @@ void MSM::compute_phis_and_dphis(const double &dx, const double &dy,
 
 inline double MSM::compute_phi(const double &xi)
 {
-  double phi;
+  double phi = 0.0;
   double abs_xi = fabs(xi);
   double xi2 = xi*xi;
 
@@ -2990,7 +3001,7 @@ inline double MSM::compute_phi(const double &xi)
 
 inline double MSM::compute_dphi(const double &xi)
 {
-  double dphi;
+  double dphi = 0.0;
   double abs_xi = fabs(xi);
 
   if (order == 4) {
@@ -3135,7 +3146,7 @@ void MSM::get_g_direct()
         for (ix = nxlo_direct; ix <= nxhi_direct; ix++) {
           xdiff = ix/delxinv[n];
 
-          // transform grid point pair-wise distance from lamda (0-1) coords to box coords          
+          // transform grid point pair-wise distance from lamda (0-1) coords to box coords
 
           if (triclinic) {
             tmp[0] = xdiff;

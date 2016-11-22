@@ -15,10 +15,10 @@
    Contributing author: Pieter J. in 't Veld (SNL)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "math_vector.h"
 #include "pair_buck_long_coul_long.h"
 #include "atom.h"
@@ -51,8 +51,6 @@ PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
   writedata = 1;
-  ftable = NULL;
-  fdisptable = NULL;
 }
 
 /* ----------------------------------------------------------------------
@@ -86,17 +84,17 @@ void PairBuckLongCoulLong::settings(int narg, char **arg)
   options(arg,6);
   options(++arg,1);
 
-  if (!comm->me && ewald_order == ((1<<1) | (1<<6))) 
+  if (!comm->me && ewald_order == ((1<<1) | (1<<6)))
     error->warning(FLERR,"Using largest cutoff for buck/long/coul/long");
-  if (!*(++arg)) 
+  if (!*(++arg))
     error->all(FLERR,"Cutoffs missing in pair_style buck/long/coul/long");
-  if (ewald_off & (1<<6)) 
+  if (ewald_off & (1<<6))
     error->all(FLERR,"LJ6 off not supported in pair_style buck/long/coul/long");
-  if (!((ewald_order^ewald_off) & (1<<1))) 
+  if (!((ewald_order^ewald_off) & (1<<1)))
     error->all(FLERR,
                "Coulomb cut not supported in pair_style buck/long/coul/coul");
   cut_buck_global = force->numeric(FLERR,*(arg++));
-  if (narg == 4 && ((ewald_order & 0x42) == 0x42)) 
+  if (narg == 4 && ((ewald_order & 0x42) == 0x42))
     error->all(FLERR,"Only one cutoff allowed when requesting all long");
   if (narg == 4) cut_coul = force->numeric(FLERR,*arg);
   else cut_coul = cut_buck_global;
@@ -134,6 +132,7 @@ PairBuckLongCoulLong::~PairBuckLongCoulLong()
     memory->destroy(offset);
   }
   if (ftable) free_tables();
+  if (fdisptable) free_disp_tables();
 }
 
 /* ----------------------------------------------------------------------
@@ -176,7 +175,7 @@ void *PairBuckLongCoulLong::extract(const char *id, int &dim)
   const char *ids[] = {
     "B", "ewald_order", "ewald_cut", "ewald_mix", "cut_coul", "cut_LJ", NULL};
   void *ptrs[] = {
-    buck_c, &ewald_order, &cut_coul, &mix_flag, &cut_coul, &cut_buck_global, 
+    buck_c, &ewald_order, &cut_coul, &mix_flag, &cut_coul, &cut_buck_global,
     NULL};
   int i;
 
@@ -192,13 +191,13 @@ void *PairBuckLongCoulLong::extract(const char *id, int &dim)
 
 void PairBuckLongCoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) 
+  if (narg < 5 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(*(arg++),atom->ntypes,ilo,ihi);
-  force->bounds(*(arg++),atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,*(arg++),atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,*(arg++),atom->ntypes,jlo,jhi);
 
   double buck_a_one = force->numeric(FLERR,*(arg++));
   double buck_rho_one = force->numeric(FLERR,*(arg++));
@@ -243,32 +242,32 @@ void PairBuckLongCoulLong::init_style()
       if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
       if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
 
-      if (respa == 0) irequest = neighbor->request(this);
+      if (respa == 0) irequest = neighbor->request(this,instance_me);
       else if (respa == 1) {
-        irequest = neighbor->request(this);
+        irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 1;
         neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this);
+        irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 3;
         neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respaouter = 1;
       } else {
-        irequest = neighbor->request(this);
+        irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 1;
         neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respainner = 1;
-        irequest = neighbor->request(this);
+        irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 2;
         neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respamiddle = 1;
-        irequest = neighbor->request(this);
+        irequest = neighbor->request(this,instance_me);
         neighbor->requests[irequest]->id = 3;
         neighbor->requests[irequest]->half = 0;
         neighbor->requests[irequest]->respaouter = 1;
       }
 
-    } else irequest = neighbor->request(this);
+    } else irequest = neighbor->request(this,instance_me);
   }
 
   cut_coulsq = cut_coul * cut_coul;
@@ -288,8 +287,8 @@ void PairBuckLongCoulLong::init_style()
   if (ewald_order&(1<<6)) g_ewald_6 = force->kspace->g_ewald_6;
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
-  if (ndisptablebits) init_tables_disp(cut_buck_global);
+  if (ncoultablebits && (ewald_order&(1<<1))) init_tables(cut_coul,cut_respa);
+  if (ndisptablebits && (ewald_order&(1<<6))) init_tables_disp(cut_buck_global);
 }
 
 /* ----------------------------------------------------------------------

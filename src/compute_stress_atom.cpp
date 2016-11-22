@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
+#include <stdlib.h>
+#include <string.h>
 #include "compute_stress_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -36,7 +36,8 @@ enum{NOBIAS,BIAS};
 /* ---------------------------------------------------------------------- */
 
 ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_temp(NULL), stress(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute stress/atom command");
 
@@ -60,7 +61,8 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR,"Could not find compute stress/atom temperature ID");
     if (modify->compute[icompute]->tempflag == 0)
       error->all(FLERR,
-		 "Compute stress/atom temperature ID does not compute temperature");
+		 "Compute stress/atom temperature ID does not "
+                 "compute temperature");
   }
 
   // process optional args
@@ -97,7 +99,6 @@ ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  stress = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -307,7 +308,7 @@ void ComputeStressAtom::compute_peratom()
 	    stress[i][5] += onemass*v[i][1]*v[i][2];
 	    temperature->restore_bias(i,v[i]);
 	  }
-	
+
       } else {
 	for (i = 0; i < nlocal; i++)
 	  if (mask[i] & groupbit) {

@@ -353,7 +353,7 @@ class AffineStack(object):
                                      '       This command requires either 6 or 9 numerical arguments.  Either:\n'
                                      '           rotvv(Xold,Yold,Zold,Xnew,Ynew,Znew)  or \n'
                                      '           rotvv(Xold,Yold,Zold,Xnew,Ynew,Znew,centerX,centerY,centerZ)')
-                M[0][3] = 0.0 #RotMatAXYZ() only modifies 3x3 submatrix of M
+                M[0][3] = 0.0 #RotMatXYZXYZ() only modifies 3x3 submatrix of M
                 M[1][3] = 0.0 #The remaining final column must be zeroed by hand
                 M[2][3] = 0.0
                 RotMatXYZXYZ(M,

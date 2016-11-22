@@ -18,7 +18,7 @@ DumpStyle(custom/mpiio,DumpCustomMPIIO)
 #else
 
 #ifndef LMP_DUMP_CUSTOM_MPIIO_H
-#define LMP_DUMP_CUSTOM_MPII0_H
+#define LMP_DUMP_CUSTOM_MPIIO_H
 
 #include "dump_custom.h"
 
@@ -69,7 +69,7 @@ class DumpCustomMPIIO : public DumpCustom {
 
 /* ERROR/WARNING messages:
 
-E: Cannot open dump file
+E: Cannot open dump file %s
 
 The output file for the dump command cannot be opened.  Check that the
 path and name are correct.

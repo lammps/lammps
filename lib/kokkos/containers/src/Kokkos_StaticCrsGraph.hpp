@@ -1,11 +1,9 @@
 /*
 //@HEADER
 // ************************************************************************
-//
-//                             Kokkos
-//         Manycore Performance-Portable Multidimensional Arrays
-//
-//              Copyright (2012) Sandia Corporation
+// 
+//                        Kokkos v. 2.0
+//              Copyright (2014) Sandia Corporation
 // 
 // Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
 // the U.S. Government retains certain rights in this software.
@@ -37,7 +35,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
-// Questions?  Contact  H. Carter Edwards (hcedwar@sandia.gov)
+// Questions? Contact  H. Carter Edwards (hcedwar@sandia.gov)
 // 
 // ************************************************************************
 //@HEADER
@@ -49,8 +47,7 @@
 #include <string>
 #include <vector>
 
-#include <Kokkos_View.hpp>
-#include <Kokkos_Parallel.hpp> // for parallel_reduce
+#include <Kokkos_Core.hpp>
 
 namespace Kokkos {
 
@@ -95,12 +92,12 @@ private:
 public:
   typedef DataType                                            data_type;
   typedef typename traits::array_layout                       array_layout;
+  typedef typename traits::execution_space                    execution_space;
   typedef typename traits::device_type                        device_type;
   typedef SizeType                                            size_type;
 
   typedef StaticCrsGraph< DataType , Arg1Type , Arg2Type , SizeType > staticcrsgraph_type;
-  typedef StaticCrsGraph< DataType , array_layout , typename device_type::host_mirror_device_type , SizeType > HostMirror;
-  //typedef StaticCrsGraph< DataType , array_layout , Kokkos::Threads , SizeType > HostMirror;
+  typedef StaticCrsGraph< DataType , array_layout , typename traits::host_mirror_space , SizeType > HostMirror;
   typedef View< const size_type* , array_layout, device_type >  row_map_type;
   typedef View<       DataType*  , array_layout, device_type >  entries_type;
 
@@ -133,10 +130,12 @@ public:
    */
   ~StaticCrsGraph() {}
 
-  size_t numRows() const {
-    return row_map.dimension_0()>0?row_map.dimension_0()-1:0;
+  KOKKOS_INLINE_FUNCTION
+  size_type numRows() const {
+    return (row_map.dimension_0 () != 0) ?
+      row_map.dimension_0 () - static_cast<size_type> (1) :
+      static_cast<size_type> (0);
   }
-
 };
 
 //----------------------------------------------------------------------------
@@ -183,7 +182,7 @@ namespace Impl {
 template< class GraphType >
 struct StaticCrsGraphMaximumEntry {
 
-  typedef typename GraphType::device_type device_type ;
+  typedef typename GraphType::execution_space execution_space ;
   typedef typename GraphType::data_type value_type ;
 
   const typename GraphType::entries_type entries ;

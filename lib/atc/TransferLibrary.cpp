@@ -418,7 +418,7 @@ namespace ATC {
   //  Constructor
   //--------------------------------------------------------
   ElementMaskNodeSet::ElementMaskNodeSet(ATC_Coupling * atc,
-                                         RegulatedNodes * nodeSet) :
+                                         SetDependencyManager<int> * nodeSet) :
     nodeSet_(nodeSet),
     feMesh_((atc->fe_engine())->fe_mesh())
   { 

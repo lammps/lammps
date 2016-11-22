@@ -1,4 +1,4 @@
-/// -*- c++ -*-
+// -*- c++ -*-
 
 #ifndef COLVARSCRIPT_H
 #define COLVARSCRIPT_H
@@ -9,6 +9,7 @@
 #include "colvarbias.h"
 #include "colvarproxy.h"
 
+// Only these error values are part of the scripting interface
 #define COLVARSCRIPT_ERROR -1
 #define COLVARSCRIPT_OK 0
 
@@ -34,13 +35,17 @@ public:
   std::string result;
 
   /// Run script command with given positional arguments
-  int run (int argc, char const *argv[]);
+  int run(int argc, char const *argv[]);
 
+private:
   /// Run subcommands on colvar
-  int proc_colvar (int argc, char const *argv[]);
+  int proc_colvar(int argc, char const *argv[]);
 
   /// Run subcommands on bias
-  int proc_bias (int argc, char const *argv[]);
+  int proc_bias(int argc, char const *argv[]);
+
+  /// Builds and return a short help
+  std::string help_string(void);
 };
 
 

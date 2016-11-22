@@ -1,0 +1,26 @@
+# This file contains the hooks to build and link LAMMPS with the OpenKIM
+# library so that a LAMMPS input script can use a KIM potential, via the
+# pair_style kim command.
+#
+# The KIM API package can be downloaded from https://openkim.org/kim-api
+# Follow the instructions in the INSTALL file to build and install the
+# KIM API.  Add the openkim.org Models you are interested in using.
+# Make sure the directory where the "kim-api-build-conifg" utility is
+# located is on the PATH.
+#
+# As long as you have followed the KIM API build and install instructions,
+# there should not be any reason to change this file.
+
+# -----------------------------------------------------------
+
+# Settings that the LAMMPS build will import when this package is installed
+
+
+KIM_CONFIG_HELPER = kim-api-build-config
+ifeq ($(shell $(KIM_CONFIG_HELPER) --version 2> /dev/null),)
+  $(error $(KIM_CONFIG_HELPER) utility is not available.  Something is wrong with your KIM API package setup)
+endif
+
+kim_SYSINC  = $(shell $(KIM_CONFIG_HELPER) --includes)
+kim_SYSLIB  = $(shell $(KIM_CONFIG_HELPER) --ldlibs)
+kim_SYSPATH = $(shell $(KIM_CONFIG_HELPER) --ldflags)

@@ -32,6 +32,7 @@ class ComputeVoronoi : public Compute {
   void init();
   void compute_peratom();
   void compute_vector();
+  void compute_local();
   double memory_usage();
 
   int pack_forward_comm(int, int *, double *, int, int *);
@@ -54,8 +55,10 @@ class ComputeVoronoi : public Compute {
   enum { VOROSURF_NONE, VOROSURF_ALL, VOROSURF_GROUP } surface;
   bool onlyGroup, occupation;
 
-  tagint *tags;
+  tagint *tags, oldmaxtag;
   int *occvec, *sendocc, *lroot, *lnext, lmax, oldnatoms, oldnall;
+  int faces_flag, nfaces, nfacesmax;
+  double **faces;
 };
 
 }
@@ -71,12 +74,24 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute voronoi/atom not allowed for triclinic boxes
+E: Could not find compute/voronoi surface group ID
 
-This is a current restriction of this command.
+Self-explanatory.
 
-W: More than one compute voronoi/atom command
+E: Illegal compute voronoi/atom command (occupation and (surface or edges))
 
-It is not efficient to use compute voronoi/atom more than once.
+Self-explanatory.
+
+E: Variable name for voronoi radius does not exist
+
+Self-explanatory.
+
+E: Variable for voronoi radius is not atom style
+
+Self-explanatory.
+
+E: Voro++ error: narea and neigh have a different size
+
+This error is returned by the Voro++ library.
 
 */

@@ -15,10 +15,10 @@
    Contributing author: Yongfeng Zhang (INL), yongfeng.zhang@inl.gov
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_wolf.h"
 #include "atom.h"
 #include "comm.h"
@@ -36,13 +36,15 @@ using namespace MathConst;
 
 PairCoulWolf::PairCoulWolf(LAMMPS *lmp) : Pair(lmp)
 {
-  single_enable = 0;
+  single_enable = 0;        // NOTE: single() method below is not yet correct
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairCoulWolf::~PairCoulWolf()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -131,11 +133,9 @@ void PairCoulWolf::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
-            ecoul = v_sh;
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-          } else ecoul = 0.0;
-        }
+          ecoul = v_sh;
+          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
+        } else ecoul = 0.0;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              0.0,ecoul,fpair,delx,dely,delz);
@@ -187,8 +187,8 @@ void PairCoulWolf::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -210,7 +210,7 @@ void PairCoulWolf::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair coul/wolf requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul*cut_coul;
 }

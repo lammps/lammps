@@ -32,7 +32,7 @@ class PairCoulLong : public Pair {
   virtual void settings(int, char **);
   void coeff(int, char **);
   virtual void init_style();
-  double init_one(int, int);
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   virtual void write_restart_settings(FILE *);
@@ -46,7 +46,7 @@ class PairCoulLong : public Pair {
   double g_ewald;
   double **scale;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }

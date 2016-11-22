@@ -124,7 +124,7 @@ namespace ATC {
   protected:
 
     /** sets lammps data based on the quantity */
-    virtual void set_lammps_to_quantity(){};
+    virtual void set_lammps_to_quantity() const {};
 
     /** sets the quantity based on a lammps pointer */
     virtual void set_quantity_to_lammps() const;
@@ -240,7 +240,7 @@ namespace ATC {
 
     // not needed if no MPI
     /** sets lammps data based on the quantity */
-    virtual void set_lammps_to_quantity()
+    virtual void set_lammps_to_quantity() const
       {throw ATC_Error("ComputedAtomQuantity::set_lammps_to_quantity - Cannot modify a compute's LAMMPS data");};
 
   private:

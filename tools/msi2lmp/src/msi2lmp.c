@@ -2,6 +2,12 @@
 *
 *  msi2lmp.exe
 *
+*   v3.9.8 AK- Improved whitespace handling in parsing topology and force
+*              field files to avoid bogus warnings about type name truncation
+*
+*   v3.9.7 AK- Add check to enforce that Class1/OPLS-AA use A-B parameter
+*              conventions in force field file and Class2 us r-eps conventions
+*
 *   v3.9.6 AK- Refactoring of MDF file parser with more consistent
 *              handling of compile time constants MAX_NAME and MAX_STRING
 *
@@ -159,6 +165,7 @@ int    TriclinicFlag = 0;
 int    forcefield = 0;
 int    centerflag = 1;
 int    hintflag = 1;
+int    ljtypeflag = 0;
 
 int    pflag;
 int    iflag;

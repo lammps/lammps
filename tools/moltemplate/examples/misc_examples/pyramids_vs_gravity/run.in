@@ -1,0 +1,68 @@
+# -- Init Section --
+
+include system.in.init
+boundary p p f
+
+# -- Atom Definition Section --
+
+read_data system.data
+
+# -- Settings Section --
+
+include system.in.settings
+
+# -- Run Section --
+
+
+timestep        0.0025
+dump            1 all custom 200 traj.lammpstrj id mol type x y z ix iy iz
+
+thermo_style    custom step temp pe etotal
+thermo          100  # time interval for printing out "thermo" data
+
+# ---- Set up the physical environment ----
+
+# Add gravity:
+fix fxGrav gMobile gravity 0.05 vector 0 0 -1 
+
+# Create a "ground" surface.
+# This is a repulsive "wall" which particles can bounce off of:
+
+fix fxWall gMobile wall/lj126 zlo EDGE 1.0 0.8908987181403393 1.0
+
+
+# ---- Evolve the system: ----
+
+# Evolve the (mobile) atoms using ordinary Newton's laws (NVE)
+
+fix fxNVE  gMobile nve
+
+
+#  IF YOU WANT TO ADD DAMPING, THEN UNCOMMENT THE NEXT LINE:
+#fix fxLan  gMobile langevin 0.001 0.001 10000.0 48279
+#  To use Langevin dynamics in LAMMPS you need both "fix langevin" and "fix nve"
+#  (See http://lammps.sandia.gov/doc/fix_langevin.html for details.)
+#  This was not tested.
+
+# OPTIONAL:
+# For efficient simulation in parallel, try using "fix balance":
+# (This will adjust the spatial decomposition as the distribution of
+#  particles changes over time.)
+# http://lammps.sandia.gov/doc/fix_balance.html
+# fix fxBalance gMobile balance 1000 1.1 shift 1000 xy 20 1.1
+# Alternatiely, try this:
+#fix fxBalance gMobile balance 1000 1.2 rcb
+
+
+# OPTIONAL: Improve efficiency by omitting the calcuation of interactions 
+# between immobile atoms:
+
+neigh_modify exclude group gImmobile gImmobile
+
+
+restart         50000  restart_nvt
+
+run		200000
+
+write_data  system_after_nvt.data
+

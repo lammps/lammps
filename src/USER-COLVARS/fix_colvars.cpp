@@ -29,6 +29,7 @@
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
+#include "random_park.h"
 #include "respa.h"
 #include "universe.h"
 #include "update.h"
@@ -324,7 +325,6 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   nlevels_respa = 0;
   init_flag = 0;
   num_coords = 0;
-  coords = forces = oforce = NULL;
   comm_buf = NULL;
   force_buf = NULL;
   proxy = NULL;
@@ -383,7 +383,7 @@ void FixColvars::init()
     error->all(FLERR,"Cannot use fix colvars without atom IDs");
 
   if (atom->map_style == 0)
-    error->all(FLERR,"Fix colvars requires an atom map");
+    error->all(FLERR,"Fix colvars requires an atom map, see atom_modify");
 
   if ((me == 0) && (update->whichflag == 2))
     error->warning(FLERR,"Using fix colvars with minimization");
@@ -408,7 +408,7 @@ void FixColvars::one_time_init()
     if (me == 0) color = 0;
     MPI_Comm_split(universe->uworld,color,universe->iworld,&root2root);
   }
-  
+
   // create and initialize the colvars proxy
 
   if (me == 0) {
@@ -443,10 +443,8 @@ void FixColvars::one_time_init()
     proxy = new colvarproxy_lammps(lmp,inp_name,out_name,
                                    rng_seed,t_target,root2root);
     proxy->init(conf_file);
-    coords = proxy->get_coords();
-    forces = proxy->get_forces();
-    oforce = proxy->get_oforce();
-    num_coords = coords->size();
+
+    num_coords = (proxy->modify_atom_positions()->size());
   }
 
   // send the list of all colvar atom IDs to all nodes.
@@ -457,8 +455,7 @@ void FixColvars::one_time_init()
   memory->create(force_buf,3*num_coords,"colvars:force_buf");
 
   if (me == 0) {
-    std::vector<int> *tags_list = proxy->get_tags();
-    std::vector<int> &tl = *tags_list;
+    std::vector<int> &tl = *(proxy->modify_atom_ids());
     inthash_t *hashtable=new inthash_t;
     inthash_init(hashtable, num_coords);
     idmap = (void *)hashtable;
@@ -508,17 +505,20 @@ void FixColvars::setup(int vflag)
 
   if (me == 0) {
 
-    std::vector<struct commdata> &cd = *coords;
-    std::vector<struct commdata> &of = *oforce;
+    std::vector<int>           &id = *(proxy->modify_atom_ids());
+    std::vector<int>           &tp = *(proxy->modify_atom_types());
+    std::vector<cvm::atom_pos> &cd = *(proxy->modify_atom_positions());
+    std::vector<cvm::rvector>  &of = *(proxy->modify_atom_total_forces());
+    std::vector<cvm::real>     &m  = *(proxy->modify_atom_masses());
+    std::vector<cvm::real>     &q  = *(proxy->modify_atom_charges());
 
     // store coordinate data in holding array, clear old forces
+
 
     for (i=0; i<num_coords; ++i) {
       const tagint k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
 
-        of[i].tag  = cd[i].tag  = tag[k];
-        of[i].type = cd[i].type = type[k];
         of[i].x = of[i].y = of[i].z = 0.0;
 
         if (unwrap_flag) {
@@ -535,10 +535,13 @@ void FixColvars::setup(int vflag)
           cd[i].z = x[k][2];
         }
         if (atom->rmass_flag) {
-          cd[i].m = atom->rmass[k];
+          m[i] = atom->rmass[k];
         } else {
-          cd[i].m = atom->mass[type[k]];
+          m[i] = atom->mass[type[k]];
         }
+	if (atom->q_flag) {
+	  q[i] = atom->q[k];
+	}
       }
     }
 
@@ -553,14 +556,20 @@ void FixColvars::setup(int vflag)
       ndata /= size_one;
 
       for (int k=0; k<ndata; ++k) {
+
         const int j = inthash_lookup(idmap, comm_buf[k].tag);
+
         if (j != HASH_FAIL) {
-          of[j].tag  = cd[j].tag  = comm_buf[k].tag;
-          of[j].type = cd[j].type = comm_buf[k].type;
+
+          tp[j] = comm_buf[k].type;
+
           cd[j].x = comm_buf[k].x;
           cd[j].y = comm_buf[k].y;
           cd[j].z = comm_buf[k].z;
-          cd[j].m = comm_buf[k].m;
+
+          m[j] = comm_buf[k].m;
+          q[j] = comm_buf[k].q;
+
           of[j].x = of[j].y = of[j].z = 0.0;
         }
       }
@@ -597,11 +606,15 @@ void FixColvars::setup(int vflag)
           comm_buf[nme].m = atom->mass[type[k]];
         }
 
+	if (atom->q_flag) {
+          comm_buf[nme].q = atom->q[k];
+        }
+
         ++nme;
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
@@ -675,7 +688,8 @@ void FixColvars::post_force(int vflag)
   int tmp, ndata;
 
   if (me == 0) {
-    std::vector<struct commdata> &cd = *coords;
+
+    std::vector<cvm::atom_pos> &cd = *(proxy->modify_atom_positions());
 
     // store coordinate data
 
@@ -744,7 +758,7 @@ void FixColvars::post_force(int vflag)
       }
     }
     /* blocking receive to wait until it is our turn to send data. */
-    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+    MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
     MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
   }
 
@@ -752,7 +766,7 @@ void FixColvars::post_force(int vflag)
   // call our workhorse and retrieve additional information.
   if (me == 0) {
     energy = proxy->compute();
-    store_forces = proxy->need_system_forces();
+    store_forces = proxy->total_forces_enabled();
   }
   ////////////////////////////////////////////////////////////////////////
 
@@ -763,7 +777,9 @@ void FixColvars::post_force(int vflag)
   // broadcast and apply biasing forces
 
   if (me == 0) {
-    std::vector<struct commdata> &fo = *forces;
+
+    std::vector<cvm::rvector> &fo = *(proxy->modify_atom_new_colvar_forces());
+
     double *fbuf = force_buf;
     for (int j=0; j < num_coords; ++j) {
       *fbuf++ = fo[j].x;
@@ -827,7 +843,7 @@ void FixColvars::end_of_step()
     if (me == 0) {
 
       // store old force data
-      std::vector<struct commdata> &of = *oforce;
+      std::vector<cvm::rvector> &of = *(proxy->modify_atom_total_forces());
 
       for (i=0; i<num_coords; ++i) {
         const tagint k = atom->map(taglist[i]);
@@ -875,7 +891,7 @@ void FixColvars::end_of_step()
         }
       }
       /* blocking receive to wait until it is our turn to send data. */
-      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, &status);
+      MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
       MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
     }
   }

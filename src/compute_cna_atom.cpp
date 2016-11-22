@@ -15,8 +15,8 @@
    Contributing author: Wan Liang (Chinese Academy of Sciences)
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
+#include <string.h>
+#include <stdlib.h>
 #include "compute_cna_atom.h"
 #include "atom.h"
 #include "update.h"
@@ -29,7 +29,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "math.h"
+#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -42,7 +42,8 @@ enum{NCOMMON,NBOND,MAXBOND,MINBOND};
 /* ---------------------------------------------------------------------- */
 
 ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  nearest(NULL), nnearest(NULL), pattern(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cna/atom command");
 
@@ -54,9 +55,6 @@ ComputeCNAAtom::ComputeCNAAtom(LAMMPS *lmp, int narg, char **arg) :
   cutsq = cutoff*cutoff;
 
   nmax = 0;
-  nearest = NULL;
-  nnearest = NULL;
-  pattern = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,7 +90,7 @@ void ComputeCNAAtom::init()
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request((void *) this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->half = 0;
@@ -123,7 +121,7 @@ void ComputeCNAAtom::compute_peratom()
 
   // grow arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(nearest);
     memory->destroy(nnearest);
     memory->destroy(pattern);
@@ -262,7 +260,7 @@ void ComputeCNAAtom::compute_peratom()
         firstflag = 1;
         ncommon = 0;
         for (inear = 0; inear < nnearest[i]; inear++)
-          for (jnear = 0; jnear < n; jnear++)
+          for (jnear = 0; (jnear < n) && (n < MAXNEAR); jnear++)
             if (nearest[i][inear] == onenearest[jnear]) {
               if (ncommon < MAXCOMMON) common[ncommon++] = nearest[i][inear];
               else if (firstflag) {
@@ -281,7 +279,7 @@ void ComputeCNAAtom::compute_peratom()
       for (n = 0; n < ncommon; n++) bonds[n] = 0;
 
       nbonds = 0;
-      for (jj = 0; jj < ncommon; jj++) {
+      for (jj = 0; jj < ncommon-1; jj++) {
         j = common[jj];
         xtmp = x[j][0];
         ytmp = x[j][1];

@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "string.h"
-#include "stdlib.h"
-#include "math.h"
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "fix_temp_berendsen.h"
 #include "atom.h"
 #include "force.h"
@@ -35,12 +35,14 @@ enum{CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  tstr(NULL), id_temp(NULL), tflag(0)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix temp/berendsen command");
 
   // Berendsen thermostat should be applied every step
 
+  dynamic_group_allow = 1;
   nevery = 1;
   scalar_flag = 1;
   global_freq = nevery;
@@ -135,6 +137,12 @@ void FixTempBerendsen::init()
 void FixTempBerendsen::end_of_step()
 {
   double t_current = temperature->compute_scalar();
+  double tdof = temperature->dof;
+
+  // there is nothing to do, if there are no degrees of freedom
+
+  if (tdof < 1) return;
+
   if (t_current == 0.0)
     error->all(FLERR,
                "Computed temperature for fix temp/berendsen cannot be 0.0");
@@ -162,7 +170,7 @@ void FixTempBerendsen::end_of_step()
   //   OK to not test returned v = 0, since lamda is multiplied by v
 
   double lamda = sqrt(1.0 + update->dt/t_period*(t_target/t_current - 1.0));
-  double efactor = 0.5 * force->boltz * temperature->dof;
+  double efactor = 0.5 * force->boltz * tdof;
   energy += t_current * (1.0-lamda*lamda) * efactor;
 
   double **v = atom->v;

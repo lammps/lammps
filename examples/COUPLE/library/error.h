@@ -1,7 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include "mpi.h"
+#include <mpi.h>
 
 class Error {
  public:

@@ -16,10 +16,10 @@
                          Aidan Thompson (SNL) GJF formulation
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "string.h"
-#include "stdlib.h"
+#include <mpi.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_langevin.h"
 #include "math_extra.h"
 #include "atom.h"
@@ -51,16 +51,18 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
+  flangevin(NULL), tforce(NULL), franprev(NULL), id_temp(NULL), random(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
+  dynamic_group_allow = 1;
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
   nevery = 1;
 
-  tstr = NULL;
   if (strstr(arg[3],"v_") == arg[3]) {
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];
@@ -144,11 +146,14 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   id_temp = NULL;
   temperature = NULL;
 
-  // flangevin is unallocated until first call to setup()
-  // compute_scalar checks for this and returns 0.0 if flangevin is NULL
-
   energy = 0.0;
+
+  // flangevin is unallocated until first call to setup()
+  // compute_scalar checks for this and returns 0.0 
+  // if flangevin_allocated is not set
+
   flangevin = NULL;
+  flangevin_allocated = 0;
   franprev = NULL;
   tforce = NULL;
   maxatom1 = maxatom2 = 0;
@@ -173,6 +178,8 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  if (tallyflag && zeroflag && comm->me == 0)
+    error->warning(FLERR,"Energy tally does not account for 'zero yes'");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -297,7 +304,7 @@ void FixLangevin::post_force(int vflag)
   double *rmass = atom->rmass;
 
   // enumerate all 2^6 possibilities for template parameters
-  // this avoids testing them inside inner loop: 
+  // this avoids testing them inside inner loop:
   // TSTYLEATOM, GJF, TALLY, BIAS, RMASS, ZERO
 
 #ifdef TEMPLATED_FIX_LANGEVIN
@@ -428,7 +435,7 @@ void FixLangevin::post_force(int vflag)
 	    if (zeroflag) post_force_templated<0,0,0,0,0,1>();
 	    else          post_force_templated<0,0,0,0,0,0>();
 #else
-  post_force_untemplated(int(tstyle==ATOM), gjfflag, tallyflag, 
+  post_force_untemplated(int(tstyle==ATOM), gjfflag, tallyflag,
 			 int(tbiasflag==BIAS), int(rmass!=NULL), zeroflag);
 #endif
 }
@@ -445,12 +452,12 @@ void FixLangevin::post_force_respa(int vflag, int ilevel, int iloop)
 ------------------------------------------------------------------------- */
 
 #ifdef TEMPLATED_FIX_LANGEVIN
-template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, 
+template < int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
 	   int Tp_BIAS, int Tp_RMASS, int Tp_ZERO >
 void FixLangevin::post_force_templated()
 #else
 void FixLangevin::post_force_untemplated
-  (int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY, 
+  (int Tp_TSTYLEATOM, int Tp_GJF, int Tp_TALLY,
    int Tp_BIAS, int Tp_RMASS, int Tp_ZERO)
 #endif
 {
@@ -505,11 +512,12 @@ void FixLangevin::post_force_untemplated
   // reallocate flangevin if necessary
 
   if (Tp_TALLY) {
-    if (atom->nlocal > maxatom1) {
+    if (atom->nmax > maxatom1) {
       memory->destroy(flangevin);
       maxatom1 = atom->nmax;
       memory->create(flangevin,maxatom1,3,"langevin:flangevin");
     }
+    flangevin_allocated = 1;
   }
 
   if (Tp_BIAS) temperature->compute_scalar();
@@ -634,7 +642,7 @@ void FixLangevin::compute_target()
         error->one(FLERR,"Fix langevin variable returned negative temperature");
       tsqrt = sqrt(t_target);
     } else {
-      if (nlocal > maxatom2) {
+      if (atom->nmax > maxatom2) {
         maxatom2 = atom->nmax;
         memory->destroy(tforce);
         memory->create(tforce,maxatom2,"langevin:tforce");
@@ -678,9 +686,9 @@ void FixLangevin::omega_thermostat()
   double tendivthree = 10.0/3.0;
   double tran[3];
   double inertiaone;
-  
+
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
+    if ((mask[i] & groupbit) && (radius[i] > 0.0)) {
       inertiaone = SINERTIA*radius[i]*radius[i]*rmass[i];
       if (tstyle == ATOM) tsqrt = sqrt(tforce[i]);
       gamma1 = -tendivthree*inertiaone / t_period / ftm2v;
@@ -824,7 +832,7 @@ int FixLangevin::modify_param(int narg, char **arg)
 
 double FixLangevin::compute_scalar()
 {
-  if (!tallyflag || flangevin == NULL) return 0.0;
+  if (!tallyflag || !flangevin_allocated) return 0.0;
 
   // capture the very first energy transfer to thermal reservoir
 
@@ -877,7 +885,7 @@ double FixLangevin::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
-   allocate atom-based array for franprev 
+   allocate atom-based array for franprev
 ------------------------------------------------------------------------- */
 
 void FixLangevin::grow_arrays(int nmax)

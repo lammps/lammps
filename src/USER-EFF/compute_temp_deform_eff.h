@@ -29,6 +29,7 @@ class ComputeTempDeformEff : public Compute {
   ComputeTempDeformEff(class LAMMPS *, int, char **);
   virtual ~ComputeTempDeformEff();
   void init();
+  void setup(void);
   virtual double compute_scalar();
   virtual void compute_vector();
 
@@ -39,7 +40,6 @@ class ComputeTempDeformEff : public Compute {
   double memory_usage();
 
  protected:
-  int fix_dof;
   double tfactor;
   double vbias[3];    // stored velocity bias for one atom
   double **vbiasall;  // stored velocity bias for all atoms

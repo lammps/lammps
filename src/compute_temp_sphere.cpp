@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "string.h"
+#include <mpi.h>
+#include <string.h>
 #include "compute_temp_sphere.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -20,6 +20,7 @@
 #include "force.h"
 #include "domain.h"
 #include "modify.h"
+#include "comm.h"
 #include "group.h"
 #include "error.h"
 
@@ -32,7 +33,8 @@ enum{ROTATE,ALL};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  id_bias(NULL)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/sphere command");
 
@@ -43,7 +45,6 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
 
   tempbias = 0;
-  id_bias = NULL;
   mode = ALL;
 
   int iarg = 3;
@@ -97,10 +98,14 @@ void ComputeTempSphere::init()
       error->all(FLERR,"Bias compute does not calculate a velocity bias");
     if (tbias->igroup != igroup)
       error->all(FLERR,"Bias compute group does not match compute group");
-    tbias->init();
-    tbias->setup();
     if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
     else tempbias = 1;
+
+    // init and setup bias compute because
+    // this compute's setup()->dof_compute() may be called first
+
+    tbias->init();
+    tbias->setup();
   }
 }
 
@@ -108,7 +113,8 @@ void ComputeTempSphere::init()
 
 void ComputeTempSphere::setup()
 {
-  fix_dof = -1;
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof_compute();
 }
 
@@ -118,7 +124,8 @@ void ComputeTempSphere::dof_compute()
 {
   int count,count_all;
 
-  if (fix_dof) adjust_dof_fix();
+  adjust_dof_fix();
+  natoms_temp = group->count(igroup);
 
   // 6 or 3 dof for extended/point particles for 3d
   // 3 or 2 dof for extended/point particles for 2d
@@ -159,10 +166,7 @@ void ComputeTempSphere::dof_compute()
   // additional adjustments to dof
 
   if (tempbias == 1) {
-    if (mode == ALL) {
-      double natoms = group->count(igroup);
-      dof -= tbias->dof_remove(-1) * natoms;
-    }
+    if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms_temp;
 
   } else if (tempbias == 2) {
     int *mask = atom->mask;
@@ -246,6 +250,8 @@ double ComputeTempSphere::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic || tempbias == 2) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0)
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }

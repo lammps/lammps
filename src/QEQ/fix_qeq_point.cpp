@@ -15,10 +15,10 @@
    Contributing author: Ray Shan (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_qeq_point.h"
 #include "atom.h"
 #include "comm.h"
@@ -28,8 +28,8 @@
 #include "neigh_request.h"
 #include "update.h"
 #include "force.h"
-#include "kspace.h"
 #include "group.h"
+#include "kspace.h"
 #include "respa.h"
 #include "memory.h"
 #include "error.h"
@@ -45,16 +45,17 @@ FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqPoint::init()
 {
-  if (!atom->q_flag) error->all(FLERR,"Fix qeq/point requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR,"Fix qeq/point requires atom attribute q");
 
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix qeq/point group has no atoms");
 
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
 
   int ntypes = atom->ntypes;
   memory->create(shld,ntypes+1,ntypes+1,"qeq:shileding");
@@ -70,12 +71,11 @@ void FixQEqPoint::pre_force(int vflag)
 {
   if (update->ntimestep % nevery) return;
 
-  n = atom->nlocal;
-  N = atom->nlocal + atom->nghost;
+  nlocal = atom->nlocal;
 
   if( atom->nmax > nmax ) reallocate_storage();
 
-  if( n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
+  if( nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE )
     reallocate_matrix();
 
   init_matvec();
@@ -83,8 +83,7 @@ void FixQEqPoint::pre_force(int vflag)
   matvecs += CG(b_t, t); 	// CG on t - parallel
   calculate_Q();
 
-  if (force->kspace) force->kspace->setup();
-
+  if (force->kspace) force->kspace->qsum_qsq();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -93,13 +92,13 @@ void FixQEqPoint::init_matvec()
 {
   compute_H();
 
-  int nn, ii, i;
+  int inum, ii, i;
   int *ilist;
 
-  nn = list->inum;
+  inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < nn; ++ii ) {
+  for( ii = 0; ii < inum; ++ii ) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -121,11 +120,10 @@ void FixQEqPoint::init_matvec()
 void FixQEqPoint::compute_H()
 {
   int inum, jnum, *ilist, *jlist, *numneigh, **firstneigh;
-  int i, j, ii, jj, flag;
-  double **x, SMALL = 0.0001;
+  int i, j, ii, jj;
+  double **x;
   double dx, dy, dz, r_sqr, r;
 
-  tagint *tag = atom->tag;
   x = atom->x;
   int *mask = atom->mask;
 
@@ -136,7 +134,6 @@ void FixQEqPoint::compute_H()
 
   // fill in the H matrix
   m_fill = 0;
-  r_sqr = 0;
   for( ii = 0; ii < inum; ii++ ) {
     i = ilist[ii];
     if (mask[i] & groupbit) {
@@ -146,30 +143,17 @@ void FixQEqPoint::compute_H()
 
       for( jj = 0; jj < jnum; jj++ ) {
         j = jlist[jj];
+	j &= NEIGHMASK;
 
         dx = x[j][0] - x[i][0];
         dy = x[j][1] - x[i][1];
         dz = x[j][2] - x[i][2];
         r_sqr = dx*dx + dy*dy + dz*dz;
 
-        flag = 0;
-        if (r_sqr <= cutoff_sq) {
-          if (j < n) flag = 1;
-          else if (tag[i] < tag[j]) flag = 1;
-          else if (tag[i] == tag[j]) {
-            if (dz > SMALL) flag = 1;
-            else if (fabs(dz) < SMALL) {
-              if (dy > SMALL) flag = 1;
-              else if (fabs(dy) < SMALL && dx > SMALL)
-                flag = 1;
-	    }
-	  }
-	}
-
-        if( flag ) {
+	if (r_sqr <= cutoff_sq) {
           H.jlist[m_fill] = j;
 	  r = sqrt(r_sqr);
-          H.val[m_fill] = 1.0/r;
+          H.val[m_fill] = 0.5/r;
           m_fill++;
         }
       }

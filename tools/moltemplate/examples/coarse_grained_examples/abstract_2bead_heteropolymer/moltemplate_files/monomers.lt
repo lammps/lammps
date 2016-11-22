@@ -1,0 +1,86 @@
+#   In this example, we define two types of molecules: "H" and "P",
+#   both containing two atoms, whose ids (names) are "ca" and "r",
+#   and whose atom-types vary.
+#
+#             "H" molecules:          "P" molecules:
+#
+#                @HR                     @PR
+#                 |                       |
+#                @CA                     @CA
+#
+#   Eventually, we will connect multiple "H" and "P" molecules
+#   together to form a polymer, as shown below:
+#
+#                    @HR         @HR       
+#                     |           |        
+#                   _@CA_       _@CA_      
+#       ...  -.@CA-'     `-@CA-'     `  ... 
+#               |          |               
+#              @PR         @PR              
+#
+#   The "H" and "P" molecules both share the same type of
+#   backbone atom ("CA"), but have their own custom "r" 
+#   sidechain atoms with different properties:
+#   The "HR" atoms belonging to "H" molecules are attracted to each other.
+#   The "PR" atoms in "P" molecules are not.
+
+
+
+
+
+import "forcefield.lt"   # defines "2beadFF"
+
+
+
+
+
+# Define the "H" monomer type  ("H" <--> "hydrophobic")
+
+H inherits 2beadFF {
+  # atom-id(name)  mol-id   atom-type  charge  x     y        z
+  write("Data Atoms") {
+    $atom:ca      $mol:...  @atom:CA    0.0  0.000  1.0000   0.0000000
+    $atom:r       $mol:...  @atom:HR    0.0  0.000  4.4000   0.0000000
+  }
+
+  write("Data Bond List") {
+    $bond:cr $atom:ca $atom:r
+  }
+
+  # This will look up the bond-parameters according to atom type.
+  # Use "Data Bonds" instead if you prefer to assign the bond type manually:
+  # write("Data Bonds") {
+  #  $bond:cr @bond:Sidechain $atom:ca $atom:r
+  # }
+
+}
+
+
+
+# Define the "P" monomer type  ("P" <--> "polar")
+
+P inherits 2beadFF {
+
+  # atom-id(name)  mol-id   atom-type  charge  x     y        z
+  write("Data Atoms") {
+    $atom:ca      $mol:...  @atom:CA    0.0  0.000  1.0000   0.0000000
+    $atom:r       $mol:...  @atom:PR    0.0  0.000  4.4000   0.0000000
+  }
+
+  write("Data Bond List") {
+    $bond:CR $atom:ca $atom:r
+  }
+
+  # This will look up the bond-parameters according to atom type.
+  # Use "Data Bonds" instead if you prefer to assign the bond type manually:
+  # write("Data Bonds") {
+  #  $bond:cr @bond:Sidechain $atom:ca $atom:r
+  # }
+
+}
+
+
+
+#  Note: The "..." in "$mol:..." tells moltemplate that this molecule may
+#        be a part of a larger molecule, and (if so) to use the larger
+#        molecule's id number as it's own.

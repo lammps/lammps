@@ -9,7 +9,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
 
@@ -84,7 +84,7 @@ int ljcm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                           host_cut_coulsq, host_special_coul, order, qqrd2e);
 
     LJCMLMF.device->gpu_barrier();
-    if (message) 
+    if (message)
       fprintf(screen,"Done.\n");
   }
   if (message)
@@ -101,7 +101,7 @@ void ljcm_gpu_clear() {
 
 int** ljcm_gpu_compute_n(const int ago, const int inum_full,
                          const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial, 
+                         double *sublo, double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,  const double cpu_time,
@@ -111,8 +111,8 @@ int** ljcm_gpu_compute_n(const int ago, const int inum_full,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
                         vatom, host_start, ilist, jnum, cpu_time, success,
                         host_q, boxlo, prd);
-}  
-			
+}
+
 void ljcm_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,

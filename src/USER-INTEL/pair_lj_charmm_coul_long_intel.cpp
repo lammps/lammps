@@ -12,7 +12,7 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_charmm_coul_long_intel.h"
 #include "atom.h"
 #include "comm.h"
@@ -52,7 +52,7 @@ PairLJCharmmCoulLongIntel::~PairLJCharmmCoulLongIntel()
 void PairLJCharmmCoulLongIntel::compute(int eflag, int vflag)
 {
   if (fix->precision()==FixIntel::PREC_MODE_MIXED)
-    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(), 
+    compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
                           force_const_single);
   else if (fix->precision()==FixIntel::PREC_MODE_DOUBLE)
     compute<double,double>(eflag, vflag, fix->get_double_buffers(),
@@ -79,21 +79,21 @@ void PairLJCharmmCoulLongIntel::compute(int eflag, int vflag,
   const int host_start = fix->host_start_pair();
   const int offload_end = fix->offload_end_pair();
   const int ago = neighbor->ago;
-  
-  if (ago != 0 && fix->separate_buffers() == 0) {
+
+  if (_lrt == 0 && ago != 0 && fix->separate_buffers() == 0) {
     fix->start_watch(TIME_PACK);
     #if defined(_OPENMP)
     #pragma omp parallel default(none) shared(eflag,vflag,buffers,fc)
     #endif
     {
       int ifrom, ito, tid;
-      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost, 
+      IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost,
 			      nthreads, sizeof(ATOM_T));
       buffers->thr_pack(ifrom,ito,ago);
     }
     fix->stop_watch(TIME_PACK);
   }
-  
+
   // -------------------- Regular version
   if (evflag || vflag_fdotr) {
     int ovflag = 0;
@@ -176,7 +176,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
   IP_PRE_get_transfern(ago, NEWTON_PAIR, EVFLAG, EFLAG, vflag,
 		       buffers, offload, fix, separate_flag,
 		       x_size, q_size, ev_size, f_stride);
-		       
+
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
@@ -217,11 +217,11 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
     ITABLE_IN signal(f_start)
   #endif
   {
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime();
     #endif
 
-    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall, 
+    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall,
 			      f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
@@ -270,7 +270,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	  if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 	}
 
-        #if defined(__INTEL_COMPILER)
+        #if defined(LMP_SIMD_COMPILER)
 	#pragma vector aligned
 	#pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, secoul, \
 	                       sv0, sv1, sv2, sv3, sv4, sv5)
@@ -289,7 +289,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
           const flt_t rsq = delx * delx + dely * dely + delz * delz;
           const flt_t r2inv = (flt_t)1.0 / rsq;
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < cut_coulsq) {
           #endif
             #ifdef INTEL_ALLOW_TABLE
@@ -303,7 +303,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               const flt_t EWALD_F = 1.12837917;
               const flt_t INV_EWALD_P = 1.0 / 0.3275911;
 
-              const flt_t r = sqrt(rsq);
+              const flt_t r = (flt_t)1.0 / sqrt(r2inv);
               const flt_t grij = g_ewald * r;
               const flt_t expm2 = exp(-grij * grij);
               const flt_t t = INV_EWALD_P / (INV_EWALD_P + grij);
@@ -311,12 +311,12 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               const flt_t prefactor = qqrd2e * qtmp * q[j] / r;
               forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
               if (EFLAG) ecoul = prefactor * erfc;
-              if (sbindex) {
-                const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
-                    prefactor;
-                forcecoul -= adjust;
-                if (EFLAG) ecoul -= adjust;
-              }
+
+	      const flt_t adjust = ((flt_t)1.0 - special_coul[sbindex])*
+		prefactor;
+	      forcecoul -= adjust;
+	      if (EFLAG) ecoul -= adjust;
+
             #ifdef INTEL_ALLOW_TABLE
             } else {
               float rsq_lookup = rsq;
@@ -341,18 +341,18 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               }
             }
             #endif
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #endif
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < cut_ljsq) {
 	  #endif
             flt_t r6inv = r2inv * r2inv * r2inv;
             forcelj = r6inv * (lji[jtype].x * r6inv - lji[jtype].y);
             if (EFLAG) evdwl = r6inv*(lji[jtype].z * r6inv - lji[jtype].w);
 
-	    #ifdef __MIC__
+	    #ifdef INTEL_VMASK
 	    if (rsq > cut_lj_innersq) {
 	    #endif
               const flt_t drsq = cut_ljsq - rsq;
@@ -361,23 +361,23 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
                   inv_denom_lj;
               const flt_t switch2 = (flt_t)12.0 * rsq * cut2 * inv_denom_lj;
               if (EFLAG) {
-		#ifndef __MIC__
+		#ifndef INTEL_VMASK
 		if (rsq > cut_lj_innersq) {
 		#endif
                   forcelj = forcelj * switch1 + evdwl * switch2;
                   evdwl *= switch1;
-		#ifndef __MIC__
+		#ifndef INTEL_VMASK
 		}
 		#endif
               } else {
                 const flt_t philj = r6inv * (lji[jtype].z*r6inv -
                     lji[jtype].w);
-		#ifndef __MIC__
+		#ifndef INTEL_VMASK
 		if (rsq > cut_lj_innersq)
 		#endif
                   forcelj =  forcelj * switch1 + philj * switch2;
               }
-	    #ifdef __MIC__
+	    #ifdef INTEL_VMASK
 	    }
 	    #endif
 
@@ -386,14 +386,14 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
               forcelj *= factor_lj;
               if (EFLAG) evdwl *= factor_lj;
             }
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #else
 	  if (rsq > cut_coulsq) { forcecoul = (flt_t)0.0; ecoul = (flt_t)0.0; }
 	  if (rsq > cut_ljsq) { forcelj = (flt_t)0.0; evdwl = (flt_t)0.0; }
 	  #endif
 
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  if (rsq < cut_coulsq) {
 	  #endif
             const flt_t fpair = (forcecoul + forcelj) * r2inv;
@@ -419,7 +419,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
                 if (eatom) {
                   if (NEWTON_PAIR || i < nlocal)
                     fwtmp += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
-                  if (NEWTON_PAIR || j < nlocal) 
+                  if (NEWTON_PAIR || j < nlocal)
                     f[j].w += (flt_t)0.5 * evdwl + (flt_t)0.5 * ecoul;
                 }
               }
@@ -427,7 +427,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	      IP_PRE_ev_tally_nbor(vflag, ev_pre, fpair,
 				   delx, dely, delz);
             }
-	  #ifdef __MIC__
+	  #ifdef INTEL_VMASK
 	  }
 	  #endif
         } // for jj
@@ -438,12 +438,17 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
 	IP_PRE_ev_tally_atomq(EVFLAG, EFLAG, vflag, f, fwtmp);
       } // for ii
 
-      #if defined(_OPENMP)
-      #pragma omp barrier
+      #ifndef _LMP_INTEL_OFFLOAD
+      if (vflag == 2)
       #endif
-      IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
-			     nlocal, minlocal, nthreads, f_start, f_stride, 
-			     x);
+      {
+        #if defined(_OPENMP)
+        #pragma omp barrier
+        #endif
+        IP_PRE_fdotr_acc_force(NEWTON_PAIR, EVFLAG,  EFLAG, vflag, eatom, nall,
+	  		       nlocal, minlocal, nthreads, f_start, f_stride,
+	                       x, offload);
+      }
     } // end of omp parallel region
     if (EVFLAG) {
       if (EFLAG) {
@@ -459,7 +464,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
         ev_global[7] = ov5;
       }
     }
-    #ifdef __MIC__
+    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
     *timer_compute = MIC_Wtime() - *timer_compute;
     #endif
   } // end of offload region
@@ -470,7 +475,7 @@ void PairLJCharmmCoulLongIntel::eval(const int offload, const int vflag,
     fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload, eatom);
+    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
   else
     fix->add_result_array(f_start, 0, offload);
 }
@@ -487,21 +492,20 @@ void PairLJCharmmCoulLongIntel::init_style()
     error->all(FLERR,
                "The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
-  
+
+  fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
-  fix->set_offload_affinity();
   _cop = fix->coprocessor_number();
   #endif
-  if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
-    fix->get_mixed_buffers()->free_all_nbor_buffers();
+
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     pack_force_const(force_const_single, fix->get_mixed_buffers());
-  } else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE) {
-    fix->get_double_buffers()->free_all_nbor_buffers();
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
     pack_force_const(force_const_double, fix->get_double_buffers());
-  } else {
-    fix->get_single_buffers()->free_all_nbor_buffers();
+  else
     pack_force_const(force_const_single, fix->get_single_buffers());
-  }
+
+  _lrt = fix->lrt();
 }
 
 template <class flt_t, class acc_t>

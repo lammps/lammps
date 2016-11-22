@@ -55,7 +55,7 @@ while i < len(in_dihedral_coeffs):
 
     if ((i>0) and (in_dihedral_coeffs[i-1][-3] < 0)):
 
-        #sys.stdout.write('interation_before_append: '+str(in_dihedral_coeffs[i-1])+'\n')
+        #sys.stdout.write('interaction_before_append: '+str(in_dihedral_coeffs[i-1])+'\n')
         assert(in_dihedral_coeffs[i-1][0] == in_dihedral_coeffs[i][0])
         in_dihedral_coeffs[i-1][-3] = -in_dihedral_coeffs[i-1][-3]
         comments = in_dihedral_coeffs[i-1][-1] 
@@ -63,7 +63,7 @@ while i < len(in_dihedral_coeffs):
         in_dihedral_coeffs[i-1].append(n)
         in_dihedral_coeffs[i-1].append(dn)
         in_dihedral_coeffs[i-1].append(comments)
-        #sys.stdout.write('interation_after_append: '+str(in_dihedral_coeffs[i-1])+'\n')
+        #sys.stdout.write('interaction_after_append: '+str(in_dihedral_coeffs[i-1])+'\n')
         del in_dihedral_coeffs[i]
 
     #elif len(in_dihedral_coeffs) < 3:
@@ -79,7 +79,7 @@ for i in range(0, len(in_dihedral_coeffs)):
     params = map(str, params)
     num_fourier_terms = (len(params)-1)/3
     dihedral_coeff_str = 'dihedral_coeff '+type_str+' '+\
-        dihedral_style_name+' '+\
+        dihedral_style_name+' '+ \
         str(num_fourier_terms)+' '+ \
         ' '.join(params)
     in_dihedral_coeffs[i] = dihedral_coeff_str

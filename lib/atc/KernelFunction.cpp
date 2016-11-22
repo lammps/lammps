@@ -131,7 +131,7 @@ namespace ATC {
     invRc_ = 1.0/Rc_;
     Rc_ = parameters[0];
     invRc_ = 1.0/Rc_;
-    invVol_ = 1.0/(4.0/3.0*Pi*pow(Rc_,3));
+    invVol_ = 1.0/(4.0/3.0*Pi_*pow(Rc_,3));
 
     ATC::Quadrature::instance()->set_line_quadrature(line_ngauss,line_xg,line_wg);
 
@@ -561,7 +561,7 @@ namespace ATC {
   {
     nsd_ = 2;
     double Lz = box_length[2];
-    invVol_ = 1.0/(Pi*pow(Rc_,2)*Lz);
+    invVol_ = 1.0/(Pi_*pow(Rc_,2)*Lz);
     for (int k = 0; k < nsd_; k++ ) {
       if ((bool) periodicity[k]) {
         if (Rc_ > 0.5*box_length[k]) {
@@ -594,7 +594,7 @@ namespace ATC {
   {
     nsd_ = 2;
     double Lz = box_length[2];
-    invVol_ = 1.0/(Pi*pow(Rc_,2)*Lz);
+    invVol_ = 1.0/(Pi_*pow(Rc_,2)*Lz);
     for (int k = 0; k < nsd_; k++ ) {
       if ((bool) periodicity[k]) {
         if (Rc_ > 0.5*box_length[k]) {

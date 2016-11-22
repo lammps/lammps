@@ -17,9 +17,9 @@
      Reese Jones (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
-#include "string.h"
-#include "unistd.h"
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "fix_ave_correlate.h"
 #include "update.h"
 #include "modify.h"
@@ -44,7 +44,9 @@ enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 /* ---------------------------------------------------------------------- */
 
 FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
-  Fix (lmp, narg, arg)
+  Fix (lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL),
+  count(NULL), values(NULL), corr(NULL), save_count(NULL), save_corr(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/correlate command");
 
@@ -56,16 +58,25 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   global_freq = nfreq;
 
+  // expand args if any have wildcard character "*"
+
+  int expand = 0;
+  char **earg;
+  int nargnew = input->expand_args(narg-6,&arg[6],0,earg);
+
+  if (earg != &arg[6]) expand = 1;
+  arg = earg;
+
   // parse values until one isn't recognized
 
-  which = new int[narg-6];
-  argindex = new int[narg-6];
-  ids = new char*[narg-6];
-  value2index = new int[narg-6];
+  which = new int[nargnew];
+  argindex = new int[nargnew];
+  ids = new char*[nargnew];
+  value2index = new int[nargnew];
   nvalues = 0;
 
-  int iarg = 6;
-  while (iarg < narg) {
+  int iarg = 0;
+  while (iarg < nargnew) {
     if (strncmp(arg[iarg],"c_",2) == 0 ||
         strncmp(arg[iarg],"f_",2) == 0 ||
         strncmp(arg[iarg],"v_",2) == 0) {
@@ -107,7 +118,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   char *title2 = NULL;
   char *title3 = NULL;
 
-  while (iarg < narg) {
+  while (iarg < nargnew) {
     if (strcmp(arg[iarg],"type") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       if (strcmp(arg[iarg+1],"auto") == 0) type = AUTO;
@@ -216,9 +227,12 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate does not exist");
-      if (input->variable->equalstyle(ivariable) == 0)
+      if (argindex[i] == 0 && input->variable->equalstyle(ivariable) == 0)
         error->all(FLERR,
                    "Fix ave/correlate variable is not equal-style variable");
+      if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
+        error->all(FLERR,
+                   "Fix ave/correlate variable is not vector-style variable");
     }
   }
 
@@ -232,6 +246,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   // print file comment lines
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Time-correlated data for fix %s\n",id);
     if (title2) fprintf(fp,"%s\n",title2);
@@ -241,35 +256,46 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       fprintf(fp,"# Index TimeDelta Ncount");
       if (type == AUTO)
         for (int i = 0; i < nvalues; i++)
-          fprintf(fp," %s*%s",arg[6+i],arg[6+i]);
+          fprintf(fp," %s*%s",earg[i],earg[i]);
       else if (type == UPPER)
         for (int i = 0; i < nvalues; i++)
           for (int j = i+1; j < nvalues; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == LOWER)
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < i-1; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOUPPER)
         for (int i = 0; i < nvalues; i++)
           for (int j = i; j < nvalues; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOLOWER)
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < i; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == FULL)
         for (int i = 0; i < nvalues; i++)
           for (int j = 0; j < nvalues; j++)
-            fprintf(fp," %s*%s",arg[6+i],arg[6+j]);
+            fprintf(fp," %s*%s",earg[i],earg[j]);
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing file header");
+
     filepos = ftell(fp);
   }
 
   delete [] title1;
   delete [] title2;
   delete [] title3;
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+  // wait to do this until after file comment lines are printed
+
+  if (expand) {
+    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    memory->sfree(earg);
+  }
 
   // allocate and initialize memory for averaging
   // set count and corr to zero since they accumulate
@@ -303,6 +329,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   lastindex = -1;
   firstindex = 0;
   nsample = 0;
+  nvalid_last = -1;
   nvalid = nextvalid();
   modify->addstep_compute_all(nvalid);
 }
@@ -390,9 +417,13 @@ void FixAveCorrelate::end_of_step()
   double scalar;
 
   // skip if not step which requires doing something
+  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
+  if (ntimestep < nvalid_last || ntimestep > nvalid)
+    error->all(FLERR,"Invalid timestep reset for fix ave/correlate");
   if (ntimestep != nvalid) return;
+  nvalid_last = nvalid;
 
   // accumulate results of computes,fixes,variables to origin
   // compute/fix/variable may invoke computes so wrap with clear/add
@@ -434,10 +465,19 @@ void FixAveCorrelate::end_of_step()
       else
         scalar = modify->fix[m]->compute_vector(argindex[i]-1);
 
-    // evaluate equal-style variable
+    // evaluate equal-style or vector-style variable
 
-    } else if (which[i] == VARIABLE)
-      scalar = input->variable->compute_equal(m);
+    } else if (which[i] == VARIABLE) {
+      if (argindex[i] == 0)
+        scalar = input->variable->compute_equal(m);
+      else {
+        double *varvec;
+        int nvec = input->variable->compute_vector(m,&varvec);
+        int index = argindex[i];
+        if (nvec < index) scalar = 0.0;
+        else scalar = varvec[index-1];
+      }
+    }
 
     values[lastindex][i] = scalar;
   }
@@ -474,6 +514,7 @@ void FixAveCorrelate::end_of_step()
   // output result to file
 
   if (fp && me == 0) {
+    clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrepeat);
     for (i = 0; i < nrepeat; i++) {
@@ -486,10 +527,14 @@ void FixAveCorrelate::end_of_step()
           fprintf(fp," 0.0");
       fprintf(fp,"\n");
     }
+    if (ferror(fp))
+      error->one(FLERR,"Error writing out correlation data");
+
     fflush(fp);
+
     if (overwrite) {
       long fileend = ftell(fp);
-      ftruncate(fileno(fp),fileend);
+      if (fileend > 0) ftruncate(fileno(fp),fileend);
     }
   }
 
@@ -604,11 +649,4 @@ bigint FixAveCorrelate::nextvalid()
   if (startstep > nvalid) nvalid = startstep;
   if (nvalid % nevery) nvalid = (nvalid/nevery)*nevery + nevery;
   return nvalid;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixAveCorrelate::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix ave/correlate missed timestep");
 }

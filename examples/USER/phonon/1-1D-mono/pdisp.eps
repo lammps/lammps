@@ -1,7 +1,7 @@
 %!PS-Adobe-2.0
-%%Title: pdisp2.eps
-%%Creator: gnuplot 4.4 patchlevel 2
-%%CreationDate: Sat Feb 23 14:59:32 2013
+%%Title: pdisp.eps
+%%Creator: gnuplot 4.6 patchlevel 4
+%%CreationDate: Tue Nov 24 21:25:41 2015
 %%DocumentFonts: (atend)
 %%BoundingBox: 50 50 554 770
 %%Orientation: Landscape
@@ -22,10 +22,12 @@ gnudict begin
 /Level1 false def
 /Rounded false def
 /ClipToBoundingBox false def
+/SuppressPDFMark false def
 /TransparentPatterns false def
 /gnulinewidth 5.000 def
 /userlinewidth gnulinewidth def
 /Gamma 1.0 def
+/BackgroundColor {-1.000 -1.000 -1.000} def
 %
 /vshift -66 def
 /dl1 {
@@ -40,22 +42,6 @@ gnudict begin
 /vpt_ 31.5 def
 /hpt hpt_ def
 /vpt vpt_ def
-Level1 {} {
-/SDict 10 dict def
-systemdict /pdfmark known not {
-  userdict /pdfmark systemdict /cleartomark get put
-} if
-SDict begin [
-  /Title (pdisp2.eps)
-  /Subject (gnuplot plot)
-  /Creator (gnuplot 4.4 patchlevel 2)
-  /Author (konglt)
-%  /Producer (gnuplot)
-%  /Keywords ()
-  /CreationDate (Sat Feb 23 14:59:32 2013)
-  /DOCINFO pdfmark
-end
-} ifelse
 /doclip {
   ClipToBoundingBox {
     newpath 50 50 moveto 554 50 lineto 554 770 lineto 50 770 lineto closepath
@@ -63,7 +49,7 @@ end
   } if
 } def
 %
-% Gnuplot Prolog Version 4.4 (August 2010)
+% Gnuplot Prolog Version 4.6 (September 2012)
 %
 %/SuppressPDFMark true def
 %
@@ -330,7 +316,8 @@ end
 /PatternFill {gsave /PFa [ 9 2 roll ] def
   PFa 0 get PFa 2 get 2 div add PFa 1 get PFa 3 get 2 div add translate
   PFa 2 get -2 div PFa 3 get -2 div PFa 2 get PFa 3 get Rec
-  gsave 1 setgray fill grestore clip
+  TransparentPatterns {} {gsave 1 setgray fill grestore} ifelse
+  clip
   currentlinewidth 0.5 mul setlinewidth
   /PFs PFa 2 get dup mul PFa 3 get dup mul add sqrt def
   0 0 M PFa 5 get rotate PFs -2 div dup translate
@@ -463,6 +450,23 @@ currentdict end definefont pop
   Blacktext {gsave 0 setgray MFshow grestore} {MFshow} ifelse } bind def
 /XYsave    { [( ) 1 2 true false 3 ()] } bind def
 /XYrestore { [( ) 1 2 true false 4 ()] } bind def
+Level1 SuppressPDFMark or 
+{} {
+/SDict 10 dict def
+systemdict /pdfmark known not {
+  userdict /pdfmark systemdict /cleartomark get put
+} if
+SDict begin [
+  /Title (pdisp.eps)
+  /Subject (gnuplot plot)
+  /Creator (gnuplot 4.6 patchlevel 4)
+  /Author (konglt)
+%  /Producer (gnuplot)
+%  /Keywords ()
+  /CreationDate (Tue Nov 24 21:25:41 2015)
+  /DOCINFO pdfmark
+end
+} ifelse
 end
 %%EndProlog
 %%Page: 1 1
@@ -476,8 +480,10 @@ doclip
 0 setgray
 newpath
 (Helvetica) findfont 200 scalefont setfont
+BackgroundColor 0 lt 3 1 roll 0 lt exch 0 lt or or not {gsave BackgroundColor C clippath fill grestore} if
 1.000 UL
 LTb
+LCb setrgbcolor
 860 640 M
 63 0 V
 5916 0 R
@@ -488,6 +494,7 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 860 1472 M
 63 0 V
 5916 0 R
@@ -498,6 +505,7 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 860 2304 M
 63 0 V
 5916 0 R
@@ -508,6 +516,7 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 860 3135 M
 63 0 V
 5916 0 R
@@ -518,6 +527,7 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 860 3967 M
 63 0 V
 5916 0 R
@@ -528,6 +538,7 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 860 4799 M
 63 0 V
 5916 0 R
@@ -538,12 +549,15 @@ stroke
 ] -66.7 MRshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LT8
+LC8 setrgbcolor
 860 640 M
 0 4159 V
 stroke
 LTb
+LCb setrgbcolor
 860 640 M
 0 63 V
 0 4096 R
@@ -556,12 +570,15 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LT8
+LC8 setrgbcolor
 3850 640 M
 0 4159 V
 stroke
 LTb
+LCb setrgbcolor
 3850 640 M
 0 63 V
 0 4096 R
@@ -572,12 +589,15 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LT8
+LC8 setrgbcolor
 6839 640 M
 0 4159 V
 stroke
 LTb
+LCb setrgbcolor
 6839 640 M
 0 63 V
 0 4096 R
@@ -589,8 +609,10 @@ stroke
 ] -66.7 MCshow
 1.000 UL
 LTb
+LCb setrgbcolor
 1.000 UL
 LTb
+LCb setrgbcolor
 860 4799 N
 860 640 L
 5979 0 V
@@ -612,6 +634,7 @@ LTb
 1.000 UP
 1.000 UL
 LTb
+LCb setrgbcolor
 % Begin plot #1
 1.000 UL
 LT0
@@ -737,27 +760,28 @@ LCb setrgbcolor
 ] -66.7 MRshow
 LT1
 LC0 setrgbcolor
-860 3927 CircleF
-1234 3921 CircleF
-1607 3717 CircleF
-1981 3391 CircleF
-2355 2968 CircleF
-2728 2500 CircleF
-3102 1924 CircleF
-3476 1316 CircleF
+860 3892 CircleF
+1234 3920 CircleF
+1607 3723 CircleF
+1981 3388 CircleF
+2355 2965 CircleF
+2728 2508 CircleF
+3102 1929 CircleF
+3476 1338 CircleF
 3850 640 CircleF
-4223 1316 CircleF
-4597 1924 CircleF
-4971 2500 CircleF
-5344 2968 CircleF
-5718 3391 CircleF
-6092 3717 CircleF
-6465 3921 CircleF
-6839 3927 CircleF
+4223 1338 CircleF
+4597 1929 CircleF
+4971 2508 CircleF
+5344 2965 CircleF
+5718 3388 CircleF
+6092 3723 CircleF
+6465 3920 CircleF
+6839 3892 CircleF
 2091 4436 CircleF
 % End plot #2
 1.000 UL
 LTb
+LCb setrgbcolor
 860 4799 N
 860 640 L
 5979 0 V
@@ -767,6 +791,7 @@ Z stroke
 1.000 UP
 1.000 UL
 LTb
+LCb setrgbcolor
 stroke
 grestore
 end

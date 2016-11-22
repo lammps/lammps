@@ -138,6 +138,8 @@ namespace ATC {
     bool tensorToComponents_;
     /** output vector as its components */
     bool vectorToComponents_;
+    /** warn once flags */
+    bool warnTooManyCols_;
     /** global variables */
     std::map<std::string,double> globalData_;
   };

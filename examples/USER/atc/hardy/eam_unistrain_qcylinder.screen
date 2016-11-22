@@ -1,68 +1,11 @@
-LAMMPS (30 Aug 2013)
-Lattice spacing in x,y,z = 3.615 3.615 3.615
-Created orthogonal box = (-65.07 -10.845 -10.845) to (65.07 10.845 10.845)
-  4 by 1 by 1 MPI processor grid
-Created 4896 atoms
-4608 atoms in group internal
-ATC: constructing kernel field estimate
- ATC: version 2.0
- ATC: peratom PE compute created with ID: 3
- ATC: created uniform mesh with 40 nodes, 10 unique nodes, and 9 elements
-Setting up run ...
- ATC: computing bond matrix ..........done
-Memory usage per processor = 34.3603 Mbytes
-Step PotEng KinEng Press Lx Ly Lz 
-       0   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-       1   -17256.022            0   -2117.8338       130.14        21.69        21.69 
-Loop time of 0.004924 on 4 procs for 1 steps with 4896 atoms
+No protocol specified
+--------------------------------------------------------------------------
+mpirun was unable to launch the specified application as it could not access
+or execute an executable:
 
-Pair  time (%) = 0.00442356 (89.8367)
-Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00033915 (6.8877)
-Outpt time (%) = 8.29101e-05 (1.6838)
-Other time (%) = 7.83801e-05 (1.5918)
+Executable: ../../../lmp_openmpi
+Node: mithrandir
 
-Nlocal:    1224 ave 1296 max 1152 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:    2259 ave 2592 max 1926 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    32508 ave 34992 max 29952 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-FullNghs:  65016 ave 69984 max 60048 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-
-Total # of neighbors = 260064
-Ave neighs/atom = 53.1176
-Neighbor list builds = 0
-Dangerous builds = 0
-Displacing atoms ...
- ATC: Warning : text output can create _LARGE_ files
- ATC: output custom names:
-
-Setting up run ...
- ATC: computing bond matrix ..........done
-Memory usage per processor = 34.3603 Mbytes
-Step PotEng KinEng Press Lx Ly Lz 
-       1   -17252.771            0   -14787.592       130.14        21.69        21.69 
-       2   -17252.771            0   -14787.592       130.14        21.69        21.69 
-Loop time of 0.0577895 on 4 procs for 1 steps with 4896 atoms
-
-Pair  time (%) = 0.00456053 (7.89162)
-Neigh time (%) = 0 (0)
-Comm  time (%) = 0.00036943 (0.639268)
-Outpt time (%) = 0.000626504 (1.08411)
-Other time (%) = 0.052233 (90.385)
-
-Nlocal:    1224 ave 1296 max 1152 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:    2259 ave 2592 max 1926 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:    32508 ave 34992 max 29952 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-FullNghs:  65016 ave 69984 max 60048 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-
-Total # of neighbors = 260064
-Ave neighs/atom = 53.1176
-Neighbor list builds = 0
-Dangerous builds = 0
+while attempting to start process rank 0.
+--------------------------------------------------------------------------
+4 total processes failed to start

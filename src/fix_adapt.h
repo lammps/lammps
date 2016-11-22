@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixAdapt : public Fix {
  public:
   int diamflag;        // 1 if atom diameters will vary, for AtomVecGranular
-  int chgflag; 
+  int chgflag;
 
   FixAdapt(class LAMMPS *, int, char **);
   ~FixAdapt();
@@ -37,10 +37,14 @@ class FixAdapt : public Fix {
   void setup_pre_force(int);
   void pre_force(int);
   void post_run();
+  void setup_pre_force_respa(int,int);
+  void pre_force_respa(int,int,int);
+  void set_arrays(int);
 
  private:
   int nadapt,resetflag,scaleflag;
   int anypair;
+  int nlevels_respa;
   char *id_fix_diam,*id_fix_chg;
   class FixStore *fix_diam,*fix_chg;
 
@@ -53,6 +57,7 @@ class FixAdapt : public Fix {
     double *scalar,scalar_orig;
     double **array,**array_orig;
     int aparam;
+    class Pair *pair;
   };
 
   Adapt *adapt;
@@ -75,6 +80,10 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
+E: Cannot use dynamic group with fix adapt atom
+
+This is not yet supported.
+
 E: Variable name for fix adapt does not exist
 
 Self-explanatory.
@@ -91,6 +100,10 @@ E: Fix adapt pair style param not supported
 
 The pair style does not know about the parameter you specified.
 
+E: Fix adapt pair style param is not compatible
+
+Self-explanatory
+
 E: Fix adapt type pair range is not valid for pair hybrid sub-style
 
 Self-explanatory.
@@ -106,5 +119,10 @@ The atom style being used does not specify an atom diameter.
 E: Fix adapt requires atom attribute charge
 
 The atom style being used does not specify an atom charge.
+
+E: Could not find fix adapt storage fix ID
+
+This should not happen unless you explicitly deleted
+a secondary fix that fix adapt created internally.
 
 */

@@ -22,11 +22,38 @@ static int blank_line(char *line)
   return 1;
 }
 
-static unsigned char string_match(char *,char *);
+static unsigned char string_match(const char *,const char *);
 
 void ClearFrcItem(struct FrcFieldItem *item)
 {
     free(item->data);
+}
+
+const char *SearchAndCheck(const char *keyword)
+{
+  char *status;
+  int got_it = 0;
+  char line[MAX_LINE_LENGTH] = "empty";
+
+  rewind(FrcF);
+  while (got_it == 0) {
+    status = fgets( line, MAX_LINE_LENGTH, FrcF );
+    if (status == NULL) {
+      fprintf(stderr," Unable to find keyword '%s'\n",keyword);
+      fprintf(stderr," Check consistency of forcefield name and class \n");
+      fprintf(stderr," Exiting....\n");
+      exit(1);
+    }
+    if (line[0] == '@') {
+      if (string_match(strtok(line+1," '\t\n\r\f("),keyword)) {
+        got_it = 1;
+        status = strtok(NULL," '\t\n\r\f(");
+        if (status != NULL)
+          return strdup(status);
+      }
+    }
+  }
+  return strdup("(unknown)");
 }
 
 void SearchAndFill(struct FrcFieldItem *item)
@@ -52,7 +79,7 @@ void SearchAndFill(struct FrcFieldItem *item)
       exit(1);
     }
     if (line[0] == '#') {
-      if (string_match(strtok(line," '\t'("),item->keyword)) got_it = 1;
+      if (string_match(strtok(line," '\t\r\n("),item->keyword)) got_it = 1;
     }
     /*     if (strncmp(line, item->keyword,strlen(item->keyword))==0) got_it = 1; */
   }
@@ -105,20 +132,25 @@ void SearchAndFill(struct FrcFieldItem *item)
 
     /* version number and reference number */
 
-    version = atof(strtok(line, " "));
-    reference = atoi(strtok(NULL, " "));
+    version = atof(strtok(line, WHITESPACE));
+    reference = atoi(strtok(NULL, WHITESPACE));
 
     /* equivalences */
 
     for(i = 0; i < item->number_of_members; i++ ) {
-      sscanf(strtok(NULL, " "), "%s", atom_types[i]);
+      charptr = strtok(NULL, WHITESPACE);
+      if (strlen(charptr) > 4) {
+        fprintf(stderr,"Warning: type name overflow for '%s'. "
+                "Truncating to 4 characters.\n",charptr);
+      }
+      sscanf(charptr,"%4s",atom_types[i]);
     }
 
     /* parameters -- Because of symmetrical terms, bonang, angtor, and
        endbontor have to be treated carefully */
 
     for( i = 0; i < item->number_of_parameters; i++ ) {
-      charptr = strtok(NULL, " ");
+      charptr = strtok(NULL, WHITESPACE);
       if(charptr == NULL) {
         for ( j = i; j < item->number_of_parameters; j++ )
           parameters[j] = parameters[j-i];
@@ -211,7 +243,7 @@ void SearchAndFill(struct FrcFieldItem *item)
   */
 }
 
-unsigned char string_match(char *string1,char *string2)
+unsigned char string_match(const char *string1,const char *string2)
 {
   int len1,len2;
 

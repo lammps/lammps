@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "comm.h"
 #include "universe.h"
 #include "atom.h"
@@ -33,7 +33,7 @@
 #include "error.h"
 
 #ifdef _OPENMP
-#include "omp.h"
+#include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;
@@ -44,6 +44,7 @@ enum{SINGLE,MULTI};             // same as in Comm sub-styles
 enum{MULTIPLE};                   // same as in ProcMap
 enum{ONELEVEL,TWOLEVEL,NUMA,CUSTOM};
 enum{CART,CARTREORDER,XYZ};
+enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};    // several files
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,6 +56,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   mode = 0;
   bordergroup = 0;
   cutghostuser = 0.0;
+  cutusermulti = NULL;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -85,7 +87,8 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   } else if (getenv("OMP_NUM_THREADS") == NULL) {
     nthreads = 1;
     if (me == 0)
-      error->warning(FLERR,"OMP_NUM_THREADS environment is not set.");
+      error->message(FLERR,"OMP_NUM_THREADS environment is not set. "
+                           "Defaulting to 1 thread.");
   } else {
     nthreads = omp_get_max_threads();
   }
@@ -113,6 +116,7 @@ Comm::~Comm()
   memory->destroy(xsplit);
   memory->destroy(ysplit);
   memory->destroy(zsplit);
+  memory->destroy(cutusermulti);
   delete [] customfile;
   delete [] outfile;
 }
@@ -131,13 +135,18 @@ void Comm::copy_arrays(Comm *oldcomm)
                    "comm:grid2proc");
     memcpy(&grid2proc[0][0][0],&oldcomm->grid2proc[0][0][0],
            (procgrid[0]*procgrid[1]*procgrid[2])*sizeof(int));
-    
+
     memory->create(xsplit,procgrid[0]+1,"comm:xsplit");
     memory->create(ysplit,procgrid[1]+1,"comm:ysplit");
     memory->create(zsplit,procgrid[2]+1,"comm:zsplit");
     memcpy(xsplit,oldcomm->xsplit,(procgrid[0]+1)*sizeof(double));
     memcpy(ysplit,oldcomm->ysplit,(procgrid[1]+1)*sizeof(double));
     memcpy(zsplit,oldcomm->zsplit,(procgrid[2]+1)*sizeof(double));
+  }
+
+  if (oldcomm->cutusermulti) {
+    memory->create(cutusermulti,atom->ntypes+1,"comm:cutusermulti");
+    memcpy(cutusermulti,oldcomm->cutusermulti,atom->ntypes+1);
   }
 
   if (customfile) {
@@ -161,33 +170,12 @@ void Comm::init()
   triclinic = domain->triclinic;
   map_style = atom->map_style;
 
-  // warn if any proc's sub-box is smaller than neigh skin
-  // since may lead to lost atoms in exchange()
+  // check warn if any proc's subbox is smaller than neigh skin
+  //   since may lead to lost atoms in exchange()
   // really should check every exchange() in case box size is shrinking
-  // but seems overkill to do that
+  //   but seems overkill to do that (fix balance does perform this check)
 
-  int flag = 0;
-  if (!triclinic) {
-    if (domain->subhi[0] - domain->sublo[0] < neighbor->skin) flag = 1;
-    if (domain->subhi[1] - domain->sublo[1] < neighbor->skin) flag = 1;
-    if (domain->dimension == 3)
-      if (domain->subhi[2] - domain->sublo[2] < neighbor->skin) flag = 1;
-  } else {
-    double delta = domain->subhi_lamda[0] - domain->sublo_lamda[0];
-    if (delta*domain->prd[0] < neighbor->skin) flag = 1;
-    delta = domain->subhi_lamda[1] - domain->sublo_lamda[1];
-    if (delta*domain->prd[1] < neighbor->skin) flag = 1;
-    if (domain->dimension == 3) {
-      delta = domain->subhi_lamda[2] - domain->sublo_lamda[2];
-      if (delta*domain->prd[2] < neighbor->skin) flag = 1;
-    }
-  }
-
-  int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  if (flagall && me == 0) 
-    error->warning(FLERR,"Proc sub-domain size < neighbor skin - "
-                   "could lead to lost atoms");
+  domain->subbox_too_small_check(neighbor->skin);
 
   // comm_only = 1 if only x,f are exchanged in forward/reverse comm
   // comm_x_only = 0 if ghost_velocity since velocities are added
@@ -208,14 +196,14 @@ void Comm::init()
 
   for (int i = 0; i < modify->nfix; i++)
     size_border += modify->fix[i]->comm_border;
-  
+
   // per-atom limits for communication
   // maxexchange = max # of datums in exchange comm, set in exchange()
   // maxforward = # of datums in largest forward comm
   // maxreverse = # of datums in largest reverse comm
   // query pair,fix,compute,dump for their requirements
   // pair style can force reverse comm even if newton off
- 	 
+
   maxforward = MAX(size_forward,size_border);
   maxreverse = size_reverse;
 
@@ -254,9 +242,17 @@ void Comm::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (strcmp(arg[iarg+1],"single") == 0) mode = SINGLE;
-      else if (strcmp(arg[iarg+1],"multi") == 0) mode = MULTI;
-      else error->all(FLERR,"Illegal comm_modify command");
+      if (strcmp(arg[iarg+1],"single") == 0) {
+        // need to reset cutghostuser when switching comm mode
+        if (mode == MULTI) cutghostuser = 0.0;
+        memory->destroy(cutusermulti);
+        cutusermulti = NULL;
+        mode = SINGLE;
+      } else if (strcmp(arg[iarg+1],"multi") == 0) {
+        // need to reset cutghostuser when switching comm mode
+        if (mode == SINGLE) cutghostuser = 0.0;
+        mode = MULTI;
+      } else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
@@ -269,10 +265,36 @@ void Comm::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
+      if (mode == MULTI)
+        error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
       cutghostuser = force->numeric(FLERR,arg[iarg+1]);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"cutoff/multi") == 0) {
+      int i,nlo,nhi;
+      double cut;
+      if (mode == SINGLE)
+        error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
+      if (domain->box_exist == 0)
+        error->all(FLERR,
+                   "Cannot set cutoff/multi before simulation box is defined");
+      const int ntypes = atom->ntypes;
+      if (iarg+3 > narg)
+        error->all(FLERR,"Illegal comm_modify command");
+      if (cutusermulti == NULL) {
+        memory->create(cutusermulti,ntypes+1,"comm:cutusermulti");
+        for (i=0; i < ntypes+1; ++i)
+          cutusermulti[i] = -1.0;
+      }
+      force->bounds(FLERR,arg[iarg+1],ntypes,nlo,nhi,1);
+      cut = force->numeric(FLERR,arg[iarg+2]);
+      cutghostuser = MAX(cutghostuser,cut);
+      if (cut < 0.0)
+        error->all(FLERR,"Invalid cutoff in comm_modify command");
+      for (i=nlo; i<=nhi; ++i)
+        cutusermulti[i] = cut;
+      iarg += 3;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
       if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
@@ -334,7 +356,7 @@ void Comm::set_processors(int narg, char **arg)
       } else if (strcmp(arg[iarg+1],"numa") == 0) {
         gridflag = NUMA;
 
-      } else if (strcmp(arg[iarg],"custom") == 0) {
+      } else if (strcmp(arg[iarg+1],"custom") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = CUSTOM;
         delete [] customfile;
@@ -357,7 +379,7 @@ void Comm::set_processors(int narg, char **arg)
                strcmp(arg[iarg+1],"zxy") == 0 ||
                strcmp(arg[iarg+1],"zyx") == 0) {
         mapflag = XYZ;
-        strcpy(xyz,arg[iarg+1]);
+        strncpy(xyz,arg[iarg+1],3);
       } else error->all(FLERR,"Illegal processors command");
       iarg += 2;
 
@@ -427,14 +449,13 @@ void Comm::set_proc_grid(int outflag)
   // recv 3d proc grid of another partition if my 3d grid depends on it
 
   if (recv_from_partition >= 0) {
-    MPI_Status status;
     if (me == 0) {
       MPI_Recv(other_procgrid,3,MPI_INT,
                universe->root_proc[recv_from_partition],0,
-               universe->uworld,&status);
+               universe->uworld,MPI_STATUS_IGNORE);
       MPI_Recv(other_coregrid,3,MPI_INT,
                universe->root_proc[recv_from_partition],0,
-               universe->uworld,&status);
+               universe->uworld,MPI_STATUS_IGNORE);
     }
     MPI_Bcast(other_procgrid,3,MPI_INT,0,world);
     MPI_Bcast(other_coregrid,3,MPI_INT,0,world);
@@ -566,13 +587,96 @@ void Comm::set_proc_grid(int outflag)
 }
 
 /* ----------------------------------------------------------------------
+   determine which proc owns atom with coord x[3] based on current decomp
+   x will be in box (orthogonal) or lamda coords (triclinic)
+   if layout = UNIFORM, calculate owning proc directly
+   if layout = NONUNIFORM, iteratively find owning proc via binary search
+   if layout = TILED, CommTiled has its own method
+   return owning proc ID via grid2proc
+   return igx,igy,igz = logical grid loc of owing proc within 3d grid of procs
+------------------------------------------------------------------------- */
+
+int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
+{
+  double *prd = domain->prd;
+  double *boxlo = domain->boxlo;
+
+  // initialize triclinic b/c coord2proc can be called before Comm::init()
+  // via Irregular::migrate_atoms()
+
+  triclinic = domain->triclinic;
+
+  if (layout == LAYOUT_UNIFORM) {
+    if (triclinic == 0) {
+      igx = static_cast<int> (procgrid[0] * (x[0]-boxlo[0]) / prd[0]);
+      igy = static_cast<int> (procgrid[1] * (x[1]-boxlo[1]) / prd[1]);
+      igz = static_cast<int> (procgrid[2] * (x[2]-boxlo[2]) / prd[2]);
+    } else {
+      igx = static_cast<int> (procgrid[0] * x[0]);
+      igy = static_cast<int> (procgrid[1] * x[1]);
+      igz = static_cast<int> (procgrid[2] * x[2]);
+    }
+
+  } else if (layout == LAYOUT_NONUNIFORM) {
+    if (triclinic == 0) {
+      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+    } else {
+      igx = binary(x[0],procgrid[0],xsplit);
+      igy = binary(x[1],procgrid[1],ysplit);
+      igz = binary(x[2],procgrid[2],zsplit);
+    }
+  }
+
+  if (igx < 0) igx = 0;
+  if (igx >= procgrid[0]) igx = procgrid[0] - 1;
+  if (igy < 0) igy = 0;
+  if (igy >= procgrid[1]) igy = procgrid[1] - 1;
+  if (igz < 0) igz = 0;
+  if (igz >= procgrid[2]) igz = procgrid[2] - 1;
+
+  return grid2proc[igx][igy][igz];
+}
+
+/* ----------------------------------------------------------------------
+   binary search for value in N-length ascending vec
+   value may be outside range of vec limits
+   always return index from 0 to N-1 inclusive
+   return 0 if value < vec[0]
+   reutrn N-1 if value >= vec[N-1]
+   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
+------------------------------------------------------------------------- */
+
+int Comm::binary(double value, int n, double *vec)
+{
+  int lo = 0;
+  int hi = n-1;
+
+  if (value < vec[lo]) return lo;
+  if (value >= vec[hi]) return hi;
+
+  // insure vec[lo] <= value < vec[hi] at every iteration
+  // done when lo,hi are adjacent
+
+  int index = (lo+hi)/2;
+  while (lo < hi-1) {
+    if (value < vec[index]) hi = index;
+    else if (value >= vec[index]) lo = index;
+    index = (lo+hi)/2;
+  }
+
+  return index;
+}
+
+/* ----------------------------------------------------------------------
    communicate inbuf around full ring of processors with messtag
    nbytes = size of inbuf = n datums * nper bytes
    callback() is invoked to allow caller to process/update each proc's inbuf
    if self=1 (default), then callback() is invoked on final iteration
      using original inbuf, which may have been updated
    for non-NULL outbuf, final updated inbuf is copied to it
-     outbuf = inbuf is OK
+     ok to specify outbuf = inbuf
 ------------------------------------------------------------------------- */
 
 void Comm::ring(int n, int nper, void *inbuf, int messtag,
@@ -584,6 +688,10 @@ void Comm::ring(int n, int nper, void *inbuf, int messtag,
   int nbytes = n*nper;
   int maxbytes;
   MPI_Allreduce(&nbytes,&maxbytes,1,MPI_INT,MPI_MAX,world);
+
+  // no need to communicate without data
+
+  if (maxbytes == 0) return;
 
   char *buf,*bufcopy;
   memory->create(buf,maxbytes,"comm:buf");

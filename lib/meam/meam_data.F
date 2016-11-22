@@ -2,6 +2,7 @@
       module meam_data
 
       integer, parameter :: maxelt = 5
+      real*8 , external :: fm_exp
 
 c cutforce = force cutoff
 c cutforcesq = force cutoff squared
@@ -18,7 +19,7 @@ c A_meam = adjustable parameter
 c alpha_meam = sqrt(9*Omega*B/Ec)
 c rho0_meam = density scaling parameter
 c delta_meam = heat of formation for alloys
-c beta[0-3]_meam = electron density constants 
+c beta[0-3]_meam = electron density constants
 c t[0-3]_meam = coefficients on densities in Gamma computation
 c rho_ref_meam = background density for reference structure
 c ibar_meam(i) = selection parameter for Gamma function for elt i,
@@ -70,7 +71,7 @@ c nrar,rdrar = spline coeff array parameters
      $     phirar3(:,:),phirar4(:,:),phirar5(:,:),phirar6(:,:)
 
       real*8 attrac_meam(maxelt,maxelt),repuls_meam(maxelt,maxelt)
- 
+
       real*8 Cmin_meam(maxelt,maxelt,maxelt)
       real*8 Cmax_meam(maxelt,maxelt,maxelt)
       real*8 rc_meam,delr_meam,ebound_meam(maxelt,maxelt)

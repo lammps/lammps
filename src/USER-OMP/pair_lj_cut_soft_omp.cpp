@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_lj_cut_soft_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -53,6 +53,7 @@ void PairLJCutSoftOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -67,6 +68,7 @@ void PairLJCutSoftOMP::compute(int eflag, int vflag)
       if (force->newton_pair) eval<0,0,1>(ifrom, ito, thr);
       else eval<0,0,0>(ifrom, ito, thr);
     }
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -124,7 +126,7 @@ void PairLJCutSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         r4sig6 = rsq*rsq / lj2i[jtype];
         denlj = lj3i[jtype] + rsq*r4sig6;
-        forcelj = lj1i[jtype] * epsi[jtype] * 
+        forcelj = lj1i[jtype] * epsi[jtype] *
           (48.0*r4sig6/(denlj*denlj*denlj) - 24.0*r4sig6/(denlj*denlj));
 
         fpair = factor_lj*forcelj;
@@ -139,7 +141,7 @@ void PairLJCutSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          evdwl = lj1i[jtype] * 4.0 * epsi[jtype] * 
+          evdwl = lj1i[jtype] * 4.0 * epsi[jtype] *
             (1.0/(denlj*denlj) - 1.0/denlj) - offseti[jtype];
           evdwl *= factor_lj;
         }

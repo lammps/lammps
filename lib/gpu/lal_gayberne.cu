@@ -17,93 +17,93 @@
 #include "lal_ellipsoid_extra.h"
 #endif
 
-ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape, 
+ucl_inline void compute_eta_torque(numtyp m[9],numtyp m2[9], const numtyp4 shape,
                                    numtyp ans[9])
 {
   numtyp den = m[3]*m[2]*m[7]-m[0]*m[5]*m[7]-
     m[2]*m[6]*m[4]+m[1]*m[6]*m[5]-
     m[3]*m[1]*m[8]+m[0]*m[4]*m[8];
   den = ucl_recip(den);
-  
+
   ans[0] = shape.x*(m[5]*m[1]*m2[2]+(numtyp)2.0*m[4]*m[8]*m2[0]-
-		    m[4]*m2[2]*m[2]-(numtyp)2.0*m[5]*m2[0]*m[7]+
-		    m2[1]*m[2]*m[7]-m2[1]*m[1]*m[8]-
-		    m[3]*m[8]*m2[1]+m[6]*m[5]*m2[1]+
-		    m[3]*m2[2]*m[7]-m2[2]*m[6]*m[4])*den;
-  
+                    m[4]*m2[2]*m[2]-(numtyp)2.0*m[5]*m2[0]*m[7]+
+                    m2[1]*m[2]*m[7]-m2[1]*m[1]*m[8]-
+                    m[3]*m[8]*m2[1]+m[6]*m[5]*m2[1]+
+                    m[3]*m2[2]*m[7]-m2[2]*m[6]*m[4])*den;
+
   ans[1] = shape.x*(m[2]*m2[0]*m[7]-m[8]*m2[0]*m[1]+
-		    (numtyp)2.0*m[0]*m[8]*m2[1]-m[0]*m2[2]*m[5]-
-		    (numtyp)2.0*m[6]*m[2]*m2[1]+m2[2]*m[3]*m[2]-
-		    m[8]*m[3]*m2[0]+m[6]*m2[0]*m[5]+
-		    m[6]*m2[2]*m[1]-m2[2]*m[0]*m[7])*den;
-  
+                    (numtyp)2.0*m[0]*m[8]*m2[1]-m[0]*m2[2]*m[5]-
+                    (numtyp)2.0*m[6]*m[2]*m2[1]+m2[2]*m[3]*m[2]-
+                    m[8]*m[3]*m2[0]+m[6]*m2[0]*m[5]+
+                    m[6]*m2[2]*m[1]-m2[2]*m[0]*m[7])*den;
+
   ans[2] = shape.x*(m[1]*m[5]*m2[0]-m[2]*m2[0]*m[4]-
-		    m[0]*m[5]*m2[1]+m[3]*m[2]*m2[1]-
-		    m2[1]*m[0]*m[7]-m[6]*m[4]*m2[0]+
-		    (numtyp)2.0*m[4]*m[0]*m2[2]-(numtyp)2.0*m[3]*m2[2]*m[1]+
-		    m[3]*m[7]*m2[0]+m[6]*m2[1]*m[1])*den;
-  
+                    m[0]*m[5]*m2[1]+m[3]*m[2]*m2[1]-
+                    m2[1]*m[0]*m[7]-m[6]*m[4]*m2[0]+
+                    (numtyp)2.0*m[4]*m[0]*m2[2]-(numtyp)2.0*m[3]*m2[2]*m[1]+
+                    m[3]*m[7]*m2[0]+m[6]*m2[1]*m[1])*den;
+
   ans[3] = shape.y*(-m[4]*m2[5]*m[2]+(numtyp)2.0*m[4]*m[8]*m2[3]+
-		    m[5]*m[1]*m2[5]-(numtyp)2.0*m[5]*m2[3]*m[7]+
-		    m2[4]*m[2]*m[7]-m2[4]*m[1]*m[8]-
-		    m[3]*m[8]*m2[4]+m[6]*m[5]*m2[4]-
-		    m2[5]*m[6]*m[4]+m[3]*m2[5]*m[7])*den;
-  
+                    m[5]*m[1]*m2[5]-(numtyp)2.0*m[5]*m2[3]*m[7]+
+                    m2[4]*m[2]*m[7]-m2[4]*m[1]*m[8]-
+                    m[3]*m[8]*m2[4]+m[6]*m[5]*m2[4]-
+                    m2[5]*m[6]*m[4]+m[3]*m2[5]*m[7])*den;
+
   ans[4] = shape.y*(m[2]*m2[3]*m[7]-m[1]*m[8]*m2[3]+
-		    (numtyp)2.0*m[8]*m[0]*m2[4]-m2[5]*m[0]*m[5]-
-		    (numtyp)2.0*m[6]*m2[4]*m[2]-m[3]*m[8]*m2[3]+
-		    m[6]*m[5]*m2[3]+m[3]*m2[5]*m[2]-
-		    m[0]*m2[5]*m[7]+m2[5]*m[1]*m[6])*den;
-  
+                    (numtyp)2.0*m[8]*m[0]*m2[4]-m2[5]*m[0]*m[5]-
+                    (numtyp)2.0*m[6]*m2[4]*m[2]-m[3]*m[8]*m2[3]+
+                    m[6]*m[5]*m2[3]+m[3]*m2[5]*m[2]-
+                    m[0]*m2[5]*m[7]+m2[5]*m[1]*m[6])*den;
+
   ans[5] = shape.y*(m[1]*m[5]*m2[3]-m[2]*m2[3]*m[4]-
-		    m[0]*m[5]*m2[4]+m[3]*m[2]*m2[4]+
-		    (numtyp)2.0*m[4]*m[0]*m2[5]-m[0]*m2[4]*m[7]+
-		    m[1]*m[6]*m2[4]-m2[3]*m[6]*m[4]-
-		    (numtyp)2.0*m[3]*m[1]*m2[5]+m[3]*m2[3]*m[7])*den;
-  
+                    m[0]*m[5]*m2[4]+m[3]*m[2]*m2[4]+
+                    (numtyp)2.0*m[4]*m[0]*m2[5]-m[0]*m2[4]*m[7]+
+                    m[1]*m[6]*m2[4]-m2[3]*m[6]*m[4]-
+                    (numtyp)2.0*m[3]*m[1]*m2[5]+m[3]*m2[3]*m[7])*den;
+
   ans[6] = shape.z*(-m[4]*m[2]*m2[8]+m[1]*m[5]*m2[8]+
-		    (numtyp)2.0*m[4]*m2[6]*m[8]-m[1]*m2[7]*m[8]+
-		    m[2]*m[7]*m2[7]-(numtyp)2.0*m2[6]*m[7]*m[5]-
-		    m[3]*m2[7]*m[8]+m[5]*m[6]*m2[7]-
-		    m[4]*m[6]*m2[8]+m[7]*m[3]*m2[8])*den;
-  
+                    (numtyp)2.0*m[4]*m2[6]*m[8]-m[1]*m2[7]*m[8]+
+                    m[2]*m[7]*m2[7]-(numtyp)2.0*m2[6]*m[7]*m[5]-
+                    m[3]*m2[7]*m[8]+m[5]*m[6]*m2[7]-
+                    m[4]*m[6]*m2[8]+m[7]*m[3]*m2[8])*den;
+
   ans[7] = shape.z*-(m[1]*m[8]*m2[6]-m[2]*m2[6]*m[7]-
-		     (numtyp)2.0*m2[7]*m[0]*m[8]+m[5]*m2[8]*m[0]+
-		     (numtyp)2.0*m2[7]*m[2]*m[6]+m[3]*m2[6]*m[8]-
-		     m[3]*m[2]*m2[8]-m[5]*m[6]*m2[6]+
-		     m[0]*m2[8]*m[7]-m2[8]*m[1]*m[6])*den;
-  
+                     (numtyp)2.0*m2[7]*m[0]*m[8]+m[5]*m2[8]*m[0]+
+                     (numtyp)2.0*m2[7]*m[2]*m[6]+m[3]*m2[6]*m[8]-
+                     m[3]*m[2]*m2[8]-m[5]*m[6]*m2[6]+
+                     m[0]*m2[8]*m[7]-m2[8]*m[1]*m[6])*den;
+
   ans[8] = shape.z*(m[1]*m[5]*m2[6]-m[2]*m2[6]*m[4]-
-		    m[0]*m[5]*m2[7]+m[3]*m[2]*m2[7]-
-		    m[4]*m[6]*m2[6]-m[7]*m2[7]*m[0]+
-		    (numtyp)2.0*m[4]*m2[8]*m[0]+m[7]*m[3]*m2[6]+
-		    m[6]*m[1]*m2[7]-(numtyp)2.0*m2[8]*m[3]*m[1])*den;
+                    m[0]*m[5]*m2[7]+m[3]*m[2]*m2[7]-
+                    m[4]*m[6]*m2[6]-m[7]*m2[7]*m[0]+
+                    (numtyp)2.0*m[4]*m2[8]*m[0]+m[7]*m[3]*m2[6]+
+                    m[6]*m[1]*m2[7]-(numtyp)2.0*m2[8]*m[3]*m[1])*den;
 }
 
 __kernel void k_gayberne(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict q,
-                         const __global numtyp4 *restrict shape, 
-                         const __global numtyp4 *restrict well, 
-                         const __global numtyp *restrict gum, 
-                         const __global numtyp2 *restrict sig_eps, 
-                         const int ntypes, 
-                         const __global numtyp *restrict lshape, 
-                         const __global int *dev_nbor, 
-                         const int stride, 
-                         __global acctyp4 *restrict ans, 
-                         const int astride, 
-                         __global acctyp *restrict engv, 
-                         __global int *restrict err_flag, 
+                         const __global numtyp4 *restrict shape,
+                         const __global numtyp4 *restrict well,
+                         const __global numtyp *restrict gum,
+                         const __global numtyp2 *restrict sig_eps,
+                         const int ntypes,
+                         const __global numtyp *restrict lshape,
+                         const __global int *dev_nbor,
+                         const int stride,
+                         __global acctyp4 *restrict ans,
+                         const int astride,
+                         __global acctyp *restrict engv,
+                         __global int *restrict err_flag,
                          const int eflag, const int vflag, const int inum,
                          const int t_per_atom) {
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[4];
-  sp_lj[0]=gum[3];    
-  sp_lj[1]=gum[4];    
-  sp_lj[2]=gum[5];    
-  sp_lj[3]=gum[6];    
+  sp_lj[0]=gum[3];
+  sp_lj[1]=gum[4];
+  sp_lj[2]=gum[5];
+  sp_lj[3]=gum[6];
 
   acctyp energy=(acctyp)0;
   acctyp4 f;
@@ -124,7 +124,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
     __local int n_stride;
     nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
-  
+
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype=ix.w;
     numtyp a1[9], b1[9], g1[9];
@@ -159,7 +159,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
 
       numtyp a2[9];
       gpu_quat_to_mat_trans(q,j,a2);
-  
+
       numtyp u_r, dUr[3], tUr[3], eta, teta[3];
       { // Compute U_r, dUr, eta, and teta
         // Compute g12
@@ -173,7 +173,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
           }
 
           { // Compute U_r and dUr
-    
+
             // Compute kappa
             numtyp kappa[3];
             gpu_mldivide3(g12,r12,kappa,err_flag);
@@ -189,7 +189,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
             kappa[2]*=ir;
 
             // energy
-  
+
             // compute u_r and dUr
             numtyp uslj_rsq;
             {
@@ -203,7 +203,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
               kappa[0]*=r;
               kappa[1]*=r;
               kappa[2]*=r;
-          
+
               int mtype=fast_mul(ntypes,itype)+jtype;
               numtyp sigma = sig_eps[mtype].x;
               numtyp epsilon = sig_eps[mtype].y;
@@ -235,14 +235,14 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
             }
           }
         }
-     
+
         // Compute eta
         {
           eta = (numtyp)2.0*lshape[itype]*lshape[jtype];
           numtyp det_g12 = gpu_det3(g12);
           eta = ucl_powr(eta/det_g12,gum[1]);
         }
-    
+
         // Compute teta
         numtyp temp[9], tempv[3], tempv2[3];
         compute_eta_torque(g12,a1,ishape,temp);
@@ -255,7 +255,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
         teta[0] = tempv2[0];
         teta[1] = tempv2[1];
         teta[2] = tempv2[2];
-  
+
         tempv[0] = temp1*temp[3];
         tempv[1] = temp1*temp[4];
         tempv[2] = temp1*temp[5];
@@ -272,7 +272,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
         teta[1] += tempv2[1];
         teta[2] += tempv2[2];
       }
-  
+
       numtyp chi, dchi[3], tchi[3];
       { // Compute chi and dchi
 
@@ -355,7 +355,7 @@ __kernel void k_gayberne(const __global numtyp4 *restrict x_,
       tor.x+=temp1*tchi[0]+temp2*teta[0]+temp3*tUr[0];
       tor.y+=temp1*tchi[1]+temp2*teta[1]+temp3*tUr[1];
       tor.z+=temp1*tchi[2]+temp2*teta[2]+temp3*tUr[2];
- 
+
     } // for nbor
     store_answers_t(f,tor,energy,virial,ii,astride,tid,t_per_atom,offset,eflag,
                     vflag,ans,engv);

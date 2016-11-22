@@ -1,0 +1,17 @@
+# rx heats of formation for various molecules
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# the entries are in LAMMPS "metal" units (eV)
+# Be sure the units are consistent with your input file
+
+# format of a single entry (one or more lines):
+#   species  DeltaHformation
+
+rdx     1.989907438211819
+hcn     1.400635733970104
+no2     0.343004076201018
+no      0.935781955892458
+h2o    -2.506184777415379
+n2      0.000000000000000
+h2      0.000000000000000
+co     -1.145533746031845
+co2    -4.078501848437456

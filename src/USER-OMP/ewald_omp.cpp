@@ -15,7 +15,7 @@
    Contributing authors: Roy Pollock (LLNL), Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include "ewald_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -68,7 +68,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atom->nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(ek);
     memory->destroy3d_offset(cs,-kmax_created);
     memory->destroy3d_offset(sn,-kmax_created);
@@ -86,14 +86,12 @@ void EwaldOMP::compute(int eflag, int vflag)
   MPI_Allreduce(sfacrl,sfacrl_all,kcount,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(sfacim,sfacim_all,kcount,MPI_DOUBLE,MPI_SUM,world);
 
-  // update qsum and qsqsum, if needed
+  // update qsum and qsqsum, if atom count has changed and energy needed
   // (n.b. needs to be done outside of the multi-threaded region)
 
-  if (eflag_global || eflag_atom) {
-    if (qsum_update_flag || (atom->natoms != natoms_original)) {
-      qsum_qsq(0);
-      natoms_original = atom->natoms;
-    }
+  if ((eflag_global || eflag_atom) && atom->natoms != natoms_original) {
+    qsum_qsq();
+    natoms_original = atom->natoms;
   }
 
   // K-space portion of electric field
@@ -120,6 +118,7 @@ void EwaldOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, nlocal, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, 0, NULL, NULL, thr);
 
     for (i = ifrom; i < ito; i++) {
@@ -207,6 +206,7 @@ void EwaldOMP::compute(int eflag, int vflag)
           for (j = 0; j < 6; j++) vatom[i][j] *= q[i]*qscale;
     }
 
+    thr->timer(Timer::KSPACE);
     reduce_thr(this, eflag,vflag,thr);
   } // end of omp parallel region
 

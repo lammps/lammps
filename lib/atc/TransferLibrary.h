@@ -899,7 +899,7 @@ namespace ATC {
     
     // constructor
     ElementMaskNodeSet(ATC_Coupling * atc,
-                       RegulatedNodes * nodeSet);
+                       SetDependencyManager<int> * nodeSet);
 
     // destructor
     virtual ~ElementMaskNodeSet() {
@@ -912,7 +912,7 @@ namespace ATC {
   protected:
 
     /** transfer determining used nodes */
-    RegulatedNodes * nodeSet_;
+    SetDependencyManager<int> * nodeSet_;
 
     /** finite element mesh */
     const FE_Mesh * feMesh_;

@@ -50,7 +50,6 @@ class GridComm : protected Pointers {
   int nforward,nreverse;
   MPI_Comm gridcomm;
   MPI_Request request;
-  MPI_Status status;
 
   // in = inclusive indices of 3d grid chunk that I own
   // out = inclusive indices of 3d grid chunk I own plus ghosts I use

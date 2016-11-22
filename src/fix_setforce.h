@@ -27,18 +27,19 @@ namespace LAMMPS_NS {
 class FixSetForce : public Fix {
  public:
   FixSetForce(class LAMMPS *, int, char **);
-  ~FixSetForce();
+  virtual ~FixSetForce();
   int setmask();
-  void init();
+  virtual void init();
   void setup(int);
   void min_setup(int);
-  void post_force(int);
+  virtual void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
   double compute_vector(int);
+
   double memory_usage();
 
- private:
+ protected:
   double xvalue,yvalue,zvalue;
   int varflag,iregion;
   char *xstr,*ystr,*zstr;
@@ -46,7 +47,7 @@ class FixSetForce : public Fix {
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
   double foriginal[3],foriginal_all[3];
   int force_flag;
-  int nlevels_respa;
+  int nlevels_respa,ilevel_respa;
 
   int maxatom;
   double **sforce;

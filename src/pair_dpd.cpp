@@ -15,9 +15,9 @@
    Contributing author: Kurt Smith (U Pittsburgh)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "pair_dpd.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -164,12 +164,13 @@ void PairDPD::compute(int eflag, int vflag)
 
 void PairDPD::allocate()
 {
+  int i,j;
   allocated = 1;
   int n = atom->ntypes;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  for (i = 1; i <= n; i++)
+    for (j = i; j <= n; j++)
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
@@ -178,6 +179,9 @@ void PairDPD::allocate()
   memory->create(a0,n+1,n+1,"pair:a0");
   memory->create(gamma,n+1,n+1,"pair:gamma");
   memory->create(sigma,n+1,n+1,"pair:sigma");
+  for (i = 0; i <= atom->ntypes; i++)
+    for (j = 0; j <= atom->ntypes; j++)
+      sigma[i][j] = gamma[i][j] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -214,12 +218,13 @@ void PairDPD::settings(int narg, char **arg)
 
 void PairDPD::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5)
+    error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double a0_one = force->numeric(FLERR,arg[2]);
   double gamma_one = force->numeric(FLERR,arg[3]);
@@ -256,7 +261,7 @@ void PairDPD::init_style()
   if (force->newton_pair == 0 && comm->me == 0) error->warning(FLERR,
       "Pair dpd needs newton pair on for momentum conservation");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

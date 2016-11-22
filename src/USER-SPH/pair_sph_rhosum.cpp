@@ -11,8 +11,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 #include "pair_sph_rhosum.h"
 #include "atom.h"
 #include "force.h"
@@ -56,7 +56,7 @@ PairSPHRhoSum::~PairSPHRhoSum() {
 
 void PairSPHRhoSum::init_style() {
   // need a full neighbor list
-  int irequest = neighbor->request(this);
+  int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 }
@@ -243,8 +243,8 @@ void PairSPHRhoSum::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(arg[1], atom->ntypes, jlo, jhi);
+  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
+  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
 
   double cut_one = force->numeric(FLERR,arg[2]);
 
@@ -287,7 +287,7 @@ double PairSPHRhoSum::single(int i, int j, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-int PairSPHRhoSum::pack_forward_comm(int n, int *list, double *buf, 
+int PairSPHRhoSum::pack_forward_comm(int n, int *list, double *buf,
                                      int pbc_flag, int *pbc) {
   int i, j, m;
   double *rho = atom->rho;

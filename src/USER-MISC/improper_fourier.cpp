@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    [ based on improper_umbrella.cpp Tod A Pascal (Caltech) ]
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "improper_fourier.h"
 #include "atom.h"
 #include "comm.h"
@@ -92,18 +92,18 @@ void ImproperFourier::compute(int eflag, int vflag)
     vb3z = x[i4][2] - x[i1][2];
 
     addone(i1,i2,i3,i4, type,evflag,eflag,
-           vb1x, vb1y, vb1z, 
-           vb2x, vb2y, vb2z, 
+           vb1x, vb1y, vb1z,
+           vb2x, vb2y, vb2z,
            vb3x, vb3y, vb3z);
     if ( all[type] ) {
       addone(i1,i4,i2,i3, type,evflag,eflag,
              vb3x, vb3y, vb3z,
-             vb1x, vb1y, vb1z, 
-             vb2x, vb2y, vb2z); 
+             vb1x, vb1y, vb1z,
+             vb2x, vb2y, vb2z);
       addone(i1,i3,i4,i2, type,evflag,eflag,
-             vb2x, vb2y, vb2z, 
+             vb2x, vb2y, vb2z,
              vb3x, vb3y, vb3z,
-             vb1x, vb1y, vb1z); 
+             vb1x, vb1y, vb1z);
     }
   }
 }
@@ -156,8 +156,8 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
     MPI_Comm_rank(world,&me);
     if (screen) {
       char str[128];
-      sprintf(str,"Improper problem: %d " BIGINT_FORMAT " " 
-              TAGINT_FORMAT " " TAGINT_FORMAT " " 
+      sprintf(str,"Improper problem: %d " BIGINT_FORMAT " "
+              TAGINT_FORMAT " " TAGINT_FORMAT " "
               TAGINT_FORMAT " " TAGINT_FORMAT,
               me,update->ntimestep,
               atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
@@ -173,8 +173,8 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
     }
   }
 
-  if (c > 1.0) s = 1.0;
-  if (c < -1.0) s = -1.0;
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
 
   s = sqrt(1.0 - c*c);
   if (s < SMALL) s = SMALL;
@@ -282,7 +282,7 @@ void ImproperFourier::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nimpropertypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
 
   double k_one = force->numeric(FLERR,arg[1]);
   double C0_one = force->numeric(FLERR,arg[2]);
@@ -308,7 +308,7 @@ void ImproperFourier::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file 
+   proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void ImproperFourier::write_restart(FILE *fp)
@@ -321,7 +321,7 @@ void ImproperFourier::write_restart(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them 
+   proc 0 reads coeffs from restart file, bcasts them
 ------------------------------------------------------------------------- */
 
 void ImproperFourier::read_restart(FILE *fp)

@@ -1,0 +1,12 @@
+ -- IO functions directory --
+
+ * This is the directory containing input/output functions.
+
+ * Files:
+   - io_binary.py: Contains the functions to write output in binary format.
+   - io_pdb.py: Contains the functions to read pdb structure files and to 
+      create pdb trajectory output files.
+   - io_xml.py: Contains the functions used to read the xml input file and
+      to format the restart output file.
+   - io_xyz.py: Contains the functions to read xyz structure files and to 
+      create xyz trajectory output files.

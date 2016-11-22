@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "stdlib.h"
+#include <stdlib.h>
 #include "integrate.h"
 #include "update.h"
 #include "force.h"
@@ -57,9 +57,9 @@ void Integrate::init()
   // should add checks:
   // for any acceleration package that has its own integrate/minimize
   // in case input script has reset the run or minimize style explicitly
-  // e.g. invalid to have intel pair style with non-intel verlet
-  // but OK to have intel verlet with non intel pair style (just warn)
-  // ditto for USER-CUDA and KOKKOS package verlet with their pair, fix, etc
+  // e.g. invalid to have kokkos pair style with non-kokkos verlet
+  // but OK to have kokkos verlet with non kokkos pair style (just warn)
+  // ditto for USER-CUDA package verlet with their pair, fix, etc
   // making these checks would require all the pair, fix, etc styles have
   //   cuda, kokkos, intel flags
 }

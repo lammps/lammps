@@ -4,8 +4,8 @@
 from dump2data import *
 
 g_program_name = 'raw2data.py'
-g_date_str     = '2013-9-19'
-g_version_str  = 'v0.42'
+g_date_str     = '2014-12-19'
+g_version_str  = 'v0.43'
 
 #######  Main Code Below: #######
 sys.stderr.write(g_program_name+' '+g_version_str+' '+g_date_str)
@@ -63,6 +63,11 @@ try:
             frame_coords[str(n_crds+1)] = line.split()
             line = in_coord_file.readline()
 
+        # Check to see if there are any blank lines at this location in the file
+        # If there are, it means we are at a new "frame" (in the trajectory).
+        # Skip over any blank line(s) separating this frame from the next frame
+        # so that the next time we enter the loop, we are at the beginning
+        # of a new frame.
         while (line != '') and (line.strip() == ''):
             line = in_coord_file.readline()
 
@@ -86,6 +91,8 @@ try:
                          frame_coords_ixiyiz,
                          frame_vects,
                          frame_velocities,
+                         None,
+                         None,
                          frame_xlo_str, frame_xhi_str, 
                          frame_ylo_str, frame_yhi_str, 
                          frame_zlo_str, frame_zhi_str,

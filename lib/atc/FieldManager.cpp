@@ -530,6 +530,7 @@ typedef PerAtomQuantity<double> PAQ;
     PAQ * quantity = interscaleManager_.per_atom_quantity(field_to_prolongation_name(field));
     if (!quantity) {
       
+      
       DENS_MAN * coarseQuantity = interscaleManager_.dense_matrix(field_to_string(field));
       if (!coarseQuantity) coarseQuantity = nodal_atomic_field(field);
       if (!coarseQuantity) throw ATC_Error("can not prolong quantity: " + field_to_string(field) + " no field registered");

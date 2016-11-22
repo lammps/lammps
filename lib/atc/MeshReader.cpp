@@ -24,8 +24,7 @@ namespace ATC {
     : meshfile_(filename),
       periodicity_(periodicity),
       nNodes_(0),
-      nElements_(0),
-      coordTol_(tol)
+      nElements_(0)
   {
     conn_ = new Array2D<int>();
     nodeCoords_ = new DENS_MAT;
@@ -45,6 +44,9 @@ namespace ATC {
   /** destructor */
   MeshReader::~MeshReader()
   {
+    if (conn_) delete conn_;
+    if (nodeCoords_) delete nodeCoords_;
+    if (nodeSets_) delete nodeSets_;
   }
 
   /** creates handle to new mesh object */

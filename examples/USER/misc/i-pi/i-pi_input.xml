@@ -1,0 +1,31 @@
+<simulation verbosity="medium">
+   <initialize nbeads='8'>
+      <file mode='xyz' units="angstrom"> i-pi_positions.xyz  </file>
+      <cell mode='manual' units="angstrom"> [ 51.8,0,0,0, 49.84,0,0,0, 200 ] </cell> 
+      <velocities mode='thermal' units='kelvin'> 300 </velocities>
+   </initialize>
+   <output prefix='graphene'>
+      <properties stride='5' filename='out' flush="10" >  [ step, time{picosecond}, conserved{electronvolt}, temperature{kelvin}, kinetic_cv{electronvolt}, potential{electronvolt}, pressure_cv{megapascal}] </properties>
+      <properties stride='5' filename='iso' flush="10" >  [ isotope_tdfep(1.167;C), isotope_scfep(1.167;0) ] </properties>
+      <trajectory stride='20' filename='pos' flush="100"> positions{angstrom}</trajectory>
+      <checkpoint stride='2000' />
+   </output>
+   <total_steps>1000</total_steps>
+   <total_time>128000</total_time>
+   <prng><seed>8417</seed></prng>
+   <forces>
+      <socket mode="unix">
+         <address>graphene</address>
+      </socket>
+   </forces>
+   <ensemble mode='nvt'>
+  <thermostat mode='gle'>
+    <A shape='(5,5)'>
+      [   1.124524713863e-3,     1.648702679619e-6,     6.970075857471e-5,    -2.202066291263e-4,     1.401342873485e-3,    -1.681700567912e-6,    5.197673899653e-10,     4.365423872046e-6,    -1.200041116490e-6,     2.564577183580e-6,    -8.965478630849e-5,    -4.365423872046e-6,     8.218704940997e-6,     3.114246791997e-5,    -6.044142906315e-5,    -6.272281358913e-5,     1.200041116490e-6,    -3.114246791997e-5,     1.612301941566e-4,     6.958958085115e-5,     1.318373360752e-3,    -2.564577183580e-6,     6.044142906315e-5,    -6.958958085115e-5,     1.872119364197e-3]
+    </A>
+  </thermostat>
+      <timestep units="femtosecond">1.0</timestep>
+      <temperature units='kelvin'>300</temperature>
+      <fixcom> True </fixcom>
+   </ensemble>
+</simulation>

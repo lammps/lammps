@@ -1,0 +1,25 @@
+<simulation verbosity='medium'>
+   <initialize nbeads='16'>
+      <file mode='pdb'> our_ref.pdb </file>
+      <velocities mode='thermal' units='kelvin'> ??? </velocities>
+   </initialize>
+   <output prefix='tut3_nvt'>
+      <properties filename='md' stride='1'> [ step, time{picosecond}, conserved{kelvin}, temperature{kelvin}, potential{kelvin}, kinetic_cv{kelvin}, pressure_cv{megapascal} ] </properties>
+      <trajectory filename='pos' stride='100' format='pdb' cell_units='angstrom'> positions{angstrom} </trajectory>
+      <checkpoint filename='checkpoint' stride='1000' overwrite='True'/>
+   </output>
+   <total_steps> ??? </total_steps>
+   <forces>
+      <socket mode="???">
+         <address>localhost</address>
+         <port> 31415 </port>
+      </socket>
+   </forces>
+   <ensemble mode='nvt'>
+      <thermostat mode='???'>
+         <tau units='femtosecond'> ??? </tau>
+      </thermostat>
+      <timestep units='femtosecond'> ??? </timestep>
+      <temperature units='kelvin'>25</temperature>
+   </ensemble>
+</simulation>

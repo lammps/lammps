@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
+#include <math.h>
 #include "pair_born_coul_wolf_omp.h"
 #include "atom.h"
 #include "comm.h"
@@ -54,6 +54,7 @@ void PairBornCoulWolfOMP::compute(int eflag, int vflag)
 
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
+    thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
 
     if (evflag) {
@@ -69,6 +70,7 @@ void PairBornCoulWolfOMP::compute(int eflag, int vflag)
       else eval<0,0,0>(ifrom, ito, thr);
     }
 
+    thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
@@ -125,7 +127,7 @@ void PairBornCoulWolfOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     qisq = qtmp*qtmp;
     e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
-    if (EVFLAG) ev_tally_thr(this,i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0,thr);
+    if (EFLAG) ev_tally_thr(this,i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0,thr);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

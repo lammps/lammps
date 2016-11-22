@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -16,10 +16,10 @@
    References: Fennell and Gezelter, JCP 124, 234104 (2006)
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_coul_dsf.h"
 #include "atom.h"
 #include "comm.h"
@@ -43,15 +43,14 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp)
-{
-  single_enable = 0;
-}
+PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
 PairCoulDSF::~PairCoulDSF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -65,13 +64,13 @@ void PairCoulDSF::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double r,rsq,r2inv,forcecoul,factor_coul;
-  double prefactor,erfcc,erfcd,e_self,t;
+  double prefactor,erfcc,erfcd,t;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  
+
   ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = 0;
-  
+
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
@@ -84,7 +83,7 @@ void PairCoulDSF::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -95,9 +94,9 @@ void PairCoulDSF::compute(int eflag, int vflag)
     ztmp = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    
+
     if (eflag) {
-      e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
+      double e_self = -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*qqrd2e;
       ev_tally(i,i,nlocal,0,0.0,e_self,0.0,0.0,0.0,0.0);
     }
 
@@ -115,14 +114,15 @@ void PairCoulDSF::compute(int eflag, int vflag)
         r2inv = 1.0/rsq;
 
         r = sqrt(rsq);
-        prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
+        prefactor = qqrd2e*qtmp*q[j]/r;
         erfcd = exp(-alpha*alpha*rsq);
         t = 1.0 / (1.0 + EWALD_P*alpha*r);
         erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-        forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd + 
+        forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
                                  r*f_shift) * r;
-
+        if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         fpair = forcecoul * r2inv;
+
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
         f[i][2] += delz*fpair;
@@ -134,6 +134,7 @@ void PairCoulDSF::compute(int eflag, int vflag)
 
         if (eflag) {
           ecoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
         } else ecoul = 0.0;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -184,9 +185,9 @@ void PairCoulDSF::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
-  
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -207,13 +208,13 @@ void PairCoulDSF::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/dsf requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
-  double erfcc = erfc(alpha*cut_coul); 
+  double erfcc = erfc(alpha*cut_coul);
   double erfcd = exp(-alpha*alpha*cut_coul*cut_coul);
-  f_shift = -(erfcc/cut_coulsq + 2.0/MY_PIS*alpha*erfcd/cut_coul); 
-  e_shift = erfcc/cut_coul - f_shift*cut_coul; 
+  f_shift = -(erfcc/cut_coulsq + 2.0/MY_PIS*alpha*erfcd/cut_coul);
+  e_shift = erfcc/cut_coul - f_shift*cut_coul;
 }
 
 /* ----------------------------------------------------------------------
@@ -296,7 +297,7 @@ double PairCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
 {
   double r2inv,r,erfcc,erfcd,prefactor,t;
   double forcecoul,phicoul;
-  
+
   r2inv = 1.0/rsq;
 
   double eng = 0.0;
@@ -306,16 +307,16 @@ double PairCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
     erfcd = exp(-alpha*alpha*rsq);
     t = 1.0 / (1.0 + EWALD_P*alpha*r);
     erfcc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-	
-    forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS*erfcd + 
+
+    forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS*erfcd +
       r*f_shift) * r;
 
     phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
     eng += phicoul;
   } else forcecoul = 0.0;
-  
+
   fforce = forcecoul * r2inv;
-      
+
   return eng;
 }
 

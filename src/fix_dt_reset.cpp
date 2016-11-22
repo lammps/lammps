@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "fix_dt_reset.h"
 #include "atom.h"
 #include "update.h"
@@ -48,6 +48,7 @@ FixDtReset::FixDtReset(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 0;
   extvector = 0;
+  dynamic_group_allow = 1;
 
   nevery = force->inumeric(FLERR,arg[3]);
   if (nevery <= 0) error->all(FLERR,"Illegal fix dt/reset command");

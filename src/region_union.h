@@ -29,15 +29,17 @@ class RegUnion : public Region {
   RegUnion(class LAMMPS *, int, char **);
   ~RegUnion();
   void init();
-  int dynamic_check();
   int inside(double, double, double);
   int surface_interior(double *, double);
   int surface_exterior(double *, double);
   void shape_update();
-
+  void pretransform();
+  void set_velocity();
+  void length_restart_string(int&);
+  void write_restart(FILE *);
+  int restart(char *, int&);
+  void reset_vel();
  private:
-  int nregion;
-  int *list;
   char **idsub;
 };
 

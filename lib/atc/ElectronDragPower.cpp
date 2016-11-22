@@ -63,12 +63,14 @@ void ElectronDragPowerLinear::electron_drag_velocity_coefficient(const FIELD_MAT
 {
   FIELD_MATS::const_iterator enField = fields.find(ELECTRON_DENSITY);
   const DENS_MAT & n = enField->second;
-
+  //n.print("DENS");
   // -1/tau (m_e * n)
   material_->inv_effective_mass(fields,invEffMassWorkspace_);
+  //invEffMassWorkspace_.print("INV MASS");
   dragCoef = n;
   dragCoef /= invEffMassWorkspace_;
   dragCoef *= -electronDragInvTau_;
+  //dragCoef.print("DRAG COEF");
 }
 
 }

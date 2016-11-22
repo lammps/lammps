@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "pair_lj_class2_coul_long.h"
 #include "atom.h"
 #include "comm.h"
@@ -50,19 +50,21 @@ PairLJClass2CoulLong::PairLJClass2CoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJClass2CoulLong::~PairLJClass2CoulLong()
 {
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(cutsq);
+  if (!copymode) {
+    if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
 
-    memory->destroy(cut_lj);
-    memory->destroy(cut_ljsq);
-    memory->destroy(epsilon);
-    memory->destroy(sigma);
-    memory->destroy(lj1);
-    memory->destroy(lj2);
-    memory->destroy(lj3);
-    memory->destroy(lj4);
-    memory->destroy(offset);
+      memory->destroy(cut_lj);
+      memory->destroy(cut_ljsq);
+      memory->destroy(epsilon);
+      memory->destroy(sigma);
+      memory->destroy(lj1);
+      memory->destroy(lj2);
+      memory->destroy(lj3);
+      memory->destroy(lj4);
+      memory->destroy(offset);
+    }
   }
 }
 
@@ -134,18 +136,18 @@ void PairLJClass2CoulLong::compute(int eflag, int vflag)
             prefactor = qqrd2e * qtmp*q[j]/r;
             forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-          } else { 
-            union_int_float_t rsq_lookup; 
-            rsq_lookup.f = rsq; 
-            itable = rsq_lookup.i & ncoulmask; 
-            itable >>= ncoulshiftbits; 
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable]; 
-            table = ftable[itable] + fraction*dftable[itable]; 
-            forcecoul = qtmp*q[j] * table; 
-            if (factor_coul < 1.0) { 
-              table = ctable[itable] + fraction*dctable[itable]; 
-              prefactor = qtmp*q[j] * table; 
-              forcecoul -= (1.0-factor_coul)*prefactor; 
+          } else {
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            itable = rsq_lookup.i & ncoulmask;
+            itable >>= ncoulshiftbits;
+            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            table = ftable[itable] + fraction*dftable[itable];
+            forcecoul = qtmp*q[j] * table;
+            if (factor_coul < 1.0) {
+              table = ctable[itable] + fraction*dctable[itable];
+              prefactor = qtmp*q[j] * table;
+              forcecoul -= (1.0-factor_coul)*prefactor;
             }
           }
         } else forcecoul = 0.0;
@@ -170,11 +172,11 @@ void PairLJClass2CoulLong::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < cut_coulsq) {
-            if (!ncoultablebits || rsq <= tabinnersq) 
-              ecoul = prefactor*erfc; 
-            else { 
-              table = etable[itable] + fraction*detable[itable]; 
-              ecoul = qtmp*q[j] * table; 
+            if (!ncoultablebits || rsq <= tabinnersq)
+              ecoul = prefactor*erfc;
+            else {
+              table = etable[itable] + fraction*detable[itable];
+              ecoul = qtmp*q[j] * table;
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
@@ -249,13 +251,13 @@ void PairLJClass2CoulLong::settings(int narg, char **arg)
 
 void PairLJClass2CoulLong::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) 
+  if (narg < 4 || narg > 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   double epsilon_one = force->numeric(FLERR,arg[2]);
   double sigma_one = force->numeric(FLERR,arg[3]);
@@ -287,7 +289,7 @@ void PairLJClass2CoulLong::init_style()
     error->all(FLERR,
                "Pair style lj/class2/coul/long requires atom attribute q");
 
-  neighbor->request(this);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 
@@ -297,7 +299,7 @@ void PairLJClass2CoulLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  // setup force tables 
+  // setup force tables
   if (ncoultablebits) init_tables(cut_coul,NULL);
 }
 

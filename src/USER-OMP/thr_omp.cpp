@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "timer.h"
 
 #include "thr_omp.h"
 
@@ -32,6 +33,7 @@
 #include "dihedral.h"
 #include "improper.h"
 #include "kspace.h"
+#include "compute.h"
 
 #include "math_const.h"
 
@@ -183,7 +185,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           // pair_style hybrid will compute fdotr for us
           // but we first need to reduce the forces
           data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-	  fix->did_reduce();
+          fix->did_reduce();
           need_force_reduce = 0;
         }
       }
@@ -402,6 +404,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
   }
+  thr->timer(Timer::COMM);
 }
 
 /* ----------------------------------------------------------------------
@@ -511,6 +514,18 @@ void ThrOMP::ev_tally_thr(Pair * const pair, const int i, const int j, const int
 
     v_tally_thr(pair, i, j, nlocal, newton_pair, v, thr);
   }
+
+  if (pair->num_tally_compute > 0) {
+    // ev_tally callbacks are not thread safe and thus have to be protected
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+    for (int k=0; k < pair->num_tally_compute; ++k) {
+      Compute *c = pair->list_tally_compute[k];
+      c->pair_tally_callback(i, j, nlocal, newton_pair,
+                             evdwl, ecoul, fpair, delx, dely, delz);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -539,6 +554,37 @@ void ThrOMP::ev_tally_xyz_thr(Pair * const pair, const int i, const int j,
     v[5] = dely*fz;
 
     v_tally_thr(pair, i, j, nlocal, newton_pair, v, thr);
+  }
+}
+
+
+/* ----------------------------------------------------------------------
+   tally eng_vdwl and virial into global and per-atom accumulators
+   for virial, have delx,dely,delz and fx,fy,fz
+   called when using full neighbor lists
+------------------------------------------------------------------------- */
+
+void ThrOMP::ev_tally_xyz_full_thr(Pair * const pair, const int i,
+                                   const double evdwl, const double ecoul,
+                                   const double fx, const double fy,
+                                   const double fz, const double delx,
+                                   const double dely, const double delz,
+                                   ThrData * const thr)
+{
+
+  if (pair->eflag_either)
+    e_tally_thr(pair,i,i,i+1,0,0.5*evdwl,ecoul,thr);
+
+  if (pair->vflag_either) {
+    double v[6];
+    v[0] = 0.5*delx*fx;
+    v[1] = 0.5*dely*fy;
+    v[2] = 0.5*delz*fz;
+    v[3] = 0.5*delx*fy;
+    v[4] = 0.5*delx*fz;
+    v[5] = 0.5*dely*fz;
+
+    v_tally_thr(pair,i,i,i+1,0,v,thr);
   }
 }
 
@@ -767,7 +813,7 @@ void ThrOMP::ev_tally_thr(Bond * const bond, const int i, const int j, const int
         v_tally(thr->vatom_bond[i],v);
         v_tally(thr->vatom_bond[j],v);
       } else {
-        if (j < nlocal)
+        if (i < nlocal)
           v_tally(thr->vatom_bond[i],v);
         if (j < nlocal)
           v_tally(thr->vatom_bond[j],v);
@@ -847,7 +893,7 @@ void ThrOMP::ev_tally_thr(Angle * const angle, const int i, const int j, const i
         v_tally(thr->vatom_angle[j],v);
         v_tally(thr->vatom_angle[k],v);
       } else {
-        if (j < nlocal) v_tally(thr->vatom_angle[i],v);
+        if (i < nlocal) v_tally(thr->vatom_angle[i],v);
         if (j < nlocal) v_tally(thr->vatom_angle[j],v);
         if (k < nlocal) v_tally(thr->vatom_angle[k],v);
       }

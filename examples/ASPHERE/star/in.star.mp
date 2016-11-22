@@ -32,6 +32,9 @@ fix		2 all enforce2d
 
 #dump		1 all atom 10 dump.star.equil
 
+compute		tbig all temp/sphere
+thermo_modify	temp tbig
+
 thermo		100
 run		1000
 
@@ -90,6 +93,7 @@ fix		4 all enforce2d
 
 # diagnostics
 
+uncompute       tbig
 compute		tbig big temp/sphere
 variable	pebig equal pe*atoms/count(big)
 variable	ebig equal etotal*atoms/count(big)

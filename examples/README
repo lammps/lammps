@@ -58,11 +58,14 @@ section of the LAMMPS WWW Site.
 These are the sample problems and their output in the various
 sub-directories:
 
-accelerate:  use of all the various accelerator packages
+accelerate: use of all the various accelerator packages
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
+cmap:     CMAP 5-body contributions to CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
+coreshell: adiabatic core/shell model
 comb:	  models using the COMB potential
+controller: use of fix controller as a thermostat
 crack:	  crack propagation in a 2d solid
 deposit:  deposition of atoms and molecules onto a 3d substrate
 dipole:   point dipolar particles, 2d system
@@ -71,6 +74,7 @@ eim:      NaCl using the EIM potential
 ellipse:  ellipsoidal particles in spherical solvent, 2d system
 flow:	  Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
+granregion: use of fix wall/region/gran as boundary on granular particles
 hugoniostat: Hugoniostat shock dynamics
 indent:	  spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
@@ -87,14 +91,17 @@ peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:	  Peridynamic model of cylinder impacted by indenter
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
-qeq:      use of the QEQ pacakge for charge equilibration
+python:   use of PYTHON package to invoke Python code from input script
+qeq:      use of QEQ pacakge for charge equilibration
 reax:     RDX and TATB models using the ReaxFF
 rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     use of SNAP potential for Ta
 srd:      stochastic rotation dynamics (SRD) particles as solvent
 snap:     NVE dynamics for BCC tantalum crystal using SNAP potential
+streitz:  Streitz-Mintmire potential for Al2O3
 tad:      temperature-accelerated dynamics of vacancy diffusion in bulk Si
+vashishta: models using the Vashishta potential
 voronoi:  test of Voronoi tesselation in compute voronoi/atom
 
 Here is a src/Make.py command which will perform a parallel build of a
@@ -104,8 +111,7 @@ accelerate/README for Make.py commands suitable for its example
 scripts.
 
 cd src
-Make.py -j 16 -p none std no-lib no-kokkos reax meam poems reaxc orig \
-  lib-all mpi
+Make.py -j 16 -p none std no-lib reax meam poems reaxc orig -a lib-all mpi
 
 Here is how you might run and visualize one of the sample problems:
 
@@ -142,11 +148,19 @@ either by itself or in tandem with another code or library.  See the
 COUPLE/README file to get started.
 
 The ELASTIC directory has an example script for computing elastic
-constants, using a zero temperature Si example.  See the
+constants at zero temperature, using an Si example.  See the
 ELASTIC/in.elastic file for more info.
 
+The ELASTIC_T directory has an example script for computing elastic
+constants at finite temperature, using an Si example.  See the
+ELASTIC_T/in.elastic file for more info.
+
+The HEAT directory has example scripts for heat exchange algorithms
+(e.g. used for establishing a thermal gradient), using two different
+methods.  See the HEAT/README file for more info.
+
 The KAPPA directory has example scripts for computing the thermal
-conductivity (kappa) of a LJ liquid using 4 different methods.  See
+conductivity (kappa) of a LJ liquid using 5 different methods.  See
 the KAPPA/README file for more info.
 
 The MC directory has an example script for using LAMMPS as an

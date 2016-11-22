@@ -143,7 +143,7 @@ from extract_lammps_data import *
 from nbody_by_type_lib import GenInteractions_str
 from ttree_lex import *
 from lttree_styles import AtomStyle2ColNames, ColNames2AidAtypeMolid
-
+import os, inspect # <- Needed to import modules in subdirectories (see below)
 
 if sys.version < '2.6':
     raise InputError('Error: Using python '+sys.version+'\n'
@@ -337,7 +337,23 @@ def GenInteractions_files(lines_data,
         f.close()
 
 
-    g = __import__(src_bond_pattern) #defines g.bond_pattern, g.canonical_order
+    try:
+        g = __import__(src_bond_pattern) #defines g.bond_pattern, g.canonical_order
+    except:
+        # If not found, look for it in the "nbody_alternate_symmetry" directory
+        #http://stackoverflow.com/questions/279237/import-a-module-from-a-relative-path
+        cmd_subfolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0],"nbody_alternate_symmetry")))
+        if cmd_subfolder not in sys.path:
+            sys.path.insert(0, cmd_subfolder)
+        try:
+            g = __import__(src_bond_pattern) #defines g.bond_pattern, g.canonical_order
+        except:
+            sys.stderr.write('Error: Unable to locate file \"'+src_bond_pattern+'\"\n'
+                             '       (Did you mispell the file name?\n'
+                             '        Check the \"nbody_alternate_symmetry/\" directory.)\n')
+            sys.exit(-1)
+        
+
 
 
     return GenInteractions_lines(lines_atoms,
@@ -359,8 +375,10 @@ def GenInteractions_files(lines_data,
 if __name__ == "__main__":
 
     g_program_name = __file__.split('/')[-1]  # = 'nbody_by_type.py'
-    g_date_str     = '2014-4-07'
-    g_version_str  = '0.16'
+    g_date_str     = '2014-12-19'
+    g_version_str  = '0.18'
+
+    bond_pattern_module_name = ""
 
     #######  Main Code Below: #######
     sys.stderr.write(g_program_name+' v'+g_version_str+' '+g_date_str+' ')
@@ -474,7 +492,13 @@ if __name__ == "__main__":
                                      '       (See nbody_Dihedrals.py for example.)\n')
                 bond_pattern_module_name = argv[i+1]
                 # If the file name ends in ".py", then strip off this suffix.
-                bond_pattern_module_name=bond_pattern_module_name.rstrip('.py')
+                # For some reason, the next line does not work:
+                #bond_pattern_module_name=bond_pattern_module_name.rstrip('.py')
+                # Do this instead
+                pc = bond_pattern_module_name.rfind('.py')
+                if pc != -1:
+                    bond_pattern_module_name = bond_pattern_module_name[0:pc]
+
                 del(argv[i:i+2])
 
             elif argv[i].lower() == '-section':
@@ -516,7 +540,9 @@ if __name__ == "__main__":
         elif len(argv) == 2:
             section_name = argv[1]
             section_name_bytype = section_name + ' By Type'
-            bond_pattern_module_name = 'nbody_'+section_name
+            # default bond_pattern_module name
+            if bond_pattern_module_name == "":  #<--if not set by user
+                bond_pattern_module_name = 'nbody_'+section_name
             del(argv[1:2])
         else:
             # if there are more than 2 remaining arguments,

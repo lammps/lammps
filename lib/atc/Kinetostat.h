@@ -58,7 +58,7 @@ namespace ATC {
   
   public:
   
-    KinetostatShapeFunction(Kinetostat *kinetostat,
+    KinetostatShapeFunction(AtomicRegulator *kinetostat,
                             const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatShapeFunction(){};
@@ -73,8 +73,8 @@ namespace ATC {
     virtual void set_weights();
 
     // member data
-    /** pointer to thermostat object for data */
-    Kinetostat * kinetostat_;
+    /** MD mass matrix */
+    DIAG_MAN & mdMassMatrix_;
     /** pointer to a time filtering object */
     TimeFilter * timeFilter_;
     /** stress induced by lambda */
@@ -110,7 +110,7 @@ namespace ATC {
   
   public:
   
-    GlcKinetostat(Kinetostat *kinetostat);
+    GlcKinetostat(AtomicRegulator *kinetostat);
         
     virtual ~GlcKinetostat(){};
 
@@ -134,10 +134,6 @@ namespace ATC {
                                                double weight = 1.){};
 
     // member data
-
-    /** MD mass matrix */
-    DIAG_MAN & mdMassMatrix_;
-
     /** nodeset corresponding to Hoover coupling */
     std::set<std::pair<int,int> > hooverNodes_;
 
@@ -161,7 +157,7 @@ namespace ATC {
   
   public:
   
-    DisplacementGlc(Kinetostat * kinetostat);
+    DisplacementGlc(AtomicRegulator * kinetostat);
         
     virtual ~DisplacementGlc(){};
         
@@ -227,7 +223,7 @@ namespace ATC {
   
   public:
   
-    DisplacementGlcFiltered(Kinetostat * kinetostat);
+    DisplacementGlcFiltered(AtomicRegulator * kinetostat);
         
     virtual ~DisplacementGlcFiltered(){};
 
@@ -270,7 +266,7 @@ namespace ATC {
   
   public:
   
-    VelocityGlc(Kinetostat * kinetostat);
+    VelocityGlc(AtomicRegulator * kinetostat);
         
     virtual ~VelocityGlc(){};
 
@@ -302,6 +298,8 @@ namespace ATC {
     virtual void apply_pre_filtering(double dt);
     /** sets up and solves kinetostat equations */
     virtual void compute_kinetostat(double dt);
+    /** applies kinetostat correction to atoms */
+    virtual void apply_kinetostat(double dt);
     /** sets up appropriate rhs for kinetostat equations */
     virtual void set_kinetostat_rhs(DENS_MAT & rhs, double dt);
     /** computes the nodal FE force applied by the kinetostat */
@@ -339,7 +337,7 @@ namespace ATC {
   
   public:
   
-    VelocityGlcFiltered(Kinetostat * kinetostat);
+    VelocityGlcFiltered(AtomicRegulator * kinetostat);
         
     virtual ~VelocityGlcFiltered(){};
 
@@ -382,7 +380,7 @@ namespace ATC {
   
   public:
   
-    StressFlux(Kinetostat * kinetostat);
+    StressFlux(AtomicRegulator * kinetostat);
         
     virtual ~StressFlux();
 
@@ -464,7 +462,7 @@ namespace ATC {
   
   public:
   
-    StressFluxGhost(Kinetostat * kinetostat);
+    StressFluxGhost(AtomicRegulator * kinetostat);
         
     virtual ~StressFluxGhost() {};
 
@@ -504,7 +502,7 @@ namespace ATC {
   
   public:
   
-    StressFluxFiltered(Kinetostat * kinetostat);
+    StressFluxFiltered(AtomicRegulator * kinetostat);
         
     virtual ~StressFluxFiltered(){};
 
@@ -545,7 +543,7 @@ namespace ATC {
   
   public:
   
-    KinetostatGlcFs(Kinetostat *kinetostat,
+    KinetostatGlcFs(AtomicRegulator *kinetostat,
                     const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatGlcFs(){};
@@ -559,11 +557,17 @@ namespace ATC {
     /** applies thermostat to atoms in the predictor phase */
     virtual void apply_pre_predictor(double dt);
 
+    /** applies thermostat to atoms in the pre-corrector phase */
+    virtual void apply_pre_corrector(double dt);
+
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
     
     /** get data for output */
     virtual void output(OUTPUT_LIST & outputData);
+
+    /* flag for performing the full lambda prediction calculation */
+    bool full_prediction();
 
   protected:
 
@@ -590,9 +594,6 @@ namespace ATC {
     /* sets up and solves the linear system for lambda */
     virtual void compute_lambda(double dt);
 
-    /** sets up the transfer which is the set of nodes being regulated */
-    virtual void construct_regulated_nodes() = 0;
-
     // member data
     /** reference to AtC FE velocity */
     DENS_MAN & velocity_;
@@ -600,16 +601,27 @@ namespace ATC {
     /** nodal atomic momentum */
     DENS_MAN * nodalAtomicMomentum_;
 
+    /** hack to determine if first timestep has been passed */
+    bool isFirstTimestep_;
+
+    /** local version of velocity used as predicted final veloctiy */
+    PerAtomQuantity<double> * atomPredictedVelocities_;
+
+    /** predicted nodal atomic momentum */
+    AtfShapeFunctionRestriction * nodalAtomicPredictedMomentum_;
+
+    /** FE momentum change from kinetostat forces */
+    DENS_MAT deltaMomentum_;
+
     /** right-hand side data for thermostat equation */
     DENS_MAT rhs_;
 
-    /** mapping from all to regulated nodes */
-    DENS_MAT rhsMap_;
+    /** fraction of timestep over which constraint is exactly enforced */
+    double dtFactor_;
 
     // workspace
     DENS_MAT _lambdaForceOutput_; // force applied by lambda in output format
     DENS_MAT _velocityDelta_; // change in velocity when lambda force is applied
-    DENS_MAT _deltaMomentum_; // FE velocity change from kinetostat
 
   private:
     
@@ -628,7 +640,7 @@ namespace ATC {
   
   public:
   
-    KinetostatFlux(Kinetostat *kinetostat,
+    KinetostatFlux(AtomicRegulator *kinetostat,
                    const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatFlux(){};
@@ -689,7 +701,7 @@ namespace ATC {
   
   public:
   
-    KinetostatFluxGhost(Kinetostat *kinetostat,
+    KinetostatFluxGhost(AtomicRegulator *kinetostat,
                         const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatFluxGhost(){};
@@ -728,7 +740,7 @@ namespace ATC {
   
   public:
   
-    KinetostatFixed(Kinetostat *kinetostat,
+    KinetostatFixed(AtomicRegulator *kinetostat,
                     const std::string & regulatorPrefix = "");
         
     virtual ~KinetostatFixed(){};
@@ -742,8 +754,15 @@ namespace ATC {
     /** applies thermostat to atoms in the predictor phase */
     virtual void apply_pre_predictor(double dt);
 
+    /** applies thermostat to atoms in the pre-corrector phase */
+    virtual void apply_pre_corrector(double dt);
+
     /** applies thermostat to atoms in the post-corrector phase */
     virtual void apply_post_corrector(double dt);
+
+    /** compute boundary flux, requires thermostat input since it is part of the coupling scheme */
+    virtual void compute_boundary_flux(FIELDS & fields)
+      {boundaryFlux_[VELOCITY] = 0.;};
 
     /** determine if local shape function matrices are needed */
     virtual bool use_local_shape_functions() const {return atomicRegulator_->use_localized_lambda();};
@@ -776,9 +795,6 @@ namespace ATC {
     virtual void construct_regulated_nodes();
 
     // member data
-    /** MD mass matrix */
-    DIAG_MAN & mdMassMatrix_;
-
     /** change in FE momentum over a timestep */
     DENS_MAT deltaFeMomentum_;
 
@@ -794,14 +810,71 @@ namespace ATC {
     /** filtered nodal atomic momentum */
     DENS_MAN nodalAtomicMomentumFiltered_;
 
-    /** hack to determine if first timestep has been passed */
-    bool isFirstTimestep_;
+    /** coefficient to account for effect of time filtering on rhs terms */
+    double filterCoefficient_;
+
+    // workspace
+    DENS_MAT _tempNodalAtomicMomentumFiltered_; // stores filtered momentum change in atoms for persistence during predictor
 
   private:
     
     // DO NOT define this
     KinetostatFixed();
 
+  };
+
+  /**
+   *  @class  KinetostatFluxFixed
+   *  @brief  Class for kinetostatting using the velocity matching constraint one one set of nodes and the flux matching constraint on another
+   */
+
+  class KinetostatFluxFixed : public RegulatorMethod {
+
+  public:
+
+    KinetostatFluxFixed(AtomicRegulator * kinetostat,
+                        bool constructThermostats = true);
+        
+    virtual ~KinetostatFluxFixed();
+
+    /** instantiate all needed data */
+    virtual void construct_transfers();
+
+    /** pre-run initialization of method data */
+    virtual void initialize();
+
+    /** applies thermostat to atoms in the predictor phase */
+    virtual void apply_pre_predictor(double dt);
+
+    /** applies thermostat to atoms in the pre-corrector phase */
+    virtual void apply_pre_corrector(double dt);
+
+    /** applies thermostat to atoms in the post-corrector phase */
+    virtual void apply_post_corrector(double dt);
+    
+    /** get data for output */
+    virtual void output(OUTPUT_LIST & outputData);
+
+    /** compute boundary flux, requires kinetostat input since it is part of the coupling scheme */
+    virtual void compute_boundary_flux(FIELDS & fields)
+      {kinetostatBcs_->compute_boundary_flux(fields);};
+
+  protected:
+
+    // data
+    /** kinetostat for imposing the fluxes */
+    KinetostatFlux * kinetostatFlux_;
+
+    /** kinetostat for imposing fixed nodes */
+    KinetostatFixed * kinetostatFixed_;
+
+    /** pointer to whichever kinetostat should compute the flux, based on coupling method */
+    KinetostatGlcFs * kinetostatBcs_;
+
+  private:
+
+    // DO NOT define this
+    KinetostatFluxFixed();
   };
 
 }

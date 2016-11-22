@@ -16,10 +16,10 @@
                         for swapping atoms of different masses
 ------------------------------------------------------------------------- */
 
-#include "math.h"
-#include "mpi.h"
-#include "string.h"
-#include "stdlib.h"
+#include <math.h>
+#include <mpi.h>
+#include <string.h>
+#include <stdlib.h>
 #include "fix_viscosity.h"
 #include "atom.h"
 #include "domain.h"
@@ -37,7 +37,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  pos_index(NULL), neg_index(NULL), pos_delta(NULL), neg_delta(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix viscosity command");
 
@@ -73,7 +74,7 @@ FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"swap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix viscosity command");
       nswap = force->inumeric(FLERR,arg[iarg+1]);
-      if (nswap <= 0) 
+      if (nswap <= 0)
         error->all(FLERR,"Fix viscosity swap value must be positive");
       iarg += 2;
     } else if (strcmp(arg[iarg],"vtarget") == 0) {
@@ -154,7 +155,6 @@ void FixViscosity::end_of_step()
 {
   int i,m,insert;
   double coord,delta;
-  MPI_Status status;
   struct {
     double value;
     int proc;
@@ -276,7 +276,7 @@ void FixViscosity::end_of_step()
       if (rmass) sbuf[1] = rmass[ipos];
       else sbuf[1] = mass[type[ipos]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[1].proc,0,
-                   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,&status);
+                   rbuf,2,MPI_DOUBLE,all[1].proc,0,world,MPI_STATUS_IGNORE);
       vcm = (sbuf[1]*sbuf[0] + rbuf[1]*rbuf[0]) / (sbuf[1] + rbuf[1]);
       v[ipos][vdim] = 2.0 * vcm - sbuf[0];
       pswap += sbuf[1] * (vcm - sbuf[0]);
@@ -287,7 +287,7 @@ void FixViscosity::end_of_step()
       if (rmass) sbuf[1] = rmass[ineg];
       else sbuf[1] = mass[type[ineg]];
       MPI_Sendrecv(sbuf,2,MPI_DOUBLE,all[0].proc,0,
-                   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,&status);
+                   rbuf,2,MPI_DOUBLE,all[0].proc,0,world,MPI_STATUS_IGNORE);
       vcm = (sbuf[1]*sbuf[0] + rbuf[1]*rbuf[0]) / (sbuf[1] + rbuf[1]);
       v[ineg][vdim] = 2.0 * vcm - sbuf[0];
       pswap -= sbuf[1] * (vcm - sbuf[0]);

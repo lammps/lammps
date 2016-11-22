@@ -5,7 +5,7 @@
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under 
+   certain rights in this software.  This software is distributed under
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
@@ -40,7 +40,7 @@ class PPPMDispTIP4P : public PPPMDisp {
   virtual void fieldforce_c_peratom();
 
  private:
-  void find_M(int, int &, int &, double *); 
+  void find_M(int, int &, int &, double *);
 };
 
 }
@@ -53,6 +53,10 @@ class PPPMDispTIP4P : public PPPMDisp {
 E: Kspace style pppm/disp/tip4p requires newton on
 
 Self-explanatory.
+
+E: Non-numeric box dimensions - simulation unstable
+
+The box size has apparently blown up.
 
 E: Out of range atoms - cannot compute PPPM
 

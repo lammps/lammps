@@ -11,15 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
-#include "stdlib.h"
-#include "string.h"
+#include <mpi.h>
+#include <stdlib.h>
+#include <string.h>
 #include "compute_temp_profile.h"
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
-#include "modify.h"
 #include "fix.h"
 #include "domain.h"
 #include "memory.h"
@@ -32,7 +31,8 @@ enum{TENSOR,BIN};
 /* ---------------------------------------------------------------------- */
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  bin(NULL), vbin(NULL), binave(NULL), tbin(NULL), tbinall(NULL)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 
@@ -103,7 +103,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   // optional keywords
 
   outflag = TENSOR;
-  
+
   while (iarg < narg) {
     if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg)
@@ -139,7 +139,6 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   }
 
   maxatom = 0;
-  bin = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -161,7 +160,6 @@ ComputeTempProfile::~ComputeTempProfile()
 
 void ComputeTempProfile::init()
 {
-  fix_dof = -1;
   dof_compute();
 
   // ptrs to domain data
@@ -187,7 +185,8 @@ void ComputeTempProfile::init()
 
 void ComputeTempProfile::setup()
 {
-  fix_dof = -1;
+  dynamic = 0;
+  if (dynamic_user || group->dynamic[igroup]) dynamic = 1;
   dof_compute();
 }
 
@@ -195,11 +194,13 @@ void ComputeTempProfile::setup()
 
 void ComputeTempProfile::dof_compute()
 {
-  if (fix_dof) adjust_dof_fix();
-  double natoms = group->count(igroup);
-  int nper = domain->dimension;
-  dof = nper * natoms;
-  dof -= extra_dof + fix_dof;
+  adjust_dof_fix();
+  natoms_temp = group->count(igroup);
+  dof = domain->dimension * natoms_temp;
+
+  // subtract additional d*Nbins DOF, as in Evans and Morriss paper
+
+  dof -= extra_dof + fix_dof + domain->dimension*nbins;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -243,6 +244,8 @@ double ComputeTempProfile::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
+  if (dof < 0.0 && natoms_temp > 0.0)
+    error->all(FLERR,"Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
   return scalar;
 }
@@ -494,7 +497,7 @@ void ComputeTempProfile::bin_assign()
 {
   // reallocate bin array if necessary
 
-  if (atom->nlocal > maxatom) {
+  if (atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memory->destroy(bin);
     memory->create(bin,maxatom,"temp/profile:bin");

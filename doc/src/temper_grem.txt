@@ -30,8 +30,15 @@ temper/grem 40000 100 ${lambda} fxgREM fxnpt 0 32285 ${walkers} :pre
 
 Run a parallel tempering or replica exchange simulation in LAMMPS
 partition mode using multiple generalized replicas (ensembles) of a
-system defined by "fix grem"_fix_grem.html.  Two or more replicas must
-be used.
+system defined by "fix grem"_fix_grem.html, which stands for the
+generalized replica exchange method (gREM) originally developed by
+"(Kim)"_#Kim.  It uses non-Boltzmann ensembles to sample over first
+order phase transitions. The is done by defining replicas with an
+enthalpy dependent effective temperature
+
+Two or more replicas must be used.  See the "temper"_temper.html
+command for an explanation of how to run replicas on multiple
+partitions of one or more processors.
 
 This command is a modification of the "temper"_temper.html command and
 has the same dependencies, restraints, and input variables which are
@@ -99,4 +106,4 @@ This command must be used with "fix grem"_fix_grem.html.
 [Default:] none
 
 :link(Kim)
-[(Kim)] Kim, Keyes, Straub, J. Chem. Phys., 132, 224107 (2010).
+[(Kim)] Kim, Keyes, Straub, J Chem Phys, 132, 224107 (2010).

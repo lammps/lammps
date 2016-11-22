@@ -1,0 +1,9 @@
+language: cpp
+dist: trusty
+compiler:
+- gcc
+os:
+- linux
+before_install:
+- echo $LANG
+- echo $LC_ALL

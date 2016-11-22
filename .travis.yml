@@ -8,3 +8,10 @@ before_install:
 - echo $LANG
 - echo $LC_ALL
 - echo "Test build"
+script:
+- cd src 
+- make -j 4 serial
+
+after_success:
+- cd src
+- ./lmp_serial < ../bench/in.lj

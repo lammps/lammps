@@ -601,7 +601,6 @@ void Dump::sort()
     }
 
     // proclist[i] = which proc Ith datum will be sent to
-    // proc assignment is inverted if sortorder = DESCEND
 
     if (sortcol == 0) {
       tagint min = MAXTAGINT;
@@ -637,6 +636,9 @@ void Dump::sort()
       MPI_Allreduce(&max,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
       double range = maxall-minall + EPSILON*(maxall-minall);
       if (range == 0.0) range = EPSILON;
+
+      // proc assignment is inverted if sortorder = DESCEND
+
       for (i = 0; i < nme; i++) {
         value = buf[i*size_one + sortcolm1];
         iproc = static_cast<int> ((value-minall)/range * nprocs);

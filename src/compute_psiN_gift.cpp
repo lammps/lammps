@@ -184,12 +184,12 @@ void ComputePsiNGift::compute_peratom()
            Point p;
            p.key=j;
            if (delx !=0) {
-           p.x=delx/rsq;
+           p.x=delx*cutsq/rsq;
            } else{
            p.x=0;
            };
            if (dely !=0){
-           p.y=dely/rsq;
+           p.y=dely*cutsq/rsq;
            } else {
            p.y=0;
            }

@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U), Rolf Isele-Holder (RWTH Aachen University)
+   Contributing authors: Axel Kohlmeyer (Temple U)
+                         Rolf Isele-Holder (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
 #include "pppm_disp_omp.h"

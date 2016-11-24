@@ -1,3 +1,0 @@
-
-OPLSAA force-field conversion tools provided by Jason Lambert.
-

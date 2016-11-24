@@ -53,7 +53,7 @@ enum{ISO,ANISO,TRICLINIC};
 FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
 eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
-eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL), 
+eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
 etap_mass(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix nvt/npt/nph command");
@@ -442,7 +442,7 @@ etap_mass(NULL)
     if (!atom->mu_flag)
       error->all(FLERR,"Using update dipole flag requires atom attribute mu");
   }
-  
+
   if ((tstat_flag && t_period <= 0.0) ||
       (p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||
@@ -477,9 +477,9 @@ etap_mass(NULL)
 
     // pre_exchange only required if flips can occur due to shape changes
 
-    if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5])) 
+    if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
       pre_exchange_flag = 1;
-    if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 || 
+    if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 ||
                      domain->xy != 0.0))
       pre_exchange_flag = 1;
   }
@@ -732,7 +732,7 @@ void FixNH::setup(int vflag)
 
   t_current = temperature->compute_scalar();
   tdof = temperature->dof;
-  
+
   // t_target is needed by NVT and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
@@ -1698,14 +1698,30 @@ void FixNH::reset_dt()
 void *FixNH::extract(const char *str, int &dim)
 {
   dim=0;
-  if (strcmp(str,"t_target") == 0) {
+  if (tstat_flag && strcmp(str,"t_target") == 0) {
     return &t_target;
-  } else if (strcmp(str,"mtchain") == 0) {
+  } else if (tstat_flag && strcmp(str,"t_start") == 0) {
+    return &t_start;
+  } else if (tstat_flag && strcmp(str,"t_stop") == 0) {
+    return &t_stop;
+  } else if (tstat_flag && strcmp(str,"mtchain") == 0) {
+    return &mtchain;
+  } else if (pstat_flag && strcmp(str,"mpchain") == 0) {
     return &mtchain;
   }
   dim=1;
-  if (strcmp(str,"eta") == 0) {
+  if (tstat_flag && strcmp(str,"eta") == 0) {
     return &eta;
+  } else if (pstat_flag && strcmp(str,"etap") == 0) {
+    return &eta;
+  } else if (pstat_flag && strcmp(str,"p_flag") == 0) {
+    return &p_flag;
+  } else if (pstat_flag && strcmp(str,"p_start") == 0) {
+    return &p_start;
+  } else if (pstat_flag && strcmp(str,"p_stop") == 0) {
+    return &p_stop;
+  } else if (pstat_flag && strcmp(str,"p_target") == 0) {
+    return &p_target;
   }
   return NULL;
 }

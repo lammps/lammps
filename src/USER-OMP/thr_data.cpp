@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   per-thread data management for LAMMPS
    Contributing author: Axel Kohlmeyer (Temple U)
+   per-thread data management for LAMMPS
 ------------------------------------------------------------------------- */
 
 #include "thr_data.h"

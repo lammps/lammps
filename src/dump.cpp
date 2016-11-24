@@ -256,7 +256,7 @@ void Dump::init()
       if (maxall-minall+1 == isize) {
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
-        idlo = static_cast<int> (range*me/nprocs + minall);
+        idlo = static_cast<tagint> (range*me/nprocs + minall);
         tagint idhi = static_cast<tagint> (range*(me+1)/nprocs + minall);
 
         tagint lom1 = static_cast<tagint> ((idlo-1-minall)/range * nprocs);
@@ -636,9 +636,13 @@ void Dump::sort()
       MPI_Allreduce(&max,&maxall,1,MPI_DOUBLE,MPI_MAX,world);
       double range = maxall-minall + EPSILON*(maxall-minall);
       if (range == 0.0) range = EPSILON;
+
+      // proc assignment is inverted if sortorder = DESCEND
+
       for (i = 0; i < nme; i++) {
         value = buf[i*size_one + sortcolm1];
         iproc = static_cast<int> ((value-minall)/range * nprocs);
+        if (sortorder == DESCEND) iproc = nprocs-1 - iproc;
         proclist[i] = iproc;
       }
     }

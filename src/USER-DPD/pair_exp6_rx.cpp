@@ -77,6 +77,8 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp)
 
 PairExp6rx::~PairExp6rx()
 {
+  if (copymode) return;
+
   for (int i=0; i < nparams; ++i) {
     delete[] params[i].name;
     delete[] params[i].potential;

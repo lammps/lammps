@@ -134,6 +134,8 @@ action pair_eam_alloy_kokkos.cpp pair_eam_alloy.cpp
 action pair_eam_alloy_kokkos.h pair_eam_alloy.h
 action pair_eam_fs_kokkos.cpp pair_eam_fs.cpp
 action pair_eam_fs_kokkos.h pair_eam_fs.h
+action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp
+action pair_exp6_rx_kokkos.h pair_exp6_rx.h
 action pair_kokkos.h
 action pair_lj_charmm_coul_charmm_implicit_kokkos.cpp pair_lj_charmm_coul_charmm_implicit.cpp
 action pair_lj_charmm_coul_charmm_implicit_kokkos.h pair_lj_charmm_coul_charmm_implicit.h

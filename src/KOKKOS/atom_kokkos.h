@@ -51,6 +51,8 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_2d k_improper_type;
   DAT::tdual_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
+  DAT::tdual_float_2d k_dvector;
+
 
 // USER-DPD package
   DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
@@ -66,6 +68,8 @@ class AtomKokkos : public Atom {
   void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
   virtual void sort();
   virtual void grow(unsigned int mask);
+  int add_custom(const char *, int);
+  void remove_custom(int, int);
   virtual void deallocate_topology();
   void sync_modify(ExecutionSpace, unsigned int, unsigned int);
  private:

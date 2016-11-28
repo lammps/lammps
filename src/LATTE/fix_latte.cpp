@@ -18,6 +18,7 @@
 #include "force.h"
 #include "update.h"
 #include "neighbor.h"
+#include "domain.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
 #include "modify.h"
@@ -29,9 +30,9 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
  extern "C" {
-   void latte(int*, double*, int*, double*);
+   void latte(int*, double*, int*, int*, double*, double*, double*, double*);
   }
-
+  
 #define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
@@ -226,7 +227,17 @@ void FixLatte::post_force(int vflag)
   modify->addstep_compute(update->ntimestep+1);
 */
   int natoms = (int) atom->natoms;
-  latte(&natoms,&atom->x[0][0],atom->type,&atom->f[0][0]);  
+//   int* n1types -> (int) atom->ntypes;
+//   domain->boxlo;
+//   domain->boxhi;
+//   domain->boylo;
+//   domain->boyhi;
+//   domain->bozlo;
+//   domain->bozhi;
+//   double* lo = &domain->boxlo;   
+  
+  latte(&natoms,&atom->x[0][0],atom->type,&atom->ntypes,&atom->mass[1], \
+                 &domain->boxlo[0],&domain->boxhi[0], &atom->f[0][0]);  
 //   latte(&natoms,&atom->x[0][0],atom->type);
   
   // construct H0,S,Z

@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Stan Moore (Sandia)
+------------------------------------------------------------------------- */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -37,7 +37,7 @@ The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
 is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each of a
-{clsuter/atom} style.
+{cluster/atom} style.
 
 NOTE: If you have a bonded system, then the settings of
 "special_bonds"_special_bonds.html command can remove pairwise

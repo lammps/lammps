@@ -113,6 +113,8 @@ void TemperGrem::command(int narg, char **arg)
 
   my_set_lambda = universe->iworld;
   if (narg == 8) my_set_lambda = force->inumeric(FLERR,arg[7]);
+  if ((my_set_lambda < 0) || (my_set_lambda >= universe->nworlds))
+    error->universe_one(FLERR,"Illegal temperature index");
 
   // swap frequency must evenly divide total # of timesteps
 
@@ -271,12 +273,6 @@ void TemperGrem::command(int narg, char **arg)
       partner = world2root[partner_world];
     }
 
-    // compute weights
-    volume = domain->xprd * domain->yprd * domain->zprd;
-    enth = pe + (pressref * volume);
-    weight = log(set_lambda[my_set_lambda] + (eta*(enth + h0)));
-    weight_cross = log(set_lambda[partner_set_lambda] + (eta*(enth + h0)));
-
     // swap with a partner, only root procs in each world participate
     // hi proc sends PE to low proc
     // lo proc make Boltzmann decision on whether to swap
@@ -284,6 +280,12 @@ void TemperGrem::command(int narg, char **arg)
 
     swap = 0;
     if (partner != -1) {
+      // compute weights
+      volume = domain->xprd * domain->yprd * domain->zprd;
+      enth = pe + (pressref * volume);
+      weight = log(set_lambda[my_set_lambda] + (eta*(enth + h0)));
+      weight_cross = log(set_lambda[partner_set_lambda] + (eta*(enth + h0)));
+
       if (me_universe > partner) {
         MPI_Send(&weight,1,MPI_DOUBLE,partner,0,universe->uworld);
         MPI_Send(&weight_cross,1,MPI_DOUBLE,partner,0,universe->uworld);

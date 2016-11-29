@@ -342,11 +342,10 @@ void DihedralNHarmonic::read_restart(FILE *fp)
 
 void DihedralNHarmonic::write_data(FILE *fp)
 {
-  fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fprintf(fp, "%d %d ", i, nterms[i]);
     for (int j = 0; j < nterms[i]; j++ ) {
-      fprintf(fp, "%f ", a[i][j]);
+      fprintf(fp, (j < nterms[i] - 1) ? "%f " : "%f", a[i][j]);
     }
     fprintf(fp, "\n");
   }

@@ -46,6 +46,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 
   array_flag = 1;
   extarray = 0;
+  dynamic_group_allow = 0;
 
   nbin = force->inumeric(FLERR,arg[3]);
   if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");

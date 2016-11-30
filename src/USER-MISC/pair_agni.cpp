@@ -85,6 +85,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   nparams = 0;
   params = NULL;
   map = NULL;
+  cutmax = 0.0;
 }
 
 /* ----------------------------------------------------------------------

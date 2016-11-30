@@ -39,7 +39,7 @@ invocation of the {tlsph} for a solid body would consist of an equation of state
 the pressure (the diagonal components of the stress tensor), and a material model to compute shear
 stresses (the off-diagonal components of the stress tensor). Damage and failure models can also be added.
 
-Please see the "SMD user guide"_USER/smd/SMD_LAMMPS_userguide.pdf for a complete listing of the possible keywords and material models.
+Please see the "SMD user guide"_PDF/SMD_LAMMPS_userguide.pdf for a complete listing of the possible keywords and material models.
 
 :line
 

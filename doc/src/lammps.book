@@ -311,6 +311,7 @@ compute_erotate_sphere.html
 compute_erotate_sphere_atom.html
 compute_event_displace.html
 compute_fep.html
+compute_global_atom.html
 compute_group_group.html
 compute_gyration.html
 compute_gyration_chunk.html

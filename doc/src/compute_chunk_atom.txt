@@ -641,7 +641,8 @@ the restarted simulation begins.
 
 [Related commands:]
 
-"fix ave/chunk"_fix_ave_chunk.html
+"fix ave/chunk"_fix_ave_chunk.html,
+"compute global/atom"_compute_global_atom.html
 
 [Default:]
 

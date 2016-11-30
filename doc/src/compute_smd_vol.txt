@@ -24,7 +24,7 @@ compute 1 all smd/vol :pre
 Define a computation that provides the per-particle volume and the sum
 of the per-particle volumes of the group for which the fix is defined.
 
-See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to using Smooth
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth
 Mach Dynamics in LAMMPS.
 
 [Output info:]

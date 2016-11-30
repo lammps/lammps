@@ -54,7 +54,7 @@ void ComputePressureGrem::init()
   // Initialize hook to gREM fix
   int ifix = modify->find_fix(fix_grem);
   if (ifix < 0)
-    error->all(FLERR,"Fix grem ID for compute pressure/grem does not exist");
+    error->all(FLERR,"Fix grem ID for compute PRESSURE/GREM does not exist");
 
   int dim;
   scale_grem = (double *)modify->fix[ifix]->extract("scale_grem",dim);

@@ -1,0 +1,81 @@
+Generalized Replica Exchange Method (gREM) examples
+===================================================
+
+Examples:
+---------------------------------------------------
+
+  lj-single:
+    This example is the simplest case scenario utilizing the generalized 
+    ensemble defined by fix_grem. It utilizes only 1 replica and requires 
+    the LAMMPS executable to be run as usual:
+
+    mpirun -np 4 lmp_mpi -in in.gREM-npt
+    ./lmp_serial -in in.gREM-nvt
+
+    While this does not obtain any information about Ts(H), it is most similar to 
+    a microcanonical simulation and "single-replica gREM" can be useful for 
+    studying non-equilibrium processes as well.
+
+  lj-6rep:
+    This example utilizes an external python script to handle swaps between
+    replicas. Included is run.sh, which requires the path to your LAMMPS 
+    executable. The python script is fragile as it relies on parsing output files 
+    from the LAMMPS run and moving LAMMPS data files between directories. Use 
+    caution if modifying this example further. If complied with mpi, multiple 
+    processors can be used as:
+
+    ./run.sh $NUM_PROCS
+
+    a serial run is completed simply as
+
+    ./run.sh 1
+
+    where the executable provided must be serial if "1" is provided as the number 
+    of procs. While this external replica exchange module is quite slow and
+    inefficient, it allows for many replicas to be used on a single processor. 
+    While here there are only 6 replicas, this example could be extended to >100
+    replicas while still using a serial compilation. This is also beneficial for
+    running on high performance nodes with few cores to complete a full-scale gREM
+    simulation with a large number of replicas. 
+
+    A quick note on efficiency: frequent exchanges slow down this script
+    substantially because LAMMPS is restarted every exchange attempt. The script
+    works best for large systems with infrequent exchanges.
+
+  lj-temper:
+    This is an example using the internal replica exchange module. While fast 
+    in comparison to the python version, it requires substantial resources 
+    (at least 1 proc per replica). Instead of stopping LAMMPS every exchange
+    attempt, all replicas are run concurrently, and exchanges take place 
+    internally. This requires use of LAMMPS partition mode, via the command 
+    line using the -p flag. Input files require world type variables defining 
+    the parameters of each replica. The included example with 4 replicas must 
+    run on at least 4 procs, in that case LAMMPS could be initiated as:
+
+    mpirun -np 4 lmp_mpi -p 4x1 -in in.gREM-temper 
+
+    spawning 4 partitions with 1 replica each. Multiple procs per replica could 
+    be used. In the case of a 16 system with 4 replicas, the
+    following logic could be used:
+
+    mpirun -np 16 lmp_mpi -p 4x4 -in in.gREM-temper
+
+    Once started, a universe log file will be created as well as log files for 
+    each replica. The universe (log.lammps) contains exchange information, while 
+    the replicas (*/log.lammps.*) contains the thermo_output as usual. In this
+    example, in.gREM-temper moves the log files to their respective folders.
+
+
+Closing Notes:
+---------------------------------------------------
+  
+  Of significant difference between lj-6rep and lj-temper is the format of data. 
+  In lj-6rep, data is stored as 'replicas' meaning discontinuous trajectories, as
+  files are moved between directories labeled by the 'lambda' of the replica. In 
+  lj-temper, data is stored as 'walkers' with continuous trajectories, but
+  discontinuous parameters. The later is significantly more efficient, but 
+  requires post-processing to obtain per-replica information.
+
+
+Any problems/questions should be directed to <dstelter@bu.edu>.
+

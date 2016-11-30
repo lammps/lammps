@@ -37,7 +37,7 @@ It is possible to move the triangulated surface via the "smd/move_tri_surf"_fix_
 Immediately after a .STL file has been read, the simulation needs to be run for 0 timesteps in order to properly register the new particles
 in the system. See the "funnel_flow" example in the USER-SMD examples directory.
 
-See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to use Smooth Mach Dynamics in LAMMPS.
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to use Smooth Mach Dynamics in LAMMPS.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 

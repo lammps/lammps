@@ -43,7 +43,7 @@ stresses (the off-diagonal components of the stress tensor).
 
 Note that the use of *GRADIENT_CORRECTION can lead to severe numerical instabilities. For a general fluid simulation, *NO_GRADIENT_CORRECTION is recommended.
 
-Please see the "SMD user guide"_USER/smd/SMD_LAMMPS_userguide.pdf for a complete listing of the possible keywords and material models.
+Please see the "SMD user guide"_PDF/SMD_LAMMPS_userguide.pdf for a complete listing of the possible keywords and material models.
 
 :line
 

@@ -375,7 +375,7 @@ void ComputeBondLocal::unpack_forward_comm(int n, int first, double *buf)
 
 void ComputeBondLocal::reallocate(int n)
 {
-  // grow vlocal vector or alocal array
+  // grow vector_local or array_local
 
   while (nmax < n) nmax += DELTA;
 

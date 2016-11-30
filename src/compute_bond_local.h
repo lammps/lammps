@@ -41,6 +41,8 @@ class ComputeBondLocal : public Compute {
   int singleflag,velflag,ghostvelflag,initflag;
 
   int nmax;
+  double *vlocal;
+  double **alocal;
 
   int compute_bonds(int);
   void reallocate(int);

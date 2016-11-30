@@ -26,7 +26,7 @@ The mass density is the mass of a particle which is constant during
 the course of a simulation, divided by its volume, which can change
 due to mechanical deformation.
 
-See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to use Smooth
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to use Smooth
 Mach Dynamics in LAMMPS.
 
 [Output info:]

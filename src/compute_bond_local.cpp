@@ -70,7 +70,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   // set velflag if compute any quantities based on velocities
 
   singleflag = 0;
-  ghostvelflag = 0;
+  velflag = 0;
   for (int i = 0; i < nvalues; i++) {
     if (bstyle[i] == ENGPOT || bstyle[i] == FORCE) singleflag = 1;
     if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||

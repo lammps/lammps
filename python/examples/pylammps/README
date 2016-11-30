@@ -1,0 +1,28 @@
+# Compile LAMMPS as shared library
+
+git clone https://github.com/lammps/lammps.git
+cd lammps/src
+python Make.py -m mpi -png -s ffmpeg exceptions -a file
+
+make -j 4 mode=shlib auto
+cd ../..
+
+# Install Python package
+
+virtualenv testing
+source testing/bin/activate
+
+(testing) cd lammps/python
+(testing) python install.py
+(testing) pip install jupyter matplotlib mpi4py
+
+(testing) cd ../../examples
+
+# Launch jupter and work inside browser
+
+(testing) jupyter notebook
+
+# Use Ctrl+c to stop jupyter
+
+# finally exit the virtualenv
+(testing) deactivate

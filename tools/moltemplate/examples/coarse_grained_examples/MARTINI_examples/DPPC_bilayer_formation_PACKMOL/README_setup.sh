@@ -1,7 +1,3 @@
-# -------- REQUIREMENTS: ---------
-#  You must define your MOLTEMPLATE_PATH environment variable
-#  and set it to the "common" subdirectory of your moltemplate distribution.
-#  (See the "Installation" section in the moltemplate manual.)
 
 # Create the coordinates of the atoms using PACKMOL
 cd packmol_files

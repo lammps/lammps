@@ -43,7 +43,7 @@ clean-all:
 	rm -rf $(BUILDDIR)/* utils/txt2html/txt2html.exe
 
 clean:
-	rm -rf $(RSTDIR)
+	rm -rf $(RSTDIR) html
 
 html: $(OBJECTS)
 	@(\

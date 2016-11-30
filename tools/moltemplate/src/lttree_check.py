@@ -1978,8 +1978,14 @@ if __name__ == "__main__":
         sys.stderr.write(' done\n'+g_program_name+':    looking up @variables...')
         AssignStaticVarPtrs(static_tree_root,
                             search_instance_commands=False)
+        replace_var_pairs = {}
+        FindReplacementVarPairs(static_tree_root, replace_var_pairs)
+        ReplaceVars(static_tree_root, replace_var_pairs,
+                    search_instance_commands=False)
         AssignStaticVarPtrs(static_tree_root,
                             search_instance_commands=True)
+        ReplaceVars(static_tree_root, replace_var_pairs,
+                    search_instance_commands=True)
         sys.stderr.write(' done\n')
         #sys.stderr.write(' done\n\nclass_def_tree = ' + str(static_tree_root) + '\n\n')
 
@@ -2190,7 +2196,12 @@ if __name__ == "__main__":
                               in 
                               pair_coeffs_defined)) and
                         (not HasWildCard(atom_binding.full_name)) and
-                        (not (('*','*') in pair_coeffs_defined))):
+                        (not (('*','*') in pair_coeffs_defined)) and
+                        (not (atom_binding.nptr.cat_name,
+                              atom_binding.nptr.cat_node,
+                              atom_binding.nptr.leaf_node)
+                         in replace_var_pairs)):
+
                         raise InputError('---------------------------------------------------------------------\n'+
                                          '     Syntax error: Missing pair coeff.\n\n'+
                                          '  No pair coeffs for the \"'+atom_binding.full_name+'\" atom type have been\n'+

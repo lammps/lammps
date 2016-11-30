@@ -531,7 +531,8 @@ package"_Section_start.html#start_3.
 "dump nc"_dump_nc.html,
 "dump nc/mpiio"_dump_nc.html,
 "group2ndx"_group2ndx.html,
-"ndx2group"_group2ndx.html :tb(c=3,ea=c)
+"ndx2group"_group2ndx.html,
+"temper/grem"_temper_grem.html :tb(c=3,ea=c)
 
 :line
 
@@ -632,10 +633,10 @@ USER-INTEL, k = KOKKOS, o = USER-OMP, t = OPT.
 "rigid/nve (o)"_fix_rigid.html,
 "rigid/nvt (o)"_fix_rigid.html,
 "rigid/small (o)"_fix_rigid.html,
-"rigid/small/nph"_fix_rigid.html,
-"rigid/small/npt"_fix_rigid.html,
-"rigid/small/nve"_fix_rigid.html,
-"rigid/small/nvt"_fix_rigid.html,
+"rigid/small/nph (o)"_fix_rigid.html,
+"rigid/small/npt (o)"_fix_rigid.html,
+"rigid/small/nve (o)"_fix_rigid.html,
+"rigid/small/nvt (o)"_fix_rigid.html,
 "setforce (k)"_fix_setforce.html,
 "shake"_fix_shake.html,
 "spring"_fix_spring.html,
@@ -687,6 +688,7 @@ package"_Section_start.html#start_3.
 "eos/table/rx"_fix_eos_table_rx.html,
 "flow/gauss"_fix_flow_gauss.html,
 "gle"_fix_gle.html,
+"grem"_fix_grem.html,
 "imd"_fix_imd.html,
 "ipi"_fix_ipi.html,
 "langevin/drude"_fix_langevin_drude.html,
@@ -765,6 +767,7 @@ KOKKOS, o = USER-OMP, t = OPT.
 "erotate/sphere"_compute_erotate_sphere.html,
 "erotate/sphere/atom"_compute_erotate_sphere_atom.html,
 "event/displace"_compute_event_displace.html,
+"global/atom"_compute_global_atom.html,
 "group/group"_compute_group_group.html,
 "gyration"_compute_gyration.html,
 "gyration/chunk"_compute_gyration_chunk.html,
@@ -911,8 +914,8 @@ KOKKOS, o = USER-OMP, t = OPT.
 "coul/msm"_pair_coul.html,
 "coul/streitz"_pair_coul.html,
 "coul/wolf (ko)"_pair_coul.html,
-"dpd (o)"_pair_dpd.html,
-"dpd/tstat (o)"_pair_dpd.html,
+"dpd (go)"_pair_dpd.html,
+"dpd/tstat (go)"_pair_dpd.html,
 "dsmc"_pair_dsmc.html,
 "eam (gkot)"_pair_eam.html,
 "eam/alloy (gkot)"_pair_eam.html,

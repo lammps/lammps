@@ -205,6 +205,8 @@
 /compute_pe_tally.h
 /compute_plasticity_atom.cpp
 /compute_plasticity_atom.h
+/compute_pressure_grem.cpp
+/compute_pressure_grem.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
 /compute_spec_atom.cpp
@@ -343,6 +345,8 @@
 /fix_gle.h
 /fix_gpu.cpp
 /fix_gpu.h
+/fix_grem.cpp
+/fix_grem.h
 /fix_imd.cpp
 /fix_imd.h
 /fix_ipi.cpp
@@ -775,6 +779,8 @@
 /pair_tersoff.h
 /pair_tersoff_mod.cpp
 /pair_tersoff_mod.h
+/pair_tersoff_mod_c.cpp
+/pair_tersoff_mod_c.h
 /pair_tersoff_table.cpp
 /pair_tersoff_table.h
 /pair_tersoff_zbl.cpp
@@ -873,6 +879,8 @@
 /tad.h
 /temper.cpp
 /temper.h
+/temper_grem.cpp
+/temper_grem.h
 /thr_data.cpp
 /thr_data.h
 /verlet_split.cpp

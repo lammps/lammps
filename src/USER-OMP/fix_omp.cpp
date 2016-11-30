@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   OpenMP based threading support for LAMMPS
    Contributing author: Axel Kohlmeyer (Temple U)
+   OpenMP based threading support for LAMMPS
 ------------------------------------------------------------------------- */
 
 #include "atom.h"

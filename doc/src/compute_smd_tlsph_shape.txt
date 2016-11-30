@@ -26,7 +26,7 @@ associated with a particle as a rotated ellipsoid.  It is only
 meaningful for particles which interact according to the
 Total-Lagrangian SPH pair style.
 
-See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to use Smooth
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to use Smooth
 Mach Dynamics in LAMMPS.
 
 [Output info:]

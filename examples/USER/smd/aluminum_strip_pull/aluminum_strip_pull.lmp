@@ -103,14 +103,14 @@ fix             integration_fix tlsph smd/integrate_tlsph
 ####################################################################################################
 # SPECIFY TRAJECTORY OUTPUT
 ####################################################################################################
-compute         dt_atom all smd/tlsph_dt
-compute 	p all smd/plastic_strain
-compute 	epsdot all smd/plastic_strain_rate
-compute 	S all smd/tlsph_stress # Cauchy stress tensor
-compute 	D all smd/tlsph_strain_rate
-compute 	E all smd/tlsph_strain
-compute 	nn all smd/tlsph_num_neighs # number of neighbors for each particle
-compute         shape all smd/tlsph_shape
+compute         dt_atom all smd/tlsph/dt
+compute 	p all smd/plastic/strain
+compute 	epsdot all smd/plastic/strain/rate
+compute 	S all smd/tlsph/stress # Cauchy stress tensor
+compute 	D all smd/tlsph/strain/rate
+compute 	E all smd/tlsph/strain
+compute 	nn all smd/tlsph/num/neighs # number of neighbors for each particle
+compute         shape all smd/tlsph/shape
 compute 	damage all smd/damage
 dump 		dump_id all custom 100 dump.LAMMPS id type x y z &
 			c_S[1] c_S[2] c_S[3] c_S[4] c_S[5] c_S[6] c_S[7] c_nn c_p &

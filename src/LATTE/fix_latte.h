@@ -34,14 +34,22 @@ class FixLatte : public Fix {
   void setup(int);
   void min_setup(int);
   void initial_integrate(int);
+  void pre_reverse(int, int);
   void post_force(int);
   void final_integrate();
   void reset_dt();
   double compute_scalar();
+  double memory_usage();
 
  protected:
-  double dtv,dtf;
   char *id_pe;
+  int coulomb,pbcflag,pe_peratom,virial_global,virial_peratom,neighflag;
+  int eflag_caller;
+
+  int nmax;
+  double *qpotential;
+  double **flatte;
+  double latte_energy;
 
   class NeighList *list;
   class Compute *c_pe;

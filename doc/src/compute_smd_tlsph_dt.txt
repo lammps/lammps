@@ -30,7 +30,7 @@ time step.  This calculation is performed automatically in the
 relevant SPH pair styles and this compute only serves to make the
 stable time increment accessible for output purposes.
 
-See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to using Smooth
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth
 Mach Dynamics in LAMMPS.
 
 [Output info:]

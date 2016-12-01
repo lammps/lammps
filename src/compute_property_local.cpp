@@ -35,7 +35,7 @@ enum{TYPE,RADIUS};
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  indices(NULL), pack_choice(NULL)
+  indices(NULL), pack_choice(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/local command");
 
@@ -254,6 +254,8 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute property/local requires atom attribute radius");
 
   nmax = 0;
+  vlocal = NULL;
+  alocal = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,8 +263,8 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 ComputePropertyLocal::~ComputePropertyLocal()
 {
   delete [] pack_choice;
-  memory->destroy(vector);
-  memory->destroy(array);
+  memory->destroy(vlocal);
+  memory->destroy(alocal);
   memory->destroy(indices);
 }
 
@@ -335,10 +337,10 @@ void ComputePropertyLocal::compute_local()
   // fill vector or array with local values
 
   if (nvalues == 1) {
-    buf = vector;
+    buf = vlocal;
     (this->*pack_choice[0])(0);
   } else {
-    if (array) buf = &array[0][0];
+    if (alocal) buf = &alocal[0][0];
     for (int n = 0; n < nvalues; n++)
       (this->*pack_choice[n])(n);
   }
@@ -620,17 +622,18 @@ int ComputePropertyLocal::count_impropers(int flag)
 
 void ComputePropertyLocal::reallocate(int n)
 {
-  // grow vector or array and indices array
+  // grow vector_local or array_local, also indices
 
   while (nmax < n) nmax += DELTA;
+
   if (nvalues == 1) {
-    memory->destroy(vector);
-    memory->create(vector,nmax,"property/local:vector");
-    vector_local = vector;
+    memory->destroy(vlocal);
+    memory->create(vlocal,nmax,"property/local:vector_local");
+    vector_local = vlocal;
   } else {
-    memory->destroy(array);
-    memory->create(array,nmax,nvalues,"property/local:array");
-    array_local = array;
+    memory->destroy(alocal);
+    memory->create(alocal,nmax,nvalues,"property/local:array_local");
+    array_local = alocal;
   }
 
   memory->destroy(indices);

@@ -37,7 +37,7 @@ enum{TYPE,RADIUS};
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pindex(NULL)
+  pstyle(NULL), pindex(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair/local command");
 
@@ -97,14 +97,16 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
     if (pstyle[i] != DIST) singleflag = 1;
 
   nmax = 0;
+  vlocal = NULL;
+  alocal = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputePairLocal::~ComputePairLocal()
 {
-  memory->destroy(vector);
-  memory->destroy(array);
+  memory->destroy(vlocal);
+  memory->destroy(alocal);
   delete [] pstyle;
   delete [] pindex;
 }
@@ -254,8 +256,8 @@ int ComputePairLocal::compute_pairs(int flag)
           eng = pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
         else eng = fpair = 0.0;
 
-        if (nvalues == 1) ptr = &vector[m];
-        else ptr = array[m];
+        if (nvalues == 1) ptr = &vlocal[m];
+        else ptr = alocal[m];
 
         for (n = 0; n < nvalues; n++) {
           switch (pstyle[n]) {
@@ -295,18 +297,18 @@ int ComputePairLocal::compute_pairs(int flag)
 
 void ComputePairLocal::reallocate(int n)
 {
-  // grow vector or array and indices array
+  // grow vector_local or array_local
 
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->destroy(vector);
-    memory->create(vector,nmax,"pair/local:vector");
-    vector_local = vector;
+    memory->destroy(vlocal);
+    memory->create(vlocal,nmax,"pair/local:vector_local");
+    vector_local = vlocal;
   } else {
-    memory->destroy(array);
-    memory->create(array,nmax,nvalues,"pair/local:array");
-    array_local = array;
+    memory->destroy(alocal);
+    memory->create(alocal,nmax,nvalues,"pair/local:array_local");
+    array_local = alocal;
   }
 }
 

@@ -148,10 +148,6 @@ ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
   // for vector, set intensive/extensive to mirror input values
   // for array, set intensive if all input values are intensive, else extensive
 
-  vector = NULL;
-  array = NULL;
-  extlist = NULL;
-
   if (nvalues == 1) {
     vector_flag = 1;
     size_vector = (nstop-nstart) / nskip;

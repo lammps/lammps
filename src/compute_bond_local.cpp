@@ -37,7 +37,7 @@ enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE};
 
 ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bstyle(NULL)
+  bstyle(NULL), vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute bond/local command");
 
@@ -70,7 +70,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   // set velflag if compute any quantities based on velocities
 
   singleflag = 0;
-  ghostvelflag = 0;
+  velflag = 0;
   for (int i = 0; i < nvalues; i++) {
     if (bstyle[i] == ENGPOT || bstyle[i] == FORCE) singleflag = 1;
     if (bstyle[i] == VELVIB || bstyle[i] == OMEGA || bstyle[i] == ENGTRANS ||
@@ -78,14 +78,16 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
+  vlocal = NULL;
+  alocal = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeBondLocal::~ComputeBondLocal()
 {
-  memory->destroy(vector);
-  memory->destroy(array);
+  memory->destroy(vlocal);
+  memory->destroy(alocal);
   delete [] bstyle;
 }
 
@@ -292,8 +294,8 @@ int ComputeBondLocal::compute_bonds(int flag)
           engrot *= mvv2e;
         }
 
-        if (nvalues == 1) ptr = &vector[m];
-        else ptr = array[m];
+        if (nvalues == 1) ptr = &vlocal[m];
+        else ptr = alocal[m];
 
         for (n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
@@ -373,18 +375,18 @@ void ComputeBondLocal::unpack_forward_comm(int n, int first, double *buf)
 
 void ComputeBondLocal::reallocate(int n)
 {
-  // grow vector or array and indices array
+  // grow vector_local or array_local
 
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->destroy(vector);
-    memory->create(vector,nmax,"bond/local:vector");
-    vector_local = vector;
+    memory->destroy(vlocal);
+    memory->create(vlocal,nmax,"bond/local:vector_local");
+    vector_local = vlocal;
   } else {
-    memory->destroy(array);
-    memory->create(array,nmax,nvalues,"bond/local:array");
-    array_local = array;
+    memory->destroy(alocal);
+    memory->create(alocal,nmax,nvalues,"bond/local:array_local");
+    array_local = alocal;
   }
 }
 

@@ -97,7 +97,7 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   newarg = new char*[5];
   newarg[0] = id_press;
   newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure/grem";
+  newarg[2] = (char *) "PRESSURE/GREM";
   newarg[3] = id_temp;
   newarg[4] = id;
   modify->add_compute(5,newarg);

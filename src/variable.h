@@ -81,7 +81,7 @@ class Variable : protected Pointers {
 
   class Python *python;    // ptr to embedded Python interpreter
 
-  struct Tree {            // parse tree for atom-style or vector-style variables
+  struct Tree {            // parse tree for atom-style or vector-style vars
     double value;          // single scalar
     double *array;         // per-atom or per-type list of doubles
     int *iarray;           // per-atom list of ints

@@ -11,27 +11,42 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+// NOTES on possible future issues:
+// LATTE compute and return 6-value virial tensor
+// can LATTE compute per-atom energy and per-atom virial
+// for minimize, what about charge DOFs
+// implement charge DOF integration
+// pass neighbor list to LATTE: half or full
+// will we ever auto-adjust the timestep in reset_dt()
+// could pass an input file to LATTE, specified in LAMMPS input script
+// what units options can LAMMPS be using
+// should LATTE take triclinic box from LAMMPS
+// does Coulomb potential = pe[i]/q[i], is it 0 when q = 0
+// how will this work for serial/parallel LAMMPS with serial/parallel LATTE
+
 #include <stdio.h>
 #include <string.h>
 #include "fix_latte.h"
 #include "atom.h"
-#include "force.h"
+#include "comm.h"
 #include "update.h"
 #include "neighbor.h"
 #include "domain.h"
+#include "force.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
 #include "modify.h"
 #include "compute.h"
-#include "comm.h"
+#include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
- extern "C" {
-   void latte(int*, double*, int*, int*, double*, double*, double*, double*);
-  }
+extern "C" {
+  void latte(int *, int *, double *, int *, int *, 
+             double *, double *, double *, double *, double *);
+}
   
 #define INVOKED_PERATOM 8
 
@@ -40,27 +55,42 @@ using namespace FixConst;
 FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 5) error->all(FLERR,"Illegal fix latte command");
+  if (narg != 4) error->all(FLERR,"Illegal fix latte command");
 
-  // store pe/atom ID used for input of Coulomb potential to LATTE
-  // insure it is valid for these computations
+  if (comm->nprocs != 1)
+    error->all(FLERR,"Fix latte currently runs only in serial");
 
-  int n = strlen(arg[3]) + 1;
-  id_pe = new char[n];
-  strcpy(id_pe,arg[3]);
+  scalar_flag = 1;
+  global_freq = 1;
+  extscalar = 1;
+  virial_flag = 1;
 
-  int ipe = modify->find_compute(id_pe);
-  if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
-  if (modify->compute[ipe]->peatomflag == 0)
-    error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
+  // store ID of compute pe/atom used to generate Coulomb potential for LATTE
+  // NULL means LATTE will compute Coulombic potential
 
-//   latte(arg[4]);
+  coulomb = 0;
+  id_pe = NULL;
 
-  // initialize LATTE with LAMMPS info about box, atoms, atom types, etc ?
-  // may need to be done in init() ??
+  if (strcmp(arg[3],"NULL") != 0) {
+    coulomb = 1;
 
-  // any per-atom quantities to allocate/initialize for LAMMPS?
-  // i.e. quantities carried with atoms across timesteps ??
+    int n = strlen(arg[3]) + 1;
+    id_pe = new char[n];
+    strcpy(id_pe,arg[3]);
+
+    int ipe = modify->find_compute(id_pe);
+    if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
+    if (modify->compute[ipe]->peatomflag == 0)
+      error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
+  }
+
+  // initializations
+
+  nmax = 0;
+  qpotential = NULL;
+  flatte = NULL;
+
+  latte_energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,6 +98,8 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
 FixLatte::~FixLatte()
 {
   delete [] id_pe;
+  memory->destroy(qpotential);
+  memory->destroy(flatte);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,8 +107,9 @@ FixLatte::~FixLatte()
 int FixLatte::setmask()
 {
   int mask = 0;
-  mask |= INITIAL_INTEGRATE;
-  mask |= FINAL_INTEGRATE;
+  //mask |= INITIAL_INTEGRATE;
+  //mask |= FINAL_INTEGRATE;
+  mask |= PRE_REVERSE;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   mask |= THERMO_ENERGY;
@@ -89,10 +122,34 @@ void FixLatte::init()
 {
   // error checks
 
-  int ipe = modify->find_compute(id_pe);
-  if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
-  c_pe = modify->compute[ipe];
+  if (domain->dimension == 2) 
+    error->all(FLERR,"Fix latte requires 3d problem");
 
+  if (coulomb) {
+    if (atom->q_flag == 0 || force->pair == NULL || force->kspace == NULL)
+      error->all(FLERR,"Fix latte cannot compute Coulombic potential");
+
+    int ipe = modify->find_compute(id_pe);
+    if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
+    c_pe = modify->compute[ipe];
+  }
+
+  // must be fully periodic or fully non-periodic
+
+  if (domain->nonperiodic == 0) pbcflag = 1;
+  else if (!domain->xperiodic && !domain->yperiodic && !domain->zperiodic)
+    pbcflag = 0;
+  else error->all(FLERR,"Fix latte requires 3d simulation");
+
+  // create qpotential & flatte if needed
+  // for now, assume nlocal will never change
+
+  if (coulomb && qpotential == NULL) {
+    memory->create(qpotential,atom->nlocal,"latte:qpotential");
+    memory->create(flatte,atom->nlocal,3,"latte:flatte");
+  }
+
+  /*
   // warn if any integrate fix comes after this one
   // is it actually necessary for q(n) update to come after x,v update ??
 
@@ -105,8 +162,11 @@ void FixLatte::init()
   if (flag && comm->me == 0)
     error->warning(FLERR,"Fix latte should come after all other "
                    "integration fixes");
+  */
 
+  /*
   // need a full neighbor list
+  // could we use a half list?
   // perpetual list, built whenever re-neighboring occurs
 
   int irequest = neighbor->request(this,instance_me);
@@ -114,20 +174,14 @@ void FixLatte::init()
   neighbor->requests[irequest]->fix = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
-
-  // integrator timesteps
-
-  dtv = update->dt;
-  dtf = 0.5 * update->dt * force->ftm2v;
-
-  // any more LATTE initialization to do ?
+  */
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixLatte::init_list(int id, NeighList *ptr)
 {
-  list = ptr;
+  // list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,8 +195,6 @@ void FixLatte::setup(int vflag)
 
 void FixLatte::min_setup(int vflag)
 {
-  // for minimize, what about charge DOFs ??
-
   post_force(vflag);
 }
 
@@ -150,156 +202,130 @@ void FixLatte::min_setup(int vflag)
    integrate electronic degrees of freedom
 ------------------------------------------------------------------------- */
 
-void FixLatte::initial_integrate(int vflag)
+void FixLatte::initial_integrate(int vflag) {}
+
+/* ----------------------------------------------------------------------
+   store eflag, so can use it in post_force to tally per-atom energies
+------------------------------------------------------------------------- */
+
+void FixLatte::pre_reverse(int eflag, int vflag)
 {
-  // what do I do here for q(n) update?
-  // is it the same variable as LAMMPS q, I think so
-  // is it an Euler update or VV update ??
-
-  /*
-  double dtfm;
-
-  // update v and x of atoms in group
-
-  double **x = atom->x;
-  double **v = atom->v;
-  double **f = atom->f;
-  double *mass = atom->mass;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] += dtfm * f[i][0];
-      v[i][1] += dtfm * f[i][1];
-      v[i][2] += dtfm * f[i][2];
-      x[i][0] += dtv * v[i][0];
-      x[i][1] += dtv * v[i][1];
-      x[i][2] += dtv * v[i][2];
-    }
-  */
+  eflag_caller = eflag;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixLatte::post_force(int vflag)
 {
-  // what should cutoffs be for passing neighlist info to LATTE ??
-  // do cutoffs include many self image atoms for tiny periodic system ??
+  int eflag = eflag_caller;
+  if (eflag || vflag) ev_setup(eflag,vflag);
+  else evflag = 0;
 
-/*  int i,j,ii,jj,inum,jnum;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      // enforce a different cutoff than pair style?
-      // what are optimal cutoffs for pair/Kspace for tiny system?
-      // operations on I/J pairs if necessary
-    } 
-  }
-
+  // compute Coulombic potential = pe[i]/q[i]
   // invoke compute pe/atom
   // wrap with clear/add and trigger pe/atom calculation every step
-  // Coulomb potential should just be pe[i]/q[i] ??
 
-  modify->clearstep_compute();
+  if (coulomb) {
+    modify->clearstep_compute();
 
-  if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
-    c_pe->compute_peratom();
-    c_pe->invoked_flag |= INVOKED_PERATOM;
+    if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
+      c_pe->compute_peratom();
+      c_pe->invoked_flag |= INVOKED_PERATOM;
+    }
+
+    modify->addstep_compute(update->ntimestep+1);
+
+    double *pe = c_pe->vector_atom;
+    double *q = atom->q;
+    int nlocal = atom->nlocal;
+
+    for (int i = 0; i < nlocal; i++)
+      if (q[i]) qpotential[i] = pe[i]/q[i];
+      else qpotential[i] = 0.0;
   }
 
-  double *pe = c_pe->vector_atom;
+  // hardwire these unsupported flags for now
 
-  modify->addstep_compute(update->ntimestep+1);
-*/
-  int natoms = (int) atom->natoms;
-//   int* n1types -> (int) atom->ntypes;
-//   domain->boxlo;
-//   domain->boxhi;
-//   domain->boylo;
-//   domain->boyhi;
-//   domain->bozlo;
-//   domain->bozhi;
-//   double* lo = &domain->boxlo;   
-  
-  latte(&natoms,&atom->x[0][0],atom->type,&atom->ntypes,&atom->mass[1], \
-                 &domain->boxlo[0],&domain->boxhi[0], &atom->f[0][0]);  
-//   latte(&natoms,&atom->x[0][0],atom->type);
-  
-  // construct H0,S,Z
-  // setup full Hamiltonian H(R,n)
-  // calculate density matrix D and charge q(n)
-  // calculate DFTB forces via LATTE = F(R,H0,S,Z,D,q,n)
-  // how to pass neighbor list and Coulomb potential to LATTE ??
+  int coulombflag = 0;
+  pe_peratom = 0;
+  virial_global = 0;              // set via vflag_global at some point
+  virial_peratom = 0;
+  neighflag = 0;
 
-  // HERE is where main call to LATTE goes to get forces
+  // set flags used by LATTE
 
-  // simply add the returned forces to atom->f
-  // how to request/get global or per-atom energy back from LATTE ??
-  // how to request/get global or per-atom virial back from LATTE ??
+  int flags[6];
+
+  flags[0] = pbcflag;         // 1 for fully periodic, 0 for fully non-periodic
+  flags[1] = coulombflag;     // 1 for LAMMPS computes Coulombics, 0 for LATTE
+  flags[2] = pe_peratom;      // 1 to return per-atom energies, 0 for no
+  flags[3] = virial_global;   // 1 to return global virial 0 for no
+  flags[4] = virial_peratom;  // 1 to return per-atom virial, 0 for no
+  flags[5] = neighflag;       // 1 to pass neighbor list to LATTE, 0 for no
+
+  // setup LATTE arguments
+
+  int natoms = atom->nlocal;
+  double *coords = &atom->x[0][0];
+  int *type = atom->type;
+  int ntypes = atom->ntypes;
+  double *mass = &atom->mass[1];
+  double *boxlo = domain->boxlo;
+  double *boxhi = domain->boxhi;
+
+  double *forces;
+  if (coulomb) forces = &flatte[0][0];
+  else forces = &atom->f[0][0];
+
+  // invoke LATTE
+
+  latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,
+        forces,&latte_energy);  
+
+  // sum LATTE forces to LAMMPS (Coulombic) forces
+
+  if (coulomb) {
+    double **f = atom->f;
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++) {
+      f[i][0] += flatte[i][0];
+      f[i][1] += flatte[i][1];
+      f[i][2] += flatte[i][2];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
    integrate electronic degrees of freedom
 ------------------------------------------------------------------------- */
 
-void FixLatte::final_integrate()
-{
-  // possibly nothing to do here if Euler step of q(n) ??
-
-  /*
-  double dtfm;
-
-  // update v of atoms in group
-
-  double **v = atom->v;
-  double **f = atom->f;
-  double *mass = atom->mass;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      dtfm = dtf / mass[type[i]];
-      v[i][0] += dtfm * f[i][0];
-      v[i][1] += dtfm * f[i][1];
-      v[i][2] += dtfm * f[i][2];
-    }
-  */
-}
+void FixLatte::final_integrate() {}
 
 /* ---------------------------------------------------------------------- */
 
 void FixLatte::reset_dt()
 {
-  // will we ever auto-adjust the timestep ??
-
-  dtv = update->dt;
-  dtf = 0.5 * update->dt * force->ftm2v;
+  //dtv = update->dt;
+  //dtf = 0.5 * update->dt * force->ftm2v;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   DFTB energy from LATTE
+------------------------------------------------------------------------- */
 
 double FixLatte::compute_scalar()
 {
-  // return DFTB global energy
-  return 0.0;
+  return latte_energy;
 }
 
+/* ----------------------------------------------------------------------
+   memory usage of local arrays
+------------------------------------------------------------------------- */
 
+double FixLatte::memory_usage()
+{
+  double bytes = 0.0;
+  if (coulomb) bytes += nmax * sizeof(double);
+  if (coulomb) bytes += nmax*3 * sizeof(double);
+  return bytes;
+}

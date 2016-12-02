@@ -1284,6 +1284,31 @@ him directly if you have questions.
 
 :line
 
+USER-CGDNA package :link(USER-CGDNA),h5
+
+Contents: The CGDNA package implements coarse-grained force fields
+for single- and double-stranded DNA. This is at the moment mainly
+the oxDNA model, developed by Doye, Louis and Ouldridge at the 
+University of Oxford. 
+The package also contains Langevin-type rigid-body integrators
+with improved stability.
+
+See these doc pages to get started:
+
+"bond_style oxdna_fene"_bond_oxdna_fene.html
+
+"pair_style oxdna_excv"_pair_oxdna_excv.html
+
+"fix nve/dotc/langevin"_fix_nve_dotc_langevin.html
+
+Supporting info: /src/USER-CGDNA/README
+
+Author: Oliver Henrich at the University of Edinburgh, UK (ohenrich
+at epcc.ed.ac.uk or ohenrich at ph.ed.ac.uk). Contact him directly 
+if you have any questions. 
+
+:line
+
 USER-COLVARS package :link(USER-COLVARS),h5
 
 Contents: COLVARS stands for collective variables which can be used to

@@ -193,7 +193,7 @@ double colvarproxy_lammps::compute()
   previous_step = _lmp->update->ntimestep;
 
   if (cvm::debug()) {
-    cvm::log(cvm::line_marker+
+    cvm::log(std::string(cvm::line_marker)+
              "colvarproxy_lammps, step no. "+cvm::to_str(colvars->it)+"\n"+
              "Updating internal data.\n");
   }
@@ -299,9 +299,9 @@ void colvarproxy_lammps::error(std::string const &message)
 void colvarproxy_lammps::fatal_error(std::string const &message)
 {
   log(message);
-  if (!cvm::debug())
-    log("If this error message is unclear, try recompiling the "
-         "colvars library and LAMMPS with -DCOLVARS_DEBUG.\n");
+  // if (!cvm::debug())
+  //   log("If this error message is unclear, try recompiling the "
+  //        "colvars library and LAMMPS with -DCOLVARS_DEBUG.\n");
 
   _lmp->error->one(FLERR,
                    "Fatal error in the collective variables module.\n");
@@ -333,7 +333,10 @@ int colvarproxy_lammps::backup_file(char const *filename)
 
 int colvarproxy_lammps::smp_enabled()
 {
-  return COLVARS_OK;
+  if (b_smp_active) {
+    return COLVARS_OK;
+  }
+  return COLVARS_ERROR;
 }
 
 

@@ -80,10 +80,8 @@ class KSpace : protected Pointers {
 
   int group_group_enable;         // 1 if style supports group/group calculation
 
-  unsigned int datamask;
-  unsigned int datamask_ext;
-
   // KOKKOS host/device flag and data masks
+
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
   int copymode;

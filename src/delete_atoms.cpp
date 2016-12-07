@@ -59,7 +59,9 @@ void DeleteAtoms::command(int narg, char **arg)
   bigint ndihedrals_previous = atom->ndihedrals;
   bigint nimpropers_previous = atom->nimpropers;
 
-  // delete the atoms
+  // flag atoms for deletion
+
+  allflag = 0;
 
   if (strcmp(arg[0],"group") == 0) delete_group(narg,arg);
   else if (strcmp(arg[0],"region") == 0) delete_region(narg,arg);
@@ -67,36 +69,44 @@ void DeleteAtoms::command(int narg, char **arg)
   else if (strcmp(arg[0],"porosity") == 0) delete_porosity(narg,arg);
   else error->all(FLERR,"Illegal delete_atoms command");
 
-  // optionally delete additional bonds or atoms in molecules
+  // if allflag = 1, just reset atom->nlocal
+  // else delete atoms one by one
 
-  if (bond_flag) delete_bond();
-  if (mol_flag) delete_molecule();
+  if (allflag) atom->nlocal = 0;
+  else {
 
-  // delete local atoms flagged in dlist
-  // reset nlocal
+    // optionally delete additional bonds or atoms in molecules
 
-  AtomVec *avec = atom->avec;
-  int nlocal = atom->nlocal;
+    if (bond_flag) delete_bond();
+    if (mol_flag) delete_molecule();
 
-  int i = 0;
-  while (i < nlocal) {
-    if (dlist[i]) {
-      avec->copy(nlocal-1,i,1);
-      dlist[i] = dlist[nlocal-1];
-      nlocal--;
-    } else i++;
+    // delete local atoms flagged in dlist
+    // reset nlocal
+
+    AtomVec *avec = atom->avec;
+    int nlocal = atom->nlocal;
+
+    int i = 0;
+    while (i < nlocal) {
+      if (dlist[i]) {
+	avec->copy(nlocal-1,i,1);
+	dlist[i] = dlist[nlocal-1];
+	nlocal--;
+      } else i++;
+    }
+    
+    atom->nlocal = nlocal;
+    memory->destroy(dlist);
   }
-
-  atom->nlocal = nlocal;
-  memory->destroy(dlist);
-
+  
   // if non-molecular system and compress flag set,
   // reset atom tags to be contiguous
   // set all atom IDs to 0, call tag_extend()
 
   if (atom->molecular == 0 && compress_flag) {
     tagint *tag = atom->tag;
-    for (i = 0; i < nlocal; i++) tag[i] = 0;
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++) tag[i] = 0;
     atom->tag_extend();
   }
 
@@ -185,6 +195,13 @@ void DeleteAtoms::delete_group(int narg, char **arg)
   if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID");
   options(narg-2,&arg[2]);
 
+  // check for special case of group = all
+
+  if (strcmp(arg[1],"all") == 0) {
+    allflag = 1;
+    return;
+  }
+  
   // allocate and initialize deletion list
 
   int nlocal = atom->nlocal;

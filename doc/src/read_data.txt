@@ -310,7 +310,7 @@ with tilt factors that exceed these limits, you can use the "box
 tilt"_box.html command, with a setting of {large}; a setting of
 {small} is the default.
 
-See "Section_howto 12"_Section_howto.html#howto_12 of the doc pages
+See "Section 6.12"_Section_howto.html#howto_12 of the doc pages
 for a geometric description of triclinic boxes, as defined by LAMMPS,
 and how to transform these parameters to and from other commonly used
 triclinic representations.
@@ -431,8 +431,8 @@ Atoms # sphere
 Pair Coeffs # lj/cut :pre
 
 will check if the currently-defined "atom_style"_atom_style.html is
-{sphere}, and the current "pair_style"_pair_style is {lj/cut}.  If
-not, LAMMPS will issue a warning to indicate that the data file
+{sphere}, and the current "pair_style"_pair_style.html is {lj/cut}.
+If not, LAMMPS will issue a warning to indicate that the data file
 section likely does not contain the correct number or type of
 parameters expected for the currently-defined style.
 

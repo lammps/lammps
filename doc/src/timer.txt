@@ -16,7 +16,7 @@ timer args :pre
   {off} = do not collect or print any timing information
   {loop} = collect only the total time for the simulation loop
   {normal} = collect timer information broken down by sections (default)
-  {full} = like {normal} but also include CPU and thread utilzation 
+  {full} = like {normal} but also include CPU and thread utilzation
   {sync} = explicitly synchronize MPI tasks between sections
   {nosync} = do not synchronize MPI tasks between sections (default)
   {timeout} elapse = set walltime limit to {elapse}
@@ -62,7 +62,7 @@ This can be convenient when runs have to confirm to time limits,
 e.g. when running under a batch system and you want to maximize
 the utilization of the batch time slot, especially when the time
 per timestep varies and is thus difficult to predict how many
-steps a simulation can perform, or for difficult to converge 
+steps a simulation can perform, or for difficult to converge
 minimizations. The timeout {elapse} value should be somewhat smaller
 than the time requested from the batch system, as there is usually
 some overhead to launch jobs, and it may be advisable to write

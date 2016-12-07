@@ -52,7 +52,8 @@ static inline void fwrite_int32(FILE* fd, uint32_t i)
 
 /* ---------------------------------------------------------------------- */
 
-DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
+DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
+  coords(NULL)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump dcd command");
   if (binary || compressed || multifile || multiproc)

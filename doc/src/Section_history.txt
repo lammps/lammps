@@ -22,15 +22,27 @@ dynamics codes our group has distributed.
 
 13.1 Coming attractions :h4,link(hist_1)
 
-The "Wish list link"_http://lammps.sandia.gov/future.html on the
-LAMMPS WWW page gives a list of features we are hoping to add to
-LAMMPS in the future, including contact names of individuals you can
-email if you are interested in contributing to the developement or
-would be a future user of that feature.
+As of summer 2016 we are using the "LAMMPS project issue tracker
+on GitHub"_https://github.com/lammps/lammps/issues for keeping
+track of suggested, planned or pending new features. This includes
+discussions of how to best implement them, or why they would be
+useful. Especially if a planned or proposed feature is non-trivial
+to add, e.g. because it requires changes to some of the core
+classes of LAMMPS, people planning to contribute a new feature to
+LAMMS are encouraged to submit an issue about their planned
+implementation this way in order to receive feedback from the
+LAMMPS core developers. They will provide suggestions about
+the validity of the proposed approach and possible improvements,
+pitfalls or alternatives.
 
-You can also send "email to the
-developers"_http://lammps.sandia.gov/authors.html if you want to add
-your wish to the list.
+Please see some of the closed issues for examples of how to
+suggest code enhancements, submit proposed changes, or report
+possible bugs and how they are resoved.
+
+As an alternative to using GitHub, you may e-mail the
+"core developers"_http://lammps.sandia.gov/authors.html or send
+an e-mail to the "LAMMPS Mail list"_http://lammps.sandia.gov/mail.html
+if you want to have your suggestion added to the list.
 
 :line
 
@@ -59,7 +71,7 @@ a parallel framework similar to LAMMPS. Most notably, these have
 included many-body potentials - Stillinger-Weber, Tersoff, ReaxFF -
 and the associated charge-equilibration routines needed for ReaxFF.
 
-The "History link"_http://lammps.sandia.gov/history.html on the 
+The "History link"_http://lammps.sandia.gov/history.html on the
 LAMMPS WWW page gives a timeline of features added to the
 C++ open-source version of LAMMPS over the last several years.
 
@@ -68,7 +80,7 @@ site"_lws, except for Warp & GranFlow which were primarily used
 internally.  A brief listing of their features is given here.
 
 LAMMPS 2001
-    
+
     F90 + MPI
     dynamic memory
     spatial-decomposition parallelism
@@ -84,7 +96,7 @@ LAMMPS 2001
     user-defined diagnostics :ul
 
 LAMMPS 99
-    
+
     F77 + MPI
     static memory allocation
     spatial-decomposition parallelism

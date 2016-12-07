@@ -46,6 +46,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
 
   array_flag = 1;
   extarray = 0;
+  dynamic_group_allow = 0;
 
   nbin = force->inumeric(FLERR,arg[3]);
   if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
@@ -72,8 +73,8 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
     npairs = 0;
     int iarg = 4;
     while (iarg < narg) {
-      force->bounds(arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
-      force->bounds(arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
+      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[npairs],ihi[npairs]);
+      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[npairs],jhi[npairs]);
       if (ilo[npairs] > ihi[npairs] || jlo[npairs] > jhi[npairs])
         error->all(FLERR,"Illegal compute rdf command");
       npairs++;

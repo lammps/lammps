@@ -54,6 +54,7 @@ class PairEAM : public Pair {
   void init_style();
   double init_one(int, int);
   double single(int, int, int, int, double, double, double, double &);
+  virtual void *extract(const char *, int &);
 
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
@@ -65,6 +66,7 @@ class PairEAM : public Pair {
  protected:
   int nmax;                   // allocated size of per-atom arrays
   double cutforcesq;
+  double **scale;
 
   // per-atom arrays
 

@@ -47,23 +47,23 @@ style = {delete} or {index} or {loop} or {world} or {universe} or {uloop} or {st
     constants = PI, version, on, off, true, false, yes, no
     thermo keywords = vol, ke, press, etc from "thermo_style"_thermo_style.html
     math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
-                     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, !x
+                     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, x |^ y, !x
     math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
                      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
                      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
-                     ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), 
-		     stride(x,y,z), stride2(x,y,z,a,b,c), 
-		     vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+                     ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
+                     stride(x,y,z), stride2(x,y,z,a,b,c),
+                     vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
     group functions = count(group), mass(group), charge(group),
-		      xcm(group,dim), vcm(group,dim), fcm(group,dim),
-		      bound(group,dir), gyration(group), ke(group),
-		      angmom(group,dim), torque(group,dim),
+                      xcm(group,dim), vcm(group,dim), fcm(group,dim),
+                      bound(group,dir), gyration(group), ke(group),
+                      angmom(group,dim), torque(group,dim),
                       inertia(group,dimdim), omega(group,dim)
     region functions = count(group,region), mass(group,region), charge(group,region),
-		      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
-		      bound(group,dir,region), gyration(group,region), ke(group,reigon),
-		      angmom(group,dim,region), torque(group,dim,region), 
-		      inertia(group,dimdim,region), omega(group,dim,region)
+                      xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
+                      bound(group,dir,region), gyration(group,region), ke(group,reigon),
+                      angmom(group,dim,region), torque(group,dim,region),
+                      inertia(group,dimdim,region), omega(group,dim,region)
     special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
     feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
     atom value = id\[i\], mass\[i\], type\[i\], mol\[i\], x\[i\], y\[i\], z\[i\], vx\[i\], vy\[i\], vz\[i\], fx\[i\], fy\[i\], fz\[i\], q\[i\]
@@ -219,13 +219,13 @@ script or when the input script is looped over.  This can be useful
 when breaking out of a loop via the "if"_if.html and "jump"_jump.html
 commands before the variable would become exhausted.  For example,
 
-label	    loop
+label       loop
 variable    a loop 5
-print	    "A = $a"
-if	    "$a > 2" then "jump in.script break"
-next	    a
-jump	    in.script loop
-label	    break
+print       "A = $a"
+if          "$a > 2" then "jump in.script break"
+next        a
+jump        in.script loop
+label       break
 variable    a delete :pre
 
 :line
@@ -450,7 +450,7 @@ Number: 0.2, 100, 1.0e20, -15.4, etc
 Constant: PI, version, on, off, true, false, yes, no
 Thermo keywords: vol, pe, ebond, etc
 Math operators: (), -x, x+y, x-y, x*y, x/y, x^y, x%y, \
-     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, !x
+     x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x || y, x |^ y, !x
 Math functions: sqrt(x), exp(x), ln(x), log(x), abs(x), \
      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), \
      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), \
@@ -551,9 +551,10 @@ division and the modulo operator "%" are next; addition and
 subtraction are next; the 4 relational operators "<", "<=", ">", and
 ">=" are next; the two remaining relational operators "==" and "!="
 are next; then the logical AND operator "&&"; and finally the logical
-OR operator "||" has the lowest precedence.  Parenthesis can be used
-to group one or more portions of a formula and/or enforce a different
-order of evaluation than what would occur with the default precedence.
+OR operator "||" and logical XOR (exclusive or) operator "|^" have the
+lowest precedence.  Parenthesis can be used to group one or more
+portions of a formula and/or enforce a different order of evaluation
+than what would occur with the default precedence.
 
 NOTE: Because a unary minus is higher precedence than exponentiation,
 the formula "-2^2" will evaluate to 4, not -4.  This convention is
@@ -568,8 +569,10 @@ return 1.0 for all atoms whose x-coordinate is less than 10.0, and 0.0
 for the others.  The logical AND operator will return 1.0 if both its
 arguments are non-zero, else it returns 0.0.  The logical OR operator
 will return 1.0 if either of its arguments is non-zero, else it
-returns 0.0.  The logical NOT operator returns 1.0 if its argument is
-0.0, else it returns 0.0.
+returns 0.0.  The logical XOR operator will return 1.0 if one of its
+arguments is zero and the other non-zero, else it returns 0.0.  The
+logical NOT operator returns 1.0 if its argument is 0.0, else it
+returns 0.0.
 
 These relational and logical operators can be used as a masking or
 selection operation in a formula.  For example, the number of atoms
@@ -591,7 +594,7 @@ vector.  For example, "sqrt(natoms)" is the sqrt() of a scalar, where
 sqrt() of the product of one atom's y and z coordinates.
 
 Most of the math functions perform obvious operations.  The ln() is
-the natural log; log() is the base 10 log. 
+the natural log; log() is the base 10 log.
 
 The random(x,y,z) function takes 3 arguments: x = lo, y = hi, and z =
 seed.  It generates a uniform random number between lo and hi.  The
@@ -894,11 +897,25 @@ The {is_defined()} function allows to query categories like {compute},
 {dump}, {fix}, {group}, {region}, and {variable} whether an entry
 with the provided name or id is defined.
 
-The {is_available()} function allows to query whether a specific
-optional feature is available, i.e. compiled in. This currently
-works for the following categories: {command}, {compute}, {fix},
-and {pair_style}. For all categories except {command} also appending
-active suffixes is tried before reporting failure.
+The {is_available(category,name)} function allows to query whether
+a specific optional feature is available, i.e. compiled in.
+This currently works for the following categories: {command},
+{compute}, {fix}, {pair_style} and {feature}. For all categories
+except {command} and {feature} also appending active suffixes is
+tried before reporting failure.
+
+The {feature} category is used to check the availability of compiled in
+features such as GZIP support, PNG support, JPEG support, FFMPEG support,
+and C++ exceptions for error handling. Corresponding values for name are
+{gzip}, {png}, {jpeg}, {ffmpeg} and {exceptions}.
+
+This enables writing input scripts which only dump using a given format if
+the compiled binary supports it.
+
+if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'" :pre
+
+if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0" :pre
+
 
 :line
 
@@ -1048,7 +1065,7 @@ Variable References :h4
 Variable references access quantities stored or calculated by other
 variables, which will cause those variables to be evaluated.  The name
 in the reference should be replaced by the name of a variable defined
-elsewhere in the input script. 
+elsewhere in the input script.
 
 As discussed on this doc page, equal-style variables generate a single
 global numeric value, vector-style variables gerarate a vector of
@@ -1107,7 +1124,7 @@ with a leading $ sign (e.g. $x or $\{abc\}) versus with a leading "v_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained in "Section commands
+into the command.  As explained in "Section
 3.2"_Section_commands.html#cmd_2 for "Parsing rules", you can also use
 un-named "immediate" variables for this purpose.  For example, a
 string like this $((xlo+xhi)/2+sqrt(v_area)) in an input script

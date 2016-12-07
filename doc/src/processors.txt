@@ -40,7 +40,7 @@ keyword = {grid} or {map} or {part} or {file} :l
 
 [Examples:]
 
-processors * * 5 
+processors * * 5
 processors 2 4 4
 processors * * 8 map xyz
 processors * * * grid numa
@@ -195,7 +195,7 @@ any order, but no processor ID should appear more than once.
 
 The {map} keyword affects how the P processor IDs (from 0 to P-1) are
 mapped to the 3d grid of processors.  It is only used by the
-{onelevel} and {twolevel} grid settings.  
+{onelevel} and {twolevel} grid settings.
 
 The {cart} style uses the family of MPI Cartesian functions to perform
 the mapping, namely MPI_Cart_create(), MPI_Cart_get(),

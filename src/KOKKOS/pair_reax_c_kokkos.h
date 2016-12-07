@@ -23,7 +23,7 @@ PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
 #ifndef LMP_PAIR_REAXC_KOKKOS_H
 #define LMP_PAIR_REAXC_KOKKOS_H
 
-#include "stdio.h"
+#include <stdio.h>
 #include "pair_kokkos.h"
 #include "pair_reax_c.h"
 #include "neigh_list_kokkos.h"
@@ -53,11 +53,6 @@ struct LR_lookup_table_kk
   double a;
   double m;
   double c;
-
-  tdual_LR_data_1d k_y;
-  tdual_cubic_spline_coef_1d k_H;
-  tdual_cubic_spline_coef_1d k_vdW, k_CEvd;
-  tdual_cubic_spline_coef_1d k_ele, k_CEclmb;
 
   t_LR_data_1d d_y;
   t_cubic_spline_coef_1d d_H;
@@ -120,6 +115,13 @@ struct PairReaxComputeTorsion{};
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxComputeHydrogen{};
 
+struct PairReaxFindBondZero{};
+
+struct PairReaxFindBondSpeciesZero{};
+
+struct PairReaxFindBondSpecies{};
+
+
 template<class DeviceType>
 class PairReaxCKokkos : public PairReaxC {
  public:
@@ -137,6 +139,9 @@ class PairReaxCKokkos : public PairReaxC {
   void *extract(const char *, int &);
   void init_style();
   double memory_usage();
+  void FindBond(int &);
+  void PackBondBuffer(DAT::tdual_ffloat_1d, int &);
+  void FindBondSpecies();
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -250,9 +255,26 @@ class PairReaxCKokkos : public PairReaxC {
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFindBondZero, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void calculate_find_bond_item(int, int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void pack_bond_buffer_item(int, int&, const bool&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFindBondSpeciesZero, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFindBondSpecies, const int&) const;
+
   struct params_sing{
+    KOKKOS_INLINE_FUNCTION
     params_sing(){mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
       p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;};
+    KOKKOS_INLINE_FUNCTION
     params_sing(int i){mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
       p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;};
     F_FLOAT mass,chi,eta,r_s,r_pi,r_pi2,valency,valency_val,valency_e,valency_boc,nlp_opt,
@@ -260,10 +282,12 @@ class PairReaxCKokkos : public PairReaxC {
   };
 
   struct params_twbp{
+    KOKKOS_INLINE_FUNCTION
     params_twbp(){gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_pi=0;r_pi2=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
       p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;
           p_ovun1=0;};
+    KOKKOS_INLINE_FUNCTION
     params_twbp(int i){gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_pi=0;r_pi2=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
       p_boc3=0;p_boc4=0;p_boc5=0;p_be1=0,p_be2=0,De_s=0,De_p=0;De_pp=0;
@@ -275,19 +299,25 @@ class PairReaxCKokkos : public PairReaxC {
   };
 
   struct params_thbp{
+    KOKKOS_INLINE_FUNCTION
     params_thbp(){cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
+    KOKKOS_INLINE_FUNCTION
     params_thbp(int i){cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
     F_FLOAT cnt, theta_00, p_val1, p_val2, p_val4, p_val7, p_pen1, p_coa1;
   };
 
   struct params_fbp{
+    KOKKOS_INLINE_FUNCTION
     params_fbp(){p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
+    KOKKOS_INLINE_FUNCTION
     params_fbp(int i){p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
     F_FLOAT p_tor1, p_cot1, V1, V2, V3;
   };
 
   struct params_hbp{
+    KOKKOS_INLINE_FUNCTION
     params_hbp(){p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
+    KOKKOS_INLINE_FUNCTION
     params_hbp(int i){p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
     F_FLOAT p_hb1, p_hb2, p_hb3, r0_hb;
   };
@@ -354,8 +384,9 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_tagint_1d tag;
+  typename AT::t_tagint_1d_randomread tag;
   typename AT::t_float_1d_randomread q;
+  typename AT::t_tagint_1d_randomread molecule;
 
   DAT::tdual_efloat_1d k_eatom;
   typename AT::t_efloat_1d v_eatom;
@@ -395,11 +426,10 @@ class PairReaxCKokkos : public PairReaxC {
   typename AT::t_ffloat_2d_dl d_sum_ovun;
   typename AT::t_ffloat_2d_dl d_dBOpx, d_dBOpy, d_dBOpz;
 
-  class AtomKokkos *atomKK;
-
   int neighflag,newton_pair, maxnumneigh, maxhb, maxbo;
   int nlocal,nall,eflag,vflag;
   F_FLOAT cut_nbsq, cut_hbsq, cut_bosq, bo_cut, thb_cut, thb_cutsq;
+  F_FLOAT bo_cut_bond;
 
   int vdwflag, lgflag;
   F_FLOAT gp[39], p_boc1, p_boc2;
@@ -413,6 +443,49 @@ class PairReaxCKokkos : public PairReaxC {
 
   tdual_LR_lookup_table_kk_2d k_LR;
   t_LR_lookup_table_kk_2d d_LR;
+
+  DAT::tdual_int_2d k_tmpid;
+  DAT::tdual_ffloat_2d k_tmpbo;
+  DAT::tdual_int_scalar k_error_flag;
+
+  typename AT::t_int_1d d_numneigh_bonds;
+  typename AT::t_tagint_2d d_neighid;
+  typename AT::t_ffloat_2d d_abo;
+
+  typename AT::t_ffloat_1d d_buf;
+  DAT::tdual_int_scalar k_nbuf_local;
+};
+
+template <class DeviceType>
+struct PairReaxCKokkosFindBondFunctor  {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  PairReaxCKokkos<DeviceType> c;
+  PairReaxCKokkosFindBondFunctor(PairReaxCKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void join(volatile int &dst,
+             const volatile int &src) const {
+    dst = MAX(dst,src);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, int &numbonds) const {
+    c.calculate_find_bond_item(ii,numbonds);
+  }
+};
+
+template <class DeviceType>
+struct PairReaxCKokkosPackBondBufferFunctor  {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  PairReaxCKokkos<DeviceType> c;
+  PairReaxCKokkosPackBondBufferFunctor(PairReaxCKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, int &j, const bool &final) const {
+    c.pack_bond_buffer_item(ii,j,final);
+  }
 };
 
 }

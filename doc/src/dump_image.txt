@@ -587,7 +587,7 @@ b) Use the freely available mplayer or ffplay tool to view a
 movie. Both are available for multiple OSes and support a large
 variety of file formats and decoders. :l
 
-% mplayer foo.mpg 
+% mplayer foo.mpg
 % ffplay bar.avi :pre
 
 c) Use the "Pizza.py"_http://www.sandia.gov/~sjplimp/pizza.html
@@ -606,7 +606,7 @@ supported. :l
 
 :line
 
-See "Section_modify"_Section_modify.html of the manual for information
+See "Section 10"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate
 per-atom quantities which could then be output into dump files.
 
@@ -631,9 +631,9 @@ Note that since FFmpeg is run as an external program via a pipe,
 LAMMPS has limited control over its execution and no knowledge about
 errors and warnings printed by it. Those warnings and error messages
 will be printed to the screen only. Due to the way image data is
-communicated to FFmpeg, it will often print the message 
+communicated to FFmpeg, it will often print the message
 
-pipe:: Input/output error :pre 
+pipe:: Input/output error :pre
 
 which can be safely ignored. Other warnings
 and errors have to be addressed according to the FFmpeg documentation.

@@ -177,7 +177,7 @@ their values.  This means that the values can be output via the "dump
 custom"_dump.html command, accessed by fixes like "fix
 ave/atom"_fix_ave_atom.html, accessed by other computes like "compute
 reduce"_compute_reduce.html, or used in "atom-style
-variables"_variables.
+variables"_variable.html.
 
 For example, these commands will output two new properties to a custom
 dump file:

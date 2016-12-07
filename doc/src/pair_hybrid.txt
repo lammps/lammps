@@ -104,7 +104,7 @@ following commands would model the Si atoms with Tersoff, the C atoms
 with Tersoff, and the cross-interactions with Lennard-Jones:
 
 pair_style hybrid lj/cut 2.5 tersoff tersoff
-pair_coeff * * tersoff 1 Si.tersoff Si NULL 
+pair_coeff * * tersoff 1 Si.tersoff Si NULL
 pair_coeff * * tersoff 2 C.tersoff NULL C
 pair_coeff 1 2 lj/cut 1.0 1.5 :pre
 
@@ -170,7 +170,7 @@ so that there is effectively no interaction (e.g. epsilon = 0.0 in a
 LJ potential).  Or, for {hybrid} and {hybrid/overlay} simulations, you
 can use this form of the pair_coeff command in your input script:
 
-pair_coeff	2 3 none :pre
+pair_coeff        2 3 none :pre
 
 or this form in the "Pair Coeffs" section of the data file:
 
@@ -308,7 +308,7 @@ off C/C interaction, i.e. by setting the appropriate coefficients to
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.
 
 Since the {hybrid} and {hybrid/overlay} styles delegate computation to
@@ -327,7 +327,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line

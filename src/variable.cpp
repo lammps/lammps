@@ -56,11 +56,11 @@ enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
 enum{ARG,OP};
 
 // customize by adding a function
-// if add before OR,
+// if add before XOR:
 // also set precedence level in constructor and precedence length in *.h
 
 enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
-     NOT,EQ,NE,LT,LE,GT,GE,AND,OR,
+     NOT,EQ,NE,LT,LE,GT,GE,AND,OR,XOR,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,GRMASK,
@@ -103,7 +103,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
   // customize by assigning a precedence level
 
   precedence[DONE] = 0;
-  precedence[OR] = 1;
+  precedence[OR] = precedence[XOR] = 1;
   precedence[AND] = 2;
   precedence[EQ] = precedence[NE] = 3;
   precedence[LT] = precedence[LE] = precedence[GT] = precedence[GE] = 4;
@@ -2088,9 +2088,9 @@ double Variable::evaluate(char *str, Tree **tree)
         op = AND;
         i++;
       } else if (onechar == '|') {
-        if (str[i+1] != '|')
-          error->all(FLERR,"Invalid syntax in variable formula");
-        op = OR;
+        if (str[i+1] == '|') op = OR;
+        else if (str[i+1] == '^') op = XOR;
+        else error->all(FLERR,"Invalid syntax in variable formula");
         i++;
       } else op = DONE;
 
@@ -2179,6 +2179,10 @@ double Variable::evaluate(char *str, Tree **tree)
             else argstack[nargstack++] = 0.0;
           } else if (opprevious == OR) {
             if (value1 != 0.0 || value2 != 0.0) argstack[nargstack++] = 1.0;
+            else argstack[nargstack++] = 0.0;
+          } else if (opprevious == XOR) {
+            if ((value1 == 0.0 && value2 != 0.0) || 
+                (value1 != 0.0 && value2 == 0.0)) argstack[nargstack++] = 1.0;
             else argstack[nargstack++] = 0.0;
           }
         }
@@ -2386,6 +2390,17 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg1 != 0.0 || arg2 != 0.0) tree->value = 1.0;
+    else tree->value = 0.0;
+    return tree->value;
+  }
+
+  if (tree->type == XOR) {
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
+    tree->type = VALUE;
+    if ((arg1 == 0.0 && arg2 != 0.0) || (arg1 != 0.0 && arg2 == 0.0))
+      tree->value = 1.0;
     else tree->value = 0.0;
     return tree->value;
   }
@@ -2806,6 +2821,13 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == OR) {
     if (eval_tree(tree->first,i) != 0.0 || eval_tree(tree->second,i) != 0.0)
+      return 1.0;
+    else return 0.0;
+  }
+  if (tree->type == XOR) {
+    if ((eval_tree(tree->first,i) == 0.0 && eval_tree(tree->second,i) != 0.0) 
+        ||
+        (eval_tree(tree->first,i) != 0.0 && eval_tree(tree->second,i) == 0.0))
       return 1.0;
     else return 0.0;
   }
@@ -3653,7 +3675,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"xcm") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3669,7 +3691,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"vcm") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double vcm[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3708,7 +3730,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"gyration") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3];
     if (narg == 1) {
       double masstotal = group->mass(igroup);
@@ -3727,7 +3749,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"angmom") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],lmom[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3745,7 +3767,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"torque") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],tq[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3763,7 +3785,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"inertia") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],inertia[3][3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -3784,7 +3806,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
     else error->all(FLERR,"Invalid group function in variable formula");
 
   } else if (strcmp(word,"omega") == 0) {
-    atom->check_mass();
+    atom->check_mass(FLERR);
     double xcm[3],angmom[3],inertia[3][3],omega[3];
     if (narg == 2) {
       double masstotal = group->mass(igroup);
@@ -4678,9 +4700,9 @@ double Variable::evaluate_boolean(char *str)
         op = AND;
         i++;
       } else if (onechar == '|') {
-        if (str[i+1] != '|')
-          error->all(FLERR,"Invalid Boolean syntax in if command");
-        op = OR;
+        if (str[i+1] == '|') op = OR;
+        else if (str[i+1] == '^') op = XOR;
+        else error->all(FLERR,"Invalid Boolean syntax in if command");
         i++;
       } else op = DONE;
 
@@ -4764,6 +4786,12 @@ double Variable::evaluate_boolean(char *str)
           if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
           if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
+        } else if (opprevious == XOR) {
+          if (flag2) error->all(FLERR,"Invalid Boolean syntax in if command");
+          if ((value1 == 0.0 && value2 != 0.0) ||
+              (value1 != 0.0 && value2 == 0.0))
+            argstack[nargstack].value = 1.0;
+          else argstack[nargstack].value = 0.0;
         }
 
         argstack[nargstack++].flag = 0;
@@ -4783,72 +4811,6 @@ double Variable::evaluate_boolean(char *str)
   if (nopstack) error->all(FLERR,"Invalid Boolean syntax in if command");
   if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
   return argstack[0].value;
-}
-
-/* ---------------------------------------------------------------------- */
-
-unsigned int Variable::data_mask(int ivar)
-{
-  if (eval_in_progress[ivar]) return EMPTY_MASK;
-  eval_in_progress[ivar] = 1;
-  unsigned int datamask = data_mask(data[ivar][0]);
-  eval_in_progress[ivar] = 0;
-  return datamask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-unsigned int Variable::data_mask(char *str)
-{
-  unsigned int datamask = EMPTY_MASK;
-
-  for (unsigned int i = 0; i < strlen(str)-2; i++) {
-    int istart = i;
-    while (isalnum(str[i]) || str[i] == '_') i++;
-    int istop = i-1;
-
-    int n = istop - istart + 1;
-    char *word = new char[n+1];
-    strncpy(word,&str[istart],n);
-    word[n] = '\0';
-
-    // ----------------
-    // compute
-    // ----------------
-
-    if ((strncmp(word,"c_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Variable evaluation before simulation box is defined");
-
-      int icompute = modify->find_compute(word+2);
-      if (icompute < 0)
-        error->all(FLERR,"Invalid compute ID in variable formula");
-
-      datamask &= modify->compute[icompute]->data_mask();
-    }
-
-    if ((strncmp(word,"f_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      if (domain->box_exist == 0)
-        error->all(FLERR,
-                   "Variable evaluation before simulation box is defined");
-
-      int ifix = modify->find_fix(word+2);
-      if (ifix < 0) error->all(FLERR,"Invalid fix ID in variable formula");
-
-      datamask &= modify->fix[ifix]->data_mask();
-    }
-
-    if ((strncmp(word,"v_",2) == 0) && (i>0) && (!isalnum(str[i-1]))) {
-      int ivar = find(word+2);
-      if (ivar < 0) error->all(FLERR,"Invalid variable name in variable formula");
-      datamask &= data_mask(ivar);
-    }
-
-    delete [] word;
-  }
-
-  return datamask;
 }
 
 /* ----------------------------------------------------------------------

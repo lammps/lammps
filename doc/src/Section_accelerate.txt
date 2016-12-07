@@ -117,7 +117,7 @@ PPPM. However, 2-FFT PPPM also requires a slightly larger mesh size to
 achieve the same accuracy as 4-FFT PPPM. For problems where the FFT
 cost is the performance bottleneck (typically large problems running
 on many processors), 2-FFT PPPM may be faster than 4-FFT PPPM.
-  
+
 Staggered PPPM performs calculations using two different meshes, one
 shifted slightly with respect to the other.  This can reduce force
 aliasing errors and increase the accuracy of the method, but also
@@ -157,11 +157,25 @@ packages"_Section_packages.html.
 These are the accelerator packages
 currently in LAMMPS, either as standard or user packages:
 
-"GPU"_accelerate_gpu.html : for NVIDIA GPUs as well as OpenCL support
-"USER-INTEL"_accelerate_intel.html : for Intel CPUs and Intel Xeon Phi
-"KOKKOS"_accelerate_kokkos.html : for GPUs, Intel Xeon Phi, and OpenMP threading
-"USER-OMP"_accelerate_omp.html : for OpenMP threading
-"OPT"_accelerate_opt.html : generic CPU optimizations :tb(s=:)
+"GPU Package"_accelerate_gpu.html : for NVIDIA GPUs as well as OpenCL support
+"USER-INTEL Package"_accelerate_intel.html : for Intel CPUs and Intel Xeon Phi
+"KOKKOS Package"_accelerate_kokkos.html : for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading
+"USER-OMP Package"_accelerate_omp.html : for OpenMP threading and generic CPU optimizations
+"OPT Package"_accelerate_opt.html : generic CPU optimizations :tb(s=:)
+
+<!-- RST
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   accelerate_gpu
+   accelerate_intel
+   accelerate_kokkos
+   accelerate_omp
+   accelerate_opt
+
+END_RST -->
 
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
@@ -192,7 +206,7 @@ Lennard-Jones "pair_style lj/cut"_pair_lj.html:
 "pair_style lj/cut/opt"_pair_lj.html :ul
 
 To see what accelerate styles are currently available, see
-"Section_commands 5"_Section_commands.html#cmd_5 of the manual.  The
+"Section 3.5"_Section_commands.html#cmd_5 of the manual.  The
 doc pages for individual commands (e.g. "pair lj/cut"_pair_lj.html or
 "fix nve"_fix_nve.html) also list any accelerated variants available
 for that style.

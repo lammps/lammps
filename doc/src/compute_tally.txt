@@ -35,7 +35,12 @@ group/group"_compute_group_group.html only that the data is
 accumulated directly during the non-bonded force computation. The
 computes {force/tally}, {pe/tally}, {stress/tally}, and
 {heat/flux/tally} are primarily provided as example how to program
-additional, more sophisticated computes using the tally mechanism.
+additional, more sophisticated computes using the tally callback
+mechanism. Compute {pe/mol/tally} is one such style, that can
+- through using this mechanism - separately tally intermolecular
+and intramolecular energies. Something that would otherwise be
+impossible without integrating this as a core functionality into
+the based classes of LAMMPS.
 
 :line
 
@@ -56,7 +61,7 @@ atom scalar (the contributions of the single atom to the global
 scalar). Compute {pe/mol/tally} calculates a global 4-element vector
 containing (in this order): {evdwl} and {ecoul} for intramolecular pairs
 and {evdwl} and {ecoul} for intermolecular pairs. Since molecules are
-identified my their molecule IDs, the partitioning does not have to be
+identified by their molecule IDs, the partitioning does not have to be
 related to molecules, but the energies are tallied into the respective
 slots depending on whether the molecule IDs of a pair are the same or
 different. Compute {force/tally} calculates a global scalar (the force
@@ -83,7 +88,7 @@ potentials only include the pair potential portion of the EAM
 interaction when used by this compute, not the embedding term.  Also
 bonded or Kspace interactions do not contribute to this compute.
 
-[Related commands:] 
+[Related commands:]
 
 {compute group/group}_compute_group_group.html, {compute
 heat/flux}_compute_heat_flux.html

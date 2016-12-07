@@ -188,7 +188,7 @@ void AngleFourierSimple::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nangletypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
 
   double k_one = force->numeric(FLERR,arg[1]);
   double C_one = force->numeric(FLERR,arg[2]);

@@ -54,6 +54,7 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   frho = NULL;
   rhor = NULL;
   z2r = NULL;
+  scale = NULL;
 
   frho_spline = NULL;
   rhor_spline = NULL;
@@ -85,6 +86,7 @@ PairEAM::~PairEAM()
     type2frho = NULL;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
+    memory->destroy(scale);
   }
 
   if (funcfl) {
@@ -231,6 +233,7 @@ void PairEAM::compute(int eflag, int vflag)
     if (eflag) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+      phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;
       if (eflag_atom) eatom[i] += phi;
     }
@@ -280,6 +283,7 @@ void PairEAM::compute(int eflag, int vflag)
         // psip needs both fp[i] and fp[j] terms since r_ij appears in two
         //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
         //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
+        // scale factor can be applied by thermodynamic integration
 
         coeff = rhor_spline[type2rhor[itype][jtype]][m];
         rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
@@ -293,7 +297,7 @@ void PairEAM::compute(int eflag, int vflag)
         phi = z2*recip;
         phip = z2p*recip - phi*recip;
         psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        fpair = -psip*recip;
+        fpair = -scale[itype][jtype]*psip*recip;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -304,7 +308,7 @@ void PairEAM::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
-        if (eflag) evdwl = phi;
+        if (eflag) evdwl = scale[itype][jtype]*phi;
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,fpair,delx,dely,delz);
       }
@@ -336,6 +340,7 @@ void PairEAM::allocate()
   type2frho = new int[n+1];
   memory->create(type2rhor,n+1,n+1,"pair:type2rhor");
   memory->create(type2z2r,n+1,n+1,"pair:type2z2r");
+  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -361,8 +366,8 @@ void PairEAM::coeff(int narg, char **arg)
   // parse pair of atom types
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   // read funcfl file if hasn't already been read
   // store filename in Funcfl data struct
@@ -390,9 +395,10 @@ void PairEAM::coeff(int narg, char **arg)
       if (i == j) {
         setflag[i][i] = 1;
         map[i] = ifuncfl;
-        atom->set_mass(i,funcfl[ifuncfl].mass);
+        atom->set_mass(FLERR,i,funcfl[ifuncfl].mass);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 
@@ -422,6 +428,8 @@ double PairEAM::init_one(int i, int j)
   // single global cutoff = max of cut from all files read in
   // for funcfl could be multiple files
   // for setfl or fs, just one file
+
+  scale[j][i] = scale[i][j];
 
   if (funcfl) {
     cutmax = 0.0;
@@ -885,4 +893,13 @@ void PairEAM::swap_eam(double *fp_caller, double **fp_caller_hold)
   double *tmp = fp;
   fp = fp_caller;
   *fp_caller_hold = tmp;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairEAM::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"scale") == 0) return (void *) scale;
+  return NULL;
 }

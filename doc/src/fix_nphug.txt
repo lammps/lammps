@@ -51,44 +51,44 @@ This command is a variant of the Nose-Hoover
 It performs time integration of the Hugoniostat equations
 of motion developed by Ravelo et al. "(Ravelo)"_#Ravelo.
 These equations compress the system to a state with average
-axial stress or pressure equal to the specified target value 
+axial stress or pressure equal to the specified target value
 and that satisfies the Rankine-Hugoniot (RH)
 jump conditions for steady shocks.
 
-The compression can be performed 
+The compression can be performed
 either
 hydrostatically (using keyword {iso}, {aniso}, or {tri}) or uniaxially
 (using keywords {x}, {y}, or {z}).  In the hydrostatic case,
 the cell dimensions change dynamically so that the average axial stress
-in all three directions converges towards the specified target value. 
-In the uniaxial case, the chosen cell dimension changes dynamically 
+in all three directions converges towards the specified target value.
+In the uniaxial case, the chosen cell dimension changes dynamically
 so that the average
 axial stress in that direction converges towards the target value. The
 other two cell dimensions are kept fixed (zero lateral strain).
 
 This leads to the following additional restrictions on the keywords:
 
-One and only one of the following keywords should be used: {iso}, {aniso}, {tri}, {x}, {y}, {z} 
+One and only one of the following keywords should be used: {iso}, {aniso}, {tri}, {x}, {y}, {z}
 The specified initial and final target pressures must be the same.
 The keywords {xy}, {xz}, {yz} may not be used.
-The only admissible value for the couple keyword is {xyz}, which has the same effect as keyword {iso} 
+The only admissible value for the couple keyword is {xyz}, which has the same effect as keyword {iso}
 The {temp} keyword must be used to specify the time constant for kinetic energy relaxation, but initial and final target temperature values are ignored.  :ul
 
 Essentially, a Hugoniostat simulation is an NPT simulation in which the
-user-specified target temperature is replaced with a time-dependent 
+user-specified target temperature is replaced with a time-dependent
 target temperature Tt obtained from the following equation:
 
-:c,image(Eqs/fix_nphug.jpg) 
+:c,image(Eqs/fix_nphug.jpg)
 
 where T and Tt are the instantaneous and target temperatures,
 P and P0 are the instantaneous and reference pressures or axial stresses,
-depending on whether hydrostatic or uniaxial compression is being 
+depending on whether hydrostatic or uniaxial compression is being
 performed, V and V0 are the instantaneous and reference volumes,
 E and E0 are the instantaneous and reference internal energy (potential
 plus kinetic), Ndof is the number of degrees of freedom used in the
-definition of temperature, and kB is the Boltzmann constant. Delta is the 
+definition of temperature, and kB is the Boltzmann constant. Delta is the
 negative deviation of the instantaneous temperature from the target temperature.
-When the system reaches a stable equilibrium, the value of Delta should 
+When the system reaches a stable equilibrium, the value of Delta should
 fluctuate about zero.
 
 The values of E0, V0, and P0 are the instantaneous values at the start of
@@ -140,7 +140,7 @@ It also means that changing attributes of {thermo_temp} or
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -155,14 +155,14 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
-This fix writes the values of E0, V0, and P0, as well as the 
+This fix writes the values of E0, V0, and P0, as well as the
 state of all the thermostat and barostat
 variables to "binary restart files"_restart.html.  See the
 "read_restart"_read_restart.html command for info on how to re-specify
@@ -172,7 +172,7 @@ operation of the fix continues in an uninterrupted fashion.
 The "fix_modify"_fix_modify.html {e0}, {v0} and {p0} keywords
 can be used to define the values of E0, V0, and P0. Note the
 the values for {e0} and {v0} are extensive, and so must correspond
-to the total energy and volume of the entire system, not energy and 
+to the total energy and volume of the entire system, not energy and
 volume per atom. If any of these quantities are not specified, then the
 instantaneous value in the system at the start of the simulation is used.
 

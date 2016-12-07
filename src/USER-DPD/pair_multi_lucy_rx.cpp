@@ -21,7 +21,7 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <math.h>
 #include "math_const.h"
 #include <stdlib.h>
@@ -59,7 +59,8 @@ static const char cite_pair_multi_lucy_rx[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp)
+PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp),
+  ntables(0), tables(NULL), tabindex(NULL), site1(NULL), site2(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy_rx);
 
@@ -234,7 +235,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
         } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
-        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair; 
+        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
         else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
 
         fx_i += delx*fpair;
@@ -353,8 +354,8 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -935,7 +936,7 @@ void PairMultiLucyRX::getParams(int id, double &fractionOld1, double &fractionOl
   nTotal = 0.0;
   nTotalOld = 0.0;
   for (int ispecies = 0; ispecies < nspecies; ispecies++){
-    nTotal += atom->dvector[ispecies][id]; 
+    nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
 

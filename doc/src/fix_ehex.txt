@@ -34,15 +34,15 @@ keyword = {region} or {constrain} or {com} or {hex} :l
 fix fnve all nve
 # specify regions rhot and rcold
 ...
-fix fhot all ehex 1 0.15 region rhot 
+fix fhot all ehex 1 0.15 region rhot
 fix fcold all ehex 1 -0.15 region rcold :pre
 
 # SPC/E water, from examples/in.ehex.spce
-fix fnve all nve    
+fix fnve all nve
 # specify regions rhot and rcold
 ...
 fix fhot all ehex 1 0.075 region rhot constrain com
-fix fcold all ehex 1 -0.075 region rcold constrain com 
+fix fcold all ehex 1 -0.075 region rcold constrain com
 fix frattle all rattle 1e-10 400 0 b 1 a 1 :pre
 
 [Description:]

@@ -25,14 +25,14 @@ Define a computation that returns the number of neighbor particles
 inside of the smoothing kernel radius for particles interacting via
 the updated Lagrangian SPH pair style.
 
-See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to using Smooth
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth
 Mach Dynamics in LAMMPS.
 
 [Output info:]
 
 This compute returns a per-particle vector, which can be accessed by
 any command that uses per-particle values from a compute as input.
-See "Section_howto 15"_Section_howto.html#howto_15 for an overview of
+See "Section 6.15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
 The per-particle values will be given dimentionless, see "units"_units.html.

@@ -32,7 +32,8 @@ int Fix::instance_total = 0;
 /* ---------------------------------------------------------------------- */
 
 Fix::Fix(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp),
-id(NULL), style(NULL), eatom(NULL), vatom(NULL)
+id(NULL), style(NULL), extlist(NULL), vector_atom(NULL), array_atom(NULL),
+vector_local(NULL), array_local(NULL), eatom(NULL), vatom(NULL)
 {
   instance_me = instance_total++;
 
@@ -95,15 +96,13 @@ id(NULL), style(NULL), eatom(NULL), vatom(NULL)
   maxeatom = maxvatom = 0;
   vflag_atom = 0;
 
-  // CUDA and KOKKOS per-fix data masks
-
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
+  // KOKKOS per-fix data masks
 
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
+  kokkosable = 0;
   copymode = 0;
 }
 
@@ -139,7 +138,7 @@ void Fix::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"respa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (!respa_level_support) error->all(FLERR,"Illegal fix_modify command");
-      int lvl = force->inumeric(FLERR,arg[1]);
+      int lvl = force->inumeric(FLERR,arg[iarg+1]);
       if (lvl < 0) error->all(FLERR,"Illegal fix_modify command");
       respa_level = lvl-1;
       iarg += 2;

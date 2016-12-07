@@ -80,7 +80,7 @@ style"_pair_style.html to perform consistent short-range pairwise
 calculations.  This means that the name of the pair style contains a
 matching keyword to the name of the KSpace style, as in this table:
 
-Pair style : KSpace style 
+Pair style : KSpace style
 coul/long : ewald or pppm
 coul/msm : msm
 lj/long or buck/long : disp (for dispersion)
@@ -142,7 +142,7 @@ However, for low relative accuracy, the staggered PPPM mesh size may
 be essentially the same as for regular PPPM, which means the method
 will be up to 2x slower in the KSpace time (simply 2x more expensive).
 For more details and timings, see
-"Section_accelerate"_Section_accelerate.html.
+"Section 5"_Section_accelerate.html.
 
 NOTE: Using {pppm/stagger} may not give the same increase in the
 accuracy of energy and pressure as it does in forces, so some caution
@@ -187,13 +187,13 @@ mesh, and uses a multi-level hierarchy of coarser and coarser meshes
 on which direct coulomb solves are done.  This method does not use
 FFTs and scales as N. It may therefore be faster than the other
 K-space solvers for relatively large problems when running on large
-core counts. MSM can also be used for non-periodic boundary conditions and 
+core counts. MSM can also be used for non-periodic boundary conditions and
 for mixed periodic and non-periodic boundaries.
 
-MSM is most competitive versus Ewald and PPPM when only relatively 
-low accuracy forces, about 1e-4 relative error or less accurate, 
-are needed. Note that use of a larger coulomb cutoff (i.e. 15 
-angstroms instead of 10 angstroms) provides better MSM accuracy for 
+MSM is most competitive versus Ewald and PPPM when only relatively
+low accuracy forces, about 1e-4 relative error or less accurate,
+are needed. Note that use of a larger coulomb cutoff (i.e. 15
+angstroms instead of 10 angstroms) provides better MSM accuracy for
 both the real space and grid computed forces.
 
 Currently calculation of the full pressure tensor in MSM is expensive.
@@ -217,7 +217,7 @@ smaller than the reference force.
 
 The accuracy setting is used in conjunction with the pairwise cutoff
 to determine the number of K-space vectors for style {ewald} or the
-grid size for style {pppm} or {msm}. 
+grid size for style {pppm} or {msm}.
 
 Note that style {pppm} only computes the grid size at the beginning of
 a simulation, so if the length or triclinic tilt of the simulation
@@ -241,9 +241,9 @@ equation 9 of "(Petersen)"_#Petersen. RMS force errors in K-space for
 {ewald} are estimated using equation 11 of "(Petersen)"_#Petersen,
 which is similar to equation 32 of "(Kolafa)"_#Kolafa. RMS force
 errors in K-space for {pppm} are estimated using equation 38 of
-"(Deserno)"_#Deserno. RMS force errors for {msm} are estimated 
+"(Deserno)"_#Deserno. RMS force errors for {msm} are estimated
 using ideas from chapter 3 of "(Hardy)"_#Hardy, with equation 3.197
-of particular note. When using {msm} with non-periodic boundary 
+of particular note. When using {msm} with non-periodic boundary
 conditions, it is expected that the error estimation will be too
 pessimistic. RMS force errors for dipoles when using {ewald/disp}
 are estimated using equations 33 and 46 of "(Wang)"_#Wang.
@@ -258,7 +258,7 @@ relative RMS error.
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -282,7 +282,7 @@ KOKKOS, USER-OMP, and OPT packages respectively.  They are only
 enabled if LAMMPS was built with those packages.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 [Restrictions:]
@@ -301,9 +301,9 @@ only enabled if LAMMPS was built with that package.  See the "Making
 LAMMPS"_Section_start.html#start_3 section for more info.  Note that
 the KSPACE package is installed by default.
 
-For MSM, a simulation must be 3d and one can use any combination of 
-periodic, non-periodic, or shrink-wrapped boundaries (specified using 
-the "boundary"_boundary.html command). 
+For MSM, a simulation must be 3d and one can use any combination of
+periodic, non-periodic, or shrink-wrapped boundaries (specified using
+the "boundary"_boundary.html command).
 
 For Ewald and PPPM, a simulation must be 3d and periodic in all
 dimensions.  The only exception is if the slab option is set with
@@ -329,7 +329,7 @@ kspace_style none :pre
 :link(Deserno)
 [(Deserno)] Deserno and Holm, J Chem Phys, 109, 7694 (1998).
 
-:link(Hockney) 
+:link(Hockney)
 [(Hockney)] Hockney and Eastwood, Computer Simulation Using Particles,
 Adam Hilger, NY (1989).
 

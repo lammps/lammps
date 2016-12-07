@@ -31,17 +31,43 @@ class Region : protected Pointers {
   int bboxflag;                     // 1 if bounding box is computable
   int varshape;                     // 1 if region shape changes over time
   int dynamic;                      // 1 if position/orient changes over time
+  int moveflag,rotateflag;          // 1 if position/orientation changes
+  int openflag;			    // 1 if any face is open
+  int open_faces[6];		    // flags for which faces are open
 
   int copymode;                     // 1 if copy of original class
 
-  // contact = particle near region surface
+  // contact = particle near region surface (for soft interactions)
+  // touch = particle touching region surface (for granular interactions)
 
   struct Contact {
     double r;                 // distance between particle & surf, r > 0.0
     double delx,dely,delz;    // vector from surface pt to particle
+    double radius;            // curvature of region at contact point
+    int iwall;		      // unique id of wall for storing shear history
+    int varflag;              // 1 if wall can be variable-controlled
   };
   Contact *contact;           // list of contacts
   int cmax;                   // max # of contacts possible with region
+  int tmax;		      // max # of touching contacts possible
+
+  // motion attributes of region
+  // public so can be accessed by other classes
+
+  double dx,dy,dz,theta;      // current displacement and orientation
+  double v[3];	 	      // translational velocity
+  double rpoint[3];	      // current origin of rotation axis
+  double omega[3];	      // angular velocity
+  double rprev;               // speed of time-dependent radius, if applicable
+  double xcenter[3];          // translated/rotated center of cylinder/sphere (only used if varshape)
+  double prev[5];             // stores displacement (X3), angle and if
+                              //  necessary, region variable size (e.g. radius)
+                              //  at previous time step
+  int vel_timestep;           // store timestep at which set_velocity was called
+                              //   prevents multiple fix/wall/gran/region calls
+  int nregion;                // For union and intersect
+  int size_restart;
+  int *list;
 
   Region(class LAMMPS *, int, char **);
   virtual ~Region();
@@ -54,6 +80,13 @@ class Region : protected Pointers {
   int match(double, double, double);
   int surface(double, double, double, double);
 
+  virtual void set_velocity();
+  void velocity_contact(double *, double *, int);
+  virtual void write_restart(FILE *);
+  virtual int restart(char *, int&);
+  virtual void length_restart_string(int&);
+  virtual void reset_vel();
+
   // implemented by each region, not called by other classes
 
   virtual int inside(double, double, double) = 0;
@@ -61,6 +94,8 @@ class Region : protected Pointers {
   virtual int surface_exterior(double *, double) = 0;
   virtual void shape_update() {}
   virtual void pretransform();
+  virtual void set_velocity_shape() {}
+  virtual void velocity_contact_shape(double*, double*) {}
 
   // Kokkos function, implemented by each Kokkos region
 
@@ -69,15 +104,15 @@ class Region : protected Pointers {
  protected:
   void add_contact(int, double *, double, double, double);
   void options(int, char **);
+  void point_on_line_segment(double *, double *, double *, double *);
+  void forward_transform(double &, double &, double &);
+  double point[3],runit[3];
 
-  int moveflag,rotateflag;         // 1 if position/orientation changes
-
-  double point[3],axis[3],runit[3];
+ private:
   char *xstr,*ystr,*zstr,*tstr;
   int xvar,yvar,zvar,tvar;
-  double dx,dy,dz,theta;
+  double axis[3];
 
-  void forward_transform(double &, double &, double &);
   void inverse_transform(double &, double &, double &);
   void rotate(double &, double &, double &, double);
 };
@@ -97,10 +132,6 @@ E: Variable for region is invalid style
 Only equal-style variables can be used.
 
 E: Variable for region is not equal style
-
-Self-explanatory.
-
-E: Can only use Kokkos supported regions with Kokkos package
 
 Self-explanatory.
 

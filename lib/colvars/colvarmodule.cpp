@@ -137,6 +137,9 @@ int colvarmodule::parse_config(std::string &conf)
   cvm::log("Collective variables module (re)initialized.\n");
   cvm::log(cvm::line_marker);
 
+  // update any necessary proxy data
+  proxy->setup();
+
   if (cv_traj_os.is_open()) {
     // configuration might have changed, better redo the labels
     write_traj_label(cv_traj_os);
@@ -151,6 +154,12 @@ int colvarmodule::parse_global_params(std::string const &conf)
   std::string index_file_name;
   if (parse->get_keyval(conf, "indexFile", index_file_name)) {
     read_index_file(index_file_name.c_str());
+  }
+
+  if (parse->get_keyval(conf, "smp", proxy->b_smp_active, proxy->b_smp_active)) {
+    if (proxy->b_smp_active == false) {
+      cvm::log("SMP parallelism has been disabled.\n");
+    }
   }
 
   parse->get_keyval(conf, "analysis", b_analysis, b_analysis);
@@ -289,6 +298,9 @@ int colvarmodule::parse_biases(std::string const &conf)
 
   /// initialize histograms
   parse_biases_type<colvarbias_histogram>(conf, "histogram", n_histo_biases);
+
+  /// initialize histogram restraints
+  parse_biases_type<colvarbias_restraint_histogram>(conf, "histogramRestraint", n_rest_biases);
 
   /// initialize linear restraints
   parse_biases_type<colvarbias_restraint_linear>(conf, "linear", n_rest_biases);
@@ -804,6 +816,7 @@ int colvarmodule::analyze()
 
 int colvarmodule::setup()
 {
+  if (this->size() == 0) return cvm::get_error();
   // loop over all components of all colvars to reset masses of all groups
   for (std::vector<colvar *>::iterator cvi = colvars.begin();
        cvi != colvars.end();  cvi++) {
@@ -861,25 +874,35 @@ int colvarmodule::reset()
 
 int colvarmodule::setup_input()
 {
-  // name of input state file
-  restart_in_name = proxy->input_prefix().size() ?
-    std::string(proxy->input_prefix()+".colvars.state") :
-    std::string("") ;
+  if (this->size() == 0) return cvm::get_error();
+
+  std::string restart_in_name("");
 
   // read the restart configuration, if available
-  if (restart_in_name.size()) {
+  if (proxy->input_prefix().size()) {
     // read the restart file
+    restart_in_name = proxy->input_prefix();
     std::ifstream input_is(restart_in_name.c_str());
     if (!input_is.good()) {
-      cvm::error("Error: in opening restart file \""+
+      // try by adding the suffix
+      input_is.clear();
+      restart_in_name = restart_in_name+std::string(".colvars.state");
+      input_is.open(restart_in_name.c_str());
+    }
+
+    if (!input_is.good()) {
+      cvm::error("Error: in opening input file \""+
                  std::string(restart_in_name)+"\".\n",
                  FILE_ERROR);
       return COLVARS_ERROR;
     } else {
+      cvm::log(cvm::line_marker);
       cvm::log("Restarting from file \""+restart_in_name+"\".\n");
       read_restart(input_is);
       if (cvm::get_error() != COLVARS_OK) {
         return COLVARS_ERROR;
+      } else {
+        proxy->input_prefix().clear();
       }
       cvm::log(cvm::line_marker);
     }
@@ -891,7 +914,9 @@ int colvarmodule::setup_input()
 
 int colvarmodule::setup_output()
 {
-  int error_code = 0;
+  if (this->size() == 0) return cvm::get_error();
+
+  int error_code = COLVARS_OK;
 
   // output state file (restart)
   restart_out_name = proxy->restart_output_prefix().size() ?
@@ -936,6 +961,8 @@ int colvarmodule::setup_output()
 
 std::istream & colvarmodule::read_restart(std::istream &is)
 {
+  bool warn_total_forces = false;
+
   {
     // read global restart information
     std::string restart_conf;
@@ -952,6 +979,12 @@ std::istream & colvarmodule::read_restart(std::istream &is)
                         colvarparse::parse_silent);
       if (restart_version.size() && (restart_version != std::string(COLVARS_VERSION))) {
         cvm::log("This state file was generated with version "+restart_version+"\n");
+      }
+      if ((restart_version.size() == 0) || (restart_version.compare(std::string(COLVARS_VERSION)) < 0)) {
+        // check for total force change
+        if (proxy->total_forces_enabled()) {
+          warn_total_forces = true;
+        }
       }
     }
     is.clear();
@@ -981,6 +1014,73 @@ std::istream & colvarmodule::read_restart(std::istream &is)
     }
   }
   cvm::decrease_depth();
+
+  if (warn_total_forces) {
+    cvm::log(cvm::line_marker);
+    cvm::log("WARNING:\n");
+    std::string const warning("### CHANGES IN THE DEFINITION OF SYSTEM FORCES (NOW TOTAL FORCES)\n\
+\n\
+Starting from the version 2016-08-10 of the Colvars module, \n\
+the role of system forces has been replaced by total forces.\n\
+\n\
+These include *all* forces acting on a collective variable, whether they\n\
+come from the force field potential or from external terms\n\
+(e.g. restraints), including forces applied by Colvars itself.\n\
+\n\
+In NAMD, forces applied by Colvars, IMD, SMD, TMD, symmetry\n\
+restraints and tclForces are now all counted in the total force.\n\
+\n\
+In LAMMPS, forces applied by Colvars itself are now counted in the total\n\
+force (all forces from other fixes were being counted already).\n\
+\n\
+\n\
+### WHEN IS THIS CHANGE RELEVANT\n\
+\n\
+This change affects results *only* when (1) outputSystemForce is\n\
+requested or (2) the ABF bias is used.  All other usage cases are\n\
+*unaffected* (colvar restraints, metadynamics, etc).\n\
+\n\
+When system forces are reported (flag: outputSystemForce), their values\n\
+in the output may change, but the physical trajectory is never affected.\n\
+The physical results of ABF calculations may be affected in some cases.\n\
+\n\
+\n\
+### CHANGES TO ABF CALCULATIONS\n\
+\n\
+Compared to previous Colvars versions, the ABF method will now attempt\n\
+to cancel external forces (for example, boundary walls) and it may be\n\
+not possible to resume through a state file a simulation that was\n\
+performed with a previous version.\n\
+\n\
+There are three possible scenarios:\n\
+\n\
+1. No external forces are applied to the atoms used by ABF: results are\n\
+unchanged.\n\
+\n\
+2. Some of the atoms used by ABF experience external forces, but these\n\
+forces are not applied directly to the variables used by ABF\n\
+(e.g. another colvar that uses the same atoms, tclForces, etc): in this\n\
+case, we recommend beginning a new simulation.\n\
+\n\
+3. External forces are applied to one or more of the colvars used by\n\
+ABF, but no other forces are applied to their atoms: you may use the\n\
+subtractAppliedForce keyword inside the corresponding colvars to\n\
+continue the previous simulation.\n\n");
+    cvm::log(warning);
+    cvm::log(cvm::line_marker);
+
+    // update this ahead of time in this special case
+    output_prefix = proxy->output_prefix();
+    cvm::log("All output files will now be saved with the prefix \""+output_prefix+".tmp.*\".\n");
+    output_prefix = output_prefix+".tmp";
+    write_output_files();
+    cvm::log(cvm::line_marker);
+    cvm::log("Please review the important warning above. After that, you may rename:\n\
+\""+output_prefix+".tmp.colvars.state\"\n\
+to:\n\
+\""+output_prefix+".colvars.state\"\n");
+    cvm::error("Exiting with error until issue is addressed.\n", FATAL_ERROR);
+  }
 
   return is;
 }
@@ -1464,11 +1564,7 @@ std::list<std::string> colvarmodule::index_group_names;
 std::list<std::vector<int> > colvarmodule::index_groups;
 bool     colvarmodule::use_scripted_forces = false;
 bool     colvarmodule::scripting_after_biases = true;
-
-// file name prefixes
 std::string colvarmodule::output_prefix = "";
-std::string colvarmodule::restart_in_name = "";
-
 
 // i/o constants
 size_t const colvarmodule::it_width = 12;
@@ -1476,5 +1572,5 @@ size_t const colvarmodule::cv_prec  = 14;
 size_t const colvarmodule::cv_width = 21;
 size_t const colvarmodule::en_prec  = 14;
 size_t const colvarmodule::en_width = 21;
-std::string const colvarmodule::line_marker =
+const char * const colvarmodule::line_marker = (const char *)
   "----------------------------------------------------------------------\n";

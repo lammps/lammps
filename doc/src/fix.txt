@@ -190,6 +190,7 @@ of "this page"_Section_commands.html#cmd_5.
 "gcmc"_fix_gcmc.html - grand canonical insertions/deletions
 "gld"_fix_gcmc.html - generalized Langevin dynamics integrator
 "gravity"_fix_gravity.html - add gravity to atoms in a granular simulation
+"halt"_fix_halt.html - terminate a dynamics run or minimization
 "heat"_fix_heat.html - add/subtract momentum-conserving heat
 "indent"_fix_indent.html - impose force due to an indenter
 "langevin"_fix_langevin.html - Langevin temperature control

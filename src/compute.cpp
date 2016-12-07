@@ -40,7 +40,8 @@ int Compute::instance_total = 0;
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp),
   id(NULL), style(NULL),
-  vector(NULL), array(NULL), vector_atom(NULL), array_atom(NULL), vector_local(NULL), array_local(NULL),
+  vector(NULL), array(NULL), vector_atom(NULL),
+  array_atom(NULL), vector_local(NULL), array_local(NULL),
   tlist(NULL), vbiasall(NULL)
 {
   instance_me = instance_total++;
@@ -98,9 +99,6 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp),
   ntime = maxtime = 0;
   
   // data masks
-
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
 
   execution_space = Host;
   datamask_read = ALL_MASK;

@@ -31,15 +31,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp)
+PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
+  styles(NULL), keywords(NULL), multiple(NULL), nmap(NULL),
+  map(NULL), special_lj(NULL), special_coul(NULL)
 {
   nstyles = 0;
-  styles = NULL;
-  keywords = NULL;
-  multiple = NULL;
-  special_lj = NULL;
-  special_coul = NULL;
-
+  
   outerflag = 0;
   respaflag = 0;
 
@@ -365,8 +362,8 @@ void PairHybrid::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   // 3rd arg = pair sub-style name
   // 4th arg = pair sub-style index if name used multiple times

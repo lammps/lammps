@@ -8,28 +8,36 @@
 
 11. Python interface to LAMMPS :h3
 
-LAMMPS can work together with Python in two ways.  First, Python can
+LAMMPS can work together with Python in three ways.  First, Python can
 wrap LAMMPS through the "LAMMPS library
 interface"_Section_howto.html#howto_19, so that a Python script can
 create one or more instances of LAMMPS and launch one or more
 simulations.  In Python lingo, this is "extending" Python with LAMMPS.
 
-Second, LAMMPS can use the Python interpreter, so that a LAMMPS input
+Second, the low-level Python interface can be used indirectly through the
+PyLammps and IPyLammps wrapper classes in Python. These wrappers try to
+simplify the usage of LAMMPS in Python by providing an object-based interface
+to common LAMMPS functionality. It also reduces the amount of code necessary to
+parameterize LAMMPS scripts through Python and makes variables and computes
+directly accessible. See "PyLammps interface"_#py_9 for more details.
+
+Third, LAMMPS can use the Python interpreter, so that a LAMMPS input
 script can invoke Python code, and pass information back-and-forth
 between the input script and Python functions you write.  The Python
 code can also callback to LAMMPS to query or change its attributes.
 In Python lingo, this is "embedding" Python in LAMMPS.
 
-This section describes how to do both.
+This section describes how to use these three approaches.
 
 11.1 "Overview of running LAMMPS from Python"_#py_1
-11.2 "Overview of using Python from a LAMMPS script"_#py_2 
+11.2 "Overview of using Python from a LAMMPS script"_#py_2
 11.3 "Building LAMMPS as a shared library"_#py_3
 11.4 "Installing the Python wrapper into Python"_#py_4
 11.5 "Extending Python with MPI to run in parallel"_#py_5
 11.6 "Testing the Python-LAMMPS interface"_#py_6
 11.7 "Using LAMMPS from Python"_#py_7
-11.8 "Example Python scripts that use LAMMPS"_#py_8 :ul
+11.8 "Example Python scripts that use LAMMPS"_#py_8
+11.9 "PyLammps interface"_#py_9 :ul
 
 If you are not familiar with it, "Python"_http://www.python.org is a
 powerful scripting and programming language which can essentially do
@@ -42,10 +50,10 @@ pieces of software together, such as a simulation package plus a
 visualization package, or to run a coupled multiscale or multiphysics
 model.
 
-See "Section_howto 10"_Section_howto.html#howto_10 of the manual and
+See "Section 6.10"_Section_howto.html#howto_10 of the manual and
 the couple directory of the distribution for more ideas about coupling
-LAMMPS to other codes.  See "Section_howto
-19"_Section_howto.html#howto_19 for a description of the LAMMPS
+LAMMPS to other codes.  See "Section
+6.19"_Section_howto.html#howto_19 for a description of the LAMMPS
 library interface provided in src/library.cpp and src/library.h, and
 how to extend it for your needs.  As described below, that interface
 is what is exposed to Python either when calling LAMMPS from Python or
@@ -179,7 +187,7 @@ file and the shared library.
 11.3 Building LAMMPS as a shared library :link(py_3),h4
 
 Instructions on how to build LAMMPS as a shared library are given in
-"Section_start 5"_Section_start.html#start_5.  A shared library is one
+"Section 2.5"_Section_start.html#start_5.  A shared library is one
 that is dynamically loadable, which is what Python requires to wrap
 LAMMPS.  On Linux this is a library file that ends in ".so", not ".a".
 
@@ -198,7 +206,7 @@ NOTE: If you are building LAMMPS with an MPI or FFT library or other
 auxiliary libraries (used by various packages), then all of these
 extra libraries must also be shared libraries.  If the LAMMPS
 shared-library build fails with an error complaining about this, see
-"Section_start 5"_Section_start.html#start_5 for more details.
+"Section 2.5"_Section_start.html#start_5 for more details.
 
 :line
 
@@ -419,8 +427,8 @@ first importing from the lammps.py file:
 >>> from ctypes import CDLL
 >>> CDLL("liblammps.so") :pre
 
-If an error occurs, carefully go thru the steps in "Section_start
-5"_Section_start.html#start_5 and above about building a shared
+If an error occurs, carefully go thru the steps in "Section
+2.5"_Section_start.html#start_5 and above about building a shared
 library and about insuring Python can find the necessary two files
 it needs.
 
@@ -503,7 +511,7 @@ one of several ways:
 The last command requires that the first line of the script be
 something like this:
 
-#!/usr/local/bin/python 
+#!/usr/local/bin/python
 #!/usr/local/bin/python -i :pre
 
 where the path points to where you have Python installed, and that you
@@ -534,10 +542,11 @@ from lammps import lammps :pre
 These are the methods defined by the lammps module.  If you look at
 the files src/library.cpp and src/library.h you will see that they
 correspond one-to-one with calls you can make to the LAMMPS library
-from a C++ or C or Fortran program.
+from a C++ or C or Fortran program, and which are described in
+"Section 6.19"_Section_howto.html#howto_19 of the manual.
 
 lmp = lammps()           # create a LAMMPS object using the default liblammps.so library
-                         4 optional args are allowed: name, cmdargs, ptr, comm
+                         # 4 optional args are allowed: name, cmdargs, ptr, comm
 lmp = lammps(ptr=lmpptr) # use lmpptr as previously created LAMMPS object
 lmp = lammps(comm=split) # create a LAMMPS object with a custom communicator, requires mpi4py 2.0.0 or later
 lmp = lammps(name="g++")   # create a LAMMPS object using the liblammps_g++.so library
@@ -549,37 +558,41 @@ version = lmp.version()  # return the numerical version id, e.g. LAMMPS 2 Sep 20
 
 lmp.file(file)           # run an entire input script, file = "in.lj"
 lmp.command(cmd)         # invoke a single LAMMPS command, cmd = "run 100" :pre
+lmp.commands_list(cmdlist)     # invoke commands in cmdlist = ["run 10", "run 20"]
+lmp.commands_string(multicmd)  # invoke commands in multicmd = "run 10\nrun 20"
 
 xlo = lmp.extract_global(name,type)  # extract a global quantity
                                      # name = "boxxlo", "nlocal", etc
-				     # type = 0 = int
-				     #        1 = double :pre
+                                     # type = 0 = int
+                                     #        1 = double :pre
 
 coords = lmp.extract_atom(name,type)      # extract a per-atom quantity
                                           # name = "x", "type", etc
-				          # type = 0 = vector of ints
-				          #        1 = array of ints
-				          #        2 = vector of doubles
-				          #        3 = array of doubles :pre
+                                          # type = 0 = vector of ints
+                                          #        1 = array of ints
+                                          #        2 = vector of doubles
+                                          #        3 = array of doubles :pre
 
 eng = lmp.extract_compute(id,style,type)  # extract value(s) from a compute
 v3 = lmp.extract_fix(id,style,type,i,j)   # extract value(s) from a fix
                                           # id = ID of compute or fix
-					  # style = 0 = global data
-					  #	    1 = per-atom data
-					  #         2 = local data
-					  # type = 0 = scalar
-					  #	   1 = vector
-					  #        2 = array
-					  # i,j = indices of value in global vector or array :pre
+                                          # style = 0 = global data
+                                          #         1 = per-atom data
+                                          #         2 = local data
+                                          # type = 0 = scalar
+                                          #        1 = vector
+                                          #        2 = array
+                                          # i,j = indices of value in global vector or array :pre
 
 var = lmp.extract_variable(name,group,flag)  # extract value(s) from a variable
-	                                     # name = name of variable
-					     # group = group ID (ignored for equal-style variables)
-					     # flag = 0 = equal-style variable
-					     #        1 = atom-style variable :pre
+                                             # name = name of variable
+                                             # group = group ID (ignored for equal-style variables)
+                                             # flag = 0 = equal-style variable
+                                             #        1 = atom-style variable :pre
 
 flag = lmp.set_variable(name,value)       # set existing named string-style variable to value, flag = 0 if successful
+value = lmp.get_thermo(name)              # return current value of a thermo keyword
+
 natoms = lmp.get_natoms()                 # total # of atoms as int
 data = lmp.gather_atoms(name,type,count)  # return atom attribute of all atoms gathered into data, ordered by atom ID
                                           # name = "x", "charge", "type", etc
@@ -599,9 +612,10 @@ create an instance of LAMMPS, wrapped in a Python class by the lammps
 Python module, and return an instance of the Python class as lmp.  It
 is used to make all subequent calls to the LAMMPS library.
 
-Additional arguments can be used to tell Python the name of the shared
-library to load or to pass arguments to the LAMMPS instance, the same
-as if LAMMPS were launched from a command-line prompt.
+Additional arguments to lammps() can be used to tell Python the name
+of the shared library to load or to pass arguments to the LAMMPS
+instance, the same as if LAMMPS were launched from a command-line
+prompt.
 
 If the ptr argument is set like this:
 
@@ -626,8 +640,9 @@ lmp2 = lammps()
 lmp1.file("in.file1")
 lmp2.file("in.file2") :pre
 
-The file() and command() methods allow an input script or single
-commands to be invoked.
+The file(), command(), commands_list(), commands_string() methods
+allow an input script, a single command, or multiple commands to be
+invoked.
 
 The extract_global(), extract_atom(), extract_compute(),
 extract_fix(), and extract_variable() methods return values or
@@ -656,7 +671,7 @@ subscripting.  The one exception is that for a fix that calculates a
 global vector or array, a single double value from the vector or array
 is returned, indexed by I (vector) or I and J (array).  I,J are
 zero-based indices.  The I,J arguments can be left out if not needed.
-See "Section_howto 15"_Section_howto.html#howto_15 of the manual for a
+See "Section 6.15"_Section_howto.html#howto_15 of the manual for a
 discussion of global, per-atom, and local data, and of scalar, vector,
 and array data types.  See the doc pages for individual
 "computes"_compute.html and "fixes"_fix.html for a description of what
@@ -724,7 +739,7 @@ lmp.scatter_coords("x",1,3,x) :pre
 Alternatively, you can just change values in the vector returned by
 gather_atoms("x",1,3), since it is a ctypes vector of doubles.
 
-:line 
+:line
 
 As noted above, these Python class methods correspond one-to-one with
 the functions in the LAMMPS library interface in src/library.cpp and
@@ -767,7 +782,7 @@ vizplotgui_tool.py, combination of viz_tool.py and plot.py and gui.py :tb(c=2)
 
 For the viz_tool.py and vizplotgui_tool.py commands, replace "tool"
 with "gl" or "atomeye" or "pymol" or "vmd", depending on what
-visualization package you have installed. 
+visualization package you have installed.
 
 Note that for GL, you need to be able to run the Pizza.py GL tool,
 which is included in the pizza sub-directory.  See the "Pizza.py doc
@@ -790,13 +805,13 @@ capability needed by these Python scripts.
 
 Note that for PyMol, you need to have built and installed the
 open-source version of PyMol in your Python, so that you can import it
-from a Python script.  See the PyMol WWW pages "here"_pymol or
+from a Python script.  See the PyMol WWW pages "here"_pymolhome or
 "here"_pymolopen for more details:
 
 http://www.pymol.org
 http://sourceforge.net/scm/?type=svn&group_id=4546 :pre
 
-:link(pymol,http://www.pymol.org)
+:link(pymolhome,http://www.pymol.org)
 :link(pymolopen,http://sourceforge.net/scm/?type=svn&group_id=4546)
 
 The latter link is to the open-source version.
@@ -817,3 +832,7 @@ different visualization package options.  Click to see larger images:
 :image(JPG/screenshot_atomeye_small.jpg,JPG/screenshot_atomeye.jpg)
 :image(JPG/screenshot_pymol_small.jpg,JPG/screenshot_pymol.jpg)
 :image(JPG/screenshot_vmd_small.jpg,JPG/screenshot_vmd.jpg)
+
+11.9 PyLammps interface :link(py_9),h4
+
+Please see the "PyLammps Tutorial"_tutorial_pylammps.html.

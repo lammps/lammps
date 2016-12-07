@@ -13,8 +13,10 @@ $(error Environment variable QUIP_ARCH must be set.)
 endif
 
 include ${QUIP_ROOT}/build/${QUIP_ARCH}/Makefile.inc
+include ${QUIP_ROOT}/Makefile.rules
 
 quip_SYSLIB = -lquip
+quip_SYSLIB += ${NETCDF_SYSLIBS}
 quip_SYSLIB += ${MATH_LINKOPTS}
 
 ifeq (${F95},gfortran)
@@ -25,4 +27,4 @@ else
 $(error fortran compiler >>${F95}<< not recognised. Edit lib/quip/Makefile.lammps to specify the fortran library your linker should link to)
 endif
 
-quip_SYSPATH = -L${QUIP_ROOT}/build/${QUIP_ARCH} -L${QUIP_ROOT}/src/FoX-4.0.3/objs.${QUIP_ARCH}/lib
+quip_SYSPATH = -L${QUIP_ROOT}/build/${QUIP_ARCH}

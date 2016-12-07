@@ -35,13 +35,13 @@ keyword = {mesh} or {order} or {order/disp} or {mix/disp} or {overlap} or {minor
     volfactor = ratio of the total extended volume used in the
       2d approximation compared with the volume of the simulation domain
     {nozforce} turns off kspace forces in the z direction
-  {compute} value = {yes} or {no} 
-  {cutoff/adjust} value = {yes} or {no} 
-  {pressure/scalar} value = {yes} or {no} 
-  {fftbench} value = {yes} or {no} 
-  {collective} value = {yes} or {no} 
-  {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode 
-  {kmax/ewald} value = kx ky kz 
+  {compute} value = {yes} or {no}
+  {cutoff/adjust} value = {yes} or {no}
+  {pressure/scalar} value = {yes} or {no}
+  {fftbench} value = {yes} or {no}
+  {collective} value = {yes} or {no}
+  {diff} value = {ad} or {ik} = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode
+  {kmax/ewald} value = kx ky kz
     kx,ky,kz = number of Ewald sum kspace vectors in each dimension
   {force/disp/real} value = accuracy (force units)
   {force/disp/kspace} value = accuracy (force units)
@@ -73,7 +73,7 @@ user-specified accuracy and pairwise cutoff.  Values for x,y,z of
 The {mesh/disp} keyword sets the grid size for kspace style
 {pppm/disp}.  This is the FFT mesh for long-range dispersion and ach
 dimension must be factorizable into powers of 2, 3, and 5.  When this
-option is not set, the PPPM solver chooses its own grid size, 
+option is not set, the PPPM solver chooses its own grid size,
 consistent with the user-specified accuracy and pairwise cutoff.
 Values for x,y,z of 0,0,0 unset the option.
 
@@ -132,7 +132,7 @@ owned by neighboring processors.  Typically this will only occur when
 small problems are run on large numbers of processors.  A warning will
 be generated indicating the order parameter is being reduced to allow
 LAMMPS to run the problem. Automatic adjustment of the order parameter
-is not supported in MSM. 
+is not supported in MSM.
 
 The {force} keyword overrides the relative accuracy parameter set by
 the "kspace_style"_kspace_style.html command with an absolute
@@ -246,8 +246,8 @@ then performs analytic differentiation on the single quantity to
 generate the 3 components of the electric field at each grid point.
 This is sometimes referred to as "smoothed" PPPM.  This approach
 requires a somewhat larger PPPM mesh to achieve the same accuracy as
-the {ik} method. Currently, only the {ik} method (default) can be 
-used for a triclinic simulation cell with PPPM. The {ad} method is 
+the {ik} method. Currently, only the {ik} method (default) can be
+used for a triclinic simulation cell with PPPM. The {ad} method is
 always used for MSM.
 
 NOTE: Currently, not all PPPM styles support the {ad} option.  Support
@@ -311,7 +311,7 @@ split = 0, tol = 1.0e-6, and disp/auto = no.
 
 :line
 
-:link(Hockney) 
+:link(Hockney)
 [(Hockney)] Hockney and Eastwood, Computer Simulation Using Particles,
 Adam Hilger, NY (1989).
 

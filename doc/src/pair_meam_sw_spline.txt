@@ -31,8 +31,8 @@ is given by
 
 :c,image(Eqs/pair_meam_sw_spline.jpg)
 
-where rho_I is the density at atom I, theta_JIK is the angle between 
-atoms J, I, and K centered on atom I. The seven functions 
+where rho_I is the density at atom I, theta_JIK is the angle between
+atoms J, I, and K centered on atom I. The seven functions
 Phi, F, G, U, rho, f, and g are represented by cubic splines.
 
 The cutoffs and the coefficients for these spline functions are listed
@@ -89,7 +89,7 @@ in the examples/USER/misc/meam_sw_spline directory.
 
 [Mixing, shift, table, tail correction, restart, rRESPA info]:
 
-The pair style does not support multiple element types or mixing. 
+The pair style does not support multiple element types or mixing.
 It has been designed for pure elements only.
 
 This pair style does not support the "pair_modify"_pair_modify.html
@@ -131,7 +131,7 @@ Kress, Modell. Simul. Mater. Sci. Eng. 8, 825 (2000).
 [(Stillinger)] Stillinger, Weber, Phys. Rev. B 31, 5262 (1985).
 
 :link(Nicklas)
-[(Nicklas)] 
+[(Nicklas)]
 The spline-based MEAM+SW format was first devised and used to develop
 potentials for bcc transition metals by Jeremy Nicklas, Michael Fellinger,
 and Hyoungki Park at The Ohio State University.

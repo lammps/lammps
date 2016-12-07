@@ -86,7 +86,7 @@ The A, B, p, and q parameters are used only for two-body
 interactions.  The lambda and costheta0 parameters are used only for
 three-body interactions. The epsilon, sigma and a parameters are used
 for both two-body and three-body interactions. gamma is used only in the
-three-body interactions, but is defined for pairs of atoms.   
+three-body interactions, but is defined for pairs of atoms.
 The non-annotated parameters are unitless.
 
 LAMMPS introduces an additional performance-optimization parameter tol
@@ -135,8 +135,8 @@ entries CSiC and CCSi should be the same.  Similarly, the two-body
 parameters for entries SiCC and CSiSi should also be the same.  The
 parameters used only for two-body interactions (A, B, p, and q) in
 entries whose 2nd and 3rd element are different (e.g. SiCSi) are not
-used for anything and can be set to 0.0 if desired. 
-This is also true for the parameters in phi3 that are 
+used for anything and can be set to 0.0 if desired.
+This is also true for the parameters in phi3 that are
 taken from the ij and ik pairs (sigma, a, gamma)
 
 :line
@@ -144,7 +144,7 @@ taken from the ij and ik pairs (sigma, a, gamma)
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -164,7 +164,7 @@ additional 5 to 10 percent performance improvement when the
 Stillinger-Weber parameters p and q are set to 4 and 0 respectively.
 These parameters are common for modeling silicon and water.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line
@@ -192,7 +192,7 @@ This pair style can only be used via the {pair} keyword of the
 [Restrictions:]
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package (which it is by default).  See
+if LAMMPS was built with that package.  See
 the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 This pair style requires the "newton"_newton.html setting to be "on"

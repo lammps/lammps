@@ -35,7 +35,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp) {
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -279,7 +281,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->ndihedraltypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -334,3 +336,18 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   for (int i = 1; i <= atom->ndihedraltypes; i++) setflag[i] = 1;
 }
 
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void DihedralNHarmonic::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    fprintf(fp, "%d %d", i, nterms[i]);
+    for (int j = 0; j < nterms[i]; j++ )
+      fprintf(fp, " %g", a[i][j]);
+
+    fprintf(fp, "\n");
+  }
+
+}

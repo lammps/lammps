@@ -49,6 +49,7 @@ class PairTersoff : public Pair {
     double ZBLcut,ZBLexpscale;
     double c5,ca1,ca4;           // added for TersoffMOD
     double powern_del;
+    double c0;                   // added for TersoffMODC
   };
 
   Param *params;                // parameter set for an I-J-K interaction
@@ -59,6 +60,8 @@ class PairTersoff : public Pair {
   int nelements;                // # of unique elements
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
+  int maxshort;                 // size of short neighbor list array
+  int *neighshort;              // short neighbor list array
 
   virtual void allocate();
   virtual void read_file(char *);

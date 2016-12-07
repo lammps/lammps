@@ -207,6 +207,8 @@
 /compute_pe_tally.h
 /compute_plasticity_atom.cpp
 /compute_plasticity_atom.h
+/compute_pressure_grem.cpp
+/compute_pressure_grem.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
 /compute_spec_atom.cpp
@@ -273,6 +275,10 @@
 /dump_custom_vtk.h
 /dump_h5md.cpp
 /dump_h5md.h
+/dump_nc.cpp
+/dump_nc.h
+/dump_nc_mpiio.cpp
+/dump_nc_mpiio.h
 /dump_xtc.cpp
 /dump_xtc.h
 /dump_xyz_mpiio.cpp
@@ -305,8 +311,12 @@
 /fix_bond_create.h
 /fix_bond_swap.cpp
 /fix_bond_swap.h
+/fix_cmap.cpp
+/fix_cmap.h
 /fix_deposit.cpp
 /fix_deposit.h
+/fix_dpd_energy.cpp
+/fix_dpd_energy.h
 /fix_efield.cpp
 /fix_efield.h
 /fix_eos_cv.cpp
@@ -337,6 +347,8 @@
 /fix_gle.h
 /fix_gpu.cpp
 /fix_gpu.h
+/fix_grem.cpp
+/fix_grem.h
 /fix_imd.cpp
 /fix_imd.h
 /fix_ipi.cpp
@@ -487,6 +499,8 @@
 /fix_wall_colloid.h
 /fix_wall_gran.cpp
 /fix_wall_gran.h
+/fix_wall_gran_region.cpp
+/fix_wall_gran_region.h
 /fix_wall_piston.cpp
 /fix_wall_piston.h
 /fix_wall_srd.cpp
@@ -531,6 +545,8 @@
 
 /pair_adp.cpp
 /pair_adp.h
+/pair_agni.cpp
+/pair_agni.h
 /pair_airebo.cpp
 /pair_airebo.h
 /pair_airebo_morse.cpp
@@ -765,6 +781,8 @@
 /pair_tersoff.h
 /pair_tersoff_mod.cpp
 /pair_tersoff_mod.h
+/pair_tersoff_mod_c.cpp
+/pair_tersoff_mod_c.h
 /pair_tersoff_table.cpp
 /pair_tersoff_table.h
 /pair_tersoff_zbl.cpp
@@ -863,6 +881,8 @@
 /tad.h
 /temper.cpp
 /temper.h
+/temper_grem.cpp
+/temper_grem.h
 /thr_data.cpp
 /thr_data.h
 /verlet_split.cpp
@@ -968,6 +988,8 @@
 /fix_ttm_mod.h
 /pair_born_coul_long_cs.cpp
 /pair_born_coul_long_cs.h
+/pair_born_coul_dsf_cs.cpp
+/pair_born_coul_dsf_cs.h
 /pair_buck_coul_long_cs.cpp
 /pair_buck_coul_long_cs.h
 /pair_coul_long_cs.cpp

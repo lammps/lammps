@@ -26,7 +26,7 @@ keyword = {every}
 
 [Examples:]
 
-fix 1 all nve/manifold/rattle 1e-4 10 sphere 5.0 
+fix 1 all nve/manifold/rattle 1e-4 10 sphere 5.0
 fix step all nve/manifold/rattle 1e-8 100 ellipsoid 2.5 2.5 5.0 every 25 :pre
 
 [Description:]
@@ -35,7 +35,7 @@ Perform constant NVE integration to update position and velocity for
 atoms constrained to a curved surface (manifold) in the group each
 timestep. The constraint is handled by RATTLE "(Andersen)"_#Andersen
 written out for the special case of single-particle constraints as
-explained in "(Paquay)"_#Paquay.  V is volume; E is energy. This way,
+explained in "(Paquay)"_#Paquay2.  V is volume; E is energy. This way,
 the dynamics of particles constrained to curved surfaces can be
 studied. If combined with "fix langevin"_fix_langevin.html, this
 generates Brownian motion of particles constrained to a curved
@@ -95,7 +95,7 @@ manifoldforce"_fix_manifoldforce.html
 :link(Andersen)
 [(Andersen)] Andersen, J. Comp. Phys. 52, 24, (1983).
 
-:link(Paquay)
+:link(Paquay2)
 [(Paquay)] Paquay and Kusters, Biophys. J., 110, 6, (2016).
 preprint available at "arXiv:1411.3019"_http://arxiv.org/abs/1411.3019/.
 

@@ -17,7 +17,7 @@ M = attempt a tempering swap every this many steps
 temp = initial temperature for this ensemble
 fix-ID = ID of the fix that will control temperature during the run
 seed1 = random # seed used to decide on adjacent temperature to partner with
-seed2 = random # seed for Boltzmann factor in Metropolis swap 
+seed2 = random # seed for Boltzmann factor in Metropolis swap
 index = which temperature (0 to N-1) I am simulating (optional) :ul
 
 [Examples:]
@@ -32,7 +32,7 @@ replicas (ensembles) of a system.  Two or more replicas must be used.
 
 Each replica runs on a partition of one or more processors.  Processor
 partitions are defined at run-time using the -partition command-line
-switch; see "Section_start 6"_Section_start.html#start_7 of the
+switch; see "Section 2.7"_Section_start.html#start_7 of the
 manual.  Note that if you have MPI installed, you can run a
 multi-replica simulation with more replicas (partitions) than you have
 physical processors, e.g you can run a 10-replica simulation on one or

@@ -150,7 +150,7 @@ colvar::colvar(std::string const &conf)
     feature_states[f_cv_linear]->enabled = lin;
   }
 
-  // Colvar is homogeneous iff:
+  // Colvar is homogeneous if:
   // - it is linear (hence not scripted)
   // - all cvcs have coefficient 1 or -1
   // i.e. sum or difference of cvcs
@@ -375,28 +375,16 @@ colvar::colvar(std::string const &conf)
 
   {
     bool temp;
-    if (get_keyval(conf, "outputSystemForce", temp, false)) {
-      cvm::error("Colvar option outputSystemForce is deprecated.\n"
-        "Please use outputTotalForce, or outputSystemForce within an ABF bias.");
+    if (get_keyval(conf, "outputSystemForce", temp, false, colvarparse::parse_silent)) {
+      cvm::error("Option outputSystemForce is deprecated: only outputTotalForce is supported instead.\n"
+                 "The two are NOT identical: see http://colvars.github.io/totalforce.html.\n", INPUT_ERROR);
       return;
     }
   }
 
-  {
-    bool b_output_total_force;
-    get_keyval(conf, "outputTotalForce", b_output_total_force, false);
-    if (b_output_total_force) {
-      enable(f_cv_output_total_force);
-    }
-  }
-
-  {
-    bool b_output_applied_force;
-    get_keyval(conf, "outputAppliedForce", b_output_applied_force, false);
-    if (b_output_applied_force) {
-      enable(f_cv_output_applied_force);
-    }
-  }
+  get_keyval_feature(this, conf, "outputTotalForce", f_cv_output_total_force, false);
+  get_keyval_feature(this, conf, "outputAppliedForce", f_cv_output_applied_force, false);
+  get_keyval_feature(this, conf, "subtractAppliedForce", f_cv_subtract_applied_force, false);
 
   // Start in active state by default
   enable(f_cv_active);
@@ -409,6 +397,8 @@ colvar::colvar(std::string const &conf)
   fj.type(value());
   ft.type(value());
   ft_reported.type(value());
+  f_old.type(value());
+  f_old.reset();
 
   if (cvm::b_analysis)
     parse_analysis(conf);
@@ -519,6 +509,8 @@ int colvar::init_components(std::string const &conf)
     "number", "coordNum");
   error_code |= init_components_type<selfcoordnum>(conf, "self-coordination "
     "number", "selfCoordNum");
+  error_code |= init_components_type<groupcoordnum>(conf, "group-coordination "
+    "number", "groupCoord");
   error_code |= init_components_type<angle>(conf, "angle", "angle");
   error_code |= init_components_type<dipole_angle>(conf, "dipole angle", "dipoleAngle");
   error_code |= init_components_type<dihedral>(conf, "dihedral", "dihedral");
@@ -1104,6 +1096,14 @@ int colvar::calc_colvar_properties()
 
   } else {
 
+    if (is_enabled(f_cv_subtract_applied_force)) {
+      // correct the total force only if it has been measured
+      // TODO add a specific test instead of relying on sq norm
+      if (ft.norm2() > 0.0) {
+        ft -= f_old;
+      }
+    }
+
     x_reported = x;
     ft_reported = ft;
   }
@@ -1144,9 +1144,9 @@ cvm::real colvar::update_forces_energy()
     // For a periodic colvar, both walls may be applicable at the same time
     // in which case we pick the closer one
     if ( (!is_enabled(f_cv_upper_wall)) ||
-         (this->dist2(x, lower_wall) < this->dist2(x, upper_wall)) ) {
+         (this->dist2(x_reported, lower_wall) < this->dist2(x_reported, upper_wall)) ) {
 
-      cvm::real const grad = this->dist2_lgrad(x, lower_wall);
+      cvm::real const grad = this->dist2_lgrad(x_reported, lower_wall);
       if (grad < 0.0) {
         fw = -0.5 * lower_wall_k * grad;
         f += fw;
@@ -1157,7 +1157,7 @@ cvm::real colvar::update_forces_energy()
 
     } else {
 
-      cvm::real const grad = this->dist2_lgrad(x, upper_wall);
+      cvm::real const grad = this->dist2_lgrad(x_reported, upper_wall);
       if (grad > 0.0) {
         fw = -0.5 * upper_wall_k * grad;
         f += fw;
@@ -1177,15 +1177,21 @@ cvm::real colvar::update_forces_energy()
     // atoms only feel the harmonic force
     // fr: bias force on extended variable (without harmonic spring), for output in trajectory
     // f_ext: total force on extended variable (including harmonic spring)
-    // f: - initially, external biasing force
+    // f: - initially, external biasing force (including wall forces)
     //    - after this code block, colvar force to be applied to atomic coordinates, ie. spring force
     fr    = f;
     f_ext = f + (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
     f     =     (-0.5 * ext_force_k) * this->dist2_rgrad(xr, x);
 
-    // The total force acting on the extended variable is f_ext
-    // This will be used in the next timestep
-    ft_reported = f_ext;
+    if (is_enabled(f_cv_subtract_applied_force)) {
+      // Report a "system" force without the biases on this colvar
+      // that is, just the spring force
+      ft_reported = (-0.5 * ext_force_k) * this->dist2_lgrad(xr, x);
+    } else {
+      // The total force acting on the extended variable is f_ext
+      // This will be used in the next timestep
+      ft_reported = f_ext;
+    }
 
     // leapfrog: starting from x_i, f_i, v_(i-1/2)
     vr  += (0.5 * dt) * f_ext / ext_mass;
@@ -1208,6 +1214,10 @@ cvm::real colvar::update_forces_energy()
   if (is_enabled(f_cv_fdiff_velocity)) {
     // set it for the next step
     x_old = x;
+  }
+
+  if (is_enabled(f_cv_subtract_applied_force)) {
+    f_old = f;
   }
 
   if (cvm::debug())
@@ -1640,15 +1650,9 @@ std::ostream & colvar::write_traj(std::ostream &os)
   }
 
   if (is_enabled(f_cv_output_applied_force)) {
-    if (is_enabled(f_cv_extended_Lagrangian)) {
-      os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << fr;
-    } else {
-      os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
-         << f;
-    }
+    os << " "
+       << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
+       << applied_force();
   }
 
   return os;

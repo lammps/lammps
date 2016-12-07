@@ -64,7 +64,7 @@ these atoms:
 A coupling parameter \(\lambda\) varying from 0 to 1 connects the
 reference and perturbed systems:
 
-:c,image(Eqs/compute_fep_lambda.jpg) 
+:c,image(Eqs/compute_fep_lambda.jpg)
 
 It is possible but not necessary that the coupling parameter (or a
 function thereof) appears as a multiplication factor of the potential
@@ -219,8 +219,8 @@ unperturbed parameters. The energies include kspace terms if these
 are used in the simulation.
 
 These output results can be used by any command that uses a global
-scalar or vector from a compute as input.  See "Section_howto
-15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+scalar or vector from a compute as input.  See "Section
+6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options. For example, the computed values can be averaged using "fix
 ave/time"_fix_ave_time.html.
 
@@ -236,7 +236,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 [Related commands:]
 
 "fix adapt/fep"_fix_adapt_fep.html, "fix ave/time"_fix_ave_time.html,
-"pair_lj_soft_coul_soft"_pair_lj_soft_coul_soft.txt
+"pair_style lj/soft/coul/soft"_pair_lj_soft.html
 
 [Default:]
 

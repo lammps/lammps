@@ -100,7 +100,7 @@ Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
 For pair_style {thole}, the following coefficients must be defined for
-each pair of atoms types via the "pair_coeff"_pair_coeff.html command 
+each pair of atoms types via the "pair_coeff"_pair_coeff.html command
 as in the example above.
 
 alpha (distance units^3)
@@ -130,7 +130,7 @@ the {pair_style} command line.
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -145,7 +145,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 [Mixing]:
@@ -180,7 +180,7 @@ package.
 langevin/drude"_fix_langevin_drude.html, "fix
 drude/transform"_fix_drude_transform.html, "compute
 temp/drude"_compute_temp_drude.html
-"pair_style lj/cut/coul/long"_pair_lj_cut_coul_long
+"pair_style lj/cut/coul/long"_pair_lj.html
 
 [Default:] none
 

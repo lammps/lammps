@@ -28,15 +28,17 @@ fix wall all wall/region mySphere lj93 1.0 1.0 2.5 :pre
 
 Treat the surface of the geometric region defined by the {region-ID}
 as a bounding wall which interacts with nearby particles according to
-the specified style.  The distance between a particle and the surface
-is the distance to the nearest point on the surface and the force the
-wall exerts on the particle is along the direction between that point
-and the particle, which is the direction normal to the surface at that
-point.  Note that if the region surface is comprised of multiple
-"faces", then each face can exert a force on the particle if it is
-close enough.  E.g. for "region_style block"_region.html, a particle
-in the interior, near a corner of the block, could feel wall forces
-from 1, 2, or 3 faces of the block.
+the specified style.
+
+The distance between a particle and the surface is the distance to the
+nearest point on the surface and the force the wall exerts on the
+particle is along the direction between that point and the particle,
+which is the direction normal to the surface at that point.  Note that
+if the region surface is comprised of multiple "faces", then each face
+can exert a force on the particle if it is close enough.  E.g. for
+"region_style block"_region.html, a particle in the interior, near a
+corner of the block, could feel wall forces from 1, 2, or 3 faces of
+the block.
 
 Regions are defined using the "region"_region.html command.  Note that
 the region volume can be interior or exterior to the bounding surface,
@@ -63,7 +65,7 @@ that if you embed a region in your simulation box and want it to
 repulse particles from its surface (using the "side out" option in the
 "region"_region.html command), that its repulsive force will not be
 felt across a periodic boundary.
- 
+
 NOTE: For primitive regions with sharp corners and/or edges (e.g. a
 block or cylinder), wall/particle forces are computed accurately for
 both interior and exterior regions.  For {union} and {intersect}
@@ -83,18 +85,21 @@ to feel no force (they don't "see" the wall) when in one location,
 then move a distance epsilon, and suddenly feel a large force because
 they now "see" the wall.  In a worst-case scenario, this can blow
 particles out of the simulation box.  Thus, as a general rule you
-should not use the fix wall/region command with {union} or
-{interesect} regions that have convex points or edges.
+should not use the fix wall/gran/region command with {union} or
+{interesect} regions that have convex points or edges resulting from
+the union/intersection (convex points/edges in the union/intersection
+due to a single sub-region are still OK).
 
 NOTE: Similarly, you should not define {union} or {intersert} regions
-for use with this command that share a common face, even if the face
-is smooth.  E.g. two regions of style block in a {union} region, where
-the two blocks have the same face.  This is because LAMMPS discards
-points that are part of multiple sub-regions when calculating
-wall/particle interactions, to avoid double-counting the interaction.
-Having two coincident faces could cause the face to become invisible
-to the particles.  The solution is to make the two faces differ by
-epsilon in their position.
+for use with this command that share an overlapping common face that
+is part of the overall outer boundary (interior boundary is OK), even
+if the face is smooth.  E.g. two regions of style block in a {union}
+region, where the two blocks overlap on one or more of their faces.
+This is because LAMMPS discards points that are part of multiple
+sub-regions when calculating wall/particle interactions, to avoid
+double-counting the interaction.  Having two coincident faces could
+cause the face to become invisible to the particles.  The solution is
+to make the two faces differ by epsilon in their position.
 
 The energy of wall-particle interactions depends on the specified
 style.

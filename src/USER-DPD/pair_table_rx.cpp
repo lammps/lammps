@@ -15,7 +15,7 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include "mpi.h"
+#include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -186,7 +186,7 @@ void PairTableRX::compute(int eflag, int vflag)
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         }
-        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair; 
+        if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
         else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
 
         fx_i += delx*fpair;
@@ -326,8 +326,8 @@ void PairTableRX::coeff(int narg, char **arg)
   if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -1102,7 +1102,7 @@ double PairTableRX::single(int i, int j, int itype, int jtype, double rsq,
     fforce = factor_lj * value;
   }
 
-  if (isite1 == isite2) fforce = sqrt(fraction1_i*fraction2_j)*fforce; 
+  if (isite1 == isite2) fforce = sqrt(fraction1_i*fraction2_j)*fforce;
   else fforce = (sqrt(fraction1_i*fraction2_j) + sqrt(fraction2_i*fraction1_j))*fforce;
 
   if (tabstyle == LOOKUP)
@@ -1146,17 +1146,17 @@ void PairTableRX::getParams(int id, double &fractionOld1, double &fractionOld2, 
   double nTotal = 0.0;
   double nTotalOld = 0.0;
   for (int ispecies = 0; ispecies < nspecies; ++ispecies){
-    nTotal += atom->dvector[ispecies][id]; 
+    nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
   if(nTotal < 1e-8 || nTotalOld < 1e-8)
     error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
 
-  if (isOneFluid(isite1) == false){ 
+  if (isOneFluid(isite1) == false){
     fractionOld1 = atom->dvector[isite1+nspecies][id]/nTotalOld;
     fraction1 = atom->dvector[isite1][id]/nTotal;
   }
-  if (isOneFluid(isite2) == false){ 
+  if (isOneFluid(isite2) == false){
     fractionOld2 = atom->dvector[isite2+nspecies][id]/nTotalOld;
     fraction2 = atom->dvector[isite2][id]/nTotal;
   }

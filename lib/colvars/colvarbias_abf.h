@@ -40,6 +40,8 @@ private:
   int		output_freq;
   /// Write combined files with a history of all output data?
   bool      b_history_files;
+  /// Write CZAR output file for stratified eABF (.zgrad)
+  bool      b_czar_window_file;
   size_t    history_freq;
 
   /// Cap applied biasing force?
@@ -61,6 +63,23 @@ private:
   colvar_grid_count     *z_samples;
   /// n-dim grid contining CZAR estimator of "real" free energy gradients
   colvar_grid_gradient  *czar_gradients;
+
+  inline int update_system_force(size_t i)
+  {
+    if (colvars[i]->is_enabled(f_cv_subtract_applied_force)) {
+      // this colvar is already subtracting the ABF force
+      system_force[i] = colvars[i]->total_force().real_value;
+    } else {
+      system_force[i] = colvars[i]->total_force().real_value
+        - colvar_forces[i].real_value;
+    }
+    if (cvm::debug())
+      cvm::log("ABF System force calc: cv " + cvm::to_str(i) +
+               " fs " + cvm::to_str(system_force[i]) +
+               " = ft " + cvm::to_str(colvars[i]->total_force().real_value) +
+               " - fa " + cvm::to_str(colvar_forces[i].real_value));
+    return COLVARS_OK;
+  }
 
   // shared ABF
   bool     shared_on;

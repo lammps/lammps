@@ -2108,6 +2108,12 @@ double FixGCMC::energy_full()
   int eflag = 1;
   int vflag = 0;
 
+  // clear forces so they don't accumulate over multiple
+  // calls within fix gcmc timestep, e.g. for fix shake
+  
+  size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
+  if (nbytes) memset(&atom->f[0][0],0,3*nbytes);
+
   if (modify->n_pre_force) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag,vflag);
@@ -2121,8 +2127,17 @@ double FixGCMC::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
+  // unlike Verlet, not performing a reverse_comm() or forces here
+  // b/c GCMC does not care about forces
+  // don't think it will mess up energy due to any post_force() fixes
+
   if (modify->n_post_force) modify->post_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
+
+  // NOTE: all fixes with THERMO_ENERGY mask set and which
+  //   operate at pre_force() or post_force() or end_of_step()
+  //   and which user has enable via fix_modify thermo yes,
+  //   will contribute to total MC energy via pe->compute_scalar()
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();

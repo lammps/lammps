@@ -155,6 +155,11 @@ void PairAIREBO::settings(int narg, char **arg)
     ljflag = force->inumeric(FLERR,arg[1]);
     torflag = force->inumeric(FLERR,arg[2]);
   }
+
+  // this one parameter for C-C interactions is different in AIREBO vs REBO
+  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
+  
+  PCCf_2_0 = -0.0276030;
 }
 
 /* ----------------------------------------------------------------------
@@ -4090,7 +4095,12 @@ void PairAIREBO::spline_init()
   PCCf[0][3] = 0.0161253646;
   PCCf[1][1] = -0.010960;
   PCCf[1][2] = 0.00632624824;
-  PCCf[2][0] = -0.0276030;
+
+  // this one parameter for C-C interactions is different in REBO vs AIREBO
+  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
+
+  PCCf[2][0] = PCCf_2_0;
+
   PCCf[2][1] = 0.00317953083;
 
   PCHf[0][1] = 0.209336733;

@@ -5,13 +5,14 @@
 :link(lc,Section_commands.html#comm)
 
 :line
-   
+
 dump command :h3
 "dump custom/vtk"_dump_custom_vtk.html command :h3
 "dump h5md"_dump_h5md.html command :h3
 "dump image"_dump_image.html command :h3
 "dump movie"_dump_image.html command :h3
 "dump molfile"_dump_molfile.html command :h3
+"dump nc"_dump_nc.html command :h3
 
 [Syntax:]
 
@@ -43,7 +44,9 @@ args = list of arguments for a particular style :l
 
   {movie} args = discussed on "dump image"_dump_image.html doc page :pre
 
-  {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page :pre
+  {molfile} args = discussed on "dump molfile"_dump_molfile.html doc page
+
+  {nc} args = discussed on "dump nc"_dump_nc.html doc page :pre
 
   {local} args = list of local attributes
     possible attributes = index, c_ID, c_ID\[I\], f_ID, f_ID\[I\]
@@ -55,13 +58,13 @@ args = list of arguments for a particular style :l
 
   {custom} or {custom/gz} or {custom/mpiio} args = list of atom attributes
     possible attributes = id, mol, proc, procp1, type, element, mass,
-			  x, y, z, xs, ys, zs, xu, yu, zu, 
-			  xsu, ysu, zsu, ix, iy, iz,
-			  vx, vy, vz, fx, fy, fz,
+                          x, y, z, xs, ys, zs, xu, yu, zu,
+                          xsu, ysu, zsu, ix, iy, iz,
+                          vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz, mu,
                           radius, diameter, omegax, omegay, omegaz,
-			  angmomx, angmomy, angmomz, tqx, tqy, tqz,
-			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
+                          angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                          c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
       mol = molecule ID
@@ -211,7 +214,7 @@ bounding box which encloses the triclinic simulation box is output,
 along with the 3 tilt factors (xy, xz, yz) of the triclinic box,
 formatted as follows:
 
-ITEM: BOX BOUNDS xy xz yz xx yy zz 
+ITEM: BOX BOUNDS xy xz yz xx yy zz
 xlo_bound xhi_bound xy
 ylo_bound yhi_bound xz
 zlo_bound zhi_bound yz :pre
@@ -305,8 +308,8 @@ by the GROMACS molecular dynamics package, and described
 The precision used in XTC files can be adjusted via the
 "dump_modify"_dump_modify.html command.  The default value of 1000
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
-files are portable binary files written in the NFS XDR data format, 
-so that any machine which supports XDR should be able to read them. 
+files are portable binary files written in the NFS XDR data format,
+so that any machine which supports XDR should be able to read them.
 The number of atoms per snapshot cannot change with the {xtc} style.
 The {unwrap} option of the "dump_modify"_dump_modify.html command allows
 XTC coordinates to be written "unwrapped" by the image flags for each
@@ -328,8 +331,8 @@ bonds and colors.
 
 Note that {atom}, {custom}, {dcd}, {xtc}, and {xyz} style dump files
 can be read directly by "VMD"_http://www.ks.uiuc.edu/Research/vmd, a
-popular molecular viewing program.  See "Section
-tools"_Section_tools.html#vmd of the manual and the
+popular molecular viewing program.  See
+"Section 9"_Section_tools.html#vmd of the manual and the
 tools/lmp2vmd/README.txt file for more information about support in
 VMD for reading and visualizing LAMMPS dump files.
 
@@ -390,7 +393,7 @@ Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
 package installed, e.g.
 
 make yes-mpiio    # installs the MPIIO package
-make g++          # build LAMMPS for your platform :pre
+make mpi          # build LAMMPS for your platform :pre
 
 Second, use a dump filename which contains ".mpiio".  Note that it
 does not have to end in ".mpiio", just contain those characters.
@@ -499,7 +502,7 @@ values.
 Here is an example of how to dump bond info for a system, including
 the distance and energy of each bond:
 
-compute 1 all property/local batom1 batom2 btype 
+compute 1 all property/local batom1 batom2 btype
 compute 2 all bond/local dist eng
 dump 1 all local 1000 tmp.dump index c_1\[1\] c_1\[2\] c_1\[3\] c_2\[1\] c_2\[2\] :pre
 
@@ -531,7 +534,7 @@ so that each value is 0.0 to 1.0.  If the simulation box is triclinic
 (tilted), then all atom coords will still be between 0.0 and 1.0.
 I.e. actual unscaled (x,y,z) = xs*A + ys*B + zs*C, where (A,B,C) are
 the non-orthogonal vectors of the simulation box edges, as discussed
-in "Section howto 6.12"_Section_howto.html#howto_12.
+in "Section 6.12"_Section_howto.html#howto_12.
 
 Use {xu}, {yu}, {zu} if you want the coordinates "unwrapped" by the
 image flags for each atom.  Unwrapped means that if the atom has
@@ -626,7 +629,7 @@ The {d_name} and {i_name} attributes allow to output custom per atom
 floating point or integer properties that are managed by
 "fix property/atom"_fix_property_atom.html.
 
-See "Section_modify"_Section_modify.html of the manual for information
+See "Section 10"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate
 per-atom quantities which could then be output into dump files.
 

@@ -14,7 +14,7 @@ fix ID group-ID temp/rescale/eff N Tstart Tstop window fraction :pre
 
 ID, group-ID are documented in "fix"_fix.html command
 temp/rescale/eff = style name of this fix command
-N = perform rescaling every N steps 
+N = perform rescaling every N steps
 Tstart,Tstop = desired temperature at start/end of run (temperature units)
 window = only rescale if temperature is outside this window (temperature units)
 fraction = rescale to target temperature by this fraction :ul

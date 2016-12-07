@@ -383,7 +383,7 @@ void FixColvars::init()
     error->all(FLERR,"Cannot use fix colvars without atom IDs");
 
   if (atom->map_style == 0)
-    error->all(FLERR,"Fix colvars requires an atom map");
+    error->all(FLERR,"Fix colvars requires an atom map, see atom_modify");
 
   if ((me == 0) && (update->whichflag == 2))
     error->warning(FLERR,"Using fix colvars with minimization");
@@ -766,7 +766,7 @@ void FixColvars::post_force(int vflag)
   // call our workhorse and retrieve additional information.
   if (me == 0) {
     energy = proxy->compute();
-    store_forces = proxy->need_total_forces();
+    store_forces = proxy->total_forces_enabled();
   }
   ////////////////////////////////////////////////////////////////////////
 

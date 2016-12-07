@@ -33,7 +33,7 @@ enum{ID,TYPE,INDEX};
 /* ---------------------------------------------------------------------- */
 
 ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), which(NULL), index(NULL), avec(NULL), bptr(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute body/local command");
 

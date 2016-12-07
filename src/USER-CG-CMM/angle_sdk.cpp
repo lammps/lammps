@@ -12,9 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+
    Variant of the harmonic angle potential for use with the
    lj/sdk potential for coarse grained MD simulations.
-   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include <math.h>
@@ -240,7 +241,7 @@ void AngleSDK::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nangletypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
 
   double k_one = force->numeric(FLERR,arg[1]);
   double theta0_one = force->numeric(FLERR,arg[2]);

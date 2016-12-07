@@ -835,7 +835,8 @@ void Force::set_special(int narg, char **arg)
    return nlo,nhi
 ------------------------------------------------------------------------- */
 
-void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
+void Force::bounds(const char *file, int line, char *str,
+                   int nmax, int &nlo, int &nhi, int nmin)
 {
   char *ptr = strchr(str,'*');
 
@@ -856,7 +857,7 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
   }
 
   if (nlo < nmin || nhi > nmax || nlo > nhi)
-    error->all(FLERR,"Numeric index is out of bounds");
+    error->all(file,line,"Numeric index is out of bounds");
 }
 
 /* ----------------------------------------------------------------------
@@ -868,8 +869,8 @@ void Force::bounds(char *str, int nmax, int &nlo, int &nhi, int nmin)
    return nlo,nhi
 ------------------------------------------------------------------------- */
 
-void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi,
-                      bigint nmin)
+void Force::boundsbig(const char *file, int line, char *str,
+                      bigint nmax, bigint &nlo, bigint &nhi, bigint nmin)
 {
   char *ptr = strchr(str,'*');
 
@@ -890,7 +891,7 @@ void Force::boundsbig(char *str, bigint nmax, bigint &nlo, bigint &nhi,
   }
 
   if (nlo < nmin || nhi > nmax || nlo > nhi)
-    error->all(FLERR,"Numeric index is out of bounds");
+    error->all(file,line,"Numeric index is out of bounds");
 }
 
 /* ----------------------------------------------------------------------

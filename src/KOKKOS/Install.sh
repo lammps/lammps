@@ -59,6 +59,8 @@ action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
 action comm_kokkos.cpp
 action comm_kokkos.h
+action comm_tiled_kokkos.cpp
+action comm_tiled_kokkos.h
 action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
@@ -83,6 +85,10 @@ action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
 action fix_qeq_reax_kokkos.cpp fix_qeq_reax.cpp
 action fix_qeq_reax_kokkos.h fix_qeq_reax.h
+action fix_reaxc_bonds_kokkos.cpp fix_reaxc_bonds.cpp
+action fix_reaxc_bonds_kokkos.h fix_reaxc_bonds.h
+action fix_reaxc_species_kokkos.cpp fix_reaxc_species.cpp
+action fix_reaxc_species_kokkos.h fix_reaxc_species.h
 action fix_setforce_kokkos.cpp
 action fix_setforce_kokkos.h
 action fix_wall_reflect_kokkos.cpp
@@ -163,6 +169,8 @@ action pair_reax_c_kokkos.cpp pair_reax_c.cpp
 action pair_reax_c_kokkos.h pair_reax_c.h
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
+action pair_vashishta_kokkos.cpp pair_vashishta.cpp
+action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
 action pair_tersoff_kokkos.cpp pair_tersoff.cpp

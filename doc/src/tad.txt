@@ -30,7 +30,7 @@ keyword = {min} or {neb} or {min_style} or {neb_style} or {neb_log} :l
   {neb} values = ftol N1 N2 Nevery
     etol = stopping tolerance for energy (energy units)
     ftol = stopping tolerance for force (force units)
-    N1 = max # of iterations (timesteps) to run initial NEB 
+    N1 = max # of iterations (timesteps) to run initial NEB
     N2 = max # of iterations (timesteps) to run barrier-climbing NEB
     Nevery = print NEB statistics every this many timesteps
   {neb_style} value = {quickmin} or {fire}
@@ -92,8 +92,8 @@ restricts you to having exactly one processor per replica. For more
 information, see the documentation for the "neb"_neb.html command.  In
 the current LAMMPS implementation of TAD, all the non-NEB TAD
 operations are performed on the first partition, while the other
-partitions remain idle. See "Section_howto
-5"_Section_howto.html#howto_5 of the manual for further discussion of
+partitions remain idle. See "Section
+6.5"_Section_howto.html#howto_5 of the manual for further discussion of
 multi-replica simulations.
 
 A TAD run has several stages, which are repeated each time an event is
@@ -189,7 +189,7 @@ zero upon entering each new basin.  The event status is {E} when an
 event is executed, and is {D} for an event that is detected, while
 {DF} is for a detected event that is also the earliest (first) event
 at the low temperature.
-  
+
 The time margin is the ratio of the high temperature time in the
 current basin to the stopping time. This last number can be used to
 judge whether the stopping time is too short or too long (see above).
@@ -201,12 +201,12 @@ high-temperature time since entering the current basin, scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
 energy barrier for that event.
 
-On lines for executed events, with status {E}, the global event number 
-is incremented by one, 
-the local event number and time margin are reset to zero, 
-while the global event number, energy barrier, and 
-{delt_lo} match the last event with status {DF} 
-in the immediately preceding block of detected events.  
+On lines for executed events, with status {E}, the global event number
+is incremented by one,
+the local event number and time margin are reset to zero,
+while the global event number, energy barrier, and
+{delt_lo} match the last event with status {DF}
+in the immediately preceding block of detected events.
 The low-temperature event time {t_lo} is incremented by {delt_lo}.
 
 NEB statistics are written to the file specified by the {neb_log}
@@ -231,7 +231,7 @@ time was spent in each stage (NEB, dynamics, quenching, etc).
 
 Any "dump files"_dump.html defined in the input script will be written
 to during a TAD run at timesteps when an event is executed.  This
-means the the requested dump frequency in the "dump"_dump.html command
+means the requested dump frequency in the "dump"_dump.html command
 is ignored.  There will be one dump file (per dump command) created
 for all partitions.  The atom coordinates of the dump snapshot are
 those of the minimum energy configuration resulting from quenching
@@ -296,7 +296,7 @@ deposit"_fix_deposit.html.
 "temper"_temper.html, "neb"_neb.html,
 "prd"_prd.html
 
-[Default:] 
+[Default:]
 
 The option defaults are {min} = 0.1 0.1 40 50, {neb} = 0.01 100 100
 10, {neb_style} = {quickmin}, {neb_step} = the same timestep set by
@@ -305,7 +305,7 @@ the "timestep"_timestep.html command, and {neb_log} = "none".
 :line
 
 :link(Voter)
-[(Voter)] Sorensen and Voter, J Chem Phys, 112, 9599 (2000) 
+[(Voter)] Sorensen and Voter, J Chem Phys, 112, 9599 (2000)
 
 :link(Voter2)
 [(Voter2)] Voter, Montalenti, Germann, Annual Review of Materials

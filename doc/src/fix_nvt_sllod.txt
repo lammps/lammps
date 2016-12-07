@@ -28,7 +28,7 @@ fix 1 all nvt/sllod temp 300.0 300.0 100.0 drag 0.2 :pre
 Perform constant NVT integration to update positions and velocities
 each timestep for atoms in the group using a Nose/Hoover temperature
 thermostat.  V is volume; T is temperature.  This creates a system
-trajectory consistent with the canonical ensemble. 
+trajectory consistent with the canonical ensemble.
 
 This thermostat is used for a simulation box that is changing size
 and/or shape, for example in a non-equilibrium MD (NEMD) simulation.
@@ -109,7 +109,7 @@ thermal degrees of freedom, and the bias is added back in.
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -124,7 +124,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
@@ -154,7 +154,7 @@ This fix can ramp its target temperature over multiple runs, using the
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
-[Restrictions:] 
+[Restrictions:]
 
 This fix works best without Nose-Hoover chain thermostats, i.e. using
 tchain = 1.  Setting tchain to larger values can result in poor

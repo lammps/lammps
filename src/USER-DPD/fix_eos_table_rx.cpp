@@ -34,7 +34,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), ntables(0), tables(NULL), 
+  tables2(NULL), dHf(NULL), eosSpecies(NULL)
 {
   if (narg != 8) error->all(FLERR,"Illegal fix eos/table/rx command");
   restart_peratom = 1;
@@ -117,6 +118,9 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
 
   comm_forward = 3;
   comm_reverse = 2;
+
+  if (atom->dpd_flag != 1)
+    error->all(FLERR,"FixEOStableRX requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -684,7 +688,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   double maxit = 100;
   double temp;
   double delta = 0.001;
-  
+
   // Store the current thetai in t1
   t1 = MAX(thetai,tb->lo);
   t1 = MIN(t1,tb->hi);
@@ -728,7 +732,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   if(it==maxit){
     char str[256];
     sprintf(str,"Maxit exceeded in secant solver:  id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,thetai,t1,t2,f1,f2);
-    if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2)) 
+    if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2))
       error->one(FLERR,"NaN detected in secant solver.");
     error->one(FLERR,str);
   }

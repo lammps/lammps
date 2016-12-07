@@ -611,7 +611,7 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
 // pair_compute_neighlist and pair_compute_fullcluster will match - either the dummy version
 // or the real one further below.
 template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
-EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<!(NEIGHFLAG&PairStyle::EnabledNeighFlags), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
+EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<!((NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   (void) fpair;
   (void) list;
@@ -620,7 +620,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
 }
 
 template<class PairStyle, class Specialisation>
-EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enable_if<!(FULLCLUSTER&PairStyle::EnabledNeighFlags), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
+EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enable_if<!((FULLCLUSTER&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   (void) fpair;
   (void) list;
@@ -630,7 +630,7 @@ EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enab
 
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL,N2
 template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
-EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<NEIGHFLAG&PairStyle::EnabledNeighFlags, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
+EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
     PairComputeFunctor<PairStyle,NEIGHFLAG,false,Specialisation > ff(fpair,list);
@@ -646,7 +646,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
 
 // Submit ParallelFor for NEIGHFLAG=FULLCLUSTER
 template<class PairStyle, class Specialisation>
-EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enable_if<FULLCLUSTER&PairStyle::EnabledNeighFlags, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
+EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enable_if<(FULLCLUSTER&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
   EV_FLOAT ev;
   if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
     typedef PairComputeFunctor<PairStyle,FULLCLUSTER,false,Specialisation >

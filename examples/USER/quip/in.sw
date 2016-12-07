@@ -18,6 +18,5 @@ thermo		10
 timestep	0.001
 
 dump		1 all custom 10 dump.sw id fx fy fz
-dump_modify     1 format "%d %20.15g  %20.15g %20.15g"
 
 run		1

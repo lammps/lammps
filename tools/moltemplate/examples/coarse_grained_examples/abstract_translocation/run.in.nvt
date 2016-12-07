@@ -16,6 +16,10 @@ read_data system.data
 
 include system.in.settings
 
+# Use "neigh_modify" to turn off calculation of interactions between immobilized
+# atoms. (Note: The "groupB" group was defined in the file "system.insettings")
+neigh_modify exclude group groupB groupB
+
 # -- Run Section --
 
 

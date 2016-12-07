@@ -32,6 +32,7 @@ using namespace LAMMPS_NS;
 
 KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
+  order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
@@ -87,9 +88,6 @@ KSpace::KSpace(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   maxeatom = maxvatom = 0;
   eatom = NULL;
   vatom = NULL;
-
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
 
   execution_space = Host;
   datamask_read = ALL_MASK;

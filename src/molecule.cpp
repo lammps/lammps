@@ -37,7 +37,16 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
-  Pointers(lmp)
+  Pointers(lmp), id(NULL), x(NULL), type(NULL), q(NULL), radius(NULL),
+  rmass(NULL), num_bond(NULL), bond_type(NULL), bond_atom(NULL),
+  num_angle(NULL), angle_type(NULL), angle_atom1(NULL), angle_atom2(NULL),
+  angle_atom3(NULL), num_dihedral(NULL), dihedral_type(NULL), dihedral_atom1(NULL),
+  dihedral_atom2(NULL), dihedral_atom3(NULL), dihedral_atom4(NULL), num_improper(NULL),
+  improper_type(NULL), improper_atom1(NULL), improper_atom2(NULL),
+  improper_atom3(NULL), improper_atom4(NULL), nspecial(NULL), special(NULL),
+  shake_flag(NULL), shake_atom(NULL), shake_type(NULL), avec_body(NULL), ibodyparams(NULL),
+  dbodyparams(NULL), dx(NULL), dxcom(NULL), dxbody(NULL), quat_external(NULL),
+  fp(NULL), count(NULL)
 {
   me = comm->me;
 
@@ -210,7 +219,7 @@ void Molecule::compute_mass()
   if (massflag) return;
   massflag = 1;
 
-  if (!rmassflag) atom->check_mass();
+  if (!rmassflag) atom->check_mass(FLERR);
 
   masstotal = 0.0;
   for (int i = 0; i < natoms; i++) {
@@ -234,7 +243,7 @@ void Molecule::compute_com()
   if (!comflag) {
     comflag = 1;
 
-    if (!rmassflag) atom->check_mass();
+    if (!rmassflag) atom->check_mass(FLERR);
 
     double onemass;
     com[0] = com[1] = com[2] = 0.0;
@@ -299,7 +308,7 @@ void Molecule::compute_inertia()
   if (!inertiaflag) {
     inertiaflag = 1;
 
-    if (!rmassflag) atom->check_mass();
+    if (!rmassflag) atom->check_mass(FLERR);
 
     double onemass,dx,dy,dz;
     for (int i = 0; i < 6; i++) itensor[i] = 0.0;
@@ -595,6 +604,10 @@ void Molecule::read(int flag)
   // set maxspecial on first pass, so allocate() has a size
 
   if (bondflag && specialflag == 0) {
+    if (domain->box_exist == 0)
+      error->all(FLERR,"Cannot auto-generate special bonds before "
+                       "simulation box is defined");
+
     maxspecial = atom->maxspecial;
     if (flag) {
       special_generate();

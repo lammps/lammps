@@ -49,7 +49,12 @@ enum{NO,YES};
 /* ---------------------------------------------------------------------- */
 
 DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg)
+  DumpCustom(lmp, narg, arg), thetastr(NULL), phistr(NULL), cxstr(NULL), 
+  cystr(NULL), czstr(NULL), upxstr(NULL), upystr(NULL), upzstr(NULL), 
+  zoomstr(NULL), perspstr(NULL), diamtype(NULL), diamelement(NULL), 
+  bdiamtype(NULL), colortype(NULL), colorelement(NULL), bcolortype(NULL), 
+  avec_line(NULL), avec_tri(NULL), avec_body(NULL), fixptr(NULL), image(NULL), 
+  chooseghost(NULL), bufcopy(NULL)
 {
   if (binary || multiproc) error->all(FLERR,"Invalid dump image filename");
 
@@ -1241,7 +1246,7 @@ int DumpImage::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"acolor") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     int nlo,nhi;
-    force->bounds(arg[1],atom->ntypes,nlo,nhi);
+    force->bounds(FLERR,arg[1],atom->ntypes,nlo,nhi);
 
     // ptrs = list of ncount colornames separated by '/'
 
@@ -1275,7 +1280,7 @@ int DumpImage::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"adiam") == 0) {
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
     int nlo,nhi;
-    force->bounds(arg[1],atom->ntypes,nlo,nhi);
+    force->bounds(FLERR,arg[1],atom->ntypes,nlo,nhi);
     double diam = force->numeric(FLERR,arg[2]);
     if (diam <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     for (int i = nlo; i <= nhi; i++) diamtype[i] = diam;
@@ -1304,7 +1309,7 @@ int DumpImage::modify_param(int narg, char **arg)
     if (atom->nbondtypes == 0)
       error->all(FLERR,"Dump modify bcolor not allowed with no bond types");
     int nlo,nhi;
-    force->bounds(arg[1],atom->nbondtypes,nlo,nhi);
+    force->bounds(FLERR,arg[1],atom->nbondtypes,nlo,nhi);
 
     // ptrs = list of ncount colornames separated by '/'
 
@@ -1340,7 +1345,7 @@ int DumpImage::modify_param(int narg, char **arg)
     if (atom->nbondtypes == 0)
       error->all(FLERR,"Dump modify bdiam not allowed with no bond types");
     int nlo,nhi;
-    force->bounds(arg[1],atom->ntypes,nlo,nhi);
+    force->bounds(FLERR,arg[1],atom->ntypes,nlo,nhi);
     double diam = force->numeric(FLERR,arg[2]);
     if (diam <= 0.0) error->all(FLERR,"Illegal dump_modify command");
     for (int i = nlo; i <= nhi; i++) bdiamtype[i] = diam;

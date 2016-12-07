@@ -60,7 +60,13 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), mol2param(NULL), nreactions(0), 
+  params(NULL), Arr(NULL), nArr(NULL), Ea(NULL), tempExp(NULL), 
+  stoich(NULL), stoichReactants(NULL), stoichProducts(NULL), kR(NULL), 
+  pairDPDE(NULL), dpdThetaLocal(NULL), sumWeights(NULL), sparseKinetics_nu(NULL), 
+  sparseKinetics_nuk(NULL), sparseKinetics_inu(NULL), sparseKinetics_isIntegralReaction(NULL), 
+  kineticsFile(NULL), id_fix_species(NULL), 
+  id_fix_species_old(NULL), fix_species(NULL), fix_species_old(NULL)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
   restart_peratom = 1;
@@ -231,7 +237,7 @@ FixRX::~FixRX()
      memory->destroy( sparseKinetics_inu );
      memory->destroy( sparseKinetics_isIntegralReaction );
   }
-}  
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -642,15 +648,9 @@ void FixRX::setup_pre_force(int vflag)
   int ii;
 
   if(localTempFlag){
-    if (newton_pair) {
-      dpdThetaLocal = new double[nlocal+nghost];
-      for (ii = 0; ii < nlocal+nghost; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    } else {
-      dpdThetaLocal = new double[nlocal];
-      for (ii = 0; ii < nlocal; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    }
+    int count = nlocal + (newton_pair ? nghost : 0);
+    dpdThetaLocal = new double[count];
+    memset(dpdThetaLocal, 0, sizeof(double)*count);
     computeLocalTemperature();
   }
 
@@ -690,15 +690,9 @@ void FixRX::pre_force(int vflag)
   double theta;
 
   if(localTempFlag){
-    if (newton_pair) {
-      dpdThetaLocal = new double[nlocal+nghost];
-      for (ii = 0; ii < nlocal+nghost; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    } else {
-      dpdThetaLocal = new double[nlocal];
-      for (ii = 0; ii < nlocal; ii++)
-        dpdThetaLocal[ii] = 0.0;
-    }
+    int count = nlocal + (newton_pair ? nghost : 0);
+    dpdThetaLocal = new double[count];
+    memset(dpdThetaLocal, 0, sizeof(double)*count);
     computeLocalTemperature();
   }
 
@@ -1677,16 +1671,10 @@ void FixRX::computeLocalTemperature()
   double wij=0.0;
   double *dpdTheta = atom->dpdTheta;
 
-  // Initialize the local density and local temperature arrays
-  if (newton_pair) {
-    sumWeights = new double[nlocal+nghost];
-    for (ii = 0; ii < nlocal+nghost; ii++)
-      sumWeights[ii] = 0.0;
-  } else {
-    sumWeights = new double[nlocal];
-    for (ii = 0; ii < nlocal; ii++)
-      dpdThetaLocal[ii] = 0.0;
-  }
+  // Initialize the local temperature weight array
+  int sumWeightsCt = nlocal + (newton_pair ? nghost : 0);
+  sumWeights = new double[sumWeightsCt];
+  memset(sumWeights, 0, sizeof(double)*sumWeightsCt);
 
   inum = pairDPDE->list->inum;
   ilist = pairDPDE->list->ilist;
@@ -1720,7 +1708,7 @@ void FixRX::computeLocalTemperature()
 
         // Lucy's Weight Function
         if(wtFlag==LUCY){
-          wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio); 
+          wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
           dpdThetaLocal[i] += wij/dpdTheta[j];
           if (newton_pair || j < nlocal)
             dpdThetaLocal[j] += wij/dpdTheta[i];

@@ -221,7 +221,7 @@ The assignment of atoms to a dynamic group is done at the beginning of
 each run and on every timestep that is a multiple of {N}, which is the
 argument for the {every} keyword (N = 1 is the default).  For an
 energy minimization, via the "minimize"_minimize.html command, an
-assignement is made at the beginning of the minimization, but not
+assignment is made at the beginning of the minimization, but not
 during the iterations of the minimizer.
 
 The point in the timestep at which atoms are assigned to a dynamic
@@ -253,7 +253,7 @@ group           mobile dynamic all region ss
 fix             1 mobile nve
 run             $\{nsteps\}
 group           mobile static
-run	        $\{nsteps\} :pre
+run             $\{nsteps\} :pre
 
 NOTE: All fixes and computes take a group ID as an argument, but they
 do not all allow for use of a dynamic group.  If you get an error

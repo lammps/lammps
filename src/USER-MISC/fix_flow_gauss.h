@@ -30,10 +30,12 @@ FixStyle(flow/gauss,FixFlowGauss)
     public:
       FixFlowGauss(class LAMMPS *, int, char **);
       int setmask();
+      void init();
+      void setup(int);
+      void post_force(int);
+      void post_force_respa(int, int, int);
       double compute_scalar();
       double compute_vector(int n);
-      void post_force(int);
-      void setup(int);
 
     protected:
       int dimension;
@@ -44,6 +46,7 @@ FixStyle(flow/gauss,FixFlowGauss)
       double pe_tot;      //total added energy
       double dt;          //timestep
       bool workflag;      //if calculate work done by fix
+      int ilevel_respa;
 
     };
 

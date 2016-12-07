@@ -41,7 +41,7 @@ parallel machines and Beowulf-style clusters.
 :link(mpi,http://www-unix.mcs.anl.gov/mpi)
 
 LAMMPS can model systems with only a few particles up to millions or
-billions.  See "Section_perf"_Section_perf.html for information on
+billions.  See "Section 8"_Section_perf.html for information on
 LAMMPS performance and scalability, or the Benchmarks section of the
 "LAMMPS WWW Site"_lws.
 
@@ -54,12 +54,12 @@ brief discussion of the open-source philosophy.
 
 LAMMPS is designed to be easy to modify or extend with new
 capabilities, such as new force fields, atom types, boundary
-conditions, or diagnostics.  See "Section_modify"_Section_modify.html
+conditions, or diagnostics.  See "Section 10"_Section_modify.html
 for more details.
 
 The current version of LAMMPS is written in C++.  Earlier versions
 were written in F77 and F90.  See
-"Section_history"_Section_history.html for more information on
+"Section 13"_Section_history.html for more information on
 different versions.  All versions can be downloaded from the "LAMMPS
 WWW Site"_lws.
 
@@ -94,7 +94,7 @@ LAMMPS are listed in "this section"_#intro_5.
 This section highlights LAMMPS features, with pointers to specific
 commands which give more details.  If LAMMPS doesn't have your
 favorite interatomic potential, boundary condition, or atom type, see
-"Section_modify"_Section_modify.html, which describes how you can add
+"Section 10"_Section_modify.html, which describes how you can add
 it to LAMMPS.
 
 General features :h5
@@ -181,7 +181,7 @@ Atom creation :h5
   displace atoms :ul
 
 Ensembles, constraints, and boundary conditions :h5
-("fix"_fix.html command) 
+("fix"_fix.html command)
 
   2d or 3d systems
   orthogonal or non-orthogonal (triclinic symmetry) simulation domains
@@ -199,7 +199,7 @@ Ensembles, constraints, and boundary conditions :h5
   variety of additional boundary conditions and constraints :ul
 
 Integrators :h5
-("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands) 
+("run"_run.html, "run_style"_run_style.html, "minimize"_minimize.html commands)
 
   velocity-Verlet integrator
   Brownian dynamics
@@ -213,7 +213,7 @@ Diagnostics :h5
   see the various flavors of the "fix"_fix.html and "compute"_compute.html commands :ul
 
 Output :h5
-("dump"_dump.html, "restart"_restart.html commands) 
+("dump"_dump.html, "restart"_restart.html commands)
 
   log file of thermodynamic info
   text dump files of atom coords, velocities, other per-atom quantities
@@ -330,7 +330,7 @@ Similarly, LAMMPS creates output files in a simple format.  Most users
 post-process these files with their own analysis tools or re-format
 them for input into other programs, including visualization packages.
 If you are convinced you need to compute something on-the-fly as
-LAMMPS runs, see "Section_modify"_Section_modify.html for a discussion
+LAMMPS runs, see "Section 10"_Section_modify.html for a discussion
 of how you can use the "dump"_dump.html and "compute"_compute.html and
 "fix"_fix.html commands to print out data of your choosing.  Keep in
 mind that complicated computations can slow down the molecular
@@ -347,12 +347,12 @@ following packages:
 
 "VMD"_http://www.ks.uiuc.edu/Research/vmd
 "AtomEye"_http://mt.seas.upenn.edu/Archive/Graphics/A
-"PyMol"_http://pymol.sourceforge.net
+"PyMol"_http://www.pymol.org
 "Raster3d"_http://www.bmsc.washington.edu/raster3d/raster3d.html
 "RasMol"_http://www.openrasmol.org :ul
 
 Other features that LAMMPS does not yet (and may never) support are
-discussed in "Section_history"_Section_history.html.
+discussed in "Section 13"_Section_history.html.
 
 Finally, these are freely-available molecular dynamics codes, most of
 them parallel, which may be well-suited to the problems you want to
@@ -366,11 +366,11 @@ complementary modeling tasks.
 "DL_POLY"_dlpoly
 "Tinker"_tinker :ul
 
-:link(charmm,http://www.scripps.edu/brooks)
-:link(amber,http://amber.scripps.edu)
+:link(charmm,http://www.charmm.org)
+:link(amber,http://ambermd.org)
 :link(namd,http://www.ks.uiuc.edu/Research/namd/)
 :link(nwchem,http://www.emsl.pnl.gov/docs/nwchem/nwchem.html)
-:link(dlpoly,http://www.cse.clrc.ac.uk/msi/software/DL_POLY)
+:link(dlpoly,http://www.ccp5.ac.uk/DL_POLY_CLASSIC)
 :link(tinker,http://dasher.wustl.edu/tinker)
 
 CHARMM, AMBER, NAMD, NWCHEM, and Tinker are designed primarily for
@@ -427,7 +427,7 @@ Site"_lws, or have a suggestion for something to clarify or include,
 send an email to the
 "developers"_http://lammps.sandia.gov/authors.html. :l
 
-If you find a bug, "Section_errors 2"_Section_errors.html#err_2
+If you find a bug, "Section 12.2"_Section_errors.html#err_2
 describes how to report it. :l
 
 If you publish a paper using LAMMPS results, send the citation (and
@@ -440,7 +440,7 @@ directory. :l
 
 The tools sub-directory of the LAMMPS distribution has various
 stand-alone codes for pre- and post-processing of LAMMPS data.  More
-details are given in "Section_tools"_Section_tools.html.  If you write
+details are given in "Section 9"_Section_tools.html.  If you write
 a new tool that users will find useful, it can be added to the LAMMPS
 distribution. :l
 
@@ -531,7 +531,7 @@ Christoph Kloss (JKU), Christoph.Kloss at jku.at, USER-LIGGGHTS package for gran
 Metin Aktulga (LBL), hmaktulga at lbl.gov, USER-REAXC package for C version of ReaxFF
 Georg Gunzenmuller (EMI), georg.ganzenmueller at emi.fhg.de, USER-SPH package :ul
 
-As discussed in "Section_history"_Section_history.html, LAMMPS
+As discussed in "Section 13"_Section_history.html, LAMMPS
 originated as a cooperative project between DOE labs and industrial
 partners. Folks involved in the design and testing of the original
 version of LAMMPS were the following:

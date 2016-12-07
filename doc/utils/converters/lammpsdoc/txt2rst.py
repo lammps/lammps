@@ -24,6 +24,7 @@ import argparse
 from lammpsdoc import lammps_filters
 from lammpsdoc.txt2html import Markup, Formatting, TxtParser, TxtConverter
 
+
 class RSTMarkup(Markup):
     def __init__(self):
         super().__init__()
@@ -65,14 +66,19 @@ class RSTMarkup(Markup):
     def escape_rst_chars(self, text):
         text = text.replace('*', '\\*')
         text = text.replace('^', '\\^')
+        text = text.replace('|', '\\|')
         text = re.sub(r'([^"])_', r'\1\\_', text)
         return text
 
     def unescape_rst_chars(self, text):
         text = text.replace('\\*', '*')
         text = text.replace('\\^', '^')
-        text = text.replace('\\_', '_')
+        text = self.unescape_underscore(text)
+        text = text.replace('\\|', '|')
         return text
+
+    def unescape_underscore(self, text):
+        return text.replace('\\_', '_')
 
     def inline_math(self, text):
         start_pos = text.find("\\(")
@@ -98,7 +104,7 @@ class RSTMarkup(Markup):
 
         anchor_pos = href.find('#')
 
-        if anchor_pos >= 0:
+        if anchor_pos >= 0 and not href.startswith('http'):
             href = href[anchor_pos+1:]
             return ":ref:`%s <%s>`" % (content, href)
 
@@ -112,13 +118,18 @@ class RSTMarkup(Markup):
 
         return "`%s <%s>`_" % (content, href)
 
+
 class RSTFormatting(Formatting):
     RST_HEADER_TYPES = '#*=-^"'
 
     def __init__(self, markup):
         super().__init__(markup)
+        self.indent_level = 0
 
     def paragraph(self, content):
+        if self.indent_level > 0:
+            return '\n' + self.list_indent(content.strip(), self.indent_level)
+
         return content.strip() + "\n"
 
     def center(self, content):
@@ -128,7 +139,10 @@ class RSTFormatting(Formatting):
         return content.strip()
 
     def preformat(self, content):
-        return ".. parsed-literal::\n\n" + self.indent(content.rstrip())
+        content = self.markup.unescape_underscore(content)
+        if self.indent_level > 0:
+            return self.list_indent("\n.. parsed-literal::\n\n" + self.indent(content.rstrip()), self.indent_level)
+        return "\n.. parsed-literal::\n\n" + self.indent(content.rstrip())
 
     def horizontal_rule(self, content):
         return "\n----------\n\n" + content.strip()
@@ -159,7 +173,7 @@ class RSTFormatting(Formatting):
 
     def header(self, content, level):
         header_content = content.strip()
-        header_content = re.sub(r'[0-9]+\.[0-9]*\s+', '', header_content)
+        header_content = re.sub(r'[0-9]+\.([0-9]*\.?)*\s+', '', header_content)
         header_underline = RSTFormatting.RST_HEADER_TYPES[level-1] * len(header_content)
         return header_content + "\n" + header_underline + "\n"
 
@@ -178,14 +192,17 @@ class RSTFormatting(Formatting):
         return self.indent(paragraph.strip())
 
     def unordered_list_begin(self, paragraph):
+        self.indent_level += 1
         return paragraph
 
     def unordered_list_end(self, paragraph):
+        self.indent_level -= 1
         return paragraph.rstrip() + '\n'
 
     def ordered_list_begin(self, paragraph):
         if paragraph.startswith('* '):
             paragraph = '#. ' + paragraph[2:]
+        self.indent_level += 1
         return paragraph
 
     def definition_list_begin(self, paragraph):
@@ -195,6 +212,7 @@ class RSTFormatting(Formatting):
         return paragraph
 
     def ordered_list_end(self, paragraph):
+        self.indent_level -= 1
         return paragraph.rstrip() + '\n'
 
     def ordered_list(self, paragraph):
@@ -226,6 +244,12 @@ class RSTFormatting(Formatting):
         indented = ""
         for line in content.splitlines():
             indented += "   %s\n" % line
+        return indented
+
+    def list_indent(self, content, level=1):
+        indented = ""
+        for line in content.splitlines():
+            indented += "  " * level + ("%s\n" % line)
         return indented
 
     def get_max_column_widths(self, rows):
@@ -321,6 +345,7 @@ class RSTFormatting(Formatting):
 
         return text + post
 
+
 class Txt2Rst(TxtParser):
     def __init__(self):
         super().__init__()
@@ -334,6 +359,7 @@ class Txt2Rst(TxtParser):
         self.document_filters.append(lammps_filters.detect_and_add_command_to_index)
         self.document_filters.append(lammps_filters.filter_multiple_horizontal_rules)
         self.document_filters.append(lammps_filters.promote_doc_keywords)
+        self.document_filters.append(lammps_filters.merge_preformatted_sections)
 
     def is_ignored_textblock_begin(self, line):
         return line.startswith('<!-- HTML_ONLY -->')
@@ -354,6 +380,11 @@ class Txt2Rst(TxtParser):
             return commands
         return super().order_commands(commands)
 
+    def transform_paragraphs(self, content):
+        if self.format.indent_level > 0:
+            raise Exception("unbalanced number of ulb,ule or olb,ole pairs!")
+        return super().transform_paragraphs(content)
+
 
 class Txt2RstConverter(TxtConverter):
     def get_argument_parser(self):
@@ -369,6 +400,7 @@ class Txt2RstConverter(TxtConverter):
     def get_output_filename(self, path):
         filename, ext = os.path.splitext(path)
         return filename + ".rst"
+
 
 def main():
     app = Txt2RstConverter()

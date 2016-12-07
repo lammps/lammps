@@ -87,6 +87,8 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   ndisptablebits = 12;
   tabinner = sqrt(2.0);
   tabinner_disp = sqrt(2.0);
+  ftable = NULL;
+  fdisptable = NULL;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
@@ -99,9 +101,6 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   list_tally_compute = NULL;
 
   // KOKKOS per-fix data masks
-
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
 
   execution_space = Host;
   datamask_read = ALL_MASK;

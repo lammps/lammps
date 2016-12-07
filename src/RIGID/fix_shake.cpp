@@ -49,7 +49,16 @@ FixShake *FixShake::fsptr;
 /* ---------------------------------------------------------------------- */
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), bond_flag(NULL), angle_flag(NULL), 
+  type_flag(NULL), mass_list(NULL), bond_distance(NULL), angle_distance(NULL), 
+  loop_respa(NULL), step_respa(NULL), x(NULL), v(NULL), f(NULL), ftmp(NULL), 
+  vtmp(NULL), mass(NULL), rmass(NULL), type(NULL), shake_flag(NULL), 
+  shake_atom(NULL), shake_type(NULL), xshake(NULL), nshake(NULL), 
+  list(NULL), b_count(NULL), b_count_all(NULL), b_ave(NULL), b_max(NULL), 
+  b_min(NULL), b_ave_all(NULL), b_max_all(NULL), b_min_all(NULL), 
+  a_count(NULL), a_count_all(NULL), a_ave(NULL), a_max(NULL), a_min(NULL), 
+  a_ave_all(NULL), a_max_all(NULL), a_min_all(NULL), atommols(NULL), 
+  onemols(NULL)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -112,7 +121,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[next],"t") == 0) mode = 't';
     else if (strcmp(arg[next],"m") == 0) {
       mode = 'm';
-      atom->check_mass();
+      atom->check_mass(FLERR);
 
     // break if keyword that is not b,a,t,m
 

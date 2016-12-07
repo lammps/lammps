@@ -16,7 +16,7 @@ dt = timestep size (time units) :ul
 
 [Examples:]
 
-timestep 2.0 
+timestep 2.0
 timestep 0.003 :pre
 
 [Description:]

@@ -16,10 +16,10 @@ pair_style reax/c cfile keyword value :pre
 cfile = NULL or name of a control file :ulb,l
 zero or more keyword/value pairs may be appended :l
 keyword = {checkqeq} or {lgvdw} or {safezone} or {mincap}
-  {checkqeq} value = {yes} or {no} = whether or not to require qeq/reax fix 
+  {checkqeq} value = {yes} or {no} = whether or not to require qeq/reax fix
   {lgvdw} value = {yes} or {no} = whether or not to use a low gradient vdW correction
   {safezone} = factor used for array allocation
-  {mincap} = minimum size for array allocation :pre 
+  {mincap} = minimum size for array allocation :pre
 :ule
 
 [Examples:]
@@ -28,7 +28,7 @@ pair_style reax/c NULL
 pair_style reax/c controlfile checkqeq no
 pair_style reax/c NULL lgvdw yes
 pair_style reax/c NULL safezone 1.6 mincap 100
-pair_coeff * * ffield.reax C H O N :pre 
+pair_coeff * * ffield.reax C H O N :pre
 
 [Description:]
 
@@ -41,12 +41,14 @@ supplemental information of the following paper: "(Chenoweth et al.,
 2008)"_#Chenoweth_2008.  The version integrated into LAMMPS matches
 the most up-to-date version of ReaxFF as of summer 2010.  For more
 technical details about the pair reax/c implementation of ReaxFF, see
-the "(Aktulga)"_#Aktulga paper.
+the "(Aktulga)"_#Aktulga paper. The {reax/c} style was initially
+implemented as a stand-alone C code and is now integrated into LAMMPS
+as a package.
 
 The {reax/c/kk} style is a Kokkos version of the ReaxFF potential that is
 derived from the {reax/c} style. The Kokkos version can run on GPUs and
 can also use OpenMP multithreading. For more information about the Kokkos package,
-see "Section_packages"_Section_packages.html#kokkos and "Section_accelerate"_accelerate_kokkos.html.
+see "Section 4"_Section_packages.html#kokkos and "Section 5.3.3"_accelerate_kokkos.html.
 One important consideration when using the {reax/c/kk} style is the choice of either
 half or full neighbor lists. This setting can be changed using the Kokkos "package"_package.html
 command.
@@ -74,20 +76,20 @@ with LAMMPS.  Adri van Duin's group at PSU is the central repository
 for this kind of data as they are continuously deriving and updating
 parameterizations for different classes of materials.  You can submit
 a contact request at the Materials Computation Center (MCC) website
-"https://www.mri.psu.edu/materials-computation-center/connect-mcc"_https://www.mri.psu.edu/materials-computation-center/connect-mcc, 
-describing the material(s) you are interested in modeling with ReaxFF.  
+"https://www.mri.psu.edu/materials-computation-center/connect-mcc"_https://www.mri.psu.edu/materials-computation-center/connect-mcc,
+describing the material(s) you are interested in modeling with ReaxFF.
 They can tell
 you what is currently available or what it would take to create a
 suitable ReaxFF parameterization.
 
 The {cfile} setting can be specified as NULL, in which case default
 settings are used. A control file can be specified which defines
-values of control variables. Some control variables are 
+values of control variables. Some control variables are
 global parameters for the ReaxFF potential. Others define certain
-performance and output settings. 
+performance and output settings.
 Each line in the control file specifies the value for
 a control variable.  The format of the control file is described
-below. 
+below.
 
 NOTE: The LAMMPS default values for the ReaxFF global parameters
 correspond to those used by Adri van Duin's stand-alone serial
@@ -95,7 +97,7 @@ code. If these are changed by setting control variables in the control
 file, the results from LAMMPS and the serial code will not agree.
 
 Two examples using {pair_style reax/c} are provided in the examples/reax
-sub-directory, along with corresponding examples for 
+sub-directory, along with corresponding examples for
 "pair_style reax"_pair_reax.html.
 
 Use of this pair style requires that a charge be defined for every
@@ -108,7 +110,7 @@ equilibration (QEq) model for handling the electrostatic interactions.
 Therefore, by default, LAMMPS requires that the "fix
 qeq/reax"_fix_qeq_reax.html command be used with {pair_style reax/c}
 when simulating a ReaxFF model, to equilibrate charge each timestep.
-Using the keyword {checkqeq} with the value {no} 
+Using the keyword {checkqeq} with the value {no}
 turns off the check for {fix qeq/reax},
 allowing a simulation to be run without charge equilibration.
 In this case, the static charges you
@@ -116,18 +118,18 @@ assign to each atom will be used for computing the electrostatic
 interactions in the system.
 See the "fix qeq/reax"_fix_qeq_reax.html command for details.
 
-Using the optional keyword {lgvdw} with the value {yes} turns on 
-the low-gradient correction of the ReaxFF/C for long-range 
-London Dispersion, as described in the "(Liu)"_#Liu_2011 paper. Force field 
+Using the optional keyword {lgvdw} with the value {yes} turns on
+the low-gradient correction of the ReaxFF/C for long-range
+London Dispersion, as described in the "(Liu)"_#Liu_2011 paper. Force field
 file {ffield.reax.lg} is designed for this correction, and is trained
-for several energetic materials (see "Liu"). When using lg-correction, 
-recommended value for parameter {thb} is 0.01, which can be set in the 
-control file.  Note: Force field files are different for the original 
+for several energetic materials (see "Liu"). When using lg-correction,
+recommended value for parameter {thb} is 0.01, which can be set in the
+control file.  Note: Force field files are different for the original
 or lg corrected pair styles, using wrong ffield file generates an error message.
 
-Optional keywords {safezone} and {mincap} are used for allocating 
-reax/c arrays.  Increasing these values can avoid memory problems, such 
-as segmentation faults and bondchk failed errors, that could occur under 
+Optional keywords {safezone} and {mincap} are used for allocating
+reax/c arrays.  Increasing these values can avoid memory problems, such
+as segmentation faults and bondchk failed errors, that could occur under
 certain conditions. These keywords aren't used by the Kokkos version, which
 instead uses a more robust memory allocation scheme that checks if the sizes of
 the arrays have been exceeded and automatically allocates more memory.
@@ -153,7 +155,7 @@ names in italics match those used in the original FORTRAN ReaxFF code):
 {ecoa} = valence angle conjugation energy
 {ehb} = hydrogen bond energy
 {et} = torsion energy
-{eco} = conjugation energy 
+{eco} = conjugation energy
 {ew} = van der Waals energy
 {ep} = Coulomb energy
 {efi} = electric field energy (always 0.0)
@@ -163,11 +165,11 @@ To print these quantities to the log file (with descriptive column
 headings) the following commands could be included in an input script:
 
 compute reax all pair reax/c
-variable eb  	 equal c_reax\[1\]
-variable ea  	 equal c_reax\[2\] 
-...
-variable eqeq 	 equal c_reax\[14\]
-thermo_style custom step temp epair v_eb v_ea ... v_eqeq :pre
+variable eb      equal c_reax\[1\]
+variable ea      equal c_reax\[2\]
+\[...\]
+variable eqeq    equal c_reax\[14\]
+thermo_style custom step temp epair v_eb v_ea \[...\] v_eqeq :pre
 
 Only a single pair_coeff command is used with the {reax/c} style which
 specifies a ReaxFF potential file with parameters for all needed
@@ -216,7 +218,7 @@ simulation_name: Output files produced by {pair_style reax/c} carry
 this name + extensions specific to their contents.  Partial energies
 are reported with a ".pot" extension, while the trajectory file has
 ".trj" extension.
- 
+
 tabulate_long_range: To improve performance, long range interactions
 can optionally be tabulated (0 means no tabulation). Value of this
 variable denotes the size of the long range interaction table.  The
@@ -237,8 +239,8 @@ nbrhood_cutoff: Denotes the near neighbors cutoff (in Angstroms)
 regarding the bonded interactions. (default value = 5.0)
 
 hbond_cutoff: Denotes the cutoff distance (in Angstroms) for hydrogen
-bond interactions.(default value = 7.5. Value of 0.0 turns off hydrogen 
-		bonds)
+bond interactions.(default value = 7.5. A value of 0.0 turns off
+hydrogen bonds)
 
 bond_graph_cutoff: is the threshold used in determining what is a
 physical bond, what is not. Bonds and angles reported in the
@@ -247,7 +249,7 @@ trajectory file rely on this cutoff. (default value = 0.3)
 thb_cutoff: cutoff value for the strength of bonds to be considered in
 three body interactions. (default value = 0.001)
 
-thb_cutoff_sq: cutoff value for the strength of bond order products 
+thb_cutoff_sq: cutoff value for the strength of bond order products
 to be considered in three body interactions. (default value = 0.00001)
 
 write_freq: Frequency of writes into the trajectory file. (default
@@ -288,7 +290,7 @@ This pair style can only be used via the {pair} keyword of the
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -303,7 +305,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line
@@ -334,8 +336,8 @@ mincap = 50.
 
 :line
 
-:link(Chenoweth_2008) 
-[(Chenoweth_2008)] Chenoweth, van Duin and Goddard, 
+:link(Chenoweth_2008)
+[(Chenoweth_2008)] Chenoweth, van Duin and Goddard,
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 :link(Aktulga)

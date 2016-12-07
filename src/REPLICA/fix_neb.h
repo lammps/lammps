@@ -38,17 +38,34 @@ class FixNEB : public Fix {
   void min_post_force(int);
 
  private:
+  int me,nprocs,nprocs_universe;
   double kspring;
   int ireplica,nreplica;
   int procnext,procprev;
+  int cmode;
   MPI_Comm uworld;
 
   char *id_pe;
   class Compute *pe;
 
-  int nebatoms;
-  double **xprev,**xnext;
-  double **tangent;
+  int nebatoms;                // # of active NEB atoms
+  int ntotal;                  // total # of atoms, NEB or not
+  int maxlocal;                // size of xprev,xnext,tangent arrays
+
+  double **xprev,**xnext;      // coords of my owned atoms in neighbor replicas
+  double **tangent;            // work vector for inter-replica forces
+
+  double **xsend,**xrecv;      // coords to send/recv to/from other replica
+  tagint *tagsend,*tagrecv;    // ditto for atom IDs
+
+                                 // info gathered from all procs in my replica
+  double **xsendall,**xrecvall;    // coords to send/recv to/from other replica
+  tagint *tagsendall,*tagrecvall;  // ditto for atom IDs
+
+  int *counts,*displacements;   // used for MPI_Gather
+
+  void inter_replica_comm();
+  void reallocate();
 };
 
 }

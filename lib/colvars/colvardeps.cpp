@@ -293,6 +293,9 @@ void colvardeps::init_cv_requires() {
     f_description(f_cv_output_total_force, "output total force");
     f_req_self(f_cv_output_total_force, f_cv_total_force);
 
+    f_description(f_cv_subtract_applied_force, "subtract applied force from total force");
+    f_req_self(f_cv_subtract_applied_force, f_cv_total_force);
+
     f_description(f_cv_lower_boundary, "lower boundary");
     f_req_self(f_cv_lower_boundary, f_cv_scalar);
 
@@ -376,6 +379,11 @@ void colvardeps::init_cvc_requires() {
 
     f_description(f_cvc_com_based, "depends on group centers of mass");
 
+    // Compute total force on first site only to avoid unwanted
+    // coupling to other colvars (see e.g. Ciccotti et al., 2005)
+    f_description(f_cvc_one_site_total_force, "compute total collective force only from one group center");
+    f_req_self(f_cvc_one_site_total_force, f_cvc_com_based);
+
     f_description(f_cvc_scalable, "scalable calculation");
     f_req_self(f_cvc_scalable, f_cvc_scalable_com);
 
@@ -441,8 +449,10 @@ void colvardeps::init_ag_requires() {
 
   // Features that are implemented (or not) by all atom groups
   feature_states[f_ag_active]->available = true;
-  feature_states[f_ag_scalable_com]->available = (cvm::proxy->scalable_group_coms() == COLVARS_OK);
-  feature_states[f_ag_scalable]->available = feature_states[f_ag_scalable_com]->available;
+  // f_ag_scalable_com is provided by the CVC iff it is COM-based
+  feature_states[f_ag_scalable_com]->available = false;
+  // TODO make f_ag_scalable depend on f_ag_scalable_com (or something else)
+  feature_states[f_ag_scalable]->available = true;
 }
 
 

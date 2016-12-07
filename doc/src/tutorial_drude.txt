@@ -33,7 +33,7 @@ created by the surrounding particles.  Drude oscillators represent
 these dipoles by two fixed charges: the core (DC) and the Drude
 particle (DP) bound by a harmonic potential. The Drude particle can be
 thought of as the electron cloud whose center can be displaced from
-the position of the the corresponding nucleus.
+the position of the corresponding nucleus.
 
 The sum of the masses of a core-Drude pair should be the mass of the
 initial (unsplit) atom, \(m_C + m_D = m\).  The sum of their charges
@@ -121,7 +121,7 @@ You can use the {polarizer} tool (Python script distributed with the
 USER-DRUDE package) to convert a non-polarizable data file (here
 {data.102494.lmp}) to a polarizable data file ({data-p.lmp})
 
-polarizer -q -f phenol.dff data.102494.lmp data-p.lmp :pre 
+polarizer -q -f phenol.dff data.102494.lmp data-p.lmp :pre
 
 This will automatically insert the new atoms and bonds.
 The masses and charges of DCs and DPs are computed
@@ -327,7 +327,7 @@ pair_coeff    7    7 thole   1.360   2.510
 pair_coeff    7    8 thole   0.926   1.590
 pair_coeff    8    8 thole   0.630   0.670 :pre
 
-For the {thole} pair style the coefficients are 
+For the {thole} pair style the coefficients are
 
 the atom polarizability in units of cubic length :olb,l
 the screening factor of the Thole function (optional, default value
@@ -456,7 +456,7 @@ fix INVERSE all drude/transform/inverse :pre
 154511 (2010).
 
 :link(Jiang)
-[(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
+[(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,
  J Phys Chem Lett, 2, 87-92 (2011).
 
 :link(Thole)

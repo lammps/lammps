@@ -36,12 +36,12 @@ supplemental information of the following paper:
 the most up-to-date version of ReaxFF as of summer 2010.
 
 WARNING: pair style reax is now deprecated and will soon be retired. Users
-should switch to "pair_style reax/c"_pair_reax_c.html. The {reax} style 
-differs from the {reax/c} style in the lo-level implementation details.  
+should switch to "pair_style reax/c"_pair_reax_c.html. The {reax} style
+differs from the {reax/c} style in the lo-level implementation details.
 The {reax} style is a
 Fortran library, linked to LAMMPS.  The {reax/c} style was initially
 implemented as stand-alone C code and is now integrated into LAMMPS as
-a package. 
+a package.
 
 LAMMPS requires that a file called ffield.reax be provided, containing
 the ReaxFF parameters for each atom type, bond type, etc. The format
@@ -59,8 +59,8 @@ with LAMMPS.  Adri van Duin's group at PSU is the central repository
 for this kind of data as they are continuously deriving and updating
 parameterizations for different classes of materials.  You can submit
 a contact request at the Materials Computation Center (MCC) website
-"https://www.mri.psu.edu/materials-computation-center/connect-mcc"_https://www.mri.psu.edu/materials-computation-center/connect-mcc, 
-describing the material(s) you are interested in modeling with ReaxFF.  
+"https://www.mri.psu.edu/materials-computation-center/connect-mcc"_https://www.mri.psu.edu/materials-computation-center/connect-mcc,
+describing the material(s) you are interested in modeling with ReaxFF.
 They can tell
 you what is currently available or what it would take to create a
 suitable ReaxFF parameterization.
@@ -81,10 +81,10 @@ wish to override any of these defaults, then all of the settings must
 be specified.
 
 Two examples using {pair_style reax} are provided in the examples/reax
-sub-directory, along with corresponding examples for 
+sub-directory, along with corresponding examples for
 "pair_style reax/c"_pair_reax_c.html. Note that while the energy and force
-calculated by both of these pair styles match very closely, the 
-contributions due to the valence angles differ slightly due to 
+calculated by both of these pair styles match very closely, the
+contributions due to the valence angles differ slightly due to
 the fact that with {pair_style reax/c} the default value of {thb_cutoff_sq}
 is 0.00001, while for {pair_style reax} it is hard-coded to be 0.001.
 
@@ -98,7 +98,7 @@ The thermo variable {evdwl} stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
 equilibration contributions which are stored in the thermo variable
 {ecoul}.  The output of these quantities is controlled by the
-"thermo"_thermo.html command.  
+"thermo"_thermo.html command.
 
 This pair style tallies a breakdown of the total ReaxFF potential
 energy into sub-categories, which can be accessed via the "compute
@@ -115,7 +115,7 @@ names in italics match those used in the ReaxFF FORTRAN library):
 {ecoa} = valence angle conjugation energy
 {ehb} = hydrogen bond energy
 {et} = torsion energy
-{eco} = conjugation energy 
+{eco} = conjugation energy
 {ew} = van der Waals energy
 {ep} = Coulomb energy
 {efi} = electric field energy (always 0.0)
@@ -126,7 +126,7 @@ headings) the following commands could be included in an input script:
 
 compute reax all pair reax
 variable eb  	 equal c_reax\[1\]
-variable ea  	 equal c_reax\[2\] 
+variable ea  	 equal c_reax\[2\]
 ...
 variable eqeq 	 equal c_reax\[14\]
 thermo_style custom step temp epair v_eb v_ea ... v_eqeq :pre
@@ -204,13 +204,13 @@ appropriate units if your simulation doesn't use "real" units.
 "pair_coeff"_pair_coeff.html, "pair_style reax/c"_pair_reax_c.html,
 "fix_reax_bonds"_fix_reax_bonds.html
 
-[Default:] 
+[Default:]
 
 The keyword defaults are {hbcut} = 6, {hbnewflag} = 1, {tripflag} = 1,
 {precision} = 1.0e-6.
 
 :line
 
-:link(Chenoweth_2008) 
-[(Chenoweth_2008)] Chenoweth, van Duin and Goddard, 
+:link(Chenoweth_2008)
+[(Chenoweth_2008)] Chenoweth, van Duin and Goddard,
 Journal of Physical Chemistry A, 112, 1040-1053 (2008).

@@ -1,0 +1,83 @@
+LAMMPS (6 Oct 2016)
+# bulk Cu lattice
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	xx equal 20*1
+variable	yy equal 20*$y
+variable	yy equal 20*1
+variable	zz equal 20*$z
+variable	zz equal 20*1
+
+units		metal
+atom_style	atomic
+
+lattice		fcc 3.615
+Lattice spacing in x,y,z = 3.615 3.615 3.615
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 20 0 ${yy} 0 ${zz}
+region		box block 0 20 0 20 0 ${zz}
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (72.3 72.3 72.3)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+
+pair_style	eam
+pair_coeff	1 1 Cu_u3.eam
+Reading potential file Cu_u3.eam with DATE: 2007-06-11
+
+velocity	all create 1600.0 376847 loop geom
+
+neighbor	1.0 bin
+neigh_modify    every 1 delay 5 check yes
+
+fix		1 all nve
+
+timestep	0.005
+thermo		50
+
+run		100
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.95
+  ghost atom cutoff = 5.95
+  binsize = 2.975 -> bins = 25 25 25
+Memory usage per processor = 5.59629 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         1600      -113280            0   -106662.09    18703.573 
+      50    781.69049   -109873.35            0   -106640.13    52273.088 
+     100      801.832    -109957.3            0   -106640.77    51322.821 
+Loop time of 1.64562 on 4 procs for 100 steps with 32000 atoms
+
+Performance: 26.252 ns/day, 0.914 hours/ns, 60.767 timesteps/s
+99.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.408      | 1.4175     | 1.4341     |   0.9 | 86.14
+Neigh   | 0.15512    | 0.15722    | 0.16112    |   0.6 |  9.55
+Comm    | 0.029105   | 0.049986   | 0.061822   |   5.8 |  3.04
+Output  | 0.00010991 | 0.00011539 | 0.00012302 |   0.0 |  0.01
+Modify  | 0.013383   | 0.013573   | 0.013883   |   0.2 |  0.82
+Other   |            | 0.007264   |            |       |  0.44
+
+Nlocal:    8000 ave 8008 max 7993 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Nghost:    9130.25 ave 9138 max 9122 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:    301946 ave 302392 max 301360 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+
+Total # of neighbors = 1207784
+Ave neighs/atom = 37.7433
+Neighbor list builds = 13
+Dangerous builds = 0
+Total wall time: 0:00:01

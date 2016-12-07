@@ -39,8 +39,8 @@ metadynamics, Steered Molecular Dynamics (SMD) and Umbrella Sampling
 (US) via a flexible harmonic restraint bias. The colvars library is
 hosted at "http://colvars.github.io/"_http://colvars.github.io/
 
-This documentation describes only the fix colvars command itself and 
-LAMMPS specific parts of the code.  The full documentation of the 
+This documentation describes only the fix colvars command itself and
+LAMMPS specific parts of the code.  The full documentation of the
 colvars library is available as "this supplementary PDF document"_PDF/colvars-refman-lammps.pdf
 
 A detailed discussion of the implementation of the portable collective
@@ -122,7 +122,7 @@ not a limitation of functionality.
 
 [Default:]
 
-The default options are input = NULL, output = out, seed = 1966, unwrap yes, 
+The default options are input = NULL, output = out, seed = 1966, unwrap yes,
 and tstat = NULL.
 
 :line

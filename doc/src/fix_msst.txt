@@ -10,7 +10,7 @@
 
 [Syntax:]
 
-fix ID group-ID msst dir shockvel keyword value ... :pre 
+fix ID group-ID msst dir shockvel keyword value ... :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 msst = style name of this fix :l
@@ -21,7 +21,7 @@ keyword = {q} or {mu} or {p0} or {v0} or {e0} or {tscale} :l
   {q} value = cell mass-like parameter (mass^2/distance^4 units)
   {mu} value = artificial viscosity (mass/length/time units)
   {p0} value = initial pressure in the shock equations (pressure units)
-  {v0} value = initial simulation cell volume in the shock equations (distance^3 units)  
+  {v0} value = initial simulation cell volume in the shock equations (distance^3 units)
   {e0} value = initial total energy (energy units)
   {tscale} value = reduction in initial temperature (unitless fraction between 0.0 and 1.0) :pre
 :ule
@@ -49,7 +49,7 @@ compressing, either the shock speed is chosen to be below the material
 sound speed or {p0} has been chosen inaccurately.  Volume compression
 at the start can be sped up by using a non-zero value of {tscale}. Use
 the smallest value of {tscale} that results in compression.
-      
+
 Under some special high-symmetry conditions, the pressure (volume)
 and/or temperature of the system may oscillate for many cycles even
 with an appropriate choice of mass-like parameter {q}. Such
@@ -81,7 +81,7 @@ This fix computes a temperature and pressure each timestep. To do
 this, the fix creates its own computes of style "temp" and "pressure",
 as if these commands had been issued:
 
-compute fix-ID_temp group-ID temp 
+compute fix-ID_temp group-ID temp
 compute fix-ID_press group-ID pressure fix-ID_temp :pre
 
 See the "compute temp"_compute_temp.html and "compute
@@ -112,15 +112,15 @@ The global vector contains four values in this order:
 
 \[{dhugoniot}, {drayleigh}, {lagrangian_speed}, {lagrangian_position}\]
 
-{dhugoniot} is the departure from the Hugoniot (temperature units). 
-{drayleigh} is the departure from the Rayleigh line (pressure units). 
+{dhugoniot} is the departure from the Hugoniot (temperature units).
+{drayleigh} is the departure from the Rayleigh line (pressure units).
 {lagrangian_speed} is the laboratory-frame Lagrangian speed (particle velocity) of the computational cell (velocity units).
 {lagrangian_position} is the computational cell position in the reference frame moving at the shock speed. This is usually a good estimate of distance of the computational cell behind the shock front. :ol
 
 To print these quantities to the log file with descriptive column
 headers, the following LAMMPS commands are suggested:
 
-fix		 msst all msst z 
+fix              msst all msst z
 fix_modify       msst energy yes
 variable dhug    equal f_msst\[1\]
 variable dray    equal f_msst\[2\]
@@ -142,7 +142,7 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The MSST fix has been tested only for the group-ID
 all.
-  
+
 [Related commands:]
 
 "fix nphug"_fix_nphug.html, "fix deform"_fix_deform.html

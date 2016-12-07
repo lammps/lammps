@@ -12,8 +12,8 @@
  ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
- Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
- ------------------------------------------------------------------------- */
+   Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
+------------------------------------------------------------------------- */
 
 #include <math.h>
 #include "fix_smd_wall_surface.h"

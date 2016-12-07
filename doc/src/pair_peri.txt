@@ -15,7 +15,7 @@ pair_style peri/eps command :h3
 
 [Syntax:]
 
-pair_style style :pre 
+pair_style style :pre
 
 style = {peri/pmb} or {peri/lps} or {peri/ves} or {peri/eps} :ul
 
@@ -49,7 +49,7 @@ peridynamic solid (LPS) model.
 Style {peri/ves} implements the Peridynamic state-based linear
 peridynamic viscoelastic solid (VES) model.
 
-Style {peri/eps} implements the Peridynamic state-based elastic-plastic 
+Style {peri/eps} implements the Peridynamic state-based elastic-plastic
 solid (EPS) model.
 
 The canonical papers on Peridynamics are "(Silling 2000)"_#Silling2000
@@ -107,7 +107,7 @@ K (force/area units)
 G (force/area units)
 horizon (distance units)
 s00 (unitless)
-alpha (unitless) 
+alpha (unitless)
 m_lambdai (unitless)
 m_taubi (unitless) :ul
 
@@ -126,7 +126,7 @@ K (force/area units)
 G (force/area units)
 horizon (distance units)
 s00 (unitless)
-alpha (unitless) 
+alpha (unitless)
 m_yield_stress (force/area units)
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
@@ -139,7 +139,7 @@ details please see the description in "(Mtchell2011a)".
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -154,7 +154,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line

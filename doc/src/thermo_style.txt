@@ -23,12 +23,12 @@ args = list of arguments for a particular style :l
                         evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                         emol, elong, etail,
                         vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
-		        xy, xz, yz, xlat, ylat, zlat,
+                        xy, xz, yz, xlat, ylat, zlat,
                         bonds, angles, dihedrals, impropers,
-		        pxx, pyy, pzz, pxy, pxz, pyz,
-			fmax, fnorm, nbuild, ndanger,
-			cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
-			c_ID, c_ID\[I\], c_ID\[I\]\[J\],
+                        pxx, pyy, pzz, pxy, pxz, pyz,
+                        fmax, fnorm, nbuild, ndanger,
+                        cella, cellb, cellc, cellalpha, cellbeta, cellgamma,
+                        c_ID, c_ID\[I\], c_ID\[I\]\[J\],
                         f_ID, f_ID\[I\], f_ID\[I\]\[J\],
                         v_name, v_name\[I\]
       step = timestep
@@ -71,13 +71,13 @@ args = list of arguments for a particular style :l
       fnorm = length of force vector for all atoms
       nbuild = # of neighbor list builds
       ndanger = # of dangerous neighbor list builds
-      cella,cellb,cellc = periodic cell lattice constants a,b,c 
+      cella,cellb,cellc = periodic cell lattice constants a,b,c
       cellalpha, cellbeta, cellgamma = periodic cell angles alpha,beta,gamma
       c_ID = global scalar value calculated by a compute with ID
-      c_ID\[I\] = Ith component of global vector calculated by a compute with ID, I can include wildcard (see below)    
+      c_ID\[I\] = Ith component of global vector calculated by a compute with ID, I can include wildcard (see below)
       c_ID\[I\]\[J\] = I,J component of global array calculated by a compute with ID
       f_ID = global scalar value calculated by a fix with ID
-      f_ID\[I\] = Ith component of global vector calculated by a fix with ID, I can include wildcard (see below)        
+      f_ID\[I\] = Ith component of global vector calculated by a fix with ID, I can include wildcard (see below)
       f_ID\[I\]\[J\] = I,J component of global array calculated by a fix with ID
       v_name = value calculated by an equal-style variable with name
       v_name\[I\] = value calculated by a vector-style variable with name :pre
@@ -108,9 +108,9 @@ Style {custom} is the most general setting and allows you to specify
 which of the keywords listed above you want printed on each
 thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to "computes"_compute.html, "fixes"_fix.html, and
-equal-style "variables"_variable.html" that have been defined
+equal-style "variables"_variable.html that have been defined
 elsewhere in the input script or can even be new styles which users
-have added to LAMMPS (see the "Section_modify"_Section_modify.html
+have added to LAMMPS (see the "Section 10"_Section_modify.html
 section of the documentation).  Thus the {custom} style provides a
 flexible means of outputting essentially any desired quantity as a
 simulation proceeds.
@@ -254,9 +254,9 @@ proceed for the maximum number of allowed iterations.
 The {part} keyword is useful for multi-replica or multi-partition
 simulations to indicate which partition this output and this file
 corresponds to, or for use in a "variable"_variable.html to append to
-a filename for output specific to this partition.  See "Section_start
-7"_Section_start.html#start_7 of the manual for details on running in
-multi-partition mode.
+a filename for output specific to this partition.  See "Section
+2.7"_Section_start.html#start_7 of the manual for details on running
+in multi-partition mode.
 
 The {timeremain} keyword returns the remaining seconds when a
 timeout has been configured via the "timer timeout"_timer.html command.

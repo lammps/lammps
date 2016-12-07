@@ -361,7 +361,7 @@ try:
     infer_types_from_comments = False
     remove_coeffs_from_data_file = True
 
-    argv = sys.argv
+    argv = [arg for arg in sys.argv]
 
     i = 1
 

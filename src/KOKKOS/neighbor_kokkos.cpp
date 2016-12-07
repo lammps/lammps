@@ -21,6 +21,11 @@
 #include "atom_masks.h"
 #include "error.h"
 #include "kokkos.h"
+#include "force.h"
+#include "bond.h"
+#include "angle.h"
+#include "dihedral.h"
+#include "improper.h"
 
 using namespace LAMMPS_NS;
 
@@ -181,6 +186,9 @@ int NeighborKokkos::init_lists_kokkos()
 
 void NeighborKokkos::init_list_flags1_kokkos(int i)
 {
+  if (style != BIN)
+    error->all(FLERR,"KOKKOS package only supports 'bin' neighbor lists");
+
   if (lists_host[i]) {
     lists_host[i]->buildflag = 1;
     if (pair_build_host[i] == NULL) lists_host[i]->buildflag = 0;
@@ -280,15 +288,19 @@ void NeighborKokkos::choose_build(int index, NeighRequest *rq)
   if (rq->kokkos_host != 0) {
     PairPtrHost pb = NULL;
     if (rq->ghost) {
-      if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,1>;
-      else if (rq->half) &NeighborKokkos::full_bin_kokkos<LMPHostType,1,1>;
-      pair_build_host[index] = pb;
+      if (rq->full) {
+        if (rq->full_cluster) pb = &NeighborKokkos::full_bin_cluster_kokkos<LMPHostType>;
+        else pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,1>;
+      }
+      else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,1,1>;
     } else {
-      if (rq->full) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,0>;
+      if (rq->full) {
+        if (rq->full_cluster) pb = &NeighborKokkos::full_bin_cluster_kokkos<LMPHostType>;
+        else pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,0,0>;
+      }
       else if (rq->half) pb = &NeighborKokkos::full_bin_kokkos<LMPHostType,1,0>;
-      pair_build_host[index] = pb;
     }
-    return;
+    pair_build_host[index] = pb;
   }
   if (rq->kokkos_device != 0) {
     PairPtrDevice pb = NULL;
@@ -585,17 +597,39 @@ void NeighborKokkos::build_topology_kokkos() {
     k_dihedrallist = neighbond_device.k_dihedrallist;
     k_improperlist = neighbond_device.k_improperlist;
 
+    k_bondlist.sync<LMPDeviceType>();
+    k_anglelist.sync<LMPDeviceType>();
+    k_dihedrallist.sync<LMPDeviceType>();
+    k_improperlist.sync<LMPDeviceType>();
+
     k_bondlist.modify<LMPDeviceType>();
     k_anglelist.modify<LMPDeviceType>();
     k_dihedrallist.modify<LMPDeviceType>();
     k_improperlist.modify<LMPDeviceType>();
-  } else {
+
+    // Transfer topology neighbor lists to Host for non-Kokkos styles
+ 
+    if (force->bond && force->bond->execution_space == Host)
+      k_bondlist.sync<LMPHostType>();
+    if (force->angle && force->angle->execution_space == Host)
+      k_anglelist.sync<LMPHostType>();
+    if (force->dihedral && force->dihedral->execution_space == Host)
+      k_dihedrallist.sync<LMPHostType>();
+    if (force->improper && force->improper->execution_space == Host)
+      k_improperlist.sync<LMPHostType>();
+
+   } else {
     neighbond_host.build_topology_kk();
 
     k_bondlist = neighbond_host.k_bondlist;
     k_anglelist = neighbond_host.k_anglelist;
     k_dihedrallist = neighbond_host.k_dihedrallist;
     k_improperlist = neighbond_host.k_improperlist;
+
+    k_bondlist.sync<LMPHostType>();
+    k_anglelist.sync<LMPHostType>();
+    k_dihedrallist.sync<LMPHostType>();
+    k_improperlist.sync<LMPHostType>();
 
     k_bondlist.modify<LMPHostType>();
     k_anglelist.modify<LMPHostType>();

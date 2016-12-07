@@ -23,15 +23,15 @@ compute 1 fluid inertia/chunk molchunk :pre
 [Description:]
 
 Define a computation that calculates the inertia tensor for multiple
-chunks of atoms. 
+chunks of atoms.
 
 In LAMMPS, chunks are collections of atoms defined by a "compute
 chunk/atom"_compute_chunk_atom.html command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
 molecule or atoms in a spatial bin.  See the "compute
-chunk/atom"_compute_chunk_atom.html doc page and ""Section_howto
-23"_Section_howto.html#howto_23 for details of how chunks can be
+chunk/atom"_compute_chunk_atom.html doc page and "Section
+6.23"_Section_howto.html#howto_23 for details of how chunks can be
 defined and examples of how they can be used to measure properties of
 a system.
 
@@ -72,8 +72,8 @@ number of chunks {Nchunk} as calculated by the specified "compute
 chunk/atom"_compute_chunk_atom.html command.  The number of columns =
 6 for the 6 components of the inertia tensor for each chunk, ordered
 as listed above.  These values can be accessed by any command that
-uses global array values from a compute as input.  See "Section_howto
-15"_Section_howto.html#howto_15 for an overview of LAMMPS output
+uses global array values from a compute as input.  See "Section
+6.15"_Section_howto.html#howto_15 for an overview of LAMMPS output
 options.
 
 The array values are "intensive".  The array values will be in

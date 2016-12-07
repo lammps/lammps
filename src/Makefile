@@ -50,14 +50,14 @@ PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 
 PACKUSER = user-atc user-awpmd user-cg-cmm user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-mgpt \
-	   user-misc user-molfile user-omp user-phonon user-qmmm user-qtb \
+	   user-intel user-lb user-manifold user-mgpt user-misc user-molfile \
+	   user-nc-dump user-omp user-phonon user-qmmm user-qtb \
 	   user-quip user-reaxc user-smd user-smtbq user-sph user-tally \
 	   user-vtk
 
-PACKLIB = compress gpu kim kokkos meam poems python reax voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-molfile \
-	  user-qmmm user-quip user-vtk
+PACKLIB = compress gpu kim kokkos meam mpiio poems python reax voronoi \
+	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
+	  user-nc-dump user-qmmm user-quip user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
@@ -92,7 +92,7 @@ help:
 	@echo 'make package-update (pu) replace src files with updated package files'
 	@echo 'make package-overwrite   replace package files with src files'
 	@echo 'make package-diff (pd)   diff src files against package files'
-	@echo 'make package-purge       purge obsolete copies of package sources'
+	@echo 'make purge               purge obsolete copies of source files'
 	@echo ''
 	@echo 'make machine             build LAMMPS for machine'
 	@echo 'make mode=lib machine    build LAMMPS as static lib for machine'
@@ -314,7 +314,7 @@ package-diff pd:
 	@echo ''
 	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
 
-package-purge: Purge.list
+purge: Purge.list
 	@echo 'Purging obsolete and auto-generated source files'
 	@for f in `grep -v '#' Purge.list` ;		\
 	    do test -f $$f && rm $$f && echo $$f || : ;		\

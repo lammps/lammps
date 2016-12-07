@@ -21,7 +21,7 @@ write_coeff polymer.coeff :pre
 [Description:]
 
 Write a text format file with the currently defined force field
-coefficients in a way, that it can be read by LAMMPS with the 
+coefficients in a way, that it can be read by LAMMPS with the
 "include"_include.html command. In combination with the nocoeff
 option of "write_data"_write_data.html this can be used to move
 the Coeffs sections from a data file into a separate file.

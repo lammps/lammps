@@ -17,9 +17,9 @@ surface meshes of discrete points, collections of sub-particles,
 deformable objects, etc.  Note that other kinds of finite-size
 spherical and aspherical particles are also supported by LAMMPS, such
 as spheres, ellipsoids, line segments, and triangles, but they are
-simpler entities that body particles.  See "Section_howto
-14"_Section_howto.html#howto_14 for a general overview of all these
-particle types.
+simpler entities that body particles.  See "Section
+6.14"_Section_howto.html#howto_14 for a general overview of all
+these particle types.
 
 Body particles are used via the "atom_style body"_atom_style.html
 command.  It takes a body style as an argument.  The current body
@@ -38,8 +38,8 @@ style are described below.
 NOTE: The rounded/polygon style listed in the table above and
 described below has not yet been relesed in LAMMPS.  It will be soon.
 
-We hope to add more styles in the future.  See "Section_modify
-12"_Section_modify.html#mod_12 for details on how to add a new body
+We hope to add more styles in the future.  See "Section
+10.12"_Section_modify.html#mod_12 for details on how to add a new body
 style to the code.
 
 :line
@@ -125,7 +125,7 @@ in the {Bodies} section of the data file:
 
 atom-ID 1 M
 N
-ixx iyy izz ixy ixz iyz 
+ixx iyy izz ixy ixz iyz
 x1 y1 z1
 ...
 xN yN zN :pre
@@ -198,11 +198,11 @@ in the {Bodies} section of the data file:
 
 atom-ID 1 M
 N
-ixx iyy izz ixy ixz iyz 
+ixx iyy izz ixy ixz iyz
 x1 y1 z1
 ...
 xN yN zN
-i j j k k ... 
+i j j k k ...
 radius :pre
 
 N is the number of vertices in the body particle.  M = 6 + 3*N + 2*N +
@@ -230,11 +230,11 @@ particles whose edge length is sqrt(2):
 
 3 1 27
 4
-1 1 4 0 0 0 
--0.7071 -0.7071 0 
--0.7071 0.7071 0 
-0.7071 0.7071 0 
-0.7071 -0.7071 0 
+1 1 4 0 0 0
+-0.7071 -0.7071 0
+-0.7071 0.7071 0
+0.7071 0.7071 0
+0.7071 -0.7071 0
 0 1 1 2 2 3 3 0
 1.0 :pre
 

@@ -56,7 +56,7 @@ possible bonds to break.  Every atom checks its list of possible bonds
 to break and labels the longest such bond as its "sole" bond to break.
 After this is done, if atom I is bonded to atom J in its sole bond,
 and atom J is bonded to atom I in its sole bond, then the I,J bond is
-"eligible" to be broken. 
+"eligible" to be broken.
 
 Note that these rules mean an atom will only be part of at most one
 broken bond on a given timestep.  It also means that if atom I chooses
@@ -112,7 +112,7 @@ resulting from broken bonds (and angles, dihedrals, impropers).
 
 No information about this fix is written to "binary restart
 files"_restart.html.  None of the "fix_modify"_fix_modify.html options
-are relevant to this fix. 
+are relevant to this fix.
 
 This fix computes two statistics which it stores in a global vector of
 length 2, which can be accessed by various "output

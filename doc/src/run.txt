@@ -21,7 +21,7 @@ keyword = {upto} or {start} or {stop} or {pre} or {post} or {every} :l
   {stop} value = N2
     N2 = timestep at which last run will end
   {pre} value = {no} or {yes}
-  {post} value = {no} or {yes} 
+  {post} value = {no} or {yes}
   {every} values = M c1 c2 ...
     M = break the run into M-timestep segments and invoke one or more commands between each segment
     c1,c2,...,cN = one or more LAMMPS commands, each enclosed in quotes
@@ -66,11 +66,11 @@ keywords.
 
 For example, consider this fix followed by 10 run commands:
 
-fix	     1 all nvt 200.0 300.0 1.0
-run	     1000 start 0 stop 10000
-run	     1000 start 0 stop 10000
+fix         1 all nvt 200.0 300.0 1.0
+run         1000 start 0 stop 10000
+run         1000 start 0 stop 10000
 ...
-run	     1000 start 0 stop 10000 :pre
+run         1000 start 0 stop 10000 :pre
 
 The NVT fix ramps the target temperature from 200.0 to 300.0 during a
 run.  If the run commands did not have the start/stop keywords (just
@@ -169,17 +169,17 @@ If the {pre} and {post} options are set to "no" when used with the
 run will print the full timing summary, but these operations will be
 skipped for intermediate runs.
 
-NOTE: You might hope to specify a command that exits the run by
+NOTE: You might wish to specify a command that exits the run by
 jumping out of the loop, e.g.
 
 variable t equal temp
 run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'" :pre
 
-Unfortunately this will not currently work.  The run command simply
-executes each command one at a time each time it pauses, then
-continues the run.  You can replace the jump command with a simple
-"quit"_quit.html command and cause LAMMPS to exit during the
-middle of a run when the condition is met.
+However, this will not work.  The run command simply executes each
+command one at a time each time it pauses, then continues the run.
+
+Instead, you should use the "fix halt"_fix_halt.html command, which
+has additional options for how to exit the run.
 
 [Restrictions:]
 
@@ -188,7 +188,7 @@ must fit in a signed 32-bit integer, so you are limited to slightly
 more than 2 billion steps (2^31) in a single run.  When using {upto},
 N can be larger than a signed 32-bit integer, however the difference
 between N and the current timestep must still be no larger than
-2^31 steps.  
+2^31 steps.
 
 However, with or without the {upto} keyword, you can perform
 successive runs to run a simulation for any number of steps (ok, up to
@@ -198,7 +198,7 @@ successive runs to run a simulation for any number of steps (ok, up to
 [Related commands:]
 
 "minimize"_minimize.html, "run_style"_run_style.html,
-"temper"_temper.html
+"temper"_temper.html, "fix halt"_fix_halt.html
 
 [Default:]
 

@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeEventDisplace::ComputeEventDisplace(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), id_event(NULL), fix_event(NULL)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute event/displace command");
 

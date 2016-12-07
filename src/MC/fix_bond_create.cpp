@@ -40,7 +40,8 @@ using namespace FixConst;
 
 FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  bondcount(NULL), partner(NULL), finalpartner(NULL), distsq(NULL), created(NULL), copy(NULL), random(NULL)
+  bondcount(NULL), partner(NULL), finalpartner(NULL), distsq(NULL),
+  probability(NULL), created(NULL), copy(NULL), random(NULL), list(NULL)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix bond/create command");
 

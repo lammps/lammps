@@ -107,7 +107,7 @@ specified as parameters to the fix.  The other quantities are derived.
 The form of the heat diffusion equation used here is almost the same
 as that in equation 6 of "(Duffy)"_#Duffy, with the exception that the
 electronic density is explicitly reprensented, rather than being part
-of the the specific heat parameter.
+of the specific heat parameter.
 
 Currently, fix ttm assumes that none of the user-supplied parameters
 will vary with temperature. Note that "(Duffy)"_#Duffy used a tanh()
@@ -176,9 +176,9 @@ heat sources (e.g. laser heating in ablation simulations):
 
 :c,image(Eqs/fix_ttm_mod.jpg)
 
-where theta is the Heaviside step function, I_0 is the (absorbed) 
-laser pulse intensity for ablation simulations, l_skin is the depth 
-of skin-layer, and all other designations have the same meaning as in 
+where theta is the Heaviside step function, I_0 is the (absorbed)
+laser pulse intensity for ablation simulations, l_skin is the depth
+of skin-layer, and all other designations have the same meaning as in
 the former equation. The duration of the pulse is set by the parameter
 {tau} in the {init_file}.
 
@@ -269,7 +269,7 @@ taken place.  However, in a statistical sense, a restarted simulation
 should produce the same behavior.
 
 None of the "fix_modify"_fix_modify.html options are relevant to these
-fixes.  
+fixes.
 
 Both fixes compute 2 output quantities stored in a vector of length 2,
 which can be accessed by various "output
@@ -320,11 +320,11 @@ simlulation boxes.  You must also use periodic
 Condens. Matter, 19, 496201-496210 (2007).
 
 :link(Chen)
-[(Chen)] J Chen, D Tzou and J Beraun, Int. J. Heat 
+[(Chen)] J Chen, D Tzou and J Beraun, Int. J. Heat
 Mass Transfer, 49, 307-316 (2006).
 
 :link(Norman)
-[(Norman)] G E Norman, S V Starikov, V V Stegailov et al., Contrib. 
+[(Norman)] G E Norman, S V Starikov, V V Stegailov et al., Contrib.
 Plasma Phys., 53, 129-139 (2013).
 
 :link(Pisarev)

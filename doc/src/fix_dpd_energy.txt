@@ -1,0 +1,83 @@
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix dpd/energy command :h3
+
+[Syntax:]
+
+fix ID group-ID dpd/energy :pre
+
+ID, group-ID are documented in "fix"_fix.html command
+dpd/energy = style name of this fix command :ul
+
+[Examples:]
+
+fix 1 all dpd/energy :pre
+
+[Description:]
+
+Perform constant energy dissipative particle dynamics (DPD-E)
+integration.  This fix updates the internal energies for particles in
+the group at each timestep.  It must be used in conjunction with a
+deterministic integrator (e.g. "fix nve"_fix_nve.html) that updates
+the particle positions and velocities.
+
+For fix {dpd/energy}, the particle internal temperature is related to
+the particle internal energy through a mesoparticle equation of state.
+An additional fix must be specified that defines the equation of state
+for each particle, e.g. "fix eos/cv"_fix_eos_cv.html.
+
+This fix must be used with the "pair_style
+dpd/fdt/energy"_pair_style.html command.
+
+Note that numerous variants of DPD can be specified by choosing an
+appropriate combination of the integrator and "pair_style
+dpd/fdt/energy"_pair_style.html command.  DPD under isoenergetic conditions
+can be specified by using fix {dpd/energy}, fix {nve} and pair_style
+{dpd/fdt/energy}.  DPD under isoenthalpic conditions can
+be specified by using fix {dpd/energy}, fix {nph} and pair_style
+{dpd/fdt/energy}.  Examples of each DPD variant are provided in the
+examples/USER/dpd directory.
+
+:line
+
+[Restrictions:]
+
+This command is part of the USER-DPD package.  It is only enabled if
+LAMMPS was built with that package.  See the "Making
+LAMMPS"_Section_start.html#start_3 section for more info.
+
+This fix must be used with an additional fix that specifies time
+integration, e.g. "fix nve"_fix_nve.html.
+
+The fix {dpd/energy} requires the {dpd} "atom_style"_atom_style.html
+to be used in order to properly account for the particle internal
+energies and temperature.
+
+The fix {dpd/energy} must be used with an additional fix that specifies the
+mesoparticle equation of state for each particle.
+
+[Related commands:]
+
+"fix nve"_fix_nve.html "fix eos/cv"_fix_eos_cv.html
+
+[Default:] none
+
+:line
+
+:link(Lisal)
+[(Lisal)] M. Lisal, J.K. Brennan, J. Bonet Avalos, "Dissipative
+particle dynamics at isothermal, isobaric, isoenergetic, and
+isoenthalpic conditions using Shardlow-like splitting algorithms.",
+J. Chem. Phys., 135, 204105 (2011).
+
+:link(Larentzos)
+[(Larentzos)] J.P. Larentzos, J.K. Brennan, J.D. Moore, and
+W.D. Mattson, "LAMMPS Implementation of Constant Energy Dissipative
+Particle Dynamics (DPD-E)", ARL-TR-6863, U.S. Army Research
+Laboratory, Aberdeen Proving Ground, MD (2014).

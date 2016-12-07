@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "region.h"
 #include "modify.h"
+#include "respa.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
@@ -95,6 +96,7 @@ int FixGroup::setmask()
 {
   int mask = 0;
   mask |= POST_INTEGRATE;
+  mask |= POST_INTEGRATE_RESPA;
   return mask;
 }
 
@@ -107,6 +109,9 @@ void FixGroup::init()
 
   if (group->dynamic[igroup])
     error->all(FLERR,"Group dynamic parent group cannot be dynamic");
+
+  if (strstr(update->integrate_style,"respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // set current indices for region and variable
 
@@ -165,6 +170,13 @@ void FixGroup::post_integrate()
   // only assign atoms to group on steps that are multiples of nevery
 
   if (update->ntimestep % nevery == 0) set_group();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixGroup::post_integrate_respa(int ilevel, int iloop)
+{
+  if (ilevel == nlevels_respa-1) post_integrate();
 }
 
 /* ---------------------------------------------------------------------- */

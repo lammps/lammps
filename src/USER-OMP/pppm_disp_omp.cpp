@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U), Rolf Isele-Holder (RWTH Aachen University)
+   Contributing authors: Axel Kohlmeyer (Temple U)
+                         Rolf Isele-Holder (RWTH Aachen University)
 ------------------------------------------------------------------------- */
 
 #include "pppm_disp_omp.h"
@@ -48,6 +49,13 @@ PPPMDispOMP::PPPMDispOMP(LAMMPS *lmp, int narg, char **arg) :
 {
   triclinic_support = 0;
   suffix_flag |= Suffix::OMP;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PPPMDispOMP::~PPPMDispOMP()
+{
+  deallocate();
 }
 
 /* ----------------------------------------------------------------------

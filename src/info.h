@@ -33,6 +33,14 @@ class Info : protected Pointers {
   bool is_defined(const char *, const char *);
   bool is_available(const char *, const char *);
 
+  bool has_gzip_support() const;
+  bool has_png_support() const;
+  bool has_jpeg_support() const;
+  bool has_ffmpeg_support() const;
+  bool has_exceptions() const;
+
+  char **get_variable_names(int &num);
+
 private:
   void available_styles(FILE * out, int flags);
 

@@ -36,7 +36,7 @@
 
 # include <stdio.h>
 
-#define MSI2LMP_VERSION "v3.9.7 / 24 Oct 2015"
+#define MSI2LMP_VERSION "v3.9.8 / 06 Oct 2016"
 
 #define PI_180  0.01745329251994329576
 
@@ -44,6 +44,8 @@
 #define MAX_CONNECTIONS    8
 #define MAX_STRING        64
 #define MAX_NAME          16
+
+#define WHITESPACE " \t\r\n\f"
 
 #define MAX_ATOM_TYPES         100
 #define MAX_BOND_TYPES         200

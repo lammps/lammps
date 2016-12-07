@@ -49,6 +49,7 @@ class PairDPDfdt : public Pair {
  protected:
   double cut_global;
   int seed;
+  bool splitFDT_flag;
 
   void allocate();
 

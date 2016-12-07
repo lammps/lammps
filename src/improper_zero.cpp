@@ -84,7 +84,7 @@ void ImproperZero::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(arg[0],atom->nimpropertypes,ilo,ihi);
+  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

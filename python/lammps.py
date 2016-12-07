@@ -14,21 +14,34 @@
 # Python wrappers on LAMMPS library via ctypes
 
 # for python3 compatibility
+
 from __future__ import print_function
 
 # imports for simple LAMMPS python wrapper module "lammps"
+
 import sys,traceback,types
 from ctypes import *
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
 
 # imports for advanced LAMMPS python wrapper modules "PyLammps" and "IPyLammps"
+
 from collections import namedtuple
 import os
 import select
 import re
 
+
+class MPIAbortException(Exception):
+  def __init__(self, message):
+    self.message = message
+
+  def __str__(self):
+    return repr(self.message)
+
+
 class lammps(object):
+  
   # detect if Python is using version of mpi4py that can pass a communicator
 
   has_mpi4py_v2 = False
@@ -43,25 +56,38 @@ class lammps(object):
   # create instance of LAMMPS
 
   def __init__(self,name="",cmdargs=None,ptr=None,comm=None):
+    self.comm = comm
+    self.opened = 0
 
     # determine module location
 
     modpath = dirname(abspath(getsourcefile(lambda:0)))
+    self.lib = None
 
-    # load liblammps.so unless name is given.
-    # e.g. if name = "g++", load liblammps_g++.so
-    # try loading the LAMMPS shared object from the location
-    # of lammps.py with an absolute path (so that LD_LIBRARY_PATH
-    # does not need to be set for regular installations.
-    # fall back to loading with a relative path, which typically
-    # requires LD_LIBRARY_PATH to be set appropriately.
-
+    # if a pointer to a LAMMPS object is handed in,
+    # all symbols should already be available
+    
     try:
-      if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
-      else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),RTLD_GLOBAL)
+      if ptr: self.lib = CDLL("",RTLD_GLOBAL)
     except:
-      if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
-      else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
+      self.lib = None
+
+    # load liblammps.so unless name is given
+    #   if name = "g++", load liblammps_g++.so
+    # try loading the LAMMPS shared object from the location
+    #   of lammps.py with an absolute path,
+    #   so that LD_LIBRARY_PATH does not need to be set for regular install
+    # fall back to loading with a relative path,
+    #   typically requires LD_LIBRARY_PATH to be set appropriately
+      
+    if not self.lib:
+      try:
+        if not name: self.lib = CDLL(join(modpath,"liblammps.so"),RTLD_GLOBAL)
+        else: self.lib = CDLL(join(modpath,"liblammps_%s.so" % name),
+                              RTLD_GLOBAL)
+      except:
+        if not name: self.lib = CDLL("liblammps.so",RTLD_GLOBAL)
+        else: self.lib = CDLL("liblammps_%s.so" % name,RTLD_GLOBAL)
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -73,6 +99,7 @@ class lammps(object):
     #   just convert it to ctypes ptr and store in self.lmp
 
     if not ptr:
+      
       # with mpi4py v2, can pass MPI communicator to LAMMPS
       # need to adjust for type of MPI communicator object
       # allow for int (like MPICH) or void* (like OpenMPI)
@@ -123,21 +150,20 @@ class lammps(object):
           # self.lmp = self.lib.lammps_open_no_mpi(0,None)
 
     else:
-      if isinstance(ptr,lammps):
-        # magic to convert ptr to ctypes ptr
-        pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
-        pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
-        self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
-      else:
-        self.lmp = None
-        raise TypeError('Unsupported type passed as "ptr"')
+      # magic to convert ptr to ctypes ptr
+      pythonapi.PyCObject_AsVoidPtr.restype = c_void_p
+      pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
+      self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
 
   def __del__(self):
-    if self.lmp and self.opened: self.lib.lammps_close(self.lmp)
+    if self.lmp and self.opened:
+      self.lib.lammps_close(self.lmp)
+      self.opened = 0
 
   def close(self):
     if self.opened: self.lib.lammps_close(self.lmp)
     self.lmp = None
+    self.opened = 0
 
   def version(self):
     return self.lib.lammps_version(self.lmp)
@@ -146,15 +172,34 @@ class lammps(object):
     if file: file = file.encode()
     self.lib.lammps_file(self.lmp,file)
 
+  # send a single command
+    
   def command(self,cmd):
     if cmd: cmd = cmd.encode()
     self.lib.lammps_command(self.lmp,cmd)
 
-    if self.lib.lammps_has_error(self.lmp):
+    if self.uses_exceptions and self.lib.lammps_has_error(self.lmp):
       sb = create_string_buffer(100)
-      self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
-      raise Exception(sb.value.decode().strip())
+      error_type = self.lib.lammps_get_last_error_message(self.lmp, sb, 100)
+      error_msg = sb.value.decode().strip()
 
+      if error_type == 2:
+        raise MPIAbortException(error_msg)
+      raise Exception(error_msg)
+
+  # send a list of commands
+
+  def commands_list(self,cmdlist):
+    args = (c_char_p * len(cmdlist))(*cmdlist)
+    self.lib.lammps_commands_list(self.lmp,len(cmdlist),args)
+    
+  # send a string of commands
+
+  def commands_string(self,multicmd):
+    self.lib.lammps_commands_string(self.lmp,c_char_p(multicmd))
+    
+  # extract global info
+    
   def extract_global(self,name,type):
     if name: name = name.encode()
     if type == 0:
@@ -165,6 +210,8 @@ class lammps(object):
     ptr = self.lib.lammps_extract_global(self.lmp,name)
     return ptr[0]
 
+  # extract per-atom info
+  
   def extract_atom(self,name,type):
     if name: name = name.encode()
     if type == 0:
@@ -179,6 +226,8 @@ class lammps(object):
     ptr = self.lib.lammps_extract_atom(self.lmp,name)
     return ptr
 
+  # extract compute info
+  
   def extract_compute(self,id,style,type):
     if id: id = id.encode()
     if type == 0:
@@ -196,6 +245,7 @@ class lammps(object):
       return ptr
     return None
 
+  # extract fix info
   # in case of global datum, free memory for 1 double via lammps_free()
   # double was allocated by library interface function
 
@@ -219,6 +269,7 @@ class lammps(object):
     else:
       return None
 
+  # extract variable info
   # free memory for 1 double or 1 vector of doubles via lammps_free()
   # for vector, must copy nlocal returned values to local c_double vector
   # memory was allocated by library interface function
@@ -266,7 +317,14 @@ class lammps(object):
     return self.lib.lammps_get_natoms(self.lmp)
 
   # return vector of atom properties gathered across procs, ordered by atom ID
-
+  # name = atom property recognized by LAMMPS in atom->extract()
+  # type = 0 for integer values, 1 for double values
+  # count = number of per-atom valus, 1 for type or charge, 3 for x or f
+  # returned data is a 1d vector - doc how it is ordered?
+  # NOTE: how could we insure are converting to correct Python type
+  #   e.g. for Python list or NumPy, etc
+  #   ditto for extact_atom() above
+  
   def gather_atoms(self,name,type,count):
     if name: name = name.encode()
     natoms = self.lib.lammps_get_natoms(self.lmp)
@@ -280,11 +338,45 @@ class lammps(object):
     return data
 
   # scatter vector of atom properties across procs, ordered by atom ID
-  # assume vector is of correct type and length, as created by gather_atoms()
-
+  # name = atom property recognized by LAMMPS in atom->extract()
+  # type = 0 for integer values, 1 for double values
+  # count = number of per-atom valus, 1 for type or charge, 3 for x or f
+  # assume data is of correct type and length, as created by gather_atoms()
+  # NOTE: how could we insure are passing correct type to LAMMPS
+  # e.g. for Python list or NumPy, etc
+    
   def scatter_atoms(self,name,type,count,data):
     if name: name = name.encode()
     self.lib.lammps_scatter_atoms(self.lmp,name,type,count,data)
+
+  # create N atoms on all procs
+  # N = global number of atoms
+  # id = ID of each atom (optional, can be None)
+  # type = type of each atom (1 to Ntypes) (required)
+  # x = coords of each atom as (N,3) array (required)
+  # v = velocity of each atom as (N,3) array (optional, can be None)
+  # NOTE: how could we insure are passing correct type to LAMMPS
+  #   e.g. for Python list or NumPy, etc
+  #   ditto for gather_atoms() above
+
+  def create_atoms(self,n,id,type,x,v):
+    if id:
+      id_lmp = (c_int * n)()
+      id_lmp[:] = id
+    else: id_lmp = id
+    type_lmp = (c_int * n)()
+    type_lmp[:] = type
+    self.lib.lammps_create_atoms(self.lmp,n,id_lmp,type_lmp,x,v)
+
+  # document this?
+    
+  @property
+  def uses_exceptions(self):
+    try:
+      if self.lib.lammps_has_error:
+        return True
+    except(AttributeError):
+      return False
 
 # -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
@@ -436,6 +528,42 @@ class Atom2D(Atom):
             self.lmp.eval("fy[%d]" % self.index))
 
 
+def get_thermo_data(output):
+    """ traverse output of runs and extract thermo data columns """
+    if isinstance(output, str):
+        lines = output.splitlines()
+    else:
+        lines = output
+
+    runs = []
+    columns = []
+    in_run = False
+
+    for line in lines:
+        if line.startswith("Memory usage per processor"):
+            in_run = True
+        elif in_run and len(columns) == 0:
+            # first line after memory usage are column names
+            columns = line.split()
+
+            current_run = {}
+
+            for col in columns:
+                current_run[col] = []
+
+        elif line.startswith("Loop time of "):
+            in_run = False
+            columns = None
+            thermo_data = namedtuple('ThermoData', list(current_run.keys()))(*list(current_run.values()))
+            r = {'thermo' : thermo_data }
+            runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))
+        elif in_run and len(columns) > 0:
+            values = [float(x) for x in line.split()]
+
+            for i, col in enumerate(columns):
+                current_run[col].append(values[i])
+    return runs
+
 class PyLammps(object):
   """
   More Python-like wrapper for LAMMPS (e.g., for iPython)
@@ -449,11 +577,12 @@ class PyLammps(object):
       elif isinstance(ptr,lammps):
         self.lmp = ptr
       else:
-        self.lmp = None
-        raise TypeError('Unsupported type passed as "ptr"')
+        self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=ptr,comm=comm)
     else:
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")
+    self._cmd_history = []
+    self.runs = []
 
   def __del__(self):
     if self.lmp: self.lmp.close()
@@ -469,8 +598,26 @@ class PyLammps(object):
   def file(self,file):
     self.lmp.file(file)
 
+  def write_script(self,filename):
+    """ Write LAMMPS script file containing all commands executed up until now """
+    with open(filename, "w") as f:
+      for cmd in self._cmd_history:
+        f.write("%s\n" % cmd)
+
   def command(self,cmd):
     self.lmp.command(cmd)
+    self._cmd_history.append(cmd)
+
+  def run(self, *args, **kwargs):
+    output = self.__getattr__('run')(*args, **kwargs)
+    self.runs += get_thermo_data(output)
+    return output
+
+  @property
+  def last_run(self):
+    if len(self.runs) > 0:
+        return self.runs[-1]
+    return None
 
   @property
   def atoms(self):
@@ -643,7 +790,7 @@ class PyLammps(object):
       cmd_args = [name] + [str(x) for x in args]
 
       with OutputCapture() as capture:
-        self.lmp.command(' '.join(cmd_args))
+        self.command(' '.join(cmd_args))
         output = capture.output
 
       if 'verbose' in kwargs and kwargs['verbose']:

@@ -42,7 +42,10 @@ using namespace voro;
 /* ---------------------------------------------------------------------- */
 
 ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), con_mono(NULL), con_poly(NULL), 
+  radstr(NULL), voro(NULL), edge(NULL), sendvector(NULL), 
+  rfield(NULL), tags(NULL), occvec(NULL), sendocc(NULL), 
+  lroot(NULL), lnext(NULL), faces(NULL)
 {
   int sgroup;
 
@@ -126,6 +129,9 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
 
   if (occupation && ( surface!=VOROSURF_NONE || maxedge>0 ) )
     error->all(FLERR,"Illegal compute voronoi/atom command (occupation and (surface or edges))");
+
+  if (occupation && (atom->map_style == 0))
+    error->all(FLERR,"Compute voronoi/atom occupation requires an atom map, see atom_modify");
 
   nmax = rmax = 0;
   edge = rfield = sendvector = NULL;

@@ -4,7 +4,7 @@
 :link(ld,Manual.html)
 :link(lc,Section_commands.html#comm)
 
-:line 
+:line
 
 6. How-to discussions :h3
 
@@ -39,7 +39,7 @@ This section describes how to perform common tasks using LAMMPS.
 6.27 "Drude induced dipoles"_#howto_27 :all(b)
 
 The example input scripts included in the LAMMPS distribution and
-highlighted in "Section_example"_Section_example.html also show how to
+highlighted in "Section 7"_Section_example.html also show how to
 setup and run various kinds of simulations.
 
 :line
@@ -68,7 +68,7 @@ Look at the {in.chain} input script provided in the {bench} directory
 of the LAMMPS distribution to see the original script that these 2
 scripts are based on.  If that script had the line
 
-restart	        50 tmp.restart :pre
+restart         50 tmp.restart :pre
 
 added to it, it would produce 2 binary restart files (tmp.restart.50
 and tmp.restart.100) as it ran.
@@ -76,17 +76,17 @@ and tmp.restart.100) as it ran.
 This script could be used to read the 1st restart file and re-run the
 last 50 timesteps:
 
-read_restart	tmp.restart.50 :pre
+read_restart    tmp.restart.50 :pre
 
-neighbor	0.4 bin
-neigh_modify	every 1 delay 1 :pre
+neighbor        0.4 bin
+neigh_modify    every 1 delay 1 :pre
 
-fix		1 all nve
-fix		2 all langevin 1.0 1.0 10.0 904297 :pre
+fix             1 all nve
+fix             2 all langevin 1.0 1.0 10.0 904297 :pre
 
-timestep	0.012 :pre
+timestep        0.012 :pre
 
-run		50 :pre
+run             50 :pre
 
 Note that the following commands do not need to be repeated because
 their settings are included in the restart file: {units, atom_style,
@@ -107,25 +107,25 @@ lmp_g++ -r tmp.restart.50 tmp.restart.data :pre
 
 Then, this script could be used to re-run the last 50 steps:
 
-units		lj
-atom_style	bond
-pair_style	lj/cut 1.12
-pair_modify	shift yes
-bond_style	fene
+units           lj
+atom_style      bond
+pair_style      lj/cut 1.12
+pair_modify     shift yes
+bond_style      fene
 special_bonds   0.0 1.0 1.0 :pre
 
-read_data	tmp.restart.data :pre
+read_data       tmp.restart.data :pre
 
-neighbor	0.4 bin
-neigh_modify	every 1 delay 1 :pre
+neighbor        0.4 bin
+neigh_modify    every 1 delay 1 :pre
 
-fix		1 all nve
-fix		2 all langevin 1.0 1.0 10.0 904297 :pre
+fix             1 all nve
+fix             2 all langevin 1.0 1.0 10.0 904297 :pre
 
-timestep	0.012 :pre
+timestep        0.012 :pre
 
-reset_timestep	50
-run		50 :pre
+reset_timestep  50
+run             50 :pre
 
 Note that nearly all the settings specified in the original {in.chain}
 script must be repeated, except the {pair_coeff} and {bond_coeff}
@@ -180,7 +180,7 @@ used in the CHARMM, AMBER, and DREIDING force fields.  Setting
 coefficients is done in the input data file via the
 "read_data"_read_data.html command or in the input script with
 commands like "pair_coeff"_pair_coeff.html or
-"bond_coeff"_bond_coeff.html.  See "Section_tools"_Section_tools.html
+"bond_coeff"_bond_coeff.html.  See "Section 9"_Section_tools.html
 for additional tools that can use CHARMM or AMBER to assign force
 field coefficients and convert their output into LAMMPS input.
 
@@ -522,7 +522,7 @@ H mass = 1.008
 O charge = -1.040
 H charge = 0.520
 r0 of OH bond = 0.9572
-theta of HOH angle = 104.52 
+theta of HOH angle = 104.52
 OM distance = 0.15
 LJ epsilon of O-O = 0.1550
 LJ sigma of O-O = 3.1536
@@ -629,7 +629,7 @@ the SPC and SPC/E models.
 Wikipedia also has a nice article on "water
 models"_http://en.wikipedia.org/wiki/Water_model.
 
-:line 
+:line
 
 6.10 Coupling LAMMPS to other codes :link(howto_10),h4
 
@@ -673,7 +673,7 @@ processors to start up another program).  In the latter case the
 stand-alone code could communicate with LAMMPS thru files that the
 command writes and reads.
 
-See "Section_modify"_Section_modify.html of the documentation for how
+See "Section 10"_Section_modify.html of the documentation for how
 to add a new command to LAMMPS.
 
 (3) Use LAMMPS as a library called by another code.  In this case the
@@ -709,12 +709,12 @@ example, from C++ you could create one (or more) "instances" of
 LAMMPS, pass it an input script to process, or execute individual
 commands, all by invoking the correct class methods in LAMMPS.  From C
 or Fortran you can make function calls to do the same things.  See
-"Section_python"_Section_python.html of the manual for a description
+"Section 11"_Section_python.html of the manual for a description
 of the Python wrapper provided with LAMMPS that operates through the
 LAMMPS library interface.
 
 The files src/library.cpp and library.h contain the C-style interface
-to LAMMPS.  See "Section_howto 19"_Section_howto.html#howto_19 of the
+to LAMMPS.  See "Section 6.19"_Section_howto.html#howto_19 of the
 manual for a description of the interface and how to extend it for
 your needs.
 
@@ -729,7 +729,7 @@ LAMMPS and half to the other code and run both codes simultaneously
 before syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
 
-:line 
+:line
 
 6.11 Visualizing LAMMPS snapshots :link(howto_11),h4
 
@@ -746,7 +746,7 @@ and atom trajectories.
 
 Several programs included with LAMMPS as auxiliary tools can convert
 native LAMMPS dump files to other formats.  See the
-"Section_tools"_Section_tools.html doc page for details.  The first is
+"Section 9"_Section_tools.html doc page for details.  The first is
 the "ch2lmp tool"_Section_tools.html#charmm, which contains a
 lammps2pdb Perl script which converts LAMMPS dump files into PDB
 files.  The second is the "lmp2arc tool"_Section_tools.html#arc which
@@ -832,7 +832,7 @@ rotation of [A], [B], and [C] and can be computed as follows:
 
 where A = | [A] | indicates the scalar length of [A]. The hat symbol (^)
 indicates the corresponding unit vector. {beta} and {gamma} are angles
-between the vectors described below. Note that by construction, 
+between the vectors described below. Note that by construction,
 [a], [b], and [c] have strictly positive x, y, and z components, respectively.
 If it should happen that
 [A], [B], and [C] form a left-handed basis, then the above equations
@@ -841,17 +841,17 @@ to first apply an inversion. This can be achieved
 by interchanging two basis vectors or by changing the sign of one of them.
 
 For consistency, the same rotation/inversion applied to the basis vectors
-must also be applied to atom positions, velocities, 
+must also be applied to atom positions, velocities,
 and any other vector quantities.
-This can be conveniently achieved by first converting to 
+This can be conveniently achieved by first converting to
 fractional coordinates in the
 old basis and then converting to distance coordinates in the new basis.
 The transformation is given by the following equation:
 
 :c,image(Eqs/rotate.jpg)
 
-where {V} is the volume of the box, [X] is the original vector quantity and 
-[x] is the vector in the LAMMPS basis. 
+where {V} is the volume of the box, [X] is the original vector quantity and
+[x] is the vector in the LAMMPS basis.
 
 There is no requirement that a triclinic box be periodic in any
 dimension, though it typically should be in at least the 2nd dimension
@@ -938,17 +938,17 @@ defined above.  The relationship between these 6 quantities
 (a,b,c,alpha,beta,gamma) and the LAMMPS box sizes (lx,ly,lz) =
 (xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) is as follows:
 
-:c,image(Eqs/box.jpg) 
+:c,image(Eqs/box.jpg)
 
 The inverse relationship can be written as follows:
 
-:c,image(Eqs/box_inverse.jpg) 
+:c,image(Eqs/box_inverse.jpg)
 
-The values of {a}, {b}, {c} , {alpha}, {beta} , and {gamma} can be printed 
-out or accessed by computes using the 
-"thermo_style custom"_thermo_style.html keywords 
+The values of {a}, {b}, {c} , {alpha}, {beta} , and {gamma} can be printed
+out or accessed by computes using the
+"thermo_style custom"_thermo_style.html keywords
 {cella}, {cellb}, {cellc}, {cellalpha}, {cellbeta}, {cellgamma},
-respectively. 
+respectively.
 
 As discussed on the "dump"_dump.html command doc page, when the BOX
 BOUNDS for a snapshot is written to a dump file for a triclinic box,
@@ -1840,7 +1840,7 @@ converge and requires careful post-processing "(Shinoda)"_#Shinoda
 
 6.19 Library interface to LAMMPS :link(howto_19),h4
 
-As described in "Section_start 5"_Section_start.html#start_5, LAMMPS
+As described in "Section 2.5"_Section_start.html#start_5, LAMMPS
 can be built as a library, so that it can be called by another code,
 used in a "coupled manner"_Section_howto.html#howto_10 with other
 codes, or driven through a "Python interface"_Section_python.html.
@@ -1854,13 +1854,19 @@ internal LAMMPS operations.  Note that LAMMPS classes are defined
 within a LAMMPS namespace (LAMMPS_NS) if you use them from another C++
 application.
 
-Library.cpp contains these 5 basic functions:
+Library.cpp contains these functions for creating and destroying an
+instance of LAMMPS and sending it commands to execute.  See the
+documentation in the src/library.cpp file for details:
 
 void lammps_open(int, char **, MPI_Comm, void **)
+void lammps_open_no_mpi(int, char **, void **)
 void lammps_close(void *)
 int lammps_version(void *)
 void lammps_file(void *, char *)
-char *lammps_command(void *, char *) :pre
+char *lammps_command(void *, char *)
+void lammps_commands_list(void *, int, char **)
+void lammps_commands_string(void *, char *)
+void lammps_free(void *) :pre
 
 The lammps_open() function is used to initialize LAMMPS, passing in a
 list of strings as if they were "command-line
@@ -1880,6 +1886,10 @@ half to the other code and run both codes simultaneously before
 syncing them up periodically.  Or it might instantiate multiple
 instances of LAMMPS to perform different calculations.
 
+The lammps_open_no_mpi() function is similar except that no MPI
+communicator is passed from the caller.  Instead, MPI_COMM_WORLD is
+used to instantiate LAMMPS, and MPI is initialzed if necessary.
+
 The lammps_close() function is used to shut down an instance of LAMMPS
 and free all its memory.
 
@@ -1891,44 +1901,93 @@ changes to the LAMMPS command syntax between versions. The returned
 LAMMPS version code is an integer (e.g. 2 Sep 2015 results in
 20150902) that grows with every new LAMMPS version.
 
-The lammps_file() and lammps_command() functions are used to pass a
-file or string to LAMMPS as if it were an input script or single
-command in an input script.  Thus the calling code can read or
-generate a series of LAMMPS commands one line at a time and pass it
-thru the library interface to setup a problem and then run it,
-interleaving the lammps_command() calls with other calls to extract
-information from LAMMPS, perform its own operations, or call another
-code's library.
+The lammps_file(), lammps_command(), lammps_commands_list(), and
+lammps_commands_string() functions are used to pass one or more
+commands to LAMMPS to execute, the same as if they were coming from an
+input script.
 
-Other useful functions are also included in library.cpp.  For example:
+Via these functions, the calling code can read or generate a series of
+LAMMPS commands one or multiple at a time and pass it thru the library
+interface to setup a problem and then run it in stages.  The caller
+can interleave the command function calls with operations it performs,
+calls to extract information from or set information within LAMMPS, or
+calls to another code's library.
+
+The lammps_file() function passes the filename of an input script.
+The lammps_command() function passes a single command as a string.
+The lammps_commands_list() function passes multiple commands in a
+char** list.  In both lammps_command() and lammps_commands_list(),
+individual commands may or may not have a trailing newline.  The
+lammps_commands_string() function passes multiple commands
+concatenated into one long string, separated by newline characters.
+In both lammps_commands_list() and lammps_commands_string(), a single
+command can be spread across multiple lines, if the last printable
+character of all but the last line is "&", the same as if the lines
+appeared in an input script.
+
+The lammps_free() function is a clean-up function to free memory that
+the library allocated previously via other function calls.  See
+comments in src/library.cpp file for which other functions need this
+clean-up.
+
+Library.cpp also contains these functions for extracting information
+from LAMMPS and setting value within LAMMPS.  Again, see the
+documentation in the src/library.cpp file for details, including
+which quantities can be queried by name:
 
 void *lammps_extract_global(void *, char *)
 void *lammps_extract_atom(void *, char *)
 void *lammps_extract_compute(void *, char *, int, int)
 void *lammps_extract_fix(void *, char *, int, int, int, int)
-void *lammps_extract_variable(void *, char *, char *)
+void *lammps_extract_variable(void *, char *, char *) :pre
+
 int lammps_set_variable(void *, char *, char *)
+double lammps_get_thermo(void *, char *) :pre
+
 int lammps_get_natoms(void *)
-void lammps_get_coords(void *, double *)
-void lammps_put_coords(void *, double *) :pre
+void lammps_gather_atoms(void *, double *)
+void lammps_scatter_atoms(void *, double *) :pre
+void lammps_create_atoms(void *, int, tagint *, int *, double *, double *) :pre
 
-These can extract various global or per-atom quantities from LAMMPS as
-well as values calculated by a compute, fix, or variable.  The
-"set_variable" function can set an existing string-style variable to a
-new value, so that subsequent LAMMPS commands can access the variable.
-The "get" and "put" operations can retrieve and reset atom
-coordinates.  See the library.cpp file and its associated header file
-library.h for details.
+The extract functions return a pointer to various global or per-atom
+quantities stored in LAMMPS or to values calculated by a compute, fix,
+or variable.  The pointer returned by the extract_global() function
+can be used as a permanent reference to a value which may change.  For
+the other extract functions, the underlying storage may be reallocated
+as LAMMPS runs, so you need to re-call the function to assure a
+current pointer or returned value(s).
 
-The key idea of the library interface is that you can write any
-functions you wish to define how your code talks to LAMMPS and add
-them to src/library.cpp and src/library.h, as well as to the "Python
-interface"_Section_python.html.  The routines you add can access or
-change any LAMMPS data you wish.  The examples/COUPLE and python
-directories have example C++ and C and Python codes which show how a
-driver code can link to LAMMPS as a library, run LAMMPS on a subset of
-processors, grab data from LAMMPS, change it, and put it back into
-LAMMPS.
+The lammps_set_variable() function can set an existing string-style
+variable to a new string value, so that subsequent LAMMPS commands can
+access the variable.  The lammps_get_thermo() function returns the
+current value of a thermo keyword as a double.
+
+The lammps_get_natoms() function returns the total number of atoms in
+the system and can be used by the caller to allocate space for the
+lammps_gather_atoms() and lammps_scatter_atoms() functions.  The
+gather function collects atom info of the requested type (atom coords,
+types, forces, etc) from all procsesors, orders them by atom ID, and
+returns a full list to each calling processor.  The scatter function
+does the inverse.  It distributes the same kinds of values, 
+passed by the caller, to each atom owned by individual processors.
+
+The lammps_create_atoms() function takes a list of N atoms as input
+with atom types and coords (required), an optionally atom IDs and
+velocities.  It uses the coords of each atom to assign it as a new
+atom to the processor that owns it.  Additional properties for the new
+atoms can be assigned via the lammps_scatter_atoms() or
+lammps_extract_atom() functions.
+
+The examples/COUPLE and python directories have example C++ and C and
+Python codes which show how a driver code can link to LAMMPS as a
+library, run LAMMPS on a subset of processors, grab data from LAMMPS,
+change it, and put it back into LAMMPS.
+
+NOTE: You can write code for additional functions as needed to define
+how your code talks to LAMMPS and add them to src/library.cpp and
+src/library.h, as well as to the "Python
+interface"_Section_python.html.  The added functions can access or
+change any LAMMPS data you wish.
 
 :line
 
@@ -2092,11 +2151,11 @@ lattice      fcc 5.376 orient x 1 0 0 orient y 0 1 0 orient z 0 0 1
 region       box block 0 4 0 4 0 4
 create_box   1 box
 create_atoms 1 box
-mass	     1 39.948
+mass         1 39.948
 pair_style   lj/cut 13.0
 pair_coeff   * * 0.2381 3.405
 timestep     $\{dt\}
-thermo	     $d :pre
+thermo       $d :pre
 
 # equilibration and thermalization :pre
 
@@ -2123,14 +2182,14 @@ thermo_style custom step temp press v_pxy v_pxz v_pyz v_v11 v_v22 v_v33
 run          100000
 variable     v equal (v_v11+v_v22+v_v33)/3.0
 variable     ndens equal count(all)/vol
-print        "average viscosity: $v \[Pa.s/] @ $T K, $\{ndens\} /A^3" :pre
+print        "average viscosity: $v \[Pa.s\] @ $T K, $\{ndens\} /A^3" :pre
 
 The fifth method is related to the above Green-Kubo method,
 but uses the Einstein formulation, analogous to the Einstein
 mean-square-displacement formulation for self-diffusivity. The
 time-integrated momentum fluxes play the role of Cartesian
 coordinates, whose mean-square displacement increases linearly
-with time at sufficiently long times. 
+with time at sufficiently long times.
 
 :line
 
@@ -2212,7 +2271,7 @@ Note that this compute allows the per-atom output of other
 "variables"_variable.html to be used to define chunk IDs for each
 atom.  This means you can write your own compute or fix to output a
 per-atom quantity to use as chunk ID.  See
-"Section_modify"_Section_modify.html of the documentation for how to
+"Section 10"_Section_modify.html of the documentation for how to
 do this.  You can also define a "per-atom variable"_variable.html in
 the input script that uses a formula to generate a chunk ID for each
 atom.
@@ -2510,8 +2569,8 @@ the electrostatic environment inducing polarizability.
 Technically, shells are attached to the cores by a spring force f =
 k*r where k is a parametrized spring constant and r is the distance
 between the core and the shell. The charges of the core and the shell
-add up to the ion charge, thus q(ion) = q(core) + q(shell). This 
-setup introduces the ion polarizability (alpha) given by 
+add up to the ion charge, thus q(ion) = q(core) + q(shell). This
+setup introduces the ion polarizability (alpha) given by
 alpha = q(shell)^2 / k. In a
 similar fashion the mass of the ion is distributed on the core and the
 shell with the core having the larger mass.
@@ -2526,7 +2585,7 @@ for NaCl, as found in examples/coreshell, has this format:
 432   atoms  # core and shell atoms
 216   bonds  # number of core/shell springs :pre
 
-4     atom types  # 2 cores and 2 shells for Na and Cl 
+4     atom types  # 2 cores and 2 shells for Na and Cl
 2     bond types :pre
 
 0.0 24.09597 xlo xhi
@@ -2545,19 +2604,19 @@ Atoms :pre
 1    1    2   1.5005    0.00000000   0.00000000   0.00000000 # core of core/shell pair 1
 2    1    4  -2.5005    0.00000000   0.00000000   0.00000000 # shell of core/shell pair 1
 3    2    1   1.5056    4.01599500   4.01599500   4.01599500 # core of core/shell pair 2
-4    2    3  -0.5056    4.01599500   4.01599500   4.01599500 # shell of core/shell pair 2 
+4    2    3  -0.5056    4.01599500   4.01599500   4.01599500 # shell of core/shell pair 2
 (...) :pre
 
 Bonds   # Bond topology for spring forces :pre
 
 1     2     1     2   # spring for core/shell pair 1
-2     2     3     4   # spring for core/shell pair 2 
+2     2     3     4   # spring for core/shell pair 2
 (...) :pre
 
 Non-Coulombic (e.g. Lennard-Jones) pairwise interactions are only
 defined between the shells.  Coulombic interactions are defined
 between all cores and shells.  If desired, additional bonds can be
-specified between cores.  
+specified between cores.
 
 The "special_bonds"_special_bonds.html command should be used to
 turn-off the Coulombic interaction within core/shell pairs, since that
@@ -2620,7 +2679,7 @@ Note that to perform thermostatting using this definition of
 temperature, the "fix modify temp"_fix_modify.html command should be
 used to assign the compute to the thermostat fix.  Likewise the
 "thermo_modify temp"_thermo_modify.html command can be used to make
-this temperature be output for the overall system. 
+this temperature be output for the overall system.
 
 For the NaCl example, this can be done as follows:
 
@@ -2632,13 +2691,13 @@ fix thermostatequ all nve                               # integrator as needed f
 fix_modify thermoberendsen temp CSequ
 thermo_modify temp CSequ                                # output of center-of-mass derived temperature :pre
 
-If "compute temp/cs"_compute_temp_cs.html is used, the decoupled 
-relative motion of the core and the shell should in theory be 
+If "compute temp/cs"_compute_temp_cs.html is used, the decoupled
+relative motion of the core and the shell should in theory be
 stable.  However numerical fluctuation can introduce a small
 momentum to the system, which is noticable over long trajectories.
-Therefore it is recomendable to use the "fix 
-momentum"_fix_momentum.html command in combination with "compute 
-temp/cs"_compute_temp_cs.html when equilibrating the system to 
+Therefore it is recomendable to use the "fix
+momentum"_fix_momentum.html command in combination with "compute
+temp/cs"_compute_temp_cs.html when equilibrating the system to
 prevent any drift.
 
 When intializing the velocities of a system with core/shell pairs, it
@@ -2661,17 +2720,17 @@ to the electrostatic environment.  This fast movement also limits the
 timestep size that can be used.
 
 The primary literature of the adiabatic core/shell model suggests that
-the fast relative motion of the core/shell pairs only allows negligible 
+the fast relative motion of the core/shell pairs only allows negligible
 energy transfer to the environment. Therefore it is not intended to
 decouple the core/shell degree of freedom from the physical system
 during production runs. In other words, the "compute
 temp/cs"_compute_temp_cs.html command should not be used during
-production runs and is only required during equilibration. This way one 
-is consistent with literature (based on the code packages DL_POLY or 
+production runs and is only required during equilibration. This way one
+is consistent with literature (based on the code packages DL_POLY or
 GULP for instance).
 
-The mentioned energy transfer will typically lead to a a small drift 
-in total energy over time.  This internal energy can be monitored 
+The mentioned energy transfer will typically lead to a small drift
+in total energy over time.  This internal energy can be monitored
 using the "compute chunk/atom"_compute_chunk_atom.html and "compute
 temp/chunk"_compute_temp_chunk.html commands.  The internal kinetic
 energies of each core/shell pair can then be summed using the sum()
@@ -2702,14 +2761,14 @@ The additional section in the date file would be formatted like this:
 
 CS-Info         # header of additional section :pre
 
-1   1           # column 1 = atom ID, column 2 = core/shell ID 
-2   1   
-3   2   
-4   2   
-5   3   
-6   3   
-7   4   
-8   4   
+1   1           # column 1 = atom ID, column 2 = core/shell ID
+2   1
+3   2
+4   2
+5   3
+6   3
+7   4
+8   4
 (...) :pre
 
 :line
@@ -2771,7 +2830,7 @@ temp/drude"_compute_temp_drude.html. This requires also to use the
 command {comm_modify vel yes}.
 
 Short-range damping of the induced dipole interactions can be achieved
-using Thole functions through the the "pair style
+using Thole functions through the "pair style
 thole"_pair_thole.html in "pair_style hybrid/overlay"_pair_hybrid.html
 with a Coulomb pair style. It may be useful to use {coul/long/cs} or
 similar from the CORESHELL package if the core and Drude particle come

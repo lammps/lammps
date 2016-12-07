@@ -16,7 +16,7 @@ ID, group-ID are documented in "compute"_compute.html command
 temp/cs = style name of this compute command
 group1 = group-ID of either cores or shells
 group2 = group-ID of either shells or cores :ul
-                        
+
 [Examples:]
 
 compute oxygen_c-s all temp/cs O_core O_shell
@@ -28,7 +28,7 @@ Define a computation that calculates the temperature of a system based
 on the center-of-mass velocity of atom pairs that are bonded to each
 other.  This compute is designed to be used with the adiabatic
 core/shell model of "(Mitchell and Finchham)"_#MitchellFinchham.  See
-"Section_howto 25"_Section_howto.html#howto_25 of the manual for an
+"Section 6.25"_Section_howto.html#howto_25 of the manual for an
 overview of the model as implemented in LAMMPS.  Specifically, this
 compute enables correct temperature calculation and thermostatting of
 core/shell pairs where it is desirable for the internal degrees of
@@ -64,7 +64,7 @@ calculated by this compute for use in the computation of a pressure
 tensor.  The formula for the components of the tensor is the same as
 the above formula, except that v^2 is replaced by vx*vy for the xy
 component, etc.  The 6 components of the vector are ordered xx, yy,
-zz, xy, xz, yz.  In contrast to the temperature, the velocity of 
+zz, xy, xz, yz.  In contrast to the temperature, the velocity of
 each core or shell atom is taken individually.
 
 The change this fix makes to core/shell atom velocities is essentially
@@ -83,8 +83,8 @@ langevin"_fix_langevin.html.
 
 The internal energy of core/shell pairs can be calculated by the
 "compute temp/chunk"_compute_temp_chunk.html command, if chunks are
-defined as core/shell pairs.  See "Section_howto
-25"_Section_howto.html#howto_25 for more discussion on how to do this.
+defined as core/shell pairs.  See "Section
+6.25"_Section_howto.html#howto_25 for more discussion on how to do this.
 
 [Output info:]
 

@@ -20,7 +20,7 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
     n1, n2, ... = loop factor between rRESPA levels (N-1 values)
     zero or more keyword/value pairings may be appended to the loop factors
     keyword = {bond} or {angle} or {dihedral} or {improper} or
-	      {pair} or {inner} or {middle} or {outer} or {hybrid} or {kspace}
+              {pair} or {inner} or {middle} or {outer} or {hybrid} or {kspace}
       {bond} value = M
         M = which level (1-N) to compute bond forces in
       {angle} value = M
@@ -33,17 +33,17 @@ style = {verlet} or {verlet/split} or {respa} or {respa/omp} :ulb,l
         M = which level (1-N) to compute pair forces in
       {inner} values = M cut1 cut2
         M = which level (1-N) to compute pair inner forces in
-	cut1 = inner cutoff between pair inner and
-	       pair middle or outer  (distance units)
-	cut2 = outer cutoff between pair inner and
-	       pair middle or outer  (distance units)
+        cut1 = inner cutoff between pair inner and
+               pair middle or outer  (distance units)
+        cut2 = outer cutoff between pair inner and
+               pair middle or outer  (distance units)
       {middle} values = M cut1 cut2
         M = which level (1-N) to compute pair middle forces in
-	cut1 = inner cutoff between pair middle and pair outer (distance units)
-	cut2 = outer cutoff between pair middle and pair outer (distance units)
+        cut1 = inner cutoff between pair middle and pair outer (distance units)
+        cut2 = outer cutoff between pair middle and pair outer (distance units)
       {outer} value = M
         M = which level (1-N) to compute pair outer forces in
-      {hybrid} values = M1 M2 ... (as many values as there are hybrid sub-styles 
+      {hybrid} values = M1 M2 ... (as many values as there are hybrid sub-styles
         M1 = which level (1-N) to compute the first pair_style hybrid sub-style in
         M2 = which level (1-N) to compute the second pair_style hybrid sub-style in
         M3,etc
@@ -69,7 +69,7 @@ The {verlet} style is a standard velocity-Verlet integrator.
 
 The {verlet/split} style is also a velocity-Verlet integrator, but it
 splits the force calculation within each timestep over 2 partitions of
-processors.  See "Section_start 6"_Section_start.html#start_7 for an
+processors.  See "Section 2.7"_Section_start.html#start_7 for an
 explanation of the -partition command-line switch.
 
 Specifically, this style performs all computation except the
@@ -115,17 +115,17 @@ When you run in 2-partition mode with the {verlet/split} style, the
 thermodyanmic data for the entire simulation will be output to the log
 and screen file of the 1st partition, which are log.lammps.0 and
 screen.0 by default; see the "-plog and -pscreen command-line
-switches"Section_start.html#start_7 to change this.  The log and
+switches"_Section_start.html#start_7 to change this.  The log and
 screen file for the 2nd partition will not contain thermodynamic
 output beyone the 1st timestep of the run.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 performance details of the speed-up offered by the {verlet/split}
 style.  One important performance consideration is the assignemnt of
 logical processors in the 2 partitions to the physical cores of a
 parallel machine.  The "processors"_processors.html command has
 options to support this, and strategies are discussed in
-"Section_accelerate"_Section_accelerate.html of the manual.
+"Section 5"_Section_accelerate.html of the manual.
 
 :line
 
@@ -230,7 +230,7 @@ rRESPA:
 
 fix             2 all shake 0.000001 500 0 m 1.0 a 1
 timestep        4.0
-run_style	respa 2 2 inner 1 4.0 5.0 outer 2 :pre
+run_style       respa 2 2 inner 1 4.0 5.0 outer 2 :pre
 
 With these settings, users can expect good energy conservation and
 roughly a 1.5 fold speedup over the {verlet} style with SHAKE and a
@@ -245,7 +245,7 @@ good energy conservation.  In real units, for a pure LJ fluid at
 liquid density, with a sigma of 3.0 angstroms, and epsilon of 0.1
 Kcal/mol, the following settings seem to work well:
 
-timestep  36.0  
+timestep  36.0
 run_style respa 3 3 4 inner 1 3.0 4.0 middle 2 6.0 7.0 outer 3 :pre
 
 :line
@@ -254,7 +254,7 @@ The {respa/omp} styles is a variant of {respa} adapted for use with
 pair, bond, angle, dihedral, improper, or kspace styles with an {omp}
 suffix. It is functionally equivalent to {respa} but performs additional
 operations required for managing {omp} styles. For more on {omp} styles
-see the "Section_accelerate"_Section_accelerate.html of the manual.
+see the "Section 5"_Section_accelerate.html of the manual.
 Accelerated styles take the same arguments and should produce the same
 results, except for round-off and precision issues.
 
@@ -263,7 +263,7 @@ you can use the "-suffix command-line switch"_Section_start.html#start_7
 when you invoke LAMMPS, or you can use the "suffix"_suffix.html
 command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line

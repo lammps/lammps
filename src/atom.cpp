@@ -26,11 +26,14 @@
 #include "force.h"
 #include "modify.h"
 #include "fix.h"
+#include "compute.h"
 #include "output.h"
 #include "thermo.h"
 #include "update.h"
 #include "domain.h"
 #include "group.h"
+#include "input.h"
+#include "variable.h"
 #include "molecule.h"
 #include "atom_masks.h"
 #include "math_const.h"
@@ -207,9 +210,6 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   atom_style = NULL;
   avec = NULL;
-
-  datamask = ALL_MASK;
-  datamask_ext = ALL_MASK;
 
   avec_map = new AtomVecCreatorMap();
 
@@ -506,7 +506,7 @@ void Atom::init()
 
   // check arrays that are atom type in length
 
-  check_mass();
+  check_mass(FLERR);
 
   // setup of firstgroup
 
@@ -1392,6 +1392,33 @@ void Atom::data_bodies(int n, char *buf, AtomVecBody *avec_body,
 }
 
 /* ----------------------------------------------------------------------
+   init per-atom fix/compute/variable values for newly created atoms
+   called from create_atoms, read_data, read_dump,
+     lib::lammps_create_atoms()
+   fixes, computes, variables may or may not exist when called
+------------------------------------------------------------------------- */
+
+void Atom::data_fix_compute_variable(int nprev, int nnew)
+{
+  for (int m = 0; m < modify->nfix; m++) {
+    Fix *fix = modify->fix[m];
+    if (fix->create_attribute)
+      for (int i = nprev; i < nnew; i++)
+        fix->set_arrays(i);
+  }
+
+  for (int m = 0; m < modify->ncompute; m++) {
+    Compute *compute = modify->compute[m];
+    if (compute->create_attribute)
+      for (int i = nprev; i < nnew; i++)
+        compute->set_arrays(i);
+  }
+
+  for (int i = nprev; i < nnew; i++)
+    input->variable->set_arrays(i);
+}
+
+/* ----------------------------------------------------------------------
    allocate arrays of length ntypes
    only done after ntypes is set
 ------------------------------------------------------------------------- */
@@ -1411,23 +1438,23 @@ void Atom::allocate_type_arrays()
    type_offset may be used when reading multiple data files
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(const char *str, int type_offset)
+void Atom::set_mass(const char *file, int line, const char *str, int type_offset)
 {
-  if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
+  if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
 
   int itype;
   double mass_one;
   int n = sscanf(str,"%d %lg",&itype,&mass_one);
-  if (n != 2) error->all(FLERR,"Invalid mass line in data file");
+  if (n != 2) error->all(file,line,"Invalid mass line in data file");
   itype += type_offset;
 
   if (itype < 1 || itype > ntypes)
-    error->all(FLERR,"Invalid type for mass set");
+    error->all(file,line,"Invalid type for mass set");
 
   mass[itype] = mass_one;
   mass_setflag[itype] = 1;
 
-  if (mass[itype] <= 0.0) error->all(FLERR,"Invalid mass value");
+  if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1435,16 +1462,16 @@ void Atom::set_mass(const char *str, int type_offset)
    called from EAM pair routine
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(int itype, double value)
+void Atom::set_mass(const char *file, int line, int itype, double value)
 {
-  if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
+  if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
   if (itype < 1 || itype > ntypes)
-    error->all(FLERR,"Invalid type for mass set");
+    error->all(file,line,"Invalid type for mass set");
 
   mass[itype] = value;
   mass_setflag[itype] = 1;
 
-  if (mass[itype] <= 0.0) error->all(FLERR,"Invalid mass value");
+  if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------
@@ -1452,19 +1479,19 @@ void Atom::set_mass(int itype, double value)
    called from reading of input script
 ------------------------------------------------------------------------- */
 
-void Atom::set_mass(int narg, char **arg)
+void Atom::set_mass(const char *file, int line, int narg, char **arg)
 {
-  if (mass == NULL) error->all(FLERR,"Cannot set mass for this atom style");
+  if (mass == NULL) error->all(file,line,"Cannot set mass for this atom style");
 
   int lo,hi;
-  force->bounds(arg[0],ntypes,lo,hi);
-  if (lo < 1 || hi > ntypes) error->all(FLERR,"Invalid type for mass set");
+  force->bounds(file,line,arg[0],ntypes,lo,hi);
+  if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
 
   for (int itype = lo; itype <= hi; itype++) {
     mass[itype] = atof(arg[1]);
     mass_setflag[itype] = 1;
 
-    if (mass[itype] <= 0.0) error->all(FLERR,"Invalid mass value");
+    if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
   }
 }
 
@@ -1484,12 +1511,12 @@ void Atom::set_mass(double *values)
    check that all masses have been set
 ------------------------------------------------------------------------- */
 
-void Atom::check_mass()
+void Atom::check_mass(const char *file, int line)
 {
   if (mass == NULL) return;
   for (int itype = 1; itype <= ntypes; itype++)
     if (mass_setflag[itype] == 0) 
-      error->all(FLERR,"Not all per-type masses are set");
+      error->all(file,line,"Not all per-type masses are set");
 }
 
 /* ----------------------------------------------------------------------

@@ -43,10 +43,11 @@ fix 1 all phonon 10 5000 500000 GAMMA EAM0D nasr 100 :pre
 Calculate the dynamical matrix from molecular dynamics simulations
 based on fluctuation-dissipation theory for a group of atoms.
 
-Consider a crystal with \(N\) unit cells in three dimensions labelled \(l = (l_1, l_2, l_3)\) where \(l_i\)
-are integers.  Each unit cell is defined by three linearly independent
-vectors \(\mathbf\{a\}_1\), \(\mathbf\{a\}_2\), \(\mathbf\{a\}_3\) forming a
-parallelipiped, containing \(K\) basis atoms labeled \(k\).
+Consider a crystal with \(N\) unit cells in three dimensions labelled
+\(l = (l_1, l_2, l_3)\) where \(l_i\) are integers.  Each unit cell is
+defined by three linearly independent vectors \(\mathbf\{a\}_1\),
+\(\mathbf\{a\}_2\), \(\mathbf\{a\}_3\) forming a parallelipiped,
+containing \(K\) basis atoms labeled \(k\).
 
 Based on fluctuation-dissipation theory, the force constant
 coefficients of the system in reciprocal space are given by
@@ -62,18 +63,16 @@ where \(\mathbf\{G\}\) is the Green's functions coefficients given by
 \mathbf\{G\}_\{k\alpha,k^\prime \beta\}(\mathbf\{q\}) = \left< \mathbf\{u\}_\{k\alpha\}(\mathbf\{q\}) \bullet \mathbf\{u\}_\{k^\prime \beta\}^*(\mathbf\{q\}) \right>
 \end\{equation\}
 
-
 where \(\left< \ldots \right>\) denotes the ensemble average, and
 
 \begin\{equation\}
 \mathbf\{u\}_\{k\alpha\}(\mathbf\{q\}) = \sum_l \mathbf\{u\}_\{l k \alpha\} \exp\{(i\mathbf\{qr\}_l)\}
 \end\{equation\}
 
-
-is the \(\alpha\) component of the atomic displacement for the \(k\) th atom
-in the unit cell in reciprocal space at \(\mathbf\{q\}\). In practice, the Green's
-functions coefficients can also be measured according to the following
-formula,
+is the \(\alpha\) component of the atomic displacement for the \(k\)
+th atom in the unit cell in reciprocal space at \(\mathbf\{q\}\). In
+practice, the Green's functions coefficients can also be measured
+according to the following formula,
 
 \begin\{equation\}
 \mathbf\{G\}_\{k\alpha,k^\prime \beta\}(\mathbf\{q\}) =
@@ -81,12 +80,13 @@ formula,
 - \left<\mathbf\{R\}\right>_\{k \alpha\}(\mathbf\{q\}) \bullet \left<\mathbf\{R\}\right>^*_\{k^\prime \beta\}(\mathbf\{q\})
 \end\{equation\}
 
-where \(\mathbf\{R\}\) is the instantaneous positions of atoms, and \(\left<\mathbf\{R\}\right>\) is the
-averaged atomic positions. It gives essentially the same results as
-the displacement method and is easier to implement in an MD code.
+where \(\mathbf\{R\}\) is the instantaneous positions of atoms, and
+\(\left<\mathbf\{R\}\right>\) is the averaged atomic positions. It
+gives essentially the same results as the displacement method and is
+easier to implement in an MD code.
 
-Once the force constant matrix is known, the dynamical matrix \(\mathbf\{D\}\) can
-then be obtained by
+Once the force constant matrix is known, the dynamical matrix
+\(\mathbf\{D\}\) can then be obtained by
 
 \begin\{equation\}
 \mathbf\{D\}_\{k\alpha, k^\prime\beta\}(\mathbf\{q\}) =
@@ -100,10 +100,11 @@ two-point correlations.  To achieve this. the positions of the atoms
 are examined every {Nevery} steps and are Fourier-transformed into
 reciprocal space, where the averaging process and correlation
 computation is then done.  After every {Noutput} measurements, the
-matrix \(\mathbf\{G\}(\mathbf\{q\})\) is calculated and inverted to obtain the elastic
-stiffness coefficients.  The dynamical matrices are then constructed
-and written to {prefix}.bin.timestep files in binary format and to the
-file {prefix}.log for each wavevector \(\mathbf\{q\}\).
+matrix \(\mathbf\{G\}(\mathbf\{q\})\) is calculated and inverted to
+obtain the elastic stiffness coefficients.  The dynamical matrices are
+then constructed and written to {prefix}.bin.timestep files in binary
+format and to the file {prefix}.log for each wavevector
+\(\mathbf\{q\}\).
 
 A detailed description of this method can be found in
 ("Kong2011"_#Kong2011).
@@ -126,12 +127,13 @@ which lattice point; the lattice indices start from 0. An auxiliary
 code, "latgen"_http://code.google.com/p/latgen, can be employed to
 generate the compatible map file for various crystals.
 
-In case one simulates an aperiodic system, where the whole simulation box
-is treated as a unit cell, one can set {map_file} as {GAMMA}, so that the mapping
-info will be generated internally and a file is not needed. In this case, the
-dynamical matrix at only the gamma-point will/can be evaluated. Please keep in
-mind that fix-phonon is designed for cyrstals, it will be inefficient and
-even degrade the performance of lammps in case the unit cell is too large.
+In case one simulates an aperiodic system, where the whole simulation
+box is treated as a unit cell, one can set {map_file} as {GAMMA}, so
+that the mapping info will be generated internally and a file is not
+needed. In this case, the dynamical matrix at only the gamma-point
+will/can be evaluated. Please keep in mind that fix-phonon is designed
+for cyrstals, it will be inefficient and even degrade the performance
+of lammps in case the unit cell is too large.
 
 The calculated dynamical matrix elements are written out in
 "energy/distance^2/mass"_units.html units.  The coordinates for {q}
@@ -141,7 +143,7 @@ corresponding reciprocal lattice.
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
-files"_restart.html. 
+files"_restart.html.
 
 The "fix_modify"_fix_modify.html {temp} option is supported by this
 fix. You can use it to change the temperature compute from thermo_temp
@@ -182,7 +184,7 @@ This fix requires LAMMPS be built with an FFT library.  See the
 [Default:]
 
 The option defaults are sysdim = the same dimemsion as specified by
-the "dimension"_dimension command, and nasr = 20.
+the "dimension"_dimension.html command, and nasr = 20.
 
 :line
 

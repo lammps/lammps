@@ -41,8 +41,6 @@ class FixWallReflectKokkos : public FixWallReflect {
   void operator()(TagFixWallReflectPostIntegrate, const int&) const;
 
  protected:
-  class AtomKokkos *atomKK;
-
   typename AT::t_x_array x;
   typename AT::t_v_array v;
   typename AT::t_int_1d_randomread mask;

@@ -77,7 +77,7 @@ fix 1 flow ave/spatial 100 10 1000 y 0.0 1.0 vx vz norm sample file vel.profile 
 
 could be replaced by:
 
-compute cc1 flow chunk/atom bin/1d y 0.0 1.0 
+compute cc1 flow chunk/atom bin/1d y 0.0 1.0
 fix 1 flow ave/chunk 100 10 1000 cc1 vx vz norm sample file vel.profile :pre
 
 [Description:]
@@ -94,8 +94,8 @@ chunk/atom"_compute_chunk_atom.html command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
 molecule or atoms in a spatial bin.  See the "compute
-chunk/atom"_compute_chunk_atom.html doc page and ""Section_howto
-23"_Section_howto.html#howto_23 for details of how chunks can be
+chunk/atom"_compute_chunk_atom.html doc page and "Section
+6.23"_Section_howto.html#howto_23 for details of how chunks can be
 defined and examples of how they can be used to measure properties of
 a system.
 

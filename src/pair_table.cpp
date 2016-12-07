@@ -263,8 +263,8 @@ void PairTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(arg[1],atom->ntypes,jlo,jhi);
+  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -554,7 +554,7 @@ void PairTable::spline_table(Table *tb)
 
 /* ----------------------------------------------------------------------
    extract attributes from parameter line in table section
-   format of line: N value R/RSQ/BITMAP lo hi FP fplo fphi
+   format of line: N value R/RSQ/BITMAP lo hi FPRIME fplo fphi
    N is required, other params are optional
 ------------------------------------------------------------------------- */
 
@@ -578,7 +578,7 @@ void PairTable::param_extract(Table *tb, char *line)
       tb->rlo = atof(word);
       word = strtok(NULL," \t\n\r\f");
       tb->rhi = atof(word);
-    } else if (strcmp(word,"FP") == 0) {
+    } else if (strcmp(word,"FPRIME") == 0) {
       tb->fpflag = 1;
       word = strtok(NULL," \t\n\r\f");
       tb->fplo = atof(word);

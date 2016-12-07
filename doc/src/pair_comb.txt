@@ -37,15 +37,15 @@ in "(COMB)"_#COMB and "(COMB3)"_#COMB3.  Briefly, the total energy
 
 :c,image(Eqs/pair_comb1.jpg)
 
-where {E<sub>i</sub><sup>self</sup>} is the self-energy of atom {i} 
+where {E<sub>i</sub><sup>self</sup>} is the self-energy of atom {i}
 (including atomic ionization energies and electron affinities),
-{E<sub>ij</sub><sup>short</sup>} is the bond-order potential between 
+{E<sub>ij</sub><sup>short</sup>} is the bond-order potential between
 atoms {i} and {j},
 {E<sub>ij</sub><sup>Coul</sup>} is the Coulomb interactions,
-{E<sup>polar</sup>} is the polarization term for organic systems 
-(style {comb3} only), 
-{E<sup>vdW</sup>} is the van der Waals energy (style {comb3} only), 
-{E<sup>barr</sup>} is a charge barrier function, and 
+{E<sup>polar</sup>} is the polarization term for organic systems
+(style {comb3} only),
+{E<sup>vdW</sup>} is the van der Waals energy (style {comb3} only),
+{E<sup>barr</sup>} is a charge barrier function, and
 {E<sup>corr</sup>} are angular correction terms.
 
 The COMB potentials (styles {comb} and {comb3}) are variable charge
@@ -112,7 +112,7 @@ nor file {ffield.comb3} with style {comb}.
 Styles with a {gpu}, {intel}, {kk}, {omp}, or {opt} suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
-hardware, as discussed in "Section_accelerate"_Section_accelerate.html
+hardware, as discussed in "Section 5"_Section_accelerate.html
 of the manual.  The accelerated styles take the same arguments and
 should produce the same results, except for round-off and precision
 issues.
@@ -127,7 +127,7 @@ by including their suffix, or you can use the "-suffix command-line
 switch"_Section_start.html#start_7 when you invoke LAMMPS, or you can
 use the "suffix"_suffix.html command in your input script.
 
-See "Section_accelerate"_Section_accelerate.html of the manual for
+See "Section 5"_Section_accelerate.html of the manual for
 more instructions on how to use the accelerated styles effectively.
 
 :line
@@ -156,13 +156,13 @@ These pair styles can only be used via the {pair} keyword of the
 [Restrictions:]
 
 These pair styles are part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package (which it is by default).  See
+if LAMMPS was built with that package.  See
 the "Making LAMMPS"_Section_start.html#start_3 section for more info.
 
 These pair styles requires the "newton"_newton.html setting to be "on"
 for pair interactions.
 
-The COMB potentials in the {ffield.comb} and {ffield.comb3} files provided 
+The COMB potentials in the {ffield.comb} and {ffield.comb3} files provided
 with LAMMPS (see the potentials directory) are parameterized for metal
 "units"_units.html.  You can use the COMB potential with any LAMMPS
 units, but you would need to create your own COMB potential file with
@@ -171,7 +171,7 @@ doesn't use "metal" units.
 
 [Related commands:]
 
-"pair_style"_pair_style.html, "pair_coeff"_pair_coeff.html, 
+"pair_style"_pair_style.html, "pair_coeff"_pair_coeff.html,
 "fix qeq/comb"_fix_qeq_comb.html
 
 [Default:] none
@@ -179,12 +179,12 @@ doesn't use "metal" units.
 :line
 
 :link(COMB)
-[(COMB)]  T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, and 
+[(COMB)]  T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, and
 S. R. Phillpot, Phys. Rev. B 81, 125328 (2010)
 
 :link(COMB3)
-[(COMB3)] T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek, 
-Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74, 
+[(COMB3)] T. Liang, T.-R. Shan, Y.-T. Cheng, B. D. Devine, M. Noordhoek,
+Y. Li, Z. Lu, S. R. Phillpot, and S. B. Sinnott, Mat. Sci. & Eng: R 74,
 255-279 (2013).
 
 :link(Rick)

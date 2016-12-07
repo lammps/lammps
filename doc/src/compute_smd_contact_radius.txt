@@ -27,7 +27,7 @@ contact radius is used only to prevent particles belonging to
 different physical bodies from penetrating each other. It is used by
 the contact pair styles, e.g., smd/hertz and smd/tri_surface.
 
-See "this PDF guide"_USER/smd/SMD_LAMMPS_userguide.pdf to using Smooth
+See "this PDF guide"_PDF/SMD_LAMMPS_userguide.pdf to using Smooth
 Mach Dynamics in LAMMPS.
 
 The value of the contact radius will be 0.0 for particles not in the
@@ -37,7 +37,7 @@ specified compute group.
 
 This compute calculates a per-particle vector, which can be accessed by
 any command that uses per-particle values from a compute as input.  See
-"Section_howto 15"_Section_howto.html#howto_15 for an overview of
+"Section 6.15"_Section_howto.html#howto_15 for an overview of
 LAMMPS output options.
 
 The per-particle vector values will be in distance "units"_units.html.

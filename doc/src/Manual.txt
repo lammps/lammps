@@ -1,7 +1,7 @@
 <!-- HTML_ONLY -->
 <HEAD>
 <TITLE>LAMMPS Users Manual</TITLE>
-<META NAME="docnumber" CONTENT="7 Sep 2016 version">
+<META NAME="docnumber" CONTENT="30 Nov 2016 version">
 <META NAME="author" CONTENT="http://lammps.sandia.gov - Sandia National Laboratories">
 <META NAME="copyright" CONTENT="Copyright (2003) Sandia Corporation.  This software and manual is distributed under the GNU General Public License.">
 </HEAD>
@@ -21,7 +21,7 @@
 <H1></H1>
 
 LAMMPS Documentation :c,h3
-7 Sep 2016 version :c,h4
+30 Nov 2016 version :c,h4
 
 Version info: :h4
 
@@ -69,7 +69,7 @@ Labs and Temple University:
 Aidan Thompson, athomps at sandia.gov :l
 Stan Moore, stamoore at sandia.gov :l
 "Axel Kohlmeyer"_ako, akohlmey at gmail.com :l
-:ulb
+:ule
 
 Past core developers include Paul Crozier, Ray Shan and Mark Stevens,
 all at Sandia. The [LAMMPS home page] at
@@ -77,6 +77,11 @@ all at Sandia. The [LAMMPS home page] at
 about the code and its uses. Interaction with external LAMMPS developers,
 bug reports and feature requests are mainly coordinated through the
 "LAMMPS project on GitHub."_https://github.com/lammps/lammps
+The lammps.org domain, currently hosting "public continuous integration
+testing"_https://ci.lammps.org/job/lammps/ and "precompiled Linux
+RPM and Windows installer packages"_http://rpm.lammps.org is located
+at Temple University and managed by Richard Berger,
+richard.berger at temple.edu.
 
 :link(bug,http://lammps.sandia.gov/bug.html)
 :link(sjp,http://www.sandia.gov/~sjplimp)
@@ -101,7 +106,10 @@ it gives quick access to documentation for all LAMMPS commands.
 .. toctree::
    :maxdepth: 2
    :numbered:
-   
+   :caption: User Documentation
+   :name: userdoc
+   :includehidden:
+
    Section_intro
    Section_start
    Section_commands
@@ -116,13 +124,27 @@ it gives quick access to documentation for all LAMMPS commands.
    Section_errors
    Section_history
 
+.. toctree::
+   :caption: Index
+   :name: index
+   :hidden:
+
+   tutorials
+   commands
+   fixes
+   computes
+   pairs
+   bonds
+   angles
+   dihedrals
+   impropers
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`search`
-   
+
 END_RST -->
 
 <!-- HTML_ONLY -->

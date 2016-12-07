@@ -63,4 +63,4 @@ LAMMPS"_Section_start.html#start_3 section for more info.
 "compute damage/atom"_compute_damage_atom.html,
 "compute plasticity/atom"_compute_plasticity_atom.html
 
-[Default:] none 
+[Default:] none

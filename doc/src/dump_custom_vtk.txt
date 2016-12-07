@@ -5,7 +5,7 @@
 :link(lc,Section_commands.html#comm)
 
 :line
-   
+
 dump custom/vtk command :h3
 
 [Syntax:]
@@ -20,14 +20,14 @@ file = name of file to write dump info to :l
 args = list of arguments for a particular style :l
   {custom/vtk} args = list of atom attributes
     possible attributes = id, mol, proc, procp1, type, element, mass,
-			  x, y, z, xs, ys, zs, xu, yu, zu, 
-			  xsu, ysu, zsu, ix, iy, iz,
-			  vx, vy, vz, fx, fy, fz,
+                          x, y, z, xs, ys, zs, xu, yu, zu,
+                          xsu, ysu, zsu, ix, iy, iz,
+                          vx, vy, vz, fx, fy, fz,
                           q, mux, muy, muz, mu,
                           radius, diameter, omegax, omegay, omegaz,
-			  angmomx, angmomy, angmomz, tqx, tqy, tqz,
-			  spin, eradius, ervel, erforce,
-			  c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
+                          angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                          spin, eradius, ervel, erforce,
+                          c_ID, c_ID\[N\], f_ID, f_ID\[N\], v_name :pre
 
       id = atom ID
       mol = molecule ID
@@ -306,7 +306,7 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of creating quantities to output to a
 dump file.
 
-See "Section_modify"_Section_modify.html of the manual for information
+See "Section 10"_Section_modify.html of the manual for information
 on how to add new compute and fix styles to LAMMPS to calculate
 per-atom quantities which could then be output into dump files.
 

@@ -334,145 +334,6 @@ struct PairComputeFunctor  {
 };
 
 template <class PairStyle, bool STACKPARAMS, class Specialisation>
-struct PairComputeFunctor<PairStyle,FULLCLUSTER,STACKPARAMS,Specialisation>  {
-  typedef typename PairStyle::device_type device_type ;
-  typedef EV_FLOAT value_type;
-
-  PairStyle c;
-  NeighListKokkos<device_type> list;
-
-  PairComputeFunctor(PairStyle* c_ptr,
-                          NeighListKokkos<device_type>* list_ptr):
-  c(*c_ptr),list(*list_ptr) {};
-  ~PairComputeFunctor() {c.cleanup_copy();list.clean_copy();};
-
-  KOKKOS_INLINE_FUNCTION int sbmask(const int& j) const {
-    return j >> SBBITS & 3;
-  }
-
-  template<int EVFLAG, int NEWTON_PAIR>
-  KOKKOS_FUNCTION
-  EV_FLOAT compute_item(const typename Kokkos::TeamPolicy<device_type>::member_type& dev,
-                        const NeighListKokkos<device_type> &list, const NoCoulTag& ) const {
-    EV_FLOAT ev;
-    int i = dev.league_rank()*dev.team_size() + dev.team_rank();
-
-    const X_FLOAT xtmp = c.c_x(i,0);
-    const X_FLOAT ytmp = c.c_x(i,1);
-    const X_FLOAT ztmp = c.c_x(i,2);
-    int itype = c.type(i);
-
-    const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
-    const int jnum = list.d_numneigh[i];
-
-    F_FLOAT3 ftmp;
-
-    for (int jj = 0; jj < jnum; jj++) {
-      int jjj = neighbors_i(jj);
-
-      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(dev,NeighClusterSize),[&] (const int& k, F_FLOAT3& fftmp) {
-        const F_FLOAT factor_lj = c.special_lj[sbmask(jjj+k)];
-        const int j = (jjj + k)&NEIGHMASK;
-        if((j==i)||(j>=c.nall)) return;
-        const X_FLOAT delx = xtmp - c.c_x(j,0);
-        const X_FLOAT dely = ytmp - c.c_x(j,1);
-        const X_FLOAT delz = ztmp - c.c_x(j,2);
-        const int jtype = c.type(j);
-        const F_FLOAT rsq = (delx*delx + dely*dely + delz*delz);
-
-        if(rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
-
-          const F_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-          fftmp.x += delx*fpair;
-          fftmp.y += dely*fpair;
-          fftmp.z += delz*fpair;
-
-          if (EVFLAG) {
-            F_FLOAT evdwl = 0.0;
-            if (c.eflag) {
-              evdwl = 0.5*
-                factor_lj * c.template compute_evdwl<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
-              ev.evdwl += evdwl;
-            }
-
-            if (c.vflag_either || c.eflag_atom) ev_tally(ev,i,j,evdwl,fpair,delx,dely,delz);
-          }
-        }
-      },ftmp);
-    }
-
-    Kokkos::single(Kokkos::PerThread(dev), [&]() {
-      c.f(i,0) += ftmp.x;
-      c.f(i,1) += ftmp.y;
-      c.f(i,2) += ftmp.z;
-    });
-
-    return ev;
-  }
-
-  KOKKOS_INLINE_FUNCTION
-    void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const
-  {
-    const int EFLAG = c.eflag;
-    const int NEWTON_PAIR = c.newton_pair;
-    const int VFLAG = c.vflag_either;
-
-    if (EFLAG) {
-      if (c.eflag_atom) {
-        const E_FLOAT epairhalf = 0.5 * epair;
-        if (NEWTON_PAIR || i < c.nlocal) c.d_eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < c.nlocal) c.d_eatom[j] += epairhalf;
-      }
-    }
-
-    if (VFLAG) {
-      const E_FLOAT v0 = delx*delx*fpair;
-      const E_FLOAT v1 = dely*dely*fpair;
-      const E_FLOAT v2 = delz*delz*fpair;
-      const E_FLOAT v3 = delx*dely*fpair;
-      const E_FLOAT v4 = delx*delz*fpair;
-      const E_FLOAT v5 = dely*delz*fpair;
-
-      if (c.vflag_global) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
-      }
-
-      if (c.vflag_atom) {
-        if (i < c.nlocal) {
-          c.d_vatom(i,0) += 0.5*v0;
-          c.d_vatom(i,1) += 0.5*v1;
-          c.d_vatom(i,2) += 0.5*v2;
-          c.d_vatom(i,3) += 0.5*v3;
-          c.d_vatom(i,4) += 0.5*v4;
-          c.d_vatom(i,5) += 0.5*v5;
-        }
-      }
-    }
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const  typename Kokkos::TeamPolicy<device_type>::member_type& dev) const {
-    if (c.newton_pair) compute_item<0,1>(dev,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
-    else compute_item<0,0>(dev,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const  typename Kokkos::TeamPolicy<device_type>::member_type& dev, value_type &energy_virial) const {
-    if (c.newton_pair)
-      energy_virial += compute_item<1,1>(dev,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
-    else
-      energy_virial += compute_item<1,0>(dev,list,typename DoCoul<PairStyle::COUL_FLAG>::type());
-  }
-};
-
-template <class PairStyle, bool STACKPARAMS, class Specialisation>
 struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
   typedef typename PairStyle::device_type device_type ;
   typedef EV_FLOAT value_type;
@@ -607,8 +468,8 @@ struct PairComputeFunctor<PairStyle,N2,STACKPARAMS,Specialisation>  {
 // The enable_if clause will invalidate the last parameter of the function, so that
 // a match is only achieved, if PairStyle supports the specific neighborlist variant.
 // This uses the fact that failure to match template parameters is not an error.
-// By having the enable_if with a ! and without it, exactly one of the two versions of the functions
-// pair_compute_neighlist and pair_compute_fullcluster will match - either the dummy version
+// By having the enable_if with a ! and without it, exactly one of the functions
+// pair_compute_neighlist will match - either the dummy version
 // or the real one further below.
 template<class PairStyle, unsigned NEIGHFLAG, class Specialisation>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable_if<!((NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
@@ -616,15 +477,6 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
   (void) fpair;
   (void) list;
   printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",NEIGHFLAG,PairStyle::EnabledNeighFlags);
-  return ev;
-}
-
-template<class PairStyle, class Specialisation>
-EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enable_if<!((FULLCLUSTER&PairStyle::EnabledNeighFlags) != 0), NeighListKokkos<typename PairStyle::device_type>*>::type list) {
-  EV_FLOAT ev;
-  (void) fpair;
-  (void) list;
-  printf("ERROR: calling pair_compute with invalid neighbor list style: requested %i  available %i \n",FULLCLUSTER,PairStyle::EnabledNeighFlags);
   return ev;
 }
 
@@ -644,41 +496,6 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename Kokkos::Impl::enable
   return ev;
 }
 
-// Submit ParallelFor for NEIGHFLAG=FULLCLUSTER
-template<class PairStyle, class Specialisation>
-EV_FLOAT pair_compute_fullcluster (PairStyle* fpair, typename Kokkos::Impl::enable_if<(FULLCLUSTER&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*>::type list) {
-  EV_FLOAT ev;
-  if(fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
-    typedef PairComputeFunctor<PairStyle,FULLCLUSTER,false,Specialisation >
-      f_type;
-    f_type ff(fpair, list);
-    #ifdef KOKKOS_HAVE_CUDA
-      const int teamsize = Kokkos::Impl::is_same<typename f_type::device_type, Kokkos::Cuda>::value ? 32 : 1;
-    #else
-      const int teamsize = 1;
-    #endif
-    const int nteams = (list->inum*+teamsize-1)/teamsize;
-    Kokkos::TeamPolicy<typename f_type::device_type> config(nteams,teamsize,NeighClusterSize);
-    if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(config,ff,ev);
-    else Kokkos::parallel_for(config,ff);
-  } else {
-    typedef PairComputeFunctor<PairStyle,FULLCLUSTER,true,Specialisation >
-      f_type;
-    f_type ff(fpair, list);
-    #ifdef KOKKOS_HAVE_CUDA
-      const int teamsize = Kokkos::Impl::is_same<typename f_type::device_type, Kokkos::Cuda>::value ? 32 : 1;
-    #else
-      const int teamsize = 1;
-    #endif
-      const int nteams = (list->inum*+teamsize-1)/teamsize;
-      Kokkos::TeamPolicy<typename f_type::device_type> config(nteams,teamsize,NeighClusterSize);
-    if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(config,ff,ev);
-    else Kokkos::parallel_for(config,ff);
-  }
-  return ev;
-}
-
-
 template<class PairStyle, class Specialisation>
 EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
   EV_FLOAT ev;
@@ -690,8 +507,6 @@ EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::dev
     ev = pair_compute_neighlist<PairStyle,HALF,Specialisation> (fpair,list);
   } else if (fpair->neighflag == N2) {
     ev = pair_compute_neighlist<PairStyle,N2,Specialisation> (fpair,list);
-  } else if (fpair->neighflag == FULLCLUSTER) {
-    ev = pair_compute_fullcluster<PairStyle,Specialisation> (fpair,list);
   }
   return ev;
 }

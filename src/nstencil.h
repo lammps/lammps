@@ -37,7 +37,7 @@ class NStencil : protected Pointers {
   NStencil(class LAMMPS *);
   virtual ~NStencil();
   void copy_neighbor_info();
-  void create_setup();
+  virtual void create_setup();
   bigint memory_usage();
 
   virtual void create() = 0;

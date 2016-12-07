@@ -630,22 +630,17 @@ void Finish::end(int flag)
     // count neighbors in that list for stats purposes
     // allow it to be Kokkos neigh list as well
 
-    for (m = 0; m < neighbor->old_nrequest; m++) {
+    for (m = 0; m < neighbor->old_nrequest; m++)
       if ((neighbor->old_requests[m]->half ||
            neighbor->old_requests[m]->gran ||
            neighbor->old_requests[m]->respaouter ||
            neighbor->old_requests[m]->half_from_full) &&
           neighbor->old_requests[m]->skip == 0 &&
-          neighbor->lists[m] && neighbor->lists[m]->numneigh) {
-        if (!neighbor->lists[m] && lmp->kokkos &&
-            lmp->kokkos->neigh_list_kokkos(m)) break;
-        else break;
-      }
-    }
+          neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
 
     nneigh = 0;
     if (m < neighbor->old_nrequest) {
-      if (neighbor->lists[m]) {
+      if (!neighbor->lists[m]->kokkos) {
         int inum = neighbor->lists[m]->inum;
         int *ilist = neighbor->lists[m]->ilist;
         int *numneigh = neighbor->lists[m]->numneigh;
@@ -675,23 +670,19 @@ void Finish::end(int flag)
     // count neighbors in that list for stats purposes
     // allow it to be Kokkos neigh list as well
 
-    for (m = 0; m < neighbor->old_nrequest; m++) {
+    for (m = 0; m < neighbor->old_nrequest; m++)
       if (neighbor->old_requests[m]->full &&
-          neighbor->old_requests[m]->skip == 0) {
-        if (lmp->kokkos && lmp->kokkos->neigh_list_kokkos(m)) break;
-        else break;
-      }
-    }
+          neighbor->old_requests[m]->skip == 0) break;
 
     nneighfull = 0;
     if (m < neighbor->old_nrequest) {
-      if (neighbor->lists[m] && neighbor->lists[m]->numneigh) {
+      if (!neighbor->lists[m]->kokkos && neighbor->lists[m]->numneigh) {
         int inum = neighbor->lists[m]->inum;
         int *ilist = neighbor->lists[m]->ilist;
         int *numneigh = neighbor->lists[m]->numneigh;
         for (i = 0; i < inum; i++)
           nneighfull += numneigh[ilist[i]];
-      } else if (!neighbor->lists[m] && lmp->kokkos)
+      } else if (lmp->kokkos)
           nneighfull = lmp->kokkos->neigh_count(m);
 
       tmp = nneighfull;
@@ -865,7 +856,7 @@ void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
   time_cpu = tmp/nprocs*100.0;
 
   // % variance from the average as measure of load imbalance
-  if ((time_sq/time - time) > 1.0e-10)
+  if (time > 1.0e-10)
     time_sq = sqrt(time_sq/time - time)*100.0;
   else
     time_sq = 0.0;
@@ -917,7 +908,7 @@ void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
   time_std /= nthreads;
   time_total /= nthreads;
 
-  if ((time_std/time_avg -time_avg) > 1.0e-10)
+  if (time_avg > 1.0e-10)
     time_std = sqrt(time_std/time_avg - time_avg)*100.0;
   else
     time_std = 0.0;

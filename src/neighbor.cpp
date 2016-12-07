@@ -621,8 +621,7 @@ void Neighbor::init_pair()
   delete [] neigh_stencil;
   delete [] neigh_pair;
 
-  if (lmp->kokkos) nlist = init_lists_kokkos();
-  else nlist = nrequest;
+  nlist = nrequest;
   
   lists = new NeighList*[nrequest];
   neigh_bin = new NBin*[nrequest];
@@ -634,11 +633,10 @@ void Neighbor::init_pair()
   // wait to allocate initial pages until copy lists are detected
   
   for (i = 0; i < nrequest; i++) {
-    if (requests[i]->kokkos_host || requests[i]->kokkos_device) {
-      lists[i] = NULL;
-      continue;
-    }
-    lists[i] = new NeighList(lmp);
+    if (requests[i]->kokkos_host || requests[i]->kokkos_device)
+      create_kokkos_list(i);
+    else
+      lists[i] = new NeighList(lmp);
     lists[i]->index = i;
     
     if (requests[i]->pair) {
@@ -680,10 +678,8 @@ void Neighbor::init_pair()
   //       would be useful when reax/c used in hybrid mode, e.g. with airebo
 
   for (i = 0; i < nrequest; i++) {
-    if (lists[i] == NULL) continue;   // Kokkos
     if (requests[i]->pair && requests[i]->half && requests[i]->newton != 2) {
       for (j = 0; j < nrequest; j++) {
-        if (lists[j] == NULL) continue;   // Kokkos
         if (requests[j]->full && requests[j]->occasional == 0 &&
             !requests[j]->skip && !requests[j]->copy) break;
       }
@@ -708,10 +704,8 @@ void Neighbor::init_pair()
   // for 1st or 2nd check, parent can be copy list or pair or fix
   
   for (i = 0; i < nrequest; i++) {
-    if (lists[i] == NULL) continue;   // Kokkos
     if (!requests[i]->fix && !requests[i]->compute) continue;
     for (j = 0; j < nrequest; j++) {
-      if (lists[j] == NULL) continue;   // Kokkos
       if (requests[i]->half && requests[j]->pair && 
           !requests[j]->skip && requests[j]->half && !requests[j]->copy)
         break;
@@ -733,7 +727,6 @@ void Neighbor::init_pair()
       continue;
     }
     for (j = 0; j < nrequest; j++) {
-      if (lists[j] == NULL) continue;   // Kokkos
       if (requests[i]->half && requests[j]->pair &&
           !requests[j]->skip && requests[j]->full && !requests[j]->copy)
         break;
@@ -844,7 +837,6 @@ void Neighbor::init_pair()
   
   int dnummax = 0;
   for (i = 0; i < nlist; i++) {
-    if (lists[i] == NULL) continue;   // Kokkos
     if (lists[i]->copy) continue;
     lists[i]->setup_pages(pgsize,oneatom);
     dnummax = MAX(dnummax,lists[i]->dnum);
@@ -864,14 +856,8 @@ void Neighbor::init_pair()
   // also Kokkos list initialization
   
   int maxatom = atom->nmax;
-  for (i = 0; i < nlist; i++) {
-    if (lists[i]) {
-      if (neigh_pair[i] && !lists[i]->copy) lists[i]->grow(maxatom,maxatom);
-    } else {
-      init_list_flags1_kokkos(i);
-      init_list_grow_kokkos(i);
-    }
-  }
+  for (i = 0; i < nlist; i++)
+    if (neigh_pair[i] && !lists[i]->copy) lists[i]->grow(maxatom,maxatom);
 
   // plist = indices of perpetual NPair classes
   //         perpetual = non-occasional, re-built at every reneighboring
@@ -885,10 +871,8 @@ void Neighbor::init_pair()
   plist = new int[nlist];
 
   for (i = 0; i < nlist; i++) {
-    if (lists[i]) {
-      if (lists[i]->occasional == 0 && lists[i]->pair_method)
-        plist[npair_perpetual++] = i;
-    } else init_list_flags2_kokkos(i);
+    if (lists[i]->occasional == 0 && lists[i]->pair_method)
+      plist[npair_perpetual++] = i;
   }
   
   for (i = 0; i < nstencil; i++) {
@@ -910,7 +894,6 @@ void Neighbor::init_pair()
   while (!done) {
     done = 1;
     for (i = 0; i < npair_perpetual; i++) {
-      if (!lists[plist[i]]) continue;    // Kokkos check
       ptr = NULL;
       if (lists[plist[i]]->listcopy) ptr = lists[plist[i]]->listcopy;
       if (lists[plist[i]]->listskip) ptr = lists[plist[i]]->listskip;
@@ -1154,15 +1137,14 @@ void Neighbor::print_pairwise_info()
         else if (requests[i]->respamiddle) kind = "respa/middle";
         else if (requests[i]->respaouter) kind = "respa/outer";
         else if (requests[i]->half_from_full) kind = "half/from/full";
-        else if (requests[i]->full_cluster) kind = "full/cluster";    // Kokkos
-        fprintf(out,"      kind: %s",kind);
-        
         if (requests[i]->occasional) fprintf(out,", occasional");
         else fprintf(out,", perpetual");
         if (requests[i]->ghost) fprintf(out,", ghost");
         if (requests[i]->ssa) fprintf(out,", ssa");
         if (requests[i]->omp) fprintf(out,", omp");
         if (requests[i]->intel) fprintf(out,", intel");
+        if (requests[i]->kokkos_device) fprintf(out,", kokkos_device");
+        if (requests[i]->kokkos_host) fprintf(out,", kokkos_host");
         if (requests[i]->copy) 
           fprintf(out,", copy from (%d)",requests[i]->otherlist+1);
         if (requests[i]->skip)
@@ -1237,13 +1219,17 @@ int Neighbor::choose_bin(NeighRequest *rq)
   // flags for settings the request + system requires of NBin class
   //   ssaflag = no/yes ssa request
   //   intelflag = no/yes intel request
+  //   kokkos_device_flag = no/yes kokkos device request
+  //   kokkos_host_flag = no/yes kokkos host request
 
-  int ssaflag,intelflag;
+  int ssaflag,intelflag,kokkos_device_flag,kokkos_host_flag;
 
-  ssaflag = intelflag = 0;
+  ssaflag = intelflag = kokkos_device_flag = kokkos_host_flag = 0;
 
   if (rq->ssa) ssaflag = NB_SSA;
   if (rq->intel) intelflag = NB_INTEL;
+  if (rq->kokkos_device) kokkos_device_flag = NB_KOKKOS_DEVICE;
+  if (rq->kokkos_host) kokkos_host_flag = NB_KOKKOS_HOST;
 
   // use flags to match exactly one of NBin class masks, bit by bit
 
@@ -1254,6 +1240,8 @@ int Neighbor::choose_bin(NeighRequest *rq)
 
     if (ssaflag != (mask & NB_SSA)) continue;
     if (intelflag != (mask & NB_INTEL)) continue;
+    if (kokkos_device_flag != (mask & NB_KOKKOS_DEVICE)) continue;
+    if (kokkos_host_flag != (mask & NB_KOKKOS_HOST)) continue;
 
     return i+1;
   }
@@ -1307,6 +1295,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   else if (rq->newton == 0 && !newton_pair) newtflag = 0;
   else if (rq->newton == 1) newtflag = 1;
   else if (rq->newton == 2) newtflag = 0;
+
 
   // use flags to match exactly one of NStencil class masks, bit by bit
   // exactly one of halfflag,fullflag is set and thus must match
@@ -1381,16 +1370,18 @@ int Neighbor::choose_pair(NeighRequest *rq)
   //   ssaflag = no/yes request
   //   ompflag = no/yes omp request
   //   intelflag = no/yes intel request
+  //   kokkos_device_flag = no/yes Kokkos device request
+  //   kokkos_host_flag = no/yes Kokkos host request
   //   newtflag = newton off/on request
   //   style = NSQ/BIN/MULTI neighbor style
   //   triclinic = orthgonal/triclinic box
 
   int copyflag,skipflag,halfflag,fullflag,halffullflag,sizeflag,respaflag,
-    ghostflag,off2onflag,onesideflag,ssaflag,ompflag,intelflag;
+    ghostflag,off2onflag,onesideflag,ssaflag,ompflag,intelflag,kokkos_device_flag,kokkos_host_flag;
 
   copyflag = skipflag = halfflag = fullflag = halffullflag = sizeflag = 
     ghostflag = respaflag = off2onflag = onesideflag = ssaflag = 
-    ompflag = intelflag = 0;
+    ompflag = intelflag = kokkos_device_flag = kokkos_host_flag = 0;
 
   if (rq->copy) copyflag = NP_COPY;
   if (rq->skip) skipflag = NP_SKIP;
@@ -1420,6 +1411,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
   if (rq->ssa) ssaflag = NP_SSA;
   if (rq->omp) ompflag = NP_OMP;
   if (rq->intel) intelflag = NP_INTEL;
+  if (rq->kokkos_device) kokkos_device_flag = NP_KOKKOS_DEVICE;
+  if (rq->kokkos_host) kokkos_host_flag = NP_KOKKOS_HOST;
 
   int newtflag;
   if (rq->newton == 0 && newton_pair) newtflag = 1;
@@ -1460,6 +1453,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
     if (ssaflag != (mask & NP_SSA)) continue;
     if (ompflag != (mask & NP_OMP)) continue;
     if (intelflag != (mask & NP_INTEL)) continue;
+    if (kokkos_device_flag != (mask & NP_KOKKOS_DEVICE)) continue;
+    if (kokkos_host_flag != (mask & NP_KOKKOS_HOST)) continue;
 
     if (style == NSQ && !(mask & NP_NSQ)) continue;
     if (style == BIN && !(mask & NP_BIN)) continue;
@@ -1801,6 +1796,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
     ns->create_setup();
     ns->create();
   }
+
 
   // build the list
 

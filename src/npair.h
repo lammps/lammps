@@ -31,7 +31,7 @@ class NPair : protected Pointers {
 
   NPair(class LAMMPS *);
   virtual ~NPair() {}
-  void copy_neighbor_info();
+  virtual void copy_neighbor_info();
   void build_setup();
   virtual void build(class NeighList *) = 0;
 
@@ -94,8 +94,8 @@ class NPair : protected Pointers {
   // methods for all NPair variants
 
   void copy_bin_setup_info();
-  void copy_bin_info();
-  void copy_stencil_info();
+  virtual void copy_bin_info();
+  virtual void copy_stencil_info();
 
   int exclusion(int, int, int,
                 int, int *, tagint *) const;   // test for pair exclusion

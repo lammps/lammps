@@ -34,7 +34,6 @@ class KokkosLMP : protected Pointers {
   KokkosLMP(class LAMMPS *, int, char **);
   ~KokkosLMP();
   void accelerator(int, char **);
-  int neigh_list_kokkos(int);
   int neigh_count(int);
  private:
   static void my_signal_handler(int);

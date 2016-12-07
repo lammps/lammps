@@ -83,13 +83,8 @@ class AtomVecKokkos : public AtomVec {
                    std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
                    Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
-    if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.capacity());
-       buffer_size = src.capacity();
-    } else if (buffer_size < src.capacity()) {
+    if(buffer_size < src.capacity())
        buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity());
-       buffer_size = src.capacity();
-    }
     return mirror_type( buffer ,
                              src.dimension_0() ,
                              src.dimension_1() ,
@@ -109,13 +104,8 @@ class AtomVecKokkos : public AtomVec {
                    std::is_same<typename ViewType::execution_space,LMPDeviceType>::value,
                    Kokkos::CudaHostPinnedSpace,typename ViewType::memory_space>::type,
                  Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
-    if (buffer_size == 0) {
-       buffer = Kokkos::kokkos_malloc<Kokkos::CudaHostPinnedSpace>(src.capacity()*sizeof(typename ViewType::value_type));
-       buffer_size = src.capacity();
-    } else if (buffer_size < src.capacity()) {
+    if(buffer_size < src.capacity())
        buffer = Kokkos::kokkos_realloc<Kokkos::CudaHostPinnedSpace>(buffer,src.capacity()*sizeof(typename ViewType::value_type));
-       buffer_size = src.capacity();
-    }
     mirror_type tmp_view( (typename ViewType::value_type*)buffer ,
                              src.dimension_0() ,
                              src.dimension_1() ,

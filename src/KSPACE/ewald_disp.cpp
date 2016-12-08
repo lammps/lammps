@@ -195,23 +195,22 @@ void EwaldDisp::init()
       g_ewald = accuracy*sqrt(natoms*(*cutoff)*shape_det(domain->h)) / (2.0*q2);
       if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/(*cutoff);
       else g_ewald = sqrt(-log(g_ewald)) / (*cutoff);
-    }
-    else if (function[1] || function[2]) {
-      //Try Newton Solver
-      //Use old method to get guess
-      g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoff;
-
-      double g_ewald_new =
-        NewtonSolve(g_ewald,(*cutoff),natoms,shape_det(domain->h),b2);
-      if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
-      else error->warning(FLERR,"Ewald/disp Newton solver failed, "
-                          "using old method to estimate g_ewald");
     } else if (function[3]) {
       //Try Newton Solver
       //Use old method to get guess
       g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoff;
       double g_ewald_new =
         NewtonSolve(g_ewald,(*cutoff),natoms,shape_det(domain->h),M2);
+      if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
+      else error->warning(FLERR,"Ewald/disp Newton solver failed, "
+                          "using old method to estimate g_ewald");
+    } else if (function[1] || function[2]) {
+      //Try Newton Solver
+      //Use old method to get guess
+      g_ewald = (1.35 - 0.15*log(accuracy))/ *cutoff;
+
+      double g_ewald_new =
+        NewtonSolve(g_ewald,(*cutoff),natoms,shape_det(domain->h),b2);
       if (g_ewald_new > 0.0) g_ewald = g_ewald_new;
       else error->warning(FLERR,"Ewald/disp Newton solver failed, "
                           "using old method to estimate g_ewald");
@@ -1480,10 +1479,7 @@ double EwaldDisp::f(double x, double Rc, bigint natoms, double vol, double b2)
   double a = Rc*x;
   double f = 0.0;
 
-  if (function[1] || function[2]) { // LJ
-    f = (4.0*MY_PI*b2*powint(x,4)/vol/sqrt((double)natoms)*erfc(a) *
-      (6.0*powint(a,-5) + 6.0*powint(a,-3) + 3.0/a + a) - accuracy);
-  } else { // dipole
+  if (function[3]) { // dipole
     double rg2 = a*a;
     double rg4 = rg2*rg2;
     double rg6 = rg4*rg2;
@@ -1492,7 +1488,10 @@ double EwaldDisp::f(double x, double Rc, bigint natoms, double vol, double b2)
     f = (b2/(sqrt(vol*powint(x,4)*powint(Rc,9)*natoms)) *
       sqrt(13.0/6.0*Cc*Cc + 2.0/15.0*Dc*Dc - 13.0/15.0*Cc*Dc) *
       exp(-rg2)) - accuracy;
-    }
+  } else if (function[1] || function[2]) { // LJ
+    f = (4.0*MY_PI*b2*powint(x,4)/vol/sqrt((double)natoms)*erfc(a) *
+      (6.0*powint(a,-5) + 6.0*powint(a,-3) + 3.0/a + a) - accuracy);
+  }
 
   return f;
 }

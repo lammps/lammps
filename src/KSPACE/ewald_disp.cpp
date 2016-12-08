@@ -707,6 +707,8 @@ void EwaldDisp::compute(int eflag, int vflag)
   compute_virial();
   compute_virial_dipole();
   compute_virial_peratom();
+
+  if (slabflag) compute_slabcorr();
 }
 
 
@@ -973,7 +975,6 @@ void EwaldDisp::compute_energy()
     }
   }
   for (int k=0; k<EWALD_NFUNCS; ++k) energy += c[k]*sum[k]-energy_self[k];
-  if (slabflag) compute_slabcorr();
 }
 
 /* ---------------------------------------------------------------------- */

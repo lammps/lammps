@@ -105,11 +105,16 @@ action modify_kokkos.cpp
 action modify_kokkos.h
 action neigh_bond_kokkos.cpp
 action neigh_bond_kokkos.h
-action neigh_full_kokkos.h
 action neigh_list_kokkos.cpp
 action neigh_list_kokkos.h
 action neighbor_kokkos.cpp
 action neighbor_kokkos.h
+action npair_copy_kokkos.cpp
+action npair_copy_kokkos.h
+action npair_kokkos.cpp
+action npair_kokkos.h
+action nbin_kokkos.cpp
+action nbin_kokkos.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
 action pair_buck_coul_cut_kokkos.cpp
@@ -169,8 +174,6 @@ action pair_reax_c_kokkos.cpp pair_reax_c.cpp
 action pair_reax_c_kokkos.h pair_reax_c.h
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
-action pair_vashishta_kokkos.cpp pair_vashishta.cpp
-action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
 action pair_tersoff_kokkos.cpp pair_tersoff.cpp

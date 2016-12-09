@@ -201,7 +201,7 @@ class Neighbor : protected Pointers {
 
   void init_styles();
   void init_pair();
-  void init_topology();
+  virtual void init_topology();
 
   void print_pairwise_info();
   void requests_new2old();
@@ -220,18 +220,17 @@ class Neighbor : protected Pointers {
   int copymode;
 
   virtual void init_cutneighsq_kokkos(int) {}
-  virtual int init_lists_kokkos() {return 0;}
-  virtual void init_list_flags1_kokkos(int) {}
-  virtual void init_list_flags2_kokkos(int) {}
+  virtual void create_kokkos_list(int) {}
   virtual void init_ex_type_kokkos(int) {}
   virtual void init_ex_bit_kokkos() {}
   virtual void init_ex_mol_bit_kokkos() {}
-  virtual void init_list_grow_kokkos(int) {}
 };
 
 namespace NeighConst {
   static const int NB_SSA     = 1<<0;
   static const int NB_INTEL   = 1<<1;
+  static const int NB_KOKKOS_DEVICE  = 1<<2;
+  static const int NB_KOKKOS_HOST    = 1<<3;
 
   static const int NS_HALF    = 1<<0;
   static const int NS_FULL    = 1<<1;
@@ -266,6 +265,8 @@ namespace NeighConst {
   static const int NP_NEWTOFF  = 1<<17;
   static const int NP_ORTHO    = 1<<18;
   static const int NP_TRI      = 1<<19;
+  static const int NP_KOKKOS_DEVICE = 1<<20;
+  static const int NP_KOKKOS_HOST   = 1<<21;
 }
 
 }

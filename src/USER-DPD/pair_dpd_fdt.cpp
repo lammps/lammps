@@ -320,11 +320,9 @@ void PairDPDfdt::init_style()
 
   splitFDT_flag = false;
   int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->ssa = 0;
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"shardlow") == 0){
       splitFDT_flag = true;
-      neighbor->requests[irequest]->ssa = 1;
     }
 }
 

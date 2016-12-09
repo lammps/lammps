@@ -712,6 +712,7 @@ void Neighbor::init_pair()
     if (!requests[i]->fix && !requests[i]->compute) continue;
     for (j = 0; j < nrequest; j++) {
       if (lists[j] == NULL) continue;   // Kokkos
+      if (requests[i]->ssa != requests[j]->ssa) continue;
       if (requests[i]->half && requests[j]->pair && 
           !requests[j]->skip && requests[j]->half && !requests[j]->copy)
         break;

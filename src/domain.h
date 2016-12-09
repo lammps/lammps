@@ -121,7 +121,7 @@ class Domain : protected Pointers {
   void unmap(double *, imageint);
   void unmap(double *, imageint, double *);
   void image_flip(int, int, int);
-  int ownatom(double *);
+  int ownatom(double *, imageint *);
   
   void set_lattice(int, char **);
   void add_region(int, char **);
@@ -149,7 +149,7 @@ class Domain : protected Pointers {
   // indicates a special neighbor is actually not in a bond,
   //   but is a far-away image that should be treated as an unbonded neighbor
   // inline since called from neighbor build inner loop
-  //
+
   inline int minimum_image_check(double dx, double dy, double dz) {
     if (xperiodic && fabs(dx) > xprd_half) return 1;
     if (yperiodic && fabs(dy) > yprd_half) return 1;

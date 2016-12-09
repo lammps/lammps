@@ -1499,14 +1499,18 @@ void Domain::image_flip(int m, int n, int p)
 /* ----------------------------------------------------------------------
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
+   if image flag is passed, it is updated via remap(x,image)
+   if image = NULL is passed, no update with remap(x) 
 ------------------------------------------------------------------------- */
 
-int Domain::ownatom(double *x)
+int Domain::ownatom(double *x, imageint *image)
 {
   double lamda[3];
   double *coord;
   
-  remap(x);
+  if (image) remap(x,*image);
+  else remap(x);
+
   if (triclinic) {
     x2lamda(x,lamda);
     coord = lamda;

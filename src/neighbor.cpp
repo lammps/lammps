@@ -708,6 +708,8 @@ void Neighbor::init_pair()
   for (i = 0; i < nrequest; i++) {
     if (!requests[i]->fix && !requests[i]->compute) continue;
     for (j = 0; j < nrequest; j++) {
+      if (requests[i]->ssa != requests[j]->ssa) continue;
+
       // Kokkos flags must match
       if (requests[i]->kokkos_device != requests[j]->kokkos_device) continue;
       if (requests[i]->kokkos_host != requests[j]->kokkos_host) continue;

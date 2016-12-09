@@ -158,25 +158,24 @@ void Finish::end(int flag)
 
       // CPU use on MPI tasks and OpenMP threads
 
-#ifdef LMP_USER_OMP
-      const char fmt2[] =
-        "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
-      if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
-      if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
-#else
       if (lmp->kokkos) {
         const char fmt2[] =
           "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
         if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
         if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,lmp->kokkos->num_threads);
       } else {
+#if defined(_OPENMP)
+        const char fmt2[] =
+        "%.1f%% CPU use with %d MPI tasks x %d OpenMP threads\n";
+        if (screen) fprintf(screen,fmt2,cpu_loop,nprocs,nthreads);
+        if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs,nthreads);
+#else
         const char fmt2[] =
           "%.1f%% CPU use with %d MPI tasks x no OpenMP threads\n";
         if (screen) fprintf(screen,fmt2,cpu_loop,nprocs);
         if (logfile) fprintf(logfile,fmt2,cpu_loop,nprocs);
-      }
 #endif
-
+      }
     }
   }
 

@@ -75,14 +75,6 @@ class NPairKokkos : public NPair {
 
  private:
   int newton_pair;
-  int nex_type;
-  int maxex_type;
-
-  int nex_group;
-  int maxex_group;
-
-  int nex_mol;
-  int maxex_mol;
 
   // data from Neighbor class
 
@@ -127,17 +119,14 @@ class NeighborKokkosExecute
   const int exclude;
 
   const int nex_type;
-  const int maxex_type;
   const typename AT::t_int_1d_const ex1_type,ex2_type;
   const typename AT::t_int_2d_const ex_type;
 
   const int nex_group;
-  const int maxex_group;
   const typename AT::t_int_1d_const ex1_group,ex2_group;
   const typename AT::t_int_1d_const ex1_bit,ex2_bit;
 
   const int nex_mol;
-  const int maxex_mol;
   const typename AT::t_int_1d_const ex_mol_group;
   const typename AT::t_int_1d_const ex_mol_bit;
 
@@ -204,16 +193,16 @@ class NeighborKokkosExecute
                         const int & _mbinx,const int & _mbiny,const int & _mbinz,
                         const int & _mbinxlo,const int & _mbinylo,const int & _mbinzlo,
                         const X_FLOAT &_bininvx,const X_FLOAT &_bininvy,const X_FLOAT &_bininvz,
-                        const int & _exclude,const int & _nex_type,const int & _maxex_type,
+                        const int & _exclude,const int & _nex_type,
                         const typename AT::t_int_1d_const & _ex1_type,
                         const typename AT::t_int_1d_const & _ex2_type,
                         const typename AT::t_int_2d_const & _ex_type,
-                        const int & _nex_group,const int & _maxex_group,
+                        const int & _nex_group,
                         const typename AT::t_int_1d_const & _ex1_group,
                         const typename AT::t_int_1d_const & _ex2_group,
                         const typename AT::t_int_1d_const & _ex1_bit,
                         const typename AT::t_int_1d_const & _ex2_bit,
-                        const int & _nex_mol,const int & _maxex_mol,
+                        const int & _nex_mol,
                         const typename AT::t_int_1d_const & _ex_mol_group,
                         const typename AT::t_int_1d_const & _ex_mol_bit,
                         const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
@@ -229,11 +218,11 @@ class NeighborKokkosExecute
     mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
     mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
     bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
-    exclude(_exclude),nex_type(_nex_type),maxex_type(_maxex_type),
+    exclude(_exclude),nex_type(_nex_type),
     ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
-    nex_group(_nex_group),maxex_group(_maxex_group),
+    nex_group(_nex_group),
     ex1_group(_ex1_group),ex2_group(_ex2_group),
-    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),maxex_mol(_maxex_mol),
+    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
     ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
     xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
     xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half) {

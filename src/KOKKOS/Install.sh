@@ -109,6 +109,8 @@ action neigh_list_kokkos.cpp
 action neigh_list_kokkos.h
 action neighbor_kokkos.cpp
 action neighbor_kokkos.h
+action npair_copy_kokkos.cpp
+action npair_copy_kokkos.h
 action npair_kokkos.cpp
 action npair_kokkos.h
 action nbin_kokkos.cpp

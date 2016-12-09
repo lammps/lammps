@@ -116,6 +116,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
       k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
       bins = k_bins.view<DeviceType>();
       c_bins = bins;
+      last_bin_memory = update->ntimestep;
     }
   }
 }

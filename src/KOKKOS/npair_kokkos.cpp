@@ -51,9 +51,9 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::copy_neighbor_info()
   k_ex2_type = neighborKK->k_ex2_type;
   k_ex_type = neighborKK->k_ex_type;
   k_ex1_group = neighborKK->k_ex1_group;
-  k_ex2_group = neighborKK->k_ex1_group;
-  k_ex1_bit = neighborKK->k_ex1_group;
-  k_ex2_bit = neighborKK->k_ex1_group;
+  k_ex2_group = neighborKK->k_ex2_group;
+  k_ex1_bit = neighborKK->k_ex1_bit;
+  k_ex2_bit = neighborKK->k_ex2_bit;
   k_ex_mol_group = neighborKK->k_ex_mol_group;
   k_ex_mol_bit = neighborKK->k_ex_mol_bit;
 }
@@ -135,16 +135,16 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::build(NeighList *list_)
          atomKK->molecular,
          nbinx,nbiny,nbinz,mbinx,mbiny,mbinz,mbinxlo,mbinylo,mbinzlo,
          bininvx,bininvy,bininvz,
-         exclude, nex_type,maxex_type,
+         exclude, nex_type,
          k_ex1_type.view<DeviceType>(),
          k_ex2_type.view<DeviceType>(),
          k_ex_type.view<DeviceType>(),
-         nex_group,maxex_group,
+         nex_group,
          k_ex1_group.view<DeviceType>(),
          k_ex2_group.view<DeviceType>(),
          k_ex1_bit.view<DeviceType>(),
          k_ex2_bit.view<DeviceType>(),
-         nex_mol, maxex_mol,
+         nex_mol,
          k_ex_mol_group.view<DeviceType>(),
          k_ex_mol_bit.view<DeviceType>(),
          bboxhi,bboxlo,
@@ -161,6 +161,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST>::build(NeighList *list_)
   k_ex2_bit.sync<DeviceType>();
   k_ex_mol_group.sync<DeviceType>();
   k_ex_mol_bit.sync<DeviceType>();
+  k_bincount.sync<DeviceType>(),
+  k_bins.sync<DeviceType>(),
   atomKK->sync(Device,X_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
 
   data.special_flag[0] = special_flag[0];
@@ -415,6 +417,7 @@ void NeighborKokkosExecute<DeviceType>::
 
     if(n >= new_maxneighs()) new_maxneighs() = n;
   }
+
   neigh_list.d_ilist(i) = i;
 }
 

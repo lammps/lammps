@@ -660,10 +660,8 @@ void Neighbor::init_pair()
   // processes copy,skip,half_from_full,granhistory,respaouter lists
   // error checks and resets internal ptrs to other lists that now exist
 
-  for (i = 0; i < nrequest; i++) {
-    if (!lists[i]) continue;
+  for (i = 0; i < nrequest; i++)
     lists[i]->post_constructor(requests[i]);
-  }
   
   // (B) rule:
   // if request = pair, half, newton != 2
@@ -680,6 +678,10 @@ void Neighbor::init_pair()
   for (i = 0; i < nrequest; i++) {
     if (requests[i]->pair && requests[i]->half && requests[i]->newton != 2) {
       for (j = 0; j < nrequest; j++) {
+        // Kokkos doesn't yet support half from full
+        if (requests[i]->kokkos_device || requests[j]->kokkos_device) continue;
+        if (requests[i]->kokkos_host || requests[j]->kokkos_host) continue;
+
         if (requests[j]->full && requests[j]->occasional == 0 &&
             !requests[j]->skip && !requests[j]->copy) break;
       }
@@ -706,6 +708,10 @@ void Neighbor::init_pair()
   for (i = 0; i < nrequest; i++) {
     if (!requests[i]->fix && !requests[i]->compute) continue;
     for (j = 0; j < nrequest; j++) {
+      // Kokkos flags must match
+      if (requests[i]->kokkos_device != requests[j]->kokkos_device) continue;
+      if (requests[i]->kokkos_host != requests[j]->kokkos_host) continue;
+
       if (requests[i]->half && requests[j]->pair && 
           !requests[j]->skip && requests[j]->half && !requests[j]->copy)
         break;
@@ -727,6 +733,10 @@ void Neighbor::init_pair()
       continue;
     }
     for (j = 0; j < nrequest; j++) {
+      // Kokkos doesn't yet support half from full
+      if (requests[i]->kokkos_device || requests[j]->kokkos_device) continue;
+      if (requests[i]->kokkos_host || requests[j]->kokkos_host) continue;
+
       if (requests[i]->half && requests[j]->pair &&
           !requests[j]->skip && requests[j]->full && !requests[j]->copy)
         break;
@@ -1434,7 +1444,11 @@ int Neighbor::choose_pair(NeighRequest *rq)
   for (int i = 0; i < npclass; i++) {
     mask = pairmasks[i];
 
-    if (copyflag && (mask & NP_COPY)) return i+1;
+    if (copyflag && (mask & NP_COPY)) {
+      if (kokkos_device_flag != (mask & NP_KOKKOS_DEVICE)) continue;
+      if (kokkos_host_flag != (mask & NP_KOKKOS_HOST)) continue;
+      return i+1;
+    }
     if (skipflag != (mask & NP_SKIP)) continue;
 
     if (halfflag) {

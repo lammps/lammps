@@ -76,7 +76,7 @@ public:
   typename ArrayTypes<Device>::t_int_1d d_numneigh; // # of J neighs for each I
 
   NeighListKokkos(class LAMMPS *lmp):
-  NeighList(lmp) {_stride = 1; maxneighs = 16; kokkos = 1;
+  NeighList(lmp) {_stride = 1; maxneighs = 16; kokkos = 1; maxatoms = 0;
                   execution_space = ExecutionSpaceFromDevice<Device>::space;
   };
   ~NeighListKokkos() {numneigh = NULL; ilist = NULL;};

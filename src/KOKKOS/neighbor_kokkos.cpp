@@ -92,6 +92,9 @@ void NeighborKokkos::init_cutneighsq_kokkos(int n)
 
 void NeighborKokkos::create_kokkos_list(int i)
 {
+  if (style != BIN)
+    error->all(FLERR,"KOKKOS package only supports 'bin' neighbor lists");
+
   if (requests[i]->kokkos_device) {
     lists[i] = new NeighListKokkos<LMPDeviceType>(lmp);
     device_flag = 1;
@@ -227,9 +230,6 @@ void NeighborKokkos::build(int topoflag)
 template<class DeviceType>
 void NeighborKokkos::build_kokkos(int topoflag)
 {
-  if (style != BIN)
-    error->all(FLERR,"KOKKOS package only supports 'bin' neighbor lists");
-
   typedef DeviceType device_type;
 
   int i,m;

@@ -712,6 +712,8 @@ void Neighbor::init_pair()
       if (requests[i]->kokkos_device != requests[j]->kokkos_device) continue;
       if (requests[i]->kokkos_host != requests[j]->kokkos_host) continue;
 
+      if (requests[i]->ssa != requests[j]->ssa) continue;
+
       if (requests[i]->half && requests[j]->pair && 
           !requests[j]->skip && requests[j]->half && !requests[j]->copy)
         break;

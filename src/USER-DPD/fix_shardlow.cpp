@@ -47,6 +47,7 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "random_mars.h"
 #include "memory.h"
 #include "domain.h"
@@ -135,6 +136,23 @@ int FixShardlow::setmask()
   mask |= INITIAL_INTEGRATE;
   mask |= PRE_EXCHANGE | MIN_PRE_EXCHANGE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShardlow::init()
+{
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->pair = 0;
+  neighbor->requests[irequest]->fix  = 1;
+  neighbor->requests[irequest]->ssa  = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixShardlow::init_list(int id, NeighList *ptr)
+{
+  list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -410,7 +428,6 @@ void FixShardlow::initial_integrate(int vflag)
   int nghost = atom->nghost;
 
   int airnum;
-  class NeighList *list; // points to list in pairDPD or pairDPDE
   class RanMars *pRNG;
 
   // NOTE: this logic is specific to orthogonal boxes, not triclinic
@@ -431,12 +448,10 @@ void FixShardlow::initial_integrate(int vflag)
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
-  // Define pointers to access the neighbor list and RNG
+  // Define pointers to access the RNG
   if(pairDPDE){
-    list = pairDPDE->list;
     pRNG = pairDPDE->random;
   } else {
-    list = pairDPD->list;
     pRNG = pairDPD->random;
   }
   inum = list->inum;

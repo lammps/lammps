@@ -135,30 +135,30 @@ void PairTersoffZBLKokkos<DeviceType>::setup_params()
   for (i = 1; i <= n; i++)
     for (j = 1; j <= n; j++)
       for (k = 1; k <= n; k++) {
-	m = elem2param[i-1][j-1][k-1];
-	k_params.h_view(i,j,k).powerm = params[m].powerm;
-	k_params.h_view(i,j,k).gamma = params[m].gamma;
-	k_params.h_view(i,j,k).lam3 = params[m].lam3;
-	k_params.h_view(i,j,k).c = params[m].c;
-	k_params.h_view(i,j,k).d = params[m].d;
-	k_params.h_view(i,j,k).h = params[m].h;
-	k_params.h_view(i,j,k).powern = params[m].powern;
-	k_params.h_view(i,j,k).beta = params[m].beta;
-	k_params.h_view(i,j,k).lam2 = params[m].lam2;
-	k_params.h_view(i,j,k).bigb = params[m].bigb;
-	k_params.h_view(i,j,k).bigr = params[m].bigr;
-	k_params.h_view(i,j,k).bigd = params[m].bigd;
-	k_params.h_view(i,j,k).lam1 = params[m].lam1;
-	k_params.h_view(i,j,k).biga = params[m].biga;
-	k_params.h_view(i,j,k).cutsq = params[m].cutsq;
-	k_params.h_view(i,j,k).c1 = params[m].c1;
-	k_params.h_view(i,j,k).c2 = params[m].c2;
-	k_params.h_view(i,j,k).c3 = params[m].c3;
-	k_params.h_view(i,j,k).c4 = params[m].c4;
-	k_params.h_view(i,j,k).Z_i = params[m].Z_i;
-	k_params.h_view(i,j,k).Z_j = params[m].Z_j;
-	k_params.h_view(i,j,k).ZBLcut = params[m].ZBLcut;
-	k_params.h_view(i,j,k).ZBLexpscale = params[m].ZBLexpscale;
+        m = elem2param[map[i]][map[j]][map[k]];
+        k_params.h_view(i,j,k).powerm = params[m].powerm;
+        k_params.h_view(i,j,k).gamma = params[m].gamma;
+        k_params.h_view(i,j,k).lam3 = params[m].lam3;
+        k_params.h_view(i,j,k).c = params[m].c;
+        k_params.h_view(i,j,k).d = params[m].d;
+        k_params.h_view(i,j,k).h = params[m].h;
+        k_params.h_view(i,j,k).powern = params[m].powern;
+        k_params.h_view(i,j,k).beta = params[m].beta;
+        k_params.h_view(i,j,k).lam2 = params[m].lam2;
+        k_params.h_view(i,j,k).bigb = params[m].bigb;
+        k_params.h_view(i,j,k).bigr = params[m].bigr;
+        k_params.h_view(i,j,k).bigd = params[m].bigd;
+        k_params.h_view(i,j,k).lam1 = params[m].lam1;
+        k_params.h_view(i,j,k).biga = params[m].biga;
+        k_params.h_view(i,j,k).cutsq = params[m].cutsq;
+        k_params.h_view(i,j,k).c1 = params[m].c1;
+        k_params.h_view(i,j,k).c2 = params[m].c2;
+        k_params.h_view(i,j,k).c3 = params[m].c3;
+        k_params.h_view(i,j,k).c4 = params[m].c4;
+        k_params.h_view(i,j,k).Z_i = params[m].Z_i;
+        k_params.h_view(i,j,k).Z_j = params[m].Z_j;
+        k_params.h_view(i,j,k).ZBLcut = params[m].ZBLcut;
+        k_params.h_view(i,j,k).ZBLexpscale = params[m].ZBLexpscale;
       }
 
   k_params.template modify<LMPHostType>();

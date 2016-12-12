@@ -33,10 +33,10 @@ template<class DeviceType>
 class RegBlockKokkos : public RegBlock {
   friend class FixPour;
 
+ public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
- public:
   RegBlockKokkos(class LAMMPS *, int, char **);
   ~RegBlockKokkos();
   void match_all_kokkos(int, DAT::t_int_1d);

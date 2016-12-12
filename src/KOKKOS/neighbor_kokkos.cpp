@@ -74,6 +74,19 @@ void NeighborKokkos::init()
   atomKK = (AtomKokkos *) atom;
   Neighbor::init();
 
+
+
+
+
+
+
+
+
+
+
+
+
+
   // 1st time allocation of xhold
 
   if (dist_check)
@@ -358,8 +371,8 @@ void NeighborKokkos::init_topology() {
    normally built with pair lists, but USER-CUDA separates them
 ------------------------------------------------------------------------- */
 
-void NeighborKokkos::build_topology() {
-  if (device_flag) {
+void NeighborKokkos::build_topology_kokkos() {
+  if (nlist_device) {
     neighbond_device.build_topology_kk();
 
     k_bondlist = neighbond_device.k_bondlist;
@@ -376,19 +389,31 @@ void NeighborKokkos::build_topology() {
     k_anglelist.modify<LMPDeviceType>();
     k_dihedrallist.modify<LMPDeviceType>();
     k_improperlist.modify<LMPDeviceType>();
-  } else {
+
+    // Transfer topology neighbor lists to Host for non-Kokkos styles
+ 
+    if (force->bond && force->bond->execution_space == Host)
+      k_bondlist.sync<LMPHostType>();
+    if (force->angle && force->angle->execution_space == Host)
+      k_anglelist.sync<LMPHostType>();
+    if (force->dihedral && force->dihedral->execution_space == Host)
+      k_dihedrallist.sync<LMPHostType>();
+    if (force->improper && force->improper->execution_space == Host)
+      k_improperlist.sync<LMPHostType>();
+
+   } else {
     neighbond_host.build_topology_kk();
-  
+
     k_bondlist = neighbond_host.k_bondlist;
     k_anglelist = neighbond_host.k_anglelist;
     k_dihedrallist = neighbond_host.k_dihedrallist;
     k_improperlist = neighbond_host.k_improperlist;
-  
+
     k_bondlist.sync<LMPHostType>();
     k_anglelist.sync<LMPHostType>();
     k_dihedrallist.sync<LMPHostType>();
     k_improperlist.sync<LMPHostType>();
-  
+
     k_bondlist.modify<LMPHostType>();
     k_anglelist.modify<LMPHostType>();
     k_dihedrallist.modify<LMPHostType>();

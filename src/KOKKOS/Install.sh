@@ -174,6 +174,8 @@ action pair_reax_c_kokkos.cpp pair_reax_c.cpp
 action pair_reax_c_kokkos.h pair_reax_c.h
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
+action pair_vashishta_kokkos.cpp pair_vashishta.cpp
+action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_table_kokkos.cpp
 action pair_table_kokkos.h
 action pair_tersoff_kokkos.cpp pair_tersoff.cpp

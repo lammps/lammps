@@ -67,6 +67,11 @@ NeighList::NeighList(LAMMPS *lmp) : Pointers(lmp)
   ipage = NULL;
   dpage = NULL;
 
+  // Kokkos package
+
+  kokkos = 0;
+  execution_space = Host;
+
   // USER-DPD package
 
   ndxAIR_ssa = NULL;

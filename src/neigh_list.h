@@ -69,6 +69,11 @@ class NeighList : protected Pointers {
   NeighList *listcopy;          // me = copy list, point to list I copy from
   NeighList *listskip;          // me = skip list, point to list I skip from
 
+  // Kokkos package
+
+  int kokkos;                   // 1 if list stores Kokkos data
+  ExecutionSpace execution_space;
+
   // USER-DPD package and Shardlow Splitting Algorithm (SSA) support
 
   uint16_t (*ndxAIR_ssa)[8]; // for each atom, last neighbor index of each AIR
@@ -80,7 +85,6 @@ class NeighList : protected Pointers {
   void post_constructor(class NeighRequest *);
   void setup_pages(int, int);           // setup page data structures
   void grow(int,int);                   // grow all data structs
-  void stencil_allocate(int, int);      // allocate stencil arrays
   void print_attributes();              // debug routine
   int get_maxlocal() {return maxatom;}
   bigint memory_usage();

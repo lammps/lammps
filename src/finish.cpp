@@ -630,22 +630,17 @@ void Finish::end(int flag)
     // count neighbors in that list for stats purposes
     // allow it to be Kokkos neigh list as well
 
-    for (m = 0; m < neighbor->old_nrequest; m++) {
+    for (m = 0; m < neighbor->old_nrequest; m++)
       if ((neighbor->old_requests[m]->half ||
            neighbor->old_requests[m]->gran ||
            neighbor->old_requests[m]->respaouter ||
            neighbor->old_requests[m]->half_from_full) &&
           neighbor->old_requests[m]->skip == 0 &&
-          neighbor->lists[m] && neighbor->lists[m]->numneigh) {
-        if (!neighbor->lists[m] && lmp->kokkos &&
-            lmp->kokkos->neigh_list_kokkos(m)) break;
-        else break;
-      }
-    }
+          neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
 
     nneigh = 0;
     if (m < neighbor->old_nrequest) {
-      if (neighbor->lists[m]) {
+      if (!neighbor->lists[m]->kokkos) {
         int inum = neighbor->lists[m]->inum;
         int *ilist = neighbor->lists[m]->ilist;
         int *numneigh = neighbor->lists[m]->numneigh;
@@ -675,23 +670,19 @@ void Finish::end(int flag)
     // count neighbors in that list for stats purposes
     // allow it to be Kokkos neigh list as well
 
-    for (m = 0; m < neighbor->old_nrequest; m++) {
+    for (m = 0; m < neighbor->old_nrequest; m++)
       if (neighbor->old_requests[m]->full &&
-          neighbor->old_requests[m]->skip == 0) {
-        if (lmp->kokkos && lmp->kokkos->neigh_list_kokkos(m)) break;
-        else break;
-      }
-    }
+          neighbor->old_requests[m]->skip == 0) break;
 
     nneighfull = 0;
     if (m < neighbor->old_nrequest) {
-      if (neighbor->lists[m] && neighbor->lists[m]->numneigh) {
+      if (!neighbor->lists[m]->kokkos && neighbor->lists[m]->numneigh) {
         int inum = neighbor->lists[m]->inum;
         int *ilist = neighbor->lists[m]->ilist;
         int *numneigh = neighbor->lists[m]->numneigh;
         for (i = 0; i < inum; i++)
           nneighfull += numneigh[ilist[i]];
-      } else if (!neighbor->lists[m] && lmp->kokkos)
+      } else if (lmp->kokkos)
           nneighfull = lmp->kokkos->neigh_count(m);
 
       tmp = nneighfull;

@@ -1309,6 +1309,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
   else if (rq->newton == 2) newtflag = 0;
 
 
+
   // use flags to match exactly one of NStencil class masks, bit by bit
   // exactly one of halfflag,fullflag is set and thus must match
 
@@ -1328,6 +1329,7 @@ int Neighbor::choose_stencil(NeighRequest *rq)
 
     if (style == BIN && !(mask & NS_BIN)) continue;
     if (style == MULTI && !(mask & NS_MULTI)) continue;
+
 
     if (dimension == 2 && !(mask & NS_2D)) continue;
     if (dimension == 3 && !(mask & NS_3D)) continue;
@@ -1812,6 +1814,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
     ns->create_setup();
     ns->create();
   }
+
 
 
   // build the list

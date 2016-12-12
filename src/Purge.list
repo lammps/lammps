@@ -38,6 +38,7 @@ neigh_shardlow.cpp
 neigh_shardlow.h
 neigh_stencil.cpp
 neigh_half_bin_intel.cpp
+neigh_full_kokkos.h
 neighbor_omp.h
 neigh_derive_omp.cpp
 neigh_full_omp.cpp

@@ -1,4 +1,4 @@
-;/* ----------------------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -21,6 +21,11 @@
 #include "atom_masks.h"
 #include "error.h"
 #include "kokkos.h"
+#include "force.h"
+#include "bond.h"
+#include "angle.h"
+#include "dihedral.h"
+#include "improper.h"
 #include "style_nbin.h"
 #include "style_nstencil.h"
 #include "style_npair.h"
@@ -73,19 +78,6 @@ void NeighborKokkos::init()
 {
   atomKK = (AtomKokkos *) atom;
   Neighbor::init();
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // 1st time allocation of xhold
 
@@ -371,8 +363,8 @@ void NeighborKokkos::init_topology() {
    normally built with pair lists, but USER-CUDA separates them
 ------------------------------------------------------------------------- */
 
-void NeighborKokkos::build_topology_kokkos() {
-  if (nlist_device) {
+void NeighborKokkos::build_topology() {
+  if (device_flag) {
     neighbond_device.build_topology_kk();
 
     k_bondlist = neighbond_device.k_bondlist;

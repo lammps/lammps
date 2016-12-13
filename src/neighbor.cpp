@@ -1140,7 +1140,8 @@ void Neighbor::print_pairwise_info()
         } else {
           sprintf(str,"  (%d) command %s",i+1,requests[i]->command_style);
         }
-        
+        fprintf(out,"%s",str);
+
         if (requests[i]->half) kind = "half";
         else if (requests[i]->full) kind = "full";
         else if (requests[i]->gran) kind = "size";

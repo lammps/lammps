@@ -767,7 +767,8 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         if (strcmp(estyle,fix[ifix]->style) == 0) match = 1;
       }
     }
-    if (!match) error->all(FLERR,"Replacing a fix, but new style != old style");
+    if (!match) error->all(FLERR,
+                           "Replacing a fix, but new style != old style");
 
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
@@ -812,7 +813,11 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL) error->all(FLERR,"Unknown fix style");
+  if (fix[ifix] == NULL) {
+    char str[128];
+    sprintf(str,"Unknown fix style %s",arg[2]);
+    error->all(FLERR,str);
+  }
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -994,7 +999,11 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL) error->all(FLERR,"Unknown compute style");
+  if (compute[ncompute] == NULL) {
+    char str[128];
+    sprintf(str,"Unknown compute style %s",arg[2]);
+    error->all(FLERR,str);
+  }
 
   ncompute++;
 }

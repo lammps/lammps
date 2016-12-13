@@ -129,7 +129,7 @@ void lammps_open(int argc, char **argv, MPI_Comm communicator, void **ptr)
   }
   catch(LAMMPSException & e) {
     fprintf(stderr, "LAMMPS Exception: %s", e.message.c_str());
-    *ptr = (void*) NULL;
+    *ptr = (void *) NULL;
   }
 #else
   LAMMPS *lmp = new LAMMPS(argc,argv,communicator);
@@ -310,6 +310,23 @@ void lammps_free(void *ptr)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   extract a LAMMPS setting as an integer
+   only use for settings that require return of an int
+   customize by adding names
+------------------------------------------------------------------------- */
+
+int lammps_extract_setting(void *ptr, char *name)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+
+  if (strcmp(name,"bigint") == 0) return sizeof(bigint);
+  if (strcmp(name,"tagint") == 0) return sizeof(tagint);
+  if (strcmp(name,"imageint") == 0) return sizeof(imageint);
+
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
    extract a pointer to an internal LAMMPS global entity
    name = desired quantity, e.g. dt or boxyhi or natoms
    returns a void pointer to the entity
@@ -325,12 +342,16 @@ void *lammps_extract_global(void *ptr, char *name)
   LAMMPS *lmp = (LAMMPS *) ptr;
 
   if (strcmp(name,"dt") == 0) return (void *) &lmp->update->dt;
+  if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
+  if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
   if (strcmp(name,"boxxhi") == 0) return (void *) &lmp->domain->boxhi[0];
   if (strcmp(name,"boxylo") == 0) return (void *) &lmp->domain->boxlo[1];
   if (strcmp(name,"boxyhi") == 0) return (void *) &lmp->domain->boxhi[1];
   if (strcmp(name,"boxzlo") == 0) return (void *) &lmp->domain->boxlo[2];
   if (strcmp(name,"boxzhi") == 0) return (void *) &lmp->domain->boxhi[2];
+  if (strcmp(name,"periodicity") == 0) return (void *) lmp->domain->periodicity;
+
   if (strcmp(name,"xy") == 0) return (void *) &lmp->domain->xy;
   if (strcmp(name,"xz") == 0) return (void *) &lmp->domain->xz;
   if (strcmp(name,"yz") == 0) return (void *) &lmp->domain->yz;
@@ -344,7 +365,12 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
   if (strcmp(name,"ntimestep") == 0) return (void *) &lmp->update->ntimestep;
 
-  // update atime can be referenced as a pointer
+  if (strcmp(name,"units") == 0) return (void *) lmp->update->unit_style;
+  if (strcmp(name,"triclinic") == 0) return (void *) &lmp->domain->triclinic;
+
+  if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
+
+  // update->atime can be referenced as a pointer
   // thermo "timer" data cannot be, since it is computed on request
   // lammps_get_thermo() can access all thermo keywords by value
 
@@ -352,6 +378,38 @@ void *lammps_extract_global(void *ptr, char *name)
   if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
 
   return NULL;
+}
+
+/* ----------------------------------------------------------------------
+   extract simulation box parameters
+   see domain.h for definition of these arguments
+   domain->init() call needed to set box_change
+------------------------------------------------------------------------- */
+
+void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
+                        double *xy, double *yz, double *xz,
+                        int *periodicity, int *box_change)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Domain *domain = lmp->domain;
+  domain->init();
+
+  boxlo[0] = domain->boxlo[0];
+  boxlo[1] = domain->boxlo[1];
+  boxlo[2] = domain->boxlo[2];
+  boxhi[0] = domain->boxhi[0];
+  boxhi[1] = domain->boxhi[1];
+  boxhi[2] = domain->boxhi[2];
+
+  *xy = domain->xy;
+  *yz = domain->yz;
+  *xz = domain->xz;
+
+  periodicity[0] = domain->periodicity[0];
+  periodicity[1] = domain->periodicity[1];
+  periodicity[2] = domain->periodicity[2];
+  
+  *box_change = domain->box_change;
 }
 
 /* ----------------------------------------------------------------------
@@ -586,6 +644,35 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
   return NULL;
 }
 
+
+/* ----------------------------------------------------------------------
+   reset simulation box parameters
+   see domain.h for definition of these arguments
+   assumes domain->set_intiial_box() has been invoked previously
+------------------------------------------------------------------------- */
+
+void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
+                      double xy, double yz, double xz)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Domain *domain = lmp->domain;
+
+  domain->boxlo[0] = boxlo[0];
+  domain->boxlo[1] = boxlo[1];
+  domain->boxlo[2] = boxlo[2];
+  domain->boxhi[0] = boxhi[0];
+  domain->boxhi[1] = boxhi[1];
+  domain->boxhi[2] = boxhi[2];
+
+  domain->xy = xy;
+  domain->yz = yz;
+  domain->xz = xz;
+
+  domain->set_global_box();
+  lmp->comm->set_proc_grid();
+  domain->set_local_box();
+}
+
 /* ----------------------------------------------------------------------
    set the value of a STRING variable to str
    return -1 if variable doesn't exist or not a STRING variable
@@ -648,7 +735,7 @@ int lammps_get_natoms(void *ptr)
    name = desired quantity, e.g. x or charge
    type = 0 for integer values, 1 for double values
    count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
-   return atom-based values in data, ordered by count, then by atom ID
+   return atom-based values in 1d data, ordered by count, then by atom ID
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
      data must be pre-allocated by caller to correct length
 ------------------------------------------------------------------------- */
@@ -744,7 +831,7 @@ void lammps_gather_atoms(void *ptr, char *name,
    name = desired quantity, e.g. x or charge
    type = 0 for integer values, 1 for double values
    count = # of per-atom values, e.g. 1 for type or charge, 3 for x or f
-   data = atom-based values in data, ordered by count, then by atom ID
+   data = atom-based values in 1d data, ordered by count, then by atom ID
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
 ------------------------------------------------------------------------- */
 
@@ -823,16 +910,29 @@ void lammps_scatter_atoms(void *ptr, char *name,
 
 /* ----------------------------------------------------------------------
    create N atoms and assign them to procs based on coords
-   id = atom IDs (optional, NULL if just use 1 to N)
+   id = atom IDs (optional, NULL will generate 1 to N)
    type = N-length vector of atom types (required)
-   x = 3N-length vector of atom coords (required)
-   v = 3N-length vector of atom velocities (optional, NULL if just 0.0)
+   x = 3N-length 1d vector of atom coords (required)
+   v = 3N-length 1d vector of atom velocities (optional, NULL if just 0.0)
+   image flags can be treated in two ways:
+     (a) image = vector of current image flags
+         each atom will be remapped into periodic box by domain->ownatom()
+         image flag will be incremented accordingly and stored with atom
+     (b) image = NULL
+         each atom will be remapped into periodic box by domain->ownatom()
+         image flag will be set to 0 by atom->avec->create_atom()
+   shrinkexceed = 1 allows atoms to be outside a shrinkwrapped boundary
+     passed to ownatom() which will assign them to boundary proc
+     important if atoms may be (slightly) outside non-periodic dim
+     e.g. due to restoring a snapshot from a previous run and previous box
+   id and image must be 32-bit integers
    x,v = ordered by xyz, then by atom
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
 ------------------------------------------------------------------------- */
 
 void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
-			 double *x, double *v)
+			 double *x, double *v, imageint *image,
+                         int shrinkexceed)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -857,14 +957,19 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     Domain *domain = lmp->domain;
     int nlocal = atom->nlocal;
 
-    int nprev = nlocal;
+    bigint natoms_prev = atom->natoms;
+    int nlocal_prev = nlocal;
     double xdata[3];
     
     for (int i = 0; i < n; i++) {
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      if (!domain->ownatom(xdata)) continue;
+      if (image) {
+        if (!domain->ownatom(id[i],xdata,&image[i],shrinkexceed)) continue;
+      } else {
+        if (!domain->ownatom(id[i],xdata,NULL,shrinkexceed)) continue;
+      }
   
       atom->avec->create_atom(type[i],xdata);
       if (id) atom->tag[nlocal] = id[i];
@@ -874,6 +979,7 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
 	atom->v[nlocal][1] = v[3*i+1];
 	atom->v[nlocal][2] = v[3*i+2];
       }
+      if (image) atom->image[nlocal] = image[i];
       nlocal++;
     }
 
@@ -885,14 +991,24 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
 
     // init per-atom fix/compute/variable values for created atoms
 
-    atom->data_fix_compute_variable(nprev,nlocal);
-     
+    atom->data_fix_compute_variable(nlocal_prev,nlocal);
+
     // if global map exists, reset it
     // invoke map_init() b/c atom count has grown
 
     if (lmp->atom->map_style) {
       lmp->atom->map_init();
       lmp->atom->map_set();
+    }
+
+    // warn if new natoms is not correct
+    
+    if (lmp->atom->natoms != natoms_prev + n) {
+      char str[128];
+      sprintf(str,"Library warning in lammps_create_atoms, "
+              "invalid total atoms %ld %ld",lmp->atom->natoms,natoms_prev+n);
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,str);
     }
   }
   END_CAPTURE

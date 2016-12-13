@@ -1499,22 +1499,78 @@ void Domain::image_flip(int m, int n, int p)
 /* ----------------------------------------------------------------------
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
+   if image flag is passed, flag is updated via remap(x,image)
+   if image = NULL is passed, no update with remap(x) 
+   if shrinkexceed, atom can be outside shrinkwrap boundaries
+   called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
 
-int Domain::ownatom(double *x)
+int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 {
   double lamda[3];
-  double *coord;
+  double *coord,*blo,*bhi,*slo,*shi;
   
-  remap(x);
+  if (image) remap(x,*image);
+  else remap(x);
+
   if (triclinic) {
     x2lamda(x,lamda);
     coord = lamda;
   } else coord = x;
-  
-  if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
-      coord[1] >= sublo[1] && coord[1] < subhi[1] &&
-      coord[2] >= sublo[2] && coord[2] < subhi[2]) return 1;
+
+  // box and subbox bounds for orthogonal vs triclinic
+
+  if (triclinic == 0) {
+    blo = boxlo;
+    bhi = boxhi;
+    slo = sublo;
+    shi = subhi;
+  } else {
+    blo = boxlo_lamda;
+    bhi = boxhi_lamda;
+    slo = sublo_lamda;
+    shi = subhi_lamda;
+  }
+
+  if (coord[0] >= slo[0] && coord[0] < shi[0] &&
+      coord[1] >= slo[1] && coord[1] < shi[1] &&
+      coord[2] >= slo[2] && coord[2] < shi[2]) return 1;
+
+  // check if atom did not return 1 only b/c it was 
+  //   outside a shrink-wrapped boundary
+
+  if (shrinkexceed) {
+    int outside = 0;
+    if (coord[0] < blo[0] && boundary[0][0] > 1) outside = 1;
+    if (coord[0] >= bhi[0] && boundary[0][1] > 1) outside = 1;
+    if (coord[1] < blo[1] && boundary[1][0] > 1) outside = 1;
+    if (coord[1] >= bhi[1] && boundary[1][1] > 1) outside = 1;
+    if (coord[2] < blo[2] && boundary[2][0] > 1) outside = 1;
+    if (coord[2] >= bhi[2] && boundary[2][1] > 1) outside = 1;
+    if (!outside) return 0;
+
+    // newcoord = coords pushed back to be on shrink-wrapped boundary
+    // newcoord is a copy, so caller's x[] is not affected
+
+    double newcoord[3];
+    if (coord[0] < blo[0] && boundary[0][0] > 1) newcoord[0] = blo[0];
+    else if (coord[0] >= bhi[0] && boundary[0][1] > 1) newcoord[0] = bhi[0];
+    else newcoord[0] = coord[0];
+    if (coord[1] < blo[1] && boundary[1][1] > 1) newcoord[1] = blo[1];
+    else if (coord[1] >= bhi[1] && boundary[1][1] > 1) newcoord[1] = bhi[1];
+    else newcoord[1] = coord[1];
+    if (coord[2] < blo[2] && boundary[2][2] > 1) newcoord[2] = blo[2];
+    else if (coord[2] >= bhi[2] && boundary[2][1] > 1) newcoord[2] = bhi[2];
+    else newcoord[2] = coord[2];
+
+    // re-test for newcoord inside my sub-domain
+    // use <= test for upper-boundary since may have just put atom at boxhi
+
+    if (newcoord[0] >= slo[0] && newcoord[0] <= shi[0] &&
+        newcoord[1] >= slo[1] && newcoord[1] <= shi[1] &&
+        newcoord[2] >= slo[2] && newcoord[2] <= shi[2]) return 1;
+  }
+
   return 0;
 }
 

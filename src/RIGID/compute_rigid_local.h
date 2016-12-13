@@ -41,6 +41,8 @@ class ComputeRigidLocal : public Compute {
   class FixRigidSmall *fixrigid;
 
   int nmax;
+  double *vlocal;
+  double **alocal;
 
   int compute_rigid(int);
   void reallocate(int);

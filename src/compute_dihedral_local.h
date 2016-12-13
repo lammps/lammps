@@ -37,6 +37,8 @@ class ComputeDihedralLocal : public Compute {
   int ncount;
 
   int nmax;
+  double *vlocal;
+  double **alocal;
 
   int compute_dihedrals(int);
   void reallocate(int);

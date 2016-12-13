@@ -158,10 +158,9 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   tforce = NULL;
   maxatom1 = maxatom2 = 0;
 
-  // Setup atom-based array for franprev
+  // setup atom-based array for franprev
   // register with Atom class
-  // No need to set peratom_flag
-  // as this data is for internal use only
+  // no need to set peratom_flag, b/c data is for internal use only
 
   if (gjfflag) {
     nvalues = 3;

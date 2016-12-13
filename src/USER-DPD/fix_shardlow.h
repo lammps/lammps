@@ -26,9 +26,13 @@ namespace LAMMPS_NS {
 
 class FixShardlow : public Fix {
  public:
+  class NeighList *list; // The SSA specific neighbor list
+
   FixShardlow(class LAMMPS *, int, char **);
   ~FixShardlow();
   int setmask();
+  virtual void init();
+  virtual void init_list(int, class NeighList *);
   virtual void setup(int);
   virtual void initial_integrate(int);
   void setup_pre_exchange();

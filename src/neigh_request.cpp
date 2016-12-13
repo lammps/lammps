@@ -24,7 +24,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   // default ID = 0
 
   id = 0;
-  unprocessed = 1;
 
   // class user of list: default is pair request
   // only one is set to 1
@@ -37,16 +36,19 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
   half = 1;
   full = 0;
-  full_cluster = 0;
-  gran = 0;
+  gran = granhistory = 0;
   respainner = respamiddle = respaouter = 0;
   half_from_full = 0;
+  full_cluster = 0;
+
+  // only set when command = 1;
+
+  command_style = NULL;
 
   // combination of settings, mutiple can be set to 1
   // default is every reneighboring
   // default is use newton_pair setting in force
-  // default is encode special bond flags
-  // default is no granular history (when gran = 1)
+  // default is no size history (when gran = 1)
   // default is no one-sided sphere/surface interactions (when gran = 1)
   // default is no auxiliary floating point values
   // default is no neighbors of ghosts
@@ -56,8 +58,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
 
   occasional = 0;
   newton = 0;
-  //special = 1;
-  granhistory = 0;
   granonesided = 0;
   dnum = 0;
   ghost = 0;
@@ -73,6 +73,7 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   skip = 0;
   iskip = NULL;
   ijskip = NULL;
+  off2on = 0;
   otherlist = -1;
 }
 
@@ -113,8 +114,6 @@ int NeighRequest::identical(NeighRequest *other)
   //   and appearing to be old, when it is really new
   //   only needed for classes with persistent neigh lists: Fix, Compute, Pair
 
-  if (other->unprocessed) same = 0;
-
   if (requestor != other->requestor) same = 0;
   if (requestor_instance != other->requestor_instance) same = 0;
   if (id != other->id) same = 0;
@@ -134,7 +133,6 @@ int NeighRequest::identical(NeighRequest *other)
 
   if (newton != other->newton) same = 0;
   if (occasional != other->occasional) same = 0;
-  //if (special != other->special) same = 0;
   if (granhistory != other->granhistory) same = 0;
   if (granonesided != other->granonesided) same = 0;
   if (dnum != other->dnum) same = 0;

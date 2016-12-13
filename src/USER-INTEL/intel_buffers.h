@@ -61,50 +61,35 @@ class IntelBuffers {
   }
 
   void free_buffers();
-
+  void free_nmax();
+  inline void set_bininfo(int *atombin, int *binpacked) 
+    { _atombin = atombin; _binpacked = binpacked; }
   inline void grow(const int nall, const int nlocal, const int nthreads,
                    const int offload_end) {
     if (nall >= _buf_size || nlocal >= _buf_local_size)
       _grow(nall, nlocal, nthreads, offload_end);
+    #ifdef _LMP_INTEL_OFFLOAD
+    if (lmp->atom->nmax > _host_nmax)
+      _grow_nmax(offload_end);
+    #endif
   }
 
   inline void free_all_nbor_buffers() {
     free_nbor_list();
     free_nmax();
-    free_binhead();
-    free_local();
+    free_list_local();
   }
 
-  inline void grow_nbor(NeighList *list, const int nlocal, const int nthreads,
+  inline void grow_list(NeighList *list, const int nlocal, const int nthreads,
                         const int offload_end, const int pack_width=1) {
-    grow_local(list, offload_end);
-    grow_nmax(offload_end);
-    if (offload_end)
-      grow_binhead();
+    grow_list_local(list, offload_end);
     grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
   }
 
-  void free_nmax();
-
-  inline void grow_nmax(const int offload_end) {
-    if (lmp->atom->nmax > _host_nmax)
-      _grow_nmax(offload_end);
-  }
-
-  void free_local();
-
-  inline void grow_local(NeighList *list, const int offload_end) {
-    if (list->get_maxlocal() > _off_map_maxlocal)
-      _grow_local(list, offload_end);
-  }
-
-  void free_binhead();
-
-  inline void grow_binhead() {
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (lmp->neighbor->maxhead > _off_map_maxhead)
-      _grow_binhead();
-    #endif
+  void free_list_local();
+  inline void grow_list_local(NeighList *list, const int offload_end) {
+    if (list->get_maxlocal() > _off_map_listlocal)
+      _grow_list_local(list, offload_end);
   }
 
   void free_ccache();
@@ -134,19 +119,15 @@ class IntelBuffers {
 			     const int pack_width) {
     if (nlocal > _list_alloc_atoms)
       _grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
-    #ifdef _LMP_INTEL_OFFLOAD
-    else if (offload_end > 0 && _off_map_stencil != list->stencil)
-      _grow_stencil(list);
-    #endif
   }
 
   void set_ntypes(const int ntypes);
 
   inline int * firstneigh(const NeighList *list) { return _list_alloc; }
   inline int * cnumneigh(const NeighList *list) { return _cnumneigh; }
-
   inline int * get_atombin() { return _atombin; }
   inline int * get_binpacked() { return _binpacked; }
+
   inline atom_t * get_x(const int offload = 1) {
     #ifdef _LMP_INTEL_OFFLOAD
     if (_separate_buffers && offload == 0) return _host_x;
@@ -271,13 +252,10 @@ class IntelBuffers {
   flt_t *_q;
   quat_t *_quat;
   vec3_acc_t * _f;
-  int _off_threads, _off_map_maxlocal;
+  int _off_threads, _off_map_listlocal;
 
   int _list_alloc_atoms;
-  int * _list_alloc;
-  int * _cnumneigh;
-  int * _atombin;
-  int * _binpacked;
+  int *_list_alloc, *_cnumneigh, *_atombin, *_binpacked;
 
   flt_t **_cutneighsq;
   int _ntypes;
@@ -296,26 +274,24 @@ class IntelBuffers {
   flt_t *_host_q;
   quat_t *_host_quat;
   vec3_acc_t *_off_f;
-  int _off_map_nmax, _off_map_maxhead, _cop, _off_ccache;
+  int _off_map_nmax, _cop, _off_ccache;
   int *_off_map_ilist;
-  int *_off_map_stencil, *_off_map_special, *_off_map_nspecial, *_off_map_tag;
-  int *_off_map_binhead, *_off_map_bins, *_off_map_numneigh;
+  int *_off_map_special, *_off_map_nspecial, *_off_map_tag;
+  int *_off_map_numneigh;
   bool _off_list_alloc;
-  int _need_tag;
+  int _need_tag, _host_nmax;
   #endif
 
-  int _buf_size, _buf_local_size, _host_nmax;
+  int _buf_size, _buf_local_size;
   _alignvar(acc_t _ev_global[8],64);
   _alignvar(acc_t _ev_global_host[8],64);
 
   void _grow(const int nall, const int nlocal, const int nthreads,
 	     const int offload_end);
   void _grow_nmax(const int offload_end);
-  void _grow_local(NeighList *list, const int offload_end);
-  void _grow_binhead();
+  void _grow_list_local(NeighList *list, const int offload_end);
   void _grow_nbor_list(NeighList *list, const int nlocal, const int nthreads,
                        const int offload_end, const int pack_width);
-  void _grow_stencil(NeighList *list);
 };
 
 }

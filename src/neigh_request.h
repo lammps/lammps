@@ -20,12 +20,11 @@ namespace LAMMPS_NS {
 
 class NeighRequest : protected Pointers {
  public:
+  int index;                // index of which neigh request this is
   void *requestor;          // class that made request
   int requestor_instance;   // instance of that class (only Fix, Compute, Pair)
   int id;                   // ID of request as stored by requestor
                             // used to track multiple requests from one class
-  int unprocessed;          // 1 when first requested
-                            // 0 after processed by Neighbor class
 
   // which class style requests the list, one flag is 1, others are 0
 
@@ -35,16 +34,20 @@ class NeighRequest : protected Pointers {
   int command;
 
   // kind of list requested, one flag is 1, others are 0
+  // NOTE: should make only the first 3 settings be unique,
+  //         allow others as add-on flags
+  //       this will require changed flags in pair requestors
+  //       this will lead to simpler logic in Neighbor::choose_build()
 
   int half;              // 1 if half neigh list (set by default)
   int full;              // 1 if full neigh list
-  int full_cluster;      // only used by Kokkos pair styles
+  int half_from_full;    // 1 if half list computed from previous full list
   int gran;              // 1 if granular list
   int granhistory;       // 1 if history info for granular contact pairs
   int respainner;        // 1 if a rRESPA inner list
   int respamiddle;       // 1 if a rRESPA middle list
   int respaouter;        // 1 if a rRESPA outer list
-  int half_from_full;    // 1 if half list computed from previous full list
+  int full_cluster;      // only used by Kokkos pair styles
 
   // command_style only set if command = 1
   // allows print_pair_info() to access command name
@@ -52,7 +55,7 @@ class NeighRequest : protected Pointers {
   const char *command_style;
 
   // -----------------
-  // optional settings
+  // optional settings, set by caller, all are 0 by default
   // -----------------
 
   // 0 if needed every reneighboring during run
@@ -65,11 +68,6 @@ class NeighRequest : protected Pointers {
   // 2 if override with pair newton off
 
   int newton;
-
-  // 0 if user of list wants no encoding of special bond flags and all neighs
-  // 1 if user of list wants special bond flags encoded, set by default
-
-  //int special;
 
   // 1 if one-sided granular list for sphere/surf interactions (gran = 1)
 
@@ -96,9 +94,13 @@ class NeighRequest : protected Pointers {
   // 1 if using Shardlow Splitting Algorithm (SSA) neighbor list build
   
   int ssa;
+
+  // -----------------
+  // end of optional settings
+  // -----------------
   
-  // set by neighbor and pair_hybrid after all requests are made
-  // these settings do not change kind value
+  // set by pair_hybrid and neighbor after all requests are made
+  // these settings do not change kind value or optional settings
 
   int copy;              // 1 if this list copied from another list
 

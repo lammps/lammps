@@ -31,6 +31,8 @@
 #include "modify.h"
 #include "fix.h"
 #include <float.h>
+#include "atom_masks.h"
+#include "neigh_request.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -50,7 +52,10 @@ using namespace MathSpecial;
 template<class DeviceType>
 PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
 {
-
+  atomKK = (AtomKokkos *) atom;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,6 +64,39 @@ template<class DeviceType>
 PairExp6rxKokkos<DeviceType>::~PairExp6rxKokkos()
 {
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairExp6rxKokkos<DeviceType>::init_style()
+{
+  PairExp6rxKokkos::init_style();
+
+  // irequest = neigh request made by parent class
+
+  neighflag = lmp->kokkos->neighflag;
+  int irequest = neighbor->nrequest - 1;
+
+  neighbor->requests[irequest]->
+    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
+    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+  neighbor->requests[irequest]->
+    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+
+  if (neighflag == FULL) {
+    neighbor->requests[irequest]->full = 1;
+    neighbor->requests[irequest]->half = 0;
+    neighbor->requests[irequest]->full_cluster = 0;
+    neighbor->requests[irequest]->ghost = 1;
+  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
+    neighbor->requests[irequest]->full = 0;
+    neighbor->requests[irequest]->half = 1;
+    neighbor->requests[irequest]->full_cluster = 0;
+    neighbor->requests[irequest]->ghost = 1;
+  } else {
+    error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -270,14 +308,14 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
     rsq = delx*delx + dely*dely + delz*delz;
     jtype = type[j];
 
-    if (rsq < cutsq[itype][jtype]) {
+    if (rsq < d_cutsq(itype,jtype)) { // optimize
       r2inv = 1.0/rsq;
       r6inv = r2inv*r2inv*r2inv;
 
       r = sqrt(rsq);
-      rCut2inv = 1.0/cutsq[itype][jtype];
+      rCut2inv = 1.0/d_cutsq(itype,jtype);
       rCut6inv = rCut2inv*rCut2inv*rCut2inv;
-      rCut = sqrt(cutsq[itype][jtype]);
+      rCut = sqrt(d_cutsq(itype,jtype));
       rCutInv = 1.0/rCut;
 
       //

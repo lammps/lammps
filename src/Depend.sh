@@ -113,6 +113,10 @@ if (test $1 = "USER-CG-CMM") then
   depend USER-OMP
 fi
 
+if (test $1 = "USER-DPD") then
+  depend KOKKOS
+fi
+
 if (test $1 = "USER-FEP") then
   depend USER-OMP
 fi

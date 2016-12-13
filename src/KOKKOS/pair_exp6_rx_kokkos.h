@@ -63,7 +63,11 @@ class PairExp6rxKokkos : public PairExp6rx {
 
   PairExp6rxKokkos(class LAMMPS *);
   virtual ~PairExp6rxKokkos();
-  virtual void compute(int, int);
+  void compute(int, int);
+  void init_style();
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairExp6rxgetParamsEXP6, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -72,9 +76,6 @@ class PairExp6rxKokkos : public PairExp6rx {
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairExp6rxgetParamsEXP6, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION

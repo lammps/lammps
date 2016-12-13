@@ -30,9 +30,9 @@ class PairTable : public Pair {
   virtual ~PairTable();
 
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   void coeff(int, char **);
-  double init_one(int, int);
+  virtual double init_one(int, int);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
@@ -58,7 +58,7 @@ class PairTable : public Pair {
 
   int **tabindex;
 
-  void allocate();
+  virtual void allocate();
   void read_table(Table *, char *, char *);
   void param_extract(Table *, char *);
   void bcast_table(Table *);

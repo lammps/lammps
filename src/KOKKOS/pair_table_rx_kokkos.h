@@ -13,16 +13,16 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(table/kk,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
+PairStyle(table/rx/kk,PairTableRXKokkos<LMPDeviceType>)
+PairStyle(table/rx/kk/device,PairTableRXKokkos<LMPDeviceType>)
+PairStyle(table/rx/kk/host,PairTableRXKokkos<LMPHostType>)
 
 #else
 
-#ifndef LMP_PAIR_TABLE_KOKKOS_H
-#define LMP_PAIR_TABLE_KOKKOS_H
+#ifndef LMP_PAIR_TABLE_RX_KOKKOS_H
+#define LMP_PAIR_TABLE_RX_KOKKOS_H
 
-#include "pair_table.h"
+#include "pair_table_rx.h"
 #include "pair_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "atom_kokkos.h"
@@ -30,23 +30,23 @@ PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
 namespace LAMMPS_NS {
 
 template<class Device,int TABSTYLE>
-struct S_TableCompute {
+struct S_TableRXCompute {
   enum {TabStyle = TABSTYLE};
 };
 
 template <class DeviceType, int NEIGHFLAG, int TABSTYLE>
-class PairTableComputeFunctor;
+class PairTableRXComputeFunctor;
 
 template<class DeviceType>
-class PairTableKokkos : public PairTable {
+class PairTableRXKokkos : public PairTableRX {
  public:
 
   enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2|FULLCLUSTER};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
 
-  PairTableKokkos(class LAMMPS *);
-  virtual ~PairTableKokkos();
+  PairTableRXKokkos(class LAMMPS *);
+  virtual ~PairTableRXKokkos();
 
   virtual void compute(int, int);
 
@@ -137,51 +137,51 @@ class PairTableKokkos : public PairTable {
     return 0;
   }
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,true,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,LOOKUP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,false,S_TableRXCompute<DeviceType,LOOKUP> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,true,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,LINEAR> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,false,S_TableRXCompute<DeviceType,LINEAR> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,true,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,SPLINE> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,false,S_TableRXCompute<DeviceType,SPLINE> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,N2,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULLCLUSTER,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,true,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,true,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,true,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,true,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,true,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULL,false,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALF,false,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,HALFTHREAD,false,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,N2,false,S_TableRXCompute<DeviceType,BITMAP> >;
+  friend class PairComputeFunctor<PairTableRXKokkos,FULLCLUSTER,false,S_TableRXCompute<DeviceType,BITMAP> >;
 
-  friend void pair_virial_fdotr_compute<PairTableKokkos>(PairTableKokkos*);
+  friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
 };
 
 }
@@ -267,6 +267,3 @@ That style is not supported by Kokkos.
 
 
 */
-
-
-

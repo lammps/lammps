@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Christian Trott (SNL)
+   Contributing author: Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
 #include <mpi.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pair_table_kokkos.h"
+#include "pair_table_rx_kokkos.h"
 #include "kokkos.h"
 #include "atom.h"
 #include "force.h"
@@ -41,7 +41,7 @@ enum{FULL,HALFTHREAD,HALF};
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairTableKokkos<DeviceType>::PairTableKokkos(LAMMPS *lmp) : PairTable(lmp)
+PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTableRX(lmp)
 {
   update_table = 0;
   atomKK = (AtomKokkos *) atom;
@@ -57,7 +57,7 @@ PairTableKokkos<DeviceType>::PairTableKokkos(LAMMPS *lmp) : PairTable(lmp)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairTableKokkos<DeviceType>::~PairTableKokkos()
+PairTableRXKokkos<DeviceType>::~PairTableRXKokkos()
 {
 /*  for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
@@ -75,7 +75,7 @@ PairTableKokkos<DeviceType>::~PairTableKokkos()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairTableKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+void PairTableRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   if(update_table)
     create_kokkos_tables();
@@ -91,7 +91,7 @@ void PairTableKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int TABSTYLE>
-void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
+void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
@@ -124,27 +124,27 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   EV_FLOAT ev;
   if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
     if (neighflag == FULL) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,FULL,false,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,false,S_TableRXCompute<DeviceType,TABSTYLE> >
         ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
     } else if (neighflag == HALFTHREAD) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,HALFTHREAD,false,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,false,S_TableRXCompute<DeviceType,TABSTYLE> >
         ff(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,ff,ev);
       else Kokkos::parallel_for(list->inum,ff);
     } else if (neighflag == HALF) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,HALF,false,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,false,S_TableRXCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,N2,false,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,false,S_TableRXCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
     } else if (neighflag == FULLCLUSTER) {
-      typedef PairComputeFunctor<PairTableKokkos<DeviceType>,FULLCLUSTER,false,S_TableCompute<DeviceType,TABSTYLE> >
+      typedef PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULLCLUSTER,false,S_TableRXCompute<DeviceType,TABSTYLE> >
         f_type;
       f_type f(this,(NeighListKokkos<DeviceType>*) list);
       #ifdef KOKKOS_HAVE_CUDA
@@ -159,27 +159,27 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     }
   } else {
     if (neighflag == FULL) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,FULL,true,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULL,true,S_TableRXCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == HALFTHREAD) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,HALFTHREAD,true,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALFTHREAD,true,S_TableRXCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == HALF) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,HALF,true,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,HALF,true,S_TableRXCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(list->inum,f,ev);
       else Kokkos::parallel_for(list->inum,f);
     } else if (neighflag == N2) {
-      PairComputeFunctor<PairTableKokkos<DeviceType>,N2,true,S_TableCompute<DeviceType,TABSTYLE> >
+      PairComputeFunctor<PairTableRXKokkos<DeviceType>,N2,true,S_TableRXCompute<DeviceType,TABSTYLE> >
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
     } else if (neighflag == FULLCLUSTER) {
-      typedef PairComputeFunctor<PairTableKokkos<DeviceType>,FULLCLUSTER,true,S_TableCompute<DeviceType,TABSTYLE> >
+      typedef PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULLCLUSTER,true,S_TableRXCompute<DeviceType,TABSTYLE> >
         f_type;
       f_type f(this,(NeighListKokkos<DeviceType>*) list);
       #ifdef KOKKOS_HAVE_CUDA
@@ -210,7 +210,7 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairTableKokkos<DeviceType>::
+F_FLOAT PairTableRXKokkos<DeviceType>::
 compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
   (void) i;
   (void) j;
@@ -256,7 +256,7 @@ compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairTableKokkos<DeviceType>::
+F_FLOAT PairTableRXKokkos<DeviceType>::
 compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
   (void) i;
   (void) j;
@@ -299,7 +299,7 @@ compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, c
 }
 
 template<class DeviceType>
-void PairTableKokkos<DeviceType>::create_kokkos_tables()
+void PairTableRXKokkos<DeviceType>::create_kokkos_tables()
 {
   const int tlm1 = tablength-1;
 
@@ -407,7 +407,7 @@ void PairTableKokkos<DeviceType>::create_kokkos_tables()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairTableKokkos<DeviceType>::allocate()
+void PairTableRXKokkos<DeviceType>::allocate()
 {
   allocated = 1;
   const int nt = atom->ntypes + 1;
@@ -428,7 +428,7 @@ void PairTableKokkos<DeviceType>::allocate()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
+void PairTableRXKokkos<DeviceType>::settings(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
@@ -482,7 +482,7 @@ void PairTableKokkos<DeviceType>::settings(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-double PairTableKokkos<DeviceType>::init_one(int i, int j)
+double PairTableRXKokkos<DeviceType>::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
@@ -496,7 +496,7 @@ double PairTableKokkos<DeviceType>::init_one(int i, int j)
 }
 
 template<class DeviceType>
-void PairTableKokkos<DeviceType>::init_style()
+void PairTableRXKokkos<DeviceType>::init_style()
 {
   neighbor->request(this,instance_me);
   neighflag = lmp->kokkos->neighflag;
@@ -532,7 +532,7 @@ void PairTableKokkos<DeviceType>::init_style()
 /*
 template <class DeviceType> template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairTableKokkos<DeviceType>::
+void PairTableRXKokkos<DeviceType>::
 ev_tally(EV_FLOAT &ev, const int &i, const int &j, const F_FLOAT &fpair,
          const F_FLOAT &delx, const F_FLOAT &dely, const F_FLOAT &delz) const
 {
@@ -615,7 +615,7 @@ ev_tally(EV_FLOAT &ev, const int &i, const int &j, const F_FLOAT &fpair,
 }
 */
 template<class DeviceType>
-void PairTableKokkos<DeviceType>::cleanup_copy() {
+void PairTableRXKokkos<DeviceType>::cleanup_copy() {
   // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
   cutsq = NULL;
@@ -625,9 +625,9 @@ void PairTableKokkos<DeviceType>::cleanup_copy() {
 }
 
 namespace LAMMPS_NS {
-template class PairTableKokkos<LMPDeviceType>;
+template class PairTableRXKokkos<LMPDeviceType>;
 #ifdef KOKKOS_HAVE_CUDA
-template class PairTableKokkos<LMPHostType>;
+template class PairTableRXKokkos<LMPHostType>;
 #endif
 
 }

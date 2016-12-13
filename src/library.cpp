@@ -382,7 +382,8 @@ void *lammps_extract_global(void *ptr, char *name)
 
 /* ----------------------------------------------------------------------
    extract simulation box parameters
-   domain->init() needed to set box_change
+   see domain.h for definition of these arguments
+   domain->init() call needed to set box_change
 ------------------------------------------------------------------------- */
 
 void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
@@ -409,33 +410,6 @@ void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
   periodicity[2] = domain->periodicity[2];
   
   *box_change = domain->box_change;
-}
-
-/* ----------------------------------------------------------------------
-   reset simulation box parameters
-   assume domain->set_intiial_box() has been invoked previously
-------------------------------------------------------------------------- */
-
-void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
-                      double xy, double yz, double xz)
-{
-  LAMMPS *lmp = (LAMMPS *) ptr;
-  Domain *domain = lmp->domain;
-
-  domain->boxlo[0] = boxlo[0];
-  domain->boxlo[1] = boxlo[1];
-  domain->boxlo[2] = boxlo[2];
-  domain->boxhi[0] = boxhi[0];
-  domain->boxhi[1] = boxhi[1];
-  domain->boxhi[2] = boxhi[2];
-
-  domain->xy = xy;
-  domain->yz = yz;
-  domain->xz = xz;
-
-  domain->set_global_box();
-  lmp->comm->set_proc_grid();
-  domain->set_local_box();
 }
 
 /* ----------------------------------------------------------------------
@@ -668,6 +642,35 @@ void *lammps_extract_variable(void *ptr, char *name, char *group)
   END_CAPTURE
 
   return NULL;
+}
+
+
+/* ----------------------------------------------------------------------
+   reset simulation box parameters
+   see domain.h for definition of these arguments
+   assumes domain->set_intiial_box() has been invoked previously
+------------------------------------------------------------------------- */
+
+void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
+                      double xy, double yz, double xz)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Domain *domain = lmp->domain;
+
+  domain->boxlo[0] = boxlo[0];
+  domain->boxlo[1] = boxlo[1];
+  domain->boxlo[2] = boxlo[2];
+  domain->boxhi[0] = boxhi[0];
+  domain->boxhi[1] = boxhi[1];
+  domain->boxhi[2] = boxhi[2];
+
+  domain->xy = xy;
+  domain->yz = yz;
+  domain->xz = xz;
+
+  domain->set_global_box();
+  lmp->comm->set_proc_grid();
+  domain->set_local_box();
 }
 
 /* ----------------------------------------------------------------------

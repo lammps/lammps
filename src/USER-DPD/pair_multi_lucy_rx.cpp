@@ -59,7 +59,8 @@ static const char cite_pair_multi_lucy_rx[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp)
+PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp),
+  ntables(0), tables(NULL), tabindex(NULL), site1(NULL), site2(NULL)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy_rx);
 
@@ -67,9 +68,6 @@ PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp)
 
   ntables = 0;
   tables = NULL;
-
-  tabindex = NULL;
-  site1 = site2 = NULL;
 
   comm_forward = 1;
   comm_reverse = 1;

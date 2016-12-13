@@ -381,6 +381,64 @@ void *lammps_extract_global(void *ptr, char *name)
 }
 
 /* ----------------------------------------------------------------------
+   extract simulation box parameters
+   domain->init() needed to set box_change
+------------------------------------------------------------------------- */
+
+void lammps_extract_box(void *ptr, double *boxlo, double *boxhi,
+                        double *xy, double *yz, double *xz,
+                        int *periodicity, int *box_change)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Domain *domain = lmp->domain;
+  domain->init();
+
+  boxlo[0] = domain->boxlo[0];
+  boxlo[1] = domain->boxlo[1];
+  boxlo[2] = domain->boxlo[2];
+  boxhi[0] = domain->boxhi[0];
+  boxhi[1] = domain->boxhi[1];
+  boxhi[2] = domain->boxhi[2];
+
+  *xy = domain->xy;
+  *yz = domain->yz;
+  *xz = domain->xz;
+
+  periodicity[0] = domain->periodicity[0];
+  periodicity[1] = domain->periodicity[1];
+  periodicity[2] = domain->periodicity[2];
+  
+  *box_change = domain->box_change;
+}
+
+/* ----------------------------------------------------------------------
+   reset simulation box parameters
+   assume domain->set_intiial_box() has been invoked previously
+------------------------------------------------------------------------- */
+
+void lammps_reset_box(void *ptr, double *boxlo, double *boxhi,
+                      double xy, double yz, double xz)
+{
+  LAMMPS *lmp = (LAMMPS *) ptr;
+  Domain *domain = lmp->domain;
+
+  domain->boxlo[0] = boxlo[0];
+  domain->boxlo[1] = boxlo[1];
+  domain->boxlo[2] = boxlo[2];
+  domain->boxhi[0] = boxhi[0];
+  domain->boxhi[1] = boxhi[1];
+  domain->boxhi[2] = boxhi[2];
+
+  domain->xy = xy;
+  domain->yz = yz;
+  domain->xz = xz;
+
+  domain->set_global_box();
+  lmp->comm->set_proc_grid();
+  domain->set_local_box();
+}
+
+/* ----------------------------------------------------------------------
    extract a pointer to an internal LAMMPS atom-based entity
    name = desired quantity, e.g. x or mass
    returns a void pointer to the entity
@@ -860,13 +918,18 @@ void lammps_scatter_atoms(void *ptr, char *name,
      (b) image = NULL
          each atom will be remapped into periodic box by domain->ownatom()
          image flag will be set to 0 by atom->avec->create_atom()
+   shrinkexceed = 1 allows atoms to be outside a shrinkwrapped boundary
+     passed to ownatom() which will assign them to boundary proc
+     important if atoms may be (slightly) outside non-periodic dim
+     e.g. due to restoring a snapshot from a previous run and previous box
    id and image must be 32-bit integers
    x,v = ordered by xyz, then by atom
      e.g. x[0][0],x[0][1],x[0][2],x[1][0],x[1][1],x[1][2],x[2][0],...
 ------------------------------------------------------------------------- */
 
 void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
-			 double *x, double *v, imageint *image)
+			 double *x, double *v, imageint *image,
+                         int shrinkexceed)
 {
   LAMMPS *lmp = (LAMMPS *) ptr;
 
@@ -891,7 +954,8 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
     Domain *domain = lmp->domain;
     int nlocal = atom->nlocal;
 
-    int nprev = nlocal;
+    bigint natoms_prev = atom->natoms;
+    int nlocal_prev = nlocal;
     double xdata[3];
     
     for (int i = 0; i < n; i++) {
@@ -899,9 +963,9 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
       if (image) {
-        if (!domain->ownatom(xdata,&image[i])) continue;
+        if (!domain->ownatom(id[i],xdata,&image[i],shrinkexceed)) continue;
       } else {
-        if (!domain->ownatom(xdata,NULL)) continue;
+        if (!domain->ownatom(id[i],xdata,NULL,shrinkexceed)) continue;
       }
   
       atom->avec->create_atom(type[i],xdata);
@@ -924,14 +988,24 @@ void lammps_create_atoms(void *ptr, int n, tagint *id, int *type,
 
     // init per-atom fix/compute/variable values for created atoms
 
-    atom->data_fix_compute_variable(nprev,nlocal);
-     
+    atom->data_fix_compute_variable(nlocal_prev,nlocal);
+
     // if global map exists, reset it
     // invoke map_init() b/c atom count has grown
 
     if (lmp->atom->map_style) {
       lmp->atom->map_init();
       lmp->atom->map_set();
+    }
+
+    // warn if new natoms is not correct
+    
+    if (lmp->atom->natoms != natoms_prev + n) {
+      char str[128];
+      sprintf(str,"Library warning in lammps_create_atoms, "
+              "invalid total atoms %ld %ld",lmp->atom->natoms,natoms_prev+n);
+      if (lmp->comm->me == 0)
+        lmp->error->warning(FLERR,str);
     }
   }
   END_CAPTURE

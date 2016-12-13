@@ -1499,11 +1499,13 @@ void Domain::image_flip(int m, int n, int p)
 /* ----------------------------------------------------------------------
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
-   if image flag is passed, it is updated via remap(x,image)
+   if image flag is passed, flag is updated via remap(x,image)
    if image = NULL is passed, no update with remap(x) 
+   if shrinkexceed, atom can be outside shrinkwrap boundaries
+   called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
 
-int Domain::ownatom(double *x, imageint *image)
+int Domain::ownatom(int id, double *x, imageint *image, int shrinkexceed)
 {
   double lamda[3];
   double *coord;
@@ -1519,6 +1521,45 @@ int Domain::ownatom(double *x, imageint *image)
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
       coord[1] >= sublo[1] && coord[1] < subhi[1] &&
       coord[2] >= sublo[2] && coord[2] < subhi[2]) return 1;
+
+  // check if atom did not return 1 only b/c it was 
+  //   outside a shrink-wrapped boundary
+
+  if (shrinkexceed) {
+    int outside = 0;
+    if (triclinic == 0) {
+      if (coord[0] < boxlo[0] && boundary[0][0] > 1) outside = 1;
+      if (coord[0] >= boxhi[0] && boundary[0][1] > 1) outside = 1;
+      if (coord[1] < boxlo[1] && boundary[1][0] > 1) outside = 1;
+      if (coord[1] >= boxhi[1] && boundary[1][1] > 1) outside = 1;
+      if (coord[2] < boxlo[2] && boundary[2][0] > 1) outside = 1;
+      if (coord[2] >= boxhi[2] && boundary[2][1] > 1) outside = 1;
+    } else {
+    }
+    if (!outside) return 0;
+    
+    // newcoord = coords pushed back to be on shrink-wrapped boundary
+    // newcoord is a copy, so caller's x[] is not affected
+
+    double newcoord[3];
+    if (coord[0] < boxlo[0] && boundary[0][0] > 1) newcoord[0] = boxlo[0];
+    else if (coord[0] >= boxhi[0] && boundary[0][1] > 1) newcoord[0] = boxhi[0];
+    else newcoord[0] = coord[0];
+    if (coord[1] < boxlo[1] && boundary[1][1] > 1) newcoord[1] = boxlo[1];
+    else if (coord[1] >= boxhi[1] && boundary[1][1] > 1) newcoord[1] = boxhi[1];
+    else newcoord[1] = coord[1];
+    if (coord[2] < boxlo[2] && boundary[2][2] > 1) newcoord[2] = boxlo[2];
+    else if (coord[2] >= boxhi[2] && boundary[2][1] > 1) newcoord[2] = boxhi[2];
+    else newcoord[2] = coord[2];
+ 
+    // re-test for newcoord inside my sub-domain
+    // use <= test for upper-boundary since may have just put atom at boxhi
+
+    if (newcoord[0] >= sublo[0] && newcoord[0] <= subhi[0] &&
+        newcoord[1] >= sublo[1] && newcoord[1] <= subhi[1] &&
+        newcoord[2] >= sublo[2] && newcoord[2] <= subhi[2]) return 1;
+  }
+
   return 0;
 }
 

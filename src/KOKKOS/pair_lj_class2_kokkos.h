@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairLJClass2Kokkos : public PairLJClass2 {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2|FULLCLUSTER};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   PairLJClass2Kokkos(class LAMMPS *);
@@ -99,17 +99,14 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   friend class PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
   friend class PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;
   friend class PairComputeFunctor<PairLJClass2Kokkos,N2,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,FULLCLUSTER,true >;
   friend class PairComputeFunctor<PairLJClass2Kokkos,FULL,false>;
   friend class PairComputeFunctor<PairLJClass2Kokkos,HALF,false>;
   friend class PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,false>;
   friend class PairComputeFunctor<PairLJClass2Kokkos,N2,false>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,FULLCLUSTER,false >;
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,FULL,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALF,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALFTHREAD,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,N2,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_fullcluster<PairLJClass2Kokkos,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJClass2Kokkos,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairLJClass2Kokkos>(PairLJClass2Kokkos*);
 };

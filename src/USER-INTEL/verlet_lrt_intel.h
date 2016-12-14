@@ -40,7 +40,7 @@ namespace LAMMPS_NS {
 class VerletLRTIntel : public Verlet {
  public:
   VerletLRTIntel(class LAMMPS *, int, char **);
-  virtual ~VerletLRTIntel() {}
+  virtual ~VerletLRTIntel();
   virtual void init();
   virtual void setup();
   virtual void run(int);

@@ -63,7 +63,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _nbor_pack_width = 1;
 
   _precision_mode = PREC_MODE_MIXED;
-  _offload_balance = 1.0;
+  _offload_balance = -1.0;
   _overflow_flag[LMP_OVERFLOW] = 0;
   _off_overflow_flag[LMP_OVERFLOW] = 0;
 
@@ -189,10 +189,18 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       offload_cores = omp_get_num_procs();
       omp_set_num_threads(offload_cores);
       max_offload_threads = omp_get_max_threads();
+      #ifdef __AVX512F__
+      if ( (offload_cores / 4) % 2 == 1) {
+        offload_cores += 4;
+        max_offload_threads += 4;
+      }
+      #endif
     }
     _max_offload_threads = max_offload_threads;
     _offload_cores = offload_cores;
     if (_offload_threads == 0) _offload_threads = offload_cores;
+    if (_offload_cores > 244 && _offload_tpc > 2)
+      _offload_tpc = 2;
   }
   #endif
 
@@ -316,6 +324,8 @@ void FixIntel::init()
   if (nstyles > 1)
     error->all(FLERR,
 	       "Currently, cannot use more than one intel style with hybrid.");
+
+  neighbor->fix_intel = (void *)this;
 
   check_neighbor_intel();
   if (_precision_mode == PREC_MODE_SINGLE)
@@ -1004,8 +1014,10 @@ void FixIntel::set_offload_affinity()
   int offload_threads = _offload_threads;
   int offload_tpc = _offload_tpc;
   int offload_affinity_balanced = _offload_affinity_balanced;
+  int offload_cores = _offload_cores;
   #pragma offload target(mic:_cop) mandatory \
-    in(node_rank,offload_threads,offload_tpc,offload_affinity_balanced)
+    in(node_rank,offload_threads,offload_tpc,offload_affinity_balanced, \
+       offload_cores)
   {
     omp_set_num_threads(offload_threads);
     #pragma omp parallel
@@ -1013,20 +1025,24 @@ void FixIntel::set_offload_affinity()
       int tnum = omp_get_thread_num();
       kmp_affinity_mask_t mask;
       kmp_create_affinity_mask(&mask);
-      int proc;
-      if (offload_affinity_balanced) {
-	proc = offload_threads * node_rank + tnum;
+      int proc = offload_threads * node_rank + tnum;
+      #ifdef __AVX512F__
+      proc = (proc / offload_tpc) + (proc % offload_tpc) * 
+	     ((offload_cores) / 4);
+      proc += 68;
+      #else
+      if (offload_affinity_balanced)
 	proc = proc * 4 - (proc / 60) * 240 + proc / 60 + 1;
-      } else {
-	proc = offload_threads * node_rank + tnum;
+      else
 	proc += (proc / 4) * (4 - offload_tpc) + 1;
-      }
+      #endif
       kmp_set_affinity_mask_proc(proc, &mask);
       if (kmp_set_affinity(&mask) != 0)
 	printf("Could not set affinity on rank %d thread %d to %d\n",
 	       node_rank, tnum, proc);
     }
   }
+
   if (_precision_mode == PREC_MODE_SINGLE)
     _single_buffers->set_off_params(offload_threads, _cop, _separate_buffers);
   else if (_precision_mode == PREC_MODE_MIXED)

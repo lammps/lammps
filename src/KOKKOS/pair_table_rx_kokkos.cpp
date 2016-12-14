@@ -96,7 +96,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   eflag = eflag_in;
   vflag = vflag_in;
 
-  if (neighflag == FULL || neighflag == FULLCLUSTER) no_virial_fdotr_compute = 1;
+  if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
 
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -143,19 +143,6 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
-    } else if (neighflag == FULLCLUSTER) {
-      typedef PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULLCLUSTER,false,S_TableRXCompute<DeviceType,TABSTYLE> >
-        f_type;
-      f_type f(this,(NeighListKokkos<DeviceType>*) list);
-      #ifdef KOKKOS_HAVE_CUDA
-        const int teamsize = Kokkos::Impl::is_same<DeviceType, Kokkos::Cuda>::value ? 32 : 1;
-      #else
-        const int teamsize = 1;
-      #endif
-      const int nteams = (list->inum*+teamsize-1)/teamsize;
-      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize,NeighClusterSize);
-      if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
-      else Kokkos::parallel_for(config,f);
     }
   } else {
     if (neighflag == FULL) {
@@ -178,19 +165,6 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
         f(this,(NeighListKokkos<DeviceType>*) list);
       if (eflag || vflag) Kokkos::parallel_reduce(nlocal,f,ev);
       else Kokkos::parallel_for(nlocal,f);
-    } else if (neighflag == FULLCLUSTER) {
-      typedef PairComputeFunctor<PairTableRXKokkos<DeviceType>,FULLCLUSTER,true,S_TableRXCompute<DeviceType,TABSTYLE> >
-        f_type;
-      f_type f(this,(NeighListKokkos<DeviceType>*) list);
-      #ifdef KOKKOS_HAVE_CUDA
-        const int teamsize = Kokkos::Impl::is_same<DeviceType, Kokkos::Cuda>::value ? 32 : 1;
-      #else
-        const int teamsize = 1;
-      #endif
-      const int nteams = (list->inum*+teamsize-1)/teamsize;
-      Kokkos::TeamPolicy<DeviceType> config(nteams,teamsize,NeighClusterSize);
-      if (eflag || vflag) Kokkos::parallel_reduce(config,f,ev);
-      else Kokkos::parallel_for(config,f);
     }
   }
 
@@ -511,18 +485,11 @@ void PairTableRXKokkos<DeviceType>::init_style()
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full_cluster = 0;
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-    neighbor->requests[irequest]->full_cluster = 0;
   } else if (neighflag == N2) {
     neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full_cluster = 0;
-  } else if (neighflag == FULLCLUSTER) {
-    neighbor->requests[irequest]->full_cluster = 1;
-    neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with lj/cut/kk");

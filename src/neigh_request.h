@@ -47,7 +47,6 @@ class NeighRequest : protected Pointers {
   int respainner;        // 1 if a rRESPA inner list
   int respamiddle;       // 1 if a rRESPA middle list
   int respaouter;        // 1 if a rRESPA outer list
-  int full_cluster;      // only used by Kokkos pair styles
 
   // command_style only set if command = 1
   // allows print_pair_info() to access command name

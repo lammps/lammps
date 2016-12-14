@@ -603,7 +603,6 @@ void PairVashishtaKokkos<DeviceType>::init_style()
   if (neighflag == FULL || neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->full_cluster = 0;
     if (neighflag == FULL)
       neighbor->requests[irequest]->ghost = 1;
     else

@@ -317,7 +317,6 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
   if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-    neighbor->requests[irequest]->full_cluster = 0;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with dpd/fdt/energy/kk");
   }

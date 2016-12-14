@@ -39,7 +39,6 @@ NeighRequest::NeighRequest(LAMMPS *lmp) : Pointers(lmp)
   gran = granhistory = 0;
   respainner = respamiddle = respaouter = 0;
   half_from_full = 0;
-  full_cluster = 0;
 
   // only set when command = 1;
 

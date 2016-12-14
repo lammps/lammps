@@ -70,6 +70,8 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,6 +182,15 @@ void PairMultiLucyRXKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXCompute<HALF,1,0> >(0,inum),*this);
   }
 
+  k_error_flag.template modify<DeviceType>();
+  k_error_flag.template sync<LMPHostType>();
+  if (k_error_flag.h_view() == 1)
+    error->one(FLERR,"Density < table inner cutoff");
+  else if (k_error_flag.h_view() == 2)
+    error->one(FLERR,"Density > table outer cutoff");
+  else if (k_error_flag.h_view() == 3)
+    error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
+
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
     virial[0] += ev.v[0];
@@ -265,19 +276,13 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 
       tb = &tables[tabindex[itype][jtype]];
       if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
-        //printf("Table inner cutoff = %lf\n",sqrt(tb->innersq));
-        //printf("rho[%d]=%lf\n",i,rho[i]);
-        //printf("rho[%d]=%lf\n",j,rho[j]);
-        error->one(FLERR,"Density < table inner cutoff");
+        k_error_flag.d_view() = 1;
       }
       if (tabstyle == LOOKUP) {
         itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
         jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
         if (itable >= tlm1 || jtable >= tlm1){
-          //printf("Table outer index = %d\n",tlm1);
-          //printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
-          //printf("jtableIndex=%d rho[%d]=%lf\n",jtable,j,rho[j]);
-          error->one(FLERR,"Density > table outer cutoff");
+          k_error_flag.d_view() = 2;
         }
         A_i = tb->f[itable];
         A_j = tb->f[jtable];
@@ -290,10 +295,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         itable = static_cast<int> ((rho[i]*rho[i] - tb->innersq) * tb->invdelta);
         jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
         if (itable >= tlm1 || jtable >= tlm1){
-          //printf("Table outer index = %d\n",tlm1);
-          //printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
-          //printf("jtableIndex=%d rho[%d]=%lf\n",jtable,j,rho[j]);
-          error->one(FLERR,"Density > table outer cutoff");
+          k_error_flag.d_view() = 2;
         }
         if(itable<0) itable=0;
         if(itable>=tlm1) itable=tlm1;
@@ -314,7 +316,7 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         fpair = 0.5*(A_i + A_j)*(4.0-3.0*rfactor)*rfactor*rfactor*rfactor;
         fpair /= sqrt(rsq);
 
-      } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
+      } else k_error_flag.d_view() = 3;
 
       if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpair;
       else fpair = (sqrt(fractionOld1_i*fractionOld2_j) + sqrt(fractionOld2_i*fractionOld1_j))*fpair;
@@ -341,13 +343,12 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   if (tabstyle == LOOKUP) evdwl = tb->e[itable];
   else if (tabstyle == LINEAR){
     if (itable >= tlm1){
-      //printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
-      error->one(FLERR,"Density > table outer cutoff");
+      k_error_flag.d_view() = 2;
     }
     if(itable==0) fraction_i=0.0;
     else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
     evdwl = tb->e[itable] + fraction_i*tb->de[itable];
-  } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
+  } else k_error_flag.d_view() = 3;
 
   evdwl *=(pi*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
   evdwlOld = fractionOld1_i*evdwl;

@@ -56,6 +56,8 @@ PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,6 +170,11 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxgetParamsEXP6>(0,np_total),*this);
   }
 
+  k_error_flag.template modify<DeviceType>();
+  k_error_flag.template sync<LMPHostType>();
+  if (k_error_flag.h_view())
+    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
+
   int inum = list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
@@ -183,6 +190,11 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   } else {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,1,0> >(0,inum),*this);
   }
+
+  k_error_flag.template modify<DeviceType>();
+  k_error_flag.template sync<LMPHostType>();
+  if (k_error_flag.h_view())
+    error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
   if (eflag_global) eng_vdwl += ev.evdwl;
   if (vflag_global) {
@@ -358,7 +370,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
       if(rmOld12_ij!=0.0 && rmOld21_ij!=0.0){
         if(alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
-          error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
+          k_error_flag.d_view() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
         rminv = 1.0/rmOld12_ij;
@@ -774,7 +786,7 @@ void PairExp6rxKokkos<DeviceType>::getParamsEXP6(int id,double &epsilon1,double 
     }
   }
   if(nTotal < 1e-8 || nTotal_old < 1e-8)
-    error->all(FLERR,"The number of molecules in CG particle is less than 1e-8.");
+    k_error_flag.d_view() = 1;
 
   // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
   fractionOFA_old = nTotalOFA_old / nTotal_old;

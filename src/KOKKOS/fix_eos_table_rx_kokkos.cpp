@@ -42,6 +42,9 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  k_error_flag = DAT::tdual_int_scalar("fix:error_flag");
+  k_warning_flag = DAT::tdual_int_scalar("fix:warning_flag");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,22 +68,33 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
   uCG = atomKK->k_uCG.view<DeviceType>();
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
-  double duChem;
 
-  for (int i = 0; i < nlocal; i++) // parallel_for
-    if (mask[i] & groupbit){
-      duChem = uCG[i] - uCGnew[i];
-      uChem[i] += duChem;
-      uCG[i] = 0.0;
-      uCGnew[i] = 0.0;
-    }
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
 
   // Communicate the updated momenta and velocities to all nodes
   comm->forward_comm_fix(this);
 
-  for (int i = 0; i < nlocal; i++) // parallel_for
-    if (mask[i] & groupbit)
-      temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
+
+  error_check();
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXSetup, const int &i) const {
+  if (mask[i] & groupbit) {
+    const double duChem = uCG[i] - uCGnew[i];
+    uChem[i] += duChem;
+    uCG[i] = 0.0;
+    uCGnew[i] = 0.0;
+  }
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup, const int &i) const {
+  if (mask[i] & groupbit)
+    temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,25 +108,28 @@ void FixEOStableRXKokkos<DeviceType>::init()
   uMech = atomKK->k_uMech.view<DeviceType>();
   uChem = atomKK->k_uChem.view<DeviceType>();
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
-  double tmp;
 
-  if(this->restart_reset){
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-  } else {
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) {
-        if(dpdTheta[i] <= 0.0)
-          error->one(FLERR,"Internal temperature <= zero");
-        energy_lookup(i,dpdTheta[i],tmp);
-        uCond[i] = tmp / 2.0;
-        uMech[i] = tmp / 2.0;
-        uChem[i] = 0.0;
-      }
-  }
+  if (this->restart_reset)
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
+  else
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXInit>(0,nlocal),*this);
+
+  error_check();
 }
 
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int &i) const {
+  double tmp;
+  if (mask[i] & groupbit) {
+    if(dpdTheta[i] <= 0.0)
+      k_error_flag.d_view() = 1;
+    energy_lookup(i,dpdTheta[i],tmp);
+    uCond[i] = tmp / 2.0;
+    uMech[i] = tmp / 2.0;
+    uChem[i] = 0.0;
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -126,12 +143,19 @@ void FixEOStableRXKokkos<DeviceType>::post_integrate()
   uChem = atomKK->k_uChem.view<DeviceType>();
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
-      temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
-        error->one(FLERR,"Internal temperature <= zero");
-    }
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
+
+  error_check();
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup2, const int &i) const {
+  if (mask[i] & groupbit){
+    temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
+    if (dpdTheta[i] <= 0.0)
+      k_error_flag.d_view() = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,23 +176,14 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
   // Communicate the ghost uCGnew
   comm->reverse_comm_fix(this);
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
-      duChem = uCG[i] - uCGnew[i];
-      uChem[i] += duChem;
-      uCG[i] = 0.0;
-      uCGnew[i] = 0.0;
-    }
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
 
   // Communicate the updated momenta and velocities to all nodes
   comm->forward_comm_fix(this);
 
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
-      temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
-        error->one(FLERR,"Internal temperature <= zero");
-    }
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
+
+  error_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -242,13 +257,11 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
   // Apply the Secant Method
   for(it=0; it<maxit; it++){
     if(fabs(f2-f1)<1e-15){
-      if(isnan(f1) || isnan(f2)) error->one(FLERR,"NaN detected in secant solver.");
+      if(isnan(f1) || isnan(f2)) k_error_flag.d_view() = 2;
       temp = t1;
       temp = MAX(temp,tb->lo);
       temp = MIN(temp,tb->hi);
-      char str[256];
-      sprintf(str,"Secant solver did not converge because table bounds were exceeded:  it=%d id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf dpdTheta=%lf\n",it,id,ui,thetai,t1,t2,f1,f2,temp);
-      error->warning(FLERR,str);
+      k_warning_flag.d_view() = 1;
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
@@ -260,11 +273,9 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
     f2 = u2 - ui;
   }
   if(it==maxit){
-    char str[256];
-    sprintf(str,"Maxit exceeded in secant solver:  id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,thetai,t1,t2,f1,f2);
     if(isnan(f1) || isnan(f2) || isnan(ui) || isnan(thetai) || isnan(t1) || isnan(t2))
-      error->one(FLERR,"NaN detected in secant solver.");
-    error->one(FLERR,str);
+      k_error_flag.d_view() = 2;
+    k_error_flag.d_view() = 3;
   }
   thetai = temp;
 }
@@ -341,6 +352,30 @@ void FixEOStableRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doub
 
     uCG[j] += buf[m++];
     uCGnew[j] += buf[m++];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixEOStableRXKokkos<DeviceType>::error_check()
+{
+  k_error_flag.template modify<DeviceType>();
+  k_error_flag.template sync<LMPHostType>();
+  if (k_error_flag.h_view() == 1)
+    error->one(FLERR,"Internal temperature <= zero");
+  else if (k_error_flag.h_view() == 2)
+    error->one(FLERR,"NaN detected in secant solver.");
+  else if (k_error_flag.h_view() == 3)
+    error->one(FLERR,"Maxit exceeded in secant solver.");
+
+  k_warning_flag.template modify<DeviceType>();
+  k_warning_flag.template sync<LMPHostType>();
+  if (k_warning_flag.h_view()) {
+    error->warning(FLERR,"Secant solver did not converge because table bounds were exceeded.");
+    k_warning_flag.h_view() = 0;
+    k_warning_flag.template modify<LMPHostType>();
+    k_warning_flag.template sync<DeviceType>();
   }
 }
 

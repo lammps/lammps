@@ -130,6 +130,8 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
+  DAT::tdual_int_scalar k_error_flag;
+
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
 

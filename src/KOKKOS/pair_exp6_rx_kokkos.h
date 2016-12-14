@@ -103,6 +103,8 @@ class PairExp6rxKokkos : public PairExp6rx {
   DAT::t_efloat_1d d_eatom;
   DAT::t_virial_array d_vatom;
 
+  DAT::tdual_int_scalar k_error_flag;
+
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;

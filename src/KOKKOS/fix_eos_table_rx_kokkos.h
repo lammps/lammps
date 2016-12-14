@@ -27,6 +27,11 @@ FixStyle(eos/table/rx/kk/host,FixEOStableRXKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
+struct TagFixEOStableRXInit{};
+struct TagFixEOStableRXSetup{};
+struct TagFixEOStableRXTemperatureLookup{};
+struct TagFixEOStableRXTemperatureLookup2{};
+
 template<class DeviceType>
 class FixEOStableRXKokkos : public FixEOStableRX {
  public:
@@ -40,6 +45,18 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   void init();
   void post_integrate();
   void end_of_step();
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixEOStableRXInit, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixEOStableRXSetup, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixEOStableRXTemperatureLookup, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixEOStableRXTemperatureLookup2, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void energy_lookup(int, double, double &) const;
@@ -59,11 +76,15 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   //Table *tables, *tables2;
 
   void allocate();
+  void error_check();
 
   //double *dHf;
 
   typename AT::t_int_1d mask;
   typename AT::t_efloat_1d uCond,uMech,uChem,uCG,uCGnew,rho,dpdTheta,duChem;
+
+  DAT::tdual_int_scalar k_error_flag;
+  DAT::tdual_int_scalar k_warning_flag;
 
   int pack_reverse_comm(int, int, double *);
   void unpack_reverse_comm(int, int *, double *);

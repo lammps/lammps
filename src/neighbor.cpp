@@ -890,7 +890,8 @@ void Neighbor::init_pair()
   for (i = 0; i < nstencil; i++) {
     flag = 0;
     for (j = 0; j < npair_perpetual; j++)
-      if (lists[plist[j]]->stencil_method == neigh_stencil[i]->istyle) flag = 1;
+      if (lists[plist[j]]->stencil_method == neigh_stencil[i]->istyle) 
+        flag = 1;
     if (flag) slist[nstencil_perpetual++] = i;
   }
 
@@ -1139,8 +1140,8 @@ void Neighbor::print_pairwise_info()
         } else {
           sprintf(str,"  (%d) command %s",i+1,requests[i]->command_style);
         }
-        fprintf(out,"%s\n",str);
-        
+        fprintf(out,"%s",str);
+
         if (requests[i]->half) kind = "half";
         else if (requests[i]->full) kind = "full";
         else if (requests[i]->gran) kind = "size";
@@ -1328,7 +1329,6 @@ int Neighbor::choose_stencil(NeighRequest *rq)
     if (style == BIN && !(mask & NS_BIN)) continue;
     if (style == MULTI && !(mask & NS_MULTI)) continue;
 
-
     if (dimension == 2 && !(mask & NS_2D)) continue;
     if (dimension == 3 && !(mask & NS_3D)) continue;
 
@@ -1389,7 +1389,8 @@ int Neighbor::choose_pair(NeighRequest *rq)
   //   triclinic = orthgonal/triclinic box
 
   int copyflag,skipflag,halfflag,fullflag,halffullflag,sizeflag,respaflag,
-    ghostflag,off2onflag,onesideflag,ssaflag,ompflag,intelflag,kokkos_device_flag,kokkos_host_flag;
+    ghostflag,off2onflag,onesideflag,ssaflag,ompflag,intelflag,
+    kokkos_device_flag,kokkos_host_flag;
 
   copyflag = skipflag = halfflag = fullflag = halffullflag = sizeflag = 
     ghostflag = respaflag = off2onflag = onesideflag = ssaflag = 

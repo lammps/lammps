@@ -237,7 +237,10 @@ Pair *Force::new_pair(const char *style, int trysuffix, int &sflag)
     return pair_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown pair style");
+  char str[128];
+  sprintf(str,"Unknown pair style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -362,7 +365,10 @@ Bond *Force::new_bond(const char *style, int trysuffix, int &sflag)
     return bond_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown bond style");
+  char str[128];
+  sprintf(str,"Unknown bond style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -440,7 +446,10 @@ Angle *Force::new_angle(const char *style, int trysuffix, int &sflag)
     return angle_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown angle style");
+  char str[128];
+  sprintf(str,"Unknown angle style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -519,7 +528,10 @@ Dihedral *Force::new_dihedral(const char *style, int trysuffix, int &sflag)
     return dihedral_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown dihedral style");
+  char str[128];
+  sprintf(str,"Unknown dihedral style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -597,7 +609,10 @@ Improper *Force::new_improper(const char *style, int trysuffix, int &sflag)
     return improper_creator(lmp);
   }
 
-  error->all(FLERR,"Unknown improper style");
+  char str[128];
+  sprintf(str,"Unknown improper style %s",style);
+  error->all(FLERR,str);
+
   return NULL;
 }
 
@@ -679,7 +694,10 @@ KSpace *Force::new_kspace(int narg, char **arg, int trysuffix, int &sflag)
     return kspace_creator(lmp, narg-1, &arg[1]);
   }
 
-  error->all(FLERR,"Unknown kspace style");
+  char str[128];
+  sprintf(str,"Unknown kspace style %s",arg[0]);
+  error->all(FLERR,str);
+
   return NULL;
 }
 

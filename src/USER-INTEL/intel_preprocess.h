@@ -22,6 +22,11 @@
 #ifdef __INTEL_OFFLOAD
 #ifdef LMP_INTEL_OFFLOAD
 #define _LMP_INTEL_OFFLOAD
+#ifdef __TARGET_ARCH_MIC
+#ifndef __MIC__
+#define __MIC__ 1
+#endif
+#endif
 #endif
 #endif
 
@@ -62,6 +67,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_MAX_STENCIL_CHECK 4096
 #define INTEL_P3M_MAXORDER 5
 
+#ifdef __INTEL_COMPILER
 #ifdef __AVX__
 #undef INTEL_VECTOR_WIDTH
 #define INTEL_VECTOR_WIDTH 8
@@ -90,6 +96,13 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #endif
 #endif
 
+#else
+
+#undef INTEL_VECTOR_WIDTH
+#define INTEL_VECTOR_WIDTH 1
+
+#endif
+
 #define INTEL_DATA_ALIGN 64
 #define INTEL_ONEATOM_FACTOR 2
 #define INTEL_MIC_NBOR_PAD INTEL_MIC_VECTOR_WIDTH
@@ -97,7 +110,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_LB_MEAN_WEIGHT 0.1
 #define INTEL_BIGP 1e15
 #define INTEL_MAX_HOST_CORE_COUNT 512
-#define INTEL_MAX_COI_CORES 2
+#define INTEL_MAX_COI_CORES 36
 
 #define IP_PRE_get_stride(stride, n, datasize, torque)	\
   {								\

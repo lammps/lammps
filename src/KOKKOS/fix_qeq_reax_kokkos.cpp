@@ -125,12 +125,10 @@ void FixQEqReaxKokkos<DeviceType>::init()
       neighbor->requests[irequest]->pair = 0;
       neighbor->requests[irequest]->full = 1;
       neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->full_cluster = 0;
     } else { //if (neighflag == HALF || neighflag == HALFTHREAD)
       neighbor->requests[irequest]->fix = 1;
       neighbor->requests[irequest]->full = 0;
       neighbor->requests[irequest]->half = 1;
-      neighbor->requests[irequest]->full_cluster = 0;
       neighbor->requests[irequest]->ghost = 1;
     }
   }

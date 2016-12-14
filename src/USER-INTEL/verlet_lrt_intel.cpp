@@ -43,7 +43,20 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 VerletLRTIntel::VerletLRTIntel(LAMMPS *lmp, int narg, char **arg) :
-  Verlet(lmp, narg, arg) {}
+  Verlet(lmp, narg, arg) {
+  #if defined(_LMP_INTEL_LRT_PTHREAD)
+  pthread_mutex_init(&_kmutex,NULL);
+  #endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+VerletLRTIntel::~VerletLRTIntel() 
+{
+  #if defined(_LMP_INTEL_LRT_PTHREAD)
+  pthread_mutex_destroy(&_kmutex);
+  #endif
+}
 
 /* ----------------------------------------------------------------------
    initialization before run

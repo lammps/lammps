@@ -34,7 +34,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute dihedral/local command");
 
@@ -56,14 +57,16 @@ ComputeDihedralLocal::ComputeDihedralLocal(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
+  vlocal = NULL;
+  alocal = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDihedralLocal::~ComputeDihedralLocal()
 {
-  memory->destroy(vector);
-  memory->destroy(array);
+  memory->destroy(vlocal);
+  memory->destroy(alocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,9 +132,9 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
   if (flag) {
     if (nvalues == 1) {
-      if (pflag >= 0) pbuf = vector;
+      if (pflag >= 0) pbuf = vlocal;
     } else {
-      if (pflag >= 0 && array) pbuf = &array[0][pflag];
+      if (pflag >= 0 && alocal) pbuf = &alocal[0][pflag];
       else pbuf = NULL;
     }
   }
@@ -229,18 +232,18 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
 void ComputeDihedralLocal::reallocate(int n)
 {
-  // grow vector or array and indices array
+  // grow vector_local or array_local
 
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->destroy(vector);
-    memory->create(vector,nmax,"bond/local:vector");
-    vector_local = vector;
+    memory->destroy(vlocal);
+    memory->create(vlocal,nmax,"dihedral/local:vector_local");
+    vector_local = vlocal;
   } else {
-    memory->destroy(array);
-    memory->create(array,nmax,nvalues,"bond/local:array");
-    array_local = array;
+    memory->destroy(alocal);
+    memory->create(alocal,nmax,nvalues,"dihedral/local:array_local");
+    array_local = alocal;
   }
 }
 

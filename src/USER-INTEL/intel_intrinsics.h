@@ -28,7 +28,7 @@
 // implementations.
 
 // Vector classes provided with the intel compiler
-#ifdef __MIC__
+#if defined(__MIC__) && !defined(__AVX512F__)
 #include <mic/micvec.h>
 #else
 #include <dvec.h> // icc-mmic hates generating movq

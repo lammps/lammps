@@ -21,7 +21,7 @@ type = atom type for inserted atoms (must be 0 if mol keyword used) :l
 seed = random # seed (positive integer) :l
 T = temperature of the ideal gas reservoir (temperature units) :l
 mu = chemical potential of the ideal gas reservoir (energy units) :l
-translate = maximum Monte Carlo translation distance (length units) :l
+displace = maximum Monte Carlo translation distance (length units) :l
 zero or more keyword/value pairs may be appended to args :l
 keyword = {mol}, {region}, {maxangle}, {pressure}, {fugacity_coeff}, {full_energy}, {charge}, {group}, {grouptype}, {intra_energy}, or {tfac_insert}
   {mol} value = template-ID

@@ -35,7 +35,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg),
+  vlocal(NULL), alocal(NULL)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute improper/local command");
 
@@ -57,14 +58,16 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
+  vlocal = NULL;
+  alocal = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeImproperLocal::~ComputeImproperLocal()
 {
-  memory->destroy(vector);
-  memory->destroy(array);
+  memory->destroy(vlocal);
+  memory->destroy(alocal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,9 +133,9 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
   if (flag) {
     if (nvalues == 1) {
-      if (cflag >= 0) cbuf = vector;
+      if (cflag >= 0) cbuf = vlocal;
     } else {
-      if (cflag >= 0 && array) cbuf = &array[0][cflag];
+      if (cflag >= 0 && alocal) cbuf = &alocal[0][cflag];
       else cbuf = NULL;
     }
   }
@@ -228,18 +231,18 @@ int ComputeImproperLocal::compute_impropers(int flag)
 
 void ComputeImproperLocal::reallocate(int n)
 {
-  // grow vector or array and indices array
+  // grow vector_local or array_local
 
   while (nmax < n) nmax += DELTA;
 
   if (nvalues == 1) {
-    memory->destroy(vector);
-    memory->create(vector,nmax,"bond/local:vector");
-    vector_local = vector;
+    memory->destroy(vlocal);
+    memory->create(vlocal,nmax,"improper/local:vector_local");
+    vector_local = vlocal;
   } else {
-    memory->destroy(array);
-    memory->create(array,nmax,nvalues,"bond/local:array");
-    array_local = array;
+    memory->destroy(alocal);
+    memory->create(alocal,nmax,nvalues,"improper/local:array_local");
+    array_local = alocal;
   }
 }
 

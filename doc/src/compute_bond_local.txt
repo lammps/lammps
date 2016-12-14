@@ -51,12 +51,12 @@ relative to the center of mass (COM) velocity of the 2 atoms in the
 bond.
 
 The value {engvib} is the vibrational kinetic energy of the two atoms
-in the bond, which is simply 1/2 m1 v1^2 + 1/2 m1 v2^2, where v1 and
+in the bond, which is simply 1/2 m1 v1^2 + 1/2 m2 v2^2, where v1 and
 v2 are the magnitude of the velocity of the 2 atoms along the bond
 direction, after the COM velocity has been subtracted from each.
 
 The value {engrot} is the rotationsl kinetic energy of the two atoms
-in the bond, which is simply 1/2 m1 v1^2 + 1/2 m1 v2^2, where v1 and
+in the bond, which is simply 1/2 m1 v1^2 + 1/2 m2 v2^2, where v1 and
 v2 are the magnitude of the velocity of the 2 atoms perpendicular to
 the bond direction, after the COM velocity has been subtracted from
 each.
@@ -67,7 +67,7 @@ Vcm^2 where Vcm = magnitude of the velocity of the COM.
 
 Note that these 3 kinetic energy terms are simply a partitioning of
 the summed kinetic energy of the 2 atoms themselves.  I.e. total KE =
-1/2 m1 v1^2 + 1/2 m2 v3^2 = engvib + engrot + engtrans, where v1,v2
+1/2 m1 v1^2 + 1/2 m2 v2^2 = engvib + engrot + engtrans, where v1,v2
 are the magnitude of the velocities of the 2 atoms, without any
 adjustment for the COM velocity.
 

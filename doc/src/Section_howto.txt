@@ -1936,18 +1936,22 @@ documentation in the src/library.cpp file for details, including
 which quantities can be queried by name:
 
 void *lammps_extract_global(void *, char *)
+void lammps_extract_box(void *, double *, double *, 
+                        double *, double *, double *, int *, int *)
 void *lammps_extract_atom(void *, char *)
 void *lammps_extract_compute(void *, char *, int, int)
 void *lammps_extract_fix(void *, char *, int, int, int, int)
 void *lammps_extract_variable(void *, char *, char *) :pre
 
-int lammps_set_variable(void *, char *, char *)
-double lammps_get_thermo(void *, char *) :pre
+void lammps_reset_box(void *, double *, double *, double, double, double)
+int lammps_set_variable(void *, char *, char *) :pre
 
+double lammps_get_thermo(void *, char *)
 int lammps_get_natoms(void *)
 void lammps_gather_atoms(void *, double *)
 void lammps_scatter_atoms(void *, double *) :pre
-void lammps_create_atoms(void *, int, tagint *, int *, double *, double *) :pre
+void lammps_create_atoms(void *, int, tagint *, int *, double *, double *,
+                         imageint *, int) :pre
 
 The extract functions return a pointer to various global or per-atom
 quantities stored in LAMMPS or to values calculated by a compute, fix,
@@ -1957,10 +1961,16 @@ the other extract functions, the underlying storage may be reallocated
 as LAMMPS runs, so you need to re-call the function to assure a
 current pointer or returned value(s).
 
+The lammps_reset_box() function resets the size and shape of the
+simulation box, e.g. as part of restoring a previously extracted and
+saved state of a simulation.
+
 The lammps_set_variable() function can set an existing string-style
 variable to a new string value, so that subsequent LAMMPS commands can
-access the variable.  The lammps_get_thermo() function returns the
-current value of a thermo keyword as a double.
+access the variable.
+
+The lammps_get_thermo() function returns the current value of a thermo
+keyword as a double precision value.
 
 The lammps_get_natoms() function returns the total number of atoms in
 the system and can be used by the caller to allocate space for the
@@ -1973,10 +1983,13 @@ passed by the caller, to each atom owned by individual processors.
 
 The lammps_create_atoms() function takes a list of N atoms as input
 with atom types and coords (required), an optionally atom IDs and
-velocities.  It uses the coords of each atom to assign it as a new
-atom to the processor that owns it.  Additional properties for the new
-atoms can be assigned via the lammps_scatter_atoms() or
-lammps_extract_atom() functions.
+velocities and image flags.  It uses the coords of each atom to assign
+it as a new atom to the processor that owns it.  This function is
+useful to add atoms to a simulation or (in tandem with
+lammps_reset_box()) to restore a previously extracted and saved state
+of a simulation.  Additional properties for the new atoms can then be
+assigned via the lammps_scatter_atoms() or lammps_extract_atom()
+functions.
 
 The examples/COUPLE and python directories have example C++ and C and
 Python codes which show how a driver code can link to LAMMPS as a

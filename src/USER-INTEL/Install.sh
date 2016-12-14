@@ -3,10 +3,6 @@
 
 mode=$1
 
-# enforce using portable C locale
-LC_ALL=C
-export LC_ALL
-
 # arg1 = file, arg2 = file it depends on
 
 action () {
@@ -44,6 +40,10 @@ action intel_preprocess.h
 action intel_buffers.h
 action intel_buffers.cpp
 action math_extra_intel.h
+action nbin_intel.h
+action nbin_intel.cpp
+action npair_intel.h
+action npair_intel.cpp
 action intel_simd.h pair_sw_intel.cpp
 action intel_intrinsics.h pair_tersoff_intel.cpp
 action verlet_lrt_intel.h pppm.cpp
@@ -58,18 +58,10 @@ if (test $mode = 1) then
     sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_INTEL |' ../Makefile.package
   fi
 
-  # force rebuild of files with LMP_USER_INTEL switch
-
-  touch ../accelerator_intel.h
-
 elif (test $mode = 0) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*INTEL[^ \t]* //' ../Makefile.package
   fi
-
-  # force rebuild of files with LMP_USER_INTEL switch
-
-  touch ../accelerator_intel.h
 
 fi

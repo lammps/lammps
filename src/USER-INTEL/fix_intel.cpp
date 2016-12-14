@@ -325,8 +325,6 @@ void FixIntel::init()
     error->all(FLERR,
 	       "Currently, cannot use more than one intel style with hybrid.");
 
-  neighbor->fix_intel = (void *)this;
-
   check_neighbor_intel();
   if (_precision_mode == PREC_MODE_SINGLE)
     _single_buffers->zero_ev();

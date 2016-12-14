@@ -26,6 +26,10 @@
 #endif
 #endif
 
+#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN)
+#define LAMMPS_MEMALIGN 64
+#endif
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

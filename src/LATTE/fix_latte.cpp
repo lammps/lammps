@@ -45,7 +45,7 @@ using namespace FixConst;
 
 extern "C" {
   void latte(int *, int *, double *, int *, int *, 
-             double *, double *, double *, double *, double *);
+             double *, double *, double *, double *, int*, double *, double *, double *);
 }
   
 #define INVOKED_PERATOM 8
@@ -278,9 +278,11 @@ void FixLatte::post_force(int vflag)
   else forces = &atom->f[0][0];
 
   // invoke LATTE
+  
+  int maxiter = -1;
 
   latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,
-        forces,&latte_energy);  
+        forces,&maxiter, &latte_energy, &atom->v[0][0],&update->dt);  
 
   // sum LATTE forces to LAMMPS (Coulombic) forces
 

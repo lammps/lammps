@@ -132,6 +132,7 @@ class FixRX : public Fix {
   char *kineticsFile;
   char *id_fix_species,*id_fix_species_old;
   class FixPropertyAtom *fix_species,*fix_species_old;
+  int restartFlag;
 
 };
 

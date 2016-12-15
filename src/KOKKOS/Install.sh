@@ -87,6 +87,8 @@ action fix_nve_kokkos.cpp
 action fix_nve_kokkos.h
 action fix_nvt_kokkos.cpp
 action fix_nvt_kokkos.h
+action fix_property_atom_kokkos.cpp
+action fix_property_atom_kokkos.h
 action fix_qeq_reax_kokkos.cpp fix_qeq_reax.cpp
 action fix_qeq_reax_kokkos.h fix_qeq_reax.h
 action fix_reaxc_bonds_kokkos.cpp fix_reaxc_bonds.cpp

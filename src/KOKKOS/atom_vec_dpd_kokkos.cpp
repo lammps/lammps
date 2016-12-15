@@ -1801,6 +1801,15 @@ void AtomVecDPDKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPDeviceType>();
     if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPDeviceType>();
+    if (mask & DPDRHO_MASK) atomKK->k_rho.sync<LMPDeviceType>();
+    if (mask & DPDTHETA_MASK) atomKK->k_dpdTheta.sync<LMPDeviceType>();
+    if (mask & UCOND_MASK) atomKK->k_uCond.sync<LMPDeviceType>();
+    if (mask & UMECH_MASK) atomKK->k_uMech.sync<LMPDeviceType>();
+    if (mask & UCHEM_MASK) atomKK->k_uChem.sync<LMPDeviceType>();
+    if (mask & UCG_MASK) atomKK->k_uCG.sync<LMPDeviceType>();
+    if (mask & UCGNEW_MASK) atomKK->k_uCGnew.sync<LMPDeviceType>();
+    if (mask & DUCHEM_MASK) atomKK->k_duChem.sync<LMPDeviceType>();
+    if (mask & DVECTOR_MASK) atomKK->k_dvector.sync<LMPDeviceType>();
   } else {
     if (mask & X_MASK) atomKK->k_x.sync<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.sync<LMPHostType>();
@@ -1809,6 +1818,15 @@ void AtomVecDPDKokkos::sync(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.sync<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.sync<LMPHostType>();
     if (mask & IMAGE_MASK) atomKK->k_image.sync<LMPHostType>();
+    if (mask & DPDRHO_MASK) atomKK->k_rho.sync<LMPHostType>();
+    if (mask & DPDTHETA_MASK) atomKK->k_dpdTheta.sync<LMPHostType>();
+    if (mask & UCOND_MASK) atomKK->k_uCond.sync<LMPHostType>();
+    if (mask & UMECH_MASK) atomKK->k_uMech.sync<LMPHostType>();
+    if (mask & UCHEM_MASK) atomKK->k_uChem.sync<LMPHostType>();
+    if (mask & UCG_MASK) atomKK->k_uCG.sync<LMPHostType>();
+    if (mask & UCGNEW_MASK) atomKK->k_uCGnew.sync<LMPHostType>();
+    if (mask & DUCHEM_MASK) atomKK->k_duChem.sync<LMPHostType>();
+    if (mask & DVECTOR_MASK) atomKK->k_dvector.sync<LMPHostType>();
   }
 }
 
@@ -1831,6 +1849,24 @@ void AtomVecDPDKokkos::sync_overlapping_device(ExecutionSpace space, unsigned in
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+    if ((mask & DPDRHO_MASK) && atomKK->k_rho.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_rho,space);
+    if ((mask & DPDTHETA_MASK) && atomKK->k_dpdTheta.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_dpdTheta,space);
+    if ((mask & UCOND_MASK) && atomKK->k_uCond.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uCond,space);
+    if ((mask & UMECH_MASK) && atomKK->k_uMech.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uMech,space);
+    if ((mask & UCHEM_MASK) && atomKK->k_uChem.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uChem,space);
+    if ((mask & UCG_MASK) && atomKK->k_uCG.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uCG,space);
+    if ((mask & UCGNEW_MASK) && atomKK->k_uCGnew.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uCGnew,space);
+    if ((mask & DUCHEM_MASK) && atomKK->k_duChem.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_duChem,space);
+    if ((mask & DVECTOR_MASK) && atomKK->k_dvector.need_sync<LMPDeviceType>())
+      perform_async_copy<DAT::tdual_float_2d>(atomKK->k_dvector,space);
   } else {
     if ((mask & X_MASK) && atomKK->k_x.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_x_array>(atomKK->k_x,space);
@@ -1846,6 +1882,24 @@ void AtomVecDPDKokkos::sync_overlapping_device(ExecutionSpace space, unsigned in
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
+    if ((mask & DPDRHO_MASK) && atomKK->k_rho.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_rho,space);
+    if ((mask & DPDTHETA_MASK) && atomKK->k_dpdTheta.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_dpdTheta,space);
+    if ((mask & UCOND_MASK) && atomKK->k_uCond.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uCond,space);
+    if ((mask & UMECH_MASK) && atomKK->k_uMech.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uMech,space);
+    if ((mask & UCHEM_MASK) && atomKK->k_uChem.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uChem,space);
+    if ((mask & UCG_MASK) && atomKK->k_uCG.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uCG,space);
+    if ((mask & UCGNEW_MASK) && atomKK->k_uCGnew.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_uCGnew,space);
+    if ((mask & DUCHEM_MASK) && atomKK->k_duChem.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_efloat_1d>(atomKK->k_duChem,space);
+    if ((mask & DVECTOR_MASK) && atomKK->k_dvector.need_sync<LMPHostType>())
+      perform_async_copy<DAT::tdual_float_2d>(atomKK->k_dvector,space);
   }
 }
 
@@ -1861,6 +1915,15 @@ void AtomVecDPDKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPDeviceType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPDeviceType>();
     if (mask & IMAGE_MASK) atomKK->k_image.modify<LMPDeviceType>();
+    if (mask & DPDRHO_MASK) atomKK->k_rho.modify<LMPDeviceType>();
+    if (mask & DPDTHETA_MASK) atomKK->k_dpdTheta.modify<LMPDeviceType>();
+    if (mask & UCOND_MASK) atomKK->k_uCond.modify<LMPDeviceType>();
+    if (mask & UMECH_MASK) atomKK->k_uMech.modify<LMPDeviceType>();
+    if (mask & UCHEM_MASK) atomKK->k_uChem.modify<LMPDeviceType>();
+    if (mask & UCG_MASK) atomKK->k_uCG.modify<LMPDeviceType>();
+    if (mask & UCGNEW_MASK) atomKK->k_uCGnew.modify<LMPDeviceType>();
+    if (mask & DUCHEM_MASK) atomKK->k_duChem.modify<LMPDeviceType>();
+    if (mask & DVECTOR_MASK) atomKK->k_dvector.modify<LMPDeviceType>();
   } else {
     if (mask & X_MASK) atomKK->k_x.modify<LMPHostType>();
     if (mask & V_MASK) atomKK->k_v.modify<LMPHostType>();
@@ -1869,6 +1932,15 @@ void AtomVecDPDKokkos::modified(ExecutionSpace space, unsigned int mask)
     if (mask & TYPE_MASK) atomKK->k_type.modify<LMPHostType>();
     if (mask & MASK_MASK) atomKK->k_mask.modify<LMPHostType>();
     if (mask & IMAGE_MASK) atomKK->k_image.modify<LMPHostType>();
+    if (mask & DPDRHO_MASK) atomKK->k_rho.modify<LMPHostType>();
+    if (mask & DPDTHETA_MASK) atomKK->k_dpdTheta.modify<LMPHostType>();
+    if (mask & UCOND_MASK) atomKK->k_uCond.modify<LMPHostType>();
+    if (mask & UMECH_MASK) atomKK->k_uMech.modify<LMPHostType>();
+    if (mask & UCHEM_MASK) atomKK->k_uChem.modify<LMPHostType>();
+    if (mask & UCG_MASK) atomKK->k_uCG.modify<LMPHostType>();
+    if (mask & UCGNEW_MASK) atomKK->k_uCGnew.modify<LMPHostType>();
+    if (mask & DUCHEM_MASK) atomKK->k_duChem.modify<LMPHostType>();
+    if (mask & DVECTOR_MASK) atomKK->k_dvector.modify<LMPHostType>();
   }
 }
 

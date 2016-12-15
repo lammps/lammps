@@ -52,6 +52,8 @@ PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) : PairDP
 {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | TAG_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
   cutsq = NULL;
 }
 
@@ -357,6 +359,7 @@ double PairDPDfdtEnergyKokkos<DeviceType>::init_one(int i, int j)
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }
   k_cutsq.h_view(i,j) = cutone*cutone;
+  k_cutsq.h_view(j,i) = k_cutsq.h_view(i,j);
   k_cutsq.template modify<LMPHostType>();
 
   return cutone;

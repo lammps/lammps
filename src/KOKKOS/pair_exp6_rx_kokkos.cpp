@@ -54,8 +54,8 @@ PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
 {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
-  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
 }
@@ -104,6 +104,8 @@ void PairExp6rxKokkos<DeviceType>::init_style()
 template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
+  copymode = 1;
+
   eflag = eflag_in;
   vflag = vflag_in;
 
@@ -141,7 +143,9 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   special_coul[3] = force->special_coul[3];
   newton_pair = force->newton_pair;
 
-  copymode = 1;
+  atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
+  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK);
+  else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
 
   // Initialize the Exp6 parameter data for both the local
   // and ghost atoms. Make the parameter data persistent
@@ -185,10 +189,22 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev;
 
-  if (evflag) {
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,1,1> >(0,inum),*this,ev);
-  } else {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,1,0> >(0,inum),*this);
+  if (neighflag == HALF) {
+    if (newton_pair) {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,1,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,1,0> >(0,inum),*this);
+    } else {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,0,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALF,0,0> >(0,inum),*this);
+    }
+  } else if (neighflag == HALFTHREAD) {
+    if (newton_pair) {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALFTHREAD,1,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALFTHREAD,1,0> >(0,inum),*this);
+    } else {
+      if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALFTHREAD,0,1> >(0,inum),*this,ev);
+      else Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairExp6rxCompute<HALFTHREAD,0,0> >(0,inum),*this);
+    }
   }
 
   k_error_flag.template modify<DeviceType>();
@@ -246,6 +262,12 @@ template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+
+  // These arrays are atomic for Half/Thread neighbor style
+  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCG = uCG;
+  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,DeviceType,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_uCGnew = uCGnew;
+
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
   double rsq,r2inv,r6inv,forceExp6,factor_lj;
@@ -286,6 +308,12 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   ztmp = x(i,2);
   itype = type[i];
   jnum = d_numneigh[i];
+
+  double fx_i = 0.0;
+  double fy_i = 0.0;
+  double fz_i = 0.0;
+  double uCG_i = 0.0;
+  double uCGnew_i = 0.0;
 
   {
      epsilon1_i     = PairExp6ParamData.epsilon1[i];
@@ -457,9 +485,9 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
         evdwlOld *= factor_lj;
 
-        uCG[i] += 0.5*evdwlOld;
+        uCG_i += 0.5*evdwlOld;
         if (newton_pair || j < nlocal)
-          uCG[j] += 0.5*evdwlOld;
+          a_uCG[j] += 0.5*evdwlOld;
       }
 
       if(rm12_ij!=0.0 && rm21_ij!=0.0){
@@ -537,28 +565,34 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         if (isite1 == isite2) fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12;
         else fpair = sqrt(fractionOld1_i*fractionOld2_j)*fpairOldEXP6_12 + sqrt(fractionOld2_i*fractionOld1_j)*fpairOldEXP6_21;
 
-        f(i,0) += delx*fpair;
-        f(i,1) += dely*fpair;
-        f(i,2) += delz*fpair;
+        fx_i += delx*fpair;
+        fy_i += dely*fpair;
+        fz_i += delz*fpair;
         if (newton_pair || j < nlocal) {
-          f(j,0) -= delx*fpair;
-          f(j,1) -= dely*fpair;
-          f(j,2) -= delz*fpair;
+          a_f(j,0) -= delx*fpair;
+          a_f(j,1) -= dely*fpair;
+          a_f(j,2) -= delz*fpair;
         }
 
         if (isite1 == isite2) evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12;
         else evdwl = sqrt(fraction1_i*fraction2_j)*evdwlEXP6_12 + sqrt(fraction2_i*fraction1_j)*evdwlEXP6_21;
         evdwl *= factor_lj;
 
-        uCGnew[i]   += 0.5*evdwl;
+        uCGnew_i   += 0.5*evdwl;
         if (newton_pair || j < nlocal)
-          uCGnew[j] += 0.5*evdwl;
+          a_uCGnew[j] += 0.5*evdwl;
         evdwl = evdwlOld;
         //if (vflag_either || eflag_atom) 
         if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
       }
     }
   }
+
+  a_f(i,0) += fx_i;
+  a_f(i,1) += fy_i;
+  a_f(i,2) += fz_i;
+  a_uCG[i] += uCG_i;
+  a_uCGnew[i] += uCGnew_i;
 }
 
 template<class DeviceType>

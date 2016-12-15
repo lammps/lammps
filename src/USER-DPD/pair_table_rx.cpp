@@ -50,6 +50,8 @@ PairTableRX::PairTableRX(LAMMPS *lmp) : Pair(lmp)
 
 PairTableRX::~PairTableRX()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

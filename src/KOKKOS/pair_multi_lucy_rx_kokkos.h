@@ -29,9 +29,12 @@ PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
+struct TagPairMultiLucyRXPackForwardComm{};
+struct TagPairMultiLucyRXUnpackForwardComm{};
+
 struct TagPairMultiLucyRXgetParams{};
 
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
 struct TagPairMultiLucyRXCompute{};
 
 struct TagPairMultiLucyRXZero{};
@@ -50,8 +53,15 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   virtual ~PairMultiLucyRXKokkos();
 
   void compute(int, int);
+  void settings(int, char **);
+
+  template<int TABSTYLE>
+  void compute_style(int, int);
+
   void init_style();
-  void coeff(int, char **);
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+                               int, int *);
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
@@ -59,15 +69,21 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   void computeLocalDensity();
 
   KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairMultiLucyRXPackForwardComm, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairMultiLucyRXUnpackForwardComm, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXgetParams, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
+  void operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int&, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+  void operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXZero, const int&) const;
@@ -92,6 +108,8 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   double rcut_type11;
   double factor_type11;
 
+  enum{LOOKUP,LINEAR,SPLINE,BITMAP};
+
   //struct Table {
   //  int ninput,rflag,fpflag,match;
   //  double rlo,rhi,fplo,fphi,cut;
@@ -100,14 +118,47 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   //  double innersq,delta,invdelta,deltasq6;
   //  double *rsq,*drsq,*e,*de,*f,*df,*e2,*f2;
   //};
-  //Table *tables;
+
+  int tabstyle,tablength;
+  /*struct TableDeviceConst {
+    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread cutsq;
+    typename ArrayTypes<DeviceType>::t_int_2d_randomread tabindex;
+    typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread innersq,invdelta,deltasq6;
+    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+  };*/
+ //Its faster not to use texture fetch if the number of tables is less than 32!
+  struct TableDeviceConst {
+    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
+    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
+    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
+    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread rsq,drsq,e,de,f,df,e2,f2;
+  };
+
+  struct TableDevice {
+    typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
+    typename ArrayTypes<DeviceType>::t_int_2d tabindex;
+    typename ArrayTypes<DeviceType>::t_ffloat_1d innersq,invdelta,deltasq6;
+    typename ArrayTypes<DeviceType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+  };
+
+  struct TableHost {
+    typename ArrayTypes<LMPHostType>::t_ffloat_2d cutsq;
+    typename ArrayTypes<LMPHostType>::t_int_2d tabindex;
+    typename ArrayTypes<LMPHostType>::t_ffloat_1d innersq,invdelta,deltasq6;
+    typename ArrayTypes<LMPHostType>::t_ffloat_2d rsq,drsq,e,de,f,df,e2,f2;
+  };
+
+  TableDeviceConst d_table_const;
+  TableDevice* d_table;
+  TableHost* h_table;
 
   int **tabindex;
+  F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  //void read_table(Table *, char *, char *);
-  //void param_extract(Table *, char *);
-
-  char *site1, *site2;
+  void allocate();
+  int update_table;
+  void create_kokkos_tables();
+  void cleanup_copy();
 
   KOKKOS_INLINE_FUNCTION
   void getParams(int, double &, double &, double &, double &) const;
@@ -118,6 +169,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_efloat_1d rho;
+  typename HAT::t_efloat_1d h_rho;
   typename AT::t_efloat_1d uCG, uCGnew;
   typename AT::t_float_2d dvector;
 
@@ -134,6 +186,11 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX {
 
   typename AT::tdual_ffloat_2d k_cutsq;
   typename AT::t_ffloat_2d d_cutsq;
+
+  int iswap;
+  int first;
+  typename AT::t_int_2d d_sendlist;
+  typename AT::t_xfloat_1d_um v_buf;
 
   friend void pair_virial_fdotr_compute<PairMultiLucyRXKokkos>(PairMultiLucyRXKokkos*);
 };

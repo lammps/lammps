@@ -52,7 +52,7 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
 template<class DeviceType>
 FixEOStableRXKokkos<DeviceType>::~FixEOStableRXKokkos()
 {
-
+  if (copymode) return;
 }
 
 /* ---------------------------------------------------------------------- */

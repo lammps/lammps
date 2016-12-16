@@ -89,6 +89,7 @@ void Python::command(int narg, char **arg)
   istr = NULL;
   ostr = NULL;
   format = NULL;
+  length_longstr = 0;
   char *pyfile = NULL;
   char *herestr = NULL;
   int existflag = 0;
@@ -114,6 +115,11 @@ void Python::command(int narg, char **arg)
       int n = strlen(arg[iarg+1]) + 1;
       format = new char[n];
       strcpy(format,arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"length") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
+      length_longstr = force->inumeric(FLERR,arg[iarg+1]);
+      if (length_longstr <= 0) error->all(FLERR,"Invalid python command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
@@ -249,6 +255,7 @@ void Python::invoke_function(int ifunc, char *result)
 
   // function returned a value
   // assign it to result string stored by python-style variable
+  // or if user specified a length, assign it to longstr
 
   if (pfuncs[ifunc].noutput) {
     int otype = pfuncs[ifunc].otype;
@@ -258,7 +265,9 @@ void Python::invoke_function(int ifunc, char *result)
       sprintf(result,"%.15g",PyFloat_AsDouble(pValue));
     } else if (otype == STRING) {
       char *pystr = PyString_AsString(pValue);
-      strncpy(result,pystr,VALUELENGTH-1);
+      if (pfuncs[ifunc].longstr) 
+        strncpy(pfuncs[ifunc].longstr,pystr,pfuncs[ifunc].length_longstr);
+      else strncpy(result,pystr,VALUELENGTH-1);
     }
     Py_DECREF(pValue);
   }
@@ -283,6 +292,13 @@ int Python::variable_match(char *name, char *varname, int numeric)
   if (strcmp(pfuncs[ifunc].ovarname,varname) != 0) return -1;
   if (numeric && pfuncs[ifunc].otype == STRING) return -1;
   return ifunc;
+}
+
+/* ------------------------------------------------------------------ */
+
+char *Python::long_string(int ifunc)
+{
+  return pfuncs[ifunc].longstr;
 }
 
 /* ------------------------------------------------------------------ */
@@ -370,6 +386,7 @@ int Python::create_entry(char *name)
   // process output as value or variable
 
   pfuncs[ifunc].ovarname = NULL;
+  pfuncs[ifunc].longstr = NULL;
   if (!noutput) return ifunc;
 
   char type = format[ninput];
@@ -377,6 +394,14 @@ int Python::create_entry(char *name)
   else if (type == 'f') pfuncs[ifunc].otype = DOUBLE;
   else if (type == 's') pfuncs[ifunc].otype = STRING;
   else error->all(FLERR,"Invalid python command");
+
+  if (length_longstr) {
+    if (pfuncs[ifunc].otype != STRING) 
+      error->all(FLERR,"Python command length keyword "
+                 "cannot be used unless output is a string");
+    pfuncs[ifunc].length_longstr = length_longstr;
+    pfuncs[ifunc].longstr = new char[length_longstr+1];
+  }
 
   if (strstr(ostr,"v_") != ostr) error->all(FLERR,"Invalid python command");
   int n = strlen(&ostr[2]) + 1;
@@ -398,4 +423,5 @@ void Python::deallocate(int i)
     delete [] pfuncs[i].svalue[j];
   delete [] pfuncs[i].svalue;
   delete [] pfuncs[i].ovarname;
+  delete [] pfuncs[i].longstr;
 }

@@ -40,8 +40,12 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
 {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
-  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
+
+  update_table = 1;
+  h_table = new TableHost();
+  d_table = new TableDevice();
 
   k_error_flag = DAT::tdual_int_scalar("fix:error_flag");
   k_warning_flag = DAT::tdual_int_scalar("fix:warning_flag");
@@ -53,6 +57,9 @@ template<class DeviceType>
 FixEOStableRXKokkos<DeviceType>::~FixEOStableRXKokkos()
 {
   if (copymode) return;
+
+  delete h_table;
+  delete d_table;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -60,6 +67,11 @@ FixEOStableRXKokkos<DeviceType>::~FixEOStableRXKokkos()
 template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
 {
+  if (update_table)
+    create_kokkos_tables();
+
+  copymode = 1;
+
   int nlocal = atom->nlocal;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
@@ -68,6 +80,10 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
   uCG = atomKK->k_uCG.view<DeviceType>();
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
+  dvector = atomKK->k_dvector.view<DeviceType>();
+
+  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
+  atomKK->modified(execution_space,UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK);
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXSetup>(0,nlocal),*this);
 
@@ -77,6 +93,8 @@ void FixEOStableRXKokkos<DeviceType>::setup(int vflag)
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
 
   error_check();
+
+  copymode = 0;
 }
 
 template<class DeviceType>
@@ -102,12 +120,21 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLook
 template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::init()
 {
+  if (update_table)
+    create_kokkos_tables();
+
+  copymode = 1;
+
   int nlocal = atom->nlocal;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
   uChem = atomKK->k_uChem.view<DeviceType>();
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
+  dvector = atomKK->k_dvector.view<DeviceType>();
+
+  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
+  atomKK->modified(execution_space,UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK);
 
   if (this->restart_reset)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup>(0,nlocal),*this);
@@ -115,6 +142,8 @@ void FixEOStableRXKokkos<DeviceType>::init()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXInit>(0,nlocal),*this);
 
   error_check();
+
+  copymode = 0;
 }
 
 template<class DeviceType>
@@ -136,16 +165,27 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int
 template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::post_integrate()
 {
+  if (update_table)
+    create_kokkos_tables();
+
+  copymode = 1;
+
   int nlocal = atom->nlocal;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
   uMech = atomKK->k_uMech.view<DeviceType>();
   uChem = atomKK->k_uChem.view<DeviceType>();
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
+  dvector = atomKK->k_dvector.view<DeviceType>();
+
+  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | DVECTOR_MASK);
+  atomKK->modified(execution_space,DPDTHETA_MASK);
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
 
   error_check();
+
+  copymode = 0;
 }
 
 template<class DeviceType>
@@ -163,6 +203,11 @@ void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLook
 template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::end_of_step()
 {
+  if (update_table)
+    create_kokkos_tables();
+
+  copymode = 1;
+
   int nlocal = atom->nlocal;
   mask = atomKK->k_mask.view<DeviceType>();
   uCond = atomKK->k_uCond.view<DeviceType>();
@@ -171,7 +216,10 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
   dpdTheta= atomKK->k_dpdTheta.view<DeviceType>();
   uCG = atomKK->k_uCG.view<DeviceType>();
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
-  double duChem;
+  dvector = atomKK->k_dvector.view<DeviceType>();
+
+  atomKK->sync(execution_space,MASK_MASK | UCOND_MASK | UMECH_MASK | UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
+  atomKK->modified(execution_space,UCHEM_MASK | DPDTHETA_MASK | UCG_MASK | UCGNEW_MASK);
 
   // Communicate the ghost uCGnew
   comm->reverse_comm_fix(this);
@@ -184,6 +232,8 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixEOStableRXTemperatureLookup2>(0,nlocal),*this);
 
   error_check();
+
+  copymode = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -200,22 +250,27 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, double thetai, doubl
   ui = 0.0;
   nTotal = 0.0;
   for(int ispecies=0;ispecies<nspecies;ispecies++){
-    Table *tb = &tables[ispecies];
-    thetai = MAX(thetai,tb->lo);
-    thetai = MIN(thetai,tb->hi);
+    //Table *tb = &tables[ispecies];
+    //thetai = MAX(thetai,tb->lo);
+    thetai = MAX(thetai,d_table_const.lo(ispecies));
+    //thetai = MIN(thetai,tb->hi);
+    thetai = MIN(thetai,d_table_const.hi(ispecies));
 
     if (tabstyle == LINEAR) {
-      itable = static_cast<int> ((thetai - tb->lo) * tb->invdelta);
-      fraction = (thetai - tb->r[itable]) * tb->invdelta;
-      uTmp = tb->e[itable] + fraction*tb->de[itable];
+      //itable = static_cast<int> ((thetai - tb->lo) * tb->invdelta);
+      itable = static_cast<int> ((thetai - d_table_const.lo(ispecies)) * d_table_const.invdelta(ispecies));
+      //fraction = (thetai - tb->r[itable]) * tb->invdelta;
+      fraction = (thetai - d_table_const.r(ispecies,itable)) * d_table_const.invdelta(ispecies);
+      //uTmp = tb->e[itable] + fraction*tb->de[itable];
+      uTmp = d_table_const.e(ispecies,itable) + fraction*d_table_const.de(ispecies,itable);
 
       uTmp += dHf[ispecies];
       // mol fraction form:
-      ui += atom->dvector[ispecies][id]*uTmp;
-      nTotal += atom->dvector[ispecies][id];
+      ui += dvector(ispecies,id)*uTmp;
+      nTotal += dvector(ispecies,id);
     }
   }
-  ui = ui - double(nTotal+1.5)*force->boltz*thetai;
+  ui = ui - double(nTotal+1.5)*force->boltz*thetai; // need class variable
 }
 
 /* ----------------------------------------------------------------------
@@ -226,18 +281,20 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, double &thetai) const
 {
-  Table *tb = &tables[0];
+  //Table *tb = &tables[0];
 
   int it;
   double t1,t2,u1,u2,f1,f2;
   double maxit = 100;
   double temp;
   double delta = 0.001;
+  int lo = d_table_const.lo(0);
+  int hi = d_table_const.hi(0);
 
   // Store the current thetai in t1
-  t1 = MAX(thetai,tb->lo);
-  t1 = MIN(t1,tb->hi);
-  if(t1==tb->hi) delta = -delta;
+  t1 = MAX(thetai,lo);
+  t1 = MIN(t1,hi);
+  if(t1==hi) delta = -delta;
 
   // Compute u1 at thetai
   energy_lookup(id,t1,u1);
@@ -259,8 +316,8 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, double ui, doub
     if(fabs(f2-f1)<1e-15){
       if(isnan(f1) || isnan(f2)) k_error_flag.d_view() = 2;
       temp = t1;
-      temp = MAX(temp,tb->lo);
-      temp = MIN(temp,tb->hi);
+      temp = MAX(temp,lo);
+      temp = MIN(temp,hi);
       k_warning_flag.d_view() = 1;
       break;
     }
@@ -286,9 +343,6 @@ template<class DeviceType>
 int FixEOStableRXKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   int ii,jj,m;
-  uChem = atomKK->k_uChem.view<DeviceType>();
-  uCG = atomKK->k_uCG.view<DeviceType>();
-  uCGnew = atomKK->k_uCGnew.view<DeviceType>();
 
   m = 0;
   for (ii = 0; ii < n; ii++) {
@@ -306,9 +360,6 @@ template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   int ii,m,last;
-  uChem = atomKK->k_uChem.view<DeviceType>();
-  uCG = atomKK->k_uCG.view<DeviceType>();
-  uCGnew = atomKK->k_uCGnew.view<DeviceType>();
 
   m = 0;
   last = first + n ;
@@ -325,8 +376,6 @@ template<class DeviceType>
 int FixEOStableRXKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
-  uCG = atomKK->k_uCG.view<DeviceType>();
-  uCGnew = atomKK->k_uCGnew.view<DeviceType>();
 
   m = 0;
   last = first + n;
@@ -343,8 +392,6 @@ template<class DeviceType>
 void FixEOStableRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
-  uCG = atomKK->k_uCG.view<DeviceType>();
-  uCGnew = atomKK->k_uCGnew.view<DeviceType>();
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -377,6 +424,55 @@ void FixEOStableRXKokkos<DeviceType>::error_check()
     k_warning_flag.template modify<LMPHostType>();
     k_warning_flag.template sync<DeviceType>();
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
+{
+  const int tlm1 = tablength-1;
+
+  memory->create_kokkos(d_table->lo,h_table->lo,ntables,"Table::lo");
+  memory->create_kokkos(d_table->hi,h_table->hi,ntables,"Table::hi");
+  memory->create_kokkos(d_table->invdelta,h_table->invdelta,ntables,"Table::invdelta");
+
+  if(tabstyle == LINEAR) {
+    memory->create_kokkos(d_table->r,h_table->r,ntables,tablength,"Table::r");
+    memory->create_kokkos(d_table->e,h_table->e,ntables,tablength,"Table::e");
+    memory->create_kokkos(d_table->de,h_table->de,ntables,tlm1,"Table::de");
+  }
+
+  for(int i=0; i < ntables; i++) {
+    Table* tb = &tables[i];
+
+    h_table->lo[i] = tb->lo;
+    h_table->hi[i] = tb->hi;
+    h_table->invdelta[i] = tb->invdelta;
+
+    for(int j = 0; j<h_table->r.dimension_1(); j++)
+      h_table->r(i,j) = tb->r[j];
+    for(int j = 0; j<h_table->e.dimension_1(); j++)
+      h_table->e(i,j) = tb->e[j];
+    for(int j = 0; j<h_table->de.dimension_1(); j++)
+      h_table->de(i,j) = tb->de[j];
+  }
+
+  Kokkos::deep_copy(d_table->lo,h_table->lo);
+  Kokkos::deep_copy(d_table->hi,h_table->hi);
+  Kokkos::deep_copy(d_table->invdelta,h_table->invdelta);
+  Kokkos::deep_copy(d_table->r,h_table->r);
+  Kokkos::deep_copy(d_table->e,h_table->e);
+  Kokkos::deep_copy(d_table->de,h_table->de);
+
+  d_table_const.lo = d_table->lo;
+  d_table_const.hi = d_table->hi;
+  d_table_const.invdelta = d_table->invdelta;
+  d_table_const.r = d_table->r;
+  d_table_const.e = d_table->e;
+  d_table_const.de = d_table->de;
+
+  update_table = 0;
 }
 
 /* ---------------------------------------------------------------------- */

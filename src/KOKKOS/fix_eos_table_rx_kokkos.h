@@ -75,13 +75,46 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   //};
   //Table *tables, *tables2;
 
+  /*struct TableDeviceConst {
+    typename ArrayTypes<DeviceType>::t_int_1d_randomread lo,hi;
+    typename ArrayTypes<DeviceType>::t_ffloat_1d_randomread invdelta;
+    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread r,e,de;
+  };*/
+ //Its faster not to use texture fetch if the number of tables is less than 32!
+  struct TableDeviceConst {
+    typename ArrayTypes<DeviceType>::t_int_1d lo,hi;
+    typename ArrayTypes<DeviceType>::t_ffloat_1d invdelta;
+    typename ArrayTypes<DeviceType>::t_ffloat_2d_randomread r,e,de;
+  };
+
+  struct TableDevice {
+    typename ArrayTypes<DeviceType>::t_int_1d lo,hi;
+    typename ArrayTypes<DeviceType>::t_ffloat_1d invdelta;
+    typename ArrayTypes<DeviceType>::t_ffloat_2d r,e,de;
+  };
+
+  struct TableHost {
+    typename ArrayTypes<LMPHostType>::t_int_1d lo,hi;
+    typename ArrayTypes<LMPHostType>::t_ffloat_1d invdelta;
+    typename ArrayTypes<LMPHostType>::t_ffloat_2d r,e,de;
+  };
+
+  TableDeviceConst d_table_const;
+  TableDevice* d_table;
+  TableHost* h_table;
+
+  int **tabindex;
+
   void allocate();
   void error_check();
+  int update_table;
+  void create_kokkos_tables();
 
   //double *dHf;
 
   typename AT::t_int_1d mask;
   typename AT::t_efloat_1d uCond,uMech,uChem,uCG,uCGnew,rho,dpdTheta,duChem;
+  typename AT::t_float_2d dvector;
 
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_warning_flag;

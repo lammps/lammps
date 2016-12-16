@@ -44,7 +44,7 @@ class PairExp6rx : public Pair {
   double **epsilon,**rm,**alpha;
   double **rminv,**buck1,**buck2,**offset;
 
-  void allocate();
+  virtual void allocate();
   int *mol2param;               // mapping from molecule to parameters
   int nparams;                  // # of stored parameter sets
   int maxparam;                 // max # of parameter sets
@@ -58,7 +58,7 @@ class PairExp6rx : public Pair {
   Param *params;                // parameter set for an I-J-K interaction
 
   int nspecies;
-  void read_file(char *);
+  virtual void read_file(char *);
   void setup();
 
   int isite1, isite2;

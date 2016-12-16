@@ -65,7 +65,20 @@ PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
 template<class DeviceType>
 PairExp6rxKokkos<DeviceType>::~PairExp6rxKokkos()
 {
+  if (copymode) return;
 
+  memory->destroy_kokkos(k_eatom,eatom);
+  memory->destroy_kokkos(k_vatom,vatom);
+
+  memory->destroy_kokkos(k_cutsq,cutsq);
+
+  for (int i=0; i < nparams; ++i) {
+    delete[] params[i].name;
+    delete[] params[i].potential;
+  }
+  memory->destroy_kokkos(k_params,params);
+
+  memory->destroy_kokkos(k_mol2param,mol2param);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,7 +86,7 @@ PairExp6rxKokkos<DeviceType>::~PairExp6rxKokkos()
 template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::init_style()
 {
-  PairExp6rxKokkos::init_style();
+  PairExp6rx::init_style();
 
   // irequest = neigh request made by parent class
 
@@ -89,11 +102,9 @@ void PairExp6rxKokkos<DeviceType>::init_style()
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->half = 0;
-    neighbor->requests[irequest]->ghost = 1;
   } else if (neighflag == HALF || neighflag == HALFTHREAD) {
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-    neighbor->requests[irequest]->ghost = 1;
   } else {
     error->all(FLERR,"Cannot use chosen neighbor list style with reax/c/kk");
   }

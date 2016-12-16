@@ -79,11 +79,13 @@ PairExp6rx::~PairExp6rx()
 {
   if (copymode) return;
 
-  for (int i=0; i < nparams; ++i) {
-    delete[] params[i].name;
-    delete[] params[i].potential;
+  if (params != NULL) {
+    for (int i=0; i < nparams; ++i) {
+      delete[] params[i].name;
+      delete[] params[i].potential;
+    }
+    memory->destroy(params);
   }
-  memory->destroy(params);
   memory->destroy(mol2param);
 
   if (allocated) {
